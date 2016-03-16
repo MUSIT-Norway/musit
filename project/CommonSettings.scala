@@ -16,9 +16,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
+import com.typesafe.sbt.SbtNativePackager
+import com.typesafe.sbt.SbtNativePackager.autoImport._
+import com.typesafe.sbt.packager.docker.DockerPlugin
 import sbt._
 import Keys._
-import play.PlayScala
 
 object CommonSettings {
 
@@ -37,7 +40,10 @@ object CommonSettings {
 
   def PlayProject(name: String): Project = (
     BaseProject(name)
-    enablePlugins(PlayScala)
+    enablePlugins(play.sbt.Play)
+    enablePlugins(SbtNativePackager)
+    enablePlugins(DockerPlugin)
+    //enablePlugins(DockerSpotifyClientPlugin) get spotify client running and you have no dependencies to local docker
   )
   
 }

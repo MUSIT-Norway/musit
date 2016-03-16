@@ -17,6 +17,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 resolvers ++= DefaultOptions.resolvers(snapshot = true)
+resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+resolvers += "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/"
 
 // The Play plugin
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.0")
@@ -43,11 +45,11 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.1.0")
 // Scala Style Plugin
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.7.0")
 
-resolvers += "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/"
-
 // scoverage Plugin
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.1.0")
 
 // sbt-web plugin for gzip compressing web assets
 addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0")
 
+// Packaging
+addSbtPlugin("com.typesafe.sbt" %% "sbt-native-packager" % "1.0.4")

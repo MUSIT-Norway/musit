@@ -19,7 +19,6 @@
 package no.uio.musit.microservice.example.dao
 
 import no.uio.musit.microservice.example.domain.Example
-import no.uio.musit.microservices.example.domain._
 import play.api.Play
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 

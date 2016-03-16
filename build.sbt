@@ -33,6 +33,13 @@ scalacOptions ++= List(
   "-encoding", "UTF-8"
 )
 
+val baseDockerSettings = Seq(
+  maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
+  packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
+  packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",
+  dockerExposedPorts in Docker := Seq(8080)
+)
+
 val scoverageSettings = Seq(
   coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router",
   coverageExcludedFiles := "",
@@ -40,19 +47,27 @@ val scoverageSettings = Seq(
   coverageFailOnMinimum := true
 )
 
+val noPublish = Seq(
+  publish := {},
+  publishLocal := {}
+)
+
 lazy val root = (
   project.in(file("."))
+  settings(noPublish)
   aggregate(common, security_feide, service_example)
 )
 
 lazy val common = (
   BaseProject("common")
+  settings(noPublish)
   settings(libraryDependencies ++= playDependencies)
   settings(scoverageSettings: _*)
 )
 
 lazy val security_feide = (
   BaseProject("security_feide")
+  settings(noPublish)
   settings(libraryDependencies ++= playDependencies)
   settings(scoverageSettings: _*)
 )
@@ -62,6 +77,9 @@ lazy val service_example = (
   settings(libraryDependencies ++= playWithPersistenceDependencies)
   settings(routesGenerator := InjectedRoutesGenerator)
   settings(scoverageSettings: _*)
+  settings(baseDockerSettings ++ Seq(
+    packageName in Docker := "musit_service_example"
+  ))
 ) dependsOn(common)
 
 /*

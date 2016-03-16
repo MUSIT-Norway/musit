@@ -60,6 +60,9 @@ object Dependencies {
   val h2database     = "com.h2database"      %  "h2"                       % "1.4.187"
   val scalatest      = "org.scalatest"       %% "scalatest"                % "2.2.4"            % "test"
 
+  // packager for RPM and Docker
+  val dockerClient   = "com.spotify" % "docker-client" % "3.2.1"
+
   val playDependencies: Seq[ModuleID] = Seq(
     playframework.cache,
     playframework.ws,
