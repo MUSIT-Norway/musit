@@ -58,6 +58,7 @@ lazy val root = (
   aggregate(common, security_feide, service_example)
 )
 
+// Base projects used as dependencies
 lazy val common = (
   BaseProject("common")
   settings(noPublish)
@@ -72,6 +73,7 @@ lazy val security_feide = (
   settings(scoverageSettings: _*)
 )
 
+// Microservices with publish support
 lazy val service_example = (
   PlayProject("service_example")
   settings(libraryDependencies ++= playWithPersistenceDependencies)
@@ -82,15 +84,25 @@ lazy val service_example = (
   ))
 ) dependsOn(common)
 
-/*
-lazy val service2 = (
-  PlayProject("service2")
-  settings(libraryDependencies ++= playWithPersistenceDependencies)
-  settings(routesGenerator := InjectedRoutesGenerator)
-  settings(scoverageSettings: _*)
-) dependsOn(common) dependsOn(security_feide)
-*/
+// Add other services here
 
-/* Consider adding this as a task for slick automatic code gen from schema
- * https://github.com/slick/slick-codegen-example
- */
+// Extra tasks
+// TODO: Fix codegen task to have external properties not in GIT
+libraryDependencies += "com.typesafe.slick" %% "slick-codegen" % "2.1.0"
+lazy val dbgen = taskKey[Seq[File]]("slick code generation")
+
+dbgen := {
+  val dbName = "olddb"
+  val userName = "username"
+  val password = "have to find some way of adding it a runtime"
+  val url = s"jdbc:mysql://server:port/$dbName"
+  val jdbcDriver = "com.mysql.jdbc.Driver"
+  val slickDriver = "scala.slick.driver.MySQLDriver"
+  val targetPackageName = "no.uio.musit.legacy.model"
+  val outputDir = ((sourceManaged in Compile).value / dbName).getPath
+  val fname = outputDir + s"/$targetPackageName/Tables.scala"
+  println(s"\nauto-generating slick source for database schema at $url...")
+  println(s"output source file file: file://$fname\n")
+  (runner in Compile).value.run("scala.slick.codegen.SourceCodeGenerator", (dependencyClasspath in Compile).value.files, Array(slickDriver, jdbcDriver, url, outputDir, targetPackageName, userName, password), streams.value.log)
+  Seq(file(fname))
+}

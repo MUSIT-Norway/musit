@@ -2,16 +2,57 @@
   "name": "MUSIT-Frontend",
   "version": "1.0.0",
   "description": "ReactJS app to communicate with the MUSIT-Backend.",
-  "main": "package.json",
+  "main": "server/main.js",
   "scripts": {
-    "start": "webpack-dev-server",
-    "lint": "npm run lint:js",
-    "lint:js": " eslint --fix --config=./.eslintrc . --ext=jsx --ext=js --ignore-path .eslintignore"
+    "start": "concurrent --kill-others \"npm run start-prod\"",
+    "start-prod": "better-npm-run start-prod",
+    "build": "better-npm-run build",
+    "postinstall": "npm run build",
+    "lint": "eslint --fix --config=./.eslintrc . --ext=jsx --ext=js --ignore-path .eslintignore app server",
+    "start-dev": "better-npm-run start-dev",
+    "watch-client": "better-npm-run watch-client",
+    "dev": "concurrent --kill-others \"npm run watch-client\" \"npm run start-dev\"",
+    "test": "karma start",
+    "test-node": "./node_modules/mocha/bin/mocha $(find api -name '*-test.js') --compilers js:babel-core/register",
+    "test-node-watch": "./node_modules/mocha/bin/mocha $(find api -name '*-test.js') --compilers js:babel-core/register --watch"
+  },
+  "betterScripts": {
+    "start-prod": {
+      "command": "node ./server/main.js",
+      "env": {
+        "NODE_PATH": "./app",
+        "NODE_ENV": "production",
+        "PORT": 80
+      }
+    },
+    "start-dev": {
+      "command": "node ./server/main.js",
+      "env": {
+        "NODE_PATH": "./app",
+        "NODE_ENV": "development",
+        "PORT": 8080
+      }
+    },
+    "watch-client": {
+      "command": "node webpack/webpack-dev-server.js",
+      "env": {
+        "UV_THREADPOOL_SIZE": 100,
+        "NODE_PATH": "./app",
+        "PORT": 9000
+      }
+    },
+    "build": {
+      "command": "webpack --verbose --colors --display-error-details --config webpack/production.config.js",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
   },
   "repository": {
     "type": "git",
-    "url": "<TBD>"
+    "url": "https://github.com/MUSIT-Norway/musit"
   },
+  "homepage": "http://musit.uio.no",
   "keywords": [
     "MUSIT",
     "Frontend",
@@ -21,57 +62,81 @@
     "cultural",
     "history",
     "redux",
-    "Museum"
+    "Museum",
+    "webpack",
+    "node",
+    "gateway",
+    "express",
+    "babel"
   ],
   "author": "MUSIT",
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN ../LICENSE.md",
   "dependencies": {
-    "browser-websocket": "0.0.3",
-    "exports-loader": "^0.6.2",
-    "furtive": "^2.2.3",
-    "history": "^1.13.1",
-    "immutable": "^3.7.6",
-    "imports-loader": "^0.6.5",
-    "merge": "^1.2.0",
-    "r-dom": "^2.1.0",
-    "react": "^0.14.3",
-    "react-dom": "^0.14.3",
-    "react-icons": "^1.0.3",
-    "react-markdown": "^1.2.0",
-    "react-redux": "^4.0.2",
-    "react-router": "^1.0.3",
-    "redux": "^3.0.5",
-    "redux-logger": "^2.3.1",
-    "redux-simple-router": "^1.0.1",
-    "redux-thunk": "^1.0.2"
-  },
-  "devDependencies": {
-    "autoprefixer": "^6.2.0",
-    "babel-core": "^6.3.21",
-    "babel-loader": "^6.2.0",
-    "babel-plugin-react-transform": "^1.1.1",
-    "babel-plugin-transform-runtime": "^6.3.13",
+    "babel-core": "^6.7.2",
+    "babel-loader": "^6.2.4",
+    "babel-plugin-add-module-exports": "^0.1.2",
+    "babel-plugin-transform-runtime": "^6.6.0",
+    "babel-polyfill": "^6.3.14",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-react": "^6.3.13",
     "babel-preset-stage-0": "^6.3.13",
-    "babel-preset-stage-1": "^6.3.13",
-    "babel-preset-stage-2": "^6.3.13",
-    "babel-preset-stage-3": "^6.3.13",
-    "css-loader": "^0.23.0",
+    "babel-register": "^6.3.13",
+    "babel-runtime": "^6.3.19",
+    "exports-loader": "^0.6.3",
+    "history": "^2.0.1",
+    "immutable": "^3.7.6",
+    "imports-loader": "^0.6.5",
+    "less": "^2.6.1",
+    "less-loader": "^2.2.2",
+    "merge": "^1.2.0",
+    "react": "^0.14.7",
+    "react-bootstrap": "^0.28.3",
+    "react-dom": "^0.14.7",
+    "react-icons": "^1.0.3",
+    "react-markdown": "^2.1.0",
+    "react-redux": "^4.4.1",
+    "react-router": "^2.0.1",
+    "react-router-redux": "^4.0.0",
+    "redux": "^3.3.1",
+    "redux-async-connect": "^1.0.0-rc4",
+    "redux-logger": "^2.6.1",
+    "redux-simple-router": "^2.0.4",
+    "socket.io": "^1.4.5",
+    "socket.io-client": "^1.4.5",
+    "superagent": "^1.8.1",
+    "webpack-isomorphic-tools": "^2.2.32"
+  },
+  "devDependencies": {
+    "autoprefixer": "^6.3.3",
+    "babel-plugin-react-transform": "^2.0.2",
+    "better-npm-run": "0.0.8",
+    "bootstrap-sass": "^3.3.6",
+    "bootstrap-sass-loader": "^1.0.10",
+    "clean-webpack-plugin": "^0.1.8",
+    "css-loader": "^0.23.1",
     "deep-freeze": "0.0.1",
-    "expect": "^1.13.4",
+    "expect": "^1.15.2",
+    "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.8.5",
-    "jsdom": "^7.2.1",
+    "font-awesome": "^4.5.0",
+    "font-awesome-webpack": "0.0.4",
     "json-loader": "^0.5.4",
-    "mocha": "^2.3.4",
-    "react-addons-test-utils": "^0.14.3",
-    "react-transform-hmr": "^1.0.1",
-    "redux-devtools": "^3.0.0",
-    "redux-devtools-dock-monitor": "^1.0.1",
-    "redux-devtools-log-monitor": "^1.0.1",
-    "sass-loader": "^3.1.2",
+    "mocha": "^2.4.5",
+    "node-sass": "^3.4.2",
+    "react-addons-test-utils": "^0.14.7",
+    "react-transform-hmr": "^1.0.4",
+    "redux-devtools": "^3.1.1",
+    "redux-devtools-dock-monitor": "^1.1.0",
+    "redux-devtools-log-monitor": "^1.0.5",
+    "sass-loader": "^3.2.0",
+    "strip-loader": "^0.1.2",
     "style-loader": "^0.13.0",
     "url-loader": "^0.5.7",
-    "webpack-dev-server": "^1.14.0"
+    "webpack": "^1.12.14",
+    "webpack-dev-middleware": "^1.5.1",
+    "webpack-hot-middleware": "^2.10.0"
+  },
+  "engines": {
+    "node": "5.6.0"
   }
 }
