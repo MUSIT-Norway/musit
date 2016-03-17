@@ -22,4 +22,5 @@ NPM=`which npm`
 NPM install webpack -g
 NPM install webpack-dev-server -g
 NPM install babel -g
+NPM install phantomjs-prebuilt -g
 NPM install
