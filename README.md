@@ -6,9 +6,12 @@ The project is run as an opensource initiative and is cooperating with other pro
 All code is protected under the [GPL v2 or later](http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) and copyright holder is [MUSIT](http://musit.uio.no) as a part of [University of Oslo](http://www.uio.no).
 
 ## Contents
-gui - ReactJS w/redux frontend and NodeJS api gateway implemetation. (See Frontend)
-common - A directory for common code for all service implementations.
-service* - Microservice implementations in scala and Playframework. (See Middleware)
+**gui** - ReactJS w/redux frontend and NodeJS api gateway implemetation. (See Frontend)
+
+**common** - A directory for common code for all service implementations.
+
+**service**_* - Microservice implementations in scala and Playframework. (See Middleware)
+
 
 ### Middleware
 All middeware service* projects are a Scala 2.11.x implementation of a microservice architecture using Playframework 2.4.x.
@@ -34,6 +37,7 @@ To get started you need to install the following components on your computer:
 * [Docker](http://www.docker.com) latest version for your OS.
 
 After Java 8 and sbt is installed.
+
 1. sudo service docker start
 2. sbt compile
 
@@ -85,23 +89,25 @@ To get started you need to install the following components on your computer:
 * [NodeJS](https://nodejs.org/en/download) v5+ with NPM for your operating system
 
 After NodeJS and NPM is installed you need to install some global libraries through NPM to be able to run the project.
+
 1. cd gui
 2. npm install webpack -g
 3. npm install webpack-dev-server -g
 4. npm install babel -g
 5. npm install phantomjs-prebuilt -g
 6. npm install
-(*For your convenience a initialize.sh script has been added to the gui directory that execute these commands*)
+
+(_For your convenience a initialize.sh script has been added to the gui directory that execute these commands_)
 
 #### Building
 
-While standing in the gui directory you can build the project by using the webpack command.
+While standing in the gui directory you can build the project by using the npm run build command.
 
 #### Running
 
 You use npm to run the application while standing in the gui directory and the following targets are available:
-* start - This target will start the webpack dev server for development cycle
+TBD
 
 ## Contact
 
-If you are interested in participating in the project please contact musit@musit.uio.no
+If you are interested in participating in the project please contact opensource@musit.uio.no
