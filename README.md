@@ -82,6 +82,11 @@ $ sbt coverageAggregate
 
 This is a NodeJS frontend project written in ReactJS with Redux for interacting with MUSIT-Backend.
 The node instance code also contains the API Gateway and router implementation to connect to the microservices.
+The frontend Redux code communicate over websockets with the API gateway to make the client more connected and the
+communication protocol as tight and compact as possible.
+
+_The API Gateway will be expanded with a rest interface proxy when the project gets more mature and the microservices
+start stabilizing._
 
 #### Installation
 
