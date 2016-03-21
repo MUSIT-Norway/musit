@@ -20,7 +20,7 @@
 import 'babel-polyfill'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import createStoreStore from './store/configureStore.js'
+import createStore from './store/configureStore.js'
 import ApiClient from './helpers/client-api'
 import io from 'socket.io-client'
 import {Provider} from 'react-redux'
@@ -33,9 +33,10 @@ import getRoutes from './routes'
 
 const client = new ApiClient()
 
-const history = useScroll(() => browserHistory)()
+const browserHistory = useScroll(() => browserHistory)()
 const dest = document.getElementById('content')
-const store = createStore(history, client, window.__data)
+const store = createStore(client, window.__data)
+const history = syncHistoryWithStore(browserHistory, store)
 
 function initSocket() {
   const socket = io('', {path: '/ws'})

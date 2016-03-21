@@ -25,15 +25,16 @@ import favicon from 'serve-favicon';
 import compression from 'compression';
 import httpProxy from 'http-proxy';
 import path from 'path';
-import createStore from './redux/create';
-import ApiClient from './helpers/ApiClient';
-import Html from './helpers/Html';
+import createStore from './store/configureStore';
+import ApiClient from './helpers/client-api';
+import Html from './helpers/html';
 import PrettyError from 'pretty-error';
 import http from 'http';
 
 import { match } from 'react-router';
 import { ReduxAsyncConnect, loadOnServer } from 'redux-async-connect';
 import createHistory from 'react-router/lib/createMemoryHistory';
+import { syncHistoryWithStore } from 'react-router-redux'
 import {Provider} from 'react-redux';
 import getRoutes from './routes';
 
@@ -47,7 +48,7 @@ const proxy = httpProxy.createProxyServer({
 });
 
 app.use(compression());
-app.use(favicon(path.join(__dirname, '..', 'static', 'favicon.ico')));
+app.use(favicon(path.join(__dirname, '..', 'static', 'favicons', 'favicon.ico')));
 
 app.use(Express.static(path.join(__dirname, '..', 'static')));
 
@@ -85,9 +86,10 @@ app.use((req, res) => {
     webpackIsomorphicTools.refresh();
   }
   const client = new ApiClient(req);
-  const history = createHistory(req.originalUrl);
+  const virtualBrowserHistory = createHistory(req.originalUrl);
 
-  const store = createStore(history, client);
+  const store = createStore(client);
+  const history = syncHistoryWithStore(virtualBrowserHistory, store)
 
   function hydrateOnClient() {
     res.send('<!doctype html>\n' +

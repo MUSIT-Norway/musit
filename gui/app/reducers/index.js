@@ -23,7 +23,7 @@ import exampleReducer from './example'
 
 const rootReducer = combineReducers({
   example: exampleReducer,
-  routing: routeReducer
+  routing: routerReducer
 })
 
 export default rootReducer

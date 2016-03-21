@@ -17,16 +17,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import { applyMiddleware, createStore, compose } from 'redux'
+import { applyMiddleware, createStore as _createStore, compose } from 'redux'
 import rootReducer from '../reducers'
 import createMiddleware from '../middleware/clientMiddleware';
-import { syncHistory } from 'react-router-redux';
 
-export default function configureStore(history, client, data) {
-  // Sync dispatched route actions to the history
-  const reduxRouterMiddleware = syncHistory(history);
-
-  const middleware = [createMiddleware(client), reduxRouterMiddleware];
+export default function createStore(client, data) {
+  const middleware = [createMiddleware(client)];
 
   let finalCreateStore;
   if (__DEVELOPMENT__ && __CLIENT__ && __DEVTOOLS__) {
@@ -43,7 +39,7 @@ export default function configureStore(history, client, data) {
 
   const store = finalCreateStore(rootReducer, data);
 
-  reduxRouterMiddleware.listenForReplays(store);
+  //reduxRouterMiddleware.listenForReplays(store);
 
   if (__DEVELOPMENT__ && module.hot) {
     module.hot.accept('../reducers', () => {
