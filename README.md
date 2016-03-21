@@ -70,13 +70,11 @@ By default, scoverage will generate reports for each project seperately. You can
 $ sbt coverageAggregate
 ```
 
------------------------------------------------------------------------
 #### References
------------------------------------------------------------------------
+
 * [Play Framework](http://www.playframework.com/)
 * [Microservices](http://martinfowler.com/articles/microservices.html)
 * [Microservices: Decomposing Applications](http://www.infoq.com/articles/microservices-intro)
-
 
 ### Frontend
 
@@ -110,4 +108,4 @@ TBD
 
 ## Contact
 
-If you are interested in participating in the project please contact opensource@musit.uio.no
+If you are interested in participating in the project please contact opensource@musit.uio.no (not active yet)
