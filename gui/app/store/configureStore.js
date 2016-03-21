@@ -17,43 +17,39 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
-import BrowserWebsocket from 'browser-websocket'
-import createWSMiddleware from '../middleware/createWSMiddleware'
-import thunkMiddleware from 'redux-thunk'
-import createLogger from 'redux-logger'
-import DevTools from '../components/dev-tools'
+import { applyMiddleware, createStore, compose } from 'redux'
 import rootReducer from '../reducers'
+import createMiddleware from '../middleware/clientMiddleware';
+import { syncHistory } from 'react-router-redux';
 
-let aripCreateStore = null
+export default function configureStore(history, client, data) {
+  // Sync dispatched route actions to the history
+  const reduxRouterMiddleware = syncHistory(history);
 
-try {
-  //const sock = new BrowserWebsocket('ws://localhost:8080/v1/event/test', true)
-  //const websocketMiddleware = createWSMiddleware(sock)
+  const middleware = [createMiddleware(client), reduxRouterMiddleware];
 
-  aripCreateStore = compose(
-    applyMiddleware(thunkMiddleware),
-    //applyMiddleware(websocketMiddleware),
-    applyMiddleware(createLogger()),
-    DevTools.instrument()
-  )(createStore)
-} catch (e) {
-  aripCreateStore = compose(
-    applyMiddleware(thunkMiddleware),
-    applyMiddleware(createLogger()),
-    DevTools.instrument()
-  )(createStore)
-}
+  let finalCreateStore;
+  if (__DEVELOPMENT__ && __CLIENT__ && __DEVTOOLS__) {
+    const { persistState } = require('redux-devtools');
+    const DevTools = require('../components/dev-tools');
+    finalCreateStore = compose(
+      applyMiddleware(...middleware),
+      window.devToolsExtension ? window.devToolsExtension() : DevTools.instrument(),
+      persistState(window.location.href.match(/[?&]debug_session=([^&]+)\b/))
+    )(_createStore);
+  } else {
+    finalCreateStore = applyMiddleware(...middleware)(_createStore);
+  }
 
-export default function configureStore(initialState) {
-	const store = aripCreateStore(rootReducer, initialState)
-    if (module.hot) {
-        // Enable Webpack hot module replacement for reducers
-        module.hot.accept('../reducers', () => {
-            const nextRootReducer = require('../reducers')
-            store.replaceReducer(nextRootReducer)
-        })
-    }
-    console.log(store)
-    return store
+  const store = finalCreateStore(rootReducer, data);
+
+  reduxRouterMiddleware.listenForReplays(store);
+
+  if (__DEVELOPMENT__ && module.hot) {
+    module.hot.accept('../reducers', () => {
+      store.replaceReducer(require('../reducers'));
+    });
+  }
+
+  return store;
 }

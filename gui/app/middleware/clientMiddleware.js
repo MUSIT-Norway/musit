@@ -16,9 +16,32 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-@import url(https://fonts.googleapis.com/css?family=Roboto);
-@import "mixins";
-@import "settings";
-@import "loader";
-@import "main";
-@import "~furtive/scss/all";
+
+export default function clientMiddleware(client) {
+  return ({dispatch, getState}) => {
+    return next => action => {
+      if (typeof action === 'function') {
+        return action(dispatch, getState);
+      }
+
+      const { promise, types, ...rest } = action; // eslint-disable-line no-redeclare
+      if (!promise) {
+        return next(action);
+      }
+
+      const [REQUEST, SUCCESS, FAILURE] = types;
+      next({...rest, type: REQUEST});
+
+      const actionPromise = promise(client);
+      actionPromise.then(
+        (result) => next({...rest, result, type: SUCCESS}),
+        (error) => next({...rest, error, type: FAILURE})
+      ).catch((error)=> {
+        console.error('MIDDLEWARE ERROR:', error);
+        next({...rest, error, type: FAILURE});
+      });
+
+      return actionPromise;
+    };
+  };
+}

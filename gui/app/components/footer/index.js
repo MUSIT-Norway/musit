@@ -19,7 +19,6 @@
  
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import '../../../public/style/style.scss'
 
 class Footer extends Component {
 

@@ -19,12 +19,10 @@
  
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import { pushPath } from 'redux-simple-router'
 import DevTools from '../../components/dev-tools'
 import Example from '../../components/Example'
 import Header from '../../components/header'
 import Footer from '../../components/footer'
-import '../../../public/style/style.scss'
 
 class ExampleView extends Component {
     

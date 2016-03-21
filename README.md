@@ -89,7 +89,9 @@ After NodeJS and NPM is installed you need to install some global libraries thro
 2. npm install webpack -g
 3. npm install webpack-dev-server -g
 4. npm install babel -g
-5. npm install
+5. npm install phantomjs-prebuilt -g
+6. npm install
+(*For your convenience a initialize.sh script has been added to the gui directory that execute these commands*)
 
 #### Building
 
