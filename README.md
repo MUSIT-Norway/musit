@@ -27,7 +27,7 @@ The REST endpoints follow best practices with HATEOS linking to keep datapackets
 
 All development has been done on Redhat Linux Enterprise 7 and Apple OSX. If you find any issues do not hesitate posting an issue or make a pull request on GitHub for the project so we can look closer at this and get it sorted.
 
-Notice that all files in this directory and hereunder is subject to the Apache v2 License and the full copyright is owned by MUSIT.
+Notice that all files in this directory and hereunder is subject to the GPL License and the full copyright is owned by MUSIT as part of UIO.
 
 #### Installation
 
