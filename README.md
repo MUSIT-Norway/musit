@@ -2,6 +2,8 @@
 Museum database for Naturalhistory and Culturalhistory museums with store integration.
 The project is run as an opensource initiative and is cooperating with other projects like DINA project, Kotka and GBIF Norway.
 
+**_Note that the gui is in a big refactoring process now and will not work until this is done_**
+
 ## License
 All code is protected under the [GPL v2 or later](http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) and copyright holder is [MUSIT](http://musit.uio.no) as a part of [University of Oslo](http://www.uio.no).
 
@@ -47,10 +49,10 @@ Project is runnable from the code or through docker containers. The development 
 
 #### Running
 
-Tu run a spesific microservice you need to use sbt or build a dockercontainer and start this. We recomend using sbt to run the microservices in the development process.
+To run a spesific microservice you need to use sbt or build a docker container and start this. We recomend using sbt to run the microservices in the development process outside of docker.
 
 ```
-sbt "project service*" "run &lt;port&gt;"
+sbt "project service_<name>" "run <port>"
 ```
 #### Scalastyle : Check the code quality
 
