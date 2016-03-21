@@ -8,7 +8,7 @@ The project is run as an opensource initiative and is cooperating with other pro
 All code is protected under the [GPL v2 or later](http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) and copyright holder is [MUSIT](http://musit.uio.no) as a part of [University of Oslo](http://www.uio.no).
 
 ## Contents
-**gui** - ReactJS w/redux frontend and NodeJS api gateway implemetation. ([See Frontend](#Frontend)
+**gui** - ReactJS w/redux frontend and NodeJS api gateway implemetation. ([See Frontend](#Frontend))
 
 **common** - A directory for common code for all service implementations.
 
