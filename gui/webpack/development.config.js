@@ -19,10 +19,10 @@
 require('babel-polyfill')
 
 var fs = require('fs')
-var Webpack = require('webpack');
+var webpack = require('webpack');
 var path = require('path');
 var nodeModulesPath = path.resolve(__dirname, 'node_modules');
-var buildPath = path.resolve(__dirname, '../static/dist');
+var assetPath = path.resolve(__dirname, '../static/dist');
 var autoPrefixer = require('autoprefixer');
 var host = (process.env.HOST || 'localhost');
 var port = (+process.env.PORT + 1) || 3001;
@@ -81,24 +81,20 @@ reactTransform[1].transforms.push({
 
 module.exports = {
     devtool: 'inline-source-map',
-    context: path.resolve(__dirname, '..')
-    entry: [
+    context: path.resolve(__dirname, '..'),
+    entry: {
         'main': [
               'webpack-hot-middleware/client?path=http://' + host + ':' + port + '/__webpack_hmr',
-              'bootstrap-sass!./src/theme/bootstrap.config.js',
-              'font-awesome-webpack!./src/theme/font-awesome.config.js',
-              './src/client.js'
+              'bootstrap-sass!./app/theme/bootstrap.config.js',
+              'font-awesome-webpack!./app/theme/font-awesome.config.js',
+              './app/client.js'
             ]
-    ],
+    },
     output: {
-        path: buildPath,
+        path: assetPath,
         filename: '[name]-[hash].js',
         chunkFilename: '[name]-[chunkhash].js',
         publicPath: 'http://' + host + ':' + port + '/dist/'
-    },
-    devServer: {
-        inline: true,
-        port: 3333
     },
     resolve: {
         modulesDirectories: [

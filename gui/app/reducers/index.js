@@ -18,12 +18,21 @@
  */
  
 import { routerReducer } from 'react-router-redux'
+import { reducer as reduxAsyncConnect } from 'redux-async-connect'
+import { infoReducer } from './info'
 import { combineReducers } from 'redux'
 import exampleReducer from './example'
+import { authReducer } from './auth'
+import multireducer from 'multireducer'
+import {reducer as form} from 'redux-form'
 
 const rootReducer = combineReducers({
   example: exampleReducer,
-  routing: routerReducer
+  routing: routerReducer,
+  info: infoReducer,
+  auth: authReducer,
+  reduxAsyncConnect: reduxAsyncConnect,
+  form: form
 })
 
 export default rootReducer

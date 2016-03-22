@@ -33,10 +33,11 @@ import getRoutes from './routes'
 
 const client = new ApiClient()
 
-const browserHistory = useScroll(() => browserHistory)()
+const browserHistoryInstance = useScroll(() => browserHistory)()
 const dest = document.getElementById('content')
 const store = createStore(client, window.__data)
-const history = syncHistoryWithStore(browserHistory, store)
+const history = syncHistoryWithStore(browserHistoryInstance, store)
+console.log(store.getState())
 
 function initSocket() {
   const socket = io('', {path: '/ws'})
@@ -77,7 +78,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 if (__DEVTOOLS__ && !window.devToolsExtension) {
-  const DevTools = require('./components/DevTools')
+  const DevTools = require('./components/dev-tools')
   ReactDOM.render(
     <Provider store={store} key="provider">
       <div>

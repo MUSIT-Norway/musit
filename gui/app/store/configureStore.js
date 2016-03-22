@@ -21,7 +21,7 @@ import { applyMiddleware, createStore as _createStore, compose } from 'redux'
 import rootReducer from '../reducers'
 import createMiddleware from '../middleware/clientMiddleware';
 
-export default function createStore(client, data) {
+const createStore = (client, data) => {
   const middleware = [createMiddleware(client)];
 
   let finalCreateStore;
@@ -49,3 +49,5 @@ export default function createStore(client, data) {
 
   return store;
 }
+
+export default createStore

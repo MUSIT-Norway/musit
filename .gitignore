@@ -27,3 +27,4 @@ project/project
 .worksheet
 node_modules/
 npm-debug.log
+webpack-assets.json
