@@ -16,18 +16,18 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import React, { Component, PropTypes } from 'react'
-import { connect } from 'react-redux'
-import { Link } from 'react-router'
-import Grid from 'react-bootstrap/lib/Grid'
-import Row from 'react-bootstrap/lib/Row'
-import Col from 'react-bootstrap/lib/Col'
+
+import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import Grid from 'react-bootstrap/lib/Grid';
+import Row from 'react-bootstrap/lib/Row';
+import Col from 'react-bootstrap/lib/Col';
 
 class Header extends Component {
 
-	render () {
-		return (
+	  render() {
+		  return (
             <header>
                 <Grid>
                     <Row>
@@ -42,8 +42,8 @@ class Header extends Component {
                     </Row>
                 </Grid>
             </header>
-    	)
+    	);
 	}
 }
 
-export default connect(null,null)(Header)
+export default connect(null, null)(Header);

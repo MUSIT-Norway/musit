@@ -17,8 +17,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import { applyMiddleware, createStore as _createStore, compose } from 'redux'
-import rootReducer from '../reducers'
+import { applyMiddleware, createStore as _createStore, compose } from 'redux';
+import rootReducer from '../reducers';
 import createMiddleware from '../middleware/clientMiddleware';
 
 const createStore = (client, data) => {
@@ -39,7 +39,7 @@ const createStore = (client, data) => {
 
   const store = finalCreateStore(rootReducer, data);
 
-  //reduxRouterMiddleware.listenForReplays(store);
+  // reduxRouterMiddleware.listenForReplays(store);
 
   if (__DEVELOPMENT__ && module.hot) {
     module.hot.accept('../reducers', () => {
@@ -48,6 +48,6 @@ const createStore = (client, data) => {
   }
 
   return store;
-}
+};
 
-export default createStore
+export default createStore;

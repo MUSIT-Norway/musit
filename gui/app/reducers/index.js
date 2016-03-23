@@ -16,16 +16,16 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import { routerReducer } from 'react-router-redux'
-import { reducer as reduxAsyncConnect } from 'redux-async-connect'
-import { reducer as form } from 'redux-form'
-import { combineReducers } from 'redux'
 
-import infoReducer from './info'
-import exampleReducer from './example'
-import authReducer from './auth'
-import multireducer from 'multireducer'
+import { routerReducer } from 'react-router-redux';
+import { reducer as reduxAsyncConnect } from 'redux-async-connect';
+import { reducer as form } from 'redux-form';
+import { combineReducers } from 'redux';
+
+import infoReducer from './info';
+import exampleReducer from './example';
+import authReducer from './auth';
+import multireducer from 'multireducer';
 
 
 const rootReducer = combineReducers({
@@ -35,6 +35,6 @@ const rootReducer = combineReducers({
   auth: authReducer,
   reduxAsyncConnect: reduxAsyncConnect,
   form: form
-})
+});
 
 export default rootReducer

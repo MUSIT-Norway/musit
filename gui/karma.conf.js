@@ -42,6 +42,7 @@ module.exports = function (config) {
       resolve: {
         modulesDirectories: [
           'app',
+          'app-api',
           'node_modules'
         ],
         extensions: ['', '.json', '.js', '.jsx']

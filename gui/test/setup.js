@@ -16,9 +16,9 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import { jsdom } from 'jsdom'
 
-global.document = jsdom('<!doctype html><html><body></body></html>')
-global.window = document.defaultView
-global.navigator = global.window.navigator
+import { jsdom } from 'jsdom';
+
+global.document = jsdom('<!doctype html><html><body></body></html>');
+global.window = document.defaultView;
+global.navigator = global.window.navigator;

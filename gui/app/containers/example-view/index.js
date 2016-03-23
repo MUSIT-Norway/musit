@@ -16,17 +16,17 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import React, { Component, PropTypes } from 'react'
-import { connect } from 'react-redux'
-import Example from '../../components/Example'
-import Header from '../../components/header'
-import Footer from '../../components/footer'
+
+import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
+import Example from '../../components/Example';
+import Header from '../../components/header';
+import Footer from '../../components/footer';
 
 class ExampleView extends Component {
-    
-    render() {
-    	return (
+
+  render() {
+    	  return (
    		    <div>
                 <Header />
                 <main>
@@ -34,9 +34,9 @@ class ExampleView extends Component {
                     <Example />
                 </main>
 
-                <Footer/>
+                <Footer />
     		</div>
-    	)
+    	);
     }
 }
 

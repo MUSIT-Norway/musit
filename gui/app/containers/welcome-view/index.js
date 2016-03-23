@@ -16,19 +16,19 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import React, { Component, PropTypes } from 'react'
-import { connect } from 'react-redux'
-import Header from '../../components/header'
-import Footer from '../../components/footer'
-import { Link } from 'react-router'
+
+import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
+import Header from '../../components/header';
+import Footer from '../../components/footer';
+import { Link } from 'react-router';
 
 class Welcome extends Component {
 
-    render() {
+  render() {
 
-    	return (
-    		<div className="dm-12" style={{height: "100%"}}>
+    	  return (
+    		<div className="dm-12" style={{ height: "100%" }}>
     		    <Header />
 
                 <main>
@@ -40,8 +40,8 @@ class Welcome extends Component {
 
                 <Footer />
  		    </div>
-    	)
+    	);
     }
 }
 
-export default connect(null, null )(Welcome)
+export default connect(null, null)(Welcome)

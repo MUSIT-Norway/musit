@@ -18,3 +18,6 @@
  */
 var context = require.context('./app', true, /-test\.js$/);
 context.keys().forEach(context);
+
+var apicontext = require.context('./app-api', true, /-test\.js$/);
+apicontext.keys().forEach(apicontext);

@@ -18,19 +18,19 @@
  */
 
 import React from 'react';
-import {IndexRoute, Route} from 'react-router';
+import { IndexRoute, Route } from 'react-router';
 import { isLoaded as isAuthLoaded, load as loadAuth } from './helpers/auth';
-import NotFound from './components/NotFound'
-import WelcomeView from './containers/welcome-view'
-import ExampleView from './containers/example-view'
-import App from './containers/app'
-import Login from './containers/login'
-import LoginSuccess from './containers/login-success'
+import NotFound from './components/NotFound';
+import WelcomeView from './containers/welcome-view';
+import ExampleView from './containers/example-view';
+import App from './containers/app';
+import Login from './containers/login';
+import LoginSuccess from './containers/login-success';
 
 export default (store) => {
   const requireLogin = (nextState, replace, cb) => {
     function checkAuth() {
-      const { auth: { user }} = store.getState();
+      const { auth: { user } } = store.getState();
       if (!user) {
         // oops, not logged in, so can't be here!
         replace('/');
@@ -54,7 +54,7 @@ export default (store) => {
 
         -- Authentication routes
         <Route onEnter={requireLogin}>
-          <Route path="loginSuccess" component={LoginSuccess}/>
+          <Route path="loginSuccess" component={LoginSuccess} />
         </Route>
 
         -- Routes

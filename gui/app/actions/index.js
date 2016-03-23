@@ -16,12 +16,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import example from './example'
-import merge from 'merge'
+
+import example from './example';
+import merge from 'merge';
 
 const actions = merge(
 	example
-)
+);
 
-export default actions
+export default actions;

@@ -16,6 +16,6 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-export const UPDATE_STATE1_MESSAGE = "UPDATE_STATE1_MESSAGE"
-export const UPDATE_STATE2_MESSAGE = "UPDATE_STATE2_MESSAGE"
+
+export const UPDATE_STATE1_MESSAGE = "UPDATE_STATE1_MESSAGE";
+export const UPDATE_STATE2_MESSAGE = "UPDATE_STATE2_MESSAGE";

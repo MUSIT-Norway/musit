@@ -16,17 +16,17 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import React, { Component, PropTypes } from 'react'
-import { connect } from 'react-redux'
-import Grid from 'react-bootstrap/lib/Grid'
-import Row from 'react-bootstrap/lib/Row'
-import Col from 'react-bootstrap/lib/Col'
+
+import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
+import Grid from 'react-bootstrap/lib/Grid';
+import Row from 'react-bootstrap/lib/Row';
+import Col from 'react-bootstrap/lib/Col';
 
 class Footer extends Component {
 
-	render () {
-		return (
+	  render() {
+		  return (
 			<footer>
 			    <Grid>
                     <Row>
@@ -38,8 +38,8 @@ class Footer extends Component {
                     </Row>
                 </Grid>
             </footer>
-    	)
+    	);
 	}
 }
 
-export default connect(null,null)(Footer)
+export default connect(null, null)(Footer)
