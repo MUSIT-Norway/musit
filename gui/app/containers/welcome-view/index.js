@@ -19,7 +19,6 @@
  
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import DevTools from '../../components/dev-tools'
 import Header from '../../components/header'
 import Footer from '../../components/footer'
 import { Link } from 'react-router'
@@ -40,8 +39,6 @@ class Welcome extends Component {
                 </main>
 
                 <Footer />
-
-    		    <DevTools />
  		    </div>
     	)
     }

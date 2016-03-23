@@ -19,7 +19,6 @@
  
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import DevTools from '../../components/dev-tools'
 import Example from '../../components/Example'
 import Header from '../../components/header'
 import Footer from '../../components/footer'
@@ -36,8 +35,6 @@ class ExampleView extends Component {
                 </main>
 
                 <Footer/>
-
-    		    <DevTools />
     		</div>
     	)
     }

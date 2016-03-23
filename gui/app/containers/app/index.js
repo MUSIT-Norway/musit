@@ -13,6 +13,14 @@ import { routerActions } from 'react-router-redux';
 import config from '../../config';
 import { asyncConnect } from 'redux-async-connect';
 
+const mapStateToProps = (state) => {
+  return {
+    user: state.auth.user,
+    logout: logout,
+    pushState: routerActions.push
+  }
+}
+
 @asyncConnect([{
   promise: ({store: {dispatch, getState}}) => {
     const promises = [];
@@ -27,10 +35,7 @@ import { asyncConnect } from 'redux-async-connect';
     return Promise.all(promises);
   }
 }])
-@connect(
-  state => ({user: state.auth.user}),
-  {logout, pushState: routerActions.push})
-
+@connect(mapStateToProps)
 class App extends Component {
   static propTypes = {
     children: PropTypes.object.isRequired,

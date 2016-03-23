@@ -9,8 +9,7 @@ const LOGOUT_SUCCESS = 'musit/auth/LOGOUT_SUCCESS';
 const LOGOUT_FAIL = 'musit/auth/LOGOUT_FAIL';
 
 const initialState = {
-  loaded: false,
-  user: null
+  loaded: false
 };
 
 const authReducer = (state = initialState, action = {}) => {
