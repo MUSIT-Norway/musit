@@ -20,26 +20,27 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { Link } from 'react-router'
+import Grid from 'react-bootstrap/lib/Grid'
+import Row from 'react-bootstrap/lib/Row'
+import Col from 'react-bootstrap/lib/Col'
 
 class Header extends Component {
-
-
 
 	render () {
 		return (
             <header>
-		        <div className="grd">
-                    <div className="grd-row">
-                        <div className="grd-row-col-1 py1" style={{width: "200px"}}>
+                <Grid>
+                    <Row>
+                        <Col xs={6} md={6}>
                             <Link to="/">
                                 <img src="images/acando_logo_blue.png" height="28" />
                             </Link>
-                        </div>
-                        <div className="grd-row-col-4">
+                        </Col>
+                        <Col xs={6} md={6}>
                             <h4>Base ReactJS w/Redux Template</h4>
-                        </div>
-                    </div>
-    		    </div>
+                        </Col>
+                    </Row>
+                </Grid>
             </header>
     	)
 	}

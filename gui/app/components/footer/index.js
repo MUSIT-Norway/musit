@@ -19,19 +19,24 @@
  
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
+import Grid from 'react-bootstrap/lib/Grid'
+import Row from 'react-bootstrap/lib/Row'
+import Col from 'react-bootstrap/lib/Col'
 
 class Footer extends Component {
 
 	render () {
 		return (
 			<footer>
-			    <div className="grd">
-			    	<div className="grd-row">
-		                <div className="grd-row-col-6">
-                            <a href="http://www.acando.no" >Acando Norge</a>
-                        </div>
-                	</div>
-                </div>
+			    <Grid>
+                    <Row>
+                        <Col xs={12} md={12}>
+                            <Link to="/">
+                                <a href="http://www.acando.no" >Acando Norge</a>
+                            </Link>
+                        </Col>
+                    </Row>
+                </Grid>
             </footer>
     	)
 	}
