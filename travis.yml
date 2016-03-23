@@ -24,6 +24,4 @@ script:
   cd gui
   npm run build
   npm run test
-notifications:
-  email:
-    - klaus.myrseth@usit.uio.no
+
