@@ -2,6 +2,14 @@
 Museum database for Naturalhistory and Culturalhistory museums with store integration.
 The project is run as an opensource initiative and is cooperating with other projects like DINA project, Kotka and GBIF Norway.
 
+Code status:
+* [![Build Status](https://travis-ci.org/MUSIT-Norway/musit.svg?branch=master)](https://travis-ci.org/MUSIT-Norway/musit)
+* [![Code Climate](https://codeclimate.com/github/MUSIT-Norway/musit/badges/gpa.svg)](https://codeclimate.com/github/MUSIT-Norway/musit)
+* [![Test Coverage](https://codeclimate.com/github/MUSIT-Norway/musit/badges/coverage.svg)](https://codeclimate.com/github/MUSIT-Norway/musit/coverage)
+* [![Issue Count](https://codeclimate.com/github/MUSIT-Norway/musit/badges/issue_count.svg)](https://codeclimate.com/github/MUSIT-Norway/musit)
+
+Status badges is retrieved directly from the services monitoring the code.
+
 **_Note that the gui is in a big refactoring process now and will not work until this is done_**
 
 ## License
