@@ -74,8 +74,7 @@ class App extends Component {
           <Navbar.Header>
             <Navbar.Brand>
               <IndexLink to="/" activeStyle={{color: '#33e0ff'}}>
-                <div className={styles.brand}/>
-                <span>{config.app.title}</span>
+                <div className={styles.brand}><img height="40" src="kulturminne.png" /></div><span>{config.app.title}</span>
               </IndexLink>
             </Navbar.Brand>
             <Navbar.Toggle/>

@@ -17,40 +17,42 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
  
-import React, { Component, PropTypes } from 'react'
+import React, { Component, PropTypes, bindActionCreators } from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions/example'
 import Button from 'react-bootstrap/lib/Button'
 
-class Example extends Component {
+const mapStateToProps = (state) => {
+    return {
+        example: state.example
+    }
+}
+
+@connect(mapStateToProps)
+export default class Example extends Component {
+    static propTypes = {
+      example: PropTypes.object
+    }
+
+    static contextTypes = {
+      store: PropTypes.object.isRequired
+    }
+
+    onState1Click(dispatch) {
+        dispatch(actions.updateState1(this.state1 + 'a'))
+    }
+
+    onState2Click(dispatch) {
+        dispatch(actions.updateState2(this.state2 + 'b'))
+    }
 
 	render () {
-		const { example, onState1Click, onState2Click } = this.props
-        
+		const { dispatch, example, onState1Click, onState2Click } = this.props
+
 		return (
 			<div>
-				State ({example.state1}, {example.state2}) <Button bsSize="xsmall" onClick={onState1Click}>1+</button><Button bsSize="xsmall" onClick={onState2Click}>2+</button>
+				State ({example.state1}, {example.state2}) <Button bsSize="xsmall" onClick={this.onState1Click.bind(example, dispatch)}>1+</Button><Button bsSize="xsmall" onClick={this.onState2Click.bind(example, dispatch)}>2+</Button>
 			</div>
     	)
 	}
 }
-
-const mapProperties = (state) => {
-    return {
-    	example: state.example
-    }
-}
-
-const mapDispatchActions = (dispatch, ownProps) => {
-
-	return {
-		onState1Click: () => {
-            dispatch(actions.updateState1(ownProps.example.state1 + 'a'))
-		},
-		onState2Click: () => {
-            dispatch(actions.updateState2(ownProps.example.state2 + 'b'))
-		}
-	}
-}
-
-export default connect(mapProperties, mapDispatchActions)(Example)

@@ -21,14 +21,14 @@ import * as types from '../../constants/example';
 
 export const updateState1 = (state) => {
 	  return {
-  action: types.UPDATE_STATE1_MESSAGE,
+  type: types.UPDATE_STATE1_MESSAGE,
   text: state
 	};
 };
 
 export const updateState2 = (state) => {
 	  return {
-  action: types.UPDATE_STATE2_MESSAGE,
+  type: types.UPDATE_STATE2_MESSAGE,
   text: state
 	};
 };

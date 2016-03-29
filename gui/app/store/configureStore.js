@@ -17,37 +17,39 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import { applyMiddleware, createStore as _createStore, compose } from 'redux';
-import rootReducer from '../reducers';
-import createMiddleware from '../middleware/clientMiddleware';
+import { applyMiddleware, createStore as _createStore, compose } from 'redux'
+import rootReducer from '../reducers'
+import createMiddleware from '../middleware/clientMiddleware'
 
 const createStore = (client, data) => {
-  const middleware = [createMiddleware(client)];
+  const middleware = [createMiddleware(client)]
 
   let finalCreateStore;
   if (__DEVELOPMENT__ && __CLIENT__ && __DEVTOOLS__) {
-    const { persistState } = require('redux-devtools');
-    const DevTools = require('../components/dev-tools');
+    const createLogger = require('redux-logger')
+    const { persistState } = require('redux-devtools')
+    const DevTools = require('../components/dev-tools')
+    const logger = createLogger()
     finalCreateStore = compose(
-      applyMiddleware(...middleware),
+      applyMiddleware(logger, ...middleware),
       window.devToolsExtension ? window.devToolsExtension() : DevTools.instrument(),
       persistState(window.location.href.match(/[?&]debug_session=([^&]+)\b/))
-    )(_createStore);
+    )(_createStore)
   } else {
-    finalCreateStore = applyMiddleware(...middleware)(_createStore);
+    finalCreateStore = applyMiddleware(...middleware)(_createStore)
   }
 
-  const store = finalCreateStore(rootReducer, data);
+  const store = finalCreateStore(rootReducer, data)
 
   // reduxRouterMiddleware.listenForReplays(store);
 
   if (__DEVELOPMENT__ && module.hot) {
     module.hot.accept('../reducers', () => {
-      store.replaceReducer(require('../reducers'));
-    });
+      store.replaceReducer(require('../reducers'))
+    })
   }
 
-  return store;
+  return store
 };
 
 export default createStore;

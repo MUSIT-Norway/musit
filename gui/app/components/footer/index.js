@@ -31,9 +31,7 @@ class Footer extends Component {
 			    <Grid>
                     <Row>
                         <Col xs={12} md={12}>
-                            <Link to="/">
-                                <a href="http://www.acando.no" >Acando Norge</a>
-                            </Link>
+                            <a href="http://www.acando.no" >Acando Norge</a>
                         </Col>
                     </Row>
                 </Grid>

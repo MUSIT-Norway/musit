@@ -32,9 +32,6 @@ class Header extends Component {
                 <Grid>
                     <Row>
                         <Col xs={6} md={6}>
-                            <Link to="/">
-                                <img src="images/acando_logo_blue.png" height="28" />
-                            </Link>
                         </Col>
                         <Col xs={6} md={6}>
                             <h4>Base ReactJS w/Redux Template</h4>

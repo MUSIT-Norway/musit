@@ -17,13 +17,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component, PropTypes, bindActionCreators } from 'react';
 import { connect } from 'react-redux';
 import Example from '../../components/Example';
 import Header from '../../components/header';
 import Footer from '../../components/footer';
 
-class ExampleView extends Component {
+@connect()
+export default class ExampleView extends Component {
 
   render() {
     	  return (
@@ -39,5 +40,3 @@ class ExampleView extends Component {
     	);
     }
 }
-
-export default connect(null, null)(ExampleView)

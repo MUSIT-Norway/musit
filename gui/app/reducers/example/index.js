@@ -29,7 +29,7 @@ const defaultState = {
 deepFreeze(defaultState);
 
 const exampleReducer = (state = defaultState, action) => {
-	  switch (action.action) {
+	  switch (action.type) {
 		  case types.UPDATE_STATE1_MESSAGE:
 		        return Object.assign({}, state, { state1: action.text });
 		  case types.UPDATE_STATE2_MESSAGE:

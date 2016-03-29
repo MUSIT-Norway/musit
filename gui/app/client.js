@@ -37,7 +37,6 @@ const browserHistoryInstance = useScroll(() => browserHistory)();
 const dest = document.getElementById('content');
 const store = createStore(client, window.__data);
 const history = syncHistoryWithStore(browserHistoryInstance, store);
-console.log(store.getState());
 
 function initSocket() {
   const socket = io('', { path: '/ws' });
