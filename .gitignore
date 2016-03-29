@@ -7,6 +7,8 @@ out
 tags
 .*.swp
 .*.swo
+.*.log
+logs/
 build
 .classpath
 .project
@@ -17,10 +19,12 @@ build
 .lib/
 dist/*
 target/
+static/
 lib_managed/
 src_managed/
-project/
+project/project
 .scala_dependencies
 .worksheet
 node_modules/
 npm-debug.log
+webpack-assets.json
