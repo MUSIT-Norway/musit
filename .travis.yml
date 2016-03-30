@@ -18,7 +18,6 @@ script:
 - sbt compile test:compile
 - sbt test
 # Add integration tests?
-- find $HOME/.sbt -name "*.lock" | xargs rm
 # Frontend (ReactJS) build and test
 - cd gui && "./initialize.sh" && npm run test
 
