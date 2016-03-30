@@ -55,7 +55,7 @@ val noPublish = Seq(
 lazy val root = (
   project.in(file("."))
   settings(noPublish)
-  aggregate(common, security_feide, service_example)
+  aggregate(common, security_feide, service_example, service_core)
 )
 
 // Base projects used as dependencies
@@ -83,6 +83,16 @@ lazy val service_example = (
     packageName in Docker := "musit_service_example"
   ))
 ) dependsOn(common)
+
+lazy val service_core = (
+  PlayProject("service_core")
+    settings(libraryDependencies ++= playWithPersistenceDependencies)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings(scoverageSettings: _*)
+    settings(baseDockerSettings ++ Seq(
+      packageName in Docker := "musit_service_core"
+    ))
+  ) dependsOn(common)
 
 // Add other services here
 
