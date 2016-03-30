@@ -19,7 +19,7 @@ build
 .lib/
 dist/*
 target/
-static/
+dist/
 lib_managed/
 src_managed/
 project/project

@@ -19,7 +19,7 @@
 
 import React, { Component, PropTypes, bindActionCreators } from 'react';
 import { connect } from 'react-redux';
-import Example from '../../components/Example';
+import Example from '../../components/example';
 import Header from '../../components/header';
 import Footer from '../../components/footer';
 
