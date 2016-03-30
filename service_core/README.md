@@ -1,5 +1,8 @@
-# Example microservice
+# Core microservice
 
-This directory contains the implementation of an example microservice
-using Playframework 2. Its not part of the MUSIT application but part
-of the training code for the MUSIT crew.
+This directory contains the implementation of basic core functionality
+microservices have access to so GUI layer can access this transparently.
+
+Examples of functionality you find here is:
+- token caching
+
