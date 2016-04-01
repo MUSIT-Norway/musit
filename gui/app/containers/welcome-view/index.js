@@ -19,29 +19,43 @@
 
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import Header from '../../components/header';
-import Footer from '../../components/footer';
+import { Jumbotron, Panel, Button, Grid, Row, Col, PageHeader } from 'react-bootstrap'
 import { Link } from 'react-router';
+import { I18n, Translate } from 'react-i18nify'
 
-class Welcome extends Component {
+@connect(null)
+export default class Welcome extends Component {
 
   render() {
-
+        I18n.loadTranslations(require("./language.json"))
+        I18n.setLocale("no")
     	  return (
-    		<div className="dm-12" style={{ height: "100%" }}>
-    		    <Header />
-
+    		<div>
                 <main>
-                    <div className="dm-12">
-                        <h1>Welcome page</h1>
-                        <Link to="/example">Open Example view</Link>
-                    </div>
+                    <Panel>
+                        <Grid>
+                            <Row styleClass="row-centered">
+                                <Col xs={10} md={10}  style={{textAlign: "center"}}>
+                                    <PageHeader><Translate value="musit.welcomePage.title" /></PageHeader>
+                                    <img src="placeholder-image.png" />
+                                    <p><Translate value="musit.welcomePage.body" /></p>
+                                </Col>
+                            </Row>
+                            {/* TODO: redux statecheck for user set and user access */}
+                            <Row styleClass="row-centered">
+                                <Col  xs={10} md={10} style={{textAlign: "center"}}>
+                                    <p><Translate value="musit.welcomePage.noAccess" /></p>
+                                </Col>
+                            </Row>
+                            <Row styleClass="row-centered">
+                                <Col xs={10} md={10} style={{textAlign: "center"}}>
+                                    <Button bsStyle="default"><img height="11" src="feide-login-icon.png" /> <Translate value="musit.login" /></Button>
+                                </Col>
+                            </Row>
+                        </Grid>
+                    </Panel>
                 </main>
-
-                <Footer />
  		    </div>
     	);
     }
 }
-
-export default connect(null, null)(Welcome)
