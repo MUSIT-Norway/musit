@@ -55,7 +55,7 @@ val noPublish = Seq(
 lazy val root = (
   project.in(file("."))
   settings(noPublish)
-  aggregate(common, security_feide, service_example, service_core)
+  aggregate(common, security, service_core, service_example)
 )
 
 // Base projects used as dependencies
@@ -66,8 +66,8 @@ lazy val common = (
   settings(scoverageSettings: _*)
 )
 
-lazy val security_feide = (
-  BaseProject("security_feide")
+lazy val security = (
+  BaseProject("security")
   settings(noPublish)
   settings(libraryDependencies ++= playDependencies)
   settings(scoverageSettings: _*)
