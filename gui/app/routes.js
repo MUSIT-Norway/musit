@@ -19,13 +19,12 @@
 
 import React from 'react';
 import { IndexRoute, Route } from 'react-router';
-import { isLoaded as isAuthLoaded, load as loadAuth } from './helpers/auth';
+import { isLoaded as isAuthLoaded, load as loadAuth, login } from './reducers/auth';
 import NotFound from './components/NotFound';
 import WelcomeView from './containers/welcome-view';
 import ExampleView from './containers/example-view';
+import WelcomeUserView from './containers/welcome-user';
 import App from './containers/app';
-import Login from './containers/login';
-import LoginSuccess from './containers/login-success';
 
 export default (store) => {
   const requireLogin = (nextState, replace, cb) => {
@@ -39,7 +38,7 @@ export default (store) => {
     }
 
     if (!isAuthLoaded(store.getState())) {
-      store.dispatch(loadAuth()).then(checkAuth);
+      store.dispatch(loadAuth()).then(store.dispatch(login('fake')).then(checkAuth));
     } else {
       checkAuth();
     }
@@ -54,11 +53,12 @@ export default (store) => {
 
         -- Authentication routes
         <Route onEnter={requireLogin}>
-          <Route path="loginSuccess" component={LoginSuccess} />
+          <Route path="welcomeUser" component={WelcomeUserView} />
         </Route>
 
         -- Routes
         <Route path="example" component={ExampleView} />
+
 
         -- Catch all route
         <Route path="*" component={NotFound} status={404} />

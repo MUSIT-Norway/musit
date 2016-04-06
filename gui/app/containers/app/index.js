@@ -66,7 +66,9 @@ class App extends Component {
     const styles = require('./index.scss');
 
     return (
-      <div className={styles.app}>
+     <div className={styles.app}>
+
+
         <Helmet {...config.app.head}/>
         <Navbar fixedTop>
           <Navbar.Header>
@@ -80,30 +82,39 @@ class App extends Component {
 
           <Navbar.Collapse eventKey={0}>
             <Nav navbar>
-              {user && <LinkContainer to="/chat">
-                <NavItem eventKey={1}>Chat</NavItem>
-              </LinkContainer>}
-
-              <LinkContainer to="/widgets">
-                <NavItem eventKey={2}>Widgets</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/survey">
-                <NavItem eventKey={3}>Survey</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/about">
-                <NavItem eventKey={4}>About Us</NavItem>
-              </LinkContainer>
-
-              {!user &&
-              <LinkContainer to="/login">
-                <NavItem eventKey={5}>Login</NavItem>
-              </LinkContainer>}
               {user &&
-              <LinkContainer to="/logout">
-                <NavItem eventKey={6} className="logout-link" onClick={this.handleLogout}>
-                  Logout
-                </NavItem>
-              </LinkContainer>}
+                  <LinkContainer to="/chat">
+                    <NavItem eventKey={1}>Chat</NavItem>
+                  </LinkContainer>
+              }
+              {user &&
+                  <LinkContainer to="/widgets">
+                    <NavItem eventKey={2}>Widgets</NavItem>
+                  </LinkContainer>
+              }
+              {user &&
+                  <LinkContainer to="/magasin">
+                  <NavItem eventKey={3}>Magasin</NavItem>
+                  </LinkContainer>
+              }
+             {user &&
+                  <LinkContainer to="/survey">
+                    <NavItem eventKey={4}>Survey</NavItem>
+                  </LinkContainer>
+              }
+              <LinkContainer to="/about">
+                <NavItem eventKey={5}>About Us</NavItem>
+              </LinkContainer>
+              {user &&
+                  <LinkContainer to="/logout">
+                    <NavItem eventKey={6} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
+                  </LinkContainer>
+              }
+              {!user &&
+                  <LinkContainer to="/welcomeUser">
+                    <NavItem eventKey={7}>Login</NavItem>
+                  </LinkContainer>
+              }
             </Nav>
             {user &&
             <p className={styles.loggedInMessage + ' navbar-text'}>Logged in as <strong>{user.name}</strong>.</p>}
@@ -118,7 +129,7 @@ class App extends Component {
         <div className={styles.appContent}>
           {this.props.children}
         </div>
-        <InfoBar/>
+       { null && <InfoBar/>}
 
         <div className="well text-center">
           Have questions? Ask for help <a

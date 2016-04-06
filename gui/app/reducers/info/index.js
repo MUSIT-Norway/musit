@@ -1,6 +1,7 @@
-const LOAD = 'musit/LOAD';
-const LOAD_SUCCESS = 'musit/LOAD_SUCCESS';
-const LOAD_FAIL = 'musit/LOAD_FAIL';
+const LOAD = 'musit/info/LOAD';
+const LOAD_SUCCESS = 'musit/info/LOAD_SUCCESS';
+const LOAD_FAIL = 'musit/info/LOAD_FAIL';
+
 
 const initialState = {
   loaded: false

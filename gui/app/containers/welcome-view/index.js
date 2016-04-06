@@ -19,7 +19,7 @@
 
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { Jumbotron, Panel, Button, Grid, Row, Col, PageHeader } from 'react-bootstrap'
+import { Jumbotron, Panel, Button, Grid, Row, Col, PageHeader } from 'react-bootstrap';
 import { Link } from 'react-router';
 import { I18n, Translate } from 'react-i18nify'
 
@@ -27,7 +27,7 @@ import { I18n, Translate } from 'react-i18nify'
 export default class Welcome extends Component {
 
   render() {
-        I18n.loadTranslations(require("./language.json"))
+        I18n.loadTranslations(require("./language.yaml"))
         I18n.setLocale("no")
     	  return (
     		<div>
@@ -49,7 +49,7 @@ export default class Welcome extends Component {
                             </Row>
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10} style={{textAlign: "center"}}>
-                                    <Button bsStyle="default"><img height="11" src="feide-login-icon.png" /> <Translate value="musit.login" /></Button>
+                                    <Button bsStyle="default" href="/welcomeUser"><img height="11" src="feide-login-icon.png" /> <Translate value="musit.login" /></Button>
                                 </Col>
                             </Row>
                         </Grid>
