@@ -29,11 +29,11 @@ import play.api.libs.json._
 
 @Api(value = "/api/example", description = "Example resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
 class ExampleResource_V1 extends Controller with ExampleService {
-  val exampleDao = new ExampleDao
+  import ExampleDao._
 
   @ApiOperation(value = "Example operation - lists all examples", notes = "simple listing in json", httpMethod = "GET")
   def list = Action.async {
-    exampleDao.all.map( examples =>
+    all.map( examples =>
       Ok(Json.toJson(examples))
     )
   }
@@ -46,7 +46,7 @@ class ExampleResource_V1 extends Controller with ExampleService {
         BadRequest(Json.obj("status" ->"Error", "message" -> JsError.toJson(errors)))
       },
       example => {
-        exampleDao.insert(example)
+        insert(example)
         Created(Json.obj("status" ->"OK", "message" -> (s"Example '${example}' saved.") ))
       }
     )
