@@ -5,7 +5,8 @@ import { LinkContainer } from 'react-router-bootstrap';
 import { Navbar, Nav, NavItem } from 'react-bootstrap';
 import Helmet from 'react-helmet';
 import { isLoaded as isInfoLoaded, load as loadInfo } from '../../reducers/info';
-import { isLoaded as isAuthLoaded, load as loadAuth, logout } from '../../reducers/auth';
+import { isLoaded as isLanguageLoaded, load as loadLanguage } from '../../reducers/language';
+import { isLoaded as isAuthLoaded, load as loadAuth, logout, login } from '../../reducers/auth';
 import InfoBar from '../../components/info-bar';
 import { routerActions } from 'react-router-redux';
 import config from '../../config';
@@ -15,6 +16,7 @@ const mapStateToProps = (state) => {
   return {
     user: state.auth.user,
     logout: logout,
+    login: login,
     pushState: routerActions.push
   }
 }
@@ -26,6 +28,9 @@ const mapStateToProps = (state) => {
     if (!isInfoLoaded(getState())) {
       promises.push(dispatch(loadInfo()));
     }
+    if (!isLanguageLoaded(getState())) {
+          promises.push(dispatch(loadLanguage()));
+        }
     if (!isAuthLoaded(getState())) {
       promises.push(dispatch(loadAuth()));
     }
@@ -39,31 +44,39 @@ class App extends Component {
     children: PropTypes.object.isRequired,
     user: PropTypes.object,
     logout: PropTypes.func.isRequired,
+    login: PropTypes.func.isRequired,
     pushState: PropTypes.func.isRequired
   };
 
   static contextTypes = {
-    store: PropTypes.object.isRequired
+    store: PropTypes.object.isRequired,
+    router: PropTypes.object.isRequired
   };
 
   componentWillReceiveProps(nextProps) {
     if (!this.props.user && nextProps.user) {
       // login
-      this.props.pushState('/loginSuccess');
+      this.context.router.push('/welcomeUser');
     } else if (this.props.user && !nextProps.user) {
       // logout
-      this.props.pushState('/');
+      this.context.router.push('/');
     }
   }
 
   handleLogout = (event) => {
-    event.preventDefault();
-    this.props.logout();
-  };
+    event.preventDefault()
+     this.props.dispatch(this.props.logout())
+  }
+
+  handleFakeLogin= (event) => {
+    event.preventDefault()
+    this.props.dispatch(this.props.login('fake'))
+  }
 
   render() {
     const {user} = this.props;
     const styles = require('./index.scss');
+    const rootPath = user?'/welcomeUser':'/'
 
     return (
      <div className={styles.app}>
@@ -73,7 +86,7 @@ class App extends Component {
         <Navbar fixedTop>
           <Navbar.Header>
             <Navbar.Brand>
-              <IndexLink to="/" activeStyle={{color: '#33e0ff'}}>
+              <IndexLink to={rootPath} activeStyle={{color: '#33e0ff'}}>
                 <div className={styles.brand}><img height="40" src="kulturminne.png" /></div><span>{config.app.title}</span>
               </IndexLink>
             </Navbar.Brand>
@@ -111,8 +124,8 @@ class App extends Component {
                   </LinkContainer>
               }
               {!user &&
-                  <LinkContainer to="/welcomeUser">
-                    <NavItem eventKey={7}>Login</NavItem>
+                  <LinkContainer to="/">
+                    <NavItem onClick={this.handleFakeLogin} eventKey={7}>Login</NavItem>
                   </LinkContainer>
               }
             </Nav>

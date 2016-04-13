@@ -21,14 +21,23 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Jumbotron, Panel, Button, Grid, Row, Col, PageHeader } from 'react-bootstrap';
 import { Link } from 'react-router';
-import { I18n, Translate } from 'react-i18nify'
+import Language from '../../components/language'
+import { login } from '../../reducers/auth'
 
-@connect(null)
+const mapStateToProps = (state) => {
+  return {
+    user: state.auth.user,
+    login: login
+  }
+}
+
+@connect(mapStateToProps)
 export default class Welcome extends Component {
+  handleFakeLogin = (event) => {
+    this.props.dispatch(this.props.login('fake'))
+  }
 
   render() {
-        I18n.loadTranslations(require("./language.yaml"))
-        I18n.setLocale("no")
     	  return (
     		<div>
                 <main>
@@ -36,22 +45,24 @@ export default class Welcome extends Component {
                         <Grid>
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10}  style={{textAlign: "center"}}>
-                                    <PageHeader><Translate value="musit.welcomePage.title" /></PageHeader>
+                                    <PageHeader><Language value="musit.welcomePage.title" /></PageHeader>
                                     <img src="placeholder-image.png" />
-                                    <p><Translate value="musit.welcomePage.body" /></p>
+                                    <Language value="musit.welcomePage.body" />
                                 </Col>
                             </Row>
                             {/* TODO: redux statecheck for user set and user access */}
                             <Row styleClass="row-centered">
                                 <Col  xs={10} md={10} style={{textAlign: "center"}}>
-                                    <p><Translate value="musit.welcomePage.noAccess" /></p>
+                                    <Language value="musit.welcomePage.noAccess" />
                                 </Col>
                             </Row>
+                            {!this.props.user &&
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10} style={{textAlign: "center"}}>
-                                    <Button bsStyle="default" href="/welcomeUser"><img height="11" src="feide-login-icon.png" /> <Translate value="musit.login" /></Button>
+                                    <Button bsStyle="default" onClick={this.handleFakeLogin}><img height="11" src="feide-login-icon.png" /> <Language value="musit.login" /></Button>
                                 </Col>
                             </Row>
+                            }
                         </Grid>
                     </Panel>
                 </main>
@@ -59,3 +70,4 @@ export default class Welcome extends Component {
     	);
     }
 }
+

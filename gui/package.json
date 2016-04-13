@@ -115,6 +115,7 @@
     "hoist-non-react-statics": "^1.0.5",
     "http-proxy": "^1.13.2",
     "invariant": "^2.2.1",
+    "js-yaml": "^3.5.5",
     "less": "^2.6.1",
     "less-loader": "^2.2.2",
     "lru-memoize": "^1.0.1",
@@ -131,6 +132,7 @@
     "react-icons": "^1.0.3",
     "react-inline-css": "^2.1.0",
     "react-markdown": "^2.1.0",
+    "react-marked": "^0.3.1",
     "react-redux": "^4.4.1",
     "react-router": "^2.0.1",
     "react-router-bootstrap": "^0.20.1",
@@ -201,8 +203,7 @@
     "url-loader": "^0.5.7",
     "webpack": "^1.12.14",
     "webpack-dev-middleware": "^1.5.1",
-    "webpack-hot-middleware": "^2.10.0",
-    "yaml-loader": "^0.1.0"
+    "webpack-hot-middleware": "^2.10.0"
   },
   "engines": {
     "node": "5.6.0"

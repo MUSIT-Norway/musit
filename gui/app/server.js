@@ -89,6 +89,7 @@ app.use((req, res) => {
   const virtualBrowserHistory = createHistory(req.originalUrl);
 
   const store = createStore(client);
+
   const history = syncHistoryWithStore(virtualBrowserHistory, store)
 
   function hydrateOnClient() {
