@@ -17,29 +17,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservices.common.linking.dao
+package no.uio.musit.microservices.common
 
-import no.uio.musit.microservices.common.PlayDatabaseTestTrait
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import no.uio.musit.microservices.common.domain.BaseMusitDomain
-import no.uio.musit.microservices.common.linking.domain.Link
 import org.scalatest._
-import play.api.Logger
 import play.api.test.{FakeApplication, TestServer}
 
-case class MockTable(id:Long, links:Seq[Link]) extends BaseMusitDomain
+class PlayDatabaseTestTrait(dbConfig:Map[String, String] = Map (
+  "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
+  "slick.dbs.default.db.driver" -> "org.h2.Driver",
+  "slick.dbs.default.db.url" -> "jdbc:h2:mem:play-test",
+  "evolutionplugin" -> "enabled"
+)) extends FunSuite with Matchers with BeforeAndAfterAll {
 
-class LinkDaoSpec extends PlayDatabaseTestTrait {
+  val host = "http://localhost:7070"
 
-  /* Unit tester */
-  test("dao should be able to insert and select from table") {
-    import LinkDao._
-    insert(MockTable(1, Seq.empty[Link]), "test", "/test/case/100")
-    val allLinks = findAllLinks()
-    allLinks.map(_.foreach( (link:Link) =>
-        Logger.info(s"test: $link")
-      )
-    )
+  def app_ = {
+    FakeApplication(additionalConfiguration = dbConfig)
+
+  }
+
+  def server_ = TestServer(application = app_, port = 7070)
+
+  override protected def beforeAll(): Unit = {
+    server_.start
+
+  }
+
+  override protected def afterAll(): Unit = {
+    server_.stop
   }
 
 }

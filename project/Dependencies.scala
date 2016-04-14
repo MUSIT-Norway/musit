@@ -58,7 +58,8 @@ object Dependencies {
 
   val postgresql     = "org.postgresql"      % 	"postgresql" 		           % "9.4-1201-jdbc41"
   val h2database     = "com.h2database"      %  "h2"                       % "1.4.187"
-  val scalatest      = "org.scalatest"       %% "scalatest"                % "2.2.4"            % "test"
+  var scalatestSpec  = "org.scalatest"       %% "scalatest"                % "2.2.4"
+  val scalatest      = scalatestSpec         % "test"
 
   // packager for RPM and Docker
   val dockerClient   = "com.spotify" % "docker-client" % "3.2.1"
