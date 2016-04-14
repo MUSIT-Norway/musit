@@ -54,7 +54,7 @@ object Dependencies {
   }
 
   val logback        = "ch.qos.logback"      %  "logback-classic"          % "1.1.3"
-  val slf4j          = "org.slf4j"           %  "slf4j-nop"                % "1.6.4"
+  //val slf4j          = "org.slf4j"           %  "slf4j-nop"                % "1.6.4"
 
   val postgresql     = "org.postgresql"      % 	"postgresql" 		           % "9.4-1201-jdbc41"
   val h2database     = "com.h2database"      %  "h2"                       % "1.4.187"
@@ -71,8 +71,8 @@ object Dependencies {
     documentation.swaggerUI,
     playframework.specs2,
     scalatest,
-    logback,
-    slf4j
+    logback //,
+    //slf4j
   )
 
   val webjarsDependencies: Seq[ModuleID] = playDependencies ++ Seq(

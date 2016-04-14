@@ -17,21 +17,32 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.example.domain
+package no.uio.musit.microservices.common.linking.domain
 
-import io.swagger.annotations.ApiModel
-import no.uio.musit.microservices.common.domain.BaseMusitDomain
-import no.uio.musit.microservices.common.linking.domain.Link
+
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import play.api.libs.json.Reads._
 
-@ApiModel
-case class Example(id:Long, email:String, name:String, links:Seq[Link]) extends BaseMusitDomain
+/* Domain classes */
+case class Link(id: Long, localTableId: Long, rel: String, href: String)
 
-object Example {
-  def tupled = (Example.apply _).tupled
-  implicit val format = Json.format[Example]
+
+/* Helper singletons */
+object Link {
+  def tupled = (Link.apply _).tupled
+
+  implicit val linkWrites = new Writes[Link] {
+    override def writes(link: Link): JsValue = Json.obj(
+      "rel" -> link.rel,
+      "href" -> link.href
+    )
+  }
+
+  def applyLink(rel:String, href:String):Link = Link(-1, -1, rel, href)
+
+  implicit val linkReads : Reads[Link] = (
+    (JsPath \ "rel").read[String](minLength[String](1)) and
+    (JsPath \ "href").read[String](minLength[String](1))
+  )(applyLink _)
 }
-
-
-
-

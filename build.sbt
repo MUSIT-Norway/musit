@@ -62,7 +62,7 @@ lazy val root = (
 lazy val common = (
   BaseProject("common")
   settings(noPublish)
-  settings(libraryDependencies ++= playDependencies)
+  settings(libraryDependencies ++= playWithPersistenceDependencies)
   settings(scoverageSettings: _*)
 )
 

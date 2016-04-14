@@ -19,10 +19,9 @@
 # Example schema
  
 # --- !Ups
-drop table Example;
- 
+
 CREATE TABLE EXAMPLES (
-    ID bigint(20) NOT NULL AUTO_INCREMENT,
+    ID bigint DEFAULT GLOBAL_SEQ.nextval NOT NULL,
     EMAIL varchar(255) NOT NULL,
     NAME varchar(255) NOT NULL,
     PRIMARY KEY (ID)
