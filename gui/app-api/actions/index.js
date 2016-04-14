@@ -1,5 +1,7 @@
-export loadInfo from './load-info';
-export loadAuth from './load-auth';
-export login from './login';
-export logout from './logout';
-export * as widget from './widget/index';
+export loadInfo from './load-info'
+export loadAuth from './load-auth'
+export login from './login'
+export logout from './logout'
+export api from './api'
+export registry from './registry'
+export * as widget from './widget/index'
