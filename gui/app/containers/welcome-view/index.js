@@ -38,6 +38,8 @@ export default class Welcome extends Component {
   }
 
   render() {
+          const styles = require('./index.scss');
+          console.log(styles)
     	  return (
     		<div>
                 <main>
@@ -45,21 +47,24 @@ export default class Welcome extends Component {
                         <Grid>
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10}  style={{textAlign: "center"}}>
-                                    <PageHeader><Language value="musit.welcomePage.title" /></PageHeader>
-                                    <img src="placeholder-image.png" />
-                                    <Language value="musit.welcomePage.body" />
+                                    <PageHeader><Language value="musit.welcomePage.title" markdown={true}/></PageHeader>
+                                    <div className={styles.panelWithBackground}>
+                                        <span style={{fontSize: "larger", margin: "1em"}}>
+                                            <Language value="musit.welcomePage.body" markdown={true} />
+                                        </span>
+                                    </div>
                                 </Col>
                             </Row>
                             {/* TODO: redux statecheck for user set and user access */}
                             <Row styleClass="row-centered">
-                                <Col  xs={10} md={10} style={{textAlign: "center"}}>
+                               {/*} <Col  xs={10} md={10} style={{textAlign: "center"}}>
                                     <Language value="musit.welcomePage.noAccess" />
-                                </Col>
+                                </Col>*/}
                             </Row>
                             {!this.props.user &&
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10} style={{textAlign: "center"}}>
-                                    <Button bsStyle="default" onClick={this.handleFakeLogin}><img height="11" src="feide-login-icon.png" /> <Language value="musit.login" /></Button>
+                                    <Button bsStyle="default" style={{marginTop: "1em"}} onClick={this.handleFakeLogin}><img height="11" src="feide-login-icon.png" /> <Language value="musit.login" /></Button>
                                 </Col>
                             </Row>
                             }

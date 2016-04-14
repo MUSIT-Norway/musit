@@ -15,8 +15,22 @@ en:
 no:
   musit:
     welcomePage:
-      title: Universitetsmuseenes Samlingsdatabase
-      body: Systemet forvaltes av Universitetsmuseenes IT-organisasjon MUSIT.
+      title: >
+        Universitetsmuseenes IT-organisasjon,
+
+        MUSIT
+      body: >
+        **Arkeologisk museum, Universitetet i Stavanger**
+
+        **Universitetsmuseet i Bergen, Universitetet i Bergen**
+
+        **Kulturhistorisk museum, Universitetet i Oslo**
+
+        **Naturhistorisk museum, Universitetet i Oslo**
+
+        **Tromsø Museum - Universitetetsmuseet, Universitetet i Tromsø**
+
+        **Vitenskapsmuseet - NTNU, Norges Teknologisk-Naturvitenskapelige Universitetet**
       noAccess: Din brukerkonto har ikke adgang til MUSIT. Kontakt din lokale MUSIT-administrator om du mener dette er feil
     welcomeUserPage:
       body: >
@@ -29,4 +43,4 @@ no:
         Mauris scelerisque nulla et tempus laoreet. Nullam pharetra ultricies ipsum, a feugiat tellus fermentum at. Donec quis ipsum at eros viverra aliquam. Nulla facilisi. Aliquam erat volutpat. Nunc vel ante quis neque accumsan gravida. Vestibulum vitae urna vitae turpis tristique posuere et a lacus. Nulla viverra aliquam viverra. Nam eu diam tellus. Donec porta tellus odio, sed ultricies leo vestibulum sit amet. Proin et mauris condimentum enim cursus ornare. Pellentesque posuere eu nulla non posuere. Morbi id lobortis est. Morbi elementum pellentesque metus, eget fermentum purus hendrerit at. Nam ullamcorper est odio, vitae sodales elit porttitor vel.
 
         Cras dapibus purus lorem, sit amet consectetur orci ornare ut. Integer vitae nulla orci. Pellentesque vestibulum sed leo sed posuere. Nulla blandit leo velit, vitae elementum neque porttitor id. Nulla ex diam, aliquet non maximus eget, sodales et purus. Fusce eu neque quis erat viverra facilisis vitae at sem. Morbi egestas, velit eget volutpat convallis, elit nunc ultricies dolor, eget finibus diam arcu a lacus. Phasellus tristique magna mattis elementum sodales. Sed luctus lorem non libero porttitor mollis. Cras at velit rhoncus, porttitor lectus eu, mattis est. Morbi vel tempor felis. Cras sodales eros nec lacus bibendum tristique. Nulla efficitur, erat faucibus viverra sagittis, erat orci porta lorem, posuere auctor nibh sapien ullamcorper sapien. Vivamus ornare quam vel ipsum feugiat, lacinia mollis mi suscipit.
-    login: Logginn
+    login: Logg inn via Dataporten
