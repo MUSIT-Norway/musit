@@ -71,7 +71,7 @@ lazy val security = (
   settings(noPublish)
   settings(libraryDependencies ++= playDependencies)
   settings(scoverageSettings: _*)
-)
+)  dependsOn(common)
 
 // Microservices with publish support
 lazy val service_example = (

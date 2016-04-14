@@ -22,7 +22,8 @@ package no.uio.musit.security
 
 
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.extensions.SeqExtensions
+import no.uio.musit.microservices.common.extensions.SeqExtensions._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class SecurityContext(val userGroups: Seq[String]) {
 

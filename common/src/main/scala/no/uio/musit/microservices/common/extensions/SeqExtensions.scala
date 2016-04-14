@@ -25,7 +25,7 @@ package no.uio.musit.microservices.common.extensions
   */
 object SeqExtensions {
 
-  implicit class SeqUtilsX[T](val seq: Seq[T]) extends AnyVal {
+  implicit class SeqExtensionsImp[T](val seq: Seq[T]) extends AnyVal {
     def hasAllOf(items: Seq[T]) = (items == null) || items.forall(g => seq.contains(g))
 
     def hasNoneOf(items: Seq[T]) = (items == null) || items.forall(g => !seq.contains(g))
