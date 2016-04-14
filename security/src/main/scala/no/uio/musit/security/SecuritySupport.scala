@@ -20,11 +20,16 @@
 
 package no.uio.musit.security
 
-protected class SecurityContext(val userGroups: Seq[String]) {
 
-  def hasAllGroups(groups: Seq[String]) = (groups==null) || groups.forall( g => userGroups.contains(g) )
-  def hasNoneOfGroups(groups: Seq[String]) = (groups==null) || groups.forall( g => !userGroups.contains(g) )
+import scala.concurrent.Future
+import no.uio.musit.microservices.common.extensions.SeqExtensions
 
+class SecurityContext(val userGroups: Seq[String]) {
+
+  def hasAllGroups(groups: Seq[String]) = userGroups.hasAllOf(groups)
+
+  // (groups==null) ||  groups.hasAllOf(forall( g => userGroups.contains(g) )
+  def hasNoneOfGroups(groups: Seq[String]) = userGroups.hasNoneOf(groups) // (groups==null) || groups.forall( g => !userGroups.contains(g) )
 }
 
 /**
@@ -35,17 +40,20 @@ protected class SecurityContext(val userGroups: Seq[String]) {
   */
 trait SecuritySupport {
 
-  val securityContext:SecurityContext
+  val securityContext: SecurityContext
 
-  def authorize(requiredGroups:Seq[String], deniedGroups:Seq[String] = Seq.empty)(body:Unit) = {
+  def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => Future[T]): Future[T] = {
     if (securityContext.hasAllGroups(requiredGroups) && securityContext.hasNoneOfGroups(deniedGroups)) {
       body
     }
+    else {
+      Future.failed(new Exception("Unauthorized"))
+    }
   }
 
-  def foo: Unit = {
+  def foo = {
     authorize(Seq("Admin")) {
-      println("wow")
+      Future(println("wow"))
     }
   }
 }
