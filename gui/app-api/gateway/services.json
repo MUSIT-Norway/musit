@@ -1,7 +1,35 @@
 [
   {
+    "name": "example",
+    "scalaName": "ExampleResource",
+    "host": "localhost",
+    "port": "7070",
+    "protocol": "http://"
+  },
+  {
+    "name": "core",
+    "scalaName": "CoreResource",
+    "host": "localhost",
+    "port": "7070",
+    "protocol": "http://"
+  },
+  {
     "name": "actor",
     "scalaName": "ActorResource",
+    "host": "localhost",
+    "port": "7070",
+    "protocol": "http://"
+  },
+  {
+    "name": "thing",
+    "scalaName": "MusitThingResource",
+    "host": "localhost",
+    "port": "7070",
+    "protocol": "http://"
+  },
+  {
+    "name": "time",
+    "scalaName": "TimeResource",
     "host": "localhost",
     "port": "7070",
     "protocol": "http://"
