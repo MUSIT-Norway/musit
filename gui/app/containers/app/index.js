@@ -87,7 +87,7 @@ class App extends Component {
           <Navbar.Header>
             <Navbar.Brand>
               <IndexLink to={rootPath} activeStyle={{color: '#33e0ff'}}>
-                <div className={styles.brand}><img height="40" src="kulturminne.png" /></div><span>{config.app.title}</span>
+                <div className={styles.brand}><img height="40" src="favicons/unimus100x100.png" /></div><span>{config.app.title}</span>
               </IndexLink>
             </Navbar.Brand>
             <Navbar.Toggle/>
@@ -139,10 +139,14 @@ class App extends Component {
           </Navbar.Collapse>
         </Navbar>
 
+
+
         <div className={styles.appContent}>
-          {this.props.children}
+            {this.props.children}
         </div>
-       { null && <InfoBar/>}
+
+
+       {null && <InfoBar/>}
 
         <div className="well text-center">
           Have questions? Ask for help <a

@@ -33,7 +33,9 @@ export default class WelcomeUser extends Component {
                     <Row styleClass="row-centered">
                         <Col xs={10} md={10}>
                             <br/>
-                            <Language value="musit.welcomeUserPage.body" markdown={true} />
+                                <Panel>
+                                    <Language value="musit.welcomeUserPage.body" markdown={true} />
+                                </Panel>
                         </Col>
                     </Row>
                 </Grid>

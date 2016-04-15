@@ -48,7 +48,7 @@ const proxy = httpProxy.createProxyServer({
 });
 
 app.use(compression());
-app.use(favicon(path.join(__dirname, '..', 'static', 'favicons', 'favicon.ico')));
+app.use(favicon(path.join(__dirname, '..', 'static', 'favicons', 'unimusfavicon.ico')));
 
 app.use(Express.static(path.join(__dirname, '..', 'static')));
 
