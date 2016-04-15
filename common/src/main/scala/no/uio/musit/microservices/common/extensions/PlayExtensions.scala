@@ -18,40 +18,18 @@
  *
  */
 
+package no.uio.musit.microservices.common.extensions
+
+import play.api.libs.ws.WSRequest
+
 /**
-  * Created by jstabel on 4/4/16.
+  * Created by jstabel on 4/15/16.
   */
+object PlayExtensions {
 
-import no.uio.musit.microservices.common.PlayDatabaseTest
-import no.uio.musit.security._
-import org.scalatest.FunSuite
-
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
-
-class SecuritySupportSuite extends PlayDatabaseTest with SecuritySupport {
-  val groups = List("Admin", "EtnoSkriv", "EtnoLes")
-
-  securityContext.userGroups = groups
-
-  test("should execute if has groups") {
-    this.authorize(Seq("Admin")) {
-      Future(println("aha in future!"))
-    }
-      println("Ferdig")
-  }
-
-
-  test("should fail if has deniedGroups") {
-   val fut = this.authorize(Seq("Admin"), Seq("EtnoLes")) {
-      Future(println("Denne skal ikke synes!!!"))
-    }
-    intercept[Exception] {
-      val answer = Await.result(fut, 2 seconds)
-
-    }
-  }
-
-
+      implicit class WSRequestImp(val wsr: WSRequest) extends AnyVal {
+        def withBearerToken(token: String) = {
+          wsr.withHeaders("Authorization" -> ("Bearer " + token))
+        }
+      }
 }

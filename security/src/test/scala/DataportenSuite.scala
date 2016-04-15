@@ -4,35 +4,51 @@
 
 import org.scalatest.FunSuite
 import no.uio.musit.security._
-import scala.concurrent.duration._
+import no.uio.musit.security.dataporten.Dataporten
 
-import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class DataportenSuite extends FunSuite {
 
-  val token = "4f58cce4-e995-40e4-91bd-6af171a01ef1" //TEMP!!
+  val token = "d9cb3750-b322-495c-aaab-cef9bf34a235" //TEMP!!
+  val sec = Dataporten.createSecuritySupport(token)
+  //val context = new Context(token)
 
-  val context = new Context(token)
+  val group_DS = "fc:org:uio.no:unit:352330"
+  val group_UiO = "fc:org:uio.no"
+  val group_MusitKonservatorLes = "fc:adhoc:e5badce9-c980-4ee7-a3d5-1edeb0ebd68c"
+
   test("getUserInfo should return something") {
-    val futAnswer = dataporten.RawServices.getUserInfo(context)
-    val answer = Await.result(futAnswer, 2 seconds)
-    assert(answer.name=="Jarle Stabell")
-    assert(answer.name.length>0)
+    val userName = sec.userName
+    assert(userName=="Jarle Stabell")
+    assert(userName.length>0)
   }
 
-
-  test("getUserGroups should return something") {
-    val futAnswer = dataporten.RawServices.getUserGroups(context)
-    val answer = Await.result(futAnswer, 2 seconds)
-
-    assert(answer.length>0)
+  test("Authorize for DS") {
+    sec.authorize(Seq(group_DS)) {
+      Future(println("Har DS gruppa!"))
+    }
   }
 
-   val invalidContext = new Context("tullballtoken")
+  test("Authorize for DS og konservator les") {
+    sec.authorize(Seq(group_DS, group_MusitKonservatorLes)) {
+      Future(println("Har DS og konservatorLes gruppa!"))
+    }
+  }
+
+  test("Authorize for ugyldig gruppe") {
+    sec.authorize(Seq(group_DS, "blablabla")) {
+      Future(assert(true==false))
+    }
+  }
+
   test("Invalid Context/token should fail") {
-    val futAnswer = dataporten.RawServices.getUserInfo(invalidContext)
     intercept[Exception] {
-      val answer = Await.result(futAnswer, 2 seconds)
+      val invalidContext = Dataporten.createSecuritySupport("tullballtoken")
+      val userName = sec.userName
+      assert(userName=="Jarle Stabell")
     }
   }
 

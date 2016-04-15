@@ -25,13 +25,6 @@ import scala.concurrent.Future
 import no.uio.musit.microservices.common.extensions.SeqExtensions._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SecurityContext(var userGroups: Seq[String]) {
-
-  def hasAllGroups(groups: Seq[String]) = userGroups.hasAllOf(groups)
-
-  // (groups==null) ||  groups.hasAllOf(forall( g => userGroups.contains(g) )
-  def hasNoneOfGroups(groups: Seq[String]) = userGroups.hasNoneOf(groups) // (groups==null) || groups.forall( g => !userGroups.contains(g) )
-}
 
 /**
   * Created by jstabel on 4/1/16.
@@ -39,9 +32,20 @@ class SecurityContext(var userGroups: Seq[String]) {
   * requires( Optional[List"Admin"] = None, Optional = None
   * withGroups(Optional["Admin"], Optional["Guest"])(withoutGroups(["Guest"])( ctx => {}))
   */
-trait SecuritySupport {
+/*#OLD
+trait OldSecuritySupport {
 
-  var securityContext: SecurityContext = new SecurityContext(Seq.empty)
+  val securityContext: SecurityContext = new SecurityContext()
+
+  def initWithToken(token: String): Unit = {
+
+
+  }
+
+  def initWithGroups(userGroups: Seq[String]): Unit = {
+    securityContext.userGroups = userGroups
+  }
+
 
   def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => Future[T]): Future[T] = {
     if (securityContext.hasAllGroups(requiredGroups) && securityContext.hasNoneOfGroups(deniedGroups)) {
@@ -58,3 +62,4 @@ trait SecuritySupport {
     }
   }
 }
+*/
