@@ -25,7 +25,7 @@ import scala.concurrent.Future
 import no.uio.musit.microservices.common.extensions.SeqExtensions._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SecurityContext(val userGroups: Seq[String]) {
+class SecurityContext(var userGroups: Seq[String]) {
 
   def hasAllGroups(groups: Seq[String]) = userGroups.hasAllOf(groups)
 
@@ -41,7 +41,7 @@ class SecurityContext(val userGroups: Seq[String]) {
   */
 trait SecuritySupport {
 
-  val securityContext: SecurityContext
+  var securityContext: SecurityContext = new SecurityContext(Seq.empty)
 
   def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => Future[T]): Future[T] = {
     if (securityContext.hasAllGroups(requiredGroups) && securityContext.hasNoneOfGroups(deniedGroups)) {

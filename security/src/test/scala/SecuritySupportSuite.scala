@@ -22,20 +22,19 @@
   * Created by jstabel on 4/4/16.
   */
 
-import org.scalatest.FunSuite
+import no.uio.musit.microservices.common.PlayDatabaseTest
 import no.uio.musit.security._
+import org.scalatest.FunSuite
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SecuritySupportSuite extends FunSuite with SecuritySupport {
-//{securityContext= new SecurityContext(Seq("Admin", "EtnoSkriv", "EtnoLes"))}
+class SecuritySupportSuite extends PlayDatabaseTest with SecuritySupport {
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
 
+  securityContext.userGroups = groups
 
-  val securityContext = new no.uio.musit.security.SecurityContext(groups)
   test("should execute if has groups") {
     this.authorize(Seq("Admin")) {
       Future(println("aha in future!"))

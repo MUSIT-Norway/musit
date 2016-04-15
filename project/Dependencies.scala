@@ -37,7 +37,8 @@ object Dependencies {
     val cache        = "com.typesafe.play"   %% "play-cache"               % version
     val ws           = "com.typesafe.play"   %% "play-ws"                  % version
     val json         = "com.typesafe.play"   %% "play-json"                % version
-    val specs2       = "com.typesafe.play"   %% "play-specs2"              % version            % "test"
+    val specs2Spec       = "com.typesafe.play"   %% "play-specs2"              % version
+    val specs2       = specs2Spec            % "test"
   }
 
   object webjars {
@@ -70,21 +71,16 @@ object Dependencies {
     playframework.json,
     documentation.swaggerplay,
     documentation.swaggerUI,
-    playframework.specs2,
-    scalatest,
     logback //,
     //slf4j
   )
 
-  val webjarsDependencies: Seq[ModuleID] = playDependencies ++ Seq(
-    webjars.webjarsplay,
-    webjars.bootstrap,
-    webjars.requirejs,
-    webjars.jquery,
-    webjars.fontawesome
+  val testablePlayDependencies: Seq[ModuleID]= playDependencies ++ Seq(
+    scalatest,
+    playframework.specs2
+
   )
 
-  val webDependencies: Seq[ModuleID] = playDependencies ++ webjarsDependencies
 
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     //postgresql,
@@ -93,4 +89,8 @@ object Dependencies {
     h2database
   )
 
+  val testablePlayWithPersistenceDependencies: Seq[ModuleID]= playWithPersistenceDependencies ++ Seq(
+    scalatest,
+      playframework.specs2
+  )
 }

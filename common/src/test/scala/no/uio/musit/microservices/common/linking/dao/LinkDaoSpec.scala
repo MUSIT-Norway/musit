@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservices.common.linking.dao
 
-import no.uio.musit.microservices.common.PlayDatabaseTestTrait
+import no.uio.musit.microservices.common.PlayDatabaseTest
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
@@ -29,7 +29,7 @@ import play.api.test.{FakeApplication, TestServer}
 
 case class MockTable(id:Long, links:Seq[Link]) extends BaseMusitDomain
 
-class LinkDaoSpec extends PlayDatabaseTestTrait {
+class LinkDaoSpec extends PlayDatabaseTest {
 
   /* Unit tester */
   test("dao should be able to insert and select from table") {
