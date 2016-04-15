@@ -2,8 +2,11 @@ package no.uio.musit.microservices.common.log
 
 import java.net.URLEncoder
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.{LayoutBase, UnsynchronizedAppenderBase}
+import play.Logger
+import play.api.Play.current
 import play.api.libs.ws._
 
 object SlackDefaults {
@@ -26,16 +29,16 @@ class SlackLogbackAppender extends UnsynchronizedAppenderBase[ILoggingEvent] {
 
   override def append(eventObject: ILoggingEvent): Unit = {
     val future = WS.url(webhook).post(Map(
-      "text" -> slackFormat(layout.doLayout(eventObject)),
-      "parse" -> "full",
-      "link_names" -> "1",
-      "unfurl_links" -> "true",
-      "unfurl_media" -> "true"
+      "text" -> Seq(slackFormat(layout.doLayout(eventObject))),
+      "parse" -> Seq("full"),
+      "link_names" -> Seq("1"),
+      "unfurl_links" -> Seq("true"),
+      "unfurl_media" -> Seq("true")
     )).map{ response =>
       response.status match {
         case 200 => Some(response.json)
         case _ => {
-          println("Slack integration down!!! ($webhook)")
+          Logger.error("Slack integration down!!! ($webhook)")
           None
         }
       }
