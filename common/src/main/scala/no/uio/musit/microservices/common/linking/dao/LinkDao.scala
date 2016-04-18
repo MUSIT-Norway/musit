@@ -16,40 +16,45 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservice.example.dao
+package no.uio.musit.microservices.common.linking.dao
 
-import no.uio.musit.microservice.example.domain.Example
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.Play
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-object ExampleDao extends HasDatabaseConfig[JdbcProfile] {
+object LinkDao extends HasDatabaseConfig[JdbcProfile] {
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val Examples = TableQuery[ExampleTable]
+  private val linkTable = TableQuery[LinkTable]
 
-  def all() : Future[Seq[Example]] = db.run(Examples.result)
+  def insert(ownerTable: BaseMusitDomain, rel:String, href:String): Future[Unit] = db.run(linkTable += Link(-1, ownerTable.id, rel, href)).map { _ => () }
 
-  def insert(example: Example): Future[Unit] = db.run(Examples += example).map { _ => () }
+  def findByLocalTableId(id: Long): Future[Seq[Link]] = db.run(linkTable.filter(_.localTableId === id).result)
 
-  private class ExampleTable(tag: Tag) extends Table[Example](tag, "EXAMPLES") {
+  def findAllLinks() : Future[Seq[Link]] = db.run(linkTable.result)
 
+  /*
+   * Every microservice using this functionality need to add the following to their evolution script:
+   * CREATE TABLE URI_LINKS (
+   *   ID bigint(20) NOT NULL AUTO_INCREMENT,
+   *   LOCAL_TABLE_ID bigint(20) NOT NULL,
+   *   REL varchar(255) NOT NULL,
+   *   HREF varchar(2000) NOT NULL,
+   *   PRIMARY KEY (ID)
+   * );
+   */
+  private class LinkTable(tag: Tag) extends Table[Link](tag, "URI_LINKS") {
     def id = column[Long]("ID", O.PrimaryKey) // This is the primary key column
-    def email = column[String]("EMAIL")
-    def name = column[String]("NAME")
-
-    def create = (id:Long, email:String, name:String) => Example(id, email, name, Seq.empty[Link])
-
-    def destroy(example:Example) = Some((example.id, example.email, example.name))
-
-    def * = (id, email, name) <> (create.tupled, destroy)
+    def localTableId = column[Long]("LOCAL_TABLE_ID")
+    def rel = column[String]("REL")
+    def href = column[String]("HREF")
+    def * = (id, localTableId, rel, href) <> (Link.tupled, Link.unapply _)
   }
 }
-
-

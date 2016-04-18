@@ -16,40 +16,26 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservice.example.resource
+package no.uio.musit.microservice.core.resource
 
-import no.uio.musit.microservice.example.dao.ExampleDao
-import no.uio.musit.microservice.example.domain.Example
-import no.uio.musit.microservice.example.service.ExampleService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import io.swagger.annotations._
-
-import play.api.mvc.{BodyParsers, Action, Controller}
+import no.uio.musit.microservice.core.domain.Example
+import no.uio.musit.microservice.core.service.CoreService
+import play.api.mvc.{Action, BodyParsers, Controller}
 import play.api.libs.json._
 
 @Api(value = "/api/example", description = "Example resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
-class ExampleResource_V1 extends Controller with ExampleService {
-  import ExampleDao._
+class CoreResource extends Controller with CoreService {
 
   @ApiOperation(value = "Example operation - lists all examples", notes = "simple listing in json", httpMethod = "GET")
-  def list = Action.async {
-    all.map( examples =>
-      Ok(Json.toJson(examples))
-    )
+  def list = Action {
+    Ok("bankers")
   }
 
   @ApiOperation(value = "Example operation - inserts an example", notes = "simple json parsing and db insert", httpMethod = "POST")
   def add = Action(BodyParsers.parse.json) { request =>
-    val exampleResult = request.body.validate[Example]
-    exampleResult.fold(
-      errors => {
-        BadRequest(Json.obj("status" ->"Error", "message" -> JsError.toJson(errors)))
-      },
-      example => {
-        insert(example)
-        Created(Json.obj("status" ->"OK", "message" -> (s"Example '${example}' saved.") ))
-      }
-    )
+    NotImplemented(s"Bankers :${this.getClass.getName}")
   }
 
 }
