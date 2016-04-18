@@ -77,7 +77,7 @@ object dataporten {
     }
 
     def getUserInfo = {
-      httpGet(userInfoUrl).map(resp => resp.body).map(Json.parse(_).validate[UserInfo].get)
+       httpGet(userInfoUrl).map(resp => resp.body).map(Json.parse(_).validate[UserInfo].get)
     }
 
     def getUserGroups = {

@@ -16,9 +16,7 @@ class DataportenSuite extends FunSuite {
   val sec = Dataporten.createSecuritySupport(token)
   //val context = new Context(token)
 
-  val group_DS = "fc:org:uio.no:unit:352330"
-  val group_UiO = "fc:org:uio.no"
-  val group_MusitKonservatorLes = "fc:adhoc:e5badce9-c980-4ee7-a3d5-1edeb0ebd68c"
+
 
   test("getUserInfo should return something") {
     val userName = sec.userName
@@ -27,19 +25,19 @@ class DataportenSuite extends FunSuite {
   }
 
   test("Authorize for DS") {
-    sec.authorize(Seq(group_DS)) {
+    sec.authorize(Seq(Groups.DS)) {
       Future(println("Har DS gruppa!"))
     }
   }
 
   test("Authorize for DS og konservator les") {
-    sec.authorize(Seq(group_DS, group_MusitKonservatorLes)) {
+    sec.authorize(Seq(Groups.DS, Groups.MusitKonservatorLes)) {
       Future(println("Har DS og konservatorLes gruppa!"))
     }
   }
 
   test("Authorize for ugyldig gruppe") {
-    sec.authorize(Seq(group_DS, "blablabla")) {
+    sec.authorize(Seq(Groups.DS, "blablabla")) {
       Future(assert(true==false))
     }
   }
