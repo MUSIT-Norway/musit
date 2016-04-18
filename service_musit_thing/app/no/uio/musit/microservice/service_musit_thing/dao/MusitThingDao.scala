@@ -16,10 +16,9 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservice.example.dao
+package no.uio.musit.microservice.service_musit_thing.dao
 
-import no.uio.musit.microservice.example.domain.Example
-
+import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
 import play.api.Play
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
@@ -27,22 +26,22 @@ import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-class ExampleDao extends HasDatabaseConfig[JdbcProfile] {
+class MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val Examples = TableQuery[ExampleTable]
+  private val MusitThingTable = TableQuery[MusitThingTable]
 
-  def all() : Future[Seq[Example]] = db.run(Examples.result)
+  def all() : Future[Seq[MusitThing]] = db.run(MusitThingTable.result)
 
-  def insert(example: Example): Future[Unit] = db.run(Examples += example).map { _ => () }
+  def insert(musitThing: MusitThing): Future[Unit] = db.run(MusitThingTable += musitThing).map { _ => () }
 
-  private class ExampleTable(tag: Tag) extends Table[Example](tag, "EXAMPLES") {
-    def id = column[Long]("ID", O.PrimaryKey) // This is the primary key column
-    def email = column[String]("EMAIL")
-    def name = column[String]("NAME")
-    def * = (id, email, name) <> (Example.tupled, Example.unapply _)
+  private class MusitThingTable(tag: Tag) extends Table[MusitThing](tag, "VIEW_MUSITTHING") {
+    def id = column[Long]("NY_ID", O.PrimaryKey) // This is the primary key column
+    def displayid = column[String]("DISPLAYID")
+    def displayname = column[String]("DISPLAYNAME")
+    def * = (id, displayid, displayname) <> (MusitThing.tupled, MusitThing.unapply _)
   }
 }
 
