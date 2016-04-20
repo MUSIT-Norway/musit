@@ -19,12 +19,13 @@
 # Example schema
  
 # --- !Ups
- 
+
+-- TODO: remove for final musit thing
 CREATE TABLE VIEW_MUSITTHING (
-    id bigint(20) NOT NULL AUTO_INCREMENT,
+    ny_id bigint(20) NOT NULL,
     displayid varchar(255),
     displayname varchar(255),
-    PRIMARY KEY (id)
+    PRIMARY KEY (ny_id)
 );
  
 # --- !Downs

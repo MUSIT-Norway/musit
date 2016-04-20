@@ -26,18 +26,44 @@ import no.uio.musit.microservice.service_musit_thing.service.MusitThingService
 import play.api.mvc.{Action, BodyParsers, Controller}
 import play.api.libs.json._
 
-@Api(value = "/api/example", description = "Example resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
-class MusitThingResource_V1 extends Controller with MusitThingService {
-  val musit_thing_Dao = new MusitThingDao
+import scala.concurrent.Future
 
-  @ApiOperation(value = "Example operation - lists all examples", notes = "simple listing in json", httpMethod = "GET")
-  def list = Action.async {
-    musit_thing_Dao.all.map( examples =>
-      Ok(Json.toJson(examples))
-    )
+@Api(value = "/api/musitThing", description = "MusitTHing resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
+class MusitThingResource_V1 extends Controller with MusitThingService {
+  //val musit_thing_Dao = new MusitThingDao
+
+  @ApiOperation(value = "MusitThing operation - lists all musitThings", notes = "simple listing in json", httpMethod = "GET")
+  def list = Action.async { req => {
+    //req.getQueryString("filter")
+    MusitThingDao.all.map(musitThing =>
+      Ok(Json.toJson(musitThing))
+    )}
   }
 
-  @ApiOperation(value = "Example operation - inserts an example", notes = "simple json parsing and db insert", httpMethod = "POST")
+  @ApiOperation(value = "MusitThing operation - get a spesific musitThing", notes = "simple listing in json", httpMethod = "GET")
+  def getById = Action.async { request => {
+    //req.getQueryString("filter")
+    val filterListe = Seq("id", "displayid", "displayname")
+    def fantIkke = NotFound("Fant ikke raden")
+    def toJson(thing: MusitThing) = {
+      val j = Json.toJson(thing).asInstanceOf[JsObject]
+      val res= j.fields.filter(v=>filterListe.contains(v))
+      res
+    }
+
+    val id = request.getQueryString("id").map(s=>s.toLong)
+
+    id match {
+      case Some(id) => MusitThingDao.getById(id).map(optThing => optThing.map(thing=>Ok(toJson(thing)))).map(optRes=>optRes.getOrElse(fantIkke))
+      case None => Future(fantIkke)
+
+    }
+    }
+  }
+
+
+
+  @ApiOperation(value = "MusitThing operation - inserts an MusitThingTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def add = Action(BodyParsers.parse.json) { request =>
     val musit_thing_result = request.body.validate[MusitThing]
     musit_thing_result.fold(
@@ -45,8 +71,8 @@ class MusitThingResource_V1 extends Controller with MusitThingService {
         BadRequest(Json.obj("status" ->"Error", "message" -> JsError.toJson(errors)))
       },
       musit_thing_tuple => {
-        musit_thing_Dao.insert(musit_thing_tuple)
-        Created(Json.obj("status" ->"OK", "message" -> (s"Example '${musit_thing_tuple}' saved.") ))
+        MusitThingDao.insert(musit_thing_tuple)
+        Created(Json.obj("status" ->"OK", "message" -> (s"MusitThing '${musit_thing_tuple}' saved.") ))
       }
     )
   }

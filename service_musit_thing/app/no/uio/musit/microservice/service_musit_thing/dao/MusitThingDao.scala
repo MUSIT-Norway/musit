@@ -26,7 +26,7 @@ import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-class MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
+object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
@@ -37,11 +37,28 @@ class MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
 
   def insert(musitThing: MusitThing): Future[Unit] = db.run(MusitThingTable += musitThing).map { _ => () }
 
+  def getDisplayName(id:Long) :Future[Option[String]] ={
+    val action = MusitThingTable.filter( _.id === id).map(_.displayname).result.headOption
+    db.run(action)
+  }
+
+  def getDisplayID(id:Long) :Future[Option[String]] ={
+    val action = MusitThingTable.filter( _.id === id).map(_.displayid).result.headOption
+    db.run(action)
+  }
+
+  def getById(id:Long) :Future[Option[MusitThing]] ={
+    val action = MusitThingTable.filter( _.id === id).result.headOption
+    db.run(action)
+  }
+
   private class MusitThingTable(tag: Tag) extends Table[MusitThing](tag, "VIEW_MUSITTHING") {
-    def id = column[Long]("NY_ID", O.PrimaryKey) // This is the primary key column
+    def id = column[Long]("NY_ID", O.PrimaryKey)// This is the primary key column
     def displayid = column[String]("DISPLAYID")
     def displayname = column[String]("DISPLAYNAME")
-    def * = (id, displayid, displayname) <> (MusitThing.tupled, MusitThing.unapply _)
+    def * = (id, displayid, displayname) <>(MusitThing.tupled, MusitThing.unapply _)
+
+
   }
 }
 
