@@ -36,34 +36,27 @@ case class GroupInfo(groupType: String, id: String, displayName: String , descri
 
 //type TokenToUserIdProvider =  (String) => String
 
-trait UserInfoProvider {
+/**Represents what a "connection" is expected to know of the current user
+  *
+   */
+trait ConnectionInfoProvider {
   def getUserInfo : Future[UserInfo]
   def getUserGroups: Future[Seq[GroupInfo]]
   def getUserGroupIds: Future[Seq[String]] = getUserGroups.map(groupInfos => groupInfos.map(groupInfo => groupInfo.id))
 }
 
 trait GroupInfoProvider {
-  def getGroupInfo(groupid: String) : Future[GroupInfo]
+  def getGroupInfo(groupid: String) : Future[Option[GroupInfo]]
 }
 
-trait CachedUserInfoProvider {
+trait UserInfoProvider {
   def getUserInfo(userid: String) : Future[Option[UserInfo]]
   def getUserGroups(userid: String): Future[Option[Seq[String]]]
 }
 //TODO? def getGroupInfo(groupid: String) : Future[Option[GroupInfo]]
 
-
-trait SecuritySupport {
-  def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => Future[T]): Future[T]
-  def userName: String
-//  def context: SecurityContext
-  def hasGroup(groupid: String) : Boolean
-  def hasAllGroups(groups: Seq[String]): Boolean
-  def hasNoneOfGroups(groups: Seq[String]): Boolean
-  //val infoProvider: UserInfoProvider
-}
-
-class SecurityContext(userGroups: Seq[String]) {
+/*
+trait SecurityState(userGroups: Seq[String]) {
   import  no.uio.musit.microservices.common.extensions.SeqExtensions._
 
   //val userGroups: Seq[String] = Seq.empty
@@ -72,13 +65,46 @@ class SecurityContext(userGroups: Seq[String]) {
   def hasNoneOfGroups(groups: Seq[String]) = userGroups.hasNoneOf(groups)
 
 }
+*/
+
+trait SecurityState {
+  def userName: String
+  def hasGroup(group: String): Boolean
+  def hasAllGroups(groups: Seq[String]): Boolean
+  def hasNoneOfGroups(groups: Seq[String]): Boolean
+}
 
 
-abstract class SecuritySupportBaseImp(userGroups: Seq[String]) extends SecuritySupport {
-  val ctx = new SecurityContext(userGroups)
+
+trait SecurityConnection {
+  def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => Future[T]): Future[T]
+  def state: SecurityState
+  def userName: String = state.userName
+  def hasGroup(groupid: String) : Boolean = state.hasGroup(groupid)
+  def hasAllGroups(groupIds: Seq[String]): Boolean = state.hasAllGroups(groupIds)
+  def hasNoneOfGroups(groupIds: Seq[String]): Boolean = state.hasNoneOfGroups(groupIds)
+  //val infoProvider: UserInfoProvider
+}
+
+class SecurityStateImp(_userName: String, userGroups: Seq[String]) extends SecurityState {
+  import  no.uio.musit.microservices.common.extensions.SeqExtensions._
+
+  //val userGroups: Seq[String] = Seq.empty
+
+  override def userName: String = _userName
+
+  def hasGroup(group: String) = userGroups.contains(group)
+  def hasAllGroups(groups: Seq[String]) = userGroups.hasAllOf(groups)
+  def hasNoneOfGroups(groups: Seq[String]) = userGroups.hasNoneOf(groups)
+
+}
+
+
+abstract class SecurityConnectionBaseImp(userName: String, userGroups: Seq[String]) extends SecurityConnection {
+  val state = new SecurityStateImp(userName, userGroups)
 
   override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => Future[T]): Future[T] = {
-    if (ctx.hasAllGroups(requiredGroups) && ctx.hasNoneOfGroups(deniedGroups)) {
+    if (state.hasAllGroups(requiredGroups) && state.hasNoneOfGroups(deniedGroups)) {
       body
     }
     else {
@@ -86,10 +112,11 @@ abstract class SecuritySupportBaseImp(userGroups: Seq[String]) extends SecurityS
     }
   }
 
-
-  def hasGroup(groupid: String) : Boolean = ctx.hasGroup(groupid)
-  def hasAllGroups(groups: Seq[String]): Boolean = ctx.hasAllGroups(groups)
-  def hasNoneOfGroups(groups: Seq[String]): Boolean = ctx.hasNoneOfGroups(groups)
+  /*
+  def hasGroup(groupid: String) : Boolean = state.hasGroup(groupid)
+  def hasAllGroups(groups: Seq[String]): Boolean = state.hasAllGroups(groups)
+  def hasNoneOfGroups(groups: Seq[String]): Boolean = state.hasNoneOfGroups(groups)
+  */
   //val infoProvider: UserInfoProvider
 }
 

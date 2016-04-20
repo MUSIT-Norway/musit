@@ -30,26 +30,30 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
+
+
+
 class FakeSecuritySupportSuite extends PlayDatabaseTest {
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
 
-  val sec = FakeSecurity.createHardcoded("Kalle Kanin", groups)
+  FakeSecurity.createHardcoded("Kalle Kanin", groups).map { sec =>
 
-  test("should execute if has groups") {
-    sec.authorize(Seq("Admin")) {
-      Future(println("aha in future!"))
-    }
+    test("should execute if has groups") {
+      sec.authorize(Seq("Admin")) {
+        Future(println("aha in future!"))
+      }
       println("Ferdig")
-  }
-
-
-  test("should fail if has deniedGroups") {
-   val fut = sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
-      Future(println("Denne skal ikke synes!!!"))
     }
-    intercept[Exception] {
-      val answer = Await.result(fut, 2 seconds)
 
+
+    test("should fail if has deniedGroups") {
+      val fut = sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
+        Future(println("Denne skal ikke synes!!!"))
+      }
+      intercept[Exception] {
+        val answer = Await.result(fut, 2 seconds)
+
+      }
     }
   }
 

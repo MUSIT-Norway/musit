@@ -20,16 +20,18 @@
 
 package no.uio.musit.security
 
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by jstabel on 4/15/16.
   */
 
 
 
-class HardcodedFakeSecuritySupport(_userName: String, userGroups: Seq[String]) extends SecuritySupportBaseImp(userGroups) {
-  def userName = _userName
+class HardcodedFakeSecurityConnection(_userName: String, userGroups: Seq[String]) extends SecurityConnectionBaseImp(_userName, userGroups) {
+
 }
 
 object FakeSecurity {
-  def createHardcoded(userName: String, userGroupIds: Seq[String]) = new HardcodedFakeSecuritySupport(userName, userGroupIds)
+  def createHardcoded(userName: String, userGroupIds: Seq[String]) = Future(new HardcodedFakeSecurityConnection(userName, userGroupIds))
 }
