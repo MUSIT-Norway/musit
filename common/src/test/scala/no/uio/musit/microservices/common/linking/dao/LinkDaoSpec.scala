@@ -17,21 +17,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.example.domain
+package no.uio.musit.microservices.common.linking.dao
 
-import io.swagger.annotations.ApiModel
+import no.uio.musit.microservices.common.PlayDatabaseTest
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json._
+import org.scalatest._
+import play.api.Logger
+import play.api.test.{FakeApplication, TestServer}
 
-@ApiModel
-case class Example(id:Long, email:String, name:String, links:Seq[Link]) extends BaseMusitDomain
+case class MockTable(id:Long, links:Seq[Link]) extends BaseMusitDomain
 
-object Example {
-  def tupled = (Example.apply _).tupled
-  implicit val format = Json.format[Example]
+class LinkDaoSpec extends PlayDatabaseTest {
+
+  /* Unit tester */
+  test("dao should be able to insert and select from table") {
+    import LinkDao._
+    insert(MockTable(1, Seq.empty[Link]), "test", "/test/case/100")
+    val allLinks = findAllLinks()
+    allLinks.map(_.foreach( (link:Link) =>
+        Logger.info(s"test: $link")
+      )
+    )
+  }
+
 }
-
-
-
-

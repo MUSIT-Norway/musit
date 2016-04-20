@@ -16,22 +16,9 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+package no.uio.musit.microservices.common.linking
 
-package no.uio.musit.microservice.example.domain
 
-import io.swagger.annotations.ApiModel
-import no.uio.musit.microservices.common.domain.BaseMusitDomain
-import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json._
+class LinkService {
 
-@ApiModel
-case class Example(id:Long, email:String, name:String, links:Seq[Link]) extends BaseMusitDomain
-
-object Example {
-  def tupled = (Example.apply _).tupled
-  implicit val format = Json.format[Example]
 }
-
-
-
-

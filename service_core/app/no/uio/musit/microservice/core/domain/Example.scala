@@ -17,15 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.example.domain
+package no.uio.musit.microservice.core.domain
 
 import io.swagger.annotations.ApiModel
-import no.uio.musit.microservices.common.domain.BaseMusitDomain
-import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 @ApiModel
-case class Example(id:Long, email:String, name:String, links:Seq[Link]) extends BaseMusitDomain
+case class Example(val id:Long, email:String, name:String)
 
 object Example {
   def tupled = (Example.apply _).tupled

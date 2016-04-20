@@ -37,7 +37,8 @@ object Dependencies {
     val cache        = "com.typesafe.play"   %% "play-cache"               % version
     val ws           = "com.typesafe.play"   %% "play-ws"                  % version
     val json         = "com.typesafe.play"   %% "play-json"                % version
-    val specs2       = "com.typesafe.play"   %% "play-specs2"              % version            % "test"
+    val specs2Spec       = "com.typesafe.play"   %% "play-specs2"              % version
+    val specs2       = specs2Spec            % "test"
   }
 
   object webjars {
@@ -54,11 +55,12 @@ object Dependencies {
   }
 
   val logback        = "ch.qos.logback"      %  "logback-classic"          % "1.1.3"
-  val slf4j          = "org.slf4j"           %  "slf4j-nop"                % "1.6.4"
+  //val slf4j          = "org.slf4j"           %  "slf4j-nop"                % "1.6.4"
 
   val postgresql     = "org.postgresql"      % 	"postgresql" 		           % "9.4-1201-jdbc41"
   val h2database     = "com.h2database"      %  "h2"                       % "1.4.187"
-  val scalatest      = "org.scalatest"       %% "scalatest"                % "2.2.4"            % "test"
+  var scalatestSpec  = "org.scalatest"       %% "scalatest"                % "2.2.4"
+  val scalatest      = scalatestSpec         % "test"
 
   // packager for RPM and Docker
   val dockerClient   = "com.spotify" % "docker-client" % "3.2.1"
@@ -69,21 +71,16 @@ object Dependencies {
     playframework.json,
     documentation.swaggerplay,
     documentation.swaggerUI,
-    playframework.specs2,
+    logback //,
+    //slf4j
+  )
+
+  val testablePlayDependencies: Seq[ModuleID]= playDependencies ++ Seq(
     scalatest,
-    logback,
-    slf4j
+    playframework.specs2
+
   )
 
-  val webjarsDependencies: Seq[ModuleID] = playDependencies ++ Seq(
-    webjars.webjarsplay,
-    webjars.bootstrap,
-    webjars.requirejs,
-    webjars.jquery,
-    webjars.fontawesome
-  )
-
-  val webDependencies: Seq[ModuleID] = playDependencies ++ webjarsDependencies
 
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     //postgresql,
@@ -92,4 +89,8 @@ object Dependencies {
     h2database
   )
 
+  val testablePlayWithPersistenceDependencies: Seq[ModuleID]= playWithPersistenceDependencies ++ Seq(
+    scalatest,
+      playframework.specs2
+  )
 }
