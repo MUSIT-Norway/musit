@@ -1,6 +1,5 @@
 # MUSIT
-Museum database for Naturalhistory and Culturalhistory museums with store integration.
-The project is run as an opensource initiative and is cooperating with other projects like DINA project, Kotka and GBIF Norway.
+Norwegian university museums IT organization (MUSIT); cultural history and natural history database with store integration.
 
 Code status for master branch:
 * [![Build Status](https://travis-ci.org/MUSIT-Norway/musit.svg?branch=master)](https://travis-ci.org/MUSIT-Norway/musit)
@@ -9,6 +8,11 @@ Code status for master branch:
 * [![Issue Count](https://codeclimate.com/github/MUSIT-Norway/musit/badges/issue_count.svg)](https://codeclimate.com/github/MUSIT-Norway/musit)
 
 Status badges is retrieved directly from the services monitoring the code.
+
+The Norwegian university museums IT organization (MUSIT) is a cooperation agreement between the University of Oslo, University of Bergen, Norwegian University of Science and Technology, University of Tromsø - Norway's Arctic university, and the University of Stavanger. 
+The University museums of Norway hold in trust regional and global scientific collections of natural and cultural history. The cooperative aims to ensure the operation, maintenance and development of the university museums' joint collection databases, and to facilitate sharing dissemination of data for research, education, management and the public. 
+
+MUSIT strives for greater integration between its databases and is an open source initiative cooperating with other projects such as DINA (National History museum of Stockholm - Sweden), and Kotka (National History museum of Helsinki - Finland).
 
 **_Note that the gui is in a big refactoring process now and will not work until this is done_**
 
