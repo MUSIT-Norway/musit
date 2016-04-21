@@ -64,8 +64,9 @@ export default class Welcome extends Component {
                             {!this.props.user &&
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10} style={{textAlign: "center"}}>
-                                    <Button bsStyle="default" style={{marginTop: "1em"}}
-                                    onClick={this.handleFakeLogin}><img height="11" src="feide-login-icon.png" /> <Language value="musit.login" /></Button>
+                                    <Button bsStyle="default" style={{marginTop: "1em"}} onClick={this.handleFakeLogin} height="20" src="feide-login-icon.png">
+                                      <Language value="musit.login" markdown="true"/>
+                                    </Button>
                                 </Col>
                             </Row>
                             }

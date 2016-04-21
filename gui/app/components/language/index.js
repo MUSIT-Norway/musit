@@ -21,6 +21,7 @@ import React, { Component, PropTypes, bindActionCreators } from 'react'
 import { connect } from 'react-redux'
 import { I18n, Translate } from 'react-i18nify'
 import marked from 'react-marked'
+import md from 'markdown-string'
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -28,7 +29,7 @@ marked.setOptions({
   tables: true,
   breaks: true,
   pedantic: false,
-  sanitize: false,
+  sanitize: true,
   smartLists: false,
   smartypants: false
 });
@@ -59,6 +60,7 @@ export default class Language extends Component {
           try {
             const tmp = marked(text)
             text = tmp[0]
+
           } catch (err) {
             console.log(err)
           }
