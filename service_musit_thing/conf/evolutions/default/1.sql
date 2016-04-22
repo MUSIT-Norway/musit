@@ -22,11 +22,14 @@
 
 -- TODO: remove for final musit thing
 CREATE TABLE VIEW_MUSITTHING (
-    ny_id bigint(20) NOT NULL,
+    ny_id bigint(20) NOT NULL AUTO_INCREMENT,
     displayid varchar(255),
     displayname varchar(255),
     PRIMARY KEY (ny_id)
 );
+
+insert into VIEW_MUSITTHING (ny_id, displayid, displayname) values (NULL, 'C1', 'Øks5');
+insert into VIEW_MUSITTHING (ny_id, displayid, displayname) values (NULL, 'C2', 'Kniv7');
  
 # --- !Downs
  

@@ -20,10 +20,12 @@
 package no.uio.musit.microservice.service_musit_thing.domain
 
 import io.swagger.annotations.ApiModel
+import no.uio.musit.microservices.common.domain.BaseMusitDomain
+import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 @ApiModel
-case class MusitThing(val id:Long, displayid:String, displayname:String)
+case class MusitThing(id: Long , displayid:String, displayname:String, links: Seq[Link]) extends BaseMusitDomain
 
 object MusitThing {
   def tupled = (MusitThing.apply _).tupled

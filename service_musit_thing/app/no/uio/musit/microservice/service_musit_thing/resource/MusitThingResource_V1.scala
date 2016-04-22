@@ -23,10 +23,12 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import io.swagger.annotations._
 import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
 import no.uio.musit.microservice.service_musit_thing.service.MusitThingService
-import play.api.mvc.{Action, BodyParsers, Controller}
+import play.api.Logger
+import play.api.mvc._
 import play.api.libs.json._
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 @Api(value = "/api/musitThing", description = "MusitTHing resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
 class MusitThingResource_V1 extends Controller with MusitThingService {
@@ -40,41 +42,81 @@ class MusitThingResource_V1 extends Controller with MusitThingService {
     )}
   }
 
+
   @ApiOperation(value = "MusitThing operation - get a spesific musitThing", notes = "simple listing in json", httpMethod = "GET")
-  def getById = Action.async { request => {
-    //req.getQueryString("filter")
-    val filterListe = Seq("id", "displayid", "displayname")
-    def fantIkke = NotFound("Fant ikke raden")
-    def toJson(thing: MusitThing) = {
-      val j = Json.toJson(thing).asInstanceOf[JsObject]
-      val res= j.fields.filter(v=>filterListe.contains(v))
-      res
+  def getById(id:Long) = Action.async { request => {
+
+    def wrapWithOkOrFailString(eventualMaybeResult: Future[Option[String]]) = {
+      eventualMaybeResult.map(
+        maybeResult=>maybeResult.map(
+          result=>Ok(Json.toJson(result))
+        ).getOrElse(
+          NotFound(s"Didn't find object with id: $id")
+        )
+      )
+    }
+    def wrapWithOkOrFailThing(eventualMaybeResult: Future[Option[MusitThing]]) = {
+      eventualMaybeResult.map(
+        maybeResult=>maybeResult.map(
+          result=>Ok(Json.toJson(result))
+        ).getOrElse(
+          NotFound(s"Didn't find object with id: $id")
+        )
+      )
     }
 
-    val id = request.getQueryString("id").map(s=>s.toLong)
 
-    id match {
-      case Some(id) => MusitThingDao.getById(id).map(optThing => optThing.map(thing=>Ok(toJson(thing)))).map(optRes=>optRes.getOrElse(fantIkke))
-      case None => Future(fantIkke)
 
-    }
+    val filterListe = Seq("displayid", "displayname")
+
+    val filter = extractFilterFromRequest(request)
+    if (filter.length == 1) {
+      filter(0).toLowerCase match {
+        case "displayid" => wrapWithOkOrFailString(MusitThingDao.getDisplayID(id)) //Json.toJson(MusitThingDao.getDisplayID(id).map( )))
+        case "displayname" =>  wrapWithOkOrFailString(MusitThingDao.getDisplayName(id))
+        case whatever => Future(BadRequest(s"Unknown filter:$whatever"))
+      }
+
+    } else if (filter.length > 1) {
+      /*val json = Json.toJson(MusitThingDao.getById(1).map( thing => thing))
+      Logger.debug(json.toString)
+      val displayId = json \ "displayid"*/
+      Future(BadRequest("Filter can not contain more then one attribute"))
+    } else {
+      wrapWithOkOrFailThing(MusitThingDao.getById(id))
     }
   }
+  }
+
 
 
 
   @ApiOperation(value = "MusitThing operation - inserts an MusitThingTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
-  def add = Action(BodyParsers.parse.json) { request =>
-    val musit_thing_result = request.body.validate[MusitThing]
-    musit_thing_result.fold(
-      errors => {
-        BadRequest(Json.obj("status" ->"Error", "message" -> JsError.toJson(errors)))
-      },
-      musit_thing_tuple => {
-        MusitThingDao.insert(musit_thing_tuple)
-        Created(Json.obj("status" ->"OK", "message" -> (s"MusitThing '${musit_thing_tuple}' saved.") ))
+  def add = Action.async(BodyParsers.parse.json) { request =>
+    val musitThingResult:JsResult[MusitThing] = request.body.validate[MusitThing]
+    musitThingResult match {
+      case s:JsSuccess[MusitThing] => {
+        val musitThing = s.get
+        val newThingF = MusitThingDao.insert(musitThing)
+        newThingF.map { newThing =>
+          Created(Json.toJson(newThing))
+        }
       }
-    )
+      case e:JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))
+    }
+  }
+
+  def extractFilterFromRequest(request: Request[AnyContent]): Array[String] = {
+    request.getQueryString("filter") match {
+      case Some(filterString) => "^\\[(\\w*)\\]$".r.findFirstIn(filterString) match {
+        case Some(str) => str.split(",")
+        case None => Array.empty[String]
+      }
+      case None => Array.empty[String]
+    }
   }
 
 }
+
+
+
