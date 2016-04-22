@@ -18,31 +18,20 @@
  *
  */
 
-package no.uio.musit.security
+package no.uio.musit.microservices.common.extensions
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+
+
 /**
-  * Created by jstabel on 4/15/16.
+  * Created by jstabel on 4/22/16.
   */
 
+object FutureExtensions {
 
-
-class HardcodedFakeSecurityConnection(_userName: String, userGroups: Seq[String]) extends SecurityConnectionBaseImp(_userName, userGroups) {
-
-}
-
-object FakeSecurity {
-  def createHardcoded(userName: String, userGroupIds: Seq[String]) = Future(new HardcodedFakeSecurityConnection(userName, userGroupIds))
-
-
-  def createInMemory(userId: String) = {
-    val user = FakeSecurityUsersAndGroups.findUser(userId)
-    user match {
-      case Some(u) =>
-        val userGroups = FakeSecurityUsersAndGroups.groupsIdsForUserId(u.id)
-        createHardcoded(u.name, userGroups)
-      case None => Future.failed(new Exception(s"Couldn't find user with ID=$userId"))
-    }
+  implicit class FutureExtensionsImp[T](val fut: Future[T]) extends AnyVal {
+    def awaitInSeconds(seconds: Int) = Await.result(fut, seconds.seconds)
   }
+
 }

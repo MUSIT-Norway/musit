@@ -18,20 +18,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util
 import scala.util.{Failure, Success}
 
-class DataportenSuite extends PlayDatabaseTest with ScalaFutures{
-  val token = "59197195-bf27-4ab1-bf57-b460ed85edab" //TEMP!!
+class DataportenSuite extends PlayDatabaseTest with ScalaFutures {
+  val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
+  //TEMP!!
+  val token = "6fa97170-7b71-4b9c-aa71-158ab33e0b45"
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
 
 
     println("hallo")
-
-    val f = Dataporten.createSecurityConnection(token+"a")
-    f.onComplete {
-      case Success(s) => println("!!!Success")
-      case Failure(ex) => println(s"!!!Å nei! ${ex.getMessage}")
-    }
+    /*
+        val f = Dataporten.createSecurityConnection(token+"a")
+        f.onComplete {
+          case Success(s) => println("!!!Success")
+          case Failure(ex) => println(s"!!!Å nei! ${ex.getMessage}")
+        }*/
   }
 
   override protected def afterAll(): Unit = {
@@ -40,8 +42,12 @@ class DataportenSuite extends PlayDatabaseTest with ScalaFutures{
     super.afterAll()
   }
 
-  val fut=Dataporten.createSecurityConnection(token)
-    fut.map { sec =>
+  //val fut=Dataporten.createSecurityConnection(token)
+  //fut.futureValue.
+
+
+  val fut = Dataporten.createSecurityConnection(token)
+  fut.map { sec =>
     //val context = new Context(token)
 
 
@@ -64,8 +70,12 @@ class DataportenSuite extends PlayDatabaseTest with ScalaFutures{
     }
 
     test("Authorize for ugyldig gruppe") {
-      sec.authorize(Seq(Groups.DS, "blablabla")) {
-        Future(assert(true == false))
+
+      intercept[Exception] {
+
+        sec.authorize(Seq(Groups.DS, "blablabla")) {
+          Future(assert(true == false))
+        }
       }
     }
 
@@ -77,30 +87,32 @@ class DataportenSuite extends PlayDatabaseTest with ScalaFutures{
       }
       ScalaFutures.whenReady(f.failed) { e => e shouldBe a[MusitBadRequest] }
     }
-      test("Invalid Context/token should fail give auth error") {
-        val f=Dataporten.createSecurityConnection("59197195-bf27-4ab1-bf57-b460ed85abba")
-        f.onComplete{
-          case Success(s) => fail("Skulle ikke få connection med ugyldig token")
-          case Failure(ex) =>  println("bra!") //assert(true==false)
-        }
-        ScalaFutures.whenReady(f.failed) {e => e shouldBe a [MusitAuthFailed]  }}
-/*
-      try {
-        val answer = Await.result(f, 20 seconds)
-      } catch {
-        case e: IllegalStateException => println("fanget exception...")
+    test("Invalid Context/token should fail give auth error") {
+      val f = Dataporten.createSecurityConnection("59197195-bf27-4ab1-bf57-b460ed85abba")
+      f.onComplete {
+        case Success(s) => fail("Skulle ikke få connection med ugyldig token")
+        case Failure(ex) => println("bra!") //assert(true==false)
       }
-*/
+      ScalaFutures.whenReady(f.failed) { e => e shouldBe a[MusitAuthFailed] }
+    }
+    /*
+          try {
+            val answer = Await.result(f, 20 seconds)
+          } catch {
+            case e: IllegalStateException => println("fanget exception...")
+          }
+    */
 
 
 
-      println("halloFerdig")
+    println("halloFerdig")
 
-//        ).onFailure{case _ => assert(true==false) /*fail("Skulle ikke få connection med tullballtoken")*/ }
+    //        ).onFailure{case _ => assert(true==false) /*fail("Skulle ikke få connection med tullballtoken")*/ }
 
-  }.onComplete{
+  }.onComplete {
     case Success(ok) => println("ok")
-    case Failure(ex) => println(s"Unable to connect: ${ex.getMessage}")}
+    case Failure(ex) => println(s"Unable to connect: ${ex.getMessage}")
+  }
 
   val answer = Await.result(fut, 20 seconds)
 

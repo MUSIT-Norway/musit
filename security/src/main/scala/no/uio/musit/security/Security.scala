@@ -77,7 +77,7 @@ trait SecurityState {
 
 
 trait SecurityConnection {
-  def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => Future[T]): Future[T]
+  def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): T
   def state: SecurityState
   def userName: String = state.userName
   def hasGroup(groupid: String) : Boolean = state.hasGroup(groupid)
@@ -103,12 +103,13 @@ class SecurityStateImp(_userName: String, userGroups: Seq[String]) extends Secur
 abstract class SecurityConnectionBaseImp(userName: String, userGroups: Seq[String]) extends SecurityConnection {
   val state = new SecurityStateImp(userName, userGroups)
 
-  override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => Future[T]): Future[T] = {
+  override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): T = {
     if (state.hasAllGroups(requiredGroups) && state.hasNoneOfGroups(deniedGroups)) {
       body
     }
     else {
-      Future.failed(new Exception("Unauthorized"))
+      //#OLD Future.failed(new Exception("Unauthorized"))
+      throw new Exception("Unauthorized")
     }
   }
 

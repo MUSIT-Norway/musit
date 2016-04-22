@@ -23,39 +23,57 @@
   */
 
 import no.uio.musit.microservices.common.PlayDatabaseTest
+import no.uio.musit.microservices.common.extensions.PlayExtensions.MusitAuthFailed
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.security._
 import org.scalatest.FunSuite
+import org.scalatest.concurrent.ScalaFutures
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
+class FakeSecuritySupportSuite extends PlayDatabaseTest with ScalaFutures {
 
 
-class FakeSecuritySupportSuite extends PlayDatabaseTest {
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
 
   FakeSecurity.createHardcoded("Kalle Kanin", groups).map { sec =>
 
     test("should execute if has groups") {
       sec.authorize(Seq("Admin")) {
-        Future(println("aha in future!"))
+        Future(println("Authorized: should execute if has groups"))
       }
-      println("Ferdig")
+      println("Ferdig: should execute if has groups")
     }
 
 
     test("should fail if has deniedGroups") {
-      val fut = sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
-        Future(println("Denne skal ikke synes!!!"))
-      }
       intercept[Exception] {
-        val answer = Await.result(fut, 2 seconds)
+      sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
+        println("Denne skal ikke synes!!!")
+      }
+//#OLD        val answer = fut.awaitInSeconds(2)
 
       }
     }
-  }
 
 
+    test("in-memory test") {
+      FakeSecurity.createInMemory("jarle").map { sec =>
+        assert(sec.hasGroup("FotoLes"))
+        assert(!sec.hasGroup("tullballgroup"))
+        println("in-memory test")
+      }
+
+
+
+    }
+    test("Should fail to user unknown user") {
+      val fut=FakeSecurity.createInMemory("ukjentbruker")
+      ScalaFutures.whenReady(fut.failed) {e => e shouldBe a [Exception]  }
+    }
+
+  }.awaitInSeconds(5)
 }

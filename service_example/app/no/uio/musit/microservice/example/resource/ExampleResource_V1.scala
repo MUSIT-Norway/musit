@@ -18,17 +18,19 @@
  */
 package no.uio.musit.microservice.example.resource
 
+import javax.inject.Inject
+
 import no.uio.musit.microservice.example.dao.ExampleDao
 import no.uio.musit.microservice.example.domain.Example
 import no.uio.musit.microservice.example.service.ExampleService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import io.swagger.annotations._
-
-import play.api.mvc.{BodyParsers, Action, Controller}
+import play.api.mvc.{Action, BodyParsers, Controller}
 import play.api.libs.json._
+import play.api.libs.ws.WSClient
 
 @Api(value = "/api/example", description = "Example resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
-class ExampleResource_V1 extends Controller with ExampleService {
+class ExampleResource_V1 @Inject() (ws:WSClient) extends Controller with ExampleService {
   import ExampleDao._
 
   @ApiOperation(value = "Example operation - lists all examples", notes = "simple listing in json", httpMethod = "GET")
