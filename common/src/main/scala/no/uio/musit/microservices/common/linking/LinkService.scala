@@ -18,7 +18,13 @@
  */
 package no.uio.musit.microservices.common.linking
 
+import no.uio.musit.microservices.common.linking.domain.Link
 
-class LinkService {
 
+object LinkService {
+  val baseUrl="http://localhost:7070"
+
+  def self(uri:String): Link = {
+    Link(-1, -1, "self", baseUrl + uri)
+  }
 }
