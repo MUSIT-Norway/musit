@@ -21,7 +21,7 @@ import scala.util.{Failure, Success}
 class DataportenSuite extends PlayDatabaseTest with ScalaFutures {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   //TEMP!!
-  val token = "6fa97170-7b71-4b9c-aa71-158ab33e0b45"
+  val token = "b98baab7-f7c7-4dfd-a775-bc7cf28660ce"
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
@@ -69,14 +69,23 @@ class DataportenSuite extends PlayDatabaseTest with ScalaFutures {
       }
     }
 
+    def assertFailure[T<: AnyRef](f: => Any): Unit = {
+      val res = f
+      res match {
+        case Success(_) => assert(true==false, s"Did expect failure, but got success")
+        case Failure(v) => ()
+
+      }
+    }
+
     test("Authorize for ugyldig gruppe") {
 
-      intercept[Exception] {
+//      assertFailure[Exception] {
 
         sec.authorize(Seq(Groups.DS, "blablabla")) {
-          Future(assert(true == false))
-        }
-      }
+          assert(true == false)
+        }.failed
+  //    }
     }
 
     test("Structurally invalid Context/token should fail give bad request") {

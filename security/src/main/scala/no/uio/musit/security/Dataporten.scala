@@ -1,13 +1,13 @@
 package no.uio.musit.security
 
-import play.Logger
+import play.api.Play.current
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.libs.ws.ning.{NingWSClient, NingWSResponse}
 import play.api.libs.functional.syntax._
-import play.api.libs.json
+import play.api.libs.ws._
+import play.api.libs.{json, ws}
 
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
@@ -17,7 +17,7 @@ import scala.util.{Failure, Success}
   */
 
 class Context(val accessToken: String) {
-  val ws = NingWSClient()
+  //val ws = NingWSClient()
 }
 
 import play.api.cache._
@@ -49,7 +49,7 @@ object dataporten {
 
   class DataportenUserInfoProvider  (accessToken: String) extends ConnectionInfoProvider {
     val ws = NingWSClient() // TODO: Make implicit parameter or otherwise access a global one!
-
+    //val ws = WS
     import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
     def httpGet(url: String) = {

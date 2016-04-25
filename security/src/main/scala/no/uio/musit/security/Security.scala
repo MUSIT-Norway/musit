@@ -24,7 +24,7 @@ package no.uio.musit.security
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by jstabel on 4/15/16.
@@ -55,17 +55,6 @@ trait UserInfoProvider {
 }
 //TODO? def getGroupInfo(groupid: String) : Future[Option[GroupInfo]]
 
-/*
-trait SecurityState(userGroups: Seq[String]) {
-  import  no.uio.musit.microservices.common.extensions.SeqExtensions._
-
-  //val userGroups: Seq[String] = Seq.empty
-  def hasGroup(group: String) = userGroups.contains(group)
-  def hasAllGroups(groups: Seq[String]) = userGroups.hasAllOf(groups)
-  def hasNoneOfGroups(groups: Seq[String]) = userGroups.hasNoneOf(groups)
-
-}
-*/
 
 trait SecurityState {
   def userName: String
@@ -75,21 +64,17 @@ trait SecurityState {
 }
 
 
-
 trait SecurityConnection {
-  def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): T
+  def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T]
   def state: SecurityState
   def userName: String = state.userName
   def hasGroup(groupid: String) : Boolean = state.hasGroup(groupid)
   def hasAllGroups(groupIds: Seq[String]): Boolean = state.hasAllGroups(groupIds)
   def hasNoneOfGroups(groupIds: Seq[String]): Boolean = state.hasNoneOfGroups(groupIds)
-  //val infoProvider: UserInfoProvider
 }
 
 class SecurityStateImp(_userName: String, userGroups: Seq[String]) extends SecurityState {
   import  no.uio.musit.microservices.common.extensions.SeqExtensions._
-
-  //val userGroups: Seq[String] = Seq.empty
 
   override def userName: String = _userName
 
@@ -103,22 +88,25 @@ class SecurityStateImp(_userName: String, userGroups: Seq[String]) extends Secur
 abstract class SecurityConnectionBaseImp(userName: String, userGroups: Seq[String]) extends SecurityConnection {
   val state = new SecurityStateImp(userName, userGroups)
 
-  override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): T = {
+  override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
     if (state.hasAllGroups(requiredGroups) && state.hasNoneOfGroups(deniedGroups)) {
-      body
+      Success(body)
     }
     else {
       //#OLD Future.failed(new Exception("Unauthorized"))
-      throw new Exception("Unauthorized")
-    }
-  }
+      val missingGroups = requiredGroups.filter((g => !(state.hasGroup(g))))
+      val disallowedGroups = deniedGroups.filter(g => (state.hasGroup(g)))
 
-  /*
-  def hasGroup(groupid: String) : Boolean = state.hasGroup(groupid)
-  def hasAllGroups(groups: Seq[String]): Boolean = state.hasAllGroups(groups)
-  def hasNoneOfGroups(groups: Seq[String]): Boolean = state.hasNoneOfGroups(groups)
-  */
-  //val infoProvider: UserInfoProvider
+      assert(missingGroups.length>0 || disallowedGroups.length>0)
+
+      val missingGroupsText = Some(s"Missing groups: ${missingGroups.mkString(",")}.").filter(_=> !missingGroups.isEmpty)
+      val shouldNotHaveGroupsText = Some(s"Having disallowed groups: ${disallowedGroups.mkString(",")}.").filter(_=> !disallowedGroups.isEmpty)
+
+      val msg = s"Unauthorized! ${missingGroupsText.map(_ + " ").getOrElse("")}${shouldNotHaveGroupsText.getOrElse()}"
+
+      Failure(new Exception(msg))
+      }
+    }
 }
 
 
