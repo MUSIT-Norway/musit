@@ -19,18 +19,18 @@
 # Example schema
  
 # --- !Ups
-CREATE SEQUENCE IF NOT EXISTS GLOBAL_SEQ START WITH 1 INCREMENT BY 1 NOCACHE;
 
-CREATE TABLE URI_LINKS (
-   ID bigint DEFAULT GLOBAL_SEQ.nextval NOT NULL,
-   LOCAL_TABLE_ID bigint NOT NULL,
-   REL varchar(255) NOT NULL,
-   HREF varchar(2000) NOT NULL,
-   PRIMARY KEY (ID)
+-- TODO: remove for final musit thing
+CREATE TABLE VIEW_MUSITTHING (
+    ny_id bigint(20) NOT NULL AUTO_INCREMENT,
+    displayid varchar(255),
+    displayname varchar(255),
+    PRIMARY KEY (ny_id)
 );
+
+insert into VIEW_MUSITTHING (ny_id, displayid, displayname) values (NULL, 'C1', 'Øks5');
+insert into VIEW_MUSITTHING (ny_id, displayid, displayname) values (NULL, 'C2', 'Kniv7');
  
 # --- !Downs
  
-DROP TABLE URI_LINKS;
-
-DROP SEQUENCE GLOBAL_SEQ;
+DROP TABLE VIEW_MUSITTHING;
