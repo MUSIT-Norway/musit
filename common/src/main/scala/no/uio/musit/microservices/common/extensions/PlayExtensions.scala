@@ -39,14 +39,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object PlayExtensions {
 
-  // TODO: Use official Play exception classes
+  // TODO: Use official Play exception classes or something
   case class MusitHttpErrorInfo(val uri: Option[URI], status: Int, serverMsg: String, localMsg: String)
 
   class MusitHttpError(val info: MusitHttpErrorInfo) extends Exception(info.localMsg)
+
   class MusitBadRequest(info: MusitHttpErrorInfo) extends MusitHttpError(info)
+
   class MusitAuthFailed(info: MusitHttpErrorInfo) extends MusitHttpError(info)
 
-  // TODO: Fix this
+  // TODO: Use another exception class when the above todo-item has been done
   def authFailed(msg: String) = throw new MusitAuthFailed(MusitHttpErrorInfo(None, 401, "", msg))
 
   implicit class WSRequestImp(val wsr: WSRequest) extends AnyVal {
@@ -56,54 +58,27 @@ object PlayExtensions {
 
 
     // TODO: Handle more exceptions
-    def translateStatusToException(resp: WSResponse) =
-    {
-        assert(resp.status < 200 || resp.status >= 300)
+    def translateStatusToException(resp: WSResponse) = {
+      assert(resp.status < 200 || resp.status >= 300)
       val msg = s"Unable to access http resource: ${wsr.uri} Status: ${resp.status} StatusText: ${resp.statusText}"
-        resp.status match {
-          case 400 => new MusitBadRequest(new MusitHttpErrorInfo(Some(wsr.uri), resp.status, resp.statusText, msg))
-          case 401 => new MusitAuthFailed(new MusitHttpErrorInfo(Some(wsr.uri), resp.status, resp.statusText, msg))
-          case _ => new MusitHttpError(new MusitHttpErrorInfo(Some(wsr.uri), resp.status, resp.statusText, msg))
-        }
+      resp.status match {
+        case 400 => new MusitBadRequest(new MusitHttpErrorInfo(Some(wsr.uri), resp.status, resp.statusText, msg))
+        case 401 => new MusitAuthFailed(new MusitHttpErrorInfo(Some(wsr.uri), resp.status, resp.statusText, msg))
+        case _ => new MusitHttpError(new MusitHttpErrorInfo(Some(wsr.uri), resp.status, resp.statusText, msg))
+      }
     }
 
     def getOrFail() = {
 
       val respF = wsr.get()
       respF.flatMap { resp: WSResponse =>
-//        println(s"getAndCheckStatus${resp.status}")
         if (resp.status < 200 || resp.status >= 300) {
-  //
-          println("Future about to fail")
           Future.failed(translateStatusToException(resp))
         }
-    else
+        else
           Future.successful(resp)
       }
-
     }
-
-    /*
-      def getOrFail() = {
-        println("getAndCheck")
-        val respF = wsr.get()
-        respF.map { resp: WSResponse =>
-          println(s"getAndCheckStatus${resp.status}")
-          if (resp.status < 200 || resp.status >= 300) {
-            val msg = s"Unable to access http resource: ${wsr.uri} Status: ${resp.status} StatusText: ${resp.statusText}"
-            println("Future about to fail")
-            //Future.failed(throw new Exception(msg))}
-            //
-            // TODO: Translate to proper async code without exceptions
-            //throw new Exception(msg)}
-            else
-            resp
-          }
-
-        }
-
-    */
-
   }
 
 }

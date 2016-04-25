@@ -1,28 +1,15 @@
 package no.uio.musit.security
 
 import play.api.Play.current
-import play.api.libs.json._
-import play.api.libs.ws.{WSClient, WSRequest}
-import play.api.libs.ws.ning.{NingWSClient, NingWSResponse}
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 import play.api.libs.ws._
-import play.api.libs.{json, ws}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
 
 /**
   * Created by jstabel on 3/31/16.
   */
-
-class Context(val accessToken: String) {
-  //val ws = NingWSClient()
-}
-
-import play.api.cache._
-import play.api.mvc._
-import javax.inject.Inject
 
 
 object dataporten {
@@ -48,28 +35,15 @@ object dataporten {
     ) (createGroupInfo _)
 
   class DataportenUserInfoProvider  (accessToken: String) extends ConnectionInfoProvider {
-    val ws = NingWSClient() // TODO: Make implicit parameter or otherwise access a global one!
-    //val ws = WS
+
     import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
     def httpGet(url: String) = {
-      ws.url(url).withBearerToken(accessToken).getOrFail()
-
+      WS.url(url).withBearerToken(accessToken).getOrFail()
     }
 
     def getUserInfo = {
-      //httpGet(userInfoUrl).map(resp => resp.body).map(Json.parse(_).validate[UserInfo].get)
-
-      httpGet(userInfoUrl).onComplete {
-
-        case Success(s) => println(s"getUserInfo: Success=$s")
-        case Failure(s) => println(s"getUserInfo:failure: ${s.getMessage}")
-      }
-      val fut1 = httpGet(userInfoUrl).map { resp =>
-        println(s"Inni map fut1:${resp.statusText} body: ${resp.body}")
-        resp.body
-      }
-      fut1.map(Json.parse(_).validate[UserInfo].get)
+      httpGet(userInfoUrl).map(resp => resp.body).map(Json.parse(_).validate[UserInfo].get)
     }
 
     def getUserGroups = {
