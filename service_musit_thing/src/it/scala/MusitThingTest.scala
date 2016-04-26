@@ -18,11 +18,10 @@
  */
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatest.{FunSuite, Matchers}
-import play.api.Play.current
-import play.api.libs.json._
+import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
 import play.api.libs.ws.WS
-import play.api.test.Helpers._
-import play.api.test._
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json._
 
 import scala.concurrent.duration._
 
@@ -30,16 +29,16 @@ import scala.concurrent.duration._
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
-class MusitThingTest extends FunSuite with Matchers with ScalaFutures {
-
+class MusitThingTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
+  implicit override lazy val app = new GuiceApplicationBuilder().build()
   val timeout = PatienceConfiguration.Timeout(1 seconds)
 
-  test("Funny test") {
-    running(TestServer(7070)) {
-      val future = WS.url("http://localhost:7070/v1/1").get()
+  "MusitThing integration " must {
+    "get by id" in {
+      val future = WS.url(s"http://localhost:$port/v1/1").get()
       whenReady(future, timeout) { response =>
         val json = Json.parse(response.body)
-        assert ((json  \ "id").get.toString() == "1")
+        assert((json \ "id").get.toString() == "1")
       }
     }
   }

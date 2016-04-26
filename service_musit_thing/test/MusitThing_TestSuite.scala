@@ -2,17 +2,15 @@
   * Created by ellenjo on 4/15/16.
   */
 
+import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
 import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatest.{BeforeAndAfterAll, FeatureSpec, FunSuite, Matchers}
-import play.api.test.Helpers._
-
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 class MusitThing_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
