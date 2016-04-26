@@ -5,19 +5,19 @@ sudo: false
 
 cache:
   directories:
-    - $HOME/.ivy2/cache
+    - $HOME/.ivy2/cache/
     - $HOME/.sbt/boot/
+    - $HOME/.npm/
 
 before_cache:
   # Tricks to avoid unnecessary cache updates
   - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
   - find $HOME/.sbt -name "*.lock" -delete
+  - find $HOME/.npm -name "*.lock" -delete
 
 script:
 # Scala build and test
 - sbt compile test:compile test
-# Add integration tests?
-- find $HOME/.sbt -name "*.lock" | xargs rm
 # Frontend (ReactJS) build and test
 - npm install -g npm@2
 - cd gui && "./initialize.sh" && npm run test
