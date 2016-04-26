@@ -16,21 +16,31 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-import no.uio.musit.microservices.common.PlayDatabaseTest
-import org.specs2.mutable._
-import org.specs2.runner._
-import org.junit.runner._
-import play.api.test._
+import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
+import org.scalatest.{FunSuite, Matchers}
+import play.api.Play.current
+import play.api.libs.json._
+import play.api.libs.ws.WS
 import play.api.test.Helpers._
+import play.api.test._
+
+import scala.concurrent.duration._
 
 /**
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
-@RunWith(classOf[JUnitRunner])
-class MusitThingSpec extends PlayDatabaseTest with WithBrowser {
+class MusitThingTest extends FunSuite with Matchers with ScalaFutures {
+
+  val timeout = PatienceConfiguration.Timeout(1 seconds)
 
   test("Funny test") {
-    browser.go("http://localhost:7070/v1/1")
+    running(TestServer(7070)) {
+      val future = WS.url("http://localhost:7070/v1/1").get()
+      whenReady(future, timeout) { response =>
+        val json = Json.parse(response.body)
+        assert ((json  \ "id").get.toString() == "1")
+      }
+    }
   }
 }
