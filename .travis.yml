@@ -15,11 +15,11 @@ before_cache:
 
 script:
 # Scala build and test
-- sbt compile test:compile
-- sbt test
+- sbt compile test:compile test
 # Add integration tests?
 - find $HOME/.sbt -name "*.lock" | xargs rm
 # Frontend (ReactJS) build and test
+- npm install -g npm@2
 - cd gui && "./initialize.sh" && npm run test
 
 # Add addon for codeclimate
