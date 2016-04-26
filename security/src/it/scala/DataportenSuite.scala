@@ -24,58 +24,87 @@
 
 import no.uio.musit.microservices.common.PlayDatabaseTest
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
+import no.uio.musit.security.{Groups, SecurityConnection}
+import no.uio.musit.security.dataporten.{Dataporten, DataportenSecurityConnection}
+import org.scalatest.FunSuite
+import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
+import play.api.test.TestServer
+import play.api.test.Helpers._
+import org.scalatest._
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class DataportenSuite extends PlayDatabaseTest with ScalaFutures {
+class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   // TODO: Dynamic token, find a way to have a permanent test token with Dataporten
-  val token = "259239f9-4012-4c62-8de5-a1753931445e"
-  var fut: Future[SecurityConnection] = null
+  val token = "4e538218-edff-4ab9-b605-c4a7abc843c8"
+  //var fut: Future[SecurityConnection] = null
 
-  def timeout = PatienceConfiguration.Timeout(1 seconds)
 
+  val additionalConfiguration:Map[String, String] = Map.apply (
+    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
+    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
+    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
+    ("evolutionplugin" , "enabled")
+  )
+  val timeout = PatienceConfiguration.Timeout(1 seconds)
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
+
+
+
+  /*
   override protected def beforeAll(): Unit = {
     super.beforeAll()
 
     //This can't be in the constructor, it has to be after the setup because createSecurityConnection accesses the WS object.
     fut = Dataporten.createSecurityConnection(token)
   }
+  */
 
-  test("getUserInfo should return something") {
-    whenReady(fut, timeout) { sec =>
+  def runTestWhenReadyWithToken(token: String, block: DataportenSecurityConnection=>Unit): Unit = {
+      whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}
+
+  def runTestWhenReady[T](block: DataportenSecurityConnection=>Unit): Unit = runTestWhenReadyWithToken(token, block)
+
+  def runTestWhenReadyWithTokenAndException(token: String, block: Throwable=>Unit): Unit = {
+      whenReady(Dataporten.createSecurityConnection(token).failed, timeout) { ex => block(ex)}}
+
+
+  "getUserInfo should return something" in {
+    runTestWhenReady { sec =>
       val userName = sec.userName
       assert(userName == "Jarle Stabell")
       assert(userName.length > 0)
     }
   }
 
-  test("Authorize for DS") {
-    whenReady(fut, timeout) { sec =>
+  "Authorize for DS" in {
+    runTestWhenReady { sec =>
       assert(sec.authorize(Seq(Groups.DS)) {}.isSuccess)
     }
   }
 
-  test("Authorize for DS and MusitKonservatorLes") {
-    whenReady(fut, timeout) { sec =>
+
+  "Authorize for DS and MusitKonservatorLes" in {
+    runTestWhenReady { sec =>
       assert(sec.authorize(Seq(Groups.DS, Groups.MusitKonservatorLes)) {}.isSuccess)
     }
   }
 
-  test("Authorize for invalid group") {
-    whenReady(fut, timeout) { sec =>
+  "Authorize for invalid group" in {
+    runTestWhenReady { sec =>
       assert(sec.authorize(Seq(Groups.DS, "invalid groupid")) {}.isFailure)
     }
   }
 
-  test("Structurally invalid Context/token should fail give bad request") {
-    val f = Dataporten.createSecurityConnection("tullballtoken")
-    whenReady(f.failed, timeout) { e => e shouldBe a[MusitBadRequest] }
+  "Structurally invalid Context/token should fail give bad request" in {
+    runTestWhenReadyWithTokenAndException("tullballtoken", e => e mustBe a[MusitBadRequest])
   }
 
-  test("Invalid Context/token should fail give auth error") {
-    val f = Dataporten.createSecurityConnection("59197195-bf27-4ab1-bf57-b460ed85abba")
-    whenReady(f.failed, timeout) { e => e shouldBe a[MusitAuthFailed] }
+  "Invalid Context/token should fail give auth error" in {
+    runTestWhenReadyWithTokenAndException("59197195-bf27-4ab1-bf57-b460ed85abba", e => e mustBe a[MusitAuthFailed])
   }
 }
