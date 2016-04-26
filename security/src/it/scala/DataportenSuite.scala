@@ -64,17 +64,16 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   }
   */
 
-  def runTestWhenReadyWithToken(token: String, block: DataportenSecurityConnection=>Unit): Unit = {
+  def runTestWhenReady(token: String) (block: DataportenSecurityConnection=>Unit): Unit = {
       whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}
 
-  def runTestWhenReady[T](block: DataportenSecurityConnection=>Unit): Unit = runTestWhenReadyWithToken(token, block)
 
   def runTestWhenReadyWithTokenAndException(token: String, block: Throwable=>Unit): Unit = {
       whenReady(Dataporten.createSecurityConnection(token).failed, timeout) { ex => block(ex)}}
 
 
   "getUserInfo should return something" in {
-    runTestWhenReady { sec =>
+    runTestWhenReady(token) { sec =>
       val userName = sec.userName
       assert(userName == "Jarle Stabell")
       assert(userName.length > 0)
@@ -82,20 +81,20 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   }
 
   "Authorize for DS" in {
-    runTestWhenReady { sec =>
+    runTestWhenReady(token) { sec =>
       assert(sec.authorize(Seq(Groups.DS)) {}.isSuccess)
     }
   }
 
 
   "Authorize for DS and MusitKonservatorLes" in {
-    runTestWhenReady { sec =>
+    runTestWhenReady(token) { sec =>
       assert(sec.authorize(Seq(Groups.DS, Groups.MusitKonservatorLes)) {}.isSuccess)
     }
   }
 
   "Authorize for invalid group" in {
-    runTestWhenReady { sec =>
+    runTestWhenReady(token) { sec =>
       assert(sec.authorize(Seq(Groups.DS, "invalid groupid")) {}.isFailure)
     }
   }
