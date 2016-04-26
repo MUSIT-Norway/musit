@@ -40,6 +40,7 @@ class PlayDatabaseTest extends FunSuite with Matchers with BeforeAndAfterAll {
 
   def server_ = TestServer(application = app_, port = 7070)
 
+
   override protected def beforeAll(): Unit = {
     server_.start
 
