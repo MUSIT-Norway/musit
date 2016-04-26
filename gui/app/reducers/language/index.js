@@ -1,13 +1,13 @@
-const LOAD = 'musit/info/LOAD';
-const LOAD_SUCCESS = 'musit/info/LOAD_SUCCESS';
-const LOAD_FAIL = 'musit/info/LOAD_FAIL';
+const LOAD = 'musit/language/LOAD';
+const LOAD_SUCCESS = 'musit/language/LOAD_SUCCESS';
+const LOAD_FAIL = 'musit/language/LOAD_FAIL';
 
 
 const initialState = {
   loaded: false
 };
 
-const infoReducer = (state = initialState, action = {}) => {
+const languageReducer = (state = initialState, action = {}) => {
   switch (action.type) {
     case LOAD:
       return {
@@ -33,15 +33,15 @@ const infoReducer = (state = initialState, action = {}) => {
   }
 }
 
-export default infoReducer
+export default languageReducer
 
 export const isLoaded = (globalState) => {
-  return globalState.info && globalState.info.loaded;
+  return globalState.language && globalState.language.loaded;
 }
 
 export const load = () => {
   return {
     types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/loadInfo')
+    promise: (client) => client.get('/loadLanguage')
   };
 }

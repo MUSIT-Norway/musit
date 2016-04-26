@@ -16,13 +16,30 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-export function isLoaded(globalState) {
-  return globalState.auth && globalState.auth.loaded;
-}
 
-export function load() {
-  return {
-    types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/loadAuth')
-  };
+import React, { Component, PropTypes } from 'react'
+import {  Panel, Grid, Row, Col } from 'react-bootstrap'
+import { connect } from 'react-redux'
+import { Link } from 'react-router'
+import Language from '../../components/language'
+
+@connect()
+export default class WelcomeUser extends Component {
+
+  render() {
+    	  return (
+                <div>
+                <Grid>
+                    <Row styleClass="row-centered">
+                        <Col xs={10} md={10}>
+                            <br/>
+                                <Panel>
+                                    <Language value="musit.welcomeUserPage.body" markdown={true} />
+                                </Panel>
+                        </Col>
+                    </Row>
+                </Grid>
+                </div>
+    	);
+    }
 }
