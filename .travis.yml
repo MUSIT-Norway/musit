@@ -1,7 +1,5 @@
 language: scala
 jdk: oraclejdk8
-node_js:
-- "5"
 
 sudo: false
 
@@ -18,7 +16,7 @@ before_cache:
   - find $HOME/.npm -name "*.lock" -delete
 
 install:
-- npm install -g npm@2
+- rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install 5
 
 script:
 # Scala build and test
