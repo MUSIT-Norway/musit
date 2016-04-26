@@ -1,0 +1,13 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+#GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+# Setup swagger.
+#GET     /swagger.json               controllers.ApiHelpController.getResources
+
+# Setup endpoints
+GET     /v1                         no.uio.musit.microservice.service_musit_thing.resource.MusitThingResource_V1.list
+GET     /v1/:id                     no.uio.musit.microservice.service_musit_thing.resource.MusitThingResource_V1.getById(id:Long)
+POST    /v1                         no.uio.musit.microservice.service_musit_thing.resource.MusitThingResource_V1.add
+#GET    /api-docs/v1                controllers.ApiHelpController.getResource(path = "/v1")

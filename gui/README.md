@@ -7,6 +7,8 @@ Special thanks to Erik Rasmussen (https://github.com/erikras) for having
 good examples available on his github, to move towards node and universal
 rendring we used his react-redux-universal-hot-example as help.
 
+If you experience ENOSPC errors please modify sysctl config with the following command:
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
 Note to self:
 Update template with latest goodies from https://github.com/erikras/react-redux-universal-hot-example
