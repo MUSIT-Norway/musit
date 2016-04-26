@@ -36,6 +36,7 @@ object CommonSettings {
   def BaseProject(name: String): Project = (
     Project(name, file(name))
     settings(projectSettings:_*)
+    settings(Defaults.itSettings: _*)
     configs(IntegrationTest)
   )
 
@@ -44,6 +45,8 @@ object CommonSettings {
     enablePlugins(play.sbt.Play)
     enablePlugins(SbtNativePackager)
     enablePlugins(DockerPlugin)
+    settings(Defaults.itSettings: _*)
+    configs(IntegrationTest)
     //enablePlugins(DockerSpotifyClientPlugin) get spotify client running and you have no dependencies to local docker
   )
   

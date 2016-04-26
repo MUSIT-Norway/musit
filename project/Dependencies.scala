@@ -38,7 +38,8 @@ object Dependencies {
     val ws           = "com.typesafe.play"   %% "play-ws"                  % version
     val json         = "com.typesafe.play"   %% "play-json"                % version
     val specs2Spec   = "com.typesafe.play"   %% "play-specs2"              % version
-    val specs2       = specs2Spec            % "test, it"
+    val specs2       = specs2Spec            %  "it,test"
+
   }
 
   object webjars {
@@ -55,12 +56,14 @@ object Dependencies {
   }
 
   val logback        = "ch.qos.logback"      %  "logback-classic"          % "1.1.3"
-  //val slf4j          = "org.slf4j"           %  "slf4j-nop"                % "1.6.4"
 
   val postgresql     = "org.postgresql"      % 	"postgresql" 		           % "9.4-1201-jdbc41"
   val h2database     = "com.h2database"      %  "h2"                       % "1.4.187"
   var scalatestSpec  = "org.scalatest"       %% "scalatest"                % "2.2.4"
-  val scalatest      = scalatestSpec         % "test, it"
+  val scalatestplusSpec  = "org.scalatestplus"   %% "play"                     % "1.4.0"
+  val scalatest      = scalatestSpec         %  "it,test"
+  val scalatestplus  = scalatestplusSpec     %  "it,test"
+
 
   // packager for RPM and Docker
   val dockerClient   = "com.spotify" % "docker-client" % "3.2.1"
@@ -77,8 +80,7 @@ object Dependencies {
 
   val testablePlayDependencies: Seq[ModuleID]= playDependencies ++ Seq(
     scalatest,
-    playframework.specs2
-
+    scalatestplus
   )
 
 
@@ -91,6 +93,6 @@ object Dependencies {
 
   val testablePlayWithPersistenceDependencies: Seq[ModuleID]= playWithPersistenceDependencies ++ Seq(
     scalatest,
-      playframework.specs2
+    scalatestplus
   )
 }

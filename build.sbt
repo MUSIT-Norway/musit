@@ -33,7 +33,6 @@ scalacOptions ++= List(
   "-target:jvm-1.8",
   "-encoding", "UTF-8"
 )
-Defaults.itSettings
 
 val baseDockerSettings = Seq(
   maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
@@ -64,7 +63,7 @@ lazy val common = (
     settings(noPublish)
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(scoverageSettings: _*)
-  ) dependsOn(common_test % "test")
+  ) dependsOn(common_test % "it,test")
 
 lazy val common_test = (
   BaseProject("common_test")
@@ -78,7 +77,7 @@ lazy val security = (
     settings(noPublish)
     settings(libraryDependencies ++= testablePlayDependencies)
     settings(scoverageSettings: _*)
-  )  dependsOn(common, common_test % "test")
+  )  dependsOn(common, common_test % "it,test")
 
 lazy val service_core = (
   PlayProject("service_core")
@@ -101,7 +100,7 @@ lazy val service_musit_thing = (
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_musit_thing"
   ))
-  )  dependsOn(common, common_test % "test")
+  )  dependsOn(common, common_test % "it,test")
 
 // Extra tasks
 // TODO: Fix codegen task to have external properties not in GIT
