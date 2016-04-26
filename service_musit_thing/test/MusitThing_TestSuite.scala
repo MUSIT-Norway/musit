@@ -2,90 +2,103 @@
   * Created by ellenjo on 4/15/16.
   */
 
-import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
-
-import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
-import no.uio.musit.microservices.common.PlayDatabaseTest
 import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
-import org.scalatest.concurrent.ScalaFutures
+import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
+import no.uio.musit.microservices.common.linking.LinkService
+import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import play.api.inject.guice.GuiceApplicationBuilder
 
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
-class MusitThing_TestSuite extends PlayDatabaseTest with ScalaFutures{
+class MusitThing_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
-  import MusitThingDao._
+  val additionalConfiguration:Map[String, String] = Map.apply (
+    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
+    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
+    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
+    ("evolutionplugin" , "enabled")
+  )
+  val timeout = PatienceConfiguration.Timeout(1 seconds)
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
 
-  println("Før")
-  //val dao = new MusitThingDao()
-  println("Etter")
+  "MusitThing slick dao" must {
+    import MusitThingDao._
 
-  def testFuture[T](testnavn: String, f: Long => Future[T], verdi:Long, forventetSvar:T) = {
-    test(testnavn) {
-      val fut = f(verdi)
-      whenReady(fut) { result =>
-        assert(result == forventetSvar)
+    "testInsertMusitThing" in {
+      insert(MusitThing(1, "C2", "spyd", Seq.empty))
+      insert(MusitThing(2, "C3", "øks", Seq.empty))
+      val svar=MusitThingDao.all()
+      svar.onFailure{
+        case ex => fail("Insert failed")
+      }
+      whenReady(svar, timeout) { things =>
+        assert (things.length == 4)
+      }
+    }
+
+    "getDisplayName_kjempeTall" in {
+      val svar = getDisplayName(6386363673636335366L)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == None)
+      }
+    }
+
+    "getDisplayName_Riktig" in {
+      val svar = getDisplayName(2)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == Some("Kniv7"))
+      }
+    }
+
+    "getDisplayName_TalletNull" in {
+      val svar = getDisplayName(0)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == None)
+      }
+    }
+
+    "getDisplayID_kjempeTall" in {
+      val svar = getDisplayID(6386363673636335366L)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == None)
+      }
+    }
+
+    "getDisplayID_Riktig" in {
+      val svar = getDisplayID(2)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == Some("C2"))
+      }
+    }
+
+    "getDisplayID_TalletNull" in {
+      val svar = getDisplayID(0)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == None)
+      }
+    }
+
+    "getById_kjempeTall" in {
+      val svar = getById(6386363673636335366L)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == None)
+      }
+    }
+
+    "getById__Riktig" in {
+      val svar = getById(1)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == Some(MusitThing(1,"C1","Øks5", Seq(LinkService.self("/v1/1")))))
+      }
+    }
+
+    "getById__TalletNull" in {
+      val svar = getById(0)
+      whenReady(svar, timeout) { thing =>
+        assert (thing == None)
       }
     }
   }
-
-  def testFutureMusitThing[T](f :MusitThing => Future[T],i_verdi:MusitThing)= {
-    f(i_verdi).onFailure { case ex => println(s"Feil i insert1 ${ex.getMessage}")
-    }
-  }
-
-  test("testInsertMusitThing") {
-    testFutureMusitThing(insert,MusitThing(1, "C2", "spyd"))
-    testFutureMusitThing(insert,MusitThing(2, "C3", "øks"))
-    val svar=MusitThingDao.all()
-    svar.onFailure{
-      case ex => println(s"Feil i selectAll ${ex.getMessage}")
-    }
-    svar.map(things=> {
-      println("Før loop")
-      things.foreach(thing=>println(s"ID: ${thing.displayid}"))
-      println("Etter loop")
-    })
-  }
-
-
-  /*test("testInsertMusitThing") {
-    insert(MusitThing(1, "C2", "spyd")).onFailure{case ex => println(s"Feil i insert1 ${ex.getMessage}")}
-    insert(MusitThing(2, "C3", "øks")).onFailure{case ex => println(s"Feil i insert2 ${ex.getMessage}")}
-    val svar=MusitThingDao.all()
-    svar.onFailure{
-      case ex => println(s"Feil i selectAll ${ex.getMessage}")
-    }
-    svar.map(things=> {
-      println("Før loop")
-      things.foreach(thing=>println(s"ID: ${thing.displayid}"))
-      println("Etter loop")
-      })
-  }
-*/
-  testFuture("getDisplayName_kjempeTall",MusitThingDao.getDisplayName,6386363673636335366L,None)
-  testFuture("test getDisplayName_Riktig", MusitThingDao.getDisplayName, 2, Some("øks"))
-  testFuture("test getDisplayName_TalletNull",MusitThingDao.getDisplayName,0,None)
-
-  testFuture("getDisplayID_kjempeTall",MusitThingDao.getDisplayID,6386363673636335366L,None)
-  testFuture("test getDisplayID_Riktig", MusitThingDao.getDisplayID, 2, Some("C3"))
-  testFuture("test getDisplayID_TalletNull",MusitThingDao.getDisplayID,0,None)
-
-  testFuture("test getById_kjempeTall",MusitThingDao.getById,6386363673636335366L,None)
-  testFuture("test getById__Riktig", MusitThingDao.getById, 1, Some(MusitThing(1,"C2","spyd")))
-  testFuture("test getById__TalletNull",MusitThingDao.getById,0,None)
-
-  /*
-      test("test 1") {
-        val verdi=5
-        println("Ferdig1")
-
-        assert(verdi==7)
-      }
-    test("test 3") {
-      val verdi=5
-      println("Ferdig3")
-
-      assert(verdi==7)
-    }*/
 }

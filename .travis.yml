@@ -5,20 +5,22 @@ sudo: false
 
 cache:
   directories:
-    - $HOME/.ivy2/cache
+    - $HOME/.ivy2/cache/
     - $HOME/.sbt/boot/
+    - $HOME/.npm/
 
 before_cache:
   # Tricks to avoid unnecessary cache updates
   - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
   - find $HOME/.sbt -name "*.lock" -delete
+  - find $HOME/.npm -name "*.lock" -delete
+
+install:
+- rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install 5
 
 script:
 # Scala build and test
-- sbt compile test:compile
-- sbt test
-# Add integration tests?
-- find $HOME/.sbt -name "*.lock" | xargs rm
+- sbt compile test:compile test
 # Frontend (ReactJS) build and test
 - cd gui && "./initialize.sh" && npm run test
 
