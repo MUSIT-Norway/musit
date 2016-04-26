@@ -18,9 +18,8 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 echo Running in: `pwd`
-NPM=`which npm`
-NPM install webpack -g
-NPM install webpack-dev-server -g
-NPM install babel -g
-NPM install phantomjs-prebuilt -g
-NPM install
+npm install webpack -g
+npm install webpack-dev-server -g
+npm install babel -g
+npm install phantomjs-prebuilt -g
+npm install

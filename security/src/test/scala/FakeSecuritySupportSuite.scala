@@ -22,64 +22,50 @@
   * Created by jstabel on 4/4/16.
   */
 
-import no.uio.musit.microservices.common.PlayDatabaseTest
-import no.uio.musit.microservices.common.extensions.PlayExtensions.MusitAuthFailed
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.security._
-import org.scalatest.FunSuite
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{FlatSpec, FunSuite, Matchers}
+import org.scalatestplus.play.PlaySpec
+import play.api.Logger
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
-class FakeSecuritySupportSuite extends PlayDatabaseTest with ScalaFutures {
-
+class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures {
 
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
 
+  "running with application" must {
   FakeSecurity.createHardcoded("Kalle Kanin", groups).map { sec =>
 
-    test("should execute if has groups") {
-      sec.authorize(Seq("Admin")) {
-        Future(println("Authorized: should execute if has groups"))
-      }
-      println("Ferdig: should execute if has groups")
+    "should execute if has groups" in {
+      assert(sec.authorize(Seq("Admin")) {
+        Logger.debug("Authorized: should execute if has groups")
+      }.isSuccess)
     }
 
 
-    test("should fail if has deniedGroups") {
- {
-      sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
-        println("Denne skal ikke synes!!!")
-      }.failed
-
-        /*
-              intercept[Exception] {
-      sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
-        println("Denne skal ikke synes!!!")
-      }
-
-         */
+    "should fail if has deniedGroups" in {
+      {
+        assert(sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
+          Logger.debug("Denne skal ikke synes!!!")
+        }.isFailure)
       }
     }
 
-
-    test("in-memory test") {
+    "in-memory test" in {
       FakeSecurity.createInMemory("jarle").map { sec =>
         assert(sec.hasGroup("FotoLes"))
         assert(!sec.hasGroup("tullballgroup"))
-        println("in-memory test")
+        Logger.debug("in-memory test")
       }
-
-
-
     }
-    test("Should fail to user unknown user") {
-      val fut=FakeSecurity.createInMemory("ukjentbruker")
-      ScalaFutures.whenReady(fut.failed) {e => e shouldBe a [Exception]  }
+    "Should fail to user unknown user" in {
+      val fut = FakeSecurity.createInMemory("ukjentbruker")
+      ScalaFutures.whenReady(fut.failed) { e => e mustBe a[Exception] }
     }
 
-  }.awaitInSeconds(5)
+
+  }.awaitInSeconds(5)}
+
 }
