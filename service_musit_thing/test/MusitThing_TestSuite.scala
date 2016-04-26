@@ -2,18 +2,19 @@
   * Created by ellenjo on 4/15/16.
   */
 
-import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
 import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatest.{FunSuite, Matchers}
-import play.api.test.FakeApplication
+import org.scalatest.{BeforeAndAfterAll, FeatureSpec, FunSuite, Matchers}
 import play.api.test.Helpers._
+
 import scala.concurrent.duration._
-
 import scala.concurrent.ExecutionContext.Implicits.global
+import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import play.api.inject.guice.GuiceApplicationBuilder
 
-class MusitThing_TestSuite extends FunSuite with Matchers with ScalaFutures {
+class MusitThing_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
   val additionalConfiguration:Map[String, String] = Map.apply (
     ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
@@ -22,11 +23,14 @@ class MusitThing_TestSuite extends FunSuite with Matchers with ScalaFutures {
     ("evolutionplugin" , "enabled")
   )
   val timeout = PatienceConfiguration.Timeout(1 seconds)
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
 
-  test("testInsertMusitThing") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      MusitThingDao.insert(MusitThing(1, "C2", "spyd", Seq.empty))
-      MusitThingDao.insert(MusitThing(2, "C3", "øks", Seq.empty))
+  "MusitThing slick dao" must {
+    import MusitThingDao._
+
+    "testInsertMusitThing" in {
+      insert(MusitThing(1, "C2", "spyd", Seq.empty))
+      insert(MusitThing(2, "C3", "øks", Seq.empty))
       val svar=MusitThingDao.all()
       svar.onFailure{
         case ex => fail("Insert failed")
@@ -35,83 +39,65 @@ class MusitThing_TestSuite extends FunSuite with Matchers with ScalaFutures {
         assert (things.length == 4)
       }
     }
-  }
-  
-  test("getDisplayName_kjempeTall") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getDisplayName(6386363673636335366L)
+
+    "getDisplayName_kjempeTall" in {
+      val svar = getDisplayName(6386363673636335366L)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }
     }
-  }
 
-  test("getDisplayName_Riktig") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getDisplayName(2)
+    "getDisplayName_Riktig" in {
+      val svar = getDisplayName(2)
       whenReady(svar, timeout) { thing =>
         assert (thing == Some("Kniv7"))
       }
     }
-  }
 
-  test("getDisplayName_TalletNull") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getDisplayName(0)
+    "getDisplayName_TalletNull" in {
+      val svar = getDisplayName(0)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }
     }
-  }
 
-  test("getDisplayID_kjempeTall") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getDisplayID(6386363673636335366L)
+    "getDisplayID_kjempeTall" in {
+      val svar = getDisplayID(6386363673636335366L)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }
     }
-  }
 
-  test("getDisplayID_Riktig") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getDisplayID(2)
+    "getDisplayID_Riktig" in {
+      val svar = getDisplayID(2)
       whenReady(svar, timeout) { thing =>
         assert (thing == Some("C2"))
       }
     }
-  }
 
-  test("getDisplayID_TalletNull") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getDisplayID(0)
+    "getDisplayID_TalletNull" in {
+      val svar = getDisplayID(0)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }
     }
-  }
 
-  test("getById_kjempeTall") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getById(6386363673636335366L)
+    "getById_kjempeTall" in {
+      val svar = getById(6386363673636335366L)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }
     }
-  }
 
-  test("getById__Riktig") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getById(1)
+    "getById__Riktig" in {
+      val svar = getById(1)
       whenReady(svar, timeout) { thing =>
         assert (thing == Some(MusitThing(1,"C1","Øks5", Seq(LinkService.self("/v1/1")))))
       }
     }
-  }
 
-  test("getById__TalletNull") {
-    running(FakeApplication(additionalConfiguration = additionalConfiguration)) {
-      val svar = MusitThingDao.getById(0)
+    "getById__TalletNull" in {
+      val svar = getById(0)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }
