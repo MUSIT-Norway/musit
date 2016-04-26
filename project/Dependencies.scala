@@ -37,8 +37,8 @@ object Dependencies {
     val cache        = "com.typesafe.play"   %% "play-cache"               % version
     val ws           = "com.typesafe.play"   %% "play-ws"                  % version
     val json         = "com.typesafe.play"   %% "play-json"                % version
-    val specs2Spec       = "com.typesafe.play"   %% "play-specs2"              % version
-    val specs2       = specs2Spec            % "test"
+    val specs2Spec   = "com.typesafe.play"   %% "play-specs2"              % version
+    val specs2       = specs2Spec            % "test, it"
   }
 
   object webjars {
@@ -60,7 +60,7 @@ object Dependencies {
   val postgresql     = "org.postgresql"      % 	"postgresql" 		           % "9.4-1201-jdbc41"
   val h2database     = "com.h2database"      %  "h2"                       % "1.4.187"
   var scalatestSpec  = "org.scalatest"       %% "scalatest"                % "2.2.4"
-  val scalatest      = scalatestSpec         % "test"
+  val scalatest      = scalatestSpec         % "test, it"
 
   // packager for RPM and Docker
   val dockerClient   = "com.spotify" % "docker-client" % "3.2.1"

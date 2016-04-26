@@ -5,7 +5,7 @@
 import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
 import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
 import no.uio.musit.microservices.common.PlayDatabaseTest
-import no.uio.musit.microservices.common.linking.domain.Link
+import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.ScalaFutures
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -15,17 +15,18 @@ class MusitThing_TestSuite extends PlayDatabaseTest with ScalaFutures{
 
   import MusitThingDao._
 
-  def testFuture[T](testnavn: String, f: Long => Future[T], verdi:Long, forventetSvar:T) = {
-    test(testnavn) {
-      val fut = f(verdi)
+  def testFuture[T](testName: String, f: Long => Future[T], value:Long, expectedAnswer:T) = {
+    test(testName) {
+      val fut = f(value)
       whenReady(fut) { result =>
-        assert(result == forventetSvar)
+        assert(result == expectedAnswer)
       }
     }
   }
 
-  def testFutureMusitThing[T](f :MusitThing => Future[T],i_verdi:MusitThing)= {
-    f(i_verdi).onFailure { case ex => println(s"Feil i insert1 ${ex.getMessage}")
+  def testFutureMusitThing[T](f :MusitThing => Future[T], value:MusitThing)= {
+    f(value).onFailure {
+      case ex => fail("Insert failed")
     }
   }
 
@@ -34,7 +35,7 @@ class MusitThing_TestSuite extends PlayDatabaseTest with ScalaFutures{
     testFutureMusitThing(insert,MusitThing(2, "C3", "øks", Seq.empty))
     val svar=MusitThingDao.all()
     svar.onFailure{
-      case ex => println(s"Feil i selectAll ${ex.getMessage}")
+      case ex => fail("Insert failed")
     }
     whenReady(svar) { things =>
       assert (things.length == 4)
@@ -50,7 +51,7 @@ class MusitThing_TestSuite extends PlayDatabaseTest with ScalaFutures{
   testFuture("test getDisplayID_TalletNull",MusitThingDao.getDisplayID,0,None)
 
   testFuture("test getById_kjempeTall",MusitThingDao.getById,6386363673636335366L,None)
-  testFuture("test getById__Riktig", MusitThingDao.getById, 1, Some(MusitThing(1,"C2","Kniv7", Seq(Link(-1,-1,"self", "/v1/1")))))
+  testFuture("test getById__Riktig", MusitThingDao.getById, 1, Some(MusitThing(1,"C1","Øks5", Seq(LinkService.self("/v1/1")))))
   testFuture("test getById__TalletNull",MusitThingDao.getById,0,None)
 
 }

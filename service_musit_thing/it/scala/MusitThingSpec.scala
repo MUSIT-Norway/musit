@@ -16,10 +16,10 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+import no.uio.musit.microservices.common.PlayDatabaseTest
 import org.specs2.mutable._
 import org.specs2.runner._
 import org.junit.runner._
-
 import play.api.test._
 import play.api.test.Helpers._
 
@@ -28,15 +28,9 @@ import play.api.test.Helpers._
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
 @RunWith(classOf[JUnitRunner])
-class IntegrationSpec extends Specification {
+class MusitThingSpec extends PlayDatabaseTest with WithBrowser {
 
-  "Application" should {
-
-    "work from within a browser" in new WithBrowser {
-
-      browser.goTo("http://localhost:" + port)
-
-      browser.pageSource must contain("Your new application is ready.")
-    }
+  test("Funny test") {
+    browser.go("http://localhost:7070/v1/1")
   }
 }

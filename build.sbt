@@ -33,6 +33,7 @@ scalacOptions ++= List(
   "-target:jvm-1.8",
   "-encoding", "UTF-8"
 )
+Defaults.itSettings
 
 val baseDockerSettings = Seq(
   maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
@@ -54,9 +55,7 @@ val noPublish = Seq(
 )
 
 lazy val root = (
-  project.in(file("."))
-    settings(noPublish)
-    aggregate(common_test, common, security, service_core ,service_musit_thing)
+  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing)
   )
 
 // Base projects used as dependencies

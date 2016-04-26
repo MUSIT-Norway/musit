@@ -36,6 +36,7 @@ object CommonSettings {
   def BaseProject(name: String): Project = (
     Project(name, file(name))
     settings(projectSettings:_*)
+    configs(IntegrationTest)
   )
 
   def PlayProject(name: String): Project = (
