@@ -16,6 +16,7 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
 import CommonSettings._
 import Dependencies._
 import play.twirl.sbt.Import.TwirlKeys._
@@ -53,9 +54,7 @@ val noPublish = Seq(
 )
 
 lazy val root = (
-  project.in(file("."))
-    settings(noPublish)
-    aggregate(common_test, common, security, service_core ,service_musit_thing)
+  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing)
   )
 
 // Base projects used as dependencies
@@ -64,7 +63,7 @@ lazy val common = (
     settings(noPublish)
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(scoverageSettings: _*)
-  ) dependsOn(common_test % "test")
+  ) dependsOn(common_test % "it,test")
 
 lazy val common_test = (
   BaseProject("common_test")
@@ -78,7 +77,7 @@ lazy val security = (
     settings(noPublish)
     settings(libraryDependencies ++= testablePlayDependencies)
     settings(scoverageSettings: _*)
-  )  dependsOn(common, common_test % "test")
+  )  dependsOn(common, common_test % "it,test")
 
 lazy val service_core = (
   PlayProject("service_core")
@@ -101,7 +100,7 @@ lazy val service_musit_thing = (
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_musit_thing"
   ))
-  )  dependsOn(common, common_test % "test")
+  )  dependsOn(common, common_test % "it,test")
 
 // Extra tasks
 // TODO: Fix codegen task to have external properties not in GIT
