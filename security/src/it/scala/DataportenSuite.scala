@@ -40,7 +40,7 @@ import scala.concurrent.duration._
 class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   // TODO: Dynamic token, find a way to have a permanent test token with Dataporten
-  val token = "4e538218-edff-4ab9-b605-c4a7abc843c8"
+  val token = "383f080a-4d09-43db-beb5-5df7f6a7f711"
   //var fut: Future[SecurityConnection] = null
 
 

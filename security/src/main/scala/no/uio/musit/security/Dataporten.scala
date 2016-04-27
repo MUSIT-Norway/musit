@@ -52,7 +52,7 @@ object dataporten {
   }
 
 
-  class DataportenSecurityConnection(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnectionBaseImp(userInfo.name, userGroups) {
+  class DataportenSecurityConnection(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnectionBaseImp(userInfo, userGroups) {
     override def userName = userInfo.name
   }
 

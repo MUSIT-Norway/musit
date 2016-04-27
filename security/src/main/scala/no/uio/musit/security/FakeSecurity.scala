@@ -28,12 +28,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 
 
-class HardcodedFakeSecurityConnection(_userName: String, userGroups: Seq[String]) extends SecurityConnectionBaseImp(_userName, userGroups) {
+class HardcodedFakeSecurityConnection(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnectionBaseImp(userInfo, userGroups) {
 
 }
 
 object FakeSecurity {
-  def createHardcoded(userName: String, userGroupIds: Seq[String]) = Future(new HardcodedFakeSecurityConnection(userName, userGroupIds))
+  def createHardcoded(userName: String, userGroupIds: Seq[String]) = Future(new HardcodedFakeSecurityConnection(UserInfo(userName, userName), userGroupIds))
 
 
   def createInMemory(userId: String) = {

@@ -35,7 +35,7 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures {
 
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
 
-  "running with application" must {
+  "running hardcoded fake-security tests" must {
   FakeSecurity.createHardcoded("Kalle Kanin", groups).map { sec =>
 
     "should execute if has groups" in {
@@ -48,6 +48,27 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures {
     "should fail if has deniedGroups" in {
       {
         assert(sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
+          Logger.debug("Denne skal ikke synes!!!")
+        }.isFailure)
+      }
+    }
+
+  }.awaitInSeconds(5)}
+
+
+  "running semi-hardcoded (in-memory) fake-security tests" must {
+  FakeSecurity.createInMemory("jarle").map { sec =>
+
+    "should execute if has groups" in {
+      assert(sec.authorize(Seq(FakeSecurityUsersAndGroups.etnoLesGroupName)) {
+        Logger.debug("Authorized: should execute if has groups")
+      }.isSuccess)
+    }
+
+
+    "should fail if has deniedGroups" in {
+      {
+        assert(sec.authorize(Seq(FakeSecurityUsersAndGroups.fotoLesGroupName), Seq(FakeSecurityUsersAndGroups.etnoLesGroupName)) {
           Logger.debug("Denne skal ikke synes!!!")
         }.isFailure)
       }

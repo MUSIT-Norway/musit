@@ -35,6 +35,9 @@ object FakeSecurityUsersAndGroups {
   val groups = new ListBuffer[GroupInfo]
   val  groupsForUserMap = collection.mutable.Map[String, ListBuffer[String]]()
 
+  val etnoLesGroupName = "EtnoLes"
+  val fotoLesGroupName = "FotoLes"
+
   def findGroup(id: String) = groups.find(_.id==id)
   def findUser(id: String) = users.find(_.id==id)
 
@@ -60,8 +63,8 @@ object FakeSecurityUsersAndGroups {
   val jarle = defUser("jarle", "Jarle Stabell")
   val stein = defUser("stein", "Stein A. Olsen")
 
-  val etnoLes = defGroup("EtnoLes", "EtnoLes", "Lesetilgang til etnobasen")
-  val fotoLes = defGroup("FotoLes", "FotoLes", "Lesetilgang til fotobasen")
+  val etnoLes = defGroup(etnoLesGroupName, "EtnoLes", "Lesetilgang til etnobasen")
+  val fotoLes = defGroup(fotoLesGroupName, "FotoLes", "Lesetilgang til fotobasen")
 
   grant(jarle, etnoLes)
   grant(jarle, fotoLes)

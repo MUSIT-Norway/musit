@@ -1,7 +1,3 @@
-import no.uio.musit.security.{UserInfo, UserInfoProvider}
-
-import scala.concurrent.Future
-
 /*
  *   MUSIT is a cooperation between the university museums of Norway.
  *   Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
@@ -23,26 +19,47 @@ import scala.concurrent.Future
  */
 
 /**
-  * Created by jstabel on 4/27/16.
+  * Created by jstabel on 4/26/16.
   */
 
-/*
-trait UserInfoProvider {
-  def getUserInfo(userid: String) : Future[Option[UserInfo]]
-  def getUserGroups(userid: String): Future[Option[Seq[String]]]
-}
-*/
-object Constants
-{
-  val securityPrefix = "Security"
-}
+
+
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.security._
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{FlatSpec, FunSuite, Matchers}
+import org.scalatestplus.play.PlaySpec
+import play.Play
+import play.api.Logger
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.Play.current
+import play.api.cache.Cache //{Cache}
+
+class CachedSecuritySuite extends PlaySpec with ScalaFutures {
 
 /*
-class CachedSecurity extends UserInfoProvider {
+  def getCache = {
+  val cacheManager = Play.application.plugin[EhCachePlugin].getOrElse(throw new RuntimeException("EhCachePlugin not loaded")).manager
+    cacheManager.getCache("play")
 
 
-  def getUserInfo(userid: String) : Future[Option[UserInfo]]
-  def getUserGroups(userid: String): Future[Option[Seq[String]]]
-
+  }
 }
 */
+
+  val groups = List("Admin", "EtnoSkriv", "EtnoLes")
+
+  "running with application" must {
+    "test" in {
+
+      val c = Cache.get("feide.user.<key>")
+
+
+    }
+
+  }
+
+
+
+    }

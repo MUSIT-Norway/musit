@@ -57,7 +57,8 @@ trait UserInfoProvider {
 
 
 trait SecurityState {
-  def userName: String
+  def userInfo: UserInfo
+//  def userName: String
   def hasGroup(group: String): Boolean
   def hasAllGroups(groups: Seq[String]): Boolean
   def hasNoneOfGroups(groups: Seq[String]): Boolean
@@ -67,16 +68,17 @@ trait SecurityState {
 trait SecurityConnection {
   def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T]
   def state: SecurityState
-  def userName: String = state.userName
+  def userName: String = state.userInfo.name
+  def userId: String = state.userInfo.id
   def hasGroup(groupid: String) : Boolean = state.hasGroup(groupid)
   def hasAllGroups(groupIds: Seq[String]): Boolean = state.hasAllGroups(groupIds)
   def hasNoneOfGroups(groupIds: Seq[String]): Boolean = state.hasNoneOfGroups(groupIds)
 }
 
-class SecurityStateImp(_userName: String, userGroups: Seq[String]) extends SecurityState {
+class SecurityStateImp(_userInfo: UserInfo, userGroups: Seq[String]) extends SecurityState {
   import  no.uio.musit.microservices.common.extensions.SeqExtensions._
 
-  override def userName: String = _userName
+  override def userInfo: UserInfo = _userInfo
 
   def hasGroup(group: String) = userGroups.contains(group)
   def hasAllGroups(groups: Seq[String]) = userGroups.hasAllOf(groups)
@@ -85,8 +87,8 @@ class SecurityStateImp(_userName: String, userGroups: Seq[String]) extends Secur
 }
 
 
-abstract class SecurityConnectionBaseImp(userName: String, userGroups: Seq[String]) extends SecurityConnection {
-  val state = new SecurityStateImp(userName, userGroups)
+abstract class SecurityConnectionBaseImp(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnection {
+  val state = new SecurityStateImp(userInfo, userGroups)
 
   override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
     if (state.hasAllGroups(requiredGroups) && state.hasNoneOfGroups(deniedGroups)) {
