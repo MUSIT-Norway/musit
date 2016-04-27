@@ -87,7 +87,7 @@ class App extends Component {
           <Navbar.Header>
             <Navbar.Brand>
               <IndexLink to={rootPath} activeStyle={{color: '#33e0ff'}}>
-                <div className={styles.brand}><img height="40" src="favicons/unimus100x100.png" /></div><span>{config.app.title}</span>
+                <div className={styles.brand}><img height="40" src="favicons/unimus_transparent100x100.png" /></div><span>{config.app.title}</span>
               </IndexLink>
             </Navbar.Brand>
             <Navbar.Toggle/>
