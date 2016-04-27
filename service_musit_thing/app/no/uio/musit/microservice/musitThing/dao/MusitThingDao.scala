@@ -16,9 +16,9 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservice.service_musit_thing.dao
+package no.uio.musit.microservice.musitThing.dao
 
-import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
+import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
 import play.api.{Logger, Play}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

@@ -16,13 +16,13 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservice.service_musit_thing.resource
+package no.uio.musit.microservice.musitThing.resource
 
-import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
+import no.uio.musit.microservice.musitThing.dao.MusitThingDao
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import io.swagger.annotations._
-import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
-import no.uio.musit.microservice.service_musit_thing.service.MusitThingService
+import no.uio.musit.microservice.musitThing.domain.MusitThing
+import no.uio.musit.microservice.musitThing.service.MusitThingService
 import play.api.Logger
 import play.api.mvc._
 import play.api.libs.json._
