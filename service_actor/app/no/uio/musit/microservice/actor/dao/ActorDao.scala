@@ -32,30 +32,20 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val MusitThingTable = TableQuery[MusitThingTable]
+  private val ActorTable = TableQuery[MusitThingTable]
 
 
-  def all() : Future[Seq[Actor]] = db.run(MusitThingTable.result)
+  def all() : Future[Seq[Actor]] = db.run(ActorTable.result)
 
   def insert(musitThing: Actor): Future[Actor] = {
-    val insertQuery = (MusitThingTable returning MusitThingTable.map(_.id) into ((musitThing, id) => (musitThing.copy(id=id, links=Seq(LinkService.self(s"/v1/$id"))))))
+    val insertQuery = (ActorTable returning ActorTable.map(_.id) into ((musitThing, id) => (musitThing.copy(id=id, links=Seq(LinkService.self(s"/v1/$id"))))))
     val action = insertQuery += musitThing
 
     db.run(action)
   }
 
-  def getDisplayName(id:Long) :Future[Option[String]] ={
-    val action = MusitThingTable.filter( _.id === id).map(_.displayname).result.headOption
-    db.run(action)
-  }
-
-  def getDisplayID(id:Long) :Future[Option[String]] ={
-    val action = MusitThingTable.filter( _.id === id).map(_.displayid).result.headOption
-    db.run(action)
-  }
-
   def getById(id:Long) :Future[Option[Actor]] ={
-    val action = MusitThingTable.filter( _.id === id).result.headOption
+    val action = ActorTable.filter( _.id === id).result.headOption
     db.run(action)
   }
 

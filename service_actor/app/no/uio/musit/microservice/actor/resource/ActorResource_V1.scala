@@ -30,68 +30,25 @@ import play.api.libs.json._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-@Api(value = "/api/musitThing", description = "MusitTHing resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
 class ActorResource_V1 extends Controller with ActorService {
   //val musit_thing_Dao = new MusitThingDao
 
-  @ApiOperation(value = "MusitThing operation - lists all musitThings", notes = "simple listing in json", httpMethod = "GET")
   def list = Action.async { req => {
     //req.getQueryString("filter")
-    ActorDao.all.map(musitThing =>
-      Ok(Json.toJson(musitThing))
+    ActorDao.all.map(actor =>
+      Ok(Json.toJson(actor))
     )}
   }
 
-
-  @ApiOperation(value = "MusitThing operation - get a spesific musitThing", notes = "simple listing in json", httpMethod = "GET")
   def getById(id:Long) = Action.async { request => {
-
-    def wrapWithOkOrFailString(eventualMaybeResult: Future[Option[String]]) = {
-      eventualMaybeResult.map(
-        maybeResult=>maybeResult.map(
-          result=>Ok(Json.toJson(result))
-        ).getOrElse(
-          NotFound(s"Didn't find object with id: $id")
-        )
-      )
-    }
-    def wrapWithOkOrFailThing(eventualMaybeResult: Future[Option[Actor]]) = {
-      eventualMaybeResult.map(
-        maybeResult=>maybeResult.map(
-          result=>Ok(Json.toJson(result))
-        ).getOrElse(
-          NotFound(s"Didn't find object with id: $id")
-        )
-      )
-    }
-
-
-
-    val filterListe = Seq("displayid", "displayname")
-
-    val filter = extractFilterFromRequest(request)
-    if (filter.length == 1) {
-      filter(0).toLowerCase match {
-        case "displayid" => wrapWithOkOrFailString(ActorDao.getDisplayID(id)) //Json.toJson(MusitThingDao.getDisplayID(id).map( )))
-        case "displayname" =>  wrapWithOkOrFailString(ActorDao.getDisplayName(id))
-        case whatever => Future(BadRequest(s"Unknown filter:$whatever"))
+    ActorDao.getById(id).map( optionResult =>
+      optionResult match {
+        case Some(actor) => Ok(Json.toJson(actor))
+        case None => NotFound(s"Didn't find object with id: $id")
       }
+    )
+  }}
 
-    } else if (filter.length > 1) {
-      /*val json = Json.toJson(MusitThingDao.getById(1).map( thing => thing))
-      Logger.debug(json.toString)
-      val displayId = json \ "displayid"*/
-      Future(BadRequest("Filter can not contain more then one attribute"))
-    } else {
-      wrapWithOkOrFailThing(ActorDao.getById(id))
-    }
-  }
-  }
-
-
-
-
-  @ApiOperation(value = "MusitThing operation - inserts an MusitThingTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def add = Action.async(BodyParsers.parse.json) { request =>
     val musitThingResult:JsResult[Actor] = request.body.validate[Actor]
     musitThingResult match {
@@ -105,18 +62,4 @@ class ActorResource_V1 extends Controller with ActorService {
       case e:JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))
     }
   }
-
-  def extractFilterFromRequest(request: Request[AnyContent]): Array[String] = {
-    request.getQueryString("filter") match {
-      case Some(filterString) => "^\\[(\\w*)\\]$".r.findFirstIn(filterString) match {
-        case Some(str) => str.split(",")
-        case None => Array.empty[String]
-      }
-      case None => Array.empty[String]
-    }
-  }
-
 }
-
-
-
