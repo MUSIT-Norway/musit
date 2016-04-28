@@ -54,7 +54,7 @@ val noPublish = Seq(
 )
 
 lazy val root = (
-  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing)
+  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing,service_actor)
   )
 
 // Base projects used as dependencies
@@ -101,6 +101,18 @@ lazy val service_musit_thing = (
     packageName in Docker := "musit_service_musit_thing"
   ))
   )  dependsOn(common, common_test % "it,test")
+
+lazy val service_actor = (
+  PlayProject("service_actor")
+    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings(scoverageSettings: _*)
+    settings(baseDockerSettings ++ Seq(
+    packageName in Docker := "musit_service_actor"
+  ))
+  )  dependsOn(common, common_test % "it,test")
+
+
 
 // Extra tasks
 // TODO: Fix codegen task to have external properties not in GIT
