@@ -20,9 +20,12 @@
 
 package no.uio.musit.security
 
+import play.api.libs.json.Json
+import play.api.libs.ws.WS
+
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
-
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
 /**
   * Created by jstabel on 4/22/16.
   */
@@ -58,7 +61,8 @@ object FakeSecurityUsersAndGroups {
     groupsForUserMap.put(user.id, groupIds)
   }
 
-  def groupsIdsForUserId(id: String) = groupsForUserMap(id)
+  def groupsIdsForUserId(userId: String) = groupsForUserMap(userId)
+  def groupsForUserId(userId: String) = groupsIdsForUserId(userId) map(groupId=>findGroup(groupId).getOrThrow(s"Undefined groupId: $groupId"))
 
   val jarle = defUser("jarle", "Jarle Stabell")
   val stein = defUser("stein", "Stein A. Olsen")
@@ -70,6 +74,5 @@ object FakeSecurityUsersAndGroups {
   grant(jarle, fotoLes)
   grant(stein, etnoLes)
   grant(stein, fotoLes)
-
-
 }
+

@@ -37,6 +37,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.cache.Cache
 import play.api.cache.EhCacheModule
 import play.api.inject.guice.GuiceApplicationBuilder
+import scala.concurrent.duration._
 
 import scala.concurrent.Future
 

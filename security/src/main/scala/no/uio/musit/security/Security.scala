@@ -115,9 +115,11 @@ class SecurityStateImp(_userInfo: UserInfo, userGroups: Seq[String]) extends Sec
 }
 
 object Security {
-  def createSecurityConnectionFromInfoProvider(infoProvider: ConnectionInfoProvider): Future[SecurityConnection] = {
-    val userInfoF = infoProvider.getUserInfo
-    val userGroupIdsF = infoProvider.getUserGroupIds
+  def createSecurityConnectionFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[SecurityConnection] = {
+    val _infoProvider = if (useCache) new CachedConnectionInfoProvider(infoProvider) else infoProvider
+
+    val userInfoF = _infoProvider.getUserInfo
+    val userGroupIdsF = _infoProvider.getUserGroupIds
 
     for {
     //Logger.debug("Før tilordning")

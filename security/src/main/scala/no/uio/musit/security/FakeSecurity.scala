@@ -22,27 +22,37 @@ package no.uio.musit.security
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+
 /**
   * Created by jstabel on 4/15/16.
   */
 
 
 
-class HardcodedFakeSecurityConnection(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnectionBaseImp(userInfo, userGroups) {
+class FakeSecurityInMemoryInfoProvider(userId: String) extends ConnectionInfoProvider {
+  val userInfo = Future(FakeSecurityUsersAndGroups.findUser(userId).getOrThrow(s"Unable to find user with Id: $userId"))
 
+  def getUserInfo = userInfo
+  def getUserGroups = Future(FakeSecurityUsersAndGroups.groupsForUserId(userId))
+  def accessToken = userId
+}
+
+class FakeSecurityHardcodedInfoProvider(userName: String, groupIds: Seq[String]) extends ConnectionInfoProvider {
+  val userInfo = new UserInfo(userName, userName)
+  val userGroups = groupIds.map(id=> new GroupInfo("ad hoc in memory", id, id, Some("Fake description.")))
+
+  def getUserInfo = Future(userInfo)
+  def getUserGroups = Future(userGroups)
+  def accessToken = userInfo.id
 }
 
 object FakeSecurity {
-  def createHardcoded(userName: String, userGroupIds: Seq[String]) = Future(new HardcodedFakeSecurityConnection(UserInfo(userName, userName), userGroupIds))
+  def createHardcoded(userName: String, userGroupIds: Seq[String], useCache: Boolean) = {
+    Security.createSecurityConnectionFromInfoProvider(new FakeSecurityHardcodedInfoProvider(userName, userGroupIds), useCache)
+  }
 
-
-  def createInMemory(userId: String) = {
-    val user = FakeSecurityUsersAndGroups.findUser(userId)
-    user match {
-      case Some(u) =>
-        val userGroups = FakeSecurityUsersAndGroups.groupsIdsForUserId(u.id)
-        createHardcoded(u.name, userGroups)
-      case None => Future.failed(new Exception(s"Couldn't find user with ID=$userId"))
-    }
+  def createInMemory(userId: String, useCache: Boolean) = {
+    Security.createSecurityConnectionFromInfoProvider(new FakeSecurityInMemoryInfoProvider(userId), useCache)
   }
 }

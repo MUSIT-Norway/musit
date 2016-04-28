@@ -44,33 +44,23 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   //var fut: Future[SecurityConnection] = null
 
 
-  val additionalConfiguration:Map[String, String] = Map.apply (
+  val additionalConfiguration: Map[String, String] = Map.apply(
     ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
-    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
-    ("evolutionplugin" , "enabled")
+    ("slick.dbs.default.db.driver", "org.h2.Driver"),
+    ("slick.dbs.default.db.url", "jdbc:h2:mem:play-test"),
+    ("evolutionplugin", "enabled")
   )
   val timeout = PatienceConfiguration.Timeout(1 seconds)
+
   implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
 
-
-
-  /*
-  override protected def beforeAll(): Unit = {
-    super.beforeAll()
-
-    //This can't be in the constructor, it has to be after the setup because createSecurityConnection accesses the WS object.
-    fut = Dataporten.createSecurityConnection(token)
+  def runTestWhenReady(token: String)(block: SecurityConnection => Unit): Unit = {
+    whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec) }
   }
-  */
 
-  def runTestWhenReady(token: String) (block: SecurityConnection=>Unit): Unit = {
-      whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}
-
-
-  def runTestWhenReadyWithTokenAndException(token: String, block: Throwable=>Unit): Unit = {
-      whenReady(Dataporten.createSecurityConnection(token).failed, timeout) { ex => block(ex)}}
-
+  def runTestWhenReadyWithTokenAndException(token: String, block: Throwable => Unit): Unit = {
+    whenReady(Dataporten.createSecurityConnection(token).failed, timeout) { ex => block(ex) }
+  }
 
   "getUserInfo should return something" in {
     runTestWhenReady(token) { sec =>

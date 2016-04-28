@@ -73,5 +73,6 @@ object MusitCache {
             (implicit app: Application,
              ct: ClassTag[A], ec: ExecutionContext): Unit = {
     Cache.set(key, value, expiration)
+    Logger.info(s"CacheSet (NonFuture): Key: $key Value: $value")
   }
 }

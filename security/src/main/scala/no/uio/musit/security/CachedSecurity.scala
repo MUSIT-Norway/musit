@@ -26,67 +26,38 @@ import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
 /**
   * Created by jstabel on 4/27/16.
   */
 
-/*#OLD
-trait SecurityCache {
-  ///provider maps access token to userId
-  def accessTokenToUserId(accessToken: String, provider: String=>Future[String]) : Future[String]
-
-  ///Primarily for testing
-  def cachedAccessTokenToUserId(accessToken: String): Option[String]
-
-  ///provider maps userId to UserInfo
-  def userIdToUserInfo(userId: String, provider: String=>Future[UserInfo]) : Future[UserInfo]
-  ///provider maps userId to groupIds
-  def userIdToGroupIds(userId: String, provider: String => Future[Seq[String]]): Future[Seq[String]]
-
-  def cache: play.api.cache.Cache.type
-  //def getAs[A](key: String) = MusitCache.getAs[A](key)
-}
-
-
-
-class SecurityCacheImp extends SecurityCache{
-  val securityPrefix = "Security"
-  val defExpiry = 1 hour
-  def accessTokenToUserId(accessToken: String, provider: String=>Future[String]) : Future[String] = {
-    MusitCache.getOrElseFuture(s"$securityPrefix.AccessToken.$accessToken", defExpiry)(provider(accessToken))
-  }
-
-  def cachedAccessTokenToUserId(accessToken: String): Option[String] = MusitCache.cache.getAs[String](s"$securityPrefix.AccessToken.$accessToken")
-
-
-  ///provider maps userId to UserInfo
-  def userIdToUserInfo(userId: String, provider: String=>Future[UserInfo]) : Future[UserInfo] = {
-    MusitCache.getOrElseFuture(s"$securityPrefix.UserIdToUserInfo.$userId", defExpiry)(provider(userId))
-  }
-
-  ///provider maps userId to groupIds
-  def userIdToGroupIds(userId: String, provider: String => Future[Seq[String]]): Future[Seq[String]]= {
-    MusitCache.getOrElseFuture(s"$securityPrefix.UserIdToGroupIds.$userId", defExpiry)(provider(userId))
-  }
-
-  def cache = MusitCache.cache
-}
-*/
-
 ///Only used for testing, for direct read access to some of the cached info
 trait SecurityCacheReader {
-  def accessTokenToUserIdInCache(accessToken: String): Option[String]
+  def accessTokenToUserIdFromCache(accessToken: String): Option[String]
 }
 
-
-class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) extends ConnectionInfoProvider with SecurityCacheReader{
+/*
+* Here we cache the following mappings:
+* accessToken => userId
+* userId => UserInfo
+* userId => Groups
+* userId => GroupIds
+*
+* This way, the UserInfo, Groups and GroupIds caching doesn't get irrelevant when the same user connects with a new token.
+ * However, it may perhaps make sense to not remember the cached items longer than the given connection (this may help debugging and when giving users new group permissions etc
+  * (just log out and restart instead of us having to push a button to clear the/some cache). This would also simplify the code in this class a bit.
+* *
+* */
+class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) extends ConnectionInfoProvider with SecurityCacheReader {
   val securityPrefix = "Security"
   val defExpiry = 1 hour
 
   val accessToken: String = infoProviderToCache.accessToken
 
-  val accessTokenToUserIdKey = s"$securityPrefix.AccessTokenToUserId.$accessToken" //Evaluated directly because we always need it
-  def userIdToUserInfoKey(userId:String)=  s"$securityPrefix.UserIdToUserInfo.$userId"
+  val accessTokenToUserIdKey = s"$securityPrefix.AccessTokenToUserId.$accessToken"
+
+  //Evaluated directly because we always need it
+  def userIdToUserInfoKey(userId: String) = s"$securityPrefix.UserIdToUserInfo.$userId"
 
   def getAndMaybeCacheUserId: Future[String] = {
     MusitCache.getAs[String](accessTokenToUserIdKey) match {
@@ -109,22 +80,22 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
     getUserIdFromCache match {
       case Some(userId) => userIdToUserInfo(userId, { _ => infoProviderToCache.getUserInfo })
       case None => {
-          val userInfoF = infoProviderToCache.getUserInfo
-          userInfoF.onSuccess {
-            case userInfo =>
-              MusitCache.set(userIdToUserInfoKey(userInfo.id), userInfo, defExpiry)
-          }
-          userInfoF
+        val userInfoF = infoProviderToCache.getUserInfo
+        userInfoF.onSuccess {
+          case userInfo =>
+            MusitCache.set(userIdToUserInfoKey(userInfo.id), userInfo, defExpiry)
+        }
+        userInfoF
       }
     }
-/*  The below code is much simpler and would work, but would hit the external (typically Dataporten) server twice with a getUserInfo call, once to get the userId (via getUserInfo) and then again to get the userInfo.
-    for {
-      userId <- getAndMaybeCacheUserId
-      userInfo <- userIdToUserInfo(userId, { _ => infoProviderToCache.getUserInfo })
-    } yield userInfo
+    /*  The below code is much simpler and would work, but would hit the external (typically Dataporten) server twice with a getUserInfo call, once to get the userId (via getUserInfo) and then again to get the userInfo.
+        for {
+          userId <- getAndMaybeCacheUserId
+          userInfo <- userIdToUserInfo(userId, { _ => infoProviderToCache.getUserInfo })
+        } yield userInfo
 
 
-    */
+        */
   }
 
   def userIdToGroups(userId: String, provider: String => Future[Seq[GroupInfo]]): Future[Seq[GroupInfo]] = {
@@ -150,10 +121,8 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
     } yield userGroupsId
   }
 
-
   ///Api for testing:
-
-  def accessTokenToUserIdInCache(accessToken: String): Option[String] = MusitCache.getAs[String](accessTokenToUserIdKey)
+  def accessTokenToUserIdFromCache(accessToken: String): Option[String] = MusitCache.getAs[String](accessTokenToUserIdKey)
 }
 
 
