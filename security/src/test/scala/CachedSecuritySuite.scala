@@ -26,35 +26,45 @@
 
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.security._
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatest.{FlatSpec, FunSuite, Matchers}
-import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.Play
 import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import play.api.Play.current
-import play.api.cache.Cache //{Cache}
+//import play.api.Play.current
+import play.api.cache.Cache
+import play.api.cache.EhCacheModule
+import play.api.inject.guice.GuiceApplicationBuilder
 
-class CachedSecuritySuite extends PlaySpec with ScalaFutures {
+import scala.concurrent.Future
 
-/*
-  def getCache = {
-  val cacheManager = Play.application.plugin[EhCachePlugin].getOrElse(throw new RuntimeException("EhCachePlugin not loaded")).manager
-    cacheManager.getCache("play")
+class CachedSecuritySuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
 
-
-  }
-}
-*/
+  val additionalConfiguration:Map[String, String] = Map.apply (
+    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
+    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
+    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
+    ("evolutionplugin" , "enabled")
+  )
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
 
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
-
+  val cacheImp = new SecurityCacheImp
   "running with application" must {
     "test" in {
 
-      val c = Cache.get("feide.user.<key>")
+      val v = cacheImp.cache.getAs[String]("token1")
+      assert(!v.isDefined)
+      val fut = cacheImp.accessTokenToUserId("token1", {acc=> Future(s"userId$acc")})
+      whenReady(fut) {v=> assert(v=="userIdtoken1")
 
+        val v2 = cacheImp.cachedAccessTokenToUserId("token1")
+        assert(v2.isDefined)
+        assert(v2==Some("userIdtoken1"))
+
+      }
 
     }
 

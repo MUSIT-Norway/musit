@@ -34,12 +34,12 @@ object dataporten {
 
     ) (createGroupInfo _)
 
-  class DataportenUserInfoProvider  (accessToken: String) extends ConnectionInfoProvider {
+  class DataportenUserInfoProvider  (_accessToken:String) extends ConnectionInfoProvider {
 
     import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
     def httpGet(url: String) = {
-      WS.url(url).withBearerToken(accessToken).getOrFail()
+      WS.url(url).withBearerToken(_accessToken).getOrFail()
     }
 
     def getUserInfo = {
@@ -49,6 +49,7 @@ object dataporten {
     def getUserGroups = {
       httpGet(userGroupsUrl).map(resp => resp.body).map { j => /*println(j);*/ Json.parse(j).validate[Seq[GroupInfo]].get }
     }
+    def accessToken = _accessToken
   }
 
 

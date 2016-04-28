@@ -1,7 +1,14 @@
-import no.uio.musit.security.{UserInfo, UserInfoProvider}
+import no.uio.musit.microservices.common.extensions.MusitCache
+import no.uio.musit.security.{ConnectionInfoProvider, GroupInfo, UserInfo, UserInfoProvider}
 
 import scala.concurrent.Future
+import play.api.cache.Cache
 
+import scala.concurrent.duration._
+import play.api.Play.current
+import play.cache.Cache
+
+import scala.concurrent.ExecutionContext.Implicits.global
 /*
  *   MUSIT is a cooperation between the university museums of Norway.
  *   Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
@@ -26,23 +33,103 @@ import scala.concurrent.Future
   * Created by jstabel on 4/27/16.
   */
 
-/*
-trait UserInfoProvider {
-  def getUserInfo(userid: String) : Future[Option[UserInfo]]
-  def getUserGroups(userid: String): Future[Option[Seq[String]]]
+
+trait SecurityCache {
+  ///provider maps access token to userId
+  def accessTokenToUserId(accessToken: String, provider: String=>Future[String]) : Future[String]
+
+  ///Primarily for testing
+  def cachedAccessTokenToUserId(accessToken: String): Option[String]
+
+  ///provider maps userId to UserInfo
+  def userIdToUserInfo(userId: String, provider: String=>Future[UserInfo]) : Future[UserInfo]
+  ///provider maps userId to groupIds
+  def userIdToGroupIds(userId: String, provider: String => Future[Seq[String]]): Future[Seq[String]]
+
+  def cache: play.api.cache.Cache.type
+  //def getAs[A](key: String) = MusitCache.getAs[A](key)
 }
-*/
-object Constants
-{
+
+
+
+class SecurityCacheImp extends SecurityCache{
   val securityPrefix = "Security"
+  val defExpiry = 1 hour
+  def accessTokenToUserId(accessToken: String, provider: String=>Future[String]) : Future[String] = {
+    MusitCache.getOrElseFuture(s"$securityPrefix.AccessToken.$accessToken", defExpiry)(provider(accessToken))
+  }
+
+  def cachedAccessTokenToUserId(accessToken: String): Option[String] = MusitCache.cache.getAs[String](s"$securityPrefix.AccessToken.$accessToken")
+
+
+  ///provider maps userId to UserInfo
+  def userIdToUserInfo(userId: String, provider: String=>Future[UserInfo]) : Future[UserInfo] = {
+    MusitCache.getOrElseFuture(s"$securityPrefix.UserIdToUserInfo.$userId", defExpiry)(provider(userId))
+  }
+
+  ///provider maps userId to groupIds
+  def userIdToGroupIds(userId: String, provider: String => Future[Seq[String]]): Future[Seq[String]]= {
+    MusitCache.getOrElseFuture(s"$securityPrefix.UserIdToGroupIds.$userId", defExpiry)(provider(userId))
+  }
+
+  def cache = MusitCache.cache
 }
 
-/*
-class CachedSecurity extends UserInfoProvider {
+
+class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) extends ConnectionInfoProvider {
+  val securityPrefix = "Security"
+  val defExpiry = 1 hour
+
+  def accessToken: String = infoProviderToCache.accessToken
+
+  def getAndMaybeCacheUserId: Future[String] = {
+    val accesstokenToUserIdkey = s"$securityPrefix.AccessTokenToUserId.$accessToken"
+    MusitCache.cache.getAs[String](accesstokenToUserIdkey) match {
+      case Some(userId) => Future(userId)
+      case None =>
+        val userInfoF = infoProviderToCache.getUserInfo
+        val idF = userInfoF.map(_.id)
+        MusitCache.setFuture(accesstokenToUserIdkey, idF)
+        idF
+    }
+  }
+
+  def userIdToUserInfo(userId: String, provider: String => Future[UserInfo]): Future[UserInfo] = {
+    MusitCache.getOrElseFuture(s"$securityPrefix.UserIdToUserInfo.$userId", defExpiry)(provider(userId))
+  }
 
 
-  def getUserInfo(userid: String) : Future[Option[UserInfo]]
-  def getUserGroups(userid: String): Future[Option[Seq[String]]]
+  def getUserInfo: Future[UserInfo] = {
+    for {
+      userId <- getAndMaybeCacheUserId
+      userInfo <- userIdToUserInfo(userId, { _ => infoProviderToCache.getUserInfo })
+    } yield userInfo
+  }
+
+  def userIdToGroups(userId: String, provider: String => Future[Seq[GroupInfo]]): Future[Seq[GroupInfo]] = {
+    MusitCache.getOrElseFuture(s"$securityPrefix.UserIdToUserGroups.$userId", defExpiry)(provider(userId))
+  }
+
+
+  def getUserGroups: Future[Seq[GroupInfo]] = {
+    for {
+      userId <- getAndMaybeCacheUserId
+      userGroups <- userIdToGroups(userId, { _ => infoProviderToCache.getUserGroups })
+    } yield userGroups
+  }
+
+  def userIdToGroupIds(userId: String, provider: String => Future[Seq[String]]): Future[Seq[String]] = {
+    MusitCache.getOrElseFuture(s"$securityPrefix.UserIdToUserGroupIds.$userId", defExpiry)(provider(userId))
+  }
+
+  override def getUserGroupIds: Future[Seq[String]] = {
+    for {
+      userId <- getAndMaybeCacheUserId
+      userGroupsId <- userIdToGroupIds(userId, { _ => infoProviderToCache.getUserGroupIds })
+    } yield userGroupsId
+  }
 
 }
-*/
+
+
+

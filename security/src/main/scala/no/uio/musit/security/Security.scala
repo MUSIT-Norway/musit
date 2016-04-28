@@ -43,7 +43,10 @@ trait ConnectionInfoProvider {
   def getUserInfo : Future[UserInfo]
   def getUserGroups: Future[Seq[GroupInfo]]
   def getUserGroupIds: Future[Seq[String]] = getUserGroups.map(groupInfos => groupInfos.map(groupInfo => groupInfo.id))
+  def accessToken: String
 }
+
+
 
 trait GroupInfoProvider {
   def getGroupInfo(groupid: String) : Future[Option[GroupInfo]]
