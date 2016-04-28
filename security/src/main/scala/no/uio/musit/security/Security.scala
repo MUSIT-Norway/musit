@@ -90,7 +90,7 @@ class SecurityStateImp(_userInfo: UserInfo, userGroups: Seq[String]) extends Sec
 }
 
 
-abstract class SecurityConnectionBaseImp(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnection {
+ class SecurityConnectionBaseImp(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnection {
   val state = new SecurityStateImp(userInfo, userGroups)
 
   override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
@@ -114,4 +114,17 @@ abstract class SecurityConnectionBaseImp(userInfo: UserInfo, userGroups: Seq[Str
     }
 }
 
+object Security {
+  def createSecurityConnectionFromInfoProvider(infoProvider: ConnectionInfoProvider): Future[SecurityConnection] = {
+    val userInfoF = infoProvider.getUserInfo
+    val userGroupIdsF = infoProvider.getUserGroupIds
+
+    for {
+    //Logger.debug("Før tilordning")
+      userInfo <- userInfoF
+      userGroupIds <- userGroupIdsF
+
+    } yield new SecurityConnectionBaseImp(userInfo, userGroupIds) //.asInstanceOf[SecurityConnection]
+  }
+}
 

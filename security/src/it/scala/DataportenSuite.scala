@@ -25,7 +25,7 @@
 import no.uio.musit.microservices.common.PlayDatabaseTest
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
 import no.uio.musit.security.{Groups, SecurityConnection}
-import no.uio.musit.security.dataporten.{Dataporten, DataportenSecurityConnection}
+import no.uio.musit.security.dataporten.{Dataporten}
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import play.api.test.TestServer
@@ -40,7 +40,7 @@ import scala.concurrent.duration._
 class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   // TODO: Dynamic token, find a way to have a permanent test token with Dataporten
-  val token = "383f080a-4d09-43db-beb5-5df7f6a7f711"
+  val token = "d49bba16-f2f0-47cc-aab3-ff316af8c61a"
   //var fut: Future[SecurityConnection] = null
 
 
@@ -64,7 +64,7 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   }
   */
 
-  def runTestWhenReady(token: String) (block: DataportenSecurityConnection=>Unit): Unit = {
+  def runTestWhenReady(token: String) (block: SecurityConnection=>Unit): Unit = {
       whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}
 
 

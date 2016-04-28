@@ -26,8 +26,10 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
+
 //import play.api.Play.current
 import play.api.cache.Cache
+
 /**
   * Created by jstabel on 4/27/16.
   */
@@ -35,39 +37,41 @@ object MusitCache {
 
   //import play.api.cache.Cache._
 
-  def getOrElseFuture[A](key: String,
+  def setFuture[A](key: String, value: Future[A],
                    expiration: Duration = Duration.Inf)
-                  (orElse: => Future[A])
                   (implicit app: Application,
-                   ct: ClassTag[A], ec: ExecutionContext): Future[A] = {
+                   ct: ClassTag[A], ec: ExecutionContext): Unit = {
+    value.onComplete {
+      case Success(v) => Cache.set(key, v, expiration)
+        Logger.info(s"CacheSet: Key: $key Value: $v")
+      case Failure(v) => Logger.info(s"Cache: Unable to complete future in setFuture: $v") //This hay happen due to http 401, 400 etc. It's not a bug if this fails.
+    }
+  }
+
+  def getOrElseFuture[A](key: String,
+                         expiration: Duration = Duration.Inf)
+                        (orElse: => Future[A])
+                        (implicit app: Application,
+                         ct: ClassTag[A], ec: ExecutionContext): Future[A] = {
 
     val res = Cache.getAs[A](key)(app, ct)
     res match {
-      case Some(v) => Future(v)
-      case None => orElse map { v =>
-        Cache.set(key, v, expiration)
-        println(s"SetKey, key:$key value:$v")
-        v
-      }
+      case Some(v) =>
+        Logger.info(s"CacheHit Key: $key Value: $v")
+        Future(v)
+      case None =>
+        val res = orElse
+        setFuture(key, res, expiration)
+        res
     }
   }
 
-  def setFuture[A](key: String, value: Future[A],
-                         expiration: Duration = Duration.Inf)
-                        (implicit app: Application,
-                         ct: ClassTag[A], ec: ExecutionContext): Unit = {
-    value.onComplete{
+  def getAs[A](key: String)(implicit app: Application, ct: ClassTag[A], ec: ExecutionContext) = play.api.cache.Cache.getAs[A](key)(app, ct)
 
-      case Success(v) => Cache.set(key, v, expiration)
-      case Failure(v) => Logger.error("Unable to complete future in setFuture")
-    }
+  def set[A](key: String, value: A,
+             expiration: Duration = Duration.Inf)
+            (implicit app: Application,
+             ct: ClassTag[A], ec: ExecutionContext): Unit = {
+    Cache.set(key, value, expiration)
   }
-
-
-  //  def getAs[A](key: String)(implicit app: Application,
-//                            ct: ClassTag[A], ec: ExecutionContext) = play.api.cache.Cache.getAs[A](key) (app, ct)
-
- // def getAs[A](key: String) = play.api.cache.Cache.getAs[A](key)
-  // TODO: This is only used for debugging/testing at the moment, will be removed in the future. (perhaps publish the above getAs or something (didn't get that to compile)
-  def cache = Cache
 }

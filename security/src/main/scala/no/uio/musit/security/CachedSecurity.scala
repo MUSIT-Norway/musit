@@ -1,14 +1,3 @@
-import no.uio.musit.microservices.common.extensions.MusitCache
-import no.uio.musit.security.{ConnectionInfoProvider, GroupInfo, UserInfo, UserInfoProvider}
-
-import scala.concurrent.Future
-import play.api.cache.Cache
-
-import scala.concurrent.duration._
-import play.api.Play.current
-import play.cache.Cache
-
-import scala.concurrent.ExecutionContext.Implicits.global
 /*
  *   MUSIT is a cooperation between the university museums of Norway.
  *   Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
@@ -29,11 +18,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
  *
  */
 
+package no.uio.musit.security
+
+import no.uio.musit.microservices.common.extensions.MusitCache
+import play.api.Play.current
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.duration._
 /**
   * Created by jstabel on 4/27/16.
   */
 
-
+/*#OLD
 trait SecurityCache {
   ///provider maps access token to userId
   def accessTokenToUserId(accessToken: String, provider: String=>Future[String]) : Future[String]
@@ -74,36 +71,60 @@ class SecurityCacheImp extends SecurityCache{
 
   def cache = MusitCache.cache
 }
+*/
+
+///Only used for testing, for direct read access to some of the cached info
+trait SecurityCacheReader {
+  def accessTokenToUserIdInCache(accessToken: String): Option[String]
+}
 
 
-class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) extends ConnectionInfoProvider {
+class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) extends ConnectionInfoProvider with SecurityCacheReader{
   val securityPrefix = "Security"
   val defExpiry = 1 hour
 
-  def accessToken: String = infoProviderToCache.accessToken
+  val accessToken: String = infoProviderToCache.accessToken
+
+  val accessTokenToUserIdKey = s"$securityPrefix.AccessTokenToUserId.$accessToken" //Evaluated directly because we always need it
+  def userIdToUserInfoKey(userId:String)=  s"$securityPrefix.UserIdToUserInfo.$userId"
 
   def getAndMaybeCacheUserId: Future[String] = {
-    val accesstokenToUserIdkey = s"$securityPrefix.AccessTokenToUserId.$accessToken"
-    MusitCache.cache.getAs[String](accesstokenToUserIdkey) match {
+    MusitCache.getAs[String](accessTokenToUserIdKey) match {
       case Some(userId) => Future(userId)
       case None =>
         val userInfoF = infoProviderToCache.getUserInfo
         val idF = userInfoF.map(_.id)
-        MusitCache.setFuture(accesstokenToUserIdkey, idF)
+        MusitCache.setFuture(accessTokenToUserIdKey, idF)
         idF
     }
   }
 
   def userIdToUserInfo(userId: String, provider: String => Future[UserInfo]): Future[UserInfo] = {
-    MusitCache.getOrElseFuture(s"$securityPrefix.UserIdToUserInfo.$userId", defExpiry)(provider(userId))
+    MusitCache.getOrElseFuture(userIdToUserInfoKey(userId), defExpiry)(provider(userId))
   }
 
+  def getUserIdFromCache = MusitCache.getAs[String](accessTokenToUserIdKey)
 
   def getUserInfo: Future[UserInfo] = {
+    getUserIdFromCache match {
+      case Some(userId) => userIdToUserInfo(userId, { _ => infoProviderToCache.getUserInfo })
+      case None => {
+          val userInfoF = infoProviderToCache.getUserInfo
+          userInfoF.onSuccess {
+            case userInfo =>
+              MusitCache.set(userIdToUserInfoKey(userInfo.id), userInfo, defExpiry)
+          }
+          userInfoF
+      }
+    }
+/*  The below code is much simpler and would work, but would hit the external (typically Dataporten) server twice with a getUserInfo call, once to get the userId (via getUserInfo) and then again to get the userInfo.
     for {
       userId <- getAndMaybeCacheUserId
       userInfo <- userIdToUserInfo(userId, { _ => infoProviderToCache.getUserInfo })
     } yield userInfo
+
+
+    */
   }
 
   def userIdToGroups(userId: String, provider: String => Future[Seq[GroupInfo]]): Future[Seq[GroupInfo]] = {
@@ -129,6 +150,10 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
     } yield userGroupsId
   }
 
+
+  ///Api for testing:
+
+  def accessTokenToUserIdInCache(accessToken: String): Option[String] = MusitCache.getAs[String](accessTokenToUserIdKey)
 }
 
 

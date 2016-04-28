@@ -7,6 +7,7 @@ import play.api.libs.ws._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
+
 /**
   * Created by jstabel on 3/31/16.
   */
@@ -52,14 +53,16 @@ object dataporten {
     def accessToken = _accessToken
   }
 
-
+/*
   class DataportenSecurityConnection(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnectionBaseImp(userInfo, userGroups) {
     override def userName = userInfo.name
   }
-
+*/
   object Dataporten {
     def createSecurityConnection(accessToken: String) = {
-      val infoProvider = new DataportenUserInfoProvider(accessToken)
+      val infoProvider = new CachedConnectionInfoProvider(new DataportenUserInfoProvider(accessToken))
+      Security.createSecurityConnectionFromInfoProvider(infoProvider)
+      /*
       val userInfoF = infoProvider.getUserInfo
       val userGroupIdsF = infoProvider.getUserGroupIds
 
@@ -68,7 +71,7 @@ object dataporten {
         userInfo <- userInfoF
         userGroupIds <- userGroupIdsF
 
-      } yield new DataportenSecurityConnection(userInfo, userGroupIds)
+      } yield new DataportenSecurityConnection(userInfo, userGroupIds)*/
     }
   }
 
