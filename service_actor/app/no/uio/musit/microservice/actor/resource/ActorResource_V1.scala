@@ -19,19 +19,16 @@
 package no.uio.musit.microservice.actor.resource
 
 import no.uio.musit.microservice.actor.dao.ActorDao
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import io.swagger.annotations._
 import no.uio.musit.microservice.actor.domain.Actor
 import no.uio.musit.microservice.actor.service.ActorService
-import play.api.Logger
-import play.api.mvc._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
+import play.api.mvc._
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 class ActorResource_V1 extends Controller with ActorService {
-  //val musit_thing_Dao = new MusitThingDao
+
 
   def list = Action.async { req => {
     //req.getQueryString("filter")
@@ -50,13 +47,13 @@ class ActorResource_V1 extends Controller with ActorService {
   }}
 
   def add = Action.async(BodyParsers.parse.json) { request =>
-    val musitThingResult:JsResult[Actor] = request.body.validate[Actor]
-    musitThingResult match {
+    val actorResult:JsResult[Actor] = request.body.validate[Actor]
+    actorResult match {
       case s:JsSuccess[Actor] => {
-        val musitThing = s.get
-        val newThingF = ActorDao.insert(musitThing)
-        newThingF.map { newThing =>
-          Created(Json.toJson(newThing))
+        val actor = s.get
+        val newActorF = ActorDao.insert(actor)
+        newActorF.map { newActor =>
+          Created(Json.toJson(newActor))
         }
       }
       case e:JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))

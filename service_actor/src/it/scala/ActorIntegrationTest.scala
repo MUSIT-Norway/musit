@@ -33,7 +33,7 @@ class ActorIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFut
   implicit override lazy val app = new GuiceApplicationBuilder().build()
   val timeout = PatienceConfiguration.Timeout(1 seconds)
 
-  "MusitThing integration " must {
+  "Actorintegration " must {
     "get by id" in {
       val future = WS.url(s"http://localhost:$port/v1/1").get()
       whenReady(future, timeout) { response =>

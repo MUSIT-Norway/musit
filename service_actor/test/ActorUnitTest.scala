@@ -23,62 +23,9 @@ class ActorUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
   val timeout = PatienceConfiguration.Timeout(1 seconds)
   implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
 
-  "MusitThing slick dao" must {
+  "Actor slick dao" must {
     import ActorDao._
 
-    "testInsertMusitThing" in {
-      insert(Actor(1, "C2", "spyd", Seq.empty))
-      insert(Actor(2, "C3", "øks", Seq.empty))
-      val svar=ActorDao.all()
-      svar.onFailure{
-        case ex => fail("Insert failed")
-      }
-      whenReady(svar, timeout) { things =>
-        assert (things.length == 4)
-      }
-    }
-
-    "getDisplayName_kjempeTall" in {
-      val svar = getDisplayName(6386363673636335366L)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
-    }
-
-    "getDisplayName_Riktig" in {
-      val svar = getDisplayName(2)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == Some("Kniv7"))
-      }
-    }
-
-    "getDisplayName_TalletNull" in {
-      val svar = getDisplayName(0)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
-    }
-
-    "getDisplayID_kjempeTall" in {
-      val svar = getDisplayID(6386363673636335366L)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
-    }
-
-    "getDisplayID_Riktig" in {
-      val svar = getDisplayID(2)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == Some("C2"))
-      }
-    }
-
-    "getDisplayID_TalletNull" in {
-      val svar = getDisplayID(0)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
-    }
 
     "getById_kjempeTall" in {
       val svar = getById(6386363673636335366L)
@@ -90,7 +37,7 @@ class ActorUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
     "getById__Riktig" in {
       val svar = getById(1)
       whenReady(svar, timeout) { thing =>
-        assert (thing == Some(Actor(1,"C1","Øks5", Seq(LinkService.self("/v1/1")))))
+        assert (thing == Some(Actor(1,"And, Arne1", Seq(LinkService.self("/v1/1")))))
       }
     }
 

@@ -25,7 +25,7 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 @ApiModel
-case class Actor(id: Long, displayid:String, displayname:String, links: Seq[Link]) extends BaseMusitDomain
+case class Actor(id: Long, actorname:String, links: Seq[Link]) extends BaseMusitDomain
 
 object Actor {
   def tupled = (Actor.apply _).tupled

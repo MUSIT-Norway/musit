@@ -20,8 +20,7 @@ package no.uio.musit.microservice.actor.dao
 
 import no.uio.musit.microservice.actor.domain.Actor
 import no.uio.musit.microservices.common.linking.LinkService
-import play.api.{Logger, Play}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.Play
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
@@ -32,14 +31,14 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val ActorTable = TableQuery[MusitThingTable]
+  private val ActorTable = TableQuery[ActorTable]
 
 
   def all() : Future[Seq[Actor]] = db.run(ActorTable.result)
 
-  def insert(musitThing: Actor): Future[Actor] = {
-    val insertQuery = (ActorTable returning ActorTable.map(_.id) into ((musitThing, id) => (musitThing.copy(id=id, links=Seq(LinkService.self(s"/v1/$id"))))))
-    val action = insertQuery += musitThing
+  def insert(actor: Actor): Future[Actor] = {
+    val insertQuery = (ActorTable returning ActorTable.map(_.id) into ((actor, id) => (actor.copy(id=id, links=Seq(LinkService.self(s"/v1/$id"))))))
+    val action = insertQuery += actor
 
     db.run(action)
   }
@@ -49,15 +48,14 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  private class MusitThingTable(tag: Tag) extends Table[Actor](tag, "VIEW_MUSITTHING") {
+  private class ActorTable(tag: Tag) extends Table[Actor](tag, "VIEW_ACTOR") {
     def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
-    def displayid = column[String]("DISPLAYID")
-    def displayname = column[String]("DISPLAYNAME")
+    def actorname = column[String]("ACTORNAME")
 
-    def create = (id: Long , displayid:String, displayname:String) => Actor(id, displayid, displayname, Seq(LinkService.self(s"/v1/$id")))
-    def destroy(thing:Actor) = Some(thing.id, thing.displayid, thing.displayname)
+    def create = (id: Long , actorname:String) => Actor(id, actorname, Seq(LinkService.self(s"/v1/$id")))
+    def destroy(actor:Actor) = Some(actor.id, actor.actorname)
 
-    def * = (id, displayid, displayname) <>(create.tupled, destroy)
+    def * = (id, actorname) <>(create.tupled, destroy)
   }
 }
 
