@@ -23,53 +23,51 @@
   */
 
 
-
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.security._
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatest.{FlatSpec, FunSuite, Matchers}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import play.Play
-import play.api.Logger
 
-import scala.concurrent.ExecutionContext.Implicits.global
 //import play.api.Play.current
-import play.api.cache.Cache
-import play.api.cache.EhCacheModule
 import play.api.inject.guice.GuiceApplicationBuilder
-import scala.concurrent.duration._
 
-import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class CachedSecuritySuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
 
-  val additionalConfiguration:Map[String, String] = Map.apply (
+  val additionalConfiguration: Map[String, String] = Map.apply(
     ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
-    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
-    ("evolutionplugin" , "enabled")
+    ("slick.dbs.default.db.driver", "org.h2.Driver"),
+    ("slick.dbs.default.db.url", "jdbc:h2:mem:play-test"),
+    ("evolutionplugin", "enabled")
   )
   implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
 
+  val timeout = PatienceConfiguration.Timeout(1 seconds)
+
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
-  //val cacheImp = new SecurityCacheImp
-  "running with application" must {
-    "test" in {
-/*
-      val v = cacheImp.cache.getAs[String]("token1")
-      assert(!v.isDefined)
-      val fut = cacheImp.accessTokenToUserId("token1", {acc=> Future(s"userId$acc")})
-      whenReady(fut) {v=> assert(v=="userIdtoken1")
 
-        val v2 = cacheImp.cachedAccessTokenToUserId("token1")
-        assert(v2.isDefined)
-        assert(v2==Some("userIdtoken1"))
-*/
+
+  "CachedSecuritySuite" must {
+    "main test" in {
+
+      val accessToken = "Jarle"
+
+      whenReady(FakeSecurity.createHardcoded(accessToken, groups, true), timeout) { sec =>
+
+        val cacheReader = sec.infoProvider.asInstanceOf[SecurityCacheReader]
+
+
+        assert(cacheReader.accessTokenToUserIdFromCache(accessToken).isDefined)
+        assert(cacheReader.accessTokenToUserIdFromCache(accessToken).get == "Jarle")
+
+        val userInfo = cacheReader.accessTokenToUserInfoFromCache(accessToken)
+        val userInfoMustBe = Some(UserInfo("Jarle", "Jarle"))
+        assert(userInfo == userInfoMustBe)
+
+        val groupIds = cacheReader.accessTokenToGroupIds(accessToken)
+        assert(groupIds == Some(groups))
+
       }
-
-
-  }
-
-
-
     }
+  }
+}

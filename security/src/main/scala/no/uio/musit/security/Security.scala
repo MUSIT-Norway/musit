@@ -91,6 +91,9 @@ trait SecurityConnection {
   def hasAllGroups(groupIds: Seq[String]): Boolean = state.hasAllGroups(groupIds)
 
   def hasNoneOfGroups(groupIds: Seq[String]): Boolean = state.hasNoneOfGroups(groupIds)
+
+  ///The infoProvider providing the info to this connection. Accessing this is probably only relevant for testing/debugging
+  def infoProvider: ConnectionInfoProvider
 }
 
 class SecurityStateImp(_userInfo: UserInfo, userGroups: Seq[String]) extends SecurityState {
@@ -107,7 +110,7 @@ class SecurityStateImp(_userInfo: UserInfo, userGroups: Seq[String]) extends Sec
 }
 
 
-class SecurityConnectionImp(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnection {
+class SecurityConnectionImp(_infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnection {
   val state = new SecurityStateImp(userInfo, userGroups)
 
   override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
@@ -129,6 +132,7 @@ class SecurityConnectionImp(userInfo: UserInfo, userGroups: Seq[String]) extends
       Failure(new Exception(msg))
     }
   }
+  def infoProvider: ConnectionInfoProvider = _infoProvider
 }
 
 object Security {
@@ -151,6 +155,6 @@ object Security {
     for {
       userInfo <- userInfoF
       userGroupIds <- userGroupIdsF
-    } yield new SecurityConnectionImp(userInfo, userGroupIds)
+    } yield new SecurityConnectionImp(_infoProvider, userInfo, userGroupIds)
   }
 }
