@@ -20,53 +20,58 @@
 
 package no.uio.musit.security
 
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.Future
 
 /**
   * Created by jstabel on 4/22/16.
   */
 
 
-
-
 object FakeSecurityUsersAndGroups {
   val users = new ListBuffer[UserInfo]
   val groups = new ListBuffer[GroupInfo]
-  val  groupsForUserMap = collection.mutable.Map[String, ListBuffer[String]]()
+  val groupsForUserMap = collection.mutable.Map[String, ListBuffer[String]]()
 
-  def findGroup(id: String) = groups.find(_.id==id)
-  def findUser(id: String) = users.find(_.id==id)
+  val etnoLesGroupName = "EtnoLes"
+  val fotoLesGroupName = "FotoLes"
+
+  def findGroup(id: String) = groups.find(_.id == id)
+
+  def findUser(id: String) = users.find(_.id == id)
 
   def defUser(id: String, name: String) = {
     val user = UserInfo(id, name)
-    users+=user
+    users += user
     user
   }
 
   def defGroup(id: String, displayname: String, description: String) = {
     val group = GroupInfo("ad-hoc", id, displayname, Some(description))
-    groups+=group
+    groups += group
     group
   }
+
   def grant(user: UserInfo, group: GroupInfo) = {
     val groupIds = groupsForUserMap.get(user.id).getOrElse(new ListBuffer[String])
-    groupIds+=group.id
+    groupIds += group.id
     groupsForUserMap.put(user.id, groupIds)
   }
 
-  def groupsIdsForUserId(id: String) = groupsForUserMap(id)
+  def groupsIdsForUserId(userId: String) = groupsForUserMap(userId)
+
+  def groupsForUserId(userId: String) = groupsIdsForUserId(userId) map (groupId => findGroup(groupId).getOrThrow(s"Undefined groupId: $groupId"))
 
   val jarle = defUser("jarle", "Jarle Stabell")
   val stein = defUser("stein", "Stein A. Olsen")
 
-  val etnoLes = defGroup("EtnoLes", "EtnoLes", "Lesetilgang til etnobasen")
-  val fotoLes = defGroup("FotoLes", "FotoLes", "Lesetilgang til fotobasen")
+  val etnoLes = defGroup(etnoLesGroupName, "EtnoLes", "Lesetilgang til etnobasen")
+  val fotoLes = defGroup(fotoLesGroupName, "FotoLes", "Lesetilgang til fotobasen")
 
   grant(jarle, etnoLes)
   grant(jarle, fotoLes)
   grant(stein, etnoLes)
   grant(stein, fotoLes)
-
-
 }
+

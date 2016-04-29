@@ -7,6 +7,7 @@ import play.api.libs.ws._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
+
 /**
   * Created by jstabel on 3/31/16.
   */
@@ -34,12 +35,12 @@ object dataporten {
 
     ) (createGroupInfo _)
 
-  class DataportenUserInfoProvider  (accessToken: String) extends ConnectionInfoProvider {
+  class DataportenUserInfoProvider(_accessToken: String) extends ConnectionInfoProvider {
 
     import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
     def httpGet(url: String) = {
-      WS.url(url).withBearerToken(accessToken).getOrFail()
+      WS.url(url).withBearerToken(_accessToken).getOrFail()
     }
 
     def getUserInfo = {
@@ -49,25 +50,14 @@ object dataporten {
     def getUserGroups = {
       httpGet(userGroupsUrl).map(resp => resp.body).map { j => /*println(j);*/ Json.parse(j).validate[Seq[GroupInfo]].get }
     }
-  }
 
-
-  class DataportenSecurityConnection(userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnectionBaseImp(userInfo.name, userGroups) {
-    override def userName = userInfo.name
+    def accessToken = _accessToken
   }
 
   object Dataporten {
-    def createSecurityConnection(accessToken: String) = {
+    def createSecurityConnection(accessToken: String, useCache: Boolean = true) = {
       val infoProvider = new DataportenUserInfoProvider(accessToken)
-      val userInfoF = infoProvider.getUserInfo
-      val userGroupIdsF = infoProvider.getUserGroupIds
-
-      for {
-        //Logger.debug("Før tilordning")
-        userInfo <- userInfoF
-        userGroupIds <- userGroupIdsF
-
-      } yield new DataportenSecurityConnection(userInfo, userGroupIds)
+      Security.createSecurityConnectionFromInfoProvider(infoProvider, useCache)
     }
   }
 
