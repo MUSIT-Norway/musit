@@ -27,8 +27,8 @@ CREATE TABLE ADRESSE (
     PRIMARY KEY (ny_id)
 );
 
-insert into ADRESSE (ny_id, address) values ( 'Frederiksgate 3');
-insert into ADRESSE (ny_id, address) values (  'Østre Akervei 5');
+insert into ADRESSE (address) values ( 'Frederiksgate 3');
+insert into ADRESSE  (address) values (  'Østre Akervei 5');
  
 # --- !Downs
  

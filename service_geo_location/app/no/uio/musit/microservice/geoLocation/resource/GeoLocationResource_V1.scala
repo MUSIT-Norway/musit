@@ -38,9 +38,16 @@ class GeoLocationResource_V1 extends Controller with GeoLocationService {
     )}
   }
 
+  def searchExternal(expression:String) = Action.async { request => {
+    searchGeoNorway(expression).map { location =>
+      Ok(Json.toJson(location))
+    }
+  }}
+
 
   @ApiOperation(value = "GeoLocation operation - get a spesific geoLocation", notes = "simple listing in json", httpMethod = "GET")
   def getById(id:Long) = Action.async { request => {
+
     GeoLocationDao.getById(id).map( optionResult =>
       optionResult match {
         case Some(geoLocation) => Ok(Json.toJson(geoLocation))

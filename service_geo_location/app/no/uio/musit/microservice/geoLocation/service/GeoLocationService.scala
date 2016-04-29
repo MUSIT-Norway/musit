@@ -19,6 +19,34 @@
 
 package no.uio.musit.microservice.geoLocation.service
 
+import no.uio.musit.microservice.geoLocation.domain.GeoNorwayAddress
+import play.api.Play.current
+import play.api.libs.json._
+import play.api.libs.ws.WS
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 trait GeoLocationService {
+  def searchGeoNorway(expression:String) :Future[Seq[GeoNorwayAddress]] = {
+    val responseFuture = WS.url(s"http://ws.geonorge.no/AdresseWS/adresse/sok?sokestreng=$expression").get
+    responseFuture.map( response => {
+     val json = Json.parse(response.body)
+      val adresser = (json \ "adresser").as[List[Map[String,String]]]
+      adresser.map(adresse =>{
+        GeoNorwayAddress(
+          street = adresse.get("adressenavn").getOrElse(""),
+          streetNo = adresse.get("husnr").getOrElse(""),
+          place = adresse.get("poststed").getOrElse(""),
+          zip = adresse.get("postnr").getOrElse("")
+        )
+      })
+    })
+  }
 
 }
+
+/* val future = WS.url(s"http://localhost:$port/v1/1").get()
+      whenReady(future, timeout) { response =>
+        val json = Json.parse(response.body)
+        assert((json \ "id").get.toString() == "1")*/

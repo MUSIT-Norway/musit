@@ -2,9 +2,10 @@
   * Created by ellenjo on 4/15/16.
   */
 
-i
+
 import no.uio.musit.microservice.geoLocation.dao.GeoLocationDao
 import no.uio.musit.microservice.geoLocation.domain.GeoLocation
+import no.uio.musit.microservice.geoLocation.service.GeoLocationService
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
@@ -13,7 +14,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class GeoLocation_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures {
+class GeoLocation_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures with GeoLocationService{
 
   val additionalConfiguration:Map[String, String] = Map.apply (
     ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
@@ -27,9 +28,9 @@ class GeoLocation_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutur
   "GeoLocationDao slick dao" must {
     import GeoLocationDao._
 
-    "testInsertMusitThing" in {
-      insert(GeoLocation(1, "St. Olavsgate 3", Seq.empty))
-      insert(GeoLocation(2, "urkeGata 666", Seq.empty))
+    "testInsertGeoLocation" in {
+      insert(GeoLocation(10, "St. Olavsgate 3", Seq.empty))
+      insert(GeoLocation(11, "urkeGata 666", Seq.empty))
       val svar=GeoLocationDao.all()
       svar.onFailure{
         case ex => fail("Insert failed")
@@ -59,5 +60,14 @@ class GeoLocation_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutur
         assert (geoLocation == None)
       }
     }
+
+    "searchAddress" in {
+      val svar = this.searchGeoNorway("paal bergs vei 56, RYKKINN")
+      whenReady(svar, timeout) { geoAddresses =>
+      assert (geoAddresses.length > 0)
+      }
+      }
+
   }
+
 }
