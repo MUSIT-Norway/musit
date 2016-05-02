@@ -59,7 +59,7 @@ object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  private class MusitThingTable(tag: Tag) extends Table[MusitThing](tag, "VIEW_MUSITTHING") {
+  private class MusitThingTable(tag: Tag) extends Table[MusitThing](tag, Some("MUSIT_MAPPING"),"VIEW_MUSITTHING") {
     def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def displayid = column[String]("DISPLAYID")
     def displayname = column[String]("DISPLAYNAME")
