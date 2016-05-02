@@ -2,17 +2,16 @@
   * Created by ellenjo on 4/15/16.
   */
 
-import no.uio.musit.microservice.time.dao.TimeDao
-import no.uio.musit.microservice.time.domain.Time
+import no.uio.musit.microservice.actor.dao.ActorDao
+import no.uio.musit.microservice.actor.domain.Actor
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class TimeUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
+class ActorUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
   val additionalConfiguration:Map[String, String] = Map.apply (
     ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
@@ -24,7 +23,7 @@ class TimeUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
   implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
 
   "Time slick dao" must {
-    import TimeDao._
+    import ActorDao._
 
 
     "getById_kjempeTall" in {
