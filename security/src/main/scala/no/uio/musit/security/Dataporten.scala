@@ -19,8 +19,8 @@ object dataporten {
   def createGroupInfo(groupType: String, id: String, displayName: String, description: Option[String]) = new GroupInfo(groupType, id, displayName, description)
 
 
-  val userInfoUrl = "https://auth.feideconnect.no/openid/userinfo"
-  val userGroupsUrl = "https://groups-api.feideconnect.no/groups/me/groups"
+  val userInfoUrl = "https://auth.dataporten.no/openid/userinfo"
+  val userGroupsUrl = "https://groups-api.dataporten.no/groups/me/groups"
 
   implicit val userInfoReads: Reads[UserInfo] = (
     (JsPath \ "sub").read[String] and

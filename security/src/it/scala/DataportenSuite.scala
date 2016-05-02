@@ -40,7 +40,7 @@ import scala.concurrent.duration._
 class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   // TODO: Dynamic token, find a way to have a permanent test token with Dataporten
-  val token = "69dd136c-c366-4d89-9473-b3acf64bebef"
+  val token = "c234f522-9939-486e-90c6-205ca0d3a792"
   //var fut: Future[SecurityConnection] = null
 
 
@@ -79,13 +79,13 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
 
   "Authorize for DS and MusitKonservatorLes" in {
     runTestWhenReady(token) { sec =>
-      assert(sec.authorize(Seq(Groups.DS, Groups.MusitKonservatorLes)) {}.isSuccess)
+      assert(sec.authorize(Seq(Groups.DS, Groups.MusitStorageRead)) {}.isSuccess)
     }
   }
 
   "Authorize for invalid group" in {
     runTestWhenReady(token) { sec =>
-      assert(sec.authorize(Seq(Groups.DS, "invalid groupid")) {}.isFailure)
+      assert(sec.authorize(Seq("invalid groupid")) {}.isFailure)
     }
   }
 
