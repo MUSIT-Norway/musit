@@ -18,70 +18,20 @@
  */
 package no.uio.musit.microservice.geoLocation.resource
 
-import io.swagger.annotations._
-import no.uio.musit.microservice.geoLocation.dao.GeoLocationDao
-import no.uio.musit.microservice.geoLocation.domain.GeoLocation
 import no.uio.musit.microservice.geoLocation.service.GeoLocationService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.Future
-
-@Api(value = "/api/geoLocation", description = "GeoLocation resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
 class GeoLocationResource_V1 extends Controller with GeoLocationService {
 
-  @ApiOperation(value = "GeoLocation operation - lists all geoLocations", notes = "simple listing in json", httpMethod = "GET")
-  def list = Action.async { req => {
-    GeoLocationDao.all.map(geoLocation =>
-      Ok(Json.toJson(geoLocation))
-    )}
-  }
 
-  def searchExternal(expression:String) = Action.async { request => {
+  def searchExternal = Action.async { request => {
+    val expression = request.getQueryString("search").getOrElse("")
     searchGeoNorway(expression).map { location =>
       Ok(Json.toJson(location))
     }
   }}
-
-  @ApiOperation(value = "GeoLocation operation - get a spesific geoLocation", notes = "simple listing in json", httpMethod = "GET")
-  def getById(id:Long) = Action.async { request => {
-
-    GeoLocationDao.getById(id).map( optionResult =>
-      optionResult match {
-        case Some(geoLocation) => Ok(Json.toJson(geoLocation))
-        case None => NotFound(s"Didn't find object with id: $id")
-      }
-    )
-  }}
-
-
-
-  @ApiOperation(value = "GeoLocation operation - inserts an GeoLocationTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
-  def add = Action.async(BodyParsers.parse.json) { request =>
-    val musitThingResult:JsResult[GeoLocation] = request.body.validate[GeoLocation]
-    musitThingResult match {
-      case s:JsSuccess[GeoLocation] => {
-        val musitThing = s.get
-        val newThingF = GeoLocationDao.insert(musitThing)
-        newThingF.map { newThing =>
-          Created(Json.toJson(newThing))
-        }
-      }
-      case e:JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))
-    }
-  }
-
-  def extractFilterFromRequest(request: Request[AnyContent]): Array[String] = {
-    request.getQueryString("filter") match {
-      case Some(filterString) => "^\\[(\\w*)\\]$".r.findFirstIn(filterString) match {
-        case Some(str) => str.split(",")
-        case None => Array.empty[String]
-      }
-      case None => Array.empty[String]
-    }
-  }
-
 }
 
 

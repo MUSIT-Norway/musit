@@ -16,12 +16,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+import no.uio.musit.microservice.geoLocation.domain.GeoNorwayAddress
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatest.{FunSuite, Matchers}
-import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
-import play.api.libs.ws.WS
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
+import play.api.libs.ws.WS
 
 import scala.concurrent.duration._
 
@@ -35,10 +35,10 @@ class GeoLocationTest extends PlaySpec with OneServerPerSuite with ScalaFutures 
 
   "GeoLocation integration " must {
     "get by id" in {
-      val future = WS.url(s"http://localhost:$port/v1/1").get()
+      val future = WS.url(s"http://localhost:$port/v1/address?search=Paal Bergsvei 56, Rykkinn").get()
       whenReady(future, timeout) { response =>
-        val json = Json.parse(response.body)
-        assert((json \ "id").get.toString() == "1")
+        val addresses = Json.parse(response.body).validate[Seq[GeoNorwayAddress]].get
+        assert(addresses.head.street == "Paal Bergs vei")
       }
     }
   }

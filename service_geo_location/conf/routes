@@ -3,6 +3,4 @@
 # ~~~~
 
 # Setup endpoints
-GET     /v1                         no.uio.musit.microservice.geoLocation.resource.GeoLocationResource_V1.list
-GET     /v1/:id                     no.uio.musit.microservice.geoLocation.resource.GeoLocationResource_V1.getById(id:Long)
-POST    /v1                         no.uio.musit.microservice.geoLocation.resource.GeoLocationResource_V1.add
+GET     /v1/address                 no.uio.musit.microservice.geoLocation.resource.GeoLocationResource_V1.searchExternal
