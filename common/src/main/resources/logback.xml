@@ -10,18 +10,22 @@
 
   <include resource="local-logback.xml"/>
 
-  <appender name="SLACK" class="no.uio.musit.microservices.common.log.SlackLogbackAppender">
-    <webhook>https://hooks.slack.com/services/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</webhook>
-    <host>${HOSTNAME}</host>
-    <service>${applicationName}</service>
-  </appender>
+  <if condition='!isNull("musit.slack.systemHookKey")'>
+    <then>
+      <appender name="SLACK" class="no.uio.musit.microservices.common.log.SlackLogbackAppender">
+        <webhook>https://hooks.slack.com/services/${musit.slack.systemHookKey}</webhook>
+        <host>${HOSTNAME}</host>
+        <service>${applicationName}</service>
+      </appender>
 
-  <appender name="ASYNC_SLACK" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="SLACK" />
-    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>ERROR</level>
-    </filter>
-  </appender>
+      <appender name="ASYNC_SLACK" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SLACK" />
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+          <level>ERROR</level>
+        </filter>
+      </appender>
+    </then>
+  </if>
 
   <!--
     The logger name is typically the Java/Scala package name.
@@ -30,7 +34,11 @@
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
-    <appender-ref ref="ASYNC_SLACK" />
+    <if condition='property("logback.appenders").contains("ASYNC_SLACK")'>
+      <then>
+        <appender-ref ref="ASYNC_SLACK" />
+      </then>
+    </if>
   </root>
 
 </configuration>
