@@ -54,7 +54,7 @@ val noPublish = Seq(
 )
 
 lazy val root = (
-  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing,service_actor)
+  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing,service_actor,service_geo_location)
   )
 
 // Base projects used as dependencies
@@ -110,6 +110,15 @@ lazy val service_actor = (
     settings(baseDockerSettings ++ Seq(packageName in Docker := "musit_service_actor"))
   )  dependsOn(common) dependsOn(common_test % "it,test")
 
+lazy val service_geo_location = (
+  PlayProject("service_geo_location")
+    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings(scoverageSettings: _*)
+    settings(baseDockerSettings ++ Seq(
+    packageName in Docker := "musit_service_geo_location"
+  ))
+  )  dependsOn(common, common_test % "it,test")
 
 
 // Extra tasks

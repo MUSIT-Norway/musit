@@ -20,20 +20,6 @@
  
 # --- !Ups
 
-CREATE SCHEMA IF NOT EXISTS MUSIT_MAPPING;
-
--- TODO: remove for final musit thing
-CREATE TABLE MUSIT_MAPPING.VIEW_MUSITTHING (
-    ny_id bigint(20) NOT NULL AUTO_INCREMENT,
-    displayid varchar(255),
-    displayname varchar(255),
-    PRIMARY KEY (ny_id)
-);
-
-insert into MUSIT_MAPPING.VIEW_MUSITTHING (ny_id, displayid, displayname) values (NULL, 'C1', 'Øks5');
-insert into MUSIT_MAPPING.VIEW_MUSITTHING (ny_id, displayid, displayname) values (NULL, 'C2', 'Kniv7');
  
 # --- !Downs
  
-DROP TABLE VMUSIT_MAPPING.IEW_MUSITTHING;
-DROP SCHEMA MUSIT_MAPPING;
