@@ -21,6 +21,7 @@ package no.uio.musit.microservice.actor.resource
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Actor
 import no.uio.musit.microservice.actor.service.ActorService
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -32,9 +33,11 @@ class ActorResource_V1 extends Controller with ActorService {
 
   def list = Action.async { req => {
     //req.getQueryString("filter")
-    ActorDao.all.map(actor =>
+    ActorDao.all.map(actor => {
+      Logger.info("Testing 1 2 3")
+      Logger.error("Sending log to slack")
       Ok(Json.toJson(actor))
-    )}
+    })}
   }
 
   def getById(id:Long) = Action.async { request => {

@@ -57,6 +57,37 @@ This will initialize the environment and make the first build.
 
 Project is runnable from the code or through docker containers. The development process is done outside docker to make compile roundtrip as fast as possible. Deployment is done in docker container to make automation of the deployment and infrastructure easy and robust.
 
+#### Configuration
+
+##### Microservices
+
+To externalize configuration for different environments you need to use the playframework override functionality.
+When starting the microservice binary you need to call it using:
+```
+$ path/to/bin/<project_name> -Dconfig.file=/etc/musit/production.conf
+```
+The Production.conf file should override all applicable values from the application.conf defaults and reference.conf.
+
+You can also override configured values using value overrides when starting the project, see example:
+```
+$ path/to/bin/<project_name> -Dplay.crypto.secret=mamamia
+```
+
+To override logging for the microservice you can force the application to read a different logback.xml file using the
+following property override when starting the application:
+```
+$ path/to/bin/<project_name> -Dlogger.file=/etc/musit/logback.xml
+```
+
+To give JVM parameters when starting the microservice, you use -J on the command line, see the example:
+```
+$ path/to/bin/<project_name> -J-Xms128m -J-Xmx512m -J-server
+```
+This equals a java command with:
+```
+$ java -Xms128m -Xmx512m -server -jar path/to/jar/jarfile.jar
+```
+
 #### Running
 
 To run a spesific microservice you need to use sbt or build a docker container and start this. We recomend using sbt to run the microservices in the development process outside of docker.
@@ -92,7 +123,7 @@ $ sbt coverageAggregate
 
 This is a NodeJS frontend project written in ReactJS with Redux for interacting with MUSIT-Backend.
 The node instance code also contains the API Gateway and router implementation to connect to the microservices.
-The frontend Redux code communicate over websockets with the API gateway to make the client more connected and the
+The frontend Redux code communicate over WebSockets with the API gateway to make the client more connected and the
 communication protocol as tight and compact as possible.
 
 _The API Gateway will be expanded with a rest interface proxy when the project gets more mature and the microservices
