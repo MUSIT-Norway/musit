@@ -44,7 +44,6 @@ class GeoLocationResource_V1 extends Controller with GeoLocationService {
     }
   }}
 
-
   @ApiOperation(value = "GeoLocation operation - get a spesific geoLocation", notes = "simple listing in json", httpMethod = "GET")
   def getById(id:Long) = Action.async { request => {
 

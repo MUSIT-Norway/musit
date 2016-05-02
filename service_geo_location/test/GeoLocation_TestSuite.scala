@@ -29,8 +29,8 @@ class GeoLocation_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutur
     import GeoLocationDao._
 
     "testInsertGeoLocation" in {
-      insert(GeoLocation(10, "St. Olavsgate 3", Seq.empty))
-      insert(GeoLocation(11, "urkeGata 666", Seq.empty))
+      insert(GeoLocation(20,"St. Olavsgate 3", Seq.empty))
+      insert(GeoLocation(21,"urkeGata 666", Seq.empty))
       val svar=GeoLocationDao.all()
       svar.onFailure{
         case ex => fail("Insert failed")

@@ -20,16 +20,19 @@
  
 # --- !Ups
 
+CREATE SCHEMA IF NOT EXISTS MUSARK_GEOLOCATION;
+
 -- TODO: remove for final GeoLocation
-CREATE TABLE ADRESSE (
+CREATE TABLE MUSARK_GEOLOCATION.ADRESSE (
     ny_id bigint(20) NOT NULL AUTO_INCREMENT,
     address varchar(255),
     PRIMARY KEY (ny_id)
 );
 
-insert into ADRESSE (address) values ( 'Frederiksgate 3');
-insert into ADRESSE  (address) values (  'Østre Akervei 5');
+insert into MUSARK_GEOLOCATION.ADRESSE (address) values ( 'Frederiksgate 3');
+insert into MUSARK_GEOLOCATION.ADRESSE  (address) values (  'Østre Akervei 5');
  
 # --- !Downs
  
-DROP TABLE ADRESSE;
+DROP TABLE MUSARK_GEOLOCATION.ADRESSE;
+DROP SCHEMA MUSARK_GEOLOCATION;

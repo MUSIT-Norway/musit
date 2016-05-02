@@ -48,7 +48,7 @@ object GeoLocationDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  private class GeoLocationTable(tag: Tag) extends Table[GeoLocation](tag,Some("musark_geoLocation"), "ADRESSE") {
+  private class GeoLocationTable(tag: Tag) extends Table[GeoLocation](tag,Some("MUSARK_GEOLOCATION"), "ADRESSE") {
     def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def address = column[String]("ADDRESS")
 
