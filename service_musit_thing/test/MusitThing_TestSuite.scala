@@ -2,8 +2,8 @@
   * Created by ellenjo on 4/15/16.
   */
 
-import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
-import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
+import no.uio.musit.microservice.musitThing.dao.MusitThingDao
+import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
