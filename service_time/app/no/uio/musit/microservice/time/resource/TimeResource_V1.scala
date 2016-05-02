@@ -34,24 +34,19 @@ class TimeResource_V1 extends Controller with TimeService {
 
     val filterString:String = request.getQueryString("filter").orNull
 
-    if (filterString.size > 0) {
-      val filterIterator = """\\[(date|time)*\\]""".r
+    if (filterString != null && filterString.size > 0) {
+      val list = "(date|time)".r.findAllIn(filterString).toList.sorted
 
 
-        filterString match {
-          case filterIterator ("date","time") =>
-           filter= Some( new MusitDateTimeFilter)
-          case filterIterator ("time","date") =>
-            filter= Some( new MusitDateTimeFilter)
-          case filterIterator ("time") =>
-            filter= Some( new MusitTimeFilter)
-          case filterIterator ("date") =>
-            filter= Some( new MusitDateFilter)
+        list match {
+          case List ("date","time") => filter= Some( new MusitDateTimeFilter)
+          case List ("time")        => filter= Some( new MusitTimeFilter)
+          case List ("date")        => filter= Some( new MusitDateFilter)
+          case                              _ => throw new IllegalArgumentException("Only supports empty filter or filter on time, date or time and date")
         }
-
-
     }
-    Future.successful(Ok(Json.toJson(getNow(filter).asInstanceOf[DateTime])))
+    val now = getNow(filter)
+    Future.successful(Ok(Json.toJson(now)))
   }
 
 }

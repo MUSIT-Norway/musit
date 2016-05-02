@@ -14,6 +14,7 @@
   -->
   <logger name="play" level="DEBUG" />
   <logger name="application" level="DEBUG" />
+  <logger name="no.uio.musit" level="DEBUG" />
 
   <root level="ERROR">
     <appender-ref ref="STDOUT" />

@@ -26,12 +26,9 @@ trait TimeService {
     val now = org.joda.time.DateTime.now
     filter match {
       case None => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
-      case Some(dateTypeFilter) => dateTypeFilter match {
-        case MusitDateTimeFilter() => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
-        case MusitDateFilter() => Date(now.toLocalDate)
-        case MusitTimeFilter() => Time(now.toLocalTime)
-        case _ => throw new IllegalArgumentException("None existing joda filter")
-      }
+      case Some(f:MusitDateTimeFilter) => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
+      case Some(f:MusitDateFilter) => Date(now.toLocalDate)
+      case Some(f:MusitTimeFilter) => Time(now.toLocalTime)
     }
   }
 

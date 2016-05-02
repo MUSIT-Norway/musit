@@ -16,12 +16,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+import no.uio.musit.microservice.time.domain.{Date, DateTime, Time}
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatest.{FunSuite, Matchers}
-import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
-import play.api.libs.ws.WS
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
+import play.api.libs.ws.WS
 
 import scala.concurrent.duration._
 
@@ -33,14 +33,49 @@ class TimeIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutu
   implicit override lazy val app = new GuiceApplicationBuilder().build()
   val timeout = PatienceConfiguration.Timeout(1 seconds)
 
-  "Timeintegration " must {
-    "get by id" in {
+  "Time integration " must {
+    "action get now (none)" in {
       val future = WS.url(s"http://localhost:$port/v1/now").get()
       whenReady(future, timeout) { response =>
-        val json = Json.parse(response.body)
-        assert((json \ "now").get.toString() == "1")
-
+        val now = Json.parse(response.body).validate[DateTime].get
+        assert(now.date != null)
+        assert(now.time != null)
       }
+    }
+
+    "action get now (time)" in {
+      val future = WS.url(s"http://localhost:$port/v1/now?filter=[time]").get()
+      whenReady(future, timeout) { response =>
+        val now = Json.parse(response.body).validate[Time].get
+        assert(now.time != null)
+      }
+    }
+
+    "action get now (date)" in {
+      val future = WS.url(s"http://localhost:$port/v1/now?filter=[date]").get()
+      whenReady(future, timeout) { response =>
+        val now = Json.parse(response.body).validate[Date].get
+        assert(now.date != null)
+      }
+    }
+
+    "action get now (datetime)" in {
+      val future = WS.url(s"http://localhost:$port/v1/now?filter=[date,time]").get()
+      whenReady(future, timeout) { response =>
+        val now = Json.parse(response.body).validate[DateTime].get
+        assert(now.date != null)
+        assert(now.time != null)
+      }
+    }
+
+    "action get now (svada) fails" in {
+      val thrown = intercept[Exception] {
+        val future = WS.url(s"http://localhost:$port/v1/now?filter=[svada]").get()
+        whenReady(future, timeout) { response =>
+          val now = Json.parse(response.body).validate[DateTime].get
+        }
+      }
+      assert(thrown != null)
     }
   }
 }

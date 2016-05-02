@@ -38,35 +38,48 @@ case class MusitDateTimeFilter() extends MusitJodaFilter
 
 object DateFormatDefinition {
   val dateFormat:String = "yyyy-MM-dd"
-  val timeFormat:String = "HH.mm"
+  val timeFormat:String = "HH.mm.ss.SSS"
 }
 
 object Time {
   implicit val reads = Reads[Time] ( js =>
     js.validate[String].map[Time]( timeString =>
-      Time(DateTimeFormat.forPattern(DateFormatDefinition.timeFormat).parseLocalTime(timeString))
+      Time(time = DateTimeFormat.forPattern(DateFormatDefinition.timeFormat).parseLocalTime(timeString))
     )
   )
 
-  implicit val writes = new Writes[Time] {
-    override def writes(time: Time):JsValue = JsString(time.formatted(DateFormatDefinition.timeFormat))
+  val writes = new Writes[Time] {
+    override def writes(time: Time):JsValue = JsString(time.time.toString(DateFormatDefinition.timeFormat))
   }
 }
 
 object Date {
   implicit val reads = Reads[Date] ( js =>
     js.validate[String].map[Date]( dateString =>
-      Date(DateTimeFormat.forPattern(DateFormatDefinition.dateFormat).parseLocalDate(dateString))
+      Date(date = DateTimeFormat.forPattern(DateFormatDefinition.dateFormat).parseLocalDate(dateString))
     )
   )
 
-  implicit val writes = new Writes[Date] {
-    override def writes(date: Date):JsValue = JsString(date.formatted(DateFormatDefinition.dateFormat))
+  val writes = new Writes[Date] {
+    override def writes(date: Date):JsValue = JsString(date.date.toString(DateFormatDefinition.dateFormat))
   }
 }
 
 object DateTime {
-  implicit val format = Json.format[DateTime]
+  implicit val reads = Json.reads[DateTime]
+
+  val writes = Json.writes[DateTime]
+}
+
+object MusitTime {
+  implicit  val writes:Writes[MusitTime] = new Writes[MusitTime] {
+    def writes(m: MusitTime): JsValue = m match {
+      case m:Time => Time.writes.writes(m)
+      case m:Date => Date.writes.writes(m)
+      case m:DateTime => DateTime.writes.writes(m)
+      case _ => throw new IllegalArgumentException("Wrong date format")
+    }
+  }
 }
 
 
