@@ -30,7 +30,7 @@ object CommonSettings {
     scalaVersion := Dependencies.scala,
     resolvers ++= Dependencies.resolvers,
     fork in Test := false,
-    parallelExecution in Test := true
+    parallelExecution in Test := false
   )
 
   def BaseProject(name: String): Project = (
