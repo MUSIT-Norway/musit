@@ -22,41 +22,23 @@
   * Created by jstabel on 3/31/16.
   */
 
-import no.uio.musit.microservices.common.PlayDatabaseTest
+import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
 import no.uio.musit.security.{Groups, SecurityConnection}
-import no.uio.musit.security.dataporten.{Dataporten}
-import org.scalatest.FunSuite
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import play.api.test.TestServer
-import play.api.test.Helpers._
-import org.scalatest._
+import no.uio.musit.security.dataporten.Dataporten
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import play.api.inject.guice.GuiceApplicationBuilder
-
-import scala.concurrent.Future
-import scala.concurrent.duration._
 
 class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   // TODO: Dynamic token, find a way to have a permanent test token with Dataporten
-  val token = "c234f522-9939-486e-90c6-205ca0d3a792"
-  //var fut: Future[SecurityConnection] = null
+  val token = "180458fd-e236-4053-b91c-6b5d1c708d73"
 
+  val timeout = PlayTestDefaults.timeout
 
-  val additionalConfiguration: Map[String, String] = Map.apply(
-    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver", "org.h2.Driver"),
-    ("slick.dbs.default.db.url", "jdbc:h2:mem:play-test"),
-    ("evolutionplugin", "enabled")
-  )
-  val timeout = PatienceConfiguration.Timeout(1 seconds)
+  def runTestWhenReady(token: String) (block: SecurityConnection=>Unit): Unit = {
+      whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}
 
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
-
-  def runTestWhenReady(token: String)(block: SecurityConnection => Unit): Unit = {
-    whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec) }
-  }
 
   def runTestWhenReadyWithTokenAndException(token: String, block: Throwable => Unit): Unit = {
     whenReady(Dataporten.createSecurityConnection(token).failed, timeout) { ex => block(ex) }

@@ -10,35 +10,29 @@
 
   <include resource="local-logback.xml"/>
 
-  <if condition='!isNull("musit.slack.systemHookKey")'>
-    <then>
-      <appender name="SLACK" class="no.uio.musit.microservices.common.log.SlackLogbackAppender">
-        <webhook>https://hooks.slack.com/services/${musit.slack.systemHookKey}</webhook>
-        <host>${HOSTNAME}</host>
-        <service>${applicationName}</service>
-      </appender>
+  <appender name="SLACK" class="no.uio.musit.microservices.common.log.SlackLogbackAppender">
+    <webhook>https://hooks.slack.com/services/${musit.slack.systemHookKey}</webhook>
+    <host>${HOSTNAME}</host>
+    <service>${applicationName}</service>
+  </appender>
 
-      <appender name="ASYNC_SLACK" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="SLACK" />
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-          <level>ERROR</level>
-        </filter>
-      </appender>
-    </then>
-  </if>
+  <appender name="ASYNC_SLACK" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="SLACK" />
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>ERROR</level>
+    </filter>
+  </appender>
 
   <!--
     The logger name is typically the Java/Scala package name.
     This configures the log level to log at for a package and its children packages.
   -->
+  <logger name="ch.qos.logback" level="ERROR" />
+  <logger name="logger" level="ERROR" />
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
-    <if condition='property("logback.appenders").contains("ASYNC_SLACK")'>
-      <then>
-        <appender-ref ref="ASYNC_SLACK" />
-      </then>
-    </if>
+    <appender-ref ref="ASYNC_SLACK" />
   </root>
 
 </configuration>

@@ -29,8 +29,8 @@ object CommonSettings {
     organization := "no.uio.musit",
     scalaVersion := Dependencies.scala,
     resolvers ++= Dependencies.resolvers,
-    fork in Test := true,
-    parallelExecution in Test := true
+    fork in Test := false,
+    parallelExecution in Test := false
   )
 
   def BaseProject(name: String): Project = (

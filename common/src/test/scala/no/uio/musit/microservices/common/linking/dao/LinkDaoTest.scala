@@ -19,38 +19,33 @@
 
 package no.uio.musit.microservices.common.linking.dao
 
-import no.uio.musit.microservices.common.PlayDatabaseTest
+import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Logger
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 case class MockTable(id:Long, links:Seq[Link]) extends BaseMusitDomain
 
-class LinkDaoTest extends PlaySpec with ScalaFutures with OneAppPerSuite {
+class LinkDaoTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
-  val additionalConfiguration: Map[String, String] = Map.apply(
-    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver", "org.h2.Driver"),
-    ("slick.dbs.default.db.url", "jdbc:h2:mem:play-test"),
-    ("evolutionplugin", "enabled")
-  )
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
+  "LinkDao test" must {
+    import LinkDao._
 
-  /* Unit tester */
-  "LinkDaoTest" must {
-    "be able to insert and select from table" in {
-      import LinkDao._
+    "dao should be able to insert and select from table" in {
       insert(MockTable(1, Seq.empty[Link]), "test", "/test/case/100")
       val allLinks = findAllLinks()
-      allLinks.map(_.foreach((link: Link) =>
-        Logger.info(s"test: $link")
-      )
-      )
+      whenReady(allLinks, PlayTestDefaults.timeout) { links =>
+        assert(links.length == 1)
+        links.foreach( link =>
+          Logger.info(s"test: $link")
+        )
+      }
     }
   }
+
 }
