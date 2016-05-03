@@ -15,7 +15,7 @@ class ActorUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
   val timeout = PlayTestDefaults.timeout
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig).build()
 
-  "Time slick dao" must {
+  "Actor dao" must {
     import ActorDao._
 
 

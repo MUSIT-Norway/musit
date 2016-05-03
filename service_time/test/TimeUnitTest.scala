@@ -8,7 +8,7 @@ import org.scalatestplus.play.PlaySpec
 
 class TimeUnitTest extends PlaySpec with TimeService {
 
-  "Testing method actionGetNow" must {
+  "Testing TimeService" must {
 
 
     "get now Date" in {

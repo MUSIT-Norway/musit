@@ -25,7 +25,7 @@ import scala.concurrent.duration._
 
 object PlayTestDefaults {
 
-  val timeout = PatienceConfiguration.Timeout(1 seconds)
+  val timeout = PatienceConfiguration.Timeout(5 seconds)
 
   val inMemoryDatabaseConfig:Map[String, String] = Map.apply (
     ("slick.dbs.default.driver", "slick.driver.H2Driver$"),

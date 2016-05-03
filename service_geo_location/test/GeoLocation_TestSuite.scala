@@ -11,10 +11,10 @@ import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.duration._
 
-class GeoLocation_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures with GeoLocationService{
+class GeoLocation_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures with GeoLocationService {
 
-  val timeout = PlayTestDefaults.timeout
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig).build()
+  // Extra long timeout since the integration call calls an external service
+  val timeout = PlayTestDefaults.timeout.copy(value = 10 seconds)
 
   "GeoLocationService rest integration" must {
 

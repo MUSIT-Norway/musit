@@ -24,38 +24,17 @@
 
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
-import no.uio.musit.security.{Groups, SecurityConnection}
+import no.uio.musit.security.Groups
 import no.uio.musit.security.dataporten.{Dataporten, DataportenSecurityConnection}
-import org.scalatest.FunSuite
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import play.api.test.TestServer
-import play.api.test.Helpers._
-import org.scalatest._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import play.api.inject.guice.GuiceApplicationBuilder
-
-import scala.concurrent.Future
-import scala.concurrent.duration._
 
 class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   // TODO: Dynamic token, find a way to have a permanent test token with Dataporten
   val token = "4e538218-edff-4ab9-b605-c4a7abc843c8"
-  //var fut: Future[SecurityConnection] = null
 
   val timeout = PlayTestDefaults.timeout
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig).build()
-
-
-
-  /*
-  override protected def beforeAll(): Unit = {
-    super.beforeAll()
-
-    //This can't be in the constructor, it has to be after the setup because createSecurityConnection accesses the WS object.
-    fut = Dataporten.createSecurityConnection(token)
-  }
-  */
 
   def runTestWhenReady(token: String) (block: DataportenSecurityConnection=>Unit): Unit = {
       whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}

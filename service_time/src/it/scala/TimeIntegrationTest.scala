@@ -20,7 +20,6 @@ import no.uio.musit.microservice.time.domain.{Date, DateTime, Time}
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.libs.ws.WS
 
@@ -29,7 +28,7 @@ import play.api.libs.ws.WS
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
 class TimeIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
-  implicit override lazy val app = new GuiceApplicationBuilder().build()
+
   val timeout = PlayTestDefaults.timeout
 
   "Time integration " must {
