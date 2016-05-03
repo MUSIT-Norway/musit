@@ -19,8 +19,7 @@
 
 import CommonSettings._
 import Dependencies._
-import play.twirl.sbt.Import.TwirlKeys._
-import ScoverageSbtPlugin.ScoverageKeys._
+import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
 name := """musit"""
 
@@ -54,7 +53,7 @@ val noPublish = Seq(
 )
 
 lazy val root = (
-  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing,service_actor,service_geo_location)
+  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing,service_actor,service_geo_location,service_time)
   )
 
 // Base projects used as dependencies
@@ -117,6 +116,17 @@ lazy val service_geo_location = (
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_geo_location"
+  ))
+  )  dependsOn(common, common_test % "it,test")
+
+
+lazy val service_time = (
+  PlayProject("service_time")
+    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings(scoverageSettings: _*)
+    settings(baseDockerSettings ++ Seq(
+    packageName in Docker := "musit_service_time"
   ))
   )  dependsOn(common, common_test % "it,test")
 

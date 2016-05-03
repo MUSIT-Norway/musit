@@ -20,34 +20,22 @@
 
 package no.uio.musit.microservices.common
 
-import org.scalatest._
-import play.api.test.{FakeApplication, TestServer}
+import org.scalatest.concurrent.PatienceConfiguration
+import scala.concurrent.duration._
 
-class PlayDatabaseTest extends FunSuite with Matchers with BeforeAndAfterAll {
+object PlayTestDefaults {
 
-  val additionalConfiguration:Map[String, String] = Map.apply (
-    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
-    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
-    ("evolutionplugin" , "enabled")
+  val timeout = PatienceConfiguration.Timeout(5 seconds)
+
+  def inMemoryDatabaseConfig(evolve:String = "enabled"):Map[String, Any] = Map.apply (
+    "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
+    "slick.dbs.default.connectionTimeout" -> "20000",
+    "slick.dbs.default.loginTimeout" -> "20000",
+    "slick.dbs.default.socketTimeout" -> "20000",
+    "slick.dbs.default.db.driver" -> "org.h2.Driver",
+    "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
+    "slick.dbs.default.db.url" -> "jdbc:h2:mem:play-test",
+    "slick.dbs.default.leakDetectionThreshold" -> "5000",
+    "evolutionplugin" -> evolve
   )
-  val host = "http://localhost:7070"
-
-  def app_ = {
-    FakeApplication(additionalConfiguration = additionalConfiguration)
-
-  }
-
-  def server_ = TestServer(application = app_, port = 7070)
-
-
-  override protected def beforeAll(): Unit = {
-    server_.start
-
-  }
-
-  override protected def afterAll(): Unit = {
-    server_.stop
-  }
-
 }
