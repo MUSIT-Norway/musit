@@ -30,6 +30,7 @@ import play.api.libs.ws.WS
 class GeoLocationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
+  override lazy val port: Int = 19004
 
   "GeoLocation integration " must {
     "get by id" in {

@@ -19,6 +19,7 @@
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.libs.ws.WS
 
@@ -26,17 +27,20 @@ import play.api.libs.ws.WS
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
-class ActorIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
+class ActorIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
+  override lazy val port: Int = 19002
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   "Actorintegration " must {
     "get by id" in {
       val future = WS.url(s"http://localhost:$port/v1/1").get()
       whenReady(future, timeout) { response =>
         val json = Json.parse(response.body)
-        assert((json \ "id").get.toString() == "1")
+        assert((json \ "id").getOrElse(JsString("0")).toString() == "1")
       }
     }
   }
+
 }

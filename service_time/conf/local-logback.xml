@@ -1,5 +1,3 @@
 <included>
   <define name="applicationName" value="Time"/>
-
-  <logger name="no.uio.musit" level="DEBUG" />
 </included>

@@ -18,13 +18,23 @@
  *
  */
 
-package no.uio.musit.security
+package no.uio.musit.microservices.common.extensions
 
 /**
-  * Created by jstabel on 4/18/16.
+  * Created by jstabel on 4/28/16.
   */
-object Groups {
-  val DS = "fc:adhoc:88c4a80b-f452-460a-bbd5-a9a9d0ed058d" //"fc:org:uio.no:unit:352330"
-  val UiO = "fc:org:uio.no"
-  val MusitStorageRead = "fc:adhoc:76afeec7-b78e-430f-b741-4d92972ac592"
+
+object OptionExtensions {
+
+  implicit class OptionExtensionsImp[T](val opt: Option[T]) extends AnyVal {
+
+    ///a quick and dirty way to get the value or throw an exception, only meant to be used for testing or quick and dirty stuff!
+    def getOrThrow(errorMsg: String) = {
+      opt match {
+        case Some(v) => v
+        case None => throw new Exception(errorMsg)
+      }
+    }
+  }
+
 }

@@ -24,25 +24,25 @@
 
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
-import no.uio.musit.security.Groups
-import no.uio.musit.security.dataporten.{Dataporten, DataportenSecurityConnection}
+import no.uio.musit.security.{Groups, SecurityConnection}
+import no.uio.musit.security.dataporten.Dataporten
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 
 class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   // TODO: Dynamic token, find a way to have a permanent test token with Dataporten
-  val token = "4e538218-edff-4ab9-b605-c4a7abc843c8"
+  val token = "180458fd-e236-4053-b91c-6b5d1c708d73"
 
   val timeout = PlayTestDefaults.timeout
 
-  def runTestWhenReady(token: String) (block: DataportenSecurityConnection=>Unit): Unit = {
+  def runTestWhenReady(token: String) (block: SecurityConnection=>Unit): Unit = {
       whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}
 
 
-  def runTestWhenReadyWithTokenAndException(token: String, block: Throwable=>Unit): Unit = {
-      whenReady(Dataporten.createSecurityConnection(token).failed, timeout) { ex => block(ex)}}
-
+  def runTestWhenReadyWithTokenAndException(token: String, block: Throwable => Unit): Unit = {
+    whenReady(Dataporten.createSecurityConnection(token).failed, timeout) { ex => block(ex) }
+  }
 
   "getUserInfo should return something" in {
     runTestWhenReady(token) { sec =>
@@ -61,13 +61,13 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
 
   "Authorize for DS and MusitKonservatorLes" in {
     runTestWhenReady(token) { sec =>
-      assert(sec.authorize(Seq(Groups.DS, Groups.MusitKonservatorLes)) {}.isSuccess)
+      assert(sec.authorize(Seq(Groups.DS, Groups.MusitStorageRead)) {}.isSuccess)
     }
   }
 
   "Authorize for invalid group" in {
     runTestWhenReady(token) { sec =>
-      assert(sec.authorize(Seq(Groups.DS, "invalid groupid")) {}.isFailure)
+      assert(sec.authorize(Seq("invalid groupid")) {}.isFailure)
     }
   }
 

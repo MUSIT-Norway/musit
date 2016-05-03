@@ -28,13 +28,14 @@ import play.api.libs.ws.WS
  */
 class MusitThingTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
   val timeout = PlayTestDefaults.timeout
+  override lazy val port: Int = 19003
 
   "MusitThing integration " must {
     "get by id" in {
       val future = WS.url(s"http://localhost:$port/v1/1").get()
       whenReady(future, timeout) { response =>
         val json = Json.parse(response.body)
-        assert((json \ "id").get.toString() == "1")
+        assert((json \ "id").getOrElse(JsString("0")).toString() == "1")
       }
     }
   }
