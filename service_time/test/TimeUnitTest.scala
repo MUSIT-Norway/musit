@@ -4,22 +4,9 @@
 
 import no.uio.musit.microservice.time.domain._
 import no.uio.musit.microservice.time.service.TimeService
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import play.api.inject.guice.GuiceApplicationBuilder
+import org.scalatestplus.play.PlaySpec
 
-import scala.concurrent.duration._
-
-class TimeUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures with TimeService {
-
-  val additionalConfiguration: Map[String, String] = Map.apply(
-    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver", "org.h2.Driver"),
-    ("slick.dbs.default.db.url", "jdbc:h2:mem:play-test"),
-    ("evolutionplugin", "enabled")
-  )
-  val timeout = PatienceConfiguration.Timeout(1 seconds)
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
+class TimeUnitTest extends PlaySpec with TimeService {
 
   "Testing method actionGetNow" must {
 

@@ -22,7 +22,7 @@
   * Created by jstabel on 3/31/16.
   */
 
-import no.uio.musit.microservices.common.PlayDatabaseTest
+import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
 import no.uio.musit.security.{Groups, SecurityConnection}
 import no.uio.musit.security.dataporten.{Dataporten, DataportenSecurityConnection}
@@ -43,15 +43,8 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val token = "4e538218-edff-4ab9-b605-c4a7abc843c8"
   //var fut: Future[SecurityConnection] = null
 
-
-  val additionalConfiguration:Map[String, String] = Map.apply (
-    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
-    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
-    ("evolutionplugin" , "enabled")
-  )
-  val timeout = PatienceConfiguration.Timeout(1 seconds)
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
+  val timeout = PlayTestDefaults.timeout
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig).build()
 
 
 

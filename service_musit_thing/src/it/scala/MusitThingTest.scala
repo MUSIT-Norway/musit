@@ -16,14 +16,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatest.{FunSuite, Matchers}
-import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
-import play.api.libs.ws.WS
+import no.uio.musit.microservices.common.PlayTestDefaults
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
-
-import scala.concurrent.duration._
+import play.api.libs.ws.WS
 
 /**
  * add your integration spec here.
@@ -31,7 +29,7 @@ import scala.concurrent.duration._
  */
 class MusitThingTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
   implicit override lazy val app = new GuiceApplicationBuilder().build()
-  val timeout = PatienceConfiguration.Timeout(1 seconds)
+  val timeout = PlayTestDefaults.timeout
 
   "MusitThing integration " must {
     "get by id" in {

@@ -19,25 +19,33 @@
 
 package no.uio.musit.microservices.common.linking.dao
 
-import no.uio.musit.microservices.common.PlayDatabaseTest
+import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.inject.guice.GuiceApplicationBuilder
 
 case class MockTable(id:Long, links:Seq[Link]) extends BaseMusitDomain
 
-class LinkDaoTest extends PlayDatabaseTest {
+class LinkDaoTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
-  /* Unit tester */
-  test("dao should be able to insert and select from table") {
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig).build()
+
+  "LinkDao test" must {
     import LinkDao._
-    insert(MockTable(1, Seq.empty[Link]), "test", "/test/case/100")
-    val allLinks = findAllLinks()
-    allLinks.map(_.foreach( (link:Link) =>
-        Logger.info(s"test: $link")
-      )
-    )
+
+    "dao should be able to insert and select from table" in {
+      insert(MockTable(1, Seq.empty[Link]), "test", "/test/case/100")
+      val allLinks = findAllLinks()
+      whenReady(allLinks, PlayTestDefaults.timeout) { links =>
+        assert(links.length == 1)
+        links.foreach( link =>
+          Logger.info(s"test: $link")
+        )
+      }
+    }
   }
 
 }
