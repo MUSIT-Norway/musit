@@ -13,7 +13,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 class ActorUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig).build()
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   "Actor dao" must {
     import ActorDao._

@@ -31,7 +31,7 @@ case class MockTable(id:Long, links:Seq[Link]) extends BaseMusitDomain
 
 class LinkDaoTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig).build()
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   "LinkDao test" must {
     import LinkDao._

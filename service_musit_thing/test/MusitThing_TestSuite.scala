@@ -16,7 +16,7 @@ import scala.concurrent.duration._
 class MusitThing_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig).build()
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   "MusitThing slick dao" must {
     import MusitThingDao._
