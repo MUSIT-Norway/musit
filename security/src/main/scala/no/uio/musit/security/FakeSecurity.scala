@@ -49,6 +49,7 @@ class FakeSecurityHardcodedInfoProvider(userName: String, groupIds: Seq[String])
 
 object FakeSecurity {
   def createHardcoded(userName: String, userGroupIds: Seq[String], useCache: Boolean) = {
+
     Security.createSecurityConnectionFromInfoProvider(new FakeSecurityHardcodedInfoProvider(userName, userGroupIds), useCache)
   }
 

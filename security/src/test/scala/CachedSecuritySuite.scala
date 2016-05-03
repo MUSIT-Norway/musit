@@ -27,7 +27,7 @@ import no.uio.musit.security._
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 
-//import play.api.Play.current
+import play.api.Play.current
 import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.duration._
@@ -49,7 +49,7 @@ class CachedSecuritySuite extends PlaySpec with ScalaFutures with OneAppPerSuite
 
   "CachedSecuritySuite" must {
     "main test" in {
-
+      play.api.Play.current.configuration.getInt("security.musit.bla")
       val accessToken = "Jarle"
 
       whenReady(FakeSecurity.createHardcoded(accessToken, groups, true), timeout) { sec =>
