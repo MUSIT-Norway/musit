@@ -29,7 +29,7 @@ trait TimeService {
       case Some(f:MusitDateTimeFilter) => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
       case Some(f:MusitDateFilter) => Date(now.toLocalDate)
       case Some(f:MusitTimeFilter) => Time(now.toLocalTime)
-      case Some(_) => throw new IllegalArgumentException("Not supported filter type")
+      case _ => throw new IllegalArgumentException("Not supported filter type")
     }
   }
 
