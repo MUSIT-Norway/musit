@@ -33,7 +33,9 @@ object PlayTestDefaults {
     "slick.dbs.default.loginTimeout" -> "20s",
     "slick.dbs.default.socketTimeout" -> "20s",
     "slick.dbs.default.db.driver" -> "org.h2.Driver",
+    "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
     "slick.dbs.default.db.url" -> "jdbc:h2:mem:play-test",
+    "slick.dbs.default.leakDetectionThreshold" -> "5000",
     "evolutionplugin" -> evolve
   )
 }
