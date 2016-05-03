@@ -2,7 +2,8 @@
   * Created by ellenjo on 4/15/16.
   */
 
-import no.uio.musit.microservice.time.domain.Time
+import no.uio.musit.microservice.time.domain._
+import no.uio.musit.microservice.time.service.TimeService
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
@@ -10,45 +11,30 @@ import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.duration._
 
-class TimeUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
+class TimeUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures with TimeService {
 
-  val additionalConfiguration:Map[String, String] = Map.apply (
+  val additionalConfiguration: Map[String, String] = Map.apply(
     ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
-    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
-    ("evolutionplugin" , "enabled")
+    ("slick.dbs.default.db.driver", "org.h2.Driver"),
+    ("slick.dbs.default.db.url", "jdbc:h2:mem:play-test"),
+    ("evolutionplugin", "enabled")
   )
   val timeout = PatienceConfiguration.Timeout(1 seconds)
   implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
 
-  "Actor slick dao" must {
-/*
-    "getNow" in {
-      var svar = actionGetNow()
+  "Testing method actionGetNow" must {
 
-    }
 
-    "getById_kjempeTall" in {
-      val svar = getById(6386363673636335366L)
-      whenReady(svar, timeout) { time =>
-        assert (time == None)
-      }
-    }
-
-    "getById__Riktig" in {
-      val svar = getById(1)
-      whenReady(svar, timeout) { time =>
-        assert (time == Some(Time(1,"20160311", Seq(LinkService.self("/v1/1")))))
-      }
+    "get now None" in {
+      val now = getNow(Some(MusitDateFilter()))
+      assert(now.isInstanceOf[Date])
+      assert(now.asInstanceOf[Date].date != null)
     }
 
 
-    "getById__TalletNull" in {
-      val svar = getById(0)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
-    }*/
+
+
+
   }
 
 }
