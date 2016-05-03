@@ -29,13 +29,13 @@ object PlayTestDefaults {
 
   def inMemoryDatabaseConfig(evolve:String = "enabled"):Map[String, Any] = Map.apply (
     "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
-    "slick.dbs.default.connectionTimeout" -> (20 seconds),
-    "slick.dbs.default.loginTimeout" -> (20 seconds),
-    "slick.dbs.default.socketTimeout" -> (20 seconds),
+    "slick.dbs.default.connectionTimeout" -> "20000",
+    "slick.dbs.default.loginTimeout" -> "20000",
+    "slick.dbs.default.socketTimeout" -> "20000",
     "slick.dbs.default.db.driver" -> "org.h2.Driver",
     "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
     "slick.dbs.default.db.url" -> "jdbc:h2:mem:play-test",
-    "slick.dbs.default.leakDetectionThreshold" -> (5 seconds),
+    "slick.dbs.default.leakDetectionThreshold" -> "5000",
     "evolutionplugin" -> evolve
   )
 }
