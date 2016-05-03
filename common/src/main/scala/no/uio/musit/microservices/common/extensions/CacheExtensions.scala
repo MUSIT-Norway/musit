@@ -66,7 +66,7 @@ object MusitCache {
     }
   }
 
-  def getAs[A](key: String)(implicit app: Application, ct: ClassTag[A], ec: ExecutionContext) = play.api.cache.Cache.getAs[A](key)(app, ct)
+  def getAs[A](key: String)(implicit app: Application, ct: ClassTag[A]) = play.api.cache.Cache.getAs[A](key)(app, ct)
 
   def set[A](key: String, value: A,
              expiration: Duration = Duration.Inf)
