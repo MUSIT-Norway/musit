@@ -31,5 +31,15 @@ class TimeResourceSpec extends PlaySpecification {
       val result = await(futureResult)
       result.header.status must equalTo(BAD_REQUEST)
     }
+
+    "give BadRequest when provided invalid filter" in {
+      try {
+        val futureResult = new TimeResource_V1().actionGetNow(FakeRequest("GET", "someurl?filter=uglepose"))
+        val result = await(futureResult)
+        throw new IllegalStateException("Should not occur")
+      } catch {
+        case e: IllegalArgumentException => e.getLocalizedMessage.must(equalTo("Only supports empty filter or filter on time, date or time and date"))
+      }
+    }
   }
 }
