@@ -16,11 +16,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-import no.uio.musit.microservice.time.domain.{Date, DateTime, Time}
+import domain.{MusitError, MusitTime}
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.concurrent.ScalaFutures
+import play.api.test.Helpers._
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import play.api.libs.json._
+import play.api.libs.json.Json
 import play.api.libs.ws.WS
 
 /**
@@ -33,47 +34,42 @@ class TimeIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutu
 
   "Time integration " must {
     "action get now (none)" in {
-      val future = WS.url(s"http://localhost:$port/v1/now").get()
-      whenReady(future, timeout) { response =>
-        val now = Json.parse(response.body).validate[DateTime].get
-        assert(now.date != null)
-        assert(now.time != null)
-      }
+      val response = await(WS.url(s"http://localhost:$port/v1/now").get())
+      response.status mustBe OK
+      val now = Json.parse(response.body).validate[MusitTime].get
+      now.time must not be None
+      now.date must not be None
     }
 
     "action get now (time)" in {
-      val future = WS.url(s"http://localhost:$port/v1/now?filter=[time]").get()
-      whenReady(future, timeout) { response =>
-        val now = Json.parse(response.body).validate[Time].get
-        assert(now.time != null)
-      }
+      val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[time]").get())
+      response.status mustEqual 200
+      val now = Json.parse(response.body).validate[MusitTime].get
+      now.time must not be None
+      now.date mustEqual None
     }
 
     "action get now (date)" in {
-      val future = WS.url(s"http://localhost:$port/v1/now?filter=[date]").get()
-      whenReady(future, timeout) { response =>
-        val now = Json.parse(response.body).validate[Date].get
-        assert(now.date != null)
-      }
+      val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[date]").get())
+      response.status mustEqual 200
+      val now = Json.parse(response.body).validate[MusitTime].get
+      now.date must not be None
+      now.time mustEqual None
     }
 
     "action get now (datetime)" in {
-      val future = WS.url(s"http://localhost:$port/v1/now?filter=[date,time]").get()
-      whenReady(future, timeout) { response =>
-        val now = Json.parse(response.body).validate[DateTime].get
-        assert(now.date != null)
-        assert(now.time != null)
-      }
+      val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[date,time]").get())
+      response.status mustEqual 200
+      val now = Json.parse(response.body).validate[MusitTime].get
+      now.date must not be None
+      now.time must not be None
     }
 
     "action get now (svada) fails" in {
-      val thrown = intercept[Exception] {
-        val future = WS.url(s"http://localhost:$port/v1/now?filter=[svada]").get()
-        whenReady(future, timeout) { response =>
-          val now = Json.parse(response.body).validate[DateTime].get
-        }
-      }
-      assert(thrown != null)
+      val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[svada]").get())
+      response.status mustEqual 400
+      val err = Json.parse(response.body).validate[MusitError].get
+      err.message mustEqual "Only supports empty filter or filter on time, date or time and date"
     }
   }
 }

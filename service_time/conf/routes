@@ -3,4 +3,4 @@
 # ~~~~
 
 # Setup endpoints
-GET     /v1/now                    no.uio.musit.microservice.time.resource.TimeResource_V1.actionGetNow
+GET     /v1/now                    controllers.TimeController_V1.now(filter: Option[String])
