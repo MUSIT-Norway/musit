@@ -16,21 +16,22 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+package no.uio.musit.microservices.time.resource
 
-package no.uio.musit.microservice.time.service
+import play.api.libs.json.Json
+import play.api.mvc._
+import scala.concurrent.Future
+import no.uio.musit.microservices.time.service.TimeService
+import no.uio.musit.microservices.time.domain.MusitFilter
+import no.uio.musit.microservices.time.domain.MusitSearch
 
-import no.uio.musit.microservice.time.domain._
+class TimeResource extends Controller with TimeService {
 
-trait TimeService {
-  def getNow(filter:Option[MusitJodaFilter] = None): MusitTime = {
-    val now = org.joda.time.DateTime.now
-    filter match {
-      case None => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
-      case Some(f:MusitDateTimeFilter) => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
-      case Some(f:MusitDateFilter) => Date(now.toLocalDate)
-      case Some(f:MusitTimeFilter) => Time(now.toLocalTime)
-      case _ => throw new IllegalArgumentException("Not supported filter type")
+  def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request => Future.successful( // TODO should remove async if possible
+    convertToNow(filter) match {
+      case Right(mt) => Ok(Json.toJson(mt))
+      case Left(err) => BadRequest(Json.toJson(err))
     }
-  }
+  )}
 
-}
+} 
