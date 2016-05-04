@@ -18,7 +18,6 @@
  */
 package no.uio.musit.microservice.time.resource
 
-import no.uio.musit.microservice.time.domain._
 import no.uio.musit.microservice.time.service.TimeService
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -27,26 +26,11 @@ import scala.concurrent.Future
 
 class TimeResource_V1 extends Controller with TimeService {
 
-
-
-  def actionGetNow = Action.async { request =>
-    var filter:Option[MusitJodaFilter] = None
-
-    val filterString:String = request.getQueryString("filter").orNull
-
-    if (filterString != null && filterString.size > 0) {
-      val list = "(date|time)".r.findAllIn(filterString).toList.sorted
-
-
-        list match {
-          case List ("date","time") => filter= Some( new MusitDateTimeFilter)
-          case List ("time")        => filter= Some( new MusitTimeFilter)
-          case List ("date")        => filter= Some( new MusitDateFilter)
-          case                              _ => throw new IllegalArgumentException("Only supports empty filter or filter on time, date or time and date")
-        }
+  def actionGetNow = Action.async {
+    _.getQueryString("filter").map(filter => getNow(getMusitFilter(filter))) match {
+      case Some(date) => Future.successful(Ok(Json.toJson(date)))
+      case _ => Future.successful(BadRequest("Missing filter in query string"))
     }
-    val now = getNow(filter)
-    Future.successful(Ok(Json.toJson(now)))
   }
 
 }

@@ -22,15 +22,30 @@ package no.uio.musit.microservice.time.service
 import no.uio.musit.microservice.time.domain._
 
 trait TimeService {
-  def getNow(filter:Option[MusitJodaFilter] = None): MusitTime = {
-    val now = org.joda.time.DateTime.now
-    filter match {
-      case None => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
-      case Some(f:MusitDateTimeFilter) => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
-      case Some(f:MusitDateFilter) => Date(now.toLocalDate)
-      case Some(f:MusitTimeFilter) => Time(now.toLocalTime)
-      case _ => throw new IllegalArgumentException("Not supported filter type")
-    }
+
+  def now = org.joda.time.DateTime.now
+
+  def getSortedFilters(filterString: String): List[String] = filterString match {
+    case filter if filter != null => "(date|time)".r.findAllIn(filter).toList.sorted
+    case _ => List()
   }
 
+  def getMusitFilter(filterString: String): Option[MusitJodaFilter] = filterString match {
+    case filter if filter != null && filter.nonEmpty =>
+      getSortedFilters(filter) match {
+        case List("date", "time") => Some(MusitDateTimeFilter)
+        case List("time") => Some(MusitTimeFilter)
+        case List("date") => Some(MusitDateFilter)
+        case _ => throw new IllegalArgumentException("Only supports empty filter or filter on time, date or time and date")
+      }
+    case _ => None
+  }
+
+  def getNow(filter: Option[MusitJodaFilter]): MusitTime = {
+    filter.map {
+      case MusitDateTimeFilter => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
+      case MusitDateFilter => Date(now.toLocalDate)
+      case MusitTimeFilter => Time(now.toLocalTime)
+    }.getOrElse(DateTime(Date(now.toLocalDate), Time(now.toLocalTime)))
+  }
 }
