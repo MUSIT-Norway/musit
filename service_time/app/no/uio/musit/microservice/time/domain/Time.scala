@@ -22,19 +22,17 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{LocalDate, LocalTime}
 import play.api.libs.json._
 
-
-
-abstract class MusitTime
+sealed trait MusitTime
 
 case class Time(time:LocalTime) extends MusitTime
 case class Date(date:LocalDate) extends MusitTime
 case class DateTime(date:Date, time:Time) extends MusitTime
 
-abstract class MusitJodaFilter
+sealed trait MusitJodaFilter
 
-case class MusitDateFilter() extends MusitJodaFilter
-case class MusitTimeFilter() extends MusitJodaFilter
-case class MusitDateTimeFilter() extends MusitJodaFilter
+object MusitDateFilter extends MusitJodaFilter
+object MusitTimeFilter extends MusitJodaFilter
+object MusitDateTimeFilter extends MusitJodaFilter
 
 object DateFormatDefinition {
   val dateFormat:String = "yyyy-MM-dd"
