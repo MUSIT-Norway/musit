@@ -16,21 +16,28 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package controllers
+package no.uio.musit.microservices.time.service
 
-import domain.MusitTime
-import play.api.libs.json.Json
-import play.api.mvc._
+import no.uio.musit.microservices.time.domain._
+import org.joda.time.DateTime
+import org.joda.time.DateTime.now
 
-import scala.concurrent.Future
-
-class TimeController_V1 extends Controller {
-
-  def now(filter: Option[String]) = Action.async { request => Future.successful( // TODO should remove async if possible
-    MusitTime.convertToNow(filter) match {
-      case Right(mt) => Ok(Json.toJson(mt))
-      case Left(err) => BadRequest(Json.toJson(err))
-    }
-  )}
+trait TimeService {
+  
+  def convertToNow(maybeFilter: Option[MusitFilter]): Either[MusitError, MusitTime] =
+    maybeFilter.map(f => resolveNow(f)).getOrElse(Right(fromDateTime(now)))
+    
+  def resolveNow(filter: MusitFilter) = filter match {
+    case MusitTimeFilter => Right(MusitTime(time = Some(now.toLocalTime)))
+    case MusitDateFilter => Right(MusitTime(date = Some(now.toLocalDate)))
+    case MusitDateTimeFilter => Right(fromDateTime(now))
+    case MusitFilter(other) => Left(MusitError("Invalid filter query: " + other))
+  }
+  
+  def fromDateTime(dateTime: DateTime): MusitTime =
+    MusitTime(
+      date = Some(dateTime.toLocalDate),
+      time = Some(dateTime.toLocalTime)
+    )
 
 }
