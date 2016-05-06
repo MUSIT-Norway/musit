@@ -33,6 +33,8 @@ module.exports = Object.assign({
   port: process.env.PORT,
   apiHost: process.env.APIHOST || 'localhost',
   apiPort: process.env.APIPORT,
+  dataportenClientID: process.env.CLIENT_ID || 'MUSIT',
+  dataportenClientSecret: process.env.CLIENT_SECRET || 'test',
   app: {
     title: 'MUSIT',
     description: 'MUSIT - the Norwegian museum database initiative.',

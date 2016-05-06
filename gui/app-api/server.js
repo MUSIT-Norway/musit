@@ -12,13 +12,14 @@ import {Strategy as DataportenStrategy} from 'passport-dataporten'
 
 const pretty = new PrettyError()
 const app = express()
+const dataportenCallbackUrl = `https://${config.apiHost}:${config.apiPort}/auth/dataporten/callback`
 
 const server = new http.Server(app)
 
 passport.use(new DataportenStrategy({
-    clientID: '',
-    clientSecret: '',
-    callbackURL: 'https://musit.uio.no/auth/dataporten/callback'
+    clientID: config.dataportenClientID,
+    clientSecret: config.dataportenClientSecret,
+    callbackURL: dataportenCallbackUrl
   },
   (accessToken, refreshToken, profile, done) => {
     //load user and return done with the user in it.
