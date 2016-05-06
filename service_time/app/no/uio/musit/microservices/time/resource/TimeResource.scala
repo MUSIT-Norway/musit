@@ -29,10 +29,7 @@ class TimeResource extends Controller with TimeService {
 
   def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request => Future.successful( // TODO should remove async if possible
     convertToNow(filter) match {
-      case Right(mt) => {
-        println(search)
-        Ok(Json.toJson(mt))
-      }
+      case Right(mt) => Ok(Json.toJson(mt))
       case Left(err) => BadRequest(Json.toJson(err))
     }
   )}

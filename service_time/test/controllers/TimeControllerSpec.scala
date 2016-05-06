@@ -6,13 +6,14 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import no.uio.musit.microservices.time.resource.TimeResource
 import no.uio.musit.microservices.time.domain.MusitTime
-import no.uio.musit.microservices.time.domain.MusitFilterError
+import no.uio.musit.microservices.time.domain.MusitError
+import no.uio.musit.microservices.time.domain.MusitFilter
 
 @RunWith(classOf[JUnitRunner])
 class TimeControllerSpec extends PlaySpecification {
   "TimeController" should {
     "give date and time when provided a datetime filter" in {
-      val futureResult = new TimeResource().now(Some("datetime")).apply(FakeRequest())
+      val futureResult = new TimeResource().now(Some(MusitFilter(List("date", "time"))), None).apply(FakeRequest())
       status(futureResult) must equalTo(OK)
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitTime].get
@@ -21,7 +22,7 @@ class TimeControllerSpec extends PlaySpecification {
     }
 
     "give date but not time when provided a date filter" in {
-      val futureResult = new TimeResource().now(Some("date"))(FakeRequest())
+      val futureResult = new TimeResource().now(Some(MusitFilter(List("date"))), None)(FakeRequest())
       status(futureResult) must equalTo(OK)
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitTime].get
@@ -30,7 +31,7 @@ class TimeControllerSpec extends PlaySpecification {
     }
 
     "give time but not date when provided a time filter" in {
-      val futureResult = new TimeResource().now(Some("time"))(FakeRequest())
+      val futureResult = new TimeResource().now(Some(MusitFilter(List("time"))), None)(FakeRequest())
       status(futureResult) must equalTo(OK)
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitTime].get
@@ -39,7 +40,7 @@ class TimeControllerSpec extends PlaySpecification {
     }
 
     "give date and time when provided no filter" in {
-      val futureResult = new TimeResource().now(None)(FakeRequest())
+      val futureResult = new TimeResource().now(None, None)(FakeRequest())
       status(futureResult) must equalTo(OK)
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitTime].get
@@ -48,10 +49,10 @@ class TimeControllerSpec extends PlaySpecification {
     }
 
     "give error message when provided invalid filter" in {
-      val futureResult = new TimeResource().now(Some("uglepose"))(FakeRequest())
+      val futureResult = new TimeResource().now(Some(MusitFilter(List("uglepose"))), None)(FakeRequest())
       status(futureResult) must equalTo(BAD_REQUEST)
       val json = contentAsString(futureResult)
-      val now = Json.parse(json).validate[MusitFilterError].get
+      val now = Json.parse(json).validate[MusitError].get
       now.message must equalTo("Only supports empty filter or filter on time, date or time and date")
     }
   }

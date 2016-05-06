@@ -31,7 +31,7 @@ trait TimeService {
     case MusitTimeFilter => Right(MusitTime(time = Some(now.toLocalTime)))
     case MusitDateFilter => Right(MusitTime(date = Some(now.toLocalDate)))
     case MusitDateTimeFilter => Right(fromDateTime(now))
-    case MusitFilter(other) => Left(MusitError("Invalid filter query: " + other))
+    case MusitFilter(other) => Left(MusitError("Only supports empty filter or filter on time, date or time and date"))
   }
   
   def fromDateTime(dateTime: DateTime): MusitTime =
