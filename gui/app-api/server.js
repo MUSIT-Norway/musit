@@ -7,11 +7,24 @@ import { mapUrl } from './utils/url.js'
 import PrettyError from 'pretty-error'
 import http from 'http'
 import SocketIo from 'socket.io'
+import Passport from 'passport'
+import {Strategy as DataportenStrategy} from 'passport-dataporten'
 
 const pretty = new PrettyError()
 const app = express()
 
 const server = new http.Server(app)
+
+passport.use(new DataportenStrategy({
+    clientID: '',
+    clientSecret: '',
+    callbackURL: 'https://musit.uio.no/auth/dataporten/callback'
+  },
+  (accessToken, refreshToken, profile, done) => {
+    //load user and return done with the user in it.
+    return done(err, {username: 'foo'})
+  }
+))
 
 const io = new SocketIo(server)
 io.path('/ws')
@@ -26,6 +39,9 @@ app.use(bodyParser.json())
 
 
 app.use((req, res) => {
+  passport.authorize('dataporten', { failureRedirect: '/' }), (req, res) => {
+    res.redirect('/')
+  })
   const splittedUrlPath = req.url.split('?')[0].split('/').slice(1)
 
   const { action, params } = mapUrl(actions, splittedUrlPath)
