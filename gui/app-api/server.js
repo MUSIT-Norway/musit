@@ -16,6 +16,7 @@ const dataportenCallbackUrl = `https://${config.apiHost}:${config.apiPort}/auth/
 
 const server = new http.Server(app)
 
+// TODO: Consider placing this initialization strategy into the config object
 passport.use(new DataportenStrategy({
     clientID: config.dataportenClientID,
     clientSecret: config.dataportenClientSecret,
