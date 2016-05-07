@@ -16,22 +16,14 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservices.time.resource
+package no.uio.musit.microservices.time.domain
 
-import play.api.libs.json.Json
-import play.api.mvc._
-import scala.concurrent.Future
-import no.uio.musit.microservices.time.service.TimeService
-import no.uio.musit.microservices.time.domain.MusitFilter
-import no.uio.musit.microservices.time.domain.MusitSearch
+import play.api.mvc.QueryStringBindable
 
-class TimeResource extends Controller with TimeService {
+class BindableOf[T](bindIt: Option[String] => Option[Either[String, T]]) extends QueryStringBindable[T] {
+  def bind(key: String, data: Map[String, Seq[String]]): Option[Either[String, T]] = bindIt(data.get(key).flatMap(_.headOption))
+  def unbind(key: String, mf: T): String = throw new NotImplementedError()
+}
 
-  def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request => Future.successful(// TODO should remove async if possible
-    convertToNow(filter) match {
-      case Right(mt) => Ok(Json.toJson(mt))
-      case Left(err) => Status(err.status)(Json.toJson(err))
-    }
-  )}
 
-} 
+

@@ -16,22 +16,15 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservices.time.resource
+package no.uio.musit.microservices.time.domain
 
-import play.api.libs.json.Json
-import play.api.mvc._
-import scala.concurrent.Future
-import no.uio.musit.microservices.time.service.TimeService
-import no.uio.musit.microservices.time.domain.MusitFilter
-import no.uio.musit.microservices.time.domain.MusitSearch
-
-class TimeResource extends Controller with TimeService {
-
-  def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request => Future.successful(// TODO should remove async if possible
-    convertToNow(filter) match {
-      case Right(mt) => Ok(Json.toJson(mt))
-      case Left(err) => Status(err.status)(Json.toJson(err))
-    }
-  )}
-
-} 
+object Indices {
+  def getFrom(string: String): List[String] = string
+    .stripPrefix("[")
+    .stripSuffix("]")
+    .split(",")
+    .map(_.trim)
+    .filter(_.nonEmpty)
+    .sorted
+    .toList
+}

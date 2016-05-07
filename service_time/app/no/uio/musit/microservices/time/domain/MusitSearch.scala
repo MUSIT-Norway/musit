@@ -18,31 +18,29 @@
  */
 package no.uio.musit.microservices.time.domain
 
-import org.joda.time.{LocalDate, LocalTime}
-import play.api.libs.json._
+case class MusitSearch(searchMap: Map[String, Option[String]], searchStrings: List[String])
 
-object DateFormats {
-  val dateFormat: String = "yyyy-MM-dd"
-  val timeFormat: String = "HH.mm.ss.SSS"
+object MusitSearch {
+
+  def parseParams(p: List[String]): Map[String, Option[String]] =
+    p.foldLeft(Map[String, Option[String]]())((acc, next) => next.split("=") match {
+      case Array(key, value) if value.nonEmpty =>
+        acc + (key -> Some(value))
+      case other =>
+        acc + (other.head -> None)
+    })
+
+  def parseSearch(search: String): Either[String, MusitSearch] =
+    "^\\[(.*)\\]$".r.findFirstIn(search) match {
+      case Some(string) =>
+        val indices = Indices.getFrom(string)
+        Right(MusitSearch(
+          parseParams(indices.filter(_.contains('='))),
+          indices.filterNot(_.contains("="))
+        ))
+      case _ =>
+        Right(MusitSearch(Map(), List()))
+    }
+
+  implicit val queryBinder = new BindableOf[MusitSearch](_.map(v => parseSearch(v.trim)))
 }
-
-case class MusitTime(date: Option[LocalDate] = None, time: Option[LocalTime] = None)
-
-object MusitTime {
-
-  implicit val localTimeWrites: Format[LocalTime] = Format[LocalTime](
-    Reads.jodaLocalTimeReads(DateFormats.timeFormat),
-    Writes.jodaLocalTimeWrites(DateFormats.timeFormat)
-  )
-
-  implicit val localDateWrites: Format[LocalDate] = Format[LocalDate](
-    Reads.jodaLocalDateReads(DateFormats.dateFormat),
-    Writes.jodaLocalDateWrites(DateFormats.dateFormat)
-  )
-
-  implicit val formats: Format[MusitTime] = Json.format[MusitTime]
-}
-
-object MusitDateTimeFilter extends MusitFilter(List("date","time"))
-object MusitDateFilter extends MusitFilter(List("date"))
-object MusitTimeFilter extends MusitFilter(List("time"))
