@@ -18,20 +18,21 @@
  */
 package no.uio.musit.microservices.time.resource
 
+import no.uio.musit.microservices.common.domain.{MusitFilter, MusitSearch}
 import play.api.libs.json.Json
 import play.api.mvc._
 import scala.concurrent.Future
 import no.uio.musit.microservices.time.service.TimeService
-import no.uio.musit.microservices.time.domain.MusitFilter
-import no.uio.musit.microservices.time.domain.MusitSearch
 
 class TimeResource extends Controller with TimeService {
 
-  def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request => Future.successful(// TODO should remove async if possible
-    convertToNow(filter) match {
-      case Right(mt) => Ok(Json.toJson(mt))
-      case Left(err) => Status(err.status)(Json.toJson(err))
-    }
-  )}
+  def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request =>
+    Future.successful(// TODO should remove async if possible
+      convertToNow(filter) match {
+        case Right(mt) => Ok(Json.toJson(mt))
+        case Left(err) => Status(err.status)(Json.toJson(err))
+      }
+    )
+  }
 
 } 

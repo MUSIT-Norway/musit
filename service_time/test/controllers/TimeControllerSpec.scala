@@ -1,13 +1,12 @@
 package controllers
 
+import no.uio.musit.microservices.common.domain.{MusitError, MusitFilter}
 import play.api.test.{FakeRequest, PlaySpecification}
 import play.api.libs.json.Json
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import no.uio.musit.microservices.time.resource.TimeResource
 import no.uio.musit.microservices.time.domain.MusitTime
-import no.uio.musit.microservices.time.domain.MusitError
-import no.uio.musit.microservices.time.domain.MusitFilter
 
 @RunWith(classOf[JUnitRunner])
 class TimeControllerSpec extends PlaySpecification {

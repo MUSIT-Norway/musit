@@ -16,12 +16,19 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservices.time.domain
+package no.uio.musit.microservices.common.domain
 
-import play.api.libs.json.{Format, Json}
+case class MusitFilter(filters: List[String])
 
-case class MusitError(status: Int = 400, message: String)
+object MusitFilter {
 
-object MusitError {
-  implicit val format: Format[MusitError] = Json.format[MusitError]
+  def parseFilter(filter: String): Either[String, MusitFilter] =
+    "^\\[(.*)\\]$".r.findFirstIn(filter) match {
+      case Some(string) if string.nonEmpty =>
+        Right(MusitFilter(Indices.getFrom(string)))
+      case _ =>
+        Right(MusitFilter(List()))
+    }
+
+  implicit val queryBinder = new BindableOf[MusitFilter](_.map(v => parseFilter(v.trim)))
 }

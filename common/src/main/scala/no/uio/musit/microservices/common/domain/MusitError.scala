@@ -16,15 +16,12 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservices.time.domain
+package no.uio.musit.microservices.common.domain
 
-object Indices {
-  def getFrom(string: String): List[String] = string
-    .stripPrefix("[")
-    .stripSuffix("]")
-    .split(",")
-    .map(_.trim)
-    .filter(_.nonEmpty)
-    .sorted
-    .toList
+import play.api.libs.json.{Format, Json}
+
+case class MusitError(status: Int = 400, message: String)
+
+object MusitError {
+  implicit val format: Format[MusitError] = Json.format[MusitError]
 }

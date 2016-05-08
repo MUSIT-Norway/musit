@@ -18,6 +18,7 @@
  */
 package no.uio.musit.microservices.time.domain
 
+import no.uio.musit.microservices.common.domain.MusitFilter
 import org.joda.time.{LocalDate, LocalTime}
 import play.api.libs.json._
 

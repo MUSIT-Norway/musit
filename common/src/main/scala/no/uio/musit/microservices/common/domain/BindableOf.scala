@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservices.time.domain
+package no.uio.musit.microservices.common.domain
 
 import play.api.mvc.QueryStringBindable
 
@@ -24,6 +24,4 @@ class BindableOf[T](bindIt: Option[String] => Option[Either[String, T]]) extends
   def bind(key: String, data: Map[String, Seq[String]]): Option[Either[String, T]] = bindIt(data.get(key).flatMap(_.headOption))
   def unbind(key: String, mf: T): String = throw new NotImplementedError()
 }
-
-
 
