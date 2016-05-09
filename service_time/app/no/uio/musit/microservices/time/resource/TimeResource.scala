@@ -27,7 +27,7 @@ import no.uio.musit.microservices.time.service.TimeService
 class TimeResource extends Controller with TimeService {
 
   def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request =>
-    Future.successful(// TODO should remove async if possible
+    Future.successful(
       convertToNow(filter) match {
         case Right(mt) => Ok(Json.toJson(mt))
         case Left(err) => Status(err.status)(Json.toJson(err))

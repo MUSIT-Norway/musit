@@ -30,17 +30,17 @@ object MusitSearch {
         acc + (other.head -> None)
     })
 
-  def parseSearch(search: String): Either[String, MusitSearch] =
+  def parseSearch(search: String): MusitSearch =
     "^\\[(.*)\\]$".r.findFirstIn(search) match {
       case Some(string) =>
         val indices = Indices.getFrom(string)
-        Right(MusitSearch(
+        MusitSearch(
           parseParams(indices.filter(_.contains('='))),
           indices.filterNot(_.contains("="))
-        ))
+        )
       case _ =>
-        Right(MusitSearch(Map(), List()))
+        MusitSearch(Map(), List())
     }
 
-  implicit val queryBinder = new BindableOf[MusitSearch](_.map(v => parseSearch(v.trim)))
+  implicit val queryBinder = new BindableOf[MusitSearch](_.map(v => Right(parseSearch(v.trim))))
 }

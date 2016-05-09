@@ -29,10 +29,10 @@ trait TimeService {
     maybeFilter.map(f => resolveNow(f)).getOrElse(Right(fromDateTime(now)))
 
   def resolveNow(filter: MusitFilter): Either[MusitError, MusitTime] = filter match {
-    case MusitTimeFilter => Right(MusitTime(time = Some(now.toLocalTime)))
-    case MusitDateFilter => Right(MusitTime(date = Some(now.toLocalDate)))
-    case MusitDateTimeFilter => Right(fromDateTime(now))
-    case MusitFilter(other) => Left(MusitError(message = "Only supports empty filter or filter on time, date or time and date"))
+    case MusitFilter(List("time")) => Right(MusitTime(time = Some(now.toLocalTime)))
+    case MusitFilter(List("date")) => Right(MusitTime(date = Some(now.toLocalDate)))
+    case MusitFilter(List("date","time")) => Right(fromDateTime(now))
+    case _ => Left(MusitError(message = "Only supports empty filter or filter on time, date or time and date"))
   }
   
   def fromDateTime(dateTime: DateTime): MusitTime =

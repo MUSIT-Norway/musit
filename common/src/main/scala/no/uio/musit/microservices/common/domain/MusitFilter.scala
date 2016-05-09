@@ -22,13 +22,13 @@ case class MusitFilter(filters: List[String])
 
 object MusitFilter {
 
-  def parseFilter(filter: String): Either[String, MusitFilter] =
+  def parseFilter(filter: String): MusitFilter =
     "^\\[(.*)\\]$".r.findFirstIn(filter) match {
       case Some(string) if string.nonEmpty =>
-        Right(MusitFilter(Indices.getFrom(string)))
+        MusitFilter(Indices.getFrom(string))
       case _ =>
-        Right(MusitFilter(List()))
+        MusitFilter(List())
     }
 
-  implicit val queryBinder = new BindableOf[MusitFilter](_.map(v => parseFilter(v.trim)))
+  implicit val queryBinder = new BindableOf[MusitFilter](_.map(v => Right(parseFilter(v.trim))))
 }

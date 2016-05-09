@@ -18,7 +18,6 @@
  */
 package no.uio.musit.microservices.time.domain
 
-import no.uio.musit.microservices.common.domain.MusitFilter
 import org.joda.time.{LocalDate, LocalTime}
 import play.api.libs.json._
 
@@ -43,7 +42,3 @@ object MusitTime {
 
   implicit val formats: Format[MusitTime] = Json.format[MusitTime]
 }
-
-object MusitDateTimeFilter extends MusitFilter(List("date","time"))
-object MusitDateFilter extends MusitFilter(List("date"))
-object MusitTimeFilter extends MusitFilter(List("time"))
