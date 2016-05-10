@@ -3,4 +3,4 @@
 # ~~~~
 
 # Setup endpoints
-GET     /v1/now                    no.uio.musit.microservice.time.resource.TimeResource_V1.actionGetNow
+GET     /v1/now                    no.uio.musit.microservices.time.resource.TimeResource.now(filter: Option[no.uio.musit.microservices.common.domain.MusitFilter], search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
