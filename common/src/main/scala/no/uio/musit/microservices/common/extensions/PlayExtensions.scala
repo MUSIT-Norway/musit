@@ -56,6 +56,10 @@ object PlayExtensions {
       wsr.withHeaders("Authorization" -> ("Bearer " + token))
     }
 
+    def getBearerToken = {
+      wsr.
+
+    }
 
     // TODO: Handle more exceptions
     def translateStatusToException(resp: WSResponse) = {

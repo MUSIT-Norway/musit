@@ -17,7 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-require('babel-polyfill');
+require('babel-polyfill')
 
 const environment = {
   development: {
@@ -26,7 +26,9 @@ const environment = {
   production: {
     isProduction: true
   }
-}[process.env.NODE_ENV || 'development'];
+}[process.env.NODE_ENV || 'development']
+
+const FAKE_STRATEGY = 'dataporten-fake'
 
 module.exports = Object.assign({
   host: process.env.HOST || 'localhost',
@@ -34,7 +36,7 @@ module.exports = Object.assign({
   apiHost: process.env.APIHOST || 'localhost',
   apiPort: process.env.APIPORT,
   dataportenClientID: process.env.CLIENT_ID || 'MUSIT',
-  dataportenClientSecret: process.env.CLIENT_SECRET || 'test',
+  dataportenClientSecret: process.env.CLIENT_SECRET || FAKE_STRATEGY,
   app: {
     title: 'MUSIT',
     description: 'MUSIT - the Norwegian museum database initiative.',
@@ -57,4 +59,4 @@ module.exports = Object.assign({
     }
   },
 
-}, environment);
+}, environment, FAKE_STRATEGY);

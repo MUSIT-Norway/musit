@@ -23,6 +23,7 @@ import { Jumbotron, Panel, Button, Grid, Row, Col, PageHeader } from 'react-boot
 import { Link } from 'react-router';
 import Language from '../../components/language'
 import { login } from '../../reducers/auth'
+import FakeUserDropdown from '../../components/fake-user-dropdown'
 
 const mapStateToProps = (state) => {
   return {
@@ -47,7 +48,7 @@ export default class Welcome extends Component {
                         <Grid>
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10}  style={{textAlign: "center"}}>
-                                    <PageHeader><Language value="musit.welcomePage.title" markdown={true}/></PageHeader>
+                                    <PageHeader><Language value="musit.welcomePage.title" markdown={true}/><FakeUserDropdown/></PageHeader>
                                     <div className={styles.panelWithBackground}>
                                         <span style={{fontSize: "larger", margin: "1em"}}>
                                             <Language value="musit.welcomePage.body" markdown={true} />

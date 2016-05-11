@@ -21,6 +21,8 @@
 package no.uio.musit.security
 
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import play.api.Logger
+import play.api.libs.json.{JsObject, Json}
 
 import scala.collection.mutable.ListBuffer
 
@@ -63,15 +65,30 @@ object FakeSecurityUsersAndGroups {
 
   def groupsForUserId(userId: String) = groupsIdsForUserId(userId) map (groupId => findGroup(groupId).getOrThrow(s"Undefined groupId: $groupId"))
 
-  val jarle = defUser("jarle", "Jarle Stabell")
-  val stein = defUser("stein", "Stein A. Olsen")
 
-  val etnoLes = defGroup(etnoLesGroupName, "EtnoLes", "Lesetilgang til etnobasen")
-  val fotoLes = defGroup(fotoLesGroupName, "FotoLes", "Lesetilgang til fotobasen")
+  def fetchConfig = {
 
-  grant(jarle, etnoLes)
-  grant(jarle, fotoLes)
-  grant(stein, etnoLes)
-  grant(stein, fotoLes)
+    val stream = getClass.getResourceAsStream("/fake_security.json")
+    val json = Json.parse(stream)
+    stream.close()
+
+    val groups = (json \ "groups").as[List[Map[String, String]]]
+    groups.foreach { groupJson =>
+      val name = groupJson.getOrElse("name", "")
+      defGroup(name, name, groupJson.getOrElse("description", ""))
+    }
+
+    val users = (json \ "users").as[List[JsObject]]
+    users.foreach { userJson =>
+      val username = (userJson \ "username").as[String]
+      val name = (userJson \ "name").as[String]
+      val groups: List[String] = (userJson \ "groups").as[List[String]]
+      val user = defUser(username, name)
+      Logger.debug(s"Def user: $user")
+      val groupInfos = groups.flatMap(groupName => findGroup(groupName))
+      groupInfos.foreach { g => grant(user, g) }
+    }
+  }
+  fetchConfig
 }
 

@@ -1,0 +1,24 @@
+{
+  "groups": [
+    {
+      "name": "EtnoLes",
+      "description": "Lesetilgang til etnobasen"
+    },
+    {
+      "name": "FotoLes",
+      "description": "Lesetilgang til fotobasen"
+    }
+  ],
+  "users": [
+    {
+      "username": "jarle",
+      "name": "Jarle Stabell",
+      "groups": ["EtnoLes", "FotoLes"]
+    },
+    {
+      "username": "stein",
+      "name": "Stein A. Olsen",
+      "groups": ["EtnoLes", "FotoLes"]
+    }
+  ]
+}

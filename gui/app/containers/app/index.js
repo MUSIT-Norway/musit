@@ -7,6 +7,7 @@ import Helmet from 'react-helmet';
 import { isLoaded as isInfoLoaded, load as loadInfo } from '../../reducers/info';
 import { isLoaded as isLanguageLoaded, load as loadLanguage } from '../../reducers/language';
 import { isLoaded as isAuthLoaded, load as loadAuth, logout, login } from '../../reducers/auth';
+import { isLoaded as isFakeAuthInfoLoaded, load as loadFakeAuthInfo } from '../../reducers/fake-auth-info';
 import InfoBar from '../../components/info-bar';
 import { routerActions } from 'react-router-redux';
 import config from '../../config';
@@ -33,6 +34,9 @@ const mapStateToProps = (state) => {
         }
     if (!isAuthLoaded(getState())) {
       promises.push(dispatch(loadAuth()));
+    }
+    if (!isFakeAuthInfoLoaded(getState())) {
+      promises.push(dispatch(loadFakeAuthInfo()));
     }
 
     return Promise.all(promises);
