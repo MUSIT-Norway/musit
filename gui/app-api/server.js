@@ -8,53 +8,12 @@ import PrettyError from 'pretty-error'
 import http from 'http'
 import SocketIo from 'socket.io'
 import APIGateway from './gateway'
-import Passport from 'passport'
-import {Strategy as DataportenStrategy} from 'passport-dataporten'
-import {Strategy as LocalStrategy} from 'passport-local'
 
 const pretty = new PrettyError()
 const app = express()
 app.locals.gateway = new APIGateway('/api')
-const dataportenCallbackUrl = `https://${config.apiHost}:${config.apiPort}/auth/dataporten/callback`
 
 const server = new http.Server(app)
-var passportStrategy = null
-if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
-  // TODO:FAKEIT
-  const securityDatabase = require('./fake_security.json')
-  const findUser = (username) => {
-    securityDatabase.users.find( (user) => user.username === username)
-  }
-
-  const localCallback = (username, password, done) => {
-    var user = findUser(username)
-    if (!user) {
-      done(null, false, { message: 'Incorrect username.' })
-    } else {
-      done(null, user)
-    }
-  }
-
-  passportStrategy = new LocalStrategy( localCallback )
-} else {
-  // TODO: Consider placing this initialization strategy into the config object
-  const dpConfig = {
-    clientID: config.dataportenClientID,
-    clientSecret: config.dataportenClientSecret,
-    callbackURL: dataportenCallbackUrl
-  }
-
-  const dpCallback = (accessToken, refreshToken, profile, done) => {
-    //load user and return done with the user in it.
-    return done(err, {username: 'foo'})
-  }
-
-  passportStrategy = new DataportenStrategy(dpConfig, dpCallback)
-}
-
-Passport.use(
-  passportStrategy
-)
 
 const io = new SocketIo(server)
 io.path('/ws')

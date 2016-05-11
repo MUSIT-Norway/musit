@@ -37,6 +37,10 @@ import createHistory from 'react-router/lib/createMemoryHistory';
 import { syncHistoryWithStore } from 'react-router-redux'
 import {Provider} from 'react-redux';
 import getRoutes from './routes';
+import Passport from 'passport'
+import {Strategy as DataportenStrategy} from 'passport-dataporten'
+import {Strategy as LocalStrategy} from 'passport-local'
+
 
 const targetUrl = 'http://' + config.apiHost + ':' + config.apiPort;
 const pretty = new PrettyError();
@@ -46,6 +50,47 @@ const proxy = httpProxy.createProxyServer({
   target: targetUrl,
   ws: true
 });
+
+const dataportenCallbackUrl = `https://${config.host}:${config.port}/auth/callback`
+var passportStrategy = null
+if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
+  // TODO:FAKEIT
+  const securityDatabase = require('./fake_security.json')
+  const findUser = (username) => {
+    securityDatabase.users.find( (user) => user.username === username)
+  }
+
+  const localCallback = (username, password, done) => {
+    var user = findUser(username)
+    if (!user) {
+      done(null, false, { message: 'Incorrect username.' })
+    } else {
+      done(null, user)
+    }
+  }
+
+  passportStrategy = new LocalStrategy( localCallback )
+} else {
+  // TODO: Consider placing this initialization strategy into the config object
+  const dpConfig = {
+    clientID: config.dataportenClientID,
+    clientSecret: config.dataportenClientSecret,
+    callbackURL: dataportenCallbackUrl
+  }
+
+  const dpCallback = (accessToken, refreshToken, profile, done) => {
+    //load user and return done with the user in it.
+    return done(err, {username: 'foo'})
+  }
+
+  passportStrategy = new DataportenStrategy(dpConfig, dpCallback)
+}
+
+Passport.use(
+  passportStrategy
+)
+
+
 
 app.use(compression());
 app.use(favicon(path.join(__dirname, '..', 'static', 'favicons', 'unimusfavicon.ico')));

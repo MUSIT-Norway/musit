@@ -56,9 +56,11 @@ object PlayExtensions {
       wsr.withHeaders("Authorization" -> ("Bearer " + token))
     }
 
-    def getBearerToken = {
-      wsr.
-
+    ///Gets the value of the Bearer token in the Authorization header, if any.
+    def getBearerToken: Option[String] = {
+      wsr.headers.get("Authorization").flatMap(_.find(s => s.startsWith("Bearer "))) //We include the space because we don't want to get anything "accidentally" starting with the letters "Bearer"
+        .map(b => b.substring("Bearer ".length)) //Remove the "Bearer " start of the string
+        .map(_.trim) //Probably not necessary to trim the rest, but it may be convenient if the sender has accidentally sent in blanks
     }
 
     // TODO: Handle more exceptions
