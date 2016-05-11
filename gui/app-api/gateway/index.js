@@ -1,12 +1,10 @@
 import NodeCache from 'node-cache'
 import request from 'request'
-import PrettyError from 'pretty-error'
 
 export default class APIGateway {
   constructor(baseUri) {
     this.baseUri = baseUri
     this.registry = new NodeCache()
-    this.pretty = new PrettyError()
     const msConfig = require('./services.json')
     for (var microservice of msConfig) {
       this.registry.set(microservice.name, microservice)
@@ -46,9 +44,12 @@ export default class APIGateway {
         })
 
         req.pipe(newReq).pipe(res)
-      } else {
-        console.error('MS ERROR:', pretty.render(err))
+      } else if (!err) {
+        console.error('MS ERROR:', err)
         res.status(404).json(err)
+      } else {
+        console.error('MS ERROR: Service not found')
+        res.status(404)
       }
     })
 
