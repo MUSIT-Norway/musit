@@ -24,7 +24,7 @@ package no.uio.musit.security
   * Created by jstabel on 4/18/16.
   */
 object Groups {
-  val DS = "fc:org:uio.no:unit:352330"
+  val DS = "fc:adhoc:88c4a80b-f452-460a-bbd5-a9a9d0ed058d" //"fc:org:uio.no:unit:352330"
   val UiO = "fc:org:uio.no"
-  val MusitKonservatorLes = "fc:adhoc:e5badce9-c980-4ee7-a3d5-1edeb0ebd68c"
+  val MusitStorageRead = "fc:adhoc:76afeec7-b78e-430f-b741-4d92972ac592"
 }

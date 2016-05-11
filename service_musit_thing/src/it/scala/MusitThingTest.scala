@@ -16,29 +16,26 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatest.{FunSuite, Matchers}
-import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
-import play.api.libs.ws.WS
-import play.api.inject.guice.GuiceApplicationBuilder
+import no.uio.musit.microservices.common.PlayTestDefaults
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.libs.json._
-
-import scala.concurrent.duration._
+import play.api.libs.ws.WS
 
 /**
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
 class MusitThingTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
-  implicit override lazy val app = new GuiceApplicationBuilder().build()
-  val timeout = PatienceConfiguration.Timeout(1 seconds)
+  val timeout = PlayTestDefaults.timeout
+  override lazy val port: Int = 19003
 
   "MusitThing integration " must {
     "get by id" in {
       val future = WS.url(s"http://localhost:$port/v1/1").get()
       whenReady(future, timeout) { response =>
         val json = Json.parse(response.body)
-        assert((json \ "id").get.toString() == "1")
+        assert((json \ "id").getOrElse(JsString("0")).toString() == "1")
       }
     }
   }

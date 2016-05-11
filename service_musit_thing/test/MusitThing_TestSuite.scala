@@ -2,8 +2,9 @@
   * Created by ellenjo on 4/15/16.
   */
 
-import no.uio.musit.microservice.service_musit_thing.dao.MusitThingDao
-import no.uio.musit.microservice.service_musit_thing.domain.MusitThing
+import no.uio.musit.microservice.musitThing.dao.MusitThingDao
+import no.uio.musit.microservice.musitThing.domain.MusitThing
+import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
@@ -14,14 +15,8 @@ import scala.concurrent.duration._
 
 class MusitThing_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
-  val additionalConfiguration:Map[String, String] = Map.apply (
-    ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
-    ("slick.dbs.default.db.driver" , "org.h2.Driver"),
-    ("slick.dbs.default.db.url" , "jdbc:h2:mem:play-test"),
-    ("evolutionplugin" , "enabled")
-  )
-  val timeout = PatienceConfiguration.Timeout(1 seconds)
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(additionalConfiguration).build()
+  val timeout = PlayTestDefaults.timeout
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   "MusitThing slick dao" must {
     import MusitThingDao._

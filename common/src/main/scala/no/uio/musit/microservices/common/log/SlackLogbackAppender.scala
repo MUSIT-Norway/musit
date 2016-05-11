@@ -7,12 +7,13 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.{LayoutBase, UnsynchronizedAppenderBase}
 import play.Logger
 import play.api.Play.current
+import play.api.libs.json.{JsNumber, JsObject, JsString}
 import play.api.libs.ws._
 
 object SlackDefaults {
   val layout = new LayoutBase[ILoggingEvent] {
     override def doLayout(event: ILoggingEvent): String = {
-      return s"${event.getLevel}] ${event.getLoggerName} - ${event.getFormattedMessage()}"
+      s"${event.getLevel}] ${event.getLoggerName} - ${event.getFormattedMessage()}"
     }
   }
 }
@@ -22,24 +23,50 @@ class SlackLogbackAppender extends UnsynchronizedAppenderBase[ILoggingEvent] {
   var host = ""
   var service = ""
   var layout = SlackDefaults.layout
+  Logger.debug(s"Started slack appender ($webhook, $host, $service)")
 
-  def slackFormat(msg:String) : String = {
-    return URLEncoder.encode(s"[$host:$service:${msg.replaceAll("\n\t", "\n")}", "UTF-8")
+  def setWebhook(input:String) = {
+    webhook = input
   }
 
+  def setHost(input:String) = {
+    host = input
+  }
+
+  def setService(input:String) = {
+    service = input
+  }
+
+  def setLayout(input: LayoutBase[ILoggingEvent]) = {
+    layout = input
+  }
+
+  def slackFormat(msg:String) : String = {
+    s"[$host:$service:${msg.replaceAll("\n\t", "\n")}"
+  }
+
+
   override def append(eventObject: ILoggingEvent): Unit = {
-    val future = WS.url(webhook).post(Map(
-      "text" -> Seq(slackFormat(layout.doLayout(eventObject))),
-      "parse" -> Seq("full"),
-      "link_names" -> Seq("1"),
-      "unfurl_links" -> Seq("true"),
-      "unfurl_media" -> Seq("true")
-    )).map{ response =>
-      response.status match {
-        case 200 => Some(response.json)
-        case _ => {
-          Logger.error("Slack integration down!!! ($webhook)")
-          None
+    if (webhook.size > 33) {
+      val json = JsObject(Seq(
+        "text" -> JsString(slackFormat(layout.doLayout(eventObject))),
+        "username" -> JsString(service),
+        "parse" -> JsString("full"),
+        "link_names" -> JsNumber(1),
+        "unfurl_links" -> JsString("true"),
+        "unfurl_media" -> JsString("true")
+      ))
+      Logger.debug(s"Sending message to slack: $json")
+      val future = WS.url(webhook).post(json).map { response =>
+        response.status match {
+          case 200 => {
+            Logger.debug(s"Sent error to slack: ${response.json}")
+            Some(response.json)
+          }
+          case err => {
+            Logger.error(s"Slack integration down!!! (${this.webhook}) - $err: ${response.body}")
+            None
+          }
         }
       }
     }

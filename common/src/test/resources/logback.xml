@@ -31,13 +31,6 @@
     The logger name is typically the Java/Scala package name.
     This configures the log level to log at for a package and its children packages.
   -->
-  <logger name="ch.qos.logback" level="WARN" />
-  <logger name="com.google.inject" level="INFO" />
-  <logger name="play" level="INFO" />
-  <logger name="application" level="INFO" />
-  <logger name="slick" level="INFO" />
-  <logger name="slick.jdbc" level="DEBUG"/>
-  <logger name="no.uio.musit" level="DEBUG" />
 
   <root level="ERROR">
     <appender-ref ref="STDOUT" />
