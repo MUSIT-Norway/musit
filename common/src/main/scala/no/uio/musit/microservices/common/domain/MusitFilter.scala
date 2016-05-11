@@ -16,21 +16,19 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+package no.uio.musit.microservices.common.domain
 
-package no.uio.musit.microservice.time.service
+case class MusitFilter(filters: List[String])
 
-import no.uio.musit.microservice.time.domain._
+object MusitFilter {
 
-trait TimeService {
-  def getNow(filter:Option[MusitJodaFilter] = None): MusitTime = {
-    val now = org.joda.time.DateTime.now
-    filter match {
-      case None => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
-      case Some(f:MusitDateTimeFilter) => DateTime(Date(now.toLocalDate), Time(now.toLocalTime))
-      case Some(f:MusitDateFilter) => Date(now.toLocalDate)
-      case Some(f:MusitTimeFilter) => Time(now.toLocalTime)
-      case _ => throw new IllegalArgumentException("Not supported filter type")
+  def parseFilter(filter: String): MusitFilter =
+    "^\\[(.*)\\]$".r.findFirstIn(filter) match {
+      case Some(string) if string.nonEmpty =>
+        MusitFilter(Indices.getFrom(string))
+      case _ =>
+        MusitFilter(List())
     }
-  }
 
+  implicit val queryBinder = new BindableOf[MusitFilter](_.map(v => Right(parseFilter(v.trim))))
 }
