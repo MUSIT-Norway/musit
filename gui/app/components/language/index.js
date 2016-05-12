@@ -16,11 +16,11 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import React, { Component, PropTypes, bindActionCreators } from 'react'
-import { connect } from 'react-redux'
-import { I18n, Translate } from 'react-i18nify'
-import marked from 'react-marked'
+
+import React, { Component, PropTypes, bindActionCreators } from 'react';
+import { connect } from 'react-redux';
+import { I18n, Translate } from 'react-i18nify';
+import marked from 'react-marked';
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -30,43 +30,44 @@ marked.setOptions({
   pedantic: false,
   sanitize: true,
   smartLists: false,
-  smartypants: false
+  smartypants: false,
 });
 
 const mapStateToProps = (state) => {
-    return {
-        language: state.language
-    }
-}
+  return {
+    language: state.language,
+  };
+};
 
 @connect(mapStateToProps)
 export default class Language extends Component {
-    static propTypes = {
-      language: PropTypes.object
+  static propTypes = {
+    language: PropTypes.object,
+    markdown: PropTypes.func.isRequired,
+    value: PropTypes.string,
+  };
+
+  static contextTypes = {
+    store: PropTypes.object.isRequired,
+  };
+
+  render() {
+    const { language, value, markdown } = this.props;
+    I18n.loadTranslations(language.data);
+    I18n.setLocale('no');
+
+    var text = I18n.t(value);
+    if (markdown && text) {
+      try {
+        const tmp = marked(text);
+        text = tmp[0];
+      } catch (err) {
+        console.log(err);
+      }
     }
 
-    static contextTypes = {
-      store: PropTypes.object.isRequired
-    }
-
-	render () {
-		const { language, value, markdown } = this.props
-        I18n.loadTranslations(language.data)
-        I18n.setLocale("no")
-
-        var text = I18n.t(value)
-        if (markdown && text) {
-          try {
-            const tmp = marked(text)
-            text = tmp[0]
-
-          } catch (err) {
-            console.log(err)
-          }
-        }
-
-		return (
-			<div>{text}</div>
-    	)
-	}
+    return (
+      <div>{text}</div>
+    );
+  }
 }

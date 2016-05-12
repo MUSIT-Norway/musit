@@ -25,14 +25,13 @@ import play.api.mvc._
 
 class GeoLocationResource_V1 extends Controller with GeoLocationService {
 
-
-  def searchExternal = Action.async { request => {
-    val expression = request.getQueryString("search").getOrElse("")
-    searchGeoNorway(expression).map { location =>
-      Ok(Json.toJson(location))
+  def searchExternal = Action.async { request =>
+    {
+      val expression = request.getQueryString("search").getOrElse("")
+      searchGeoNorway(expression).map { location =>
+        Ok(Json.toJson(location))
+      }
     }
-  }}
+  }
 }
-
-
 

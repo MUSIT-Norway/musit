@@ -19,13 +19,12 @@
  */
 
 /**
-  * Created by jstabel on 4/26/16.
-  */
-
+ * Created by jstabel on 4/26/16.
+ */
 
 import no.uio.musit.security._
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatest.concurrent.{ PatienceConfiguration, ScalaFutures }
+import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 
 import play.api.Play.current
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -46,7 +45,6 @@ class CachedSecuritySuite extends PlaySpec with ScalaFutures with OneAppPerSuite
 
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
 
-
   "CachedSecuritySuite" must {
     "main test" in {
       play.api.Play.current.configuration.getInt("security.musit.bla")
@@ -55,7 +53,6 @@ class CachedSecuritySuite extends PlaySpec with ScalaFutures with OneAppPerSuite
       whenReady(FakeSecurity.createHardcoded(accessToken, groups, true), timeout) { sec =>
 
         val cacheReader = sec.infoProvider.asInstanceOf[SecurityCacheReader]
-
 
         assert(cacheReader.accessTokenToUserIdFromCache(accessToken).isDefined)
         assert(cacheReader.accessTokenToUserIdFromCache(accessToken).get == "Jarle")

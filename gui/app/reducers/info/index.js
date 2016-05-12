@@ -4,7 +4,7 @@ const LOAD_FAIL = 'musit/info/LOAD_FAIL';
 
 
 const initialState = {
-  loaded: false
+  loaded: false,
 };
 
 const infoReducer = (state = initialState, action = {}) => {
@@ -12,36 +12,36 @@ const infoReducer = (state = initialState, action = {}) => {
     case LOAD:
       return {
         ...state,
-        loading: true
+        loading: true,
       };
     case LOAD_SUCCESS:
       return {
         ...state,
         loading: false,
         loaded: true,
-        data: action.result
+        data: action.result,
       };
     case LOAD_FAIL:
       return {
         ...state,
         loading: false,
         loaded: false,
-        error: action.error
+        error: action.error,
       };
     default:
       return state;
   }
-}
+};
 
-export default infoReducer
+export default infoReducer;
 
 export const isLoaded = (globalState) => {
   return globalState.info && globalState.info.loaded;
-}
+};
 
 export const load = () => {
   return {
     types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/loadInfo')
-  }
-}
+    promise: (client) => client.get('/loadInfo'),
+  };
+};

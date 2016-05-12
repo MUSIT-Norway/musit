@@ -21,11 +21,11 @@ require('babel-polyfill');
 
 const environment = {
   development: {
-    isProduction: false
+    isProduction: false,
   },
   production: {
-    isProduction: true
-  }
+    isProduction: true,
+  },
 }[process.env.NODE_ENV || 'development'];
 
 module.exports = Object.assign({
@@ -50,9 +50,9 @@ module.exports = Object.assign({
         { property: 'og:site', content: '@musit-project' },
         { property: 'og:creator', content: '@musit-project' },
         { property: 'og:image:width', content: '200' },
-        { property: 'og:image:height', content: '200' }
-      ]
-    }
+        { property: 'og:image:height', content: '200' },
+      ],
+    },
   },
 
 }, environment);

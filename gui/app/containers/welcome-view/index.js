@@ -21,60 +21,66 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Jumbotron, Panel, Button, Grid, Row, Col, PageHeader } from 'react-bootstrap';
 import { Link } from 'react-router';
-import Language from '../../components/language'
-import { login } from '../../reducers/auth'
+import Language from '../../components/language';
+import { login } from '../../reducers/auth';
 
 const mapStateToProps = (state) => {
   return {
     user: state.auth.user,
-    login: login
-  }
-}
+    login: login,
+  };
+};
 
 @connect(mapStateToProps)
 export default class Welcome extends Component {
+  static propTypes = {
+    dispatch: React.PropTypes.func.isRequired,
+    login: React.PropTypes.func.isRequired,
+    user: React.PropTypes.object.isRequired,
+  };
+
   handleFakeLogin = (event) => {
-    this.props.dispatch(this.props.login('fake'))
-  }
+    this.props.dispatch(this.props.login('fake'));
+  };
 
   render() {
-          const styles = require('./index.scss');
-          console.log(styles)
-    	  return (
-    		<div>
-                <main>
-                    <Panel>
-                        <Grid>
-                            <Row styleClass="row-centered">
-                                <Col xs={10} md={10}  style={{textAlign: "center"}}>
-                                    <PageHeader><Language value="musit.welcomePage.title" markdown={true}/></PageHeader>
-                                    <div className={styles.panelWithBackground}>
-                                        <span style={{fontSize: "larger", margin: "1em"}}>
-                                            <Language value="musit.welcomePage.body" markdown={true} />
-                                        </span>
-                                    </div>
-                                </Col>
-                            </Row>
-                            {/* TODO: redux statecheck for user set and user access */}
-                            <Row styleClass="row-centered">
-                               {/*} <Col  xs={10} md={10} style={{textAlign: "center"}}>
-                                    <Language value="musit.welcomePage.noAccess" />
-                                </Col>*/}
-                            </Row>
-                            {!this.props.user &&
-                            <Row styleClass="row-centered">
-                                <Col xs={10} md={10} style={{textAlign: "center"}}>
-                                    <Button bsStyle="default" style={{marginTop: "1em"}} onClick={this.handleFakeLogin} height="20" src="feide-login-icon.png">
-                                      <Language value="musit.login" markdown="true"/>
-                                    </Button>
-                                </Col>
-                            </Row>
-                            }
-                        </Grid>
-                    </Panel>
-                </main>
- 		    </div>
-    	);
-    }
+    const styles = require('./index.scss');
+    console.log(styles);
+    return (
+        <div>
+            <main>
+                <Panel>
+                    <Grid>
+                        <Row styleClass="row-centered">
+                            <Col xs={10} md={10} style={{ textAlign: 'center' }}>
+                                <PageHeader><Language value="musit.welcomePage.title" markdown /></PageHeader>
+                                <div className={styles.panelWithBackground}>
+                                    <span style={{ fontSize: 'larger', margin: '1em' }}>
+                                        <Language value="musit.welcomePage.body" markdown />
+                                    </span>
+                                </div>
+                            </Col>
+                        </Row>
+                        {/* TODO: redux statecheck for user set and user access */}
+                        <Row styleClass="row-centered">
+                           {/* <Col  xs={10} md={10} style={{textAlign: "center"}}>
+                                <Language value="musit.welcomePage.noAccess" />
+                            </Col>*/}
+                        </Row>
+                        {!this.props.user &&
+                        <Row styleClass="row-centered">
+                            <Col xs={10} md={10} style={{ textAlign: 'center' }}>
+                                <Button bsStyle="default" style={{ marginTop: '1em' }} onClick={this.handleFakeLogin} height="20" src="feide-login-icon.png">
+                                  <Language value="musit.login" markdown="true" />
+                                </Button>
+                            </Col>
+                        </Row>
+                        }
+                    </Grid>
+                </Panel>
+            </main>
+        </div>
+    );
+  }
 }
 

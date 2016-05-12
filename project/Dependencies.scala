@@ -23,9 +23,7 @@ object Dependencies {
 
   val scala = "2.11.7"
 
-  val resolvers = DefaultOptions.resolvers(snapshot = true) ++ Seq(
-    "scalaz-releases" at "http://dl.bintray.com/scalaz/releases"
-  )
+  val resolvers = DefaultOptions.resolvers(snapshot = true)
 
   object playframework {
     val version      = "2.4.6"
@@ -37,8 +35,6 @@ object Dependencies {
     val cache        = "com.typesafe.play"   %% "play-cache"               % version
     val ws           = "com.typesafe.play"   %% "play-ws"                  % version
     val json         = "com.typesafe.play"   %% "play-json"                % version
-    val specs2Spec   = "com.typesafe.play"   %% "play-specs2"              % version
-    val specs2       = specs2Spec            %  "it,test"
 
   }
 

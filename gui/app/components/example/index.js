@@ -16,43 +16,62 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import React, { Component, PropTypes, bindActionCreators } from 'react'
-import { connect } from 'react-redux'
-import * as actions from '../../actions/example'
-import Button from 'react-bootstrap/lib/Button'
+
+import React, { Component, PropTypes, bindActionCreators } from 'react';
+import { connect } from 'react-redux';
+import * as actions from '../../actions/example';
+import Button from 'react-bootstrap/lib/Button';
 
 const mapStateToProps = (state) => {
-    return {
-        example: state.example
-    }
-}
+  return {
+    example: state.example,
+  };
+};
 
 @connect(mapStateToProps)
 export default class Example extends Component {
-    static propTypes = {
-      example: PropTypes.object
-    }
 
-    static contextTypes = {
-      store: PropTypes.object.isRequired
-    }
+  static propTypes = {
+    example: PropTypes.object,
+    dispatch: PropTypes.func.isRequired,
+  };
 
-    onState1Click(dispatch) {
-        dispatch(actions.updateState1(this.state1 + 'a'))
-    }
+  static contextTypes = {
+    store: PropTypes.object.isRequired,
+  };
 
-    onState2Click(dispatch) {
-        dispatch(actions.updateState2(this.state2 + 'b'))
-    }
+  constructor(props) {
+    super(props);
+    const { dispatch, example } = this.props;
+    this.onState1Click = this.onState1Click.bind(example, dispatch);
+    this.onState2Click = this.onState2Click.bind(example, dispatch);
+  }
 
-	render () {
-		const { dispatch, example, onState1Click, onState2Click } = this.props
+  onState1Click(dispatch) {
+    dispatch(actions.updateState1(this.state1 + 'a'));
+  }
 
-		return (
-			<div>
-				State ({example.state1}, {example.state2}) <Button bsSize="xsmall" onClick={this.onState1Click.bind(example, dispatch)}>1+</Button><Button bsSize="xsmall" onClick={this.onState2Click.bind(example, dispatch)}>2+</Button>
-			</div>
-    	)
-	}
+  onState2Click(dispatch) {
+    dispatch(actions.updateState2(this.state2 + 'b'));
+  }
+
+  render() {
+    return (
+        <div>
+            <Text>State ({this.props.example.state1}, {this.props.example.state2})</Text>
+            <Button
+              bsSize="xsmall"
+              onClick={this.onState1Click}
+            >
+              1+
+            </Button>
+            <Button
+              bsSize="xsmall"
+              onClick={this.onState2Click}
+            >
+              2+
+            </Button>
+        </div>
+    );
+  }
 }

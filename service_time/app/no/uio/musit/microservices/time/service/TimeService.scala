@@ -18,23 +18,23 @@
  */
 package no.uio.musit.microservices.time.service
 
-import no.uio.musit.microservices.common.domain.{MusitError, MusitFilter}
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitFilter }
 import no.uio.musit.microservices.time.domain._
 import org.joda.time.DateTime
 import org.joda.time.DateTime.now
 
 trait TimeService {
-  
+
   def convertToNow(maybeFilter: Option[MusitFilter]): Either[MusitError, MusitTime] =
     maybeFilter.map(f => resolveNow(f)).getOrElse(Right(fromDateTime(now)))
 
   def resolveNow(filter: MusitFilter): Either[MusitError, MusitTime] = filter match {
     case MusitFilter(List("time")) => Right(MusitTime(time = Some(now.toLocalTime)))
     case MusitFilter(List("date")) => Right(MusitTime(date = Some(now.toLocalDate)))
-    case MusitFilter(List("date","time")) => Right(fromDateTime(now))
+    case MusitFilter(List("date", "time")) => Right(fromDateTime(now))
     case _ => Left(MusitError(message = "Only supports empty filter or filter on time, date or time and date"))
   }
-  
+
   def fromDateTime(dateTime: DateTime): MusitTime =
     MusitTime(
       date = Some(dateTime.toLocalDate),

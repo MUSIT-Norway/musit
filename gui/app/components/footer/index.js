@@ -25,8 +25,8 @@ import Col from 'react-bootstrap/lib/Col';
 
 class Footer extends Component {
 
-	  render() {
-		  return (
+	                                                                                                                                                                                                                                                                                                                                                                                    render() {
+		                                                                                                                                                                                                                                                                                                                                                                                    return (
 			<footer>
 			    <Grid>
                     <Row>
@@ -40,4 +40,4 @@ class Footer extends Component {
 	}
 }
 
-export default connect(null, null)(Footer)
+export default connect(null, null)(Footer);

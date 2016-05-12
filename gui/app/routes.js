@@ -17,30 +17,30 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React from 'react'
-import { IndexRoute, Route } from 'react-router'
-import { isLoaded as isAuthLoaded, load as loadAuth, login } from './reducers/auth'
-import NotFound from './components/NotFound'
-import WelcomeView from './containers/welcome-view'
-import ExampleView from './containers/example-view'
-import WelcomeUserView from './containers/welcome-user'
-import App from './containers/app'
+import React from 'react';
+import { IndexRoute, Route } from 'react-router';
+import { isLoaded as isAuthLoaded, load as loadAuth, login } from './reducers/auth';
+import NotFound from './components/NotFound';
+import WelcomeView from './containers/welcome-view';
+import ExampleView from './containers/example-view';
+import WelcomeUserView from './containers/welcome-user';
+import App from './containers/app';
 
 export default (store) => {
   const requireLogin = (nextState, replace, cb) => {
     function checkAuth() {
-      const { auth: { user } } = store.getState()
+      const { auth: { user } } = store.getState();
       if (!user) {
         // oops, not logged in, so can't be here!
-        replace('/')
+        replace('/');
       }
-      cb()
+      cb();
     }
 
     if (!isAuthLoaded(store.getState())) {
-      store.dispatch(loadAuth()).then(checkAuth)
+      store.dispatch(loadAuth()).then(checkAuth);
     } else {
-      checkAuth()
+      checkAuth();
     }
   };
 

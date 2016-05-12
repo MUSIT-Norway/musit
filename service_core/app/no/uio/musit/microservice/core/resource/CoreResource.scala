@@ -22,7 +22,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import io.swagger.annotations._
 import no.uio.musit.microservice.core.domain.Example
 import no.uio.musit.microservice.core.service.CoreService
-import play.api.mvc.{Action, BodyParsers, Controller}
+import play.api.mvc.{ Action, BodyParsers, Controller }
 import play.api.libs.json._
 
 @Api(value = "/api/example", description = "Example resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")

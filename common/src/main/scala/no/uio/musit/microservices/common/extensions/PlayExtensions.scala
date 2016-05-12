@@ -22,20 +22,19 @@ package no.uio.musit.microservices.common.extensions
 
 import java.net.URI
 
-import play.api.libs.ws.{WSRequest, WSResponse}
+import play.api.libs.ws.{ WSRequest, WSResponse }
 import play.api.mvc.Results._
 
 //import play.mvc.results._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 
 //Not sure about whether it is a good practice to use this
 
 /**
-  * Created by jstabel on 4/15/16.
-  */
-
+ * Created by jstabel on 4/15/16.
+ */
 
 object PlayExtensions {
 
@@ -56,7 +55,6 @@ object PlayExtensions {
       wsr.withHeaders("Authorization" -> ("Bearer " + token))
     }
 
-
     // TODO: Handle more exceptions
     def translateStatusToException(resp: WSResponse) = {
       assert(resp.status < 200 || resp.status >= 300)
@@ -74,8 +72,7 @@ object PlayExtensions {
       respF.flatMap { resp: WSResponse =>
         if (resp.status < 200 || resp.status >= 300) {
           Future.failed(translateStatusToException(resp))
-        }
-        else
+        } else
           Future.successful(resp)
       }
     }

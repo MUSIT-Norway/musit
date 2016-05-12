@@ -9,7 +9,7 @@ const LOGOUT_SUCCESS = 'musit/auth/LOGOUT_SUCCESS';
 const LOGOUT_FAIL = 'musit/auth/LOGOUT_FAIL';
 
 const initialState = {
-  loaded: false
+  loaded: false,
 };
 
 const authReducer = (state = initialState, action = {}) => {
@@ -17,89 +17,89 @@ const authReducer = (state = initialState, action = {}) => {
     case LOAD:
       return {
         ...state,
-        loading: true
+        loading: true,
       };
     case LOAD_SUCCESS:
       return {
         ...state,
         loading: false,
         loaded: true,
-        user: action.result
+        user: action.result,
       };
     case LOAD_FAIL:
       return {
         ...state,
         loading: false,
         loaded: false,
-        error: action.error
+        error: action.error,
       };
     case LOGIN:
       return {
         ...state,
-        loggingIn: true
+        loggingIn: true,
       };
     case LOGIN_SUCCESS:
       return {
         ...state,
         loggingIn: false,
-        user: action.result
+        user: action.result,
       };
     case LOGIN_FAIL:
       return {
         ...state,
         loggingIn: false,
         user: null,
-        loginError: action.error
+        loginError: action.error,
       };
     case LOGOUT:
       return {
         ...state,
-        loggingOut: true
+        loggingOut: true,
       };
     case LOGOUT_SUCCESS:
       return {
         ...state,
         loggingOut: false,
-        user: null
+        user: null,
       };
     case LOGOUT_FAIL:
       return {
         ...state,
         loggingOut: false,
-        logoutError: action.error
+        logoutError: action.error,
       };
     default:
       return state;
   }
-}
+};
 
-export default authReducer
+export default authReducer;
 
 export const isLoaded = (globalState) => {
   return globalState.auth && globalState.auth.loaded;
-}
+};
 
 export const load = () => {
   return {
     types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/loadAuth')
+    promise: (client) => client.get('/loadAuth'),
   };
-}
+};
 
 export const login = (name) => {
   return {
     types: [LOGIN, LOGIN_SUCCESS, LOGIN_FAIL],
     promise: (client) => client.post('/login', {
       data: {
-        name: name
-      }
-    })
+        name: name,
+      },
+    }),
   };
-}
+};
 
 export const logout = () => {
   return {
     types: [LOGOUT, LOGOUT_SUCCESS, LOGOUT_FAIL],
-    promise: (client) => client.get('/logout')
+    promise: (client) => client.get('/logout'),
   };
-}
+};
