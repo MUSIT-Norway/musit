@@ -6,7 +6,6 @@ import { Navbar, Nav, NavItem } from 'react-bootstrap';
 import Helmet from 'react-helmet';
 import { isLoaded as isInfoLoaded, load as loadInfo } from '../../reducers/info';
 import { isLoaded as isLanguageLoaded, load as loadLanguage } from '../../reducers/language';
-import { isLoaded as isFakeAuthInfoLoaded, load as loadFakeAuthInfo } from '../../reducers/fake-auth-info';
 import InfoBar from '../../components/info-bar';
 import { routerActions } from 'react-router-redux';
 import config from '../../config';

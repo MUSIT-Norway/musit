@@ -154,7 +154,17 @@ proxy.on('error', (error, req, res) => {
 })
 
 app.get('/', (req, res) => {
-  res.status(200).send('<!doctype html>\n<html>\n<body>\n<a href="/musit">Login</a>\n</body>\n</html>\n')
+
+  if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
+    const securityDatabase = require('./fake_security.json')
+    securityDatabase.users.map( (user) => {
+      console.log(`<a href="#" onClick="">Login ${user.name}</a>`)
+    })
+    res.status(200).send('<!doctype html>\n<html>\n<body>\n<a href="/musit">Login (må fikses for fake post)</a>\n</body>\n</html>\n')
+  } else {
+    res.status(200).send('<!doctype html>\n<html>\n<body>\n<a href="/musit">Login</a>\n</body>\n</html>\n')
+  }
+
 })
 
 app.use('/musit', Passport.authenticate(passportLoginType, {failWithError: true}),

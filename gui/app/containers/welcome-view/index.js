@@ -22,22 +22,15 @@ import { connect } from 'react-redux';
 import { Jumbotron, Panel, Button, Grid, Row, Col, PageHeader } from 'react-bootstrap';
 import { Link } from 'react-router';
 import Language from '../../components/language'
-import { login } from '../../reducers/auth'
-import FakeUserDropdown from '../../components/fake-user-dropdown'
 
 const mapStateToProps = (state) => {
   return {
     user: state.auth.user,
-    login: login
   }
 }
 
 @connect(mapStateToProps)
 export default class Welcome extends Component {
-  handleFakeLogin = (event) => {
-    this.props.dispatch(this.props.login('fake'))
-  }
-
   render() {
           const styles = require('./index.scss');
     	  return (
@@ -47,7 +40,7 @@ export default class Welcome extends Component {
                         <Grid>
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10}  style={{textAlign: "center"}}>
-                                    <PageHeader><Language value="musit.welcomePage.title" markdown={true}/><FakeUserDropdown/></PageHeader>
+                                    <PageHeader><Language value="musit.welcomePage.title" markdown={true}/></PageHeader>
                                     <div className={styles.panelWithBackground}>
                                         <span style={{fontSize: "larger", margin: "1em"}}>
                                             <Language value="musit.welcomePage.body" markdown={true} />
@@ -64,7 +57,7 @@ export default class Welcome extends Component {
                             {!this.props.user &&
                             <Row styleClass="row-centered">
                                 <Col xs={10} md={10} style={{textAlign: "center"}}>
-                                    <Button bsStyle="default" style={{marginTop: "1em"}} onClick={this.handleFakeLogin} height="20" src="feide-login-icon.png">
+                                    <Button bsStyle="default" style={{marginTop: "1em"}}  height="20" src="feide-login-icon.png">
                                       <Language value="musit.login" markdown="true"/>
                                     </Button>
                                 </Col>
