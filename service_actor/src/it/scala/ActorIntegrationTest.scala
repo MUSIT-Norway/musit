@@ -16,7 +16,11 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+import no.uio.musit.microservice.actor.dao.ActorDao
+import no.uio.musit.microservice.actor.dao.ActorDao._
+import no.uio.musit.microservice.actor.domain.Actor
 import no.uio.musit.microservices.common.PlayTestDefaults
+import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -39,6 +43,31 @@ class ActorIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFu
       whenReady(future, timeout) { response =>
         val json = Json.parse(response.body)
         assert((json \ "id").getOrElse(JsString("0")).toString() == "1")
+      }
+    }
+  }
+
+  "Actor dao" must {
+    import ActorDao._
+
+    "getById_kjempeTall" in {
+      val svar = getById(6386363673636335366L)
+      whenReady(svar, timeout) { thing =>
+        assert(thing == None)
+      }
+    }
+
+    "getById__Riktig" in {
+      val svar = getById(1)
+      whenReady(svar, timeout) { thing =>
+        assert(thing == Some(Actor(1, "And, Arne1", Seq(LinkService.self("/v1/1")))))
+      }
+    }
+
+    "getById__TalletNull" in {
+      val svar = getById(0)
+      whenReady(svar, timeout) { thing =>
+        assert(thing == None)
       }
     }
   }
