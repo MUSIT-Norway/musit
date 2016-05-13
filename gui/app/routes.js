@@ -19,7 +19,6 @@
 
 import React from 'react'
 import { IndexRoute, Route } from 'react-router'
-import { isLoaded as isAuthLoaded, load as loadAuth, login } from './reducers/auth'
 import NotFound from './components/NotFound'
 import WelcomeView from './containers/welcome-view'
 import WelcomeUserView from './containers/welcome-user'
@@ -36,18 +35,14 @@ export default (store) => {
       cb()
     }
 
-    if (!isAuthLoaded(store.getState())) {
-      store.dispatch(loadAuth()).then(checkAuth)
-    } else {
-      checkAuth()
-    }
+    checkAuth()
   };
 
   /**
    * Please keep routes in alphabetical order
    */
   return (
-    <Route path="/" component={App}>
+    <Route path="/musit" component={App}>
         <IndexRoute component={WelcomeView} />
 
         -- Authentication routes
@@ -60,7 +55,7 @@ export default (store) => {
 
 
         -- Catch all route
-        <Route path="*" component={NotFound} status={404} />
+        <Route path="/musit/*" component={NotFound} status={404} />
     </Route>
   );
 };

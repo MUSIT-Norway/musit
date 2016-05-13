@@ -6,7 +6,6 @@ import { Navbar, Nav, NavItem } from 'react-bootstrap';
 import Helmet from 'react-helmet';
 import { isLoaded as isInfoLoaded, load as loadInfo } from '../../reducers/info';
 import { isLoaded as isLanguageLoaded, load as loadLanguage } from '../../reducers/language';
-import { isLoaded as isAuthLoaded, load as loadAuth, logout, login } from '../../reducers/auth';
 import { isLoaded as isFakeAuthInfoLoaded, load as loadFakeAuthInfo } from '../../reducers/fake-auth-info';
 import InfoBar from '../../components/info-bar';
 import { routerActions } from 'react-router-redux';
@@ -16,8 +15,6 @@ import { asyncConnect } from 'redux-async-connect';
 const mapStateToProps = (state) => {
   return {
     user: state.auth.user,
-    logout: logout,
-    login: login,
     pushState: routerActions.push
   }
 }
@@ -32,9 +29,6 @@ const mapStateToProps = (state) => {
     if (!isLanguageLoaded(getState())) {
           promises.push(dispatch(loadLanguage()));
         }
-    if (!isAuthLoaded(getState())) {
-      promises.push(dispatch(loadAuth()));
-    }
     if (!isFakeAuthInfoLoaded(getState())) {
       promises.push(dispatch(loadFakeAuthInfo()));
     }
@@ -47,8 +41,6 @@ class App extends Component {
   static propTypes = {
     children: PropTypes.object.isRequired,
     user: PropTypes.object,
-    logout: PropTypes.func.isRequired,
-    login: PropTypes.func.isRequired,
     pushState: PropTypes.func.isRequired
   };
 
@@ -60,7 +52,7 @@ class App extends Component {
   componentWillReceiveProps(nextProps) {
     if (!this.props.user && nextProps.user) {
       // login
-      this.context.router.push('/welcomeUser');
+      this.context.router.push('/musit/welcomeUser');
     } else if (this.props.user && !nextProps.user) {
       // logout
       this.context.router.push('/');
@@ -69,18 +61,18 @@ class App extends Component {
 
   handleLogout = (event) => {
     event.preventDefault()
-     this.props.dispatch(this.props.logout())
+     //this.props.dispatch(this.props.logout())
   }
 
   handleFakeLogin= (event) => {
     event.preventDefault()
-    this.props.dispatch(this.props.login('fake'))
+    //this.props.dispatch(this.props.login('fake'))
   }
 
   render() {
     const {user} = this.props;
     const styles = require('./index.scss');
-    const rootPath = user?'/welcomeUser':'/'
+    const rootPath = user?'/musit/':'/'
 
     return (
      <div className={styles.app}>
@@ -100,35 +92,35 @@ class App extends Component {
           <Navbar.Collapse eventKey={0}>
             <Nav navbar>
               {user &&
-                  <LinkContainer to="/chat">
+                  <LinkContainer to="/musit/chat">
                     <NavItem eventKey={1}>Chat</NavItem>
                   </LinkContainer>
               }
               {user &&
-                  <LinkContainer to="/widgets">
+                  <LinkContainer to="/musit/widgets">
                     <NavItem eventKey={2}>Widgets</NavItem>
                   </LinkContainer>
               }
               {user &&
-                  <LinkContainer to="/magasin">
+                  <LinkContainer to="/musit/magasin">
                   <NavItem eventKey={3}>Magasin</NavItem>
                   </LinkContainer>
               }
              {user &&
-                  <LinkContainer to="/survey">
+                  <LinkContainer to="/musit/survey">
                     <NavItem eventKey={4}>Survey</NavItem>
                   </LinkContainer>
               }
-              <LinkContainer to="/about">
+              <LinkContainer to="/musit/about">
                 <NavItem eventKey={5}>About Us</NavItem>
               </LinkContainer>
               {user &&
-                  <LinkContainer to="/logout">
+                  <LinkContainer to="/musit/logout">
                     <NavItem eventKey={6} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
                   </LinkContainer>
               }
               {!user &&
-                  <LinkContainer to="/">
+                  <LinkContainer to="/musit/">
                     <NavItem onClick={this.handleFakeLogin} eventKey={7}>Login</NavItem>
                   </LinkContainer>
               }
