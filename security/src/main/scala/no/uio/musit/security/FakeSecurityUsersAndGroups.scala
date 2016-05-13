@@ -80,7 +80,7 @@ object FakeSecurityUsersAndGroups {
 
     val users = (json \ "users").as[List[JsObject]]
     users.foreach { userJson =>
-      val username = (userJson \ "username").as[String]
+      val username = (userJson \ "userId").as[String]
       val name = (userJson \ "name").as[String]
       val groups: List[String] = (userJson \ "groups").as[List[String]]
       val user = defUser(username, name)
