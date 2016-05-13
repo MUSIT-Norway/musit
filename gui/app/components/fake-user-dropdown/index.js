@@ -20,6 +20,7 @@
 import React, { Component, PropTypes, bindActionCreators } from 'react'
 import { connect } from 'react-redux'
 import { DropdownButton, MenuItem } from 'react-bootstrap'
+import { login } from '../../reducers/fake-auth-info'
 
 
 const mapStateToProps = (state) => {
@@ -39,11 +40,8 @@ export default class FakeUserDropdown extends Component {
     }
 
     onSelect = (evt, username) => {
-      const { dispatch, client } = this.props
-      dispatch(client.post('/login', {
-        username: username,
-        password: ''
-      }))
+      console.log('Trying to login '+username)
+      this.props.dispatch( login(username) )
     }
 
 	render () {

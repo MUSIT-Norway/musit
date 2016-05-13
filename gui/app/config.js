@@ -59,4 +59,5 @@ module.exports = Object.assign({
     }
   },
 
-}, environment, FAKE_STRATEGY);
+}, environment)
+module.exports.FAKE_STRATEGY = FAKE_STRATEGY

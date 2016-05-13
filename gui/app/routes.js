@@ -22,7 +22,6 @@ import { IndexRoute, Route } from 'react-router'
 import { isLoaded as isAuthLoaded, load as loadAuth, login } from './reducers/auth'
 import NotFound from './components/NotFound'
 import WelcomeView from './containers/welcome-view'
-import ExampleView from './containers/example-view'
 import WelcomeUserView from './containers/welcome-user'
 import App from './containers/app'
 
@@ -57,7 +56,7 @@ export default (store) => {
         </Route>
 
         -- Routes
-        <Route path="example" component={ExampleView} />
+
 
 
         -- Catch all route
