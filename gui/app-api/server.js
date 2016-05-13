@@ -103,9 +103,20 @@ app.get(dataportenCallbackUrl, Passport.authorize('dataporten'), (req, res) => {
   console.log(req)
 })
 
-app.post('/login', Passport.authenticate('json-custom'), (req, res) => {
-  console.log(req.user)
-})
+app.post('/login', Passport.authenticate('json-custom', {failWithError: true}),
+  (req, res) => {
+    res.status(200).json({
+      authenticated: req.isAuthenticated(),
+      user: req.user
+    })
+  },
+  (err, req, res, next) => {
+    res.status(400).json({
+      authenticated: req.isAuthenticated(),
+      err: err.message
+    })
+  }
+)
 
 
 /* *** END Security *** */

@@ -30,6 +30,25 @@ const fakeAuthInfoReducer = (state = initialState, action = {}) => {
         loaded: false,
         error: action.error
       }
+    case LOGIN:
+      return {
+        ...state,
+        loading: true
+      }
+    case LOGIN_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        loaded: true,
+        user: action.result.user
+      }
+    case LOGIN_FAIL:
+      return {
+        ...state,
+        loading: false,
+        loaded: false,
+        error: action.error
+      }
     default:
       return state
   }
