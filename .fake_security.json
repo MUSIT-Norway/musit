@@ -11,12 +11,12 @@
   ],
   "users": [
     {
-      "username": "jarle",
+      "userId": "jarle",
       "name": "Jarle Stabell",
       "groups": ["EtnoLes", "FotoLes"]
     },
     {
-      "username": "stein",
+      "userId": "stein",
       "name": "Stein A. Olsen",
       "groups": ["EtnoLes", "FotoLes"]
     }

@@ -61,7 +61,7 @@ export default class Language extends Component {
             text = tmp[0]
 
           } catch (err) {
-            console.log(err)
+            //console.log(err)
           }
         }
 

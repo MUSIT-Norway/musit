@@ -23,18 +23,21 @@ const io = new SocketIo(server)
 io.path('/ws')
 
 /* *** START Security *** */
-const dataportenUri = '/auth/dataporten/callback'
-const dataportenCallbackUri = `${dataportenUri}/callback`
-const dataportenCallbackUrl = `http://${config.apiHost}:${config.apiPort}${dataportenCallbackUri}`
+const dataportenUri = '/auth/dataporten'
+const dataportenCallbackUri = '/auth/dataporten/callback'
+const dataportenCallbackUrl = `http://${config.host}:8080/api${dataportenCallbackUri}`
 var passportStrategy = null
+var passportLoginType = null
+console.log(dataportenCallbackUrl)
 
 if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
   // TODO:FAKEIT
   console.log(' Installing strategy: LOCAL')
+  passportLoginType = 'json-custom'
 
   const findUser = (username) => {
     const securityDatabase = require('./fake_security.json')
-    return securityDatabase.users.find( (user) => user.username == username)
+    return securityDatabase.users.find( (user) => user.userId == username)
   }
 
   const localCallback = (credentials, done) => {
@@ -42,7 +45,6 @@ if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
     if (!user) {
       done(null, false, { message: 'Incorrect username.' })
     } else {
-      // TODO: Add user to redux state
       done(null, user)
     }
   }
@@ -50,7 +52,7 @@ if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
   passportStrategy = new JsonStrategy( localCallback )
 } else {
   // TODO: Consider placing this initialization strategy into the config object
-  console.log('Installing strategy: DATAPORTEN')
+  passportLoginType = 'dataporten'
   const dpConfig = {
     clientID: config.dataportenClientID,
     clientSecret: config.dataportenClientSecret,
@@ -59,15 +61,16 @@ if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
 
   const dpCallback = (accessToken, refreshToken, profile, done) => {
     //load user and return done with the user in it.
-    console.log('---------------')
-    console.log(accessToken)
-    console.log('---------------')
-    console.log(refreshToken)
-    console.log('---------------')
-    console.log(profile)
-    console.log('---------------')
+
     // TODO: Add user info to redux state
-    return done(err, {username: 'foo'})
+    console.log(profile)
+    return done(null, {
+      userId: profile.data.id,
+      name: profile.data.displayName,
+      emails: profile.data.emails,
+      photos: profile.data.photos,
+      accessToken: accessToken
+    })
   }
 
   passportStrategy = new DataportenStrategy(dpConfig, dpCallback)
@@ -98,12 +101,36 @@ app.use(Passport.initialize())
 app.use(Passport.session())
 
 // Dataporten callback endpoints
-app.get(dataportenUri, Passport.authorize('dataporten'))
-app.get(dataportenCallbackUrl, Passport.authorize('dataporten'), (req, res) => {
-  console.log(req)
-})
+app.get(dataportenCallbackUri, Passport.authenticate(passportLoginType, {failWithError: true}),
+  (req, res) => {
+    res.status(200).json({
+      authenticated: req.isAuthenticated(),
+      user: req.user
+    })
+  },
+  (err, req, res, next) => {
+    res.status(400).json({
+      authenticated: req.isAuthenticated(),
+      err: err.message
+    })
+  }
+)
+app.get(dataportenUri, Passport.authorize(passportLoginType, {failWithError: true}),
+  (req, res) => {
+    res.status(200).json({
+      authenticated: req.isAuthenticated(),
+      user: req.user
+    })
+  },
+  (err, req, res, next) => {
+    res.status(400).json({
+      authenticated: req.isAuthenticated(),
+      err: err.message
+    })
+  }
+)
 
-app.post('/login', Passport.authenticate('json-custom', {failWithError: true}),
+app.use('/login', Passport.authenticate(passportLoginType, {failWithError: true}),
   (req, res) => {
     res.status(200).json({
       authenticated: req.isAuthenticated(),

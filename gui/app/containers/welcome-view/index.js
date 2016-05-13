@@ -40,7 +40,6 @@ export default class Welcome extends Component {
 
   render() {
           const styles = require('./index.scss');
-          console.log(styles)
     	  return (
     		<div>
                 <main>
