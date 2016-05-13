@@ -4,9 +4,8 @@
 
 import no.uio.musit.microservice.geoLocation.service.GeoLocationService
 import no.uio.musit.microservices.common.PlayTestDefaults
-import org.scalatest.concurrent.{ PatienceConfiguration, ScalaFutures }
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
-import play.api.inject.guice.GuiceApplicationBuilder
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 
 import scala.concurrent.duration._
 
