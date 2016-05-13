@@ -2,7 +2,7 @@
 if (process.env.NODE_ENV !== 'production') {
   if (!require('piping')({
     hook: true,
-    ignore: /(\/\.|~$|\.json$)/i
+    ignore: /(\/\.|~$|\.json$)/i,
   })) {
     return;
   }

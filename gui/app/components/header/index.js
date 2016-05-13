@@ -26,8 +26,8 @@ import Col from 'react-bootstrap/lib/Col';
 
 class Header extends Component {
 
-	                                                                                                                                                                                                                                                                                                                                                                                    render() {
-		                                                                                                                                                                                                                                                                                                                                                                                    return (
+	                                                                                                                                                                                                                                                                                                                                                                                                        render() {
+		                                                                                                                                                                                                                                                                                                                                                                                                        return (
             <header>
                 <Grid>
                     <Row>
