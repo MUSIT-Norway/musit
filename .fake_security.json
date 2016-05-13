@@ -14,13 +14,15 @@
       "userId": "jarle",
       "name": "Jarle Stabell",
       "emails": [ "foo@bar.bas" ],
-      "groups": ["EtnoLes", "FotoLes"]
+      "groups": ["EtnoLes", "FotoLes"],
+      "accessToken": "fake-token-zab-xy-jarle"
     },
     {
       "userId": "stein",
       "name": "Stein A. Olsen",
       "emails": [ "foo@bar.bas" ],
-      "groups": ["EtnoLes", "FotoLes"]
+      "groups": ["EtnoLes", "FotoLes"],
+      "accessToken": "fake-token-zab-xy-stein"
     }
   ]
 }
