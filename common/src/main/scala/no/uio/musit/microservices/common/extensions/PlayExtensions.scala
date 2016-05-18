@@ -23,6 +23,7 @@ package no.uio.musit.microservices.common.extensions
 import java.net.URI
 
 import play.api.libs.ws.{WSRequest, WSResponse}
+import play.api.mvc.Request
 import play.api.mvc.Results._
 
 //import play.mvc.results._
@@ -50,6 +51,19 @@ object PlayExtensions {
 
   // TODO: Use another exception class when the above todo-item has been done
   def authFailed(msg: String) = throw new MusitAuthFailed(MusitHttpErrorInfo(None, 401, "", msg))
+
+
+  implicit class RequestImp[T](val req: Request[T]) extends AnyVal {
+
+    ///Gets the value of the Bearer token in the Authorization header, if any.
+    def getBearerToken: Option[String] = {
+      val authHeader =req.headers.getAll("Authorization")
+      val res = authHeader.find(s => s.startsWith("Bearer ")) //We include the space because we don't want to get anything "accidentally" starting with the letters "Bearer"
+        res.map(b => b.substring("Bearer ".length)) //Remove the "Bearer " start of the string
+        .map(_.trim) //Probably not necessary to trim the rest, but it may be convenient if the sender has accidentally sent in blanks
+    }
+  }
+
 
   implicit class WSRequestImp(val wsr: WSRequest) extends AnyVal {
     def withBearerToken(token: String) = {

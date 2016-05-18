@@ -86,7 +86,7 @@ lazy val service_core = (
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_core"
   ))
-  ) dependsOn(common) dependsOn(common_test % "it,test")
+  ) dependsOn(common, security) dependsOn(common_test % "it,test")
 
 // Add other services here
 

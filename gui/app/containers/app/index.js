@@ -28,10 +28,6 @@ const mapStateToProps = (state) => {
     if (!isLanguageLoaded(getState())) {
           promises.push(dispatch(loadLanguage()));
         }
-    if (!isFakeAuthInfoLoaded(getState())) {
-      promises.push(dispatch(loadFakeAuthInfo()));
-    }
-
     return Promise.all(promises);
   }
 }])

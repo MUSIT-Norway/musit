@@ -47,6 +47,8 @@ app.use('/login', Passport.authenticate(passportLoginType, {failWithError: true}
 
 app.use((req, res) => {
   console.log('request')
+  console.log(req.get('Authorization'))
+
   if (app.locals.gateway.validCall(req.url)) {
     console.log('-api')
     // We have an api call, lets forward it

@@ -180,7 +180,6 @@ app.use('/musit', Passport.authenticate(passportLoginType, {failWithError: true}
       const store = createStore(client, {auth: {user: req.user}})
 
       const history = syncHistoryWithStore(virtualBrowserHistory, store)
-
       function hydrateOnClient() {
         res.send('<!doctype html>\n' +
           ReactDOM.renderToString(<Html assets={webpackIsomorphicTools.assets()} store={store}/>))
@@ -191,7 +190,7 @@ app.use('/musit', Passport.authenticate(passportLoginType, {failWithError: true}
         return
       }
 
-      store.dispatch(connectUser(req.user))
+      //store.dispatch(connectUser(req.user))
 
       match({ history, routes: getRoutes(store), location: req.originalUrl }, (error, redirectLocation, renderProps) => {
         if (redirectLocation) {

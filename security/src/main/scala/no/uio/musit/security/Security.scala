@@ -22,12 +22,14 @@
 
 package no.uio.musit.security
 
+import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.security.dataporten.Dataporten
 import play.api.mvc.Request
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
+import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
 /**
   * Created by jstabel on 4/15/16.
@@ -137,11 +139,17 @@ class SecurityConnectionImp(_infoProvider: ConnectionInfoProvider, userInfo: Use
 
 object Security {
   ///The default way to create a security connection from an access token
-  def create(token: String) = Dataporten.createSecurityConnection(token, true)
+  def create(token: String): Future[SecurityConnection] = Dataporten.createSecurityConnection(token, true)
 
   ///The default way to create a security connection from a Htpp request (containing a bearer token)
   // TODO: get the token from the request
-  def create[T](request: Request[T]) = throw new Exception("todo")
+  def create[T](request: Request[T]): Either[MusitError, Future[SecurityConnection]] = {
+    request.getBearerToken match  {
+      case Some(token) =>Right(Security.create(token))
+      case None => Left(MusitError(401, "No token in request"))
+    }
+  }
+
 
 
 
