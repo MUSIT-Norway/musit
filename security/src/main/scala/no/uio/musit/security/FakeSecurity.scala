@@ -23,6 +23,8 @@ package no.uio.musit.security
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import no.uio.musit.microservices.common.extensions.PlayExtensions
+import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
 /**
   * Created by jstabel on 4/15/16.
@@ -35,7 +37,7 @@ class FakeSecurityInMemoryInfoProvider(userId: String) extends ConnectionInfoPro
 
   def getUserInfo = userInfo
   def getUserGroups = Future(FakeSecurityUsersAndGroups.groupsForUserId(userId))
-  def accessToken = userId
+  def accessToken = FakeSecurity.fakeAccessTokenPrefix + userId
 }
 
 class FakeSecurityHardcodedInfoProvider(userName: String, groupIds: Seq[String]) extends ConnectionInfoProvider {
@@ -48,6 +50,9 @@ class FakeSecurityHardcodedInfoProvider(userName: String, groupIds: Seq[String])
 }
 
 object FakeSecurity {
+
+  val fakeAccessTokenPrefix = "fake-token-zab-xy-" //Must match the fake_security.json file!
+
   def createHardcoded(userName: String, userGroupIds: Seq[String], useCache: Boolean) = {
 
     Security.createSecurityConnectionFromInfoProvider(new FakeSecurityHardcodedInfoProvider(userName, userGroupIds), useCache)
@@ -55,5 +60,15 @@ object FakeSecurity {
 
   def createInMemory(userId: String, useCache: Boolean) = {
     Security.createSecurityConnectionFromInfoProvider(new FakeSecurityInMemoryInfoProvider(userId), useCache)
+  }
+  def isFakeAccessToken(token: String) = token.startsWith(fakeAccessTokenPrefix)
+
+  def createInMemoryFromFakeAccessToken(token: String, useCache: Boolean) = {
+    if(isFakeAccessToken(token)) {
+      val userId = token.substring(fakeAccessTokenPrefix.length)
+      createInMemory(userId, useCache)
+    }
+    else
+      Future.failed(PlayExtensions.newAuthFailed("Not a valid f access token."))
   }
 }

@@ -94,6 +94,9 @@ trait SecurityConnection {
 
   def hasNoneOfGroups(groupIds: Seq[String]): Boolean = state.hasNoneOfGroups(groupIds)
 
+  def groupIds: Seq[String] //We could provide a default implementation as infoProvider.getUserGroupIds, but then we would have to return a Future.
+  //Since all current implementations caches in the groupsIds at startup, we have a direct access here.
+
   ///The infoProvider providing the info to this connection. Accessing this is probably only relevant for testing/debugging
   def infoProvider: ConnectionInfoProvider
 }
@@ -120,7 +123,7 @@ class SecurityConnectionImp(_infoProvider: ConnectionInfoProvider, userInfo: Use
       Success(body)
     }
     else {
-      //#OLD Future.failed(new Exception("Unauthorized"))
+
       val missingGroups = requiredGroups.filter((g => !(state.hasGroup(g))))
       val disallowedGroups = deniedGroups.filter(g => (state.hasGroup(g)))
 
@@ -134,23 +137,29 @@ class SecurityConnectionImp(_infoProvider: ConnectionInfoProvider, userInfo: Use
       Failure(new Exception(msg))
     }
   }
+
+  override def groupIds = userGroups
+
   def infoProvider: ConnectionInfoProvider = _infoProvider
 }
 
 object Security {
   ///The default way to create a security connection from an access token
-  def create(token: String): Future[SecurityConnection] = Dataporten.createSecurityConnection(token, true)
+  def create(token: String): Future[SecurityConnection] = {
+    if (FakeSecurity.isFakeAccessToken(token))
+      FakeSecurity.createInMemoryFromFakeAccessToken(token, false) //Caching off because no speedup by caching the in-memory stuff!
+    else
+      Dataporten.createSecurityConnection(token, true)
+  }
 
   ///The default way to create a security connection from a Htpp request (containing a bearer token)
   // TODO: get the token from the request
   def create[T](request: Request[T]): Either[MusitError, Future[SecurityConnection]] = {
-    request.getBearerToken match  {
-      case Some(token) =>Right(Security.create(token))
+    request.getBearerToken match {
+      case Some(token) => Right(Security.create(token))
       case None => Left(MusitError(401, "No token in request"))
     }
   }
-
-
 
 
   //internal stuff, move to another object?

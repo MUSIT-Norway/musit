@@ -31,9 +31,7 @@ class CoreResource extends Controller with CoreService {
 
   def getSecurityGroupsForCurrentUser = Action.async { request =>
     Security.create(request) match {
-      case Right(futureConnection) => futureConnection.flatMap {
-        _.infoProvider.getUserGroupIds
-      }.map(groupsIds => Ok(Json.toJson(groupsIds)))
+      case Right(futureConnection) => futureConnection.map(conn=> Ok(Json.toJson(conn.groupIds)))
 
       case Left(error) => Future.successful(Unauthorized(Json.toJson(error)))
     }

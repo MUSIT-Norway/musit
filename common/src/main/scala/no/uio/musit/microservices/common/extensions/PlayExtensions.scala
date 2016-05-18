@@ -50,7 +50,9 @@ object PlayExtensions {
   class MusitAuthFailed(info: MusitHttpErrorInfo) extends MusitHttpError(info)
 
   // TODO: Use another exception class when the above todo-item has been done
-  def authFailed(msg: String) = throw new MusitAuthFailed(MusitHttpErrorInfo(None, 401, "", msg))
+  def newAuthFailed(msg: String) = new MusitAuthFailed(MusitHttpErrorInfo(None, 401, "", msg))
+
+  def throwAuthFailed(msg: String) = throw newAuthFailed(msg)
 
 
   implicit class RequestImp[T](val req: Request[T]) extends AnyVal {
