@@ -20,8 +20,7 @@ package no.uio.musit.microservice.musitThing.dao
 
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
-import play.api.{Logger, Play}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.Play
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
@@ -38,7 +37,7 @@ object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
   def all() : Future[Seq[MusitThing]] = db.run(MusitThingTable.result)
 
   def insert(musitThing: MusitThing): Future[MusitThing] = {
-    val insertQuery = (MusitThingTable returning MusitThingTable.map(_.id) into ((musitThing, id) => (musitThing.copy(id=id, links=Seq(LinkService.self(s"/v1/$id"))))))
+    val insertQuery = MusitThingTable returning MusitThingTable.map(_.id) into ((musitThing, id) => musitThing.copy(id=id, links=Seq(LinkService.self(s"/v1/$id"))))
     val action = insertQuery += musitThing
 
     db.run(action)
