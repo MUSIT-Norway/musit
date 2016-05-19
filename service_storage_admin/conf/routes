@@ -3,4 +3,4 @@
 # ~~~~
 
 # Setup endpoints
-GET     /v1/now                    no.uio.musit.microservice.storageAdmin.resource.StorageAdminResource.now(filter: Option[no.uio.musit.microservices.common.domain.MusitFilter], search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
+GET     /v1/now                    no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.now(filter: Option[no.uio.musit.microservices.common.domain.MusitFilter], search: Option[no.uio.musit.microservices.common.domain.MusitSearch])

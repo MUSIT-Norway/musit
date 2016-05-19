@@ -24,13 +24,33 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.Json
 
 
-case class StorageAdmin(id: Long, storageUnitName:String,storageType:String,links: Seq[Link]) extends BaseMusitDomain
+case class StorageUnit(id: Long, storageUnitName:String,storageType:String,links: Seq[Link]) extends BaseMusitDomain
 
-object StorageAdmin {
-  def tupled = (StorageAdmin.apply _).tupled
-  implicit val format = Json.format[StorageAdmin]
+object StorageUnit {
+  def tupled = (StorageUnit.apply _).tupled
+  implicit val format = Json.format[StorageUnit]
 }
 
+case class Room(id: Long, sikringSkallsikring :String, sikringTyverisikring: String,
+sikringBrannsikring:String, sikringVannskaderisiko:String, sikringRutineOgBeredskap:String,
+bevarLuftfuktOgTemp: String, bevarLysforhold: String, bevarPrevantKons: String,links: Seq[Link]) extends BaseMusitDomain
 
+object Room {
+  def tupled = (Room.apply _).tupled
+  implicit val format = Json.format[Room]
+}
 
+case class Building(id: Long , address: String, links: Seq[Link]) extends BaseMusitDomain
+
+object Building {
+  def tupled = (Building.apply _).tupled
+  implicit val format = Json.format[Building]
+}
+
+case class STORAGE_UNIT_LINK(id: Long,storage_unit_id: Long , relation: String, links: Seq[Link]) extends BaseMusitDomain
+
+object STORAGE_UNIT_LINK {
+  def tupled = (STORAGE_UNIT_LINK.apply _).tupled
+  implicit val format = Json.format[STORAGE_UNIT_LINK]
+}
 

@@ -29,7 +29,7 @@ import no.uio.musit.microservices.time.domain.MusitTime
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
-class StorageAdminIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
+class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   /*val timeout = PlayTestDefaults.timeout
 

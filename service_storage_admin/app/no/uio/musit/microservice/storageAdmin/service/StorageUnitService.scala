@@ -18,30 +18,29 @@
  */
 package no.uio.musit.microservice.storageAdmin.service
 
-import no.uio.musit.microservice.storageAdmin.domain.StorageAdmin
+import no.uio.musit.microservice.storageAdmin.domain.{StorageUnit,Room,Building}
 
 import scala.concurrent.Future
 
 
-trait StorageAdminService {
+trait StorageUnitService {
 
-  def getNodeListUnderID(id:Long):Future[Seq[StorageAdmin]] ={
+  def getNodeListUnderID(id:Long):Future[Seq[StorageUnit]] ={
     Future.successful(Seq.empty)
   }
-  /*def convertToNow(maybeFilter: Option[MusitFilter]): Either[MusitError, StorageAdmin] =
-    maybeFilter.map(f => resolveNow(f)).getOrElse(Right(fromDateTime(now)))
+}
 
-  def resolveNow(filter: MusitFilter): Either[MusitError, StorageAdmin] = filter match {
-    case MusitFilter(List("time")) => Right(StorageAdmin(time = Some(now.toLocalTime)))
-    case MusitFilter(List("date")) => Right(StorageAdmin(date = Some(now.toLocalDate)))
-    case MusitFilter(List("date","time")) => Right(fromDateTime(now))
-    case _ => Left(MusitError(message = "Only supports empty filter or filter on time, date or time and date"))
+trait RoomService {
+
+  def getNodeListUnderID(id:Long):Future[Seq[Room]] ={
+    Future.successful(Seq.empty)
   }
-  
-  def fromDateTime(dateTime: DateTime): StorageAdmin =
-    StorageAdmin(
-      date = Some(dateTime.toLocalDate),
-      time = Some(dateTime.toLocalTime)
-    )
-*/
+}
+
+
+trait BuildingService {
+
+  def getNodeListUnderID(id:Long):Future[Seq[Building]] ={
+    Future.successful(Seq.empty)
+  }
 }

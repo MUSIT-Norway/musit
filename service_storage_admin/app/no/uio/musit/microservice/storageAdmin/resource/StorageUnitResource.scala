@@ -19,27 +19,27 @@
 package no.uio.musit.microservice.storageAdmin.resource
 
 import io.swagger.annotations.ApiOperation
-import no.uio.musit.microservice.storageAdmin.dao.StorageAdminDao
-import no.uio.musit.microservice.storageAdmin.domain.StorageAdmin
-import no.uio.musit.microservice.storageAdmin.service.StorageAdminService
+import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
+import no.uio.musit.microservice.storageAdmin.domain.StorageUnit
+import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.domain.{MusitFilter, MusitSearch}
 import play.api.libs.json.{JsError, JsResult, JsSuccess, Json}
 import play.api.mvc._
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class StorageAdminResource extends Controller with StorageAdminService {
+class StorageUnitResource extends Controller with StorageUnitService {
 
-  @ApiOperation(value = "StorageAdmin operation - inserts an StorageAdminTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
+  @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def add = Action.async(BodyParsers.parse.json) { request =>
-    val storageAdminResult:JsResult[StorageAdmin] = request.body.validate[StorageAdmin]
-    storageAdminResult match {
-      case s:JsSuccess[StorageAdmin] => {
-        val storageAdmin = s.get
-        val newStorageAdminF = StorageAdminDao.insert(storageAdmin)
-        newStorageAdminF.map { newStorageAdmin =>
-          Created(Json.toJson(newStorageAdmin))
+    val storageUnitResult:JsResult[StorageUnit] = request.body.validate[StorageUnit]
+    storageUnitResult match {
+      case s:JsSuccess[StorageUnit] => {
+        val storageUnit = s.get
+        val newStorageUnitF = StorageUnitDao.insert(storageUnit)
+        newStorageUnitF.map { newStorageUnit =>
+          Created(Json.toJson(newStorageUnit))
         }
       }
       case e:JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))

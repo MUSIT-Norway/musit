@@ -9,7 +9,7 @@ import no.uio.musit.microservices.time.resource.TimeResource
 import no.uio.musit.microservices.time.domain.MusitTime
 
 @RunWith(classOf[JUnitRunner])
-class StorageAdminControllerSpec extends PlaySpecification {
+class StorageUnitControllerSpec extends PlaySpecification {
  /* "TimeController" should {
     "give date and time when provided a datetime filter" in {
       val futureResult = new TimeResource().now(Some(MusitFilter(List("date", "time"))), None).apply(FakeRequest())
