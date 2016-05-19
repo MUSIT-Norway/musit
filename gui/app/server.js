@@ -40,7 +40,7 @@ import getRoutes from './routes'
 
 import Passport from 'passport'
 import { Strategy as DataportenStrategy } from 'passport-dataporten'
-import { Strategy as JsonStrategy } from 'passport-json-custom'
+import { Strategy as BearerStrategy } from 'passport-http-bearer'
 import { connectUser } from './reducers/auth'
 import request from 'superagent'
 
@@ -68,27 +68,27 @@ var passportLoginType = null
 console.log(dataportenCallbackUrl)
 
 if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
-  // TODO:FAKEIT
-  console.log(' Installing strategy: LOCAL')
-  passportLoginType = 'json-custom'
+  console.log(' Installing strategy: LOCAL Bearer')
+  passportLoginType = 'bearer'
 
-  const findUser = (username) => {
+  const findToken = (token) => {
     const securityDatabase = require('./fake_security.json')
-    return securityDatabase.users.find((user) => user.userId == username)
+    return securityDatabase.users.find((user) => user.accessToken == token)
   }
 
-  const localCallback = (credentials, done) => {
-    var user = findUser(credentials.username)
+  const localCallback = (token, done) => {
+    var user = findToken(token)
     if (!user) {
-      done(null, false, { message: 'Incorrect username.' })
+      done(null, false, { message: 'Incorrect token.' })
     } else {
       done(null, user)
     }
   }
 
-  passportStrategy = new JsonStrategy(localCallback)
+  passportStrategy = new BearerStrategy(localCallback)
 } else {
   // TODO: Consider placing this initialization strategy into the config object
+  console.log(' Installing strategy: DATAPORTEN')
   passportLoginType = 'dataporten'
   const dpConfig = {
     clientID: config.dataportenClientID,
@@ -217,10 +217,7 @@ app.use('/musit', Passport.authenticate(passportLoginType, { failWithError: true
     })
   },
   (err, req, res, next) => {
-    res.status(400).json({
-      authenticated: req.isAuthenticated(),
-      err: err.message
-    })
+    res.redirect('/')
   }
 )
 

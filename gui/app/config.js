@@ -32,9 +32,9 @@ const FAKE_STRATEGY = 'dataporten-fake'
 
 module.exports = Object.assign({
   host: process.env.HOST || 'localhost',
-  port: process.env.PORT,
+  port: process.env.PORT || 8080,
   apiHost: process.env.APIHOST || 'localhost',
-  apiPort: process.env.APIPORT,
+  apiPort: process.env.APIPORT || 3030,
   dataportenClientID:  process.env.CLIENT_ID || '78bc59c0-023e-4a33-b5d2-321b865b68b2',
   dataportenClientSecret: process.env.CLIENT_SECRET || FAKE_STRATEGY,
   app: {
