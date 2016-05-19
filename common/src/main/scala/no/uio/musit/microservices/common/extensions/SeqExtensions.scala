@@ -21,8 +21,8 @@
 package no.uio.musit.microservices.common.extensions
 
 /**
-  * Created by jstabel on 4/12/16.
-  */
+ * Created by jstabel on 4/12/16.
+ */
 object SeqExtensions {
 
   implicit class SeqExtensionsImp[T](val seq: Seq[T]) extends AnyVal {

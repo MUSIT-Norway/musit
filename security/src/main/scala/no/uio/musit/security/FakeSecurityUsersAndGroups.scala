@@ -22,14 +22,13 @@ package no.uio.musit.security
 
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import play.api.Logger
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{ JsObject, Json }
 
 import scala.collection.mutable.ListBuffer
 
 /**
-  * Created by jstabel on 4/22/16.
-  */
-
+ * Created by jstabel on 4/22/16.
+ */
 
 object FakeSecurityUsersAndGroups {
   val users = new ListBuffer[UserInfo]
@@ -64,7 +63,6 @@ object FakeSecurityUsersAndGroups {
   def groupsIdsForUserId(userId: String) = groupsForUserMap(userId)
 
   def groupsForUserId(userId: String) = groupsIdsForUserId(userId) map (groupId => findGroup(groupId).getOrThrow(s"Undefined groupId: $groupId"))
-
 
   def fetchConfig = {
 

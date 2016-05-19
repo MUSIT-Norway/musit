@@ -22,21 +22,20 @@ package no.uio.musit.microservices.common.extensions
 
 import java.net.URI
 
-import play.api.libs.ws.{WSRequest, WSResponse}
+import play.api.libs.ws.{ WSRequest, WSResponse }
 import play.api.mvc.Request
 import play.api.mvc.Results._
 
 //import play.mvc.results._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 
 //Not sure about whether it is a good practice to use this
 
 /**
-  * Created by jstabel on 4/15/16.
-  */
-
+ * Created by jstabel on 4/15/16.
+ */
 
 object PlayExtensions {
 
@@ -54,18 +53,16 @@ object PlayExtensions {
 
   def throwAuthFailed(msg: String) = throw newAuthFailed(msg)
 
-
   implicit class RequestImp[T](val req: Request[T]) extends AnyVal {
 
     ///Gets the value of the Bearer token in the Authorization header, if any.
     def getBearerToken: Option[String] = {
-      val authHeader =req.headers.getAll("Authorization")
+      val authHeader = req.headers.getAll("Authorization")
       val res = authHeader.find(s => s.startsWith("Bearer ")) //We include the space because we don't want to get anything "accidentally" starting with the letters "Bearer"
-        res.map(b => b.substring("Bearer ".length)) //Remove the "Bearer " start of the string
+      res.map(b => b.substring("Bearer ".length)) //Remove the "Bearer " start of the string
         .map(_.trim) //Probably not necessary to trim the rest, but it may be convenient if the sender has accidentally sent in blanks
     }
   }
-
 
   implicit class WSRequestImp(val wsr: WSRequest) extends AnyVal {
     def withBearerToken(token: String) = {
@@ -96,8 +93,7 @@ object PlayExtensions {
       respF.flatMap { resp: WSResponse =>
         if (resp.status < 200 || resp.status >= 300) {
           Future.failed(translateStatusToException(resp))
-        }
-        else
+        } else
           Future.successful(resp)
       }
     }

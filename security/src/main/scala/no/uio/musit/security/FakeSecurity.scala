@@ -27,10 +27,8 @@ import no.uio.musit.microservices.common.extensions.PlayExtensions
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
 /**
-  * Created by jstabel on 4/15/16.
-  */
-
-
+ * Created by jstabel on 4/15/16.
+ */
 
 class FakeSecurityInMemoryInfoProvider(userId: String) extends ConnectionInfoProvider {
   val userInfo = Future(FakeSecurityUsersAndGroups.findUser(userId).getOrThrow(s"Unable to find user with Id: $userId"))
@@ -42,7 +40,7 @@ class FakeSecurityInMemoryInfoProvider(userId: String) extends ConnectionInfoPro
 
 class FakeSecurityHardcodedInfoProvider(userName: String, groupIds: Seq[String]) extends ConnectionInfoProvider {
   val userInfo = new UserInfo(userName, userName)
-  val userGroups = groupIds.map(id=> new GroupInfo("ad hoc in memory", id, id, Some("Fake description.")))
+  val userGroups = groupIds.map(id => new GroupInfo("ad hoc in memory", id, id, Some("Fake description.")))
 
   def getUserInfo = Future(userInfo)
   def getUserGroups = Future(userGroups)
@@ -64,11 +62,10 @@ object FakeSecurity {
   def isFakeAccessToken(token: String) = token.startsWith(fakeAccessTokenPrefix)
 
   def createInMemoryFromFakeAccessToken(token: String, useCache: Boolean) = {
-    if(isFakeAccessToken(token)) {
+    if (isFakeAccessToken(token)) {
       val userId = token.substring(fakeAccessTokenPrefix.length)
       createInMemory(userId, useCache)
-    }
-    else
+    } else
       Future.failed(PlayExtensions.newAuthFailed("Not a valid f access token."))
   }
 }
