@@ -42,6 +42,7 @@ import Passport from 'passport'
 import { Strategy as DataportenStrategy } from 'passport-dataporten'
 import { Strategy as JsonStrategy } from 'passport-json-custom'
 import { connectUser } from './reducers/auth'
+import request from 'superagent'
 
 
 const targetUrl = 'http://' + config.apiHost + ':' + config.apiPort
@@ -175,32 +176,43 @@ app.use('/musit', Passport.authenticate(passportLoginType, { failWithError: true
     const client = new ApiClient(req)
     const virtualBrowserHistory = createHistory(req.originalUrl)
 
-    const store = createStore(client, { auth: { user: req.user } })
-
-    const history = syncHistoryWithStore(virtualBrowserHistory, store)
-
-    if (__DISABLE_SSR__) {
-      renderApplication(req, res, store, 200);
-      return
-    }
-
-    match({ history, routes: getRoutes(store), location: req.originalUrl }, (error, redirectLocation, renderProps) => {
-      if (redirectLocation) {
-        res.redirect(redirectLocation.pathname + redirectLocation.search)
-      } else if (error) {
-        console.error('ROUTER ERROR:', pretty.render(error));
-        renderApplication(req, res, store, 500);
-      } else if (renderProps) {
-        loadOnServer({ ...renderProps, store, helpers: { client } }).then(() => {
-          let component = (
-            <Provider store={store} key="provider">
-              <ReduxAsyncConnect {...renderProps} />
-            </Provider>
-          );
-          renderApplication(req, res, store, 200, component);
-        })
+    request.get(`${targetUrl}/api/core/v1/my-groups`).accept('application/json').set('Authorization', `Bearer ${req.user.accessToken}`).end((saErr, saRes) => {
+      if (saErr) {
+        res.status(401).send(saRes.body)
       } else {
-        res.status(404).send('Not found')
+        const store = createStore(client, {
+          auth: {
+            user: req.user,
+            groups: saRes.body
+          }
+        })
+
+        const history = syncHistoryWithStore(virtualBrowserHistory, store)
+
+        if (__DISABLE_SSR__) {
+          renderApplication(req, res, store, 200);
+          return
+        }
+
+        match({ history, routes: getRoutes(store), location: req.originalUrl }, (error, redirectLocation, renderProps) => {
+          if (redirectLocation) {
+            res.redirect(redirectLocation.pathname + redirectLocation.search)
+          } else if (error) {
+            console.error('ROUTER ERROR:', pretty.render(error));
+            renderApplication(req, res, store, 500);
+          } else if (renderProps) {
+            loadOnServer({ ...renderProps, store, helpers: { client } }).then(() => {
+              let component = (
+                <Provider store={store} key="provider">
+                  <ReduxAsyncConnect {...renderProps} />
+                </Provider>
+              );
+              renderApplication(req, res, store, 200, component);
+            })
+          } else {
+            res.status(404).send('Not found')
+          }
+        })
       }
     })
   },
@@ -210,7 +222,7 @@ app.use('/musit', Passport.authenticate(passportLoginType, { failWithError: true
       err: err.message
     })
   }
-);
+)
 
 if (config.port) {
   server.listen(config.port, (err) => {
