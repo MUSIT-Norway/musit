@@ -17,56 +17,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
  
-import React, { Component, PropTypes, bindActionCreators } from 'react'
-import { connect } from 'react-redux'
-import { I18n, Translate } from 'react-i18nify'
-import marked from 'react-marked'
-
-marked.setOptions({
-  renderer: new marked.Renderer(),
-  gfm: true,
-  tables: true,
-  breaks: true,
-  pedantic: false,
-  sanitize: true,
-  smartLists: false,
-  smartypants: false
-});
+import LanguageComponent from './LanguageComponent';
+import { connect } from 'react-redux';
 
 const mapStateToProps = (state) => {
     return {
         language: state.language
     }
-}
+};
 
 @connect(mapStateToProps)
-export default class Language extends Component {
-    static propTypes = {
-      language: PropTypes.object
-    }
-
-    static contextTypes = {
-      store: PropTypes.object.isRequired
-    }
-
-	render () {
-		const { language, value, markdown } = this.props
-        I18n.loadTranslations(language.data)
-        I18n.setLocale("no")
-
-        var text = I18n.t(value)
-        if (markdown && text) {
-          try {
-            const tmp = marked(text)
-            text = tmp[0]
-
-          } catch (err) {
-            //console.log(err)
-          }
-        }
-
-		return (
-			<div>{text}</div>
-    	)
-	}
-}
+export default class Language extends LanguageComponent {}

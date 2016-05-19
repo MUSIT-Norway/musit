@@ -31,17 +31,17 @@ import Html from './helpers/html'
 import PrettyError from 'pretty-error'
 import http from 'http'
 
-import { match } from 'react-router'
-import { ReduxAsyncConnect, loadOnServer } from 'redux-async-connect'
+import {match} from 'react-router'
+import {ReduxAsyncConnect, loadOnServer} from 'redux-async-connect'
 import createHistory from 'react-router/lib/createMemoryHistory'
-import { syncHistoryWithStore } from 'react-router-redux'
+import {syncHistoryWithStore} from 'react-router-redux'
 import {Provider} from 'react-redux'
 import getRoutes from './routes'
 
 import Passport from 'passport'
 import {Strategy as DataportenStrategy} from 'passport-dataporten'
 import {Strategy as JsonStrategy} from 'passport-json-custom'
-import { connectUser } from './reducers/auth'
+import {connectUser} from './reducers/auth'
 
 
 const targetUrl = 'http://' + config.apiHost + ':' + config.apiPort
@@ -73,19 +73,19 @@ if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
 
   const findUser = (username) => {
     const securityDatabase = require('./fake_security.json')
-    return securityDatabase.users.find( (user) => user.userId == username)
+    return securityDatabase.users.find((user) => user.userId == username)
   }
 
   const localCallback = (credentials, done) => {
     var user = findUser(credentials.username)
     if (!user) {
-      done(null, false, { message: 'Incorrect username.' })
+      done(null, false, {message: 'Incorrect username.'})
     } else {
       done(null, user)
     }
   }
 
-  passportStrategy = new JsonStrategy( localCallback )
+  passportStrategy = new JsonStrategy(localCallback)
 } else {
   // TODO: Consider placing this initialization strategy into the config object
   passportLoginType = 'dataporten'
@@ -153,71 +153,56 @@ proxy.on('error', (error, req, res) => {
   res.end(JSON.stringify(json))
 })
 
+const renderApplication = (req, res, store, status, component) => {
+  global.navigator = {userAgent: req.headers['user-agent']};
+  res.status(status).send('<!doctype html>\n' +
+    ReactDOM.renderToString(<Html assets={webpackIsomorphicTools.assets()} component={component} store={store}/>))
+};
+
 app.get('/', (req, res) => {
-
-  if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
-    const securityDatabase = require('./fake_security.json')
-    securityDatabase.users.map( (user) => {
-      console.log(`<a href="#" onClick="">Login ${user.name}</a>`)
-    })
-    res.status(200).send('<!doctype html>\n<html>\n<body>\n<a href="/musit">Login (må fikses for fake post)</a>\n</body>\n</html>\n')
-  } else {
-    res.status(200).send('<!doctype html>\n<html>\n<body>\n<a href="/musit">Login</a>\n</body>\n</html>\n')
-  }
-
-})
+  const client = new ApiClient(req);
+  const store = createStore(client);
+  renderApplication(req, res, store, 200);
+});
 
 app.use('/musit', Passport.authenticate(passportLoginType, {failWithError: true}),
   (req, res) => {
-      if (__DEVELOPMENT__) {
-        // Do not cache webpack stats: the script file would change since
-        // hot module replacement is enabled in the development env
-        webpackIsomorphicTools.refresh()
+    if (__DEVELOPMENT__) {
+      // Do not cache webpack stats: the script file would change since
+      // hot module replacement is enabled in the development env
+      webpackIsomorphicTools.refresh()
+    }
+    const client = new ApiClient(req)
+    const virtualBrowserHistory = createHistory(req.originalUrl)
+
+    const store = createStore(client, {auth: {user: req.user}})
+
+    const history = syncHistoryWithStore(virtualBrowserHistory, store)
+
+    if (__DISABLE_SSR__) {
+      renderApplication(req, res, store, 200);
+      return
+    }
+
+    match({history, routes: getRoutes(store), location: req.originalUrl}, (error, redirectLocation, renderProps) => {
+      if (redirectLocation) {
+        res.redirect(redirectLocation.pathname + redirectLocation.search)
+      } else if (error) {
+        console.error('ROUTER ERROR:', pretty.render(error));
+        renderApplication(req, res, store, 500);
+      } else if (renderProps) {
+        loadOnServer({...renderProps, store, helpers: {client}}).then(() => {
+          let component = (
+            <Provider store={store} key="provider">
+              <ReduxAsyncConnect {...renderProps} />
+            </Provider>
+          );
+          renderApplication(req, res, store, 200, component);
+        })
+      } else {
+        res.status(404).send('Not found')
       }
-      const client = new ApiClient(req)
-      const virtualBrowserHistory = createHistory(req.originalUrl)
-
-      const store = createStore(client, {auth: {user: req.user}})
-
-      const history = syncHistoryWithStore(virtualBrowserHistory, store)
-      function hydrateOnClient() {
-        res.send('<!doctype html>\n' +
-          ReactDOM.renderToString(<Html assets={webpackIsomorphicTools.assets()} store={store}/>))
-      }
-
-      if (__DISABLE_SSR__) {
-        hydrateOnClient()
-        return
-      }
-
-      //store.dispatch(connectUser(req.user))
-
-      match({ history, routes: getRoutes(store), location: req.originalUrl }, (error, redirectLocation, renderProps) => {
-        if (redirectLocation) {
-          res.redirect(redirectLocation.pathname + redirectLocation.search)
-        } else if (error) {
-          console.error('ROUTER ERROR:', pretty.render(error))
-          res.status(500)
-          hydrateOnClient()
-        } else if (renderProps) {
-          loadOnServer({...renderProps, store, helpers: {client}}).then(() => {
-            const component = (
-              <Provider store={store} key="provider">
-                <ReduxAsyncConnect {...renderProps} />
-              </Provider>
-            )
-
-            res.status(200)
-
-            global.navigator = {userAgent: req.headers['user-agent']}
-
-            res.send('<!doctype html>\n' +
-              ReactDOM.renderToString(<Html assets={webpackIsomorphicTools.assets()} component={component} store={store}/>))
-          })
-        } else {
-          res.status(404).send('Not found')
-        }
-      })
+    })
   },
   (err, req, res, next) => {
     res.status(400).json({
@@ -225,7 +210,7 @@ app.use('/musit', Passport.authenticate(passportLoginType, {failWithError: true}
       err: err.message
     })
   }
-)
+);
 
 if (config.port) {
   server.listen(config.port, (err) => {

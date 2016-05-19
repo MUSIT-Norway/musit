@@ -18,7 +18,7 @@
  */
 
 import React from 'react'
-import { IndexRoute, Route } from 'react-router'
+import { IndexRedirect, IndexRoute, Route } from 'react-router'
 import NotFound from './components/NotFound'
 import WelcomeView from './containers/welcome-view'
 import WelcomeUserView from './containers/welcome-user'
@@ -26,36 +26,37 @@ import App from './containers/app'
 
 export default (store) => {
   const requireLogin = (nextState, replace, cb) => {
-    function checkAuth() {
-      const { auth: { user } } = store.getState()
-      if (!user) {
-        // oops, not logged in, so can't be here!
-        replace('/')
-      }
-      cb()
+    const { auth: { user } } = store.getState();
+    if (!user) {
+      replace('/');
     }
+    cb();
+  };
 
-    checkAuth()
+  const redirectIfLoggedIn = (nextState, replace, cb) => {
+    const { auth: { user } } = store.getState();
+    if (user) {
+      replace('/musit');
+    }
+    cb();
   };
 
   /**
    * Please keep routes in alphabetical order
    */
   return (
-    <Route path="/musit" component={App}>
-        <IndexRoute component={WelcomeView} />
+    <Route component={App}>
+        <IndexRedirect to="/" />
+
+        <Route path="/" component={WelcomeView} onEnter={redirectIfLoggedIn} />
 
         -- Authentication routes
-        <Route onEnter={requireLogin}>
-          <Route path="welcomeUser" component={WelcomeUserView} />
+        <Route path="/musit" onEnter={requireLogin}>
+          <IndexRoute component={WelcomeUserView} />
         </Route>
 
-        -- Routes
-
-
-
         -- Catch all route
-        <Route path="/musit/*" component={NotFound} status={404} />
+        <Route path="/*" component={NotFound} status={404} />
     </Route>
   );
 };
