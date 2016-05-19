@@ -20,11 +20,10 @@
 import LanguageComponent from './LanguageComponent';
 import { connect } from 'react-redux';
 
-const mapStateToProps = (state) => {
-  return {
-    language: state.language
-  }
-};
+const mapStateToProps = (state) => ({
+  language: state.language
+});
 
 @connect(mapStateToProps)
-export default class Language extends LanguageComponent {}
+export default class Language extends LanguageComponent {
+}

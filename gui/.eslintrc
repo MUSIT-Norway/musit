@@ -16,7 +16,9 @@
     "indent": [2, 2, {"SwitchCase": 1}],
     "no-console": 0,
     "no-alert": 0,
-    "semi": 0
+    "semi": 0,
+    "max-len": [2, { "code": 130 }],
+    "arrow-body-style": 1
   },
   "plugins": [
     "react",

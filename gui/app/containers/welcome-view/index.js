@@ -17,18 +17,18 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import WelcomeContainer from './WelcomeContainer';
 import Language from '../../components/language'
 
-const mapStateToProps = (state) => {
-  return {
+const mapStateToProps = (state) =>
+  ({
     user: state.auth.user,
     translate: (key, markdown) => <Language value={key} markdown={markdown} />
-  }
-};
+  });
 
 @connect(mapStateToProps)
-export default class Welcome extends WelcomeContainer {}
+export default class Welcome extends WelcomeContainer {
+}
 

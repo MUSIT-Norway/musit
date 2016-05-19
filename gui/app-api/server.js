@@ -29,21 +29,21 @@ app.use(session({
 }))
 
 /*
-app.use('/login', Passport.authenticate(passportLoginType, {failWithError: true}),
-  (req, res) => {
-    res.status(200).json({
-      authenticated: req.isAuthenticated(),
-      user: req.user
-    })
-  },
-  (err, req, res, next) => {
-    res.status(400).json({
-      authenticated: req.isAuthenticated(),
-      err: err.message
-    })
-  }
-)
-*/
+ app.use('/login', Passport.authenticate(passportLoginType, {failWithError: true}),
+ (req, res) => {
+ res.status(200).json({
+ authenticated: req.isAuthenticated(),
+ user: req.user
+ })
+ },
+ (err, req, res, next) => {
+ res.status(400).json({
+ authenticated: req.isAuthenticated(),
+ err: err.message
+ })
+ }
+ )
+ */
 
 app.use((req, res) => {
   console.log('request')

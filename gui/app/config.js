@@ -35,7 +35,7 @@ module.exports = Object.assign({
   port: process.env.PORT,
   apiHost: process.env.APIHOST || 'localhost',
   apiPort: process.env.APIPORT,
-  dataportenClientID:  process.env.CLIENT_ID || '78bc59c0-023e-4a33-b5d2-321b865b68b2',
+  dataportenClientID: process.env.CLIENT_ID || '78bc59c0-023e-4a33-b5d2-321b865b68b2',
   dataportenClientSecret: process.env.CLIENT_SECRET || FAKE_STRATEGY,
   app: {
     title: 'MUSIT',

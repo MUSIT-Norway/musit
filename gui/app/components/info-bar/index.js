@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 import { load } from '../../reducers/info';
 
 @connect(
-    state => ({ info: state.info.data }),
-    dispatch => bindActionCreators({ load }, dispatch))
+  state => ({ info: state.info.data }),
+  dispatch => bindActionCreators({ load }, dispatch))
 export default class InfoBar extends Component {
   static propTypes = {
     info: PropTypes.object,
@@ -16,7 +16,7 @@ export default class InfoBar extends Component {
     const { info, load } = this.props; // eslint-disable-line no-shadow
     const styles = require('./index.scss');
     return (
-      <div className={styles.infoBar + ' well'}>
+      <div className={ styles.infoBar + ' well'}>
         <div className="container">
           This is an info bar
           {' '}

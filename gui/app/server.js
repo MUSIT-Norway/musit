@@ -41,10 +41,8 @@ import getRoutes from './routes'
 import Passport from 'passport'
 import { Strategy as DataportenStrategy } from 'passport-dataporten'
 import { Strategy as JsonStrategy } from 'passport-json-custom'
-import { connectUser } from './reducers/auth'
 
-
-const targetUrl = 'http://' + config.apiHost + ':' + config.apiPort
+const targetUrl = `http://${config.apiHost}:${config.apiPort}`
 const pretty = new PrettyError()
 const app = new Express()
 const server = new http.Server(app)
@@ -59,11 +57,9 @@ app.use(favicon(path.join(__dirname, '..', 'static', 'favicons', 'unimusfavicon.
 app.use(Express.static(path.join(__dirname, '..', 'static')))
 
 /* *** START Security *** */
-const dataportenUri = '/auth/dataporten'
-const dataportenCallbackUri = '/auth/dataporten/callback'
 const dataportenCallbackUrl = `http://${config.host}:8080/musit`
-var passportStrategy = null
-var passportLoginType = null
+let passportStrategy = null
+let passportLoginType = null
 console.log(dataportenCallbackUrl)
 
 if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
@@ -77,7 +73,7 @@ if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
   }
 
   const localCallback = (credentials, done) => {
-    var user = findUser(credentials.username)
+    const user = findUser(credentials.username)
     if (!user) {
       done(null, false, { message: 'Incorrect username.' })
     } else {
@@ -141,7 +137,7 @@ server.on('upgrade', (req, socket, head) => {
 
 // added the error handling to avoid https://github.com/nodejitsu/node-http-proxy/issues/527
 proxy.on('error', (error, req, res) => {
-  let json
+
   if (error.code !== 'ECONNRESET') {
     console.error('proxy error', error)
   }
@@ -149,7 +145,7 @@ proxy.on('error', (error, req, res) => {
     res.writeHead(500, { 'content-type': 'application/json' })
   }
 
-  json = { error: 'proxy_error', reason: error.message }
+  const json = { error: 'proxy_error', reason: error.message }
   res.end(JSON.stringify(json))
 })
 

@@ -56,10 +56,10 @@ class App extends Component {
 
   handleLogout = (event) => {
     event.preventDefault()
-     // this.props.dispatch(this.props.logout())
+    // this.props.dispatch(this.props.logout())
   }
 
-  handleFakeLogin= (event) => {
+  handleFakeLogin = (event) => {
     event.preventDefault()
     // this.props.dispatch(this.props.login('fake'))
   }
@@ -70,7 +70,7 @@ class App extends Component {
     const rootPath = user ? '/musit/' : '/'
 
     return (
-     <div className={styles.app}>
+      <div className={styles.app}>
 
 
         <Helmet {...config.app.head} />
@@ -78,7 +78,8 @@ class App extends Component {
           <Navbar.Header>
             <Navbar.Brand>
               <IndexLink to={rootPath} activeStyle={{ color: '#33e0ff' }}>
-                <div className={styles.brand}><img height="40" src="favicons/unimus_transparent100x100.png" /></div><span>{config.app.title}</span>
+                <div className={styles.brand}><img height="40" src="favicons/unimus_transparent100x100.png" /></div>
+                <span>{config.app.title}</span>
               </IndexLink>
             </Navbar.Brand>
             <Navbar.Toggle />
@@ -87,37 +88,37 @@ class App extends Component {
           <Navbar.Collapse eventKey={0}>
             <Nav navbar>
               {user &&
-                  <LinkContainer to="/musit/chat">
-                    <NavItem eventKey={1}>Chat</NavItem>
-                  </LinkContainer>
+              <LinkContainer to="/musit/chat">
+                <NavItem eventKey={1}>Chat</NavItem>
+              </LinkContainer>
               }
               {user &&
-                  <LinkContainer to="/musit/widgets">
-                    <NavItem eventKey={2}>Widgets</NavItem>
-                  </LinkContainer>
+              <LinkContainer to="/musit/widgets">
+                <NavItem eventKey={2}>Widgets</NavItem>
+              </LinkContainer>
               }
               {user &&
-                  <LinkContainer to="/musit/magasin">
-                  <NavItem eventKey={3}>Magasin</NavItem>
-                  </LinkContainer>
+              <LinkContainer to="/musit/magasin">
+                <NavItem eventKey={3}>Magasin</NavItem>
+              </LinkContainer>
               }
-             {user &&
-                  <LinkContainer to="/musit/survey">
-                    <NavItem eventKey={4}>Survey</NavItem>
-                  </LinkContainer>
+              {user &&
+              <LinkContainer to="/musit/survey">
+                <NavItem eventKey={4}>Survey</NavItem>
+              </LinkContainer>
               }
               <LinkContainer to="/musit/about">
                 <NavItem eventKey={5}>About Us</NavItem>
               </LinkContainer>
               {user &&
-                  <LinkContainer to="/musit/logout">
-                    <NavItem eventKey={6} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
-                  </LinkContainer>
+              <LinkContainer to="/musit/logout">
+                <NavItem eventKey={6} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
+              </LinkContainer>
               }
               {!user &&
-                  <LinkContainer to="/musit/">
-                    <NavItem onClick={this.handleFakeLogin} eventKey={7}>Login</NavItem>
-                  </LinkContainer>
+              <LinkContainer to="/musit/">
+                <NavItem onClick={this.handleFakeLogin} eventKey={7}>Login</NavItem>
+              </LinkContainer>
               }
             </Nav>
             {user &&
@@ -131,19 +132,19 @@ class App extends Component {
         </Navbar>
 
 
-
         <div className={styles.appContent}>
-            {this.props.children}
+          {this.props.children}
         </div>
 
 
-       {null && <InfoBar />}
+        {null && <InfoBar />}
 
         <div className="well text-center">
           Have questions? Ask for help <a
             href="https://github.com/MUSIT-Norway/musit/issues"
             target="_blank"
-    >on Github</a>
+    >on Github
+        </a>
         </div>
       </div>
     );
