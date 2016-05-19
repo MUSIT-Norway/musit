@@ -16,14 +16,14 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
+
 import LanguageComponent from './LanguageComponent';
 import { connect } from 'react-redux';
 
 const mapStateToProps = (state) => {
-    return {
-        language: state.language
-    }
+  return {
+    language: state.language
+  }
 };
 
 @connect(mapStateToProps)

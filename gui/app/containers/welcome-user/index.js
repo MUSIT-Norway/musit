@@ -18,7 +18,7 @@
  */
 
 import React, { Component, PropTypes } from 'react'
-import {  Panel, Grid, Row, Col } from 'react-bootstrap'
+import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { Link } from 'react-router'
 import Language from '../../components/language'
@@ -32,14 +32,14 @@ export default class WelcomeUser extends Component {
                 <Grid>
                     <Row styleClass="row-centered">
                         <Col xs={10} md={10}>
-                            <br/>
+                            <br />
                                 <Panel>
-                                    <Language value="musit.welcomeUserPage.body" markdown={true} />
+                                    <Language value="musit.welcomeUserPage.body" markdown />
                                 </Panel>
                         </Col>
                     </Row>
                 </Grid>
                 </div>
     	);
-    }
+  }
 }

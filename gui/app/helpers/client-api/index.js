@@ -55,7 +55,7 @@ class _ApiClient {
         }
 
         if (this.accessToken.length > 0) {
-          request.set('Authorization', 'Bearer '+this.accessToken)
+          request.set('Authorization', 'Bearer ' + this.accessToken)
         }
 
         if (__SERVER__ && req.get('cookie')) {

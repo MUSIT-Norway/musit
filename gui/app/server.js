@@ -31,17 +31,17 @@ import Html from './helpers/html'
 import PrettyError from 'pretty-error'
 import http from 'http'
 
-import {match} from 'react-router'
-import {ReduxAsyncConnect, loadOnServer} from 'redux-async-connect'
+import { match } from 'react-router'
+import { ReduxAsyncConnect, loadOnServer } from 'redux-async-connect'
 import createHistory from 'react-router/lib/createMemoryHistory'
-import {syncHistoryWithStore} from 'react-router-redux'
-import {Provider} from 'react-redux'
+import { syncHistoryWithStore } from 'react-router-redux'
+import { Provider } from 'react-redux'
 import getRoutes from './routes'
 
 import Passport from 'passport'
-import {Strategy as DataportenStrategy} from 'passport-dataporten'
-import {Strategy as JsonStrategy} from 'passport-json-custom'
-import {connectUser} from './reducers/auth'
+import { Strategy as DataportenStrategy } from 'passport-dataporten'
+import { Strategy as JsonStrategy } from 'passport-json-custom'
+import { connectUser } from './reducers/auth'
 
 
 const targetUrl = 'http://' + config.apiHost + ':' + config.apiPort
@@ -79,7 +79,7 @@ if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
   const localCallback = (credentials, done) => {
     var user = findUser(credentials.username)
     if (!user) {
-      done(null, false, {message: 'Incorrect username.'})
+      done(null, false, { message: 'Incorrect username.' })
     } else {
       done(null, user)
     }
@@ -96,7 +96,7 @@ if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
   }
 
   const dpCallback = (accessToken, refreshToken, profile, done) => {
-    //load user and return done with the user in it.
+    // load user and return done with the user in it.
 
     // TODO: Add user info to redux state
     return done(null, {
@@ -127,12 +127,12 @@ app.use(Passport.initialize())
 
 // Proxy to API server
 app.use('/api', (req, res) => {
-  proxy.web(req, res, {target: targetUrl})
+  proxy.web(req, res, { target: targetUrl })
 
 })
 
 app.use('/ws', (req, res) => {
-  proxy.web(req, res, {target: targetUrl + '/ws'})
+  proxy.web(req, res, { target: targetUrl + '/ws' })
 })
 
 server.on('upgrade', (req, socket, head) => {
@@ -146,17 +146,17 @@ proxy.on('error', (error, req, res) => {
     console.error('proxy error', error)
   }
   if (!res.headersSent) {
-    res.writeHead(500, {'content-type': 'application/json'})
+    res.writeHead(500, { 'content-type': 'application/json' })
   }
 
-  json = {error: 'proxy_error', reason: error.message}
+  json = { error: 'proxy_error', reason: error.message }
   res.end(JSON.stringify(json))
 })
 
 const renderApplication = (req, res, store, status, component) => {
-  global.navigator = {userAgent: req.headers['user-agent']};
+  global.navigator = { userAgent: req.headers['user-agent'] };
   res.status(status).send('<!doctype html>\n' +
-    ReactDOM.renderToString(<Html assets={webpackIsomorphicTools.assets()} component={component} store={store}/>))
+    ReactDOM.renderToString(<Html assets={webpackIsomorphicTools.assets()} component={component} store={store} />))
 };
 
 app.get('/', (req, res) => {
@@ -165,7 +165,7 @@ app.get('/', (req, res) => {
   renderApplication(req, res, store, 200);
 });
 
-app.use('/musit', Passport.authenticate(passportLoginType, {failWithError: true}),
+app.use('/musit', Passport.authenticate(passportLoginType, { failWithError: true }),
   (req, res) => {
     if (__DEVELOPMENT__) {
       // Do not cache webpack stats: the script file would change since
@@ -175,7 +175,7 @@ app.use('/musit', Passport.authenticate(passportLoginType, {failWithError: true}
     const client = new ApiClient(req)
     const virtualBrowserHistory = createHistory(req.originalUrl)
 
-    const store = createStore(client, {auth: {user: req.user}})
+    const store = createStore(client, { auth: { user: req.user } })
 
     const history = syncHistoryWithStore(virtualBrowserHistory, store)
 
@@ -184,14 +184,14 @@ app.use('/musit', Passport.authenticate(passportLoginType, {failWithError: true}
       return
     }
 
-    match({history, routes: getRoutes(store), location: req.originalUrl}, (error, redirectLocation, renderProps) => {
+    match({ history, routes: getRoutes(store), location: req.originalUrl }, (error, redirectLocation, renderProps) => {
       if (redirectLocation) {
         res.redirect(redirectLocation.pathname + redirectLocation.search)
       } else if (error) {
         console.error('ROUTER ERROR:', pretty.render(error));
         renderApplication(req, res, store, 500);
       } else if (renderProps) {
-        loadOnServer({...renderProps, store, helpers: {client}}).then(() => {
+        loadOnServer({ ...renderProps, store, helpers: { client } }).then(() => {
           let component = (
             <Provider store={store} key="provider">
               <ReduxAsyncConnect {...renderProps} />

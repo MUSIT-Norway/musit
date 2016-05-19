@@ -23,10 +23,10 @@ export default class Language extends Component {
     store: PropTypes.object.isRequired
   }
 
-  render () {
+  render() {
     const { language, value, markdown } = this.props
     I18n.loadTranslations(language.data)
-    I18n.setLocale("no")
+    I18n.setLocale('no')
 
     var text = I18n.t(value)
     if (markdown && text) {
@@ -35,7 +35,7 @@ export default class Language extends Component {
         text = tmp[0]
 
       } catch (err) {
-        //console.log(err)
+        // console.log(err)
       }
     }
 

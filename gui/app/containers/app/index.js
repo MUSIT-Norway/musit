@@ -19,15 +19,15 @@ const mapStateToProps = (state) => {
 }
 
 @asyncConnect([{
-  promise: ({store: {dispatch, getState}}) => {
+  promise: ({ store: { dispatch, getState } }) => {
     const promises = [];
 
     if (!isInfoLoaded(getState())) {
       promises.push(dispatch(loadInfo()));
     }
     if (!isLanguageLoaded(getState())) {
-          promises.push(dispatch(loadLanguage()));
-        }
+      promises.push(dispatch(loadLanguage()));
+    }
     return Promise.all(promises);
   }
 }])
@@ -56,32 +56,32 @@ class App extends Component {
 
   handleLogout = (event) => {
     event.preventDefault()
-     //this.props.dispatch(this.props.logout())
+     // this.props.dispatch(this.props.logout())
   }
 
   handleFakeLogin= (event) => {
     event.preventDefault()
-    //this.props.dispatch(this.props.login('fake'))
+    // this.props.dispatch(this.props.login('fake'))
   }
 
   render() {
-    const {user} = this.props;
+    const { user } = this.props;
     const styles = require('./index.scss');
-    const rootPath = user?'/musit/':'/'
+    const rootPath = user ? '/musit/' : '/'
 
     return (
      <div className={styles.app}>
 
 
-        <Helmet {...config.app.head}/>
+        <Helmet {...config.app.head} />
         <Navbar fixedTop>
           <Navbar.Header>
             <Navbar.Brand>
-              <IndexLink to={rootPath} activeStyle={{color: '#33e0ff'}}>
+              <IndexLink to={rootPath} activeStyle={{ color: '#33e0ff' }}>
                 <div className={styles.brand}><img height="40" src="favicons/unimus_transparent100x100.png" /></div><span>{config.app.title}</span>
               </IndexLink>
             </Navbar.Brand>
-            <Navbar.Toggle/>
+            <Navbar.Toggle />
           </Navbar.Header>
 
           <Navbar.Collapse eventKey={0}>
@@ -124,7 +124,7 @@ class App extends Component {
             <p className={styles.loggedInMessage + ' navbar-text'}>Logged in as <strong>{user.name}</strong>.</p>}
             <Nav navbar pullRight>
               <NavItem eventKey={1} target="_blank" title="View on Github" href="https://github.com/MUSIT-Norway/musit">
-                <i className="fa fa-github"/>
+                <i className="fa fa-github" />
               </NavItem>
             </Nav>
           </Navbar.Collapse>
@@ -137,12 +137,13 @@ class App extends Component {
         </div>
 
 
-       {null && <InfoBar/>}
+       {null && <InfoBar />}
 
         <div className="well text-center">
           Have questions? Ask for help <a
-          href="https://github.com/MUSIT-Norway/musit/issues"
-          target="_blank">on Github</a>
+            href="https://github.com/MUSIT-Norway/musit/issues"
+            target="_blank"
+    >on Github</a>
         </div>
       </div>
     );

@@ -17,8 +17,8 @@ export default class APIGateway {
     let uriArray = req.url.split('?')
     let splitArray = uriArray[0].split('/')
     this.registry.get(splitArray[2], (err, service) => {
-      if(!err && service) {
-        console.log('-- calling service: '+service.name)
+      if (!err && service) {
+        console.log('-- calling service: ' + service.name)
         // Fix options
         let options = ''
         if (uriArray[1] && uriArray[1].length > 0) {
@@ -36,7 +36,7 @@ export default class APIGateway {
         let newUrl = service.protocol + service.host + ':' + service.port + uri + options;
 
         // Pipe the request to the microservices
-        console.log("Forwarding service call in pipe: "+newUrl)
+        console.log('Forwarding service call in pipe: ' + newUrl)
         let newReq = request(newUrl)
         newReq.on('error', (err) => {
           console.error('MS ERROR:', err)
