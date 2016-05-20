@@ -16,19 +16,31 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservices.common.linking
+package no.uio.musit.microservice.actor.service
 
-import no.uio.musit.microservices.common.linking.domain.Link
+import no.uio.musit.microservice.actor.dao.ActorDao
+import no.uio.musit.microservice.actor.domain.{Organization, Person}
 
+/**
+  * Business logic for the Person entity in the microservice, simple lookups and so on.
+  */
+trait OrganizationService {
 
-object LinkService {
-  val baseUrl="http://localhost:7070"
-
-  def self(uri:String): Link = {
-    Link(-1, -1, "self", baseUrl + uri)
+  def all = {
+    ActorDao.allOrganizations()
   }
 
-  def local(key:Long, rel:String, uri:String): Link = {
-    Link(-1, key, rel, baseUrl + uri)
+  def create(org:Organization) = {
+
   }
+
+  def update(org:Organization) = {
+
+  }
+
+  def remove(id:Long) = {
+
+  }
+
+
 }

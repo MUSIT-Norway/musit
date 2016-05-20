@@ -20,21 +20,21 @@ class ActorUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
 
     "getById_kjempeTall" in {
-      val svar = getById(6386363673636335366L)
+      val svar = getActorById(6386363673636335366L)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }
     }
 
     "getById__Riktig" in {
-      val svar = getById(1)
+      val svar = getActorById(1)
       whenReady(svar, timeout) { thing =>
         assert (thing == Some(Actor(1,"And, Arne1", Seq(LinkService.self("/v1/1")))))
       }
     }
 
     "getById__TalletNull" in {
-      val svar = getById(0)
+      val svar = getActorById(0)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }

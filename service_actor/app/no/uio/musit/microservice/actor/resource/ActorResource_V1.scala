@@ -33,7 +33,7 @@ class ActorResource_V1 extends Controller with ActorService {
 
   def list = Action.async { req => {
     //req.getQueryString("filter")
-    ActorDao.all.map(actor => {
+    ActorDao.allActors.map(actor => {
       Logger.info("Testing 1 2 3")
       Logger.error("Sending log to slack")
       Ok(Json.toJson(actor))
@@ -41,7 +41,7 @@ class ActorResource_V1 extends Controller with ActorService {
   }
 
   def getById(id:Long) = Action.async { request => {
-    ActorDao.getById(id).map( optionResult =>
+    ActorDao.getActorById(id).map(optionResult =>
       optionResult match {
         case Some(actor) => Ok(Json.toJson(actor))
         case None => NotFound(s"Didn't find object with id: $id")
@@ -54,7 +54,7 @@ class ActorResource_V1 extends Controller with ActorService {
     actorResult match {
       case s:JsSuccess[Actor] => {
         val actor = s.get
-        val newActorF = ActorDao.insert(actor)
+        val newActorF = ActorDao.insertActor(actor)
         newActorF.map { newActor =>
           Created(Json.toJson(newActor))
         }

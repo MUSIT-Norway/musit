@@ -16,19 +16,38 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservices.common.linking
+package no.uio.musit.microservice.actor.service
 
+import no.uio.musit.microservice.actor.dao.ActorDao
+import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservices.common.linking.domain.Link
 
+import scala.concurrent.Future
 
-object LinkService {
-  val baseUrl="http://localhost:7070"
+/**
+  * Business logic for the Person entity in the microservice, simple lookups and so on.
+  */
+trait PersonService {
 
-  def self(uri:String): Link = {
-    Link(-1, -1, "self", baseUrl + uri)
+  def all = {
+    ActorDao.allPersons()
   }
 
-  def local(key:Long, rel:String, uri:String): Link = {
-    Link(-1, key, rel, baseUrl + uri)
+  def find(id:Long):Future[Option[Person]] = {
+    Future.successful(Some(Person(-1, "", "", "", "", "", "", Seq.empty[Link])))
   }
+
+  def create(person:Person):Future[Option[Person]] = {
+    Future.successful(Some(Person(-1, "", "", "", "", "", "", Seq.empty[Link])))
+  }
+
+  def update(person:Person):Future[Option[Person]] = {
+    Future.successful(Some(Person(-1, "", "", "", "", "", "", Seq.empty[Link])))
+  }
+
+  def remove(id:Long):Future[Option[Person]] = {
+    Future.successful(Some(Person(-1, "", "", "", "", "", "", Seq.empty[Link])))
+  }
+
+
 }

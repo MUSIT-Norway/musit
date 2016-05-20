@@ -16,19 +16,15 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservices.common.linking
+package no.uio.musit.microservices.common.domain
 
-import no.uio.musit.microservices.common.linking.domain.Link
-
-
-object LinkService {
-  val baseUrl="http://localhost:7070"
-
-  def self(uri:String): Link = {
-    Link(-1, -1, "self", baseUrl + uri)
-  }
-
-  def local(key:Long, rel:String, uri:String): Link = {
-    Link(-1, key, rel, baseUrl + uri)
-  }
+/**
+  * To make all address domain object same signature we add a base address trait.
+  */
+trait BaseAddress extends BaseMusitDomain {
+  def addressType:String
+  def streetAddress:String
+  def locality:String
+  def postalCode:String
+  def countryName:String
 }
