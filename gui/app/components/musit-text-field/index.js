@@ -17,28 +17,31 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, {Component, PropTypes, bindActionCreators} from "react";
-import {connect} from "react-redux";
-import Example from "../../components/example";
-import Header from "../../components/header";
-import Footer from "../../components/footer";
-import MusitTextField from "../../components/musit-text-field";
+import React, { Component, PropTypes } from "react";
+import { FormGroup, FormControl } from "react-bootstrap";
+import { connect } from "react-redux";
 
 
-export default class ExampleView extends Component {
 
-  render() {
-    	  return (
-   		    <div>
-                <Header />
-                    <main>
-                        <div>Welcome to example view.</div>
-                        <Example />
-                        <MusitTextField controlId='heihei' type= 'string' placeHolderText='Bjarne'/>
-                    </main>
 
-                <Footer />
-    		</div>
-    	);
-    }
+export default class MusitTextField extends Component {
+
+    render(){
+
+        const { type,placeHolderText,controlId } = this.props
+        return (
+            <div>
+                <form inline>
+                    {' '}
+                    <FormGroup controlId={controlId}>
+                        <b>Hei</b>
+                        {' '}
+                        <FormControl type={type} placeholder={placeHolderText}/>
+
+                    </FormGroup>
+                    {' '}
+                </form>
+            </div>
+        )
+  } 
 }
