@@ -33,20 +33,20 @@ trait OrganizationService {
     ActorDao.allOrganizations()
   }
 
-  def find(id:Long):Future[Option[Organization]] = {
-    Future.successful(Some(Organization(id, "Find", "", "", "", 0, 0, Seq.empty[Link])))
+  def find(id:Long) = {
+    ActorDao.getOrganizationById(id)
   }
 
-  def create(organization:Organization):Future[Option[Organization]] = {
-    Future.successful(Some(organization))
+  def create(organization:Organization) = {
+    ActorDao.insertOrganization(organization)
   }
 
   def update(organization:Organization):Future[Option[Organization]] = {
     Future.successful(Some(organization))
   }
 
-  def remove(id:Long):Future[Option[Organization]] = {
-    Future.successful(Some(Organization(id, "Remove", "", "", "", 0, 0, Seq.empty[Link])))
+  def remove(id:Long) = {
+    ActorDao.deleteOrganization(id)
   }
 
 

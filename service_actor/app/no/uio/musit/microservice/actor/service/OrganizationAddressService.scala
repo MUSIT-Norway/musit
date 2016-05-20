@@ -33,20 +33,20 @@ trait OrganizationAddressService {
     ActorDao.allAddressesForOrganization(organizationId)
   }
 
-  def find(id:Long):Future[Option[OrganizationAddress]] = {
-    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
+  def find(id:Long) = {
+    ActorDao.getOrganizationAddressById(id)
   }
 
-  def create(address:OrganizationAddress):Future[Option[OrganizationAddress]] = {
-    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
+  def create(address:OrganizationAddress) = {
+    ActorDao.insertOrganizationAddress(address)
   }
 
   def update(address:OrganizationAddress):Future[Option[OrganizationAddress]] = {
     Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
   }
 
-  def remove(id:Long):Future[Option[OrganizationAddress]] = {
-    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
+  def remove(id:Long) = {
+    ActorDao.deleteOrganizationAddress(id)
   }
 
 }

@@ -19,6 +19,7 @@
 package no.uio.musit.microservice.actor.dao
 
 import no.uio.musit.microservice.actor.domain.{Actor, Organization, OrganizationAddress, Person}
+import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.LinkService
 import play.api.Play
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
@@ -27,6 +28,8 @@ import slick.driver.JdbcProfile
 import scala.concurrent.Future
 
 object ActorDao extends HasDatabaseConfig[JdbcProfile] {
+
+
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
@@ -36,24 +39,70 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   private val OrganizationTable = TableQuery[OrganizationTable]
   private val OrganizationAddressTable = TableQuery[OrganizationAddressTable]
 
-
+  /* FINDERS */
   def allActors() : Future[Seq[Actor]] = db.run(ActorTable.result)
   def allPersons() : Future[Seq[Person]] = db.run(PersonTable.result)
   def allOrganizations() : Future[Seq[Organization]] = db.run(OrganizationTable.result)
   def allAddressesForOrganization(id:Long) : Future[Seq[OrganizationAddress]] = db.run(OrganizationAddressTable.filter(_.organizationId === id).result)
 
+  def getActorById(id:Long) = {
+    db.run(ActorTable.filter( _.id === id).result.headOption)
+  }
+
+  def getPersonById(id:Long) = {
+    db.run(PersonTable.filter(_.id === id).result.headOption)
+  }
+
+  def getOrganizationById(id: Long) = {
+    db.run(OrganizationTable.filter(_.id === id).result.headOption)
+  }
+
+  def getOrganizationAddressById(id: Long) = {
+    db.run(OrganizationAddressTable.filter(_.id === id).result.headOption)
+  }
+
+  /* CREATES and UPDATES */
   def insertActor(actor: Actor): Future[Actor] = {
-    val insertQuery = (ActorTable returning ActorTable.map(_.id) into ((actor, id) => (actor.copy(id=id, links=Seq(LinkService.self(s"/v1/$id"))))))
+    val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
     val action = insertQuery += actor
 
     db.run(action)
   }
 
-  def getActorById(id:Long) :Future[Option[Actor]] ={
-    val action = ActorTable.filter( _.id === id).result.headOption
+  def insertPerson(person: Person): Future[Person] = {
+    val insertQuery = PersonTable returning PersonTable.map(_.id) into ((person, id) => person.copy(id = id, links = Seq(LinkService.self(s"/v1/person/$id"))))
+    val action = insertQuery += person
+
     db.run(action)
   }
 
+  def insertOrganization(organization: Organization): Future[Organization] = {
+    val insertQuery = OrganizationTable returning OrganizationTable.map(_.id) into ((organization, id) => organization.copy(id = id, links = Seq(LinkService.self(s"/v1/organization/$id"), LinkService.local(-1, "addresses", s"/v1/organization/$id/address"))))
+    val action = insertQuery += organization
+
+    db.run(action)
+  }
+
+  def insertOrganizationAddress(address: OrganizationAddress): Future[OrganizationAddress] = {
+    val insertQuery = OrganizationAddressTable returning OrganizationAddressTable.map(_.id) into ((addr, id) => addr.copy(id = id, links = Seq(LinkService.self(s"/v1/organization/${address.organizationId}/address/$id"))))
+    val action = insertQuery += address
+
+    db.run(action)
+  }
+
+  /* DELETES */
+  def deletePerson(id:Long) = {
+    db.run(PersonTable.filter(_.id === id).delete)
+  }
+  def deleteOrganization(id:Long) = {
+    db.run(OrganizationTable.filter(_.id === id).delete)
+  }
+
+  def deleteOrganizationAddress(id:Long) = {
+    db.run(OrganizationAddressTable.filter(_.id === id).delete)
+  }
+
+  /* TABLE DEF */
   private class ActorTable(tag: Tag) extends Table[Actor](tag, "VIEW_ACTOR") {
     def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def actorname = column[String]("ACTORNAME")

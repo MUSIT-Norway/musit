@@ -34,13 +34,13 @@ class PersonResource extends Controller with PersonService {
     // TODO: Add searching
     search match {
       case Some(criteria) => Future.successful(NotImplemented("Add search support"))
-      case None => all.map(person => { NotImplemented(Json.toJson(person)) }) // Ok
+      case None => all.map(person => { Ok(Json.toJson(person)) })
     }
   }
 
   def getRoot(id:Long) = Action.async { request =>
     find(id).map {
-      case Some(person) => NotImplemented(Json.toJson(person)) // Ok
+      case Some(person) => Ok(Json.toJson(person)) // Ok
       case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
     }
   }
@@ -51,7 +51,7 @@ class PersonResource extends Controller with PersonService {
       case s:JsSuccess[Person] => {
         val person = s.get
         create(person).map { newPerson =>
-          NotImplemented(Json.toJson(newPerson)) // Created
+          Created(Json.toJson(newPerson))
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
@@ -72,9 +72,6 @@ class PersonResource extends Controller with PersonService {
   }
 
   def deleteRoot(id:Long) = Action.async { request =>
-    remove(id).map {
-      case Some(person) => NotImplemented(Json.toJson(person)) // Ok
-      case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
-    }
+    remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
   }
 }

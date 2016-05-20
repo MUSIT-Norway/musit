@@ -72,9 +72,6 @@ class OrganizationResource extends Controller with OrganizationService {
   }
 
   def deleteRoot(id:Long) = Action.async { request =>
-    remove(id).map {
-      case Some(org) => NotImplemented(Json.toJson(org)) // Ok
-      case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
-    }
+    remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
   }
 }

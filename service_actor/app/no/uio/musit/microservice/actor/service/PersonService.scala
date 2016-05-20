@@ -33,21 +33,20 @@ trait PersonService {
     ActorDao.allPersons()
   }
 
-  def find(id:Long):Future[Option[Person]] = {
-    Future.successful(Some(Person(id, "Find", "", "", "", "", "", Seq.empty[Link])))
+  def find(id:Long) = {
+    ActorDao.getPersonById(id)
   }
 
-  def create(person:Person):Future[Option[Person]] = {
-    Future.successful(Some(person))
+  def create(person:Person) = {
+    ActorDao.insertPerson(person)
   }
 
   def update(person:Person):Future[Option[Person]] = {
     Future.successful(Some(person))
   }
 
-  def remove(id:Long):Future[Option[Person]] = {
-    Future.successful(Some(Person(id, "Delete", "", "", "", "", "", Seq.empty[Link])))
+  def remove(id:Long) = {
+    ActorDao.deletePerson(id)
   }
-
 
 }

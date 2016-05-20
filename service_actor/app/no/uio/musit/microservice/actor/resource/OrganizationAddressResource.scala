@@ -68,9 +68,6 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
   }
 
   def deleteRoot(organizationId:Long, id:Long) = Action.async { request =>
-    remove(id).map {
-      case Some(addr) => NotImplemented(Json.toJson(addr)) // Ok
-      case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
-    }
+    remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
   }
 }
