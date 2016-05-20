@@ -1,12 +1,8 @@
 package controllers
 
-import no.uio.musit.microservices.common.domain.{MusitError, MusitFilter}
-import play.api.test.{FakeRequest, PlaySpecification}
-import play.api.libs.json.Json
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import no.uio.musit.microservices.time.resource.TimeResource
-import no.uio.musit.microservices.time.domain.MusitTime
+import play.api.test.PlaySpecification
 
 @RunWith(classOf[JUnitRunner])
 class StorageUnitControllerSpec extends PlaySpecification {

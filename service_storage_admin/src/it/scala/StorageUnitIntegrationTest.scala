@@ -16,61 +16,81 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.PlayTestDefaults
-import no.uio.musit.microservices.common.domain.MusitError
 import org.scalatest.concurrent.ScalaFutures
-import play.api.test.Helpers._
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 import play.api.libs.ws.WS
-import no.uio.musit.microservices.time.domain.MusitTime
 
 /**
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
-class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
-  /*val timeout = PlayTestDefaults.timeout
+class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures with StorageUnitService{
+/*
+    // Extra long timeout since the integration call calls an external service
+    val timeout = PlayTestDefaults.timeout.copy(value = 10 seconds)
 
-  "Time integration " must {
-    "action get now (none)" in {
-      val response = await(WS.url(s"http://localhost:$port/v1/now").get())
-      response.status mustBe OK
-      val now = Json.parse(response.body).validate[MusitTime].get
-      now.time must not be None
-      now.date must not be None
+    "StorageUnitService rest integration" must {
+
+      "getByID" in {
+        val svar = this.get
+        whenReady(svar, timeout) { geoAddresses =>
+          assert (geoAddresses.length > 0)
+        }
+      }
+
     }
 
-    "action get now (time)" in {
-      val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[time]").get())
-      response.status mustEqual 200
-      val now = Json.parse(response.body).validate[MusitTime].get
-      now.time must not be None
-      now.date mustEqual None
-    }
+  "StorageUnitService rest integration" must {
+  val future = WS.url(s"http://localhost:$port/v1/1").get()
+  whenReady(future, timeout) { response =>
+    val json = Json.parse(response.body)
+    assert((json \ "id").getOrElse(JsString("0")).toString() == "1")
+*/
 
-    "action get now (date)" in {
-      val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[date]").get())
-      response.status mustEqual 200
-      val now = Json.parse(response.body).validate[MusitTime].get
-      now.date must not be None
-      now.time mustEqual None
-    }
+    /*val timeout = PlayTestDefaults.timeout
 
-    "action get now (datetime)" in {
-      val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[date,time]").get())
-      response.status mustEqual 200
-      val now = Json.parse(response.body).validate[MusitTime].get
-      now.date must not be None
-      now.time must not be None
-    }
+    "Time integration " must {
+      "action get now (none)" in {
+        val response = await(WS.url(s"http://localhost:$port/v1/now").get())
+        response.status mustBe OK
+        val now = Json.parse(response.body).validate[MusitTime].get
+        now.time must not be None
+        now.date must not be None
+      }
 
-    "action get now (svada) fails" in {
-      val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[svada]").get())
-      response.status mustEqual 400
-      val err = Json.parse(response.body).validate[MusitError].get
-      err.message mustEqual "Only supports empty filter or filter on time, date or time and date"
-    }
-  }*/
+      "action get now (time)" in {
+        val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[time]").get())
+        response.status mustEqual 200
+        val now = Json.parse(response.body).validate[MusitTime].get
+        now.time must not be None
+        now.date mustEqual None
+      }
+
+      "action get now (date)" in {
+        val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[date]").get())
+        response.status mustEqual 200
+        val now = Json.parse(response.body).validate[MusitTime].get
+        now.date must not be None
+        now.time mustEqual None
+      }
+
+      "action get now (datetime)" in {
+        val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[date,time]").get())
+        response.status mustEqual 200
+        val now = Json.parse(response.body).validate[MusitTime].get
+        now.date must not be None
+        now.time must not be None
+      }
+
+      "action get now (svada) fails" in {
+        val response = await(WS.url(s"http://localhost:$port/v1/now?filter=[svada]").get())
+        response.status mustEqual 400
+        val err = Json.parse(response.body).validate[MusitError].get
+        err.message mustEqual "Only supports empty filter or filter on time, date or time and date"
+      }
+    }*/
 }

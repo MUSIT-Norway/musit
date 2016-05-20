@@ -23,7 +23,7 @@ import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain.StorageUnit
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.domain.{MusitFilter, MusitSearch}
-import play.api.libs.json.{JsError, JsResult, JsSuccess, Json}
+import play.api.libs.json.Json
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,16 +33,10 @@ class StorageUnitResource extends Controller with StorageUnitService {
 
   @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def add = Action.async(BodyParsers.parse.json) { request =>
-    val storageUnitResult:JsResult[StorageUnit] = request.body.validate[StorageUnit]
-    storageUnitResult match {
-      case s:JsSuccess[StorageUnit] => {
-        val storageUnit = s.get
-        val newStorageUnitF = StorageUnitDao.insert(storageUnit)
-        newStorageUnitF.map { newStorageUnit =>
-          Created(Json.toJson(newStorageUnit))
-        }
-      }
-      case e:JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))
+    val storageUnitResult = request.body.validate[StorageUnit]
+    insert(storageUnitResult).map {
+      case Right(newStorageUnit) => Created(Json.toJson(newStorageUnit))
+      case Left(error) => BadRequest(Json.toJson(error))
     }
   }
 
@@ -56,6 +50,15 @@ class StorageUnitResource extends Controller with StorageUnitService {
     )
   }
 */
+
+  def getUnderlyingNodes(id: Long) = Action.async { request =>
+    StorageUnitDao.getNodes(id).map {
+      storageUnits => Ok(Json.toJson(storageUnits))
+    }.recover {
+      case e => NotFound(s"Didn't find object with id: $id")
+    }
+  }
+
 
   def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async {
     Future.successful(NotImplemented("foo"))

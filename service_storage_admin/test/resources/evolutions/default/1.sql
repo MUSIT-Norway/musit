@@ -28,6 +28,8 @@ create table STORAGE_UNIT
  is_part_of        BIGINT,
  height            BIGINT,
  storage_type      varchar(100),
+ group_read        varchar(4000)
+ group_write       varchar(4000)
 primary key (STORAGE_UNIT_ID)
 
 create table ROOM
