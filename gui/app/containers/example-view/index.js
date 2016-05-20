@@ -24,7 +24,7 @@ import Header from "../../components/header";
 import Footer from "../../components/footer";
 import MusitTextField from "../../components/musit-text-field";
 
-
+@connect()
 export default class ExampleView extends Component {
 
   render() {

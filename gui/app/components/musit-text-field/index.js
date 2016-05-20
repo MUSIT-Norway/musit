@@ -19,7 +19,7 @@
 
 import React, { Component, PropTypes } from "react";
 import { FormGroup, FormControl } from "react-bootstrap";
-import { connect } from "react-redux";
+//import { connect } from "react-redux";
 
 
 
