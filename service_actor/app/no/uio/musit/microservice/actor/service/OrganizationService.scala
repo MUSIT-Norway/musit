@@ -19,7 +19,10 @@
 package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
-import no.uio.musit.microservice.actor.domain.{Organization, Person}
+import no.uio.musit.microservice.actor.domain.Organization
+import no.uio.musit.microservices.common.linking.domain.Link
+
+import scala.concurrent.Future
 
 /**
   * Business logic for the Person entity in the microservice, simple lookups and so on.
@@ -30,16 +33,20 @@ trait OrganizationService {
     ActorDao.allOrganizations()
   }
 
-  def create(org:Organization) = {
-
+  def find(id:Long):Future[Option[Organization]] = {
+    Future.successful(Some(Organization(id, "Find", "", "", "", 0, 0, Seq.empty[Link])))
   }
 
-  def update(org:Organization) = {
-
+  def create(organization:Organization):Future[Option[Organization]] = {
+    Future.successful(Some(organization))
   }
 
-  def remove(id:Long) = {
+  def update(organization:Organization):Future[Option[Organization]] = {
+    Future.successful(Some(organization))
+  }
 
+  def remove(id:Long):Future[Option[Organization]] = {
+    Future.successful(Some(Organization(id, "Remove", "", "", "", 0, 0, Seq.empty[Link])))
   }
 
 

@@ -18,8 +18,8 @@
  */
 package no.uio.musit.microservice.actor.resource
 
-import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservice.actor.service.PersonService
+import no.uio.musit.microservice.actor.domain.OrganizationAddress
+import no.uio.musit.microservice.actor.service.OrganizationAddressService
 import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -27,53 +27,49 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-class PersonResource extends Controller with PersonService {
+class OrganizationAddressResource extends Controller with OrganizationAddressService {
 
 
-  def listRoot(search: Option[MusitSearch]) = Action.async { request =>
-    // TODO: Add searching
-    search match {
-      case Some(criteria) => Future.successful(NotImplemented("Add search support"))
-      case None => all.map(person => { NotImplemented(Json.toJson(person)) }) // Ok
-    }
+  def listRoot(organizationId:Long) = Action.async { request =>
+    all(organizationId).map(addr => { Ok(Json.toJson(addr)) })
   }
 
-  def getRoot(id:Long) = Action.async { request =>
+  def getRoot(organizationId:Long, id:Long) = Action.async { request =>
     find(id).map {
-      case Some(person) => NotImplemented(Json.toJson(person)) // Ok
+      case Some(addr) => NotImplemented(Json.toJson(addr)) // Ok
       case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
     }
   }
 
-  def postRoot = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult:JsResult[Person] = request.body.validate[Person]
+  def postRoot(organizationId:Long) = Action.async(BodyParsers.parse.json) { request =>
+    val actorResult:JsResult[OrganizationAddress] = request.body.validate[OrganizationAddress]
     actorResult match {
-      case s:JsSuccess[Person] => {
-        val person = s.get
-        create(person).map { newPerson =>
-          NotImplemented(Json.toJson(newPerson)) // Created
+      case s:JsSuccess[OrganizationAddress] => {
+        val addr = s.get
+        create(addr).map { newAddr =>
+          NotImplemented(Json.toJson(newAddr)) // Created
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
     }
   }
 
-  def updateRoot = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult:JsResult[Person] = request.body.validate[Person]
+  def updateRoot(organizationId:Long) = Action.async(BodyParsers.parse.json) { request =>
+    val actorResult:JsResult[OrganizationAddress] = request.body.validate[OrganizationAddress]
     actorResult match {
-      case s:JsSuccess[Person] => {
-        val person = s.get
-        update(person).map { newPerson =>
-          NotImplemented(Json.toJson(newPerson)) // Ok
+      case s:JsSuccess[OrganizationAddress] => {
+        val addr = s.get
+        update(addr).map { newAddr =>
+          NotImplemented(Json.toJson(newAddr)) // Ok
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
     }
   }
 
-  def deleteRoot(id:Long) = Action.async { request =>
+  def deleteRoot(organizationId:Long, id:Long) = Action.async { request =>
     remove(id).map {
-      case Some(person) => NotImplemented(Json.toJson(person)) // Ok
+      case Some(addr) => NotImplemented(Json.toJson(addr)) // Ok
       case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
     }
   }

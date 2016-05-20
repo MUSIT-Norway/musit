@@ -18,8 +18,8 @@
  */
 package no.uio.musit.microservice.actor.resource
 
-import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservice.actor.service.PersonService
+import no.uio.musit.microservice.actor.domain.Organization
+import no.uio.musit.microservice.actor.service.OrganizationService
 import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -27,7 +27,7 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-class PersonResource extends Controller with PersonService {
+class OrganizationResource extends Controller with OrganizationService {
 
 
   def listRoot(search: Option[MusitSearch]) = Action.async { request =>
@@ -46,12 +46,12 @@ class PersonResource extends Controller with PersonService {
   }
 
   def postRoot = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult:JsResult[Person] = request.body.validate[Person]
+    val actorResult:JsResult[Organization] = request.body.validate[Organization]
     actorResult match {
-      case s:JsSuccess[Person] => {
-        val person = s.get
-        create(person).map { newPerson =>
-          NotImplemented(Json.toJson(newPerson)) // Created
+      case s:JsSuccess[Organization] => {
+        val org = s.get
+        create(org).map { newOrg =>
+          NotImplemented(Json.toJson(newOrg)) // Created
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
@@ -59,12 +59,12 @@ class PersonResource extends Controller with PersonService {
   }
 
   def updateRoot = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult:JsResult[Person] = request.body.validate[Person]
+    val actorResult:JsResult[Organization] = request.body.validate[Organization]
     actorResult match {
-      case s:JsSuccess[Person] => {
-        val person = s.get
-        update(person).map { newPerson =>
-          NotImplemented(Json.toJson(newPerson)) // Ok
+      case s:JsSuccess[Organization] => {
+        val org = s.get
+        update(org).map { newOrg =>
+          NotImplemented(Json.toJson(newOrg)) // Ok
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
@@ -73,7 +73,7 @@ class PersonResource extends Controller with PersonService {
 
   def deleteRoot(id:Long) = Action.async { request =>
     remove(id).map {
-      case Some(person) => NotImplemented(Json.toJson(person)) // Ok
+      case Some(org) => NotImplemented(Json.toJson(org)) // Ok
       case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
     }
   }

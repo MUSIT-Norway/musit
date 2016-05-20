@@ -34,19 +34,19 @@ trait PersonService {
   }
 
   def find(id:Long):Future[Option[Person]] = {
-    Future.successful(Some(Person(-1, "", "", "", "", "", "", Seq.empty[Link])))
+    Future.successful(Some(Person(id, "Find", "", "", "", "", "", Seq.empty[Link])))
   }
 
   def create(person:Person):Future[Option[Person]] = {
-    Future.successful(Some(Person(-1, "", "", "", "", "", "", Seq.empty[Link])))
+    Future.successful(Some(person))
   }
 
   def update(person:Person):Future[Option[Person]] = {
-    Future.successful(Some(Person(-1, "", "", "", "", "", "", Seq.empty[Link])))
+    Future.successful(Some(person))
   }
 
   def remove(id:Long):Future[Option[Person]] = {
-    Future.successful(Some(Person(-1, "", "", "", "", "", "", Seq.empty[Link])))
+    Future.successful(Some(Person(id, "Delete", "", "", "", "", "", Seq.empty[Link])))
   }
 
 

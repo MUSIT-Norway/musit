@@ -20,6 +20,9 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.OrganizationAddress
+import no.uio.musit.microservices.common.linking.domain.Link
+
+import scala.concurrent.Future
 
 /**
   * Business logic for the Person entity in the microservice, simple lookups and so on.
@@ -30,16 +33,20 @@ trait OrganizationAddressService {
     ActorDao.allAddressesForOrganization(organizationId)
   }
 
-  def create(addr:OrganizationAddress) = {
-
+  def find(id:Long):Future[Option[OrganizationAddress]] = {
+    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
   }
 
-  def update(addr:OrganizationAddress) = {
-
+  def create(address:OrganizationAddress):Future[Option[OrganizationAddress]] = {
+    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
   }
 
-  def remove(id:Long) = {
+  def update(address:OrganizationAddress):Future[Option[OrganizationAddress]] = {
+    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
+  }
 
+  def remove(id:Long):Future[Option[OrganizationAddress]] = {
+    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
   }
 
 }
