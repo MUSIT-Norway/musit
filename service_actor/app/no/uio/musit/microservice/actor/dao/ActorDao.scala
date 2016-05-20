@@ -101,7 +101,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(OrganizationAddressTable.filter(_.id === id).delete)
   }
 
-  /* TABLE DEF (Possible way of making it forward compatible is to trash Actor domain object and use Person instead with this Table def. */
+  /* TABLE DEF */
   private class ActorTable(tag: Tag) extends Table[Actor](tag, "VIEW_ACTOR") {
     def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def actorname = column[String]("ACTORNAME")

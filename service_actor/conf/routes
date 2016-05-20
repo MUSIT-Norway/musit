@@ -5,6 +5,8 @@
 # Setup endpoints
 
 ## Mapping routes
+#GET     /v1/person                                 no.uio.musit.microservice.actor.resource.ActorResource_V1.list
+#GET     /v1/person/:id                             no.uio.musit.microservice.actor.resource.ActorResource_V1.getById(id:Long)
 GET     /v1                                        no.uio.musit.microservice.actor.resource.ActorResource_V1.list
 GET     /v1/:id                                    no.uio.musit.microservice.actor.resource.ActorResource_V1.getById(id:Long)
 

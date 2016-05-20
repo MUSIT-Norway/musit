@@ -21,32 +21,28 @@ package no.uio.musit.microservice.actor.resource
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Actor
 import no.uio.musit.microservice.actor.service.ActorService
-import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.Future
 
+// TODO: Activate new routes and delete old ones for Actor, and rename resource to LegacyPerson + redo the integration tests
 class ActorResource_V1 extends Controller with ActorService {
 
 
-  def list = Action.async { req => {
-    //req.getQueryString("filter")
-    ActorDao.allActors.map(actor => {
-      Logger.info("Testing 1 2 3")
-      Logger.error("Sending log to slack")
-      Ok(Json.toJson(actor))
+  def list = Action.async { request => {
+    // TODO: Extend with MusitSearch support
+    ActorDao.allActors.map(actors => {
+      Ok(Json.toJson(actors))
     })}
   }
 
   def getById(id:Long) = Action.async { request => {
-    ActorDao.getActorById(id).map(optionResult =>
-      optionResult match {
-        case Some(actor) => Ok(Json.toJson(actor))
-        case None => NotFound(s"Didn't find object with id: $id")
-      }
-    )
+    ActorDao.getActorById(id).map {
+      case Some(actor) => Ok(Json.toJson(actor))
+      case None => NotFound(s"Didn't find object with id: $id")
+    }
   }}
 
   def add = Action.async(BodyParsers.parse.json) { request =>
