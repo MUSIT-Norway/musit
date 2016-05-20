@@ -24,6 +24,7 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 /**
   * Mapping table
+  * TODO: Redo this to match Person so its a drop in replacement when we move actor from old database to new.
   */
 case class Actor(id: Long, actorname:String, links: Seq[Link]) extends BaseMusitDomain
 

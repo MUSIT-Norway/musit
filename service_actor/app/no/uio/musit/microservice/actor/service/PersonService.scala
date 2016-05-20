@@ -20,7 +20,6 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservices.common.linking.domain.Link
 
 import scala.concurrent.Future
 

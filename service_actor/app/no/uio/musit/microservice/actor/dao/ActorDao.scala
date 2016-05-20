@@ -19,7 +19,6 @@
 package no.uio.musit.microservice.actor.dao
 
 import no.uio.musit.microservice.actor.domain.{Actor, Organization, OrganizationAddress, Person}
-import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.LinkService
 import play.api.Play
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
@@ -102,7 +101,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(OrganizationAddressTable.filter(_.id === id).delete)
   }
 
-  /* TABLE DEF */
+  /* TABLE DEF (Possible way of making it forward compatible is to trash Actor domain object and use Person instead with this Table def. */
   private class ActorTable(tag: Tag) extends Table[Actor](tag, "VIEW_ACTOR") {
     def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def actorname = column[String]("ACTORNAME")
