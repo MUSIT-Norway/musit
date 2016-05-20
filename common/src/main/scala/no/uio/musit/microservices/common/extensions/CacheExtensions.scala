@@ -20,39 +20,41 @@
 
 package no.uio.musit.microservices.common.extensions
 
-import play.api.{Application, Logger}
+import play.api.{ Application, Logger }
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 //import play.api.Play.current
 import play.api.cache.Cache
 
 /**
-  * Created by jstabel on 4/27/16.
-  */
+ * Created by jstabel on 4/27/16.
+ */
 object MusitCache {
 
   //import play.api.cache.Cache._
 
   def setFuture[A](key: String, value: Future[A],
-                   expiration: Duration = Duration.Inf)
-                  (implicit app: Application,
-                   ct: ClassTag[A], ec: ExecutionContext): Unit = {
+    expiration: Duration = Duration.Inf)(implicit
+    app: Application,
+    ct: ClassTag[A], ec: ExecutionContext): Unit = {
     value.onComplete {
-      case Success(v) => Cache.set(key, v, expiration)
+      case Success(v) =>
+        Cache.set(key, v, expiration)
         Logger.info(s"CacheSet: Key: $key Value: $v")
       case Failure(v) => Logger.info(s"Cache: Unable to complete future in setFuture: $v") //This hay happen due to http 401, 400 etc. It's not a bug if this fails.
     }
   }
 
-  def getOrElseFuture[A](key: String,
-                         expiration: Duration = Duration.Inf)
-                        (orElse: => Future[A])
-                        (implicit app: Application,
-                         ct: ClassTag[A], ec: ExecutionContext): Future[A] = {
+  def getOrElseFuture[A](
+    key: String,
+    expiration: Duration = Duration.Inf
+  )(orElse: => Future[A])(implicit
+    app: Application,
+    ct: ClassTag[A], ec: ExecutionContext): Future[A] = {
 
     val res = Cache.getAs[A](key)(app, ct)
     res match {
@@ -69,12 +71,11 @@ object MusitCache {
   def getAs[A](key: String)(implicit app: Application, ct: ClassTag[A], ec: ExecutionContext) = play.api.cache.Cache.getAs[A](key)(app, ct)
 
   def set[A](key: String, value: A,
-             expiration: Duration = Duration.Inf)
-            (implicit app: Application,
-             ct: ClassTag[A], ec: ExecutionContext): Unit = {
+    expiration: Duration = Duration.Inf)(implicit
+    app: Application,
+    ct: ClassTag[A], ec: ExecutionContext): Unit = {
     Cache.set(key, value, expiration)
     Logger.info(s"CacheSet (NonFuture): Key: $key Value: $value")
   }
-
 
 }

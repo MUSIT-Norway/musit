@@ -21,7 +21,7 @@ package no.uio.musit.microservice.actor.dao
 import no.uio.musit.microservice.actor.domain.Actor
 import no.uio.musit.microservices.common.linking.LinkService
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
@@ -33,30 +33,28 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
 
   private val ActorTable = TableQuery[ActorTable]
 
-
-  def all() : Future[Seq[Actor]] = db.run(ActorTable.result)
+  def all(): Future[Seq[Actor]] = db.run(ActorTable.result)
 
   def insert(actor: Actor): Future[Actor] = {
-    val insertQuery = (ActorTable returning ActorTable.map(_.id) into ((actor, id) => (actor.copy(id=id, links=Seq(LinkService.self(s"/v1/$id"))))))
+    val insertQuery = (ActorTable returning ActorTable.map(_.id) into ((actor, id) => (actor.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))))
     val action = insertQuery += actor
 
     db.run(action)
   }
 
-  def getById(id:Long) :Future[Option[Actor]] ={
-    val action = ActorTable.filter( _.id === id).result.headOption
+  def getById(id: Long): Future[Option[Actor]] = {
+    val action = ActorTable.filter(_.id === id).result.headOption
     db.run(action)
   }
 
   private class ActorTable(tag: Tag) extends Table[Actor](tag, "VIEW_ACTOR") {
-    def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
+    def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
     def actorname = column[String]("ACTORNAME")
 
-    def create = (id: Long , actorname:String) => Actor(id, actorname, Seq(LinkService.self(s"/v1/$id")))
-    def destroy(actor:Actor) = Some(actor.id, actor.actorname)
+    def create = (id: Long, actorname: String) => Actor(id, actorname, Seq(LinkService.self(s"/v1/$id")))
+    def destroy(actor: Actor) = Some(actor.id, actor.actorname)
 
-    def * = (id, actorname) <>(create.tupled, destroy)
+    def * = (id, actorname) <> (create.tupled, destroy)
   }
 }
-
 

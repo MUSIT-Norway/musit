@@ -25,13 +25,10 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 @ApiModel
-case class GeoLocation(id: Long, address:String, links: Seq[Link]) extends BaseMusitDomain
+case class GeoLocation(id: Long, address: String, links: Seq[Link]) extends BaseMusitDomain
 
 object GeoLocation {
   def tupled = (GeoLocation.apply _).tupled
   implicit val format = Json.format[GeoLocation]
 }
-
-
-
 

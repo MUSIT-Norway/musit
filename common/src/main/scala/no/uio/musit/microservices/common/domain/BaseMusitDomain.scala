@@ -22,8 +22,8 @@ package no.uio.musit.microservices.common.domain
 import no.uio.musit.microservices.common.linking.domain.Link
 
 /**
-  * Created by ellenjo on 4/8/16.
-  */
+ * Created by ellenjo on 4/8/16.
+ */
 trait BaseMusitDomain {
   def id: Long
   def links: Seq[Link]

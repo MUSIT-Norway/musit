@@ -20,13 +20,12 @@
 
 package no.uio.musit.microservices.common.extensions
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
-
 /**
-  * Created by jstabel on 4/22/16.
-  */
+ * Created by jstabel on 4/22/16.
+ */
 
 object FutureExtensions {
 

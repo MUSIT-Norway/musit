@@ -28,13 +28,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait GeoLocationService {
-  def searchGeoNorway(expression:String) :Future[Seq[GeoNorwayAddress]] = {
+  def searchGeoNorway(expression: String): Future[Seq[GeoNorwayAddress]] = {
     val hitsPerResult = play.api.Play.current.configuration.getInt("musit.geoLocation.geoNorway.hitsPerResult").getOrElse(10)
     val responseFuture = WS.url(s"http://ws.geonorge.no/AdresseWS/adresse/sok?sokestreng=$expression&antPerSide=$hitsPerResult").get
-    responseFuture.map( response => {
-     val json = Json.parse(response.body)
-      val adresser = (json \ "adresser").as[List[Map[String,String]]]
-      adresser.map(adresse =>{
+    responseFuture.map(response => {
+      val json = Json.parse(response.body)
+      val adresser = (json \ "adresser").as[List[Map[String, String]]]
+      adresser.map(adresse => {
         GeoNorwayAddress(
           street = adresse.get("adressenavn").getOrElse(""),
           streetNo = adresse.get("husnr").getOrElse(""),
@@ -50,4 +50,4 @@ trait GeoLocationService {
 /* val future = WS.url(s"http://localhost:$port/v1/1").get()
       whenReady(future, timeout) { response =>
         val json = Json.parse(response.body)
-        assert((json \ "id").get.toString() == "1")*/
+        assert((json \ "id").get.toString() == "1")*/ 

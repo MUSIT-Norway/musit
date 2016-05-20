@@ -20,9 +20,9 @@ install:
 
 script:
 # Scala build and test
-- sbt compile test:compile test
+- sbt scalastyle test
 # Frontend (ReactJS) build and test
-- cd gui && "./initialize.sh" && npm run test
+- cd gui && "./initialize.sh" && npm run lint && npm run test
 
 # Add addon for codeclimate
 

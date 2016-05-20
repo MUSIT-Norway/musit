@@ -1,40 +1,40 @@
-import express from 'express'
-import session from 'express-session'
-import bodyParser from 'body-parser'
-import config from '../app/config'
-import * as actions from './actions/index'
-import { mapUrl } from './utils/url.js'
-import PrettyError from 'pretty-error'
-import http from 'http'
-import SocketIo from 'socket.io'
-import APIGateway from './gateway'
+import express from 'express';
+import session from 'express-session';
+import bodyParser from 'body-parser';
+import config from '../app/config';
+import * as actions from './actions/index';
+import { mapUrl } from './utils/url.js';
+import PrettyError from 'pretty-error';
+import http from 'http';
+import SocketIo from 'socket.io';
+import APIGateway from './gateway';
 
-const pretty = new PrettyError()
-const app = express()
-app.locals.gateway = new APIGateway('/api')
+const pretty = new PrettyError();
+const app = express();
+app.locals.gateway = new APIGateway('/api');
 
-const server = new http.Server(app)
+const server = new http.Server(app);
 
-const io = new SocketIo(server)
-io.path('/ws')
+const io = new SocketIo(server);
+io.path('/ws');
 
 app.use(session({
   secret: 'react and redux rule!!!!',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 60000 }
-}))
+  cookie: { maxAge: 60000 },
+}));
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
 app.use((req, res) => {
-console.log('request')
+  console.log('request');
   if (app.locals.gateway.validCall(req.url)) {
-  console.log('-api')
+    console.log('-api');
     // We have an api call, lets forward it
-    app.locals.gateway.call(req, res)
+    app.locals.gateway.call(req, res);
   } else {
-  console.log('-action')
+    console.log('-action');
     // Enable standard action support
     const splittedUrlPath = req.url.split('?')[0].split('/').slice(1);
     const { action, params } = mapUrl(actions, splittedUrlPath);
@@ -43,59 +43,59 @@ console.log('request')
       action(req, params)
         .then((result) => {
           if (result instanceof Function) {
-            result(res)
+            result(res);
           } else {
-            res.json(result)
+            res.json(result);
           }
         }, (reason) => {
           if (reason && reason.redirect) {
-            res.redirect(reason.redirect)
+            res.redirect(reason.redirect);
           } else {
-            console.error('API ERROR:', pretty.render(reason))
-            res.status(reason.status || 500).json(reason)
+            console.error('API ERROR:', pretty.render(reason));
+            res.status(reason.status || 500).json(reason);
           }
-        })
+        });
     } else {
-      res.status(404).end('NOT FOUND')
+      res.status(404).end('NOT FOUND');
     }
   }
-})
+});
 
 
-const bufferSize = 100
-const messageBuffer = new Array(bufferSize)
-let messageIndex = 0
+const bufferSize = 100;
+const messageBuffer = new Array(bufferSize);
+let messageIndex = 0;
 
 if (config.apiPort) {
   const runnable = app.listen(config.apiPort, (err) => {
     if (err) {
-      console.error(err)
+      console.error(err);
     }
-    console.info('----\n==> 🌎  API is running on port %s', config.apiPort)
-    console.info('==> 💻  Send requests to http://%s:%s', config.apiHost, config.apiPort)
-  })
+    console.info('----\n==> 🌎  API is running on port %s', config.apiPort);
+    console.info('==> 💻  Send requests to http://%s:%s', config.apiHost, config.apiPort);
+  });
 
   io.on('connection', (socket) => {
-    socket.emit('news', { msg: `'Hello World!' from server` })
+    socket.emit('news', { msg: '\'Hello World!\' from server' });
 
     socket.on('history', () => {
       for (let index = 0; index < bufferSize; index++) {
-        const msgNo = (messageIndex + index) % bufferSize
-        const msg = messageBuffer[msgNo]
+        const msgNo = (messageIndex + index) % bufferSize;
+        const msg = messageBuffer[msgNo];
         if (msg) {
-          socket.emit('msg', msg)
+          socket.emit('msg', msg);
         }
       }
     });
 
     socket.on('msg', (data) => {
-      data.id = messageIndex
-      messageBuffer[messageIndex % bufferSize] = data
-      messageIndex++
-      io.emit('msg', data)
-    })
-  })
-  io.listen(runnable)
+      data.id = messageIndex;
+      messageBuffer[messageIndex % bufferSize] = data;
+      messageIndex++;
+      io.emit('msg', data);
+    });
+  });
+  io.listen(runnable);
 } else {
-  console.error('==>     ERROR: No PORT environment variable has been specified')
+  console.error('==>     ERROR: No PORT environment variable has been specified');
 }

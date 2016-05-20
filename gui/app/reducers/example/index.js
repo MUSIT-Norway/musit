@@ -23,19 +23,19 @@ import expect from 'expect';
 import deepFreeze from 'deep-freeze';
 
 const defaultState = {
-	  state1: 'default_state1',
-	  state2: 'default_state2'
+	                                                                                                                                                                                                                                                                                                                                                                                                                  state1: 'default_state1',
+	                                                                                                                                                                                                                                                                                                                                                                                                                  state2: 'default_state2',
 };
 deepFreeze(defaultState);
 
 const exampleReducer = (state = defaultState, action) => {
-	  switch (action.type) {
-		  case types.UPDATE_STATE1_MESSAGE:
-		        return Object.assign({}, state, { state1: action.text });
-		  case types.UPDATE_STATE2_MESSAGE:
-			    return Object.assign({}, state, { state2: action.text });
-		  default:
-		        return state;
+	                                                                                                                                                                                                                                                                                                                                                                                                                  switch (action.type) {
+		                                                                                                                                                                                                                                                                                                                                                                                                                  case types.UPDATE_STATE1_MESSAGE:
+		                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        return Object.assign({}, state, { state1: action.text });
+		                                                                                                                                                                                                                                                                                                                                                                                                                  case types.UPDATE_STATE2_MESSAGE:
+			                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    return Object.assign({}, state, { state2: action.text });
+		                                                                                                                                                                                                                                                                                                                                                                                                                  default:
+		                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        return state;
 	}
 };
 
@@ -46,4 +46,4 @@ expect(exampleReducer(defaultState, {}).state1).toEqual('default_state1');
 expect(exampleReducer(undefined, {}).state1).toEqual('default_state1');
 expect(exampleReducer(defaultState, actions.updateState1('test2')).state1).toEqual('test2');
 
-console.log('Example reduser tests: PASSED')
+console.log('Example reduser tests: PASSED');

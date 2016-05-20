@@ -25,9 +25,8 @@ import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import scala.collection.mutable.ListBuffer
 
 /**
-  * Created by jstabel on 4/22/16.
-  */
-
+ * Created by jstabel on 4/22/16.
+ */
 
 object FakeSecurityUsersAndGroups {
   val users = new ListBuffer[UserInfo]

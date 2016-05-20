@@ -11,7 +11,7 @@ export default function update(req) {
         const widget = req.body;
         if (widget.color === 'Green') {
           reject({
-            color: 'We do not accept green widgets' // example server-side validation error
+            color: 'We do not accept green widgets', // example server-side validation error
           });
         }
         if (widget.id) {

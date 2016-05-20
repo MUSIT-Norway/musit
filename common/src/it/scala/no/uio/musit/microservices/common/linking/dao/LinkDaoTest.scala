@@ -23,11 +23,11 @@ import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Logger
 import play.api.inject.guice.GuiceApplicationBuilder
 
-case class MockTable(id:Long, links:Seq[Link]) extends BaseMusitDomain
+case class MockTable(id: Long, links: Seq[Link]) extends BaseMusitDomain
 
 class LinkDaoTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
@@ -41,9 +41,8 @@ class LinkDaoTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
       val allLinks = findAllLinks()
       whenReady(allLinks, PlayTestDefaults.timeout) { links =>
         assert(links.length == 1)
-        links.foreach( link =>
-          Logger.info(s"test: $link")
-        )
+        links.foreach(link =>
+          Logger.info(s"test: $link"))
       }
     }
   }

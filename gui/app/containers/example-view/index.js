@@ -38,5 +38,5 @@ export default class ExampleView extends Component {
                 <Footer />
     		</div>
     	);
-    }
+  }
 }

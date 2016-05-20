@@ -18,7 +18,7 @@
  */
 package no.uio.musit.microservices.common.domain
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{ Format, Json }
 
 case class MusitError(status: Int = 400, message: String)
 

@@ -4,7 +4,7 @@ const LOAD_FAIL = 'musit/language/LOAD_FAIL';
 
 
 const initialState = {
-  loaded: false
+  loaded: false,
 };
 
 const languageReducer = (state = initialState, action = {}) => {
@@ -12,36 +12,36 @@ const languageReducer = (state = initialState, action = {}) => {
     case LOAD:
       return {
         ...state,
-        loading: true
+        loading: true,
       };
     case LOAD_SUCCESS:
       return {
         ...state,
         loading: false,
         loaded: true,
-        data: action.result
+        data: action.result,
       };
     case LOAD_FAIL:
       return {
         ...state,
         loading: false,
         loaded: false,
-        error: action.error
+        error: action.error,
       };
     default:
       return state;
   }
-}
+};
 
-export default languageReducer
+export default languageReducer;
 
 export const isLoaded = (globalState) => {
   return globalState.language && globalState.language.loaded;
-}
+};
 
 export const load = () => {
   return {
     types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/loadLanguage')
+    promise: (client) => client.get('/loadLanguage'),
   };
-}
+};
