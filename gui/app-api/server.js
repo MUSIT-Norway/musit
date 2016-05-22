@@ -2,7 +2,6 @@ import express from 'express'
 import session from 'express-session'
 import bodyParser from 'body-parser'
 import config from '../app/config'
-import { FAKE_STRATEGY } from '../app/config'
 import * as actions from './actions/index'
 import { mapUrl } from './utils/url.js'
 import PrettyError from 'pretty-error'
@@ -27,23 +26,6 @@ app.use(session({
   saveUninitialized: false,
   cookie: { maxAge: 60000 }
 }))
-
-/*
- app.use('/login', Passport.authenticate(passportLoginType, {failWithError: true}),
- (req, res) => {
- res.status(200).json({
- authenticated: req.isAuthenticated(),
- user: req.user
- })
- },
- (err, req, res, next) => {
- res.status(400).json({
- authenticated: req.isAuthenticated(),
- err: err.message
- })
- }
- )
- */
 
 app.use((req, res) => {
   console.log('request')

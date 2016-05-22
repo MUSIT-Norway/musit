@@ -24,14 +24,14 @@ import { combineReducers } from 'redux'
 
 import infoReducer from './info'
 import authReducer from './auth'
+import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
-import multireducer from 'multireducer'
-
 
 const rootReducer = combineReducers({
   routing: routerReducer,
   info: infoReducer,
   auth: authReducer,
+  fakeAuthInfo: fakeAuthReducer,
   language: languageReducer,
   reduxAsyncConnect: reduxAsyncConnect,
   form: form

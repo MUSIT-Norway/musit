@@ -16,7 +16,7 @@ marked.setOptions({
 
 export default class Language extends Component {
   static propTypes = {
-    language: PropTypes.object,
+    language: PropTypes.object.isRequired,
     value: PropTypes.string.isRequired,
     markdown: PropTypes.bool
   }
@@ -26,12 +26,8 @@ export default class Language extends Component {
   }
 
   render() {
-    const { language, value, markdown } = this.props
-    let text = I18n.t(value)
-    I18n.loadTranslations(language.data)
-    I18n.setLocale('no')
-
-    if (markdown && text) {
+    let text = I18n.t(this.props.value)
+    if (this.props.markdown && text) {
       try {
         const tmp = marked(text)
         text = tmp[0]
@@ -39,7 +35,6 @@ export default class Language extends Component {
         // console.log(err)
       }
     }
-
     return (
       <div>{text}</div>
     )

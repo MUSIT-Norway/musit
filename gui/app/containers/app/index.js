@@ -6,12 +6,16 @@ import { Navbar, Nav, NavItem } from 'react-bootstrap';
 import Helmet from 'react-helmet';
 import { isLoaded as isInfoLoaded, load as loadInfo } from '../../reducers/info';
 import { isLoaded as isLanguageLoaded, load as loadLanguage } from '../../reducers/language';
+import { isLoaded as isFakeAuthInfoLoaded, load as loadFakeAuthInfo } from '../../reducers/fake-auth-info';
 import InfoBar from '../../components/info-bar';
 import { routerActions } from 'react-router-redux';
 import config from '../../config';
 import { asyncConnect } from 'redux-async-connect';
+import { I18n } from 'react-i18nify'
 
 const mapStateToProps = (state) => {
+  I18n.loadTranslations(state.language.data)
+  I18n.setLocale('no')
   return {
     user: state.auth.user,
     pushState: routerActions.push
@@ -28,6 +32,9 @@ const mapStateToProps = (state) => {
     if (!isLanguageLoaded(getState())) {
       promises.push(dispatch(loadLanguage()));
     }
+    if ((config.FAKE_STRATEGY === config.dataportenClientSecret) && !isFakeAuthInfoLoaded(getState())) {
+      promises.push(dispatch(loadFakeAuthInfo()));
+    }
     return Promise.all(promises);
   }
 }])
@@ -36,7 +43,8 @@ class App extends Component {
   static propTypes = {
     children: PropTypes.object.isRequired,
     user: PropTypes.object,
-    pushState: PropTypes.func.isRequired
+    pushState: PropTypes.func.isRequired,
+    store: PropTypes.object
   };
 
   static contextTypes = {
@@ -122,7 +130,7 @@ class App extends Component {
               }
             </Nav>
             {user &&
-            <p className={styles.loggedInMessage + ' navbar-text'}>Logged in as <strong>{user.name}</strong>.</p>}
+            <p className={`${styles.loggedInMessage} navbar-text`}>Logged in as <strong>{user.name}</strong>.</p>}
             <Nav navbar pullRight>
               <NavItem eventKey={1} target="_blank" title="View on Github" href="https://github.com/MUSIT-Norway/musit">
                 <i className="fa fa-github" />
@@ -140,11 +148,12 @@ class App extends Component {
         {null && <InfoBar />}
 
         <div className="well text-center">
-          Have questions? Ask for help <a
+          Have questions? Ask for help<a
             href="https://github.com/MUSIT-Norway/musit/issues"
             target="_blank"
-    >on Github
-        </a>
+          >
+            on Github
+          </a>
         </div>
       </div>
     );

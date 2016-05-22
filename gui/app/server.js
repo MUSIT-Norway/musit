@@ -30,18 +30,16 @@ import ApiClient from './helpers/client-api'
 import Html from './helpers/html'
 import PrettyError from 'pretty-error'
 import http from 'http'
-
 import { match } from 'react-router'
 import { ReduxAsyncConnect, loadOnServer } from 'redux-async-connect'
 import createHistory from 'react-router/lib/createMemoryHistory'
 import { syncHistoryWithStore } from 'react-router-redux'
 import { Provider } from 'react-redux'
 import getRoutes from './routes'
-
 import Passport from 'passport'
 import { Strategy as DataportenStrategy } from 'passport-dataporten'
-import { Strategy as JsonStrategy } from 'passport-json-custom'
-
+import { Strategy as BearerStrategy } from 'passport-http-bearer'
+import request from 'superagent'
 const targetUrl = `http://${config.apiHost}:${config.apiPort}`
 const pretty = new PrettyError()
 const app = new Express()
@@ -63,27 +61,27 @@ let passportLoginType = null
 console.log(dataportenCallbackUrl)
 
 if (config.FAKE_STRATEGY === config.dataportenClientSecret) {
-  // TODO:FAKEIT
-  console.log(' Installing strategy: LOCAL')
-  passportLoginType = 'json-custom'
+  console.log(' Installing strategy: LOCAL Bearer')
+  passportLoginType = 'bearer'
 
-  const findUser = (username) => {
+  const findToken = (token) => {
     const securityDatabase = require('./fake_security.json')
-    return securityDatabase.users.find((user) => user.userId == username)
+    return securityDatabase.users.find((user) => user.accessToken === token)
   }
 
-  const localCallback = (credentials, done) => {
-    const user = findUser(credentials.username)
+  const localCallback = (token, done) => {
+    const user = findToken(token)
     if (!user) {
-      done(null, false, { message: 'Incorrect username.' })
+      done(null, false, { message: 'Incorrect token.' })
     } else {
       done(null, user)
     }
   }
 
-  passportStrategy = new JsonStrategy(localCallback)
+  passportStrategy = new BearerStrategy(localCallback)
 } else {
   // TODO: Consider placing this initialization strategy into the config object
+  console.log(' Installing strategy: DATAPORTEN')
   passportLoginType = 'dataporten'
   const dpConfig = {
     clientID: config.dataportenClientID,
@@ -124,11 +122,10 @@ app.use(Passport.initialize())
 // Proxy to API server
 app.use('/api', (req, res) => {
   proxy.web(req, res, { target: targetUrl })
-
 })
 
 app.use('/ws', (req, res) => {
-  proxy.web(req, res, { target: targetUrl + '/ws' })
+  proxy.web(req, res, { target: `${targetUrl}/ws` })
 })
 
 server.on('upgrade', (req, socket, head) => {
@@ -137,27 +134,25 @@ server.on('upgrade', (req, socket, head) => {
 
 // added the error handling to avoid https://github.com/nodejitsu/node-http-proxy/issues/527
 proxy.on('error', (error, req, res) => {
-
   if (error.code !== 'ECONNRESET') {
     console.error('proxy error', error)
   }
+
   if (!res.headersSent) {
     res.writeHead(500, { 'content-type': 'application/json' })
   }
 
-  const json = { error: 'proxy_error', reason: error.message }
-  res.end(JSON.stringify(json))
+  res.end(JSON.stringify({ error: 'proxy_error', reason: error.message }))
 })
 
 const renderApplication = (req, res, store, status, component) => {
   global.navigator = { userAgent: req.headers['user-agent'] };
-  res.status(status).send('<!doctype html>\n' +
-    ReactDOM.renderToString(<Html assets={webpackIsomorphicTools.assets()} component={component} store={store} />))
+  const html = ReactDOM.renderToString(<Html assets={webpackIsomorphicTools.assets()} component={component} store={store} />)
+  res.status(status).send(`<!doctype html>\n${html}`)
 };
 
 app.get('/', (req, res) => {
-  const client = new ApiClient(req);
-  const store = createStore(client);
+  const store = createStore(new ApiClient(req));
   renderApplication(req, res, store, 200);
 });
 
@@ -171,42 +166,54 @@ app.use('/musit', Passport.authenticate(passportLoginType, { failWithError: true
     const client = new ApiClient(req)
     const virtualBrowserHistory = createHistory(req.originalUrl)
 
-    const store = createStore(client, { auth: { user: req.user } })
+    request.get(`${targetUrl}/api/core/v1/my-groups`).accept('application/json')
+      .set('Authorization', `Bearer ${req.user.accessToken}`).end((saErr, saRes) => {
+        if (saErr) {
+          res.status(401).send(saRes.body)
+        } else {
+          const store = createStore(client, {
+            auth: {
+              user: req.user,
+              groups: saRes.body
+            }
+          })
 
-    const history = syncHistoryWithStore(virtualBrowserHistory, store)
+          const history = syncHistoryWithStore(virtualBrowserHistory, store)
 
-    if (__DISABLE_SSR__) {
-      renderApplication(req, res, store, 200);
-      return
-    }
-
-    match({ history, routes: getRoutes(store), location: req.originalUrl }, (error, redirectLocation, renderProps) => {
-      if (redirectLocation) {
-        res.redirect(redirectLocation.pathname + redirectLocation.search)
-      } else if (error) {
-        console.error('ROUTER ERROR:', pretty.render(error));
-        renderApplication(req, res, store, 500);
-      } else if (renderProps) {
-        loadOnServer({ ...renderProps, store, helpers: { client } }).then(() => {
-          let component = (
-            <Provider store={store} key="provider">
-              <ReduxAsyncConnect {...renderProps} />
-            </Provider>
-          );
-          renderApplication(req, res, store, 200, component);
-        })
-      } else {
-        res.status(404).send('Not found')
-      }
-    })
+          if (__DISABLE_SSR__) {
+            renderApplication(req, res, store, 200);
+          } else {
+            match({
+              history,
+              routes: getRoutes(store),
+              location: req.originalUrl
+            }, (error, redirectLocation, renderProps) => {
+              if (redirectLocation) {
+                res.redirect(redirectLocation.pathname + redirectLocation.search)
+              } else if (error) {
+                console.error('ROUTER ERROR:', pretty.render(error));
+                renderApplication(req, res, store, 500);
+              } else if (renderProps) {
+                loadOnServer({ ...renderProps, store, helpers: { client } }).then(() => {
+                  const component = (
+                  <Provider store={store} key="provider">
+                    <ReduxAsyncConnect {...renderProps} />
+                  </Provider>
+                );
+                  renderApplication(req, res, store, 200, component);
+                })
+              } else {
+                res.status(404).send('Not found')
+              }
+            })
+          }
+        }
+      })
   },
-  (err, req, res, next) => {
-    res.status(400).json({
-      authenticated: req.isAuthenticated(),
-      err: err.message
-    })
+  (err, req, res) => {
+    res.redirect('/')
   }
-);
+)
 
 if (config.port) {
   server.listen(config.port, (err) => {

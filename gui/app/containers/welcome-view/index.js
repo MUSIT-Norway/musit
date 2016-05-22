@@ -22,11 +22,10 @@ import { connect } from 'react-redux';
 import WelcomeContainer from './WelcomeContainer';
 import Language from '../../components/language'
 
-const mapStateToProps = (state) =>
-  ({
-    user: state.auth.user,
-    translate: (key, markdown) => <Language value={key} markdown={markdown} />
-  });
+const mapStateToProps = (state) => ({
+  user: state.auth.user,
+  translate: (key, markdown) => <Language value={key} markdown={markdown} />
+});
 
 @connect(mapStateToProps)
 export default class Welcome extends WelcomeContainer {

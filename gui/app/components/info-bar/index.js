@@ -16,7 +16,7 @@ export default class InfoBar extends Component {
     const { info, load } = this.props; // eslint-disable-line no-shadow
     const styles = require('./index.scss');
     return (
-      <div className={ styles.infoBar + ' well'}>
+      <div className={ `Trying to fake-login ${global.token}` }>
         <div className="container">
           This is an info bar
           {' '}
