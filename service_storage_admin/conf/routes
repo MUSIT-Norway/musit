@@ -3,5 +3,5 @@
 # ~~~~
 
 # Setup endpoints
-GET     /v1/:id                    no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.getUnderlyingNodes(id:Long)
-POST    /v1                        no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.add
+GET     /v1/unit/:id                    no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.getSubNodes(id:Long)
+POST    /v1/unit                        no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.postRoot

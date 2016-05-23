@@ -12,8 +12,8 @@ object StorageUnitType{
   def apply(stType: String) = stType match{
     case "building" => Building
     case "room" => Room
-    case "storageUnit" => StorageUnit
-    case "rootNode" => RootNode
+    case "storageUnit" => StUnit
+   // case "rootNode" => RootNode
   }
  // implicit val format: Format[StorageUnitType] = Json.format[StorageUnitType]
 }
@@ -24,4 +24,4 @@ object Building extends StorageUnitType
 
 object StUnit extends StorageUnitType
 
-object RootNode extends StorageUnitType
+//object RootNode extends StorageUnitType

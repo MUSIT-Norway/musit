@@ -19,43 +19,42 @@
 package no.uio.musit.microservice.storageAdmin.resource
 
 import io.swagger.annotations.ApiOperation
-import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain.StorageUnit
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.domain.{MusitFilter, MusitSearch}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, JsResult, JsSuccess, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class StorageUnitResource extends Controller with StorageUnitService {
+class StorageUnitResource extends Controller {
 
-  @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
-  def add = Action.async(BodyParsers.parse.json) { request =>
-    val storageUnitResult = request.body.validate[StorageUnit]
-    insert(storageUnitResult).map {
-      case Right(newStorageUnit) => Created(Json.toJson(newStorageUnit))
-      case Left(error) => BadRequest(Json.toJson(error))
+
+  def UnwrapJsResult(jsRes: JsResult[Future[Result]]): Future[Result] = {
+    jsRes match {
+      case s: JsSuccess[Future[Result]] => s.value
+      case e: JsError => Future.successful(BadRequest(Json.toJson(e.toString)))
     }
   }
 
 
-  /*def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request =>
-    Future.successful(
-      convertToNow(filter) match {
-        case Right(mt) => Ok(Json.toJson(mt))
-        case Left(err) => Status(err.status)(Json.toJson(err))
+  @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
+  def postRoot = Action.async(BodyParsers.parse.json) { request =>
+    val storageUnitResult = request.body.validate[StorageUnit]
+    val res = storageUnitResult.map { storageUnit =>
+      StorageUnitService.create(storageUnit).map {
+        case Right(newStorageUnit) => Created(Json.toJson(newStorageUnit))
+        case Left(error) => BadRequest(Json.toJson(error))
       }
-    )
+    }
+    UnwrapJsResult(res)
   }
-*/
 
-  def getUnderlyingNodes(id: Long) = Action.async { request =>
-    StorageUnitDao.getNodes(id).map {
+
+  def getSubNodes(id: Long) = Action.async { request =>
+    StorageUnitService.getSubNodes(id).map {
       storageUnits => Ok(Json.toJson(storageUnits))
-    }.recover {
-      case e => NotFound(s"Didn't find object with id: $id")
     }
   }
 

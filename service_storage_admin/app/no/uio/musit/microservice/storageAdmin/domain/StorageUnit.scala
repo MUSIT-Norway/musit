@@ -24,29 +24,18 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.Json
 
 
-case class StorageUnit(id: Long, storageUnitName:String, area:Long, isStorageUnit:String, isPartOf:Long, height:Long,
-                       storageType:String, groupRead:String, groupWrite:String, links: Seq[Link]) extends BaseMusitDomain
+case class StorageUnit(id: Long,  storageType:String,storageUnitName:Option[String], area:Option[Long], isStorageUnit:Option[String], isPartOf:Option[Long], height:Option[Long],
+                       room_sikringSkallsikring :Option[String], room_sikringTyverisikring: Option[String],
+                       room_sikringBrannsikring:Option[String], room_sikringVannskaderisiko:Option[String], room_sikringRutineOgBeredskap:Option[String],
+                       room_bevarLuftfuktOgTemp: Option[String], room_bevarLysforhold: Option[String], room_bevarPrevantKons: Option[String], building_address: Option[String],
+                       groupRead:Option[String], groupWrite:Option[String],links: Seq[Link]) extends BaseMusitDomain
+
 
 object StorageUnit {
   def tupled = (StorageUnit.apply _).tupled
   implicit val format = Json.format[StorageUnit]
 }
 
-case class StorageRoom(id: Long, sikringSkallsikring :String, sikringTyverisikring: String,
-sikringBrannsikring:String, sikringVannskaderisiko:String, sikringRutineOgBeredskap:String,
-bevarLuftfuktOgTemp: String, bevarLysforhold: String, bevarPrevantKons: String,links: Seq[Link]) extends BaseMusitDomain
-
-object StorageRoom {
-  def tupled = (StorageRoom.apply _).tupled
-  implicit val format = Json.format[StorageRoom]
-}
-
-case class StorageBuilding(id: Long , address: String, links: Seq[Link]) extends BaseMusitDomain
-
-object StorageBuilding {
-  def tupled = (StorageBuilding.apply _).tupled
-  implicit val format = Json.format[StorageBuilding]
-}
 
 case class STORAGE_UNIT_LINK(id: Long,storage_unit_id: Long, relation: String, links: Seq[Link]) extends BaseMusitDomain
 

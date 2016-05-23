@@ -21,47 +21,33 @@ package no.uio.musit.microservice.storageAdmin.service
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain.StorageUnit
 import no.uio.musit.microservices.common.domain.MusitError
-import play.api.libs.json.{JsError, JsResult, JsSuccess, Json}
-import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
 trait StorageUnitService {
-  def insert(jsonStorage: JsResult[StorageUnit]): Future[Either[MusitError, StorageUnit]] = {
-    jsonStorage match {
-      case s: JsSuccess[StorageUnit] => {
-        val storageUnit = s.get
-        val newStorageUnitF = StorageUnitDao.insert(storageUnit)
-        newStorageUnitF.map { newStorageUnit =>
-          Right(newStorageUnit)
-        }
-      }
-      case e: JsError => Future.successful(Left(MusitError(400, e.toString)))
+
+  def create(storageUnit:StorageUnit) :Future[Either[MusitError, StorageUnit]] = {
+    val newStorageUnitF = StorageUnitDao.insert(storageUnit)
+    val value:Future[Either[MusitError,StorageUnit]] = newStorageUnitF.map { newStorageUnit =>
+      Right(newStorageUnit)
+    }
+    value.recover{
+      case _ => Left(MusitError(400, "va da feil??"))
     }
   }
 
 
-  /*def getUnderlyingNodes(id: Long) = Action.async { request =>
-    StorageUnitDao.getNodes(id).map {
-      storageUnits => Ok(Json.toJson(storageUnits))
-    }.recover {
-      case e => NotFound(s"Didn't find object with id: $id")
-    }
-  }
 
-
-  def getUNodes(id: Long): Future[Seq[StorageUnit]] = Action.async { request =>
-    StorageUnitDao.getNodes(id).map {
-      case storageUnits => Ok(Json.toJson(storageUnits))
-      case _ => NotFound(s"Didn't find object with id: $id")
+  def getSubNodes(id: Long) : Future[Seq[StorageUnit]]= {
+    StorageUnitDao.getSubNodes(id)
     }
-  }
-}*/
 
 
 }
+
+object StorageUnitService extends StorageUnitService
 
   trait RoomService
 

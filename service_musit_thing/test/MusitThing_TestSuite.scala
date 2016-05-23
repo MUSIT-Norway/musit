@@ -6,12 +6,11 @@ import no.uio.musit.microservice.musitThing.dao.MusitThingDao
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 
 class MusitThing_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
