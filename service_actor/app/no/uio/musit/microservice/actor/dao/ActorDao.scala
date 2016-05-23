@@ -124,7 +124,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   /* TABLE DEF using fieldnames from w3c vcard standard */
-  private class ActorTable(tag: Tag) extends Table[Person](tag, "VIEW_ACTOR") {
+  private class ActorTable(tag: Tag) extends Table[Person](tag, Some("MUSIT_MAPPING"), "VIEW_ACTOR") {
     def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def fn = column[String]("ACTORNAME")
 
@@ -134,7 +134,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     def * = (id, fn) <> (create.tupled, destroy)
   }
 
-  private class PersonTable(tag: Tag) extends Table[Person](tag, "PERSON") {
+  private class PersonTable(tag: Tag) extends Table[Person](tag, Some("MUSARK_ACTOR"), "PERSON") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def fn = column[String]("FN")
     def title = column[Option[String]]("TITLE")
@@ -149,7 +149,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     def * = (id, fn, title, role, tel, web, email) <> (create.tupled, destroy)
   }
 
-  private class OrganizationTable(tag: Tag) extends Table[Organization](tag, "ORGANIZATION") {
+  private class OrganizationTable(tag: Tag) extends Table[Organization](tag, Some("MUSARK_ACTOR"), "ORGANIZATION") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def fn = column[String]("FN")
     def nickname = column[String]("NICKNAME")
@@ -163,7 +163,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     def * = (id, fn, nickname, tel, web) <> (create.tupled, destroy)
   }
 
-  private class OrganizationAddressTable(tag: Tag) extends Table[OrganizationAddress](tag, "ORGANIZATION_ADDRESS") {
+  private class OrganizationAddressTable(tag: Tag) extends Table[OrganizationAddress](tag, Some("MUSARK_ACTOR"), "ORGANIZATION_ADDRESS") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def organizationId = column[Long]("ORGANIZATION_ID")// This is the primary key column
     def addressType = column[String]("TYPE")
