@@ -21,23 +21,23 @@
 package no.uio.musit.microservices.common.extensions
 
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Logger
-import play.api.libs.ws.{WS, WSRequest}
+import play.api.libs.ws.{ WS, WSRequest }
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
 /**
-  * Created by jstabel on 5/11/16.
-  */
-class PlayExtensionsTest extends PlaySpec with OneAppPerSuite with ScalaFutures{
+ * Created by jstabel on 5/11/16.
+ */
+class PlayExtensionsTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
   "running PlayExtensions test" must {
 
     "should extract Bearer token" in {
-      val myToken="myFineToken"
+      val myToken = "myFineToken"
       val req = WS.url("http://tullball.no") // .type WSRequest()
       val finalReq = req.withBearerToken(myToken)
       val extractedToken = finalReq.getBearerToken
-      assert(Some(myToken)==extractedToken)
+      assert(Some(myToken) == extractedToken)
     }
   }
 }

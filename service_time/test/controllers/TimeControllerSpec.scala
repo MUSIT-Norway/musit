@@ -1,7 +1,7 @@
 package controllers
 
-import no.uio.musit.microservices.common.domain.{MusitError, MusitFilter}
-import play.api.test.{FakeRequest, PlaySpecification}
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitFilter }
+import play.api.test.{ FakeRequest, PlaySpecification }
 import play.api.libs.json.Json
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
