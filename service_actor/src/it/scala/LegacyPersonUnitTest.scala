@@ -3,14 +3,14 @@
   */
 
 import no.uio.musit.microservice.actor.dao.ActorDao
-import no.uio.musit.microservice.actor.domain.Actor
+import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 
-class ActorUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
+class LegacyPersonUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
@@ -20,21 +20,21 @@ class ActorUnitTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
 
     "getById_kjempeTall" in {
-      val svar = getActorById(6386363673636335366L)
+      val svar = getPersonLegacyById(6386363673636335366L)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }
     }
 
     "getById__Riktig" in {
-      val svar = getActorById(1)
+      val svar = getPersonLegacyById(1)
       whenReady(svar, timeout) { thing =>
-        assert (thing == Some(Actor(1,"And, Arne1", Seq(LinkService.self("/v1/1")))))
+        assert (thing == Some(Person(1,"And, Arne1", links = Seq(LinkService.self("/v1/person/1")))))
       }
     }
 
     "getById__TalletNull" in {
-      val svar = getActorById(0)
+      val svar = getPersonLegacyById(0)
       whenReady(svar, timeout) { thing =>
         assert (thing == None)
       }

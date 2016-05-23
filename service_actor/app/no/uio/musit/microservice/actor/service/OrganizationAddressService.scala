@@ -42,7 +42,7 @@ trait OrganizationAddressService {
   }
 
   def update(address:OrganizationAddress):Future[Option[OrganizationAddress]] = {
-    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", Seq.empty[Link])))
+    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", 0.0D, 0.0D, Seq.empty[Link])))
   }
 
   def remove(id:Long) = {

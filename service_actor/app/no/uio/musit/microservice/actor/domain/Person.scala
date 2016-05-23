@@ -22,31 +22,21 @@ package no.uio.musit.microservice.actor.domain
 import no.uio.musit.microservices.common.domain.{BaseAddress, BaseMusitDomain}
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
-/**
-  * Mapping table
-  * TODO: Redo this to match Person so its a drop in replacement when we move actor from old database to new.
-  */
-case class Actor(id: Long, actorname:String, links: Seq[Link]) extends BaseMusitDomain
 
 /**
   * Domain Person
   */
-case class Person(id:Long, fn:String, title:String, role:String, tel:String, web:String, email:String, links: Seq[Link]) extends BaseMusitDomain
+case class Person(id:Long, fn:String, title:Option[String] = None, role:Option[String] = None, tel:Option[String] = None, web:Option[String] = None, email:Option[String] = None, links: Seq[Link]) extends BaseMusitDomain
 
 /**
   * Domain Organization
   */
-case class Organization(id:Long, fn:String, nickname:String, tel:String, web:String, latitude:Double, longitude:Double, links: Seq[Link]) extends BaseMusitDomain
+case class Organization(id:Long, fn:String, nickname:String, tel:String, web:String, links: Seq[Link]) extends BaseMusitDomain
 
 /**
   * Address specialized for Organization
   */
-case class OrganizationAddress(id:Long, organizationId:Long, addressType:String, streetAddress:String, locality:String, postalCode:String, countryName:String, links: Seq[Link]) extends BaseAddress
-
-object Actor {
-  def tupled = (Actor.apply _).tupled
-  implicit val format = Json.format[Actor]
-}
+case class OrganizationAddress(id:Long, organizationId:Long, addressType:String, streetAddress:String, locality:String, postalCode:String, countryName:String, latitude:Double, longitude:Double, links: Seq[Link]) extends BaseAddress
 
 object Person {
   def tupled = (Person.apply _).tupled

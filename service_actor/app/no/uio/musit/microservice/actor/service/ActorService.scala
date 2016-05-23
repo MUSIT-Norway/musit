@@ -19,6 +19,21 @@
 
 package no.uio.musit.microservice.actor.service
 
+import no.uio.musit.microservice.actor.dao.ActorDao
+import no.uio.musit.microservice.actor.domain.Person
+
 trait ActorService {
+
+  def all = {
+    ActorDao.allPersonsLegacy()
+  }
+
+  def find(id:Long) = {
+    ActorDao.getPersonLegacyById(id)
+  }
+
+  def create(person:Person) = {
+    ActorDao.insertPersonLegacy(person)
+  }
 
 }

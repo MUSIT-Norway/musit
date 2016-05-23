@@ -18,7 +18,7 @@
  */
 package no.uio.musit.microservice.actor.dao
 
-import no.uio.musit.microservice.actor.domain.{Actor, Organization, OrganizationAddress, Person}
+import no.uio.musit.microservice.actor.domain.{Organization, OrganizationAddress, Person}
 import no.uio.musit.microservices.common.linking.LinkService
 import play.api.Play
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
@@ -39,12 +39,12 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   private val OrganizationAddressTable = TableQuery[OrganizationAddressTable]
 
   /* FINDERS */
-  def allActors() : Future[Seq[Actor]] = db.run(ActorTable.result)
+  def allPersonsLegacy() : Future[Seq[Person]] = db.run(ActorTable.result)
   def allPersons() : Future[Seq[Person]] = db.run(PersonTable.result)
   def allOrganizations() : Future[Seq[Organization]] = db.run(OrganizationTable.result)
   def allAddressesForOrganization(id:Long) : Future[Seq[OrganizationAddress]] = db.run(OrganizationAddressTable.filter(_.organizationId === id).result)
 
-  def getActorById(id:Long) = {
+  def getPersonLegacyById(id:Long) = {
     db.run(ActorTable.filter( _.id === id).result.headOption)
   }
 
@@ -61,8 +61,8 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   /* CREATES and UPDATES */
-  def insertActor(actor: Actor): Future[Actor] = {
-    val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
+  def insertPersonLegacy(actor: Person): Future[Person] = {
+    val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id, links = Seq(LinkService.self(s"/v1/person/$id"))))
     val action = insertQuery += actor
 
     db.run(action)
@@ -101,27 +101,27 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(OrganizationAddressTable.filter(_.id === id).delete)
   }
 
-  /* TABLE DEF */
-  private class ActorTable(tag: Tag) extends Table[Actor](tag, "VIEW_ACTOR") {
+  /* TABLE DEF using fieldnames from w3c vcard standard */
+  private class ActorTable(tag: Tag) extends Table[Person](tag, "VIEW_ACTOR") {
     def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
-    def actorname = column[String]("ACTORNAME")
+    def fn = column[String]("ACTORNAME")
 
-    def create = (id: Long , actorname:String) => Actor(id, actorname, Seq(LinkService.self(s"/v1/$id")))
-    def destroy(actor:Actor) = Some(actor.id, actor.actorname)
+    def create = (id: Long , fn:String) => Person(id, fn, links = Seq(LinkService.self(s"/v1/person/$id")))
+    def destroy(actor:Person) = Some(actor.id, actor.fn)
 
-    def * = (id, actorname) <> (create.tupled, destroy)
+    def * = (id, fn) <> (create.tupled, destroy)
   }
 
   private class PersonTable(tag: Tag) extends Table[Person](tag, "PERSON") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def fn = column[String]("FN")
-    def title = column[String]("TITLE")
-    def role = column[String]("ROLE")
-    def tel = column[String]("TEL")
-    def web = column[String]("WEB")
-    def email = column[String]("EMAIL")
+    def title = column[Option[String]]("TITLE")
+    def role = column[Option[String]]("ROLE")
+    def tel = column[Option[String]]("TEL")
+    def web = column[Option[String]]("WEB")
+    def email = column[Option[String]]("EMAIL")
 
-    def create = (id:Long, fn:String, title:String, role:String, tel:String, web:String, email:String) => Person(id, fn, title, role, tel, web, email, Seq(LinkService.self(s"/v1/person/$id")))
+    def create = (id:Long, fn:String, title:Option[String], role:Option[String], tel:Option[String], web:Option[String], email:Option[String]) => Person(id, fn, title, role, tel, web, email, Seq(LinkService.self(s"/v1/person/$id")))
     def destroy(person:Person) = Some(person.id, person.fn, person.title, person.role, person.tel, person.web, person.email)
 
     def * = (id, fn, title, role, tel, web, email) <> (create.tupled, destroy)
@@ -130,16 +130,15 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   private class OrganizationTable(tag: Tag) extends Table[Organization](tag, "ORGANIZATION") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)// This is the primary key column
     def fn = column[String]("FN")
-    def nickname = column[String]("NiCNAME")
+    def nickname = column[String]("NICKNAME")
     def tel = column[String]("TEL")
     def web = column[String]("WEB")
-    def latitude = column[Double]("LATITUDE")
-    def longitude = column[Double]("LONGITUDE")
 
-    def create = (id:Long, fn:String, nickname:String, tel:String, web:String, latitude:Double, longitude:Double) => Organization(id, fn, nickname, tel, web, latitude, longitude, Seq(LinkService.self(s"/v1/organization/$id"), LinkService.local(-1, "addresses", s"/v1/organization/$id/address")))
-    def destroy(org:Organization) = Some(org.id, org.fn, org.nickname, org.tel, org.web, org.latitude, org.longitude)
 
-    def * = (id, fn, nickname, tel, web, latitude, longitude) <> (create.tupled, destroy)
+    def create = (id:Long, fn:String, nickname:String, tel:String, web:String) => Organization(id, fn, nickname, tel, web, Seq(LinkService.self(s"/v1/organization/$id"), LinkService.local(-1, "addresses", s"/v1/organization/$id/address")))
+    def destroy(org:Organization) = Some(org.id, org.fn, org.nickname, org.tel, org.web)
+
+    def * = (id, fn, nickname, tel, web) <> (create.tupled, destroy)
   }
 
   private class OrganizationAddressTable(tag: Tag) extends Table[OrganizationAddress](tag, "ORGANIZATION_ADDRESS") {
@@ -150,11 +149,13 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     def locality = column[String]("LOCALITY")
     def postalCode = column[String]("POSTAL_CODE")
     def countryName = column[String]("COUNTRY_NAME")
+    def latitude = column[Double]("LATITUDE")
+    def longitude = column[Double]("LONGITUDE")
 
-    def create = (id:Long, organizationId:Long, addressType:String, streetAddress:String, locality:String, postalCode:String, countryName:String) => OrganizationAddress(id, organizationId, addressType, streetAddress, locality, postalCode, countryName, Seq(LinkService.self(s"/v1/organization/$organizationId/address/$id")))
-    def destroy(addr:OrganizationAddress) = Some(addr.id, addr.organizationId, addr.addressType, addr.streetAddress, addr.locality, addr.postalCode, addr.countryName)
+    def create = (id:Long, organizationId:Long, addressType:String, streetAddress:String, locality:String, postalCode:String, countryName:String, latitude:Double, longitude:Double) => OrganizationAddress(id, organizationId, addressType, streetAddress, locality, postalCode, countryName, latitude, longitude, Seq(LinkService.self(s"/v1/organization/$organizationId/address/$id")))
+    def destroy(addr:OrganizationAddress) = Some(addr.id, addr.organizationId, addr.addressType, addr.streetAddress, addr.locality, addr.postalCode, addr.countryName, addr.latitude, addr.longitude)
 
-    def * = (id, organizationId, addressType, streetAddress, locality, postalCode, countryName) <>(create.tupled, destroy)
+    def * = (id, organizationId, addressType, streetAddress, locality, postalCode, countryName, latitude, longitude) <>(create.tupled, destroy)
   }
 }
 

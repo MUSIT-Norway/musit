@@ -54,7 +54,7 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
     }
   }
 
-  def updateRoot(organizationId:Long) = Action.async(BodyParsers.parse.json) { request =>
+  def updateRoot(organizationId:Long, id:Long) = Action.async(BodyParsers.parse.json) { request =>
     val actorResult:JsResult[OrganizationAddress] = request.body.validate[OrganizationAddress]
     actorResult match {
       case s:JsSuccess[OrganizationAddress] => {

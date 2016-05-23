@@ -18,9 +18,9 @@
  */
 package no.uio.musit.microservice.actor.resource
 
-import no.uio.musit.microservice.actor.dao.ActorDao
-import no.uio.musit.microservice.actor.domain.Actor
+import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservice.actor.service.ActorService
+import no.uio.musit.microservices.common.domain.MusitError
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -28,34 +28,26 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 // TODO: Activate new routes and delete old ones for Actor, and rename resource to LegacyPerson + redo the integration tests
-class ActorResource_V1 extends Controller with ActorService {
+class LegacyPersonResource extends Controller with ActorService {
 
 
   def list = Action.async { request => {
     // TODO: Extend with MusitSearch support
-    ActorDao.allActors.map(actors => {
-      Ok(Json.toJson(actors))
-    })}
+    all.map(actors => { Ok(Json.toJson(actors)) })}
   }
 
   def getById(id:Long) = Action.async { request => {
-    ActorDao.getActorById(id).map {
+    find(id).map {
       case Some(actor) => Ok(Json.toJson(actor))
       case None => NotFound(s"Didn't find object with id: $id")
     }
   }}
 
   def add = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult:JsResult[Actor] = request.body.validate[Actor]
+    val actorResult:JsResult[Person] = request.body.validate[Person]
     actorResult match {
-      case s:JsSuccess[Actor] => {
-        val actor = s.get
-        val newActorF = ActorDao.insertActor(actor)
-        newActorF.map { newActor =>
-          Created(Json.toJson(newActor))
-        }
-      }
-      case e:JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))
+      case s:JsSuccess[Person] => create(s.get).map { newActor => Created(Json.toJson(newActor)) }
+      case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
     }
   }
 }

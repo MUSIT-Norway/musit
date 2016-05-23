@@ -58,7 +58,7 @@ class OrganizationResource extends Controller with OrganizationService {
     }
   }
 
-  def updateRoot = Action.async(BodyParsers.parse.json) { request =>
+  def updateRoot(id:Long) = Action.async(BodyParsers.parse.json) { request =>
     val actorResult:JsResult[Organization] = request.body.validate[Organization]
     actorResult match {
       case s:JsSuccess[Organization] => {

@@ -27,7 +27,7 @@ import play.api.libs.ws.WS
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
-class ActorIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFutures {
+class PersonIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 19002

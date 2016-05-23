@@ -46,8 +46,8 @@ class PersonResource extends Controller with PersonService {
   }
 
   def postRoot = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult:JsResult[Person] = request.body.validate[Person]
-    actorResult match {
+    val personResult:JsResult[Person] = request.body.validate[Person]
+    personResult match {
       case s:JsSuccess[Person] => {
         val person = s.get
         create(person).map { newPerson =>
@@ -58,9 +58,9 @@ class PersonResource extends Controller with PersonService {
     }
   }
 
-  def updateRoot = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult:JsResult[Person] = request.body.validate[Person]
-    actorResult match {
+  def updateRoot(id:Long) = Action.async(BodyParsers.parse.json) { request =>
+    val personResult:JsResult[Person] = request.body.validate[Person]
+    personResult match {
       case s:JsSuccess[Person] => {
         val person = s.get
         update(person).map { newPerson =>
