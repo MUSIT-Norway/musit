@@ -30,36 +30,38 @@ import scala.concurrent.Future
 
 class ActorResource_V1 extends Controller with ActorService {
 
-
-  def list = Action.async { req => {
-    //req.getQueryString("filter")
-    ActorDao.all.map(actor => {
-      Logger.info("Testing 1 2 3")
-      Logger.error("Sending log to slack")
-      Ok(Json.toJson(actor))
-    })}
+  def list = Action.async { req =>
+    {
+      //req.getQueryString("filter")
+      ActorDao.all.map(actor => {
+        Logger.info("Testing 1 2 3")
+        Logger.error("Sending log to slack")
+        Ok(Json.toJson(actor))
+      })
+    }
   }
 
-  def getById(id:Long) = Action.async { request => {
-    ActorDao.getById(id).map( optionResult =>
-      optionResult match {
-        case Some(actor) => Ok(Json.toJson(actor))
-        case None => NotFound(s"Didn't find object with id: $id")
-      }
-    )
-  }}
+  def getById(id: Long) = Action.async { request =>
+    {
+      ActorDao.getById(id).map(optionResult =>
+        optionResult match {
+          case Some(actor) => Ok(Json.toJson(actor))
+          case None => NotFound(s"Didn't find object with id: $id")
+        })
+    }
+  }
 
   def add = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult:JsResult[Actor] = request.body.validate[Actor]
+    val actorResult: JsResult[Actor] = request.body.validate[Actor]
     actorResult match {
-      case s:JsSuccess[Actor] => {
+      case s: JsSuccess[Actor] => {
         val actor = s.get
         val newActorF = ActorDao.insert(actor)
         newActorF.map { newActor =>
           Created(Json.toJson(newActor))
         }
       }
-      case e:JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))
+      case e: JsError => Future(BadRequest(Json.obj("status" -> "Error", "message" -> JsError.toJson(e))))
     }
   }
 }

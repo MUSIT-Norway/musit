@@ -40,12 +40,11 @@ const history = syncHistoryWithStore(browserHistoryInstance, store);
 
 function initSocket() {
   const socket = io('', { path: '/ws' });
-  socket.on('news', (data) => {
-    console.log(data);
+  socket.on('news', (/* data */) => {
     socket.emit('my other event', { my: 'data from client' });
   });
-  socket.on('msg', (data) => {
-    console.log(data);
+  socket.on('msg', (/* data */) => {
+
   });
 
   return socket;
@@ -56,7 +55,8 @@ global.socket = initSocket();
 const component = (
   <Router render={(props) =>
         <ReduxAsyncConnect {...props} helpers={{ client }} filter={item => !item.deferred} />
-      } history={history}>
+      } history={history}
+  >
     {getRoutes(store)}
   </Router>
 );
@@ -72,7 +72,8 @@ if (process.env.NODE_ENV !== 'production') {
   window.React = React; // enable debugger
 
   if (!dest || !dest.firstChild || !dest.firstChild.attributes || !dest.firstChild.attributes['data-react-checksum']) {
-    console.error('Server-side React render was discarded. Make sure that your initial render does not contain any client-side code.');
+    console.error('Server-side React render was discarded. ' +
+      'Make sure that your initial render does not contain any client-side code.');
   }
 }
 

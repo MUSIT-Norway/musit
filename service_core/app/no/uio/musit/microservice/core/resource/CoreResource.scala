@@ -18,24 +18,22 @@
  */
 package no.uio.musit.microservice.core.resource
 
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import io.swagger.annotations._
-import no.uio.musit.microservice.core.domain.Example
 import no.uio.musit.microservice.core.service.CoreService
-import play.api.mvc.{Action, BodyParsers, Controller}
-import play.api.libs.json._
+import no.uio.musit.security.Security
+import play.api.libs.json.Json
+import play.api.mvc.{ Action, Controller }
 
-@Api(value = "/api/example", description = "Example resource, showing how you can put simple methods straight into the resource and do complex logic in traits outside.")
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 class CoreResource extends Controller with CoreService {
 
-  @ApiOperation(value = "Example operation - lists all examples", notes = "simple listing in json", httpMethod = "GET")
-  def list = Action {
-    Ok("bankers")
-  }
+  def getSecurityGroupsForCurrentUser = Action.async { request =>
+    Security.create(request) match {
+      case Right(futureConnection) => futureConnection.map(conn => Ok(Json.toJson(conn.groupIds)))
 
-  @ApiOperation(value = "Example operation - inserts an example", notes = "simple json parsing and db insert", httpMethod = "POST")
-  def add = Action(BodyParsers.parse.json) { request =>
-    NotImplemented(s"Bankers :${this.getClass.getName}")
+      case Left(error) => Future.successful(Unauthorized(Json.toJson(error)))
+    }
   }
 
 }

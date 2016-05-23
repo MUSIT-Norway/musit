@@ -4,10 +4,10 @@ import java.net.URLEncoder
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.{LayoutBase, UnsynchronizedAppenderBase}
+import ch.qos.logback.core.{ LayoutBase, UnsynchronizedAppenderBase }
 import play.Logger
 import play.api.Play.current
-import play.api.libs.json.{JsNumber, JsObject, JsString}
+import play.api.libs.json.{ JsNumber, JsObject, JsString }
 import play.api.libs.ws._
 
 object SlackDefaults {
@@ -25,15 +25,15 @@ class SlackLogbackAppender extends UnsynchronizedAppenderBase[ILoggingEvent] {
   var layout = SlackDefaults.layout
   Logger.debug(s"Started slack appender ($webhook, $host, $service)")
 
-  def setWebhook(input:String) = {
+  def setWebhook(input: String) = {
     webhook = input
   }
 
-  def setHost(input:String) = {
+  def setHost(input: String) = {
     host = input
   }
 
-  def setService(input:String) = {
+  def setService(input: String) = {
     service = input
   }
 
@@ -41,10 +41,9 @@ class SlackLogbackAppender extends UnsynchronizedAppenderBase[ILoggingEvent] {
     layout = input
   }
 
-  def slackFormat(msg:String) : String = {
+  def slackFormat(msg: String): String = {
     s"[$host:$service:${msg.replaceAll("\n\t", "\n")}"
   }
-
 
   override def append(eventObject: ILoggingEvent): Unit = {
     if (webhook.size > 33) {

@@ -7,33 +7,30 @@ import play.api.libs.ws._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 /**
-  * Created by jstabel on 3/31/16.
-  */
-
+ * Created by jstabel on 3/31/16.
+ */
 
 object dataporten {
   def createUserInfo(sub: String, name: String) = new UserInfo(sub, name)
 
   def createGroupInfo(groupType: String, id: String, displayName: String, description: Option[String]) = new GroupInfo(groupType, id, displayName, description)
 
-
   val userInfoUrl = "https://auth.dataporten.no/openid/userinfo"
   val userGroupsUrl = "https://groups-api.dataporten.no/groups/me/groups"
 
   implicit val userInfoReads: Reads[UserInfo] = (
     (JsPath \ "sub").read[String] and
-      (JsPath \ "name").read[String]
-    ) (createUserInfo _)
+    (JsPath \ "name").read[String]
+  )(createUserInfo _)
 
   implicit val groupInfoReads: Reads[GroupInfo] = (
     (JsPath \ "type").read[String] and
-      (JsPath \ "id").read[String] and
-      (JsPath \ "displayName").read[String] and
-      (JsPath \ "description").readNullable[String]
+    (JsPath \ "id").read[String] and
+    (JsPath \ "displayName").read[String] and
+    (JsPath \ "description").readNullable[String]
 
-    ) (createGroupInfo _)
+  )(createGroupInfo _)
 
   class DataportenUserInfoProvider(_accessToken: String) extends ConnectionInfoProvider {
 

@@ -17,27 +17,22 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import Grid from 'react-bootstrap/lib/Grid';
 import Row from 'react-bootstrap/lib/Row';
 import Col from 'react-bootstrap/lib/Col';
 
-class Footer extends Component {
-
-	  render() {
-		  return (
-			<footer>
-			    <Grid>
-                    <Row>
-                        <Col xs={12} md={12}>
-                            <a href="http://www.acando.no" >Acando Norge</a>
-                        </Col>
-                    </Row>
-                </Grid>
-            </footer>
-    	);
-	}
-}
+const Footer = () => (
+  <footer>
+    <Grid>
+      <Row>
+        <Col xs={12} md={12}>
+          <a href="http://www.acando.no">Acando Norge</a>
+        </Col>
+      </Row>
+    </Grid>
+  </footer>
+);
 
 export default connect(null, null)(Footer)

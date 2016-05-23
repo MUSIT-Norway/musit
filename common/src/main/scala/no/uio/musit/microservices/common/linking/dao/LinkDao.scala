@@ -22,7 +22,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
@@ -34,11 +34,11 @@ object LinkDao extends HasDatabaseConfig[JdbcProfile] {
 
   private val linkTable = TableQuery[LinkTable]
 
-  def insert(ownerTable: BaseMusitDomain, rel:String, href:String): Future[Unit] = db.run(linkTable += Link(-1, ownerTable.id, rel, href)).map { _ => () }
+  def insert(ownerTable: BaseMusitDomain, rel: String, href: String): Future[Unit] = db.run(linkTable += Link(-1, ownerTable.id, rel, href)).map { _ => () }
 
   def findByLocalTableId(id: Long): Future[Seq[Link]] = db.run(linkTable.filter(_.localTableId === id).result)
 
-  def findAllLinks() : Future[Seq[Link]] = db.run(linkTable.result)
+  def findAllLinks(): Future[Seq[Link]] = db.run(linkTable.result)
 
   /*
    * Every microservice using this functionality need to add the following to their evolution script:

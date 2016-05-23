@@ -6,17 +6,30 @@ import no.uio.musit.microservice.musitThing.dao.MusitThingDao
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.{JsString, Json}
+import play.api.libs.ws.WS
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 
-class MusitThing_TestSuite extends PlaySpec with OneAppPerSuite with ScalaFutures {
+class MusitThing_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
+
+  override lazy val port: Int = 19003
+
+  "MusitThing integration " must {
+    "get by id" in {
+      val future = WS.url(s"http://localhost:$port/v1/1").get()
+      whenReady(future, timeout) { response =>
+        val json = Json.parse(response.body)
+        assert((json \ "id").getOrElse(JsString("0")).toString() == "1")
+      }
+    }
+  }
 
   "MusitThing slick dao" must {
     import MusitThingDao._
