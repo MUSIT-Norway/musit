@@ -31,9 +31,8 @@ class PersonResource extends Controller with PersonService {
 
 
   def listRoot(search: Option[MusitSearch]) = Action.async { request =>
-    // TODO: Add searching
     search match {
-      case Some(criteria) => Future.successful(NotImplemented("Add search support"))
+      case Some(criteria) => find(criteria).map( persons => Ok(Json.toJson(persons)) )
       case None => all.map(person => { Ok(Json.toJson(person)) })
     }
   }

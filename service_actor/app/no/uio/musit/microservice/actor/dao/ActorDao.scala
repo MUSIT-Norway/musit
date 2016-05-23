@@ -27,8 +27,6 @@ import slick.driver.JdbcProfile
 import scala.concurrent.Future
 
 object ActorDao extends HasDatabaseConfig[JdbcProfile] {
-
-
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
@@ -48,12 +46,24 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(ActorTable.filter( _.id === id).result.headOption)
   }
 
+  def getPersonLegacyByName(searchString: String):Future[Seq[Person]] = {
+    db.run(ActorTable.filter(_.fn like ("%" + searchString + "%")).result)
+  }
+
   def getPersonById(id:Long) = {
     db.run(PersonTable.filter(_.id === id).result.headOption)
   }
 
+  def getPersonByName(searchString: String):Future[Seq[Person]] = {
+    db.run(PersonTable.filter(_.fn like ("%" + searchString + "%")).result)
+  }
+
   def getOrganizationById(id: Long) = {
     db.run(OrganizationTable.filter(_.id === id).result.headOption)
+  }
+
+  def getOrganizationByName(searchString: String):Future[Seq[Organization]] = {
+    db.run(OrganizationTable.filter(_.fn like ("%" + searchString + "%")).result)
   }
 
   def getOrganizationAddressById(id: Long) = {
@@ -86,11 +96,19 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
+  def updateOrganization(organization: Organization) = {
+    db.run(OrganizationTable.filter(_.id === organization.id).update(organization))
+  }
+
   def insertOrganizationAddress(address: OrganizationAddress): Future[OrganizationAddress] = {
     val insertQuery = OrganizationAddressTable returning OrganizationAddressTable.map(_.id) into ((addr, id) => addr.copy(id = id, links = Seq(LinkService.self(s"/v1/organization/${address.organizationId}/address/$id"))))
     val action = insertQuery += address
 
     db.run(action)
+  }
+
+  def updateOrganizationAddress(organizationAddress: OrganizationAddress) = {
+    db.run(OrganizationAddressTable.filter(_.id === organizationAddress.id).update(organizationAddress))
   }
 
   /* DELETES */

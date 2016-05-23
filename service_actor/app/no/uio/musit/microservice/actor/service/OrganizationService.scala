@@ -20,7 +20,9 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Organization
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
@@ -36,12 +38,23 @@ trait OrganizationService {
     ActorDao.getOrganizationById(id)
   }
 
+  def find(search:MusitSearch) = {
+    val searchString = search.searchStrings.reduce(_ + " " + _)
+    ActorDao.getOrganizationByName(searchString)
+  }
+
   def create(organization:Organization) = {
     ActorDao.insertOrganization(organization)
   }
 
-  def update(organization:Organization):Future[Option[Organization]] = {
-    Future.successful(Some(organization))
+  def update(organization:Organization): Future[Either[MusitError, Organization]] = {
+    ActorDao.updateOrganization(organization).flatMap {
+      case 0 => Future.successful(Left(MusitError(401, "Something went wrong with the update")))
+      case num => ActorDao.getOrganizationById(organization.id).map {
+        case Some(org) => Right(org)
+        case None => Left(MusitError(404, "Did not find the object"))
+      }
+    }
   }
 
   def remove(id:Long) = {

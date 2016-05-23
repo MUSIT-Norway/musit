@@ -20,10 +20,9 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.Future
 
 /**
@@ -37,6 +36,11 @@ trait PersonService {
 
   def find(id:Long) = {
     ActorDao.getPersonById(id)
+  }
+
+  def find(search:MusitSearch) = {
+    val searchString = search.searchStrings.reduce(_ + " " + _)
+    ActorDao.getPersonByName(searchString)
   }
 
   def create(person:Person) = {

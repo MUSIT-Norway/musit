@@ -20,7 +20,9 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.OrganizationAddress
-import no.uio.musit.microservices.common.linking.domain.Link
+import no.uio.musit.microservices.common.domain.MusitError
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
@@ -41,8 +43,14 @@ trait OrganizationAddressService {
     ActorDao.insertOrganizationAddress(address)
   }
 
-  def update(address:OrganizationAddress):Future[Option[OrganizationAddress]] = {
-    Future.successful(Some(OrganizationAddress(-1, -1, "", "", "", "", "", 0.0D, 0.0D, Seq.empty[Link])))
+  def update(address:OrganizationAddress): Future[Either[MusitError, OrganizationAddress]] = {
+    ActorDao.updateOrganizationAddress(address).flatMap {
+      case 0 => Future.successful(Left(MusitError(401, "Something went wrong with the update")))
+      case num => ActorDao.getOrganizationAddressById(address.id).map {
+        case Some(org) => Right(org)
+        case None => Left(MusitError(404, "Did not find the object"))
+      }
+    }
   }
 
   def remove(id:Long) = {

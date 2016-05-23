@@ -36,7 +36,7 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
 
   def getRoot(organizationId:Long, id:Long) = Action.async { request =>
     find(id).map {
-      case Some(addr) => NotImplemented(Json.toJson(addr)) // Ok
+      case Some(addr) => Ok(Json.toJson(addr))
       case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
     }
   }
@@ -47,7 +47,7 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
       case s:JsSuccess[OrganizationAddress] => {
         val addr = s.get
         create(addr).map { newAddr =>
-          NotImplemented(Json.toJson(newAddr)) // Created
+          Created(Json.toJson(newAddr))
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
@@ -59,8 +59,9 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
     actorResult match {
       case s:JsSuccess[OrganizationAddress] => {
         val addr = s.get
-        update(addr).map { newAddr =>
-          NotImplemented(Json.toJson(newAddr)) // Ok
+        update(addr).map {
+          case Right(newAddr) => Ok(Json.toJson(newAddr))
+          case Left(error) => Status(error.status)(Json.toJson(error))
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))

@@ -21,8 +21,11 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
+import no.uio.musit.microservices.common.domain.MusitSearch
 
-trait ActorService {
+import scala.concurrent.Future
+
+trait LegacyPersonService {
 
   def all = {
     ActorDao.allPersonsLegacy()
@@ -30,6 +33,11 @@ trait ActorService {
 
   def find(id:Long) = {
     ActorDao.getPersonLegacyById(id)
+  }
+
+  def find(search:MusitSearch) = {
+    val searchString = search.searchStrings.reduce(_ + " " + _)
+    ActorDao.getPersonLegacyByName(searchString)
   }
 
   def create(person:Person) = {

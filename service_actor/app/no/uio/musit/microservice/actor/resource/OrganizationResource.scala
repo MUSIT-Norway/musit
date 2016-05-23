@@ -31,16 +31,15 @@ class OrganizationResource extends Controller with OrganizationService {
 
 
   def listRoot(search: Option[MusitSearch]) = Action.async { request =>
-    // TODO: Add searching
     search match {
-      case Some(criteria) => Future.successful(NotImplemented("Add search support"))
-      case None => all.map(person => { NotImplemented(Json.toJson(person)) }) // Ok
+      case Some(criteria) => find(criteria).map( orgs => Ok(Json.toJson(orgs)))
+      case None => all.map(org => { Ok(Json.toJson(org)) })
     }
   }
 
   def getRoot(id:Long) = Action.async { request =>
     find(id).map {
-      case Some(person) => NotImplemented(Json.toJson(person)) // Ok
+      case Some(person) => Ok(Json.toJson(person))
       case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
     }
   }
@@ -50,8 +49,9 @@ class OrganizationResource extends Controller with OrganizationService {
     actorResult match {
       case s:JsSuccess[Organization] => {
         val org = s.get
-        create(org).map { newOrg =>
-          NotImplemented(Json.toJson(newOrg)) // Created
+        update(org).map {
+          case Right(newOrg) => Created(Json.toJson(newOrg))
+          case Left(error) => Status(error.status)(Json.toJson(error))
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
@@ -63,8 +63,9 @@ class OrganizationResource extends Controller with OrganizationService {
     actorResult match {
       case s:JsSuccess[Organization] => {
         val org = s.get
-        update(org).map { newOrg =>
-          NotImplemented(Json.toJson(newOrg)) // Ok
+        update(org).map {
+          case Right(newOrg) => Ok(Json.toJson(newOrg))
+          case Left(error) => Status(error.status)(Json.toJson(error))
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))

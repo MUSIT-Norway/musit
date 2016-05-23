@@ -19,8 +19,8 @@
 package no.uio.musit.microservice.actor.resource
 
 import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservice.actor.service.ActorService
-import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservice.actor.service.LegacyPersonService
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -28,12 +28,13 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 // TODO: Activate new routes and delete old ones for Actor, and rename resource to LegacyPerson + redo the integration tests
-class LegacyPersonResource extends Controller with ActorService {
+class LegacyPersonResource extends Controller with LegacyPersonService {
 
-
-  def list = Action.async { request => {
-    // TODO: Extend with MusitSearch support
-    all.map(actors => { Ok(Json.toJson(actors)) })}
+  def list(search: Option[MusitSearch]) = Action.async { request => {
+    search match {
+      case Some(criteria) => find(criteria).map(persons => { Ok(Json.toJson(persons)) })
+      case None => all.map(persons => { Ok(Json.toJson(persons)) })}
+    }
   }
 
   def getById(id:Long) = Action.async { request => {
