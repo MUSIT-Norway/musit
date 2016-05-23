@@ -21,8 +21,8 @@
 package no.uio.musit.microservices.common.extensions
 
 /**
-  * Created by jstabel on 4/28/16.
-  */
+ * Created by jstabel on 4/28/16.
+ */
 
 object OptionExtensions {
 

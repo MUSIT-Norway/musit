@@ -17,30 +17,22 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
 import Grid from 'react-bootstrap/lib/Grid';
 import Row from 'react-bootstrap/lib/Row';
 import Col from 'react-bootstrap/lib/Col';
 
-class Header extends Component {
-
-	  render() {
-		  return (
-            <header>
-                <Grid>
-                    <Row>
-                        <Col xs={6} md={6}>
-                        </Col>
-                        <Col xs={6} md={6}>
-                            <h4>Base ReactJS w/Redux Template</h4>
-                        </Col>
-                    </Row>
-                </Grid>
-            </header>
-    	);
-	}
-}
+const Header = () =>
+      <header>
+        <Grid>
+          <Row>
+            <Col xs={6} md={6} />
+            <Col xs={6} md={6}>
+              <h4>Base ReactJS w/Redux Template</h4>
+            </Col>
+          </Row>
+        </Grid>
+      </header>
 
 export default connect(null, null)(Header);

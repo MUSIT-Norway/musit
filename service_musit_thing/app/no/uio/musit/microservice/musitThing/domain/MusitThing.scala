@@ -25,13 +25,10 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 @ApiModel
-case class MusitThing(id: Long , displayid:String, displayname:String, links: Seq[Link]) extends BaseMusitDomain
+case class MusitThing(id: Long, displayid: String, displayname: String, links: Seq[Link]) extends BaseMusitDomain
 
 object MusitThing {
   def tupled = (MusitThing.apply _).tupled
   implicit val format = Json.format[MusitThing]
 }
-
-
-
 

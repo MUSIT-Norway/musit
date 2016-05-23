@@ -18,7 +18,7 @@
  */
 package no.uio.musit.microservices.time.resource
 
-import no.uio.musit.microservices.common.domain.{MusitFilter, MusitSearch}
+import no.uio.musit.microservices.common.domain.{ MusitFilter, MusitSearch }
 import play.api.libs.json.Json
 import play.api.mvc._
 import scala.concurrent.Future
@@ -35,4 +35,4 @@ class TimeResource extends Controller with TimeService {
     )
   }
 
-} 
+}
