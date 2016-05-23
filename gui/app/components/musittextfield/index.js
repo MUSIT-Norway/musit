@@ -25,10 +25,12 @@ import { FormGroup, FormControl } from "react-bootstrap";
 
 
 export default class MusitTextField extends Component {
+    constructor(props) {
+        super(props);
+    }
 
     render(){
-
-        const { type,placeHolderText,controlId } = this.props
+        const { type,placeHolderText,controlId ,componentClass} = this.props;
         return (
             <div>
                 <form inline>
@@ -36,7 +38,7 @@ export default class MusitTextField extends Component {
                     <FormGroup controlId={controlId}>
                         <b>Hei</b>
                         {' '}
-                        <FormControl type={type} placeholder={placeHolderText}/>
+                        <FormControl componentClass={componentClass} type={type} placeholder={placeHolderText}/>
 
                     </FormGroup>
                     {' '}
@@ -45,3 +47,10 @@ export default class MusitTextField extends Component {
         )
   } 
 }
+
+MusitTextField.propTypes =  {
+    type: PropTypes.string.isRequired,
+    controlId: PropTypes.string.isRequired,
+    placeHolderText: PropTypes.string.isRequired,
+    componentClass: PropTypes.string.isRequired
+};
