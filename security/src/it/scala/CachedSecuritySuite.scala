@@ -26,8 +26,6 @@
 import no.uio.musit.security._
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-
-import play.api.Play.current
 import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.duration._

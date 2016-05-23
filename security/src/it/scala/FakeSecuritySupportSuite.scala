@@ -22,15 +22,12 @@
   * Created by jstabel on 4/4/16.
   */
 
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.security._
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatest.{FlatSpec, FunSuite, Matchers}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Logger
 import play.api.inject.guice.GuiceApplicationBuilder
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
