@@ -63,8 +63,9 @@ class PersonResource extends Controller with PersonService {
     personResult match {
       case s:JsSuccess[Person] => {
         val person = s.get
-        update(person).map { newPerson =>
-          NotImplemented(Json.toJson(newPerson)) // Ok
+        update(person).map {
+          case Right(newPerson) => Ok(Json.toJson(newPerson))
+          case Left(error) => Status(error.status)(Json.toJson(error))
         }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))

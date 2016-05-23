@@ -75,6 +75,10 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
+  def updatePerson(person: Person): Future[Int] = {
+    db.run(PersonTable.filter(_.id === person.id).update(person))
+  }
+
   def insertOrganization(organization: Organization): Future[Organization] = {
     val insertQuery = OrganizationTable returning OrganizationTable.map(_.id) into ((organization, id) => organization.copy(id = id, links = Seq(LinkService.self(s"/v1/organization/$id"), LinkService.local(-1, "addresses", s"/v1/organization/$id/address"))))
     val action = insertQuery += organization

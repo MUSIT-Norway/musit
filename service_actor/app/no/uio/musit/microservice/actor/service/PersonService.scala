@@ -20,6 +20,9 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
+import no.uio.musit.microservices.common.domain.MusitError
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
@@ -40,8 +43,14 @@ trait PersonService {
     ActorDao.insertPerson(person)
   }
 
-  def update(person:Person):Future[Option[Person]] = {
-    Future.successful(Some(person))
+  def update(person:Person): Future[Either[MusitError, Person]] = {
+    ActorDao.updatePerson(person).flatMap {
+      case 0 => Future.successful(Left(MusitError(401, "Something went wrong with the update")))
+      case num => ActorDao.getPersonById(person.id).map {
+        case Some(uPerson) => Right(uPerson)
+        case None => Left(MusitError(404, "Did not find the object"))
+      }
+    }
   }
 
   def remove(id:Long) = {
