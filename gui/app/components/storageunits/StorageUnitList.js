@@ -5,7 +5,8 @@ class StorageUnitList extends React.Component {
     return (
       <div>
         {this.props.units.map(u =>
-          <span>{u.name}</span>
+         <span>{u.name}</span>
+
         )}
       </div>
     );
@@ -13,7 +14,8 @@ class StorageUnitList extends React.Component {
 }
 
 StorageUnitList.propTypes = {
-  units: React.PropTypes.arrayOf(React.PropTypes.shape({
+  tuples: React.PropTypes.arrayOf(React.PropTypes.shape({
+    id: React.PropTypes.number.isRequired,
     name: React.PropTypes.string.isRequired
   })).isRequired
 };
