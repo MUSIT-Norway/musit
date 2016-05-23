@@ -179,6 +179,7 @@
     "karma-webpack": "^1.7.0",
     "less": "^2.7.1",
     "mocha": "^2.4.5",
+    "mocha-jsdom": "^1.1.0",
     "node-sass": "^3.4.2",
     "phantomjs-polyfill": "0.0.2",
     "phantomjs-prebuilt": "^2.1.3",
