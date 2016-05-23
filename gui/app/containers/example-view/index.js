@@ -17,28 +17,25 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, {Component, PropTypes, bindActionCreators} from "react";
-import {connect} from "react-redux";
-import Example from "../../components/example";
-import Header from "../../components/header";
-import Footer from "../../components/footer";
-import MusitTextField from "../../components/musittextfield";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import Header from '../../components/header';
+import Footer from '../../components/footer';
+import MusitTextField from '../../components/musittextfield';
 
 @connect()
 export default class ExampleView extends Component {
 
   render() {
-    	  return (
-   		    <div>
-                <Header />
-                    <main>
-                        <div>Welcome to example view.</div>
-                        <Example />
-                        <MusitTextField controlId='heihei' type= 'string' placeHolderText='Bjarne'/>
-                    </main>
-
-                <Footer />
-    		</div>
-    	);
-    }
+    return (
+        <div>
+            <Header />
+                <main>
+                    <div>Welcome to example view.</div>
+                    <MusitTextField controlId="heihei" type= "string" placeHolderText="Bjarne" />
+                </main>
+            <Footer />
+        </div>
+      );
+  }
 }

@@ -4,8 +4,8 @@
 var jsdom = require('mocha-jsdom');
 var assert = require('assert');
 var React = require('react');
-//var dom = require('dom')
 var ReactTestUtils = require('react-addons-test-utils');
+const ReactDOM = require('react-dom');
 
 
 require('../../../../test/setup');
@@ -20,8 +20,18 @@ describe('MusitTextField', function() {
                             componentClass="input"
                             controlId="id1"/>
         );
-        let actualDiv = React.findDOMNode(myDiv);
-        let form = actualDiv.querySelectorAll("form");
+
+        var actualDiv=ReactDOM.findDOMNode(myDiv);
+        assert(actualDiv!= 'undefined');
+        var t = ReactTestUtils.scryRenderedDOMComponentsWithTag(actualDiv,'FormControl')
+        assert.equal(t.length,1,'Not equal')
+
+
+
+
+
+
+        
 
     });
 });

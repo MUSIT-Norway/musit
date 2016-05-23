@@ -17,29 +17,20 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from "react";
-import { FormGroup, FormControl } from "react-bootstrap";
-//import { connect } from "react-redux";
-
-
-
+import React, { Component, PropTypes } from 'react';
+import { FormGroup, FormControl } from 'react-bootstrap';
 
 export default class MusitTextField extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     render(){
-        const { type,placeHolderText,controlId ,componentClass} = this.props;
+        const { type, placeHolderText, controlId, componentClass } = props;
         return (
             <div>
                 <form inline>
                     {' '}
-                    <FormGroup controlId={controlId}>
+                    <FormGroup controlId={ controlId }>
                         <b>Hei</b>
                         {' '}
-                        <FormControl componentClass={componentClass} type={type} placeholder={placeHolderText}/>
-
+                        <FormControl componentClass={ componentClass } type={ type } placeholder={ placeHolderText } />
                     </FormGroup>
                     {' '}
                 </form>
