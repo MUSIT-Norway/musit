@@ -13,42 +13,40 @@ export default class StorageUnitsContainer extends React.Component {
       units: [
         {
           id: 1,
-          name: 'Test data'
+          name: 'Test data 1'
         },
         {
           id: 2,
-          name: 'Test data'
+          name: 'Test data 2'
         },
         {
           id: 3,
-          name: 'Test data'
+          name: 'Test data 3'
         },
         {
           id: 4,
-          name: 'Test data'
+          name: 'Test data 4'
         },
         {
           id: 5,
-          name: 'Test data'
+          name: 'Test data 5'
         },
         {
           id: 6,
-          name: 'Test data'
+          name: 'Test data 6'
         },
       ]
     }
   }
 
   render() {
-    const styles = require('./StorageUnitsContainer.scss');
-
     return (
       <div>
         <main>
           <Panel>
             <Grid>
               <Row styleClass="row-centered">
-                <PageHeader className={styles.pageHeader}>
+                <PageHeader>
                   {this.props.translate('musit.storageUnits.title', true)}
                 </PageHeader>
                 <StorageUnitList

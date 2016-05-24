@@ -1,17 +1,29 @@
 import React from 'react';
+import { Table } from 'react-bootstrap';
 
 class StorageUnitList extends React.Component {
   render() {
     return (
-      <ul>
-        {this.props.units.map(u => (
-          <li style={{ padding: 5 }}>
-            <span style={{ paddingRight: 10 }}>{u.name}</span>
-            <button onClick={() => this.props.onEdit(u.id)}>Edit</button>
-            <button onClick={() => this.props.onDelete(u.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      <Table responsive striped condensed hover>
+        <thead>
+        <tr>
+          <th style={{ width: '10%' }}>#</th>
+          <th style={{ width: '70%' }}>Name</th>
+          <th style={{ width: '10%' }}>{' '}</th>
+          <th style={{ width: '10%' }}>{' '}</th>
+        </tr>
+        </thead>
+        <tbody>
+          {this.props.units.map(u => (
+            <tr>
+              <td>{u.id}</td>
+              <td>{u.name}</td>
+              <td><button onClick={() => this.props.onEdit(u.id)}>Edit</button></td>
+              <td><button onClick={() => this.props.onDelete(u.id)}>Delete</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
     );
   }
 }
