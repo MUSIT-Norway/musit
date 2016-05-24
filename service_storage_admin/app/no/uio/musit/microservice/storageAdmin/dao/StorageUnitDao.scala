@@ -18,9 +18,11 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val StorageUnitTable = TableQuery[StorageUnitTable]
+  private val RoomTable = TableQuery[RoomTable]
+  private val BuildingTable = TableQuery[BuildingTable]
 
 
-  def getSubNodes(id: Long): Future[Seq[StorageUnit]] = {
+  def getChildren(id: Long): Future[Seq[StorageUnit]] = {
     val action = StorageUnitTable.filter(_.isPartOf === id).result
     db.run(action)
   }
@@ -63,15 +65,13 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
-    def * = (id, storageType,storageUnitName, area, isStorageUnit, isPartOf, height, room_sikringSkallsikring, room_sikringTyverisikring,
-      room_sikringBrannsikring, room_sikringVannskaderisiko, room_sikringRutineOgBeredskap,
-      room_bevarLuftfuktOgTemp, room_bevarLysforhold, room_bevarPrevantKons, building_address, groupRead, groupWrite) <>(create.tupled, destroy)
+    def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <>(create.tupled, destroy)
 
     def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
     def storageType = column[String]("STORAGE_TYPE")
 
-    def storageUnitName = column[Option[String]]("STORAGE_UNIT_NAME")
+    def storageUnitName = column[String]("STORAGE_UNIT_NAME")
 
     def area = column[Option[Long]]("AREA")
 
@@ -81,49 +81,24 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def height = column[Option[Long]]("HEIGHT")
 
-    def room_sikringSkallsikring = column[Option[String]]("ROOM_SIKRING_SKALLSIKRING")
-
-    def room_sikringTyverisikring = column[Option[String]]("ROOM_SIKRING_TYVERISIKRING")
-
-    def room_sikringBrannsikring = column[Option[String]]("ROOM_SIKRING_BRANNSIKRING")
-
-    def room_sikringVannskaderisiko = column[Option[String]]("ROOM_SIKRING_VANNSKADERISIKO")
-
-    def room_sikringRutineOgBeredskap = column[Option[String]]("ROOM_SIKRING_RUTINE_OG_BEREDSKAP")
-
-    def room_bevarLuftfuktOgTemp = column[Option[String]]("ROOM_BEVAR_LUFTFUKT_OG_TEMP")
-
-    def room_bevarLysforhold = column[Option[String]]("ROOM_BEVAR_LYSFORHOLD")
-
-    def room_bevarPrevantKons = column[Option[String]]("ROOM_BEVAR_PREVANT_KONS")
-
-    def building_address = column[Option[String]]("BUILDING_POSTAL_ADDRESS")
-
     def groupRead = column[Option[String]]("GROUP_READ")
 
     def groupWrite = column[Option[String]]("GROUP_WRITE")
 
-    def create = (id: Long, storageType: String, storageUnitName: Option[String], area: Option[Long], isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
-                  room_sikringSkallsikring: Option[String], room_sikringTyverisikring: Option[String],
-                  room_sikringBrannsikring: Option[String], room_sikringVannskaderisiko: Option[String], room_sikringRutineOgBeredskap: Option[String],
-                  room_bevarLuftfuktOgTemp: Option[String], room_bevarLysforhold: Option[String], room_bevarPrevantKons: Option[String], building_address: Option[String],
+    def create = (id: Long, storageType: String, storageUnitName: String, area: Option[Long], isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
                   groupRead: Option[String], groupWrite: Option[String]) =>
       StorageUnit(
         id, storageType,
-        storageUnitName, area, isStorageUnit, isPartOf, height, room_sikringSkallsikring, room_sikringTyverisikring,
-        room_sikringBrannsikring, room_sikringVannskaderisiko, room_sikringRutineOgBeredskap,
-        room_bevarLuftfuktOgTemp, room_bevarLysforhold, room_bevarPrevantKons, building_address, groupRead, groupWrite,
+        storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite,
         Seq(LinkService.self(s"/v1/$id")))
 
     def destroy(unit: StorageUnit) = Some(unit.id, unit.storageType,
-      unit.storageUnitName, unit.area, unit.isStorageUnit, unit.isPartOf, unit.height, unit.room_sikringSkallsikring, unit.room_sikringTyverisikring,
-      unit.room_sikringBrannsikring, unit.room_sikringVannskaderisiko, unit.room_sikringRutineOgBeredskap,
-      unit.room_bevarLuftfuktOgTemp, unit.room_bevarLysforhold, unit.room_bevarPrevantKons, unit.building_address, unit.groupRead, unit.groupWrite)
+      unit.storageUnitName, unit.area, unit.isStorageUnit, unit.isPartOf, unit.height, unit.groupRead, unit.groupWrite)
   }
 
-}
-  /*private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {
-    def * = (id, sikringSkallsikring, sikringTyverisikring, sikringbrannsikring, sikringVannskaderisiko, sikringRutineOgBeredskap,
+
+  private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {
+    def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, sikringRutineOgBeredskap,
       bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <>(create.tupled, destroy)
 
     def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
@@ -132,7 +107,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def sikringTyverisikring = column[Option[String]]("SIKRING_TYVERISIKRING")
 
-    def sikringbrannsikring = column[Option[String]]("SIKRING_BRANNSIKRING")
+    def sikringBrannsikring = column[Option[String]]("SIKRING_BRANNSIKRING")
 
     def sikringVannskaderisiko = column[Option[String]]("SIKRING_VANNSKADERISIKO")
 
@@ -144,13 +119,13 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def bevarPrevantKons = column[Option[String]]("BEVAR_PREVANT_KONS")
 
-    def create = (id: Long, sikringSkallsikring: String, sikringTyverisikring: String, sikringbrannsikring: String, sikringVannskaderisiko: String,
-                  sikringRutineOgBeredskap: String, bevarLuftfuktOgTemp: String, bevarLysforhold: String,
-                  bevarPrevantKons: String) =>
+    def create = (id: Long, sikringSkallsikring: Option[String], sikringTyverisikring: Option[String], sikringBrannsikring: Option[String], sikringVannskaderisiko: Option[String],
+                  sikringRutineOgBeredskap: Option[String], bevarLuftfuktOgTemp: Option[String], bevarLysforhold: Option[String],
+                  bevarPrevantKons: Option[String]) =>
       StorageRoom(id,
         sikringSkallsikring,
         sikringTyverisikring,
-        sikringbrannsikring,
+        sikringBrannsikring,
         sikringVannskaderisiko,
         sikringRutineOgBeredskap,
         bevarLuftfuktOgTemp,
@@ -170,10 +145,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def address = column[Option[String]]("POSTAL_ADDRESS")
 
-    def create = (id: Long, address: String) => StorageBuilding(id, address, Seq(LinkService.self(s"/v1/$id")))
+    def create = (id: Long, address: Option[String]) => StorageBuilding(id, address, Seq(LinkService.self(s"/v1/$id")))
 
     def destroy(building: StorageBuilding) = Some(building.id, building.address)
   }
 
 }
-*/

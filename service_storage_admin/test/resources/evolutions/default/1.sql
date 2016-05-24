@@ -24,24 +24,36 @@ CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT(
  storage_unit_id   BIGINT NOT NULL  AUTO_INCREMENT,
- storage_type      varchar(20) NOT NULL,
  storage_unit_name VARCHAR(512),
  area              BIGINT,
  is_storage_unit   VARCHAR(1) DEFAULT '1',
  is_part_of        BIGINT,
  height            BIGINT,
- room_sikring_skallsikring        VARCHAR(1),
- room_sikring_tyverisikring       VARCHAR(1),
- room_sikring_brannsikring        VARCHAR(1),
- room_sikring_vannskaderisiko     VARCHAR(1),
- room_sikring_rutine_og_beredskap VARCHAR(1),
- room_bevar_luftfukt_og_temp      VARCHAR(1),
- room_bevar_lysforhold            VARCHAR(1),
- room_bevar_prevant_kons          VARCHAR(1),
- building_postal_address  VARCHAR(512),
+ storage_type      varchar(100),
  group_read        varchar(4000),
  group_write       varchar(4000),
 primary key (storage_unit_id)
+);
+
+CREATE TABLE MUSARK_STORAGE.ROOM(
+ storage_unit_id             BIGINT not null,
+ sikring_skallsikring        VARCHAR(1),
+ sikring_tyverisikring       VARCHAR(1),
+ sikring_brannsikring        VARCHAR(1),
+ sikring_vannskaderisiko     VARCHAR(1),
+ sikring_rutine_og_beredskap VARCHAR(1),
+ bevar_luftfukt_og_temp      VARCHAR(1),
+ bevar_lysforhold            VARCHAR(1),
+ bevar_prevant_kons          VARCHAR(1),
+ PRIMARY KEY (STORAGE_UNIT_ID),
+ FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
+ );
+
+CREATE TABLE MUSARK_STORAGE.BUILDING(
+ storage_unit_id INTEGER not null ,
+ postal_address  VARCHAR(512),
+PRIMARY KEY (STORAGE_UNIT_ID),
+FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
 );
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK(
@@ -56,5 +68,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK(
 
 # --- !Downs
 
+DROP TABLE ROOM;
+DROP TABLE BUILDING;
 DROP TABLE STORAGE_UNIT_LINK;
 DROP TABLE STORAGE_UNIT;

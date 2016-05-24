@@ -52,8 +52,8 @@ class StorageUnitResource extends Controller {
   }
 
 
-  def getSubNodes(id: Long) = Action.async { request =>
-    StorageUnitService.getSubNodes(id).map {
+  def getChildren(id: Long) = Action.async { request =>
+    StorageUnitService.getChildren(id).map {
       storageUnits => Ok(Json.toJson(storageUnits))
     }
   }

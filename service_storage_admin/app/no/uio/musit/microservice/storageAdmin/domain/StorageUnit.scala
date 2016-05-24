@@ -23,15 +23,42 @@ import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.Json
 
+sealed trait AbstractStorageUnit extends BaseMusitDomain{
+/* def id: Long
+ def storageType :String
+def storageUnitName:Option[String]
+def area:Option[Long]
+def isStorageUnit:Option[String]
+def isPartOf:Option[Long]
+def height:Option[Long]
+def groupRead:Option[String]
+def groupWrite:Option[String]*/
+}
 
-case class StorageUnit(id: Long,  storageType:String,storageUnitName:Option[String], area:Option[Long], isStorageUnit:Option[String], isPartOf:Option[Long], height:Option[Long],
-                       room_sikringSkallsikring :Option[String], room_sikringTyverisikring: Option[String],
-                       room_sikringBrannsikring:Option[String], room_sikringVannskaderisiko:Option[String], room_sikringRutineOgBeredskap:Option[String],
-                       room_bevarLuftfuktOgTemp: Option[String], room_bevarLysforhold: Option[String], room_bevarPrevantKons: Option[String], building_address: Option[String],
-                       groupRead:Option[String], groupWrite:Option[String],links: Seq[Link]) extends BaseMusitDomain
+case class StorageUnit(id: Long,  storageType:String,storageUnitName:String, area:Option[Long], isStorageUnit:Option[String], isPartOf:Option[Long], height:Option[Long],
+                       groupRead:Option[String], groupWrite:Option[String],links: Seq[Link]) extends AbstractStorageUnit
 
 
 object StorageUnit {
+  def tupled = (StorageUnit.apply _).tupled
+  implicit val format = Json.format[StorageUnit]
+}
+
+case class StorageRoom(id:Long,sikringSkallsikring :Option[String], sikringTyverisikring: Option[String],
+                       sikringBrannsikring:Option[String], sikringVannskaderisiko:Option[String], sikringRutineOgBeredskap:Option[String],
+                       bevarLuftfuktOgTemp: Option[String], bevarLysforhold: Option[String], bevarPrevantKons: Option[String],
+                       links: Seq[Link]) extends AbstractStorageUnit
+
+
+object StorageRoom {
+  def tupled = (StorageUnit.apply _).tupled
+  implicit val format = Json.format[StorageUnit]
+}
+
+case class StorageBuilding(id: Long,address: Option[String], links: Seq[Link]) extends AbstractStorageUnit
+
+
+object StorageBuilding{
   def tupled = (StorageUnit.apply _).tupled
   implicit val format = Json.format[StorageUnit]
 }

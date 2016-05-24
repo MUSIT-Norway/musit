@@ -20,9 +20,9 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
   "addStorageUnit" should {
     import StorageUnitDao._
     "testInsertStorageUnit" in {
-      insert(StorageUnit(1, "ROM1", 20, "1", 0, 10, "Room", "Skriv", "Les", Seq.empty))
-      insert(StorageUnit(2, "ROM2", 10, "1", 0, 20, "Room", "Skriv", "Les", Seq.empty))
-      insert(StorageUnit(3, "HYLLE1", 5, "1", 1, 5, "StorageUnit", "Skriv", "Les", Seq.empty))
+      insert(StorageUnit(1,  "Room", "ROM1", 20, "1", 0, 10,"Skriv", "Les", Seq.empty))
+      insert(StorageUnit(2,  "Room","ROM2", 10, "1", 0, 20, "Skriv", "Les", Seq.empty))
+      insert(StorageUnit(3, "StorageUnit", "HYLLE1", 5, "1", 1, 5, "Skriv", "Les", Seq.empty))
       val svar = StorageUnitDao.all()
       svar.onFailure {
         case ex => fail("Insert failed")
@@ -34,7 +34,7 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
     }
 
     "getSubNodes" in {
-      val svar = StorageUnitDao.getSubNodes(1)
+      val svar = StorageUnitDao.getChildren(1)
       whenReady(svar, timeout) { stUnit =>
        assert(stUnit.length == 1)
       }

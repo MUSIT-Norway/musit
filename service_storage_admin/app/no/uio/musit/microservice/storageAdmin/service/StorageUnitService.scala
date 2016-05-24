@@ -40,8 +40,8 @@ trait StorageUnitService {
 
 
 
-  def getSubNodes(id: Long) : Future[Seq[StorageUnit]]= {
-    StorageUnitDao.getSubNodes(id)
+  def getChildren(id: Long) : Future[Seq[StorageUnit]]= {
+    StorageUnitDao.getChildren(id)
     }
 
 
