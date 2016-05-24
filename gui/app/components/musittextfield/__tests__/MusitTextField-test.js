@@ -4,34 +4,29 @@
 var jsdom = require('mocha-jsdom');
 var assert = require('assert');
 var React = require('react');
-var ReactTestUtils = require('react-addons-test-utils');
 const ReactDOM = require('react-dom');
+var ReactTestUtils = require('react-addons-test-utils');
 
 
 require('../../../../test/setup');
 
 
-describe('MusitTextField', function() {
-    it('should render MusitTextField', function() {
-        var MusitTextField = require('../index');
-        var myDiv = ReactTestUtils.renderIntoDocument(
-            <MusitTextField type="text"
-                            placeHolderText="test-text"
-                            componentClass="input"
-                            controlId="id1"/>
-        );
+describe('MusitTextField', function () {
+  it('should render MusitTextField', function () {
+      var MusitTextField = require('../index');
+      var myDiv = ReactTestUtils.renderIntoDocument(
+        <MusitTextField
+          labelText="Navn"
+          placeHolderText="skriv inn navn her"
+          valueText="flint"
+          onChange={() => null}
+        />
+      );
 
-        var actualDiv=ReactDOM.findDOMNode(myDiv);
-        assert(actualDiv!= 'undefined');
-        var t = ReactTestUtils.scryRenderedDOMComponentsWithTag(actualDiv,'FormControl')
-        assert.equal(t.length,1,'Not equal')
-
-
-
-
-
-
-        
-
+      var actualDiv = ReactDOM.findDOMNode(myDiv);
+      const label = actualDiv.querySelectorAll('span')[0];
+      assert.equal(label.textContent, 'Navn:', 'Navn må være tilstede')
+      const field = actualDiv.querySelectorAll('input')[0];
+      assert.equal(field.value, 'flint', 'Felt må være tilstede')
     });
 });

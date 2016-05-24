@@ -17,31 +17,31 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react';
-import { FormGroup, FormControl } from 'react-bootstrap';
+import React, {Component, PropTypes} from 'react';
 
 export default class MusitTextField extends Component {
-    render(){
-        const { type, placeHolderText, controlId, componentClass } = props;
+    handleChange(event) {
+        this.props.onChange(event.target.value)
+    }
+
+    render() {
         return (
             <div>
-                <form inline>
-                    {' '}
-                    <FormGroup controlId={ controlId }>
-                        <b>Hei</b>
-                        {' '}
-                        <FormControl componentClass={ componentClass } type={ type } placeholder={ placeHolderText } />
-                    </FormGroup>
-                    {' '}
-                </form>
+                <span>{this.props.labelText}:</span>
+                <input
+                    type="text"
+                    value={this.props.valueText}
+                    placeholder={this.props.placeHolderText}
+                    onChange={this.handleChange}
+                />
             </div>
         )
-  } 
+    }
 }
 
-MusitTextField.propTypes =  {
-    type: PropTypes.string.isRequired,
-    controlId: PropTypes.string.isRequired,
+MusitTextField.propTypes = {
+    labelText: PropTypes.string.isRequired,
     placeHolderText: PropTypes.string.isRequired,
-    componentClass: PropTypes.string.isRequired
+    valueText: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
 };

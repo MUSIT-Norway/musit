@@ -151,7 +151,7 @@ const renderApplication = (req, res, store, status, component) => {
   res.status(status).send(`<!doctype html>\n${html}`)
 };
 
-app.get('/', (req, res) => {
+app.get('/*', (req, res) => {
   const store = createStore(new ApiClient(req));
   renderApplication(req, res, store, 200);
 });
