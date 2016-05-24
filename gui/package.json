@@ -123,7 +123,7 @@
     "piping": "^0.3.0",
     "pretty-error": "^2.0.0",
     "react": "^0.14.7",
-    "react-bootstrap": "^0.28.3",
+    "react-bootstrap": "^0.29.4",
     "react-dom": "^0.14.7",
     "react-helmet": "^2.3.1",
     "react-i18nify": "^1.0.6",
