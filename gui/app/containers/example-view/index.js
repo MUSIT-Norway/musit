@@ -18,54 +18,60 @@
  */
 
 import React, { Component } from 'react';
-import MusitTextField from '../../components/musittextfield';
-import { Panel, Button, Grid, Row, Col, PageHeader } from 'react-bootstrap'
+import TextField from '../../components/musittextfield';
+import { Panel, Form, Grid, Row, PageHeader } from 'react-bootstrap'
 
 export default class ExampleView extends Component {
   constructor(props) {
-      super(props)
-       this.state = {
-           name: 'your name',
-           desc: 'dddd',
-           note: 'note'
-       }
+    super(props)
+    this.state = {
+      name: 'your name',
+      description: 'dddd',
+      note: 'note'
+    }
   }
 
   render() {
     return (
-        <div>
-            <main>
-                <Panel>
-                    <Grid>
-                        <Row styleClass="row-centered">
-                            <PageHeader>
-                                Welcome to example view.
-                            </PageHeader>
-                            <MusitTextField
-                                controlId="name"
-                                labelText="Name"
-                                valueText={this.state.name}
-                                placeHolderText="Bjarne"
-                                onChange={(value) => this.setState({name: value})}
-                            />
-                            <MusitTextField
-                                controlId="2"
-                                labelText="heihei2"
-                                placeHolderText="Bjarne"
-                                onChange={(value) => this.setState({name: value})}
-                            />
-                            <MusitTextField
-                                controlId="3"
-                                labelText="heihei3"
-                                valueText= "other string"
-                                placeHolderText="klaus"
-                                onChange={(value) => this.setState({name: value})}
-                            />
-                        </Row>
-                    </Grid>
-                </Panel>
-            </main>
-        </div>
-      );
+      <div>
+        <main>
+          <Panel>
+            <Grid>
+              <Row styleClass="row-centered">
+                <PageHeader>
+                  Welcome to example view.
+                </PageHeader>
+                <Form horizontal>
+                  <TextField
+                    controlId="name"
+                    labelText="Name"
+                    valueText={this.state.name}
+                    valueType="text"
+                    placeHolderText="name"
+                    onChange={(value) => this.setState({ name: value })}
+                  />
+                  <TextField
+                    controlId="description"
+                    labelText="Description"
+                    valueText={this.state.description}
+                    valueType="text"
+                    placeHolderText="description"
+                    onChange={(value) => this.setState({ description: value })}
+                  />
+                  <TextField
+                    controlId="note"
+                    labelText="Note"
+                    valueText={this.state.note}
+                    valueType="text"
+                    placeHolderText="note"
+                    onChange={(value) => this.setState({ note: value })}
+                  />
+                </Form>
+              </Row>
+            </Grid>
+          </Panel>
+        </main>
+      </div>
+    );
   }
 }

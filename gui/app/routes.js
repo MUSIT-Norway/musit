@@ -51,7 +51,7 @@ export default (store) => {
 
         <Route path="/" component={WelcomeView} onEnter={redirectIfLoggedIn} />
 
-        <Route path="/example" component={ExampleView} onEnter={redirectIfLoggedIn} />
+        <Route path="/example" component={ExampleView} />
 
         -- Authentication routes
         <Route path="/musit" onEnter={requireLogin}>

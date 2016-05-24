@@ -17,39 +17,45 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, {Component, PropTypes} from 'react';
-import { Input } from 'react-bootstrap'
+import React, { Component, PropTypes } from 'react';
+import { FormGroup, ControlLabel, FormControl, Col } from 'react-bootstrap'
 
 export default class MusitTextField extends Component {
-    constructor(props) {
-        super(props)
-        this.handleChange = this.handleChange.bind(this)
-    }
+  constructor(props) {
+    super(props)
+    this.handleChange = this.handleChange.bind(this)
+  }
 
-    handleChange(event) {
-        this.props.onChange(event.target.value)
-    }
+  handleChange(event) {
+    this.props.onChange(event.target.value)
+  }
 
-    render() {
-        return (
-            <div className="form-group">
-                <Input
-                    type="text"
-                    label={this.props.labelText}
-                    labelClassName="col-xs-2"
-                    value={this.props.valueText}
-                    wrapperClassName="col-xs-10"
-                    placeholder={this.props.placeHolderText}
-                    onChange={this.handleChange}
-                />
-            </div>
-        )
-    }
+  render() {
+    return (
+      <div className="form-group">
+        <FormGroup controlId={this.props.controlId}>
+          <Col componentClass={ControlLabel} sm={2}>
+            {this.props.labelText}
+          </Col>
+          <Col sm={10}>
+            <FormControl
+              type={this.props.valueType}
+              placeholder={this.props.placeHolderText}
+              value={this.props.valueText}
+              onChange={this.handleChange}
+            />
+          </Col>
+        </FormGroup>
+      </div>
+    )
+  }
 }
 
 MusitTextField.propTypes = {
-    labelText: PropTypes.string.isRequired,
-    placeHolderText: PropTypes.string.isRequired,
-    valueText: PropTypes.string,
-    onChange: PropTypes.func.isRequired,
+  controlId: PropTypes.string.isRequired,
+  labelText: PropTypes.string.isRequired,
+  placeHolderText: PropTypes.string.isRequired,
+  valueText: PropTypes.string,
+  valueType: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
 };
