@@ -48,8 +48,19 @@ export default class ExampleView extends Component {
                                 placeHolderText="Bjarne"
                                 onChange={(value) => this.setState({name: value})}
                             />
-                            <MusitTextField controlId="2" labelText="heihei2" placeHolderText="Bjarne" onChange={this.onChange} />
-                            <MusitTextField controlId="3" labelText="heihei3" valueText= "other string" placeHolderText="klaus" onChange={this.onChange} />
+                            <MusitTextField
+                                controlId="2"
+                                labelText="heihei2"
+                                placeHolderText="Bjarne"
+                                onChange={(value) => this.setState({name: value})}
+                            />
+                            <MusitTextField
+                                controlId="3"
+                                labelText="heihei3"
+                                valueText= "other string"
+                                placeHolderText="klaus"
+                                onChange={(value) => this.setState({name: value})}
+                            />
                         </Row>
                     </Grid>
                 </Panel>

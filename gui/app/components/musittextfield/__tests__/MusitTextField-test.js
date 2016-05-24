@@ -24,9 +24,9 @@ describe('MusitTextField', function () {
       );
 
       var actualDiv = ReactDOM.findDOMNode(myDiv);
-      const label = actualDiv.querySelectorAll('span')[0];
-      assert.equal(label.textContent, 'Navn:', 'Navn må være tilstede')
+      const label = actualDiv.querySelectorAll('div')[0];
+      assert.equal(label.textContent, 'Navn', 'Navn må være tilstede')
       const field = actualDiv.querySelectorAll('input')[0];
-      assert.equal(field.value, 'flint', 'Felt må være tilstede')
+      assert.equal(field.valueText, 'flint', 'Felt må være tilstede')
     });
 });
