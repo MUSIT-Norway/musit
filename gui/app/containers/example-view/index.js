@@ -22,8 +22,13 @@ import MusitTextField from '../../components/musittextfield';
 import { Panel, Button, Grid, Row, Col, PageHeader } from 'react-bootstrap'
 
 export default class ExampleView extends Component {
-  onChange() {
-
+  constructor(props) {
+      super(props)
+       this.state = {
+           name: 'your name',
+           desc: 'dddd',
+           note: 'note'
+       }
   }
 
   render() {
@@ -36,7 +41,13 @@ export default class ExampleView extends Component {
                             <PageHeader>
                                 Welcome to example view.
                             </PageHeader>
-                            <MusitTextField controlId="1" labelText="heihei1" valueText= "string 1" placeHolderText="Bjarne" onChange={this.onChange} />
+                            <MusitTextField
+                                controlId="name"
+                                labelText="Name"
+                                valueText={this.state.name}
+                                placeHolderText="Bjarne"
+                                onChange={(value) => this.setState({name: value})}
+                            />
                             <MusitTextField controlId="2" labelText="heihei2" placeHolderText="Bjarne" onChange={this.onChange} />
                             <MusitTextField controlId="3" labelText="heihei3" valueText= "other string" placeHolderText="klaus" onChange={this.onChange} />
                         </Row>

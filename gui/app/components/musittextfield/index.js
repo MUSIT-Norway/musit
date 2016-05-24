@@ -18,19 +18,27 @@
  */
 
 import React, {Component, PropTypes} from 'react';
+import { Input } from 'react-bootstrap'
 
 export default class MusitTextField extends Component {
+    constructor(props) {
+        super(props)
+        this.handleChange = this.handleChange.bind(this)
+    }
+
     handleChange(event) {
         this.props.onChange(event.target.value)
     }
 
     render() {
         return (
-            <div>
-                <span>{this.props.labelText}:</span>
-                <input
+            <div className="form-group">
+                <Input
                     type="text"
+                    label={this.props.labelText}
+                    labelClassName="col-xs-2"
                     value={this.props.valueText}
+                    wrapperClassName="col-xs-10"
                     placeholder={this.props.placeHolderText}
                     onChange={this.handleChange}
                 />
