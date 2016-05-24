@@ -151,6 +151,11 @@ const renderApplication = (req, res, store, status, component) => {
   res.status(status).send(`<!doctype html>\n${html}`)
 };
 
+app.get('/*', (req, res) => {
+  const store = createStore(new ApiClient(req));
+  renderApplication(req, res, store, 200);
+});
+
 app.use('/musit', Passport.authenticate(passportLoginType, { failWithError: true }),
   (req, res) => {
     if (__DEVELOPMENT__) {
@@ -209,11 +214,6 @@ app.use('/musit', Passport.authenticate(passportLoginType, { failWithError: true
     res.redirect('/')
   }
 )
-
-app.get('/*', (req, res) => {
-  const store = createStore(new ApiClient(req));
-  renderApplication(req, res, store, 200);
-});
 
 if (config.port) {
   server.listen(config.port, (err) => {

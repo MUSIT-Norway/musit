@@ -22,6 +22,7 @@ import { IndexRedirect, IndexRoute, Route } from 'react-router'
 import NotFound from './components/NotFound'
 import WelcomeView from './containers/welcome-view'
 import StorageUnitsView from './containers/storageunits-view'
+import ExampleView from './containers/example-view'
 import WelcomeUserView from './containers/welcome-user'
 import App from './containers/app'
 
@@ -51,7 +52,8 @@ export default (store) => {
 
         <Route path="/" component={WelcomeView} onEnter={redirectIfLoggedIn} />
 
-       <Route path="/storageunits" component={StorageUnitsView} />
+        <Route path="/storageunits" component={StorageUnitsView} />
+        <Route path="/example" component={ExampleView} />
 
         -- Authentication routes
         <Route path="/musit" onEnter={requireLogin}>
