@@ -20,22 +20,29 @@
 
 package no.uio.musit.microservices.common.extensions
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-
-
 /**
-  * Created by jstabel on 4/22/16.
+  * Created by jstabel on 5/25/16.
   */
 
-object FutureExtensions {
 
-  implicit class FutureExtensionsImp[T](val fut: Future[T]) extends AnyVal {
-    def awaitInSeconds(seconds: Int) = Await.result(fut, seconds.seconds)
+import play.api.libs.functional.Functor
+
+object FunctorExtensions {
+
+
+  trait Functor[A, F[_] <: Functor[_, F]] {
+
+    def fmap[B](f: A => B): F[B]
+
   }
-/*
-  implicit class FutureOptionExtensionsImp[T](val fut: Future[Option[T]]) extends AnyVal {
-    def mapContainedOption(f: Option[T]=>Option[T]) = fut.map(opt=>opt.map(f))
-  }
-*/
+  //  def innerMap[F1[_]: Functor, A, F2[A]: Functor, B](functorFunctor: F1[F2[A]], f: A=>B): F1[F2[B]] = { functorFunctor.fmap{_.fmap(f)} }
+
+
+  def mapTest[A, B, F[A] <: Functor[A,F]](functor: F[A], f: A=>B) = { functor.fmap(f)}
+  def innerMap[A, B, F1[A] <: Functor[A,F1], F2[B] <: Functor[B, F2]](functorFunctor: F1[F2[A]], f: A=>B): F1[F2[B]] = { functorFunctor.fmap{_.fmap(f)} }
+
+  /*
+  implicit class FunctorFunctorExtensionsImp[F1[_]: Functor, A, F2[A]: Functor](val functorFunctor: F1[F2[A]]) extends AnyVal {
+  def innerMap[B](f: A=>B): F1[F2[B]] = { functorFunctor.fmap{_.fmap(f)} }
+  }*/
 }

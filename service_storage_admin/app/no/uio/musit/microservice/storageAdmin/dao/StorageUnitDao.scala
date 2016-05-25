@@ -22,9 +22,12 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   private val BuildingTable = TableQuery[BuildingTable]
 
 
-  def getById(id:Long) = {
-    db.run(StorageUnitTable.filter(_.id === id).result.headOption)
+
+  def getById(id: Long): Future[Option[StorageUnit]] = {
+    val action = StorageUnitTable.filter(_.id === id).result.headOption
+    db.run(action)
   }
+
   def getChildren(id: Long): Future[Seq[StorageUnit]] = {
     val action = StorageUnitTable.filter(_.isPartOf === id).result
     db.run(action)
@@ -61,10 +64,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }*/
 
 
-  def getById(id: Long): Future[Option[StorageUnit]] = {
-    val action = StorageUnitTable.filter(_.id === id).result.headOption
-    db.run(action)
-  }
 
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {

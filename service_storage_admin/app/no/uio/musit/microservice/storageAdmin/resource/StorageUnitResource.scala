@@ -27,6 +27,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import no.uio.musit.microservices.common.domain.{MusitError}
 
 class StorageUnitResource extends Controller {
 
@@ -60,7 +61,7 @@ class StorageUnitResource extends Controller {
 
   def getById(id: Long) = Action.async { request =>
     StorageUnitService.getById(id).map {
-      case Some(storageUnit) => Ok(Json.toJson(storageUnits))
+      case Some(storageUnit) => Ok(Json.toJson(storageUnit))
       case None => NotFound(Json.toJson(MusitError(404, s"Didn't find storage unit with id: $id")))
     }
   }

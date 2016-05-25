@@ -44,7 +44,7 @@ trait StorageUnitService {
     StorageUnitDao.getChildren(id)
     }
 
-  def getById(id: Long): Future[Option[storageUnit]] = {
+  def getById(id: Long): Future[Option[StorageUnit]] = {
     StorageUnitDao.getById(id)
   }
 }
