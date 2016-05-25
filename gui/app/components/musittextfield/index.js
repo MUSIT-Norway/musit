@@ -18,7 +18,7 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, ControlLabel, FormControl, Col, Tooltip, OverlayTrigger } from 'react-bootstrap'
+import { FormGroup, ControlLabel, FormControl, Col } from 'react-bootstrap'
 
 export default class MusitTextField extends Component {
   constructor(props) {
@@ -32,10 +32,6 @@ export default class MusitTextField extends Component {
 
 
   render() {
-    let tooltip = null
-    if (this.props.tooltip) {
-      tooltip = <Tooltip>{ this.props.tooltip }</Tooltip>
-    }
     return (
       <FormGroup
         controlId={this.props.controlId}
@@ -43,19 +39,19 @@ export default class MusitTextField extends Component {
           marginTop: 0,
           marginBottom: '5px'
         }}
+        validationState={this.props.validationState}
       >
         <Col componentClass={ControlLabel} sm={2}>
           {this.props.labelText}
         </Col>
         <Col sm={5}>
-          <OverlayTrigger placement="top" overlay={tooltip}>
-            <FormControl
-              type={this.props.valueType}
-              placeholder={this.props.placeHolderText}
-              value={this.props.valueText}
-              onChange={this.handleChange}
-            />
-          </OverlayTrigger>
+          <FormControl
+            type={this.props.valueType}
+            placeholder={this.props.placeHolderText}
+            value={this.props.valueText}
+            onChange={this.handleChange}
+          />
+          <FormControl.Feedback />
         </Col>
       </FormGroup>
     )
@@ -69,5 +65,6 @@ MusitTextField.propTypes = {
   tooltip: PropTypes.string,
   valueText: PropTypes.string,
   valueType: PropTypes.string,
+  validationState: PropTypes.string,
   onChange: PropTypes.func.isRequired,
 };

@@ -24,11 +24,88 @@ import { Panel, Form, Grid, Row, PageHeader } from 'react-bootstrap'
 export default class ExampleView extends Component {
   constructor(props) {
     super(props)
+
+    this.updateName = this.updateName.bind(this)
+    this.validateField = this.validateField.bind(this)
+    this.updateDescription = this.updateDescription.bind(this)
+    this.updateNote = this.updateNote.bind(this)
+    this.updateAreal = this.updateAreal.bind(this)
+
+    const clazz = this
+
     this.state = {
-      name: 'your name',
-      description: 'dddd',
-      note: 'note'
+      unit: {
+        name: 'your name',
+        description: 'dddd',
+        note: '',
+        areal: ''
+      }
     }
+
+    this.areal = {
+      controlId: 'areal',
+      labelText: 'Areal',
+      tooltip: 'Areal',
+      valueText: clazz.state.unit.name,
+      valueType: 'text',
+      validationState: clazz.validateField,
+      placeHolderText: 'enter areal here',
+      onChange: clazz.updateAreal
+    }
+
+    this.fields = [
+      {
+        controlId: 'name',
+        labelText: 'Name',
+        tooltip: 'Name',
+        valueText: clazz.state.unit.name,
+        valueType: 'text',
+        validationState: clazz.validateField,
+        placeHolderText: 'enter name here',
+        onChange: clazz.updateName
+      },
+      {
+        controlId: 'description',
+        labelText: 'Description',
+        tooltip: 'Description',
+        valueText: clazz.state.unit.description,
+        valueType: 'text',
+        validationState: clazz.validateField,
+        placeHolderText: 'enter description here',
+        onChange: clazz.updateDescription
+      },
+      {
+        controlId: 'note',
+        labelText: 'Note',
+        tooltip: 'Note',
+        valueText: clazz.state.unit.note,
+        valueType: 'text',
+        validationState: clazz.validateField,
+        placeHolderText: 'enter note here',
+        onChange: clazz.updateNote
+      }
+    ]
+  }
+
+  validateField(value) {
+    const notNull = value.length ? 'success' : null
+    return value.length > 20 ? 'error' : notNull
+  }
+
+  updateName(name) {
+    this.setState({ unit: { ...this.state.unit, name } })
+  }
+
+  updateDescription(description) {
+    this.setState({ unit: { ...this.state.unit, description } })
+  }
+
+  updateNote(note) {
+    this.setState({ unit: { ...this.state.unit, note } })
+  }
+
+  updateAreal(areal) {
+    this.setState({ unit: { ...this.state.unit, areal } })
   }
 
   render() {
@@ -43,30 +120,27 @@ export default class ExampleView extends Component {
                 </PageHeader>
                 <Form horizontal>
                   <TextField
-                    controlId="name"
-                    labelText="Name"
-                    tooltip="Test-tooltip"
-                    valueText={this.state.name}
-                    valueType="text"
-                    placeHolderText="name"
-                    onChange={(value) => this.setState({ name: value })}
+                    controlId={this.areal.controlId}
+                    labelText={this.areal.labelText}
+                    tooltip={this.areal.tooltip}
+                    valueText={this.state.unit[this.areal.controlId]}
+                    valueType={this.areal.valueType}
+                    validationState={this.areal.validationState(this.state.unit[this.areal.controlId])}
+                    placeHolderText={this.areal.placeHolderText}
+                    onChange={this.areal.onChange}
                   />
-                  <TextField
-                    controlId="description"
-                    labelText="Description"
-                    valueText={this.state.description}
-                    valueType="text"
-                    placeHolderText="description"
-                    onChange={(value) => this.setState({ description: value })}
-                  />
-                  <TextField
-                    controlId="note"
-                    labelText="Note"
-                    valueText={this.state.note}
-                    valueType="text"
-                    placeHolderText="note"
-                    onChange={(value) => this.setState({ note: value })}
-                  />
+                  {this.fields.map(field =>
+                    <TextField
+                      controlId={field.controlId}
+                      labelText={field.labelText}
+                      tooltip={field.tooltip}
+                      valueText={this.state.unit[field.controlId]}
+                      valueType={field.valueType}
+                      validationState={field.validationState(this.state.unit[field.controlId])}
+                      placeHolderText={field.placeHolderText}
+                      onChange={field.onChange}
+                    />
+                  )}
                 </Form>
               </Row>
             </Grid>
