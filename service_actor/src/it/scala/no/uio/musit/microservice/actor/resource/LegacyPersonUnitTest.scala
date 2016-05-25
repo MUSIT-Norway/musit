@@ -1,3 +1,5 @@
+package no.uio.musit.microservice.actor.resource
+
 /**
   * Created by ellenjo on 4/15/16.
   */

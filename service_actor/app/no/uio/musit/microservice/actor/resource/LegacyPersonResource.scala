@@ -40,7 +40,7 @@ class LegacyPersonResource extends Controller with LegacyPersonService {
   def getById(id:Long) = Action.async { request => {
     find(id).map {
       case Some(actor) => Ok(Json.toJson(actor))
-      case None => NotFound(s"Didn't find object with id: $id")
+      case None => NotFound(Json.toJson(MusitError(404, s"Did not find object with id: $id")))
     }
   }}
 

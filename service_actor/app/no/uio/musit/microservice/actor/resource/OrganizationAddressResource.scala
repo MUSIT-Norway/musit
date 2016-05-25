@@ -20,7 +20,7 @@ package no.uio.musit.microservice.actor.resource
 
 import no.uio.musit.microservice.actor.domain.OrganizationAddress
 import no.uio.musit.microservice.actor.service.OrganizationAddressService
-import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch, MusitStatusMessage}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -37,7 +37,7 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
   def getRoot(organizationId:Long, id:Long) = Action.async { request =>
     find(id).map {
       case Some(addr) => Ok(Json.toJson(addr))
-      case None => NotFound(Json.toJson(MusitError(404, s"Didn't find object with id: $id")))
+      case None => NotFound(Json.toJson(MusitError(404, s"Did not find object with id: $id")))
     }
   }
 
@@ -69,6 +69,6 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
   }
 
   def deleteRoot(organizationId:Long, id:Long) = Action.async { request =>
-    remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
+    remove(id).map { noDeleted => Ok(Json.toJson(MusitStatusMessage(s"Deleted $noDeleted record(s)."))) }
   }
 }

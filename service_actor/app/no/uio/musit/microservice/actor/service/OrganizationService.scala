@@ -49,7 +49,7 @@ trait OrganizationService {
 
   def update(organization:Organization): Future[Either[MusitError, Organization]] = {
     ActorDao.updateOrganization(organization).flatMap {
-      case 0 => Future.successful(Left(MusitError(401, "Something went wrong with the update")))
+      case 0 => Future.successful(Left(MusitError(400, "Something went wrong with the update")))
       case num => ActorDao.getOrganizationById(organization.id).map {
         case Some(org) => Right(org)
         case None => Left(MusitError(404, "Did not find the object"))

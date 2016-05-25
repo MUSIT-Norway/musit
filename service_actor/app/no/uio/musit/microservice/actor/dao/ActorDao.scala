@@ -47,7 +47,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def getPersonLegacyByName(searchString: String):Future[Seq[Person]] = {
-    db.run(ActorTable.filter(_.fn like ("%" + searchString + "%")).result)
+    db.run(ActorTable.filter(_.fn like (s"%$searchString%")).result)
   }
 
   def getPersonById(id:Long) = {
@@ -55,7 +55,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def getPersonByName(searchString: String):Future[Seq[Person]] = {
-    db.run(PersonTable.filter(_.fn like ("%" + searchString + "%")).result)
+    db.run(PersonTable.filter(_.fn like (s"%$searchString%")).result)
   }
 
   def getOrganizationById(id: Long) = {
@@ -63,7 +63,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def getOrganizationByName(searchString: String):Future[Seq[Organization]] = {
-    db.run(OrganizationTable.filter(_.fn like ("%" + searchString + "%")).result)
+    db.run(OrganizationTable.filter( org => (org.fn like s"%$searchString%") || (org.nickname like s"%$searchString%")).result)
   }
 
   def getOrganizationAddressById(id: Long) = {

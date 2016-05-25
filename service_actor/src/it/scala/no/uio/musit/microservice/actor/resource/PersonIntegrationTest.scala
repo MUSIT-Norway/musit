@@ -1,3 +1,5 @@
+package no.uio.musit.microservice.actor.resource
+
 /*
  *  MUSIT is a museum database to archive natural and cultural history data.
  *  Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
@@ -16,7 +18,9 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservices.common.PlayTestDefaults
+import no.uio.musit.microservices.common.domain.MusitError
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -28,17 +32,31 @@ import play.api.libs.ws.WS
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
 class PersonIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFutures {
-
   val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 19002
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
-  "Actorintegration " must {
+  "LegacyPersonIntegration " must {
     "get by id" in {
-      val future = WS.url(s"http://localhost:$port/v1/1").get()
+      val future = WS.url(s"http://localhost:$port/v1/person/1").get()
       whenReady(future, timeout) { response =>
-        val json = Json.parse(response.body)
-        assert((json \ "id").getOrElse(JsString("0")).toString() == "1")
+        val person = Json.parse(response.body).validate[Person].get
+        person.id mustBe 1
+      }
+    }
+    "negative get by id" in {
+      val future = WS.url(s"http://localhost:$port/v1/person/9999").get()
+      whenReady(future, timeout) { response =>
+        val error = Json.parse(response.body).validate[MusitError].get
+        error.message mustBe "Did not find object with id: 9999"
+      }
+    }
+    "search on person" in {
+      val future = WS.url(s"http://localhost:$port/v1/person?search=[And]").get()
+      whenReady(future, timeout) { response =>
+        val persons = Json.parse(response.body).validate[Seq[Person]].get
+        persons.length mustBe 1
+        persons.head.fn mustBe "And, Arne1"
       }
     }
   }

@@ -20,7 +20,7 @@ package no.uio.musit.microservice.actor.resource
 
 import no.uio.musit.microservice.actor.domain.Organization
 import no.uio.musit.microservice.actor.service.OrganizationService
-import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch, MusitStatusMessage}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -49,10 +49,7 @@ class OrganizationResource extends Controller with OrganizationService {
     actorResult match {
       case s:JsSuccess[Organization] => {
         val org = s.get
-        update(org).map {
-          case Right(newOrg) => Created(Json.toJson(newOrg))
-          case Left(error) => Status(error.status)(Json.toJson(error))
-        }
+        create(org).map { org => Created(Json.toJson(org)) }
       }
       case e:JsError => Future.successful(BadRequest(Json.toJson(MusitError(400, e.toString))))
     }
@@ -73,6 +70,6 @@ class OrganizationResource extends Controller with OrganizationService {
   }
 
   def deleteRoot(id:Long) = Action.async { request =>
-    remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
+    remove(id).map { noDeleted => Ok(Json.toJson(MusitStatusMessage(s"Deleted $noDeleted record(s)."))) }
   }
 }
