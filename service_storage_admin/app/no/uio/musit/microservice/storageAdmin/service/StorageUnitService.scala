@@ -44,7 +44,9 @@ trait StorageUnitService {
     StorageUnitDao.getChildren(id)
     }
 
-
+  def getById(id: Long): Future[Option[storageUnit]] = {
+    StorageUnitDao.getById(id)
+  }
 }
 
 object StorageUnitService extends StorageUnitService

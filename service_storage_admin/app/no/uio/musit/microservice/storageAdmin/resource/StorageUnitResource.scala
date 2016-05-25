@@ -58,6 +58,15 @@ class StorageUnitResource extends Controller {
     }
   }
 
+  def getById(id: Long) = Action.async { request =>
+    StorageUnitService.getById(id).map {
+      case Some(storageUnit) => Ok(Json.toJson(storageUnits))
+      case None => NotFound(Json.toJson(MusitError(404, s"Didn't find storage unit with id: $id")))
+    }
+  }
+
+
+
 
   def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async {
     Future.successful(NotImplemented("foo"))

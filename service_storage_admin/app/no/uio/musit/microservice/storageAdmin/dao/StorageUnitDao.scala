@@ -22,6 +22,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   private val BuildingTable = TableQuery[BuildingTable]
 
 
+  def getById(id:Long) = {
+    db.run(StorageUnitTable.filter(_.id === id).result.headOption)
+  }
   def getChildren(id: Long): Future[Seq[StorageUnit]] = {
     val action = StorageUnitTable.filter(_.isPartOf === id).result
     db.run(action)

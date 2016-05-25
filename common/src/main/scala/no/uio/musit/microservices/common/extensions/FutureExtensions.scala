@@ -34,4 +34,8 @@ object FutureExtensions {
     def awaitInSeconds(seconds: Int) = Await.result(fut, seconds.seconds)
   }
 
+  implicit class FutureOptionExtensionsImp[T](val fut: Future[Option[T]]) extends AnyVal {
+    def mapContainedOption(f: Option[T]=>Option[T]) = fut.map(opt=>opt.map(f))
+  }
+
 }
