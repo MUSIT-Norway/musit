@@ -45,6 +45,7 @@ export default class ExampleView extends Component {
                   <TextField
                     controlId="name"
                     labelText="Name"
+                    tooltip="Test-tooltip"
                     valueText={this.state.name}
                     valueType="text"
                     placeHolderText="name"

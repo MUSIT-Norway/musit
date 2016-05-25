@@ -18,7 +18,7 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, ControlLabel, FormControl, Col } from 'react-bootstrap'
+import { FormGroup, ControlLabel, FormControl, Col, Tooltip, OverlayTrigger } from 'react-bootstrap'
 
 export default class MusitTextField extends Component {
   constructor(props) {
@@ -30,7 +30,12 @@ export default class MusitTextField extends Component {
     this.props.onChange(event.target.value)
   }
 
+
   render() {
+    let tooltip = null
+    if (this.props.tooltip) {
+      tooltip = <Tooltip>{ this.props.tooltip }</Tooltip>
+    }
     return (
       <FormGroup
         controlId={this.props.controlId}
@@ -43,12 +48,14 @@ export default class MusitTextField extends Component {
           {this.props.labelText}
         </Col>
         <Col sm={5}>
-          <FormControl
-            type={this.props.valueType}
-            placeholder={this.props.placeHolderText}
-            value={this.props.valueText}
-            onChange={this.handleChange}
-          />
+          <OverlayTrigger placement="top" overlay={tooltip}>
+            <FormControl
+              type={this.props.valueType}
+              placeholder={this.props.placeHolderText}
+              value={this.props.valueText}
+              onChange={this.handleChange}
+            />
+          </OverlayTrigger>
         </Col>
       </FormGroup>
     )
@@ -59,6 +66,7 @@ MusitTextField.propTypes = {
   controlId: PropTypes.string.isRequired,
   labelText: PropTypes.string.isRequired,
   placeHolderText: PropTypes.string.isRequired,
+  tooltip: PropTypes.string,
   valueText: PropTypes.string,
   valueType: PropTypes.string,
   onChange: PropTypes.func.isRequired,
