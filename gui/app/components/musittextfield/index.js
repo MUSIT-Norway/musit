@@ -32,21 +32,25 @@ export default class MusitTextField extends Component {
 
   render() {
     return (
-      <div className="form-group">
-        <FormGroup controlId={this.props.controlId}>
-          <Col componentClass={ControlLabel} sm={2}>
-            {this.props.labelText}
-          </Col>
-          <Col sm={10}>
-            <FormControl
-              type={this.props.valueType}
-              placeholder={this.props.placeHolderText}
-              value={this.props.valueText}
-              onChange={this.handleChange}
-            />
-          </Col>
-        </FormGroup>
-      </div>
+      <FormGroup
+        controlId={this.props.controlId}
+        style={{
+          marginTop: 0,
+          marginBottom: '5px'
+        }}
+      >
+        <Col componentClass={ControlLabel} sm={2}>
+          {this.props.labelText}
+        </Col>
+        <Col sm={5}>
+          <FormControl
+            type={this.props.valueType}
+            placeholder={this.props.placeHolderText}
+            value={this.props.valueText}
+            onChange={this.handleChange}
+          />
+        </Col>
+      </FormGroup>
     )
   }
 }

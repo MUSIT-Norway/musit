@@ -24,10 +24,10 @@ import Language from '../../components/language'
 
 const mapStateToProps = (state) => ({
   user: state.auth.user,
-  translate: (key, markdown) => <Language value={key} markdown={markdown} />
+  translate: (key, markdown) => <Language language={state.language} value={key} markdown={markdown} />
 });
 
 @connect(mapStateToProps)
-export default class Welcome extends WelcomeContainer {
+export default class WelcomeView extends WelcomeContainer {
 }
 

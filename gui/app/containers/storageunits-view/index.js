@@ -17,6 +17,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import LanguageComponent from './LanguageComponent';
+import React from 'react';
+import StorageUnitsContainer from './StorageUnitsContainer';
+import { connect } from 'react-redux';
+import Language from '../../components/language'
 
-export default class Language extends LanguageComponent {}
+const mapStateToProps = (state) => ({
+  translate: (key, markdown) => <Language language={state.language} value={key} markdown={markdown} />
+});
+
+@connect(mapStateToProps)
+export default class StorageUnitsView extends StorageUnitsContainer {}
