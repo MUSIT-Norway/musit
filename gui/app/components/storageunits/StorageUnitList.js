@@ -7,10 +7,10 @@ class StorageUnitList extends React.Component {
       <Table responsive striped condensed hover>
         <thead>
         <tr>
-          <th style={{ width: '10%' }}>#</th>
-          <th style={{ width: '70%' }}>Name</th>
-          <th style={{ width: '10%' }}>{' '}</th>
-          <th style={{ width: '10%' }}>{' '}</th>
+          <th style={{ width: '5%' }}>#</th>
+          <th style={{ width: '85%' }}>Name</th>
+          <th style={{ width: '5%' }}>{' '}</th>
+          <th style={{ width: '5%' }}>{' '}</th>
         </tr>
         </thead>
         <tbody>
