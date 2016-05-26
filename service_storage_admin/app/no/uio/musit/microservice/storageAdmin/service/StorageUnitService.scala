@@ -19,30 +19,27 @@
 package no.uio.musit.microservice.storageAdmin.service
 
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
-import no.uio.musit.microservice.storageAdmin.domain.{StorageRoom, StorageUnit}
+import no.uio.musit.microservice.storageAdmin.domain.{ StorageRoom, StorageUnit }
 import no.uio.musit.microservices.common.domain.MusitError
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 trait StorageUnitService {
 
-  def create(storageUnit:StorageUnit) :Future[Either[MusitError, StorageUnit]] = {
+  def create(storageUnit: StorageUnit): Future[Either[MusitError, StorageUnit]] = {
     val newStorageUnitF = StorageUnitDao.insert(storageUnit)
-    val value:Future[Either[MusitError,StorageUnit]] = newStorageUnitF.map { newStorageUnit =>
+    val value: Future[Either[MusitError, StorageUnit]] = newStorageUnitF.map { newStorageUnit =>
       Right(newStorageUnit)
     }
-    value.recover{
+    value.recover {
       case _ => Left(MusitError(400, "va da feil??"))
     }
   }
 
-
-
-  def getChildren(id: Long) : Future[Seq[StorageUnit]]= {
+  def getChildren(id: Long): Future[Seq[StorageUnit]] = {
     StorageUnitDao.getChildren(id)
-    }
+  }
 
   def getById(id: Long): Future[Option[StorageUnit]] = {
     StorageUnitDao.getById(id)
@@ -51,22 +48,19 @@ trait StorageUnitService {
 
 object StorageUnitService extends StorageUnitService
 
-  trait RoomService{
-    def create(storageUnit: StorageUnit, storageRoom:StorageRoom) :Future[Either[MusitError, (StorageUnit,StorageRoom)]] = {
-      val newStorageRoomF = StorageUnitDao.insertRoom(storageUnit,storageRoom)
-      val value:Future[Either[MusitError,(StorageUnit,StorageRoom)]] = newStorageRoomF.map { newStorageAndRoom =>
-        Right(newStorageAndRoom)
-      }
-      value.recover{
-        case _ => Left(MusitError(400, "va da feil??"))
-      }
+trait RoomService {
+  def create(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[Either[MusitError, (StorageUnit, StorageRoom)]] = {
+    val newStorageRoomF = StorageUnitDao.insertRoom(storageUnit, storageRoom)
+    val value: Future[Either[MusitError, (StorageUnit, StorageRoom)]] = newStorageRoomF.map { newStorageAndRoom =>
+      Right(newStorageAndRoom)
+    }
+    value.recover {
+      case _ => Left(MusitError(400, "va da feil??"))
     }
   }
+}
 
 object RoomService extends RoomService
 
-  trait BuildingService
-
-
-
+trait BuildingService
 
