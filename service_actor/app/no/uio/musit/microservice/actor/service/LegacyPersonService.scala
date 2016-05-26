@@ -17,18 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.actor.domain
+package no.uio.musit.microservice.actor.service
 
-import io.swagger.annotations.ApiModel
-import no.uio.musit.microservices.common.domain.BaseMusitDomain
-import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json._
+import no.uio.musit.microservice.actor.dao.ActorDao
+import no.uio.musit.microservice.actor.domain.Person
+import no.uio.musit.microservices.common.domain.MusitSearch
 
-@ApiModel
-case class Actor(id: Long, actorname: String, links: Seq[Link]) extends BaseMusitDomain
+import scala.concurrent.Future
 
-object Actor {
-  def tupled = (Actor.apply _).tupled
-  implicit val format = Json.format[Actor]
+trait LegacyPersonService {
+
+  def all: Future[Seq[Person]] = {
+    ActorDao.allPersonsLegacy()
+  }
+
+  def find(id: Long): Future[Option[Person]] = {
+    ActorDao.getPersonLegacyById(id)
+  }
+
+  def find(search: MusitSearch): Future[Seq[Person]] = {
+    val searchString = search.searchStrings.reduce(_ + " " + _)
+    ActorDao.getPersonLegacyByName(searchString)
+  }
+
+  def create(person: Person): Future[Person] = {
+    ActorDao.insertPersonLegacy(person)
+  }
+
 }
-

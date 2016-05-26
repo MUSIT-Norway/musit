@@ -3,5 +3,28 @@
 # ~~~~
 
 # Setup endpoints
-GET     /v1                         no.uio.musit.microservice.actor.resource.ActorResource_V1.list
-GET     /v1/:id                     no.uio.musit.microservice.actor.resource.ActorResource_V1.getById(id:Long)
+
+## Mapping routes, TODO: Remove these enpoints when database is migrated.
+GET     /v1/person                                 no.uio.musit.microservice.actor.resource.LegacyPersonResource.list(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
+GET     /v1/person/:id                             no.uio.musit.microservice.actor.resource.LegacyPersonResource.getById(id:Long)
+
+## Person routes, the new actor TODO: Use new endpoints when database is migrated.
+#GET     /v1/person                                 no.uio.musit.microservice.actor.resource.PersonResource.listRoot(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
+#POST    /v1/person                                 no.uio.musit.microservice.actor.resource.PersonResource.postRoot
+#PUT     /v1/person/:id                             no.uio.musit.microservice.actor.resource.PersonResource.updateRoot(id:Long)
+#GET     /v1/person/:id                             no.uio.musit.microservice.actor.resource.PersonResource.getRoot(id:Long)
+#DELETE  /v1/person/:id                             no.uio.musit.microservice.actor.resource.PersonResource.deleteRoot(id:Long)
+
+## Organization routes, the new actor
+GET     /v1/organization                           no.uio.musit.microservice.actor.resource.OrganizationResource.listRoot(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
+POST    /v1/organization                           no.uio.musit.microservice.actor.resource.OrganizationResource.postRoot
+PUT     /v1/organization/:orgId                    no.uio.musit.microservice.actor.resource.OrganizationResource.updateRoot(orgId:Long)
+GET     /v1/organization/:orgId                    no.uio.musit.microservice.actor.resource.OrganizationResource.getRoot(orgId:Long)
+DELETE  /v1/organization/:orgId                    no.uio.musit.microservice.actor.resource.OrganizationResource.deleteRoot(orgId:Long)
+
+## OrganizationAddress routes, the new actor
+GET     /v1/organization/:orgId/address            no.uio.musit.microservice.actor.resource.OrganizationAddressResource.listRoot(orgId:Long)
+POST    /v1/organization/:orgId/address            no.uio.musit.microservice.actor.resource.OrganizationAddressResource.postRoot(orgId:Long)
+PUT     /v1/organization/:orgId/address/:id        no.uio.musit.microservice.actor.resource.OrganizationAddressResource.updateRoot(orgId:Long, id:Long)
+GET     /v1/organization/:orgId/address/:id        no.uio.musit.microservice.actor.resource.OrganizationAddressResource.getRoot(orgId:Long, id:Long)
+DELETE  /v1/organization/:orgId/address/:id        no.uio.musit.microservice.actor.resource.OrganizationAddressResource.deleteRoot(orgId:Long, id:Long)
