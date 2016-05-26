@@ -115,12 +115,18 @@ class App extends Component {
                 <NavItem eventKey={4}>Survey</NavItem>
               </LinkContainer>
               }
+              <LinkContainer to="/example">
+                <NavItem eventKey={5}>Example</NavItem>
+              </LinkContainer>
+              <LinkContainer to="/storageunits">
+                <NavItem eventKey={6}>Dummy list</NavItem>
+              </LinkContainer>
               <LinkContainer to="/musit/about">
-                <NavItem eventKey={5}>About Us</NavItem>
+                <NavItem eventKey={7}>About Us</NavItem>
               </LinkContainer>
               {user &&
               <LinkContainer to="/musit/logout">
-                <NavItem eventKey={6} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
+                <NavItem eventKey={8} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
               </LinkContainer>
               }
               {!user &&

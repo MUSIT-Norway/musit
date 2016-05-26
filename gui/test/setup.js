@@ -18,6 +18,10 @@
  */
 
 import { jsdom } from 'jsdom';
+export const assert = require('assert');
+export const React = require('react');
+export const ReactDOM = require('react-dom');
+export const ReactTestUtils = require('react-addons-test-utils');
 
 global.document = jsdom('<!doctype html><html><body></body></html>');
 global.window = document.defaultView;
