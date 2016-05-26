@@ -1,4 +1,5 @@
 webpack/*
 karma.conf.js
 tests.webpack.js
-*
+server_babel_register.js
+static/

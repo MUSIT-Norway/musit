@@ -18,9 +18,10 @@
  */
 package no.uio.musit.microservices.common.domain
 
+import play.api.http.Status
 import play.api.libs.json.{Format, Json}
 
-case class MusitError(status: Int = 400, message: String)
+case class MusitError(status: Int = Status.BAD_REQUEST, message: String)
 
 object MusitError {
   implicit val format: Format[MusitError] = Json.format[MusitError]

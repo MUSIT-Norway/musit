@@ -1,8 +1,8 @@
 package no.uio.musit.microservices.common.domain
 
 /**
-  * Created by jarlandre on 08/05/16.
-  */
+ * Created by jarlandre on 08/05/16.
+ */
 object Indices {
   def getFrom(string: String): List[String] = string
     .stripPrefix("[")

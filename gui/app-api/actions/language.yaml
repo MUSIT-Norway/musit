@@ -6,7 +6,7 @@ en:
       body: "<TBD>"
       noAccess: "<TBD>"
     welcomeUserPage:
-      body: |
+      body: >
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas arcu est, tempus eu tellus et, mollis maximus elit. Morbi est lorem, molestie fermentum interdum a, faucibus ultricies lectus. Ut eu lorem mi. In dictum neque vitae mollis posuere. Sed maximus, est eget rhoncus sagittis, dolor enim varius felis, at hendrerit urna urna a justo. Proin nunc ex, tristique sed bibendum vel, porta et elit. Vestibulum consectetur lacus nec elementum ornare. Vestibulum venenatis condimentum tortor sit amet pharetra. Maecenas tempus lectus vel vestibulum pharetra. Suspendisse euismod condimentum massa.
         In at scelerisque erat, non venenatis nisl. Mauris sagittis odio id lectus faucibus, sit amet faucibus mauris gravida. Interdum et malesuada fames ac ante ipsum primis in faucibus. Etiam iaculis cursus ante ut dignissim. Sed finibus suscipit ultrices. Integer sit amet malesuada odio. Phasellus vel commodo purus. Cras ultrices tincidunt nisi, at vehicula justo luctus at. Mauris pulvinar fringilla condimentum. Proin sed lacus nec urna lacinia porttitor in ac augue.
         Vestibulum sed viverra augue. Nam iaculis mattis dui a maximus. Curabitur eget magna id velit pulvinar gravida. In rutrum urna ac semper auctor. Integer vel viverra metus. Sed dignissim dictum sapien non volutpat. Nunc nec auctor nunc, sit amet sodales lectus. Morbi cursus ipsum at odio fringilla, dictum scelerisque ligula lobortis. Vestibulum congue leo non est ultrices feugiat. Vestibulum venenatis nisi nisi.

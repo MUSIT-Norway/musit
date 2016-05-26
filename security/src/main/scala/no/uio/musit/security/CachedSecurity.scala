@@ -28,8 +28,8 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 /**
-  * Created by jstabel on 4/27/16.
-  */
+ * Created by jstabel on 4/27/16.
+ */
 
 ///Only used for testing, for direct read access to some of the cached info
 trait SecurityCacheReader {
@@ -109,7 +109,6 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
     MusitCache.getOrElseFuture(userIdToGroupsKey(userId), defExpiry)(provider(userId))
   }
 
-
   def getUserGroups: Future[Seq[GroupInfo]] = {
     for {
       userId <- getAndMaybeCacheUserId
@@ -147,8 +146,5 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
     } yield groupIds
   }
 
-
 }
-
-
 

@@ -20,22 +20,37 @@
 
 package no.uio.musit.microservices.common.extensions
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+import play.api.Application
 
+import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.duration._
+import scala.reflect.ClassTag
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.functional.Functor
 
 /**
-  * Created by jstabel on 4/22/16.
-  */
+ * Created by jstabel on 4/22/16.
+ */
 
 object FutureExtensions {
 
   implicit class FutureExtensionsImp[T](val fut: Future[T]) extends AnyVal {
     def awaitInSeconds(seconds: Int) = Await.result(fut, seconds.seconds)
+
   }
-/*
-  implicit class FutureOptionExtensionsImp[T](val fut: Future[Option[T]]) extends AnyVal {
-    def mapContainedOption(f: Option[T]=>Option[T]) = fut.map(opt=>opt.map(f))
+
+  implicit class FutureOptionExtensions[T](val fut: Future[Option[T]]) extends AnyVal {
+    def foldOption[S](ifSome: T => S, ifNone: => S): Future[S] = fut.map(optValue => optValue.map(ifSome).getOrElse(ifNone))
+  }
+  /*
+  implicit class FunctorOptionExtensions[F[_] : Functor, T](ft: F[T]) {
+    def unpackOption[S](someMapper: T => S, noneHandler: => S)(implicit f: Functor[Option[_]]): F[S] = f.fmap(optValue => optValue.map(someMapper).getOrElse(noneHandler))
+
+    //    def unpackOptionToJsonOrNotFound[S](notFoundText: String) = Ok()
   }
 */
+  /*
+    implicit class FutureOptionExtensions[T, X<:Option[T]](val fut: Future[X]) extends AnyVal {
+      def unpackOption[S](someMapper: T=>S, noneMapper: =>S): Future[S] = fut.map(optValue=>optValue.map(someMapper).getOrElse(noneMapper))
+    }*/
 }

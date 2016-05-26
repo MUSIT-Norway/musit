@@ -27,7 +27,7 @@ object PlayTestDefaults {
 
   val timeout = PatienceConfiguration.Timeout(5 seconds)
 
-  def inMemoryDatabaseConfig(evolve:String = "enabled"):Map[String, Any] = Map.apply (
+  def inMemoryDatabaseConfig(evolve: String = "enabled"): Map[String, Any] = Map.apply(
     "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
     "slick.dbs.default.connectionTimeout" -> "20000",
     "slick.dbs.default.loginTimeout" -> "20000",

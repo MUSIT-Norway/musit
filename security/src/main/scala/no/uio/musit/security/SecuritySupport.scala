@@ -20,18 +20,16 @@
 
 package no.uio.musit.security
 
-
 import scala.concurrent.Future
 import no.uio.musit.microservices.common.extensions.SeqExtensions._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 /**
-  * Created by jstabel on 4/1/16.
-  * authorize
-  * requires( Optional[List"Admin"] = None, Optional = None
-  * withGroups(Optional["Admin"], Optional["Guest"])(withoutGroups(["Guest"])( ctx => {}))
-  */
+ * Created by jstabel on 4/1/16.
+ * authorize
+ * requires( Optional[List"Admin"] = None, Optional = None
+ * withGroups(Optional["Admin"], Optional["Guest"])(withoutGroups(["Guest"])( ctx => {}))
+ */
 /*#OLD
 trait OldSecuritySupport {
 
@@ -62,4 +60,4 @@ trait OldSecuritySupport {
     }
   }
 }
-*/
+*/ 

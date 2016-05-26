@@ -17,29 +17,28 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react'
-import {  Panel, Grid, Row, Col } from 'react-bootstrap'
+import React, { Component } from 'react'
+import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { Link } from 'react-router'
 import Language from '../../components/language'
 
 @connect()
 export default class WelcomeUser extends Component {
 
   render() {
-    	  return (
-                <div>
-                <Grid>
-                    <Row styleClass="row-centered">
-                        <Col xs={10} md={10}>
-                            <br/>
-                                <Panel>
-                                    <Language value="musit.welcomeUserPage.body" markdown={true} />
-                                </Panel>
-                        </Col>
-                    </Row>
-                </Grid>
-                </div>
-    	);
-    }
+    return (
+      <div>
+        <Grid>
+          <Row styleClass="row-centered">
+            <Col xs={10} md={10}>
+              <br />
+              <Panel>
+                <Language value="musit.welcomeUserPage.body" markdown />
+              </Panel>
+            </Col>
+          </Row>
+        </Grid>
+      </div>
+    );
+  }
 }

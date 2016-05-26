@@ -22,20 +22,20 @@ package no.uio.musit.microservices.common.extensions
 
 import java.net.URI
 
-import play.api.libs.ws.{WSRequest, WSResponse}
+import play.api.libs.ws.{ WSRequest, WSResponse }
+import play.api.mvc.Request
 import play.api.mvc.Results._
 
 //import play.mvc.results._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 
 //Not sure about whether it is a good practice to use this
 
 /**
-  * Created by jstabel on 4/15/16.
-  */
-
+ * Created by jstabel on 4/15/16.
+ */
 
 object PlayExtensions {
 
@@ -49,13 +49,32 @@ object PlayExtensions {
   class MusitAuthFailed(info: MusitHttpErrorInfo) extends MusitHttpError(info)
 
   // TODO: Use another exception class when the above todo-item has been done
-  def authFailed(msg: String) = throw new MusitAuthFailed(MusitHttpErrorInfo(None, 401, "", msg))
+  def newAuthFailed(msg: String) = new MusitAuthFailed(MusitHttpErrorInfo(None, 401, "", msg))
+
+  def throwAuthFailed(msg: String) = throw newAuthFailed(msg)
+
+  implicit class RequestImp[T](val req: Request[T]) extends AnyVal {
+
+    ///Gets the value of the Bearer token in the Authorization header, if any.
+    def getBearerToken: Option[String] = {
+      val authHeader = req.headers.getAll("Authorization")
+      val res = authHeader.find(s => s.startsWith("Bearer ")) //We include the space because we don't want to get anything "accidentally" starting with the letters "Bearer"
+      res.map(b => b.substring("Bearer ".length)) //Remove the "Bearer " start of the string
+        .map(_.trim) //Probably not necessary to trim the rest, but it may be convenient if the sender has accidentally sent in blanks
+    }
+  }
 
   implicit class WSRequestImp(val wsr: WSRequest) extends AnyVal {
     def withBearerToken(token: String) = {
       wsr.withHeaders("Authorization" -> ("Bearer " + token))
     }
 
+    ///Gets the value of the Bearer token in the Authorization header, if any.
+    def getBearerToken: Option[String] = {
+      wsr.headers.get("Authorization").flatMap(_.find(s => s.startsWith("Bearer "))) //We include the space because we don't want to get anything "accidentally" starting with the letters "Bearer"
+        .map(b => b.substring("Bearer ".length)) //Remove the "Bearer " start of the string
+        .map(_.trim) //Probably not necessary to trim the rest, but it may be convenient if the sender has accidentally sent in blanks
+    }
 
     // TODO: Handle more exceptions
     def translateStatusToException(resp: WSResponse) = {
@@ -74,8 +93,7 @@ object PlayExtensions {
       respF.flatMap { resp: WSResponse =>
         if (resp.status < 200 || resp.status >= 300) {
           Future.failed(translateStatusToException(resp))
-        }
-        else
+        } else
           Future.successful(resp)
       }
     }

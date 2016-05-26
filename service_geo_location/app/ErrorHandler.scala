@@ -1,5 +1,5 @@
 import play.api.http.HttpErrorHandler
-import play.api.libs.json.{JsError, Json}
+import play.api.libs.json.{ JsError, Json }
 import play.api.mvc._
 import play.api.mvc.Results._
 

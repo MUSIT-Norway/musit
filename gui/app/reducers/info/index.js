@@ -35,13 +35,9 @@ const infoReducer = (state = initialState, action = {}) => {
 
 export default infoReducer
 
-export const isLoaded = (globalState) => {
-  return globalState.info && globalState.info.loaded;
-}
+export const isLoaded = (globalState) => globalState.info && globalState.info.loaded;
 
-export const load = () => {
-  return {
-    types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/loadInfo')
-  };
-}
+export const load = () => ({
+  types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
+  promise: (client) => client.get('/loadInfo')
+});
