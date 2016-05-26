@@ -48,6 +48,20 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   }
 
+  def insertRoomOnly(storageRoom: StorageRoom): Future[StorageRoom] = {
+      val insertQuery = RoomTable returning RoomTable.map(_.id) into ((storageRoom, id) => storageRoom.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
+      val action = insertQuery += storageRoom
+      db.run(action)
+  }
+
+
+  def insertRoom(storageUnit:StorageUnit,storageRoom: StorageRoom): Future[(StorageUnit,StorageRoom)] = {
+    for {
+      storageUnitVal <- insert(storageUnit)
+      roomVal <- insertRoomOnly(storageRoom)
+    } yield (storageUnitVal, roomVal)
+  }
+
 
   /* def getDisplayID(id:Long) :Future[Option[String]] ={
   val action = MusitThingTable.filter( _.id === id).map(_.displayid).result.headOption
