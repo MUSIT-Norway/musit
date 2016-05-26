@@ -26,4 +26,8 @@ object LinkService {
   def self(uri: String): Link = {
     Link(-1, -1, "self", baseUrl + uri)
   }
+
+  def local(key: Long, rel: String, uri: String): Link = {
+    Link(-1, key, rel, baseUrl + uri)
+  }
 }

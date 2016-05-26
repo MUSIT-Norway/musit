@@ -16,9 +16,15 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+package no.uio.musit.microservices.common.domain
 
-package no.uio.musit.microservice.actor.service
-
-trait ActorService {
-
+/**
+ * To make all address domain object same signature we add a base address trait.
+ */
+trait BaseAddress extends BaseMusitDomain {
+  val addressType: String
+  val streetAddress: String
+  val locality: String
+  val postalCode: String
+  val countryName: String
 }
