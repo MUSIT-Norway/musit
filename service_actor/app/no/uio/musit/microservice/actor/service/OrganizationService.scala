@@ -20,46 +20,46 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Organization
-import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import play.api.http.Status
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
-  * Business logic for the Person entity in the microservice, simple lookups and so on.
-  */
+ * Business logic for the Person entity in the microservice, simple lookups and so on.
+ */
 trait OrganizationService {
 
-  def all = {
+  def all: Future[Seq[Organization]] = {
     ActorDao.allOrganizations()
   }
 
-  def find(id:Long) = {
+  def find(id: Long): Future[Option[Organization]] = {
     ActorDao.getOrganizationById(id)
   }
 
-  def find(search:MusitSearch) = {
+  def find(search: MusitSearch): Future[Seq[Organization]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
     ActorDao.getOrganizationByName(searchString)
   }
 
-  def create(organization:Organization) = {
+  def create(organization: Organization): Future[Organization] = {
     ActorDao.insertOrganization(organization)
   }
 
-  def update(organization:Organization): Future[Either[MusitError, Organization]] = {
+  def update(organization: Organization): Future[Either[MusitError, Organization]] = {
     ActorDao.updateOrganization(organization).flatMap {
-      case 0 => Future.successful(Left(MusitError(400, "Something went wrong with the update")))
+      case 0 => Future.successful(Left(MusitError(Status.BAD_REQUEST, "Something went wrong with the update")))
       case num => ActorDao.getOrganizationById(organization.id).map {
         case Some(org) => Right(org)
-        case None => Left(MusitError(404, "Did not find the object"))
+        case None => Left(MusitError(Status.NOT_FOUND, "Did not find the object"))
       }
     }
   }
 
-  def remove(id:Long) = {
+  def remove(id: Long): Future[Int] = {
     ActorDao.deleteOrganization(id)
   }
-
 
 }

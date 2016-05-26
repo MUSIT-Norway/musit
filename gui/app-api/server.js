@@ -18,6 +18,8 @@ const server = new http.Server(app)
 const io = new SocketIo(server)
 io.path('/ws')
 
+app.use(bodyParser.json())
+
 app.use(session({
   secret: 'react and redux rule!!!!',
   resave: false,
@@ -25,36 +27,35 @@ app.use(session({
   cookie: { maxAge: 60000 }
 }))
 
-app.use(bodyParser.json())
-
 app.use((req, res) => {
-console.log('request')
+  console.log('request')
+  console.log(req.get('Authorization'))
+
   if (app.locals.gateway.validCall(req.url)) {
-  console.log('-api')
+    console.log('-api')
     // We have an api call, lets forward it
     app.locals.gateway.call(req, res)
   } else {
-  console.log('-action')
+    console.log('-action')
     // Enable standard action support
     const splittedUrlPath = req.url.split('?')[0].split('/').slice(1);
     const { action, params } = mapUrl(actions, splittedUrlPath);
 
     if (action) {
-      action(req, params)
-        .then((result) => {
-          if (result instanceof Function) {
-            result(res)
-          } else {
-            res.json(result)
-          }
-        }, (reason) => {
-          if (reason && reason.redirect) {
-            res.redirect(reason.redirect)
-          } else {
-            console.error('API ERROR:', pretty.render(reason))
-            res.status(reason.status || 500).json(reason)
-          }
-        })
+      action(req, params).then((result) => {
+        if (result instanceof Function) {
+          result(res)
+        } else {
+          res.json(result)
+        }
+      }, (reason) => {
+        if (reason && reason.redirect) {
+          res.redirect(reason.redirect)
+        } else {
+          console.error('API ERROR:', pretty.render(reason))
+          res.status(reason.status || 500).json(reason)
+        }
+      })
     } else {
       res.status(404).end('NOT FOUND')
     }
@@ -76,7 +77,7 @@ if (config.apiPort) {
   })
 
   io.on('connection', (socket) => {
-    socket.emit('news', { msg: `'Hello World!' from server` })
+    socket.emit('news', { msg: '\'Hello World!\' from server' })
 
     socket.on('history', () => {
       for (let index = 0; index < bufferSize; index++) {
@@ -86,7 +87,7 @@ if (config.apiPort) {
           socket.emit('msg', msg)
         }
       }
-    });
+    })
 
     socket.on('msg', (data) => {
       data.id = messageIndex

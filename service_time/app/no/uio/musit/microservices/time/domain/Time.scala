@@ -18,7 +18,7 @@
  */
 package no.uio.musit.microservices.time.domain
 
-import org.joda.time.{LocalDate, LocalTime}
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json._
 
 object DateFormats {

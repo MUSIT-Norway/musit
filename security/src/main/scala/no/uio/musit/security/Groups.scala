@@ -21,8 +21,8 @@
 package no.uio.musit.security
 
 /**
-  * Created by jstabel on 4/18/16.
-  */
+ * Created by jstabel on 4/18/16.
+ */
 object Groups {
   val DS = "fc:adhoc:88c4a80b-f452-460a-bbd5-a9a9d0ed058d" //"fc:org:uio.no:unit:352330"
   val UiO = "fc:org:uio.no"

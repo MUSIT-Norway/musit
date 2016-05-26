@@ -23,17 +23,15 @@ import { reducer as form } from 'redux-form'
 import { combineReducers } from 'redux'
 
 import infoReducer from './info'
-import exampleReducer from './example'
 import authReducer from './auth'
+import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
-import multireducer from 'multireducer'
-
 
 const rootReducer = combineReducers({
-  example: exampleReducer,
   routing: routerReducer,
   info: infoReducer,
   auth: authReducer,
+  fakeAuthInfo: fakeAuthReducer,
   language: languageReducer,
   reduxAsyncConnect: reduxAsyncConnect,
   form: form

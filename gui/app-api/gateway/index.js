@@ -6,40 +6,40 @@ export default class APIGateway {
     this.baseUri = baseUri
     this.registry = new NodeCache()
     const msConfig = require('./services.json')
-    for (var microservice of msConfig) {
+    for (const microservice of msConfig) {
       this.registry.set(microservice.name, microservice)
     }
   }
 
-  validCall = (uri) => uri && uri.indexOf(this.baseUri) == 0
+  validCall = (uri) => uri && uri.indexOf(this.baseUri) === 0
 
   call = (req, res) => {
-    let uriArray = req.url.split('?')
-    let splitArray = uriArray[0].split('/')
+    const uriArray = req.url.split('?')
+    const splitArray = uriArray[0].split('/')
     this.registry.get(splitArray[2], (err, service) => {
-      if(!err && service) {
-        console.log('-- calling service: '+service.name)
+      if (!err && service) {
+        console.log(`-- calling service: ${service.name}`)
         // Fix options
         let options = ''
         if (uriArray[1] && uriArray[1].length > 0) {
-          options = '?' + uriArray[1]
+          options = `?${uriArray[1]}`
         }
 
         // Fix uri
         let uri = ''
-        let uriString = splitArray.slice(3).join('/')
+        const uriString = splitArray.slice(3).join('/')
         if (uriString && uriString.length > 0) {
-          uri = '/' + uriString
+          uri = `/${uriString}`
         }
 
         // Build url
-        let newUrl = service.protocol + service.host + ':' + service.port + uri + options;
+        const newUrl = `${service.protocol}${service.host}:${service.port}${uri}${options}`;
 
         // Pipe the request to the microservices
-        console.log("Forwarding service call in pipe: "+newUrl)
-        let newReq = request(newUrl)
-        newReq.on('error', (err) => {
-          console.error('MS ERROR:', err)
+        console.log(`Forwarding service call in pipe: ${newUrl}`)
+        const newReq = request(newUrl)
+        newReq.on('error', (msError) => {
+          console.error('MS ERROR:', msError)
           res.status(500).json(err)
         })
 
@@ -52,6 +52,5 @@ export default class APIGateway {
         res.status(404)
       }
     })
-
   }
 }

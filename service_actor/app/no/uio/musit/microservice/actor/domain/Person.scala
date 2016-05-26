@@ -19,39 +19,39 @@
 
 package no.uio.musit.microservice.actor.domain
 
-import no.uio.musit.microservices.common.domain.{BaseAddress, BaseMusitDomain}
+import no.uio.musit.microservices.common.domain.{ BaseAddress, BaseMusitDomain }
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 /**
-  * Domain Person
-  */
-case class Person(id:Long, fn:String, title:Option[String] = None, role:Option[String] = None, tel:Option[String] = None, web:Option[String] = None, email:Option[String] = None, links: Seq[Link]) extends BaseMusitDomain
+ * Domain Person
+ */
+case class Person(id: Long, fn: String, title: Option[String] = None, role: Option[String] = None, tel: Option[String] = None,
+  web: Option[String] = None, email: Option[String] = None, links: Seq[Link]) extends BaseMusitDomain
 
 /**
-  * Domain Organization
-  */
-case class Organization(id:Long, fn:String, nickname:String, tel:String, web:String, links: Seq[Link]) extends BaseMusitDomain
+ * Domain Organization
+ */
+case class Organization(id: Long, fn: String, nickname: String, tel: String, web: String, links: Seq[Link]) extends BaseMusitDomain
 
 /**
-  * Address specialized for Organization
-  */
-case class OrganizationAddress(id:Long, organizationId:Long, addressType:String, streetAddress:String, locality:String, postalCode:String, countryName:String, latitude:Double, longitude:Double, links: Seq[Link]) extends BaseAddress
+ * Address specialized for Organization
+ */
+case class OrganizationAddress(id: Long, organizationId: Long, addressType: String, streetAddress: String, locality: String,
+  postalCode: String, countryName: String, latitude: Double, longitude: Double, links: Seq[Link]) extends BaseAddress
 
 object Person {
-  def tupled = (Person.apply _).tupled
+  val tupled = (Person.apply _).tupled
   implicit val format = Json.format[Person]
 }
 
 object Organization {
-  def tupled = (Organization.apply _).tupled
+  val tupled = (Organization.apply _).tupled
   implicit val format = Json.format[Organization]
 }
 
 object OrganizationAddress {
-  def tupled = (OrganizationAddress.apply _).tupled
+  val tupled = (OrganizationAddress.apply _).tupled
   implicit val format = Json.format[OrganizationAddress]
 }
-
-
 

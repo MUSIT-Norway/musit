@@ -16,43 +16,46 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- 
-import React, { Component, PropTypes, bindActionCreators } from 'react'
+
+import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import * as actions from '../../actions/example'
-import Button from 'react-bootstrap/lib/Button'
+import { DropdownButton, MenuItem } from 'react-bootstrap'
+import config from '../../config'
+
 
 const mapStateToProps = (state) => {
-    return {
-        example: state.example
-    }
+  return {
+    fakeAuthInfo: state.fakeAuthInfo
+  }
 }
 
 @connect(mapStateToProps)
-export default class Example extends Component {
-    static propTypes = {
-      example: PropTypes.object
+export default class FakeLoginSelector extends Component {
+  static propTypes = {
+    fakeAuthInfo: PropTypes.object
+  }
+
+  static contextTypes = {
+    store: PropTypes.object.isRequired
+  }
+
+  onSelect = (evt, token) => {
+    console.log(`Trying to fake-login ${token}`)
+    window.location.href = `http://${config.host}:${config.port}/musit?access_token=${token}`
+  }
+
+  render() {
+    const { fakeAuthInfo } = this.props
+
+    let menuItems = ''
+    if (fakeAuthInfo.loaded) {
+      menuItems = fakeAuthInfo.users.map((user) => <MenuItem eventKey={user.accessToken}>{user.name}</MenuItem>)
     }
 
-    static contextTypes = {
-      store: PropTypes.object.isRequired
-    }
-
-    onState1Click(dispatch) {
-        dispatch(actions.updateState1(this.state1 + 'a'))
-    }
-
-    onState2Click(dispatch) {
-        dispatch(actions.updateState2(this.state2 + 'b'))
-    }
-
-	render () {
-		const { dispatch, example, onState1Click, onState2Click } = this.props
-
-		return (
-			<div>
-				State ({example.state1}, {example.state2}) <Button bsSize="xsmall" onClick={this.onState1Click.bind(example, dispatch)}>1+</Button><Button bsSize="xsmall" onClick={this.onState2Click.bind(example, dispatch)}>2+</Button>
-			</div>
-    	)
-	}
+    return (
+      <DropdownButton title="Fake User" onSelect={this.onSelect}>
+        {menuItems}
+      </DropdownButton>
+    )
+  }
 }

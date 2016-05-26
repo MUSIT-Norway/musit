@@ -27,20 +27,20 @@ import scala.concurrent.Future
 
 trait LegacyPersonService {
 
-  def all = {
+  def all: Future[Seq[Person]] = {
     ActorDao.allPersonsLegacy()
   }
 
-  def find(id:Long) = {
+  def find(id: Long): Future[Option[Person]] = {
     ActorDao.getPersonLegacyById(id)
   }
 
-  def find(search:MusitSearch) = {
+  def find(search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
     ActorDao.getPersonLegacyByName(searchString)
   }
 
-  def create(person:Person) = {
+  def create(person: Person): Future[Person] = {
     ActorDao.insertPersonLegacy(person)
   }
 

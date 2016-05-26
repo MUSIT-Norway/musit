@@ -19,12 +19,12 @@
 package no.uio.musit.microservices.common.domain
 
 /**
-  * To make all address domain object same signature we add a base address trait.
-  */
+ * To make all address domain object same signature we add a base address trait.
+ */
 trait BaseAddress extends BaseMusitDomain {
-  def addressType:String
-  def streetAddress:String
-  def locality:String
-  def postalCode:String
-  def countryName:String
+  def addressType: String
+  def streetAddress: String
+  def locality: String
+  def postalCode: String
+  def countryName: String
 }

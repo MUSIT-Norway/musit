@@ -20,44 +20,45 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import play.api.http.Status
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
-  * Business logic for the Person entity in the microservice, simple lookups and so on.
-  */
+ * Business logic for the Person entity in the microservice, simple lookups and so on.
+ */
 trait PersonService {
 
-  def all = {
+  def all: Future[Seq[Person]] = {
     ActorDao.allPersons()
   }
 
-  def find(id:Long) = {
+  def find(id: Long): Future[Option[Person]] = {
     ActorDao.getPersonById(id)
   }
 
-  def find(search:MusitSearch) = {
+  def find(search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
     ActorDao.getPersonByName(searchString)
   }
 
-  def create(person:Person) = {
+  def create(person: Person): Future[Person] = {
     ActorDao.insertPerson(person)
   }
 
-  def update(person:Person): Future[Either[MusitError, Person]] = {
+  def update(person: Person): Future[Either[MusitError, Person]] = {
     ActorDao.updatePerson(person).flatMap {
-      case 0 => Future.successful(Left(MusitError(401, "Something went wrong with the update")))
+      case 0 => Future.successful(Left(MusitError(Status.BAD_REQUEST, "Something went wrong with the update")))
       case num => ActorDao.getPersonById(person.id).map {
         case Some(uPerson) => Right(uPerson)
-        case None => Left(MusitError(404, "Did not find the object"))
+        case None => Left(MusitError(Status.NOT_FOUND, "Did not find the object"))
       }
     }
   }
 
-  def remove(id:Long) = {
+  def remove(id: Long) = {
     ActorDao.deletePerson(id)
   }
 

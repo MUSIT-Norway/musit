@@ -22,16 +22,18 @@
 
 package no.uio.musit.security
 
+import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.security.dataporten.Dataporten
 import play.api.mvc.Request
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
+import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
 /**
-  * Created by jstabel on 4/15/16.
-  */
+ * Created by jstabel on 4/15/16.
+ */
 
 case class UserInfo(id: String, name: String)
 
@@ -39,9 +41,10 @@ case class GroupInfo(groupType: String, id: String, displayName: String, descrip
 
 //type TokenToUserIdProvider =  (String) => String
 
-/** Represents what a "connection" is expected to know of the current user
-  *
-  */
+/**
+ * Represents what a "connection" is expected to know of the current user
+ *
+ */
 trait ConnectionInfoProvider {
   def getUserInfo: Future[UserInfo]
 
@@ -51,7 +54,6 @@ trait ConnectionInfoProvider {
 
   def accessToken: String
 }
-
 
 /*Not used, at least yet
 trait GroupInfoProvider {
@@ -76,7 +78,6 @@ trait SecurityState {
   def hasNoneOfGroups(groups: Seq[String]): Boolean
 }
 
-
 trait SecurityConnection {
   def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T]
 
@@ -91,6 +92,9 @@ trait SecurityConnection {
   def hasAllGroups(groupIds: Seq[String]): Boolean = state.hasAllGroups(groupIds)
 
   def hasNoneOfGroups(groupIds: Seq[String]): Boolean = state.hasNoneOfGroups(groupIds)
+
+  def groupIds: Seq[String] //We could provide a default implementation as infoProvider.getUserGroupIds, but then we would have to return a Future.
+  //Since all current implementations caches in the groupsIds at startup, we have a direct access here.
 
   ///The infoProvider providing the info to this connection. Accessing this is probably only relevant for testing/debugging
   def infoProvider: ConnectionInfoProvider
@@ -109,16 +113,14 @@ class SecurityStateImp(_userInfo: UserInfo, userGroups: Seq[String]) extends Sec
   def hasNoneOfGroups(groups: Seq[String]) = userGroups.hasNoneOf(groups)
 }
 
-
 class SecurityConnectionImp(_infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnection {
   val state = new SecurityStateImp(userInfo, userGroups)
 
   override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
     if (state.hasAllGroups(requiredGroups) && state.hasNoneOfGroups(deniedGroups)) {
       Success(body)
-    }
-    else {
-      //#OLD Future.failed(new Exception("Unauthorized"))
+    } else {
+
       val missingGroups = requiredGroups.filter((g => !(state.hasGroup(g))))
       val disallowedGroups = deniedGroups.filter(g => (state.hasGroup(g)))
 
@@ -132,18 +134,29 @@ class SecurityConnectionImp(_infoProvider: ConnectionInfoProvider, userInfo: Use
       Failure(new Exception(msg))
     }
   }
+
+  override def groupIds = userGroups
+
   def infoProvider: ConnectionInfoProvider = _infoProvider
 }
 
 object Security {
   ///The default way to create a security connection from an access token
-  def create(token: String) = Dataporten.createSecurityConnection(token, true)
+  def create(token: String): Future[SecurityConnection] = {
+    if (FakeSecurity.isFakeAccessToken(token))
+      FakeSecurity.createInMemoryFromFakeAccessToken(token, false) //Caching off because no speedup by caching the in-memory stuff!
+    else
+      Dataporten.createSecurityConnection(token, true)
+  }
 
   ///The default way to create a security connection from a Htpp request (containing a bearer token)
   // TODO: get the token from the request
-  def create[T](request: Request[T]) = throw new Exception("todo")
-
-
+  def create[T](request: Request[T]): Either[MusitError, Future[SecurityConnection]] = {
+    request.getBearerToken match {
+      case Some(token) => Right(Security.create(token))
+      case None => Left(MusitError(401, "No token in request"))
+    }
+  }
 
   //internal stuff, move to another object?
   def createSecurityConnectionFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[SecurityConnection] = {
