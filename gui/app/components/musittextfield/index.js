@@ -31,19 +31,6 @@ export default class MusitTextField extends Component {
   }
 
   render() {
-    const type = (function(global) {
-      var cache = {};
-      return function(obj) {
-        var key;
-        return obj === null ? 'null' // null
-          : obj === global ? 'global' // window in browser or global in nodejs
-          : (key = typeof obj) !== 'object' ? key // basic: string, boolean, number, undefined, function
-          : obj.nodeType ? 'object' // DOM element
-          : cache[key = ({}).toString.call(obj)] // cached. date, regexp, error, object, array, math
-        || (cache[key] = key.slice(8, -1).toLowerCase()); // get XXXX from [object XXXX], and cache it
-      };
-    }(this));
-
     return (
       <FormGroup
         controlId={this.props.controlId}
@@ -51,7 +38,7 @@ export default class MusitTextField extends Component {
           marginTop: 0,
           marginBottom: '5px'
         }}
-        validationState={type(this.props.validationState) === 'function' ? this.props.validationState() : this.props.validationState}
+        validationState={this.props.validationState()}
       >
         <Col componentClass={ControlLabel} sm={2}>
           {this.props.labelText}
@@ -61,7 +48,7 @@ export default class MusitTextField extends Component {
             <FormControl
               type={this.props.valueType}
               placeholder={this.props.placeHolderText}
-              value={type(this.props.valueText) === 'function' ? this.props.valueText() : this.props.valueText}
+              value={this.props.valueText()}
               onChange={(event) => this.props.onChange(event.target.value)}
             />
             {this.props.tooltip ?
@@ -85,8 +72,8 @@ MusitTextField.propTypes = {
   labelText: PropTypes.string.isRequired,
   placeHolderText: PropTypes.string.isRequired,
   tooltip: PropTypes.string,
-  valueText: PropTypes.any,
-  valueType: PropTypes.string,
-  validationState: PropTypes.any,
+  valueText: PropTypes.func.isRequired,
+  valueType: PropTypes.string.isRequired,
+  validationState: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
 };
