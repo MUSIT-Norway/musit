@@ -22,9 +22,15 @@ import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
 
-@connect()
-export default class WelcomeUser extends Component {
+const mapStateToProps = (state) => ({
+  translate: (key, markdown) => <Language language={state.language} value={key} markdown={markdown} />
+});
 
+@connect(mapStateToProps)
+export default class WelcomeUser extends Component {
+  static propTypes = {
+    translate: React.PropTypes.func.isRequired,
+  }
   render() {
     return (
       <div>
@@ -33,7 +39,7 @@ export default class WelcomeUser extends Component {
             <Col xs={10} md={10}>
               <br />
               <Panel>
-                <Language value="musit.welcomeUserPage.body" markdown />
+                {this.props.translate('musit.welcomeUserPage.body', true)}
               </Panel>
             </Col>
           </Row>
