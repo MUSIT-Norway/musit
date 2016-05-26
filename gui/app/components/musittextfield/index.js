@@ -48,12 +48,12 @@ export default class MusitTextField extends Component {
             <FormControl
               type={this.props.valueType}
               placeholder={this.props.placeHolderText}
-              value={this.props.valueText}
+              value={this.props.valueText()}
               onChange={(event) => this.props.onChange(event.target.value)}
             />
             {this.props.tooltip ?
               <OverlayTrigger
-                trigger={['click', 'focus']}
+                trigger={['click']}
                 rootClose
                 placement="right"
                 overlay={MusitTextField.helpText(this.props.tooltip)}
@@ -72,7 +72,7 @@ MusitTextField.propTypes = {
   labelText: PropTypes.string.isRequired,
   placeHolderText: PropTypes.string.isRequired,
   tooltip: PropTypes.string,
-  valueText: PropTypes.string,
+  valueText: PropTypes.func,
   valueType: PropTypes.string,
   validationState: PropTypes.func,
   onChange: PropTypes.func.isRequired,
