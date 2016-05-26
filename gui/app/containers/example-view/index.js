@@ -19,19 +19,23 @@
 
 import React, { Component } from 'react';
 import TextField from '../../components/musittextfield';
-import { Panel, Form, Grid, Row, PageHeader } from 'react-bootstrap'
+import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 
 export default class ExampleView extends Component {
+  static validateString(value, minimumLength = 3, maximumLength = 20) {
+    const isSomething = value.length >= minimumLength
+    const isValid = isSomething ? 'success' : null
+    return value.length > maximumLength ? 'error' : isValid
+  }
+
+  static validateNumber(value, minimumLength = 1) {
+    const isSomething = value.length >= minimumLength
+    const isValid = isSomething ? 'success' : null
+    return isSomething && isNaN(value) ? 'error' : isValid
+  }
+
   constructor(props) {
     super(props)
-
-    this.updateName = this.updateName.bind(this)
-    this.validateField = this.validateField.bind(this)
-    this.updateDescription = this.updateDescription.bind(this)
-    this.updateNote = this.updateNote.bind(this)
-    this.updateAreal = this.updateAreal.bind(this)
-
-    const clazz = this
 
     this.state = {
       unit: {
@@ -42,15 +46,17 @@ export default class ExampleView extends Component {
       }
     }
 
+    const clazz = this
+
     this.areal = {
       controlId: 'areal',
       labelText: 'Areal',
       tooltip: 'Areal',
-      valueText: clazz.state.unit.name,
+      valueText: clazz.state.unit.areal,
       valueType: 'text',
-      validationState: clazz.validateField,
+      validationState: () => ExampleView.validateNumber(clazz.state.unit.areal),
       placeHolderText: 'enter areal here',
-      onChange: clazz.updateAreal
+      onChange: (areal) => clazz.setState({ unit: { ...this.state.unit, areal } })
     }
 
     this.fields = [
@@ -60,9 +66,9 @@ export default class ExampleView extends Component {
         tooltip: 'Name',
         valueText: clazz.state.unit.name,
         valueType: 'text',
-        validationState: clazz.validateField,
+        validationState: () => ExampleView.validateString(clazz.state.unit.name),
         placeHolderText: 'enter name here',
-        onChange: clazz.updateName
+        onChange: (name) => clazz.setState({ unit: { ...clazz.state.unit, name } })
       },
       {
         controlId: 'description',
@@ -70,9 +76,9 @@ export default class ExampleView extends Component {
         tooltip: 'Description',
         valueText: clazz.state.unit.description,
         valueType: 'text',
-        validationState: clazz.validateField,
+        validationState: () => ExampleView.validateString(clazz.state.unit.description),
         placeHolderText: 'enter description here',
-        onChange: clazz.updateDescription
+        onChange: (description) => clazz.setState({ unit: { ...clazz.state.unit, description } })
       },
       {
         controlId: 'note',
@@ -80,32 +86,11 @@ export default class ExampleView extends Component {
         tooltip: 'Note',
         valueText: clazz.state.unit.note,
         valueType: 'text',
-        validationState: clazz.validateField,
+        validationState: () => ExampleView.validateString(clazz.state.unit.note),
         placeHolderText: 'enter note here',
-        onChange: clazz.updateNote
+        onChange: (note) => clazz.setState({ unit: { ...clazz.state.unit, note } })
       }
     ]
-  }
-
-  validateField(value) {
-    const notNull = value.length ? 'success' : null
-    return value.length > 20 ? 'error' : notNull
-  }
-
-  updateName(name) {
-    this.setState({ unit: { ...this.state.unit, name } })
-  }
-
-  updateDescription(description) {
-    this.setState({ unit: { ...this.state.unit, description } })
-  }
-
-  updateNote(note) {
-    this.setState({ unit: { ...this.state.unit, note } })
-  }
-
-  updateAreal(areal) {
-    this.setState({ unit: { ...this.state.unit, areal } })
   }
 
   render() {
@@ -118,30 +103,56 @@ export default class ExampleView extends Component {
                 <PageHeader>
                   Welcome to example view.
                 </PageHeader>
-                <Form horizontal>
-                  <TextField
-                    controlId={this.areal.controlId}
-                    labelText={this.areal.labelText}
-                    tooltip={this.areal.tooltip}
-                    valueText={this.state.unit[this.areal.controlId]}
-                    valueType={this.areal.valueType}
-                    validationState={this.areal.validationState(this.state.unit[this.areal.controlId])}
-                    placeHolderText={this.areal.placeHolderText}
-                    onChange={this.areal.onChange}
-                  />
-                  {this.fields.map(field =>
+                <Col md={6}>
+                  <Form horizontal>
+                    {this.fields.map(field =>
+                      <TextField
+                        controlId={field.controlId}
+                        labelText={field.labelText}
+                        tooltip={field.tooltip}
+                        valueText={this.state.unit[field.controlId]}
+                        valueType={field.valueType}
+                        validationState={field.validationState}
+                        placeHolderText={field.placeHolderText}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  </Form>
+                </Col>
+                <Col md={6}>
+                  <Form horizontal>
                     <TextField
-                      controlId={field.controlId}
-                      labelText={field.labelText}
-                      tooltip={field.tooltip}
-                      valueText={this.state.unit[field.controlId]}
-                      valueType={field.valueType}
-                      validationState={field.validationState(this.state.unit[field.controlId])}
-                      placeHolderText={field.placeHolderText}
-                      onChange={field.onChange}
+                      controlId={this.areal.controlId}
+                      labelText={this.areal.labelText}
+                      tooltip={this.areal.tooltip}
+                      valueText={this.state.unit[this.areal.controlId]}
+                      valueType={this.areal.valueType}
+                      validationState={this.areal.validationState}
+                      placeHolderText={this.areal.placeHolderText}
+                      onChange={this.areal.onChange}
                     />
-                  )}
-                </Form>
+                    <TextField
+                      controlId={this.areal.controlId}
+                      labelText={this.areal.labelText}
+                      tooltip={this.areal.tooltip}
+                      valueText={this.state.unit[this.areal.controlId]}
+                      valueType={this.areal.valueType}
+                      validationState={this.areal.validationState}
+                      placeHolderText={this.areal.placeHolderText}
+                      onChange={this.areal.onChange}
+                    />
+                    <TextField
+                      controlId={this.areal.controlId}
+                      labelText={this.areal.labelText}
+                      tooltip={this.areal.tooltip}
+                      valueText={this.state.unit[this.areal.controlId]}
+                      valueType={this.areal.valueType}
+                      validationState={this.areal.validationState}
+                      placeHolderText={this.areal.placeHolderText}
+                      onChange={this.areal.onChange}
+                    />
+                  </Form>
+                </Col>
               </Row>
             </Grid>
           </Panel>

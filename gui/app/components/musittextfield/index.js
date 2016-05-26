@@ -18,18 +18,17 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, ControlLabel, FormControl, Col } from 'react-bootstrap'
+import { FormGroup, FormControl, Popover, ControlLabel, Col, InputGroup, OverlayTrigger } from 'react-bootstrap'
 
 export default class MusitTextField extends Component {
-  constructor(props) {
-    super(props)
-    this.handleChange = this.handleChange.bind(this)
-  }
 
-  handleChange(event) {
-    this.props.onChange(event.target.value)
+  static helpText(tip) {
+    return (
+      <Popover id="InputLinkPopover" title="Info">
+        {tip}
+      </Popover>
+    )
   }
-
 
   render() {
     return (
@@ -39,19 +38,29 @@ export default class MusitTextField extends Component {
           marginTop: 0,
           marginBottom: '5px'
         }}
-        validationState={this.props.validationState}
+        validationState={this.props.validationState()}
       >
         <Col componentClass={ControlLabel} sm={2}>
           {this.props.labelText}
         </Col>
-        <Col sm={5}>
-          <FormControl
-            type={this.props.valueType}
-            placeholder={this.props.placeHolderText}
-            value={this.props.valueText}
-            onChange={this.handleChange}
-          />
-          <FormControl.Feedback />
+        <Col sm={10}>
+          <InputGroup>
+            <FormControl
+              type={this.props.valueType}
+              placeholder={this.props.placeHolderText}
+              value={this.props.valueText}
+              onChange={(event) => this.props.onChange(event.target.value)}
+            />
+            {this.props.tooltip ?
+              <OverlayTrigger
+                trigger={['click', 'focus']}
+                rootClose
+                placement="right"
+                overlay={MusitTextField.helpText(this.props.tooltip)}
+              >
+                <InputGroup.Addon>?</InputGroup.Addon>
+              </OverlayTrigger> : null}
+          </InputGroup>
         </Col>
       </FormGroup>
     )
@@ -65,6 +74,6 @@ MusitTextField.propTypes = {
   tooltip: PropTypes.string,
   valueText: PropTypes.string,
   valueType: PropTypes.string,
-  validationState: PropTypes.string,
+  validationState: PropTypes.func,
   onChange: PropTypes.func.isRequired,
 };
