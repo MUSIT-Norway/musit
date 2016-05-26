@@ -39,7 +39,7 @@ export default class FakeLoginSelector extends Component {
     store: PropTypes.object.isRequired
   }
 
-  onSelect = (evt, token) => {
+  onSelect(token) {
     console.log(`Trying to fake-login ${token}`)
     window.location.href = `http://${config.host}:${config.port}/musit?access_token=${token}`
   }
