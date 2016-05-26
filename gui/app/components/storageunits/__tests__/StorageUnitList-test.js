@@ -1,9 +1,4 @@
-const assert = require('assert');
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-addons-test-utils');
-
-require('../../../../test/setup');
+import { assert, React, ReactDOM, ReactTestUtils } from '../../../../test/setup';
 
 describe('StorageUnitList', () => {
   it('should render all units', () => {

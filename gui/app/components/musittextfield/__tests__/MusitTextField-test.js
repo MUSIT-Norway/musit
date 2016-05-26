@@ -1,14 +1,4 @@
-/**
- * Created by steinaol on 5/20/16.
- */
-const assert = require('assert');
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-addons-test-utils');
-
-
-require('../../../../test/setup');
-
+import { assert, React, ReactDOM, ReactTestUtils } from '../../../../test/setup';
 
 describe('MusitTextField', () => {
   it('should render MusitTextField', () => {
