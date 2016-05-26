@@ -29,10 +29,16 @@ describe('StorageUnitList', () => {
       />
     );
     const actualDiv = ReactDOM.findDOMNode(myDiv);
-    const spans = actualDiv.querySelectorAll('span');
-    assert.equal(spans.length, 3);
-    assert.equal(spans[0].textContent, 'Hallo');
-    assert.equal(spans[1].textContent, 'Kokko');
-    assert.equal(spans[2].textContent, 'Lalal');
+    const td = actualDiv.querySelectorAll('td');
+    assert.equal(td.length, 12);
+    // row 1
+    assert.equal(td[0].textContent, '1');
+    assert.equal(td[1].textContent, 'Hallo');
+    // row 2
+    assert.equal(td[4].textContent, '2');
+    assert.equal(td[5].textContent, 'Kokko');
+    // row 3
+    assert.equal(td[8].textContent, '3');
+    assert.equal(td[9].textContent, 'Lalal');
   });
 });
