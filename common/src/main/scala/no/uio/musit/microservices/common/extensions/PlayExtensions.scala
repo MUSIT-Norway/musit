@@ -30,7 +30,7 @@ import play.api.mvc.Results._
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
-
+import play.api.libs.json.Json
 //Not sure about whether it is a good practice to use this
 
 /**
@@ -76,6 +76,14 @@ object PlayExtensions {
         .map(_.trim) //Probably not necessary to trim the rest, but it may be convenient if the sender has accidentally sent in blanks
     }
 
+    def postJsonString(text: String): Future[WSResponse] = {
+      //println(s"text to parse: $text")
+      val json = Json.parse(text)
+      //println(s"Parsed json: $json")
+      val res = wsr.post(json)
+      res.map(resp => println(s"result body: ${resp.body}"))
+      res
+    }
     // TODO: Handle more exceptions
     def translateStatusToException(resp: WSResponse) = {
       assert(resp.status < 200 || resp.status >= 300)

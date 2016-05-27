@@ -8,6 +8,7 @@ import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.libs.ws.WS
+import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
 /**
   * Created by ellenjo on 5/27/16.
@@ -19,10 +20,10 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
 
   "StorageUnitIntegration " must {
     "postCreate some IDs" in {
-      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"ROM1"}"""
+      val makeMyJSon ="""{"id":-1, "storageType":"Room","storageUnitName":"ROM1", "links":[]}"""  //
        /* Json.toJson(StorageUnit(-1, "Room", "ROM1", Some(10), Some("1"), None, Some(20),
         Some("skriv"), Some("les"), Seq.empty))*/
-      val future =WS.url(s"http://localhost:$port/v1/storageunit").post(makeMyJSon)
+      val future =WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon)
       whenReady(future, timeout) { response =>
         val storageUnit = Json.parse(response.body).validate[StorageUnit].get
         val storageRoom = Json.parse(response.body).validate[StorageRoom].get

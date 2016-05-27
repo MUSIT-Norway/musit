@@ -41,7 +41,7 @@ def groupWrite:Option[String]*/
 
 case class StorageUnit(id: Long, storageType: String, storageUnitName: String, area: Option[Long],
     isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
-    groupRead: Option[String], groupWrite: Option[String], links: Seq[Link]) extends AbstractStorageUnit {
+    groupRead: Option[String], groupWrite: Option[String], links: Seq[Link] = Seq.empty) extends AbstractStorageUnit {
   def toJson: JsObject = Json.toJson(this).as[JsObject]
 
   override def storageKind: StorageUnitType = StorageUnitType { storageType }
@@ -55,7 +55,7 @@ object StorageUnit {
 case class StorageRoom(id: Long, sikringSkallsikring: Option[String], sikringTyverisikring: Option[String],
     sikringBrannsikring: Option[String], sikringVannskaderisiko: Option[String], sikringRutineOgBeredskap: Option[String],
     bevarLuftfuktOgTemp: Option[String], bevarLysforhold: Option[String], bevarPrevantKons: Option[String],
-    links: Seq[Link]) extends AbstractStorageUnit {
+    links: Seq[Link] = Seq.empty) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
   override def storageKind: StorageUnitType = Room

@@ -42,8 +42,8 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
         case ex => fail(s"Insert failed:${ex.getMessage} ")
       }
       svar.onSuccess {
-        case stunit => assert(stunit.length == 3)
-        case other => fail("aa")
+        case stUnitSeq => assert(stUnitSeq.length == 3)
+
       }
     }
 
