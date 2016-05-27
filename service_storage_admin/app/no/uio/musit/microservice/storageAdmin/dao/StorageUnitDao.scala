@@ -56,7 +56,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[(StorageUnit, StorageRoom)] = {
     for {
       storageUnitVal <- insert(storageUnit)
-      roomVal <- insertRoomOnly(storageRoom)
+      roomVal <- insertRoomOnly(storageRoom.copy(id = storageUnitVal.id))
     } yield (storageUnitVal, roomVal)
   }
 
@@ -70,7 +70,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[(StorageUnit, StorageBuilding)] = {
     for {
       storageUnitVal <- insert(storageUnit)
-      buildingVal <- insertBuildingOnly(storageBuilding)
+      buildingVal <- insertBuildingOnly(storageBuilding.copy(id = storageUnitVal.id))
     } yield (storageUnitVal, buildingVal)
   }
 

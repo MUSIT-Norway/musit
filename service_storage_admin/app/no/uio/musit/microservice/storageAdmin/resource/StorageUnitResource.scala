@@ -45,7 +45,6 @@ class StorageUnitResource extends Controller {
     }
   }
 
-
   def mergeJson(jsonA: JsObject, jsonB: JsObject): JsObject = jsonA ++ jsonB
 
   @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
@@ -79,7 +78,7 @@ class StorageUnitResource extends Controller {
           for {
             storageUnit <- request.body.validate[StorageUnit]
             storageBuilding <- request.body.validate[StorageBuilding]
-          } yield RoomService.create(storageUnit, storageBuildign)
+          } yield RoomService.create(storageUnit, storageBuilding)
         }
         unwrapJsResult(result.map(_.map(either =>
           eitherToCreatedOrBadRequestResult(either) { case (stUnit: StorageUnit, stBuilding: StorageBuilding) => mergeJson(stUnit.toJson, stBuildingRoom.toJson) })))
