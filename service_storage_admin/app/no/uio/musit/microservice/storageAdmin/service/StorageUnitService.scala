@@ -19,7 +19,7 @@
 package no.uio.musit.microservice.storageAdmin.service
 
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
-import no.uio.musit.microservice.storageAdmin.domain.{ StorageRoom, StorageUnit }
+import no.uio.musit.microservice.storageAdmin.domain.{ StorageBuilding, StorageRoom, StorageUnit }
 import no.uio.musit.microservices.common.domain.MusitError
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -62,5 +62,17 @@ trait RoomService {
 
 object RoomService extends RoomService
 
-trait BuildingService
+trait BuildingService {
+  def create(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[Either[MusitError, (StorageUnit, StorageBuilding)]] = {
+    val newStorageBuildingF = StorageUnitDao.insertBuilding(storageUnit, storageBuilding)
+    val value: Future[Either[MusitError, (StorageUnit, StorageBuilding)]] = newStorageBuildingF.map { newStorageAndBuilding =>
+      Right(newStorageAndBuilding)
+    }
+    value.recover {
+      case _ => Left(MusitError(400, "va da feil??"))
+    }
+  }
+}
+
+object BuildingService extends BuildingService
 

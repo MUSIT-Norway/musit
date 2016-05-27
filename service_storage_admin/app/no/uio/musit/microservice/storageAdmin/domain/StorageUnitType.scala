@@ -8,10 +8,12 @@ import play.api.libs.json.{ Format, Json }
 sealed trait StorageUnitType
 
 object StorageUnitType {
-  def apply(stType: String) = stType match {
+  def apply(stType: String) = stType.toLowerCase match {
     case "building" => Building
     case "room" => Room
-    case "storageUnit" => StUnit
+    case "storageunit" => StUnit
+    case other => throw new Exception(s"Musit: Undefined StorageType:$other")
+
     // case "rootNode" => RootNode
   }
   // implicit val format: Format[StorageUnitType] = Json.format[StorageUnitType]

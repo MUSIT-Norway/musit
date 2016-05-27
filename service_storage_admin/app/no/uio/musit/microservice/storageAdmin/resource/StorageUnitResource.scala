@@ -20,7 +20,7 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.service.{ RoomService, StorageUnitService }
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
 import no.uio.musit.microservices.common.domain.{ MusitFilter, MusitSearch }
 import play.api.libs.json._
 import play.api.mvc._
@@ -70,40 +70,24 @@ class StorageUnitResource extends Controller {
           } yield RoomService.create(storageUnit, storageRoom)
         }
         unwrapJsResult(result.map(_.map(either =>
-          eitherToCreatedOrBadRequestResult(either) { case (stUnit: StorageUnit, stRoom: StorageRoom) => mergeJson(stUnit.toJson, stRoom.toJson) })))
+          eitherToCreatedOrBadRequestResult(either) {
+            case (stUnit: StorageUnit, stRoom: StorageRoom) => mergeJson(stUnit.toJson, stRoom.toJson)
+          })))
       }
-      /*TODO, some search+replace missing!
       case Building => {
-        val result = {
+        val buildingResult = {
           for {
             storageUnit <- request.body.validate[StorageUnit]
             storageBuilding <- request.body.validate[StorageBuilding]
-          } yield RoomService.create(storageUnit, storageBuilding)
+          } yield BuildingService.create(storageUnit, storageBuilding)
         }
-        unwrapJsResult(result.map(_.map(either =>
-          eitherToCreatedOrBadRequestResult(either) { case (stUnit: StorageUnit, stBuilding: StorageBuilding) => mergeJson(stUnit.toJson, stBuildingRoom.toJson) })))
-      }*/
+        unwrapJsResult(buildingResult.map(_.map(either =>
+          eitherToCreatedOrBadRequestResult(either) {
+            case (stUnit: StorageUnit, stBuilding: StorageBuilding) => mergeJson(stUnit.toJson, stBuilding.toJson)
+          })))
+      }
     }
   }
-
-  /*
-
-  val vAnyStorageUnit = request.body.validate[StorageUnit]
-  vAnyStorageUnit.map {
-    anyStorageUnit =>
-
-    val storageRoomResult = request.body.validate[StorageRoom]
-    val storageBuildingResult = request.body.validate[StorageBuilding]
-    val res = storageUnitResult.map {
-    storageUnit =>
-    StorageUnitService.create (storageUnit).map {
-    case Right (newStorageUnit) => Created (Json.toJson (newStorageUnit) )
-    case Left (error) => BadRequest (Json.toJson (error) )
-  }
-  }
-    UnwrapJsResult (res)
-  }
-  */
 
   def postRoot = Action.async(BodyParsers.parse.json) {
     request =>
@@ -129,7 +113,7 @@ class StorageUnitResource extends Controller {
     request =>
       StorageUnitService.getById(id).map {
         case Some(storageUnit) => Ok(Json.toJson(storageUnit))
-        case None => NotFound(Json.toJson(MusitError(404, s"Didn't find storage unit with id: $id")))
+        case None => NotFound(Json.toJson(MusitError(404, s"Did not find storage unit with id: $id")))
       }
   }
 

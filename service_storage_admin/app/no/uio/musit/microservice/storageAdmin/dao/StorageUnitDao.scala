@@ -40,36 +40,57 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def all(): Future[Seq[StorageUnit]] = db.run(StorageUnitTable.result)
 
   def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
+    println(s"Før insert Unit: $storageUnit")
     val insertQuery = StorageUnitTable returning StorageUnitTable.map(_.id) into
       ((storageUnit, id) => storageUnit.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
     val action = insertQuery += storageUnit
-    db.run(action)
+    val result = db.run(action)
+    result.map {
+      resultB => println(s"Etter insert Unit: $resultB")
+    }
+    result
 
   }
 
   def insertRoomOnly(storageRoom: StorageRoom): Future[StorageRoom] = {
-    val insertQuery = RoomTable returning RoomTable.map(_.id) into ((storageRoom, id) => storageRoom.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
-    val action = insertQuery += storageRoom
-    db.run(action)
+    println(s"Før insert Rom: $storageRoom")
+    val insertQuery = RoomTable //returning RoomTable.map(_.id) into ((storageRoom, id) => storageRoom.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
+    val action = insertQuery += (storageRoom.copy(links = Seq(LinkService.self(s"/v1/{$storageRoom.id}"))))
+    val result = db.run(action)
+    result.map {
+      resultB => println(s"Etter insert: $resultB")
+    }
+    result.map {
+      _ => storageRoom
+    }
   }
 
   def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[(StorageUnit, StorageRoom)] = {
     for {
       storageUnitVal <- insert(storageUnit)
+      //storageRoom.id = storageUnit.id
       roomVal <- insertRoomOnly(storageRoom.copy(id = storageUnitVal.id))
     } yield (storageUnitVal, roomVal)
   }
 
   def insertBuildingOnly(storageBuilding: StorageBuilding): Future[StorageBuilding] = {
-    val insertQuery = BuildingTable returning BuildingTable.map(_.id) into
-      ((storageBuilding, id) => storageBuilding.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
-    val action = insertQuery += storageBuilding
-    db.run(action)
+    println(s"Før insert: $storageBuilding")
+    val insertQuery = BuildingTable //returning BuildingTable.map(_.id) into
+    //((storageBuilding, id2) => storageBuilding.copy(id = id2, links = Seq(LinkService.self(s"/v1/$id"))))
+    val action = insertQuery += (storageBuilding.copy(links = Seq(LinkService.self(s"/v1/{$storageBuilding.id}"))))
+    val result = db.run(action)
+    result.map {
+      resultB => println(s"Etter insert: $resultB")
+    }
+    result.map {
+      _ => storageBuilding
+    }
   }
 
   def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[(StorageUnit, StorageBuilding)] = {
     for {
       storageUnitVal <- insert(storageUnit)
+      //storageBuilding.id = storageUnit.id
       buildingVal <- insertBuildingOnly(storageBuilding.copy(id = storageUnitVal.id))
     } yield (storageUnitVal, buildingVal)
   }
@@ -91,23 +112,23 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
 
-    def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
+    var id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
-    def storageType = column[String]("STORAGE_TYPE")
+    var storageType = column[String]("STORAGE_TYPE")
 
-    def storageUnitName = column[String]("STORAGE_UNIT_NAME")
+    var storageUnitName = column[String]("STORAGE_UNIT_NAME")
 
-    def area = column[Option[Long]]("AREA")
+    var area = column[Option[Long]]("AREA")
 
-    def isStorageUnit = column[Option[String]]("IS_STORAGE_UNIT")
+    var isStorageUnit = column[Option[String]]("IS_STORAGE_UNIT")
 
-    def isPartOf = column[Option[Long]]("IS_PART_OF")
+    var isPartOf = column[Option[Long]]("IS_PART_OF")
 
-    def height = column[Option[Long]]("HEIGHT")
+    var height = column[Option[Long]]("HEIGHT")
 
-    def groupRead = column[Option[String]]("GROUP_READ")
+    var groupRead = column[Option[String]]("GROUP_READ")
 
-    def groupWrite = column[Option[String]]("GROUP_WRITE")
+    var groupWrite = column[Option[String]]("GROUP_WRITE")
 
     def create = (id: Long, storageType: String, storageUnitName: String, area: Option[Long], isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
@@ -125,7 +146,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, sikringRutineOgBeredskap,
       bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
 
-    def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
+    def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey)
 
     def sikringSkallsikring = column[Option[String]]("SIKRING_SKALLSIKRING")
 
@@ -166,7 +187,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   private class BuildingTable(tag: Tag) extends Table[StorageBuilding](tag, Some("MUSARK_STORAGE"), "BUILDING") {
     def * = (id, address) <> (create.tupled, destroy)
 
-    def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
+    def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey)
 
     def address = column[Option[String]]("POSTAL_ADDRESS")
 

@@ -24,6 +24,10 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.{ JsObject, Json }
 
 sealed trait AbstractStorageUnit extends BaseMusitDomain {
+  def storageKind: StorageUnitType = {
+    val x = StUnit
+    x
+  }
   /* def id: Long
  def storageType :String
 def storageUnitName:Option[String]
@@ -39,12 +43,13 @@ case class StorageUnit(id: Long, storageType: String, storageUnitName: String, a
     isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
     groupRead: Option[String], groupWrite: Option[String], links: Seq[Link]) extends AbstractStorageUnit {
   def toJson: JsObject = Json.toJson(this).as[JsObject]
+
+  override def storageKind: StorageUnitType = StorageUnitType { storageType }
 }
 
 object StorageUnit {
   def tupled = (StorageUnit.apply _).tupled
   implicit val format = Json.format[StorageUnit]
-
 }
 
 case class StorageRoom(id: Long, sikringSkallsikring: Option[String], sikringTyverisikring: Option[String],
@@ -53,17 +58,18 @@ case class StorageRoom(id: Long, sikringSkallsikring: Option[String], sikringTyv
     links: Seq[Link]) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
+  override def storageKind: StorageUnitType = Room
 }
 
 object StorageRoom {
   def tupled = (StorageRoom.apply _).tupled
   implicit val format = Json.format[StorageRoom]
-
 }
 
 case class StorageBuilding(id: Long, address: Option[String], links: Seq[Link]) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
+  override def storageKind: StorageUnitType = Building
 }
 
 object StorageBuilding {
