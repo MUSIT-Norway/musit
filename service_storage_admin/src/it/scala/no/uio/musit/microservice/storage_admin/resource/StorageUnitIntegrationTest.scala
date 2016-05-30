@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storage_admin.resource
 
-import no.uio.musit.microservice.storageAdmin.domain.{Room, StorageRoom, StorageUnit}
+import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.domain.MusitError
 import org.scalatest.concurrent.ScalaFutures
@@ -20,23 +20,36 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
 
   "StorageUnitIntegration " must {
     "postCreate some IDs" in {
-      val makeMyJSon ="""{"id":-1, "storageType":"Room","storageUnitName":"ROM1", "links":[]}"""  //
-       /* Json.toJson(StorageUnit(-1, "Room", "ROM1", Some(10), Some("1"), None, Some(20),
+      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"ROM1"}""" //
+      /* Json.toJson(StorageUnit(-1, "Room", "ROM1", Some(10), Some("1"), None, Some(20),
         Some("skriv"), Some("les"), Seq.empty))*/
-      val future =WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon)
+      val future = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon)
       whenReady(future, timeout) { response =>
         val storageUnit = Json.parse(response.body).validate[StorageUnit].get
         val storageRoom = Json.parse(response.body).validate[StorageRoom].get
-        storageUnit.id mustBe 1
+        storageUnit.getId mustBe 1
         storageUnit.storageKind mustBe Room
         storageUnit.storageUnitName mustBe "ROM1"
+      }
+    }
+    "postCreate a building" in {
+      val makeMyJSon ="""{"id":-1, "storageType":"Building","storageUnitName":"KHM", "links":[]}""" //
+      /* Json.toJson(StorageUnit(-1, "Room", "ROM1", Some(10), Some("1"), None, Some(20),
+       Some("skriv"), Some("les"), Seq.empty))*/
+      val future = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon)
+      whenReady(future, timeout) { response =>
+        val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+        val storageBuilding = Json.parse(response.body).validate[StorageBuilding].get
+        storageUnit.id mustBe Some(2)
+        storageUnit.storageKind mustBe Building
+        storageUnit.storageUnitName mustBe "KHM"
       }
     }
     "get by id" in {
       val future = WS.url(s"http://localhost:$port/v1/storageunit/1").get()
       whenReady(future, timeout) { response =>
         val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-        storageUnit.id mustBe 1
+        storageUnit.getId mustBe 1
       }
     }
     "negative get by id" in {
@@ -46,14 +59,24 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
         error.message mustBe "Did not find storage unit with id: 9999"
       }
     }
-    /*"search on StorageUnit" in {
+    "get all nodes" in {
+      val future = WS.url(s"http://localhost:$port/v1/storageunit").get()
+      whenReady(future, timeout) { response =>
+        val storageUnits = Json.parse(response.body).validate[Seq[StorageUnit]].get
+        storageUnits.length mustBe 2
+      }
+    }
+
+    /*
+    "search on StorageUnit" in {
       val future = WS.url(s"http://localhost:$port/v1/storageunit?search=[And]").get()
       whenReady(future, timeout) { response =>
         val stUnits = Json.parse(response.body).validate[Seq[StorageUnit]].get
         stUnits.length mustBe 1
-        stUnits.head.fn mustBe "And, Arne1"
+        stUnits.head.storageUnitName mustBe "And, KHM"
       }
     }*/
+
   }
 }
 

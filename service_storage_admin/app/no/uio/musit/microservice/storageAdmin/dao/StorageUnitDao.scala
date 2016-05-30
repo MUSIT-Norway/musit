@@ -42,7 +42,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
     println(s"Før insert Unit: $storageUnit")
     val insertQuery = StorageUnitTable returning StorageUnitTable.map(_.id) into
-      ((storageUnit, id) => storageUnit.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
+      ((storageUnit, id) => storageUnit.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/$id")))))
     val action = insertQuery += storageUnit
     val result = db.run(action)
     result.map {
@@ -55,7 +55,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def insertRoomOnly(storageRoom: StorageRoom): Future[StorageRoom] = {
     println(s"Før insert Rom: $storageRoom")
     val insertQuery = RoomTable //returning RoomTable.map(_.id) into ((storageRoom, id) => storageRoom.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
-    val action = insertQuery += (storageRoom.copy(links = Seq(LinkService.self(s"/v1/{$storageRoom.id}"))))
+    val action = insertQuery += (storageRoom.copy(links = Some(Seq(LinkService.self(s"/v1/{$storageRoom.id}")))))
     val result = db.run(action)
     result.map {
       resultB => println(s"Etter insert: $resultB")
@@ -77,7 +77,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     println(s"Før insert: $storageBuilding")
     val insertQuery = BuildingTable //returning BuildingTable.map(_.id) into
     //((storageBuilding, id2) => storageBuilding.copy(id = id2, links = Seq(LinkService.self(s"/v1/$id"))))
-    val action = insertQuery += (storageBuilding.copy(links = Seq(LinkService.self(s"/v1/{$storageBuilding.id}"))))
+    val action = insertQuery += (storageBuilding.copy(links = Some(Seq(LinkService.self(s"/v1/{$storageBuilding.id}")))))
     val result = db.run(action)
     result.map {
       resultB => println(s"Etter insert: $resultB")
@@ -112,7 +112,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
 
-    var id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
+    var id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
     var storageType = column[String]("STORAGE_TYPE")
 
@@ -130,12 +130,12 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     var groupWrite = column[Option[String]]("GROUP_WRITE")
 
-    def create = (id: Long, storageType: String, storageUnitName: String, area: Option[Long], isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
+    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
       StorageUnit(
         id, storageType,
         storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite,
-        Seq(LinkService.self(s"/v1/$id"))
+        Some(Seq(LinkService.self(s"/v1/$id")))
       )
 
     def destroy(unit: StorageUnit) = Some(unit.id, unit.storageType,
@@ -146,7 +146,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, sikringRutineOgBeredskap,
       bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
 
-    def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey)
+    def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
 
     def sikringSkallsikring = column[Option[String]]("SIKRING_SKALLSIKRING")
 
@@ -164,7 +164,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def bevarPrevantKons = column[Option[String]]("BEVAR_PREVANT_KONS")
 
-    def create = (id: Long, sikringSkallsikring: Option[String], sikringTyverisikring: Option[String], sikringBrannsikring: Option[String], sikringVannskaderisiko: Option[String],
+    def create = (id: Option[Long], sikringSkallsikring: Option[String], sikringTyverisikring: Option[String], sikringBrannsikring: Option[String], sikringVannskaderisiko: Option[String],
       sikringRutineOgBeredskap: Option[String], bevarLuftfuktOgTemp: Option[String], bevarLysforhold: Option[String],
       bevarPrevantKons: Option[String]) =>
       StorageRoom(
@@ -177,7 +177,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         bevarLuftfuktOgTemp,
         bevarLysforhold,
         bevarPrevantKons,
-        Seq(LinkService.self(s"/v1/$id"))
+        Some(Seq(LinkService.self(s"/v1/$id")))
       )
 
     def destroy(room: StorageRoom) = Some(room.id, room.sikringSkallsikring, room.sikringTyverisikring, room.sikringBrannsikring, room.sikringVannskaderisiko,
@@ -187,11 +187,11 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   private class BuildingTable(tag: Tag) extends Table[StorageBuilding](tag, Some("MUSARK_STORAGE"), "BUILDING") {
     def * = (id, address) <> (create.tupled, destroy)
 
-    def id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey)
+    def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
 
     def address = column[Option[String]]("POSTAL_ADDRESS")
 
-    def create = (id: Long, address: Option[String]) => StorageBuilding(id, address, Seq(LinkService.self(s"/v1/$id")))
+    def create = (id: Option[Long], address: Option[String]) => StorageBuilding(id, address, Some(Seq(LinkService.self(s"/v1/$id"))))
 
     def destroy(building: StorageBuilding) = Some(building.id, building.address)
   }

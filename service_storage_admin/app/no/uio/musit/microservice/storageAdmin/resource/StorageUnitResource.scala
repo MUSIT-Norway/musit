@@ -48,7 +48,7 @@ class StorageUnitResource extends Controller {
   def mergeJson(jsonA: JsObject, jsonB: JsObject): JsObject = jsonA ++ jsonB
 
   @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
-  def postRoots: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+  def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val json = request.body
     val storageType = (json \ "storageType").as[String]
     StorageUnitType(storageType) match {
@@ -89,7 +89,7 @@ class StorageUnitResource extends Controller {
     }
   }
 
-  def postRoot = Action.async(BodyParsers.parse.json) {
+  /* def postRoot = Action.async(BodyParsers.parse.json) {
     request =>
       val storageUnitResult = request.body.validate[StorageUnit]
       val res = storageUnitResult.map {
@@ -101,7 +101,7 @@ class StorageUnitResource extends Controller {
       }
       unwrapJsResult(res)
   }
-
+*/
   def getChildren(id: Long) = Action.async {
     request =>
       StorageUnitService.getChildren(id).map {
@@ -116,6 +116,21 @@ class StorageUnitResource extends Controller {
         case None => NotFound(Json.toJson(MusitError(404, s"Did not find storage unit with id: $id")))
       }
   }
+
+  def listAll = Action.async {
+    request =>
+      val debugval = StorageUnitService.all
+      debugval.map {
+        case storageUnits => Ok(Json.toJson(storageUnits))
+      }
+  }
+
+  /*def listRoot(search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
+    search match {
+      case Some(criteria) => find(criteria).map(StUnits => Ok(Json.toJson(StUnits)))
+      case None => all.map(stUnit => { Ok(Json.toJson(stUnit)) })
+    }
+  }*/
 
   def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async {
     Future.successful(NotImplemented("foo"))
