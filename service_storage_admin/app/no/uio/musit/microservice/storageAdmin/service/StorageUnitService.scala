@@ -19,8 +19,8 @@
 package no.uio.musit.microservice.storageAdmin.service
 
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
-import no.uio.musit.microservice.storageAdmin.domain.{ StorageBuilding, StorageRoom, StorageUnit }
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.microservice.storageAdmin.domain.{StorageBuilding, StorageRoom, StorageUnit, StorageUnitType}
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -44,6 +44,9 @@ trait StorageUnitService {
   def getById(id: Long): Future[Option[StorageUnit]] = {
     StorageUnitDao.getById(id)
   }
+
+  def getStorageType(id: Long): Future[Option[StorageUnitType]] = StorageUnitDao.getStorageType(id)
+
 
   def all: Future[Seq[StorageUnit]] = {
     StorageUnitDao.all()

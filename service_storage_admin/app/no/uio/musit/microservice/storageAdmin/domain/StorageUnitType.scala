@@ -5,7 +5,10 @@ import play.api.libs.json.{ Format, Json }
 /**
  * Created by ellenjo on 5/19/16.
  */
-sealed trait StorageUnitType
+sealed trait StorageUnitType {
+  def typename: String
+
+}
 
 object StorageUnitType {
   def apply(stType: String) = stType.toLowerCase match {
@@ -18,7 +21,16 @@ object StorageUnitType {
 }
 
 object Room extends StorageUnitType
+{
+  def typename = "room"
+}
 
 object Building extends StorageUnitType
+{
+  def typename = "building"
+}
 
 object StUnit extends StorageUnitType
+{
+  def typename = "storageunit"
+}

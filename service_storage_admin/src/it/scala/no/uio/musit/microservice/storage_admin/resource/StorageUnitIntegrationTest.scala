@@ -62,6 +62,29 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
         storageUnits.length mustBe 2
       }
     }
+    "update roomName" in {
+      val myJSonRoom ="""{"storageType":"Room","storageUnitName":"ROM1"}"""
+      val future = WS.url(s"http://localhost:$port/v1/storageunit/1").put(myJSonRoom)
+      whenReady(future, timeout) { response =>
+      /*  val storageUnits = Json.parse(response.body).validate[Seq[StorageUnit]].get
+        storageUnits.length mustBe 1*/
+      }
+    }
+
+    "update room should fail with bad id" in {
+      val myJSonRoom ="""{"storageType":"Room","storageUnitName":"ROM1"}"""
+      val future = WS.url(s"http://localhost:$port/v1/storageunit/125254764").put(myJSonRoom)
+      whenReady(future, timeout) { response =>
+        val error = Json.parse(response.body).validate[MusitError].get
+        error.message mustBe "Unknown storageUnit with ID: 125254764"
+      }
+    }
+
+
+
+
+
+
 
   }
 }

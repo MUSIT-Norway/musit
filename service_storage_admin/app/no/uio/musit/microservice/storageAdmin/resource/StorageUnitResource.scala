@@ -28,6 +28,7 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
 class StorageUnitResource extends Controller {
 
@@ -89,7 +90,6 @@ class StorageUnitResource extends Controller {
     }
   }
 
-
   def getChildren(id: Long) = Action.async {
     request =>
       StorageUnitService.getChildren(id).map {
@@ -113,9 +113,39 @@ class StorageUnitResource extends Controller {
       }
   }
 
+  def BadMusitRequest(text: String) = BadRequest(Json.toJson(MusitError(BAD_REQUEST, text)))
 
-  def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async {
-    Future.successful(NotImplemented("foo"))
+  def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
+    request => {
+      println("inni updateRoot")
+
+      def handleHasStorageType(storageUnitType: StorageUnitType) = {
+        val storageUnit = request.body.validate[StorageUnit].map(_.copy(id=Some(id), storageType=storageUnitType.typename))
+
+        storageUnitType  match {
+          case StUnit => StorageUnitService.updateStorageUnit(storageUnit)
+          case Room => Ok("Room")
+          case Building => Ok("Building")
+            /*
+            val JsResultStUnit = request.body.validate[StorageUnit]
+            val jsResStUnit = JsResultStUnit.map { storageUnit =>
+              StorageUnitService.create(storageUnit).map {
+                case Right(newStorageUnit) => Created(Json.toJson(newStorageUnit))
+                case Left(error) => BadRequest(Json.toJson(error))
+              }
+            }
+            unwrapJsResult(jsResStUnit)*/
+          }
+
+
+      }
+
+      val futOptStorageType = StorageUnitService.getStorageType(id)
+      val res = futOptStorageType.foldOption(storageUnitType=>handleHasStorageType(storageUnitType), BadMusitRequest(s"Unknown storageUnit with ID: $id"))
+      res.map(r=>println(s"resultat: $r"))
+      res
+
+    }
   }
 
 }

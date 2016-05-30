@@ -37,6 +37,15 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
+  def getStorageType(id:Long): Future[Option[StorageUnitType]] = {
+    val action = StorageUnitTable.filter(_.id === id).map{
+      _.storageType}.result.headOption
+    db.run(action).map{
+      _.map{ storageType => StorageUnitType(storageType)
+      }
+    }
+  }
+
   def getWholeCollectionStorage(storageCollectionRoot: String): Future[Seq[StorageUnit]] = {
     val action = StorageUnitTable.filter(_.storageType === storageCollectionRoot).result
     db.run(action)
@@ -86,7 +95,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     } yield (storageUnitVal, buildingVal)
   }
 
-
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
     StorageUnitTable.filter(_.id === id).update(storageUnit)
   }
@@ -96,6 +104,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     } yield l.storageUnitName
     u.update(storageName)
   }*/
+
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
