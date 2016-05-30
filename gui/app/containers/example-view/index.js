@@ -19,6 +19,7 @@
 
 import React, { Component } from 'react';
 import TextField from '../../components/musittextfield';
+import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 
 export default class ExampleView extends Component {
@@ -119,6 +120,7 @@ export default class ExampleView extends Component {
               </Row>
             </Grid>
           </Panel>
+          <StorageUnitComponents />
         </main>
       </div>
     );

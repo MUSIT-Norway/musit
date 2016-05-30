@@ -40,10 +40,10 @@ export default class MusitTextField extends Component {
         }}
         validationState={this.props.validationState()}
       >
-        <Col componentClass={ControlLabel} sm={2}>
+        <Col componentClass={ControlLabel} sm={3}>
           {this.props.labelText}
         </Col>
-        <Col sm={10}>
+        <Col sm={9}>
           <InputGroup>
             <FormControl
               type={this.props.valueType}
@@ -51,6 +51,14 @@ export default class MusitTextField extends Component {
               value={this.props.valueText()}
               onChange={(event) => this.props.onChange(event.target.value)}
             />
+            {this.props.controlId2 ?
+              <FormControl
+                type={this.props.valueType}
+                placeholder={this.props.placeHolderText2}
+                value={this.props.valueText2()}
+                onChange={(event) => this.props.onChange2(event.target.value)}
+              /> : null
+            }
             {this.props.tooltip ?
               <OverlayTrigger
                 trigger={['click']}
@@ -69,11 +77,16 @@ export default class MusitTextField extends Component {
 
 MusitTextField.propTypes = {
   controlId: PropTypes.string.isRequired,
+  controlId2: PropTypes.string,
   labelText: PropTypes.string.isRequired,
   placeHolderText: PropTypes.string.isRequired,
+  placeHolderText2: PropTypes.string,
   tooltip: PropTypes.string,
   valueText: PropTypes.func.isRequired,
+  valueText2: PropTypes.func,
   valueType: PropTypes.string.isRequired,
   validationState: PropTypes.func.isRequired,
+  validationState2: PropTypes.func,
   onChange: PropTypes.func.isRequired,
+  onChange2: PropTypes.func,
 };
