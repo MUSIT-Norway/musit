@@ -28,6 +28,8 @@ sealed trait AbstractStorageUnit {
     val x = StUnit
     x
   }
+
+  def getId: Long
   /* def id: Long
  def storageType :String
 def storageUnitName:Option[String]

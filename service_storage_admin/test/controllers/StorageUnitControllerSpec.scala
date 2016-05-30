@@ -61,7 +61,7 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
     "getById__Riktig" in {
       val svar = getById(3)
       whenReady(svar, timeout) { storageUnit =>
-        assert(storageUnit == Some(StorageUnit(Some(3), "StorageUnit", "HYLLE1", Some(5), Some("1"), Some(1), Some(5),
+        assert(storageUnit.contains(StorageUnit(Some(3), "StorageUnit", "HYLLE1", Some(5), Some("1"), Some(1), Some(5),
           Some("skriv"), Some("les"), Some(Seq(LinkService.self("/v1/3"))))))
       }
     }
