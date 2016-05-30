@@ -27,7 +27,7 @@ describe('StorageUnitList', () => {
     const td = actualDiv.querySelectorAll('td');
     assert.equal(td.length, 12);
     // row 1
-    assert.equal(td[0].textContent, '1');
+    assert.equal(td[0].textContent, '6');
     assert.equal(td[1].textContent, 'Hallo');
     // row 2
     assert.equal(td[4].textContent, '2');
