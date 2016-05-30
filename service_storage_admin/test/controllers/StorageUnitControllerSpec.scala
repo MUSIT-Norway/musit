@@ -47,10 +47,6 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
       }
     }
 
-    /*: Long, storageType: String, storageUnitName: String, area: Option[Long],
-    isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
-    groupRead: Option[String], groupWrite: Option[String],*/
-
     "getSubNodes" in {
       val svar = StorageUnitDao.getChildren(1)
       whenReady(svar, timeout) { stUnit =>
@@ -66,21 +62,5 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
       }
     }
 
-    "futuretest" in {
-      val testF: Future[Int] = Future {
-        //throw new Exception("Å nei!")
-        5
-      }
-      val testF2 = testF.map(_ + 10)
-      println("hallo")
-      val response = Await.ready(testF2, Duration.Inf)
-      println(s"verdi: ${response.value}")
-      /*
-            whenReady(testF2, timeout) { res =>
-              println(s"verdi: ${testF2.value}")
-            }
-      */
-
-    }
   }
 }

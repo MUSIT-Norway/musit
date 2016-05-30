@@ -45,27 +45,19 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def all(): Future[Seq[StorageUnit]] = db.run(StorageUnitTable.result)
 
   def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
-    println(s"Før insert Unit: $storageUnit")
     val insertQuery = StorageUnitTable returning StorageUnitTable.map(_.id) into
       ((storageUnit, id) => storageUnit.copy(id = id, links = linkText(id)))
     val action = insertQuery += storageUnit
-    val result = db.run(action)
-    result.map {
-      resultB => println(s"Etter insert Unit: $resultB")
-    }
-    result
-
+    db.run(action)
   }
 
   def insertRoomOnly(storageRoom: StorageRoom): Future[StorageRoom] = {
-    println(s"Før insert Rom: $storageRoom")
-    val insertQuery = RoomTable //returning RoomTable.map(_.id) into ((storageRoom, id) => storageRoom.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
-    val action = insertQuery += (storageRoom.copy(links = linkText(storageRoom.id)))
+    assert(storageRoom.id.isDefined) //if failed then it's our bug
+    val stRoom = storageRoom.copy(links = linkText(storageRoom.id))
+    val insertQuery = RoomTable
+    val action = insertQuery += stRoom
     val result = db.run(action)
-    result.map {
-      resultB => println(s"Etter insert: $resultB")
-    }
-    result.map {
+    result.map { //db.run here returns number of rows inserted. we want to return storageRoom
       _ => storageRoom
     }
   }
@@ -73,37 +65,28 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[(StorageUnit, StorageRoom)] = {
     for {
       storageUnitVal <- insert(storageUnit)
-      //storageRoom.id = storageUnit.id
       roomVal <- insertRoomOnly(storageRoom.copy(id = storageUnitVal.id))
     } yield (storageUnitVal, roomVal)
   }
 
   def insertBuildingOnly(storageBuilding: StorageBuilding): Future[StorageBuilding] = {
-    println(s"Før insert: $storageBuilding")
-    val insertQuery = BuildingTable //returning BuildingTable.map(_.id) into
-    //((storageBuilding, id2) => storageBuilding.copy(id = id2, links = Seq(LinkService.self(s"/v1/$id"))))
-    val action = insertQuery += (storageBuilding.copy(links = linkText(storageBuilding.id)))
+    val stBuilding = storageBuilding.copy(links = linkText(storageBuilding.id))
+    val insertQuery = BuildingTable
+    val action = insertQuery += stBuilding
     val result = db.run(action)
     result.map {
-      resultB => println(s"Etter insert: $resultB")
-    }
-    result.map {
-      _ => storageBuilding
+      _ => storageBuilding // See insertRoomOnly
     }
   }
 
   def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[(StorageUnit, StorageBuilding)] = {
     for {
       storageUnitVal <- insert(storageUnit)
-      //storageBuilding.id = storageUnit.id
       buildingVal <- insertBuildingOnly(storageBuilding.copy(id = storageUnitVal.id))
     } yield (storageUnitVal, buildingVal)
   }
 
-  /* def getDisplayID(id:Long) :Future[Option[String]] ={
-  val action = MusitThingTable.filter( _.id === id).map(_.displayid).result.headOption
-  db.run(action)
-}*/
+
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
     StorageUnitTable.filter(_.id === id).update(storageUnit)
   }

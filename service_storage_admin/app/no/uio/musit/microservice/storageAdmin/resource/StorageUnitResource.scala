@@ -89,19 +89,7 @@ class StorageUnitResource extends Controller {
     }
   }
 
-  /* def postRoot = Action.async(BodyParsers.parse.json) {
-    request =>
-      val storageUnitResult = request.body.validate[StorageUnit]
-      val res = storageUnitResult.map {
-        storageUnit =>
-          StorageUnitService.create(storageUnit).map {
-            case Right(newStorageUnit) => Created(Json.toJson(newStorageUnit))
-            case Left(error) => BadRequest(Json.toJson(error))
-          }
-      }
-      unwrapJsResult(res)
-  }
-*/
+
   def getChildren(id: Long) = Action.async {
     request =>
       StorageUnitService.getChildren(id).map {
@@ -125,12 +113,6 @@ class StorageUnitResource extends Controller {
       }
   }
 
-  /*def listRoot(search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
-    search match {
-      case Some(criteria) => find(criteria).map(StUnits => Ok(Json.toJson(StUnits)))
-      case None => all.map(stUnit => { Ok(Json.toJson(stUnit)) })
-    }
-  }*/
 
   def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async {
     Future.successful(NotImplemented("foo"))

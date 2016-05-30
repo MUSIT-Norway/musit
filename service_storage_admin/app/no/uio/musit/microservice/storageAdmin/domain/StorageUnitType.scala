@@ -13,10 +13,8 @@ object StorageUnitType {
     case "room" => Room
     case "storageunit" => StUnit
     case other => throw new Exception(s"Musit: Undefined StorageType:$other")
-
-    // case "rootNode" => RootNode
   }
-  // implicit val format: Format[StorageUnitType] = Json.format[StorageUnitType]
+
 }
 
 object Room extends StorageUnitType
@@ -24,5 +22,3 @@ object Room extends StorageUnitType
 object Building extends StorageUnitType
 
 object StUnit extends StorageUnitType
-
-//object RootNode extends StorageUnitType

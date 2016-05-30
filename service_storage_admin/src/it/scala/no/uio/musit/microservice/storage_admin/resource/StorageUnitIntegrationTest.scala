@@ -20,9 +20,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
 
   "StorageUnitIntegration " must {
     "postCreate some IDs" in {
-      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"ROM1"}""" //
-      /* Json.toJson(StorageUnit(-1, "Room", "ROM1", Some(10), Some("1"), None, Some(20),
-        Some("skriv"), Some("les"), Seq.empty))*/
+      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"ROM1"}"""
       val future = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon)
       whenReady(future, timeout) { response =>
         val storageUnit = Json.parse(response.body).validate[StorageUnit].get
@@ -33,9 +31,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
       }
     }
     "postCreate a building" in {
-      val makeMyJSon ="""{"id":-1, "storageType":"Building","storageUnitName":"KHM", "links":[]}""" //
-      /* Json.toJson(StorageUnit(-1, "Room", "ROM1", Some(10), Some("1"), None, Some(20),
-       Some("skriv"), Some("les"), Seq.empty))*/
+      val makeMyJSon ="""{"id":-1, "storageType":"Building","storageUnitName":"KHM", "links":[]}"""
       val future = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon)
       whenReady(future, timeout) { response =>
         val storageUnit = Json.parse(response.body).validate[StorageUnit].get
@@ -66,16 +62,6 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
         storageUnits.length mustBe 2
       }
     }
-
-    /*
-    "search on StorageUnit" in {
-      val future = WS.url(s"http://localhost:$port/v1/storageunit?search=[And]").get()
-      whenReady(future, timeout) { response =>
-        val stUnits = Json.parse(response.body).validate[Seq[StorageUnit]].get
-        stUnits.length mustBe 1
-        stUnits.head.storageUnitName mustBe "And, KHM"
-      }
-    }*/
 
   }
 }

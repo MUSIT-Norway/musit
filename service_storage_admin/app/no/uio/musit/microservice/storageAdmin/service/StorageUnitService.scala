@@ -53,10 +53,6 @@ trait StorageUnitService {
     getById(id)
   }
 
-  /*def find(search: MusitSearch): Future[Seq[StorageUnit]] = {
-    val searchString = search.searchStrings.reduce(_ + " " + _)
-    StorageUnitDao.getByName(searchString)
-  }*/
 }
 
 object StorageUnitService extends StorageUnitService
