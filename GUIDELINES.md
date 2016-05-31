@@ -125,15 +125,13 @@ MUSIT define a right handed approach to Either, much the same way as Playframewo
 Example of use in a service:
 
 ```scala
-def update(organization: Organization): Future[Either[MusitError, Organization]] = {
-    ActorDao.updateOrganization(organization).flatMap {
-      case 0 => Future.successful(Left(MusitError(Status.BAD_REQUEST, "Something went wrong with the update")))
-      case num => ActorDao.getOrganizationById(organization.id).map {
-        case Some(org) => Right(org)
-        case None => Left(MusitError(Status.NOT_FOUND, "Did not find the object"))
-      }
-    }
+def update(person: Person): Future[Either[MusitError, MusitStatusMessage]] = {
+  ActorDao.updatePerson(person).map {
+    case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
+    case 1 => Right(MusitStatusMessage("Record was updated!"))
+    case _ => Left(MusitError(Status.BAD_REQUEST, "Update updated several records!"))
   }
+}
 ```
 Note that the error is a MusitError or a subtype of MusitError, it should NOT be an exception.
 
