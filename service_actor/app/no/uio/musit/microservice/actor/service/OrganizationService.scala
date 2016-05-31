@@ -20,7 +20,7 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Organization
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch, MusitStatusMessage}
 import play.api.http.Status
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -48,13 +48,11 @@ trait OrganizationService {
     ActorDao.insertOrganization(organization)
   }
 
-  def update(organization: Organization): Future[Either[MusitError, Organization]] = {
-    ActorDao.updateOrganization(organization).flatMap {
-      case 0 => Future.successful(Left(MusitError(Status.BAD_REQUEST, "Something went wrong with the update")))
-      case num => ActorDao.getOrganizationById(organization.id).map {
-        case Some(org) => Right(org)
-        case None => Left(MusitError(Status.NOT_FOUND, "Did not find the object"))
-      }
+  def update(organization: Organization): Future[Either[MusitError, MusitStatusMessage]] = {
+    ActorDao.updateOrganization(organization).map {
+      case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
+      case 1 => Right(MusitStatusMessage("Record was updated!"))
+      case _ => Left(MusitError(Status.BAD_REQUEST, "Update updated several records!"))
     }
   }
 

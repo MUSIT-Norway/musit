@@ -164,6 +164,39 @@ class TimeResource extends Controller with TimeService {
 ```
 Notice how were using Future.successful() inside the endpoint itself, it should never be implemented in the service class if its not needed.
 
+Example of using futures where api we consume is async like Slick:
+
+```scala
+// Dao method (data access logic)
+def updateOrganization(organization: Organization): Future[Int] = {
+  db.run(OrganizationTable.filter(_.id === organization.id).update(organization))
+}
+
+// Service method (business logic and validation logic)
+def update(organization: Organization): Future[Either[MusitError, MusitStatusMessage]] = {
+  ActorDao.updateOrganization(organization).map {
+    case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
+    case 1 => Right(MusitStatusMessage("Record was updated!"))
+    case _ => Left(MusitError(Status.BAD_REQUEST, "Update updated several records!"))
+  }
+}
+
+// Endpoint (only REST spesific coding)
+def updateRoot(id: Long): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+  val actorResult: JsResult[Organization] = request.body.validate[Organization]
+  actorResult match {
+    case s: JsSuccess[Organization] =>
+      update(s.get).map {
+        case Right(updateStatus) => Ok(Json.toJson(updateStatus))
+        case Left(error) => Status(error.status)(Json.toJson(error))
+      }
+    case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
+  }
+}
+```
+
+Notice we never introduce a Future where its not needed for extra paralellism, we work as sequencial as we can until we really need to pull a future or the framework require us to use one.
+
 ## Testing
 We use scalatest as testframework, to be exact were using the extension to play named scalatestplus.
 We have two different test types enabled in the project, unit tests and integration tests.
