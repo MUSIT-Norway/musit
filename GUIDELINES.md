@@ -292,3 +292,28 @@ class TimeControllerSpec extends PlaySpecification {
 }
 ```
 
+# JavaScript
+
+TBD
+
+# GIT
+
+TBD
+
+# Development process
+
+To work with the code we have defined a process we need to follow to ensure quality and tracking control for the code base.
+
+General flow:
+
+1. Get a jira issue for the work task.
+2. Create a branch for the jira issue.
+3. Push the branch to the git server.
+4. Commit your changes to the branch often and push often.
+5. sbt compile test it:test must run flawlesly from local machine when you are done, without lint or style problems.
+6. Push the last version of the code changes.
+7. Create a pull request for the branch to master.
+8. Pull request review needs to be done by a 2nd pair of eyes, and control checks in github has to pass.
+9. Merge with flatten commits when review and code is ok.
+10. Delete work branch.
+
