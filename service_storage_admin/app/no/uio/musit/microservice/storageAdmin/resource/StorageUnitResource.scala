@@ -50,6 +50,7 @@ class StorageUnitResource extends Controller {
 
   @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    println("postRoot")
     val json = request.body
     val storageType = (json \ "storageType").as[String]
     StorageUnitType(storageType) match {
@@ -116,36 +117,45 @@ class StorageUnitResource extends Controller {
   def BadMusitRequest(text: String) = BadRequest(Json.toJson(MusitError(BAD_REQUEST, text)))
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
-    request => {
-      println("inni updateRoot")
-
-      def handleHasStorageType(storageUnitType: StorageUnitType) = {
-        val storageUnit = request.body.validate[StorageUnit].map(_.copy(id=Some(id), storageType=storageUnitType.typename))
-
-        storageUnitType  match {
-          case StUnit => StorageUnitService.updateStorageUnit(storageUnit)
-          case Room => Ok("Room")
-          case Building => Ok("Building")
-            /*
-            val JsResultStUnit = request.body.validate[StorageUnit]
-            val jsResStUnit = JsResultStUnit.map { storageUnit =>
-              StorageUnitService.create(storageUnit).map {
-                case Right(newStorageUnit) => Created(Json.toJson(newStorageUnit))
-                case Left(error) => BadRequest(Json.toJson(error))
+    request =>
+      {
+        println("iXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    nni updateRoot")
+        def handleHasStorageType(storageUnitType: StorageUnitType) = {
+          val storageUnit = request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
+          storageUnitType match {
+            case StUnit => {
+              val jsResStUnit = storageUnit.map { storUnit =>
+                StorageUnitService.updateStorageUnitByID(id, storUnit).map {
+                  case 1 => Ok(Json.toJson(1)) //Created(Json.toJson(newStorageUnit))
+                  case 0 => BadMusitRequest(s"Unable to update the row with id: $id")
+                  case n => BadMusitRequest(s"Too many rows where updated ($n rows)!")
+                }
               }
+              unwrapJsResult(jsResStUnit)
             }
-            unwrapJsResult(jsResStUnit)*/
+            case Room => Future(Ok("Room"))
+            case Building => Future(Ok("Building"))
+            /*
+        val JsResultStUnit = request.body.validate[StorageUnit]
+        val jsResStUnit = JsResultStUnit.map { storageUnit =>
+          StorageUnitService.create(storageUnit).map {
+            case Right(newStorageUnit) => Created(Json.toJson(newStorageUnit))
+            case Left(error) => BadRequest(Json.toJson(error))
+          }
+        }
+        unwrapJsResult(jsResStUnit)*/
           }
 
+        }
+
+        val futOptStorageType = StorageUnitService.getStorageType(id)
+        futOptStorageType.map(opt=>println(s"optStorageType: $opt"))
+        val resTemp = futOptStorageType.foldOption(storageUnitType => handleHasStorageType(storageUnitType), Future(BadMusitRequest(s"Unknown storageUnit with ID: $id")))
+        val res = resTemp.flatMap(a => a)
+        res.map(r => println(s"resultat: $r"))
+        res
 
       }
-
-      val futOptStorageType = StorageUnitService.getStorageType(id)
-      val res = futOptStorageType.foldOption(storageUnitType=>handleHasStorageType(storageUnitType), BadMusitRequest(s"Unknown storageUnit with ID: $id"))
-      res.map(r=>println(s"resultat: $r"))
-      res
-
-    }
   }
 
 }

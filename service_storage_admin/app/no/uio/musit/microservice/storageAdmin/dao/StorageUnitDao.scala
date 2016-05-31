@@ -37,11 +37,12 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  def getStorageType(id:Long): Future[Option[StorageUnitType]] = {
-    val action = StorageUnitTable.filter(_.id === id).map{
-      _.storageType}.result.headOption
-    db.run(action).map{
-      _.map{ storageType => StorageUnitType(storageType)
+  def getStorageType(id: Long): Future[Option[StorageUnitType]] = {
+    val action = StorageUnitTable.filter(_.id === id).map {
+      _.storageType
+    }.result.headOption
+    db.run(action).map {
+      _.map { storageType => StorageUnitType(storageType)
       }
     }
   }
@@ -95,16 +96,16 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     } yield (storageUnitVal, buildingVal)
   }
 
-  def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
-    StorageUnitTable.filter(_.id === id).update(storageUnit)
+  def updateStorageUnitByID(id: Long, storageUnit: StorageUnit): Future[Int] = {
+    db.run(StorageUnitTable.filter(_.id === id).update(storageUnit))
   }
 
-  /*def updateStorageNameByID(id: Long, storageName: String) = {
-    val u = for {l <- StorageUnitTable if l.id === id
+  /*def updateStorageNameByID(id: Long, storageName: String): Future[StorageUnit] = {
+    val u = for {
+      l <- StorageUnitTable if l.id === id
     } yield l.storageUnitName
     u.update(storageName)
   }*/
-
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)

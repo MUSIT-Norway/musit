@@ -84,6 +84,16 @@ object PlayExtensions {
       res.map(resp => println(s"result body: ${resp.body}"))
       res
     }
+
+    /*def putJsValue(value: Jsvalue) : Future[WSResponse] = {
+      //println(s"text to parse: $text")
+      val json = Json.parse(text)
+      //println(s"Parsed json: $json")
+      val res = wsr.withHeaders("Content-Type"->"application/json")
+      res.map(resp => println(s"result body: ${resp.body}"))
+      res
+    }*/
+
     // TODO: Handle more exceptions
     def translateStatusToException(resp: WSResponse) = {
       assert(resp.status < 200 || resp.status >= 300)
