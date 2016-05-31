@@ -197,6 +197,8 @@ def updateRoot(id: Long): Action[JsValue] = Action.async(BodyParsers.parse.json)
 
 Notice we never introduce a Future where its not needed for extra paralellism, we work as sequencial as we can until we really need to pull a future or the framework require us to use one.
 
+Notice when we resolve a Future[Option] we use the block signature of map (map {}), then we can case directly on the option values of the construct instead of mapping the Future first the match on the Option, its a convenient shortcut that makes the code much easier to read and use.
+
 ## Testing
 We use scalatest as testframework, to be exact were using the extension to play named scalatestplus.
 We have two different test types enabled in the project, unit tests and integration tests.
