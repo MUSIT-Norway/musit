@@ -125,7 +125,12 @@ class StorageUnitResource extends Controller {
           def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
 
           storageUnitType match {
-            case StUnit => ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
+            case StUnit =>
+              ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
+            //For debugging (assign res to above line):
+            //              val obj  = StorageUnitService.getById(id)
+            //              obj.map(optStorageUnit => println(s"updated object = $optStorageUnit"))
+            //              res
             case Room => Future(Ok("Room"))
             case Building => Future(Ok("Building"))
           }

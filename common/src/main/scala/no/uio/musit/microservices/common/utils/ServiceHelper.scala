@@ -35,7 +35,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object ServiceHelper {
 
-  /** Calls a DAO service method to update an object and returns proper result structure. Assumes a separate id. */
+  /** Calls a DAO service method to update an object and returns proper result structure. Assumes a separate id (instead of the using the id likely in the objectToUpdate instance). */
   def daoUpdateById[A](daoUpdateByIdCall: (Long, A) => Future[Int], idToUpdate: Long, objectToUpdate: A): Future[Either[MusitError, MusitStatusMessage]] = {
     daoUpdateByIdCall(idToUpdate, objectToUpdate).map {
       case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
