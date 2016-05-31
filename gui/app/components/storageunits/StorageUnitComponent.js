@@ -4,6 +4,7 @@
 
 import React, { Component } from 'react';
 import TextField from '../../components/musittextfield';
+import MusitDropDown from '../../components/musitdropdownfield';
 import { Panel, Form, Grid, Row, Col, } from 'react-bootstrap'
 
 export default class StorageUnitComponent extends Component {
@@ -39,7 +40,7 @@ export default class StorageUnitComponent extends Component {
       controlId: 'areal1',
       controlId2: 'areal2',
       labelText: 'Areal (fra-til)',
-      tooltip: 'Areal',
+      tooltip: 'Areal (fra - til)',
       valueType: 'text',
       placeHolderText: 'enter areal 1 here',
       placeHolderText2: 'enter areal 2 here',
@@ -54,8 +55,7 @@ export default class StorageUnitComponent extends Component {
       controlId: 'hoyde1',
       controlId2: 'hoyde2',
       labelText: 'Høyde(fra-til)',
-      tooltip: 'Høyde (fra)',
-      tooltip2: 'Høyde (til)',
+      tooltip: 'Høyde (fra - til)',
       valueType: 'text',
       placeHolderText: 'enter høyde 1 here',
       placeHolderText2: 'enter høyde 2 here',
@@ -71,7 +71,7 @@ export default class StorageUnitComponent extends Component {
     this.type = {
       controlId: 'storageUnitType',
       labelText: 'Type',
-      tooltip: 'Type lagringsenhet',
+      items: ['Lagringsenhet', 'Room', 'Building'],
       valueType: 'text',
       placeHolderText: 'velg type here',
       valueText: () => clazz.state.storageunit.type,
@@ -99,7 +99,7 @@ export default class StorageUnitComponent extends Component {
                         <Row styleClass="row-centered">
                             <Col md={6}>
                                 <Form horizontal>
-                                    <TextField {...this.type} />
+                                    <MusitDropDown {...this.type} />
                                 </Form>
                             </Col>
                             <Col md={6}>

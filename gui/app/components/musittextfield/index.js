@@ -51,6 +51,7 @@ export default class MusitTextField extends Component {
               value={this.props.valueText()}
               onChange={(event) => this.props.onChange(event.target.value)}
             />
+
             {this.props.controlId2 ?
               <FormControl
                 type={this.props.valueType}

@@ -44,7 +44,7 @@ export default class ExampleView extends Component {
         description: 'dddd',
         note: '',
         areal: '',
-        type: 'Rom'
+        type: 'Lagringsenhet'
       }
     }
 
