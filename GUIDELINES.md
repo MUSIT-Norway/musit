@@ -266,21 +266,26 @@ class LegacyPersonUnitTest extends PlaySpec with OneAppPerSuite with ScalaFuture
 Example of unit test:
 
 ```scala
-package no.uio.musit.microservice.time
+package controllers
 
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitFilter }
-import play.api.test.{ FakeRequest, PlaySpecification }
+// common imports
+import play.api.test.FakeRequest
 import play.api.libs.json.Json
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
+import org.scalatest.ParallelTestExecution
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.PlaySpec
+import play.api.test.Helpers._
+
+// test imports
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitFilter }
 import no.uio.musit.microservices.time.resource.TimeResource
 import no.uio.musit.microservices.time.domain.MusitTime
 
-class TimeControllerSpec extends PlaySpecification {
-  "TimeController" should {
+class TimeControllerSpec extends PlaySpec with ScalaFutures with ParallelTestExecution {
+  "TimeController" must {
     "give date and time when provided a datetime filter" in {
       val futureResult = new TimeResource().now(Some(MusitFilter(List("date", "time"))), None).apply(FakeRequest())
-      status(futureResult) must equalTo(OK)
+      status(futureResult) mustBe OK
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitTime].get
       now.time must not be None
@@ -289,25 +294,25 @@ class TimeControllerSpec extends PlaySpecification {
 
     "give date but not time when provided a date filter" in {
       val futureResult = new TimeResource().now(Some(MusitFilter(List("date"))), None)(FakeRequest())
-      status(futureResult) must equalTo(OK)
+      status(futureResult) mustBe OK
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitTime].get
-      now.time must beNone
+      now.time mustBe None
       now.date must not be None
     }
 
     "give time but not date when provided a time filter" in {
       val futureResult = new TimeResource().now(Some(MusitFilter(List("time"))), None)(FakeRequest())
-      status(futureResult) must equalTo(OK)
+      status(futureResult) mustBe OK
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitTime].get
-      now.date must beNone
+      now.date mustBe None
       now.time must not be None
     }
 
     "give date and time when provided no filter" in {
       val futureResult = new TimeResource().now(None, None)(FakeRequest())
-      status(futureResult) must equalTo(OK)
+      status(futureResult) mustBe OK
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitTime].get
       now.date must not be None
@@ -316,10 +321,10 @@ class TimeControllerSpec extends PlaySpecification {
 
     "give error message when provided invalid filter" in {
       val futureResult = new TimeResource().now(Some(MusitFilter(List("uglepose"))), None)(FakeRequest())
-      status(futureResult) must equalTo(BAD_REQUEST)
+      status(futureResult) mustBe BAD_REQUEST
       val json = contentAsString(futureResult)
       val now = Json.parse(json).validate[MusitError].get
-      now.message must equalTo("Only supports empty filter or filter on time, date or time and date")
+      now.message mustBe "Only supports empty filter or filter on time, date or time and date"
     }
   }
 }
@@ -341,12 +346,12 @@ General flow:
 
 1. Get a jira issue for the work task.
 2. Create a branch for the jira issue.
-3. Push the branch to the git server.
-4. Commit your changes to the branch often and push often.
-5. sbt compile test it:test must run flawlesly from local machine when you are done, without lint or style problems.
-6. Push the last version of the code changes.
+3. Commit your work often, and push and pull often (minimum when you arrive in the morning, before lunch and when you leave for the day)
+4. ```sbt compile test it:test``` must run flawlessly from local machine when you are done, without style problems.
+5. in gui folder, ```npm run lint:fix``` should pass without errors or warnings
+6. Push the last version of the code changes. (make sure you have staged style changes from running tests and linting)
 7. Create a pull request for the branch to master.
 8. Pull request review needs to be done by a 2nd pair of eyes, and control checks in github has to pass.
-9. Merge with flatten commits when review and code is ok.
+9. Merge with squashing commits when reviewed and code is ok.
 10. Delete work branch.
 

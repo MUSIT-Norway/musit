@@ -82,10 +82,8 @@ val noPublish = Seq(
   publishLocal := {}
 )
 
-lazy val root = (
-  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing,service_actor,service_geo_location,service_time,
-    service_storage_admin)
-  )
+lazy val root = project in file(".") settings (noPublish) aggregate(common_test, common, security, service_core, service_musit_thing, service_actor, service_geo_location, service_time,
+  service_storage_admin)
 
 // Base projects used as dependencies
 lazy val common = (
@@ -98,7 +96,7 @@ lazy val common = (
 lazy val common_test = (
   BaseProject("common_test")
     settings(noPublish)
-    settings(libraryDependencies ++= playWithPersistenceDependencies ++ Seq[ModuleID](scalatestSpec, playframework.specs2Spec))
+    settings(libraryDependencies ++= playWithPersistenceDependencies ++ Seq[ModuleID](scalatestSpec))
     settings(scoverageSettings: _*)
   )
 
