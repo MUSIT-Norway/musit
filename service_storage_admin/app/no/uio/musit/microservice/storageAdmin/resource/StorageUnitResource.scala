@@ -29,6 +29,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.utils.ResourceHelper
 
 class StorageUnitResource extends Controller {
 
@@ -119,23 +120,38 @@ class StorageUnitResource extends Controller {
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
     request =>
       {
-        println("iXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    nni updateRoot")
+        println("iXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    inni updateRoot")
         def handleHasStorageType(storageUnitType: StorageUnitType) = {
+          def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
+
+          storageUnitType match {
+            case StUnit => ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
+            case Room => Future(Ok("Room"))
+            case Building => Future(Ok("Building"))
+          }
+
+          /*OLD
           val storageUnit = request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
           storageUnitType match {
             case StUnit => {
-              val jsResStUnit = storageUnit.map { storUnit =>
-                StorageUnitService.updateStorageUnitByID(id, storUnit).map {
-                  case 1 => Ok(Json.toJson(1)) //Created(Json.toJson(newStorageUnit))
-                  case 0 => BadMusitRequest(s"Unable to update the row with id: $id")
-                  case n => BadMusitRequest(s"Too many rows where updated ($n rows)!")
-                }
+              val jsResStUnit = storageUnit match {
+                case JsSuccess(v, storUnit) =>
+
+                  storUnit =>
+                    StorageUnitService.updateStorageUnitByID(id, storUnit).map {
+                      case 1 => Ok(Json.toJson(1)) //Created(Json.toJson(newStorageUnit))
+                      case 0 => BadMusitRequest(s"Unable to update the row with id: $id")
+                      case n => BadMusitRequest(s"Too many rows where updated ($n rows)!")
+                    }
               }
               unwrapJsResult(jsResStUnit)
-            }
-            case Room => Future(Ok("Room"))
-            case Building => Future(Ok("Building"))
-            /*
+
+
+                case JsError(e) => invalid(e)
+              } .map {
+            }}*/
+
+          /*
         val JsResultStUnit = request.body.validate[StorageUnit]
         val jsResStUnit = JsResultStUnit.map { storageUnit =>
           StorageUnitService.create(storageUnit).map {
@@ -144,14 +160,13 @@ class StorageUnitResource extends Controller {
           }
         }
         unwrapJsResult(jsResStUnit)*/
-          }
 
         }
 
         val futOptStorageType = StorageUnitService.getStorageType(id)
-        futOptStorageType.map(opt=>println(s"optStorageType: $opt"))
+        futOptStorageType.map(opt => println(s"optStorageType: $opt"))
         val resTemp = futOptStorageType.foldOption(storageUnitType => handleHasStorageType(storageUnitType), Future(BadMusitRequest(s"Unknown storageUnit with ID: $id")))
-        val res = resTemp.flatMap(a => a)
+        val res = resTemp.flatMap(identity)
         res.map(r => println(s"resultat: $r"))
         res
 

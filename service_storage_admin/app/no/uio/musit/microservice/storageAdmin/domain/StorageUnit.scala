@@ -33,7 +33,7 @@ sealed trait AbstractStorageUnit {
 }
 
 case class StorageUnit(
-  id: Option[Long],
+    id: Option[Long],
     storageType: String,
     storageUnitName: String,
     area: Option[Long],
@@ -60,7 +60,7 @@ object StorageUnit {
 }
 
 case class StorageRoom(
-  id: Option[Long],
+    id: Option[Long],
     sikringSkallsikring: Option[String],
     sikringTyverisikring: Option[String],
     sikringBrannsikring: Option[String],
@@ -86,7 +86,7 @@ object StorageRoom {
 }
 
 case class StorageBuilding(
-  id: Option[Long],
+    id: Option[Long],
     address: Option[String],
     links: Option[Seq[Link]]
 ) extends AbstractStorageUnit {

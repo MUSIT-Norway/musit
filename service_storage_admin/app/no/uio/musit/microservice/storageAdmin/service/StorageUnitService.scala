@@ -21,9 +21,11 @@ package no.uio.musit.microservice.storageAdmin.service
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain.{ StorageBuilding, StorageRoom, StorageUnit, StorageUnitType }
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.microservices.common.utils.ServiceHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import no.uio.musit.microservices.common.utils.ServiceHelper._
 
 trait StorageUnitService {
 
@@ -55,9 +57,10 @@ trait StorageUnitService {
     getById(id)
   }
 
-  def updateStorageUnitByID(id: Long, storageUnit: StorageUnit): Future[Int] = {
+  def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
     println(s"storageUnitSservice.updateStorageUnitByID $id")
-    StorageUnitDao.updateStorageUnitByID(id, storageUnit)
+    ServiceHelper.daoUpdateById(StorageUnitDao.updateStorageUnitByID, id, storageUnit)
+    //StorageUnitDao.updateStorageUnitByID(id, storageUnit)
   }
 
   /*def updateStorageUnitName(id: Long, storageName: String): Future[StorageUnit] = {
