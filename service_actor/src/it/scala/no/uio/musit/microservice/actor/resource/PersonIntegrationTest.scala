@@ -33,7 +33,7 @@ import play.api.libs.ws.WS
  */
 class PersonIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFutures {
   val timeout = PlayTestDefaults.timeout
-  override lazy val port: Int = 19002
+  override lazy val port: Int = 19008
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   "LegacyPersonIntegration " must {
