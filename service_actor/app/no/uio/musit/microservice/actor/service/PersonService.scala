@@ -20,7 +20,7 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch, MusitStatusMessage }
 import play.api.http.Status
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -48,17 +48,15 @@ trait PersonService {
     ActorDao.insertPerson(person)
   }
 
-  def update(person: Person): Future[Either[MusitError, Person]] = {
-    ActorDao.updatePerson(person).flatMap {
-      case 0 => Future.successful(Left(MusitError(Status.BAD_REQUEST, "Something went wrong with the update")))
-      case num => ActorDao.getPersonById(person.id).map {
-        case Some(uPerson) => Right(uPerson)
-        case None => Left(MusitError(Status.NOT_FOUND, "Did not find the object"))
-      }
+  def update(person: Person): Future[Either[MusitError, MusitStatusMessage]] = {
+    ActorDao.updatePerson(person).map {
+      case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
+      case 1 => Right(MusitStatusMessage("Record was updated!"))
+      case _ => Left(MusitError(Status.BAD_REQUEST, "Update updated several records!"))
     }
   }
 
-  def remove(id: Long) = {
+  def remove(id: Long): Future[Int] = {
     ActorDao.deletePerson(id)
   }
 

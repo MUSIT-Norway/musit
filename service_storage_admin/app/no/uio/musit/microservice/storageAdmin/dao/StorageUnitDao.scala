@@ -86,7 +86,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     } yield (storageUnitVal, buildingVal)
   }
 
-
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
     StorageUnitTable.filter(_.id === id).update(storageUnit)
   }

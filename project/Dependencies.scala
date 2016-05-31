@@ -16,6 +16,7 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
 import sbt._
 import Keys._
 
@@ -27,71 +28,59 @@ object Dependencies {
     "scalaz-releases" at "http://dl.bintray.com/scalaz/releases"
   )
 
-  object playframework {
-    val version      = "2.4.6"
+  object PlayFrameWork {
+    val version = "2.4.6"
     val slickVersion = "1.1.1"
 
-    val slick        = "com.typesafe.play"   %% "play-slick"               % slickVersion
-    val slick_ext    = "com.typesafe.play"   %% "play-slick-evolutions"    % slickVersion
-    val jdbc         = "com.typesafe.play"   %% "play-jdbc"                % version
-    val cache        = "com.typesafe.play"   %% "play-cache"               % version
-    val ws           = "com.typesafe.play"   %% "play-ws"                  % version
-    val json         = "com.typesafe.play"   %% "play-json"                % version
-    val specs2Spec   = "com.typesafe.play"   %% "play-specs2"              % version
-    val specs2       = specs2Spec            %  "it,test"
+    val slick = "com.typesafe.play" %% "play-slick" % slickVersion
+    val slick_ext = "com.typesafe.play" %% "play-slick-evolutions" % slickVersion
+    val jdbc = "com.typesafe.play" %% "play-jdbc" % version
+    val cache = "com.typesafe.play" %% "play-cache" % version
+    val ws = "com.typesafe.play" %% "play-ws" % version
+    val json = "com.typesafe.play" %% "play-json" % version
 
   }
 
-  object webjars {
-    val webjarsplay  = "org.webjars"         %% "webjars-play"             % "2.4.0-1"
-    val bootstrap    = "org.webjars"         %  "bootstrap"                % "3.3.4"
-    val requirejs    = "org.webjars"         %  "requirejs"                % "2.1.18"
-    val jquery       = "org.webjars"         %  "jquery"                   % "2.1.4"
-    val fontawesome  = "org.webjars"         %  "font-awesome"             % "4.3.0-2"
+  object Documentation {
+    val swaggerplay = "io.swagger" % "swagger-play2_2.11" % "1.5.1"
+    val swaggerUI = "org.webjars" % "swagger-ui" % "2.1.4"
   }
 
-  object documentation {
-    val swaggerplay = "io.swagger"          % "swagger-play2_2.11"         % "1.5.1"
-    val swaggerUI   = "org.webjars"         %  "swagger-ui"                % "2.1.4"
-  }
+  val logback = "ch.qos.logback" % "logback-classic" % "1.1.3"
 
-  val logback        = "ch.qos.logback"      %  "logback-classic"          % "1.1.3"
-
-  val postgresql     = "org.postgresql"      % 	"postgresql" 		           % "9.4-1201-jdbc41"
-  val h2database     = "com.h2database"      %  "h2"                       % "1.4.187"
-  var scalatestSpec  = "org.scalatest"       %% "scalatest"                % "2.2.4"
-  val scalatestplusSpec  = "org.scalatestplus"   %% "play"                     % "1.4.0"
-  val scalatest      = scalatestSpec         %  "it,test"
-  val scalatestplus  = scalatestplusSpec     %  "it,test"
+  val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
+  val h2database = "com.h2database" % "h2" % "1.4.187"
+  var scalatestSpec = "org.scalatest" %% "scalatest" % "2.2.4"
+  val scalatestplusSpec = "org.scalatestplus" %% "play" % "1.4.0"
+  val scalatest = scalatestSpec % "it,test"
+  val scalatestplus = scalatestplusSpec % "it,test"
 
 
   // packager for RPM and Docker
-  val dockerClient   = "com.spotify" % "docker-client" % "3.2.1"
+  val dockerClient = "com.spotify" % "docker-client" % "3.2.1"
 
   val playDependencies: Seq[ModuleID] = Seq(
-    playframework.cache,
-    playframework.ws,
-    playframework.json,
-    documentation.swaggerplay,
-    documentation.swaggerUI,
-    logback //,
-    //slf4j
+    PlayFrameWork.cache,
+    PlayFrameWork.ws,
+    PlayFrameWork.json,
+    Documentation.swaggerplay,
+    Documentation.swaggerUI,
+    logback
   )
 
-  val testablePlayDependencies: Seq[ModuleID]= playDependencies ++ Seq(
+  val testablePlayDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     scalatest,
     scalatestplus
   )
 
 
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
-    //postgresql,
-    playframework.slick,
-    playframework.slick_ext,
+    PlayFrameWork.slick,
+    PlayFrameWork.slick_ext,
     h2database
   )
 
-  val testablePlayWithPersistenceDependencies: Seq[ModuleID]= playWithPersistenceDependencies ++ Seq(
+  val testablePlayWithPersistenceDependencies: Seq[ModuleID] = playWithPersistenceDependencies ++ Seq(
     scalatest,
     scalatestplus
   )
