@@ -56,7 +56,7 @@ class OrganizationResource extends Controller with OrganizationService {
     actorResult match {
       case s: JsSuccess[Organization] =>
         update(s.get).map {
-          case Right(newOrg) => Ok(Json.toJson(newOrg))
+          case Right(updateStatus) => Ok(Json.toJson(updateStatus))
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))

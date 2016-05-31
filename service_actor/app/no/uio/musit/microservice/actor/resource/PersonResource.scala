@@ -57,7 +57,7 @@ class PersonResource extends Controller with PersonService {
     personResult match {
       case s: JsSuccess[Person] =>
         update(s.get).map {
-          case Right(newPerson) => Ok(Json.toJson(newPerson))
+          case Right(updateStatus) => Ok(Json.toJson(updateStatus))
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))

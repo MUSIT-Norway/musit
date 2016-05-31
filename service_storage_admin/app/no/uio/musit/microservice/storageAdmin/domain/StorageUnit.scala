@@ -21,7 +21,7 @@ package no.uio.musit.microservice.storageAdmin.domain
 
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{ JsObject, Json }
 
 sealed trait AbstractStorageUnit {
   def storageKind: StorageUnitType = {
@@ -32,16 +32,18 @@ sealed trait AbstractStorageUnit {
   def getId: Long
 }
 
-case class StorageUnit(id: Option[Long],
-                       storageType: String,
-                       storageUnitName: String,
-                       area: Option[Long],
-                       isStorageUnit: Option[String],
-                       isPartOf: Option[Long],
-                       height: Option[Long],
-                       groupRead: Option[String],
-                       groupWrite: Option[String],
-                       links: Option[Seq[Link]]) extends AbstractStorageUnit {
+case class StorageUnit(
+  id: Option[Long],
+    storageType: String,
+    storageUnitName: String,
+    area: Option[Long],
+    isStorageUnit: Option[String],
+    isPartOf: Option[Long],
+    height: Option[Long],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    links: Option[Seq[Link]]
+) extends AbstractStorageUnit {
   def toJson: JsObject = Json.toJson(this).as[JsObject]
 
   def getId: Long = id.get
@@ -57,16 +59,18 @@ object StorageUnit {
   implicit val format = Json.format[StorageUnit]
 }
 
-case class StorageRoom(id: Option[Long],
-                       sikringSkallsikring: Option[String],
-                       sikringTyverisikring: Option[String],
-                       sikringBrannsikring: Option[String],
-                       sikringVannskaderisiko: Option[String],
-                       sikringRutineOgBeredskap: Option[String],
-                       bevarLuftfuktOgTemp: Option[String],
-                       bevarLysforhold: Option[String],
-                       bevarPrevantKons: Option[String],
-                       links: Option[Seq[Link]]) extends AbstractStorageUnit {
+case class StorageRoom(
+  id: Option[Long],
+    sikringSkallsikring: Option[String],
+    sikringTyverisikring: Option[String],
+    sikringBrannsikring: Option[String],
+    sikringVannskaderisiko: Option[String],
+    sikringRutineOgBeredskap: Option[String],
+    bevarLuftfuktOgTemp: Option[String],
+    bevarLysforhold: Option[String],
+    bevarPrevantKons: Option[String],
+    links: Option[Seq[Link]]
+) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
 
@@ -81,9 +85,11 @@ object StorageRoom {
   implicit val format = Json.format[StorageRoom]
 }
 
-case class StorageBuilding(id: Option[Long],
-                           address: Option[String],
-                           links: Option[Seq[Link]]) extends AbstractStorageUnit {
+case class StorageBuilding(
+  id: Option[Long],
+    address: Option[String],
+    links: Option[Seq[Link]]
+) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
 
