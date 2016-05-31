@@ -71,7 +71,7 @@ export default class StorageUnitComponent extends Component {
     this.type = {
       controlId: 'storageUnitType',
       labelText: 'Type',
-      items: ['Lagringsenhet', 'Room', 'Building'],
+      items: ['Lagringsenhet', 'Room', 'Bui666lding'],
       valueType: 'text',
       placeHolderText: 'velg type here',
       valueText: () => clazz.state.storageunit.type,

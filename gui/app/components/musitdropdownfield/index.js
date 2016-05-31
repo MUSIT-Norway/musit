@@ -34,11 +34,11 @@ export default class MusitDropDownField extends Component {
                         <DropdownButton
                           id={this.props.controlId}
                           title={this.props.valueText()}
-                          onSelect={this.props.onSelect()}
                         >
-                            {this.props.items.forEach((element, index) =>
-                                <MenuItem eventKey={ index } > { element } </MenuItem>)
+                            {this.props.items.map((el) =>
+                                <MenuItem eventKey="2"> { el } </MenuItem>)
                             }
+
                         </DropdownButton>
 
                         {this.props.tooltip ?
@@ -67,5 +67,5 @@ MusitDropDownField.propTypes = {
   valueText: PropTypes.func.isRequired,
   valueType: PropTypes.string.isRequired,
   validationState: PropTypes.func.isRequired,
-  onSelect: PropTypes.func.isRequired,
+  onChange: PropTypes.func,
 };
