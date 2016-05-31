@@ -33,7 +33,7 @@ import play.api.libs.ws.WS
  */
 class OrganizationIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFutures {
   val timeout = PlayTestDefaults.timeout
-  override lazy val port: Int = 19002
+  override lazy val port: Int = 19007
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   "OrganizationIntegration " must {
@@ -77,9 +77,8 @@ class OrganizationIntegrationTest extends PlaySpec with OneServerPerSuite  with 
     "update organization" in {
       val future = WS.url(s"http://localhost:$port/v1/organization/2").put(Json.toJson(Organization(2, "Foo Bar 123", "FB", "12345678", "http://www.foo.bar", Seq.empty)))
       whenReady(future, timeout) { response =>
-        val org = Json.parse(response.body).validate[Organization].get
-        org.id mustBe 2
-        org.fn mustBe "Foo Bar 123"
+        val message = Json.parse(response.body).validate[MusitStatusMessage].get
+        message.message mustBe "Record was updated!"
       }
     }
     "delete organization" in {

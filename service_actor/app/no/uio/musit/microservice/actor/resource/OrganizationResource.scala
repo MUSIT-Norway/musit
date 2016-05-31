@@ -39,7 +39,7 @@ class OrganizationResource extends Controller with OrganizationService {
   def getRoot(id: Long): Action[AnyContent] = Action.async { request =>
     find(id).map {
       case Some(person) => Ok(Json.toJson(person))
-      case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Didn't find object with id: $id")))
+      case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
     }
   }
 
