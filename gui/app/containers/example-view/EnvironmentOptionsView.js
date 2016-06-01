@@ -23,41 +23,41 @@ import Options from '../../components/storageunits/EnvironmentOptions';
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 
 export default class EnvironmentOptionsView extends Component {
-    static validateString(value, minimumLength = 3, maximumLength = 20) {
-        const isSomething = value.length >= minimumLength
-        const isValid = isSomething ? 'success' : null
-        return value.length > maximumLength ? 'error' : isValid
+  static validateString(value, minimumLength = 3, maximumLength = 20) {
+    const isSomething = value.length >= minimumLength
+    const isValid = isSomething ? 'success' : null
+    return value.length > maximumLength ? 'error' : isValid
+  }
+
+  static validateNumber(value, minimumLength = 1) {
+    const isSomething = value.length >= minimumLength
+    const isValid = isSomething ? 'success' : null
+    return isSomething && isNaN(value) ? 'error' : isValid
+  }
+
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      name: 'your name',
+      description: 'dddd',
+      note: '',
+      areal: '',
+      type: 'Rom',
+      skallsikring: false,
+      tyverisikring: false,
+      brannsikring: true,
+      vannskaderisiko: false,
+      rutinerBeredskap: false,
+      luftfuktighet: false,
+      lysforhold: false,
+      temperatur: false,
+      preventivKonservering: false,
     }
+  }
 
-    static validateNumber(value, minimumLength = 1) {
-        const isSomething = value.length >= minimumLength
-        const isValid = isSomething ? 'success' : null
-        return isSomething && isNaN(value) ? 'error' : isValid
-    }
-
-    constructor(props) {
-        super(props)
-
-        this.state = {
-            name: 'your name',
-            description: 'dddd',
-            note: '',
-            areal: '',
-            type: 'Rom',
-            skallsikring: false,
-            tyverisikring: false,
-            brannsikring: false,
-            vannskaderisiko: false,
-            rutinerBeredskap: false,
-            luftfuktighet: false,
-            lysforhold: false,
-            temperatur: false,
-            preventivKonservering: false,
-        }
-    }
-
-    render() {
-        return (
+  render() {
+    return (
             <div>
                 <main>
                     <Panel>
@@ -66,16 +66,17 @@ export default class EnvironmentOptionsView extends Component {
                                 <PageHeader>
                                     Welcome to example view.
                                 </PageHeader>
-                                <Options unit={this.state}
-                                         updateSkallsikring={(enabled) => this.setState({ skallsikring: enabled })}
-                                         updateTyverisikring={(enabled) => this.setState({ tyverisikring: enabled })}
-                                         updateBrannsikring={(enabled) => this.setState({ brannsikring: enabled })}
-                                         updateVannskaderisiko={(enabled) => this.setState({ vannskaderisiko: enabled })}
-                                         updateRutinerBeredskap={(enabled) => this.setState({ rutinerBeredskap: enabled })}
-                                         updateLuftfuktighet={(enabled) => this.setState({ luftfuktighet: enabled })}
-                                         updateLysforhold={(enabled) => this.setState({ lysforhold: enabled })}
-                                         updateTemperatur={(enabled) => this.setState({ temperatur: enabled })}
-                                         updatePreventivKonservering={(enabled) => this.setState({ preventivKonservering: enabled })}
+                                <Options
+                                  unit={this.state}
+                                  updateSkallsikring={(enabled) => this.setState({ skallsikring: enabled })}
+                                  updateTyverisikring={(enabled) => this.setState({ tyverisikring: enabled })}
+                                  updateBrannsikring={(enabled) => this.setState({ brannsikring: enabled })}
+                                  updateVannskaderisiko={(enabled) => this.setState({ vannskaderisiko: enabled })}
+                                  updateRutinerBeredskap={(enabled) => this.setState({ rutinerBeredskap: enabled })}
+                                  updateLuftfuktighet={(enabled) => this.setState({ luftfuktighet: enabled })}
+                                  updateLysforhold={(enabled) => this.setState({ lysforhold: enabled })}
+                                  updateTemperatur={(enabled) => this.setState({ temperatur: enabled })}
+                                  updatePreventivKonservering={(enabled) => this.setState({ preventivKonservering: enabled })}
                                 />
                             </Row>
                         </Grid>
@@ -83,5 +84,5 @@ export default class EnvironmentOptionsView extends Component {
                 </main>
             </div>
         );
-    }
+  }
 }

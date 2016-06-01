@@ -19,6 +19,7 @@
 
 import React, { Component } from 'react';
 import TextField from '../../components/musittextfield';
+import Options from '../../components/storageunits/EnvironmentOptions';
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 
 export default class ExampleView extends Component {
@@ -44,6 +45,17 @@ export default class ExampleView extends Component {
         note: '',
         areal: '',
         type: 'Rom'
+      },
+      sikringBevaring: {
+        skallsikring: false,
+        tyverisikring: true,
+        brannsikring: true,
+        vannskaderisiko: false,
+        rutinerBeredskap: false,
+        luftfuktighet: false,
+        lysforhold: false,
+        temperatur: false,
+        preventivKonservering: false
       }
     }
 
@@ -116,6 +128,27 @@ export default class ExampleView extends Component {
                     <TextField {...this.areal} />
                   </Form>
                 </Col>
+              </Row>
+            </Grid>
+          </Panel>
+          <Panel>
+            <Grid>
+              <Row styleClass="row-centered">
+                <PageHeader>
+                  Welcome to example view.
+                </PageHeader>
+                <Options
+                  unit={this.state.sikringBevaring}
+                  updateSkallsikring = {(skallsikring) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, skallsikring } }); console.log(this.state.sikringBevaring)} }
+                  updateTyverisikring = {(tyverisikring) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, tyverisikring } }); console.log(this.state.sikringBevaring)} }
+                  updateBrannsikring = {(brannsikring) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, brannsikring } }); console.log(this.state.sikringBevaring)} }
+                  updateVannskaderisiko = {(vannskaderisiko) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, vannskaderisiko } }); console.log(this.state.sikringBevaring)} }
+                  updateRutinerBeredskap = {(rutinerBeredskap) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, rutinerBeredskap } }); console.log(this.state.sikringBevaring)} }
+                  updateLuftfuktighet = {(luftfuktighet) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, luftfuktighet } }); console.log(this.state.sikringBevaring)} }
+                  updateLysforhold = {(lysforhold) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, lysforhold } }); console.log(this.state.sikringBevaring)} }
+                  updateTemperatur = {(temperatur) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, temperatur } }); console.log(this.state.sikringBevaring)} }
+                  updatePreventivKonservering={(preventivKonservering) => { this.setState({ sikringBevaring: { ...this.state.sikringBevaring, preventivKonservering } }); console.log(this.state.sikringBevaring)} }
+                />
               </Row>
             </Grid>
           </Panel>
