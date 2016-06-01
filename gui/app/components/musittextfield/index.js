@@ -20,6 +20,7 @@
 import React, { Component, PropTypes } from 'react';
 import { FormGroup, FormControl, Popover, ControlLabel, Row, Col, InputGroup, OverlayTrigger } from 'react-bootstrap';
 
+
 export default class MusitTextField extends Component {
 
   static helpText(tip) {
@@ -104,4 +105,5 @@ MusitTextField.propTypes = {
   validationState2: PropTypes.func,
   onChange: PropTypes.func.isRequired,
   onChange2: PropTypes.func,
+
 };

@@ -82,9 +82,8 @@ val noPublish = Seq(
   publishLocal := {}
 )
 
-lazy val root = (
-  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing,service_actor,service_geo_location,service_time)
-  )
+lazy val root = project in file(".") settings (noPublish) aggregate(common_test, common, security, service_core, service_musit_thing, service_actor, service_geo_location, service_time,
+  service_storage_admin)
 
 // Base projects used as dependencies
 lazy val common = (
@@ -97,7 +96,7 @@ lazy val common = (
 lazy val common_test = (
   BaseProject("common_test")
     settings(noPublish)
-    settings(libraryDependencies ++= playWithPersistenceDependencies ++ Seq[ModuleID](scalatestSpec, playframework.specs2Spec))
+    settings(libraryDependencies ++= playWithPersistenceDependencies ++ Seq[ModuleID](scalatestSpec))
     settings(scoverageSettings: _*)
   )
 
@@ -157,6 +156,16 @@ lazy val service_time = (
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_time"
+  ))
+  )  dependsOn(common, common_test % "it,test")
+
+lazy val service_storage_admin = (
+  PlayProject("service_storage_admin")
+    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings(scoverageSettings: _*)
+    settings(baseDockerSettings ++ Seq(
+    packageName in Docker := "musit_service_storage_admin"
   ))
   )  dependsOn(common, common_test % "it,test")
 

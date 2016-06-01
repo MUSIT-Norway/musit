@@ -17,8 +17,9 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component } from 'react';
-import TextField from '../../components/musittextfield';
+import React, { Component } from 'react'
+import TextField from '../../components/musittextfield'
+import Options from '../../components/storageunits/EnvironmentOptions'
 import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 
@@ -45,6 +46,17 @@ export default class ExampleView extends Component {
         note: '',
         areal: '',
         type: 'Lagringsenhet'
+      },
+      sikringBevaring: {
+        skallsikring: false,
+        tyverisikring: true,
+        brannsikring: true,
+        vannskaderisiko: false,
+        rutinerBeredskap: false,
+        luftfuktighet: false,
+        lysforhold: false,
+        temperatur: false,
+        preventivKonservering: false
       }
     }
 
@@ -120,7 +132,33 @@ export default class ExampleView extends Component {
               </Row>
             </Grid>
           </Panel>
+
           <StorageUnitComponents />
+
+          <Panel>
+            <Options
+              unit={this.state.sikringBevaring}
+              updateSkallsikring={(skallsikring) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, skallsikring } })}
+              updateTyverisikring={(tyverisikring) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, tyverisikring } })}
+              updateBrannsikring={(brannsikring) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, brannsikring } })}
+              updateVannskaderisiko={(vannskaderisiko) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, vannskaderisiko } })}
+              updateRutinerBeredskap={(rutinerBeredskap) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, rutinerBeredskap } })}
+              updateLuftfuktighet={(luftfuktighet) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, luftfuktighet } })}
+              updateLysforhold={(lysforhold) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, lysforhold } })}
+              updateTemperatur={(temperatur) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, temperatur } })}
+              updatePreventivKonservering={(preventivKonservering) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, preventivKonservering } })}
+            />
+          </Panel>
+
         </main>
       </div>
     );

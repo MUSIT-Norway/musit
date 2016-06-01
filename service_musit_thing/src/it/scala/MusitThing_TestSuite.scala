@@ -13,6 +13,7 @@ import play.api.libs.json.{JsString, Json}
 import play.api.libs.ws.WS
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 class MusitThing_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
