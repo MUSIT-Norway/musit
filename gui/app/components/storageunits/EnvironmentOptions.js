@@ -1,5 +1,5 @@
 import React from 'react'
-import { FormGroup, Checkbox, ControlLabel } from 'react-bootstrap'
+import { Checkbox, ControlLabel, Grid, Row, Col } from 'react-bootstrap'
 export default class EnvironmentOptions extends React.Component {
   static propTypes = {
     unit: React.PropTypes.shape({
@@ -26,71 +26,72 @@ export default class EnvironmentOptions extends React.Component {
 
   render() {
     return (
-      <div>
-        <FormGroup>
-          <ControlLabel>Sikring</ControlLabel>
+      <Grid>
+        <Row styleClass="row-centered">
+          <Col lg={6} md={6} sm={6} xs={12}>
+            <ControlLabel>Sikring</ControlLabel>
 
-          <Checkbox
-            checked={this.props.unit.skallsikring}
-            onClick={(event) => this.props.updateSkallsikring(event.target.checked)}
-          >
-            Skallsikring
-          </Checkbox>
-          <Checkbox
-            checked={this.props.unit.tyverisikring}
-            onClick={(event) => this.props.updateTyverisikring(event.target.checked)}
-          >
-            Tyverisikring
-          </Checkbox>
-          <Checkbox
-            checked={this.props.unit.brannsikring}
-            onClick={(event) => this.props.updateBrannsikring(event.target.checked)}
-          >
-            Brannsikring
-          </Checkbox>
-          <Checkbox
-            checked={this.props.unit.vannskaderisiko}
-            onClick={(event) => this.props.updateVannskaderisiko(event.target.checked)}
-          >
-            Vannskaderisiko
-          </Checkbox>
-          <Checkbox
-            checked={this.props.unit.rutinerBeredskap}
-            onClick={(event) => this.props.updateRutinerBeredskap(event.target.checked)}
-          >
-            Rutiner/beredskap
-          </Checkbox>
+            <Checkbox
+              checked={this.props.unit.skallsikring}
+              onChange={(event) => this.props.updateSkallsikring(event.target.checked)}
+            >
+              Skallsikring
+            </Checkbox>
+            <Checkbox
+              checked={this.props.unit.tyverisikring}
+              onChange={(event) => this.props.updateTyverisikring(event.target.checked)}
+            >
+              Tyverisikring
+            </Checkbox>
+            <Checkbox
+              checked={this.props.unit.brannsikring}
+              onChange={(event) => this.props.updateBrannsikring(event.target.checked)}
+            >
+              Brannsikring
+            </Checkbox>
+            <Checkbox
+              checked={this.props.unit.vannskaderisiko}
+              onChange={(event) => this.props.updateVannskaderisiko(event.target.checked)}
+            >
+              Vannskaderisiko
+            </Checkbox>
+            <Checkbox
+              checked={this.props.unit.rutinerBeredskap}
+              onChange={(event) => this.props.updateRutinerBeredskap(event.target.checked)}
+            >
+              Rutiner/beredskap
+            </Checkbox>
+          </Col>
+          <Col lg={6} md={6} sm={6} xs={12}>
+            <ControlLabel>Bevaring</ControlLabel>
 
-          <ControlLabel>Bevaring</ControlLabel>
-
-          <Checkbox
-            checked={this.props.unit.luftfuktighet}
-            onClick={(event) => this.props.updateLuftfuktighet(event.target.checked)}
-          >
-            Luftfuktighet
-          </Checkbox>
-          <Checkbox
-            checked={this.props.unit.lysforhold}
-            onClick={(event) => this.props.updateLysforhold(event.target.checked)}
-          >
-            Lysforhold
-          </Checkbox>
-          <Checkbox
-            checked={this.props.unit.temperatur}
-            onClick={(event) => this.props.updateTemperatur(event.target.checked)}
-          >
-            Temperatur
-          </Checkbox>
-          <Checkbox
-            checked={this.props.unit.preventivKonservering}
-            onClick={(event) => this.props.updatePreventivKonservering(event.target.checked)}
-          >
-            Preventiv Konservering
-          </Checkbox>
-        </FormGroup>
-
-
-      </div>
+            <Checkbox
+              checked={this.props.unit.luftfuktighet}
+              onChange={(event) => this.props.updateLuftfuktighet(event.target.checked)}
+            >
+              Luftfuktighet
+            </Checkbox>
+            <Checkbox
+              checked={this.props.unit.lysforhold}
+              onChange={(event) => this.props.updateLysforhold(event.target.checked)}
+            >
+              Lysforhold
+            </Checkbox>
+            <Checkbox
+              checked={this.props.unit.temperatur}
+              onChange={(event) => this.props.updateTemperatur(event.target.checked)}
+            >
+              Temperatur
+            </Checkbox>
+            <Checkbox
+              checked={this.props.unit.preventivKonservering}
+              onChange={(event) => this.props.updatePreventivKonservering(event.target.checked)}
+            >
+              Preventiv Konservering
+            </Checkbox>
+          </Col>
+        </Row>
+      </Grid>
     )
   }
           }
