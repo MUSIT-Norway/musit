@@ -45,21 +45,34 @@ export default class MusitTextField extends Component {
         </Col>
         <Col sm={9}>
           <InputGroup>
+            {this.props.controlId2 ?
+                <grid>
+                  <row>
+                    <col sm={6}>
+                      <FormControl
+                        type={this.props.valueType}
+                        placeholder={this.props.placeHolderText}
+                        value={this.props.valueText()}
+                        onChange={(event) => this.props.onChange(event.target.value)}
+                      />
+                    </col>
+                    <col sm={6}>
+                      <FormControl
+                        type={this.props.valueType}
+                        placeholder={this.props.placeHolderText2}
+                        value={this.props.valueText2()}
+                        onChange={(event) => this.props.onChange2(event.target.value)}
+                      />
+                    </col>
+                  </row>
+                </grid> :
             <FormControl
               type={this.props.valueType}
               placeholder={this.props.placeHolderText}
               value={this.props.valueText()}
               onChange={(event) => this.props.onChange(event.target.value)}
-            />
+            />}
 
-            {this.props.controlId2 ?
-              <FormControl
-                type={this.props.valueType}
-                placeholder={this.props.placeHolderText2}
-                value={this.props.valueText2()}
-                onChange={(event) => this.props.onChange2(event.target.value)}
-              /> : null
-            }
             {this.props.tooltip ?
               <OverlayTrigger
                 trigger={['click']}

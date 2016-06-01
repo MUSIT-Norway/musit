@@ -3,7 +3,7 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, Popover, ControlLabel, Col, InputGroup, OverlayTrigger, DropdownButton, MenuItem } from 'react-bootstrap'
+import { FormGroup, Popover, ControlLabel, Col, InputGroup, OverlayTrigger, FormControl } from 'react-bootstrap'
 
 
 export default class MusitDropDownField extends Component {
@@ -18,41 +18,37 @@ export default class MusitDropDownField extends Component {
 
   render() {
     return (
-            <FormGroup
-              controlId={this.props.controlId}
-              style={{
-                marginTop: 0,
-                marginBottom: '5px'
-              }}
-              validationState={this.props.validationState()}
-            >
-                <Col componentClass={ControlLabel} sm={3}>
-                    {this.props.labelText}
-                </Col>
-                <Col sm={9}>
-                    <InputGroup>
-                        <DropdownButton
-                          id={this.props.controlId}
-                          title={this.props.valueText()}
+        <FormGroup
+          controlId={this.props.controlId}
+          style={{
+            marginTop: 0,
+            marginBottom: '5px'
+          }}
+          validationState={this.props.validationState()}
+        >
+            <Col componentClass={ControlLabel} sm={3}>
+                {this.props.labelText}
+            </Col>
+            <Col sm={9}>
+                <InputGroup style={{ display: 'block' }}>
+                    <FormControl type = {this.props.valueType} componentClass="select" style={{ borderRadius: '5px' }}>
+                        {this.props.items.map((el) =>
+                            <option value = {el}> {el} </option>)
+                        }
+                    </FormControl>
+
+                    {this.props.tooltip ?
+                        <OverlayTrigger
+                          trigger={['click']}
+                          rootClose
+                          placement="right"
+                          overlay={MusitDropDownField.helpText(this.props.tooltip)}
                         >
-                            {this.props.items.map((el) =>
-                                <MenuItem eventKey="2"> { el } </MenuItem>)
-                            }
-
-                        </DropdownButton>
-
-                        {this.props.tooltip ?
-                            <OverlayTrigger
-                              trigger={['click']}
-                              rootClose
-                              placement="right"
-                              overlay={MusitDropDownField.helpText(this.props.tooltip)}
-                            >
-                                <InputGroup.Addon>?</InputGroup.Addon>
-                            </OverlayTrigger> : null}
-                    </InputGroup>
-                </Col>
-            </FormGroup>
+                            <InputGroup.Addon>?</InputGroup.Addon>
+                        </OverlayTrigger> : null}
+                </InputGroup>
+            </Col>
+        </FormGroup>
         )
   }
 }
