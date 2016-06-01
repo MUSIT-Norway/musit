@@ -30,11 +30,18 @@ export default class MusitDropDownField extends Component {
                 {this.props.labelText}
             </Col>
             <Col sm={9}>
-                <InputGroup style={{ display: 'block' }}>
-                    <FormControl type = {this.props.valueType} componentClass="select" style={{ borderRadius: '5px' }}>
-                        {this.props.items.map((el) =>
-                            <option value = {el}> {el} </option>)
-                        }
+                <InputGroup style={{ display: 'table' }}>
+                    <FormControl
+                      type = {this.props.valueType}
+                      componentClass="select"
+                      style={{ borderRadius: '5px' }}
+                      onChange={(event) => this.props.onChange(event.target.value) }
+
+                    >
+                      <option>Velg type</option>
+                      {this.props.items.map((el) =>
+                          <option value = {el}> {el} </option>)
+                      }
                     </FormControl>
 
                     {this.props.tooltip ?

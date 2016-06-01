@@ -18,7 +18,7 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, FormControl, Popover, ControlLabel, Col, InputGroup, OverlayTrigger } from 'react-bootstrap'
+import { FormGroup, FormControl, Popover, ControlLabel, Row, Col, InputGroup, OverlayTrigger } from 'react-bootstrap';
 
 export default class MusitTextField extends Component {
 
@@ -46,32 +46,33 @@ export default class MusitTextField extends Component {
         <Col sm={9}>
           <InputGroup>
             {this.props.controlId2 ?
-                <grid>
-                  <row>
-                    <col sm={6}>
-                      <FormControl
-                        type={this.props.valueType}
-                        placeholder={this.props.placeHolderText}
-                        value={this.props.valueText()}
-                        onChange={(event) => this.props.onChange(event.target.value)}
-                      />
-                    </col>
-                    <col sm={6}>
-                      <FormControl
-                        type={this.props.valueType}
-                        placeholder={this.props.placeHolderText2}
-                        value={this.props.valueText2()}
-                        onChange={(event) => this.props.onChange2(event.target.value)}
-                      />
-                    </col>
-                  </row>
-                </grid> :
-            <FormControl
-              type={this.props.valueType}
-              placeholder={this.props.placeHolderText}
-              value={this.props.valueText()}
-              onChange={(event) => this.props.onChange(event.target.value)}
-            />}
+                <Row>
+                  <Col sm={6} md={6}>
+                    <FormControl
+                      style={{ borderRadius: '5px' }}
+                      type={ this.props.valueType }
+                      placeholder={ this.props.placeHolderText }
+                      value={this.props.valueText()}
+                      onChange={(event) => this.props.onChange(event.target.value)}
+                    />
+                  </Col>
+                  <Col sm={6} md={6}>
+                    <FormControl
+                      style={{ borderRadius: '5px' }}
+                      type={this.props.valueType}
+                      placeholder={this.props.placeHolderText2}
+                      value={this.props.valueText2()}
+                      onChange={(event) => this.props.onChange2(event.target.value)}
+                    />
+                  </Col>
+                </Row>
+              :
+              <FormControl
+                type={this.props.valueType}
+                placeholder={this.props.placeHolderText}
+                value={this.props.valueText()}
+                onChange={(event) => this.props.onChange(event.target.value)}
+              />}
 
             {this.props.tooltip ?
               <OverlayTrigger

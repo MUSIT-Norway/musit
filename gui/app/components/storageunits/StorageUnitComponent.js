@@ -73,6 +73,7 @@ export default class StorageUnitComponent extends Component {
       labelText: 'Type',
       items: ['Lagringsenhet', 'Room', 'Bui666lding'],
       valueType: 'text',
+      tooltip: 'Type lagringsenhet',
       placeHolderText: 'velg type here',
       valueText: () => clazz.state.storageunit.type,
       validationState: () => StorageUnitComponent.validateString(clazz.state.storageunit.type),
@@ -93,13 +94,14 @@ export default class StorageUnitComponent extends Component {
   render() {
     return (
         <div>
+
             <main>
                 <Panel>
                     <Grid>
                         <Row styleClass="row-centered">
                             <Col md={6}>
                                 <Form horizontal>
-                                    <MusitDropDown {...this.type} />
+                                  <MusitDropDown {...this.type} />
                                 </Form>
                             </Col>
                             <Col md={6}>
