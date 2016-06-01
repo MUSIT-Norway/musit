@@ -81,7 +81,16 @@ object PlayExtensions {
       val json = Json.parse(text)
       //println(s"Parsed json: $json")
       val res = wsr.post(json)
-      res.map(resp => println(s"result body: ${resp.body}"))
+      //res.map(resp => println(s"result body: ${resp.body}"))
+      res
+    }
+
+    def putJsonString(text: String): Future[WSResponse] = {
+      //println(s"text to parse: $text")
+      val json = Json.parse(text)
+      //println(s"Parsed json: $json")
+      val res = wsr.put(json)
+      //res.map(resp => println(s"result body: ${resp.body}"))
       res
     }
 

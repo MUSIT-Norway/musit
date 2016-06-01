@@ -126,12 +126,13 @@ class StorageUnitResource extends Controller {
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
     request =>
       {
-        println("iXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    inni updateRoot")
+        println(s"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    inni updateRoot, ID: $id  body: ${request.body}")
         def handleHasStorageType(storageUnitType: StorageUnitType) = {
           def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
 
           storageUnitType match {
             case StUnit =>
+              println(s"updateRoot, case StUnit, id: $id")
               ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
             //For debugging (assign res to above line):
             //              val obj  = StorageUnitService.getById(id)
@@ -139,11 +140,16 @@ class StorageUnitResource extends Controller {
             //              res
             case Room => {
               val jsTuple = for {
-                storageUnitJs <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
-                roomJs <- request.body.validate[StorageRoom].map(_.copy(id = Some(id)))
-              } yield (storageUnitJs, roomJs)
+                storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
+                room <- request.body.validate[StorageRoom].map(_.copy(id = Some(id)))
+              } yield (storageUnit, room)
 
-              ResourceHelper.updateRoot(RoomService.updateRoomByID, id, jsTuple)
+              val res = ResourceHelper.updateRoot(RoomService.updateRoomByID, id, jsTuple)
+
+              //For debugging (assign res to above line):
+                            //val obj  = StorageUnitService.getRoomOnlyById(id)
+                            //obj.map(optStorageUnit => println(s"updated object = $optStorageUnit"))
+                            res
 
             }
             case Building => Future(Ok("Building"))

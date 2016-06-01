@@ -57,14 +57,14 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def insertAndRun(storageUnit: StorageUnit): Future[StorageUnit] =
     db.run(insert(storageUnit))
 
-  def insert(storageUnit: StorageUnit): DBIOAction[StorageUnit, NoStream, Effect.Write] = {
+  def insert(storageUnit: StorageUnit): DBIO[StorageUnit] = {
     val insertQuery = StorageUnitTable returning StorageUnitTable.map(_.id) into
       ((storageUnit, id) => storageUnit.copy(id = id, links = linkText(id)))
     val action = insertQuery += storageUnit
     action
   }
 
-  def insertRoomOnly(storageRoom: StorageRoom): DBIOAction[Int, NoStream, Effect.Write] = {
+  def insertRoomOnly(storageRoom: StorageRoom): DBIO[Int] = {
     assert(storageRoom.id.isDefined) //if failed then it's our bug
     val stRoom = storageRoom.copy(links = linkText(storageRoom.id))
     val insertQuery = RoomTable
@@ -86,7 +86,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   }
 
-  def insertBuildingOnly(storageBuilding: StorageBuilding): DBIOAction[Int, NoStream, Effect.Write] = {
+  def insertBuildingOnly(storageBuilding: StorageBuilding): DBIO[Int] = {
     val stBuilding = storageBuilding.copy(links = linkText(storageBuilding.id))
     val insertQuery = BuildingTable
     val action = insertQuery += stBuilding
@@ -101,7 +101,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  def updateStorageUnitByIdNoRun(id: Long, storageUnit: StorageUnit): DBIOAction[Int, NoStream, Effect.Write] = {
+  def updateStorageUnitByIdNoRun(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
     StorageUnitTable.filter(_.id === id).update(storageUnit)
   }
 
@@ -109,11 +109,12 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(updateStorageUnitByIdNoRun(id, storageUnit))
   }
 
-  def updateRoomOnlyByIdNoRun(id: Long, storageRoom: StorageRoom): DBIOAction[Int, NoStream, Effect.Write] = {
+  def updateRoomOnlyByIdNoRun(id: Long, storageRoom: StorageRoom): DBIO[Int] = {
     RoomTable.filter(_.id === id).update(storageRoom)
   }
 
   def updateRoomByID(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
+    println(s"updateRoomByID: ID: $id  storageRoom: ${storageUnitAndRoom._2}")
     val action = (for {
       n <- updateStorageUnitByIdNoRun(id, storageUnitAndRoom._1)
       m <- updateRoomOnlyByIdNoRun(id, storageUnitAndRoom._2.copy(id = Some(id)))
