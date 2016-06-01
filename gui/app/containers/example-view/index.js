@@ -20,6 +20,7 @@
 import React, { Component } from 'react'
 import TextField from '../../components/musittextfield'
 import Options from '../../components/storageunits/EnvironmentOptions'
+import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 
 export default class ExampleView extends Component {
@@ -44,7 +45,7 @@ export default class ExampleView extends Component {
         description: 'dddd',
         note: '',
         areal: '',
-        type: 'Rom'
+        type: 'Lagringsenhet'
       },
       sikringBevaring: {
         skallsikring: false,
@@ -131,6 +132,9 @@ export default class ExampleView extends Component {
               </Row>
             </Grid>
           </Panel>
+
+          <StorageUnitComponents />
+
           <Panel>
             <Options
               unit={this.state.sikringBevaring}
@@ -154,6 +158,7 @@ export default class ExampleView extends Component {
                 this.setState({ sikringBevaring: { ...this.state.sikringBevaring, preventivKonservering } })}
             />
           </Panel>
+
         </main>
       </div>
     );
