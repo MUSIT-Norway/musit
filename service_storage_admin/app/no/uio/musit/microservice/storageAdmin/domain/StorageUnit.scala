@@ -60,16 +60,16 @@ object StorageUnit {
 }
 
 case class StorageRoom(
-    id: Option[Long],
-    sikringSkallsikring: Option[String],
-    sikringTyverisikring: Option[String],
-    sikringBrannsikring: Option[String],
-    sikringVannskaderisiko: Option[String],
-    sikringRutineOgBeredskap: Option[String],
-    bevarLuftfuktOgTemp: Option[String],
-    bevarLysforhold: Option[String],
-    bevarPrevantKons: Option[String],
-    links: Option[Seq[Link]]
+    id: Option[Long] = None,
+    sikringSkallsikring: Option[String] = None,
+    sikringTyverisikring: Option[String] = None,
+    sikringBrannsikring: Option[String] = None,
+    sikringVannskaderisiko: Option[String] = None,
+    sikringRutineOgBeredskap: Option[String] = None,
+    bevarLuftfuktOgTemp: Option[String] = None,
+    bevarLysforhold: Option[String] = None,
+    bevarPrevantKons: Option[String] = None,
+    links: Option[Seq[Link]] = None
 ) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]

@@ -54,50 +54,72 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   def all(): Future[Seq[StorageUnit]] = db.run(StorageUnitTable.result)
 
-  def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
+  def insertAndRun(storageUnit: StorageUnit): Future[StorageUnit] =
+    db.run(insert(storageUnit))
+
+  def insert(storageUnit: StorageUnit): DBIOAction[StorageUnit, NoStream, Effect.Write] = {
     val insertQuery = StorageUnitTable returning StorageUnitTable.map(_.id) into
       ((storageUnit, id) => storageUnit.copy(id = id, links = linkText(id)))
     val action = insertQuery += storageUnit
-    db.run(action)
+    action
   }
 
-  def insertRoomOnly(storageRoom: StorageRoom): Future[StorageRoom] = {
+  def insertRoomOnly(storageRoom: StorageRoom): DBIOAction[Int, NoStream, Effect.Write] = {
     assert(storageRoom.id.isDefined) //if failed then it's our bug
     val stRoom = storageRoom.copy(links = linkText(storageRoom.id))
     val insertQuery = RoomTable
     val action = insertQuery += stRoom
-    val result = db.run(action)
-    result.map { //db.run here returns number of rows inserted. we want to return storageRoom
-      _ => storageRoom
-    }
+    action
   }
 
   def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[(StorageUnit, StorageRoom)] = {
-    for {
-      storageUnitVal <- insert(storageUnit)
-      roomVal <- insertRoomOnly(storageRoom.copy(id = storageUnitVal.id))
-    } yield (storageUnitVal, roomVal)
+    val action = (for {
+      storageUnit <- insert(storageUnit)
+      n <- insertRoomOnly(storageRoom.copy(id = storageUnit.id))
+    } yield (storageUnit, storageRoom.copy(id = storageUnit.id))).transactionally
+    db.run(action)
+    /*al a = (for {
+      storageUnit <- StorageUnitTable returning StorageUnitTable.map(_.id) into
+        ((storageUnit, id) => storageUnit.copy(id = id, links = linkText(id))) += storageUnit
+      room <- RoomTable += storageRoom.copy(storageUnit.id, links = linkText(storageUnit.id))
+    } yield (storageUnit, room)).transactionally*/
+
   }
 
-  def insertBuildingOnly(storageBuilding: StorageBuilding): Future[StorageBuilding] = {
+  def insertBuildingOnly(storageBuilding: StorageBuilding): DBIOAction[Int, NoStream, Effect.Write] = {
     val stBuilding = storageBuilding.copy(links = linkText(storageBuilding.id))
     val insertQuery = BuildingTable
     val action = insertQuery += stBuilding
-    val result = db.run(action)
-    result.map {
-      _ => storageBuilding // See insertRoomOnly
-    }
+    action
   }
 
   def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[(StorageUnit, StorageBuilding)] = {
-    for {
-      storageUnitVal <- insert(storageUnit)
-      buildingVal <- insertBuildingOnly(storageBuilding.copy(id = storageUnitVal.id))
-    } yield (storageUnitVal, buildingVal)
+    val action = (for {
+      storageUnit <- insert(storageUnit)
+      n <- insertBuildingOnly(storageBuilding.copy(id = storageUnit.id))
+    } yield (storageUnit, storageBuilding.copy(id = storageUnit.id))).transactionally
+    db.run(action)
+  }
+
+  def updateStorageUnitByIdNoRun(id: Long, storageUnit: StorageUnit): DBIOAction[Int, NoStream, Effect.Write] = {
+    StorageUnitTable.filter(_.id === id).update(storageUnit)
   }
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit): Future[Int] = {
-    db.run(StorageUnitTable.filter(_.id === id).update(storageUnit))
+    db.run(updateStorageUnitByIdNoRun(id, storageUnit))
+  }
+
+  def updateRoomOnlyByIdNoRun(id: Long, storageRoom: StorageRoom): DBIOAction[Int, NoStream, Effect.Write] = {
+    RoomTable.filter(_.id === id).update(storageRoom)
+  }
+
+  def updateRoomByID(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
+    val action = (for {
+      n <- updateStorageUnitByIdNoRun(id, storageUnitAndRoom._1)
+      m <- updateRoomOnlyByIdNoRun(id, storageUnitAndRoom._2.copy(id = Some(id)))
+      if (n == 1 && m == 1)
+    } yield 1).transactionally
+    db.run(action)
   }
 
   /*def updateStorageNameByID(id: Long, storageName: String): Future[StorageUnit] = {

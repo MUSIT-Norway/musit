@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ResourceHelper {
 
-  def updateRoot[A, L, R](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A], objectTransformer: A => A = identity _): Future[Result] = {
+  def updateRoot[A, L, R](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A], objectTransformer: A => A = identity[A] _): Future[Result] = {
     //val validatedResult: JsResult[A] = request.body.validate[A]
     validatedResult match {
       case s: JsSuccess[A] =>

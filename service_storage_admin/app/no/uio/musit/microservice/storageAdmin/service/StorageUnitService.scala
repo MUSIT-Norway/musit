@@ -30,7 +30,7 @@ import no.uio.musit.microservices.common.utils.ServiceHelper._
 trait StorageUnitService {
 
   def create(storageUnit: StorageUnit): Future[Either[MusitError, StorageUnit]] = {
-    val newStorageUnitF = StorageUnitDao.insert(storageUnit)
+    val newStorageUnitF = StorageUnitDao.insertAndRun(storageUnit)
     val value: Future[Either[MusitError, StorageUnit]] = newStorageUnitF.map { newStorageUnit =>
       Right(newStorageUnit)
     }
@@ -69,7 +69,8 @@ trait StorageUnitService {
 
 }
 
-object StorageUnitService extends StorageUnitService
+object StorageUnitService extends StorageUnitService {
+}
 
 trait RoomService {
   def create(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[Either[MusitError, (StorageUnit, StorageRoom)]] = {
@@ -80,6 +81,10 @@ trait RoomService {
     value.recover {
       case _ => Left(MusitError(400, "va da feil??"))
     }
+  }
+
+  def updateRoomByID(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
+    ServiceHelper.daoUpdateById(StorageUnitDao.updateRoomByID, id, storageUnitAndRoom)
   }
 }
 

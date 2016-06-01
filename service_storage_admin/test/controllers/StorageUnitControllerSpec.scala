@@ -30,7 +30,7 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
           Some("1"), Some("1"), Some("1"), Some("1"), Some("1"), Some("1"),
           None))
 
-        storageUnit <- insert(StorageUnit(None, "StorageUnit", "HYLLE1", Some(5), Some("1"), building._1.id, Some(5),
+        storageUnit <- insertAndRun(StorageUnit(None, "StorageUnit", "HYLLE1", Some(5), Some("1"), building._1.id, Some(5),
           Some("skriv"), Some("les"), None))
 
         svarTemp <- StorageUnitDao.all()
