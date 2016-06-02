@@ -76,6 +76,9 @@ trait StorageUnitService {
     res
   }
 
+
+
+
   def getStorageType(id: Long): Future[Option[StorageUnitType]] = StorageUnitDao.getStorageType(id)
 
   def all: Future[Seq[StorageUnit]] = {

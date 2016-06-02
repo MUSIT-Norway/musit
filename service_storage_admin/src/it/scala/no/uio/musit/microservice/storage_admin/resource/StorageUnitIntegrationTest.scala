@@ -136,13 +136,13 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       storageUnit.storageUnitName mustBe "Rom1"
 
       val udateRoomJson = """{"storageType":"storageroom","storageUnitName":"RomNyttNavn", "sikringSkallsikring": "1"}"""
-      val res = for {
+      val res = (for {
         _ <- updateStorageUnit(id, udateRoomJson)
         room <- getRoomAsObject(id)
         stUnit <- getStorageUnitAsObject(id)
-      } yield (stUnit, room)
-      res.futureValue._1.storageUnitName mustBe "RomNyttNavn"
-      res.futureValue._2.sikringSkallsikring mustBe Some("1")
+      } yield (stUnit, room)) |> waitFutureValue
+      res._1.storageUnitName mustBe "RomNyttNavn"
+      res._2.sikringSkallsikring mustBe Some("1")
     }
 
 
@@ -157,14 +157,14 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       storageUnit.storageUnitName mustBe "Bygning0"
 
       val udateJson = """{"storageType":"building","storageUnitName":"NyBygning", "address": "OrdentligAdresse"}"""
-      val res = for {
+      val res = (for {
         _ <- updateStorageUnit(id, udateJson)
         room <- getBuildingAsObject(id)
         stUnit <- getStorageUnitAsObject(id)
-      } yield (stUnit, room)
+      } yield (stUnit, room)) |> waitFutureValue
 
-      res.futureValue._1.storageUnitName mustBe "NyBygning"
-      res.futureValue._2.address mustBe Some("OrdentligAdresse")
+      res._1.storageUnitName mustBe "NyBygning"
+      res._2.address mustBe Some("OrdentligAdresse")
     }
 
     "update room should fail with bad id" in {

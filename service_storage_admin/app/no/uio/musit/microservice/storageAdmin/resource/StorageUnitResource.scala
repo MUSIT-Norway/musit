@@ -20,7 +20,7 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
+import no.uio.musit.microservice.storageAdmin.service.{BuildingService, RoomService, StorageUnitService}
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ResourceHelper
@@ -29,6 +29,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import no.uio.musit.microservices.common.utils.Misc._
 
 class StorageUnitResource extends Controller {
 
@@ -38,6 +39,14 @@ class StorageUnitResource extends Controller {
       case e: JsError => Future.successful(BadRequest(Json.toJson(e.toString)))
     }
   }
+
+  def jsResultToEither[T](jsRes: JsResult[T]) /*: Either[Status, T]*/ = {
+    jsRes match {
+      case s: JsSuccess[T] => Right(s.value)
+      case e: JsError => Left(BadRequest(Json.toJson(e.toString)))
+    }
+  }
+
 
   def eitherToCreatedOrBadRequestResult[T](either: Either[MusitError, T])(jsonProvider: T => JsValue): Result = {
     either match {
@@ -120,49 +129,74 @@ class StorageUnitResource extends Controller {
 
   def BadMusitRequest(text: String) = BadRequest(Json.toJson(MusitError(BAD_REQUEST, text)))
 
-  def resultToText(r: Result) = {
-    val body = r.body
-    //Iteratee.consume(body).map(x => new String(x))
-  }
 
-  def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
-    request =>
-      {
-        def handleHasStorageType(storageUnitType: StorageUnitType) = {
-          def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
-
-          storageUnitType match {
-            case StUnit => {
-              ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
-            }
-            case Room => {
-              val jsTuple = for {
-                storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
-                room <- request.body.validate[StorageRoom].map(_.copy(id = Some(id)))
-              } yield (storageUnit, room)
-
-              val res = ResourceHelper.updateRoot(RoomService.updateRoomByID, id, jsTuple)
-              res
-
-            }
-            case Building => {
-              val jsTuple = for {
-                storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
-                building <- request.body.validate[StorageBuilding].map(_.copy(id = Some(id)))
-              } yield (storageUnit, building)
-
-              val res = ResourceHelper.updateRoot(BuildingService.updateBuildingByID, id, jsTuple)
-              res
-            }
-          }
-        }
-
-        val futOptStorageType = StorageUnitService.getStorageType(id)
-        val resTemp = futOptStorageType.foldOption(storageUnitType => handleHasStorageType(storageUnitType), Future(BadMusitRequest(s"Unknown storageUnit with ID: $id")))
-        val res = resTemp.flatMap(identity)
-        res
+  def fromJsonToStorageUnitTriple(json: JsValue): Either[Result, StorageUnitTriple] = {
+    val storageType = (json \ "storageType").as[String]
+    StorageUnitType(storageType) match {
+      case StUnit => {
+        val jsResultStUnit = json.validate[StorageUnit]
+        jsResultStUnit.map(StorageUnitTriple.fromStorageUnit) |> jsResultToEither
 
       }
+      case Room => {
+        val roomResult = {
+          for {
+            storageUnit <- json.validate[StorageUnit]
+            storageRoom <- json.validate[StorageRoom]
+          } yield StorageUnitTriple.fromRoom(storageUnit, storageRoom)
+        }
+        jsResultToEither(roomResult)
+      }
+      case Building => {
+        val buildingResult = {
+          for {
+            storageUnit <- json.validate[StorageUnit]
+            storageBuilding <- json.validate[StorageBuilding]
+          } yield StorageUnitTriple.fromBuilding(storageUnit, storageBuilding)
+        }
+        jsResultToEither(buildingResult)
+      }
+    }
+  }
+
+  // TODO: Move logic to service
+  def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
+    request => {
+      def handleHasStorageType(storageUnitType: StorageUnitType) = {
+        def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
+
+        storageUnitType match {
+          case StUnit => {
+            ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
+          }
+          case Room => {
+            val jsTuple = for {
+              storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
+              room <- request.body.validate[StorageRoom].map(_.copy(id = Some(id)))
+            } yield (storageUnit, room)
+
+            val res = ResourceHelper.updateRoot(RoomService.updateRoomByID, id, jsTuple)
+            res
+
+          }
+          case Building => {
+            val jsTuple = for {
+              storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
+              building <- request.body.validate[StorageBuilding].map(_.copy(id = Some(id)))
+            } yield (storageUnit, building)
+
+            val res = ResourceHelper.updateRoot(BuildingService.updateBuildingByID, id, jsTuple)
+            res
+          }
+        }
+      }
+
+      val futOptStorageType = StorageUnitService.getStorageType(id)
+      val resTemp = futOptStorageType.foldOption(storageUnitType => handleHasStorageType(storageUnitType), Future(BadMusitRequest(s"Unknown storageUnit with ID: $id")))
+      val res = resTemp.flatten
+      res
+
+    }
   }
 }
 

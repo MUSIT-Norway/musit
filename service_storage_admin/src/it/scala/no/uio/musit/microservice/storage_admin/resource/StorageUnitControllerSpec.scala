@@ -5,14 +5,14 @@ import no.uio.musit.microservice.storageAdmin.domain.{StorageBuilding, StorageRo
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.PlayTestDefaults._
 
-class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
+class StorageUnitControllerSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
@@ -46,9 +46,9 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
       }
 
       val svar2 = svar |> waitFutureValue
-      for( storageUnit <- svar2) {
-      println(s"id: ${storageUnit.id}")
-        }
+      for (storageUnit <- svar2) {
+        println(s"id: ${storageUnit.id}")
+      }
 
     }
 

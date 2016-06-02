@@ -1,6 +1,7 @@
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
+import no.uio.musit.microservices.common.domain.{MusitError, MusitStatusMessage}
+//import play.api.http.Status
 import play.api.mvc.Result
 import play.api.libs.json._
 import play.libs.Json._
@@ -19,6 +20,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ResourceHelper {
 
+
+  def badRequest(text: String) = Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, text))
+  def futureBadRequest(text: String) = Future.successful(badRequest(text))
+
+
   def updateRoot[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A], objectTransformer: A => A = identity[A] _): Future[Result] = {
     //val validatedResult: JsResult[A] = request.body.validate[A]
     validatedResult match {
@@ -29,7 +35,7 @@ object ResourceHelper {
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
 
-      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, e.toString))))
+      case e: JsError => /*futureBadRequest(e.toString) //#OLD */ Future.successful(BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, e.toString))))
     }
   }
 
