@@ -27,8 +27,18 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     Some(Seq(LinkService.self(s"/v1/${id.get}")))
   }
 
-  def getById(id: Long): Future[Option[StorageUnit]] = {
+  def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] = {
     val action = StorageUnitTable.filter(_.id === id).result.headOption
+    db.run(action)
+  }
+
+  def getRoomById(id: Long): Future[Option[StorageRoom]] = {
+    val action = RoomTable.filter(_.id === id).result.headOption
+    db.run(action)
+  }
+
+  def getBuildingById(id: Long): Future[Option[StorageBuilding]] = {
+    val action = BuildingTable.filter(_.id === id).result.headOption
     db.run(action)
   }
 
@@ -118,6 +128,20 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     val action = (for {
       n <- updateStorageUnitByIdNoRun(id, storageUnitAndRoom._1)
       m <- updateRoomOnlyByIdNoRun(id, storageUnitAndRoom._2.copy(id = Some(id)))
+      if (n == 1 && m == 1)
+    } yield 1).transactionally
+    db.run(action)
+  }
+
+  def updateBuildingOnlyByIdNoRun(id: Long, storageBuilding: StorageBuilding): DBIO[Int] = {
+    BuildingTable.filter(_.id === id).update(storageBuilding)
+  }
+
+  def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
+
+    val action = (for {
+      n <- updateStorageUnitByIdNoRun(id, storageUnitAndBuilding._1)
+      m <- updateBuildingOnlyByIdNoRun(id, storageUnitAndBuilding._2.copy(id = Some(id)))
       if (n == 1 && m == 1)
     } yield 1).transactionally
     db.run(action)

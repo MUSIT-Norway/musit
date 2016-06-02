@@ -51,6 +51,15 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     } yield room
   }
 
+  def getBuildingAsObject(id: Long): Future[StorageBuilding] = {
+    for {
+      resp <- getStorageUnit(id)
+      room = Json.parse(resp.body).validate[StorageBuilding].get
+    } yield room
+  }
+
+
+
   def getStorageUnitAsObject(id: Long): Future[StorageUnit] = {
     for {
       resp <- getStorageUnit(id)
@@ -93,13 +102,13 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
         storageUnit.getId mustBe 1
       }
       assert(futureSucceeded(future))
-//      future.futureValue
+      //      future.futureValue
     }
     "negative get by id" in {
       val future = WS.url(s"http://localhost:$port/v1/storageunit/9999").get()
       whenReady(future, timeout) { response =>
         val error = Json.parse(response.body).validate[MusitError].get
-        error.message mustBe "Did not find storage unit with id: 9999"
+        error.message mustBe "Unknown storageUnit with ID: 9999"
       }
       future.futureValue
     }
@@ -120,10 +129,9 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
         stUnit <- getStorageUnitAsObject(1)
       } yield stUnit
 
-
       whenReady(future, timeout) { stUnit =>
 
-        assert(stUnit.storageUnitName=="ROM1")
+        assert(stUnit.storageUnitName == "ROM1")
       }
       //future.futureValue mustBe 1
       assert(futureSucceeded(future))
@@ -133,96 +141,67 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     "update storageUnit" in {
       val myJSon ="""{"storageType":"storageunit","storageUnitName":"hylle2"}"""
       println("Skal create/poste hylle2")
-      val future = createStorageUnit(myJSon)
+      val response = createStorageUnit(myJSon).futureValue
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+      storageUnit.storageUnitName mustBe "hylle2"
+      println(s"Update - ID: ${storageUnit.getId} storageUnitName: ${storageUnit.storageUnitName}")
+      val storageJson = Json.parse(response.body).asInstanceOf[JsObject].+("storageUnitName" -> JsString("hylle3"))
+      println(s"Skal oppdatere hylle2 til hylle3: $storageJson")
 
-      future.map {
-        response => {
+      val antUpdated = updateStorageUnit(storageUnit.getId, storageJson.toString()).futureValue
+      assert(antUpdated.status == 200)
+      val updatedObjectResponse = getStorageUnit(storageUnit.getId).futureValue
+      val updatedObject = Json.parse(updatedObjectResponse.body).validate[StorageUnit].get
 
-          val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-          storageUnit.storageUnitName mustBe "hylle2"
-          println(s"Update - ID: ${storageUnit.getId} storageUnitName: ${storageUnit.storageUnitName}")
-          val storageJson = Json.parse(response.body).asInstanceOf[JsObject].+("storageUnitName" -> JsString("hylle3"))
-          println(s"Skal oppdatere hylle2 til hylle3: $storageJson")
-          val res = for {
-            future2 <- updateStorageUnit(storageUnit.getId, storageJson.toString())
-            updatedObjectResponse <- getStorageUnit(storageUnit.getId)
-            updatedObject = Json.parse(updatedObjectResponse.body).validate[StorageUnit].get
+      updatedObject.storageUnitName mustBe ("hylle3")
 
-          } yield updatedObject
-
-          whenReady(res, timeout) { updatedObject2 =>
-            println(s"hYLLA!:${updatedObject2.storageUnitName}")
-
-            //En god del av nedenstående bør feile, men kan ikke se at dette skjer???!!! Men vi ser at println på linja over skjer...??!!!
-            updatedObject2.storageUnitName mustBe Some("nei!")
-            updatedObject2.storageUnitName mustBe "nei!"
-            updatedObject2.storageUnitName must === ("nei!")
-            updatedObject2.storageUnitName must not be "nei!"
-            assert(updatedObject2.storageUnitName=="nei!")
-            assert(false)
-          }
-
-
-          val future2 = WS.url(s"http://localhost:$port/v1/storageunit/${storageUnit.getId}").put(storageJson)
-          //val future3 = future2.map(fut2 =>
-
-
-          whenReady(future2, timeout) { response =>
-            /*  val storageUnits = Json.parse(response.body).validate[Seq[StorageUnit]].get
-            storageUnits.length mustBe 1*/
-          }
-          assert(futureSucceeded(res))
-          assert(futureSucceeded(future2))
-          future2.futureValue mustBe a [WSResponse]
-          res.futureValue mustBe a [StorageUnit]
-          res.futureValue mustBe be (null)
-        }
-      }
-      assert(futureSucceeded(future))
     }
-
-
 
     "update storageRoom" in {
       val myJSon ="""{"storageType":"room","storageUnitName":"Rom1", "sikringSkallsikring": "0"}"""
       val future = createStorageUnit(myJSon)
+      val response = future.futureValue
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+      val storageRoom = Json.parse(response.body).validate[StorageRoom].get
+      storageRoom.sikringSkallsikring mustBe Some("0")
+      val id = storageUnit.getId
+      println(s"ID: $id Skallsikring før oppdatering: ${storageRoom.sikringSkallsikring}")
+      storageUnit.storageUnitName mustBe "Rom1"
 
-      val roomFut = future.map {
-        response => {
-
-          val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-          val storageRoom = Json.parse(response.body).validate[StorageRoom].get
-          storageRoom.sikringSkallsikring mustBe Some("0")
-          val id = storageUnit.getId
-          println(s"ID: $id Skallsikring før oppdatering: ${storageRoom.sikringSkallsikring}")
-          storageUnit.storageUnitName mustBe "Rom1"
-
-          val json2 = """{"storageType":"storageroom","storageUnitName":"RomNyttNavn", "sikringSkallsikring": "1"}"""
-          val res = for {
-            _ <- updateStorageUnit(id, json2)
-            room <- getRoomAsObject(id)
-            stUnit <- getStorageUnitAsObject(id)
-          } yield (stUnit, room)
-          println("inni storageRoom")
-          whenReady(res, timeout) { pair =>
-              val room = pair._2
-            val stUnit = pair._1
-            stUnit.storageUnitName mustBe "RomNyttNavn"
-            println(s"Rom, skallsikring etter oppdatering: ${room.sikringSkallsikring}  Rommet som helhet: $room")
-            println(s"stUnit etter oppdat: $stUnit")
-            room.sikringSkallsikring mustBe Some("1")
-
-
-
-          }
-        }
-
-      }
+      val udateRoomJson = """{"storageType":"storageroom","storageUnitName":"RomNyttNavn", "sikringSkallsikring": "1"}"""
+      val res = for {
+        _ <- updateStorageUnit(id, udateRoomJson)
+        room <- getRoomAsObject(id)
+        stUnit <- getStorageUnitAsObject(id)
+      } yield (stUnit, room)
+      println("inni storageRoom")
+      res.futureValue._1.storageUnitName mustBe "RomNyttNavn"
+      res.futureValue._2.sikringSkallsikring mustBe Some("1")
       future.futureValue
-      roomFut.futureValue
     }
 
 
+    "update storageBuilding" in {
+      val myJSon ="""{"storageType":"building","storageUnitName":"Bygning0", "address": "vet ikke"}"""
+      val future = createStorageUnit(myJSon)
+      val response = future.futureValue
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+      val storageBuilding = Json.parse(response.body).validate[StorageBuilding].get
+      storageBuilding.address mustBe Some("vet ikke")
+      val id = storageUnit.getId
+      storageUnit.storageUnitName mustBe "Bygning0"
+
+      val udateJson = """{"storageType":"building","storageUnitName":"NyBygning", "address": "OrdentligAdresse"}"""
+      val res = for {
+        _ <- updateStorageUnit(id, udateJson)
+        room <- getBuildingAsObject(id)
+        stUnit <- getStorageUnitAsObject(id)
+      } yield (stUnit, room)
+
+      res.futureValue._1.storageUnitName mustBe "NyBygning"
+      res.futureValue._2.address mustBe Some("OrdentligAdresse")
+      future.futureValue
+    }
 
     "update room should fail with bad id" in {
       val myJSonRoom ="""{"storageType":"Room","storageUnitName":"ROM1"}"""

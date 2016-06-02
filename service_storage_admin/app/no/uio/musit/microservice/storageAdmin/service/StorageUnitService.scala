@@ -19,13 +19,14 @@
 package no.uio.musit.microservice.storageAdmin.service
 
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
-import no.uio.musit.microservice.storageAdmin.domain.{ StorageBuilding, StorageRoom, StorageUnit, StorageUnitType }
+import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
-import no.uio.musit.microservices.common.utils.ServiceHelper
+import no.uio.musit.microservices.common.utils.{ ResourceHelper, ServiceHelper }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import no.uio.musit.microservices.common.utils.ServiceHelper._
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
 trait StorageUnitService {
 
@@ -43,8 +44,36 @@ trait StorageUnitService {
     StorageUnitDao.getChildren(id)
   }
 
-  def getById(id: Long): Future[Option[StorageUnit]] = {
-    StorageUnitDao.getById(id)
+  def getById(id: Long): Future[Either[MusitError, (StorageUnit, Option[StorageRoom], Option[StorageBuilding])]] = {
+
+    def handleStorageUnit(storageUnit: StorageUnit) = {
+
+      storageUnit.storageKind match {
+        case StUnit =>
+          Future.successful(storageUnit, None, None)
+        case Room => {
+          StorageUnitDao.getRoomById(id).map(optStorageRoom => (storageUnit, optStorageRoom, None))
+        }
+        case Building =>
+          StorageUnitDao.getBuildingById(id).map(optStorageBuilding => (storageUnit, None, optStorageBuilding))
+      }
+    }
+
+    val fOptStorageUnit = StorageUnitDao.getStorageUnitOnlyById(id)
+    val futFut = fOptStorageUnit.map { optStorageUnit =>
+      optStorageUnit match {
+        case Some(storageUnit) => handleStorageUnit(storageUnit)
+        case None => Future.successful(())
+      }
+    }
+    val fut = futFut.flatten
+    val res = fut.map { content =>
+      content match {
+        case () => ServiceHelper.badRequest(s"Unknown storageUnit with ID: $id")
+        case x => Right(x.asInstanceOf[(StorageUnit, Option[StorageRoom], Option[StorageBuilding])])
+      }
+    }
+    res
   }
 
   def getStorageType(id: Long): Future[Option[StorageUnitType]] = StorageUnitDao.getStorageType(id)
@@ -53,7 +82,7 @@ trait StorageUnitService {
     StorageUnitDao.all()
   }
 
-  def find(id: Long): Future[Option[StorageUnit]] = {
+  def find(id: Long) = {
     getById(id)
   }
 
@@ -99,6 +128,9 @@ trait BuildingService {
     value.recover {
       case _ => Left(MusitError(400, "va da feil??"))
     }
+  }
+  def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
+    ServiceHelper.daoUpdateById(StorageUnitDao.updateBuildingByID, id, storageUnitAndBuilding)
   }
 }
 

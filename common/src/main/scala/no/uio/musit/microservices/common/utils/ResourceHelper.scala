@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ResourceHelper {
 
-  def updateRoot[A, L, R](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A], objectTransformer: A => A = identity[A] _): Future[Result] = {
+  def updateRoot[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A], objectTransformer: A => A = identity[A] _): Future[Result] = {
     //val validatedResult: JsResult[A] = request.body.validate[A]
     validatedResult match {
       case s: JsSuccess[A] =>
@@ -30,6 +30,16 @@ object ResourceHelper {
         }
 
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, e.toString))))
+    }
+  }
+
+  def getRootFromEither[A](serviceUpdateCall: (Long) => Future[Either[MusitError, A]], id: Long, toJsonTransformer: A => JsValue): Future[Result] = {
+    val futResObject = serviceUpdateCall(id)
+    futResObject.map { resObject =>
+      resObject match {
+        case Right(obj) => Ok(toJsonTransformer(obj))
+        case Left(error) => Status(error.status)(Json.toJson(error))
+      }
     }
   }
 
