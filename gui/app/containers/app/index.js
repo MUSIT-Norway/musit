@@ -38,6 +38,7 @@ const mapStateToProps = (state) => {
     return Promise.all(promises);
   }
 }])
+
 @connect(mapStateToProps)
 class App extends Component {
   static propTypes = {
@@ -79,8 +80,6 @@ class App extends Component {
 
     return (
       <div className={styles.app}>
-
-
         <Helmet {...config.app.head} />
         <Navbar fixedTop>
           <Navbar.Header>
@@ -92,7 +91,6 @@ class App extends Component {
             </Navbar.Brand>
             <Navbar.Toggle />
           </Navbar.Header>
-
           <Navbar.Collapse eventKey={0}>
             <Nav navbar>
               {user &&
@@ -144,15 +142,10 @@ class App extends Component {
             </Nav>
           </Navbar.Collapse>
         </Navbar>
-
-
         <div className={styles.appContent}>
           {this.props.children}
         </div>
-
-
         {null && <InfoBar />}
-
         <div className="well text-center">
           Have questions? Ask for help<a
             href="https://github.com/MUSIT-Norway/musit/issues"
