@@ -49,6 +49,8 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.1.0")
 // scoverage Plugin
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.1.0")
 
+addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.0")
+
 // sbt-web plugin for gzip compressing web assets
 addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0")
 
