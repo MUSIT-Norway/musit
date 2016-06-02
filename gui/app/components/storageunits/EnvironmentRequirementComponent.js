@@ -30,9 +30,9 @@ export default class EnvironmentRequirementComponent extends Component {
         relativeHumidityTolerance: '',
         inertAir: '',
         inertAirTolerance: '',
-        airRatio: 'airRatio',
-        renhold: 'renhold',
-        comments: 'comments here'
+        renhold: '',
+        lightCondition: '',
+        comments: ''
       }
     }
 
@@ -101,30 +101,31 @@ export default class EnvironmentRequirementComponent extends Component {
       onChange: (inertAirTolerance) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, inertAirTolerance } })
     }
 
-    this.airRatio = {
-      controlId: 'airRatio',
-      labelText: 'Air Ratio',
-      placeHolderText: 'enter description here',
-      valueType: 'text',
-      tooltip: 'Air Ratio',
-      valueText: () => clazz.state.environmentRequirement.airRatio,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.airRatio),
-      onChange: (airRatio) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, airRatio } })
-    }
     this.renhold = {
       controlId: 'renhold',
       labelText: 'Renhold',
-      placeHolderText: 'enter description here',
+      placeHolderText: '',
       tooltip: 'Renhold',
       valueType: 'text',
       valueText: () => clazz.state.environmentRequirement.renhold,
       validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.renhold),
       onChange: (renhold) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, renhold } })
     }
+
+    this.lightCondition = {
+      controlId: 'lightCondition',
+      labelText: 'LightCondition',
+      placeHolderText: '',
+      valueType: 'text',
+      tooltip: 'Light Condition',
+      valueText: () => clazz.state.environmentRequirement.lightCondition,
+      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.lightCondition),
+      onChange: (lightCondition) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, lightCondition } })
+    }
     this.comments = {
       controlId: 'comments',
       labelText: 'Comments',
-      placeHolderText: 'enter description here',
+      placeHolderText: '',
       tooltip: 'Comments',
       valueType: 'text',
       valueText: () => clazz.state.environmentRequirement.comments,
@@ -140,58 +141,53 @@ export default class EnvironmentRequirementComponent extends Component {
                 <Panel>
                     <Grid>
                         <Row styleClass="row-centered">
-                            <Col md={6}>
-                                <Grid>
-                                    <Row styleClass="row-centered">
-                                        <Col md={3}>
-                                            <Form horizontal>
-                                                <TextField {...this.temperature} />
-                                            </Form>
-                                        </Col>
-                                        <Col md={3}>
-                                            <Form horizontal>
-                                                <TextField {...this.temperatureTolerance} />
-                                            </Form>
-                                        </Col>
-                                    </Row>
-                                    <Row styleClass="row-centered">
-                                        <Col md={6}>
-                                            <Form horizontal>
-                                                <TextField {...this.relativeHumidity} />
-                                            </Form>
-                                        </Col>
-                                    </Row>
-                                    <Row styleClass="row-centered">
-                                        <Col md={6}>
-                                            <Form horizontal>
-                                                <TextField {...this.inertAir} />
-                                            </Form>
-                                        </Col>
-                                    </Row>
-                                </Grid>
+                            <Col md={3}>
+                                <Form horizontal>
+                                    <TextField {...this.temperature} />
+                                </Form>
                             </Col>
-                            <Col md={6}>
-                                <Grid>
-                                    <Row styleClass="row-centered">
-                                        <Col md={6}>
-                                            <Form horizontal>
-                                                <TextField {...this.airRatio} />
-                                            </Form>
-                                        </Col>
-                                    </Row>
-                                    <Row styleClass="row-centered">
-                                        <Col md={6}>
-                                            <Form horizontal>
-                                                <TextField {...this.renhold} />
-                                            </Form>
-                                        </Col>
-                                    </Row>
-
-                                </Grid>
+                            <Col md={3}>
+                                <Form horizontal>
+                                    <TextField {...this.temperatureTolerance} />
+                                </Form>
+                            </Col>
+                            <Col md={3}>
+                                <Form horizontal>
+                                    <TextField {...this.relativeHumidity} />
+                                </Form>
+                            </Col>
+                            <Col md={3}>
+                                <Form horizontal>
+                                    <TextField {...this.relativeHumidityTolerance} />
+                                </Form>
                             </Col>
                         </Row>
                         <Row styleClass="row-centered">
-                            <Col md={16}>
+                            <Col md={3}>
+                                <Form horizontal>
+                                    <TextField {...this.inertAir} />
+                                </Form>
+                            </Col>
+                            <Col md={3}>
+                                <Form horizontal>
+                                    <TextField {...this.inertAirTolerance} />
+                                </Form>
+                            </Col>
+                            <Col md={6}>
+                                <Form horizontal>
+                                    <TextField {...this.renhold} />
+                                </Form>
+                            </Col>
+                         </Row>
+                         <Row styleClass="row-centered">
+                            <Col md={6}>
+                                <Form horizontal>
+                                    <TextField {...this.lightCondition} />
+                                </Form>
+                            </Col>
+                        </Row>
+                        <Row styleClass="row-centered">
+                            <Col md={12}>
                                 <Form horizontal>
                                     <TextField {...this.comments} />
                                 </Form>

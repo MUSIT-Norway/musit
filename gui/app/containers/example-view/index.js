@@ -133,7 +133,6 @@ export default class ExampleView extends Component {
               </Row>
             </Grid>
           </Panel>
-
           <StorageUnitComponents />
           <EnvironmentRequirementComponent />
 
