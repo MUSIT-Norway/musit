@@ -20,6 +20,8 @@
 import React, { Component } from 'react';
 import TextField from '../../components/musittextfield';
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
+import Autosuggest from 'react-autosuggest'
+import AutosuggestHighlight from 'autosuggest-highlight'
 
 export default class ExampleView extends Component {
   static validateString(value, minimumLength = 3, maximumLength = 20) {
@@ -44,7 +46,9 @@ export default class ExampleView extends Component {
         note: '',
         areal: '',
         type: 'Rom'
-      }
+      },
+      suggestions: [],
+      value: ''
     }
 
     const clazz = this
@@ -92,9 +96,70 @@ export default class ExampleView extends Component {
         onChange: (note) => clazz.setState({ unit: { ...clazz.state.unit, note } })
       }
     ]
+    this.onSuggestionsUpdateRequested = this.onSuggestionsUpdateRequested.bind(this)
+    this.onChange = this.onChange.bind(this)
+  }
+
+  onSuggestionsUpdateRequested({ value }) {
+    if (value && value.length >= 3) {
+      this.setState({
+        suggestions: this.getSuggestions()
+      })
+    } else {
+      this.setState({
+        suggestions: []
+      })
+    }
+  }
+
+  getSuggestions() {
+    return ['aaaa', 'bbbb', 'cccc']
+  }
+
+  getSuggestionValue(suggestion) {
+    return suggestion
+  }
+
+  renderSuggestion(suggestion, { value, valueBeforeUpDown }) {
+    console.log(suggestion)
+    console.log(value)
+    console.log(valueBeforeUpDown)
+    const suggestionText = `${suggestion}`
+    const query = (valueBeforeUpDown || value).trim()
+    const matches = AutosuggestHighlight.match(suggestionText, query)
+    const parts = AutosuggestHighlight.parse(suggestionText, matches)
+
+    return (
+      <span>
+        <span>
+          {
+            parts.map((part, index) => {
+              const className = part.highlight ? 'highlight' : null;
+
+              return (
+                <span className={className} key={index}>{part.text}</span>
+              )
+            })
+          }
+        </span>
+      </span>
+    )
+  }
+
+  onChange(event, { newValue, method }) {
+    this.setState({
+      value: newValue
+    })
   }
 
   render() {
+    const { suggestions, value } = this.state
+    const inputProps = {
+      placeholder: 'Type anything more then 3 letters',
+      value,
+      onChange: this.onChange
+    }
+
     return (
       <div>
         <main>
@@ -115,6 +180,16 @@ export default class ExampleView extends Component {
                     <TextField {...this.areal} />
                     <TextField {...this.areal} />
                   </Form>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={12}>
+                  <Autosuggest suggestions={suggestions}
+                    onSuggestionsUpdateRequested={this.onSuggestionsUpdateRequested}
+                    getSuggestionValue={this.getSuggestionValue}
+                    renderSuggestion={this.renderSuggestion}
+                    inputProps={inputProps}
+                  />
                 </Col>
               </Row>
             </Grid>

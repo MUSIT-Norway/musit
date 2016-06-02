@@ -98,6 +98,7 @@
   "license": "SEE LICENSE IN ../LICENSE.md",
   "dependencies": {
     "autoprefixer": "^6.3.6",
+    "autosuggest-highlight": "^2.1.1",
     "babel-core": "^6.9.0",
     "babel-loader": "^6.2.4",
     "babel-plugin-add-module-exports": "^0.1.2",
@@ -123,6 +124,7 @@
     "piping": "^0.3.0",
     "pretty-error": "^2.0.0",
     "react": "^15.1.0",
+    "react-autosuggest": "^3.7.4",
     "react-bootstrap": "^0.29.4",
     "react-dom": "^15.1.0",
     "react-helmet": "^3.1.0",
