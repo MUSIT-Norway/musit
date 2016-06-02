@@ -24,12 +24,12 @@ export default class EnvironmentRequirementComponent extends Component {
 
     this.state = {
       environmentRequirement: {
-        temperature: '',
-        temperatureTolerance: '',
-        relativeHumidity: '',
-        relativeHumidityTolerance: '',
-        inertAir: '',
-        inertAirTolerance: '',
+        temperature1: '',
+        temperature2: '',
+        relativeHumidity1: '',
+        relativeHumidity2: '',
+        inertAir1: '',
+        inertAir2: '',
         renhold: '',
         lightCondition: '',
         comments: ''
@@ -39,66 +39,51 @@ export default class EnvironmentRequirementComponent extends Component {
     const clazz = this
 
     this.temperature = {
-      controlId: 'temperature',
+      controlId: 'temperature1',
+      controlId2: 'temperature2',
       labelText: 'Temperature',
-      placeHolderText: 'C',
       tooltip: 'Temperature',
-      valueType: 'text',
-      valueText: () => clazz.state.environmentRequirement.temperature,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.temperature),
-      onChange: (temperature) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, temperature } })
-    }
-    this.temperatureTolerance = {
-      controlId: 'temperatureTolerance',
-      labelText: '+/-',
-      placeHolderText: 'int',
-      tooltip: 'Temperature Tolerance',
-      valueType: 'text',
-      valueText: () => clazz.state.environmentRequirement.temperatureTolerance,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.temperatureTolerance),
-      onChange: (temperatureTolerance) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, temperatureTolerance } })
+      valueType: 'number',
+      placeHolderText: 'C',
+      placeHolderText2: 'int',
+      valueText: () => clazz.state.environmentRequirement.temperature1,
+      valueText2: () => clazz.state.environmentRequirement.temperature2,
+      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.temperature1),
+      validationState2: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.temperature2),
+      onChange: (temperature1) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, temperature1 } }),
+      onChange2: (temperature2) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, temperature2 } })
     }
 
     this.relativeHumidity = {
-      controlId: 'relativeHumidity',
+      controlId: 'relativeHumidity1',
+      controlId2: 'relativeHumidity2',
       labelText: 'Relativ Humidity',
-      placeHolderText: '%',
       tooltip: 'Relativ Humidity',
-      valueType: 'text',
-      valueText: () => clazz.state.environmentRequirement.relativeHumidity,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.relativeHumidity),
-      onChange: (relativeHumidity) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, relativeHumidity } })
-    }
-    this.relativeHumidityTolerance = {
-      controlId: 'relativeHumidityTolerance',
-      labelText: '+/-',
-      placeHolderText: 'int',
-      tooltip: 'Relativ Humidity Tolerance',
-      valueType: 'text',
-      valueText: () => clazz.state.environmentRequirement.relativeHumidityTolerance,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.relativeHumidityTolerance),
-      onChange: (relativeHumidityTolerance) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, relativeHumidityTolerance } })
+      valueType: 'number',
+      placeHolderText: '%',
+      placeHolderText2: 'int',
+      valueText: () => clazz.state.environmentRequirement.relativeHumidity1,
+      valueText2: () => clazz.state.environmentRequirement.relativeHumidity2,
+      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.relativeHumidity1),
+      validationState2: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.relativeHumidity2),
+      onChange: (relativeHumidity1) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, relativeHumidity1 } }),
+      onChange2: (relativeHumidity2) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, relativeHumidity2 } })
     }
 
     this.inertAir = {
       controlId: 'inertAir1',
+      controlId2: 'inertAir2',
       labelText: 'Inert Air',
-      placeHolderText: '% O2',
       tooltip: 'Inert Air',
-      valueType: 'text',
-      valueText: () => clazz.state.environmentRequirement.inertAir,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.inertAir),
-      onChange: (inertAir) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, inertAir } })
-    }
-    this.inertAirTolerance = {
-      controlId: 'inertAirTolerance',
-      labelText: '+/-',
-      placeHolderText: 'int',
-      tooltip: 'Inert Air Tolerance',
-      valueType: 'text',
-      valueText: () => clazz.state.environmentRequirement.inertAirTolerance,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.inertAirTolerance),
-      onChange: (inertAirTolerance) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, inertAirTolerance } })
+      valueType: 'number',
+      placeHolderText: '% O2',
+      placeHolderText2: 'int',
+      valueText: () => clazz.state.environmentRequirement.inertAir1,
+      valueText2: () => clazz.state.environmentRequirement.temperature2,
+      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.inertAir1),
+      validationState2: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.inertAir2),
+      onChange: (inertAir1) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, inertAir1 } }),
+      onChange2: (inertAir2) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, inertAir2 } })
     }
 
     this.renhold = {
@@ -141,36 +126,21 @@ export default class EnvironmentRequirementComponent extends Component {
                 <Panel>
                     <Grid>
                         <Row styleClass="row-centered">
-                            <Col md={3}>
+                            <Col md={6}>
                                 <Form horizontal>
                                     <TextField {...this.temperature} />
                                 </Form>
                             </Col>
-                            <Col md={3}>
-                                <Form horizontal>
-                                    <TextField {...this.temperatureTolerance} />
-                                </Form>
-                            </Col>
-                            <Col md={3}>
+                            <Col md={6}>
                                 <Form horizontal>
                                     <TextField {...this.relativeHumidity} />
                                 </Form>
                             </Col>
-                            <Col md={3}>
-                                <Form horizontal>
-                                    <TextField {...this.relativeHumidityTolerance} />
-                                </Form>
-                            </Col>
                         </Row>
                         <Row styleClass="row-centered">
-                            <Col md={3}>
+                            <Col md={6}>
                                 <Form horizontal>
                                     <TextField {...this.inertAir} />
-                                </Form>
-                            </Col>
-                            <Col md={3}>
-                                <Form horizontal>
-                                    <TextField {...this.inertAirTolerance} />
                                 </Form>
                             </Col>
                             <Col md={6}>
