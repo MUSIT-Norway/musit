@@ -1,6 +1,6 @@
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{MusitError, MusitStatusMessage}
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
 //import play.api.http.Status
 import play.api.mvc.Result
 import play.api.libs.json._
@@ -20,10 +20,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ResourceHelper {
 
-
   def badRequest(text: String) = Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, text))
   def futureBadRequest(text: String) = Future.successful(badRequest(text))
 
+  def postRoot[A](servicePostCall: A => Future[Either[MusitError, A]], objectToPost: A, toJsonTransformer: A => JsValue) = {
+    val res = servicePostCall(objectToPost)
+    res.map { either =>
+      either.fold(
+        l => BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, l.toString))),
+        r => Created(toJsonTransformer(r))
+      )
+    }
+  }
 
   def updateRoot[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A], objectTransformer: A => A = identity[A] _): Future[Result] = {
     //val validatedResult: JsResult[A] = request.body.validate[A]
@@ -36,6 +44,13 @@ object ResourceHelper {
         }
 
       case e: JsError => /*futureBadRequest(e.toString) //#OLD */ Future.successful(BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, e.toString))))
+    }
+  }
+
+  def updateRoot[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, objectToUpdate: A): Future[Result] = {
+    serviceUpdateCall(id, objectToUpdate).map {
+      case Right(updateStatus) => Ok(Json.toJson(updateStatus))
+      case Left(error) => Status(error.status)(Json.toJson(error))
     }
   }
 

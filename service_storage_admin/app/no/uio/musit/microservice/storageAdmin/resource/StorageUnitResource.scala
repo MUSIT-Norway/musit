@@ -20,30 +20,30 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.service.{BuildingService, RoomService, StorageUnitService}
+import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.utils.Misc._
 
 class StorageUnitResource extends Controller {
-
-  def unwrapJsResult(jsRes: JsResult[Future[Result]]): Future[Result] = {
-    jsRes match {
-      case s: JsSuccess[Future[Result]] => s.value
-      case e: JsError => Future.successful(BadRequest(Json.toJson(e.toString)))
-    }
-  }
 
   def jsResultToEither[T](jsRes: JsResult[T]) /*: Either[Status, T]*/ = {
     jsRes match {
       case s: JsSuccess[T] => Right(s.value)
       case e: JsError => Left(BadRequest(Json.toJson(e.toString)))
+    }
+  }
+  /*#OLD
+
+  def unwrapJsResult(jsRes: JsResult[Future[Result]]): Future[Result] = {
+    jsRes match {
+      case s: JsSuccess[Future[Result]] => s.value
+      case e: JsError => Future.successful(BadRequest(Json.toJson(e.toString)))
     }
   }
 
@@ -55,9 +55,19 @@ class StorageUnitResource extends Controller {
     }
   }
 
+
   def mergeJson(jsonA: JsObject, jsonB: JsObject): JsObject = jsonA ++ jsonB
+*/
 
   @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
+  def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+
+    val eitherTriple = fromJsonToStorageUnitTriple(request.body)
+
+    eitherTriple.fold(r => Future.successful(r), triple => ResourceHelper.postRoot(StorageUnitService.createStorageTriple, triple, storageUnitTripleToJson))
+  }
+
+  /*#OLD
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val json = request.body
     val storageType = (json \ "storageType").as[String]
@@ -98,7 +108,7 @@ class StorageUnitResource extends Controller {
       }
     }
   }
-
+*/
   def getChildren(id: Long) = Action.async {
     request =>
       StorageUnitService.getChildren(id).map {
@@ -106,6 +116,12 @@ class StorageUnitResource extends Controller {
       }
   }
 
+  def getById(id: Long) = Action.async {
+    request =>
+      ResourceHelper.getRootFromEither(StorageUnitService.getById, id, storageUnitTripleToJson)
+  }
+
+  /*#OLD:
   def getById(id: Long) = Action.async {
     request =>
 
@@ -118,6 +134,7 @@ class StorageUnitResource extends Controller {
 
       ResourceHelper.getRootFromEither(StorageUnitService.getById, id, createJson)
   }
+ */
 
   def listAll = Action.async {
     request =>
@@ -129,6 +146,7 @@ class StorageUnitResource extends Controller {
 
   def BadMusitRequest(text: String) = BadRequest(Json.toJson(MusitError(BAD_REQUEST, text)))
 
+  def storageUnitTripleToJson(triple: StorageUnitTriple) = triple.toJson
 
   def fromJsonToStorageUnitTriple(json: JsValue): Either[Result, StorageUnitTriple] = {
     val storageType = (json \ "storageType").as[String]
@@ -145,7 +163,7 @@ class StorageUnitResource extends Controller {
             storageRoom <- json.validate[StorageRoom]
           } yield StorageUnitTriple.fromRoom(storageUnit, storageRoom)
         }
-        jsResultToEither(roomResult)
+        roomResult |> jsResultToEither
       }
       case Building => {
         val buildingResult = {
@@ -154,49 +172,58 @@ class StorageUnitResource extends Controller {
             storageBuilding <- json.validate[StorageBuilding]
           } yield StorageUnitTriple.fromBuilding(storageUnit, storageBuilding)
         }
-        jsResultToEither(buildingResult)
+        buildingResult |> jsResultToEither
       }
     }
   }
 
-  // TODO: Move logic to service
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
-    request => {
-      def handleHasStorageType(storageUnitType: StorageUnitType) = {
-        def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
+    request =>
+      {
+        val eitherTriple = fromJsonToStorageUnitTriple(request.body)
 
-        storageUnitType match {
-          case StUnit => {
-            ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
-          }
-          case Room => {
-            val jsTuple = for {
-              storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
-              room <- request.body.validate[StorageRoom].map(_.copy(id = Some(id)))
-            } yield (storageUnit, room)
-
-            val res = ResourceHelper.updateRoot(RoomService.updateRoomByID, id, jsTuple)
-            res
-
-          }
-          case Building => {
-            val jsTuple = for {
-              storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
-              building <- request.body.validate[StorageBuilding].map(_.copy(id = Some(id)))
-            } yield (storageUnit, building)
-
-            val res = ResourceHelper.updateRoot(BuildingService.updateBuildingByID, id, jsTuple)
-            res
-          }
-        }
+        eitherTriple.fold(r => Future.successful(r), triple => ResourceHelper.updateRoot(StorageUnitService.updateStorageTripleByID _, id, triple))
       }
-
-      val futOptStorageType = StorageUnitService.getStorageType(id)
-      val resTemp = futOptStorageType.foldOption(storageUnitType => handleHasStorageType(storageUnitType), Future(BadMusitRequest(s"Unknown storageUnit with ID: $id")))
-      val res = resTemp.flatten
-      res
-
-    }
   }
+  /*
+      // #OLD
+      def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
+        request => {
+          def handleHasStorageType(storageUnitType: StorageUnitType) = {
+            def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
+
+            storageUnitType match {
+              case StUnit => {
+                ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
+              }
+              case Room => {
+                val jsTuple = for {
+                  storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
+                  room <- request.body.validate[StorageRoom].map(_.copy(id = Some(id)))
+                } yield (storageUnit, room)
+
+                val res = ResourceHelper.updateRoot(RoomService.updateRoomByID, id, jsTuple)
+                res
+
+              }
+              case Building => {
+                val jsTuple = for {
+                  storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
+                  building <- request.body.validate[StorageBuilding].map(_.copy(id = Some(id)))
+                } yield (storageUnit, building)
+
+                val res = ResourceHelper.updateRoot(BuildingService.updateBuildingByID, id, jsTuple)
+                res
+              }
+            }
+          }
+
+          val futOptStorageType = StorageUnitService.getStorageType(id)
+          val resTemp = futOptStorageType.foldOption(storageUnitType => handleHasStorageType(storageUnitType), Future(BadMusitRequest(s"Unknown storageUnit with ID: $id")))
+          val res = resTemp.flatten
+          res
+
+        }
+      }*/
 }
 

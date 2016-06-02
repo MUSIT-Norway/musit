@@ -22,7 +22,7 @@ package no.uio.musit.microservice.storageAdmin.domain
 import no.uio.musit.microservice.storageAdmin.domain.LocalTypes.StorageBuildingOrRoom
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 
 object LocalTypes {
   type StorageBuildingOrRoom = Either[StorageBuilding, StorageRoom]
@@ -110,25 +110,25 @@ object StorageBuilding {
 
 }
 
-
+///Represents a StorageUnit or a StorageBuilding (together with its corresponding StorageUnit) or a StorageRoom (together with its corresponding StorageUnit)
 case class StorageUnitTriple(storageUnit: StorageUnit, buildingOrRoom: Option[StorageBuildingOrRoom]) {
   def storageKind: StorageUnitType = storageUnit.storageKind
 
   def getBuildingOrRoom = {
-    assert(storageKind==Building || storageKind==Room)
+    assert(storageKind == Building || storageKind == Room)
     assert(buildingOrRoom.isDefined)
 
     buildingOrRoom.get
   }
   def getBuilding = {
-    assert(storageKind==Building)
+    assert(storageKind == Building)
     val buildingOrRoom = getBuildingOrRoom
     assert(buildingOrRoom.isLeft)
     buildingOrRoom.left.get
   }
 
   def getRoom = {
-    assert(storageKind==Room)
+    assert(storageKind == Room)
     val buildingOrRoom = getBuildingOrRoom
     assert(buildingOrRoom.isRight)
     buildingOrRoom.right.get
@@ -136,13 +136,23 @@ case class StorageUnitTriple(storageUnit: StorageUnit, buildingOrRoom: Option[St
 
   def toJson = {
     storageKind match {
-      case StUnit => {storageUnit.toJson}
-      case Building => {storageUnit.toJson.++ (getRoom.toJson)}
-      case Room =>{storageUnit.toJson.++ (getBuilding.toJson)}
+      case StUnit => { storageUnit.toJson }
+      case Building => { storageUnit.toJson.++(getBuilding.toJson) }
+      case Room => { storageUnit.toJson.++(getRoom.toJson) }
     }
+
   }
 
-/*
+  //When id is explicitly defined in the url in the request, we want this id to override possible id in the body, so we have this convenience method to do this transformation
+  def copyWithId(id: Long) = {
+    val newStorageUnit = storageUnit.copy(id = Some(id))
+    storageKind match {
+      case StUnit => StorageUnitTriple.fromStorageUnit(newStorageUnit)
+      case Building => StorageUnitTriple.fromBuilding(newStorageUnit, getBuilding.copy(id = Some(id)))
+      case Room => StorageUnitTriple.fromRoom(newStorageUnit, getRoom.copy(id = Some(id)))
+    }
+  }
+  /*
   def createJson(triple: (StorageUnit, Option[StorageRoom], Option[StorageBuilding])) = {
     val storageUnitJs = triple._1.toJson
     val storageUnitJs2 = triple._2.fold(storageUnitJs)(storageRoom => storageUnitJs.++(storageRoom.toJson))
@@ -153,17 +163,17 @@ case class StorageUnitTriple(storageUnit: StorageUnit, buildingOrRoom: Option[St
 
 object StorageUnitTriple {
   def fromStorageUnit(storageUnit: StorageUnit) = {
-    assert(storageUnit.storageKind==StUnit)
+    assert(storageUnit.storageKind == StUnit)
     StorageUnitTriple(storageUnit, None)
   }
 
   def fromBuilding(storageUnit: StorageUnit, building: StorageBuilding) = {
-    assert(storageUnit.storageKind==Building)
+    assert(storageUnit.storageKind == Building)
     StorageUnitTriple(storageUnit, Some(Left(building)))
   }
 
   def fromRoom(storageUnit: StorageUnit, room: StorageRoom) = {
-    assert(storageUnit.storageKind==Room)
+    assert(storageUnit.storageKind == Room)
     StorageUnitTriple(storageUnit, Some(Right(room)))
   }
 }
