@@ -21,7 +21,10 @@
 package no.uio.musit.microservices.common
 
 import org.scalatest.concurrent.PatienceConfiguration
+
+import scala.concurrent.Future
 import scala.concurrent.duration._
+import org.scalatest.concurrent.ScalaFutures._
 
 object PlayTestDefaults {
 
@@ -38,4 +41,10 @@ object PlayTestDefaults {
     "slick.dbs.default.leakDetectionThreshold" -> "5000",
     "evolutionplugin" -> evolve
   )
+
+  def waitFutureValue[T](fut: Future[T]) = {
+    fut.futureValue(timeout)
+  }
+
 }
+

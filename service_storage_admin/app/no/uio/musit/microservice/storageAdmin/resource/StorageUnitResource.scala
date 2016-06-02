@@ -20,17 +20,15 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.service.{BuildingService, RoomService, StorageUnitService}
-import no.uio.musit.microservices.common.domain.{MusitFilter, MusitSearch}
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
+import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.utils.ResourceHelper
-import play.api.libs.iteratee.Iteratee
 
 class StorageUnitResource extends Controller {
 
@@ -52,7 +50,6 @@ class StorageUnitResource extends Controller {
 
   @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    println("postRoot")
     val json = request.body
     val storageType = (json \ "storageType").as[String]
     StorageUnitType(storageType) match {
@@ -129,55 +126,43 @@ class StorageUnitResource extends Controller {
   }
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
-    request => {
-      //println(s"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    inni updateRoot, ID: $id  body: ${request.body}")
-      def handleHasStorageType(storageUnitType: StorageUnitType) = {
-        def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
+    request =>
+      {
+        def handleHasStorageType(storageUnitType: StorageUnitType) = {
+          def transformObject(storageUnit: StorageUnit) = storageUnit.copy(id = Some(id), storageType = storageUnitType.typename)
 
-        storageUnitType match {
-          case StUnit => {
-            println(s"updateRoot, case StUnit, id: $id")
-            ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
-            //For debugging (assign res to above line):
-            //              val obj  = StorageUnitService.getById(id)
-            //              obj.map(optStorageUnit => println(s"updated object = $optStorageUnit"))
-            //              res
-          }
-          case Room => {
-            val jsTuple = for {
-              storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
-              room <- request.body.validate[StorageRoom].map(_.copy(id = Some(id)))
-            } yield (storageUnit, room)
+          storageUnitType match {
+            case StUnit => {
+              ResourceHelper.updateRoot(StorageUnitService.updateStorageUnitByID, id, request.body.validate[StorageUnit], transformObject)
+            }
+            case Room => {
+              val jsTuple = for {
+                storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
+                room <- request.body.validate[StorageRoom].map(_.copy(id = Some(id)))
+              } yield (storageUnit, room)
 
-            val res = ResourceHelper.updateRoot(RoomService.updateRoomByID, id, jsTuple)
+              val res = ResourceHelper.updateRoot(RoomService.updateRoomByID, id, jsTuple)
+              res
 
-            //For debugging (assign res to above line):
-            //val obj  = StorageUnitService.getRoomOnlyById(id)
-            //obj.map(optStorageUnit => println(s"updated object = $optStorageUnit"))
-            res
+            }
+            case Building => {
+              val jsTuple = for {
+                storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
+                building <- request.body.validate[StorageBuilding].map(_.copy(id = Some(id)))
+              } yield (storageUnit, building)
 
-          }
-          case Building => {
-            val jsTuple = for {
-              storageUnit <- request.body.validate[StorageUnit].map(_.copy(id = Some(id), storageType = storageUnitType.typename))
-              building <- request.body.validate[StorageBuilding].map(_.copy(id = Some(id)))
-            } yield (storageUnit, building)
-
-            val res = ResourceHelper.updateRoot(BuildingService.updateBuildingByID, id, jsTuple)
-            res
+              val res = ResourceHelper.updateRoot(BuildingService.updateBuildingByID, id, jsTuple)
+              res
+            }
           }
         }
+
+        val futOptStorageType = StorageUnitService.getStorageType(id)
+        val resTemp = futOptStorageType.foldOption(storageUnitType => handleHasStorageType(storageUnitType), Future(BadMusitRequest(s"Unknown storageUnit with ID: $id")))
+        val res = resTemp.flatMap(identity)
+        res
+
       }
-
-
-      val futOptStorageType = StorageUnitService.getStorageType(id)
-      futOptStorageType.map(opt => println(s"optStorageType: $opt"))
-      val resTemp = futOptStorageType.foldOption(storageUnitType => handleHasStorageType(storageUnitType), Future(BadMusitRequest(s"Unknown storageUnit with ID: $id")))
-      val res = resTemp.flatMap(identity)
-      res.map(r => println(s"resultat update root ID:$id res: $r"))
-      res
-
-    }
   }
 }
 

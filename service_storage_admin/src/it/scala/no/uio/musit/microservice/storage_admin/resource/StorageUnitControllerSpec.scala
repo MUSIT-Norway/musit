@@ -1,17 +1,16 @@
-package controllers
+package no.uio.musit.microservice.storage_admin.resource
 
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
-import no.uio.musit.microservice.storageAdmin.domain.{ StorageBuilding, StorageRoom, StorageUnit }
+import no.uio.musit.microservice.storageAdmin.domain.{StorageBuilding, StorageRoom, StorageUnit}
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{ JsString, Json }
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import no.uio.musit.microservices.common.utils.Misc._
+import no.uio.musit.microservices.common.PlayTestDefaults._
 
 class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
@@ -45,13 +44,17 @@ class StorageUnitControllerSpec extends PlaySpec with OneAppPerSuite with ScalaF
         case stUnitSeq => assert(stUnitSeq.length == 3)
 
       }
+
+      val svar2 = svar |> waitFutureValue
+      for( storageUnit <- svar2) {
+      println(s"id: ${storageUnit.id}")
+        }
+
     }
 
     "getSubNodes" in {
-      val svar = StorageUnitDao.getChildren(1)
-      whenReady(svar, timeout) { stUnit =>
-        assert(stUnit.length == 1)
-      }
+      val stUnit = StorageUnitDao.getChildren(1) |> waitFutureValue
+      assert(stUnit.length == 1)
     }
 
     "getById__Riktig" in {

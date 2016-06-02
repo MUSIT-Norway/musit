@@ -87,14 +87,8 @@ trait StorageUnitService {
   }
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
-    println(s"storageUnitSservice.updateStorageUnitByID $id")
     ServiceHelper.daoUpdateById(StorageUnitDao.updateStorageUnitByID, id, storageUnit)
-    //#OLD: StorageUnitDao.updateStorageUnitByID(id, storageUnit)
   }
-
-  /*def updateStorageUnitName(id: Long, storageName: String): Future[StorageUnit] = {
-    StorageUnitDao.updateStorageNameByID(id, storageName)
-  }*/
 
 }
 
