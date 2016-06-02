@@ -20,11 +20,7 @@ install:
 
 script:
 # Scala build and test
-- sbt clean scalastyle
-- sbt coverage test
-- sbt coverageReport
-- sbt coverageAggregate
-- sbt codacyCoverage
+- scripts/report.sh
 # Frontend (ReactJS) build and test
 - cd gui && "./initialize.sh" && npm run lint && npm run test
 
