@@ -20,7 +20,7 @@ package no.uio.musit.microservice.actor.service
 
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.OrganizationAddress
-import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
 import play.api.http.Status
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -43,13 +43,11 @@ trait OrganizationAddressService {
     ActorDao.insertOrganizationAddress(address)
   }
 
-  def update(address: OrganizationAddress): Future[Either[MusitError, OrganizationAddress]] = {
-    ActorDao.updateOrganizationAddress(address).flatMap {
-      case 0 => Future.successful(Left(MusitError(Status.BAD_REQUEST, "Something went wrong with the update")))
-      case num => ActorDao.getOrganizationAddressById(address.id).map {
-        case Some(org) => Right(org)
-        case None => Left(MusitError(Status.NOT_FOUND, "Did not find the object"))
-      }
+  def update(address: OrganizationAddress): Future[Either[MusitError, MusitStatusMessage]] = {
+    ActorDao.updateOrganizationAddress(address).map {
+      case 0 => Left(MusitError(Status.BAD_REQUEST, "No records were updated!"))
+      case 1 => Right(MusitStatusMessage("Record was updated!"))
+      case _ => Left(MusitError(Status.BAD_REQUEST, "Several records were updated!"))
     }
   }
 

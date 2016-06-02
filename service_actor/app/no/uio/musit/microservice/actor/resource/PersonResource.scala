@@ -39,7 +39,7 @@ class PersonResource extends Controller with PersonService {
   def getRoot(id: Long): Action[AnyContent] = Action.async { request =>
     find(id).map {
       case Some(person) => Ok(Json.toJson(person)) // Ok
-      case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Didn't find object with id: $id")))
+      case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
     }
   }
 
@@ -57,7 +57,7 @@ class PersonResource extends Controller with PersonService {
     personResult match {
       case s: JsSuccess[Person] =>
         update(s.get).map {
-          case Right(newPerson) => Ok(Json.toJson(newPerson))
+          case Right(updateStatus) => Ok(Json.toJson(updateStatus))
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))

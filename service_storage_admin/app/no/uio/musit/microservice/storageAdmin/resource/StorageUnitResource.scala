@@ -89,7 +89,6 @@ class StorageUnitResource extends Controller {
     }
   }
 
-
   def getChildren(id: Long) = Action.async {
     request =>
       StorageUnitService.getChildren(id).map {
@@ -112,7 +111,6 @@ class StorageUnitResource extends Controller {
         case storageUnits => Ok(Json.toJson(storageUnits))
       }
   }
-
 
   def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async {
     Future.successful(NotImplemented("foo"))
