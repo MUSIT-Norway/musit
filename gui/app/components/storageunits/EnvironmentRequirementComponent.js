@@ -4,7 +4,6 @@
 
 import React, { Component } from 'react';
 import TextField from '../../components/musittextfield';
-import MusitDropDown from '../../components/musitdropdownfield';
 import { Panel, Form, Grid, Row, Col, } from 'react-bootstrap'
 
 export default class EnvironmentRequirementComponent extends Component {
@@ -24,136 +23,180 @@ export default class EnvironmentRequirementComponent extends Component {
     super(props)
 
     this.state = {
-      storageunit: {
-        type: 'Lagringsenhet',
-        name: 'navn',
-        areal1: '4',
-        areal2: '9',
-        hoyde1: '2',
-        hoyde2: '4'
+      environmentRequirement: {
+        temperature: '',
+        temperatureTolerance: '',
+        relativeHumidity: '',
+        relativeHumidityTolerance: '',
+        inertAir: '',
+        inertAirTolerance: '',
+        airRatio: 'airRatio',
+        renhold: 'renhold',
+        comments: 'comments here'
       }
     }
 
     const clazz = this
 
-    this.areal = {
-      controlId: 'areal1',
-      controlId2: 'areal2',
+    this.temperature = {
+      controlId: 'temperature',
       labelText: 'Temperature',
+      placeHolderText: 'C',
       tooltip: 'Temperature',
       valueType: 'text',
-      placeHolderText: 'enter Temperature 1 here',
-      placeHolderText2: 'enter Temperature 2 here',
-      valueText: () => clazz.state.storageunit.areal1,
-      valueText2: () => clazz.state.storageunit.areal2,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.storageunit.areal1),
-      onChange: (areal1) => clazz.setState({ storageunit: { ...this.state.storageunit, areal1 } }),
-      onChange2: (areal2) => clazz.setState({ storageunit: { ...this.state.storageunit, areal2 } })
+      valueText: () => clazz.state.environmentRequirement.temperature,
+      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.temperature),
+      onChange: (temperature) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, temperature } })
     }
-    this.hoyde = {
-      controlId: 'RelativFuktighet1',
-      controlId2: 'RelativFuktighet12',
-      labelText: 'Relativ fuktighet (fra-til)',
-      tooltip: 'Relativ fuktighet (fra - til)',
+    this.temperatureTolerance = {
+      controlId: 'temperatureTolerance',
+      labelText: '+/-',
+      placeHolderText: 'int',
+      tooltip: 'Temperature Tolerance',
       valueType: 'text',
-      placeHolderText: 'enter Relativ fuktighet 1 here',
-      placeHolderText2: 'enter Relativ fuktighet 2 here',
-      valueText: () => clazz.state.storageunit.hoyde1,
-      valueText2: () => clazz.state.storageunit.hoyde2,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.storageunit.hoyde1),
-      validationState2: () => EnvironmentRequirementComponent.validateNumber(clazz.state.storageunit.hoyde2),
-      onChange: (hoyde1) => clazz.setState({ storageunit: { ...this.state.storageunit, hoyde1 } }),
-      onChange2: (hoyde2) => clazz.setState({ storageunit: { ...this.state.storageunit, hoyde2 } })
+      valueText: () => clazz.state.environmentRequirement.temperatureTolerance,
+      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.temperatureTolerance),
+      onChange: (temperatureTolerance) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, temperatureTolerance } })
     }
 
-    this.hoyde = {
-      controlId: 'hoyde1',
-      controlId2: 'hoyde2',
-      labelText: 'Høyde(fra-til)',
-      tooltip: 'Høyde (fra - til)',
+    this.relativeHumidity = {
+      controlId: 'relativeHumidity',
+      labelText: 'Relativ Humidity',
+      placeHolderText: '%',
+      tooltip: 'Relativ Humidity',
       valueType: 'text',
-      placeHolderText: 'enter høyde 1 here',
-      placeHolderText2: 'enter høyde 2 here',
-      valueText: () => clazz.state.storageunit.hoyde1,
-      valueText2: () => clazz.state.storageunit.hoyde2,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.storageunit.hoyde1),
-      validationState2: () => EnvironmentRequirementComponent.validateNumber(clazz.state.storageunit.hoyde2),
-      onChange: (hoyde1) => clazz.setState({ storageunit: { ...this.state.storageunit, hoyde1 } }),
-      onChange2: (hoyde2) => clazz.setState({ storageunit: { ...this.state.storageunit, hoyde2 } })
+      valueText: () => clazz.state.environmentRequirement.relativeHumidity,
+      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.relativeHumidity),
+      onChange: (relativeHumidity) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, relativeHumidity } })
+    }
+    this.relativeHumidityTolerance = {
+      controlId: 'relativeHumidityTolerance',
+      labelText: '+/-',
+      placeHolderText: 'int',
+      tooltip: 'Relativ Humidity Tolerance',
+      valueType: 'text',
+      valueText: () => clazz.state.environmentRequirement.relativeHumidityTolerance,
+      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.relativeHumidityTolerance),
+      onChange: (relativeHumidityTolerance) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, relativeHumidityTolerance } })
     }
 
-
-    this.type = {
-      controlId: 'storageUnitType',
-      labelText: 'Type',
-      items: ['Lagringsenhet', 'Room', 'Bui666lding'],
+    this.inertAir = {
+      controlId: 'inertAir1',
+      labelText: 'Inert Air',
+      placeHolderText: '% O2',
+      tooltip: 'Inert Air',
       valueType: 'text',
-      tooltip: 'Type lagringsenhet',
-      placeHolderText: 'velg type here',
-      valueText: () => clazz.state.storageunit.type,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.storageunit.type),
-      onChange: (type) => clazz.setState({ storageunit: { ...clazz.state.storageunit, type } })
+      valueText: () => clazz.state.environmentRequirement.inertAir,
+      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.inertAir),
+      onChange: (inertAir) => clazz.setState({ environmentRequirement: { ...this.state.environmentRequirement, inertAir } })
     }
-    this.name = {
-      controlId: 'name',
-      labelText: 'Navn',
-      tooltip: 'Navn',
-      placeHolderText: 'enter name here',
+    this.inertAirTolerance = {
+      controlId: 'inertAirTolerance',
+      labelText: '+/-',
+      placeHolderText: 'int',
+      tooltip: 'Inert Air Tolerance',
       valueType: 'text',
-      valueText: () => clazz.state.storageunit.name,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.storageunit.name),
-      onChange: (name) => clazz.setState({ storageunit: { ...clazz.state.storageunit, name } })
+      valueText: () => clazz.state.environmentRequirement.inertAirTolerance,
+      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.inertAirTolerance),
+      onChange: (inertAirTolerance) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, inertAirTolerance } })
+    }
+
+    this.airRatio = {
+      controlId: 'airRatio',
+      labelText: 'Air Ratio',
+      placeHolderText: 'enter description here',
+      valueType: 'text',
+      tooltip: 'Air Ratio',
+      valueText: () => clazz.state.environmentRequirement.airRatio,
+      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.airRatio),
+      onChange: (airRatio) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, airRatio } })
+    }
+    this.renhold = {
+      controlId: 'renhold',
+      labelText: 'Renhold',
+      placeHolderText: 'enter description here',
+      tooltip: 'Renhold',
+      valueType: 'text',
+      valueText: () => clazz.state.environmentRequirement.renhold,
+      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.renhold),
+      onChange: (renhold) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, renhold } })
+    }
+    this.comments = {
+      controlId: 'comments',
+      labelText: 'Comments',
+      placeHolderText: 'enter description here',
+      tooltip: 'Comments',
+      valueType: 'text',
+      valueText: () => clazz.state.environmentRequirement.comments,
+      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.comments),
+      onChange: (comments) => clazz.setState({ environmentRequirement: { ...clazz.state.environmentRequirement, comments } })
     }
   }
 
   render() {
     return (
         <div>
-
             <main>
                 <Panel>
                     <Grid>
                         <Row styleClass="row-centered">
-                                                    <Col md={6}>
-                                                        <Form horizontal>
-                                                            <TextField {...this.areal} />
-                                                        </Form>
-                                                    </Col>
-
-                                                    <Col md={6}>
-                                                        <Form horizontal>
-                                                            <TextField {...this.hoyde} />
-                                                        </Form>
-                                                    </Col>
-
-                                                </Row>
-
-                        <Row styleClass="row-centered">
                             <Col md={6}>
-                                <Form horizontal>
-                                    <TextField {...this.areal} />
-                                </Form>
+                                <Grid>
+                                    <Row styleClass="row-centered">
+                                        <Col md={3}>
+                                            <Form horizontal>
+                                                <TextField {...this.temperature} />
+                                            </Form>
+                                        </Col>
+                                        <Col md={3}>
+                                            <Form horizontal>
+                                                <TextField {...this.temperatureTolerance} />
+                                            </Form>
+                                        </Col>
+                                    </Row>
+                                    <Row styleClass="row-centered">
+                                        <Col md={6}>
+                                            <Form horizontal>
+                                                <TextField {...this.relativeHumidity} />
+                                            </Form>
+                                        </Col>
+                                    </Row>
+                                    <Row styleClass="row-centered">
+                                        <Col md={6}>
+                                            <Form horizontal>
+                                                <TextField {...this.inertAir} />
+                                            </Form>
+                                        </Col>
+                                    </Row>
+                                </Grid>
                             </Col>
-
                             <Col md={6}>
-                                <Form horizontal>
-                                    <TextField {...this.hoyde} />
-                                </Form>
-                            </Col>
+                                <Grid>
+                                    <Row styleClass="row-centered">
+                                        <Col md={6}>
+                                            <Form horizontal>
+                                                <TextField {...this.airRatio} />
+                                            </Form>
+                                        </Col>
+                                    </Row>
+                                    <Row styleClass="row-centered">
+                                        <Col md={6}>
+                                            <Form horizontal>
+                                                <TextField {...this.renhold} />
+                                            </Form>
+                                        </Col>
+                                    </Row>
 
+                                </Grid>
+                            </Col>
                         </Row>
                         <Row styleClass="row-centered">
-                                                    <Col md={6}>
-                                                        <Form horizontal>
-                                                          <MusitDropDown {...this.type} />
-                                                        </Form>
-                                                    </Col>
-                                                    <Col md={6}>
-                                                        <Form horizontal>
-                                                            <TextField {...this.name} />
-                                                        </Form>
-                                                    </Col>
-                                                </Row>
+                            <Col md={16}>
+                                <Form horizontal>
+                                    <TextField {...this.comments} />
+                                </Form>
+                            </Col>
+                        </Row>
                     </Grid>
                 </Panel>
             </main>
