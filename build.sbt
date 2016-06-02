@@ -74,7 +74,7 @@ val scoverageSettings = Seq(
   coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router",
   coverageExcludedFiles := "",
   coverageMinimum := 80,
-  coverageFailOnMinimum := true
+  coverageFailOnMinimum := false
 )
 
 val noPublish = Seq(
