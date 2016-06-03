@@ -35,7 +35,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object ServiceHelper {
 
-  def badRequest(text: String) = Left(MusitError(Status.BAD_REQUEST, text))
+  def badRequest(text: String) = MusitError(Status.BAD_REQUEST, text)
   def futureBadRequest(text: String) = Future.successful(badRequest(text))
 
   /** Calls a DAO service method to update an object and returns proper result structure. Assumes a separate id (instead of the using the id likely in the objectToUpdate instance). */

@@ -19,9 +19,9 @@
 package no.uio.musit.microservice.storageAdmin.service
 
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
-import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
-import no.uio.musit.microservices.common.utils.{ ResourceHelper, ServiceHelper }
+import no.uio.musit.microservice.storageAdmin.domain.{Building, Room, _}
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
+import no.uio.musit.microservices.common.utils.{ResourceHelper, ServiceHelper}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,19 +32,19 @@ import play.api.libs.json.Json
 
 trait StorageUnitService {
 
-  def StorageUnitNotFoundError(id: Long): Either[MusitError, Nothing] = {
+  def StorageUnitNotFoundError(id: Long): MusitError = {
     ServiceHelper.badRequest(s"Unknown storageUnit with ID: $id")
   }
 
-  def StorageRoomNotFoundError(id: Long): Either[MusitError, Nothing] = {
+  def StorageRoomNotFoundError(id: Long): MusitError = {
     ServiceHelper.badRequest(s"Unknown storageRoom with ID: $id")
   }
 
-  def StorageBuildingNotFoundError(id: Long): Either[MusitError, Nothing] = {
+  def StorageBuildingNotFoundError(id: Long): MusitError = {
     ServiceHelper.badRequest(s"Unknown storageRoom with ID: $id")
   }
 
-  def StorageUnitTypeMismatch(id: Long, expected: StorageUnitType, inDatabase: StorageUnitType): Either[MusitError, Nothing] = {
+  def StorageUnitTypeMismatch(id: Long, expected: StorageUnitType, inDatabase: StorageUnitType): MusitError = {
     ServiceHelper.badRequest(s"StorageUnit with ID: $id was expected to have storage type: ${expected.typename}, but had the type: ${inDatabase.typename} in the database.")
   }
 
@@ -71,17 +71,35 @@ trait StorageUnitService {
     StorageUnitDao.getChildren(id)
   }
 
-  def getById(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
-    val fEitherStorageUnit = StorageUnitDao.getStorageUnitOnlyById(id).foldInnerOption(StorageUnitNotFoundError(id), Right(_))
+  def getStorageUnitTriple(id: Long, storageUnit: StorageUnit): Future[Either[MusitError, StorageUnitTriple]] =
+    storageUnit.storageKind match {
+      case StUnit =>
+        Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
 
-    val res = fEitherStorageUnit.mapOnInnerRight { storageUnit =>
-      storageUnit.storageKind match {
-        case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
-        case Building => StorageUnitDao.getBuildingById(id).foldInnerOption(StorageBuildingNotFoundError(id), storageBuilding => Right(StorageUnitTriple.createBuilding(storageUnit, storageBuilding)))
-        case Room => StorageUnitDao.getRoomById(id).foldInnerOption(StorageRoomNotFoundError(id), storageRoom => Right(StorageUnitTriple.createRoom(storageUnit, storageRoom)))
-      }
+      case Building =>
+        StorageUnitDao.getBuildingById(id).foldInnerOption(
+          Left(StorageBuildingNotFoundError(id)),
+          storageBuilding => Right(StorageUnitTriple.createBuilding(
+            storageUnit,
+            storageBuilding
+          ))
+        )
+
+      case Room =>
+        StorageUnitDao.getRoomById(id).foldInnerOption(
+          Left(StorageRoomNotFoundError(id)),
+          storageRoom => Right(StorageUnitTriple.createRoom(
+            storageUnit,
+            storageRoom
+          ))
+        )
     }
-    res |> flattenFutureEitherFutureEither
+
+  def getById(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
+    StorageUnitDao.getStorageUnitOnlyById(id).flatMap {
+      case Some(storageUnit) => getStorageUnitTriple(id, storageUnit)
+      case None => Future.successful(Left(StorageBuildingNotFoundError(id)))
+    }
   }
 
   def getStorageType(id: Long): Future[Option[StorageUnitType]] = StorageUnitDao.getStorageType(id)
@@ -98,13 +116,15 @@ trait StorageUnitService {
     ServiceHelper.daoUpdateById(StorageUnitDao.updateStorageUnitByID, id, storageUnit)
   }
 
-  def verifyStorageTypeEquality(id: Long, expectedStorageUnitType: StorageUnitType) = {
-    def handleWithStorageType(storageUnitTypeInDatabase: StorageUnitType) = {
-      if (expectedStorageUnitType == storageUnitTypeInDatabase) Right(())
-      else StorageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
+  def verifyStorageTypeEquality(id: Long, expectedStorageUnitType: StorageUnitType): Future[Boolean] = {
+    def handleWithStorageType(storageUnitTypeInDatabase: StorageUnitType): Boolean = {
 
+      else
     }
-    getStorageType(id).foldInnerOption(StorageUnitNotFoundError(id), handleWithStorageType(_))
+    getStorageType(id).foldInnerOption[](Left(StorageUnitNotFoundError(id)), (storageUnitTypeInDatabase) =>
+      if (expectedStorageUnitType == storageUnitTypeInDatabase) Right(true)
+      else Left(StorageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase))
+    )
   }
 
   def updateStorageTripleByID(id: Long, triple: StorageUnitTriple) = {
