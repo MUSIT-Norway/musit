@@ -147,32 +147,25 @@ case class StorageUnitTriple(storageUnit: StorageUnit, buildingOrRoom: Option[St
   def copyWithId(id: Long) = {
     val newStorageUnit = storageUnit.copy(id = Some(id))
     storageKind match {
-      case StUnit => StorageUnitTriple.fromStorageUnit(newStorageUnit)
-      case Building => StorageUnitTriple.fromBuilding(newStorageUnit, getBuilding.copy(id = Some(id)))
-      case Room => StorageUnitTriple.fromRoom(newStorageUnit, getRoom.copy(id = Some(id)))
+      case StUnit => StorageUnitTriple.createStorageUnit(newStorageUnit)
+      case Building => StorageUnitTriple.createBuilding(newStorageUnit, getBuilding.copy(id = Some(id)))
+      case Room => StorageUnitTriple.createRoom(newStorageUnit, getRoom.copy(id = Some(id)))
     }
   }
-  /*
-  def createJson(triple: (StorageUnit, Option[StorageRoom], Option[StorageBuilding])) = {
-    val storageUnitJs = triple._1.toJson
-    val storageUnitJs2 = triple._2.fold(storageUnitJs)(storageRoom => storageUnitJs.++(storageRoom.toJson))
-    val res = triple._3.fold(storageUnitJs2)(storageBuilding => storageUnitJs2.++(storageBuilding.toJson))
-    res.as[JsValue]
-  }*/
 }
 
 object StorageUnitTriple {
-  def fromStorageUnit(storageUnit: StorageUnit) = {
+  def createStorageUnit(storageUnit: StorageUnit) = {
     assert(storageUnit.storageKind == StUnit)
     StorageUnitTriple(storageUnit, None)
   }
 
-  def fromBuilding(storageUnit: StorageUnit, building: StorageBuilding) = {
+  def createBuilding(storageUnit: StorageUnit, building: StorageBuilding) = {
     assert(storageUnit.storageKind == Building)
     StorageUnitTriple(storageUnit, Some(Left(building)))
   }
 
-  def fromRoom(storageUnit: StorageUnit, room: StorageRoom) = {
+  def createRoom(storageUnit: StorageUnit, room: StorageRoom) = {
     assert(storageUnit.storageKind == Room)
     StorageUnitTriple(storageUnit, Some(Right(room)))
   }

@@ -61,9 +61,9 @@ trait StorageUnitService {
   def createStorageTriple(storageTriple: StorageUnitTriple): Future[Either[MusitError, StorageUnitTriple]] = {
     val storageUnit = storageTriple.storageUnit
     storageTriple.storageKind match {
-      case StUnit => create(storageUnit).map(_.right.map(StorageUnitTriple.fromStorageUnit))
-      case Room => RoomService.create(storageUnit, storageTriple.getRoom).map(_.right.map(pair => StorageUnitTriple.fromRoom(pair._1, pair._2)))
-      case Building => BuildingService.create(storageUnit, storageTriple.getBuilding).map(_.right.map(pair => StorageUnitTriple.fromBuilding(pair._1, pair._2)))
+      case StUnit => create(storageUnit).map(_.right.map(StorageUnitTriple.createStorageUnit))
+      case Room => RoomService.create(storageUnit, storageTriple.getRoom).map(_.right.map(pair => StorageUnitTriple.createRoom(pair._1, pair._2)))
+      case Building => BuildingService.create(storageUnit, storageTriple.getBuilding).map(_.right.map(pair => StorageUnitTriple.createBuilding(pair._1, pair._2)))
     }
   }
 
@@ -72,56 +72,17 @@ trait StorageUnitService {
   }
 
   def getById(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
-    val fEitherStorageUnit = StorageUnitDao.getStorageUnitOnlyById(id).foldOption(Right(_), StorageUnitNotFoundError(id))
+    val fEitherStorageUnit = StorageUnitDao.getStorageUnitOnlyById(id).foldInnerOption(StorageUnitNotFoundError(id), Right(_))
 
-    val res = fEitherStorageUnit.map {
-      either =>
-        either.right.map { storageUnit =>
-          val temp = storageUnit.storageKind match {
-            case StUnit => Future.successful(Right(StorageUnitTriple.fromStorageUnit(storageUnit)))
-            case Room => StorageUnitDao.getRoomById(id).foldOption(storageRoom => Right(StorageUnitTriple.fromRoom(storageUnit, storageRoom)), StorageRoomNotFoundError(id))
-            case Building => StorageUnitDao.getBuildingById(id).foldOption(storageBuilding => Right(StorageUnitTriple.fromBuilding(storageUnit, storageBuilding)), StorageBuildingNotFoundError(id))
-          }
-          temp
-        }
-    }
-    val temp = (res |> futureEitherFutureToFutureEither)
-    temp.map(flattenEither)
-  }
-
-  /*#OLD
-  def getById(id: Long): Future[Either[MusitError, (StorageUnit, Option[StorageRoom], Option[StorageBuilding])]] = {
-
-    def handleStorageUnit(storageUnit: StorageUnit) = {
-
+    val res = fEitherStorageUnit.mapOnInnerRight { storageUnit =>
       storageUnit.storageKind match {
-        case StUnit =>
-          Future.successful(storageUnit, None, None)
-        case Room => {
-          StorageUnitDao.getRoomById(id).map(optStorageRoom => (storageUnit, optStorageRoom, None))
-        }
-        case Building =>
-          StorageUnitDao.getBuildingById(id).map(optStorageBuilding => (storageUnit, None, optStorageBuilding))
+        case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
+        case Building => StorageUnitDao.getBuildingById(id).foldInnerOption(StorageBuildingNotFoundError(id), storageBuilding => Right(StorageUnitTriple.createBuilding(storageUnit, storageBuilding)))
+        case Room => StorageUnitDao.getRoomById(id).foldInnerOption(StorageRoomNotFoundError(id), storageRoom => Right(StorageUnitTriple.createRoom(storageUnit, storageRoom)))
       }
     }
-
-    val fOptStorageUnit = StorageUnitDao.getStorageUnitOnlyById(id)
-    val futFut = fOptStorageUnit.map { optStorageUnit =>
-      optStorageUnit match {
-        case Some(storageUnit) => handleStorageUnit(storageUnit)
-        case None => Future.successful(())
-      }
-    }
-    val fut = futFut.flatten
-    val res = fut.map { content =>
-      content match {
-        case () => StorageUnitNotFoundError(id)
-        case x => Right(x.asInstanceOf[(StorageUnit, Option[StorageRoom], Option[StorageBuilding])])
-      }
-    }
-    res
+    res |> flattenFutureEitherFutureEither
   }
-*/
 
   def getStorageType(id: Long): Future[Option[StorageUnitType]] = StorageUnitDao.getStorageType(id)
 
@@ -143,27 +104,24 @@ trait StorageUnitService {
       else StorageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
 
     }
-    getStorageType(id).foldOption(handleWithStorageType(_), StorageUnitNotFoundError(id))
+    getStorageType(id).foldInnerOption(StorageUnitNotFoundError(id), handleWithStorageType(_))
   }
 
   def updateStorageTripleByID(id: Long, triple: StorageUnitTriple) = {
-    val res = verifyStorageTypeEquality(id, triple.storageKind).map {
-      either =>
-        val tempRes = either.right.map { _ =>
+    val res = verifyStorageTypeEquality(id, triple.storageKind).mapOnInnerRight { _ =>
 
-          val modifiedTriple = triple.copyWithId(id) //We want the id in the url to override potential mistake in the body (of the original http request).
+      val modifiedTriple = triple.copyWithId(id) //We want the id in the url to override potential mistake in the body (of the original http request).
 
-          val storageUnit = modifiedTriple.storageUnit
-          //We may also want to check that we're not modifying the storageType (in comparison to what is already in the database), but this is left as an exercise for the reader... ;)
-          modifiedTriple.storageKind match {
-            case StUnit => updateStorageUnitByID(id, storageUnit)
-            case Building => BuildingService.updateBuildingByID(id, (storageUnit, modifiedTriple.getBuilding))
-            case Room => RoomService.updateRoomByID(id, (storageUnit, modifiedTriple.getRoom))
-          }
-        }
-        tempRes
+      val storageUnit = modifiedTriple.storageUnit
+      //We may also want to check that we're not modifying the storageType (in comparison to what is already in the database), but this is left as an exercise for the reader... ;)
+      modifiedTriple.storageKind match {
+        case StUnit => updateStorageUnitByID(id, storageUnit)
+        case Building => BuildingService.updateBuildingByID(id, (storageUnit, modifiedTriple.getBuilding))
+        case Room => RoomService.updateRoomByID(id, (storageUnit, modifiedTriple.getRoom))
+      }
+
     }
-    (res |> futureEitherFutureToFutureEither).map(flattenEither)
+    res |> flattenFutureEitherFutureEither
   }
 }
 

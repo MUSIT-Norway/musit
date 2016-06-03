@@ -13,7 +13,7 @@ object Misc {
   }
 
   ///We need sadomachocistic stuff like this because it's been decided we should use Either for errors in combination with futures. ;)
-  def futureEitherFutureToFutureEither[L, R](futureEitherFuture: Future[Either[L, Future[R]]]): Future[Either[L, R]] = {
+  def flattenFutureEitherFuture[L, R](futureEitherFuture: Future[Either[L, Future[R]]]): Future[Either[L, R]] = {
     futureEitherFuture.map(eitherFuture => {
       eitherFuture.fold(l => Future.successful(Left(l)), innerFuture => innerFuture.map(Right(_)))
     }).flatMap(identity)
@@ -21,6 +21,10 @@ object Misc {
 
   def flattenEither[L, R](eitherEither: Either[L, Either[L, R]]): Either[L, R] = {
     eitherEither.fold(l => Left(l), identity)
+  }
+
+  def flattenFutureEitherFutureEither[L, R](futureEitherFutureEither: Future[Either[L, Future[Either[L, R]]]]): Future[Either[L, R]] = {
+    flattenFutureEitherFuture(futureEitherFutureEither).map(flattenEither)
   }
 
 }

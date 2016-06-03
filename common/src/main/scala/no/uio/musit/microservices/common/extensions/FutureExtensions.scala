@@ -40,12 +40,19 @@ object FutureExtensions {
   }
 
   implicit class FutureOptionExtensions[T](val fut: Future[Option[T]]) extends AnyVal {
-    def foldOption[S](ifSome: T => S, ifNone: => S): Future[S] = fut.map(optValue => optValue.map(ifSome).getOrElse(ifNone))
+    def foldInnerOption[S](ifNone: => S, ifSome: T => S): Future[S] = fut.map(optValue => optValue.map(ifSome).getOrElse(ifNone))
   }
 
   implicit class FutureFutureExtensions[T](val fut: Future[Future[T]]) extends AnyVal {
     def flatten /*(implicit ec: ExecutionContext)*/ : Future[T] = fut.flatMap(identity)
   }
+
+  implicit class FutureEitherExtensions[L, R](val futEither: Future[Either[L, R]]) extends AnyVal {
+    def mapOnInnerRight[S](f: R => S): Future[Either[L, S]] = {
+      futEither.map { either => either.right.map(f) }
+    }
+  }
+
   /*
   implicit class FunctorOptionExtensions[F[_] : Functor, T](ft: F[T]) {
     def unpackOption[S](someMapper: T => S, noneHandler: => S)(implicit f: Functor[Option[_]]): F[S] = f.fmap(optValue => optValue.map(someMapper).getOrElse(noneHandler))

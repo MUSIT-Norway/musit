@@ -1,26 +1,24 @@
 package no.uio.musit.microservice.storage_admin.resource
 
-import com.google.gson.JsonObject
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.PlayExtensions._
+import no.uio.musit.microservices.common.utils.Misc._
 import org.scalatest.concurrent.ScalaFutures
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsObject, JsString, JsValue, Json}
-import play.api.libs.ws.{WS, WSResponse}
-import no.uio.musit.microservices.common.extensions.PlayExtensions._
+import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.ws.WS
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.utils.Misc._
 
 /**
   * Created by ellenjo on 5/27/16.
   */
-class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
+class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFutures {
   //val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 19002
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
@@ -104,7 +102,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
         oppdat <- updateStorageUnit(1, myJSonRoom)
         stUnit <- getStorageUnitAsObject(1)
       } yield stUnit
-      val stUnit = future.futureValue
+      val stUnit = future |> waitFutureValue
       assert(stUnit.storageUnitName == "ROM1")
     }
 
@@ -118,7 +116,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
       val antUpdated = updateStorageUnit(storageUnit.getId, storageJson.toString()) |> waitFutureValue
       assert(antUpdated.status == 200)
-      val updatedObjectResponse = getStorageUnit(storageUnit.getId)  |> waitFutureValue
+      val updatedObjectResponse = getStorageUnit(storageUnit.getId) |> waitFutureValue
       val updatedObject = Json.parse(updatedObjectResponse.body).validate[StorageUnit].get
 
       updatedObject.storageUnitName mustBe ("hylle3")

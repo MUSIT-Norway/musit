@@ -88,12 +88,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
       n <- insertRoomOnly(storageRoom.copy(id = storageUnit.id))
     } yield (storageUnit, storageRoom.copy(id = storageUnit.id))).transactionally
     db.run(action)
-    /*al a = (for {
-      storageUnit <- StorageUnitTable returning StorageUnitTable.map(_.id) into
-        ((storageUnit, id) => storageUnit.copy(id = id, links = linkText(id))) += storageUnit
-      room <- RoomTable += storageRoom.copy(storageUnit.id, links = linkText(storageUnit.id))
-    } yield (storageUnit, room)).transactionally*/
-
   }
 
   def insertBuildingOnly(storageBuilding: StorageBuilding): DBIO[Int] = {
@@ -146,13 +140,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     } yield 1).transactionally
     db.run(action)
   }
-
-  /*def updateStorageNameByID(id: Long, storageName: String): Future[StorageUnit] = {
-    val u = for {
-      l <- StorageUnitTable if l.id === id
-    } yield l.storageUnitName
-    u.update(storageName)
-  }*/
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
