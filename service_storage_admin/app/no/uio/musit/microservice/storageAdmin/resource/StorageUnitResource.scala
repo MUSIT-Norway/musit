@@ -73,10 +73,10 @@ class StorageUnitResource extends Controller {
 
   def fromJsonToStorageUnitTriple(json: JsValue): Either[Result, StorageUnitTriple] = {
     val storageType = (json \ "storageType").as[String]
-    StorageUnitType(storageType) match {
+    val jsRes = StorageUnitType(storageType) match {
       case StUnit => {
         val jsResultStUnit = json.validate[StorageUnit]
-        jsResultStUnit.map(StorageUnitTriple.createStorageUnit) |> jsResultToEither
+        jsResultStUnit.map(StorageUnitTriple.createStorageUnit)
 
       }
       case Room => {
@@ -86,7 +86,7 @@ class StorageUnitResource extends Controller {
             storageRoom <- json.validate[StorageRoom]
           } yield StorageUnitTriple.createRoom(storageUnit, storageRoom)
         }
-        roomResult |> jsResultToEither
+        roomResult
       }
       case Building => {
         val buildingResult = {
@@ -95,9 +95,10 @@ class StorageUnitResource extends Controller {
             storageBuilding <- json.validate[StorageBuilding]
           } yield StorageUnitTriple.createBuilding(storageUnit, storageBuilding)
         }
-        buildingResult |> jsResultToEither
+        buildingResult
       }
     }
+    jsRes |> jsResultToEither
   }
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {

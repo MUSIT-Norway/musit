@@ -20,30 +20,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ResourceHelper {
 
-  def badRequest(text: String) = Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, text))
-  def futureBadRequest(text: String) = Future.successful(badRequest(text))
-
   def postRoot[A](servicePostCall: A => Future[Either[MusitError, A]], objectToPost: A, toJsonTransformer: A => JsValue) = {
     val res = servicePostCall(objectToPost)
     res.map { either =>
       either.fold(
-        l => BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, l.toString))),
+        l => BadRequest(Json.toJson(l)),
         r => Created(toJsonTransformer(r))
       )
-    }
-  }
-
-  def updateRoot[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A], objectTransformer: A => A = identity[A] _): Future[Result] = {
-    //val validatedResult: JsResult[A] = request.body.validate[A]
-    validatedResult match {
-      case s: JsSuccess[A] =>
-        val objectToUpdate = objectTransformer(s.get)
-        serviceUpdateCall(id, objectToUpdate).map {
-          case Right(updateStatus) => Ok(Json.toJson(updateStatus))
-          case Left(error) => Status(error.status)(Json.toJson(error))
-        }
-
-      case e: JsError => /*futureBadRequest(e.toString) //#OLD */ Future.successful(BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, e.toString))))
     }
   }
 
@@ -51,6 +34,13 @@ object ResourceHelper {
     serviceUpdateCall(id, objectToUpdate).map {
       case Right(updateStatus) => Ok(Json.toJson(updateStatus))
       case Left(error) => Status(error.status)(Json.toJson(error))
+    }
+  }
+
+  def updateRootWithJsResult[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A]): Future[Result] = {
+    validatedResult match {
+      case s: JsSuccess[A] => updateRoot(serviceUpdateCall, id, s.get)
+      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, e.toString))))
     }
   }
 

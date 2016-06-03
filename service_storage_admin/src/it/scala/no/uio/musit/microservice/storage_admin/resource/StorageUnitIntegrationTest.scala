@@ -18,7 +18,7 @@ import scala.concurrent.Future
 /**
   * Created by ellenjo on 5/27/16.
   */
-class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with ScalaFutures {
+class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
   //val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 19002
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
@@ -57,7 +57,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
 
   "StorageUnitIntegration " must {
     "postCreate some IDs" in {
-      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom"}"""
+      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom", "sikringSkallsikring": "1"}"""
       val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
       val storageRoom = Json.parse(response.body).validate[StorageRoom].get
@@ -66,6 +66,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
       storageUnit.storageUnitName mustBe "UkjentRom"
 
     }
+
 
     "postCreate a building" in {
       val makeMyJSon ="""{"id":-1, "storageType":"Building","storageUnitName":"KHM", "links":[]}"""
@@ -171,8 +172,44 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite  with S
 
       val error = Json.parse(response.body).validate[MusitError].get
       error.message mustBe "Unknown storageUnit with ID: 125254764"
+    }
+
+    "postCreate should not be able to insert too long field value" in {
+      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "10"}"""
+      val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
+      //      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+      //      val storageRoom = Json.parse(response.body).validate[StorageRoom].get
+
+
+      val error = Json.parse(response.body).validate[MusitError].get
+      //println(s"--- Error: $error")
+
+      error.getDeveloperMessage must include("Value too long")
+    }
+
+
+    "create room transaction should not create a storageUnit in the database if the room doesn't get created. (Transaction failure)" in {
+      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "1"}"""
+      val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+
+      val id = storageUnit.getId //Just to know which is the current id, the next is supposed to fail....
+
+      val jsonWhichShouldFail ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "10"}"""
+      val response2 = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(jsonWhichShouldFail) |> waitFutureValue
+      val error = Json.parse(response2.body).validate[MusitError].get
+
+      error.getDeveloperMessage must include("Value too long")
+
+      val getResponse = WS.url(s"http://localhost:$port/v1/storageunit/${id + 1}").get() |> waitFutureValue
+
+      val errorOnGet = Json.parse(getResponse.body).validate[MusitError].get
+      errorOnGet.message mustBe s"Unknown storageUnit with ID: ${id + 1}"
+
 
     }
+
+
   }
 }
 
