@@ -26,20 +26,12 @@ import AutosuggestHighlight from 'autosuggest-highlight'
 import { suggestAddress, clearSuggest } from '../../reducers/suggest'
 
 const mapStateToProps = (state) => ({
-  suggestedAddresses: () => {
-    console.log(state)
-    let retVal = []
-    if (state.suggest.addressField && state.suggest.addressField.data && state.suggest.addressField.loaded) {
-      retVal = state.suggest.addressField.data
-    }
-    return retVal
-  }
+  suggest: state.suggest
 })
 
 const mapDispatchToProps = (dispatch) => {
   return {
     onSuggestionsUpdateRequested({ value, reason }) {
-      console.log(value)
       // Should only autosuggest on typing if you have more then 3 characters
       if (reason && (reason === 'type') && value && (value.length >= 3)) {
         dispatch(suggestAddress('addressField', value))
@@ -54,7 +46,8 @@ const mapDispatchToProps = (dispatch) => {
 export default class ExampleView extends Component {
   static propTypes = {
     suggestedAddresses: React.PropTypes.func.isRequired,
-    onSuggestionsUpdateRequested: React.PropTypes.func.isRequired
+    onSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    suggest: React.PropTypes.object.isRequired
   }
 
   static validateString(value, minimumLength = 3, maximumLength = 20) {
@@ -132,19 +125,17 @@ export default class ExampleView extends Component {
   }
 
   onChange(event, { newValue, method }) {
-    console.log(method)
     this.setState({
       address: newValue
     })
   }
 
   getSuggestionValue(suggestion) {
-    console.log(suggestion)
-    return suggestion
+    return `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
   }
 
   renderSuggestion(suggestion, { value, valueBeforeUpDown }) {
-    const suggestionText = `${suggestion}`
+    const suggestionText = `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
     const query = (valueBeforeUpDown || value).trim()
     const matches = AutosuggestHighlight.match(suggestionText, query)
     const parts = AutosuggestHighlight.parse(suggestionText, matches)
@@ -167,7 +158,7 @@ export default class ExampleView extends Component {
   }
 
   render() {
-    const { suggestedAddresses, onSuggestionsUpdateRequested } = this.props
+    const { onSuggestionsUpdateRequested, suggest } = this.props
     const { address } = this.state
     const inputProps = {
       placeholder: 'Adresse',
@@ -175,8 +166,8 @@ export default class ExampleView extends Component {
       type: 'search',
       onChange: this.onChange
     }
-
     return (
+
       <div>
         <main>
           <Panel>
@@ -200,7 +191,8 @@ export default class ExampleView extends Component {
               </Row>
               <Row>
                 <Col md={12}>
-                  <Autosuggest suggestions={suggestedAddresses}
+                  <Autosuggest
+                    suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
                     onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
                     getSuggestionValue={this.getSuggestionValue}
                     renderSuggestion={this.renderSuggestion}
