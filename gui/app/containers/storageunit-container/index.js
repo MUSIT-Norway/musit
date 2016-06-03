@@ -16,11 +16,44 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
- import React, { Component } from 'react'
+ import React, { Component, PropTypes } from 'react'
  import Options from '../../components/storageunits/EnvironmentOptions'
+ import { connect } from 'react-redux';
  import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
+ import { isLoaded as isStorageUnitContainerLoaded,
+          load as loadStorageUnitContainer } from '../../reducers/storageunit-container';
+ import { asyncConnect } from 'redux-async-connect';
+ import { routerActions } from 'react-router-redux';
+ import { I18n } from 'react-i18nify'
 
+ const mapStateToProps = (state) => {
+   I18n.loadTranslations(state.language.data)
+   I18n.setLocale('no')
+   return {
+     user: state.auth.user,
+     pushState: routerActions.push
+   }
+ }
+
+ @asyncConnect([{
+   promise: ({ store: { dispatch, getState } }) => {
+     const promises = [];
+     if (!isStorageUnitContainerLoaded(getState())) {
+       promises.push(dispatch(loadStorageUnitContainer()))
+     }
+     return Promise.all(promises);
+   }
+ }])
+
+@connect(mapStateToProps)
  export default class StorageUnitContainer extends Component {
+   static propTypes = {
+     children: PropTypes.object.isRequired,
+     user: PropTypes.object,
+     pushState: PropTypes.func.isRequired,
+     store: PropTypes.object
+   };
+
    static validateString(value, minimumLength = 3, maximumLength = 20) {
      const isSomething = value.length >= minimumLength
      const isValid = isSomething ? 'success' : null
@@ -58,7 +91,6 @@
        }
      }
    }
-
 
    render() {
      return (
