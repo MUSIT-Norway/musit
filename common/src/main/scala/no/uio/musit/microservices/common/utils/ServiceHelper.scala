@@ -35,27 +35,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object ServiceHelper {
 
-  def badRequest(text: String) = MusitError(Status.BAD_REQUEST, text)
-  def futureBadRequest(text: String) = Future.successful(badRequest(text))
+  def badRequest(text: String, devMessage: String = "") =
+    MusitError(Status.BAD_REQUEST, text, devMessage)
 
-  /** Calls a DAO service method to update an object and returns proper result structure. Assumes a separate id (instead of the using the id likely in the objectToUpdate instance). */
-  def daoUpdateById[A](daoUpdateByIdCall: (Long, A) => Future[Int], idToUpdate: Long, objectToUpdate: A): Future[Either[MusitError, MusitStatusMessage]] = {
-    daoUpdateByIdCall(idToUpdate, objectToUpdate).map {
-      case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
-      case 1 => Right(MusitStatusMessage("Record was updated!"))
-      case _ => Left(MusitError(Status.BAD_REQUEST, "Update updated several records!"))
+  def daoInsert[A](daoInsertResult: Future[A]): Future[Either[MusitError, A]] =
+    daoInsertResult.map(insertedObject => Right(insertedObject)).recover {
+      case e => Left(badRequest("dao error", e.toString))
     }
-  }
-
-  // TODO: Should standardize on the above or the below, not use both!
-
-  /** Calls a DAO service method to update an object and returns proper result structure */
-  def daoUpdate[A](daoUpdateCall: A => Future[Int], objectToUpdate: A): Future[Either[MusitError, MusitStatusMessage]] = {
-    daoUpdateCall(objectToUpdate).map {
-      case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
-      case 1 => Right(MusitStatusMessage("Record was updated!"))
-      case _ => Left(MusitError(Status.BAD_REQUEST, "Update updated several records!"))
-    }
-  }
-
 }

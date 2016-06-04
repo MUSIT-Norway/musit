@@ -143,9 +143,10 @@ case class StorageUnitTriple(storageUnit: StorageUnit, buildingOrRoom: Option[St
 
   }
 
-  //When id is explicitly defined in the url in the request, we want this id to override possible id in the body, so we have this convenience method to do this transformation
-  def copyWithId(id: Long) = {
-    val newStorageUnit = storageUnit.copy(id = Some(id))
+  //When id is explicitly defined in the url in the request, we want this id to override possible id in the body,
+  // so we have this convenience method to do this transformation
+  def copyWithId(id: Long): StorageUnitTriple = {
+    val newStorageUnit = storageUnit.copy(Some(id))
     storageKind match {
       case StUnit => StorageUnitTriple.createStorageUnit(newStorageUnit)
       case Building => StorageUnitTriple.createBuilding(newStorageUnit, getBuilding.copy(id = Some(id)))

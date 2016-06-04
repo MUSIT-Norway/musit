@@ -121,5 +121,5 @@
             <parameter name="maxMethods"><![CDATA[30]]></parameter>
         </parameters>
     </check>
-    <check level="warning" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"/>
+    <check level="warning" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="false"/>
 </scalastyle>

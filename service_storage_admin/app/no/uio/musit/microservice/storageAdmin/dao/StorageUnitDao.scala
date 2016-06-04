@@ -6,8 +6,8 @@ import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
  * Created by ellenjo on 5/18/16.
@@ -64,17 +64,17 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   def all(): Future[Seq[StorageUnit]] = db.run(StorageUnitTable.result)
 
-  def insertAndRun(storageUnit: StorageUnit): Future[StorageUnit] =
-    db.run(insert(storageUnit))
+  def insert(storageUnit: StorageUnit): Future[StorageUnit] =
+    db.run(insertAction(storageUnit))
 
-  def insert(storageUnit: StorageUnit): DBIO[StorageUnit] = {
+  def insertAction(storageUnit: StorageUnit): DBIO[StorageUnit] = {
     val insertQuery = StorageUnitTable returning StorageUnitTable.map(_.id) into
       ((storageUnit, id) => storageUnit.copy(id = id, links = linkText(id)))
     val action = insertQuery += storageUnit
     action
   }
 
-  def insertRoomOnly(storageRoom: StorageRoom): DBIO[Int] = {
+  private def insertRoomOnlyAction(storageRoom: StorageRoom): DBIO[Int] = {
     assert(storageRoom.id.isDefined) //if failed then it's our bug
     val stRoom = storageRoom.copy(links = linkText(storageRoom.id))
     val insertQuery = RoomTable
@@ -82,61 +82,62 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     action
   }
 
-  def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[(StorageUnit, StorageRoom)] = {
-    val action = (for {
-      storageUnit <- insert(storageUnit)
-      n <- insertRoomOnly(storageRoom.copy(id = storageUnit.id))
-    } yield (storageUnit, storageRoom.copy(id = storageUnit.id))).transactionally
-    db.run(action)
+  def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[StorageUnitTriple] = {
+    db.run((for {
+      storageUnit <- insertAction(storageUnit)
+      n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
+    } yield StorageUnitTriple.createRoom(
+      storageUnit,
+      storageRoom.copy(id = storageUnit.id)
+    )).transactionally)
   }
 
-  def insertBuildingOnly(storageBuilding: StorageBuilding): DBIO[Int] = {
+  private def insertBuildingOnlyAction(storageBuilding: StorageBuilding): DBIO[Int] = {
     val stBuilding = storageBuilding.copy(links = linkText(storageBuilding.id))
     val insertQuery = BuildingTable
     val action = insertQuery += stBuilding
     action
   }
 
-  def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[(StorageUnit, StorageBuilding)] = {
-    val action = (for {
-      storageUnit <- insert(storageUnit)
-      n <- insertBuildingOnly(storageBuilding.copy(id = storageUnit.id))
-    } yield (storageUnit, storageBuilding.copy(id = storageUnit.id))).transactionally
-    db.run(action)
+  def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[StorageUnitTriple] = {
+    db.run((for {
+      storageUnit <- insertAction(storageUnit)
+      n <- insertBuildingOnlyAction(storageBuilding.copy(id = storageUnit.id))
+    } yield StorageUnitTriple.createBuilding(
+      storageUnit,
+      storageBuilding.copy(id = storageUnit.id)
+    )).transactionally)
   }
 
-  def updateStorageUnitByIdNoRun(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
+  private def updateStorageUnitAction(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
     StorageUnitTable.filter(_.id === id).update(storageUnit)
   }
 
-  def updateStorageUnitByID(id: Long, storageUnit: StorageUnit): Future[Int] = {
-    db.run(updateStorageUnitByIdNoRun(id, storageUnit))
+  def updateStorageUnit(id: Long, storageUnit: StorageUnit): Future[Int] = {
+    db.run(updateStorageUnitAction(id, storageUnit))
   }
 
-  def updateRoomOnlyByIdNoRun(id: Long, storageRoom: StorageRoom): DBIO[Int] = {
+  private def updateRoomOnlyAction(id: Long, storageRoom: StorageRoom): DBIO[Int] = {
     RoomTable.filter(_.id === id).update(storageRoom)
   }
 
-  def updateRoomByID(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
-    println(s"updateRoomByID: ID: $id  storageRoom: ${storageUnitAndRoom._2}")
-    val action = (for {
-      n <- updateStorageUnitByIdNoRun(id, storageUnitAndRoom._1)
-      m <- updateRoomOnlyByIdNoRun(id, storageUnitAndRoom._2.copy(id = Some(id)))
-      if (n == 1 && m == 1)
-    } yield 1).transactionally
-    db.run(action)
+  def updateRoom(id: Long, storageUnit: StorageUnit, room: StorageRoom): Future[Unit] = {
+    db.run((for {
+      n <- updateStorageUnitAction(id, storageUnit)
+      m <- updateRoomOnlyAction(id, room.copy(Some(id)))
+      if n == 1 && m == 1
+    } yield ()).transactionally)
   }
 
-  def updateBuildingOnlyByIdNoRun(id: Long, storageBuilding: StorageBuilding): DBIO[Int] = {
+  private def updateBuildingOnlyAction(id: Long, storageBuilding: StorageBuilding): DBIO[Int] = {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
-  def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
-
+  def updateBuildingByID(id: Long, storageUnit: StorageUnit, building: StorageBuilding): Future[Int] = {
     val action = (for {
-      n <- updateStorageUnitByIdNoRun(id, storageUnitAndBuilding._1)
-      m <- updateBuildingOnlyByIdNoRun(id, storageUnitAndBuilding._2.copy(id = Some(id)))
-      if (n == 1 && m == 1)
+      n <- updateStorageUnitAction(id, storageUnit)
+      m <- updateBuildingOnlyAction(id, building.copy(storageUnit.id))
+      if n == 1 && m == 1
     } yield 1).transactionally
     db.run(action)
   }
