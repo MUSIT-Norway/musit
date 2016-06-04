@@ -23,10 +23,7 @@ import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
-import org.apache.http.HttpStatus
 import play.api.http.Status
-import play.mvc.Http
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -41,7 +38,7 @@ trait StorageUnitService {
   }
 
   def storageBuildingNotFoundError(id: Long): MusitError = {
-    ServiceHelper.badRequest(s"Unknown storageRoom with ID: $id")
+    ServiceHelper.badRequest(s"Unknown storageBuilding with ID: $id")
   }
 
   def storageUnitTypeMismatch(id: Long, expected: StorageUnitType, inDatabase: StorageUnitType): MusitError = {
