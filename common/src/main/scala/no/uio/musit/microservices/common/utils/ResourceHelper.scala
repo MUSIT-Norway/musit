@@ -46,11 +46,9 @@ object ResourceHelper {
 
   def getRootFromEither[A](serviceUpdateCall: (Long) => Future[Either[MusitError, A]], id: Long, toJsonTransformer: A => JsValue): Future[Result] = {
     val futResObject = serviceUpdateCall(id)
-    futResObject.map { resObject =>
-      resObject match {
-        case Right(obj) => Ok(toJsonTransformer(obj))
-        case Left(error) => Status(error.status)(Json.toJson(error))
-      }
+    futResObject.map {
+      case Right(obj) => Ok(toJsonTransformer(obj))
+      case Left(error) => Status(error.status)(Json.toJson(error))
     }
   }
 

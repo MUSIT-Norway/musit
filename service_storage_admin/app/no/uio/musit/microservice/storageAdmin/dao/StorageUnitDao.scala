@@ -83,11 +83,13 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[StorageUnitTriple] = {
-    val action = (for {
+    db.run((for {
       storageUnit <- insertAction(storageUnit)
       n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
-    } yield StorageUnitTriple.createRoom(storageUnit, storageRoom.copy(id = storageUnit.id))).transactionally
-    db.run(action)
+    } yield StorageUnitTriple.createRoom(
+      storageUnit,
+      storageRoom.copy(id = storageUnit.id)
+    )).transactionally)
   }
 
   private def insertBuildingOnlyAction(storageBuilding: StorageBuilding): DBIO[Int] = {
@@ -98,11 +100,13 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[StorageUnitTriple] = {
-    val action = (for {
+    db.run((for {
       storageUnit <- insertAction(storageUnit)
       n <- insertBuildingOnlyAction(storageBuilding.copy(id = storageUnit.id))
-    } yield StorageUnitTriple.createBuilding(storageUnit, storageBuilding.copy(id = storageUnit.id))).transactionally
-    db.run(action)
+    } yield StorageUnitTriple.createBuilding(
+      storageUnit,
+      storageBuilding.copy(id = storageUnit.id)
+    )).transactionally)
   }
 
   private def updateStorageUnitAction(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
@@ -117,25 +121,23 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     RoomTable.filter(_.id === id).update(storageRoom)
   }
 
-  def updateRoom(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
-    val action = (for {
-      n <- updateStorageUnitAction(id, storageUnitAndRoom._1)
-      m <- updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id)))
-      if (n == 1 && m == 1)
-    } yield 1).transactionally
-    db.run(action)
+  def updateRoom(id: Long, storageUnit: StorageUnit, room: StorageRoom): Future[Unit] = {
+    db.run((for {
+      n <- updateStorageUnitAction(id, storageUnit)
+      m <- updateRoomOnlyAction(id, room.copy(Some(id)))
+      if n == 1 && m == 1
+    } yield ()).transactionally)
   }
 
   private def updateBuildingOnlyAction(id: Long, storageBuilding: StorageBuilding): DBIO[Int] = {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
-  def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
-
+  def updateBuildingByID(id: Long, storageUnit: StorageUnit, building: StorageBuilding): Future[Int] = {
     val action = (for {
-      n <- updateStorageUnitAction(id, storageUnitAndBuilding._1)
-      m <- updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id)))
-      if (n == 1 && m == 1)
+      n <- updateStorageUnitAction(id, storageUnit)
+      m <- updateBuildingOnlyAction(id, building.copy(storageUnit.id))
+      if n == 1 && m == 1
     } yield 1).transactionally
     db.run(action)
   }

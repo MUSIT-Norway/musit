@@ -20,30 +20,30 @@ package no.uio.musit.microservice.storageAdmin.service
 
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
-import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.ServiceHelper
-
+import play.api.http.Status
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait StorageUnitService {
 
-  def StorageUnitNotFoundError(id: Long): Either[MusitError, Nothing] = {
+  def storageUnitNotFoundError(id: Long): MusitError = {
     ServiceHelper.badRequest(s"Unknown storageUnit with ID: $id")
   }
 
-  def StorageRoomNotFoundError(id: Long): Either[MusitError, Nothing] = {
+  def storageRoomNotFoundError(id: Long): MusitError = {
     ServiceHelper.badRequest(s"Unknown storageRoom with ID: $id")
   }
 
-  def StorageBuildingNotFoundError(id: Long): Either[MusitError, Nothing] = {
+  def storageBuildingNotFoundError(id: Long): MusitError = {
     ServiceHelper.badRequest(s"Unknown storageBuilding with ID: $id")
   }
 
-  def StorageUnitTypeMismatch(id: Long, expected: StorageUnitType, inDatabase: StorageUnitType): Either[MusitError, Nothing] = {
-    ServiceHelper.badRequest(s"StorageUnit with ID: $id was expected to have storage type: ${expected.typename}, but had the type: ${inDatabase.typename} in the database.")
+  def storageUnitTypeMismatch(id: Long, expected: StorageUnitType, inDatabase: StorageUnitType): MusitError = {
+    ServiceHelper.badRequest(s"StorageUnit with ID: $id was expected to have storage type: ${expected.typename}, " +
+      s"but had the type: ${inDatabase.typename} in the database.")
   }
 
   def create(storageUnit: StorageUnit): Future[Either[MusitError, StorageUnitTriple]] = {
@@ -59,89 +59,90 @@ trait StorageUnitService {
     }
   }
 
-  def getChildren(id: Long): Future[Seq[StorageUnit]] = {
-    StorageUnitDao.getChildren(id)
-  }
+  def getSideTable(id: Long, storageUnit: StorageUnit) =
+    storageUnit.storageKind match {
+      case StUnit =>
+        Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
 
-  private def getStorageUnitOnly(id: Long) = StorageUnitDao.getStorageUnitOnlyById(id).foldInnerOption(StorageUnitNotFoundError(id), Right(_))
+      case Building =>
+        StorageUnitDao.getBuildingById(id).foldInnerOption(
+          Left(storageBuildingNotFoundError(id)),
+          storageBuilding => Right(StorageUnitTriple.createBuilding(
+            storageUnit,
+            storageBuilding
+          ))
+        )
 
-  def getById(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
-    val fEitherStorageUnit = getStorageUnitOnly(id)
-
-    val res = fEitherStorageUnit.mapOnInnerRight { storageUnit =>
-      storageUnit.storageKind match {
-        case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
-        case Building => StorageUnitDao.getBuildingById(id).foldInnerOption(StorageBuildingNotFoundError(id), storageBuilding => Right(StorageUnitTriple.createBuilding(storageUnit, storageBuilding)))
-        case Room => StorageUnitDao.getRoomById(id).foldInnerOption(StorageRoomNotFoundError(id), storageRoom => Right(StorageUnitTriple.createRoom(storageUnit, storageRoom)))
-      }
+      case Room =>
+        StorageUnitDao.getRoomById(id).foldInnerOption(
+          Left(storageRoomNotFoundError(id)),
+          storageRoom => Right(StorageUnitTriple.createRoom(
+            storageUnit,
+            storageRoom
+          ))
+        )
     }
-    res |> flattenFutureEitherFutureEither
-  }
 
-  def getStorageType(id: Long): Future[Option[StorageUnitType]] = StorageUnitDao.getStorageType(id)
-
-  def all: Future[Seq[StorageUnit]] = {
-    StorageUnitDao.all()
-  }
-
-  def find(id: Long) = {
-    getById(id)
-  }
-
-  def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
-    ServiceHelper.daoUpdateById(StorageUnitDao.updateStorageUnit, id, storageUnit)
-  }
-
-  def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageUnitType) = {
-    def handleWithStorageType(storageUnitTypeInDatabase: StorageUnitType) = {
-      if (expectedStorageUnitType == storageUnitTypeInDatabase) Right(())
-      else StorageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
-
+  def getByIdOnly(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
+    StorageUnitDao.getStorageUnitOnlyById(id).flatMap {
+      case Some(storageUnit) => getSideTable(id, storageUnit)
+      case None => Future.successful(Left(storageUnitNotFoundError(id)))
     }
-    getStorageType(id).foldInnerOption(StorageUnitNotFoundError(id), handleWithStorageType(_))
   }
 
-  def updateStorageTripleByID(id: Long, triple: StorageUnitTriple) = {
-    val res = verifyStorageTypeMatchesDatabase(id, triple.storageKind).mapOnInnerRight { _ =>
-
-      val modifiedTriple = triple.copyWithId(id) //We want the id in the url to override potential mistake in the body (of the original http request).
-
-      val storageUnit = modifiedTriple.storageUnit
-
-      modifiedTriple.storageKind match {
-        case StUnit => updateStorageUnitByID(id, storageUnit)
-        case Building => BuildingService.updateBuildingByID(id, (storageUnit, modifiedTriple.getBuilding))
-        case Room => RoomService.updateRoomByID(id, (storageUnit, modifiedTriple.getRoom))
-      }
-
+  def updateStorageTripleByID(id: Long, triple: StorageUnitTriple): Future[Either[MusitError, MusitStatusMessage]] = {
+    StorageUnitDao.getStorageType(id).flatMap {
+      case Some(storageUnitTypeInDatabase) =>
+        if (triple.storageKind == storageUnitTypeInDatabase) {
+          updateTables(id, triple.copyWithId(id))
+        } else {
+          Future.successful(Left(storageUnitTypeMismatch(id, triple.storageKind, storageUnitTypeInDatabase)))
+        }
+      case None =>
+        Future.successful(Left(storageUnitNotFoundError(id)))
     }
-    res |> flattenFutureEitherFutureEither
+  }
+
+  private def updateTables(id: Long, triple: StorageUnitTriple) = {
+    triple.storageKind match {
+      case StUnit =>
+        StorageUnitDao.updateStorageUnit(id, triple.storageUnit).map {
+          case 1 => Right(MusitStatusMessage("Record was updated!"))
+          case other => Left(MusitError(
+            status = Status.INTERNAL_SERVER_ERROR,
+            message = "Could not update storage unit",
+            developerMessage = "Updated rows: " + other
+          ))
+        }
+      case Building =>
+        BuildingService.updateBuildingByID(id, triple.storageUnit, triple.getBuilding)
+      case Room =>
+        RoomService.updateRoomByID(id, triple.storageUnit, triple.getRoom)
+    }
   }
 }
 
-object StorageUnitService extends StorageUnitService {
-}
+object StorageUnitService extends StorageUnitService
 
 trait RoomService {
-  def create(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[Either[MusitError, StorageUnitTriple]] = {
+  def create(storageUnit: StorageUnit, storageRoom: StorageRoom) =
     ServiceHelper.daoInsert(StorageUnitDao.insertRoom(storageUnit, storageRoom))
-  }
 
-  def updateRoomByID(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
-    ServiceHelper.daoUpdateById(StorageUnitDao.updateRoom, id, storageUnitAndRoom)
-  }
+  def updateRoomByID(id: Long, storageUnit: StorageUnit, storageRoom: StorageRoom) =
+    StorageUnitDao.updateRoom(id, storageUnit, storageRoom).map(_ => Right(MusitStatusMessage("Record was updated!")))
 }
 
 object RoomService extends RoomService
 
 trait BuildingService {
-  def create(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[Either[MusitError, StorageUnitTriple]] = {
+  def create(storageUnit: StorageUnit, storageBuilding: StorageBuilding) =
     ServiceHelper.daoInsert(StorageUnitDao.insertBuilding(storageUnit, storageBuilding))
-  }
 
-  def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
-    ServiceHelper.daoUpdateById(StorageUnitDao.updateBuildingByID, id, storageUnitAndBuilding)
-  }
+  def badRequest(text: String, devMessage: String = "") =
+    MusitError(Status.BAD_REQUEST, text, devMessage)
+
+  def updateBuildingByID(id: Long, storageUnit: StorageUnit, storageBuilding: StorageBuilding) =
+    StorageUnitDao.updateBuildingByID(id, storageUnit, storageBuilding).map(_ => Right(MusitStatusMessage("Record was updated!")))
 }
 
 object BuildingService extends BuildingService
