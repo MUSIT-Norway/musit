@@ -32,6 +32,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT(
  storage_type      varchar(100),
  group_read        varchar(4000),
  group_write       varchar(4000),
+ is_deleted        INT NOT NULL DEFAULT '0',
 primary key (storage_unit_id)
 );
 

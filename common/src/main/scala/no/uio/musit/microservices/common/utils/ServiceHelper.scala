@@ -37,6 +37,7 @@ object ServiceHelper {
 
   def badRequest(text: String, devMessage: String = "") = Left(MusitError(Status.BAD_REQUEST, text, devMessage))
 
+  def notFoundError(text: String, devMessage: String = "") = Left(MusitError(Status.NOT_FOUND, text, devMessage))
   //  def futureBadRequest(text: String) = Future.successful(badRequest(text))
 
   def daoInsert[A](daoInsertResult: Future[A]): Future[Either[MusitError, A]] = {

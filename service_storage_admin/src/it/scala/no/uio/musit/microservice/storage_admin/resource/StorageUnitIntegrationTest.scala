@@ -31,6 +31,10 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     WS.url(s"http://localhost:$port/v1/storageunit/${id}").putJsonString(json)
   }
 
+  def deleteStorageUnit(id: Long) = {
+    WS.url(s"http://localhost:$port/v1/storageunit/${id}").delete
+  }
+
   def getStorageUnit(id: Long) = WS.url(s"http://localhost:$port/v1/storageunit/${id}").get
 
   def getRoomAsObject(id: Long): Future[StorageRoom] = {
@@ -206,10 +210,22 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val errorOnGet = Json.parse(getResponse.body).validate[MusitError].get
       errorOnGet.message mustBe s"Unknown storageUnit with ID: ${id + 1}"
 
-
     }
 
+    "create and delete room" in {
+      val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "1"}"""
+      val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+      assert(response.status == 201)
+      val id = storageUnit.getId //Just to know which is the current id, the next is supposed to fail....
+      val responsDel = deleteStorageUnit(id) |> waitFutureValue
+      assert(responsDel.status == 200)
+      val responsGet = getStorageUnit(id) |> waitFutureValue
+      assert(responsGet.status == 404)
 
+      val responsDel2 = deleteStorageUnit(id) |> waitFutureValue
+      assert(responsDel.status == 404)
+    }
   }
 }
 

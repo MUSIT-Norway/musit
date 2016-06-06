@@ -28,7 +28,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] = {
-    val action = StorageUnitTable.filter(_.id === id).result.headOption
+    val action = StorageUnitTable.filter(st => st.id === id && st.isDeleted === 0).result.headOption
     db.run(action)
   }
 
@@ -140,6 +140,14 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
+  def deleteStorageUnit(id: Long): Future[Int] = {
+    val q = for {
+      storageUnit <- StorageUnitTable if storageUnit.id === id && storageUnit.isDeleted === 0
+    } yield storageUnit.isDeleted
+    val updateAction = q.update(1)
+    db.run(updateAction)
+  }
+
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
 
@@ -160,6 +168,8 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     val groupRead = column[Option[String]]("GROUP_READ")
 
     val groupWrite = column[Option[String]]("GROUP_WRITE")
+
+    val isDeleted = column[Int]("IS_DELETED")
 
     def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
