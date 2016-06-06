@@ -42,6 +42,6 @@ export const isLoaded = (globalState) => {
 export const load = () => {
   return {
     types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/loadStorageUnitContainer')
+    promise: (client) => client.get('/LOADStorageUnitContainer')
   };
 }
