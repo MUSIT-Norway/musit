@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage, MusitNotFoundException }
+import no.uio.musit.microservices.common.domain._
 import play.api.http.Status
 
 import scala.concurrent.Future
@@ -51,9 +51,9 @@ object ServiceHelper {
     daoUpdateByIdCall(idToUpdate, objectToUpdate).map {
       case 0 => notFoundError("Update did not update any records!")
       case 1 => Right(MusitStatusMessage("Record was updated!"))
-      case _ => badRequest("Update updated several records!")
+      case n => badRequest(s"Update updated too many records! ($n)")
     }.recover {
-      case _: MusitNotFoundException => notFoundError("Update did not update any records!")
+      case e: MusitException => Left(e.toMusitError)
     }
   }
 

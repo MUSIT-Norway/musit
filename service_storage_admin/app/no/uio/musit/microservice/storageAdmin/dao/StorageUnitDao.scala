@@ -121,9 +121,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   def updateRoom(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
 
-    //If we don't have the storage unit or it is marked as deleted, map0ToNotFoundFailure will make this DBIO/Future fail with a MusitNotFoundException.
+    //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.map0ToNotFoundFailure)
+    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
 
     val action = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id))) }
 
@@ -145,6 +145,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
+  /**@see #updateRoom()*/
   def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
     /*
     val action = (for {
@@ -154,7 +155,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     } yield 1).transactionally
     db.run(action)
 */
-    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.map0ToNotFoundFailure)
+    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
 
     val action = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id))) }
 

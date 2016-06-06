@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.MusitNotFoundException
+import no.uio.musit.microservices.common.domain.{ MusitNotFoundException, MusitTooManyRecordsUpdatedException }
 import slick.dbio.DBIO
 
 import scala.concurrent.Future
@@ -30,19 +30,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object DaoHelper {
 
-  def map0ToNotFoundFailure(dbio: DBIO[Int]): DBIO[Int] = {
+  /**
+   * The contained int is expected to contain the number of rows updated (in a DBIO). (As is typically returned from a Slick update call).
+   * If it is 1, 1 is returned. Else an appropriately failed future us returned.
+   */
+  def onlyAcceptOneUpdatedRecord(dbio: DBIO[Int]): DBIO[Int] = {
     dbio.map {
       case 0 => throw new MusitNotFoundException("DAO error, object not found")
-      case n => n
-
+      case 1 => 1
+      case n => throw new MusitTooManyRecordsUpdatedException(s"Update updated too many records! ($n)")
     }
   }
-
-  /*Not finished and not used, just the start of an idea...
-    def recoverActionWithFilterFailure[T](fut: Future[T], recoverValue: T) = {
-      fut.recover {
-        case e: NoSuchElementException if e.includes("Action.withFilter failed") => Future.successful(recoverValue)
-      }
-    }
-    */
 }
