@@ -71,7 +71,7 @@ export default class StorageUnitComponent extends Component {
     this.type = {
       controlId: 'storageUnitType',
       labelText: 'Type',
-      items: ['Lagringsenhet', 'Room', 'Bui666lding'],
+      items: ['Lagringsenhet', 'Rom', 'Bygning'],
       valueType: 'text',
       tooltip: 'Type lagringsenhet',
       placeHolderText: 'velg type here',
