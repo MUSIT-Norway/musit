@@ -124,7 +124,7 @@ export default class ExampleView extends Component {
     this.onChange = this.onChange.bind(this)
   }
 
-  onChange(event, { newValue, method }) {
+  onChange(event, { newValue }) {
     this.setState({
       address: newValue
     })
@@ -141,18 +141,16 @@ export default class ExampleView extends Component {
     const parts = AutosuggestHighlight.parse(suggestionText, matches)
 
     return (
-      <span>
-        <span>
-          {
-            parts.map((part, index) => {
-              const className = part.highlight ? 'highlight' : null;
+      <span className={'suggestion-content'}>
+        {
+          parts.map((part, index) => {
+            const className = part.highlight ? 'highlight' : null;
 
-              return (
-                <span className={className} key={index}>{part.text}</span>
-              )
-            })
-          }
-        </span>
+            return (
+              <span className={className} key={index}>{part.text}</span>
+            )
+          })
+        }
       </span>
     )
   }
@@ -191,7 +189,7 @@ export default class ExampleView extends Component {
               </Row>
               <Row>
                 <Col md={12}>
-                  <Autosuggest
+                  <Autosuggest id={'addressField'}
                     suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
                     onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
                     getSuggestionValue={this.getSuggestionValue}
