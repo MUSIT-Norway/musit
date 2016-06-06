@@ -74,7 +74,7 @@
      this.state = {
        storageUnit: {
          type: '',
-         name: '',
+         name: 'Hei hei',
          areal1: '',
          areal2: '',
          height1: '',
@@ -105,17 +105,17 @@
           <StorageUnitComponents
             unit= { this.state.storageUnit }
             updateType= {(type) =>
-            this.setState({ storageUnit: { ...this.state.storageUnit, type } })}
+              this.setState({ storageUnit: { ...this.state.storageUnit, type } })}
             updateName= {(name) =>
-            this.setState({ storageUnit: { ...this.state.storageUnit, name } }) }
+              this.setState({ storageUnit: { ...this.state.storageUnit, name } })}
             updateAreal1= {(areal1) =>
-           this.setState({ storageUnit: { ...this.state.storageUnit, areal1 } }) }
+              this.setState({ storageUnit: { ...this.state.storageUnit, areal1 } })}
             updateAreal2= {(areal2) =>
-            this.setState({ storageUnit: { ...this.state.storageUnit, areal2 } }) }
+              this.setState({ storageUnit: { ...this.state.storageUnit, areal2 } })}
             updateHeight1= {(height1) =>
-            this.setState({ storageUnit: { ...this.state.storageUnit, height1 } }) }
+              this.setState({ storageUnit: { ...this.state.storageUnit, height1 } })}
             updateHeight2= {(height2) =>
-            this.setState({ storageUnit: { ...this.state.storageUnit, height2 } }) }
+              this.setState({ storageUnit: { ...this.state.storageUnit, height2 } })}
           />
           <Options
             unit={this.state.sikringBevaring}
