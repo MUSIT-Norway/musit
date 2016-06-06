@@ -22,7 +22,6 @@ import TextField from '../../components/musittextfield';
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Autosuggest from 'react-autosuggest'
-import AutosuggestHighlight from 'autosuggest-highlight'
 import { suggestAddress, clearSuggest } from '../../reducers/suggest'
 
 const mapStateToProps = (state) => ({
@@ -134,24 +133,11 @@ export default class ExampleView extends Component {
     return `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
   }
 
-  renderSuggestion(suggestion, { value, valueBeforeUpDown }) {
+  renderSuggestion(suggestion) {
     const suggestionText = `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
-    const query = (valueBeforeUpDown || value).trim()
-    const matches = AutosuggestHighlight.match(suggestionText, query)
-    const parts = AutosuggestHighlight.parse(suggestionText, matches)
 
     return (
-      <span className={'suggestion-content'}>
-        {
-          parts.map((part, index) => {
-            const className = part.highlight ? 'highlight' : null;
-
-            return (
-              <span className={className} key={index}>{part.text}</span>
-            )
-          })
-        }
-      </span>
+      <span className={'suggestion-content'}>{suggestionText}</span>
     )
   }
 
