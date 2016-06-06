@@ -145,7 +145,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
-  def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
+  def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
     /*
     val action = (for {
       n <- updateStorageUnitAction(id, storageUnitAndBuilding._1)

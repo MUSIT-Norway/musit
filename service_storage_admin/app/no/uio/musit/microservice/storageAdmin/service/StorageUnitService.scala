@@ -152,7 +152,7 @@ trait BuildingService {
   }
 
   def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
-    ServiceHelper.daoUpdate(StorageUnitDao.updateBuildingByID, id, storageUnitAndBuilding)
+    ServiceHelper.daoUpdate(StorageUnitDao.updateBuilding, id, storageUnitAndBuilding)
   }
 }
 
