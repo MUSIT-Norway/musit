@@ -28,6 +28,9 @@ import no.uio.musit.microservices.common.utils.ServiceHelper
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+
 trait StorageUnitService {
 
   def StorageUnitNotFoundError(id: Long): Either[MusitError, Nothing] = {
@@ -68,14 +71,14 @@ trait StorageUnitService {
   def getById(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
     val fEitherStorageUnit = getStorageUnitOnly(id)
 
-    val res = fEitherStorageUnit.mapOnInnerRight { storageUnit =>
+    fEitherStorageUnit.futureEitherFlatMap{ storageUnit =>
       storageUnit.storageKind match {
         case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
         case Building => StorageUnitDao.getBuildingById(id).foldInnerOption(StorageBuildingNotFoundError(id), storageBuilding => Right(StorageUnitTriple.createBuilding(storageUnit, storageBuilding)))
         case Room => StorageUnitDao.getRoomById(id).foldInnerOption(StorageRoomNotFoundError(id), storageRoom => Right(StorageUnitTriple.createRoom(storageUnit, storageRoom)))
       }
     }
-    res |> flattenFutureEitherFutureEither
+
   }
 
   def getStorageType(id: Long): Future[Option[StorageUnitType]] = StorageUnitDao.getStorageType(id)
@@ -102,7 +105,7 @@ trait StorageUnitService {
   }
 
   def updateStorageTripleByID(id: Long, triple: StorageUnitTriple) = {
-    val res = verifyStorageTypeMatchesDatabase(id, triple.storageKind).mapOnInnerRight { _ =>
+    verifyStorageTypeMatchesDatabase(id, triple.storageKind).futureEitherFlatMap { _ =>
 
       val modifiedTriple = triple.copyWithId(id) //We want the id in the url to override potential mistake in the body (of the original http request).
 
@@ -115,7 +118,6 @@ trait StorageUnitService {
       }
 
     }
-    res |> flattenFutureEitherFutureEither
   }
 }
 

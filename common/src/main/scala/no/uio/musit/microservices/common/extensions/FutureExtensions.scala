@@ -20,9 +20,10 @@
 
 package no.uio.musit.microservices.common.extensions
 
+import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Application
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -50,6 +51,10 @@ object FutureExtensions {
   implicit class FutureEitherExtensions[L, R](val futEither: Future[Either[L, R]]) extends AnyVal {
     def mapOnInnerRight[S](f: R => S): Future[Either[L, S]] = {
       futEither.map { either => either.right.map(f) }
+    }
+
+    def futureEitherFlatMap[S](f: R => Future[Either[L, S]]): Future[Either[L, S]] = {
+      futEither.mapOnInnerRight{f} |> flattenFutureEitherFutureEither
     }
   }
 

@@ -12,7 +12,7 @@ object Misc {
     def |>[U](f: T => U): U = f(x)
   }
 
-  ///We need sadomachocistic stuff like this because it's been decided we should use Either for errors in combination with futures. ;)
+
   def flattenFutureEitherFuture[L, R](futureEitherFuture: Future[Either[L, Future[R]]]): Future[Either[L, R]] = {
     futureEitherFuture.map(eitherFuture => {
       eitherFuture.fold(l => Future.successful(Left(l)), innerFuture => innerFuture.map(Right(_)))
