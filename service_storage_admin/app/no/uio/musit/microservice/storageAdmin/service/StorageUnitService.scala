@@ -28,7 +28,6 @@ import no.uio.musit.microservices.common.utils.ServiceHelper
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
 trait StorageUnitService {
@@ -71,7 +70,7 @@ trait StorageUnitService {
   def getById(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
     val fEitherStorageUnit = getStorageUnitOnly(id)
 
-    fEitherStorageUnit.futureEitherFlatMap{ storageUnit =>
+    fEitherStorageUnit.futureEitherFlatMap { storageUnit =>
       storageUnit.storageKind match {
         case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
         case Building => StorageUnitDao.getBuildingById(id).foldInnerOption(StorageBuildingNotFoundError(id), storageBuilding => Right(StorageUnitTriple.createBuilding(storageUnit, storageBuilding)))

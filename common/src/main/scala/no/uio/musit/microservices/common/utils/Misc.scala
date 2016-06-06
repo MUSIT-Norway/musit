@@ -12,7 +12,6 @@ object Misc {
     def |>[U](f: T => U): U = f(x)
   }
 
-
   def flattenFutureEitherFuture[L, R](futureEitherFuture: Future[Either[L, Future[R]]]): Future[Either[L, R]] = {
     futureEitherFuture.map(eitherFuture => {
       eitherFuture.fold(l => Future.successful(Left(l)), innerFuture => innerFuture.map(Right(_)))

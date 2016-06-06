@@ -23,7 +23,7 @@ package no.uio.musit.microservices.common.extensions
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Application
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -54,7 +54,7 @@ object FutureExtensions {
     }
 
     def futureEitherFlatMap[S](f: R => Future[Either[L, S]]): Future[Either[L, S]] = {
-      futEither.mapOnInnerRight{f} |> flattenFutureEitherFutureEither
+      futEither.mapOnInnerRight { f } |> flattenFutureEitherFutureEither
     }
   }
 

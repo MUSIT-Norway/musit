@@ -22,6 +22,7 @@ package no.uio.musit.microservice.storageAdmin.domain
 import no.uio.musit.microservice.storageAdmin.domain.LocalTypes.StorageBuildingOrRoom
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
+
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
 object LocalTypes {

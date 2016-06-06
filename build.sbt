@@ -19,7 +19,7 @@
 
 import CommonSettings._
 import Dependencies._
-import scoverage.ScoverageSbtPlugin.ScoverageKeys._
+import scoverage.ScoverageKeys._
 
 name := """musit"""
 
@@ -74,7 +74,7 @@ val scoverageSettings = Seq(
   coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router",
   coverageExcludedFiles := "",
   coverageMinimum := 80,
-  coverageFailOnMinimum := true
+  coverageFailOnMinimum := false
 )
 
 val noPublish = Seq(
@@ -82,32 +82,30 @@ val noPublish = Seq(
   publishLocal := {}
 )
 
-lazy val root = (
-  project in file(".") settings(noPublish) aggregate(common_test, common, security, service_core ,service_musit_thing,service_actor,service_geo_location,service_time,
-    service_storage_admin)
-  )
+lazy val root = project in file(".") settings noPublish aggregate(common_test, common, security, service_core, service_musit_thing, service_actor, service_geo_location, service_time,
+  service_storage_admin)
 
 // Base projects used as dependencies
 lazy val common = (
   BaseProject("common")
-    settings(noPublish)
+    settings noPublish
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(scoverageSettings: _*)
   ) dependsOn(common_test % "it,test")
 
 lazy val common_test = (
   BaseProject("common_test")
-    settings(noPublish)
-    settings(libraryDependencies ++= playWithPersistenceDependencies ++ Seq[ModuleID](scalatestSpec, playframework.specs2Spec))
+    settings noPublish
+    settings(libraryDependencies ++= playWithPersistenceDependencies ++ Seq[ModuleID](scalatestSpec))
     settings(scoverageSettings: _*)
   )
 
 lazy val security = (
   BaseProject("security")
-    settings(noPublish)
+    settings noPublish
     settings(libraryDependencies ++= testablePlayDependencies)
     settings(scoverageSettings: _*)
-  )  dependsOn(common) dependsOn(common_test % "it,test")
+  )  dependsOn(common, common_test % "it,test")
 
 lazy val service_core = (
   PlayProject("service_core")
@@ -117,7 +115,7 @@ lazy val service_core = (
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_core"
   ))
-  ) dependsOn(common, security) dependsOn(common_test % "it,test")
+  ) dependsOn(common, security, common_test % "it,test")
 
 // Add other services here
 
@@ -130,7 +128,7 @@ lazy val service_musit_thing = (
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_musit_thing"
   ))
-  )  dependsOn(common) dependsOn(common_test % "it,test")
+  )  dependsOn(common, common_test % "it,test")
 
 lazy val service_actor = (
   PlayProject("service_actor")
@@ -138,7 +136,7 @@ lazy val service_actor = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(packageName in Docker := "musit_service_actor"))
-  )  dependsOn(common) dependsOn(common_test % "it,test")
+  )  dependsOn(common, common_test % "it,test")
 
 lazy val service_geo_location = (
   PlayProject("service_geo_location")
@@ -189,6 +187,16 @@ dbgen := {
   val fname = outputDir + s"/$targetPackageName/Tables.scala"
   println(s"\nauto-generating slick source for database schema at $url...")
   println(s"output source file file: file://$fname\n")
-  (runner in Compile).value.run("scala.slick.codegen.SourceCodeGenerator", (dependencyClasspath in Compile).value.files, Array(slickDriver, jdbcDriver, url, outputDir, targetPackageName, userName, password), streams.value.log)
+  (runner in Compile).value.run("scala.slick.codegen.SourceCodeGenerator",
+    (dependencyClasspath in Compile).value.files, Array(
+      slickDriver,
+      jdbcDriver,
+      url,
+      outputDir,
+      targetPackageName,
+      userName,
+      password
+    ), streams.value.log
+  )
   Seq(file(fname))
 }
