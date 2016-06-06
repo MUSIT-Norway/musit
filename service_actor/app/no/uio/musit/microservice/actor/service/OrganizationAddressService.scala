@@ -45,8 +45,8 @@ trait OrganizationAddressService {
 
   def update(address: OrganizationAddress): Future[Either[MusitError, MusitStatusMessage]] = {
     ActorDao.updateOrganizationAddress(address).map {
-      case 0 => Left(MusitError(Status.BAD_REQUEST, "No records were updated"))
-      case 1 => Right(MusitStatusMessage("Record was updated"))
+      case 0 => Left(MusitError(Status.BAD_REQUEST, "No records were updated!"))
+      case 1 => Right(MusitStatusMessage("Record was updated!"))
       case _ => Left(MusitError(Status.BAD_REQUEST, "Several records were updated!"))
     }
   }

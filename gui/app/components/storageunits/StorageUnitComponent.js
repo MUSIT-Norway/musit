@@ -8,6 +8,7 @@ import MusitDropDown from '../../components/musitdropdownfield';
 import { Panel, Form, Grid, Row, Col, } from 'react-bootstrap'
 
 export default class StorageUnitComponent extends Component {
+
   static propTypes = {
     unit: React.PropTypes.shape({
       name: React.PropTypes.string,
@@ -40,6 +41,7 @@ export default class StorageUnitComponent extends Component {
   constructor(props) {
     super(props)
 
+
     this.areal = {
       controlId: 'areal1',
       controlId2: 'areal2',
@@ -53,6 +55,7 @@ export default class StorageUnitComponent extends Component {
       validationState: () => StorageUnitComponent.validateNumber(this.props.unit.areal1),
       onChange: (areal1) => this.props.updateAreal1(areal1),
       onChange2: (areal2) => this.props.updateAreal2(areal2)
+
     }
 
     this.hoyde = {
@@ -69,6 +72,7 @@ export default class StorageUnitComponent extends Component {
       validationState2: () => StorageUnitComponent.validateNumber(this.props.unit.height2),
       onChange: (height1) => this.props.updateHeight1(height1),
       onChange2: (height2) => this.props.updateHeight2(height2)
+
     }
 
 
@@ -82,6 +86,7 @@ export default class StorageUnitComponent extends Component {
       valueText: () => this.props.unit.type,
       validationState: () => StorageUnitComponent.validateString(this.props.unit.type),
       onChange: (type) => this.props.updateType(type)
+
     }
     this.name = {
       controlId: 'name',
@@ -92,6 +97,7 @@ export default class StorageUnitComponent extends Component {
       valueText: () => this.props.unit.name,
       validationState: () => StorageUnitComponent.validateString(this.props.unit.name),
       onChange: (name) => this.props.updateName(name)
+
     }
   }
 

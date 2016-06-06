@@ -26,6 +26,7 @@ import infoReducer from './info'
 import authReducer from './auth'
 import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
+import autosuggestReducer from './suggest'
 
 const rootReducer = combineReducers({
   routing: routerReducer,
@@ -34,6 +35,7 @@ const rootReducer = combineReducers({
   fakeAuthInfo: fakeAuthReducer,
   language: languageReducer,
   reduxAsyncConnect: reduxAsyncConnect,
+  suggest: autosuggestReducer,
   form: form
 });
 

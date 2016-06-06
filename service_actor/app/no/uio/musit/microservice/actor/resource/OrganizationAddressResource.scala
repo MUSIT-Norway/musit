@@ -54,7 +54,7 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
     actorResult match {
       case s: JsSuccess[OrganizationAddress] =>
         update(s.get).map {
-          case Right(newAddr) => Ok(Json.toJson(newAddr))
+          case Right(statusMessage) => Ok(Json.toJson(statusMessage))
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
