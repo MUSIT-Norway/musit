@@ -17,8 +17,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component } from 'react';
-import TextField from '../../components/musittextfield';
+import React, { Component } from 'react'
+import TextField from '../../components/musittextfield'
+import Options from '../../components/storageunits/EnvironmentOptions'
+import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Autosuggest from 'react-autosuggest'
@@ -44,9 +46,8 @@ const mapDispatchToProps = (dispatch) => {
 @connect(mapStateToProps, mapDispatchToProps)
 export default class ExampleView extends Component {
   static propTypes = {
-    suggestedAddresses: React.PropTypes.func.isRequired,
     onSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
-    suggest: React.PropTypes.object.isRequired
+    suggest: React.PropTypes.array.isRequired
   }
 
   static validateString(value, minimumLength = 3, maximumLength = 20) {
@@ -70,7 +71,18 @@ export default class ExampleView extends Component {
         description: 'dddd',
         note: '',
         areal: '',
-        type: 'Rom'
+        type: 'Lagringsenhet'
+      },
+      sikringBevaring: {
+        skallsikring: false,
+        tyverisikring: true,
+        brannsikring: true,
+        vannskaderisiko: false,
+        rutinerBeredskap: false,
+        luftfuktighet: false,
+        lysforhold: false,
+        temperatur: false,
+        preventivKonservering: false
       },
       address: ''
     }
@@ -151,7 +163,6 @@ export default class ExampleView extends Component {
       onChange: this.onChange
     }
     return (
-
       <div>
         <main>
           <Panel>
@@ -189,6 +200,33 @@ export default class ExampleView extends Component {
               </Row>
             </Grid>
           </Panel>
+
+          <StorageUnitComponents />
+
+          <Panel>
+            <Options
+              unit={this.state.sikringBevaring}
+              updateSkallsikring={(skallsikring) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, skallsikring } })}
+              updateTyverisikring={(tyverisikring) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, tyverisikring } })}
+              updateBrannsikring={(brannsikring) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, brannsikring } })}
+              updateVannskaderisiko={(vannskaderisiko) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, vannskaderisiko } })}
+              updateRutinerBeredskap={(rutinerBeredskap) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, rutinerBeredskap } })}
+              updateLuftfuktighet={(luftfuktighet) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, luftfuktighet } })}
+              updateLysforhold={(lysforhold) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, lysforhold } })}
+              updateTemperatur={(temperatur) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, temperatur } })}
+              updatePreventivKonservering={(preventivKonservering) =>
+                this.setState({ sikringBevaring: { ...this.state.sikringBevaring, preventivKonservering } })}
+            />
+          </Panel>
+
         </main>
       </div>
     )

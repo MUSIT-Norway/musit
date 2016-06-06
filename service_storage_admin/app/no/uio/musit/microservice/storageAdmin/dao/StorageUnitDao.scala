@@ -6,8 +6,8 @@ import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
  * Created by ellenjo on 5/18/16.
@@ -27,14 +27,34 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     Some(Seq(LinkService.self(s"/v1/${id.get}")))
   }
 
-  def getById(id: Long): Future[Option[StorageUnit]] = {
+  def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] = {
     val action = StorageUnitTable.filter(_.id === id).result.headOption
+    db.run(action)
+  }
+
+  def getRoomById(id: Long): Future[Option[StorageRoom]] = {
+    val action = RoomTable.filter(_.id === id).result.headOption
+    db.run(action)
+  }
+
+  def getBuildingById(id: Long): Future[Option[StorageBuilding]] = {
+    val action = BuildingTable.filter(_.id === id).result.headOption
     db.run(action)
   }
 
   def getChildren(id: Long): Future[Seq[StorageUnit]] = {
     val action = StorageUnitTable.filter(_.isPartOf === id).result
     db.run(action)
+  }
+
+  def getStorageType(id: Long): Future[Option[StorageUnitType]] = {
+    val action = StorageUnitTable.filter(_.id === id).map {
+      _.storageType
+    }.result.headOption
+    db.run(action).map {
+      _.map { storageType => StorageUnitType(storageType)
+      }
+    }
   }
 
   def getWholeCollectionStorage(storageCollectionRoot: String): Future[Seq[StorageUnit]] = {
@@ -44,57 +64,81 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   def all(): Future[Seq[StorageUnit]] = db.run(StorageUnitTable.result)
 
-  def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
+  def insert(storageUnit: StorageUnit): Future[StorageUnit] =
+    db.run(insertAction(storageUnit))
+
+  def insertAction(storageUnit: StorageUnit): DBIO[StorageUnit] = {
     val insertQuery = StorageUnitTable returning StorageUnitTable.map(_.id) into
       ((storageUnit, id) => storageUnit.copy(id = id, links = linkText(id)))
     val action = insertQuery += storageUnit
-    db.run(action)
+    action
   }
 
-  def insertRoomOnly(storageRoom: StorageRoom): Future[StorageRoom] = {
+  private def insertRoomOnlyAction(storageRoom: StorageRoom): DBIO[Int] = {
     assert(storageRoom.id.isDefined) //if failed then it's our bug
     val stRoom = storageRoom.copy(links = linkText(storageRoom.id))
     val insertQuery = RoomTable
     val action = insertQuery += stRoom
-    val result = db.run(action)
-    result.map { //db.run here returns number of rows inserted. we want to return storageRoom
-      _ => storageRoom
-    }
+    action
   }
 
-  def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[(StorageUnit, StorageRoom)] = {
-    for {
-      storageUnitVal <- insert(storageUnit)
-      roomVal <- insertRoomOnly(storageRoom.copy(id = storageUnitVal.id))
-    } yield (storageUnitVal, roomVal)
+  def insertRoom(storageUnit: StorageUnit, storageRoom: StorageRoom): Future[StorageUnitTriple] = {
+    val action = (for {
+      storageUnit <- insertAction(storageUnit)
+      n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
+    } yield StorageUnitTriple.createRoom(storageUnit, storageRoom.copy(id = storageUnit.id))).transactionally
+    db.run(action)
   }
 
-  def insertBuildingOnly(storageBuilding: StorageBuilding): Future[StorageBuilding] = {
+  private def insertBuildingOnlyAction(storageBuilding: StorageBuilding): DBIO[Int] = {
     val stBuilding = storageBuilding.copy(links = linkText(storageBuilding.id))
     val insertQuery = BuildingTable
     val action = insertQuery += stBuilding
-    val result = db.run(action)
-    result.map {
-      _ => storageBuilding // See insertRoomOnly
-    }
+    action
   }
 
-  def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[(StorageUnit, StorageBuilding)] = {
-    for {
-      storageUnitVal <- insert(storageUnit)
-      buildingVal <- insertBuildingOnly(storageBuilding.copy(id = storageUnitVal.id))
-    } yield (storageUnitVal, buildingVal)
+  def insertBuilding(storageUnit: StorageUnit, storageBuilding: StorageBuilding): Future[StorageUnitTriple] = {
+    val action = (for {
+      storageUnit <- insertAction(storageUnit)
+      n <- insertBuildingOnlyAction(storageBuilding.copy(id = storageUnit.id))
+    } yield StorageUnitTriple.createBuilding(storageUnit, storageBuilding.copy(id = storageUnit.id))).transactionally
+    db.run(action)
   }
 
-  def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
+  private def updateStorageUnitAction(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
     StorageUnitTable.filter(_.id === id).update(storageUnit)
   }
 
-  /*def updateStorageNameByID(id: Long, storageName: String) = {
-    val u = for {l <- StorageUnitTable if l.id === id
-    } yield l.storageUnitName
-    u.update(storageName)
-  }*/
+  def updateStorageUnit(id: Long, storageUnit: StorageUnit): Future[Int] = {
+    db.run(updateStorageUnitAction(id, storageUnit))
+  }
+
+  private def updateRoomOnlyAction(id: Long, storageRoom: StorageRoom): DBIO[Int] = {
+    RoomTable.filter(_.id === id).update(storageRoom)
+  }
+
+  def updateRoom(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
+    val action = (for {
+      n <- updateStorageUnitAction(id, storageUnitAndRoom._1)
+      m <- updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id)))
+      if (n == 1 && m == 1)
+    } yield 1).transactionally
+    db.run(action)
+  }
+
+  private def updateBuildingOnlyAction(id: Long, storageBuilding: StorageBuilding): DBIO[Int] = {
+    BuildingTable.filter(_.id === id).update(storageBuilding)
+  }
+
+  def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
+
+    val action = (for {
+      n <- updateStorageUnitAction(id, storageUnitAndBuilding._1)
+      m <- updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id)))
+      if (n == 1 && m == 1)
+    } yield 1).transactionally
+    db.run(action)
+  }
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)

@@ -20,7 +20,7 @@ install:
 
 script:
 # Scala build and test
-- sbt compile test:compile scalastyle test
+- scripts/report.sh
 # Frontend (ReactJS) build and test
 - cd gui && "./initialize.sh" && npm run lint && npm run test
 
