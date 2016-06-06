@@ -22,8 +22,34 @@ import TextField from '../../components/musittextfield'
 import Options from '../../components/storageunits/EnvironmentOptions'
 import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
+import { connect } from 'react-redux'
+import Autosuggest from 'react-autosuggest'
+import { suggestAddress, clearSuggest } from '../../reducers/suggest'
 
+const mapStateToProps = (state) => ({
+  suggest: state.suggest
+})
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onSuggestionsUpdateRequested({ value, reason }) {
+      // Should only autosuggest on typing if you have more then 3 characters
+      if (reason && (reason === 'type') && value && (value.length >= 3)) {
+        dispatch(suggestAddress('addressField', value))
+      } else {
+        dispatch(clearSuggest('addressField'))
+      }
+    }
+  }
+}
+
+@connect(mapStateToProps, mapDispatchToProps)
 export default class ExampleView extends Component {
+  static propTypes = {
+    onSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    suggest: React.PropTypes.array.isRequired
+  }
+
   static validateString(value, minimumLength = 3, maximumLength = 20) {
     const isSomething = value.length >= minimumLength
     const isValid = isSomething ? 'success' : null
@@ -57,7 +83,8 @@ export default class ExampleView extends Component {
         lysforhold: false,
         temperatur: false,
         preventivKonservering: false
-      }
+      },
+      address: ''
     }
 
     const clazz = this
@@ -105,9 +132,36 @@ export default class ExampleView extends Component {
         onChange: (note) => clazz.setState({ unit: { ...clazz.state.unit, note } })
       }
     ]
+    this.onChange = this.onChange.bind(this)
+  }
+
+  onChange(event, { newValue }) {
+    this.setState({
+      address: newValue
+    })
+  }
+
+  getSuggestionValue(suggestion) {
+    return `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
+  }
+
+  renderSuggestion(suggestion) {
+    const suggestionText = `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
+
+    return (
+      <span className={'suggestion-content'}>{suggestionText}</span>
+    )
   }
 
   render() {
+    const { onSuggestionsUpdateRequested, suggest } = this.props
+    const { address } = this.state
+    const inputProps = {
+      placeholder: 'Adresse',
+      value: address,
+      type: 'search',
+      onChange: this.onChange
+    }
     return (
       <div>
         <main>
@@ -128,6 +182,20 @@ export default class ExampleView extends Component {
                     <TextField {...this.areal} />
                     <TextField {...this.areal} />
                   </Form>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={1}>
+                  <label htmlFor={'addressField'}>Adresse</label>
+                </Col>
+                <Col md={11}>
+                  <Autosuggest id={'addressField'}
+                    suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
+                    onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
+                    getSuggestionValue={this.getSuggestionValue}
+                    renderSuggestion={this.renderSuggestion}
+                    inputProps={inputProps}
+                  />
                 </Col>
               </Row>
             </Grid>
@@ -161,6 +229,6 @@ export default class ExampleView extends Component {
 
         </main>
       </div>
-    );
+    )
   }
 }
