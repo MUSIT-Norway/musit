@@ -174,7 +174,10 @@ export default class ExampleView extends Component {
                 </Col>
               </Row>
               <Row>
-                <Col md={12}>
+                <Col md={1}>
+                  <label htmlFor={'addressField'}>Adresse</label>
+                </Col>
+                <Col md={11}>
                   <Autosuggest id={'addressField'}
                     suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
                     onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
