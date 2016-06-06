@@ -21,8 +21,15 @@ package no.uio.musit.microservices.common.domain
 import play.api.http.Status
 import play.api.libs.json.{ Format, Json }
 
-case class MusitError(status: Int = Status.BAD_REQUEST, message: String)
+case class MusitError(status: Int = Status.BAD_REQUEST, message: String, private val developerMessage: String = "") {
+
+  // TODO: check if in dev-environment!
+  def inDevEnvironment = true
+
+  def getDeveloperMessage = if (inDevEnvironment) developerMessage else ""
+}
 
 object MusitError {
+  // TODO: Only include developerMessage if in devEnvironment!
   implicit val format: Format[MusitError] = Json.format[MusitError]
 }
