@@ -20,7 +20,6 @@
 import React, { Component } from 'react'
 import TextField from '../../components/musittextfield'
 import Options from '../../components/storageunits/EnvironmentOptions'
-import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Autosuggest from 'react-autosuggest'
@@ -198,8 +197,6 @@ export default class ExampleView extends Component {
               </Row>
             </Grid>
           </Panel>
-
-          <StorageUnitComponents />
 
           <Panel>
             <Options

@@ -21,7 +21,7 @@
  import { connect } from 'react-redux';
  import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
  import { isLoaded as isStorageUnitContainerLoaded,
-          load as insertStorageUnitContainer } from '../../reducers/storageunit-container';
+          insert as insertStorageUnitContainer } from '../../reducers/storageunit-container';
  import { asyncConnect } from 'redux-async-connect';
  import { routerActions } from 'react-router-redux';
  import { I18n } from 'react-i18nify';
@@ -99,7 +99,7 @@
       <div>
         <main>
           <ButtonToolbar>
-            <Button bsStyle="primary">Lagre</Button>
+            <Button bsStyle="primary" onClick= {this.onClick}>Lagre</Button>
             <Button>Cancel</Button>
           </ButtonToolbar>
           <StorageUnitComponents

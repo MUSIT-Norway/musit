@@ -37,7 +37,8 @@ export const isLoaded = (globalState) => {
   return globalState.storageUnitContainer && globalState.storageUnitContainer.loaded;
 }
 
-export const load = () => {
+export const insert = (state) => {
+  console.log(state)
   return {
     types: [INSERT, INSERT_SUCCESS, INSERT_FAIL],
     promise: (client) => client.get('/storageInsertUnitContainerReducer')

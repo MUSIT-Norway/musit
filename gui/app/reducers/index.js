@@ -27,6 +27,7 @@ import authReducer from './auth'
 import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
 import autosuggestReducer from './suggest'
+import storageInsertUnitContainerReducer from './storageunit-container'
 
 const rootReducer = combineReducers({
   routing: routerReducer,
@@ -36,6 +37,7 @@ const rootReducer = combineReducers({
   language: languageReducer,
   reduxAsyncConnect: reduxAsyncConnect,
   suggest: autosuggestReducer,
+  storageUnitInsert: storageInsertUnitContainerReducer,
   form: form
 });
 
