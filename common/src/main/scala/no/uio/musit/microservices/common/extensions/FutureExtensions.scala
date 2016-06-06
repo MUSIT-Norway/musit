@@ -35,10 +35,11 @@ import play.api.libs.functional.Functor
 
 object FutureExtensions {
 
+  /*
   implicit class FutureExtensionsImp[T](val fut: Future[T]) extends AnyVal {
     def awaitInSeconds(seconds: Int) = Await.result(fut, seconds.seconds)
-
   }
+*/
 
   implicit class FutureOptionExtensions[T](val fut: Future[Option[T]]) extends AnyVal {
     def foldInnerOption[S](ifNone: => S, ifSome: T => S): Future[S] = fut.map(optValue => optValue.map(ifSome).getOrElse(ifNone))
@@ -49,24 +50,13 @@ object FutureExtensions {
   }
 
   implicit class FutureEitherExtensions[L, R](val futEither: Future[Either[L, R]]) extends AnyVal {
-    def mapOnInnerRight[S](f: R => S): Future[Either[L, S]] = {
+    def futureEitherMap[S](f: R => S): Future[Either[L, S]] = {
       futEither.map { either => either.right.map(f) }
     }
 
     def futureEitherFlatMap[S](f: R => Future[Either[L, S]]): Future[Either[L, S]] = {
-      futEither.mapOnInnerRight { f } |> flattenFutureEitherFutureEither
+      futureEitherFlatten(futEither.futureEitherMap(f))
     }
-  }
 
-  /*
-  implicit class FunctorOptionExtensions[F[_] : Functor, T](ft: F[T]) {
-    def unpackOption[S](someMapper: T => S, noneHandler: => S)(implicit f: Functor[Option[_]]): F[S] = f.fmap(optValue => optValue.map(someMapper).getOrElse(noneHandler))
-
-    //    def unpackOptionToJsonOrNotFound[S](notFoundText: String) = Ok()
   }
-*/
-  /*
-    implicit class FutureOptionExtensions[T, X<:Option[T]](val fut: Future[X]) extends AnyVal {
-      def unpackOption[S](someMapper: T=>S, noneMapper: =>S): Future[S] = fut.map(optValue=>optValue.map(someMapper).getOrElse(noneMapper))
-    }*/
 }

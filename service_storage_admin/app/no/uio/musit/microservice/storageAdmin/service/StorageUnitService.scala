@@ -22,13 +22,10 @@ import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.ServiceHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
 trait StorageUnitService {
 
@@ -67,20 +64,28 @@ trait StorageUnitService {
 
   private def getStorageUnitOnly(id: Long) = StorageUnitDao.getStorageUnitOnlyById(id).foldInnerOption(storageUnitNotFoundError(id), Right(_))
 
+  private def getBuildingById(id: Long) = StorageUnitDao.getBuildingById(id).foldInnerOption(storageBuildingNotFoundError(id), Right(_))
+
+  private def getRoomById(id: Long) = StorageUnitDao.getRoomById(id).foldInnerOption(storageRoomNotFoundError(id), Right(_))
+
   def getById(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
     val fEitherStorageUnit = getStorageUnitOnly(id)
 
     fEitherStorageUnit.futureEitherFlatMap { storageUnit =>
       storageUnit.storageKind match {
         case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
-        case Building => StorageUnitDao.getBuildingById(id).foldInnerOption(storageBuildingNotFoundError(id), storageBuilding => Right(StorageUnitTriple.createBuilding(storageUnit, storageBuilding)))
-        case Room => StorageUnitDao.getRoomById(id).foldInnerOption(storageRoomNotFoundError(id), storageRoom => Right(StorageUnitTriple.createRoom(storageUnit, storageRoom)))
+        case Building => getBuildingById(id).futureEitherMap(storageBuilding => StorageUnitTriple.createBuilding(storageUnit, storageBuilding))
+        case Room => getRoomById(id).futureEitherMap(storageRoom => StorageUnitTriple.createRoom(storageUnit, storageRoom))
       }
     }
-
   }
 
-  def getStorageType(id: Long): Future[Option[StorageUnitType]] = StorageUnitDao.getStorageType(id)
+  def getStorageType(id: Long): Future[Either[MusitError, StorageUnitType]] = {
+    StorageUnitDao.getStorageType(id).map {
+      case Some(storageUnitType) => Right(storageUnitType)
+      case None => storageUnitNotFoundError(id)
+    }
+  }
 
   def all: Future[Seq[StorageUnit]] = {
     StorageUnitDao.all()
@@ -91,16 +96,19 @@ trait StorageUnitService {
   }
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
-    ServiceHelper.daoUpdateById(StorageUnitDao.updateStorageUnit, id, storageUnit)
+    ServiceHelper.daoUpdate(StorageUnitDao.updateStorageUnit, id, storageUnit)
   }
 
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageUnitType) = {
-    def handleWithStorageType(storageUnitTypeInDatabase: StorageUnitType) = {
-      if (expectedStorageUnitType == storageUnitTypeInDatabase) Right(())
-      else storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
-
+    getStorageType(id).futureEitherMap {
+      storageUnitTypeInDatabase =>
+        {
+          if (expectedStorageUnitType == storageUnitTypeInDatabase)
+            Right(()) //Ok, we're safe, we have a match
+          else
+            storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase) //Here we signal the error
+        }
     }
-    getStorageType(id).foldInnerOption(storageUnitNotFoundError(id), handleWithStorageType(_))
   }
 
   def updateStorageTripleByID(id: Long, triple: StorageUnitTriple) = {
@@ -115,14 +123,6 @@ trait StorageUnitService {
         case Building => BuildingService.updateBuildingByID(id, (storageUnit, modifiedTriple.getBuilding))
         case Room => RoomService.updateRoomByID(id, (storageUnit, modifiedTriple.getRoom))
       }
-
-    }
-  }
-
-  def getStorageTypeEither(id: Long): Future[Either[MusitError, StorageUnitType]] = {
-    StorageUnitDao.getStorageType(id).map {
-      case Some(storageUnitType) => Right(storageUnitType)
-      case None => storageUnitNotFoundError(id)
     }
   }
 
@@ -140,7 +140,7 @@ trait RoomService {
   }
 
   def updateRoomByID(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
-    ServiceHelper.daoUpdateById(StorageUnitDao.updateRoom, id, storageUnitAndRoom)
+    ServiceHelper.daoUpdate(StorageUnitDao.updateRoom, id, storageUnitAndRoom)
   }
 }
 
@@ -152,7 +152,7 @@ trait BuildingService {
   }
 
   def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
-    ServiceHelper.daoUpdateById(StorageUnitDao.updateBuildingByID, id, storageUnitAndBuilding)
+    ServiceHelper.daoUpdate(StorageUnitDao.updateBuildingByID, id, storageUnitAndBuilding)
   }
 }
 

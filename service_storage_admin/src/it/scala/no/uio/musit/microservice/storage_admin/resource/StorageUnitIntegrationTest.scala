@@ -216,16 +216,71 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "1"}"""
       val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-      assert(response.status == 201)
+      response.status mustBe 201 //Successfully created the room
+
       val id = storageUnit.getId //Just to know which is the current id, the next is supposed to fail....
       val responsDel = deleteStorageUnit(id) |> waitFutureValue
-      assert(responsDel.status == 200)
+      responsDel.status mustBe 200 //Successfully deleted the room
+
       val responsGet = getStorageUnit(id) |> waitFutureValue
-      assert(responsGet.status == 404)
+      responsGet.status mustBe 404 //Shouldn't find a deleted room
 
       val responsDel2 = deleteStorageUnit(id) |> waitFutureValue
-      assert(responsDel.status == 404)
+      responsDel2.status mustBe 404 //Shouldn't be able to delete a deleted room
     }
+
+
+    "should not be able to delete a storageUnit which has never existed" in {
+      val responsDel = deleteStorageUnit(12345678) |> waitFutureValue
+      responsDel.status mustBe 404
+    }
+
+
+    "should not be able to update a deleted storageUnit" in {
+
+      val json ="""{"storageType":"StorageUnit","storageUnitName":"UkjentUnit"}"""
+      val response = createStorageUnit(json) |> waitFutureValue
+      response.status mustBe 201 //Successfully created the room
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+      val responsDel = deleteStorageUnit(storageUnit.getId) |> waitFutureValue
+      responsDel.status mustBe 200 //Successfully deleted
+
+      val updateJson = """{"storageType":"StorageUnit","storageUnitName":"NyUkjentUnit"}"""
+      val updateResponse = updateStorageUnit(storageUnit.getId, updateJson) |> waitFutureValue
+      updateResponse.status mustBe 404 //Should not be able to update a deleted object
+    }
+
+
+
+
+    "should not be able to update a deleted room" in {
+
+      val json ="""{"storageType":"Room","storageUnitName":"UkjentRom"}"""
+      val response = createStorageUnit(json) |> waitFutureValue
+      response.status mustBe 201 //Successfully created the room
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+      val responsDel = deleteStorageUnit(storageUnit.getId) |> waitFutureValue
+      responsDel.status mustBe 200 //Successfully deleted
+
+      val updateJson = """{"storageType":"Room","storageUnitName":"NyttRom", "sikringSkallsikring": "1"}"""
+      val updateResponse = updateStorageUnit(storageUnit.getId, updateJson) |> waitFutureValue
+      updateResponse.status mustBe 404 //Should not be able to update a deleted object
+    }
+
+    "should not be able to update a deleted building" in {
+
+      val json ="""{"storageType":"Building","storageUnitName":"UkjentBygning"}"""
+      val response = createStorageUnit(json) |> waitFutureValue
+      response.status mustBe 201 //Successfully created the room
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+      val responsDel = deleteStorageUnit(storageUnit.getId) |> waitFutureValue
+      responsDel.status mustBe 200 //Successfully deleted
+
+      val updateJson = """{"storageType":"building","storageUnitName":"NyBygning", "address": "OrdentligAdresse"}"""
+      val updateResponse = updateStorageUnit(storageUnit.getId, updateJson) |> waitFutureValue
+      updateResponse.status mustBe 404 //Should not be able to update a deleted object
+    }
+
+
   }
 }
-

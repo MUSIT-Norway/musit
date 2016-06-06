@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage, MusitNotFoundException }
 import play.api.http.Status
 
 import scala.concurrent.Future
@@ -47,11 +47,13 @@ object ServiceHelper {
   }
 
   /** Calls a DAO service method to update an object and returns proper result structure. Assumes a separate id (instead of the using the id likely in the objectToUpdate instance). */
-  def daoUpdateById[A](daoUpdateByIdCall: (Long, A) => Future[Int], idToUpdate: Long, objectToUpdate: A): Future[Either[MusitError, MusitStatusMessage]] = {
+  def daoUpdate[A](daoUpdateByIdCall: (Long, A) => Future[Int], idToUpdate: Long, objectToUpdate: A): Future[Either[MusitError, MusitStatusMessage]] = {
     daoUpdateByIdCall(idToUpdate, objectToUpdate).map {
-      case 0 => badRequest("Update did not update any records!")
+      case 0 => notFoundError("Update did not update any records!")
       case 1 => Right(MusitStatusMessage("Record was updated!"))
       case _ => badRequest("Update updated several records!")
+    }.recover {
+      case _: MusitNotFoundException => notFoundError("Update did not update any records!")
     }
   }
 
