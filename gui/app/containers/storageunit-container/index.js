@@ -21,10 +21,11 @@
  import { connect } from 'react-redux';
  import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
  import { isLoaded as isStorageUnitContainerLoaded,
-          load as loadStorageUnitContainer } from '../../reducers/storageunit-container';
+          load as insertStorageUnitContainer } from '../../reducers/storageunit-container';
  import { asyncConnect } from 'redux-async-connect';
  import { routerActions } from 'react-router-redux';
- import { I18n } from 'react-i18nify'
+ import { I18n } from 'react-i18nify';
+ import { ButtonToolbar, Button } from 'react-bootstrap'
 
  const mapStateToProps = (state) => {
    I18n.loadTranslations(state.language.data)
@@ -39,7 +40,7 @@
    promise: ({ store: { dispatch, getState } }) => {
      const promises = [];
      if (!isStorageUnitContainerLoaded(getState())) {
-       promises.push(dispatch(loadStorageUnitContainer()))
+       promises.push(dispatch(insertStorageUnitContainer()))
      }
      return Promise.all(promises);
    }
@@ -51,7 +52,8 @@
      children: PropTypes.object.isRequired,
      user: PropTypes.object,
      pushState: PropTypes.func.isRequired,
-     store: PropTypes.object
+     store: PropTypes.object,
+     storageunit: PropTypes.object
    };
 
    static validateString(value, minimumLength = 3, maximumLength = 20) {
@@ -70,7 +72,7 @@
      super(props)
 
      this.state = {
-       unit: {
+       storageUnit: {
          type: '',
          name: '',
          areal1: '',
@@ -96,7 +98,25 @@
      return (
       <div>
         <main>
-          <StorageUnitComponents />
+          <ButtonToolbar>
+            <Button bsStyle="primary">Lagre</Button>
+            <Button>Cancel</Button>
+          </ButtonToolbar>
+          <StorageUnitComponents
+            unit= { this.state.storageUnit }
+            updateType= {(type) =>
+            this.setState({ storageUnit: { ...this.state.storageUnit, type } })}
+            updateName= {(name) =>
+            this.setState({ storageUnit: { ...this.state.storageUnit, name } }) }
+            updateAreal1= {(areal1) =>
+           this.setState({ storageUnit: { ...this.state.storageUnit, areal1 } }) }
+            updateAreal2= {(areal2) =>
+            this.setState({ storageUnit: { ...this.state.storageUnit, areal2 } }) }
+            updateHeight1= {(height1) =>
+            this.setState({ storageUnit: { ...this.state.storageUnit, height1 } }) }
+            updateHeight2= {(height2) =>
+            this.setState({ storageUnit: { ...this.state.storageUnit, height2 } }) }
+          />
           <Options
             unit={this.state.sikringBevaring}
             updateSkallsikring={(skallsikring) =>

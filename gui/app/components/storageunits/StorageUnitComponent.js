@@ -8,6 +8,23 @@ import MusitDropDown from '../../components/musitdropdownfield';
 import { Panel, Form, Grid, Row, Col, } from 'react-bootstrap'
 
 export default class StorageUnitComponent extends Component {
+  static propTypes = {
+    unit: React.PropTypes.shape({
+      name: React.PropTypes.string,
+      areal1: React.PropTypes.string,
+      areal2: React.PropTypes.string,
+      height1: React.PropTypes.string,
+      height2: React.PropTypes.string,
+      type: React.PropTypes.string,
+    }),
+    updateType: React.PropTypes.func.isRequired,
+    updateName: React.PropTypes.func.isRequired,
+    updateHeight1: React.PropTypes.func.isRequired,
+    updateHeight2: React.PropTypes.func.isRequired,
+    updateAreal1: React.PropTypes.func.isRequired,
+    updateAreal2: React.PropTypes.func.isRequired,
+  }
+
   static validateString(value, minimumLength = 3, maximumLength = 20) {
     const isSomething = value.length >= minimumLength
     const isValid = isSomething ? 'success' : null
@@ -23,19 +40,6 @@ export default class StorageUnitComponent extends Component {
   constructor(props) {
     super(props)
 
-    this.state = {
-      storageunit: {
-        type: 'Lagringsenhet',
-        name: 'navn',
-        areal1: '4',
-        areal2: '9',
-        hoyde1: '2',
-        hoyde2: '4'
-      }
-    }
-
-    const clazz = this
-
     this.areal = {
       controlId: 'areal1',
       controlId2: 'areal2',
@@ -44,11 +48,11 @@ export default class StorageUnitComponent extends Component {
       valueType: 'text',
       placeHolderText: 'enter areal 1 here',
       placeHolderText2: 'enter areal 2 here',
-      valueText: () => clazz.state.storageunit.areal1,
-      valueText2: () => clazz.state.storageunit.areal2,
-      validationState: () => StorageUnitComponent.validateNumber(clazz.state.storageunit.areal1),
-      onChange: (areal1) => clazz.setState({ storageunit: { ...this.state.storageunit, areal1 } }),
-      onChange2: (areal2) => clazz.setState({ storageunit: { ...this.state.storageunit, areal2 } })
+      valueText: () => this.props.unit.areal1,
+      valueText2: () => this.props.unit.areal2,
+      validationState: () => StorageUnitComponent.validateNumber(this.props.unit.areal1),
+      onChange: (areal1) => this.props.updateAreal1(areal1),
+      onChange2: (areal2) => this.props.updateAreal2(areal2)
     }
 
     this.hoyde = {
@@ -59,25 +63,25 @@ export default class StorageUnitComponent extends Component {
       valueType: 'text',
       placeHolderText: 'enter høyde 1 here',
       placeHolderText2: 'enter høyde 2 here',
-      valueText: () => clazz.state.storageunit.hoyde1,
-      valueText2: () => clazz.state.storageunit.hoyde2,
-      validationState: () => StorageUnitComponent.validateNumber(clazz.state.storageunit.hoyde1),
-      validationState2: () => StorageUnitComponent.validateNumber(clazz.state.storageunit.hoyde2),
-      onChange: (hoyde1) => clazz.setState({ storageunit: { ...this.state.storageunit, hoyde1 } }),
-      onChange2: (hoyde2) => clazz.setState({ storageunit: { ...this.state.storageunit, hoyde2 } })
+      valueText: () => this.props.unit.height1,
+      valueText2: () => this.props.unit.height2,
+      validationState: () => StorageUnitComponent.validateNumber(this.props.unit.height1),
+      validationState2: () => StorageUnitComponent.validateNumber(this.props.unit.height2),
+      onChange: (height1) => this.props.updateHeight1(height1),
+      onChange2: (height2) => this.props.updateHeight2(height2)
     }
 
 
     this.type = {
       controlId: 'storageUnitType',
       labelText: 'Type',
-      items: ['Lagringsenhet', 'Rom', 'Bygning'],
+      items: ['Lagringsenhet', 'Rom', 'Bygning', 'Organisasjon'],
       valueType: 'text',
       tooltip: 'Type lagringsenhet',
       placeHolderText: 'velg type here',
-      valueText: () => clazz.state.storageunit.type,
-      validationState: () => StorageUnitComponent.validateString(clazz.state.storageunit.type),
-      onChange: (type) => clazz.setState({ storageunit: { ...clazz.state.storageunit, type } })
+      valueText: () => this.props.unit.type,
+      validationState: () => StorageUnitComponent.validateString(this.props.unit.type),
+      onChange: (type) => this.props.updateType(type)
     }
     this.name = {
       controlId: 'name',
@@ -85,9 +89,9 @@ export default class StorageUnitComponent extends Component {
       tooltip: 'Navn',
       placeHolderText: 'enter name here',
       valueType: 'text',
-      valueText: () => clazz.state.storageunit.name,
-      validationState: () => StorageUnitComponent.validateString(clazz.state.storageunit.name),
-      onChange: (name) => clazz.setState({ storageunit: { ...clazz.state.storageunit, name } })
+      valueText: () => this.props.unit.name,
+      validationState: () => StorageUnitComponent.validateString(this.props.unit.name),
+      onChange: (name) => this.props.updateName(name)
     }
   }
 

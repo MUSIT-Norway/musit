@@ -1,27 +1,25 @@
-const LOAD = 'musit/storageunit-container/LOAD';
-const LOAD_SUCCESS = 'musit/storageunit-container/LOAD_SUCCESS';
-const LOAD_FAIL = 'musit/storageunit-container/LOAD_FAIL';
+const INSERT = 'musit/storageunit-container/LOAD';
+const INSERT_SUCCESS = 'musit/storageunit-container/LOAD_SUCCESS';
+const INSERT_FAIL = 'musit/storageunit-container/LOAD_FAIL';
 
 
-const initialState = {
-  loaded: false
-};
+const initialState = []
 
-const storageUnitContainerReducer = (state = initialState, action = {}) => {
+const storageInsertUnitContainerReducer = (state = initialState, action = {}) => {
   switch (action.type) {
-    case LOAD:
+    case INSERT:
       return {
         ...state,
         loading: true
       };
-    case LOAD_SUCCESS:
+    case INSERT_SUCCESS:
       return {
         ...state,
         loading: false,
         loaded: true,
         data: action.result
       };
-    case LOAD_FAIL:
+    case INSERT_FAIL:
       return {
         ...state,
         loading: false,
@@ -33,7 +31,7 @@ const storageUnitContainerReducer = (state = initialState, action = {}) => {
   }
 }
 
-export default storageUnitContainerReducer;
+export default storageInsertUnitContainerReducer;
 
 export const isLoaded = (globalState) => {
   return globalState.storageUnitContainer && globalState.storageUnitContainer.loaded;
@@ -41,7 +39,7 @@ export const isLoaded = (globalState) => {
 
 export const load = () => {
   return {
-    types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get('/LOADStorageUnitContainer')
+    types: [INSERT, INSERT_SUCCESS, INSERT_FAIL],
+    promise: (client) => client.get('/storageInsertUnitContainerReducer')
   };
 }
