@@ -20,73 +20,31 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
-import no.uio.musit.microservices.common.domain.{ MusitFilter, MusitSearch }
+import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
+import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.utils.Misc._
+import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.domain.MusitError
 
 class StorageUnitResource extends Controller {
 
-  def unwrapJsResult(jsRes: JsResult[Future[Result]]): Future[Result] = {
+  def jsResultToEither[T](jsRes: JsResult[T]) /*: Either[Status, T]*/ = {
     jsRes match {
-      case s: JsSuccess[Future[Result]] => s.value
-      case e: JsError => Future.successful(BadRequest(Json.toJson(e.toString)))
+      case s: JsSuccess[T] => Right(s.value)
+      case e: JsError => Left(BadRequest(Json.toJson(e.toString)))
     }
   }
-
-  def eitherToCreatedOrBadRequestResult[T](either: Either[MusitError, T])(jsonProvider: T => JsValue): Result = {
-    either match {
-      case Right(obj: T) => Created(jsonProvider(obj))
-      case Left(err: MusitError) => BadRequest(Json.toJson(err))
-    }
-  }
-
-  def mergeJson(jsonA: JsObject, jsonB: JsObject): JsObject = jsonA ++ jsonB
 
   @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val json = request.body
-    val storageType = (json \ "storageType").as[String]
-    StorageUnitType(storageType) match {
-      case StUnit => {
-        val JsResultStUnit = request.body.validate[StorageUnit]
-        val jsResStUnit = JsResultStUnit.map { storageUnit =>
-          StorageUnitService.create(storageUnit).map {
-            case Right(newStorageUnit) => Created(Json.toJson(newStorageUnit))
-            case Left(error) => BadRequest(Json.toJson(error))
-          }
-        }
-        unwrapJsResult(jsResStUnit)
-      }
-      case Room => {
-        val result = {
-          for {
-            storageUnit <- request.body.validate[StorageUnit]
-            storageRoom <- request.body.validate[StorageRoom]
-          } yield RoomService.create(storageUnit, storageRoom)
-        }
-        unwrapJsResult(result.map(_.map(either =>
-          eitherToCreatedOrBadRequestResult(either) {
-            case (stUnit: StorageUnit, stRoom: StorageRoom) => mergeJson(stUnit.toJson, stRoom.toJson)
-          })))
-      }
-      case Building => {
-        val buildingResult = {
-          for {
-            storageUnit <- request.body.validate[StorageUnit]
-            storageBuilding <- request.body.validate[StorageBuilding]
-          } yield BuildingService.create(storageUnit, storageBuilding)
-        }
-        unwrapJsResult(buildingResult.map(_.map(either =>
-          eitherToCreatedOrBadRequestResult(either) {
-            case (stUnit: StorageUnit, stBuilding: StorageBuilding) => mergeJson(stUnit.toJson, stBuilding.toJson)
-          })))
-      }
-    }
+
+    val eitherTriple = fromJsonToStorageUnitTriple(request.body)
+
+    eitherTriple.fold(r => Future.successful(r), triple => ResourceHelper.postRoot(StorageUnitService.createStorageTriple, triple, storageUnitTripleToJson))
   }
 
   def getChildren(id: Long) = Action.async {
@@ -98,10 +56,7 @@ class StorageUnitResource extends Controller {
 
   def getById(id: Long) = Action.async {
     request =>
-      StorageUnitService.getById(id).map {
-        case Some(storageUnit) => Ok(Json.toJson(storageUnit))
-        case None => NotFound(Json.toJson(MusitError(404, s"Did not find storage unit with id: $id")))
-      }
+      ResourceHelper.getRootFromEither(StorageUnitService.getById, id, storageUnitTripleToJson)
   }
 
   def listAll = Action.async {
@@ -112,8 +67,48 @@ class StorageUnitResource extends Controller {
       }
   }
 
-  def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async {
-    Future.successful(NotImplemented("foo"))
+  def BadMusitRequest(text: String) = BadRequest(Json.toJson(MusitError(BAD_REQUEST, text)))
+
+  def storageUnitTripleToJson(triple: StorageUnitTriple) = triple.toJson
+
+  def fromJsonToStorageUnitTriple(json: JsValue): Either[Result, StorageUnitTriple] = {
+    val storageType = (json \ "storageType").as[String]
+    val jsRes = StorageUnitType(storageType) match {
+      case StUnit => {
+        val jsResultStUnit = json.validate[StorageUnit]
+        jsResultStUnit.map(StorageUnitTriple.createStorageUnit)
+
+      }
+      case Room => {
+        val roomResult = {
+          for {
+            storageUnit <- json.validate[StorageUnit]
+            storageRoom <- json.validate[StorageRoom]
+          } yield StorageUnitTriple.createRoom(storageUnit, storageRoom)
+        }
+        roomResult
+      }
+      case Building => {
+        val buildingResult = {
+          for {
+            storageUnit <- json.validate[StorageUnit]
+            storageBuilding <- json.validate[StorageBuilding]
+          } yield StorageUnitTriple.createBuilding(storageUnit, storageBuilding)
+        }
+        buildingResult
+      }
+    }
+    jsRes |> jsResultToEither
+  }
+
+  def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
+    request =>
+      {
+        val eitherTriple = fromJsonToStorageUnitTriple(request.body)
+
+        eitherTriple.fold(r => Future.successful(r), triple => ResourceHelper.updateRoot(StorageUnitService.updateStorageTripleByID _, id, triple))
+      }
   }
 
 }
+

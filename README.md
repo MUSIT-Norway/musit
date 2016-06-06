@@ -3,8 +3,8 @@ Norwegian university museums IT organization (MUSIT); cultural history and natur
 
 Code status for master branch:
 * [![Build Status](https://travis-ci.org/MUSIT-Norway/musit.svg?branch=master)](https://travis-ci.org/MUSIT-Norway/musit)
-* [![Codacy Badge](https://api.codacy.com/project/badge/Grade/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/klaus-myrseth/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Grade)
-* [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/klaus-myrseth/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Coverage)
+* [![Codacy Badge](https://api.codacy.com/project/badge/Grade/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/musit-project/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Grade)
+* [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/musit-project/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Coverage)
 
 Status badges is retrieved directly from the services monitoring the code.
 
