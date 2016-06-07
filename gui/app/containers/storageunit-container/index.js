@@ -32,7 +32,6 @@
  }
 
  const mapDispatchToProps = (dispatch) => {
-
    return {
      onLagreClick: () => {
        // dispatch(insertStorageUnitContainer(this.state))
@@ -49,6 +48,7 @@
  export default class StorageUnitContainer extends Component {
    static propTypes = {
      storageUnit: PropTypes.object.isRequired,
+     loadStorageUnit: PropTypes.func.isRequired,
      sikringBevaring: PropTypes.object.isRequired,
      onLagreClick: PropTypes.func.isRequired
    };
