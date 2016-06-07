@@ -20,11 +20,13 @@ install:
 
 script:
 # Scala build and test
-- scripts/report.sh
+- sbt clean scalastyle
+- sbt coverage test it:test
+- sbt coverageReport
+- sbt coverageAggregate
+- sbt codacyCoverage
 # Frontend (ReactJS) build and test
 - cd gui && "./initialize.sh" && npm run lint && npm run test
-
-# Add addon for codeclimate
 
 notifications:
   slack:
