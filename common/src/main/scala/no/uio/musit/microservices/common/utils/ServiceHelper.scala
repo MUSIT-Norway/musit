@@ -34,39 +34,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
  *
  */
 object ServiceHelper {
-
-  def badRequest(text: String, devMessage: String = "") = Left(MusitError(Status.BAD_REQUEST, text, devMessage))
-
-  def notFoundError(text: String, devMessage: String = "") = Left(MusitError(Status.NOT_FOUND, text, devMessage))
-  //  def futureBadRequest(text: String) = Future.successful(badRequest(text))
+  import no.uio.musit.microservices.common.utils.ErrorHelper._
 
   def daoInsert[A](daoInsertResult: Future[A]): Future[Either[MusitError, A]] = {
     daoInsertResult.map(insertedObject => Right(insertedObject)).recover {
-      case e => badRequest("dao error", e.toString)
+      case e => Left(badRequest("dao error", e.toString))
     }
   }
 
   /** Calls a DAO service method to update an object and returns proper result structure. Assumes a separate id (instead of the using the id likely in the objectToUpdate instance). */
   def daoUpdate[A](daoUpdateByIdCall: (Long, A) => Future[Int], idToUpdate: Long, objectToUpdate: A): Future[Either[MusitError, MusitStatusMessage]] = {
     daoUpdateByIdCall(idToUpdate, objectToUpdate).map {
-      case 0 => notFoundError("Update did not update any records!")
+      case 0 => Left(notFound("Update did not update any records!"))
       case 1 => Right(MusitStatusMessage("Record was updated!"))
-      case n => badRequest(s"Update updated too many records! ($n)")
+      case n => Left(badRequest(s"Update updated too many records! ($n)"))
     }.recover {
       case e: MusitException => Left(e.toMusitError)
     }
   }
-
-  /*Not used (yet?), but storage_actor seems to use the strategy of not being explicit/separate with the id, which may make this one the likely one to use.
-  // TODO: Should standardize on the above or the below, not use both!
-
-  /** Calls a DAO service method to update an object and returns proper result structure */
-  def daoUpdate[A](daoUpdateCall: A => Future[Int], objectToUpdate: A): Future[Either[MusitError, MusitStatusMessage]] = {
-    daoUpdateCall(objectToUpdate).map {
-      case 0 => badRequest("Update did not update any records!")
-      case 1 => Right(MusitStatusMessage("Record was updated!"))
-      case _ => badRequest("Update updated several records!")
-    }
-  }
-*/
 }

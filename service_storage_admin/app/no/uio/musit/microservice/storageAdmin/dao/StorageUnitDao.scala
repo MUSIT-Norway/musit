@@ -125,9 +125,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     // (Which later gets recovered in ServiceHelper.daoUpdate)
     val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
 
-    val action = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id))) }
+    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id))) }
 
-    db.run(action.transactionally)
+    db.run(combinedAction.transactionally)
   }
 
   /* # Previous version:
@@ -147,20 +147,11 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   /**@see #updateRoom()*/
   def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
-    /*
-    val action = (for {
-      n <- updateStorageUnitAction(id, storageUnitAndBuilding._1)
-      m <- updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id)))
-      if (n == 1 && m == 1)
-    } yield 1).transactionally
-    db.run(action)
-*/
     val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
 
-    val action = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id))) }
+    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id))) }
 
-    db.run(action.transactionally)
-
+    db.run(combinedAction.transactionally)
   }
 
   def deleteStorageUnit(id: Long): Future[Int] = {
@@ -259,5 +250,4 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def destroy(building: StorageBuilding) = Some(building.id, building.address)
   }
-
 }

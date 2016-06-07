@@ -1,6 +1,7 @@
 package no.uio.musit.microservice.storage_admin.resource
 
 import no.uio.musit.microservice.storageAdmin.domain._
+import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.domain.MusitError
@@ -22,6 +23,9 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
   //val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 19002
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
+
+
+  def unknownStorageUnitMsg(id: Long) = StorageUnitService.unknownStorageUnitMsg(id)
 
   def createStorageUnit(json: String) = {
     WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(json)
@@ -62,7 +66,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
   "StorageUnitIntegration " must {
     "postCreate some IDs" in {
       val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom", "sikringSkallsikring": "1"}"""
-      val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
       val storageRoom = Json.parse(response.body).validate[StorageRoom].get
       storageUnit.getId mustBe 1
@@ -74,7 +78,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
     "postCreate a building" in {
       val makeMyJSon ="""{"id":-1, "storageType":"Building","storageUnitName":"KHM", "links":[]}"""
-      val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
       val storageBuilding = Json.parse(response.body).validate[StorageBuilding].get
       storageUnit.id mustBe Some(2)
@@ -84,14 +88,14 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "get by id" in {
-      val response = WS.url(s"http://localhost:$port/v1/storageunit/1").get() |> waitFutureValue
+      val response = getStorageUnit(1) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
       storageUnit.getId mustBe 1
     }
     "negative get by id" in {
-      val response = WS.url(s"http://localhost:$port/v1/storageunit/9999").get() |> waitFutureValue
+      val response = getStorageUnit(9999) |> waitFutureValue
       val error = Json.parse(response.body).validate[MusitError].get
-      error.message mustBe "Unknown storageUnit with ID: 9999"
+      error.message mustBe unknownStorageUnitMsg(9999)
     }
 
     "get all nodes" in {
@@ -175,18 +179,14 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val response = updateStorageUnit(125254764, myJSonRoom) |> waitFutureValue
 
       val error = Json.parse(response.body).validate[MusitError].get
-      error.message mustBe "Unknown storageUnit with ID: 125254764"
+      error.message mustBe unknownStorageUnitMsg(125254764)
     }
 
     "postCreate should not be able to insert too long field value" in {
       val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "10"}"""
-      val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
-      //      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-      //      val storageRoom = Json.parse(response.body).validate[StorageRoom].get
-
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
 
       val error = Json.parse(response.body).validate[MusitError].get
-      //println(s"--- Error: $error")
 
       error.getDeveloperMessage must include("Value too long")
     }
@@ -194,27 +194,27 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
     "create room transaction should not create a storageUnit in the database if the room doesn't get created. (Transaction failure)" in {
       val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "1"}"""
-      val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
 
       val id = storageUnit.getId //Just to know which is the current id, the next is supposed to fail....
 
       val jsonWhichShouldFail ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "10"}"""
-      val response2 = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(jsonWhichShouldFail) |> waitFutureValue
+      val response2 = createStorageUnit(jsonWhichShouldFail) |> waitFutureValue
       val error = Json.parse(response2.body).validate[MusitError].get
 
       error.getDeveloperMessage must include("Value too long")
 
-      val getResponse = WS.url(s"http://localhost:$port/v1/storageunit/${id + 1}").get() |> waitFutureValue
+      val getResponse = getStorageUnit(id + 1) |> waitFutureValue
 
       val errorOnGet = Json.parse(getResponse.body).validate[MusitError].get
-      errorOnGet.message mustBe s"Unknown storageUnit with ID: ${id + 1}"
+      errorOnGet.message mustBe unknownStorageUnitMsg(id + 1)
 
     }
 
     "create and delete room" in {
       val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "1"}"""
-      val response = WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(makeMyJSon) |> waitFutureValue
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
       response.status mustBe 201 //Successfully created the room
 
@@ -282,5 +282,18 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
 
+
+
+    "update should fail (with Conflict=409) if inconsistent storage types" in {
+      val json ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "1"}"""
+      val response = createStorageUnit(json) |> waitFutureValue
+      response.status mustBe 201 //Created
+
+      val storageUnit = Json.parse(response.body).validate[StorageUnit].get
+
+      val updatedJson ="""{"storageType":"Building", "storageUnitName":"Ukjent bygning", "address":"HelloAddress"}"""
+      val responseUpdate = updateStorageUnit(storageUnit.getId, updatedJson) |> waitFutureValue
+      responseUpdate.status mustBe 409 //Conflict
+    }
   }
 }
