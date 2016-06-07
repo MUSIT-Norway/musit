@@ -21,32 +21,53 @@ import React, { Component } from 'react'
 import TextField from '../../components/musittextfield'
 import Options from '../../components/storageunits/EnvironmentOptions'
 import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
-import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
+import { Modal, Button, Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Autosuggest from 'react-autosuggest'
-import { suggestAddress, clearSuggest } from '../../reducers/suggest'
+import { suggestAddress, suggestCompany, clearSuggest } from '../../reducers/suggest'
+import { createOrganization } from '../../reducers/organization'
 
 const mapStateToProps = (state) => ({
   suggest: state.suggest
 })
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onSuggestionsUpdateRequested({ value, reason }) {
-      // Should only autosuggest on typing if you have more then 3 characters
-      if (reason && (reason === 'type') && value && (value.length >= 3)) {
-        dispatch(suggestAddress('addressField', value))
-      } else {
-        dispatch(clearSuggest('addressField'))
-      }
+/*
+const findSelectedSuggestion = (suggestions, value) => {
+  suggestions.find((suggestion) => (`[${suggestion.nickname}] ${suggestion.fn}` === value))
+}
+*/
+
+const mapDispatchToProps = (dispatch) => ({
+  onAddressSuggestionsUpdateRequested: ({ value, reason }) => {
+    // Should only autosuggest on typing if you have more then 3 characters
+    if (reason && (reason === 'type') && value && (value.length >= 3)) {
+      dispatch(suggestAddress('addressField', value))
+    } else {
+      dispatch(clearSuggest('addressField'))
+    }
+  },
+  onOrganizationSuggestionsUpdateRequested: ({ value, reason }) => {
+    // Should only autosuggest on typing if you have more then 3 characters
+    if (reason && (reason === 'type') && value && (value.length >= 1)) {
+      dispatch(suggestCompany('organizationField', value))
+    } else {
+      dispatch(clearSuggest('organizationField'))
+    }
+  },
+  dispatchCreateOrganization: (organization) => {
+    console.log(organization)
+    if (organization && organization.fn && organization.fn.length > 0) {
+      dispatch(createOrganization(organization))
     }
   }
-}
+})
 
 @connect(mapStateToProps, mapDispatchToProps)
 export default class ExampleView extends Component {
   static propTypes = {
-    onSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    onAddressSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    onOrganizationSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    dispatchCreateOrganization: React.PropTypes.func.isRequired,
     suggest: React.PropTypes.array.isRequired
   }
 
@@ -84,10 +105,61 @@ export default class ExampleView extends Component {
         temperatur: false,
         preventivKonservering: false
       },
-      address: ''
+      organizationData: {
+        fn: '',
+        nickname: '',
+        tel: '',
+        web: ''
+      },
+      address: '',
+      organization: '',
+      showCreate: false
     }
 
     const clazz = this
+
+    this.organizationDataFields = [
+      {
+        controlId: 'fullName',
+        labelText: 'Full name',
+        tooltip: 'Full name',
+        valueType: 'text',
+        placeHolderText: 'enter organization name here',
+        valueText: () => clazz.state.organizationData.fn,
+        validationState: () => ExampleView.validateString(clazz.state.organizationData.fn),
+        onChange: (fn) => clazz.setState({ organizationData: { ...clazz.state.organizationData, fn } })
+      },
+      {
+        controlId: 'nickname',
+        labelText: 'Nickname',
+        tooltip: 'Nickname',
+        valueType: 'text',
+        placeHolderText: 'enter organization short name here',
+        valueText: () => clazz.state.organizationData.nickname,
+        validationState: () => ExampleView.validateString(clazz.state.organizationData.nickname),
+        onChange: (nickname) => clazz.setState({ organizationData: { ...clazz.state.organizationData, nickname } })
+      },
+      {
+        controlId: 'phone',
+        labelText: 'Telephone number',
+        tooltip: 'Telephone number',
+        valueType: 'text',
+        placeHolderText: 'enter phone number here',
+        valueText: () => clazz.state.organizationData.tel,
+        validationState: () => ExampleView.validateString(clazz.state.organizationData.tel),
+        onChange: (tel) => clazz.setState({ organizationData: { ...clazz.state.organizationData, tel } })
+      },
+      {
+        controlId: 'web',
+        labelText: 'Web',
+        tooltip: 'Web',
+        valueType: 'text',
+        placeHolderText: 'enter web address here',
+        valueText: () => clazz.state.organizationData.web,
+        validationState: () => ExampleView.validateString(clazz.state.organizationData.web),
+        onChange: (web) => clazz.setState({ organizationData: { ...clazz.state.organizationData, web } })
+      }
+    ]
 
     this.areal = {
       controlId: 'areal',
@@ -132,20 +204,41 @@ export default class ExampleView extends Component {
         onChange: (note) => clazz.setState({ unit: { ...clazz.state.unit, note } })
       }
     ]
-    this.onChange = this.onChange.bind(this)
+    this.onAddressChange = this.onAddressChange.bind(this)
+    this.onOrganizationChange = this.onOrganizationChange.bind(this)
+    this.openOrganizationCreate = this.openOrganizationCreate.bind(this)
+    this.closeOrganizationCreate = this.closeOrganizationCreate.bind(this)
   }
 
-  onChange(event, { newValue }) {
+  onAddressChange(event, { newValue }) {
     this.setState({
       address: newValue
     })
   }
 
-  getSuggestionValue(suggestion) {
+  onOrganizationChange(event, { newValue }) {
+    this.setState({
+      organization: newValue
+    })
+  }
+
+  getAddressSuggestionValue(suggestion) {
     return `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
   }
 
-  renderSuggestion(suggestion) {
+  getOrganizationSuggestionValue(suggestion) {
+    return `[${suggestion.nickname}] ${suggestion.fn}`
+  }
+
+  closeOrganizationCreate() {
+    this.setState({ showCreate: false })
+  }
+
+  openOrganizationCreate() {
+    this.setState({ showCreate: true })
+  }
+
+  renderAddressSuggestion(suggestion) {
     const suggestionText = `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
 
     return (
@@ -153,18 +246,54 @@ export default class ExampleView extends Component {
     )
   }
 
+  renderOrganizationSuggestion(suggestion) {
+    const suggestionText = `[${suggestion.nickname}] ${suggestion.fn}`
+
+    return (
+      <span className={'suggestion-content'}>{suggestionText}</span>
+    )
+  }
+
   render() {
-    const { onSuggestionsUpdateRequested, suggest } = this.props
-    const { address } = this.state
-    const inputProps = {
+    const {
+      dispatchCreateOrganization,
+      onAddressSuggestionsUpdateRequested,
+      onOrganizationSuggestionsUpdateRequested,
+      suggest } = this.props
+    const { address, organization, organizationData } = this.state
+
+    const inputAddressProps = {
       placeholder: 'Adresse',
       value: address,
       type: 'search',
-      onChange: this.onChange
+      onChange: this.onAddressChange
     }
+    const inputOrganizationProps = {
+      placeholder: 'Organisasjon',
+      value: organization,
+      type: 'search',
+      onChange: this.onOrganizationChange
+    }
+
     return (
       <div>
         <main>
+          <Modal show={this.state.showCreate} onHide={this.closeOrganizationCreate}>
+            <Modal.Header closeButton>
+              <Modal.Title>Opprett organisasjon</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              <Form horizontal>
+                {this.organizationDataFields.map(field => <TextField {...field} />)}
+              </Form>
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button onClick={this.closeOrganizationCreate}>Avbryt</Button>
+              <Button bsStyle="primary" >Opprett</Button>
+            </Modal.Footer>
+          </Modal>
           <Panel>
             <Grid>
               <Row styleClass="row-centered">
@@ -185,17 +314,32 @@ export default class ExampleView extends Component {
                 </Col>
               </Row>
               <Row>
-                <Col md={1}>
+                <Col md={2}>
                   <label htmlFor={'addressField'}>Adresse</label>
                 </Col>
-                <Col md={11}>
+                <Col md={4}>
                   <Autosuggest id={'addressField'}
                     suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
-                    onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
-                    getSuggestionValue={this.getSuggestionValue}
-                    renderSuggestion={this.renderSuggestion}
-                    inputProps={inputProps}
+                    onSuggestionsUpdateRequested={onAddressSuggestionsUpdateRequested}
+                    getSuggestionValue={this.getAddressSuggestionValue}
+                    renderSuggestion={this.renderAddressSuggestion}
+                    inputProps={inputAddressProps}
                   />
+                </Col>
+                <Col md={2}>
+                  <label htmlFor={'companyField'}>Organisasjon</label>
+                </Col>
+                <Col md={3}>
+                  <Autosuggest id={'organizationField'}
+                    suggestions={suggest.organizationField && suggest.organizationField.data ? suggest.organizationField.data : []}
+                    onSuggestionsUpdateRequested={onOrganizationSuggestionsUpdateRequested}
+                    getSuggestionValue={this.getOrganizationSuggestionValue}
+                    renderSuggestion={this.renderOrganizationSuggestion}
+                    inputProps={inputOrganizationProps}
+                  />
+                </Col>
+                <Col md={1}>
+                  <Button bsSize={'small'} onClick={this.openCompanyCreate}>Opprett</Button>
                 </Col>
               </Row>
             </Grid>
