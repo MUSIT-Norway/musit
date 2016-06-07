@@ -1,7 +1,9 @@
-const INSERT = 'musit/storageunit-container/LOAD';
-const INSERT_SUCCESS = 'musit/storageunit-container/LOAD_SUCCESS';
-const INSERT_FAIL = 'musit/storageunit-container/LOAD_FAIL';
-
+const INSERT = 'musit/storageunit-container/INSERT';
+const INSERT_SUCCESS = 'musit/storageunit-container/INSERT_SUCCESS';
+const INSERT_FAIL = 'musit/storageunit-container/INSERT_FAIL';
+const LOAD = 'musit/storageunit-container/LOAD';
+const LOAD_SUCCESS = 'musit/storageunit-container/LOAD_SUCCESS';
+const LOAD_FAIL = 'musit/storageunit-container/LOAD_FAIL';
 
 const initialState = []
 
@@ -10,7 +12,7 @@ const storageInsertUnitContainerReducer = (state = initialState, action = {}) =>
     case INSERT:
       return {
         ...state,
-        loading: true
+        loading: true,
       };
     case INSERT_SUCCESS:
       return {
@@ -20,6 +22,25 @@ const storageInsertUnitContainerReducer = (state = initialState, action = {}) =>
         data: action.result
       };
     case INSERT_FAIL:
+      return {
+        ...state,
+        loading: false,
+        loaded: false,
+        data: action.error
+      };
+    case LOAD:
+      return {
+        ...state,
+        loading: true,
+      };
+    case LOAD_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        loaded: true,
+        data: action.result
+      };
+    case LOAD_FAIL:
       return {
         ...state,
         loading: false,
@@ -36,11 +57,16 @@ export default storageInsertUnitContainerReducer;
 export const isLoaded = (globalState) => {
   return globalState.storageUnitContainer && globalState.storageUnitContainer.loaded;
 }
+export const load = (id) => {
+  return {
+    types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
+    promise: (client) => client.get(`/api/storageadmin/v1/storageunit/${id}`)
+  };
+}
 
-export const insert = (state) => {
-  console.log(state)
+export const insert = (data) => {
   return {
     types: [INSERT, INSERT_SUCCESS, INSERT_FAIL],
-    promise: (client) => client.get('/storageInsertUnitContainerReducer')
+    promise: (client) => client.post('/api/storageadmin/v1/storageunit', data)
   };
 }

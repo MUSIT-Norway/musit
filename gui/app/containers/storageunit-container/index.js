@@ -20,40 +20,37 @@
  import Options from '../../components/storageunits/EnvironmentOptions'
  import { connect } from 'react-redux';
  import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
- import { isLoaded as isStorageUnitContainerLoaded,
-          insert as insertStorageUnitContainer } from '../../reducers/storageunit-container';
- import { asyncConnect } from 'redux-async-connect';
- import { routerActions } from 'react-router-redux';
- import { I18n } from 'react-i18nify';
+ // import { insert as insertStorageUnitContainer } from '../../reducers/storageunit-container';
+ import { load } from '../../reducers/storageunit-container';
  import { ButtonToolbar, Button } from 'react-bootstrap'
 
  const mapStateToProps = (state) => {
-   I18n.loadTranslations(state.language.data)
-   I18n.setLocale('no')
    return {
-     user: state.auth.user,
-     pushState: routerActions.push
+     storageUnit: state.storageUnit,
+     sikringBevaring: state.sikringBevaring
    }
  }
 
- @asyncConnect([{
-   promise: ({ store: { dispatch, getState } }) => {
-     const promises = [];
-     if (!isStorageUnitContainerLoaded(getState())) {
-       promises.push(dispatch(insertStorageUnitContainer()))
-     }
-     return Promise.all(promises);
-   }
- }])
+ const mapDispatchToProps = (dispatch) => {
 
-@connect(mapStateToProps)
+   return {
+     onLagreClick: () => {
+       // dispatch(insertStorageUnitContainer(this.state))
+     },
+     loadStorageUnit: (id) => {
+       dispatch(load(id))
+     }
+   }
+ }
+
+
+@connect(mapStateToProps, mapDispatchToProps)
+
  export default class StorageUnitContainer extends Component {
    static propTypes = {
-     children: PropTypes.object.isRequired,
-     user: PropTypes.object,
-     pushState: PropTypes.func.isRequired,
-     store: PropTypes.object,
-     storageunit: PropTypes.object
+     storageUnit: PropTypes.object.isRequired,
+     sikringBevaring: PropTypes.object.isRequired,
+     onLagreClick: PropTypes.func.isRequired
    };
 
    static validateString(value, minimumLength = 3, maximumLength = 20) {
@@ -94,12 +91,16 @@
      }
    }
 
+   componentWillMount() {
+     this.props.loadStorageUnit(1)
+   }
+
    render() {
      return (
       <div>
         <main>
           <ButtonToolbar>
-            <Button bsStyle="primary" onClick= {this.onClick}>Lagre</Button>
+            <Button bsStyle="primary" onClick= {this.onLagreClick}>Lagre</Button>
             <Button>Cancel</Button>
           </ButtonToolbar>
           <StorageUnitComponents

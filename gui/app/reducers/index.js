@@ -37,7 +37,7 @@ const rootReducer = combineReducers({
   language: languageReducer,
   reduxAsyncConnect: reduxAsyncConnect,
   suggest: autosuggestReducer,
-  storageUnitInsert: storageInsertUnitContainerReducer,
+  storageUnit: storageInsertUnitContainerReducer,
   form: form
 });
 
