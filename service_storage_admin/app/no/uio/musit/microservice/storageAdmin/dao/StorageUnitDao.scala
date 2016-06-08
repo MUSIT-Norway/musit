@@ -4,17 +4,42 @@ import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import no.uio.musit.microservices.common.utils.Misc._
+import slick.backend.DatabaseConfig
+import slick.driver
 
 /**
  * Created by ellenjo on 5/18/16.
  */
-object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
+
+
+/* Didn't seem to work
+trait BooleanColumnMapper extends HasDatabaseConfigProvider[JdbcProfile] {
+  import driver.api._
+
+  def optBoolToOptStr(b: Boolean): String = {
+    if (b) "1" else "0"
+  }
+
+  def optStringToOptBool(s: String): Boolean = {
+    s match {
+      case "1" => true
+      case "0" => false
+      case n => throw new Exception(s"Oh no! $n")
+    }
+  }
+
+
+  implicit val booleanMapper = MappedColumnType.base[Boolean, String](optBoolToOptStr _, optStringToOptBool _)
+
+}
+*/
+object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColumnMapper */ {
 
   import driver.api._
 
@@ -145,7 +170,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
-  /**@see #updateRoom()*/
+  /** @see #updateRoom() */
   def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
     val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
 
@@ -162,7 +187,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(updateAction)
   }
 
-  private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
+  private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT")  {
     def * = (id, storageType, storageUnitName, area, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
 
     val id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
@@ -195,31 +220,84 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
       unit.storageUnitName, unit.area, unit.isPartOf, unit.height, unit.groupRead, unit.groupWrite)
   }
 
+
   private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {
     def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, sikringRutineOgBeredskap,
       bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
 
     def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
 
-    def sikringSkallsikring = column[Option[String]]("SIKRING_SKALLSIKRING")
+    /* Try something like this instead?
 
-    def sikringTyverisikring = column[Option[String]]("SIKRING_TYVERISIKRING")
+  sealed trait Bool
+  case object True extends Bool
+  case object False extends Bool
 
-    def sikringBrannsikring = column[Option[String]]("SIKRING_BRANNSIKRING")
+  // And a ColumnType that maps it to Int values 1 and 0
+  implicit val boolColumnType = MappedColumnType.base[Bool, String](
+    { b => if(b == True) "1" else "0" },    // map Bool to Int
+    { i => if(i == "1") True else False } // map Int to Bool
+  )
 
-    def sikringVannskaderisiko = column[Option[String]]("SIKRING_VANNSKADERISIKO")
+ */
 
-    def sikringRutineOgBeredskap = column[Option[String]]("SIKRING_RUTINE_OG_BEREDSKAP")
+        def optBoolToOptStr(optB: Option[Boolean]): Option[String] = {
+          optB match {
+            case Some(b) => if (b) Some("1") else Some("0")
+            case None => None
+          }
+        }
 
-    def bevarLuftfuktOgTemp = column[Option[String]]("BEVAR_LUFTFUKT_OG_TEMP")
+        def optStringToOptBool(optS: Option[String]): Option[Boolean] = {
+          optS match {
+            case Some(s: String) =>
+              s match {
+                case "1" => Some(true)
+                case "0" => Some(false)
+                case n => throw new Exception(s"Oh no! $n")
+              }
+            case _ => None
+          }
+        }
+        implicit val booleanMapper = MappedColumnType.base[Option[Boolean], Option[String]](optBoolToOptStr _, optStringToOptBool _)
 
-    def bevarLysforhold = column[Option[String]]("BEVAR_LYSFORHOLD")
 
-    def bevarPrevantKons = column[Option[String]]("BEVAR_PREVANT_KONS")
+/*
+    def optBoolToOptStr(b: Boolean): String = {
+      if (b) "1" else "0"
+    }
 
-    def create = (id: Option[Long], sikringSkallsikring: Option[String], sikringTyverisikring: Option[String], sikringBrannsikring: Option[String], sikringVannskaderisiko: Option[String],
-      sikringRutineOgBeredskap: Option[String], bevarLuftfuktOgTemp: Option[String], bevarLysforhold: Option[String],
-      bevarPrevantKons: Option[String]) =>
+    def optStringToOptBool(s: String): Boolean = {
+      s match {
+        case "1" => true
+        case "0" => false
+        case n => throw new Exception(s"Oh no! $n")
+      }
+    }
+
+
+    implicit val booleanMapper = MappedColumnType.base[Boolean, String](optBoolToOptStr _, optStringToOptBool _)
+*/
+
+    def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")(booleanMapper)
+
+    def sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING") //(booleanMapper)
+
+    def sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING") //(booleanMapper)
+
+    def sikringVannskaderisiko = column[Option[Boolean]]("SIKRING_VANNSKADERISIKO") //(booleanMapper)
+
+    def sikringRutineOgBeredskap = column[Option[Boolean]]("SIKRING_RUTINE_OG_BEREDSKAP") //(booleanMapper)
+
+    def bevarLuftfuktOgTemp = column[Option[Boolean]]("BEVAR_LUFTFUKT_OG_TEMP") //(booleanMapper)
+
+    def bevarLysforhold = column[Option[Boolean]]("BEVAR_LYSFORHOLD") //(booleanMapper)
+
+    def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS") //(booleanMapper)
+
+    def create = (id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean], sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
+      sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean], bevarLysforhold: Option[Boolean],
+      bevarPrevantKons: Option[Boolean]) =>
       StorageRoom(
         id,
         sikringSkallsikring,
@@ -248,4 +326,5 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def destroy(building: StorageBuilding) = Some(building.id, building.address)
   }
+
 }
