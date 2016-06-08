@@ -25,6 +25,6 @@ import no.uio.musit.microservices.common.linking.domain.Link
  * Created by ellenjo on 4/8/16.
  */
 trait BaseMusitDomain {
-  val id: Long
-  val links: Seq[Link]
+  val id: Option[Long]
+  val links: Option[Seq[Link]]
 }

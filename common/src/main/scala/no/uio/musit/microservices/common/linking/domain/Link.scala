@@ -24,7 +24,7 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 
 /* Domain classes */
-case class Link(id: Long, localTableId: Long, rel: String, href: String)
+case class Link(id: Option[Long], localTableId: Option[Long], rel: String, href: String)
 
 /* Helper singletons */
 object Link {
@@ -37,7 +37,7 @@ object Link {
     )
   }
 
-  def applyLink(rel: String, href: String): Link = Link(-1, -1, rel, href)
+  def applyLink(rel: String, href: String): Link = Link(None, None, rel, href)
 
   implicit val linkReads: Reads[Link] = (
     (JsPath \ "rel").read[String](minLength[String](1)) and

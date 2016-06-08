@@ -18,12 +18,12 @@
  */
 package no.uio.musit.microservices.common.linking.dao
 
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
@@ -34,7 +34,7 @@ object LinkDao extends HasDatabaseConfig[JdbcProfile] {
 
   private val linkTable = TableQuery[LinkTable]
 
-  def insert(ownerTable: BaseMusitDomain, rel: String, href: String): Future[Unit] = db.run(linkTable += Link(-1, ownerTable.id, rel, href)).map { _ => () }
+  def insert(ownerTable: BaseMusitDomain, rel: String, href: String): Future[Unit] = db.run(linkTable += Link(None, ownerTable.id, rel, href)).map { _ => () }
 
   def findByLocalTableId(id: Long): Future[Seq[Link]] = db.run(linkTable.filter(_.localTableId === id).result)
 
@@ -51,8 +51,8 @@ object LinkDao extends HasDatabaseConfig[JdbcProfile] {
    * );
    */
   private class LinkTable(tag: Tag) extends Table[Link](tag, "URI_LINKS") {
-    def id = column[Long]("ID", O.PrimaryKey) // This is the primary key column
-    def localTableId = column[Long]("LOCAL_TABLE_ID")
+    def id = column[Option[Long]]("ID", O.PrimaryKey) // This is the primary key column
+    def localTableId = column[Option[Long]]("LOCAL_TABLE_ID")
     def rel = column[String]("REL")
     def href = column[String]("HREF")
     def * = (id, localTableId, rel, href) <> (Link.tupled, Link.unapply _)

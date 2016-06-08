@@ -18,16 +18,31 @@
  */
 package no.uio.musit.microservices.common.linking
 
+import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
 
 object LinkService {
   val baseUrl = "http://localhost:7070"
 
   def self(uri: String): Link = {
-    Link(-1, -1, "self", baseUrl + uri)
+    Link(None, None, "self", baseUrl + uri)
   }
 
-  def local(key: Long, rel: String, uri: String): Link = {
-    Link(-1, key, rel, baseUrl + uri)
+  def self(uri: String, id:Option[Long]):Either[MusitError, Link] = {
+    id match {
+      case Some(realId) => Right(self(s"$uri$realId"))
+      case None => Left(MusitError(400, s"Reference id of link ($uri) was not a value"))
+    }
+  }
+
+  def local(key: Option[Long], rel: String, uri: String): Link = {
+    Link(None, key, rel, baseUrl + uri)
+  }
+
+  def local(key: Option[Long], rel: String, uri: String, id:Option[Long]): Either[MusitError, Link] = {
+    id match {
+      case Some(realId) => Right(local(key, rel, s"$uri$realId"))
+      case None => Left(MusitError(400, s"Reference id of link ($uri) was not a value"))
+    }
   }
 }
