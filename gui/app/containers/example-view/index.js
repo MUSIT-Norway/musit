@@ -208,6 +208,7 @@ export default class ExampleView extends Component {
     this.onOrganizationChange = this.onOrganizationChange.bind(this)
     this.openOrganizationCreate = this.openOrganizationCreate.bind(this)
     this.closeOrganizationCreate = this.closeOrganizationCreate.bind(this)
+    this.onOrganizationUpdateClick = this.onOrganizationUpdateClick.bind(this)
   }
 
   onAddressChange(event, { newValue }) {
@@ -222,6 +223,12 @@ export default class ExampleView extends Component {
     })
   }
 
+  onOrganizationUpdateClick(event) {
+    console.log(event)
+    this.props.dispatchCreateOrganization({ ...this.state.organizationData })
+    this.closeOrganizationCreate()
+  }
+
   getAddressSuggestionValue(suggestion) {
     return `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
   }
@@ -231,12 +238,19 @@ export default class ExampleView extends Component {
   }
 
   closeOrganizationCreate() {
-    console.log('closing')
     this.setState({ showCreate: false })
   }
 
   openOrganizationCreate() {
-    console.log('opening')
+    console.log('Create data record')
+    this.setState({
+      organizationData: {
+        fn: '',
+        nickname: '',
+        tel: '',
+        web: ''
+      }
+    })
     this.setState({ showCreate: true })
   }
 
@@ -258,11 +272,10 @@ export default class ExampleView extends Component {
 
   render() {
     const {
-      dispatchCreateOrganization,
       onAddressSuggestionsUpdateRequested,
       onOrganizationSuggestionsUpdateRequested,
       suggest } = this.props
-    const { address, organization, organizationData, showCreate } = this.state
+    const { address, organization, showCreate } = this.state
 
     const inputAddressProps = {
       placeholder: 'Adresse',
@@ -293,7 +306,7 @@ export default class ExampleView extends Component {
 
             <Modal.Footer>
               <Button onClick={this.closeOrganizationCreate}>Avbryt</Button>
-              <Button bsStyle="primary" onClick={() => {dispatchCreateOrganization(organizationData); this.closeOrganizationCreate()}}>Opprett</Button>
+              <Button bsStyle="primary" onClick={this.onOrganizationUpdateClick}>Opprett</Button>
             </Modal.Footer>
           </Modal>
           <Panel>
