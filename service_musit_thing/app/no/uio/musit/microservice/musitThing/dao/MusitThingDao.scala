@@ -37,7 +37,7 @@ object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
   def all(): Future[Seq[MusitThing]] = db.run(MusitThingTable.result)
 
   def insert(musitThing: MusitThing): Future[MusitThing] = {
-    val insertQuery = (MusitThingTable returning MusitThingTable.map(_.id) into ((musitThing, id) => (musitThing.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))))
+    val insertQuery = (MusitThingTable returning MusitThingTable.map(_.id) into ((musitThing, id) => (musitThing.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/${id.getOrElse("")}")))))))
     val action = insertQuery += musitThing
 
     db.run(action)
@@ -59,11 +59,11 @@ object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class MusitThingTable(tag: Tag) extends Table[MusitThing](tag, Some("MUSIT_MAPPING"), "VIEW_MUSITTHING") {
-    def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
+    def id = column[Option[Long]]("NY_ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
     def displayid = column[String]("DISPLAYID")
     def displayname = column[String]("DISPLAYNAME")
 
-    def create = (id: Long, displayid: String, displayname: String) => MusitThing(id, displayid, displayname, Seq(LinkService.self(s"/v1/$id")))
+    def create = (id: Option[Long], displayid: String, displayname: String) => MusitThing(id, displayid, displayname, Some(Seq(LinkService.self(s"/v1/${id.getOrElse("")}"))))
     def destroy(thing: MusitThing) = Some(thing.id, thing.displayid, thing.displayname)
 
     def * = (id, displayid, displayname) <> (create.tupled, destroy)

@@ -28,7 +28,7 @@ object LinkService {
     Link(None, None, "self", baseUrl + uri)
   }
 
-  def self(uri: String, id:Option[Long]):Either[MusitError, Link] = {
+  def self(uri: String, id: Option[Long]): Either[MusitError, Link] = {
     id match {
       case Some(realId) => Right(self(s"$uri$realId"))
       case None => Left(MusitError(400, s"Reference id of link ($uri) was not a value"))
@@ -39,7 +39,7 @@ object LinkService {
     Link(None, key, rel, baseUrl + uri)
   }
 
-  def local(key: Option[Long], rel: String, uri: String, id:Option[Long]): Either[MusitError, Link] = {
+  def local(key: Option[Long], rel: String, uri: String, id: Option[Long]): Either[MusitError, Link] = {
     id match {
       case Some(realId) => Right(local(key, rel, s"$uri$realId"))
       case None => Left(MusitError(400, s"Reference id of link ($uri) was not a value"))

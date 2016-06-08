@@ -36,8 +36,8 @@ class MusitThing_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFut
     import MusitThingDao._
 
     "testInsertMusitThing" in {
-      insert(MusitThing(1, "C2", "spyd", Seq.empty))
-      insert(MusitThing(2, "C3", "øks", Seq.empty))
+      insert(MusitThing(Some(1), "C2", "spyd", None))
+      insert(MusitThing(Some(2), "C3", "øks", None))
       val svar=MusitThingDao.all()
       svar.onFailure{
         case ex => fail("Insert failed")
@@ -99,7 +99,7 @@ class MusitThing_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFut
     "getById__Riktig" in {
       val svar = getById(1)
       whenReady(svar, timeout) { thing =>
-        assert (thing == Some(MusitThing(1,"C1","Øks5", Seq(LinkService.self("/v1/1")))))
+        assert (thing == Some(MusitThing(Some(1),"C1","Øks5", Some(Seq(LinkService.self("/v1/1"))))))
       }
     }
 
