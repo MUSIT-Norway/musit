@@ -231,10 +231,12 @@ export default class ExampleView extends Component {
   }
 
   closeOrganizationCreate() {
+    console.log('closing')
     this.setState({ showCreate: false })
   }
 
   openOrganizationCreate() {
+    console.log('opening')
     this.setState({ showCreate: true })
   }
 
@@ -260,7 +262,7 @@ export default class ExampleView extends Component {
       onAddressSuggestionsUpdateRequested,
       onOrganizationSuggestionsUpdateRequested,
       suggest } = this.props
-    const { address, organization, organizationData } = this.state
+    const { address, organization, organizationData, showCreate } = this.state
 
     const inputAddressProps = {
       placeholder: 'Adresse',
@@ -278,7 +280,7 @@ export default class ExampleView extends Component {
     return (
       <div>
         <main>
-          <Modal show={this.state.showCreate} onHide={this.closeOrganizationCreate}>
+          <Modal show={showCreate} onHide={this.closeOrganizationCreate}>
             <Modal.Header closeButton>
               <Modal.Title>Opprett organisasjon</Modal.Title>
             </Modal.Header>
@@ -291,7 +293,7 @@ export default class ExampleView extends Component {
 
             <Modal.Footer>
               <Button onClick={this.closeOrganizationCreate}>Avbryt</Button>
-              <Button bsStyle="primary" >Opprett</Button>
+              <Button bsStyle="primary" onClick={() => dispatchCreateOrganization(organizationData)}>Opprett</Button>
             </Modal.Footer>
           </Modal>
           <Panel>
@@ -318,7 +320,8 @@ export default class ExampleView extends Component {
                   <label htmlFor={'addressField'}>Adresse</label>
                 </Col>
                 <Col md={4}>
-                  <Autosuggest id={'addressField'}
+                  <Autosuggest
+                    id={'addressField'}
                     suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
                     onSuggestionsUpdateRequested={onAddressSuggestionsUpdateRequested}
                     getSuggestionValue={this.getAddressSuggestionValue}
@@ -327,10 +330,11 @@ export default class ExampleView extends Component {
                   />
                 </Col>
                 <Col md={2}>
-                  <label htmlFor={'companyField'}>Organisasjon</label>
+                  <label htmlFor={'organizationField'}>Organisasjon</label>
                 </Col>
                 <Col md={3}>
-                  <Autosuggest id={'organizationField'}
+                  <Autosuggest
+                    id={'organizationField'}
                     suggestions={suggest.organizationField && suggest.organizationField.data ? suggest.organizationField.data : []}
                     onSuggestionsUpdateRequested={onOrganizationSuggestionsUpdateRequested}
                     getSuggestionValue={this.getOrganizationSuggestionValue}
@@ -339,7 +343,7 @@ export default class ExampleView extends Component {
                   />
                 </Col>
                 <Col md={1}>
-                  <Button bsSize={'small'} onClick={this.openCompanyCreate}>Opprett</Button>
+                  <Button bsSize={'small'} onClick={this.openOrganizationCreate}>Opprett</Button>
                 </Col>
               </Row>
             </Grid>
