@@ -172,7 +172,7 @@ object StorageUnitTriple {
   }
 }
 
-case class STORAGE_UNIT_LINK(id: Long, storage_unit_id: Long, relation: String, links: Seq[Link]) extends BaseMusitDomain
+case class STORAGE_UNIT_LINK(id: Option[Long], storage_unit_id: Long, relation: String, links: Option[Seq[Link]]) extends BaseMusitDomain
 
 object STORAGE_UNIT_LINK {
   def tupled = (STORAGE_UNIT_LINK.apply _).tupled
