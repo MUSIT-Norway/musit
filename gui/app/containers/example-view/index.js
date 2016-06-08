@@ -293,7 +293,7 @@ export default class ExampleView extends Component {
 
             <Modal.Footer>
               <Button onClick={this.closeOrganizationCreate}>Avbryt</Button>
-              <Button bsStyle="primary" onClick={() => dispatchCreateOrganization(organizationData)}>Opprett</Button>
+              <Button bsStyle="primary" onClick={() => {dispatchCreateOrganization(organizationData); this.closeOrganizationCreate()}}>Opprett</Button>
             </Modal.Footer>
           </Modal>
           <Panel>

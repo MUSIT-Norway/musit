@@ -18,8 +18,6 @@ const server = new http.Server(app)
 const io = new SocketIo(server)
 io.path('/ws')
 
-app.use(bodyParser.json())
-
 app.use(session({
   secret: 'react and redux rule!!!!',
   resave: false,
