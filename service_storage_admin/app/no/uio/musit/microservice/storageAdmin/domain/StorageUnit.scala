@@ -43,7 +43,6 @@ case class StorageUnit(
     storageType: String,
     storageUnitName: String,
     area: Option[Long],
-    isStorageUnit: Option[String],
     isPartOf: Option[Long],
     height: Option[Long],
     groupRead: Option[String],
@@ -62,7 +61,7 @@ case class StorageUnit(
 object StorageUnit {
   def tupled = (StorageUnit.apply _).tupled
 
-  implicit val format = Json.format[StorageUnit]
+  implicit val format = Json.format.[StorageUnit]
 }
 
 case class StorageRoom(

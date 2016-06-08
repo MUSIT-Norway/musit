@@ -24,12 +24,11 @@ CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT(
  storage_unit_id   BIGINT NOT NULL  AUTO_INCREMENT,
- storage_unit_name VARCHAR(512),
+ storage_unit_name VARCHAR(512) NOT NULL,
  area              BIGINT,
- is_storage_unit   VARCHAR(1) DEFAULT '1',
  is_part_of        BIGINT,
  height            BIGINT,
- storage_type      varchar(100),
+ storage_type      varchar(100) NOT NULL,
  group_read        varchar(4000),
  group_write       varchar(4000),
  is_deleted        INT NOT NULL DEFAULT '0',
