@@ -159,7 +159,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val id = storageUnit.getId
       storageUnit.storageUnitName mustBe "Rom1"
 
-      val udateRoomJson = s"""{"storageType":"room","storageUnitName":"FintNavn", "sikringSkallsikring": true}"""
+      val udateRoomJson = s"""{"storageType":"room","storageUnitName":"RomNyttNavn", "sikringSkallsikring": true}"""
       val res = (for {
         _ <- updateStorageUnit(id, udateRoomJson)
         room <- getRoomAsObject(id)

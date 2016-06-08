@@ -4,7 +4,7 @@ import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -17,10 +17,8 @@ import slick.driver
  * Created by ellenjo on 5/18/16.
  */
 
-
 /* Didn't seem to work
 trait BooleanColumnMapper extends HasDatabaseConfigProvider[JdbcProfile] {
-  import driver.api._
 
   def optBoolToOptStr(b: Boolean): String = {
     if (b) "1" else "0"
@@ -187,7 +185,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
     db.run(updateAction)
   }
 
-  private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT")  {
+  private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id, storageType, storageUnitName, area, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
 
     val id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
@@ -220,7 +218,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
       unit.storageUnitName, unit.area, unit.isPartOf, unit.height, unit.groupRead, unit.groupWrite)
   }
 
-
   private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {
     def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, sikringRutineOgBeredskap,
       bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
@@ -241,6 +238,8 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
 
  */
 
+    import driver.api._
+    /*
         def optBoolToOptStr(optB: Option[Boolean]): Option[String] = {
           optB match {
             case Some(b) => if (b) Some("1") else Some("0")
@@ -259,15 +258,14 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
             case _ => None
           }
         }
-        implicit val booleanMapper = MappedColumnType.base[Option[Boolean], Option[String]](optBoolToOptStr _, optStringToOptBool _)
+        implicit val optBooleanMapper = MappedColumnType.base[Option[Boolean], Option[String]](optBoolToOptStr _, optStringToOptBool _)
 
-
-/*
-    def optBoolToOptStr(b: Boolean): String = {
+*/
+    def boolToString(b: Boolean): String = {
       if (b) "1" else "0"
     }
 
-    def optStringToOptBool(s: String): Boolean = {
+    def stringToBool(s: String): Boolean = {
       s match {
         case "1" => true
         case "0" => false
@@ -275,11 +273,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
       }
     }
 
+    implicit val booleanMapper = MappedColumnType.base[Boolean, String](boolToString _, stringToBool _)
 
-    implicit val booleanMapper = MappedColumnType.base[Boolean, String](optBoolToOptStr _, optStringToOptBool _)
-*/
-
-    def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")(booleanMapper)
+    def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING") //(optBooleanMapper)??
 
     def sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING") //(booleanMapper)
 

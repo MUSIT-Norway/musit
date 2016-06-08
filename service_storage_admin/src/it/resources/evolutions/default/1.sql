@@ -37,7 +37,7 @@ primary key (storage_unit_id)
 
 CREATE TABLE MUSARK_STORAGE.ROOM(
  storage_unit_id             BIGINT not null,
- sikring_skallsikring        VARCHAR(1),
+ sikring_skallsikring        VARCHAR(5),
  sikring_tyverisikring       VARCHAR(1),
  sikring_brannsikring        VARCHAR(1),
  sikring_vannskaderisiko     VARCHAR(1),
