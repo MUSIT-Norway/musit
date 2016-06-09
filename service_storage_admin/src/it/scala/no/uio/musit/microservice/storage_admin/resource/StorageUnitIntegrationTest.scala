@@ -158,6 +158,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       storageRoom.sikringSkallsikring mustBe Some(false)
       val id = storageUnit.getId
       storageUnit.storageUnitName mustBe "Rom1"
+      storageRoom.sikringSkallsikring mustBe Some(false)
 
       val udateRoomJson = s"""{"storageType":"room","storageUnitName":"RomNyttNavn", "sikringSkallsikring": true}"""
       val res = (for {
@@ -213,7 +214,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-
+      println(storageUnit)
       val id = storageUnit.getId //Just to know which is the current id, the next is supposed to fail....
 
       val jsonWhichShouldFail =s"""{"storageType":"Room","storageUnitName":"$veryLongUnitName", "sikringSkallsikring": false}"""
@@ -314,7 +315,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "create should fail with invalid input data" in {
-      val json ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": "1"}"""
+      val json ="""{"storageType":"Room","storageUnitName":"UkjentRom2", "sikringSkallsikring": 1}"""
       val response = createStorageUnit(json) |> waitFutureValue
       response.status mustBe 400
     }

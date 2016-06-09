@@ -38,14 +38,14 @@ primary key (storage_unit_id)
 
 CREATE TABLE MUSARK_STORAGE.ROOM(
  storage_unit_id             BIGINT not null,
- sikring_skallsikring        VARCHAR(1),
- sikring_tyverisikring       VARCHAR(1),
- sikring_brannsikring        VARCHAR(1),
- sikring_vannskaderisiko     VARCHAR(1),
- sikring_rutine_og_beredskap VARCHAR(1),
- bevar_luftfukt_og_temp      VARCHAR(1),
- bevar_lysforhold            VARCHAR(1),
- bevar_prevant_kons          VARCHAR(1),
+ sikring_skallsikring        INTEGER,
+ sikring_tyverisikring        INTEGER,
+ sikring_brannsikring         INTEGER,
+ sikring_vannskaderisiko      INTEGER,
+ sikring_rutine_og_beredskap  INTEGER,
+ bevar_luftfukt_og_temp       INTEGER,
+ bevar_lysforhold             INTEGER,
+ bevar_prevant_kons           INTEGER,
  PRIMARY KEY (STORAGE_UNIT_ID),
  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
  );

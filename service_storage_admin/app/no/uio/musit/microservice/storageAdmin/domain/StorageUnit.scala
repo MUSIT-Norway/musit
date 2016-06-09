@@ -87,7 +87,9 @@ case class StorageRoom(
 object StorageRoom {
   def tupled = (StorageRoom.apply _).tupled
 
-  implicit val writes = Json.writes[StorageRoom]
+  implicit val format = Json.format[StorageRoom]
+
+  /*implicit val writes = Json.writes[StorageRoom]
 
   implicit val reads: Reads[StorageRoom] = (
     (JsPath \ "id").readNullable[Long] and
@@ -100,7 +102,7 @@ object StorageRoom {
     (JsPath \ "bevarLysforhold").readNullable[Boolean] and
     (JsPath \ "bevarPrevantKons").readNullable[Boolean] and
     (JsPath \ "links").readNullable[Seq[Link]]
-  )(StorageRoom.apply _)
+  )(StorageRoom.apply _)*/
 }
 
 case class StorageBuilding(

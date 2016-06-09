@@ -3,15 +3,13 @@ package no.uio.musit.microservice.storageAdmin.dao
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.utils.DaoHelper
+import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.utils.Misc._
-import slick.backend.DatabaseConfig
-import slick.driver
 
 /**
  * Created by ellenjo on 5/18/16.
@@ -37,7 +35,8 @@ trait BooleanColumnMapper extends HasDatabaseConfigProvider[JdbcProfile] {
 
 }
 */
-object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColumnMapper */ {
+
+object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
@@ -146,7 +145,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
 
     //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
+    val updateStorageUnitOnlyAction = updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.onlyAcceptOneUpdatedRecord
 
     val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id))) }
 
@@ -170,7 +169,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
 
   /** @see #updateRoom() */
   def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
-    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
+    val updateStorageUnitOnlyAction = updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord
 
     val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id))) }
 
@@ -204,7 +203,8 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
 
     val groupWrite = column[Option[String]]("GROUP_WRITE")
 
-    val isDeleted = column[Int]("IS_DELETED")
+    val isDeleted = column[Int]("IS_DELETED") // this columns is not a member of the case class storageUnit. IT's not
+    // part of the official/public API of storageUnit, only used internally.
 
     def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], isPartOf: Option[Long], height: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
@@ -223,57 +223,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] /* with BooleanColu
       bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
 
     def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
-
-    /* Try something like this instead?
-
-  sealed trait Bool
-  case object True extends Bool
-  case object False extends Bool
-
-  // And a ColumnType that maps it to Int values 1 and 0
-  implicit val boolColumnType = MappedColumnType.base[Bool, String](
-    { b => if(b == True) "1" else "0" },    // map Bool to Int
-    { i => if(i == "1") True else False } // map Int to Bool
-  )
-
- */
-
-    import driver.api._
-    /*
-        def optBoolToOptStr(optB: Option[Boolean]): Option[String] = {
-          optB match {
-            case Some(b) => if (b) Some("1") else Some("0")
-            case None => None
-          }
-        }
-
-        def optStringToOptBool(optS: Option[String]): Option[Boolean] = {
-          optS match {
-            case Some(s: String) =>
-              s match {
-                case "1" => Some(true)
-                case "0" => Some(false)
-                case n => throw new Exception(s"Oh no! $n")
-              }
-            case _ => None
-          }
-        }
-        implicit val optBooleanMapper = MappedColumnType.base[Option[Boolean], Option[String]](optBoolToOptStr _, optStringToOptBool _)
-
-*/
-    def boolToString(b: Boolean): String = {
-      if (b) "1" else "0"
-    }
-
-    def stringToBool(s: String): Boolean = {
-      s match {
-        case "1" => true
-        case "0" => false
-        case n => throw new Exception(s"Oh no! $n")
-      }
-    }
-
-    implicit val booleanMapper = MappedColumnType.base[Boolean, String](boolToString _, stringToBool _)
 
     def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING") //(optBooleanMapper)??
 
