@@ -18,13 +18,26 @@
  */
 
 import React, { Component } from 'react'
+import { connect } from 'react-redux';
 import TextField from '../../components/musittextfield'
 import Options from '../../components/storageunits/EnvironmentOptions'
 import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
 import EnvironmentRequirementComponent from '../../components/storageunits/EnvironmentRequirementComponent'
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
+import Language from '../../components/language'
 
+const mapStateToProps = (state) => ({
+  user: state.auth.user,
+  translate: (key, markdown) => Language.translate(key, markdown)
+});
+
+@connect(mapStateToProps)
 export default class ExampleView extends Component {
+  static propTypes = {
+    translate: React.PropTypes.func.isRequired,
+    user: React.PropTypes.object,
+  }
+
   static validateString(value, minimumLength = 3, maximumLength = 20) {
     const isSomething = value.length >= minimumLength
     const isValid = isSomething ? 'success' : null
@@ -36,6 +49,7 @@ export default class ExampleView extends Component {
     const isValid = isSomething ? 'success' : null
     return isSomething && isNaN(value) ? 'error' : isValid
   }
+
 
   constructor(props) {
     super(props)
@@ -134,7 +148,7 @@ export default class ExampleView extends Component {
             </Grid>
           </Panel>
           <StorageUnitComponents />
-          <EnvironmentRequirementComponent />
+          <EnvironmentRequirementComponent translate={this.props.translate} />
 
           <Panel>
             <Options

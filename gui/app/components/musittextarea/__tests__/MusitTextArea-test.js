@@ -41,17 +41,17 @@ describe('MusitTextArea', () => {
     assert.equal(field.value, '', 'Felt må være tilstede')
   });
 
- it('number input', () => {
+  it('number input', () => {
     const MusitTextArea = require('../index');
     const myDiv = ReactTestUtils.renderIntoDocument(
-        <MusitTextArea
-          controlId="navn"
-          labelText="Navn"
-          placeHolderText="skriv inn navn her"
-          validationState={(key) => key}
-          valueText={() => '123454566'}
-          onChange={() => null}
-        />
+      <MusitTextArea
+        controlId="navn"
+        labelText="Navn"
+        placeHolderText="skriv inn navn her"
+        validationState={(key) => key}
+        valueText={() => '123454566'}
+        onChange={() => null}
+      />
       );
 
     const actualDiv = ReactDOM.findDOMNode(myDiv);
@@ -60,7 +60,4 @@ describe('MusitTextArea', () => {
     const field = actualDiv.querySelectorAll('textarea')[0];
     assert.equal(field.value, '123454566', 'Felt må være tilstede')
   });
-
-
-
 });
