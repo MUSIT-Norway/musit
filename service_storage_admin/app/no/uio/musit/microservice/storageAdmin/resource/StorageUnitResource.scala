@@ -110,5 +110,9 @@ class StorageUnitResource extends Controller {
       }
   }
 
+  def deleteRoot(id: Long) = Action.async {
+    ResourceHelper.deleteRoot(StorageUnitService.deleteStorageTriple _, id)
+  }
+
 }
 
