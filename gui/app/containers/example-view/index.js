@@ -21,21 +21,16 @@ import React, { Component } from 'react'
 import TextField from '../../components/musittextfield'
 import Options from '../../components/storageunits/EnvironmentOptions'
 import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
-import { Modal, Button, Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
+import { Button, Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Autosuggest from 'react-autosuggest'
 import { suggestAddress, suggestCompany, clearSuggest } from '../../reducers/suggest'
 import { createOrganization } from '../../reducers/organization'
+import { OrganizationPopupContainer } from '../../components/organization'
 
 const mapStateToProps = (state) => ({
   suggest: state.suggest
 })
-
-/*
-const findSelectedSuggestion = (suggestions, value) => {
-  suggestions.find((suggestion) => (`[${suggestion.nickname}] ${suggestion.fn}` === value))
-}
-*/
 
 const mapDispatchToProps = (dispatch) => ({
   onAddressSuggestionsUpdateRequested: ({ value, reason }) => {
@@ -118,49 +113,6 @@ export default class ExampleView extends Component {
 
     const clazz = this
 
-    this.organizationDataFields = [
-      {
-        controlId: 'fullName',
-        labelText: 'Full name',
-        tooltip: 'Full name',
-        valueType: 'text',
-        placeHolderText: 'enter organization name here',
-        valueText: () => clazz.state.organizationData.fn,
-        validationState: () => ExampleView.validateString(clazz.state.organizationData.fn),
-        onChange: (fn) => clazz.setState({ organizationData: { ...clazz.state.organizationData, fn } })
-      },
-      {
-        controlId: 'nickname',
-        labelText: 'Nickname',
-        tooltip: 'Nickname',
-        valueType: 'text',
-        placeHolderText: 'enter organization short name here',
-        valueText: () => clazz.state.organizationData.nickname,
-        validationState: () => ExampleView.validateString(clazz.state.organizationData.nickname),
-        onChange: (nickname) => clazz.setState({ organizationData: { ...clazz.state.organizationData, nickname } })
-      },
-      {
-        controlId: 'phone',
-        labelText: 'Telephone number',
-        tooltip: 'Telephone number',
-        valueType: 'text',
-        placeHolderText: 'enter phone number here',
-        valueText: () => clazz.state.organizationData.tel,
-        validationState: () => ExampleView.validateString(clazz.state.organizationData.tel),
-        onChange: (tel) => clazz.setState({ organizationData: { ...clazz.state.organizationData, tel } })
-      },
-      {
-        controlId: 'web',
-        labelText: 'Web',
-        tooltip: 'Web',
-        valueType: 'text',
-        placeHolderText: 'enter web address here',
-        valueText: () => clazz.state.organizationData.web,
-        validationState: () => ExampleView.validateString(clazz.state.organizationData.web),
-        onChange: (web) => clazz.setState({ organizationData: { ...clazz.state.organizationData, web } })
-      }
-    ]
-
     this.areal = {
       controlId: 'areal',
       labelText: 'Areal',
@@ -208,7 +160,7 @@ export default class ExampleView extends Component {
     this.onOrganizationChange = this.onOrganizationChange.bind(this)
     this.openOrganizationCreate = this.openOrganizationCreate.bind(this)
     this.closeOrganizationCreate = this.closeOrganizationCreate.bind(this)
-    this.onOrganizationUpdateClick = this.onOrganizationUpdateClick.bind(this)
+    this.onOrganizationSave = this.onOrganizationSave.bind(this)
   }
 
   onAddressChange(event, { newValue }) {
@@ -223,7 +175,7 @@ export default class ExampleView extends Component {
     })
   }
 
-  onOrganizationUpdateClick(event) {
+  onOrganizationSave(event) {
     console.log(event)
     this.props.dispatchCreateOrganization({ ...this.state.organizationData })
     this.closeOrganizationCreate()
@@ -242,7 +194,6 @@ export default class ExampleView extends Component {
   }
 
   openOrganizationCreate() {
-    console.log('Create data record')
     this.setState({
       organizationData: {
         fn: '',
@@ -275,7 +226,7 @@ export default class ExampleView extends Component {
       onAddressSuggestionsUpdateRequested,
       onOrganizationSuggestionsUpdateRequested,
       suggest } = this.props
-    const { address, organization, showCreate } = this.state
+    const { address, organization, showCreate, organizationData } = this.state
 
     const inputAddressProps = {
       placeholder: 'Adresse',
@@ -293,22 +244,15 @@ export default class ExampleView extends Component {
     return (
       <div>
         <main>
-          <Modal show={showCreate} onHide={this.closeOrganizationCreate}>
-            <Modal.Header closeButton>
-              <Modal.Title>Opprett organisasjon</Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-              <Form horizontal>
-                {this.organizationDataFields.map(field => <TextField {...field} />)}
-              </Form>
-            </Modal.Body>
-
-            <Modal.Footer>
-              <Button onClick={this.closeOrganizationCreate}>Avbryt</Button>
-              <Button bsStyle="primary" onClick={this.onOrganizationUpdateClick}>Opprett</Button>
-            </Modal.Footer>
-          </Modal>
+          <OrganizationPopupContainer show={showCreate}
+            org={organizationData}
+            updateFN={(fn) => this.setState({ organizationData: { ...organizationData, fn } })}
+            updateNickname={(nickname) => this.setState({ organizationData: { ...organizationData, nickname } })}
+            updateTel={(tel) => this.setState({ organizationData: { ...organizationData, tel } })}
+            updateWeb={(web) => this.setState({ organizationData: { ...organizationData, web } })}
+            onClose={this.closeOrganizationCreate}
+            onSave={this.onOrganizationSave}
+          />
           <Panel>
             <Grid>
               <Row styleClass="row-centered">
