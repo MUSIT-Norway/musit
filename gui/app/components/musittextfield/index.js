@@ -105,5 +105,4 @@ MusitTextField.propTypes = {
   validationState2: PropTypes.func,
   onChange: PropTypes.func.isRequired,
   onChange2: PropTypes.func,
-
 };

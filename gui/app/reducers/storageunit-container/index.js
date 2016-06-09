@@ -1,11 +1,12 @@
 const INSERT = 'musit/storageunit-container/INSERT';
+const UPDATE = 'musit/storageunit-container/UPDATE';
 const INSERT_SUCCESS = 'musit/storageunit-container/INSERT_SUCCESS';
 const INSERT_FAIL = 'musit/storageunit-container/INSERT_FAIL';
 const LOAD = 'musit/storageunit-container/LOAD';
 const LOAD_SUCCESS = 'musit/storageunit-container/LOAD_SUCCESS';
 const LOAD_FAIL = 'musit/storageunit-container/LOAD_FAIL';
 
-const initialState = []
+const initialState = {}
 
 const storageInsertUnitContainerReducer = (state = initialState, action = {}) => {
   switch (action.type) {
@@ -27,6 +28,13 @@ const storageInsertUnitContainerReducer = (state = initialState, action = {}) =>
         loading: false,
         loaded: false,
         data: action.error
+      };
+    case UPDATE:
+      return {
+        ...state,
+        loading: false,
+        loaded: true,
+        data: action.data
       };
     case LOAD:
       return {
@@ -65,8 +73,33 @@ export const load = (id) => {
 }
 
 export const insert = (data) => {
+  const dataToPost = {
+    storageType: data.storageUnit.type,
+    storageUnitName: data.storageUnit.name,
+    area: data.storageUnit.area,
+    height: data.storageUnit.height,
+    sikringSkallsikring: data.sikringBevaring.skallsikring,
+    sikringTyverisikring: data.sikringBevaring.tyverisikring,
+    sikringBrannsikring: data.sikringBevaring.brannsikring,
+    sikringVannskaderisiko: data.sikringBevaring.vannskaderisiko,
+    sikringrutinerBeredskap: data.sikringBevaring.rutinerBeredskap,
+    sikringluftfuktighet: data.sikringBevaring.luftfuktighet,
+    sikringlysforhold: data.sikringBevaring.lysforhold,
+    sikringtemperatur: data.sikringBevaring.temperatur,
+    sikringpreventivKonservering: data.sikringBevaring.preventivKonservering
+  }
   return {
     types: [INSERT, INSERT_SUCCESS, INSERT_FAIL],
-    promise: (client) => client.post('/api/storageadmin/v1/storageunit', data)
+    promise: (client) => client.post('/api/storageadmin/v1/storageunit', dataToPost)
   };
+}
+
+export const update = (data, key, value) => {
+  console.log(data)
+  data[key] = value
+  console.log(data)
+  return {
+    type: UPDATE,
+    data: data
+  }
 }

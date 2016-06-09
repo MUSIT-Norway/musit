@@ -11,12 +11,12 @@ export default class StorageUnitComponent extends Component {
 
   static propTypes = {
     unit: React.PropTypes.shape({
-      name: React.PropTypes.string,
-      areal1: React.PropTypes.string,
+      storageUnitName: React.PropTypes.string,
+      area: React.PropTypes.string,
       areal2: React.PropTypes.string,
-      height1: React.PropTypes.string,
+      height: React.PropTypes.string,
       height2: React.PropTypes.string,
-      type: React.PropTypes.string,
+      storageType: React.PropTypes.string,
     }),
     updateType: React.PropTypes.func.isRequired,
     updateName: React.PropTypes.func.isRequired,
@@ -27,20 +27,19 @@ export default class StorageUnitComponent extends Component {
   }
 
   static validateString(value, minimumLength = 3, maximumLength = 20) {
-    const isSomething = value.length >= minimumLength
+    const isSomething = value !== undefined ? value.length >= minimumLength : null
     const isValid = isSomething ? 'success' : null
-    return value.length > maximumLength ? 'error' : isValid
+    return value !== undefined && value.length > maximumLength ? 'error' : isValid
   }
 
   static validateNumber(value, minimumLength = 1) {
-    const isSomething = value.length >= minimumLength
-    const isValid = isSomething ? 'success' : null
-    return isSomething && isNaN(value) ? 'error' : isValid
+    const isSomething = value !== undefined ? value.length >= minimumLength : false
+    const isValid = isNaN(value) ? 'error' : 'success'
+    return isSomething ? isValid : null
   }
 
   constructor(props) {
     super(props)
-
 
     this.areal = {
       controlId: 'areal1',
@@ -50,14 +49,12 @@ export default class StorageUnitComponent extends Component {
       valueType: 'text',
       placeHolderText: 'enter areal 1 here',
       placeHolderText2: 'enter areal 2 here',
-      valueText: () => this.props.unit.areal1,
+      valueText: () => this.props.unit.area,
       valueText2: () => this.props.unit.areal2,
-      validationState: () => StorageUnitComponent.validateNumber(this.props.unit.areal1),
-      onChange: (areal1) => this.props.updateAreal1(areal1),
+      validationState: () => StorageUnitComponent.validateNumber(this.props.unit.area),
+      onChange: (area) => this.props.updateAreal1(area),
       onChange2: (areal2) => this.props.updateAreal2(areal2)
-
     }
-
     this.hoyde = {
       controlId: 'hoyde1',
       controlId2: 'hoyde2',
@@ -66,15 +63,13 @@ export default class StorageUnitComponent extends Component {
       valueType: 'text',
       placeHolderText: 'enter høyde 1 here',
       placeHolderText2: 'enter høyde 2 here',
-      valueText: () => this.props.unit.height1,
+      valueText: () => this.props.unit.height,
       valueText2: () => this.props.unit.height2,
-      validationState: () => StorageUnitComponent.validateNumber(this.props.unit.height1),
+      validationState: () => StorageUnitComponent.validateNumber(this.props.unit.height),
       validationState2: () => StorageUnitComponent.validateNumber(this.props.unit.height2),
-      onChange: (height1) => this.props.updateHeight1(height1),
+      onChange: (height) => this.props.updateHeight1(height),
       onChange2: (height2) => this.props.updateHeight2(height2)
-
     }
-
 
     this.type = {
       controlId: 'storageUnitType',
@@ -83,10 +78,9 @@ export default class StorageUnitComponent extends Component {
       valueType: 'text',
       tooltip: 'Type lagringsenhet',
       placeHolderText: 'velg type here',
-      valueText: () => this.props.unit.type,
-      validationState: () => StorageUnitComponent.validateString(this.props.unit.type),
-      onChange: (type) => this.props.updateType(type)
-
+      valueText: () => this.props.unit.storageType,
+      validationState: () => StorageUnitComponent.validateString(this.props.unit.storageType),
+      onChange: (storageType) => this.props.updateType(storageType)
     }
     this.name = {
       controlId: 'name',
@@ -94,9 +88,9 @@ export default class StorageUnitComponent extends Component {
       tooltip: 'Navn',
       placeHolderText: 'enter name here',
       valueType: 'text',
-      valueText: () => this.props.unit.name,
-      validationState: () => StorageUnitComponent.validateString(this.props.unit.name),
-      onChange: (name) => this.props.updateName(name)
+      valueText: () => this.props.unit.storageUnitName,
+      validationState: () => StorageUnitComponent.validateString(this.props.unit.storageUnitName),
+      onChange: (storageUnitName) => this.props.updateName(storageUnitName)
 
     }
   }
@@ -104,7 +98,6 @@ export default class StorageUnitComponent extends Component {
   render() {
     return (
         <div>
-
             <main>
                 <Panel>
                     <Grid>
