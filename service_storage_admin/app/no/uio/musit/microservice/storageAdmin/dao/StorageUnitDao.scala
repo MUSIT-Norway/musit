@@ -15,27 +15,6 @@ import scala.concurrent.Future
  * Created by ellenjo on 5/18/16.
  */
 
-/* Didn't seem to work
-trait BooleanColumnMapper extends HasDatabaseConfigProvider[JdbcProfile] {
-
-  def optBoolToOptStr(b: Boolean): String = {
-    if (b) "1" else "0"
-  }
-
-  def optStringToOptBool(s: String): Boolean = {
-    s match {
-      case "1" => true
-      case "0" => false
-      case n => throw new Exception(s"Oh no! $n")
-    }
-  }
-
-
-  implicit val booleanMapper = MappedColumnType.base[Boolean, String](optBoolToOptStr _, optStringToOptBool _)
-
-}
-*/
-
 object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
@@ -224,21 +203,21 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
 
-    def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING") //(optBooleanMapper)??
+    def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
 
-    def sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING") //(booleanMapper)
+    def sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING")
 
-    def sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING") //(booleanMapper)
+    def sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING")
 
-    def sikringVannskaderisiko = column[Option[Boolean]]("SIKRING_VANNSKADERISIKO") //(booleanMapper)
+    def sikringVannskaderisiko = column[Option[Boolean]]("SIKRING_VANNSKADERISIKO")
 
-    def sikringRutineOgBeredskap = column[Option[Boolean]]("SIKRING_RUTINE_OG_BEREDSKAP") //(booleanMapper)
+    def sikringRutineOgBeredskap = column[Option[Boolean]]("SIKRING_RUTINE_OG_BEREDSKAP")
 
-    def bevarLuftfuktOgTemp = column[Option[Boolean]]("BEVAR_LUFTFUKT_OG_TEMP") //(booleanMapper)
+    def bevarLuftfuktOgTemp = column[Option[Boolean]]("BEVAR_LUFTFUKT_OG_TEMP")
 
-    def bevarLysforhold = column[Option[Boolean]]("BEVAR_LYSFORHOLD") //(booleanMapper)
+    def bevarLysforhold = column[Option[Boolean]]("BEVAR_LYSFORHOLD")
 
-    def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS") //(booleanMapper)
+    def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
 
     def create = (id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean], sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
       sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean], bevarLysforhold: Option[Boolean],

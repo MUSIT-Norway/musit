@@ -30,15 +30,15 @@ object Misc {
   /**
    * Some notes about error handling, especially related to Futures.
    *
-   * In this note, I will use the terms MusitValue, MusitFuture, as if defined equivalently to the below.
+   * In this note, I will use the terms MusitResult, MusitFuture, as if defined equivalently to the below.
    * (Note that we don't use these the concepts explicitly in the code (at least not yet), it is only for understanding the discussion.)
    *
-   * type MusitValue[T] = Either[MusitError, T]
-   * type MusitFuture[T] = Future[MusitValue[T]]  (= Future[Either[MusitError, T]])
-   * type MusitBoolean[T] = MusitValue[Unit]      (=Either[MusitError, Unit])
+   * type MusitResult[T] = Either[MusitError, T]
+   * type MusitFuture[T] = Future[MusitResult[T]]  (= Future[Either[MusitError, T]])
+   * type MusitBooleanResult[T] = MusitResult[Boolean/Unit]      (=Either[MusitError, Boolean/Unit])
    *
    *
-   * (Better to use "MusitFuture" than "MusitFutureValue" or "FutureMusitValue"?)
+   * (Better to use "MusitFuture" than "MusitFutureResult" or "FutureMusitResult"?)
    * So all of these types are related to the MusitError type, they represents code/processes which may fail with a MusitError.
    *
    * In general, we often need to "bubble up" error information from the inner layers to the outer layers. This can sometimes be a challenge.
@@ -46,10 +46,10 @@ object Misc {
    * Option[T] can tell you if something succeeded or not, but when it fails, it can't explicitly tell you why, you only get None (aka "No soup for you!" ;) ), with no explanation.
    * So you need to do extra work in order to report what went wrong.
    *
-   * MusitValue improves upon Option in this situation, because it can explicitly tell you *why* something went wrong, and this info can bubble upwards in the call chain,
+   * MusitResult improves upon Option in this situation, because it can explicitly tell you *why* something went wrong, and this info can bubble upwards in the call chain,
    * using mapping and flatmapping, up through the call chain.
    *
-   * MusitFuture is just a Future MusitValue.
+   * MusitFuture is just a Future MusitResult.
    *
    * In a library like Slick, which generally returns Future[T] and not something similar to Future[Either...], errors are propagated using exceptions.
    * If one doesn't want to use/propagate exceptions for propagating failure information when using Futures, one needs to use something like MusitFuture.
@@ -58,16 +58,16 @@ object Misc {
    *
    * (If we actually create a type in Scala like MusitFuture, we can even use for-comprehensions on them)
    *
-   * MusitBoolean represents whether some code succeeded or not. If "false", it also holds the information about why it is false/failed. (in its Either-Left branch)
+   * MusitBooleanResult represents whether some code succeeded or not. If "false", it also holds the information about why it is false/failed. (in its Either-Left branch)
    * If Either.Right, it means True (irrespective of what is in the right branch, ideally I'd like to use Either[MusitError, Unit] (ie Unit instead of Boolean), but I
    * tried that and the compiler ended up allowing a bit too much.
    *
-   * (Not sure about whether to use the name MusitBoolean, MusitTrue or MusitSuccess or something else.)
+   * (Not sure about whether to use the name MusitBooleanResult, MusitTrue or MusitSuccess or something else.)
    * *
    */
 
   /**
-   * Maps a boolean condition to a "MusitBoolean" (see above discussion).
+   * Maps a boolean condition to a "MusitBooleanResult" (see above discussion).
    */
   def boolToMusitBool(condition: Boolean, errorIfFalse: => MusitError): Either[MusitError, Boolean] = {
     if (condition)
