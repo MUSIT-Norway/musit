@@ -61,7 +61,7 @@ export default class MusitTextField extends Component {
                     <FormControl
                       style={{ borderRadius: '5px' }}
                       type={this.props.valueType}
-                      placeholder={this.props.placeHolderText2}
+                      placeholder={ this.props.placeHolderText2 }
                       value={this.props.valueText2()}
                       onChange={(event) => this.props.onChange2(event.target.value)}
                     />

@@ -26,7 +26,7 @@
 
  const mapStateToProps = (state) => {
    return {
-     storageUnit: state.storageUnit.data ? state.storageUnit.data : {}
+     storageUnit: state.storageUnit.data ? { ...state.storageUnit.data } : {}
    }
  }
 
@@ -71,7 +71,7 @@
             </Row>
           </Grid>
           <StorageUnitComponents
-            unit= {this.props.storageUnit}
+            unit= { this.props.storageUnit }
             updateType = {(storageType) => this.props.updateStorageUnit(this.props.storageUnit, 'storageType', storageType)}
             updateName= {(storageUnitName) =>
               this.props.updateStorageUnit(this.props.storageUnit, 'storageUnitName', storageUnitName)}

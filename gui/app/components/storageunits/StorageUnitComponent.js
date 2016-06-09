@@ -33,7 +33,7 @@ export default class StorageUnitComponent extends Component {
   }
 
   static validateNumber(value, minimumLength = 1) {
-    const isSomething = value !== undefined ? value.length >= minimumLength : false
+    const isSomething = value !== undefined ? value.length >= minimumLength : null
     const isValid = isNaN(value) ? 'error' : 'success'
     return isSomething ? isValid : null
   }
@@ -66,7 +66,6 @@ export default class StorageUnitComponent extends Component {
       valueText: () => this.props.unit.height,
       valueText2: () => this.props.unit.height2,
       validationState: () => StorageUnitComponent.validateNumber(this.props.unit.height),
-      validationState2: () => StorageUnitComponent.validateNumber(this.props.unit.height2),
       onChange: (height) => this.props.updateHeight1(height),
       onChange2: (height2) => this.props.updateHeight2(height2)
     }
