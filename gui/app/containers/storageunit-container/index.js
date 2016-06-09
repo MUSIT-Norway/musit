@@ -54,8 +54,19 @@
      onLagreClick: PropTypes.func.isRequired,
      updateStorageUnit: PropTypes.func.isRequired
    }
+
+   constructor(props) {
+     super(props)
+     this.state = { ...{ storageUnit: this.props.storageUnit } }
+   }
+
    componentWillMount() {
      this.props.loadStorageUnit(1)
+   }
+
+   updateStorageUnit(data, key, value) {
+     data[key] = value
+     this.setState({ ...data })
    }
 
    render() {
@@ -65,54 +76,54 @@
           <Grid>
             <Row styleClass="row-centered">
               <ButtonToolbar>
-                <Button bsStyle="primary" onClick= {this.onLagreClick}>Lagre</Button>
+                <Button bsStyle="primary" onClick= { this.onLagreClick }>Lagre</Button>
                 <Button>Cancel</Button>
               </ButtonToolbar>
             </Row>
           </Grid>
           <StorageUnitComponents
-            unit= { this.props.storageUnit }
-            updateType = {(storageType) => this.props.updateStorageUnit(this.props.storageUnit, 'storageType', storageType)}
+            unit= { this.state.storageUnit }
+            updateType = {(storageType) => this.state.updateStorageUnit(this.state.storageUnit, 'storageType', storageType)}
             updateName= {(storageUnitName) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'storageUnitName', storageUnitName)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'storageUnitName', storageUnitName)}
             updateAreal1= {(area) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'area', area)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'area', area)}
             updateAreal2= {(areal2) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'area2', areal2)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'area2', areal2)}
             updateHeight1= {(height) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'height', height)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'height', height)}
             updateHeight2= {(height2) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'height2', height2)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'height2', height2)}
           />
           <Options
-            unit = {{ skallsikring: this.props.storageUnit.skallsikring,
-                     tyverisikring: this.props.storageUnit.tyverisikring,
-                     brannsikring: this.props.storageUnit.brannsikring,
-                     vannskaderisiko: this.props.storageUnit.vannskaderisiko,
-                     rutinerBeredskap: this.props.storageUnit.rutinerBeredskap,
-                     luftfuktighet: this.props.storageUnit.luftfuktighet,
-                     lysforhold: this.props.storageUnit.lysforhold,
-                     temperatur: this.props.storageUnit.temperatur,
-                     preventivKonservering: this.props.storageUnit.preventivKonservering,
+            unit = {{ skallsikring: this.state.storageUnit.skallsikring,
+                     tyverisikring: this.state.storageUnit.tyverisikring,
+                     brannsikring: this.state.storageUnit.brannsikring,
+                     vannskaderisiko: this.state.storageUnit.vannskaderisiko,
+                     rutinerBeredskap: this.state.storageUnit.rutinerBeredskap,
+                     luftfuktighet: this.state.storageUnit.luftfuktighet,
+                     lysforhold: this.state.storageUnit.lysforhold,
+                     temperatur: this.state.storageUnit.temperatur,
+                     preventivKonservering: this.state.storageUnit.preventivKonservering,
             }}
             updateSkallsikring={(skallsikring) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'skallsikring', skallsikring)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'skallsikring', skallsikring)}
             updateTyverisikring={(tyverisikring) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'tyverisikring', tyverisikring)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'tyverisikring', tyverisikring)}
             updateBrannsikring={(brannsikring) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'brannsikring', brannsikring)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'brannsikring', brannsikring)}
             updateVannskaderisiko={(vannskaderisiko) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'vannskaderisiko', vannskaderisiko)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'vannskaderisiko', vannskaderisiko)}
             updateRutinerBeredskap={(rutinerBeredskap) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'rutinerBeredskap', rutinerBeredskap)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'rutinerBeredskap', rutinerBeredskap)}
             updateLuftfuktighet={(luftfuktighet) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'luftfuktighet', luftfuktighet)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'luftfuktighet', luftfuktighet)}
             updateLysforhold={(lysforhold) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'lysforhold', lysforhold)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'lysforhold', lysforhold)}
             updateTemperatur={(temperatur) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'temperatur', temperatur)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'temperatur', temperatur)}
             updatePreventivKonservering={(preventivKonservering) =>
-              this.props.updateStorageUnit(this.props.storageUnit, 'preventivKonservering', preventivKonservering)}
+              this.state.updateStorageUnit(this.state.storageUnit, 'preventivKonservering', preventivKonservering)}
           />
         </main>
       </div>
