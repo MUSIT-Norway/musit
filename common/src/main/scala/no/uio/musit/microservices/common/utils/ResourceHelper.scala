@@ -1,6 +1,7 @@
 package no.uio.musit.microservices.common.utils
 
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
+
 //import play.api.http.Status
 import play.api.mvc.Result
 import play.api.libs.json._
@@ -54,4 +55,17 @@ object ResourceHelper {
     }
   }
 
+  //Int is expected to be number of records deleted by serviceDeleteCall
+  def deleteRoot(serviceDeleteCall: (Long) => Future[Either[MusitError, Int]], id: Long): Future[Result] = {
+    serviceDeleteCall(id).map {
+      case Right(deleteCount) => {
+        if (deleteCount == 0) {
+          NotFound(Json.toJson(MusitStatusMessage("Todo-innmed Feilmelding ResourceHelper.deleteRoot")))
+        } else
+          Ok(Json.toJson(MusitStatusMessage(s"Deleted $deleteCount record(s).")))
+      }
+      case Left(error) => Status(error.status)(Json.toJson(error))
+    }
+  }
 }
+

@@ -2,12 +2,14 @@ package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservices.common.linking.LinkService
+import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import no.uio.musit.microservices.common.utils.Misc._
 
 /**
  * Created by ellenjo on 5/18/16.
@@ -28,7 +30,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] = {
-    val action = StorageUnitTable.filter(_.id === id).result.headOption
+    val action = StorageUnitTable.filter(st => st.id === id && st.isDeleted === 0).result.headOption
     db.run(action)
   }
 
@@ -106,7 +108,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private def updateStorageUnitAction(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
-    StorageUnitTable.filter(_.id === id).update(storageUnit)
+    StorageUnitTable.filter(st => st.id === id && st.isDeleted === 0).update(storageUnit)
   }
 
   def updateStorageUnit(id: Long, storageUnit: StorageUnit): Future[Int] = {
@@ -118,26 +120,46 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def updateRoom(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
-    val action = (for {
+
+    //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord will make this DBIO/Future fail with an appropriate MusitException.
+    // (Which later gets recovered in ServiceHelper.daoUpdate)
+    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
+
+    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id))) }
+
+    db.run(combinedAction.transactionally)
+  }
+
+  /* # Previous version:
+  def updateRoom(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
+      val action = (for {
       n <- updateStorageUnitAction(id, storageUnitAndRoom._1)
       m <- updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id)))
       if (n == 1 && m == 1)
     } yield 1).transactionally
     db.run(action)
-  }
+}
+   */
 
   private def updateBuildingOnlyAction(id: Long, storageBuilding: StorageBuilding): DBIO[Int] = {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
-  def updateBuildingByID(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
+  /**@see #updateRoom()*/
+  def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
+    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
 
-    val action = (for {
-      n <- updateStorageUnitAction(id, storageUnitAndBuilding._1)
-      m <- updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id)))
-      if (n == 1 && m == 1)
-    } yield 1).transactionally
-    db.run(action)
+    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id))) }
+
+    db.run(combinedAction.transactionally)
+  }
+
+  def deleteStorageUnit(id: Long): Future[Int] = {
+    val q = for {
+      storageUnit <- StorageUnitTable if storageUnit.id === id && storageUnit.isDeleted === 0
+    } yield storageUnit.isDeleted
+    val updateAction = q.update(1)
+    db.run(updateAction)
   }
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
@@ -160,6 +182,8 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     val groupRead = column[Option[String]]("GROUP_READ")
 
     val groupWrite = column[Option[String]]("GROUP_WRITE")
+
+    val isDeleted = column[Int]("IS_DELETED")
 
     def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
@@ -226,5 +250,4 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def destroy(building: StorageBuilding) = Some(building.id, building.address)
   }
-
 }

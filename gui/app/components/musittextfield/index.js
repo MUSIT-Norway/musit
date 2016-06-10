@@ -110,7 +110,7 @@ MusitTextField.propTypes = {
   controlId2: PropTypes.string,
   labelText: PropTypes.string.isRequired,
   labelText2: PropTypes.string,
-  placeHolderText: PropTypes.string.isRequired,
+  placeHolderText: PropTypes.string,
   placeHolderText2: PropTypes.string,
   tooltip: PropTypes.string,
   valueText: PropTypes.func.isRequired,

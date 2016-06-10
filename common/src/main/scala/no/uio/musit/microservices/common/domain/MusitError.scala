@@ -33,3 +33,16 @@ object MusitError {
   // TODO: Only include developerMessage if in devEnvironment!
   implicit val format: Format[MusitError] = Json.format[MusitError]
 }
+
+class MusitException(message: String, private val developerMessage: String = "") extends Throwable {
+  def status = Status.BAD_REQUEST
+  def toMusitError = MusitError(status, message, developerMessage)
+}
+
+class MusitNotFoundException(message: String, private val developerMessage: String = "") extends MusitException(message, developerMessage) {
+  override def status = Status.NOT_FOUND
+}
+
+class MusitTooManyRecordsUpdatedException(message: String, private val developerMessage: String = "") extends MusitException(message, developerMessage) {
+  override def status = Status.BAD_REQUEST
+}

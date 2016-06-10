@@ -33,5 +33,12 @@
     "host": "localhost",
     "port": "7070",
     "protocol": "http://"
+  },
+  {
+    "name": "geolocation",
+    "scalaName": "GeoLocationResource_V1",
+    "host": "localhost",
+    "port": "7070",
+    "protocol": "http://"
   }
 ]
