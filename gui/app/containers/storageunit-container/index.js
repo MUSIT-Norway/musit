@@ -19,9 +19,10 @@
  import React, { Component, PropTypes } from 'react'
  import Options from '../../components/storageunits/EnvironmentOptions'
  import { connect } from 'react-redux';
+ import { asyncConnect } from 'redux-async-connect';
  import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
- // import { insert as insertStorageUnitContainer } from '../../reducers/storageunit-container';
- import { load } from '../../reducers/storageunit-container';
+ import { insert as insertStorageUnitContainer } from '../../reducers/storageunit-container';
+ import { load, isLoaded } from '../../reducers/storageunit-container';
  import { ButtonToolbar, Button, Grid, Row } from 'react-bootstrap'
 
  const mapStateToProps = (state) => {
@@ -32,8 +33,8 @@
 
  const mapDispatchToProps = (dispatch) => {
    return {
-     onLagreClick: () => {
-       // dispatch(insertStorageUnitContainer(this.props))
+     onLagreClick: (data) => {
+       dispatch(insertStorageUnitContainer(data))
      },
      loadStorageUnit: (id) => {
        dispatch(load(id))
@@ -41,12 +42,23 @@
    }
  }
 
+ @asyncConnect([{
+   promise: ({ store: { dispatch, getState } }) => {
+     const promises = [];
+     if (!isLoaded(getState())) {
+       promises.push(dispatch(load(1)))
+     }
+     return Promise.all(promises);
+   }
+ }])
+
 
 @connect(mapStateToProps, mapDispatchToProps)
 
  export default class StorageUnitContainer extends Component {
    static propTypes = {
      storageUnit: PropTypes.object.isRequired,
+     store: PropTypes.object.isRequired,
      loadStorageUnit: PropTypes.func.isRequired,
      onLagreClick: PropTypes.func.isRequired,
      updateStorageUnit: PropTypes.func.isRequired
@@ -55,30 +67,21 @@
    constructor(props) {
      super(props)
      this.state = { storageUnit: this.props.storageUnit }
-     console.log('Hei construktør')
-   }
-
-   componentWillMount() {
-     console.log('Hei componentWillMounts før')
-     this.props.loadStorageUnit(3)
-     console.log('Hei coMponentWillMounts etter')
    }
 
    updateStorageUnit(data, key, value) {
      data[key] = value
      this.setState({ ...data })
-     console.log('Hei SetState')
    }
 
    render() {
-     console.log('rendering')
      return (
       <div>
         <main>
           <Grid>
             <Row styleClass="row-centered">
               <ButtonToolbar>
-                <Button bsStyle="primary" onClick= { this.onLagreClick }>Lagre</Button>
+                <Button bsStyle="primary" onClick= {() => this.props.onLagreClick(this.state.storageUnit)} >Lagre</Button>
                 <Button>Cancel</Button>
               </ButtonToolbar>
             </Row>

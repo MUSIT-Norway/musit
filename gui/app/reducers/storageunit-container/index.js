@@ -73,24 +73,9 @@ export const load = (id) => {
 }
 
 export const insert = (data) => {
-  const dataToPost = {
-    storageType: data.storageUnit.type,
-    storageUnitName: data.storageUnit.name,
-    area: data.storageUnit.area,
-    height: data.storageUnit.height,
-    sikringSkallsikring: data.sikringBevaring.skallsikring,
-    sikringTyverisikring: data.sikringBevaring.tyverisikring,
-    sikringBrannsikring: data.sikringBevaring.brannsikring,
-    sikringVannskaderisiko: data.sikringBevaring.vannskaderisiko,
-    sikringrutinerBeredskap: data.sikringBevaring.rutinerBeredskap,
-    sikringluftfuktighet: data.sikringBevaring.luftfuktighet,
-    sikringlysforhold: data.sikringBevaring.lysforhold,
-    sikringtemperatur: data.sikringBevaring.temperatur,
-    sikringpreventivKonservering: data.sikringBevaring.preventivKonservering
-  }
   return {
     types: [INSERT, INSERT_SUCCESS, INSERT_FAIL],
-    promise: (client) => client.post('/api/storageadmin/v1/storageunit', dataToPost)
+    promise: (client) => client.post('/api/storageadmin/v1/storageunit', { data })
   };
 }
 
