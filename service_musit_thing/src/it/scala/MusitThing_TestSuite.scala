@@ -7,12 +7,12 @@ import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json._
 import play.api.libs.ws.WS
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import MusitThingDao._
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import scala.concurrent.duration._
 
 class MusitThing_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
@@ -24,90 +24,61 @@ class MusitThing_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFut
 
   "MusitThing integration " must {
     "get by id" in {
-      val future = WS.url(s"http://localhost:$port/v1/1").get()
-      whenReady(future, timeout) { response =>
-        val json = Json.parse(response.body)
-        assert((json \ "id").getOrElse(JsString("0")).toString() == "1")
-      }
+      val response = WS.url(s"http://localhost:$port/v1/1").get().futureValue(Timeout(30 seconds))
+      val json = Json.parse(response.body)
+      (json \ "id") mustBe JsDefined(JsNumber(1))
     }
-  }
-
-  "MusitThing slick dao" must {
-    import MusitThingDao._
 
     "testInsertMusitThing" in {
       insert(MusitThing(1, "C2", "spyd", Seq.empty))
       insert(MusitThing(2, "C3", "øks", Seq.empty))
-      val svar=MusitThingDao.all()
-      svar.onFailure{
-        case ex => fail("Insert failed")
-      }
-      whenReady(svar, timeout) { things =>
-        assert (things.length == 4)
-      }
+      val svar = MusitThingDao.all().futureValue
+      svar.length === 4
     }
 
     "getDisplayName_kjempeTall" in {
-      val svar = getDisplayName(6386363673636335366L)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
+      val svar = getDisplayName(6386363673636335366L).futureValue
+      svar mustBe None
     }
 
     "getDisplayName_Riktig" in {
-      val svar = getDisplayName(2)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == Some("Kniv7"))
-      }
+      val svar = getDisplayName(2).futureValue
+      svar mustBe Some("Kniv7")
     }
 
     "getDisplayName_TalletNull" in {
-      val svar = getDisplayName(0)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
+      val svar = getDisplayName(0).futureValue
+      svar mustBe None
     }
 
     "getDisplayID_kjempeTall" in {
-      val svar = getDisplayID(6386363673636335366L)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
+      val svar = getDisplayID(6386363673636335366L).futureValue
+      svar mustBe None
     }
 
     "getDisplayID_Riktig" in {
-      val svar = getDisplayID(2)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == Some("C2"))
-      }
+      val svar = getDisplayID(2).futureValue
+      svar mustBe Some("C2")
     }
 
     "getDisplayID_TalletNull" in {
-      val svar = getDisplayID(0)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
+      val svar = getDisplayID(0).futureValue
+      svar mustBe None
     }
 
     "getById_kjempeTall" in {
-      val svar = getById(6386363673636335366L)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
+      val svar = getById(6386363673636335366L).futureValue
+      svar mustBe None
     }
 
     "getById__Riktig" in {
-      val svar = getById(1)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == Some(MusitThing(1,"C1","Øks5", Seq(LinkService.self("/v1/1")))))
-      }
+      val svar = getById(1).futureValue
+      svar.contains(MusitThing(1, "C1", "Øks5", Seq(LinkService.self("/v1/1"))))
     }
 
     "getById__TalletNull" in {
-      val svar = getById(0)
-      whenReady(svar, timeout) { thing =>
-        assert (thing == None)
-      }
+      val svar = getById(0).futureValue
+      svar mustBe None
     }
   }
 }
