@@ -21,12 +21,12 @@
  import { connect } from 'react-redux';
  import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
  // import { insert as insertStorageUnitContainer } from '../../reducers/storageunit-container';
- import { load, update } from '../../reducers/storageunit-container';
+ import { load } from '../../reducers/storageunit-container';
  import { ButtonToolbar, Button, Grid, Row } from 'react-bootstrap'
 
  const mapStateToProps = (state) => {
    return {
-     storageUnit: state.storageUnit.data ? { ...state.storageUnit.data } : {}
+     storageUnit: (state.storageUnit && state.storageUnit.data) ? { ...state.storageUnit.data } : {}
    }
  }
 
@@ -37,9 +37,6 @@
      },
      loadStorageUnit: (id) => {
        dispatch(load(id))
-     },
-     updateStorageUnit: (data, key, value) => {
-       dispatch(update(data, key, value))
      }
    }
  }
@@ -57,19 +54,24 @@
 
    constructor(props) {
      super(props)
-     this.state = { ...{ storageUnit: this.props.storageUnit } }
+     this.state = { storageUnit: this.props.storageUnit }
+     console.log('Hei construktør')
    }
 
    componentWillMount() {
-     this.props.loadStorageUnit(1)
+     console.log('Hei componentWillMounts før')
+     this.props.loadStorageUnit(3)
+     console.log('Hei coMponentWillMounts etter')
    }
 
    updateStorageUnit(data, key, value) {
      data[key] = value
      this.setState({ ...data })
+     console.log('Hei SetState')
    }
 
    render() {
+     console.log('rendering')
      return (
       <div>
         <main>
@@ -85,15 +87,15 @@
             unit= { this.state.storageUnit }
             updateType = {(storageType) => this.state.updateStorageUnit(this.state.storageUnit, 'storageType', storageType)}
             updateName= {(storageUnitName) =>
-              this.state.updateStorageUnit(this.state.storageUnit, 'storageUnitName', storageUnitName)}
+              this.updateStorageUnit(this.state.storageUnit, 'storageUnitName', storageUnitName)}
             updateAreal1= {(area) =>
-              this.state.updateStorageUnit(this.state.storageUnit, 'area', area)}
+              this.updateStorageUnit(this.state.storageUnit, 'area', area)}
             updateAreal2= {(areal2) =>
-              this.state.updateStorageUnit(this.state.storageUnit, 'area2', areal2)}
+              this.updateStorageUnit(this.state.storageUnit, 'area2', areal2)}
             updateHeight1= {(height) =>
-              this.state.updateStorageUnit(this.state.storageUnit, 'height', height)}
+              this.updateStorageUnit(this.state.storageUnit, 'height', height)}
             updateHeight2= {(height2) =>
-              this.state.updateStorageUnit(this.state.storageUnit, 'height2', height2)}
+              this.updateStorageUnit(this.state.storageUnit, 'height2', height2)}
           />
           <Options
             unit = {{ skallsikring: this.state.storageUnit.skallsikring,
