@@ -20,9 +20,8 @@ package no.uio.musit.microservice.musitThing.dao
 
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
-import play.api.{Logger, Play}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.Play
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
@@ -33,47 +32,41 @@ object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val musitThingTable = TableQuery[MusitThingTable]
+  private val ThingTable = TableQuery[MusitThingTable]  // scalastyle:ignore
 
-  def all(): Future[Seq[MusitThing]] = db.run(musitThingTable.result)
+  def all: Future[Seq[MusitThing]] = db.run(ThingTable.result)
 
   def insert(musitThing: MusitThing): Future[MusitThing] = {
-    val insertQuery = musitThingTable returning musitThingTable.map(_.id) into (
-      (musitThing, id) => musitThing.copy(id = id, links = Seq(LinkService.self(s"/v1/$id"))))
-
-    val action = insertQuery += musitThing
-
-    db.run(action)
+    db.run(
+      ThingTable returning ThingTable.map(_.id) into (
+        (musitThing, id) => musitThing.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/${id.getOrElse("")}"))))
+      ) += musitThing
+    )
   }
 
-  def getDisplayName(id: Long): Future[Option[String]] = {
-    val action = musitThingTable.filter(_.id === id).map(_.displayname).result.headOption
-    db.run(action)
-  }
+  def getDisplayName(id: Long): Future[Option[String]] =
+    db.run(ThingTable.filter(_.id === id).map(_.displayName).result.headOption)
 
-  def getDisplayID(id: Long): Future[Option[String]] = {
-    val action = musitThingTable.filter(_.id === id).map(_.displayid).result.headOption
-    db.run(action)
-  }
+  def getDisplayID(id: Long): Future[Option[String]] =
+    db.run(ThingTable.filter(_.id === id).map(_.displayId).result.headOption)
 
-  def getById(id: Long): Future[Option[MusitThing]] = {
-    val action = musitThingTable.filter(_.id === id).result.headOption
-    db.run(action)
-  }
+  def getById(id: Long): Future[Option[MusitThing]] =
+    db.run(ThingTable.filter(_.id === id).result.headOption)
 
   private class MusitThingTable(tag: Tag) extends Table[MusitThing](tag, Some("MUSIT_MAPPING"), "VIEW_MUSITTHING") {
-    def id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Option[Long]]("NY_ID", O.PrimaryKey, O.AutoInc)
+    val displayId = column[String]("DISPLAYID")
+    val displayName = column[String]("DISPLAYNAME")
+    val create = (id: Option[Long], displayid: String, displayname: String) =>
+      MusitThing(
+        id,
+        displayid,
+        displayname,
+        Some(Seq(LinkService.self(s"/v1/${id.getOrElse("")}")))
+      )
+    val destroy = (thing: MusitThing) => Some(thing.id, thing.displayid, thing.displayname)
 
-    // This is the primary key column
-    def displayid = column[String]("DISPLAYID")
-
-    def displayname = column[String]("DISPLAYNAME")
-
-    def create = (id: Long, displayid: String, displayname: String) => MusitThing(id, displayid, displayname, Seq(LinkService.self(s"/v1/$id")))
-
-    def destroy(thing: MusitThing) = Some(thing.id, thing.displayid, thing.displayname)
-
-    def * = (id, displayid, displayname) <>(create.tupled, destroy) // scalastyle:ignore
+    def * = (id, displayId, displayName) <> (create.tupled, destroy) // scalastyle:ignore
   }
 
 }

@@ -27,7 +27,7 @@ import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Logger
 import play.api.inject.guice.GuiceApplicationBuilder
 
-case class MockTable(id:Long, links:Seq[Link]) extends BaseMusitDomain
+case class MockTable(id:Option[Long], links:Option[Seq[Link]]) extends BaseMusitDomain
 
 class LinkDaoTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
@@ -37,14 +37,12 @@ class LinkDaoTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
     import LinkDao._
 
     "dao should be able to insert and select from table" in {
-      insert(MockTable(1, Seq.empty[Link]), "test", "/test/case/100")
-      val allLinks = findAllLinks()
-      whenReady(allLinks, PlayTestDefaults.timeout) { links =>
-        assert(links.length == 1)
-        links.foreach( link =>
-          Logger.info(s"test: $link")
-        )
-      }
+      insert(MockTable(Some(1), None), "test", "/test/case/100").futureValue
+      val links = findAllLinks().futureValue
+      links.length mustBe 1
+      links.foreach( link =>
+        Logger.info(s"test: $link")
+      )
     }
   }
 

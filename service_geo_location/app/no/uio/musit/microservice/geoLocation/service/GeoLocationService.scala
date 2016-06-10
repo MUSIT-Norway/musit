@@ -46,8 +46,3 @@ trait GeoLocationService {
   }
 
 }
-
-/* val future = WS.url(s"http://localhost:$port/v1/1").get()
-      whenReady(future, timeout) { response =>
-        val json = Json.parse(response.body)
-        assert((json \ "id").get.toString() == "1")*/ 

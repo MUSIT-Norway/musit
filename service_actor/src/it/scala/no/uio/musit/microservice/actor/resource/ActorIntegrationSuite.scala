@@ -21,8 +21,8 @@ class ActorIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val future = WS.url(s"http://localhost:$port/v1/organization/1/address/1").get()
       whenReady(future, timeout) { response =>
         val addr = Json.parse(response.body).validate[OrganizationAddress].get
-        addr.id mustBe 1
-        addr.organizationId mustBe 1
+        addr.id mustBe Some(1)
+        addr.organizationId mustBe Some(1)
       }
     }
     "negative get by id" in {
@@ -40,17 +40,17 @@ class ActorIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       }
     }
     "create address" in {
-      val future = WS.url(s"http://localhost:$port/v1/organization/1/address").post(Json.toJson(OrganizationAddress(2, 1, "TEST", "Foo street 2", "Bar place", "0001", "Norway", 0.0, 0.0, Seq.empty)))
+      val future = WS.url(s"http://localhost:$port/v1/organization/1/address").post(Json.toJson(OrganizationAddress(Some(2), Some(1), "TEST", "Foo street 2", "Bar place", "0001", "Norway", 0.0, 0.0, None)))
       whenReady(future, timeout) { response =>
         val addr = Json.parse(response.body).validate[OrganizationAddress].get
-        addr.id mustBe 2
-        addr.organizationId mustBe 1
+        addr.id mustBe Some(2)
+        addr.organizationId mustBe Some(1)
         addr.addressType mustBe "TEST"
         addr.streetAddress mustBe "Foo street 2"
       }
     }
     "update address" in {
-      val future = WS.url(s"http://localhost:$port/v1/organization/1/address/2").put(Json.toJson(OrganizationAddress(2, 1, "TEST", "Foo street 3", "Bar place", "0001", "Norway", 0.0, 0.0, Seq.empty)))
+      val future = WS.url(s"http://localhost:$port/v1/organization/1/address/2").put(Json.toJson(OrganizationAddress(Some(2), Some(1), "TEST", "Foo street 3", "Bar place", "0001", "Norway", 0.0, 0.0, None)))
       whenReady(future, timeout) { response =>
         val status = Json.parse(response.body).validate[MusitStatusMessage].get
         status.message mustBe "Record was updated!"
@@ -70,7 +70,7 @@ class ActorIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val future = WS.url(s"http://localhost:$port/v1/organization/1").get()
       whenReady(future, timeout) { response =>
         val org = Json.parse(response.body).validate[Organization].get
-        org.id mustBe 1
+        org.id mustBe Some(1)
       }
     }
     "negative get by id" in {
@@ -96,15 +96,15 @@ class ActorIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       }
     }
     "create organization" in {
-      val future = WS.url(s"http://localhost:$port/v1/organization").post(Json.toJson(Organization(-1, "Foo Bar", "FB", "12345678", "http://www.foo.bar", Seq.empty)))
+      val future = WS.url(s"http://localhost:$port/v1/organization").post(Json.toJson(Organization(None, "Foo Bar", "FB", "12345678", "http://www.foo.bar", None)))
       whenReady(future, timeout) { response =>
         val org = Json.parse(response.body).validate[Organization].get
-        org.id mustBe 2
+        org.id mustBe Some(2)
         org.fn mustBe "Foo Bar"
       }
     }
     "update organization" in {
-      val future = WS.url(s"http://localhost:$port/v1/organization/2").put(Json.toJson(Organization(2, "Foo Bar 123", "FB", "12345678", "http://www.foo.bar", Seq.empty)))
+      val future = WS.url(s"http://localhost:$port/v1/organization/2").put(Json.toJson(Organization(Some(2), "Foo Bar 123", "FB", "12345678", "http://www.foo.bar", None)))
       whenReady(future, timeout) { response =>
         val message = Json.parse(response.body).validate[MusitStatusMessage].get
         message.message mustBe "Record was updated!"
@@ -124,7 +124,7 @@ class ActorIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val future = WS.url(s"http://localhost:$port/v1/person/1").get()
       whenReady(future, timeout) { response =>
         val person = Json.parse(response.body).validate[Person].get
-        person.id mustBe 1
+        person.id mustBe Some(1)
       }
     }
     "negative get by id" in {
@@ -158,7 +158,7 @@ class ActorIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     "getById__Riktig" in {
       val svar = getPersonLegacyById(1)
       whenReady(svar, timeout) { thing =>
-        assert (thing.contains(Person(1, "And, Arne1", links = Seq(LinkService.self("/v1/person/1")))))
+        assert (thing.contains(Person(Some(1), "And, Arne1", links = Some(Seq(LinkService.self("/v1/person/1"))))))
       }
     }
 

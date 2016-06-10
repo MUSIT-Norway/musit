@@ -26,13 +26,45 @@ class MusitThing_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFut
     "get by id" in {
       val response = WS.url(s"http://localhost:$port/v1/1").get().futureValue(Timeout(30 seconds))
       val json = Json.parse(response.body)
-      (json \ "id") mustBe JsDefined(JsNumber(1))
+      json \ "id" mustBe JsDefined(JsNumber(1))
+      val displayId = json \ "displayid"
+      displayId mustBe JsDefined(JsString("C1"))
+      val displayName = json \ "displayname"
+      displayName mustBe JsDefined(JsString("Øks5"))
+    }
+
+    "fail adding with lalala json" in {
+      val response = WS.url(s"http://localhost:$port/v1").post(JsString("Lalalal")).futureValue(Timeout(30 seconds))
+      val json = Json.parse(response.body)
+      json \ "message" mustBe JsDefined(JsString("Input is not valid: \"Lalalal\""))
+    }
+
+    "fail adding with loko json" in {
+      val response = WS.url(s"http://localhost:$port/v1").post(Json.toJson(Map("test" -> "loko"))).futureValue(Timeout(30 seconds))
+      val json = Json.parse(response.body)
+      json \ "message" mustBe JsDefined(JsString("Input is not valid: {\"test\":\"loko\"}"))
+    }
+
+    "succeed adding with correct json" in {
+      val response = WS.url(s"http://localhost:$port/v1").post(
+        Json.toJson(Map(
+          "displayid" -> "loko",
+          "displayname" -> "displayname2"
+        ))
+      ).futureValue(Timeout(30 seconds))
+      val json = Json.parse(response.body)
+      val id = json \ "id"
+      id mustBe JsDefined(JsNumber(3))
+      val displayId = json \ "displayid"
+      displayId mustBe JsDefined(JsString("loko"))
+      val displayName = json \ "displayname"
+      displayName mustBe JsDefined(JsString("displayname2"))
     }
 
     "testInsertMusitThing" in {
-      insert(MusitThing(1, "C2", "spyd", Seq.empty))
-      insert(MusitThing(2, "C3", "øks", Seq.empty))
-      val svar = MusitThingDao.all().futureValue
+      insert(MusitThing(Some(1), "C2", "spyd", None))
+      insert(MusitThing(Some(2), "C3", "øks", None))
+      val svar = MusitThingDao.all.futureValue
       svar.length === 4
     }
 
@@ -73,7 +105,7 @@ class MusitThing_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFut
 
     "getById__Riktig" in {
       val svar = getById(1).futureValue
-      svar.contains(MusitThing(1, "C1", "Øks5", Seq(LinkService.self("/v1/1"))))
+      svar.contains(MusitThing(Some(1), "C1", "Øks5", Some(Seq(LinkService.self("/v1/1")))))
     }
 
     "getById__TalletNull" in {
