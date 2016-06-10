@@ -240,6 +240,8 @@ export default class ExampleView extends Component {
       type: 'search',
       onChange: this.onOrganizationChange
     }
+    const organizationSuggestions =
+      suggest.organizationField && suggest.organizationField.data ? suggest.organizationField.data : []
 
     return (
       <div>
@@ -292,7 +294,7 @@ export default class ExampleView extends Component {
                 <Col md={3}>
                   <Autosuggest
                     id={'organizationField'}
-                    suggestions={suggest.organizationField && suggest.organizationField.data ? suggest.organizationField.data : []}
+                    suggestions={organizationSuggestions}
                     onSuggestionsUpdateRequested={onOrganizationSuggestionsUpdateRequested}
                     getSuggestionValue={this.getOrganizationSuggestionValue}
                     renderSuggestion={this.renderOrganizationSuggestion}

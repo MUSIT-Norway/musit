@@ -1,6 +1,5 @@
 import express from 'express'
 import session from 'express-session'
-import bodyParser from 'body-parser'
 import config from '../app/config'
 import * as actions from './actions/index'
 import { mapUrl } from './utils/url.js'
