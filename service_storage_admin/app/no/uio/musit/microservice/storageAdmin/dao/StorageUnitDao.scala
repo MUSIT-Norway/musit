@@ -3,17 +3,18 @@ package no.uio.musit.microservice.storageAdmin.dao
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.utils.DaoHelper
+import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.utils.Misc._
 
 /**
  * Created by ellenjo on 5/18/16.
  */
+
 object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
@@ -121,9 +122,10 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   def updateRoom(id: Long, storageUnitAndRoom: (StorageUnit, StorageRoom)) = {
 
-    //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord will make this DBIO/Future fail with an appropriate MusitException.
+    //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord
+    // will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
+    val updateStorageUnitOnlyAction = updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.onlyAcceptOneUpdatedRecord
 
     val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id))) }
 
@@ -145,9 +147,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
-  /**@see #updateRoom()*/
+  /** @see #updateRoom() */
   def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, StorageBuilding)) = {
-    val updateStorageUnitOnlyAction = (updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord)
+    val updateStorageUnitOnlyAction = updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord
 
     val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id))) }
 
@@ -163,7 +165,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
-    def * = (id, storageType, storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
+    def * = (id, storageType, storageUnitName, area, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
 
     val id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
@@ -173,8 +175,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     val area = column[Option[Long]]("AREA")
 
-    val isStorageUnit = column[Option[String]]("IS_STORAGE_UNIT")
-
     val isPartOf = column[Option[Long]]("IS_PART_OF")
 
     val height = column[Option[Long]]("HEIGHT")
@@ -183,18 +183,19 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     val groupWrite = column[Option[String]]("GROUP_WRITE")
 
-    val isDeleted = column[Int]("IS_DELETED")
+    val isDeleted = column[Int]("IS_DELETED") // this columns is not a member of the case class storageUnit. IT's not
+    // part of the official/public API of storageUnit, only used internally.
 
-    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], isStorageUnit: Option[String], isPartOf: Option[Long], height: Option[Long],
+    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], isPartOf: Option[Long], height: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
       StorageUnit(
         id, storageType,
-        storageUnitName, area, isStorageUnit, isPartOf, height, groupRead, groupWrite,
+        storageUnitName, area, isPartOf, height, groupRead, groupWrite,
         linkText(id)
       )
 
     def destroy(unit: StorageUnit) = Some(unit.id, unit.storageType,
-      unit.storageUnitName, unit.area, unit.isStorageUnit, unit.isPartOf, unit.height, unit.groupRead, unit.groupWrite)
+      unit.storageUnitName, unit.area, unit.isPartOf, unit.height, unit.groupRead, unit.groupWrite)
   }
 
   private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {
@@ -203,25 +204,25 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
 
-    def sikringSkallsikring = column[Option[String]]("SIKRING_SKALLSIKRING")
+    def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
 
-    def sikringTyverisikring = column[Option[String]]("SIKRING_TYVERISIKRING")
+    def sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING")
 
-    def sikringBrannsikring = column[Option[String]]("SIKRING_BRANNSIKRING")
+    def sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING")
 
-    def sikringVannskaderisiko = column[Option[String]]("SIKRING_VANNSKADERISIKO")
+    def sikringVannskaderisiko = column[Option[Boolean]]("SIKRING_VANNSKADERISIKO")
 
-    def sikringRutineOgBeredskap = column[Option[String]]("SIKRING_RUTINE_OG_BEREDSKAP")
+    def sikringRutineOgBeredskap = column[Option[Boolean]]("SIKRING_RUTINE_OG_BEREDSKAP")
 
-    def bevarLuftfuktOgTemp = column[Option[String]]("BEVAR_LUFTFUKT_OG_TEMP")
+    def bevarLuftfuktOgTemp = column[Option[Boolean]]("BEVAR_LUFTFUKT_OG_TEMP")
 
-    def bevarLysforhold = column[Option[String]]("BEVAR_LYSFORHOLD")
+    def bevarLysforhold = column[Option[Boolean]]("BEVAR_LYSFORHOLD")
 
-    def bevarPrevantKons = column[Option[String]]("BEVAR_PREVANT_KONS")
+    def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
 
-    def create = (id: Option[Long], sikringSkallsikring: Option[String], sikringTyverisikring: Option[String], sikringBrannsikring: Option[String], sikringVannskaderisiko: Option[String],
-      sikringRutineOgBeredskap: Option[String], bevarLuftfuktOgTemp: Option[String], bevarLysforhold: Option[String],
-      bevarPrevantKons: Option[String]) =>
+    def create = (id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean], sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
+      sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean], bevarLysforhold: Option[Boolean],
+      bevarPrevantKons: Option[Boolean]) =>
       StorageRoom(
         id,
         sikringSkallsikring,
@@ -250,4 +251,5 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def destroy(building: StorageBuilding) = Some(building.id, building.address)
   }
+
 }

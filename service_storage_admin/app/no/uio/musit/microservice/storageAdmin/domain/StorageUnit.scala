@@ -22,8 +22,8 @@ package no.uio.musit.microservice.storageAdmin.domain
 import no.uio.musit.microservice.storageAdmin.domain.LocalTypes.StorageBuildingOrRoom
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
-
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 object LocalTypes {
   type StorageBuildingOrRoom = Either[StorageBuilding, StorageRoom]
@@ -34,8 +34,6 @@ sealed trait AbstractStorageUnit {
     val x = StUnit
     x
   }
-
-  def getId: Long
 }
 
 case class StorageUnit(
@@ -43,7 +41,6 @@ case class StorageUnit(
     storageType: String,
     storageUnitName: String,
     area: Option[Long],
-    isStorageUnit: Option[String],
     isPartOf: Option[Long],
     height: Option[Long],
     groupRead: Option[String],
@@ -51,8 +48,6 @@ case class StorageUnit(
     links: Option[Seq[Link]]
 ) extends AbstractStorageUnit {
   def toJson: JsObject = Json.toJson(this).as[JsObject]
-
-  def getId: Long = id.get
 
   override def storageKind: StorageUnitType = StorageUnitType {
     storageType
@@ -67,20 +62,18 @@ object StorageUnit {
 
 case class StorageRoom(
     id: Option[Long] = None,
-    sikringSkallsikring: Option[String] = None,
-    sikringTyverisikring: Option[String] = None,
-    sikringBrannsikring: Option[String] = None,
-    sikringVannskaderisiko: Option[String] = None,
-    sikringRutineOgBeredskap: Option[String] = None,
-    bevarLuftfuktOgTemp: Option[String] = None,
-    bevarLysforhold: Option[String] = None,
-    bevarPrevantKons: Option[String] = None,
+    sikringSkallsikring: Option[Boolean] = None,
+    sikringTyverisikring: Option[Boolean] = None,
+    sikringBrannsikring: Option[Boolean] = None,
+    sikringVannskaderisiko: Option[Boolean] = None,
+    sikringRutineOgBeredskap: Option[Boolean] = None,
+    bevarLuftfuktOgTemp: Option[Boolean] = None,
+    bevarLysforhold: Option[Boolean] = None,
+    bevarPrevantKons: Option[Boolean] = None,
     links: Option[Seq[Link]] = None
 ) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
-
-  def getId: Long = id.get
 
   override def storageKind: StorageUnitType = Room
 }
@@ -89,6 +82,21 @@ object StorageRoom {
   def tupled = (StorageRoom.apply _).tupled
 
   implicit val format = Json.format[StorageRoom]
+
+  /*implicit val writes = Json.writes[StorageRoom]
+
+  implicit val reads: Reads[StorageRoom] = (
+    (JsPath \ "id").readNullable[Long] and
+    (JsPath \ "sikringSkallsikring").readNullable[Boolean] and
+    (JsPath \ "sikringTyverisikring").readNullable[Boolean] and
+    (JsPath \ "sikringBrannsikring").readNullable[Boolean] and
+    (JsPath \ "sikringVannskaderisiko").readNullable[Boolean] and
+    (JsPath \ "sikringRutineOgBeredskap").readNullable[Boolean] and
+    (JsPath \ "bevarLuftfuktOgTemp").readNullable[Boolean] and
+    (JsPath \ "bevarLysforhold").readNullable[Boolean] and
+    (JsPath \ "bevarPrevantKons").readNullable[Boolean] and
+    (JsPath \ "links").readNullable[Seq[Link]]
+  )(StorageRoom.apply _)*/
 }
 
 case class StorageBuilding(
@@ -98,8 +106,6 @@ case class StorageBuilding(
 ) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
-
-  def getId: Long = id.get
 
   override def storageKind: StorageUnitType = Building
 }

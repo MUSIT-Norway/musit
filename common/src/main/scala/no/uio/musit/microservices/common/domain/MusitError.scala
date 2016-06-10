@@ -18,6 +18,8 @@
  */
 package no.uio.musit.microservices.common.domain
 
+import java.net.URI
+
 import play.api.http.Status
 import play.api.libs.json.{ Format, Json }
 
@@ -46,3 +48,14 @@ class MusitNotFoundException(message: String, private val developerMessage: Stri
 class MusitTooManyRecordsUpdatedException(message: String, private val developerMessage: String = "") extends MusitException(message, developerMessage) {
   override def status = Status.BAD_REQUEST
 }
+
+/**
+ * May get thrown when our sevices try to do http requests to other servers (or another of our services), but they fail.
+ * Used in say DataPorten calls, which may fail. Error represents the result from the "external" server
+ */
+// TODO: Replace the exceptions in PlayExtensions.scala with this one
+class HttpCallException(val uri: Option[URI], error: MusitError) extends MusitException(error.message, "") {
+  override def status = error.status //Propagates the status, that may be wrong in some circumstances?
+  override def toMusitError = error
+}
+
