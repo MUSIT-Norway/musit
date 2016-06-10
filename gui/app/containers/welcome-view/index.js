@@ -17,14 +17,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React from 'react';
+
 import { connect } from 'react-redux';
-import WelcomeContainer from './WelcomeContainer';
 import Language from '../../components/language'
+import WelcomeContainer from './WelcomeContainer';
 
 const mapStateToProps = (state) => ({
   user: state.auth.user,
-  translate: (key, markdown) => <Language language={state.language} value={key} markdown={markdown} />
+  translate: (key, markdown) => Language.translate(key, markdown)
 });
 
 @connect(mapStateToProps)

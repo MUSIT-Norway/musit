@@ -18,16 +18,19 @@
  */
 
 import React, { Component } from 'react'
+import { connect } from 'react-redux';
 import TextField from '../../components/musittextfield'
 import Options from '../../components/storageunits/EnvironmentOptions'
 import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
+import EnvironmentRequirementComponent from '../../components/storageunits/EnvironmentRequirementComponent'
 import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
-import { connect } from 'react-redux'
+import Language from '../../components/language'
 import Autosuggest from 'react-autosuggest'
 import { suggestAddress, clearSuggest } from '../../reducers/suggest'
 
 const mapStateToProps = (state) => ({
-  suggest: state.suggest
+  suggest: state.suggest,
+  translate: (key, markdown) => Language.translate(key, markdown)
 })
 
 const mapDispatchToProps = (dispatch) => {
@@ -46,6 +49,7 @@ const mapDispatchToProps = (dispatch) => {
 @connect(mapStateToProps, mapDispatchToProps)
 export default class ExampleView extends Component {
   static propTypes = {
+    translate: React.PropTypes.func.isRequired,
     onSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
     suggest: React.PropTypes.array.isRequired
   }
@@ -61,6 +65,7 @@ export default class ExampleView extends Component {
     const isValid = isSomething ? 'success' : null
     return isSomething && isNaN(value) ? 'error' : isValid
   }
+
 
   constructor(props) {
     super(props)
@@ -200,8 +205,8 @@ export default class ExampleView extends Component {
               </Row>
             </Grid>
           </Panel>
-
           <StorageUnitComponents />
+          <EnvironmentRequirementComponent translate={this.props.translate} />
 
           <Panel>
             <Options
