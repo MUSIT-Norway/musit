@@ -34,8 +34,6 @@ sealed trait AbstractStorageUnit {
     val x = StUnit
     x
   }
-
-  //def getId: Long
 }
 
 case class StorageUnit(
@@ -50,8 +48,6 @@ case class StorageUnit(
     links: Option[Seq[Link]]
 ) extends AbstractStorageUnit {
   def toJson: JsObject = Json.toJson(this).as[JsObject]
-
-  //def getId: Long = id.get //we use it in tests, here we KNOW that it's a values and not Some(value))
 
   override def storageKind: StorageUnitType = StorageUnitType {
     storageType
@@ -78,8 +74,6 @@ case class StorageRoom(
 ) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
-
-  //def getId: Long = id.get //we use it in tests, here we KNOW that it's a values and not Some(value))
 
   override def storageKind: StorageUnitType = Room
 }
@@ -112,8 +106,6 @@ case class StorageBuilding(
 ) extends AbstractStorageUnit {
 
   def toJson: JsObject = Json.toJson(this).as[JsObject]
-
-  //def getId: Long = id.get //here we KNOW that it's a values and not Some(value))
 
   override def storageKind: StorageUnitType = Building
 }
