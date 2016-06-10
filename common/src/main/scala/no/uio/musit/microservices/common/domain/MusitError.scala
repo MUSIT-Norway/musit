@@ -29,6 +29,13 @@ case class MusitError(status: Int = Status.BAD_REQUEST, message: String, private
   def inDevEnvironment = true
 
   def getDeveloperMessage = if (inDevEnvironment) developerMessage else ""
+
+  /**
+   * Returns this MusitError as the Result structure wanted by PlayFramework.
+   * This construct appears quite often in the implementation of our services so far.
+   * I'm not sure this is exactly what we want in the end so it's better to have a common implementation than lots of them spread all over our services.
+   */
+  def toPlayResult = play.api.mvc.Results.Status(status)(Json.toJson(this))
 }
 
 object MusitError {

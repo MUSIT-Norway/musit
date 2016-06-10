@@ -18,21 +18,25 @@
  *
  */
 
-package no.uio.musit.microservices.common.utils
+package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservices.common.domain.MusitError
-import play.api.http.Status
-
-import scala.concurrent.Future
+import play.api.libs.json.{ JsObject, Json }
 
 /**
- * Created by jstabel on 6/7/16.
+ * Created by jstabel on 6/10/16.
  */
-object ErrorHelper {
-  def badRequest(text: String, devMessage: String = "") = MusitError(Status.BAD_REQUEST, text, devMessage)
-  def notFound(text: String, devMessage: String = "") = MusitError(Status.NOT_FOUND, text, devMessage)
-  def conflict(text: String, devMessage: String = "") = MusitError(Status.CONFLICT, text, devMessage)
-  def notImplemented(text: String, devMessage: String = "") = MusitError(Status.NOT_IMPLEMENTED, text, devMessage)
 
-  def futureNotImplemented(text: String, devMessage: String = "") = Future.successful(Left(notImplemented(text, devMessage)))
+case class AtomLink(rel: String, href: String)
+case class EventInfo(eventType: String, links: Seq[AtomLink], eventData: Option[JsObject])
+
+object AtomLink {
+  def tupled = (AtomLink.apply _).tupled
+
+  implicit val format = Json.format[AtomLink]
+}
+
+object EventInfo {
+  def tupled = (EventInfo.apply _).tupled
+
+  implicit val format = Json.format[EventInfo]
 }

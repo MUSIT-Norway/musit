@@ -18,21 +18,32 @@
  *
  */
 
-package no.uio.musit.microservices.common.utils
+package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservices.common.domain.MusitError
-import play.api.http.Status
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.utils.Misc._
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
+import no.uio.musit.microservice.event.domain.EventInfo
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
- * Created by jstabel on 6/7/16.
+ * Created by jstabel on 6/10/16.
  */
-object ErrorHelper {
-  def badRequest(text: String, devMessage: String = "") = MusitError(Status.BAD_REQUEST, text, devMessage)
-  def notFound(text: String, devMessage: String = "") = MusitError(Status.NOT_FOUND, text, devMessage)
-  def conflict(text: String, devMessage: String = "") = MusitError(Status.CONFLICT, text, devMessage)
-  def notImplemented(text: String, devMessage: String = "") = MusitError(Status.NOT_IMPLEMENTED, text, devMessage)
+trait EventService {
 
-  def futureNotImplemented(text: String, devMessage: String = "") = Future.successful(Left(notImplemented(text, devMessage)))
+  //A separate function for this message because we want to verify we get this error message in some of the integration tests
+  def unknownEventMsg(id: Long) = s"Unknown event with id: $id"
+
+  private def eventNotFoundError(id: Long): MusitError = {
+    ErrorHelper.notFound(unknownEventMsg(id))
+  }
+
+  def createEvent(eventInfo: EventInfo): Future[Either[MusitError, EventInfo]] = {
+    ErrorHelper.futureNotImplemented("EventService.create not implemented yet")
+  }
 }
+
+object EventService extends EventService

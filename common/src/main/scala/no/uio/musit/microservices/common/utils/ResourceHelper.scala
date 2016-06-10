@@ -25,7 +25,7 @@ object ResourceHelper {
     val res = servicePostCall(objectToPost)
     res.map { either =>
       either.fold(
-        l => BadRequest(Json.toJson(l)),
+        l => l.toPlayResult, //#OLD BadRequest(Json.toJson(l)),
         r => Created(toJsonTransformer(r))
       )
     }
@@ -34,14 +34,15 @@ object ResourceHelper {
   def updateRoot[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, objectToUpdate: A): Future[Result] = {
     serviceUpdateCall(id, objectToUpdate).map {
       case Right(updateStatus) => Ok(Json.toJson(updateStatus))
-      case Left(error) => Status(error.status)(Json.toJson(error))
+      case Left(error) => error.toPlayResult //#OLD Status(error.status)(Json.toJson(error))
     }
   }
 
   def updateRootWithJsResult[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, validatedResult: JsResult[A]): Future[Result] = {
     validatedResult match {
       case s: JsSuccess[A] => updateRoot(serviceUpdateCall, id, s.get)
-      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, e.toString))))
+      case e: JsError => Future.successful(ErrorHelper.badRequest(e.toString).toPlayResult)
+      //#OLD Future.successful(BadRequest(Json.toJson(MusitError(play.api.http.Status.BAD_REQUEST, e.toString))))
     }
   }
 
@@ -50,7 +51,7 @@ object ResourceHelper {
     futResObject.map { resObject =>
       resObject match {
         case Right(obj) => Ok(toJsonTransformer(obj))
-        case Left(error) => Status(error.status)(Json.toJson(error))
+        case Left(error) => error.toPlayResult //#OLD Status(error.status)(Json.toJson(error))
       }
     }
   }
@@ -64,8 +65,24 @@ object ResourceHelper {
         } else
           Ok(Json.toJson(MusitStatusMessage(s"Deleted $deleteCount record(s).")))
       }
-      case Left(error) => Status(error.status)(Json.toJson(error))
+      case Left(error) => error.toPlayResult //#OLD Status(error.status)(Json.toJson(error))
     }
   }
+
+  def jsResultToEither[T](jsRes: JsResult[T]): Either[Result, T] = {
+    jsRes match {
+      case s: JsSuccess[T] => Right(s.value)
+      case e: JsError => Left(BadRequest(Json.toJson(e.toString)))
+    }
+  }
+
+  // TODO: Remove either the below or the above 
+  def jsResultToMusitResult[T](jsRes: JsResult[T]): Either[MusitError, T] = {
+    jsRes match {
+      case s: JsSuccess[T] => Right(s.value)
+      case e: JsError => Left(ErrorHelper.badRequest(e.toString))
+    }
+  }
+
 }
 

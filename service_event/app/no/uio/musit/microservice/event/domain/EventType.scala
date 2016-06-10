@@ -18,21 +18,32 @@
  *
  */
 
-package no.uio.musit.microservices.common.utils
+package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservices.common.domain.MusitError
-import play.api.http.Status
-
-import scala.concurrent.Future
+import play.api.libs.json.Json
 
 /**
- * Created by jstabel on 6/7/16.
+ * Created by jstabel on 6/10/16.
  */
-object ErrorHelper {
-  def badRequest(text: String, devMessage: String = "") = MusitError(Status.BAD_REQUEST, text, devMessage)
-  def notFound(text: String, devMessage: String = "") = MusitError(Status.NOT_FOUND, text, devMessage)
-  def conflict(text: String, devMessage: String = "") = MusitError(Status.CONFLICT, text, devMessage)
-  def notImplemented(text: String, devMessage: String = "") = MusitError(Status.NOT_IMPLEMENTED, text, devMessage)
 
-  def futureNotImplemented(text: String, devMessage: String = "") = Future.successful(Left(notImplemented(text, devMessage)))
+sealed trait EventType {
+  def typename: String
+
 }
+
+// TODO: Get them from the database somehow
+object EventType {
+  def apply(stType: String) = stType.toLowerCase match {
+    case "locationchange" => LocationChange
+    case other => throw new Exception(s"Musit: Undefined EventType:$other")
+  }
+
+  //def tupled = (EventType.apply _).tupled
+
+  //implicit val format = Json.format[EventType]
+}
+
+object LocationChange extends EventType {
+  def typename = "locationchange"
+}
+

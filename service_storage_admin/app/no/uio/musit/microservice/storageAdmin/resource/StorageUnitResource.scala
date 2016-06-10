@@ -32,13 +32,6 @@ import scala.concurrent.Future
 
 class StorageUnitResource extends Controller {
 
-  def jsResultToEither[T](jsRes: JsResult[T]) /*: Either[Status, T]*/ = {
-    jsRes match {
-      case s: JsSuccess[T] => Right(s.value)
-      case e: JsError => Left(BadRequest(Json.toJson(e.toString)))
-    }
-  }
-
   @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
 
@@ -66,8 +59,6 @@ class StorageUnitResource extends Controller {
         case storageUnits => Ok(Json.toJson(storageUnits))
       }
   }
-
-  def BadMusitRequest(text: String) = BadRequest(Json.toJson(MusitError(BAD_REQUEST, text)))
 
   def storageUnitTripleToJson(triple: StorageUnitTriple) = triple.toJson
 
@@ -98,7 +89,7 @@ class StorageUnitResource extends Controller {
         buildingResult
       }
     }
-    jsRes |> jsResultToEither
+    jsRes |> ResourceHelper.jsResultToEither
   }
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
