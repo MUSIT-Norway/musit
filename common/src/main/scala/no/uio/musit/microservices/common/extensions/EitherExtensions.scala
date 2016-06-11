@@ -38,27 +38,8 @@ import play.api.mvc.Result
 object EitherExtensions {
 
   implicit class EitherExtensionsImp[T](val either: Either[MusitError, T]) extends AnyVal {
-    /* Not used. (yet?)
-    def mapToMusitFuture[S](ifRight: T => Future[Either[MusitError, S]]): Future[Either[MusitError, S]] = {
-      either match {
-        case Left(l) => Future.successful(Left(l))
-        case Right(r) => ifRight(r)
-      }
-    }
-    */
 
-    /**
-     * If the either is Right, it is mapped into a future[Result] the obvious way.
-     * If it is left, left, it is mapped into a successful future containing the error!
-     * So before of further mapping of the result! (This explains the 'Final' in the name.)
-     * (Ideally I'd want to make this into a value (of a type) which cannot further be mapped etc on,
-     * to prevent potential bugs/misuse.)
-     */
-    def mapToFinalPlayResult[S](ifRight: T => Future[Result]): Future[Result] = {
-      either match {
-        case Left(l) => Future.successful(l.toPlayResult)
-        case Right(r) => ifRight(r)
-      }
-    }
+    //Current content moved to ResourceHelper
+
   }
 }

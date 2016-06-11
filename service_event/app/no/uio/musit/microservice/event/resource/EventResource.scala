@@ -19,11 +19,11 @@
  */
 
 package no.uio.musit.microservice.event.resource
+
 import no.uio.musit.microservice.event.service.EventService
 import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.utils.ResourceHelper
-import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservice.event.domain.{ AtomLink, EventInfo, EventType }
 import no.uio.musit.microservice.event.service.EventService
 import play.api.libs.json._
@@ -41,15 +41,13 @@ class EventResource extends Controller {
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
 
     val eventInfoResult = fromJsonToEventInfo(request.body)
-    eventInfoResult.mapToFinalPlayResult { eventInfo =>
-      ResourceHelper.postRoot(EventService.createEvent, eventInfo, eventInfoToJson)
-    }
+    ResourceHelper.postRootWithMusitResult(EventService.createEvent, eventInfoResult, eventInfoToJson)
   }
 
   /*
       def getById(id: Long) = Action.async {
         request =>
-          ResourceHelper.getRootFromEither(EventService.getById, id, eventInfoToJson)
+          ResourceHelper.getRoot(EventService.getById, id, eventInfoToJson)
       }
   */
 
