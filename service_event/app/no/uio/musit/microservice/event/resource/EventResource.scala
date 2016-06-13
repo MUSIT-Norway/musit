@@ -21,13 +21,13 @@
 package no.uio.musit.microservice.event.resource
 
 import io.swagger.annotations.ApiOperation
-import no.uio.musit.microservice.event.domain.{ AtomLink, AtomLink$, ComplexEvent, EventInfo }
+import no.uio.musit.microservice.event.domain.{ AtomLink, ComplexEvent, EventInfo }
 import no.uio.musit.microservice.event.service.EventService
 import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
 import play.api.mvc.{ Action, BodyParsers, Controller }
-import no.uio.musit.microservices.common.utils.Misc._
 
 /**
  * Created by jstabel on 6/10/16.
@@ -53,11 +53,10 @@ class EventResource extends Controller {
     ResourceHelper.postRootWithMusitResult(EventService.createEvent, eventInfoResult, eventInfoToJson)
   }
 
-  def getRoot(id: Long) = Action.async {
-    request =>
-      def complexEventToEventInfoAsJson(complexEvent: ComplexEvent) = {
-        EventService.complexEventToEventInfo(complexEvent) |> eventInfoToJson
-      }
-      ResourceHelper.getRoot(EventService.getById, id, complexEventToEventInfoAsJson)
+  def getRoot(id: Long) = Action.async { request =>
+    def complexEventToEventInfoToJson(complexEvent: ComplexEvent) = {
+      EventService.complexEventToEventInfo(complexEvent) |> eventInfoToJson
+    }
+    ResourceHelper.getRoot(EventService.getById, id, complexEventToEventInfoToJson)
   }
 }
