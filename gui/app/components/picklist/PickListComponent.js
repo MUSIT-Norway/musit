@@ -4,13 +4,12 @@ import { Grid, Row, Col } from 'react-bootstrap'
 export default class PickListComponent extends Component {
   static propTypes = {
     picks: React.PropTypes.array.isRequired,
-    header: React.PropTypes.string.isRequired,
     iconRendrer: React.PropTypes.func.isRequired,
     labelRendrer: React.PropTypes.func.isRequired
   }
 
   render() {
-    const { picks, header, iconRendrer, labelRendrer } = this.props
+    const { picks, iconRendrer, labelRendrer } = this.props
     const pickRows = picks.map((pick) => {
       return (
         <Row key={labelRendrer(pick)}>
@@ -24,9 +23,6 @@ export default class PickListComponent extends Component {
 
     return (
       <Grid>
-        <Row>
-          <Col md={10}>{header}</Col><Col md={2}>[actions]</Col>
-        </Row>
         {pickRows}
       </Grid>
     )

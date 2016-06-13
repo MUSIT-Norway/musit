@@ -22,7 +22,6 @@ export default class PickListContainer extends React.Component {
           </PageHeader>
           <Panel>
             <PickListComponent
-              header={translate('musit.pickList.grid.title', false)}
               picks={picks}
               iconRendrer={renderIcon}
               labelRendrer={renderLabel}

@@ -17,13 +17,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React from 'react';
-import PickListContainer from './PickListContainer';
-import { connect } from 'react-redux';
+import PickListContainer from './PickListContainer'
+import { connect } from 'react-redux'
 import Language from '../../components/language'
 
 const mapStateToProps = (state) => ({
-  translate: (key, markdown) => (<Language language={state.language} value={key} markdown={markdown} />),
+  translate: (key, markdown) => Language.translate(key, markdown),
   name: 'default',
   picks: state.picks.lists[state.picks.active]
 })
