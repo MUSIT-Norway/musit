@@ -3,15 +3,15 @@ import { Checkbox, ControlLabel, Grid, Row, Col } from 'react-bootstrap'
 export default class EnvironmentOptions extends React.Component {
   static propTypes = {
     unit: React.PropTypes.shape({
-      skallsikring: React.PropTypes.bool,
-      tyverisikring: React.PropTypes.bool,
-      brannsikring: React.PropTypes.bool,
-      vannskaderisiko: React.PropTypes.bool,
-      rutinerBeredskap: React.PropTypes.bool,
-      luftfuktighet: React.PropTypes.bool,
-      lysforhold: React.PropTypes.bool,
+      sikringSkallsikring: React.PropTypes.bool,
+      sikringTyverisikring: React.PropTypes.bool,
+      sikringBrannsikring: React.PropTypes.bool,
+      sikringVannskaderisiko: React.PropTypes.bool,
+      sikringRutineOgBeredskap: React.PropTypes.bool,
+      bevarLuftfuktOgTemp: React.PropTypes.bool,
+      bevarLysforhold: React.PropTypes.bool,
       temperatur: React.PropTypes.bool,
-      preventivKonservering: React.PropTypes.bool,
+      bevarPrevantKons: React.PropTypes.bool,
     }),
     updateSkallsikring: React.PropTypes.func.isRequired,
     updateTyverisikring: React.PropTypes.func.isRequired,
@@ -32,31 +32,31 @@ export default class EnvironmentOptions extends React.Component {
             <ControlLabel>Sikring</ControlLabel>
 
             <Checkbox
-              checked={this.props.unit.skallsikring}
+              checked={this.props.unit.sikringSkallsikring}
               onChange={(event) => this.props.updateSkallsikring(event.target.checked)}
             >
               Skallsikring
             </Checkbox>
             <Checkbox
-              checked={this.props.unit.tyverisikring}
+              checked={this.props.unit.sikringTyverisikring}
               onChange={(event) => this.props.updateTyverisikring(event.target.checked)}
             >
               Tyverisikring
             </Checkbox>
             <Checkbox
-              checked={this.props.unit.brannsikring}
+              checked={this.props.unit.sikringBrannsikring}
               onChange={(event) => this.props.updateBrannsikring(event.target.checked)}
             >
               Brannsikring
             </Checkbox>
             <Checkbox
-              checked={this.props.unit.vannskaderisiko}
+              checked={this.props.unit.sikringVannskaderisiko}
               onChange={(event) => this.props.updateVannskaderisiko(event.target.checked)}
             >
               Vannskaderisiko
             </Checkbox>
             <Checkbox
-              checked={this.props.unit.rutinerBeredskap}
+              checked={this.props.unit.sikringRutineOgBeredskap}
               onChange={(event) => this.props.updateRutinerBeredskap(event.target.checked)}
             >
               Rutiner/beredskap
@@ -66,13 +66,13 @@ export default class EnvironmentOptions extends React.Component {
             <ControlLabel>Bevaring</ControlLabel>
 
             <Checkbox
-              checked={this.props.unit.luftfuktighet}
+              checked={this.props.unit.bevarLuftfuktOgTemp}
               onChange={(event) => this.props.updateLuftfuktighet(event.target.checked)}
             >
               Luftfuktighet
             </Checkbox>
             <Checkbox
-              checked={this.props.unit.lysforhold}
+              checked={this.props.unit.bevarLysforhold}
               onChange={(event) => this.props.updateLysforhold(event.target.checked)}
             >
               Lysforhold
@@ -84,7 +84,7 @@ export default class EnvironmentOptions extends React.Component {
               Temperatur
             </Checkbox>
             <Checkbox
-              checked={this.props.unit.preventivKonservering}
+              checked={this.props.unit.bevarPrevantKons}
               onChange={(event) => this.props.updatePreventivKonservering(event.target.checked)}
             >
               Preventiv Konservering

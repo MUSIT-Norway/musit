@@ -32,8 +32,8 @@ export default class StorageUnitComponent extends Component {
     return value !== undefined && value.length > maximumLength ? 'error' : isValid
   }
 
-  static validateNumber(value, minimumLength = 1) {
-    const isSomething = value !== undefined ? value.length >= minimumLength : null
+  static validateNumber(value) {
+    const isSomething = value !== undefined
     const isValid = isNaN(value) ? 'error' : 'success'
     return isSomething ? isValid : null
   }
@@ -44,7 +44,7 @@ export default class StorageUnitComponent extends Component {
     this.areal = {
       controlId: 'areal1',
       controlId2: 'areal2',
-      labelText: 'Areal (fra-til)',
+      labelText: 'Areal (fra - til)',
       tooltip: 'Areal (fra - til)',
       valueType: 'text',
       placeHolderText: 'enter areal 1 here',
@@ -58,7 +58,7 @@ export default class StorageUnitComponent extends Component {
     this.hoyde = {
       controlId: 'hoyde1',
       controlId2: 'hoyde2',
-      labelText: 'Høyde(fra-til)',
+      labelText: 'Høyde(fra - til)',
       tooltip: 'Høyde (fra - til)',
       valueType: 'text',
       placeHolderText: 'enter høyde 1 here',
@@ -118,7 +118,6 @@ export default class StorageUnitComponent extends Component {
                                     <TextField {...this.areal} />
                                 </Form>
                             </Col>
-
                             <Col md={6}>
                                 <Form horizontal>
                                     <TextField {...this.hoyde} />

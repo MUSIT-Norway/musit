@@ -45,46 +45,59 @@ export default class MusitTextField extends Component {
           {this.props.labelText}
         </Col>
         <Col sm={9}>
-          <InputGroup>
-            {this.props.controlId2 ?
-                <Row>
-                  <Col sm={6} md={6}>
-                    <FormControl
-                      style={{ borderRadius: '5px' }}
-                      type={ this.props.valueType }
-                      placeholder={ this.props.placeHolderText }
-                      value={this.props.valueText()}
-                      onChange={(event) => this.props.onChange(event.target.value)}
-                    />
-                  </Col>
-                  <Col sm={6} md={6}>
-                    <FormControl
-                      style={{ borderRadius: '5px' }}
-                      type={this.props.valueType}
-                      placeholder={ this.props.placeHolderText2 }
-                      value={this.props.valueText2()}
-                      onChange={(event) => this.props.onChange2(event.target.value)}
-                    />
-                  </Col>
-                </Row>
-              :
-              <FormControl
-                type={this.props.valueType}
-                placeholder={this.props.placeHolderText}
-                value={this.props.valueText()}
-                onChange={(event) => this.props.onChange(event.target.value)}
-              />}
+          {this.props.controlId2 ?
+            <Row>
+              <Col sm={6} md={6}>
+                <InputGroup>
+                  <FormControl
+                    style={{ borderRadius: '5px' }}
+                    type={ this.props.valueType }
+                    placeholder={ this.props.placeHolderText }
+                    value={this.props.valueText()}
+                    onChange={(event) => this.props.onChange(event.target.value)}
+                  />
+                  {this.props.tooltip ?
+                    <OverlayTrigger
+                      trigger={['click']}
+                      rootClose
+                      placement="right"
+                      overlay={MusitTextField.helpText(this.props.tooltip)}
+                    >
+                      <InputGroup.Addon>?</InputGroup.Addon>
+                    </OverlayTrigger> : null}
+                </InputGroup>
+              </Col>
+              <Col sm={6} md={6}>
+                <InputGroup>{this.props.labelText2 ?
+                  <InputGroup.Addon>{this.props.labelText2}</InputGroup.Addon>
+                  : null}
+                  <FormControl
+                    style={{ borderRadius: '5px' }}
+                    type={this.props.valueType}
+                    placeholder={this.props.placeHolderText2}
+                    value={this.props.valueText2()}
+                    onChange={(event) => this.props.onChange2(event.target.value)}
+                  />
+                  {this.props.tooltip ?
+                    <OverlayTrigger
+                      trigger={['click']}
+                      rootClose
+                      placement="right"
+                      overlay={MusitTextField.helpText(this.props.tooltip)}
+                    >
+                      <InputGroup.Addon>?</InputGroup.Addon>
+                    </OverlayTrigger> : null}
 
-            {this.props.tooltip ?
-              <OverlayTrigger
-                trigger={['click']}
-                rootClose
-                placement="right"
-                overlay={MusitTextField.helpText(this.props.tooltip)}
-              >
-                <InputGroup.Addon>?</InputGroup.Addon>
-              </OverlayTrigger> : null}
-          </InputGroup>
+                </InputGroup>
+              </Col>
+            </Row>
+            :
+            <FormControl
+              type={this.props.valueType}
+              placeholder={this.props.placeHolderText}
+              value={this.props.valueText()}
+              onChange={(event) => this.props.onChange(event.target.value)}
+            />}
         </Col>
       </FormGroup>
     )
@@ -95,6 +108,7 @@ MusitTextField.propTypes = {
   controlId: PropTypes.string.isRequired,
   controlId2: PropTypes.string,
   labelText: PropTypes.string.isRequired,
+  labelText2: PropTypes.string,
   placeHolderText: PropTypes.string.isRequired,
   placeHolderText2: PropTypes.string,
   tooltip: PropTypes.string,

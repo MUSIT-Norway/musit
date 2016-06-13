@@ -17,18 +17,21 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component } from 'react'
-import TextField from '../../components/musittextfield'
+import React from 'react'
 import Options from '../../components/storageunits/EnvironmentOptions'
-import { Button, Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
+import { Button, Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Autosuggest from 'react-autosuggest'
 import { suggestAddress, suggestCompany, clearSuggest } from '../../reducers/suggest'
 import { createOrganization } from '../../reducers/organization'
 import { OrganizationPopupContainer } from '../../components/organization'
+import Language from '../../components/language'
+import EnvironmentRequirementComponent from '../../components/storageunits/EnvironmentRequirementComponent'
 
 const mapStateToProps = (state) => ({
-  suggest: state.suggest
+  suggest: state.suggest,
+  user: state.auth.user,
+  translate: (key, markdown) => Language.translate(key, markdown)
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -57,8 +60,10 @@ const mapDispatchToProps = (dispatch) => ({
 })
 
 @connect(mapStateToProps, mapDispatchToProps)
-export default class ExampleView extends Component {
+export default class ExampleView extends React.Component {
   static propTypes = {
+    translate: React.PropTypes.func.isRequired,
+    user: React.PropTypes.object,
     onAddressSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
     onOrganizationSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
     dispatchCreateOrganization: React.PropTypes.func.isRequired,
@@ -76,6 +81,7 @@ export default class ExampleView extends Component {
     const isValid = isSomething ? 'success' : null
     return isSomething && isNaN(value) ? 'error' : isValid
   }
+
 
   constructor(props) {
     super(props)
@@ -254,23 +260,6 @@ export default class ExampleView extends Component {
           />
           <Panel>
             <Grid>
-              <Row styleClass="row-centered">
-                <PageHeader>
-                  Welcome to example view.
-                </PageHeader>
-                <Col md={6}>
-                  <Form horizontal>
-                    {this.fields.map(field => <TextField {...field} />)}
-                  </Form>
-                </Col>
-                <Col md={6}>
-                  <Form horizontal>
-                    <TextField {...this.areal} />
-                    <TextField {...this.areal} />
-                    <TextField {...this.areal} />
-                  </Form>
-                </Col>
-              </Row>
               <Row>
                 <Col md={2}>
                   <label htmlFor={'addressField'}>Adresse</label>
@@ -304,7 +293,7 @@ export default class ExampleView extends Component {
               </Row>
             </Grid>
           </Panel>
-
+          <EnvironmentRequirementComponent translate={this.props.translate} />
           <Panel>
             <Options
               unit={this.state.sikringBevaring}
