@@ -4,8 +4,9 @@
 
 import React, { Component } from 'react';
 import TextField from '../../components/musittextfield';
+import Field from '../../components/musitfield';
 import TextArea from '../../components/musittextarea';
-import { Panel, Form, Grid, Row, Col } from 'react-bootstrap'
+import { Panel, Form, Grid, Row, Col, FormGroup } from 'react-bootstrap'
 
 export default class EnvironmentRequirementComponent extends Component {
   static propTypes = {
@@ -142,6 +143,7 @@ export default class EnvironmentRequirementComponent extends Component {
         environmentRequirement: { ...clazz.state.environmentRequirement, lightCondition }
       })
     }
+
     this.comments = {
       controlId: 'comments',
       labelText: 'Kommentar',
@@ -149,6 +151,22 @@ export default class EnvironmentRequirementComponent extends Component {
       tooltip: 'Kommentar',
       valueText: () => clazz.state.environmentRequirement.comments,
       validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.comments),
+      onChange: (comments) => clazz.setState({
+        environmentRequirement: {
+          ...clazz.state.environmentRequirement,
+          comments
+        }
+      })
+    }
+
+    this.comments2 = {
+      id: 'comments2',
+      placeHolder: 'test placeHolder',
+      tooltip: 'Kommentar',
+      value: 'HI',
+      help: 'Help text',
+      addOnPrefix: '\u00b1',
+      validate: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.comments),
       onChange: (comments) => clazz.setState({
         environmentRequirement: {
           ...clazz.state.environmentRequirement,
@@ -199,6 +217,18 @@ export default class EnvironmentRequirementComponent extends Component {
                 <Col md={6}>
                   <Form horizontal>
                     <TextArea{...this.comments} />
+                  </Form>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={6}>
+                  <Form horizontal>
+                    <FormGroup>
+                        <label className="col-sm-3 control-label" htmlFor="comments2">Kommentar</label>
+                        <div class="col-sm-9" is="null">
+                             <Field{...this.comments2} />
+                        </div>
+                    </FormGroup>
                   </Form>
                 </Col>
               </Row>
