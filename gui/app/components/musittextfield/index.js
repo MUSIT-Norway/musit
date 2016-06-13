@@ -78,12 +78,12 @@ export default class MusitTextField extends Component {
                     value={this.props.valueText2()}
                     onChange={(event) => this.props.onChange2(event.target.value)}
                   />
-                  {this.props.tooltip ?
+                  {this.props.tooltip2 ?
                     <OverlayTrigger
                       trigger={['click']}
                       rootClose
                       placement="right"
-                      overlay={MusitTextField.helpText(this.props.tooltip)}
+                      overlay={MusitTextField.helpText(this.props.tooltip2)}
                     >
                       <InputGroup.Addon>?</InputGroup.Addon>
                     </OverlayTrigger> : null}
@@ -113,6 +113,7 @@ MusitTextField.propTypes = {
   placeHolderText: PropTypes.string.isRequired,
   placeHolderText2: PropTypes.string,
   tooltip: PropTypes.string,
+  tooltip2: PropTypes.string,
   valueText: PropTypes.func.isRequired,
   valueText2: PropTypes.func,
   valueType: PropTypes.string.isRequired,
