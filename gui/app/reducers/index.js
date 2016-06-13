@@ -27,6 +27,7 @@ import authReducer from './auth'
 import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
 import autosuggestReducer from './suggest'
+import picklistReducer from './picklist'
 import organizationReducer from './organization'
 
 const rootReducer = combineReducers({
@@ -37,6 +38,7 @@ const rootReducer = combineReducers({
   language: languageReducer,
   reduxAsyncConnect: reduxAsyncConnect,
   suggest: autosuggestReducer,
+  picks: picklistReducer,
   organization: organizationReducer,
   form: form
 })

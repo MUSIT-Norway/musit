@@ -1,41 +1,43 @@
-import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { IndexLink } from 'react-router';
-import { LinkContainer } from 'react-router-bootstrap';
-import { Navbar, Nav, NavItem } from 'react-bootstrap';
-import Helmet from 'react-helmet';
-import { isLoaded as isInfoLoaded, load as loadInfo } from '../../reducers/info';
-import { isLoaded as isLanguageLoaded, load as loadLanguage } from '../../reducers/language';
-import { isLoaded as isFakeAuthInfoLoaded, load as loadFakeAuthInfo } from '../../reducers/fake-auth-info';
-import InfoBar from '../../components/info-bar';
-import { routerActions } from 'react-router-redux';
-import config from '../../config';
-import { asyncConnect } from 'redux-async-connect';
+import React, { Component, PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { IndexLink } from 'react-router'
+import { LinkContainer } from 'react-router-bootstrap'
+import { Navbar, Nav, NavItem, Badge } from 'react-bootstrap'
+import Helmet from 'react-helmet'
+import { isLoaded as isInfoLoaded, load as loadInfo } from '../../reducers/info'
+import { isLoaded as isLanguageLoaded, load as loadLanguage } from '../../reducers/language'
+import { isLoaded as isFakeAuthInfoLoaded, load as loadFakeAuthInfo } from '../../reducers/fake-auth-info'
+import InfoBar from '../../components/info-bar'
+import { routerActions } from 'react-router-redux'
+import config from '../../config'
+import { asyncConnect } from 'redux-async-connect'
 import { I18n } from 'react-i18nify'
+import FontAwesome from 'react-fontawesome'
 
 const mapStateToProps = (state) => {
   I18n.loadTranslations(state.language.data)
   I18n.setLocale('no')
   return {
     user: state.auth.user,
-    pushState: routerActions.push
+    pushState: routerActions.push,
+    pickListCount: state.picks.lists[state.picks.active].length
   }
 }
 
 @asyncConnect([{
   promise: ({ store: { dispatch, getState } }) => {
-    const promises = [];
+    const promises = []
 
     if (!isInfoLoaded(getState())) {
-      promises.push(dispatch(loadInfo()));
+      promises.push(dispatch(loadInfo()))
     }
     if (!isLanguageLoaded(getState())) {
-      promises.push(dispatch(loadLanguage()));
+      promises.push(dispatch(loadLanguage()))
     }
     if ((config.FAKE_STRATEGY === config.dataportenClientSecret) && !isFakeAuthInfoLoaded(getState())) {
-      promises.push(dispatch(loadFakeAuthInfo()));
+      promises.push(dispatch(loadFakeAuthInfo()))
     }
-    return Promise.all(promises);
+    return Promise.all(promises)
   }
 }])
 @connect(mapStateToProps)
@@ -44,21 +46,22 @@ class App extends Component {
     children: PropTypes.object.isRequired,
     user: PropTypes.object,
     pushState: PropTypes.func.isRequired,
-    store: PropTypes.object
-  };
+    store: PropTypes.object,
+    pickListCount: PropTypes.number.isRequired
+  }
 
   static contextTypes = {
     store: PropTypes.object.isRequired,
     router: PropTypes.object.isRequired
-  };
+  }
 
   componentWillReceiveProps(nextProps) {
     if (!this.props.user && nextProps.user) {
       // login
-      this.context.router.push('/musit/welcomeUser');
+      this.context.router.push('/musit/welcomeUser')
     } else if (this.props.user && !nextProps.user) {
       // logout
-      this.context.router.push('/');
+      this.context.router.push('/')
     }
   }
 
@@ -73,8 +76,8 @@ class App extends Component {
   }
 
   render() {
-    const { user } = this.props;
-    const styles = require('./index.scss');
+    const { user, pickListCount } = this.props;
+    const styles = require('./index.scss')
     const rootPath = user ? '/musit/' : '/'
 
     return (
@@ -124,6 +127,11 @@ class App extends Component {
               <LinkContainer to="/musit/about">
                 <NavItem eventKey={7}>About Us</NavItem>
               </LinkContainer>
+              {user &&
+              <LinkContainer to="/picklist">
+                <NavItem><Badge><FontAwesome fixedWidth="1em" name="shopping-cart" /> {pickListCount}</Badge></NavItem>
+              </LinkContainer>
+              }
               {user &&
               <LinkContainer to="/musit/logout">
                 <NavItem eventKey={8} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
