@@ -20,14 +20,14 @@
 
 package no.uio.musit.microservice.event.resource
 
-import no.uio.musit.microservice.event.service.EventService
 import io.swagger.annotations.ApiOperation
+import no.uio.musit.microservice.event.domain.{ AtomLink, AtomLink$, ComplexEvent, EventInfo }
+import no.uio.musit.microservice.event.service.EventService
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.utils.ResourceHelper
-import no.uio.musit.microservice.event.domain.{ AtomLink, EventInfo, EventType }
-import no.uio.musit.microservice.event.service.EventService
 import play.api.libs.json._
-import play.api.mvc.{ Action, BodyParsers, Controller, Result }
+import play.api.mvc.{ Action, BodyParsers, Controller }
+import no.uio.musit.microservices.common.utils.Misc._
 
 /**
  * Created by jstabel on 6/10/16.
@@ -37,27 +37,27 @@ class EventResource extends Controller {
 
   def eventInfoToJson(eventInfo: EventInfo) = Json.toJson(eventInfo)
 
-  @ApiOperation(value = "Event operation - inserts an Event", httpMethod = "POST")
-  def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-
-    val eventInfoResult = fromJsonToEventInfo(request.body)
-    ResourceHelper.postRootWithMusitResult(EventService.createEvent, eventInfoResult, eventInfoToJson)
-  }
-
-  /*
-      def getById(id: Long) = Action.async {
-        request =>
-          ResourceHelper.getRoot(EventService.getById, id, eventInfoToJson)
-      }
-  */
-
-  def fromJsonToEventInfo(json: JsValue): Either[MusitError, EventInfo] = {
-    // TODO: Make this with proper error handling, this is just a quick and dirty version! 
+  def jsonToEventInfo(json: JsValue): Either[MusitError, EventInfo] = {
+    // TODO: Make this with proper error handling, this is just a quick and dirty version!
     val eventType = (json \ "eventType").as[String]
     val optJsObject = (json \ "eventData").toOption.map(_.as[JsObject])
     val links = (json \ "links").as[List[AtomLink]]
 
-    Right(EventInfo(eventType, links, optJsObject))
+    Right(EventInfo(None, eventType, links, optJsObject))
   }
 
+  @ApiOperation(value = "Event operation - inserts an Event", httpMethod = "POST")
+  def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+
+    val eventInfoResult = jsonToEventInfo(request.body)
+    ResourceHelper.postRootWithMusitResult(EventService.createEvent, eventInfoResult, eventInfoToJson)
+  }
+
+  def getRoot(id: Long) = Action.async {
+    request =>
+      def complexEventToEventInfoAsJson(complexEvent: ComplexEvent) = {
+        EventService.complexEventToEventInfo(complexEvent) |> eventInfoToJson
+      }
+      ResourceHelper.getRoot(EventService.getById, id, complexEventToEventInfoAsJson)
+  }
 }

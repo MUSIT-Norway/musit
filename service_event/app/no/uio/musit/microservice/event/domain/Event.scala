@@ -20,6 +20,7 @@
 
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.{ JsObject, Json }
 
 /**
@@ -27,7 +28,27 @@ import play.api.libs.json.{ JsObject, Json }
  */
 
 case class AtomLink(rel: String, href: String)
-case class EventInfo(eventType: String, links: Seq[AtomLink], eventData: Option[JsObject])
+case class EventInfo(id: Option[Long], eventType: String, links: Seq[AtomLink], eventData: Option[JsObject])
+
+///case class ActorLink(rel: String, href: String)
+
+case class Event(id: Option[Long], eventTypeId: Int, note: Option[String], actors: Option[Seq[AtomLink]],
+    links: Option[Seq[Link]]) {
+
+  def eventType = {
+    EventType.eventTypeIdToEventType(eventTypeId)
+  }
+
+  def asSeq[T](optSeq: Option[Seq[T]]) = optSeq.getOrElse(Seq.empty[T])
+
+  def allAtomLinks = asSeq(actors) // Todo: Add places, artefacts etc.
+}
+
+trait EventExtension
+
+case class ComplexEvent(baseEvent: Event, eventExtension: Option[EventExtension]) {
+  def allAtomLinks = baseEvent.allAtomLinks
+}
 
 object AtomLink {
   def tupled = (AtomLink.apply _).tupled

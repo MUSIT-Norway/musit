@@ -23,24 +23,29 @@
 
 CREATE SCHEMA IF NOT EXISTS MUSARK_EVENT;
 
-CREATE TABLE MUSARK_EVENT.EVENT (
-  ID BIGINT(20) NOT NULL AUTO_INCREMENT,
-  EVENT_TYPE_ID integer not null, -- Move to separate table if we want to allow multiple instantiations
-  PRIMARY KEY (ID)
-);
-
 
 CREATE TABLE MUSARK_EVENT.EVENT_TYPE (
-  ID INTEGER NOT NULL AUTO_INCREMENT,
+  ID INTEGER NOT NULL ,
   Name VARCHAR(100) NOT NULL,
   Description VARCHAR(255),
   PRIMARY KEY (ID)
 );
 
-ALTER TABLE MUSARK_EVENT.EVENT ADD FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID);
- 
-insert into MUSARK_EVENT.EVENT_TYPE (Name) values ('LocationChange');
-insert into MUSARK_EVENT.EVENT_TYPE (Name) values ('Control');
+
+CREATE TABLE MUSARK_EVENT.EVENT (
+  ID BIGINT(20) NOT NULL AUTO_INCREMENT,
+  EVENT_TYPE_ID integer not null, -- Move to separate table if we want to allow multiple instantiations
+  NOTE VARCHAR2(4000),
+  PRIMARY KEY (ID),
+  FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID)
+);
+
+
+
+
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,'Move');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'Control');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'Observation');
 
 # --- !Downs
 

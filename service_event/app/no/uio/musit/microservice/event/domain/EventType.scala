@@ -29,21 +29,48 @@ import play.api.libs.json.Json
 sealed trait EventType {
   def typename: String
 
+  def eventTypeId: Int
+
 }
 
 // TODO: Get them from the database somehow
 object EventType {
   def apply(stType: String) = stType.toLowerCase match {
-    case "locationchange" => LocationChange
+    case "move" => MoveEventType
+    case "control" => ControlEventType
+    case "observation" => ObservationEventType
+
     case other => throw new Exception(s"Musit: Undefined EventType:$other")
   }
 
   //def tupled = (EventType.apply _).tupled
 
   //implicit val format = Json.format[EventType]
+
+  def eventTypeIdToEventType(id: Int) = {
+    id match {
+      case 1 => MoveEventType
+      case 2 => ControlEventType
+      case 3 => ObservationEventType
+    }
+  }
 }
 
-object LocationChange extends EventType {
-  def typename = "locationchange"
+object MoveEventType extends EventType {
+  def typename = "move"
+
+  def eventTypeId = 1
+}
+
+object ControlEventType extends EventType {
+  def typename = "control"
+
+  def eventTypeId = 2
+}
+
+object ObservationEventType extends EventType {
+  def typename = "observation"
+
+  def eventTypeId = 3
 }
 

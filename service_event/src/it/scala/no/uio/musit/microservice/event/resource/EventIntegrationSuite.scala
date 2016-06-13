@@ -47,15 +47,25 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     WS.url(s"http://localhost:$port/v1/event").postJsonString(json) |> waitFutureValue
   }
 
+
+  def getEvent(id: Long) = {
+    WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
+  }
+
   "EventIntegrationSuite " must {
     "post" in {
       val json ="""
-  {"eventType": "LocationChange",
-    "eventData": {},
-      "links": [{"rel": "actor", "href": "actor/12"}]}"""
+  {
+   "eventType": "move",
+   "eventData": {"note": "Dette er et viktig notat!"},
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
       val response = createEvent(json)
-      response.status mustBe 201 //Successfully created the event
+      response.status mustBe 201
+
+
+      val responseGet = getEvent(1)
+      responseGet.status mustBe 200
 
     }
   }
