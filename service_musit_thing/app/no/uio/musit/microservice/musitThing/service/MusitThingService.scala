@@ -19,6 +19,16 @@
 
 package no.uio.musit.microservice.musitThing.service
 
-trait MusitThingService {
+import play.api.mvc.Request
 
+trait MusitThingService {
+  def extractFilterFromRequest(request: Request[_]): Array[String] = {
+    request.getQueryString("filter") match {
+      case Some(filterString) => "^\\[(\\w*)\\]$".r.findFirstIn(filterString) match {
+        case Some(str) => str.split(",")
+        case None => Array.empty[String]
+      }
+      case None => Array.empty[String]
+    }
+  }
 }

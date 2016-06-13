@@ -24,12 +24,14 @@
 
 
 import no.uio.musit.security._
+import org.scalatest.Ignore
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.duration._
 
+@Ignore
 class CachedSecuritySuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
 
   val additionalConfiguration: Map[String, String] = Map.apply(

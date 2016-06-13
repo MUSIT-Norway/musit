@@ -72,7 +72,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
 
   /* CREATES and UPDATES */
   def insertPersonLegacy(actor: Person): Future[Person] = {
-    val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id, links = Seq(LinkService.self(s"/v1/person/$id"))))
+    val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}")))))
     val action = insertQuery += actor
 
     db.run(action)
@@ -80,7 +80,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
 
   def insertPerson(person: Person): Future[Person] = {
     val insertQuery = PersonTable returning PersonTable.map(_.id) into ((person, id) =>
-      person.copy(id = id, links = Seq(LinkService.self(s"/v1/person/$id"))))
+      person.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/person/$id")))))
     val action = insertQuery += person
 
     db.run(action)
@@ -93,7 +93,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   def insertOrganization(organization: Organization): Future[Organization] = {
     val insertQuery = OrganizationTable returning OrganizationTable.map(_.id) into ((organization, id) =>
       organization.copy(id = id, links =
-        Seq(LinkService.self(s"/v1/organization/$id"), LinkService.local(-1, "addresses", s"/v1/organization/$id/address"))))
+        Some(Seq(LinkService.self(s"/v1/organization/${id.getOrElse("")}"), LinkService.local(None, "addresses", s"/v1/organization/${id.getOrElse("")}/address")))))
     val action = insertQuery += organization
 
     db.run(action)
@@ -105,7 +105,7 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
 
   def insertOrganizationAddress(address: OrganizationAddress): Future[OrganizationAddress] = {
     val insertQuery = OrganizationAddressTable returning OrganizationAddressTable.map(_.id) into ((addr, id) =>
-      addr.copy(id = id, links = Seq(LinkService.self(s"/v1/organization/${address.organizationId}/address/$id"))))
+      addr.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/organization/${address.organizationId.getOrElse("")}/address/${id.getOrElse("")}")))))
     val action = insertQuery += address
 
     db.run(action)
@@ -129,17 +129,17 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
 
   /* TABLE DEF using fieldnames from w3c vcard standard */
   private class ActorTable(tag: Tag) extends Table[Person](tag, Some("MUSIT_MAPPING"), "VIEW_ACTOR") {
-    val id = column[Long]("NY_ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
+    val id = column[Option[Long]]("NY_ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
     val fn = column[String]("ACTORNAME")
 
-    val create = (id: Long, fn: String) => Person(id, fn, links = Seq(LinkService.self(s"/v1/person/$id")))
+    val create = (id: Option[Long], fn: String) => Person(id, fn, links = Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}"))))
     val destroy = (actor: Person) => Some(actor.id, actor.fn)
 
     def * = (id, fn) <> (create.tupled, destroy)
   }
 
   private class PersonTable(tag: Tag) extends Table[Person](tag, Some("MUSARK_ACTOR"), "PERSON") {
-    val id = column[Long]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
+    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
     val fn = column[String]("FN")
     val title = column[Option[String]]("TITLE")
     val role = column[Option[String]]("ROLE")
@@ -147,26 +147,28 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     val web = column[Option[String]]("WEB")
     val email = column[Option[String]]("EMAIL")
 
-    val create = (id: Long, fn: String, title: Option[String], role: Option[String], tel: Option[String], web: Option[String],
+    val create = (id: Option[Long], fn: String, title: Option[String], role: Option[String], tel: Option[String], web: Option[String],
       email: Option[String]) =>
-      Person(id, fn, title, role, tel, web, email, Seq(LinkService.self(s"/v1/person/$id")))
+      Person(id, fn, title, role, tel, web, email, Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}"))))
     val destroy = (person: Person) => Some(person.id, person.fn, person.title, person.role, person.tel, person.web, person.email)
 
     def * = (id, fn, title, role, tel, web, email) <> (create.tupled, destroy)
   }
 
   private class OrganizationTable(tag: Tag) extends Table[Organization](tag, Some("MUSARK_ACTOR"), "ORGANIZATION") {
-    val id = column[Long]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
+    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
     val fn = column[String]("FN")
     val nickname = column[String]("NICKNAME")
     val tel = column[String]("TEL")
     val web = column[String]("WEB")
 
-    val create = (id: Long, fn: String, nickname: String, tel: String, web: String) =>
+    val create = (id: Option[Long], fn: String, nickname: String, tel: String, web: String) =>
       Organization(id, fn, nickname, tel, web,
-        Seq(
-          LinkService.self(s"/v1/organization/$id"),
-          LinkService.local(-1, "addresses", s"/v1/organization/$id/address")
+        Some(
+          Seq(
+            LinkService.self(s"/v1/organization/${id.getOrElse("")}"),
+            LinkService.local(None, "addresses", s"/v1/organization/${id.getOrElse("")}/address")
+          )
         ))
     val destroy = (org: Organization) => Some(org.id, org.fn, org.nickname, org.tel, org.web)
 
@@ -174,8 +176,8 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class OrganizationAddressTable(tag: Tag) extends Table[OrganizationAddress](tag, Some("MUSARK_ACTOR"), "ORGANIZATION_ADDRESS") {
-    val id = column[Long]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
-    val organizationId = column[Long]("ORGANIZATION_ID") // This is the primary key column
+    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
+    val organizationId = column[Option[Long]]("ORGANIZATION_ID") // This is the primary key column
     val addressType = column[String]("TYPE")
     val streetAddress = column[String]("STREET_ADDRESS")
     val locality = column[String]("LOCALITY")
@@ -184,10 +186,10 @@ object ActorDao extends HasDatabaseConfig[JdbcProfile] {
     val latitude = column[Double]("LATITUDE")
     val longitude = column[Double]("LONGITUDE")
 
-    val create = (id: Long, organizationId: Long, addressType: String, streetAddress: String, locality: String,
+    val create = (id: Option[Long], organizationId: Option[Long], addressType: String, streetAddress: String, locality: String,
       postalCode: String, countryName: String, latitude: Double, longitude: Double) =>
       OrganizationAddress(id, organizationId, addressType, streetAddress, locality, postalCode, countryName,
-        latitude, longitude, Seq(LinkService.self(s"/v1/organization/$organizationId/address/$id")))
+        latitude, longitude, Some(Seq(LinkService.self(s"/v1/organization/$organizationId/address/${id.getOrElse("")}"))))
     val destroy = (addr: OrganizationAddress) =>
       Some(addr.id, addr.organizationId, addr.addressType, addr.streetAddress, addr.locality, addr.postalCode,
         addr.countryName, addr.latitude, addr.longitude)

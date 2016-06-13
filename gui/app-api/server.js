@@ -1,6 +1,5 @@
 import express from 'express'
 import session from 'express-session'
-import bodyParser from 'body-parser'
 import config from '../app/config'
 import * as actions from './actions/index'
 import { mapUrl } from './utils/url.js'
@@ -17,8 +16,6 @@ const server = new http.Server(app)
 
 const io = new SocketIo(server)
 io.path('/ws')
-
-app.use(bodyParser.json())
 
 app.use(session({
   secret: 'react and redux rule!!!!',

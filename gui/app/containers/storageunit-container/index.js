@@ -71,7 +71,9 @@
 
    updateStorageUnit(data, key, value) {
      data[key] = value
-     this.setState({ ...data })
+     const b = { ...data }
+     console.log(b)
+     this.setState(b)
    }
 
    render() {
@@ -92,13 +94,13 @@
             updateName= {(storageUnitName) =>
               this.updateStorageUnit(this.state.storageUnit, 'storageUnitName', storageUnitName)}
             updateAreal1= {(area) =>
-              this.updateStorageUnit(this.state.storageUnit, 'area', area)}
+              this.updateStorageUnit(this.state.storageUnit, 'area', parseFloat(area))}
             updateAreal2= {(areal2) =>
-              this.updateStorageUnit(this.state.storageUnit, 'area2', areal2)}
+              this.updateStorageUnit(this.state.storageUnit, 'area2', parseFloat(areal2))}
             updateHeight1= {(height) =>
-              this.updateStorageUnit(this.state.storageUnit, 'height', height)}
+              this.updateStorageUnit(this.state.storageUnit, 'height', parseFloat(height))}
             updateHeight2= {(height2) =>
-              this.updateStorageUnit(this.state.storageUnit, 'height2', height2)}
+              this.updateStorageUnit(this.state.storageUnit, 'height2', parseFloat(height2))}
           />
           <Options
             unit = {{ skallsikring: this.state.storageUnit.skallsikring,

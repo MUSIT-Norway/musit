@@ -20,32 +20,48 @@
 import React, { Component } from 'react'
 import TextField from '../../components/musittextfield'
 import Options from '../../components/storageunits/EnvironmentOptions'
-import { Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
+import { Button, Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Autosuggest from 'react-autosuggest'
-import { suggestAddress, clearSuggest } from '../../reducers/suggest'
+import { suggestAddress, suggestCompany, clearSuggest } from '../../reducers/suggest'
+import { createOrganization } from '../../reducers/organization'
+import { OrganizationPopupContainer } from '../../components/organization'
 
 const mapStateToProps = (state) => ({
   suggest: state.suggest
 })
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onSuggestionsUpdateRequested({ value, reason }) {
-      // Should only autosuggest on typing if you have more then 3 characters
-      if (reason && (reason === 'type') && value && (value.length >= 3)) {
-        dispatch(suggestAddress('addressField', value))
-      } else {
-        dispatch(clearSuggest('addressField'))
-      }
+const mapDispatchToProps = (dispatch) => ({
+  onAddressSuggestionsUpdateRequested: ({ value, reason }) => {
+    // Should only autosuggest on typing if you have more then 3 characters
+    if (reason && (reason === 'type') && value && (value.length >= 3)) {
+      dispatch(suggestAddress('addressField', value))
+    } else {
+      dispatch(clearSuggest('addressField'))
+    }
+  },
+  onOrganizationSuggestionsUpdateRequested: ({ value, reason }) => {
+    // Should only autosuggest on typing if you have more then 3 characters
+    if (reason && (reason === 'type') && value && (value.length >= 1)) {
+      dispatch(suggestCompany('organizationField', value))
+    } else {
+      dispatch(clearSuggest('organizationField'))
+    }
+  },
+  dispatchCreateOrganization: (organization) => {
+    console.log(organization)
+    if (organization && organization.fn && organization.fn.length > 0) {
+      dispatch(createOrganization(organization))
     }
   }
-}
+})
 
 @connect(mapStateToProps, mapDispatchToProps)
 export default class ExampleView extends Component {
   static propTypes = {
-    onSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    onAddressSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    onOrganizationSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    dispatchCreateOrganization: React.PropTypes.func.isRequired,
     suggest: React.PropTypes.array.isRequired
   }
 
@@ -83,7 +99,15 @@ export default class ExampleView extends Component {
         temperatur: false,
         preventivKonservering: false
       },
-      address: ''
+      organizationData: {
+        fn: '',
+        nickname: '',
+        tel: '',
+        web: ''
+      },
+      address: '',
+      organization: '',
+      showCreate: false
     }
 
     this.areal = {
@@ -129,20 +153,56 @@ export default class ExampleView extends Component {
         onChange: (note) => this.setState({ unit: { ...this.state.unit, note } })
       }
     ]
-    this.onChange = this.onChange.bind(this)
+    this.onAddressChange = this.onAddressChange.bind(this)
+    this.onOrganizationChange = this.onOrganizationChange.bind(this)
+    this.openOrganizationCreate = this.openOrganizationCreate.bind(this)
+    this.closeOrganizationCreate = this.closeOrganizationCreate.bind(this)
+    this.onOrganizationSave = this.onOrganizationSave.bind(this)
   }
 
-  onChange(event, { newValue }) {
+  onAddressChange(event, { newValue }) {
     this.setState({
       address: newValue
     })
   }
 
-  getSuggestionValue(suggestion) {
+  onOrganizationChange(event, { newValue }) {
+    this.setState({
+      organization: newValue
+    })
+  }
+
+  onOrganizationSave(event) {
+    console.log(event)
+    this.props.dispatchCreateOrganization({ ...this.state.organizationData })
+    this.closeOrganizationCreate()
+  }
+
+  getAddressSuggestionValue(suggestion) {
     return `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
   }
 
-  renderSuggestion(suggestion) {
+  getOrganizationSuggestionValue(suggestion) {
+    return `[${suggestion.nickname}] ${suggestion.fn}`
+  }
+
+  closeOrganizationCreate() {
+    this.setState({ showCreate: false })
+  }
+
+  openOrganizationCreate() {
+    this.setState({
+      organizationData: {
+        fn: '',
+        nickname: '',
+        tel: '',
+        web: ''
+      }
+    })
+    this.setState({ showCreate: true })
+  }
+
+  renderAddressSuggestion(suggestion) {
     const suggestionText = `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
 
     return (
@@ -150,18 +210,48 @@ export default class ExampleView extends Component {
     )
   }
 
+  renderOrganizationSuggestion(suggestion) {
+    const suggestionText = `[${suggestion.nickname}] ${suggestion.fn}`
+
+    return (
+      <span className={'suggestion-content'}>{suggestionText}</span>
+    )
+  }
+
   render() {
-    const { onSuggestionsUpdateRequested, suggest } = this.props
-    const { address } = this.state
-    const inputProps = {
+    const {
+      onAddressSuggestionsUpdateRequested,
+      onOrganizationSuggestionsUpdateRequested,
+      suggest } = this.props
+    const { address, organization, showCreate, organizationData } = this.state
+
+    const inputAddressProps = {
       placeholder: 'Adresse',
       value: address,
       type: 'search',
-      onChange: this.onChange
+      onChange: this.onAddressChange
     }
+    const inputOrganizationProps = {
+      placeholder: 'Organisasjon',
+      value: organization,
+      type: 'search',
+      onChange: this.onOrganizationChange
+    }
+    const organizationSuggestions =
+      suggest.organizationField && suggest.organizationField.data ? suggest.organizationField.data : []
+
     return (
       <div>
         <main>
+          <OrganizationPopupContainer show={showCreate}
+            org={organizationData}
+            updateFN={(fn) => this.setState({ organizationData: { ...organizationData, fn } })}
+            updateNickname={(nickname) => this.setState({ organizationData: { ...organizationData, nickname } })}
+            updateTel={(tel) => this.setState({ organizationData: { ...organizationData, tel } })}
+            updateWeb={(web) => this.setState({ organizationData: { ...organizationData, web } })}
+            onClose={this.closeOrganizationCreate}
+            onSave={this.onOrganizationSave}
+          />
           <Panel>
             <Grid>
               <Row styleClass="row-centered">
@@ -182,17 +272,34 @@ export default class ExampleView extends Component {
                 </Col>
               </Row>
               <Row>
-                <Col md={1}>
+                <Col md={2}>
                   <label htmlFor={'addressField'}>Adresse</label>
                 </Col>
-                <Col md={11}>
-                  <Autosuggest id={'addressField'}
+                <Col md={4}>
+                  <Autosuggest
+                    id={'addressField'}
                     suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
-                    onSuggestionsUpdateRequested={onSuggestionsUpdateRequested}
-                    getSuggestionValue={this.getSuggestionValue}
-                    renderSuggestion={this.renderSuggestion}
-                    inputProps={inputProps}
+                    onSuggestionsUpdateRequested={onAddressSuggestionsUpdateRequested}
+                    getSuggestionValue={this.getAddressSuggestionValue}
+                    renderSuggestion={this.renderAddressSuggestion}
+                    inputProps={inputAddressProps}
                   />
+                </Col>
+                <Col md={2}>
+                  <label htmlFor={'organizationField'}>Organisasjon</label>
+                </Col>
+                <Col md={3}>
+                  <Autosuggest
+                    id={'organizationField'}
+                    suggestions={organizationSuggestions}
+                    onSuggestionsUpdateRequested={onOrganizationSuggestionsUpdateRequested}
+                    getSuggestionValue={this.getOrganizationSuggestionValue}
+                    renderSuggestion={this.renderOrganizationSuggestion}
+                    inputProps={inputOrganizationProps}
+                  />
+                </Col>
+                <Col md={1}>
+                  <Button bsSize={'small'} onClick={this.openOrganizationCreate}>Opprett</Button>
                 </Col>
               </Row>
             </Grid>
