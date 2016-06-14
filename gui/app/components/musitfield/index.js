@@ -13,16 +13,21 @@ export default class MusitField extends Component {
   }
 
   render() {
-    const p = this.props.addOnPrefix ? <span className="input-group-addon" >{this.props.addOnPrefix}</span> : null;
-    const i = <input type="text" className="form-control" placeholder={ this.props.placeHolder } id={ this.props.id } />;
-    const s = this.props.help ? <span className="input-group-addon" >?</span> : null;
-    return (p !== null || s !== null) ? (
+    // <!-- Constant -->
+    const LcAddOnPrefix = this.props.addOnPrefix ? <span className="input-group-addon" >{this.props.addOnPrefix}</span> : null;
+    const LcPlaceholder = (
+      <input type="text" className="form-control"
+        placeholder={ this.props.placeHolder } value={ this.props.value } id={ this.props.id }
+        onChange={(event) => this.props.onChange(event.target.value)}
+      />);
+    const LcHelp = this.props.help ? <span className="input-group-addon" >?</span> : null;
+    return (LcAddOnPrefix !== null || LcHelp !== null) ? (
         <div className="input-group">
-          {p}
-          {i}
-          {s}
+          {LcAddOnPrefix}
+          {LcPlaceholder}
+          {LcHelp}
         </div>
-     ) : i
+     ) : LcPlaceholder
   }
 }
 

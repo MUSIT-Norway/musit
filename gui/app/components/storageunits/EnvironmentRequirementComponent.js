@@ -39,7 +39,8 @@ export default class EnvironmentRequirementComponent extends Component {
         inertAir2: '',
         renhold: '',
         lightCondition: '',
-        comments: ''
+        comments: '',
+        comments2: ''
       }
     }
 
@@ -163,16 +164,17 @@ export default class EnvironmentRequirementComponent extends Component {
       id: 'comments2',
       placeHolder: 'test placeHolder',
       tooltip: 'Kommentar',
-      value: 'HI',
+      // value: this.state.environmentRequirement.comments2,
       help: 'Help text',
       addOnPrefix: '\u00b1',
-      validate: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.comments),
-      onChange: (comments) => clazz.setState({
-        environmentRequirement: {
-          ...clazz.state.environmentRequirement,
-          comments
-        }
-      })
+      validate: () => EnvironmentRequirementComponent.validateString(this.state.environmentRequirement.comments2),
+      onChange: (comments2) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            comments2
+          }
+        })}
     }
   }
 
@@ -226,7 +228,10 @@ export default class EnvironmentRequirementComponent extends Component {
                     <FormGroup>
                         <label className="col-sm-3 control-label" htmlFor="comments2">Kommentar</label>
                         <div class="col-sm-9" is="null">
-                             <Field{...this.comments2} />
+                        <Field
+                          {...this.comments2}
+                          value= {this.state.environmentRequirement.comments2}
+                        />
                         </div>
                     </FormGroup>
                   </Form>
