@@ -19,10 +19,9 @@
  import React, { Component, PropTypes } from 'react'
  import Options from '../../components/storageunits/EnvironmentOptions'
  import { connect } from 'react-redux';
- import { asyncConnect } from 'redux-async-connect';
  import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
  import { insert as insertStorageUnitContainer } from '../../reducers/storageunit-container';
- import { load, isLoaded } from '../../reducers/storageunit-container';
+ import { load } from '../../reducers/storageunit-container';
  import { ButtonToolbar, Button, Grid, Row } from 'react-bootstrap'
  import Language from '../../components/language'
  import EnvironmentRequirementComponent from '../../components/storageunits/EnvironmentRequirementComponent'
@@ -45,17 +44,6 @@
    }
  }
 
- @asyncConnect([{
-   promise: ({ store: { dispatch, getState } }) => {
-     const promises = [];
-     if (!isLoaded(getState())) {
-       promises.push(dispatch(load(1)))
-     }
-     return Promise.all(promises);
-   }
- }])
-
-
 @connect(mapStateToProps, mapDispatchToProps)
 
  export default class StorageUnitContainer extends Component {
@@ -75,10 +63,12 @@
 
    updateStorageUnit(data, key, value) {
      data[key] = value
-     const b = { ...data }
-    // console.log(b)
-     this.setState(b)
+     data.storageType = 'storageunit'
+     // console.log(value)
+     const b = data
+     this.setState({ ...b })
    }
+
 
    render() {
      return (
@@ -94,7 +84,8 @@
           </Grid>
           <StorageUnitComponents
             unit= { this.state.storageUnit }
-            updateType = {(storageType) => this.state.updateStorageUnit(this.state.storageUnit, 'storageType', storageType)}
+            updateType = {(storageType) =>
+              this.state.updateStorageUnit(this.state.storageUnit, 'storageType', storageType)}
             updateName= {(storageUnitName) =>
               this.updateStorageUnit(this.state.storageUnit, 'storageUnitName', storageUnitName)}
             updateAreal1= {(area) =>
@@ -108,34 +99,26 @@
           />
           <EnvironmentRequirementComponent translate={this.props.translate} />
           <Options
-            unit = {{ sikringSkallsikring: this.state.storageUnit.sikringSkallsikring,
-                     sikringTyverisikring: this.state.storageUnit.sikringTyverisikring,
-                     sikringBrannsikring: this.state.storageUnit.sikringBrannsikring,
-                     sikringVannskaderisiko: this.state.storageUnit.sikringVannskaderisiko,
-                     sikringRutineOgBeredskap: this.state.storageUnit.sikringRutineOgBeredskap,
-                     bevarLuftfuktOgTemp: this.state.storageUnit.bevarLuftfuktOgTemp,
-                     bevarLysforhold: this.state.storageUnit.bevarLysforhold,
-                     temperatur: this.state.storageUnit.temperatur,
-                     bevarPrevantKons: this.state.storageUnit.bevarPrevantKons,
-            }}
+            unit = { this.state.storageUnit }
+             // Disse må fikses (Mappe verdi av sikring fra bool -> {0,1})
             updateSkallsikring={(sikringSkallsikring) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringSkallsikring', sikringSkallsikring ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'sikringSkallsikring', sikringSkallsikring)}
             updateTyverisikring={(sikringTyverisikring) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringTyverisikring', sikringTyverisikring ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'sikringTyverisikring', sikringTyverisikring)}
             updateBrannsikring={(sikringBrannsikring) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringBrannsikring', sikringBrannsikring ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'sikringBrannsikring', sikringBrannsikring)}
             updateVannskaderisiko={(sikringVannskaderisiko) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringVannskaderisiko', sikringVannskaderisiko ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'sikringVannskaderisiko', sikringVannskaderisiko)}
             updateRutinerBeredskap={(sikringRutineOgBeredskap) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringRutineOgBeredskap', sikringRutineOgBeredskap ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'sikringRutineOgBeredskap', sikringRutineOgBeredskap)}
             updateLuftfuktighet={(bevarLuftfuktOgTemp) =>
-              this.updateStorageUnit(this.state.storageUnit, 'bevarLuftfuktOgTemp', bevarLuftfuktOgTemp ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'bevarLuftfuktOgTemp', bevarLuftfuktOgTemp)}
             updateLysforhold={(bevarLysforhold) =>
-              this.updateStorageUnit(this.state.storageUnit, 'bevarLysforhold', bevarLysforhold ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'bevarLysforhold', bevarLysforhold)}
             updateTemperatur={(temperatur) =>
-              this.updateStorageUnit(this.state.storageUnit, 'temperatur', temperatur ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'temperatur', temperatur)}
             updatePreventivKonservering={(bevarPrevantKons) =>
-              this.updateStorageUnit(this.state.storageUnit, 'bevarPrevantKons', bevarPrevantKons ? '1' : '0')}
+              this.updateStorageUnit(this.state.storageUnit, 'bevarPrevantKons', bevarPrevantKons)}
           />
         </main>
       </div>

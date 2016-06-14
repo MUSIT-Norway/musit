@@ -70,6 +70,7 @@ insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height
 insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) values (2,'KASSE 6',1,4,'storageunit');
 insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) values (3,'KASSE 7',3,4,'storageunit');
 insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) values (7,'KASSE 12',3,4,'storageunit');
+insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,area,storage_type) values (9,'KASSE 12',4,'storageunit');
 # --- !Downs
 
 DROP TABLE ROOM;

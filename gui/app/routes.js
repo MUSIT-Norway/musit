@@ -55,8 +55,8 @@ export default (store) => {
 
         <Route path="/storageunits" component={StorageUnitsView} />
         <Route path="/example" component={ExampleView} />
-        <Route path="/storageunit" component={StorageUnitContainer} />
-
+        <Route path="/storageunit/:id" component={StorageUnitContainer} />
+        <Route path="/storageunit/add" component={StorageUnitContainer} />
         -- Authentication routes
         <Route path="/musit" onEnter={requireLogin}>
           <IndexRoute component={WelcomeUserView} />

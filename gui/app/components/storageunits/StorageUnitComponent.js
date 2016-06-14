@@ -10,14 +10,12 @@ import { Panel, Form, Grid, Row, Col, } from 'react-bootstrap'
 export default class StorageUnitComponent extends Component {
 
   static propTypes = {
-    unit: React.PropTypes.shape({
-      storageUnitName: React.PropTypes.string,
-      area: React.PropTypes.number,
-      areal2: React.PropTypes.number,
-      height: React.PropTypes.number,
-      height2: React.PropTypes.number,
-      storageType: React.PropTypes.string,
-    }),
+    unit: { storageUnitName: React.PropTypes.string,
+            area: React.PropTypes.number,
+            areal2: React.PropTypes.number,
+            height: React.PropTypes.number,
+            height2: React.PropTypes.number,
+            storageType: React.PropTypes.string },
     updateType: React.PropTypes.func.isRequired,
     updateName: React.PropTypes.func.isRequired,
     updateHeight1: React.PropTypes.func.isRequired,
@@ -73,7 +71,7 @@ export default class StorageUnitComponent extends Component {
     this.type = {
       controlId: 'storageUnitType',
       labelText: 'Type',
-      items: ['Lagringsenhet', 'Rom', 'Bygning', 'Organisasjon'],
+      items: ['storageunit', 'room', 'building', 'organization'],
       valueType: 'text',
       tooltip: 'Type lagringsenhet',
       placeHolderText: 'velg type here',
