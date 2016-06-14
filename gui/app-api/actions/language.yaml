@@ -19,6 +19,9 @@ no:
   musit:
     pickList:
       title: "Plukkliste"
+      action:
+        markAll: "Alle"
+        executeAll: "Utfør (alle)"
     storageUnits:
       title: "Storage units"
       environmentRequirements:

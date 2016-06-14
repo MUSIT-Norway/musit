@@ -1,0 +1,27 @@
+.picklist {
+  .icon {
+    width: 1%;
+  }
+  .label {
+    width: 80%;
+  }
+  .select {
+    width: 1%;
+  }
+  .selectNopadding {
+    margin: 0px;
+  }
+  .actions {
+    width: 18%;
+  }
+  .warningAction {
+    color: #ff0000;
+    font-size: 1.5em;
+    padding-left: 0.5em;
+  }
+  .normalAction {
+    color: #00aa00;
+    font-size: 1.5em;
+    padding-left: 0.5em;
+  }
+}

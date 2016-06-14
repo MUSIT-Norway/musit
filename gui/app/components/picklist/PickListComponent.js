@@ -1,30 +1,43 @@
 import React, { Component } from 'react'
-import { Grid, Row, Col } from 'react-bootstrap'
+import { Table } from 'react-bootstrap'
+import FontAwesome from 'react-fontawesome'
 
 export default class PickListComponent extends Component {
   static propTypes = {
     picks: React.PropTypes.array.isRequired,
+    marked: React.PropTypes.array.isRequired,
     iconRendrer: React.PropTypes.func.isRequired,
-    labelRendrer: React.PropTypes.func.isRequired
+    labelRendrer: React.PropTypes.func.isRequired,
+    onToggleMarked: React.PropTypes.func.isRequired
   }
 
   render() {
-    const { picks, iconRendrer, labelRendrer } = this.props
+    const style = require('./index.scss')
+    const { picks, marked, iconRendrer, labelRendrer, onToggleMarked } = this.props
+    const actions = (
+      <span>
+        <FontAwesome className={style.normalAction} name="play-circle" />
+        <FontAwesome className={style.warningAction} name="remove" />
+      </span>
+    )
     const pickRows = picks.map((pick) => {
+      const checkSymbol = (marked.indexOf(pick.id) >= 0) ? 'check-square-o' : 'square-o'
       return (
-        <Row key={labelRendrer(pick)}>
-          <Col md={1}>{iconRendrer()}</Col>
-          <Col md={9}>{labelRendrer(pick)}</Col>
-          <Col md={1}>[select]</Col>
-          <Col md={1}>[actions]</Col>
-        </Row>
+        <tr key={pick.id} onClick={(e) => onToggleMarked(e, pick.id)}>
+          <td className={style.icon}>{iconRendrer()}</td>
+          <td className={style.label}>{labelRendrer(pick)}</td>
+          <td className={style.select}><FontAwesome className={style.normalAction} name={checkSymbol} /></td>
+          <td className={style.actions}>{actions}</td>
+        </tr>
       )
     })
 
     return (
-      <Grid>
-        {pickRows}
-      </Grid>
+      <Table responsive striped condensed hover>
+        <tbody>
+          {pickRows}
+        </tbody>
+      </Table>
     )
   }
 

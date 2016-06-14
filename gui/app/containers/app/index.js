@@ -129,7 +129,7 @@ class App extends Component {
               </LinkContainer>
               {user &&
               <LinkContainer to="/picklist">
-                <NavItem><Badge><FontAwesome fixedWidth="1em" name="shopping-cart" /> {pickListCount}</Badge></NavItem>
+                <NavItem><Badge><FontAwesome name="shopping-cart" /> {pickListCount}</Badge></NavItem>
               </LinkContainer>
               }
               {user &&

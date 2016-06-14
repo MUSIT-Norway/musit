@@ -4,24 +4,30 @@ const REMOVE = 'musit/picklist/REMOVE'
 const CREATE_LIST = 'musit/picklist/CREATE-LIST'
 const REMOVE_LIST = 'musit/picklist/REMOVE-LIST'
 const ACTIVATE_LIST = 'musit/picklist/ACTIVATE-LIST'
+const TOGGLE_MARKED = 'musit/picklist/TOGGLE_MARKED'
 
 const initialState = {
   active: 'default',
+  marked: [],
   lists: {
     default: []
   }
 }
 const demoState = {
   active: 'default',
+  marked: [],
   lists: {
     default: [
       {
+        id: 1,
         name: 'Foo'
       },
       {
+        id: 2,
         name: 'Bar'
       },
       {
+        id: 3,
         name: 'Bas'
       }
     ]
@@ -30,7 +36,9 @@ const demoState = {
 
 const picklistReducer = (state = demoState, action = {}) => {
   const subStateKey = action.destination
+  const activeSubStateKey = state.active
   const subState = state.lists[subStateKey] ? state.lists[subStateKey] : []
+  let newMarked = []
 
   switch (action.type) {
     case CLEAR: {
@@ -89,6 +97,36 @@ const picklistReducer = (state = demoState, action = {}) => {
           })
         }
       }
+    case TOGGLE_MARKED: {
+      console.log(action)
+      if (action.id) {
+        // We operate on one or several spesific entries
+        if (state.marked.indexOf(action.id) >= 0) {
+          // it exists, so lets toggle off
+          newMarked = state.marked.filter((id) => {
+            return id !== action.id
+          })
+        } else {
+          // it does not exist, so lets add
+          newMarked = [...state.marked, action.id]
+        }
+      } else {
+        // We operate on all
+        if (state.marked.length > 0) {
+          // Lets toggle all off
+          newMarked = []
+        } else {
+          // Lets toggle all on
+          newMarked = state.lists[activeSubStateKey].map((item) => {
+            return item.id
+          })
+        }
+      }
+      return {
+        ...state,
+        marked: newMarked
+      }
+    }
     default:
       return state
   }
@@ -116,6 +154,13 @@ export const remove = (destination, item) => {
     type: REMOVE,
     destination,
     item
+  }
+}
+
+export const toggleMarked = (id) => {
+  return {
+    type: TOGGLE_MARKED,
+    id
   }
 }
 

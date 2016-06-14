@@ -23,7 +23,8 @@ import { connect } from 'react-redux'
 import Language from '../../components/language'
 
 const mapStateToProps = (state) => ({
-  translate: (key, markdown) => <Language language={state.language} value={key} markdown={markdown} />
+  bug: state ? 'Please fix welcome user view' : false,
+  translate: (key, markdown) => Language.translate(key, markdown)
 });
 
 @connect(mapStateToProps)
