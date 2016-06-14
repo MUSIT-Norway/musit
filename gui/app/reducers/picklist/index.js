@@ -46,6 +46,7 @@ const picklistReducer = (state = demoState, action = {}) => {
       if (subStateKey && subStateKey.length > 0) {
         retVal = {
           ...state,
+          marked: (subStateKey === activeSubStateKey) ? [] : state.marked,
           lists: {
             ...state.lists,
             [subStateKey]: []
@@ -59,7 +60,8 @@ const picklistReducer = (state = demoState, action = {}) => {
     case ACTIVATE_LIST:
       return {
         ...state,
-        active: action.destination
+        active: action.destination,
+        marked: []
       }
     case CREATE_LIST:
       return {
@@ -72,6 +74,7 @@ const picklistReducer = (state = demoState, action = {}) => {
     case REMOVE_LIST:
       return {
         ...state,
+        marked: (subStateKey === activeSubStateKey) ? [] : state.marked,
         lists: subState.filter((item) => {
           return item.key !== subStateKey
         })
