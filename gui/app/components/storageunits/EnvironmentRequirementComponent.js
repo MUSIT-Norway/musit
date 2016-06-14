@@ -167,7 +167,8 @@ export default class EnvironmentRequirementComponent extends Component {
       // value: this.state.environmentRequirement.comments2,
       help: 'Help text',
       addOnPrefix: '\u00b1',
-      validate: () => EnvironmentRequirementComponent.validateString(this.state.environmentRequirement.comments2),
+      // validate: () => EnvironmentRequirementComponent.validateString(this.state.environmentRequirement.comments2),
+      validate: 'number',
       onChange: (comments2) => {
         this.setState({
           environmentRequirement: {
