@@ -18,24 +18,23 @@ describe('MusitField', () => {
     assert.equal(field.value, 'test value', 'Field must be present')
   });
 
-    it('should render MusitField 2', () => {
-      const MusitField = require('../index');
-      const myDiv = ReactTestUtils.renderIntoDocument(
-          <MusitField
-            id="navn"
-            placeHolder="skriv inn navn her"
-            help= "Help text"
-            value= "just test value"
-            validate= "text"
-            onChange={() => null}
-          />
-        );
+  it('should render MusitField 2', () => {
+    const MusitField = require('../index');
+    const myDiv = ReactTestUtils.renderIntoDocument(
+        <MusitField
+          id="navn"
+          placeHolder="skriv inn navn her"
+          help= "Help text"
+          value= "just test value"
+          validate= "text"
+          onChange={() => null}
+        />
+      );
 
-      const actualDiv = ReactDOM.findDOMNode(myDiv);
-      const field = actualDiv.querySelectorAll('input')[0];
-      assert.equal(field.value, 'just test value', 'Field must be present');
-
-    });
+    const actualDiv = ReactDOM.findDOMNode(myDiv);
+    const field = actualDiv.querySelectorAll('input')[0];
+    assert.equal(field.value, 'just test value', 'Field must be present');
+  });
 
 /*
     it('should render MusitField 3', () => {
