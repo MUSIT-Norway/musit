@@ -71,7 +71,7 @@ export default class ExampleView extends React.Component {
   }
 
   static validateString(value, minimumLength = 3, maximumLength = 20) {
-    const isSomething = value.length >= minimumLength
+    const isSomething = value && value.length >= minimumLength
     const isValid = isSomething ? 'success' : null
     return value.length > maximumLength ? 'error' : isValid
   }

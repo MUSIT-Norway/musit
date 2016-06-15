@@ -25,11 +25,14 @@
  import { ButtonToolbar, Button, Grid, Row } from 'react-bootstrap'
  import Language from '../../components/language'
  import EnvironmentRequirementComponent from '../../components/storageunits/EnvironmentRequirementComponent'
+ import { suggestAddress, clearSuggest } from '../../reducers/suggest'
 
  const mapStateToProps = (state) => {
+   console.log(state.storageUnit)
    return {
-     storageUnit: (state.storageUnit && state.storageUnit.data) ? { ...state.storageUnit.data } : {},
-     translate: (key, markdown) => Language.translate(key, markdown)
+     storageUnit: (state.storageUnit && state.storageUnit.data) ? state.storageUnit.data : {},
+     translate: (key, markdown) => Language.translate(key, markdown),
+     suggest: state.suggest
    }
  }
 
@@ -40,6 +43,14 @@
      },
      loadStorageUnit: (id) => {
        dispatch(load(id))
+     },
+     onAddressSuggestionsUpdateRequested: ({ value, reason }) => {
+       // Should only autosuggest on typing if you have more then 3 characters
+       if (reason && (reason === 'type') && value && (value.length >= 3)) {
+         dispatch(suggestAddress('addressField', value))
+       } else {
+         dispatch(clearSuggest('addressField'))
+       }
      }
    }
  }
@@ -49,28 +60,32 @@
  export default class StorageUnitContainer extends Component {
    static propTypes = {
      storageUnit: PropTypes.object.isRequired,
+     id: PropTypes.number,
      store: PropTypes.object.isRequired,
      loadStorageUnit: PropTypes.func.isRequired,
+     onAddressSuggestionsUpdateRequested: PropTypes.func.isRequired,
+     suggest: React.PropTypes.array.isRequired,
+     params: PropTypes.Object,
      onLagreClick: PropTypes.func.isRequired,
      updateStorageUnit: PropTypes.func.isRequired,
      translate: PropTypes.func.isRequired,
    }
 
-   constructor(props) {
-     super(props)
-     this.state = { storageUnit: this.props.storageUnit }
+
+   componentWillMount() {
+     console.log(this.props.params.id)
+     this.props.loadStorageUnit(this.props.params.id)
    }
 
    updateStorageUnit(data, key, value) {
-     data[key] = value
-     data.storageType = 'storageunit'
-     // console.log(value)
-     const b = data
-     this.setState({ ...b })
+     const newData = Object.assign({}, data);
+     console.log(key, value)
+     newData[key] = value && value !== '' ? value : null
+     this.setState({ storageUnit: newData })
    }
 
-
    render() {
+     const data = (this.state && this.state.storageUnit) ? this.state.storageUnit : this.props.storageUnit;
      return (
       <div>
         <main>
@@ -83,42 +98,46 @@
             </Row>
           </Grid>
           <StorageUnitComponents
-            unit= { this.state.storageUnit }
+            unit= { data }
             updateType = {(storageType) =>
-              this.state.updateStorageUnit(this.state.storageUnit, 'storageType', storageType)}
+              this.updateStorageUnit(data, 'storageType', storageType)}
             updateName= {(storageUnitName) =>
-              this.updateStorageUnit(this.state.storageUnit, 'storageUnitName', storageUnitName)}
+              this.updateStorageUnit(data, 'storageUnitName', storageUnitName)}
             updateAreal1= {(area) =>
-              this.updateStorageUnit(this.state.storageUnit, 'area', area ? parseFloat(area) : area)}
+              this.updateStorageUnit(data, 'area', area ? parseFloat(area) : area)}
             updateAreal2= {(areal2) =>
-              this.updateStorageUnit(this.state.storageUnit, 'area2', areal2 ? parseFloat(areal2) : areal2)}
+              this.updateStorageUnit(data, 'area2', areal2 ? parseFloat(areal2) : areal2)}
             updateHeight1= {(height) =>
-              this.updateStorageUnit(this.state.storageUnit, 'height', height ? parseFloat(height) : height)}
+              this.updateStorageUnit(data, 'height', height ? parseFloat(height) : height)}
             updateHeight2= {(height2) =>
-              this.updateStorageUnit(this.state.storageUnit, 'height2', height2 ? parseFloat(height2) : height2)}
+              this.updateStorageUnit(data, 'height2', height2 ? parseFloat(height2) : height2)}
+            onAddressSuggestionsUpdateRequested = { this.props.onAddressSuggestionsUpdateRequested }
+            suggest= { this.props.suggest }
           />
-          <EnvironmentRequirementComponent translate={this.props.translate} />
+          <EnvironmentRequirementComponent
+            translate={ this.props.translate }
+          />
           <Options
-            unit = { this.state.storageUnit }
+            unit = { data }
              // Disse må fikses (Mappe verdi av sikring fra bool -> {0,1})
             updateSkallsikring={(sikringSkallsikring) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringSkallsikring', sikringSkallsikring)}
+              this.updateStorageUnit(data, 'sikringSkallsikring', sikringSkallsikring)}
             updateTyverisikring={(sikringTyverisikring) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringTyverisikring', sikringTyverisikring)}
+              this.updateStorageUnit(data, 'sikringTyverisikring', sikringTyverisikring)}
             updateBrannsikring={(sikringBrannsikring) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringBrannsikring', sikringBrannsikring)}
+              this.updateStorageUnit(data, 'sikringBrannsikring', sikringBrannsikring)}
             updateVannskaderisiko={(sikringVannskaderisiko) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringVannskaderisiko', sikringVannskaderisiko)}
+              this.updateStorageUnit(data, 'sikringVannskaderisiko', sikringVannskaderisiko)}
             updateRutinerBeredskap={(sikringRutineOgBeredskap) =>
-              this.updateStorageUnit(this.state.storageUnit, 'sikringRutineOgBeredskap', sikringRutineOgBeredskap)}
+              this.updateStorageUnit(data, 'sikringRutineOgBeredskap', sikringRutineOgBeredskap)}
             updateLuftfuktighet={(bevarLuftfuktOgTemp) =>
-              this.updateStorageUnit(this.state.storageUnit, 'bevarLuftfuktOgTemp', bevarLuftfuktOgTemp)}
+              this.updateStorageUnit(data, 'bevarLuftfuktOgTemp', bevarLuftfuktOgTemp)}
             updateLysforhold={(bevarLysforhold) =>
-              this.updateStorageUnit(this.state.storageUnit, 'bevarLysforhold', bevarLysforhold)}
+              this.updateStorageUnit(data, 'bevarLysforhold', bevarLysforhold)}
             updateTemperatur={(temperatur) =>
-              this.updateStorageUnit(this.state.storageUnit, 'temperatur', temperatur)}
+              this.updateStorageUnit(data, 'temperatur', temperatur)}
             updatePreventivKonservering={(bevarPrevantKons) =>
-              this.updateStorageUnit(this.state.storageUnit, 'bevarPrevantKons', bevarPrevantKons)}
+              this.updateStorageUnit(data, 'bevarPrevantKons', bevarPrevantKons)}
           />
         </main>
       </div>

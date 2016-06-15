@@ -6,6 +6,7 @@ import React, { Component } from 'react';
 import TextField from '../../components/musittextfield';
 import MusitDropDown from '../../components/musitdropdownfield';
 import { Panel, Form, Grid, Row, Col, } from 'react-bootstrap'
+import Autosuggest from 'react-autosuggest'
 
 export default class StorageUnitComponent extends Component {
 
@@ -22,16 +23,20 @@ export default class StorageUnitComponent extends Component {
     updateHeight2: React.PropTypes.func.isRequired,
     updateAreal1: React.PropTypes.func.isRequired,
     updateAreal2: React.PropTypes.func.isRequired,
+    suggest: React.PropTypes.array.isRequired,
+    onAddressSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    onOrganizationSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    address: React.PropTypes.string,
   }
 
   static validateString(value, minimumLength = 3, maximumLength = 20) {
-    const isSomething = value !== undefined ? value.length >= minimumLength : null
+    const isSomething = value && value !== undefined ? value.length >= minimumLength : null
     const isValid = isSomething ? 'success' : null
-    return value !== undefined && value.length > maximumLength ? 'error' : isValid
+    return value && value !== undefined && value.length > maximumLength ? 'error' : isValid
   }
 
   static validateNumber(value) {
-    const isSomething = value !== undefined
+    const isSomething = value && value !== undefined
     const isValid = isNaN(value) ? 'error' : 'success'
     return isSomething ? isValid : null
   }
@@ -90,15 +95,65 @@ export default class StorageUnitComponent extends Component {
       onChange: (storageUnitName) => this.props.updateName(storageUnitName)
 
     }
+
+    this.address = {
+      address: this.props.address
+    }
+    this.onAddressChange = this.onAddressChange.bind(this)
+  }
+
+  onAddressChange(event, { newValue }) {
+    this.setState({
+      address: newValue
+    })
+  }
+
+  getAddressSuggestionValue(suggestion) {
+    return `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
+  }
+
+  renderAddressSuggestion(suggestion) {
+    const suggestionText = `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
+
+    return (
+      <span className={'suggestion-content'}>{suggestionText}</span>
+    )
   }
 
   render() {
+    const { address } = ''
+
+    const inputAddressProps = {
+      placeholder: 'addresse',
+      value: address,
+      type: 'search',
+      onChange: this.onAddressChange
+    }
+    const {
+      onAddressSuggestionsUpdateRequested,
+      suggest } = this.props
+
+    const addressBlock = (
+      <Row className="row-centered">
+        <Col md= {6}>
+        <Autosuggest
+          id={'addressField'}
+          suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
+          onSuggestionsUpdateRequested={onAddressSuggestionsUpdateRequested}
+          getSuggestionValue={this.getAddressSuggestionValue}
+          renderSuggestion={this.renderAddressSuggestion}
+          inputProps={inputAddressProps}
+        />
+        </Col>
+      </Row>
+    )
+
     return (
         <div>
             <main>
                 <Panel>
                     <Grid>
-                        <Row styleClass="row-centered">
+                        <Row className="row-centered">
                             <Col md={6}>
                                 <Form horizontal>
                                   <MusitDropDown {...this.type} />
@@ -121,8 +176,8 @@ export default class StorageUnitComponent extends Component {
                                     <TextField {...this.hoyde} />
                                 </Form>
                             </Col>
-
-                        </Row>
+                        </Row >
+                        { this.props.unit.storageType === 'building' ? addressBlock : null}
                     </Grid>
                 </Panel>
             </main>

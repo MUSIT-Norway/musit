@@ -73,6 +73,8 @@ export const load = (id) => {
 }
 
 export const insert = (data) => {
+  console.log('Hei')
+  console.log(data)
   return {
     types: [INSERT, INSERT_SUCCESS, INSERT_FAIL],
     promise: (client) => client.post('/api/storageadmin/v1/storageunit', { data })
