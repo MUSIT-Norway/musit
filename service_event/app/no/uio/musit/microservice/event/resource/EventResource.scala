@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.resource
 
 import io.swagger.annotations.ApiOperation
-import no.uio.musit.microservice.event.domain.{ AtomLink, ComplexEvent, EventInfo }
+import no.uio.musit.microservice.event.domain.{ AtomLink, CompleteEvent, EventInfo }
 import no.uio.musit.microservice.event.service.EventService
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.utils.Misc._
@@ -41,9 +41,9 @@ class EventResource extends Controller {
     // TODO: Make this with proper error handling, this is just a quick and dirty version!
     val eventType = (json \ "eventType").as[String]
     val optJsObject = (json \ "eventData").toOption.map(_.as[JsObject])
-    val links = (json \ "links").as[List[AtomLink]]
+    val links = ((json \ "links").asOpt[List[AtomLink]]).getOrElse(Seq.empty)
 
-    Right(EventInfo(None, eventType, links, optJsObject))
+    Right(EventInfo(None, eventType, optJsObject,Some(links)))
   }
 
   @ApiOperation(value = "Event operation - inserts an Event", httpMethod = "POST")
@@ -54,9 +54,9 @@ class EventResource extends Controller {
   }
 
   def getRoot(id: Long) = Action.async { request =>
-    def complexEventToEventInfoToJson(complexEvent: ComplexEvent) = {
-      EventService.complexEventToEventInfo(complexEvent) |> eventInfoToJson
+    def completeEventToEventInfoToJson(complexEvent: CompleteEvent) = {
+      EventService.completeEventToEventInfo(complexEvent) |> eventInfoToJson
     }
-    ResourceHelper.getRoot(EventService.getById, id, complexEventToEventInfoToJson)
+    ResourceHelper.getRoot(EventService.getById, id, completeEventToEventInfoToJson)
   }
 }

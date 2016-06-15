@@ -72,5 +72,9 @@ object FutureExtensions {
       futEither.map { either => either.right.flatMap(f) }
     }
 
+    def futureEitherMapEither[S](f: T => S): Future[Either[MusitError, S]] = {
+      futEither.map { either => either.right.map(f) }
+    }
+
   }
 }

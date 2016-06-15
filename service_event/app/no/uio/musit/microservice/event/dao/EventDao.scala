@@ -20,26 +20,29 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{ Event, EventType }
-import no.uio.musit.microservices.common.domain.MusitNotImplementedYetException
+import no.uio.musit.microservice.event.domain.{AtomLink, CompleteEvent, Event}
 import no.uio.musit.microservices.common.linking.LinkService
+import no.uio.musit.microservices.common.linking.dao.LinkDao
+import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
- * Created by jstabel on 6/13/16.
- */
+  * Created by jstabel on 6/13/16.
+  */
 object EventDao extends HasDatabaseConfig[JdbcProfile] {
+
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val EventBaseTable = TableQuery[EventBaseTable]
-  // private val RoomTable = TableQuery[RoomTable]
-  // private val BuildingTable = TableQuery[BuildingTable]
+  //private val EventLinkTable = TableQuery[EventLinkTable]
 
   def linkText(id: Option[Long]) = {
     assert(id.isDefined)
@@ -53,15 +56,26 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     action
   }
 
-  def insertBaseEvent(eventBase: Event): Future[Event] =
-    db.run(insertAction(eventBase))
+
+  def insertBaseEvent(eventBase: Event, links: Seq[AtomLink]): Future[CompleteEvent] = {
+    def copyEventIdIntoLinks(eventBasen: Event) = links.map(l => l.toLink(eventBasen.id.getOrThrow("missing eventId in eventDao.insertBaseEvent ")))
+
+    val action = (for {
+      base <- insertAction(eventBase)
+      link <- LinkDao.insertLinksAction(copyEventIdIntoLinks(base))
+    } yield CompleteEvent(base, None, Some(links))).transactionally
+    db.run(action)
+  }
+
 
   def getBaseEvent(id: Long): Future[Option[Event]] = {
-    throw new MusitNotImplementedYetException("EventDao.getBaseEvent")
+    val action = EventBaseTable.filter(event => event.id === id).result.headOption
+    db.run(action)
+    //throw new MusitNotImplementedYetException("EventDao.getBaseEvent")
   }
 
   private class EventBaseTable(tag: Tag) extends Table[Event](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id, eventTypeID, eventNote) <> (create.tupled, destroy)
+    def * = (id, eventTypeID, eventNote) <>(create.tupled, destroy)
 
     val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
 
@@ -72,7 +86,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     def create = (id: Option[Long], eventTypeId: Int, note: Option[String]) =>
       Event(
         id, eventTypeId,
-        note, None,
+        note,
         linkText(id)
       )
 

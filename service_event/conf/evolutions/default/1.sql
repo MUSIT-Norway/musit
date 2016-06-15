@@ -40,12 +40,19 @@ CREATE TABLE MUSARK_EVENT.EVENT (
   FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID)
 );
 
+CREATE TABLE URI_LINKS (
+      ID bigint(20) NOT NULL AUTO_INCREMENT,
+      LOCAL_TABLE_ID bigint(20) NOT NULL,
+      REL varchar(255) NOT NULL,
+      HREF varchar(2000) NOT NULL,
+      PRIMARY KEY (ID)
+    );
 
 
 
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,'Move');
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'Control');
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'Observation');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'control');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'observation');
 
 # --- !Downs
 

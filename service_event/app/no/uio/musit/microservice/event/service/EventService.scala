@@ -26,7 +26,9 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
 import no.uio.musit.microservice.event.domain._
+import no.uio.musit.microservices.common.linking.dao.LinkDao
 import play.api.libs.json.{ JsObject, Json }
+import no.uio.musit.microservices.common.linking.domain.Link
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -46,21 +48,21 @@ trait EventService {
     ErrorHelper.notFound(unknownEventMsg(id))
   }
 
-  def eventInfoToComplexEvent(eventInfo: EventInfo): ComplexEvent = {
+  def eventInfoToCompleteEvent(eventInfo: EventInfo): CompleteEvent = {
     val eventType = EventType(eventInfo.eventType)
 
     def getNote = {
       eventInfo.eventData.flatMap(jsObject => (jsObject \ "note").toOption.map(_.toString))
     }
     def interpretEventBase = {
-      Event(None, eventType.eventTypeId, getNote, None, None)
+      Event(None, eventType.eventTypeId, getNote, None)
     }
 
-    eventType match {
-      case MoveEventType => ComplexEvent(interpretEventBase, None)
-      case ControlEventType => ComplexEvent(interpretEventBase, None)
-      case ObservationEventType => ComplexEvent(interpretEventBase, None)
-    }
+    (eventType match {
+      case MoveEventType => CompleteEvent(interpretEventBase, None, None)
+      case ControlEventType => CompleteEvent(interpretEventBase, None, None)
+      case ObservationEventType => CompleteEvent(interpretEventBase, None, None)
+    }).copy(links = eventInfo.links)
   }
 
   def baseEventDataToJson(baseEvent: Event): Option[JsObject] = {
@@ -70,30 +72,40 @@ trait EventService {
     } else None
   }
 
-  def complexEventToEventInfo(complexEvent: ComplexEvent): EventInfo = {
-    val baseEvent = complexEvent.baseEvent
+  def completeEventToEventInfo(completeEvent: CompleteEvent): EventInfo = {
+    val baseEvent = completeEvent.baseEvent
     val eventTypeName = baseEvent.eventType.typename
     val jsObject = baseEventDataToJson(baseEvent) //Todo: Include more attributes (including from the eventExtension object)
-    EventInfo(baseEvent.id, eventTypeName, complexEvent.allAtomLinks, jsObject)
-  }
-
-  def eventToEventInfo(baseEvent: Event): EventInfo = {
-    ComplexEvent(baseEvent, None) |> complexEventToEventInfo
+    EventInfo(baseEvent.id, eventTypeName, jsObject,completeEvent.links)
   }
 
   def createEvent(eventInfo: EventInfo): MusitFuture[EventInfo] = {
 
-    val complexEvent = eventInfoToComplexEvent(eventInfo)
+    val completeEvent = eventInfoToCompleteEvent(eventInfo)
+    val maybeLinks = completeEvent.links.getOrElse( Seq.empty)
 
-    ServiceHelper.daoInsert(EventDao.insertBaseEvent(complexEvent.baseEvent).map(eventToEventInfo))
+    ServiceHelper.daoInsert(EventDao.insertBaseEvent(completeEvent.baseEvent,maybeLinks).map(completeEventToEventInfo))
   }
 
   private def getBaseEvent(id: Long): MusitFuture[Event] = EventDao.getBaseEvent(id).toFutureEither(eventNotFoundError(id))
 
-  def getById(id: Long): MusitFuture[ComplexEvent] = {
-    val musitFutureBaseEvent = getBaseEvent(id)
+  private def getLinks(id: Long): MusitFuture[Seq[Link]] = LinkDao.findByLocalTableId(id).map(links => Right(links))
 
-    musitFutureBaseEvent.futureEitherMap(baseEvent => ComplexEvent(baseEvent, None)) //TEMP!!! Fjernes når nedenstående kommer inn
+  private def getAtomLinks(id: Long) = getLinks(id).futureEitherMapEither { links =>
+    links.map(AtomLink.createFromLink)
+  }
+
+  //Future[Seq[Link]]
+  def getById(id: Long) /*: MusitFuture[CompleteEvent]*/ = {
+    val musitFutureBaseEvent = getBaseEvent(id)
+    musitFutureBaseEvent.foreach { event =>
+      println(s"event: $event" )
+    }
+    val futureEventLinks = getAtomLinks(id)
+    futureEventLinks.futureEitherFlatMap { links =>
+      musitFutureBaseEvent.futureEitherMap(baseEvent => CompleteEvent(baseEvent, None, Some(links)))
+    }
+    //TEMP!!! Fjernes når nedenstående kommer inn
     //Todo, for de andre event-typene
     /*
     musitFutureBaseEvent.futureEitherFlatMap { baseEvent =>

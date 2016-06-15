@@ -20,6 +20,7 @@ package no.uio.musit.microservices.common.linking.dao
 
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
+import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
@@ -35,6 +36,19 @@ object LinkDao extends HasDatabaseConfig[JdbcProfile] {
   private val linkTable = TableQuery[LinkTable]
 
   def insert(ownerTable: BaseMusitDomain, rel: String, href: String): Future[Unit] = db.run(linkTable += Link(-1, ownerTable.id, rel, href)).map { _ => () }
+
+  //def insertAction(ownerTable: BaseMusitDomain, rel: String, href: String): Future[Unit] = db.run(linkTable += Link(-1, ownerTable.id, rel, href)).map { _ => () }
+
+  def insertLinkAction(link: Link): DBIO[Unit] = {
+    val insertQuery = linkTable
+    val action = insertQuery += link
+    action.map(a => ())
+  }
+
+  def insertLinksAction(links: Seq[Link]) = {
+    val actionlist = DBIO.sequence(links.map(l => insertLinkAction(l)))
+    actionlist
+  }
 
   def findByLocalTableId(id: Long): Future[Seq[Link]] = db.run(linkTable.filter(_.localTableId === id).result)
 

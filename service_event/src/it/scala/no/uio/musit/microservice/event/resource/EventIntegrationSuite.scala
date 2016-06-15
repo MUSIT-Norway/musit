@@ -52,6 +52,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
   }
 
+
   "EventIntegrationSuite " must {
     "post" in {
       val json ="""
@@ -66,9 +67,30 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
       val responseGet = getEvent(1)
       responseGet.status mustBe 200
+      println(response.body)
 
     }
+
+
+  "postWithoutLinks" in {
+    val json ="""
+  {
+   "eventType": "move",
+   "eventData": {"note": "Dette er et viktig notat!"}}"""
+
+
+    val response = createEvent(json)
+    response.status mustBe 201
+
+
+    val responseGet = getEvent(2)
+    responseGet.status mustBe 200
+    println(response.body)
+
   }
+
+
+}
 
 }
 

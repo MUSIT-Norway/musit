@@ -5,4 +5,5 @@
 # Setup endpoints
 
 GET     /v1/event/:id                             no.uio.musit.microservice.event.resource.EventResource.getRoot(id:Long)
+#GET     /v1/event/:id                             no.uio.musit.microservice.event.resource.EventResource.getLink(id:Long)
 POST    /v1/event                                 no.uio.musit.microservice.event.resource.EventResource.postRoot

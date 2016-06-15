@@ -27,12 +27,15 @@ import play.api.libs.json.{ JsObject, Json }
  * Created by jstabel on 6/10/16.
  */
 
-case class AtomLink(rel: String, href: String)
-case class EventInfo(id: Option[Long], eventType: String, links: Seq[AtomLink], eventData: Option[JsObject])
+case class AtomLink(rel: String, href: String) {
+  def toLink(localId:Long) = Link(-1,localId,rel,href)
+
+}
+case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject],links:Option[Seq[AtomLink]])
 
 ///case class ActorLink(rel: String, href: String)
 
-case class Event(id: Option[Long], eventTypeId: Int, note: Option[String], actors: Option[Seq[AtomLink]],
+case class Event(id: Option[Long], eventTypeId: Int, note: Option[String],
     links: Option[Seq[Link]]) {
 
   def eventType = {
@@ -41,19 +44,24 @@ case class Event(id: Option[Long], eventTypeId: Int, note: Option[String], actor
 
   def asSeq[T](optSeq: Option[Seq[T]]) = optSeq.getOrElse(Seq.empty[T])
 
-  def allAtomLinks = asSeq(actors) // Todo: Add places, artefacts etc.
+  //def allAtomLinks = asSeq(actors) // Todo: Add places, artefacts etc.
 }
 
 trait EventExtension
 
-case class ComplexEvent(baseEvent: Event, eventExtension: Option[EventExtension]) {
-  def allAtomLinks = baseEvent.allAtomLinks
+case class CompleteEvent(baseEvent: Event, eventExtension: Option[EventExtension], links: Option[Seq[AtomLink]]) {
+  //def allAtomLinks = baseEvent.allAtomLinks
+}
+object CompleteEvent {
+
 }
 
 object AtomLink {
   def tupled = (AtomLink.apply _).tupled
 
   implicit val format = Json.format[AtomLink]
+
+  def createFromLink(link: Link) = AtomLink(link.rel, link.href)
 }
 
 object EventInfo {
@@ -61,3 +69,8 @@ object EventInfo {
 
   implicit val format = Json.format[EventInfo]
 }
+
+/*
+case class EventLink(id: Option[Long], eventId :Long, url:String,relation:String){
+
+}*/
