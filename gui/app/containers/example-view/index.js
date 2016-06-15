@@ -18,7 +18,7 @@
  */
 
 import React from 'react'
-import TextField from '../../components/musittextfield'
+import { MusitTextField as TextField } from '../../components/formfields'
 import Options from '../../components/storageunits/EnvironmentOptions'
 import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
 import { Button, Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'

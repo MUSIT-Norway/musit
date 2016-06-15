@@ -3,9 +3,7 @@
  */
 
 import React, { Component } from 'react';
-import TextField from '../../components/musittextfield';
-import Field from '../../components/musitfield';
-import TextArea from '../../components/musittextarea';
+import { MusitTextArea as TextArea, MusitField as Field, MusitTextField as TextField } from '../../components/formfields'
 import { Panel, Form, Grid, Row, Col, FormGroup } from 'react-bootstrap'
 
 export default class EnvironmentRequirementComponent extends Component {
@@ -168,18 +166,35 @@ export default class EnvironmentRequirementComponent extends Component {
       help: 'Help text',
       addOnPrefix: '\u00b1',
       // validate: () => EnvironmentRequirementComponent.validateString(this.state.environmentRequirement.comments2),
-      validate: 'number',
+      validate: 'text',
+      minimumLength: 2,
+      maximumLength: 5,
+      /* validator: (value, {}) => {
+        console.log('custom validator')
+        const isSomething = value === 'test'
+        return isSomething ? 'success' : 'error'
+      },*/
       onChange: (comments2) => {
         this.setState({
           environmentRequirement: {
             ...this.state.environmentRequirement,
             comments2
           }
-        })}
+        })
+      }
     }
   }
 
   render() {
+    const renderFieldBlock = (bindValue, fieldProps) => (
+      <FormGroup>
+        <label className="col-sm-3 control-label" htmlFor="comments2">Kommentar</label>
+        <div class="col-sm-9" is="null">
+          <Field {...fieldProps} value={bindValue} />
+        </div>
+      </FormGroup>
+    )
+
     return (
       <div>
         <main>
@@ -226,15 +241,7 @@ export default class EnvironmentRequirementComponent extends Component {
               <Row>
                 <Col md={6}>
                   <Form horizontal>
-                    <FormGroup>
-                        <label className="col-sm-3 control-label" htmlFor="comments2">Kommentar</label>
-                        <div class="col-sm-9" is="null">
-                        <Field
-                          {...this.comments2}
-                          value= {this.state.environmentRequirement.comments2}
-                        />
-                        </div>
-                    </FormGroup>
+                    {renderFieldBlock(this.state.environmentRequirement.comments2, this.comments2)}
                   </Form>
                 </Col>
               </Row>
