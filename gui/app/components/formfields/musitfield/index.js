@@ -16,12 +16,9 @@ export default class MusitField extends Component {
   classNameWithSpan() {
     let lvString = ' '
     if (validate(this, this.props.value, this.props.validate,
-      { minimumLength: this.props.minimumLength, maximumLength: this.props.maximumLength }) === 'error')
-    {
+      { minimumLength: this.props.minimumLength, maximumLength: this.props.maximumLength }) === 'error') {
       lvString = 'input-group has-error'
-    }
-    else
-    {
+    } else {
       lvString = 'input-group'
     }
     return lvString
@@ -30,12 +27,9 @@ export default class MusitField extends Component {
   classNameOnlyWithInput() {
     let lvString = ''
     if (validate(this, this.props.value, this.props.validate,
-      this.props.minimumLength, { maximumLength: this.props.maximumLength }) === 'error')
-    {
+      this.props.minimumLength, { maximumLength: this.props.maximumLength }) === 'error') {
       lvString = 'has-error'
-    }
-    else
-    {
+    } else {
       lvString = ''
     }
     return lvString

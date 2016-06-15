@@ -3,8 +3,8 @@
  */
 
 import React, { Component } from 'react';
-import { MusitTextArea as TextArea, MusitField as Field, MusitTextField as TextField } from '../../components/formfields'
-import { Panel, Form, Grid, Row, Col, FormGroup } from 'react-bootstrap'
+import { MusitTextArea as TextArea, MusitTextField as TextField } from '../../components/formfields'
+import { Panel, Form, Grid, Row, Col } from 'react-bootstrap'
 
 export default class EnvironmentRequirementComponent extends Component {
   static propTypes = {
@@ -119,6 +119,7 @@ export default class EnvironmentRequirementComponent extends Component {
       valueType: 'text',
       labelText: this.props.translate('musit.storageUnits.environmentRequirements.renhold.labelText'),
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.renhold.tooltip'),
+      placeHolderText: '',
       // placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.renhold.placeHolderText'),
       valueText: () => clazz.state.environmentRequirement.renhold,
       validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.renhold),
@@ -135,6 +136,7 @@ export default class EnvironmentRequirementComponent extends Component {
       valueType: 'text',
       labelText: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.labelText'),
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.tooltip'),
+      placeHolderText: '',
       // placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.placeHolderText'),
       valueText: () => clazz.state.environmentRequirement.lightCondition,
       validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.lightCondition),
@@ -157,44 +159,9 @@ export default class EnvironmentRequirementComponent extends Component {
         }
       })
     }
-
-    this.comments2 = {
-      id: 'comments2',
-      placeHolder: 'test placeHolder',
-      // value: this.state.environmentRequirement.comments2,
-      help: 'Help text',
-      addOnPrefix: '\u00b1',
-      // validate: () => EnvironmentRequirementComponent.validateString(this.state.environmentRequirement.comments2),
-      tooltip: 'tooltip text',
-      validate: 'text',
-      minimumLength: 2,
-      maximumLength: 5,
-      /* validator: (value, {}) => {
-        console.log('custom validator')
-        const isSomething = value === 'test'
-        return isSomething ? 'success' : 'error'
-      },*/
-      onChange: (comments2) => {
-        this.setState({
-          environmentRequirement: {
-            ...this.state.environmentRequirement,
-            comments2
-          }
-        })
-      }
-    }
   }
 
   render() {
-    const renderFieldBlock = (bindValue, fieldProps) => (
-      <FormGroup>
-        <label className="col-sm-3 control-label" htmlFor="comments2">Kommentar</label>
-        <div class="col-sm-9" is="null">
-          <Field {...fieldProps} value={bindValue} />
-        </div>
-      </FormGroup>
-    )
-
     return (
       <div>
         <main>
@@ -235,13 +202,6 @@ export default class EnvironmentRequirementComponent extends Component {
                 <Col md={6}>
                   <Form horizontal>
                     <TextArea{...this.comments} />
-                  </Form>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={6}>
-                  <Form horizontal>
-                    {renderFieldBlock(this.state.environmentRequirement.comments2, this.comments2)}
                   </Form>
                 </Col>
               </Row>
