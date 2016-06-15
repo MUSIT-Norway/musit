@@ -14,14 +14,31 @@ export default class MusitField extends Component {
   }
 
   classNameWithSpan() {
-    return validate(this, this.props.value, this.props.validate,
-      { minimumLength: this.props.minimumLength, maximumLength: this.props.maximumLength }) === 'error'
-      ? 'input-group has-error' : 'input-group'
+    let lvString = ' '
+    if (validate(this, this.props.value, this.props.validate,
+      { minimumLength: this.props.minimumLength, maximumLength: this.props.maximumLength }) === 'error')
+    {
+      lvString = 'input-group has-error'
+    }
+    else
+    {
+      lvString = 'input-group'
+    }
+    return lvString
   }
 
   classNameOnlyWithInput() {
-    return validate(this, this.props.value, this.props.validate,
-      this.props.minimumLength, { maximumLength: this.props.maximumLength }) === 'error' ? 'has-error' : '';
+    let lvString = ''
+    if (validate(this, this.props.value, this.props.validate,
+      this.props.minimumLength, { maximumLength: this.props.maximumLength }) === 'error')
+    {
+      lvString = 'has-error'
+    }
+    else
+    {
+      lvString = ''
+    }
+    return lvString
   }
 
 
@@ -30,7 +47,7 @@ export default class MusitField extends Component {
     const lcPlaceholder = (
       <input type="text" className="form-control"
         placeholder={ this.props.placeHolder } value={ this.props.value } id={ this.props.id }
-        onChange={(event) => this.props.onChange(event.target.value)}
+        onChange={(event) => this.props.onChange(event.target.value)} data-toggle="tooltip" title={this.props.tooltip}
       />);
     const lcHelp = this.props.help ? <span className="input-group-addon" >?</span> : null;
 

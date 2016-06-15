@@ -1,4 +1,4 @@
-import { assert, React, ReactDOM, ReactTestUtils } from '../../../../test/setup';
+import { assert, React, ReactDOM, ReactTestUtils } from '../../../../../test/setup';
 
 describe('MusitTextArea', () => {
   it('should render MusitTextArea', () => {

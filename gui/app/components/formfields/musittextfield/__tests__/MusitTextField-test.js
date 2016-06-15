@@ -1,4 +1,4 @@
-import { assert, React, ReactDOM, ReactTestUtils } from '../../../../test/setup';
+import { assert, React, ReactDOM, ReactTestUtils } from '../../../../../test/setup';
 
 describe('MusitTextField', () => {
   it('should render MusitTextField', () => {

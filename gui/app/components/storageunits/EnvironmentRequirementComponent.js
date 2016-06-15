@@ -161,11 +161,11 @@ export default class EnvironmentRequirementComponent extends Component {
     this.comments2 = {
       id: 'comments2',
       placeHolder: 'test placeHolder',
-      tooltip: 'Kommentar',
       // value: this.state.environmentRequirement.comments2,
       help: 'Help text',
       addOnPrefix: '\u00b1',
       // validate: () => EnvironmentRequirementComponent.validateString(this.state.environmentRequirement.comments2),
+      tooltip: 'tooltip text',
       validate: 'text',
       minimumLength: 2,
       maximumLength: 5,
