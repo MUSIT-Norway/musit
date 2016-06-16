@@ -3,8 +3,8 @@
  */
 
 import React, { Component } from 'react';
-import { MusitTextArea as TextArea, MusitTextField as TextField } from '../../components/formfields'
-import { Panel, Form, Grid, Row, Col } from 'react-bootstrap'
+import { MusitTextArea as TextArea, MusitField as Field, MusitTextField as TextField } from '../../components/formfields'
+import { Panel, Form, Grid, Row, Col, FormGroup } from 'react-bootstrap'
 
 export default class EnvironmentRequirementComponent extends Component {
   static propTypes = {
@@ -29,6 +29,8 @@ export default class EnvironmentRequirementComponent extends Component {
 
     this.state = {
       environmentRequirement: {
+        temperature: '',
+        temperatureTolerance: '',
         temperature1: '',
         temperature2: '',
         relativeHumidity1: '',
@@ -45,6 +47,37 @@ export default class EnvironmentRequirementComponent extends Component {
     const clazz = this
 
     this.temperature = {
+      id: 'temperature',
+      tooltip: this.props.translate('musit.storageUnits.environmentRequirements.temperature.tooltip'),
+      validate: 'text',
+      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.temperature.placeHolder'),
+      onChange: (temperature) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            temperature
+          }
+        })
+      }
+    }
+
+    this.temperatureTolerance = {
+      id: 'temperatureTolerance',
+      tooltip: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.tooltip'),
+      validate: 'text',
+      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.placeHolder'),
+      addOnPrefix: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.addOnPrefix'),
+      onChange: (temperatureTolerance) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            temperatureTolerance
+          }
+        })
+      }
+    }
+
+    this.temperature11 = {
       controlId: 'temperature1',
       controlId2: 'temperature2',
       valueType: 'text',
@@ -115,34 +148,33 @@ export default class EnvironmentRequirementComponent extends Component {
     }
 
     this.renhold = {
-      controlId: 'renhold',
-      valueType: 'text',
-      labelText: this.props.translate('musit.storageUnits.environmentRequirements.renhold.labelText'),
+      id: 'renhold',
+      // placeHolder: 'test placeHolder',
+      // addOnPrefix: '\u00b1',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.renhold.tooltip'),
-      placeHolderText: '',
-      // placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.renhold.placeHolderText'),
-      valueText: () => clazz.state.environmentRequirement.renhold,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.renhold),
-      onChange: (renhold) => clazz.setState({
-        environmentRequirement: {
-          ...clazz.state.environmentRequirement,
-          renhold
-        }
-      })
+      validate: 'text',
+      onChange: (renhold) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            renhold
+          }
+        })
+      }
     }
 
     this.lightCondition = {
-      controlId: 'lightCondition',
-      valueType: 'text',
-      labelText: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.labelText'),
+      id: 'lightCondition',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.tooltip'),
-      placeHolderText: '',
-      // placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.placeHolderText'),
-      valueText: () => clazz.state.environmentRequirement.lightCondition,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.lightCondition),
-      onChange: (lightCondition) => clazz.setState({
-        environmentRequirement: { ...clazz.state.environmentRequirement, lightCondition }
-      })
+      validate: 'text',
+      onChange: (lightCondition) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            lightCondition
+          }
+        })
+      }
     }
 
     this.comments = {
@@ -162,6 +194,15 @@ export default class EnvironmentRequirementComponent extends Component {
   }
 
   render() {
+    const renderFieldBlock = (bindValue, fieldProps, label) => (
+      <FormGroup>
+        <label className="col-sm-3 control-label" htmlFor="comments2">{label}</label>
+        <div class="col-sm-9" is="null">
+          <Field {...fieldProps} value={bindValue} />
+        </div>
+      </FormGroup>
+    )
+
     return (
       <div>
         <main>
@@ -169,9 +210,17 @@ export default class EnvironmentRequirementComponent extends Component {
             <Grid>
               <Row styleClass="row-centered">
                 <Col md={6}>
-                  <Form horizontal>
-                    <TextField {...this.temperature} />
-                  </Form>
+                  <form className="form-horizontal">
+                    <div className="form-group">
+                      <label className="col-sm-3 control-label" htmlFor="comments2">{this.props.translate('musit.storageUnits.environmentRequirements.temperature.labelText')}</label>
+                      <div class="col-sm-5" is="null">
+                        <Field {...this.temperature} value={this.state.environmentRequirement.temperature} />
+                      </div>
+                      <div class="col-sm-4" is="null">
+                        <Field {...this.temperatureTolerance} value={this.state.environmentRequirement.temperatureTolerance} />
+                      </div>
+                    </div>
+                  </form>
                 </Col>
                 <Col md={6}>
                   <Form horizontal>
@@ -187,14 +236,16 @@ export default class EnvironmentRequirementComponent extends Component {
                 </Col>
                 <Col md={6}>
                   <Form horizontal>
-                    <TextField {...this.renhold} />
+                    {renderFieldBlock(this.state.environmentRequirement.renhold, this.renhold,
+                      this.props.translate('musit.storageUnits.environmentRequirements.renhold.labelText'))}
                   </Form>
                 </Col>
               </Row>
               <Row styleClass="row-centered">
                 <Col md={6}>
                   <Form horizontal>
-                    <TextField {...this.lightCondition} />
+                    {renderFieldBlock(this.state.environmentRequirement.lightCondition, this.lightCondition,
+                      this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.labelText'))}
                   </Form>
                 </Col>
               </Row>
