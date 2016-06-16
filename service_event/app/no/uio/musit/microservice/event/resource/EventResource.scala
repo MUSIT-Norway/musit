@@ -54,8 +54,8 @@ class EventResource extends Controller {
   }
 
   def getRoot(id: Long) = Action.async { request =>
-    def completeEventToEventInfoToJson(complexEvent: CompleteEvent) = {
-      EventService.completeEventToEventInfo(complexEvent) |> eventInfoToJson
+    def completeEventToEventInfoToJson(completeEvent: CompleteEvent) = {
+      EventService.completeEventToEventInfo(completeEvent) |> eventInfoToJson
     }
     ResourceHelper.getRoot(EventService.getById, id, completeEventToEventInfoToJson)
   }

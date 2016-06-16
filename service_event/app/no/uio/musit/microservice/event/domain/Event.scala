@@ -28,7 +28,7 @@ import play.api.libs.json.{ JsObject, Json }
  */
 
 case class AtomLink(rel: String, href: String) {
-  def toLink(localId: Long) = Link(-1, localId, rel, href)
+  def toLink(localId: Long) = Link(None, Some(localId), rel, href)
 
 }
 case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject], links: Option[Seq[AtomLink]])

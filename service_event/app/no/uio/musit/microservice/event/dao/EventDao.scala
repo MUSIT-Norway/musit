@@ -46,7 +46,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   //private val EventLinkTable = TableQuery[EventLinkTable]
 
   def linkText(id: Long) = {
-    val link = LinkService.local(id, "self", s"/v1/${id}")
+    val link = LinkService.local(Some(id),"self",s"/v1/${id}")
     println(s"INNI linkTekst$link")
     link
   }

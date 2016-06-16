@@ -51,7 +51,7 @@ object FutureExtensions {
 
   implicit class FutureEitherExtensions[T](val futEither: Future[Either[MusitError, T]]) extends AnyVal {
     /** The classical map on "MusitFuture". f maps the T in a MusitFuture[T] into an S and we return MusitFuture[S]. */
-    def futureEitherMap[S](f: T => S): Future[Either[MusitError, S]] = {
+    def musitFutureMap[S](f: T => S): Future[Either[MusitError, S]] = {
       futEither.map { either => either.right.map(f) }
     }
 
@@ -59,8 +59,8 @@ object FutureExtensions {
      * The classical flatMap on "MusitFuture". f maps the T in a MusitFuture[T] into a MusitFuture[S]. This means we
      * sort of end up with a MusitFuture[MusitFuture[S]], which we flatten into a MusitFuture[S]
      */
-    def futureEitherFlatMap[S](f: T => Future[Either[MusitError, S]]): Future[Either[MusitError, S]] = {
-      futureEitherFlatten(futEither.futureEitherMap(f))
+    def musitFutureFlatMap[S](f: T => Future[Either[MusitError, S]]): Future[Either[MusitError, S]] = {
+      futureEitherFlatten(futEither.musitFutureMap(f))
     }
 
     /**
@@ -68,13 +68,14 @@ object FutureExtensions {
      * This means we sort of end up with MusitFuture[Either[MusitError, S]], which we flatten into MusitFuture[S].
      * (ie a regular Either flatMap on the "inner" Either.)
      */
-    def futureEitherFlatMapEither[S](f: T => Either[MusitError, S]): Future[Either[MusitError, S]] = {
+    def musitFutureFlatMapInnerEither[S](f: T => Either[MusitError, S]): Future[Either[MusitError, S]] = {
       futEither.map { either => either.right.flatMap(f) }
     }
 
+    /*
     def futureEitherMapEither[S](f: T => S): Future[Either[MusitError, S]] = {
       futEither.map { either => either.right.map(f) }
-    }
+    }*/
 
   }
 }

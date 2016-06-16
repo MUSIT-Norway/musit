@@ -76,6 +76,9 @@ trait EventService {
     val baseEvent = completeEvent.baseEvent
     val eventTypeName = baseEvent.eventType.typename
     val jsObject = baseEventDataToJson(baseEvent) //Todo: Include more attributes (including from the eventExtension object)
+    completeEvent.links.foreach{ link =>
+      println(s"linkene på vei ut $link")
+    }
     EventInfo(baseEvent.id, eventTypeName, jsObject, completeEvent.links)
   }
 
@@ -89,21 +92,29 @@ trait EventService {
 
   private def getBaseEvent(id: Long): MusitFuture[Event] = EventDao.getBaseEvent(id).toFutureEither(eventNotFoundError(id))
 
-  private def getLinks(id: Long): MusitFuture[Seq[Link]] = LinkDao.findByLocalTableId(id).map(links => Right(links))
 
-  private def getAtomLinks(id: Long) = getLinks(id).futureEitherMapEither { links =>
+
+  private def futureToMusitFuture[T](future: Future[T]): MusitFuture[T] = future.map(Right(_))
+
+  private def getLinks(id: Long): MusitFuture[Seq[Link]] = LinkDao.findByLocalTableId(id) |> futureToMusitFuture
+
+  private def getAtomLinks(id: Long) = getLinks(id).musitFutureMap{ links =>
     links.map(AtomLink.createFromLink)
   }
 
-  //Future[Seq[Link]]
-  def getById(id: Long) /*: MusitFuture[CompleteEvent]*/ = {
+
+  def getById(id: Long) : MusitFuture[CompleteEvent] = {
     val musitFutureBaseEvent = getBaseEvent(id)
     musitFutureBaseEvent.foreach { event =>
       println(s"event: $event")
     }
     val futureEventLinks = getAtomLinks(id)
-    futureEventLinks.futureEitherFlatMap { links =>
-      musitFutureBaseEvent.futureEitherMap(baseEvent => CompleteEvent(baseEvent, None, Some(links)))
+    futureEventLinks.foreach{
+      lins =>
+        println(s"links: $lins")
+    }
+    futureEventLinks.musitFutureFlatMap { links =>
+      musitFutureBaseEvent.musitFutureMap(baseEvent => CompleteEvent(baseEvent, None, Some(links)))
     }
     //TEMP!!! Fjernes når nedenstående kommer inn
     //Todo, for de andre event-typene

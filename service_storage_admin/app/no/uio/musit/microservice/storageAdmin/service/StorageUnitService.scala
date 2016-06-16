@@ -49,7 +49,7 @@ trait StorageUnitService {
   }
 
   def create(storageUnit: StorageUnit): Future[Either[MusitError, StorageUnitTriple]] = {
-    ServiceHelper.daoInsert(StorageUnitDao.insert(storageUnit)).futureEitherMap(StorageUnitTriple.createStorageUnit)
+    ServiceHelper.daoInsert(StorageUnitDao.insert(storageUnit)).musitFutureMap(StorageUnitTriple.createStorageUnit)
   }
 
   def createStorageTriple(storageTriple: StorageUnitTriple): Future[Either[MusitError, StorageUnitTriple]] = {
@@ -74,11 +74,11 @@ trait StorageUnitService {
   def getById(id: Long): Future[Either[MusitError, StorageUnitTriple]] = {
     val futureEitherStorageUnit = getStorageUnitOnly(id)
 
-    futureEitherStorageUnit.futureEitherFlatMap { storageUnit =>
+    futureEitherStorageUnit.musitFutureFlatMap { storageUnit =>
       storageUnit.storageKind match {
         case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
-        case Building => getBuildingById(id).futureEitherMap(storageBuilding => StorageUnitTriple.createBuilding(storageUnit, storageBuilding))
-        case Room => getRoomById(id).futureEitherMap(storageRoom => StorageUnitTriple.createRoom(storageUnit, storageRoom))
+        case Building => getBuildingById(id).musitFutureMap(storageBuilding => StorageUnitTriple.createBuilding(storageUnit, storageBuilding))
+        case Room => getRoomById(id).musitFutureMap(storageRoom => StorageUnitTriple.createRoom(storageUnit, storageRoom))
       }
     }
   }
@@ -100,13 +100,13 @@ trait StorageUnitService {
   /*Verifies that the storage unit with the given id has the storage type expectedStorageUnitType.
    Else a Future false "MusitBoolean" is returned. */
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageUnitType): Future[Either[MusitError, Boolean]] = {
-    getStorageType(id).futureEitherFlatMapEither {
+    getStorageType(id).musitFutureFlatMapInnerEither {
       storageUnitTypeInDatabase => boolToMusitBool(expectedStorageUnitType == storageUnitTypeInDatabase, storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase))
     }
   }
 
   def updateStorageTripleByID(id: Long, triple: StorageUnitTriple) = {
-    verifyStorageTypeMatchesDatabase(id, triple.storageKind).futureEitherFlatMap { _ =>
+    verifyStorageTypeMatchesDatabase(id, triple.storageKind).musitFutureFlatMap { _ =>
 
       val modifiedTriple = triple.copyWithId(id) //We want the id in the url to override potential mistake in the body (of the original http request).
 

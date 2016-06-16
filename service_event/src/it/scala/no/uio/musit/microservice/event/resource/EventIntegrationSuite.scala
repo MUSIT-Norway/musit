@@ -72,7 +72,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     }
 
 
-  "postWithoutLinks" in {
+ /*"postWithoutLinks" in {
     val json ="""
   {
    "eventType": "move",
@@ -88,7 +88,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     println(response.body)
 
   }
-
+*/
 
 }
 
