@@ -46,7 +46,9 @@
      },
      onAddressSuggestionsUpdateRequested: ({ value, reason }) => {
        // Should only autosuggest on typing if you have more then 3 characters
+       console.log(value)
        if (reason && (reason === 'type') && value && (value.length >= 3)) {
+         console.log(value)
          dispatch(suggestAddress('addressField', value))
        } else {
          dispatch(clearSuggest('addressField'))
@@ -73,13 +75,11 @@
 
 
    componentWillMount() {
-     console.log(this.props.params.id)
      this.props.loadStorageUnit(this.props.params.id)
    }
 
    updateStorageUnit(data, key, value) {
      const newData = Object.assign({}, data);
-     console.log(key, value)
      newData[key] = value && value !== '' ? value : null
      this.setState({ storageUnit: newData })
    }
@@ -101,16 +101,18 @@
             unit= { data }
             updateType = {(storageType) =>
               this.updateStorageUnit(data, 'storageType', storageType)}
-            updateName= {(storageUnitName) =>
+            updateName = {(storageUnitName) =>
               this.updateStorageUnit(data, 'storageUnitName', storageUnitName)}
-            updateAreal1= {(area) =>
+            updateAreal1 = {(area) =>
               this.updateStorageUnit(data, 'area', area ? parseFloat(area) : area)}
-            updateAreal2= {(areal2) =>
+            updateAreal2 = {(areal2) =>
               this.updateStorageUnit(data, 'area2', areal2 ? parseFloat(areal2) : areal2)}
-            updateHeight1= {(height) =>
+            updateHeight1 = {(height) =>
               this.updateStorageUnit(data, 'height', height ? parseFloat(height) : height)}
-            updateHeight2= {(height2) =>
+            updateHeight2 = {(height2) =>
               this.updateStorageUnit(data, 'height2', height2 ? parseFloat(height2) : height2)}
+            updateAddress = {(address) =>
+              this.updateStorageUnit(data, 'address', address)}
             onAddressSuggestionsUpdateRequested = { this.props.onAddressSuggestionsUpdateRequested }
             suggest= { this.props.suggest }
           />

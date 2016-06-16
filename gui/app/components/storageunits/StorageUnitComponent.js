@@ -23,6 +23,7 @@ export default class StorageUnitComponent extends Component {
     updateHeight2: React.PropTypes.func.isRequired,
     updateAreal1: React.PropTypes.func.isRequired,
     updateAreal2: React.PropTypes.func.isRequired,
+    updateAddress: React.PropTypes.func.isRequired,
     suggest: React.PropTypes.array.isRequired,
     onAddressSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
     onOrganizationSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
@@ -93,19 +94,18 @@ export default class StorageUnitComponent extends Component {
       valueText: () => this.props.unit.storageUnitName,
       validationState: () => StorageUnitComponent.validateString(this.props.unit.storageUnitName),
       onChange: (storageUnitName) => this.props.updateName(storageUnitName)
-
     }
 
     this.address = {
-      address: this.props.address
+      address: this.props.unit.address
     }
     this.onAddressChange = this.onAddressChange.bind(this)
+    this.getAddressSuggestionValue = this.getAddressSuggestionValue.bind(this)
+    this.renderAddressSuggestion = this.renderAddressSuggestion.bind(this)
   }
 
   onAddressChange(event, { newValue }) {
-    this.setState({
-      address: newValue
-    })
+    this.props.updateAddress(newValue)
   }
 
   getAddressSuggestionValue(suggestion) {
@@ -121,7 +121,7 @@ export default class StorageUnitComponent extends Component {
   }
 
   render() {
-    const { address } = ''
+    const { address } = this.address
 
     const inputAddressProps = {
       placeholder: 'addresse',
@@ -133,17 +133,21 @@ export default class StorageUnitComponent extends Component {
       onAddressSuggestionsUpdateRequested,
       suggest } = this.props
 
+
     const addressBlock = (
       <Row className="row-centered">
+        <Col md= {2}>
+          <label htmlFor = {'addressField'}>Adresse</label>
+        </Col>
         <Col md= {6}>
-        <Autosuggest
-          id={'addressField'}
-          suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
-          onSuggestionsUpdateRequested={onAddressSuggestionsUpdateRequested}
-          getSuggestionValue={this.getAddressSuggestionValue}
-          renderSuggestion={this.renderAddressSuggestion}
-          inputProps={inputAddressProps}
-        />
+          <Autosuggest
+            id={'addressField'}
+            suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
+            onSuggestionsUpdateRequested={onAddressSuggestionsUpdateRequested}
+            getSuggestionValue={this.getAddressSuggestionValue}
+            renderSuggestion={this.renderAddressSuggestion}
+            inputProps={inputAddressProps}
+          />
         </Col>
       </Row>
     )
