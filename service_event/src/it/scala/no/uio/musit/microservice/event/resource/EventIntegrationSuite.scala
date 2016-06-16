@@ -63,16 +63,17 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
       val response = createEvent(json)
       response.status mustBe 201
+      println(s"Create: ${response.body}")
 
 
       val responseGet = getEvent(1)
       responseGet.status mustBe 200
-      println(response.body)
+      println(s"Get: ${responseGet.body}")
 
     }
 
 
- /*"postWithoutLinks" in {
+ "postWithoutLinks" in {
     val json ="""
   {
    "eventType": "move",
@@ -85,10 +86,10 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
     val responseGet = getEvent(2)
     responseGet.status mustBe 200
-    println(response.body)
+    println(responseGet.body)
 
   }
-*/
+
 
 }
 

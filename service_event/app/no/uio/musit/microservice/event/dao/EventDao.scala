@@ -46,7 +46,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   //private val EventLinkTable = TableQuery[EventLinkTable]
 
   def linkText(id: Long) = {
-    val link = LinkService.local(Some(id),"self",s"/v1/${id}")
+    val link = LinkService.local(Some(id), "self", s"/v1/${id}")
     println(s"INNI linkTekst$link")
     link
   }
@@ -62,12 +62,14 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   def insertBaseEvent(eventBase: Event, links: Seq[AtomLink]): Future[CompleteEvent] = {
     def copyEventIdIntoLinks(eventBasen: Event) = links.map(l => l.toLink(eventBasen.id.getOrThrow("missing eventId in eventDao.insertBaseEvent ")))
+    def selfLink(eventBase: Event) = linkText(eventBase.id.getOrThrow("missing ID"))
+    def selfLinkAsAtomLink(eventBase: Event) = linkText(eventBase.id.getOrThrow("missing ID")) |> AtomLink.createFromLink
 
     val action = (for {
       base <- insertAction(eventBase)
-      link <- LinkDao.insertLinksAction(copyEventIdIntoLinks(base))
-      self <- linkText(base.id.getOrThrow("missing ID")) |> LinkDao.insertLinkAction
-    } yield CompleteEvent(base, None, Some(links))).transactionally
+      _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(base))
+      _ <- selfLink(base) |> LinkDao.insertLinkAction
+    } yield CompleteEvent(base, None, Some(selfLinkAsAtomLink(base) +: links))).transactionally
     db.run(action)
   }
 
