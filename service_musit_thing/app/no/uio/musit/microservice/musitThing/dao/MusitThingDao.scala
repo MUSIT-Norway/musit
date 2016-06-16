@@ -32,7 +32,7 @@ object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val ThingTable = TableQuery[MusitThingTable]  // scalastyle:ignore
+  private val ThingTable = TableQuery[MusitThingTable] // scalastyle:ignore
 
   def all: Future[Seq[MusitThing]] = db.run(ThingTable.result)
 

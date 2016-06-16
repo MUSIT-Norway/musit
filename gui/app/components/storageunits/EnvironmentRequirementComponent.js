@@ -3,8 +3,7 @@
  */
 
 import React, { Component } from 'react';
-import TextField from '../../components/musittextfield';
-import TextArea from '../../components/musittextarea';
+import { MusitTextArea as TextArea, MusitTextField as TextField } from '../../components/formfields'
 import { Panel, Form, Grid, Row, Col } from 'react-bootstrap'
 
 export default class EnvironmentRequirementComponent extends Component {
@@ -38,7 +37,8 @@ export default class EnvironmentRequirementComponent extends Component {
         inertAir2: '',
         renhold: '',
         lightCondition: '',
-        comments: ''
+        comments: '',
+        comments2: ''
       }
     }
 
@@ -119,6 +119,7 @@ export default class EnvironmentRequirementComponent extends Component {
       valueType: 'text',
       labelText: this.props.translate('musit.storageUnits.environmentRequirements.renhold.labelText'),
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.renhold.tooltip'),
+      placeHolderText: '',
       // placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.renhold.placeHolderText'),
       valueText: () => clazz.state.environmentRequirement.renhold,
       validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.renhold),
@@ -135,6 +136,7 @@ export default class EnvironmentRequirementComponent extends Component {
       valueType: 'text',
       labelText: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.labelText'),
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.tooltip'),
+      placeHolderText: '',
       // placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.lightCondition.placeHolderText'),
       valueText: () => clazz.state.environmentRequirement.lightCondition,
       validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.lightCondition),
@@ -142,6 +144,7 @@ export default class EnvironmentRequirementComponent extends Component {
         environmentRequirement: { ...clazz.state.environmentRequirement, lightCondition }
       })
     }
+
     this.comments = {
       controlId: 'comments',
       labelText: 'Kommentar',

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import TextField from '../../components/musittextfield'
+import { MusitTextField as TextField } from '../../components/formfields'
 import { Form } from 'react-bootstrap'
 
 export default class OrganizationContainer extends Component {
