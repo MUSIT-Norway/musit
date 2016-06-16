@@ -36,13 +36,12 @@ export default class APIGateway {
         const newUrl = `${service.protocol}${service.host}:${service.port}${uri}${options}`;
 
         // Pipe the request to the microservices
-        console.log(`Forwarding service call in pipe: ${newUrl}`)
-        const newReq = request(newUrl)
+        console.log(`Forwarding [${req.method}] service call in pipe: ${newUrl}`)
+        const newReq = request[req.method.toLowerCase()](newUrl)
         newReq.on('error', (msError) => {
           console.error('MS ERROR:', msError)
           res.status(500).json(err)
         })
-
         req.pipe(newReq).pipe(res)
       } else if (!err) {
         console.error('MS ERROR:', err)

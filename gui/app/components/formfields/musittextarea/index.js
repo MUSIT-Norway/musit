@@ -18,10 +18,10 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, FormControl, Popover, ControlLabel, Row, Col, InputGroup, OverlayTrigger } from 'react-bootstrap';
+import { FormGroup, FormControl, Popover, ControlLabel, Col, InputGroup, OverlayTrigger } from 'react-bootstrap';
 
 
-export default class MusitTextField extends Component {
+export default class MusitTextArea extends Component {
 
   static helpText(tip) {
     return (
@@ -46,41 +46,19 @@ export default class MusitTextField extends Component {
         </Col>
         <Col sm={9}>
           <InputGroup>
-            {this.props.controlId2 ?
-                <Row>
-                  <Col sm={6} md={6}>
-                    <FormControl
-                      style={{ borderRadius: '5px' }}
-                      type={ this.props.valueType }
-                      placeholder={ this.props.placeHolderText }
-                      value={this.props.valueText()}
-                      onChange={(event) => this.props.onChange(event.target.value)}
-                    />
-                  </Col>
-                  <Col sm={6} md={6}>
-                    <FormControl
-                      style={{ borderRadius: '5px' }}
-                      type={this.props.valueType}
-                      placeholder={this.props.placeHolderText2}
-                      value={this.props.valueText2()}
-                      onChange={(event) => this.props.onChange2(event.target.value)}
-                    />
-                  </Col>
-                </Row>
-              :
               <FormControl
-                type={this.props.valueType}
+                componentClass="textarea"
                 placeholder={this.props.placeHolderText}
                 value={this.props.valueText()}
                 onChange={(event) => this.props.onChange(event.target.value)}
-              />}
+              />
 
             {this.props.tooltip ?
               <OverlayTrigger
                 trigger={['click']}
                 rootClose
                 placement="right"
-                overlay={MusitTextField.helpText(this.props.tooltip)}
+                overlay={MusitTextArea.helpText(this.props.tooltip)}
               >
                 <InputGroup.Addon>?</InputGroup.Addon>
               </OverlayTrigger> : null}
@@ -91,19 +69,13 @@ export default class MusitTextField extends Component {
   }
 }
 
-MusitTextField.propTypes = {
+MusitTextArea.propTypes = {
   controlId: PropTypes.string.isRequired,
-  controlId2: PropTypes.string,
   labelText: PropTypes.string.isRequired,
   placeHolderText: PropTypes.string.isRequired,
-  placeHolderText2: PropTypes.string,
   tooltip: PropTypes.string,
   valueText: PropTypes.func.isRequired,
-  valueText2: PropTypes.func,
-  valueType: PropTypes.string.isRequired,
   validationState: PropTypes.func.isRequired,
-  validationState2: PropTypes.func,
   onChange: PropTypes.func.isRequired,
-  onChange2: PropTypes.func,
 
 };

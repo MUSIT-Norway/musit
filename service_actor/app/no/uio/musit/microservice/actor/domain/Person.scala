@@ -26,19 +26,19 @@ import play.api.libs.json._
 /**
  * Domain Person
  */
-case class Person(id: Long, fn: String, title: Option[String] = None, role: Option[String] = None, tel: Option[String] = None,
-  web: Option[String] = None, email: Option[String] = None, links: Seq[Link]) extends BaseMusitDomain
+case class Person(id: Option[Long], fn: String, title: Option[String] = None, role: Option[String] = None, tel: Option[String] = None,
+  web: Option[String] = None, email: Option[String] = None, links: Option[Seq[Link]]) extends BaseMusitDomain
 
 /**
  * Domain Organization
  */
-case class Organization(id: Long, fn: String, nickname: String, tel: String, web: String, links: Seq[Link]) extends BaseMusitDomain
+case class Organization(id: Option[Long], fn: String, nickname: String, tel: String, web: String, links: Option[Seq[Link]]) extends BaseMusitDomain
 
 /**
  * Address specialized for Organization
  */
-case class OrganizationAddress(id: Long, organizationId: Long, addressType: String, streetAddress: String, locality: String,
-  postalCode: String, countryName: String, latitude: Double, longitude: Double, links: Seq[Link]) extends BaseAddress
+case class OrganizationAddress(id: Option[Long], organizationId: Option[Long], addressType: String, streetAddress: String, locality: String,
+  postalCode: String, countryName: String, latitude: Double, longitude: Double, links: Option[Seq[Link]]) extends BaseAddress
 
 object Person {
   val tupled = (Person.apply _).tupled

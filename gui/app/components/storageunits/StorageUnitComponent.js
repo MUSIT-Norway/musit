@@ -3,8 +3,7 @@
  */
 
 import React, { Component } from 'react';
-import TextField from '../../components/musittextfield';
-import MusitDropDown from '../../components/musitdropdownfield';
+import { MusitDropDownField as MusitDropDown, MusitTextField as TextField } from '../../components/formfields'
 import { Panel, Form, Grid, Row, Col, } from 'react-bootstrap'
 
 export default class StorageUnitComponent extends Component {

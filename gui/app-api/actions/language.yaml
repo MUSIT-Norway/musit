@@ -16,7 +16,30 @@ en:
 no:
   musit:
     storageUnits:
-      title: Storage units
+      title: "Storage units"
+      environmentRequirements:
+        temperature:
+          labelText: Temperatur
+          tooltip: "Måleenhet grader celsius, desimaltall, ett tall+toleranse"
+          placeHolderText: C
+          placeHolderText2: int
+        relativeHumidity:
+          labelText: "Rel. luftfuktighet"
+          tooltip: "Måleenhet prosent, desimaltall, ett tall+toleranse"
+          placeHolderText: "%"
+          placeHolderText2: "int"
+        inertAir:
+          labelText: "Inertluft"
+          tooltip: "Måleenhet prosent oksygen, desimaltall, ett tall+toleranse"
+          placeHolderText: "% O2"
+          placeHolderText2: int
+        renhold:
+          labelText: Renhold
+          tooltip: Renhold
+        lightCondition:
+          labelText: Lysforhold
+          tooltip: Lysforhold
+
     welcomePage:
       title: >
         Universitetsmuseenes IT-organisasjon,

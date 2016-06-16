@@ -16,25 +16,25 @@ marked.setOptions({
 
 export default class Language extends Component {
   static propTypes = {
-    language: PropTypes.object.isRequired,
-    value: PropTypes.string.isRequired,
+    key: PropTypes.string.isRequired,
     markdown: PropTypes.bool
   }
 
-  static contextTypes = {
-    store: PropTypes.object.isRequired
-  }
-
-  render() {
-    let text = I18n.t(this.props.value)
-    if (this.props.markdown && text) {
+  static translate = (key, markdown) => {
+    let text = I18n.t(key)
+    if (markdown && text) {
       try {
         const tmp = marked(text)
         text = tmp[0]
       } catch (err) {
-        // console.log(err)
+        console.log(`Could not compile markdown for ${key}`)
       }
     }
+    return text;
+  }
+
+  render() {
+    let text = Language.translate(this.props.key, this.props.markdown)
     return (
       <div>{text}</div>
     )
