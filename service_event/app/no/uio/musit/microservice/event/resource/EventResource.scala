@@ -43,7 +43,7 @@ class EventResource extends Controller {
     val optJsObject = (json \ "eventData").toOption.map(_.as[JsObject])
     val links = ((json \ "links").asOpt[List[AtomLink]]).getOrElse(Seq.empty)
 
-    Right(EventInfo(None, eventType, optJsObject,Some(links)))
+    Right(EventInfo(None, eventType, optJsObject, Some(links)))
   }
 
   @ApiOperation(value = "Event operation - inserts an Event", httpMethod = "POST")

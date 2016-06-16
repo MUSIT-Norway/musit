@@ -28,15 +28,17 @@ import play.api.libs.json.{ JsObject, Json }
  */
 
 case class AtomLink(rel: String, href: String) {
-  def toLink(localId:Long) = Link(-1,localId,rel,href)
+  def toLink(localId: Long) = Link(-1, localId, rel, href)
 
 }
-case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject],links:Option[Seq[AtomLink]])
+case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject], links: Option[Seq[AtomLink]])
+//case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject])
 
 ///case class ActorLink(rel: String, href: String)
 
-case class Event(id: Option[Long], eventTypeId: Int, note: Option[String],
-    links: Option[Seq[Link]]) {
+/*case class Event(id: Option[Long], eventTypeId: Int, note: Option[String],
+    links: Option[Seq[Link]])*/
+case class Event(id: Option[Long], eventTypeId: Int, note: Option[String]) {
 
   def eventType = {
     EventType.eventTypeIdToEventType(eventTypeId)
@@ -50,6 +52,7 @@ case class Event(id: Option[Long], eventTypeId: Int, note: Option[String],
 trait EventExtension
 
 case class CompleteEvent(baseEvent: Event, eventExtension: Option[EventExtension], links: Option[Seq[AtomLink]]) {
+  //case class CompleteEvent(baseEvent: Event, eventExtension: Option[EventExtension]){
   //def allAtomLinks = baseEvent.allAtomLinks
 }
 object CompleteEvent {

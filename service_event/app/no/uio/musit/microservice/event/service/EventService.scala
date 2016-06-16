@@ -55,7 +55,7 @@ trait EventService {
       eventInfo.eventData.flatMap(jsObject => (jsObject \ "note").toOption.map(_.toString))
     }
     def interpretEventBase = {
-      Event(None, eventType.eventTypeId, getNote, None)
+      Event(None, eventType.eventTypeId, getNote)
     }
 
     (eventType match {
@@ -76,15 +76,15 @@ trait EventService {
     val baseEvent = completeEvent.baseEvent
     val eventTypeName = baseEvent.eventType.typename
     val jsObject = baseEventDataToJson(baseEvent) //Todo: Include more attributes (including from the eventExtension object)
-    EventInfo(baseEvent.id, eventTypeName, jsObject,completeEvent.links)
+    EventInfo(baseEvent.id, eventTypeName, jsObject, completeEvent.links)
   }
 
   def createEvent(eventInfo: EventInfo): MusitFuture[EventInfo] = {
 
     val completeEvent = eventInfoToCompleteEvent(eventInfo)
-    val maybeLinks = completeEvent.links.getOrElse( Seq.empty)
+    val maybeLinks = completeEvent.links.getOrElse(Seq.empty)
 
-    ServiceHelper.daoInsert(EventDao.insertBaseEvent(completeEvent.baseEvent,maybeLinks).map(completeEventToEventInfo))
+    ServiceHelper.daoInsert(EventDao.insertBaseEvent(completeEvent.baseEvent, maybeLinks).map(completeEventToEventInfo))
   }
 
   private def getBaseEvent(id: Long): MusitFuture[Event] = EventDao.getBaseEvent(id).toFutureEither(eventNotFoundError(id))
@@ -99,7 +99,7 @@ trait EventService {
   def getById(id: Long) /*: MusitFuture[CompleteEvent]*/ = {
     val musitFutureBaseEvent = getBaseEvent(id)
     musitFutureBaseEvent.foreach { event =>
-      println(s"event: $event" )
+      println(s"event: $event")
     }
     val futureEventLinks = getAtomLinks(id)
     futureEventLinks.futureEitherFlatMap { links =>
