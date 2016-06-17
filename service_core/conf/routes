@@ -1,0 +1,6 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Setup endpoints
+GET     /v1/my-groups               no.uio.musit.microservice.core.resource.CoreResource.getSecurityGroupsForCurrentUser

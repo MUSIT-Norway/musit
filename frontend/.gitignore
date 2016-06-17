@@ -1,0 +1,4 @@
+node_modules
+public/assets/js/bundle.js
+public/assets/css/bundle.css
+.idea
