@@ -16,7 +16,8 @@ export default class StorageUnitComponent extends Component {
             areal2: React.PropTypes.number,
             height: React.PropTypes.number,
             height2: React.PropTypes.number,
-            storageType: React.PropTypes.string },
+            storageType: React.PropTypes.string,
+            address: React.PropTypes.string },
     updateType: React.PropTypes.func.isRequired,
     updateName: React.PropTypes.func.isRequired,
     updateHeight1: React.PropTypes.func.isRequired,
@@ -27,7 +28,6 @@ export default class StorageUnitComponent extends Component {
     suggest: React.PropTypes.array.isRequired,
     onAddressSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
     onOrganizationSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
-    address: React.PropTypes.string,
   }
 
   static validateString(value, minimumLength = 3, maximumLength = 20) {
@@ -94,14 +94,11 @@ export default class StorageUnitComponent extends Component {
       valueText: () => this.props.unit.storageUnitName,
       validationState: () => StorageUnitComponent.validateString(this.props.unit.storageUnitName),
       onChange: (storageUnitName) => this.props.updateName(storageUnitName)
+
     }
 
-    this.address = {
-      address: this.props.unit.address
-    }
+
     this.onAddressChange = this.onAddressChange.bind(this)
-    this.getAddressSuggestionValue = this.getAddressSuggestionValue.bind(this)
-    this.renderAddressSuggestion = this.renderAddressSuggestion.bind(this)
   }
 
   onAddressChange(event, { newValue }) {
@@ -114,39 +111,39 @@ export default class StorageUnitComponent extends Component {
 
   renderAddressSuggestion(suggestion) {
     const suggestionText = `${suggestion.street} ${suggestion.streetNo}, ${suggestion.zip} ${suggestion.place}`
-
     return (
       <span className={'suggestion-content'}>{suggestionText}</span>
     )
   }
 
   render() {
-    const { address } = this.address
-
     const inputAddressProps = {
+      id: 'addressField',
       placeholder: 'addresse',
-      value: address,
+      value: this.props.unit.address,
       type: 'search',
       onChange: this.onAddressChange
     }
     const {
       onAddressSuggestionsUpdateRequested,
       suggest } = this.props
+    const { addressField } = suggest;
 
+    const suggestions = addressField && addressField.data ? addressField.data : [];
 
     const addressBlock = (
-      <Row className="row-centered">
-        <Col md= {2}>
-          <label htmlFor = {'addressField'}>Adresse</label>
+      <Row>
+        <Col md= {3}>
+          <label htmlFor={'addressField'}>Adresse</label>
         </Col>
-        <Col md= {6}>
+        <Col md= {9}>
           <Autosuggest
-            id={'addressField'}
-            suggestions={suggest.addressField && suggest.addressField.data ? suggest.addressField.data : []}
-            onSuggestionsUpdateRequested={onAddressSuggestionsUpdateRequested}
-            getSuggestionValue={this.getAddressSuggestionValue}
-            renderSuggestion={this.renderAddressSuggestion}
-            inputProps={inputAddressProps}
+            suggestions = {suggestions}
+            onSuggestionsUpdateRequested = {onAddressSuggestionsUpdateRequested}
+            getSuggestionValue = {this.getAddressSuggestionValue}
+            renderSuggestion = {this.renderAddressSuggestion}
+            inputProps = {inputAddressProps}
+            shouldRenderSuggestions = { (v) => v !== 'undefined' }
           />
         </Col>
       </Row>
@@ -181,7 +178,11 @@ export default class StorageUnitComponent extends Component {
                                 </Form>
                             </Col>
                         </Row >
-                        { this.props.unit.storageType === 'building' ? addressBlock : null}
+                        <Row>
+                          <Col md={6}>
+                            { this.props.unit.storageType === 'building' ? addressBlock : null}
+                          </Col>
+                        </Row>
                     </Grid>
                 </Panel>
             </main>

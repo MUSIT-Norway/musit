@@ -46,9 +46,7 @@
      },
      onAddressSuggestionsUpdateRequested: ({ value, reason }) => {
        // Should only autosuggest on typing if you have more then 3 characters
-       console.log(value)
        if (reason && (reason === 'type') && value && (value.length >= 3)) {
-         console.log(value)
          dispatch(suggestAddress('addressField', value))
        } else {
          dispatch(clearSuggest('addressField'))
@@ -80,6 +78,7 @@
 
    updateStorageUnit(data, key, value) {
      const newData = Object.assign({}, data);
+     console.log(key)
      newData[key] = value && value !== '' ? value : null
      this.setState({ storageUnit: newData })
    }
