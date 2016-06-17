@@ -66,7 +66,7 @@ trait EventService {
   }
 
   def baseEventDataToJson(baseEvent: Event): Option[JsObject] = {
-    val hasData = baseEvent.note.isDefined // or blablabla
+    val hasData = baseEvent.note.isDefined
     if (hasData) {
       Some(Json.obj("note" -> Json.toJson(baseEvent.note)))
     } else None
@@ -76,9 +76,6 @@ trait EventService {
     val baseEvent = completeEvent.baseEvent
     val eventTypeName = baseEvent.eventType.typename
     val jsObject = baseEventDataToJson(baseEvent) //Todo: Include more attributes (including from the eventExtension object)
-    completeEvent.links.foreach { link =>
-      println(s"linkene på vei ut $link")
-    }
     EventInfo(baseEvent.id, eventTypeName, jsObject, completeEvent.links)
   }
 
@@ -102,14 +99,7 @@ trait EventService {
 
   def getById(id: Long): MusitFuture[CompleteEvent] = {
     val musitFutureBaseEvent = getBaseEvent(id)
-    musitFutureBaseEvent.foreach { event =>
-      println(s"event: $event")
-    }
     val futureEventLinks = getAtomLinks(id)
-    futureEventLinks.foreach {
-      lins =>
-        println(s"links: $lins")
-    }
     val futCompleteEvent = futureEventLinks.musitFutureFlatMap { links =>
       musitFutureBaseEvent.musitFutureMap(baseEvent => CompleteEvent(baseEvent, None, Some(links)))
     }

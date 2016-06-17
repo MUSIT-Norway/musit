@@ -32,6 +32,7 @@ import play.api.libs.ws.WS
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.PlayTestDefaults._
+
 /**
   * Created by jstabel on 6/10/16.
   */
@@ -39,7 +40,7 @@ import no.uio.musit.microservices.common.PlayTestDefaults._
 
 class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
   val timeout = PlayTestDefaults.timeout
-  override lazy val port: Int = 19006
+  override lazy val port: Int = 19010
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
 
@@ -55,7 +56,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
   "EventIntegrationSuite " must {
     "post" in {
-      val json ="""
+      val json =
+        """
   {
    "eventType": "move",
    "eventData": {"note": "Dette er et viktig notat!"},
@@ -73,25 +75,35 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     }
 
 
- "postWithoutLinks" in {
-    val json ="""
+    "postWithoutLinks" in {
+      val json =
+        """
   {
    "eventType": "move",
-   "eventData": {"note": "Dette er et viktig notat!"}}"""
+   "eventData": {"note": "Dette er et VELDIG viktig notat!"}}"""
 
+      val response = createEvent(json)
+      response.status mustBe 201
 
-    val response = createEvent(json)
-    response.status mustBe 201
+      val responseGet = getEvent(2)
+      responseGet.status mustBe 200
+      println(responseGet.body)
 
+    }
 
-    val responseGet = getEvent(2)
-    responseGet.status mustBe 200
-    println(responseGet.body)
+    "postWithWrongEvent" in {
+      val json =
+        """
+  {
+   "eventType": "hurra",
+   "eventData": {"note": "Dette er IKKE viktig notat!"}}"""
+
+      val response = createEvent(json)
+      response.status mustBe 500
+    }
+
 
   }
-
-
-}
 
 }
 

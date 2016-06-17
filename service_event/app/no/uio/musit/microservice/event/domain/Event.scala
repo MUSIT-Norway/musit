@@ -32,12 +32,7 @@ case class AtomLink(rel: String, href: String) {
 
 }
 case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject], links: Option[Seq[AtomLink]])
-//case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject])
 
-///case class ActorLink(rel: String, href: String)
-
-/*case class Event(id: Option[Long], eventTypeId: Int, note: Option[String],
-    links: Option[Seq[Link]])*/
 case class Event(id: Option[Long], eventTypeId: Int, note: Option[String]) {
 
   def eventType = {
@@ -52,9 +47,9 @@ case class Event(id: Option[Long], eventTypeId: Int, note: Option[String]) {
 trait EventExtension
 
 case class CompleteEvent(baseEvent: Event, eventExtension: Option[EventExtension], links: Option[Seq[AtomLink]]) {
-  //case class CompleteEvent(baseEvent: Event, eventExtension: Option[EventExtension]){
-  //def allAtomLinks = baseEvent.allAtomLinks
+
 }
+
 object CompleteEvent {
 
 }
@@ -73,7 +68,3 @@ object EventInfo {
   implicit val format = Json.format[EventInfo]
 }
 
-/*
-case class EventLink(id: Option[Long], eventId :Long, url:String,relation:String){
-
-}*/

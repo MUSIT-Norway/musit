@@ -46,14 +46,10 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   //private val EventLinkTable = TableQuery[EventLinkTable]
 
   def linkText(id: Long) = {
-    val link = LinkService.local(Some(id), "self", s"/v1/${id}")
-    println(s"INNI linkTekst$link")
-    link
+    LinkService.local(Some(id), "self", s"/v1/${id}")
   }
 
   def insertAction(eventBase: Event): DBIO[Event] = {
-    /* val insertQuery = EventBaseTable returning EventBaseTable.map(_.id) into
-      ((eventBase, idNew) => eventBase.copy(id = idNew, links = linkText(idNew)))*/
     val insertQuery = EventBaseTable returning EventBaseTable.map(_.id) into
       ((eventBase, idNew) => eventBase.copy(id = idNew))
     val action = insertQuery += eventBase
@@ -76,7 +72,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   def getBaseEvent(id: Long): Future[Option[Event]] = {
     val action = EventBaseTable.filter(event => event.id === id).result.headOption
     db.run(action)
-    //throw new MusitNotImplementedYetException("EventDao.getBaseEvent")
   }
 
   private class EventBaseTable(tag: Tag) extends Table[Event](tag, Some("MUSARK_EVENT"), "EVENT") {
@@ -91,8 +86,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     def create = (id: Option[Long], eventTypeId: Int, note: Option[String]) =>
       Event(
         id, eventTypeId,
-        note /*,
-        linkText(id)*/
+        note
       )
 
     def destroy(unit: Event) = Some(unit.id, unit.eventTypeId, unit.note)
