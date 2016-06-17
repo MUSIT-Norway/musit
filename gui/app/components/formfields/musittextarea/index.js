@@ -24,8 +24,7 @@ export default class MusitTextArea extends Component {
 
   classNameWithSpan() {
     let lvString = ' '
-    if (validate(this, this.props.value, this.props.validate,
-      { minimumLength: this.props.minimumLength, maximumLength: this.props.maximumLength }) === 'error') {
+    if (validate(this.props) === 'error') {
       lvString = 'form-group has-error'
     } else {
       lvString = 'form-group'
@@ -35,8 +34,7 @@ export default class MusitTextArea extends Component {
 
   classNameOnlyWithInput() {
     let lvString = ''
-    if (validate(this, this.props.value, this.props.validate,
-      this.props.minimumLength, { maximumLength: this.props.maximumLength }) === 'error') {
+    if (validate(this.props) === 'error') {
       lvString = 'has-error'
     } else {
       lvString = ''
@@ -68,6 +66,6 @@ MusitTextArea.propTypes = {
   validate: PropTypes.string.isRequired,
   minimumLength: PropTypes.number,
   maximumLength: PropTypes.number,
-  validator: PropTypes.func,
+  validator: PropTypes.string,
   numberOfRows: PropTypes.number
 };

@@ -35,7 +35,7 @@ no:
           placeHolder: int
           addOnPrefix: "\u00b1"
         inertAir:
-          labelText: "Rel. luftfuktighet"
+          labelText: "inertAir"
           tooltip: "Måleenhet prosent oksygen, desimaltall"
           placeHolder: "% O2"
         inertAirTolerance:
