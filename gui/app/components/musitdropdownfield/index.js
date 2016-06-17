@@ -3,7 +3,7 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, Popover, ControlLabel, Col, InputGroup, OverlayTrigger, FormControl } from 'react-bootstrap'
+import { FormGroup, Popover, ControlLabel, Col, InputGroup, OverlayTrigger, DropdownButton, MenuItem } from 'react-bootstrap'
 
 
 export default class MusitDropDownField extends Component {
@@ -31,28 +31,26 @@ export default class MusitDropDownField extends Component {
             </Col>
             <Col sm={9}>
                 <InputGroup style={{ display: 'table' }}>
-                    <FormControl
-                      type = {this.props.valueType}
-                      componentClass="select"
-                      style={{ borderRadius: '5px' }}
-                      onChange={(event) => this.props.onChange(event.target.value) }
-
-                    >
-                      <option>Velg type</option>
-                      {this.props.items.map((el) =>
-                          <option value = {el}> {el} </option>)
+                <DropdownButton title={this.props.valueText()} id="bg-nested-dropdown">
+                    <MenuItem eventKey="1">Velg type</MenuItem>
+                    {this.props.items.map((el) => {
+                      if (el === this.props.valueText()) {
+                        return <MenuItem eventKey="2" active>{el}</MenuItem>
                       }
-                    </FormControl>
-
-                    {this.props.tooltip ?
-                        <OverlayTrigger
-                          trigger={['click']}
-                          rootClose
-                          placement="right"
-                          overlay={MusitDropDownField.helpText(this.props.tooltip)}
-                        >
-                            <InputGroup.Addon>?</InputGroup.Addon>
-                        </OverlayTrigger> : null}
+                      return <MenuItem eventKey="2">{el}</MenuItem>
+                    }
+                  )
+                }
+                </DropdownButton>
+                {this.props.tooltip ?
+                  <OverlayTrigger
+                    trigger={['click']}
+                    rootClose
+                    placement="right"
+                    overlay={MusitDropDownField.helpText(this.props.tooltip)}
+                  >
+                    <InputGroup.Addon>?</InputGroup.Addon>
+                  </OverlayTrigger> : null}
                 </InputGroup>
             </Col>
         </FormGroup>
