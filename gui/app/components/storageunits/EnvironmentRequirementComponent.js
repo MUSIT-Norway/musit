@@ -31,6 +31,10 @@ export default class EnvironmentRequirementComponent extends Component {
       environmentRequirement: {
         temperature: '',
         temperatureTolerance: '',
+        relativeHumidity: '',
+        relativeHumidityTolerance: '',
+        inertAir: '',
+        inertAirTolerance: '',
         temperature1: '',
         temperature2: '',
         relativeHumidity1: '',
@@ -77,74 +81,97 @@ export default class EnvironmentRequirementComponent extends Component {
       }
     }
 
-    this.temperature11 = {
-      controlId: 'temperature1',
-      controlId2: 'temperature2',
-      valueType: 'text',
-      labelText: this.props.translate('musit.storageUnits.environmentRequirements.temperature.labelText'),
-      labelText2: '\u00b1',
+    this.temperature = {
+      id: 'temperature',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.temperature.tooltip'),
-      placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.temperature.placeHolderText'),
-      placeHolderText2: this.props.translate('musit.storageUnits.environmentRequirements.temperature.placeHolderText2'),
-      valueText: () => clazz.state.environmentRequirement.temperature1,
-      valueText2: () => clazz.state.environmentRequirement.temperature2,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.temperature1),
-      validationState2: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.temperature2),
-      onChange: (temperature1) => clazz.setState({
-        environmentRequirement: { ...this.state.environmentRequirement, temperature1 }
-      }),
-      onChange2: (temperature2) => clazz.setState({
-        environmentRequirement: { ...this.state.environmentRequirement, temperature2 }
-      })
+      validate: 'text',
+      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.temperature.placeHolder'),
+      onChange: (temperature) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            temperature
+          }
+        })
+      }
+    }
+
+    this.temperatureTolerance = {
+      id: 'temperatureTolerance',
+      tooltip: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.tooltip'),
+      validate: 'text',
+      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.placeHolder'),
+      addOnPrefix: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.addOnPrefix'),
+      onChange: (temperatureTolerance) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            temperatureTolerance
+          }
+        })
+      }
     }
 
     this.relativeHumidity = {
-      controlId: 'relativeHumidity1',
-      controlId2: 'relativeHumidity2',
-      valueType: 'text',
-      labelText: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.labelText'),
-      labelText2: '\u00b1',
+      id: 'relativeHumidity',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.tooltip'),
-      placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.placeHolderText'),
-      placeHolderText2: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.placeHolderText2'),
-      valueText: () => clazz.state.environmentRequirement.relativeHumidity1,
-      valueText2: () => clazz.state.environmentRequirement.relativeHumidity2,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.relativeHumidity1),
-      validationState2: () =>
-        EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.relativeHumidity2),
-      onChange: (relativeHumidity1) => clazz.setState({
-        environmentRequirement: { ...this.state.environmentRequirement, relativeHumidity1 }
-      }),
-      onChange2: (relativeHumidity2) => clazz.setState({
-        environmentRequirement: { ...this.state.environmentRequirement, relativeHumidity2 }
-      })
+      validate: 'text',
+      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.placeHolder'),
+      onChange: (relativeHumidity) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            relativeHumidity
+          }
+        })
+      }
+    }
+
+    this.relativeHumidityTolerance = {
+      id: 'relativeHumidityTolerance',
+      tooltip: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidityTolerance.tooltip'),
+      validate: 'text',
+      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidityTolerance.placeHolder'),
+      addOnPrefix: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidityTolerance.addOnPrefix'),
+      onChange: (relativeHumidityTolerance) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            relativeHumidityTolerance
+          }
+        })
+      }
     }
 
     this.inertAir = {
-      controlId: 'inertAir1',
-      controlId2: 'inertAir2',
-      valueType: 'text',
-      labelText: this.props.translate('musit.storageUnits.environmentRequirements.inertAir.labelText'),
-      labelText2: '\u00b1',
+      id: 'inertAir',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.inertAir.tooltip'),
-      placeHolderText: this.props.translate('musit.storageUnits.environmentRequirements.inertAir.placeHolderText'),
-      placeHolderText2: this.props.translate('musit.storageUnits.environmentRequirements.inertAir.placeHolderText2'),
-      valueText: () => clazz.state.environmentRequirement.inertAir1,
-      valueText2: () => clazz.state.environmentRequirement.inertAir2,
-      validationState: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.inertAir1),
-      validationState2: () => EnvironmentRequirementComponent.validateNumber(clazz.state.environmentRequirement.inertAir2),
-      onChange: (inertAir1) => clazz.setState({
-        environmentRequirement: {
-          ...this.state.environmentRequirement,
-          inertAir1
-        }
-      }),
-      onChange2: (inertAir2) => clazz.setState({
-        environmentRequirement: {
-          ...this.state.environmentRequirement,
-          inertAir2
-        }
-      })
+      validate: 'text',
+      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.inertAir.placeHolder'),
+      onChange: (inertAir) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            inertAir
+          }
+        })
+      }
+    }
+
+    this.inertAirTolerance = {
+      id: 'inertAirTolerance',
+      tooltip: this.props.translate('musit.storageUnits.environmentRequirements.inertAirTolerance.tooltip'),
+      validate: 'text',
+      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.inertAirTolerance.placeHolder'),
+      addOnPrefix: this.props.translate('musit.storageUnits.environmentRequirements.inertAirTolerance.addOnPrefix'),
+      onChange: (inertAirTolerance) => {
+        this.setState({
+          environmentRequirement: {
+            ...this.state.environmentRequirement,
+            inertAirTolerance
+          }
+        })
+      }
     }
 
     this.renhold = {
@@ -223,16 +250,32 @@ export default class EnvironmentRequirementComponent extends Component {
                   </form>
                 </Col>
                 <Col md={6}>
-                  <Form horizontal>
-                    <TextField {...this.relativeHumidity} />
-                  </Form>
+                  <form className="form-horizontal">
+                    <div className="form-group">
+                      <label className="col-sm-3 control-label" htmlFor="comments2">{this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.labelText')}</label>
+                      <div class="col-sm-5" is="null">
+                        <Field {...this.relativeHumidity} value={this.state.environmentRequirement.relativeHumidity} />
+                      </div>
+                      <div class="col-sm-4" is="null">
+                        <Field {...this.relativeHumidityTolerance} value={this.state.environmentRequirement.relativeHumidityTolerance} />
+                      </div>
+                    </div>
+                  </form>
                 </Col>
               </Row>
               <Row styleClass="row-centered">
                 <Col md={6}>
-                  <Form horizontal>
-                    <TextField {...this.inertAir} />
-                  </Form>
+                  <form className="form-horizontal">
+                    <div className="form-group">
+                      <label className="col-sm-3 control-label" htmlFor="comments2">{this.props.translate('musit.storageUnits.environmentRequirements.inertAir.labelText')}</label>
+                      <div class="col-sm-5" is="null">
+                        <Field {...this.inertAir} value={this.state.environmentRequirement.inertAir} />
+                      </div>
+                      <div class="col-sm-4" is="null">
+                        <Field {...this.inertAirTolerance} value={this.state.environmentRequirement.inertAirTolerance} />
+                      </div>
+                    </div>
+                  </form>
                 </Col>
                 <Col md={6}>
                   <Form horizontal>
