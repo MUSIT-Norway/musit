@@ -3,7 +3,7 @@
  */
 
 import React, { Component } from 'react';
-import { MusitTextArea as TextArea, MusitField as Field, MusitTextField as TextField } from '../../components/formfields'
+import { MusitTextArea as TextArea, MusitField as Field } from '../../components/formfields'
 import { Panel, Form, Grid, Row, Col, FormGroup } from 'react-bootstrap'
 
 export default class EnvironmentRequirementComponent extends Component {
@@ -18,12 +18,6 @@ export default class EnvironmentRequirementComponent extends Component {
     return value.length > maximumLength ? 'error' : isValid
   }
 
-  static validateNumber(value, minimumLength = 1) {
-    const isSomething = value.length >= minimumLength
-    const isValid = isSomething ? 'success' : null
-    return isSomething && isNaN(value) ? 'error' : isValid
-  }
-
   constructor(props) {
     super(props)
 
@@ -35,25 +29,16 @@ export default class EnvironmentRequirementComponent extends Component {
         relativeHumidityTolerance: '',
         inertAir: '',
         inertAirTolerance: '',
-        temperature1: '',
-        temperature2: '',
-        relativeHumidity1: '',
-        relativeHumidity2: '',
-        inertAir1: '',
-        inertAir2: '',
         renhold: '',
         lightCondition: '',
-        comments: '',
-        comments2: ''
+        comments: ''
       }
     }
-
-    const clazz = this
 
     this.temperature = {
       id: 'temperature',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.temperature.tooltip'),
-      validate: 'text',
+      validate: 'number',
       placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.temperature.placeHolder'),
       onChange: (temperature) => {
         this.setState({
@@ -68,38 +53,7 @@ export default class EnvironmentRequirementComponent extends Component {
     this.temperatureTolerance = {
       id: 'temperatureTolerance',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.tooltip'),
-      validate: 'text',
-      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.placeHolder'),
-      addOnPrefix: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.addOnPrefix'),
-      onChange: (temperatureTolerance) => {
-        this.setState({
-          environmentRequirement: {
-            ...this.state.environmentRequirement,
-            temperatureTolerance
-          }
-        })
-      }
-    }
-
-    this.temperature = {
-      id: 'temperature',
-      tooltip: this.props.translate('musit.storageUnits.environmentRequirements.temperature.tooltip'),
-      validate: 'text',
-      placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.temperature.placeHolder'),
-      onChange: (temperature) => {
-        this.setState({
-          environmentRequirement: {
-            ...this.state.environmentRequirement,
-            temperature
-          }
-        })
-      }
-    }
-
-    this.temperatureTolerance = {
-      id: 'temperatureTolerance',
-      tooltip: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.tooltip'),
-      validate: 'text',
+      validate: 'number',
       placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.placeHolder'),
       addOnPrefix: this.props.translate('musit.storageUnits.environmentRequirements.temperatureTolerance.addOnPrefix'),
       onChange: (temperatureTolerance) => {
@@ -115,7 +69,7 @@ export default class EnvironmentRequirementComponent extends Component {
     this.relativeHumidity = {
       id: 'relativeHumidity',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.tooltip'),
-      validate: 'text',
+      validate: 'number',
       placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.placeHolder'),
       onChange: (relativeHumidity) => {
         this.setState({
@@ -130,7 +84,7 @@ export default class EnvironmentRequirementComponent extends Component {
     this.relativeHumidityTolerance = {
       id: 'relativeHumidityTolerance',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidityTolerance.tooltip'),
-      validate: 'text',
+      validate: 'number',
       placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidityTolerance.placeHolder'),
       addOnPrefix: this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidityTolerance.addOnPrefix'),
       onChange: (relativeHumidityTolerance) => {
@@ -146,7 +100,7 @@ export default class EnvironmentRequirementComponent extends Component {
     this.inertAir = {
       id: 'inertAir',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.inertAir.tooltip'),
-      validate: 'text',
+      validate: 'number',
       placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.inertAir.placeHolder'),
       onChange: (inertAir) => {
         this.setState({
@@ -161,7 +115,7 @@ export default class EnvironmentRequirementComponent extends Component {
     this.inertAirTolerance = {
       id: 'inertAirTolerance',
       tooltip: this.props.translate('musit.storageUnits.environmentRequirements.inertAirTolerance.tooltip'),
-      validate: 'text',
+      validate: 'number',
       placeHolder: this.props.translate('musit.storageUnits.environmentRequirements.inertAirTolerance.placeHolder'),
       addOnPrefix: this.props.translate('musit.storageUnits.environmentRequirements.inertAirTolerance.addOnPrefix'),
       onChange: (inertAirTolerance) => {
@@ -209,11 +163,11 @@ export default class EnvironmentRequirementComponent extends Component {
       labelText: 'Kommentar',
       placeHolderText: '',
       tooltip: 'Kommentar',
-      valueText: () => clazz.state.environmentRequirement.comments,
-      validationState: () => EnvironmentRequirementComponent.validateString(clazz.state.environmentRequirement.comments),
-      onChange: (comments) => clazz.setState({
+      valueText: () => this.state.environmentRequirement.comments,
+      validationState: () => EnvironmentRequirementComponent.validateString(this.state.environmentRequirement.comments),
+      onChange: (comments) => this.setState({
         environmentRequirement: {
-          ...clazz.state.environmentRequirement,
+          ...this.state.environmentRequirement,
           comments
         }
       })
@@ -239,7 +193,8 @@ export default class EnvironmentRequirementComponent extends Component {
                 <Col md={6}>
                   <form className="form-horizontal">
                     <div className="form-group">
-                      <label className="col-sm-3 control-label" htmlFor="comments2">{this.props.translate('musit.storageUnits.environmentRequirements.temperature.labelText')}</label>
+                      <label className="col-sm-3 control-label" htmlFor="comments2">
+                        {this.props.translate('musit.storageUnits.environmentRequirements.temperature.labelText')}</label>
                       <div class="col-sm-5" is="null">
                         <Field {...this.temperature} value={this.state.environmentRequirement.temperature} />
                       </div>
@@ -252,12 +207,15 @@ export default class EnvironmentRequirementComponent extends Component {
                 <Col md={6}>
                   <form className="form-horizontal">
                     <div className="form-group">
-                      <label className="col-sm-3 control-label" htmlFor="comments2">{this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.labelText')}</label>
+                      <label className="col-sm-3 control-label" htmlFor="comments2">
+                        {this.props.translate('musit.storageUnits.environmentRequirements.relativeHumidity.labelText')}</label>
                       <div class="col-sm-5" is="null">
                         <Field {...this.relativeHumidity} value={this.state.environmentRequirement.relativeHumidity} />
                       </div>
                       <div class="col-sm-4" is="null">
-                        <Field {...this.relativeHumidityTolerance} value={this.state.environmentRequirement.relativeHumidityTolerance} />
+                        <Field {...this.relativeHumidityTolerance}
+                          value={this.state.environmentRequirement.relativeHumidityTolerance}
+                        />
                       </div>
                     </div>
                   </form>
@@ -267,7 +225,8 @@ export default class EnvironmentRequirementComponent extends Component {
                 <Col md={6}>
                   <form className="form-horizontal">
                     <div className="form-group">
-                      <label className="col-sm-3 control-label" htmlFor="comments2">{this.props.translate('musit.storageUnits.environmentRequirements.inertAir.labelText')}</label>
+                      <label className="col-sm-3 control-label" htmlFor="comments2">
+                        {this.props.translate('musit.storageUnits.environmentRequirements.inertAir.labelText')}</label>
                       <div class="col-sm-5" is="null">
                         <Field {...this.inertAir} value={this.state.environmentRequirement.inertAir} />
                       </div>
