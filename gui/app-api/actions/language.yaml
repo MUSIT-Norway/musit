@@ -48,6 +48,9 @@ no:
         lightCondition:
           labelText: Lysforhold
           tooltip: Lysforhold
+        comments:
+          labelText: comments
+          tooltip: "Kommentar!"
 
     welcomePage:
       title: >

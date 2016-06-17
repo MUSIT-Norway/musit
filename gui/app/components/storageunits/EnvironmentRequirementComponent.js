@@ -12,12 +12,6 @@ export default class EnvironmentRequirementComponent extends Component {
     user: React.PropTypes.object,
   };
 
-  static validateString(value, minimumLength = 3, maximumLength = 20) {
-    const isSomething = value.length >= minimumLength
-    const isValid = isSomething ? 'success' : null
-    return value.length > maximumLength ? 'error' : isValid
-  }
-
   constructor(props) {
     super(props)
 
@@ -159,12 +153,10 @@ export default class EnvironmentRequirementComponent extends Component {
     }
 
     this.comments = {
-      controlId: 'comments',
-      labelText: 'Kommentar',
-      placeHolderText: '',
-      tooltip: 'Kommentar',
-      valueText: () => this.state.environmentRequirement.comments,
-      validationState: () => EnvironmentRequirementComponent.validateString(this.state.environmentRequirement.comments),
+      id: 'comments',
+      numberOfRows: 4,
+      tooltip: this.props.translate('musit.storageUnits.environmentRequirements.comments.tooltip'),
+      validate: 'text',
       onChange: (comments) => this.setState({
         environmentRequirement: {
           ...this.state.environmentRequirement,
@@ -253,9 +245,15 @@ export default class EnvironmentRequirementComponent extends Component {
               </Row>
               <Row>
                 <Col md={6}>
-                  <Form horizontal>
-                    <TextArea{...this.comments} />
-                  </Form>
+                  <form className="form-horizontal">
+                    <div className="form-group">
+                      <label className="col-sm-3 control-label" htmlFor="comments">
+                        {this.props.translate('musit.storageUnits.environmentRequirements.comments.labelText')}</label>
+                      <div class="col-sm-9" is="null">
+                        <TextArea {...this.comments} value={this.state.environmentRequirement.comments} />
+                      </div>
+                    </div>
+                  </form>
                 </Col>
               </Row>
             </Grid>
