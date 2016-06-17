@@ -21,13 +21,15 @@
 package no.uio.musit.microservice.event.resource
 
 import io.swagger.annotations.ApiOperation
-import no.uio.musit.microservice.event.domain.{ AtomLink, CompleteEvent, EventInfo }
+import no.uio.musit.microservice.event.domain.{AtomLink, CompleteEvent, EventInfo, EventType}
 import no.uio.musit.microservice.event.service.EventService
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.ResourceHelper
+import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
 import play.api.libs.json._
-import play.api.mvc.{ Action, BodyParsers, Controller }
+import play.api.mvc.{Action, BodyParsers, Controller}
+
+import scala.util.{Failure, Success, Try}
 
 /**
  * Created by jstabel on 6/10/16.
@@ -39,11 +41,15 @@ class EventResource extends Controller {
 
   def jsonToEventInfo(json: JsValue): Either[MusitError, EventInfo] = {
     // TODO: Make this with proper error handling, this is just a quick and dirty version!
-    val eventType = (json \ "eventType").as[String]
+    val eventTypeName = (json \ "eventType").as[String]
     val optJsObject = (json \ "eventData").toOption.map(_.as[JsObject])
     val links = ((json \ "links").asOpt[List[AtomLink]]).getOrElse(Seq.empty)
+    val maybeEventType = Try(EventType(eventTypeName))
+    maybeEventType match{
+      case Success(eventType) => Right(EventInfo(None, eventTypeName, optJsObject, Some(links)))
+      case Failure(e ) => Left(ErrorHelper.badRequest(e.getMessage))
+    }
 
-    Right(EventInfo(None, eventType, optJsObject, Some(links)))
   }
 
   @ApiOperation(value = "Event operation - inserts an Event", httpMethod = "POST")

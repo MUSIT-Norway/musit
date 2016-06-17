@@ -99,7 +99,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "eventData": {"note": "Dette er IKKE viktig notat!"}}"""
 
       val response = createEvent(json)
-      response.status mustBe 500
+      response.status mustBe 400
     }
 
 

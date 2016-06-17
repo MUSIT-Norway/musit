@@ -31,6 +31,15 @@ case class AtomLink(rel: String, href: String) {
   def toLink(localId: Long) = Link(None, Some(localId), rel, href)
 
 }
+
+/**
+  *
+  * @param id
+  * @param eventType meant to already be validated
+  * @param eventData
+  * @param links
+  */
+
 case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject], links: Option[Seq[AtomLink]])
 
 case class Event(id: Option[Long], eventTypeId: Int, note: Option[String]) {

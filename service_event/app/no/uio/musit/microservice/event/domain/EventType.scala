@@ -45,7 +45,8 @@ object EventType {
 
   //def tupled = (EventType.apply _).tupled
 
-  //implicit val format = Json.format[EventType]
+  //
+  // implicit val format = Json.format[EventType]
 
   def eventTypeIdToEventType(id: Int) = {
     id match {
