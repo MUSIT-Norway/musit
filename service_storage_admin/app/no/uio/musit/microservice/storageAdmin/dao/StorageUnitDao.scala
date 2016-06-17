@@ -165,7 +165,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
-    def * = (id, storageType, storageUnitName, area, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy)
+    def * = (id, storageType, storageUnitName, area, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
@@ -186,7 +186,8 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     val isDeleted = column[Int]("IS_DELETED") // this columns is not a member of the case class storageUnit. IT's not
     // part of the official/public API of storageUnit, only used internally.
 
-    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], isPartOf: Option[Long], height: Option[Long],
+    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long],
+      isPartOf: Option[Long], height: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
       StorageUnit(
         id, storageType,
@@ -199,8 +200,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {
-    def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, sikringRutineOgBeredskap,
-      bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
+
+    def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko,
+      sikringRutineOgBeredskap, bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy) // scalastyle:ignore
 
     def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
 
@@ -220,9 +222,10 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
 
-    def create = (id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean], sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
-      sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean], bevarLysforhold: Option[Boolean],
-      bevarPrevantKons: Option[Boolean]) =>
+    def create = (id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean],
+      sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
+      sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean],
+      bevarLysforhold: Option[Boolean], bevarPrevantKons: Option[Boolean]) =>
       StorageRoom(
         id,
         sikringSkallsikring,
@@ -236,12 +239,13 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         linkText(id)
       )
 
-    def destroy(room: StorageRoom) = Some(room.id, room.sikringSkallsikring, room.sikringTyverisikring, room.sikringBrannsikring, room.sikringVannskaderisiko,
+    def destroy(room: StorageRoom) = Some(room.id, room.sikringSkallsikring, room.sikringTyverisikring,
+      room.sikringBrannsikring, room.sikringVannskaderisiko,
       room.sikringRutineOgBeredskap, room.bevarLuftfuktOgTemp, room.bevarLysforhold, room.bevarPrevantKons)
   }
 
   private class BuildingTable(tag: Tag) extends Table[StorageBuilding](tag, Some("MUSARK_STORAGE"), "BUILDING") {
-    def * = (id, address) <> (create.tupled, destroy)
+    def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
 
     def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
 

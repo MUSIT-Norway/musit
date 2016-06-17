@@ -21,17 +21,16 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.domain.{ AtomLink, CompleteEvent, Event }
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.linking.domain.Link
+import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
-import no.uio.musit.microservices.common.extensions.OptionExtensions._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.utils.Misc._
 
 /**
  * Created by jstabel on 6/13/16.
@@ -57,9 +56,10 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def insertBaseEvent(eventBase: Event, links: Seq[AtomLink]): Future[CompleteEvent] = {
-    def copyEventIdIntoLinks(eventBasen: Event) = links.map(l => l.toLink(eventBasen.id.getOrThrow("missing eventId in eventDao.insertBaseEvent ")))
-    def selfLink(eventBase: Event) = linkText(eventBase.id.getOrThrow("missing ID"))
-    def selfLinkAsAtomLink(eventBase: Event) = linkText(eventBase.id.getOrThrow("missing ID")) |> AtomLink.createFromLink
+    def idOfEvent(eventBase: Event) = eventBase.id.getOrThrow("missing eventId in eventDao.insertBaseEvent ")
+    def copyEventIdIntoLinks(eventBase: Event) = links.map(l => l.toLink(idOfEvent(eventBase)))
+    def selfLink(eventBase: Event) = linkText(idOfEvent(eventBase))
+    def selfLinkAsAtomLink(eventBase: Event) = selfLink(eventBase) |> AtomLink.createFromLink
 
     val action = (for {
       base <- insertAction(eventBase)
@@ -75,7 +75,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class EventBaseTable(tag: Tag) extends Table[Event](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id, eventTypeID, eventNote) <> (create.tupled, destroy)
+    def * = (id, eventTypeID, eventNote) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
 

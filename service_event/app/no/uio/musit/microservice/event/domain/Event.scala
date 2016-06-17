@@ -33,12 +33,12 @@ case class AtomLink(rel: String, href: String) {
 }
 
 /**
-  *
-  * @param id
-  * @param eventType meant to already be validated
-  * @param eventData
-  * @param links
-  */
+ *
+ * @param id
+ * @param eventType meant to already be validated
+ * @param eventData
+ * @param links
+ */
 
 case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject], links: Option[Seq[AtomLink]])
 

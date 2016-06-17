@@ -21,17 +21,13 @@
 package no.uio.musit.microservice.event.resource
 
 import no.uio.musit.microservices.common.PlayTestDefaults
-import no.uio.musit.microservices.common.domain.{MusitError, MusitStatusMessage}
-import no.uio.musit.microservices.common.linking.LinkService
+import no.uio.musit.microservices.common.PlayTestDefaults._
+import no.uio.musit.microservices.common.extensions.PlayExtensions._
+import no.uio.musit.microservices.common.utils.Misc._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
 import play.api.libs.ws.WS
-import play.api.libs.ws.WS
-import no.uio.musit.microservices.common.extensions.PlayExtensions._
-import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.PlayTestDefaults._
 
 /**
   * Created by jstabel on 6/10/16.

@@ -21,14 +21,14 @@
 package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.dao.EventDao
+import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.linking.dao.LinkDao
+import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
-import no.uio.musit.microservice.event.domain._
-import no.uio.musit.microservices.common.linking.dao.LinkDao
 import play.api.libs.json.{ JsObject, Json }
-import no.uio.musit.microservices.common.linking.domain.Link
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -37,9 +37,6 @@ import scala.concurrent.Future
  * Created by jstabel on 6/10/16.
  */
 trait EventService {
-
-  type MusitResult[T] = Either[MusitError, T]
-  type MusitFuture[T] = Future[MusitResult[T]]
 
   //A separate function for this message because we want to verify we get this error message in some of the integration tests
   def unknownEventMsg(id: Long) = s"Unknown event with id: $id"
@@ -87,13 +84,11 @@ trait EventService {
     ServiceHelper.daoInsert(EventDao.insertBaseEvent(completeEvent.baseEvent, maybeLinks).map(completeEventToEventInfo))
   }
 
-  private def getBaseEvent(id: Long): MusitFuture[Event] = EventDao.getBaseEvent(id).toFutureEither(eventNotFoundError(id))
+  private def getBaseEvent(id: Long): MusitFuture[Event] = EventDao.getBaseEvent(id).toMusitFuture(eventNotFoundError(id))
 
-  private def futureToMusitFuture[T](future: Future[T]): MusitFuture[T] = future.map(Right(_))
+  private def getLinks(id: Long): MusitFuture[Seq[Link]] = LinkDao.findByLocalTableId(id).toMusitFuture
 
-  private def getLinks(id: Long): MusitFuture[Seq[Link]] = LinkDao.findByLocalTableId(id) |> futureToMusitFuture
-
-  private def getAtomLinks(id: Long) = getLinks(id).musitFutureMap { links =>
+  private def getAtomLinks(id: Long): MusitFuture[Seq[AtomLink]] = getLinks(id).musitFutureMap { links =>
     links.map(AtomLink.createFromLink)
   }
 
@@ -103,13 +98,12 @@ trait EventService {
     val futCompleteEvent = futureEventLinks.musitFutureFlatMap { links =>
       musitFutureBaseEvent.musitFutureMap(baseEvent => CompleteEvent(baseEvent, None, Some(links)))
     }
-    futCompleteEvent.foreach(res => println(s"getById, result: ${res}"))
 
     futCompleteEvent
     //TEMP!!! Fjernes når nedenstående kommer inn
     //Todo, for de andre event-typene
     /*
-    musitFutureBaseEvent.futureEitherFlatMap { baseEvent =>
+    musitFutureBaseEvent.musitFutureFlatMap { baseEvent =>
       storageUnit.storageKind match {
         case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
         case Building => getBuildingById(id).futureEitherMap(storageBuilding => StorageUnitTriple.createBuilding(storageUnit, storageBuilding))
