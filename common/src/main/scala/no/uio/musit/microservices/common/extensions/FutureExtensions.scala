@@ -77,4 +77,8 @@ object FutureExtensions {
     }
   }
 
+  object MusitFuture {
+    def successful[T](result: T): MusitFuture[T] = Future.successful(Right(result))
+  }
+
 }

@@ -71,11 +71,11 @@ trait StorageUnitService {
   private def getRoomById(id: Long) = StorageUnitDao.getRoomById(id).toMusitFuture(storageRoomNotFoundError(id))
 
   def getById(id: Long): MusitFuture[StorageUnitTriple] = {
-    val futureEitherStorageUnit = getStorageUnitOnly(id)
+    val musitFutureStorageUnit = getStorageUnitOnly(id)
 
-    futureEitherStorageUnit.musitFutureFlatMap { storageUnit =>
+    musitFutureStorageUnit.musitFutureFlatMap { storageUnit =>
       storageUnit.storageKind match {
-        case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
+        case StUnit => MusitFuture.successful(StorageUnitTriple.createStorageUnit(storageUnit))
         case Building => getBuildingById(id).musitFutureMap(storageBuilding => StorageUnitTriple.createBuilding(storageUnit, storageBuilding))
         case Room => getRoomById(id).musitFutureMap(storageRoom => StorageUnitTriple.createRoom(storageUnit, storageRoom))
       }
