@@ -85,6 +85,7 @@
     "express": "^4.14.0",
     "http-proxy": "^1.13.2",
     "log": "^1.4.0",
+    "minimatch": "^3.0.2",
     "node-cache": "^3.2.1",
     "passport": "^0.3.2",
     "passport-dataporten": "^1.1.3",
