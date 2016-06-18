@@ -3,4 +3,5 @@ public/assets/js/bundle.js
 public/assets/css/bundle.css
 public/assets/css/fontawesome-*
 public/assets/css/glyphicons-*
-.idea
+.idea/
+coverage/
