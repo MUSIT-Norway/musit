@@ -35,8 +35,6 @@ module.exports = {
       'process.env': {
         NODE_ENV: '"production"'
       },
-      __CLIENT__: true,
-      __SERVER__: false,
       __DEVELOPMENT__: false,
       __FAKE_FEIDE__: false,
       __DEVTOOLS__: false  // <-------- DISABLE redux-devtools HERE

@@ -24,7 +24,7 @@ import { connectUser } from '../../reducers/auth'
 
 const mapStateToProps = (state) => {
   return {
-    fakeAuthInfo: state.fakeAuthInfo
+    users: state.fakeAuthInfo.users || []
   }
 }
 
@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch) => {
 @connect(mapStateToProps, mapDispatchToProps)
 export default class FakeLoginSelector extends Component {
   static propTypes = {
-    fakeAuthInfo: PropTypes.object,
+    users: PropTypes.arrayOf(PropTypes.object),
     setUser: PropTypes.func.isRequired,
   }
 
@@ -55,15 +55,9 @@ export default class FakeLoginSelector extends Component {
   }
 
   render() {
-    const { fakeAuthInfo } = this.props
-    let menuItems = ''
-    if (fakeAuthInfo.users) {
-      menuItems = fakeAuthInfo.users.map((user) => <MenuItem eventKey={user}>{user.name}</MenuItem>)
-    }
-
     return (
       <DropdownButton title="Fake User" onSelect={this.onSelect}>
-        {menuItems}
+        {this.props.users.map((user) => <MenuItem eventKey={user}>{user.name}</MenuItem>)}
       </DropdownButton>
     )
   }

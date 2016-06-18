@@ -29,7 +29,7 @@ const createStore = (client, data) => {
   const middleware = [createMiddleware(client)]
 
   let finalCreateStore;
-  if (__DEVELOPMENT__ && __CLIENT__ && __DEVTOOLS__) {
+  if (__DEVELOPMENT__ && __DEVTOOLS__) {
     const logger = createLogger()
     finalCreateStore = compose(
       applyMiddleware(logger, ...middleware),
