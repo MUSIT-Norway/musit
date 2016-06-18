@@ -29,7 +29,6 @@ const targetUrl = `http://${config.apiHost}:${config.apiPort}`;
 const app = new Express();
 const server = new http.Server(app);
 const proxy = httpProxy.createProxyServer();
-const stringifyObject = require('stringify-object')
 app.set('view engine', 'ejs');
 app.use(compression());
 
@@ -67,7 +66,6 @@ proxy.on('error', (error, req, res) => {
 
 app.use('/musit', Passport.authenticate('dataporten', { failWithError: true }),
   (req, res) => {
-    console.log(req.user);
     res.render('callback/index', { user: req.user });
   },
   (err, req, res) => {

@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "description": "The MUSIT Backing services.",
   "scripts": {
-    "start": "concurrently --kill-others \"npm run start-prod\" \"npm run start-prod-api\"",
-    "start-prod": "better-npm-run start-prod",
-    "start-prod-api": "better-npm-run start-prod-api",
-    "start-dev": "better-npm-run start-dev",
-    "start-dev-api": "better-npm-run start-dev-api",
-    "dev": "concurrently --kill-others \"npm run start-dev\" \"npm run start-dev-api\""
+    "start:prod": "concurrently --kill-others \"npm run start:prod:api\" \"npm run start:prod:gateway\"",
+    "start:prod:api": "better-npm-run start-prod-api",
+    "start:prod:gateway": "better-npm-run start-prod-gateway",
+    "start:dev:api": "better-npm-run start-dev-api",
+    "start:dev:gateway": "better-npm-run start-dev-gateway",
+    "start": "concurrently --kill-others \"npm run start:dev:api\" \"npm run start:dev:gateway\""
   },
   "betterScripts": {
-    "start-prod": {
+    "start-prod-api": {
       "command": "node ./scripts/api.js",
       "env": {
         "NODE_ENV": "production",
@@ -19,14 +19,14 @@
         "APIPORT": 3030
       }
     },
-    "start-prod-api": {
+    "start-prod-gateway": {
       "command": "node ./scripts/gateway.js",
       "env": {
         "NODE_ENV": "production",
         "APIPORT": 3030
       }
     },
-    "start-dev": {
+    "start-dev-api": {
       "command": "node ./scripts/api.js",
       "env": {
         "NODE_ENV": "development",
@@ -34,7 +34,7 @@
         "APIPORT": 3030
       }
     },
-    "start-dev-api": {
+    "start-dev-gateway": {
       "command": "node ./scripts/gateway.js",
       "env": {
         "NODE_ENV": "development",
