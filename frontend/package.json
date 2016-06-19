@@ -14,7 +14,7 @@
     "test": "./node_modules/mocha/bin/mocha --compilers js:babel-core/register $(find src -name '*-test.js')",
     "test:watch": "./node_modules/mocha/bin/mocha $(find src -name '*-test.js') --compilers js:babel-core/register --watch",
     "test:coverage": "rm -rfv ./coverage && node_modules/.bin/babel-node node_modules/.bin/isparta cover --report lcov --report html --root src --include-all-sources node_modules/mocha/bin/_mocha --compilers js:babel-core/register -v -- -R spec $(find src -name '*-test.js') && cat ./coverage/lcov.info | ./node_modules/.bin/codacy-coverage",
-    "start": "webpack-dev-server --port 8000 --config webpack.dev.config.js --hot --progress --colors --content-base public",
+    "start": "webpack-dev-server --port 8000 --host 0.0.0.0 --config webpack.dev.config.js --hot --progress --colors --content-base public",
     "build": "webpack --config webpack.prod.config.js --progress --colors"
   },
   "keywords": [],
