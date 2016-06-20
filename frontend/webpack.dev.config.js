@@ -18,7 +18,7 @@ module.exports = {
     new webpack.DefinePlugin({
       __DEVELOPMENT__: true,
       __FAKE_FEIDE__: false, // <-------- DISABLE fake login selector
-      __DEVTOOLS__: true  // <-------- DISABLE redux-devtools HERE
+      __DEVTOOLS__: false  // <-------- DISABLE redux-devtools HERE
     }),
   ],
   module: {
