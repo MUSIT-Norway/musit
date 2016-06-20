@@ -28,7 +28,7 @@ app.use('/musit', (req, res) => {
 });
 
 app.use('/api', (req, res) => {
-  proxy.web(req, res, { target: 'http://localhost:9090' });
+  proxy.web(req, res, { target: 'http://localhost:9090/api' });
 });
 
 app.use('/', (req, res) => {
