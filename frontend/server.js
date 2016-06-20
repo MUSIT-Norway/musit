@@ -35,8 +35,6 @@ app.use('/', (req, res) => {
   proxy.web(req, res, { target: 'http://localhost:8000' });
 });
 
-
-
 server.listen(8080, (err) => {
   if (err) {
     console.error(err);
