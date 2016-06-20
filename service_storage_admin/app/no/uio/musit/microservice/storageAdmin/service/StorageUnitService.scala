@@ -44,7 +44,8 @@ trait StorageUnitService {
   }
 
   private def storageUnitTypeMismatch(id: Long, expected: StorageUnitType, inDatabase: StorageUnitType): MusitError = {
-    ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: ${expected.typename}, but had the type: ${inDatabase.typename} in the database.")
+    ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: ${expected.typename}, " +
+      s"but had the type: ${inDatabase.typename} in the database.")
   }
 
   def create(storageUnit: StorageUnit): MusitFuture[StorageUnitTriple] = {
@@ -100,7 +101,10 @@ trait StorageUnitService {
    Else a Future false "MusitBoolean" is returned. */
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageUnitType): MusitFuture[Boolean] = {
     getStorageType(id).musitFutureFlatMapInnerEither {
-      storageUnitTypeInDatabase => boolToMusitBool(expectedStorageUnitType == storageUnitTypeInDatabase, storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase))
+      storageUnitTypeInDatabase => boolToMusitBool(
+        expectedStorageUnitType == storageUnitTypeInDatabase,
+        storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
+      )
     }
   }
 
