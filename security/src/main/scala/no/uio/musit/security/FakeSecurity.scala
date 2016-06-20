@@ -31,7 +31,7 @@ import no.uio.musit.microservices.common.extensions.PlayExtensions._
  */
 
 class FakeSecurityInMemoryInfoProvider(userId: String) extends ConnectionInfoProvider {
-  val userInfo = Future(FakeSecurityUsersAndGroups.findUser(userId).getOrThrow(s"Unable to find user with Id: $userId"))
+  val userInfo = Future(FakeSecurityUsersAndGroups.findUser(userId).getOrFail(s"Unable to find user with Id: $userId"))
 
   def getUserInfo = userInfo
   def getUserGroups = Future(FakeSecurityUsersAndGroups.groupsForUserId(userId))
