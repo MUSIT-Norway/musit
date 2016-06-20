@@ -18,21 +18,28 @@
  *
  */
 
-package no.uio.musit.microservices.common.utils
+package no.uio.musit.microservices.common.extensions
 
 import no.uio.musit.microservices.common.domain.MusitError
-import play.api.http.Status
+import no.uio.musit.microservices.common.utils.Misc._
+import play.api.Application
 
-import scala.concurrent.Future
+import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.duration._
+import scala.reflect.ClassTag
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.functional.Functor
+import play.api.mvc.Result
 
 /**
- * Created by jstabel on 6/7/16.
+ * Created by jstabel on 6/10/16.
  */
-object ErrorHelper {
-  def badRequest(text: String, devMessage: String = "") = MusitError(Status.BAD_REQUEST, text, devMessage)
-  def notFound(text: String, devMessage: String = "") = MusitError(Status.NOT_FOUND, text, devMessage)
-  def conflict(text: String, devMessage: String = "") = MusitError(Status.CONFLICT, text, devMessage)
-  def notImplemented(text: String, devMessage: String = "") = MusitError(Status.NOT_IMPLEMENTED, text, devMessage)
 
-  def futureNotImplemented(text: String, devMessage: String = "") = Future.successful(Left(notImplemented(text, devMessage)))
+object EitherExtensions {
+
+  implicit class EitherExtensionsImp[T](val either: Either[MusitError, T]) extends AnyVal {
+
+    //Current content moved to ResourceHelper
+
+  }
 }
