@@ -41,6 +41,17 @@ object LinkDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
+  def insertLinkAction(link: Link): DBIO[Unit] = {
+    val insertQuery = linkTable
+    val action = insertQuery += link
+    action.map(a => ())
+  }
+
+  def insertLinksAction(links: Seq[Link]) = {
+    val actionlist = DBIO.sequence(links.map(l => insertLinkAction(l)))
+    actionlist
+  }
+
   def findByLocalTableId(id: Long): Future[Seq[Link]] = db.run(linkTable.filter(_.localTableId === id).result)
 
   def findAllLinks(): Future[Seq[Link]] = db.run(linkTable.result)
