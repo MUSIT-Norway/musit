@@ -66,7 +66,9 @@ trait EventService {
     val hasData = baseEvent.note.isDefined
     if (hasData) {
       Some(Json.obj("note" -> Json.toJson(baseEvent.note)))
-    } else None
+    } else {
+      None
+    }
   }
 
   def completeEventToEventInfo(completeEvent: CompleteEvent): EventInfo = {
