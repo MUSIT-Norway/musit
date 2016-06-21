@@ -9,35 +9,35 @@
   {
     "name": "core",
     "scalaName": "CoreResource",
-    "host": "localhost",
+    "host": "core",
     "port": "7070",
     "protocol": "http://"
   },
   {
     "name": "actor",
     "scalaName": "ActorResource",
-    "host": "localhost",
+    "host": "actor",
     "port": "7070",
     "protocol": "http://"
   },
   {
     "name": "thing",
     "scalaName": "MusitThingResource",
-    "host": "localhost",
+    "host": "thing",
     "port": "7070",
     "protocol": "http://"
   },
   {
     "name": "time",
     "scalaName": "TimeResource",
-    "host": "localhost",
+    "host": "time",
     "port": "7070",
     "protocol": "http://"
   },
   {
     "name": "geolocation",
     "scalaName": "GeoLocationResource_V1",
-    "host": "localhost",
+    "host": "geolocation",
     "port": "7070",
     "protocol": "http://"
   }

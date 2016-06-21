@@ -22,3 +22,17 @@ services:
             context: "../../backing"
         ports:
             - "3030:3030"
+    thing:
+        image: musit_service_musit_thing:0.1-SNAPSHOT
+    core:
+        image: musit_service_core:0.1-SNAPSHOT
+    storage_admin:
+        image: musit_service_storage_admin:0.1-SNAPSHOT
+    actor:
+        image: musit_service_actor:0.1-SNAPSHOT
+    geolocation:
+        image: musit_service_geo_location:0.1-SNAPSHOT
+    event:
+        image: musit_service_event:0.1-SNAPSHOT
+    time:
+        image: musit_service_time:0.1-SNAPSHOT
