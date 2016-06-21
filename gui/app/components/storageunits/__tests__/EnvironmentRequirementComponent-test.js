@@ -1,22 +1,27 @@
-import { assert, React, ReactDOM, ReactTestUtils } from '../../../../test/setup';
+import { assert, React, ReactTestUtils } from '../../../../test/setup';
 import EnvironmentRequirementComponent from '../EnvironmentRequirementComponent';
 
 describe('EnvironmentRequirementComponent', () => {
-  it('should render EnvironmentRequirementComponent', () => {
+  let inputElement;
+
+  before('should render EnvironmentRequirementComponent', () => {
     const comments = {
       id: 'comments',
       numberOfRows: 4,
-      validate: 'text'
-    }
+      validate: 'text',
+      value: 'Hi'
+    };
     const myDiv = ReactTestUtils.renderIntoDocument(
         <EnvironmentRequirementComponent
           comments= {comments}
+          translate= {(key) => key}
         />
       );
-
-    const actualDiv = ReactDOM.findDOMNode(myDiv);
-    const field = actualDiv.querySelectorAll('textarea')[0];
-    // assert.equal(field.value, 'flint', 'Felt må være tilstede')
+    const inputComponent = ReactTestUtils.findRenderedDOMComponentWithTag(myDiv, 'textarea');
+    inputElement = inputComponent;
   });
 
+  it('Title should show the lanaguage title', () => {
+    assert(inputElement.getAttribute('title') === 'musit.storageUnits.environmentRequirements.comments.tooltip');
+  });
 });
