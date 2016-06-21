@@ -13,6 +13,11 @@
   }
   .actions {
     width: 18%;
+    text-align: right;
+  }
+  .actionList {
+    max-width: 400;
+    margin: 0 auto 10px;
   }
   .warningAction {
     color: #ff0000;
@@ -21,6 +26,11 @@
   }
   .normalAction {
     color: #00aa00;
+    font-size: 1.5em;
+    padding-left: 0.5em;
+  }
+  .infoAction {
+    color: #0000aa;
     font-size: 1.5em;
     padding-left: 0.5em;
   }
