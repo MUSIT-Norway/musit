@@ -2,7 +2,7 @@ const LOGIN = 'musit/fake-auth-info/LOGIN'
 const LOGIN_SUCCESS = 'musit/fake-auth-info/LOGIN_SUCCESS'
 const LOGIN_FAIL = 'musit/fake-auth-info/LOGIN_FAIL'
 
-const fakeAuthInfo = require('./users.json')
+const fakeAuthInfo = require('../../../../fake_security.json')
 const initialState = {
   ...fakeAuthInfo
 }
