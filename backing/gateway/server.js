@@ -17,7 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 import express from 'express';
-import config from '../api/config';
+import config from '../config';
 import APIGateway from './index';
 const Log = require('log');
 const logger = new Log('info');
@@ -33,12 +33,12 @@ app.use((req, res) => {
   }
 });
 
-if (config.apiPort) {
-  app.listen(config.apiPort, (err) => {
+if (config.gatewayPort) {
+  app.listen(config.gatewayPort, (err) => {
     if (err) {
       logger.error(err);
     }
-    logger.info('----\n==> 🌎  Gateway is running on port %s', config.apiPort);
+    logger.info('----\n==> 🌎  Gateway is running on port %s', config.gatewayPort);
   });
 } else {
   logger.error('==>     ERROR: No PORT environment variable has been specified');

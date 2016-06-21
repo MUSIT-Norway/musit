@@ -17,7 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 import Express from 'express';
-import config from './config';
+import config from '../config';
 import compression from 'compression';
 import httpProxy from 'http-proxy';
 import http from 'http';
@@ -25,7 +25,7 @@ import Passport from 'passport';
 import { Strategy as DataportenStrategy } from 'passport-dataporten';
 const Log = require('log');
 const logger = new Log('info');
-const targetUrl = `http://${config.apiHost}:${config.apiPort}`;
+const gatewayUrl = `http://${config.gatewayHost}:${config.gatewayPort}/api`;
 const app = new Express();
 const server = new http.Server(app);
 const proxy = httpProxy.createProxyServer();
@@ -74,9 +74,15 @@ app.use('/musit', Passport.authenticate('dataporten', { failWithError: true }),
 );
 
 // Proxy to API server
-app.use('/', (req, res) => {
-  proxy.web(req, res, { target: targetUrl });
+app.use('/api', (req, res) => {
+  proxy.web(req, res, { target: gatewayUrl });
 });
+
+/* ----- DEVELOPMENT START ---- */
+app.use('/', (req, res) => {
+  proxy.web(req, res, { target: 'http://localhost:8000' });
+});
+/* ----- DEVELOPMENT END ---- */
 
 if (config.port) {
   server.listen(config.port, (err) => {
@@ -84,7 +90,7 @@ if (config.port) {
       logger.error(err);
     }
     logger.info('----\n==> ✅  Frontend API is running on port %s, '
-      + 'talking to Gateway server on %s.', config.port, config.apiPort);
+      + 'talking to Gateway server on %s.', config.port, config.gatewayPort);
   });
 } else {
   logger.error('==>     ERROR: No PORT environment variable has been specified');
