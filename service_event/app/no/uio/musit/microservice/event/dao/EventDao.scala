@@ -56,7 +56,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def insertBaseEvent(eventBase: Event, links: Seq[AtomLink]): Future[CompleteEvent] = {
-    def idOfEvent(eventBase: Event) = eventBase.id.getOrThrow("missing eventId in eventDao.insertBaseEvent ")
+    def idOfEvent(eventBase: Event) = eventBase.id.getOrFail("missing eventId in eventDao.insertBaseEvent ")
     def copyEventIdIntoLinks(eventBase: Event) = links.map(l => l.toLink(idOfEvent(eventBase)))
     def selfLink(eventBase: Event) = linkText(idOfEvent(eventBase))
     def selfLinkAsAtomLink(eventBase: Event) = selfLink(eventBase) |> AtomLink.createFromLink
