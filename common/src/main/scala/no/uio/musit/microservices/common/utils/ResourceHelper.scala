@@ -47,8 +47,7 @@ object ResourceHelper {
 
   def postRoot[A](servicePostCall: A => Future[Either[MusitError, A]], objectToPost: A, toJsonTransformer: A => JsValue) = {
     val res = servicePostCall(objectToPost)
-    res.map { either =>
-      either.fold(
+    res.map { _.fold(
         l => l.toPlayResult,
         r => Created(toJsonTransformer(r))
       )

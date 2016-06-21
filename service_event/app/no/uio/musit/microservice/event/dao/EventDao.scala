@@ -55,18 +55,18 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     action
   }
 
-  def insertBaseEvent(eventBase: Event, links: Seq[AtomLink]): Future[CompleteEvent] = {
+  def insertBaseEventAction(eventBase: Event, links: Seq[AtomLink]): DBIO[CompleteEvent] = {
     def idOfEvent(eventBase: Event) = eventBase.id.getOrThrow("missing eventId in eventDao.insertBaseEvent ")
     def copyEventIdIntoLinks(eventBase: Event) = links.map(l => l.toLink(idOfEvent(eventBase)))
     def selfLink(eventBase: Event) = linkText(idOfEvent(eventBase))
     def selfLinkAsAtomLink(eventBase: Event) = selfLink(eventBase) |> AtomLink.createFromLink
 
-    val action = (for {
+    (for {
       base <- insertAction(eventBase)
       _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(base))
       _ <- selfLink(base) |> LinkDao.insertLinkAction
-    } yield CompleteEvent(base, None, Some(selfLinkAsAtomLink(base) +: links))).transactionally
-    db.run(action)
+    } yield CompleteEvent(base, None, Some(selfLinkAsAtomLink(base) +: links)))
+      .transactionally
   }
 
   def getBaseEvent(id: Long): Future[Option[Event]] = {

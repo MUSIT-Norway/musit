@@ -20,8 +20,9 @@
 
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{ JsObject, Json }
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 /**
  * Created by jstabel on 6/10/16.
@@ -40,20 +41,39 @@ case class AtomLink(rel: String, href: String) {
  * @param links
  */
 
-case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject], links: Option[Seq[AtomLink]])
+case class EventInfo(id: Option[Long], eventType: String, eventData: Option[Event], links: Option[Seq[AtomLink]])
 
-case class Event(id: Option[Long], eventTypeId: Int, note: Option[String]) {
+case class Event(
+  override val id: Option[Long],
+  override val links: Option[Seq[Link]],
+  eventTypeId: Int,
+  note: Option[String]
+) extends BaseMusitDomain {
 
-  def eventType = {
-    EventType.eventTypeIdToEventType(eventTypeId)
-  }
+  def eventType = EventType.apply(eventTypeId)
 
   def asSeq[T](optSeq: Option[Seq[T]]) = optSeq.getOrElse(Seq.empty[T])
 
-  //def allAtomLinks = asSeq(actors) // Todo: Add places, artefacts etc.
+  //def allAtomLinks = asSeq(actors) // Todo: Add places, artifacts etc.
 }
 
-trait EventExtension
+sealed trait EventExtension
+
+object EventExtension {
+  def apply(eventType: String) : Option[EventExtension] = {
+    eventType match {
+      case "kontroll" => Some(Kontroll())
+      case other => None
+    }
+  }
+}
+
+case class Kontroll(
+  override val id: Option[Long],
+  override val links: Option[Seq[Link]],
+  override val eventTypeId: Int,
+  override val note: Option[String]
+)  extends Event(id, links, eventTypeId, note)
 
 case class CompleteEvent(baseEvent: Event, eventExtension: Option[EventExtension], links: Option[Seq[AtomLink]]) {
 
@@ -72,8 +92,13 @@ object AtomLink {
 }
 
 object EventInfo {
-  def tupled = (EventInfo.apply _).tupled
-
-  implicit val format = Json.format[EventInfo]
+  def apply(json: JsValue) = {
+    EventInfo(
+      None,
+      (json \ "eventType").as[String],
+      (json \ "eventData").toOption.map(_.as[JsObject]),
+      (json \ "links").asOpt[List[AtomLink]]
+    )
+  }
 }
 

@@ -27,15 +27,16 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
-import play.api.libs.json.{ JsObject, Json }
+import no.uio.musit.microservices.common.utils.{ErrorHelper, ServiceHelper}
+import play.api.libs.json.{JsObject, Json}
+import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
- * Created by jstabel on 6/10/16.
- */
+  * Created by jstabel on 6/10/16.
+  */
 trait EventService {
 
   //A separate function for this message because we want to verify we get this error message in some of the integration tests
@@ -83,7 +84,10 @@ trait EventService {
     val completeEvent = eventInfoToCompleteEvent(eventInfo)
     val maybeLinks = completeEvent.links.getOrElse(Seq.empty)
 
-    ServiceHelper.daoInsert(EventDao.insertBaseEvent(completeEvent.baseEvent, maybeLinks).map(completeEventToEventInfo))
+    val insertBaseEventAction: DBIO[CompleteEvent] = EventDao.insertBaseEventAction(completeEvent.baseEvent, maybeLinks)
+    val insertSpecificEvent: DBIO = ???
+
+    ServiceHelper.daoInsert(insertBaseEventAction.map(completeEventToEventInfo))
   }
 
   private def getBaseEvent(id: Long): MusitFuture[Event] = EventDao.getBaseEvent(id).toMusitFuture(eventNotFoundError(id))

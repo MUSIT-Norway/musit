@@ -39,30 +39,24 @@ class EventResource extends Controller {
 
   def eventInfoToJson(eventInfo: EventInfo) = Json.toJson(eventInfo)
 
-  def jsonToEventInfo(json: JsValue): Either[MusitError, EventInfo] = {
-    // TODO: Better error handling
-    val eventTypeName = (json \ "eventType").as[String]
-    val optJsObject = (json \ "eventData").toOption.map(_.as[JsObject])
-    val links = ((json \ "links").asOpt[List[AtomLink]]).getOrElse(Seq.empty)
-    val maybeEventType = Try(EventType(eventTypeName))
-    maybeEventType match {
-      case Success(eventType) => Right(EventInfo(None, eventTypeName, optJsObject, Some(links)))
-      case Failure(e) => Left(ErrorHelper.badRequest(e.getMessage))
-    }
-
-  }
-
-  @ApiOperation(value = "Event operation - inserts an Event", httpMethod = "POST")
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-
-    val eventInfoResult = jsonToEventInfo(request.body)
-    ResourceHelper.postRootWithMusitResult(EventService.createEvent, eventInfoResult, eventInfoToJson)
+    val rawEventInfo = EventInfo(request.body)
+    val maybeEventInfo = {
+      val maybeEventType = rawEventInfo
+      maybeEventType match {
+        case Success(eventType) => Right(rawEventInfo)
+        case Failure(e) => Left(ErrorHelper.badRequest(e.getMessage))
+      }
+    }
+    ResourceHelper.postRootWithMusitResult(EventService.createEvent, maybeEventInfo, eventInfoToJson)
+    // TODO parse shit
+    // TODO insert shit
   }
 
   def getRoot(id: Long) = Action.async { request =>
-    def completeEventToEventInfoToJson(completeEvent: CompleteEvent) = {
+    def completeEventToEventInfoToJson(completeEvent: CompleteEvent) =
       EventService.completeEventToEventInfo(completeEvent) |> eventInfoToJson
-    }
+
     ResourceHelper.getRoot(EventService.getById, id, completeEventToEventInfoToJson)
   }
 }

@@ -20,58 +20,17 @@
 
 package no.uio.musit.microservice.event.domain
 
-import play.api.libs.json.Json
+case class EventType(val id: Int, val typename: String)
 
-/**
- * Created by jstabel on 6/10/16.
- */
-
-sealed trait EventType {
-  def typename: String
-
-  def eventTypeId: Int
-
-}
-
-// TODO: Get them from the database somehow
 object EventType {
-  def apply(stType: String) = stType.toLowerCase match {
-    case "move" => MoveEventType
-    case "control" => ControlEventType
-    case "observation" => ObservationEventType
 
-    case other => throw new Exception(s"Musit: Undefined EventType:$other")
-  }
+  sealed val eventTypes:Seq[EventType] = Seq(
+    EventType(1, "move"),
+    EventType(2, "control"),
+    EventType(3, "observation")
+  )
 
-  //def tupled = (EventType.apply _).tupled
-
-  //
-  // implicit val format = Json.format[EventType]
-
-  def eventTypeIdToEventType(id: Int) = {
-    id match {
-      case 1 => MoveEventType
-      case 2 => ControlEventType
-      case 3 => ObservationEventType
-    }
-  }
-}
-
-object MoveEventType extends EventType {
-  def typename = "move"
-
-  def eventTypeId = 1
-}
-
-object ControlEventType extends EventType {
-  def typename = "control"
-
-  def eventTypeId = 2
-}
-
-object ObservationEventType extends EventType {
-  def typename = "observation"
-
-  def eventTypeId = 3
+  def apply(stType: String) = eventTypes.find(_.typename == stType)
+  def apply(id: Int) = eventTypes.find(_.id == id)
 }
 
