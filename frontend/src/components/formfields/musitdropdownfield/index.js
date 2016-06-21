@@ -6,9 +6,6 @@ import React, { Component, PropTypes } from 'react';
 import { FormGroup, Popover, ControlLabel, Col, InputGroup, OverlayTrigger } from 'react-bootstrap'
 import Select from 'react-select';
 
-// Be sure to include styles at some point, probably during your bootstrapping
-import 'react-select/dist/react-select.css';
-
 export default class MusitDropDownField extends Component {
 
   static helpText(tip) {

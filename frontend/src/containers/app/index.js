@@ -1,3 +1,5 @@
+const styles = require('./index.scss');
+import 'react-select/dist/react-select.css';
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { IndexLink } from 'react-router';
@@ -5,7 +7,6 @@ import { LinkContainer } from 'react-router-bootstrap';
 import { Navbar, Nav, NavItem } from 'react-bootstrap';
 import { routerActions } from 'react-router-redux';
 import { I18n } from 'react-i18nify'
-require('./index.scss')
 
 const mapStateToProps = (state) => {
   I18n.loadTranslations(state.language.data)
@@ -51,14 +52,13 @@ class App extends Component {
   render() {
     const { user } = this.props;
     const rootPath = user ? '/musit/' : '/'
-
     return (
-      <div className="app">
+      <div className={styles.app}>
         <Navbar fixedTop>
           <Navbar.Header>
             <Navbar.Brand>
               <IndexLink to={rootPath} activeStyle={{ color: '#33e0ff' }}>
-                <div className="brand">
+                <div className={styles.brand}>
                   <img height="40" alt="logo" src="/assets/images/favicons/unimus_transparent100x100.png" />
                 </div>
                 <span>MUSIT</span>
@@ -109,7 +109,7 @@ class App extends Component {
               }
             </Nav>
             {user &&
-              <p className={"loggedInMessage navbar-text"}>Logged in as <strong>{user.name}</strong>.</p>}
+              <p className={`${styles.loggedInMessage} navbar-text`}>Logged in as <strong>{user.name}</strong>.</p>}
             <Nav navbar pullRight>
               <NavItem eventKey={1} target="_blank" title="View on Github" href="https://github.com/MUSIT-Norway/musit">
                 <i className="fa fa-github" />
@@ -118,7 +118,7 @@ class App extends Component {
           </Navbar.Collapse>
         </Navbar>
 
-        <div className="appContent">
+        <div className={styles.appContent}>
           {this.props.children}
         </div>
 

@@ -21,9 +21,9 @@ package no.uio.musit.microservice.storageAdmin.domain
 
 import no.uio.musit.microservice.storageAdmin.domain.LocalTypes.StorageBuildingOrRoom
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
 
 object LocalTypes {
   type StorageBuildingOrRoom = Either[StorageBuilding, StorageRoom]
@@ -31,8 +31,8 @@ object LocalTypes {
 
 sealed trait AbstractStorageUnit {
   def storageKind: StorageUnitType = {
-    val x = StUnit
-    x
+    StUnit
+
   }
 }
 
@@ -49,8 +49,9 @@ case class StorageUnit(
 ) extends AbstractStorageUnit {
   def toJson: JsObject = Json.toJson(this).as[JsObject]
 
-  override def storageKind: StorageUnitType = StorageUnitType {
-    storageType
+  override def storageKind: StorageUnitType = {
+    val st = StorageUnitType { storageType }
+    st.getOrFail(s"wrong storage type: $storageType")
   }
 }
 
@@ -127,6 +128,7 @@ case class StorageUnitTriple(storageUnit: StorageUnit, buildingOrRoom: Option[St
 
     buildingOrRoom.get
   }
+
   def getBuilding = {
     assert(storageKind == Building)
     val buildingOrRoom = getBuildingOrRoom
@@ -143,9 +145,15 @@ case class StorageUnitTriple(storageUnit: StorageUnit, buildingOrRoom: Option[St
 
   def toJson = {
     storageKind match {
-      case StUnit => { storageUnit.toJson }
-      case Building => { storageUnit.toJson.++(getBuilding.toJson) }
-      case Room => { storageUnit.toJson.++(getRoom.toJson) }
+      case StUnit => {
+        storageUnit.toJson
+      }
+      case Building => {
+        storageUnit.toJson.++(getBuilding.toJson)
+      }
+      case Room => {
+        storageUnit.toJson.++(getRoom.toJson)
+      }
     }
 
   }

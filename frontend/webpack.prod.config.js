@@ -52,7 +52,8 @@ module.exports = {
     loaders: [
       { test: /\.js?$/, exclude: /node_modules/, loader: 'babel-loader'},
       { test: /\.js?$/, loader: WebpackStrip.loader('debug', 'console.log', 'console.error') },
-      { test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css-loader!postcss-loader!sass-loader') },
+      { test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=2!postcss!sass') },
+      { test: /\.css$/, loader: ExtractTextPlugin.extract('style', 'css') },
       { test: /\.woff(\?v=\d+\.\d+\.\d+)?$/, loader: "url?limit=10000&mimetype=application/font-woff&name=css/[name]_[hash].[ext]" },
       { test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/, loader: "url?limit=10000&mimetype=application/font-woff&name=css/[name]_[hash].[ext]" },
       { test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/, loader: "url?limit=10000&mimetype=application/octet-stream&name=css/[name]_[hash].[ext]" },
