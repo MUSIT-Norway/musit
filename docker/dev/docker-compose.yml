@@ -1,0 +1,24 @@
+version: "2"
+services:
+    nginx:
+        build:
+            context: "./nginx"
+        ports:
+            - "8080:80"
+        links:
+            - backing
+            - webpack
+    webpack:
+        build:
+            context: "../../frontend"
+        volumes:
+            - ../../frontend/src:/usr/src/app/src
+            - ../../frontend/public:/usr/src/app/public
+            - ../../fake_security.json:/usr/src/fake_security.json:ro
+        environment:
+          - PUBLIC_PORT=8080
+    backing:
+        build:
+            context: "../../backing"
+        ports:
+            - "3030:3030"

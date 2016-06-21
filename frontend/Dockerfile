@@ -1,5 +1,8 @@
 FROM node:5
 
+ENV PUBLIC_PORT $PUBLIC_PORT
+ENV PUBLIC_PORT $PUBLIC_PORT
+
 VOLUME ["/usr/src/app/src"]
 VOLUME ["/usr/src/app/public"]
 
@@ -12,7 +15,6 @@ RUN npm install
 ADD webpack.dev.config.js webpack.dev.config.js
 ADD .babelrc .babelrc
 ADD .eslintrc .eslintrc
-ADD fake_security.json ../fake_security.json
 ADD start.sh start.sh
 
 RUN chmod +x start.sh
