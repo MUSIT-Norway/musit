@@ -93,6 +93,7 @@
            </Grid>
            <StorageUnitComponents
              unit={data}
+             translate={this.props.translate}
              updateType={(storageType) =>
               this.updateStorageUnit(data, 'storageType', storageType)}
              updateName={(storageUnitName) =>
@@ -113,28 +114,30 @@
            <EnvironmentRequirementComponent
              translate={this.props.translate}
            />
-           <Options
-             unit={data}
-             // Disse må fikses (Mappe verdi av sikring fra bool -> {0,1})
-             updateSkallsikring={(sikringSkallsikring) =>
-              this.updateStorageUnit(data, 'sikringSkallsikring', sikringSkallsikring)}
-             updateTyverisikring={(sikringTyverisikring) =>
-              this.updateStorageUnit(data, 'sikringTyverisikring', sikringTyverisikring)}
-             updateBrannsikring={(sikringBrannsikring) =>
-              this.updateStorageUnit(data, 'sikringBrannsikring', sikringBrannsikring)}
-             updateVannskaderisiko={(sikringVannskaderisiko) =>
-              this.updateStorageUnit(data, 'sikringVannskaderisiko', sikringVannskaderisiko)}
-             updateRutinerBeredskap={(sikringRutineOgBeredskap) =>
-              this.updateStorageUnit(data, 'sikringRutineOgBeredskap', sikringRutineOgBeredskap)}
-             updateLuftfuktighet={(bevarLuftfuktOgTemp) =>
-              this.updateStorageUnit(data, 'bevarLuftfuktOgTemp', bevarLuftfuktOgTemp)}
-             updateLysforhold={(bevarLysforhold) =>
-              this.updateStorageUnit(data, 'bevarLysforhold', bevarLysforhold)}
-             updateTemperatur={(temperatur) =>
-              this.updateStorageUnit(data, 'temperatur', temperatur)}
-             updatePreventivKonservering={(bevarPrevantKons) =>
-              this.updateStorageUnit(data, 'bevarPrevantKons', bevarPrevantKons)}
-           />
+           {data.storageType === 'room' ?
+             <Options
+               unit={data}
+               // Disse må fikses (Mappe verdi av sikring fra bool -> {0,1})
+               updateSkallsikring={(sikringSkallsikring) =>
+                this.updateStorageUnit(data, 'sikringSkallsikring', sikringSkallsikring)}
+               updateTyverisikring={(sikringTyverisikring) =>
+                this.updateStorageUnit(data, 'sikringTyverisikring', sikringTyverisikring)}
+               updateBrannsikring={(sikringBrannsikring) =>
+                this.updateStorageUnit(data, 'sikringBrannsikring', sikringBrannsikring)}
+               updateVannskaderisiko={(sikringVannskaderisiko) =>
+                this.updateStorageUnit(data, 'sikringVannskaderisiko', sikringVannskaderisiko)}
+               updateRutinerBeredskap={(sikringRutineOgBeredskap) =>
+                this.updateStorageUnit(data, 'sikringRutineOgBeredskap', sikringRutineOgBeredskap)}
+               updateLuftfuktighet={(bevarLuftfuktOgTemp) =>
+                this.updateStorageUnit(data, 'bevarLuftfuktOgTemp', bevarLuftfuktOgTemp)}
+               updateLysforhold={(bevarLysforhold) =>
+                this.updateStorageUnit(data, 'bevarLysforhold', bevarLysforhold)}
+               updateTemperatur={(temperatur) =>
+                this.updateStorageUnit(data, 'temperatur', temperatur)}
+               updatePreventivKonservering={(bevarPrevantKons) =>
+                this.updateStorageUnit(data, 'bevarPrevantKons', bevarPrevantKons)}
+             />
+             : null}
          </main>
        </div>
     );

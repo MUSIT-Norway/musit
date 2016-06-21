@@ -23,8 +23,10 @@ export default class MusitDropDownField extends Component {
     const v = this.props.valueText() ? this.props.valueText() : '';
     const options = [{ value: '', label: 'Velg type' }]
       .concat(
-        this.props.items.map((el) => ({ value: el, label: el }))
+        this.props.items.map((el) =>
+        ({ value: el, label: this.props.translate('musit.storageUnits.storageType.items.'.concat(el)) }))
       );
+
     return (
       <FormGroup
         controlId={this.props.controlId}
@@ -72,4 +74,5 @@ MusitDropDownField.propTypes = {
   valueType: PropTypes.string.isRequired,
   validationState: PropTypes.func.isRequired,
   onChange: PropTypes.func,
+  translate: PropTypes.func.isRequired
 };

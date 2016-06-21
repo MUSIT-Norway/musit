@@ -8,6 +8,7 @@
     "url": "git://github.com/MUSIT-Norway/musit.git"
   },
   "scripts": {
+    "proxy": "babel-node server.js",
     "lint": "eslint . --ignore-path .eslintignore",
     "lint:fix": "eslint . --fix --ignore-path .eslintignore",
     "lint:watch": "esw . --ignore-path .eslintignore -w",

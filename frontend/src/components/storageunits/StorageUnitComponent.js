@@ -3,8 +3,8 @@
  */
 
 import React, { Component } from 'react';
-import { MusitDropDownField as MusitDropDown, MusitTextField as TextField } from '../../components/formfields'
-import { Panel, Form, Grid, Row, Col, } from 'react-bootstrap'
+import { MusitDropDownField as MusitDropDown, MusitField as TextField } from '../../components/formfields'
+import { Panel, Form, Grid, Row, Col, FormGroup } from 'react-bootstrap'
 import Autosuggest from 'react-autosuggest'
 
 export default class StorageUnitComponent extends Component {
@@ -27,7 +27,8 @@ export default class StorageUnitComponent extends Component {
     updateAreal2: React.PropTypes.func.isRequired,
     updateAddress: React.PropTypes.func.isRequired,
     suggest: React.PropTypes.array.isRequired,
-    onAddressSuggestionsUpdateRequested: React.PropTypes.func.isRequired
+    onAddressSuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    translate: React.PropTypes.func.isRequired,
   }
 
   static validateString(value, minimumLength = 3, maximumLength = 20) {
@@ -117,6 +118,14 @@ export default class StorageUnitComponent extends Component {
   }
 
   render() {
+    const renderFieldBlock = (bindValue, fieldProps, label) => (
+      <FormGroup>
+        <label className="col-sm-3 control-label" htmlFor="comments2">{label}</label>
+        <div class="col-sm-9" is="null">
+          <TextField {...fieldProps} value={bindValue} />
+        </div>
+      </FormGroup>
+    )
     const inputAddressProps = {
       id: 'addressField',
       placeholder: 'addresse',
@@ -157,24 +166,42 @@ export default class StorageUnitComponent extends Component {
               <Row className="row-centered">
                 <Col md={6}>
                   <Form horizontal>
-                    <MusitDropDown {...this.type} />
+                    <MusitDropDown {...this.type} translate={this.props.translate} />
                   </Form>
                 </Col>
                 <Col md={6}>
                   <Form horizontal>
-                    <TextField {...this.name} />
+                    {renderFieldBlock(this.name.valueText(), this.name, this.name.labelText)}
                   </Form>
                 </Col>
               </Row>
               <Row styleClass="row-centered">
                 <Col md={6}>
-                  <Form horizontal>
-                    <TextField {...this.areal} />
-                  </Form>
+                  <form className="form-horizontal">
+                    <div className="form-group">
+                      <label className="col-sm-3 control-label" htmlFor="comments2">
+                        {this.areal.labelText}</label>
+                      <div class="col-sm-5" is="null">
+                        <TextField {...this.areal} value={this.areal.valueText()} />
+                      </div>
+                      <div class="col-sm-4" is="null">
+                        <TextField {...this.areal} value={this.areal.valueText2()} />
+                      </div>
+                    </div>
+                  </form>
                 </Col>
                 <Col md={6}>
                   <Form horizontal>
-                    <TextField {...this.hoyde} />
+                    <div className="form-group">
+                      <label className="col-sm-3 control-label" htmlFor="comments2">
+                        {this.hoyde.labelText}</label>
+                      <div class="col-sm-5" is="null">
+                        <TextField {...this.hoyde} value={this.hoyde.valueText()} />
+                      </div>
+                      <div class="col-sm-4" is="null">
+                        <TextField {...this.hoyde} value={this.hoyde.valueText2()} />
+                      </div>
+                    </div>
                   </Form>
                 </Col>
               </Row >

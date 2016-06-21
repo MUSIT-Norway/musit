@@ -20,26 +20,43 @@ no:
       environmentRequirements:
         temperature:
           labelText: Temperatur
-          tooltip: "Måleenhet grader celsius, desimaltall, ett tall+toleranse"
-          placeHolderText: C
-          placeHolderText2: int
+          tooltip: "Måleenhet grader celsius, desimaltall"
+          placeHolder: C
+        temperatureTolerance:
+          tooltip: "Måleenhet toleranse, ett tall"
+          placeHolder: int
+          addOnPrefix: "\u00b1"
         relativeHumidity:
           labelText: "Rel. luftfuktighet"
-          tooltip: "Måleenhet prosent, desimaltall, ett tall+toleranse"
-          placeHolderText: "%"
-          placeHolderText2: "int"
+          tooltip: "Måleenhet prosent, desimaltall"
+          placeHolder: "%"
+        relativeHumidityTolerance:
+          tooltip: "Måleenhet prosent toleranse, ett tall"
+          placeHolder: int
+          addOnPrefix: "\u00b1"
         inertAir:
-          labelText: "Inertluft"
-          tooltip: "Måleenhet prosent oksygen, desimaltall, ett tall+toleranse"
-          placeHolderText: "% O2"
-          placeHolderText2: int
+          labelText: "Inert luft"
+          tooltip: "Måleenhet prosent oksygen, desimaltall"
+          placeHolder: "% O2"
+        inertAirTolerance:
+          tooltip: "Måleenhet prosent oksygen toleranse, ett tall"
+          placeHolder: int
+          addOnPrefix: "\u00b1"
         renhold:
           labelText: Renhold
           tooltip: Renhold
         lightCondition:
           labelText: Lysforhold
           tooltip: Lysforhold
-
+        comments:
+          labelText: comments
+          tooltip: "Kommentar!"
+      storageType:
+        items:
+          storageunit: "Lagringsenhet"
+          room: Rom
+          building: "Bygning"
+          organization: "Organisasjon"
     welcomePage:
       title: >
         Universitetsmuseenes IT-organisasjon,
