@@ -49,7 +49,7 @@ no:
           labelText: Lysforhold
           tooltip: Lysforhold
         comments:
-          labelText: comments
+          labelText: Kommentarer
           tooltip: "Kommentar!"
       storageType:
         items:
