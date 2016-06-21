@@ -17,7 +17,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react'; import { validate } from '../common/validators'
+import React, { Component, PropTypes } from 'react';
+import { validate } from '../common/validators'
 
 export default class MusitTextArea extends Component {
 
@@ -53,10 +54,12 @@ export default class MusitTextArea extends Component {
       />);
 
     return (
-      <div className={this.classNameOnlyWithInput()} >
+      <div
+        className={this.classNameOnlyWithInput()}
+      >
        {lcPlaceholder}
       </div>
-      )
+    )
   }
 }
 

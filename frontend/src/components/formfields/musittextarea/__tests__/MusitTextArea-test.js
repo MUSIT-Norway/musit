@@ -1,8 +1,9 @@
+const MusitTextArea = require('../index');
+
 import { assert, React, ReactDOM, ReactTestUtils } from '../../../../../test/setup';
 
 describe('MusitTextArea', () => {
   it('should render MusitTextArea', () => {
-    const MusitTextArea = require('../index');
     const myDiv = ReactTestUtils.renderIntoDocument(
       <MusitTextArea
         id="navn"
@@ -18,7 +19,6 @@ describe('MusitTextArea', () => {
   });
 
   it('should render MusitTextArea blank', () => {
-    const MusitTextArea = require('../index');
     const myDiv = ReactTestUtils.renderIntoDocument(
       <MusitTextArea
         id="navn"
@@ -34,7 +34,6 @@ describe('MusitTextArea', () => {
   });
 
   it('number input', () => {
-    const MusitTextArea = require('../index');
     const myDiv = ReactTestUtils.renderIntoDocument(
       <MusitTextArea
         id="navn"
