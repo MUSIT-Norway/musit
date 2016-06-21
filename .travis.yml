@@ -26,7 +26,11 @@ script:
   - sbt coverageAggregate
   - sbt codacyCoverage
   # Frontend (ReactJS) build and test
-  - cd gui && "./initialize.sh" && npm run lint && npm run test
+  - cd frontend
+  - npm install
+  - npm run lint
+  - npm run test:coverage
+  - npm run build
 
 env:
   global:
