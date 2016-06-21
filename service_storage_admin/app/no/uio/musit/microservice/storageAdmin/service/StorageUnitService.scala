@@ -29,11 +29,6 @@ import scala.concurrent.Future
 
 trait StorageUnitService {
   //A separate function for this message because we want to verify we get this error message in some of the integration tests
-  def unknownStorageUnitMsg(id: Long) = s"Unknown storageUnit with id: $id"
-
-  private def storageUnitNotFoundError(id: Long): MusitError = {
-    ErrorHelper.notFound(unknownStorageUnitMsg(id))
-  }
 
   private def storageRoomNotFoundError(id: Long): MusitError = {
     ErrorHelper.notFound(s"Unknown storageRoom with id: $id")
@@ -65,7 +60,7 @@ trait StorageUnitService {
     StorageUnitDao.getChildren(id)
   }
 
-  private def getStorageUnitOnly(id: Long) = StorageUnitDao.getStorageUnitOnlyById(id).toMusitFuture(storageUnitNotFoundError(id))
+  private def getStorageUnitOnly(id: Long) = StorageUnitDao.getStorageUnitOnlyById(id).toMusitFuture(StorageUnitDao.storageUnitNotFoundError(id))
 
   private def getBuildingById(id: Long) = StorageUnitDao.getBuildingById(id).toMusitFuture(storageBuildingNotFoundError(id))
 
@@ -83,7 +78,7 @@ trait StorageUnitService {
     }
   }
 
-  def getStorageType(id: Long): MusitFuture[StorageUnitType] = StorageUnitDao.getStorageType(id).toMusitFuture(storageUnitNotFoundError(id))
+  def getStorageType(id: Long): MusitFuture[StorageUnitType] = StorageUnitDao.getStorageType(id)
 
   def all: Future[Seq[StorageUnit]] = {
     StorageUnitDao.all()
@@ -101,10 +96,11 @@ trait StorageUnitService {
    Else a Future false "MusitBoolean" is returned. */
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageUnitType): MusitFuture[Boolean] = {
     getStorageType(id).musitFutureFlatMapInnerEither {
-      storageUnitTypeInDatabase => boolToMusitBool(
-        expectedStorageUnitType == storageUnitTypeInDatabase,
-        storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
-      )
+      storageUnitTypeInDatabase =>
+        boolToMusitBool(
+          expectedStorageUnitType == storageUnitTypeInDatabase,
+          storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
+        )
     }
   }
 
