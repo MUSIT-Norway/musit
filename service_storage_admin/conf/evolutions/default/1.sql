@@ -17,11 +17,10 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # Example schema
- 
+
 # --- !Ups
 
 CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
-
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT(
  storage_unit_id   BIGINT NOT NULL  AUTO_INCREMENT,
@@ -30,6 +29,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT(
  area_to           BIGINT,
  is_part_of        BIGINT,
  height            BIGINT,
+ height_to         BIGINT,
  storage_type      varchar(100) NOT NULL,
  group_read        varchar(4000),
  group_write       varchar(4000),
@@ -40,13 +40,13 @@ primary key (storage_unit_id)
 CREATE TABLE MUSARK_STORAGE.ROOM(
  storage_unit_id             BIGINT not null,
  sikring_skallsikring        INTEGER,
- sikring_tyverisikring        INTEGER,
- sikring_brannsikring         INTEGER,
- sikring_vannskaderisiko      INTEGER,
- sikring_rutine_og_beredskap  INTEGER,
- bevar_luftfukt_og_temp       INTEGER,
- bevar_lysforhold             INTEGER,
- bevar_prevant_kons           INTEGER,
+ sikring_tyverisikring       INTEGER,
+ sikring_brannsikring        INTEGER,
+ sikring_vannskaderisiko     INTEGER,
+ sikring_rutine_og_beredskap INTEGER,
+ bevar_luftfukt_og_temp      INTEGER,
+ bevar_lysforhold            INTEGER,
+ bevar_prevant_kons          INTEGER,
  PRIMARY KEY (STORAGE_UNIT_ID),
  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
  );
@@ -66,6 +66,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK(
  PRIMARY KEY (link_id),
  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
 );
+
 
 
 # --- !Downs

@@ -145,7 +145,10 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val areaTo = storageUnit.areaTo
       areaTo mustBe Some(125)
 
-      val storageJson = Json.parse(response.body).asInstanceOf[JsObject].+("storageUnitName" -> JsString("hylle3")).+("areaTo" -> JsNumber(130))
+      val storageJson = Json.parse(response.body).asInstanceOf[JsObject]
+        .+("storageUnitName" -> JsString("hylle3"))
+        .+("areaTo" -> JsNumber(130))
+        .+("heightTo" -> JsNumber(230))
 
       val antUpdated = updateStorageUnit(id, storageJson.toString()) |> waitFutureValue
       assert(antUpdated.status == 200)

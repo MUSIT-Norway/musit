@@ -44,6 +44,7 @@ case class StorageUnit(
     areaTo: Option[Long],
     isPartOf: Option[Long],
     height: Option[Long],
+    heightTo: Option[Long],
     groupRead: Option[String],
     groupWrite: Option[String],
     links: Option[Seq[Link]]
