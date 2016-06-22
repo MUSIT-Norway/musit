@@ -41,6 +41,7 @@ case class StorageUnit(
     storageType: String,
     storageUnitName: String,
     area: Option[Long],
+    areaTo: Option[Long],
     isPartOf: Option[Long],
     height: Option[Long],
     groupRead: Option[String],

@@ -165,7 +165,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
-    def * = (id, storageType, storageUnitName, area, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id, storageType, storageUnitName, area, areaTo, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
@@ -174,6 +174,8 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     val storageUnitName = column[String]("STORAGE_UNIT_NAME")
 
     val area = column[Option[Long]]("AREA")
+
+    val areaTo = column[Option[Long]]("AREA_TO")
 
     val isPartOf = column[Option[Long]]("IS_PART_OF")
 
@@ -186,17 +188,17 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     val isDeleted = column[Int]("IS_DELETED") // this columns is not a member of the case class storageUnit. IT's not
     // part of the official/public API of storageUnit, only used internally.
 
-    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long],
+    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], areaTo: Option[Long],
       isPartOf: Option[Long], height: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
       StorageUnit(
         id, storageType,
-        storageUnitName, area, isPartOf, height, groupRead, groupWrite,
+        storageUnitName, area, areaTo, isPartOf, height, groupRead, groupWrite,
         linkText(id)
       )
 
     def destroy(unit: StorageUnit) = Some(unit.id, unit.storageType,
-      unit.storageUnitName, unit.area, unit.isPartOf, unit.height, unit.groupRead, unit.groupWrite)
+      unit.storageUnitName, unit.area, unit.areaTo, unit.isPartOf, unit.height, unit.groupRead, unit.groupWrite)
   }
 
   private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {

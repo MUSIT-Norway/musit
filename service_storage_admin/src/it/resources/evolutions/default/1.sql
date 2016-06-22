@@ -26,6 +26,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT(
  storage_unit_id   BIGINT NOT NULL  AUTO_INCREMENT,
  storage_unit_name VARCHAR(512) NOT NULL,
  area              BIGINT,
+ area_to           BIGINT,
  is_part_of        BIGINT,
  height            BIGINT,
  storage_type      varchar(100) NOT NULL,

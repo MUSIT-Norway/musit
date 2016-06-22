@@ -101,10 +101,11 @@ trait StorageUnitService {
    Else a Future false "MusitBoolean" is returned. */
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageUnitType): MusitFuture[Boolean] = {
     getStorageType(id).musitFutureFlatMapInnerEither {
-      storageUnitTypeInDatabase => boolToMusitBool(
-        expectedStorageUnitType == storageUnitTypeInDatabase,
-        storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
-      )
+      storageUnitTypeInDatabase =>
+        boolToMusitBool(
+          expectedStorageUnitType == storageUnitTypeInDatabase,
+          storageUnitTypeMismatch(id, expectedStorageUnitType, storageUnitTypeInDatabase)
+        )
     }
   }
 
