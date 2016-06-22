@@ -44,7 +44,7 @@ export default class StorageUnitComponent extends Component {
       placeHolderText2: 'enter areal 2 here',
       valueText: () => this.props.unit.area,
       valueText2: () => this.props.unit.areal2,
-      onChange: (area) => this.props.updateAreal1(area),
+      onChange1: (area) => this.props.updateAreal1(area),
       onChange2: (areal2) => this.props.updateAreal2(areal2)
     }
     this.hoyde = {
@@ -57,7 +57,7 @@ export default class StorageUnitComponent extends Component {
       placeHolderText2: 'enter høyde 2 here',
       valueText: () => this.props.unit.height,
       valueText2: () => this.props.unit.height2,
-      onChange: (height) => this.props.updateHeight1(height),
+      onChange1: (height) => this.props.updateHeight1(height),
       onChange2: (height2) => this.props.updateHeight2(height2)
     }
 
@@ -67,7 +67,7 @@ export default class StorageUnitComponent extends Component {
       items: ['storageunit', 'room', 'building', 'organization'],
       validate: 'text',
       tooltip: 'Type lagringsenhet',
-      placeHolderText: 'velg type here',
+      placeHolder: 'velg type here',
       valueText: () => this.props.unit.storageType,
       onChange: (storageType) => this.props.updateType(storageType)
     }
@@ -79,10 +79,7 @@ export default class StorageUnitComponent extends Component {
       validate: 'text',
       valueText: () => this.props.unit.storageUnitName,
       onChange: (storageUnitName) => this.props.updateName(storageUnitName)
-
     }
-
-
     this.onAddressChange = this.onAddressChange.bind(this)
   }
 
@@ -178,19 +175,20 @@ export default class StorageUnitComponent extends Component {
                         {this.areal.labelText}</label>
                       <div class="col-sm-5" is="null">
                         <TextField
-                          validate="number"
-                          {...this.areal}
                           id={this.areal.controlId}
                           value={this.areal.valueText()}
+                          onChange={this.areal.onChange1}
+                          placeHolder={this.areal.placeHolderText}
+                          validate={this.areal.validate}
                         />
                       </div>
                       <div class="col-sm-4" is="null">
                         <TextField
-                          validate="number"
-                          {...this.areal}
                           id={this.areal.controlId2}
                           value={this.areal.valueText2()}
                           onChange={this.areal.onChange2}
+                          placeHolder={this.areal.placeHolderText2}
+                          validate={this.areal.validate}
                         />
                       </div>
                     </div>
@@ -203,17 +201,20 @@ export default class StorageUnitComponent extends Component {
                         {this.hoyde.labelText}</label>
                       <div class="col-sm-5" is="null">
                         <TextField
-                          {...this.hoyde}
                           id={this.hoyde.controlId}
                           value={this.hoyde.valueText()}
+                          onChange={this.hoyde.onChange1}
+                          placeHolder={this.hoyde.placeHolderText}
+                          validate={this.areal.validate}
                         />
                       </div>
                       <div class="col-sm-4" is="null">
                         <TextField
-                          {...this.hoyde}
                           id={this.hoyde.controlId2}
                           value={this.hoyde.valueText2()}
                           onChange={this.hoyde.onChange2}
+                          placeHolder={this.hoyde.placeHolderText2}
+                          validate={this.areal.validate}
                         />
                       </div>
                     </div>
