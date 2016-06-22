@@ -12,7 +12,7 @@ export default class StorageUnitComponent extends Component {
   static propTypes = {
     unit: React.PropTypes.shape({
       storageUnitName: React.PropTypes.string,
-      area: React.PropTypes.number,
+      area: React.PropTypes.string,
       areal2: React.PropTypes.number,
       height: React.PropTypes.number,
       height2: React.PropTypes.number,
@@ -31,18 +31,6 @@ export default class StorageUnitComponent extends Component {
     translate: React.PropTypes.func.isRequired,
   }
 
-  static validateString(value, minimumLength = 3, maximumLength = 20) {
-    const isSomething = value && value !== undefined ? value.length >= minimumLength : null
-    const isValid = isSomething ? 'success' : null
-    return value && value !== undefined && value.length > maximumLength ? 'error' : isValid
-  }
-
-  static validateNumber(value) {
-    const isSomething = value && value !== undefined
-    const isValid = isNaN(value) ? 'error' : 'success'
-    return isSomething ? isValid : null
-  }
-
   constructor(props) {
     super(props)
 
@@ -51,12 +39,11 @@ export default class StorageUnitComponent extends Component {
       controlId2: 'areal2',
       labelText: 'Areal (fra - til)',
       tooltip: 'Areal (fra - til)',
-      valueType: 'text',
+      validate: 'number',
       placeHolderText: 'enter areal 1 here',
       placeHolderText2: 'enter areal 2 here',
       valueText: () => this.props.unit.area,
       valueText2: () => this.props.unit.areal2,
-      validationState: () => StorageUnitComponent.validateNumber(this.props.unit.area),
       onChange: (area) => this.props.updateAreal1(area),
       onChange2: (areal2) => this.props.updateAreal2(areal2)
     }
@@ -65,12 +52,11 @@ export default class StorageUnitComponent extends Component {
       controlId2: 'hoyde2',
       labelText: 'Høyde(fra - til)',
       tooltip: 'Høyde (fra - til)',
-      valueType: 'text',
+      validate: 'number',
       placeHolderText: 'enter høyde 1 here',
       placeHolderText2: 'enter høyde 2 here',
       valueText: () => this.props.unit.height,
       valueText2: () => this.props.unit.height2,
-      validationState: () => StorageUnitComponent.validateNumber(this.props.unit.height),
       onChange: (height) => this.props.updateHeight1(height),
       onChange2: (height2) => this.props.updateHeight2(height2)
     }
@@ -79,11 +65,10 @@ export default class StorageUnitComponent extends Component {
       controlId: 'storageUnitType',
       labelText: 'Type',
       items: ['storageunit', 'room', 'building', 'organization'],
-      valueType: 'text',
+      validate: 'text',
       tooltip: 'Type lagringsenhet',
       placeHolderText: 'velg type here',
       valueText: () => this.props.unit.storageType,
-      validationState: () => StorageUnitComponent.validateString(this.props.unit.storageType),
       onChange: (storageType) => this.props.updateType(storageType)
     }
     this.name = {
@@ -91,9 +76,8 @@ export default class StorageUnitComponent extends Component {
       labelText: 'Navn',
       tooltip: 'Navn',
       placeHolderText: 'enter name here',
-      valueType: 'text',
+      validate: 'text',
       valueText: () => this.props.unit.storageUnitName,
-      validationState: () => StorageUnitComponent.validateString(this.props.unit.storageUnitName),
       onChange: (storageUnitName) => this.props.updateName(storageUnitName)
 
     }
@@ -163,11 +147,22 @@ export default class StorageUnitComponent extends Component {
         <main>
           <Panel>
             <Grid>
-              <Row className="row-centered">
+              <Row styleClass="row-centered">
                 <Col md={6}>
-                  <Form horizontal>
-                    <MusitDropDown {...this.type} translate={this.props.translate} />
-                  </Form>
+                  <form className="form-horizontal">
+                    <form className="form-group">
+                      <label className="col-sm-3 control-label" htmlFor="storageUnitType">
+                        {this.type.labelText}</label>
+                      <div class="col-sm-5" is="null">
+                        <MusitDropDown
+                          {...this.type}
+                          id={this.type.controlId}
+                          value={this.type.valueText()}
+                          translate={this.props.translate}
+                        />
+                      </div>
+                    </form>
+                  </form>
                 </Col>
                 <Col md={6}>
                   <Form horizontal>
@@ -182,10 +177,21 @@ export default class StorageUnitComponent extends Component {
                       <label className="col-sm-3 control-label" htmlFor="comments2">
                         {this.areal.labelText}</label>
                       <div class="col-sm-5" is="null">
-                        <TextField {...this.areal} value={this.areal.valueText()} />
+                        <TextField
+                          validate="number"
+                          {...this.areal}
+                          id={this.areal.controlId}
+                          value={this.areal.valueText()}
+                        />
                       </div>
                       <div class="col-sm-4" is="null">
-                        <TextField {...this.areal} value={this.areal.valueText2()} />
+                        <TextField
+                          validate="number"
+                          {...this.areal}
+                          id={this.areal.controlId2}
+                          value={this.areal.valueText2()}
+                          onChange={this.areal.onChange2}
+                        />
                       </div>
                     </div>
                   </form>
@@ -193,13 +199,22 @@ export default class StorageUnitComponent extends Component {
                 <Col md={6}>
                   <Form horizontal>
                     <div className="form-group">
-                      <label className="col-sm-3 control-label" htmlFor="comments2">
+                      <label className="col-sm-3 control-label" htmlFor="controlId">
                         {this.hoyde.labelText}</label>
                       <div class="col-sm-5" is="null">
-                        <TextField {...this.hoyde} value={this.hoyde.valueText()} />
+                        <TextField
+                          {...this.hoyde}
+                          id={this.hoyde.controlId}
+                          value={this.hoyde.valueText()}
+                        />
                       </div>
                       <div class="col-sm-4" is="null">
-                        <TextField {...this.hoyde} value={this.hoyde.valueText2()} />
+                        <TextField
+                          {...this.hoyde}
+                          id={this.hoyde.controlId2}
+                          value={this.hoyde.valueText2()}
+                          onChange={this.hoyde.onChange2}
+                        />
                       </div>
                     </div>
                   </Form>

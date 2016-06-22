@@ -1,11 +1,11 @@
 const validateString = (value, minimumLength = 1, maximumLength = 20) => {
-  const isSomething = value.length >= minimumLength
+  const isSomething = value && value.length >= minimumLength
   const isValid = isSomething ? 'success' : null
-  return value.length > maximumLength ? 'error' : isValid
+  return value && value.length > maximumLength ? 'error' : isValid
 }
 
 const validateNumber = (value, minimumLength = 1) => {
-  const isSomething = value.length >= minimumLength
+  const isSomething = value && value.length >= minimumLength
   const isValid = isSomething ? 'success' : null
   return isSomething && isNaN(value) ? 'error' : isValid
 }
