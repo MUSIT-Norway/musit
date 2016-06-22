@@ -1,5 +1,6 @@
-import { assert, React, ReactDOM, ReactTestUtils } from '../../../../../test/setup';
 const MusitTextArea = require('../index');
+
+import { assert, React, ReactDOM, ReactTestUtils } from '../../../../../test/setup';
 
 describe('MusitTextArea', () => {
   it('should render MusitTextArea', () => {
@@ -10,7 +11,7 @@ describe('MusitTextArea', () => {
         value="flint"
         onChange={() => null}
       />
-    );
+      );
 
     const actualDiv = ReactDOM.findDOMNode(myDiv);
     const field = actualDiv.querySelectorAll('textarea')[0];
@@ -25,7 +26,7 @@ describe('MusitTextArea', () => {
         value=""
         onChange={() => null}
       />
-    );
+      );
 
     const actualDiv = ReactDOM.findDOMNode(myDiv);
     const field = actualDiv.querySelectorAll('textarea')[0];
@@ -40,7 +41,7 @@ describe('MusitTextArea', () => {
         value="123454566"
         onChange={() => null}
       />
-    );
+      );
 
     const actualDiv = ReactDOM.findDOMNode(myDiv);
     const field = actualDiv.querySelectorAll('textarea')[0];

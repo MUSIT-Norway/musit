@@ -3,8 +3,8 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, Popover, ControlLabel, Col, InputGroup, OverlayTrigger, FormControl } from 'react-bootstrap'
-
+import { FormGroup, Popover, ControlLabel, Col, InputGroup, OverlayTrigger } from 'react-bootstrap'
+import Select from 'react-select';
 
 export default class MusitDropDownField extends Component {
 
@@ -17,6 +17,13 @@ export default class MusitDropDownField extends Component {
   }
 
   render() {
+    const v = this.props.valueText() ? this.props.valueText() : '';
+    const options = [{ value: '', label: 'Velg type' }]
+      .concat(
+        this.props.items.map((el) =>
+        ({ value: el, label: this.props.translate('musit.storageUnits.storageType.items.'.concat(el)) }))
+      );
+
     return (
       <FormGroup
         controlId={this.props.controlId}
@@ -31,19 +38,12 @@ export default class MusitDropDownField extends Component {
         </Col>
         <Col sm={9}>
           <InputGroup style={{ display: 'table' }}>
-            <FormControl
-              type={this.props.valueType}
-              componentClass="select"
-              style={{ borderRadius: '5px' }}
-              onChange={(event) => this.props.onChange(event.target.value)}
-
-            >
-              <option>Velg type</option>
-              {this.props.items.map((el) =>
-                <option value={el}> {el} </option>)
-              }
-            </FormControl>
-
+            <Select
+              name="form-field-name"
+              value={v}
+              options={options}
+              onChange={(event) => this.props.onChange(event.value)}
+            />
             {this.props.tooltip ?
               <OverlayTrigger
                 trigger={['click']}
@@ -71,4 +71,5 @@ MusitDropDownField.propTypes = {
   valueType: PropTypes.string.isRequired,
   validationState: PropTypes.func.isRequired,
   onChange: PropTypes.func,
+  translate: PropTypes.func.isRequired
 };

@@ -1,5 +1,5 @@
 const styles = require('./index.scss');
-
+import 'react-select/dist/react-select.css';
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { IndexLink } from 'react-router';
@@ -66,7 +66,6 @@ class App extends Component {
             </Navbar.Brand>
             <Navbar.Toggle />
           </Navbar.Header>
-
           <Navbar.Collapse eventKey={0}>
             <Nav navbar>
               {user &&

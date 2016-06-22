@@ -46,7 +46,10 @@ export default class MusitTextArea extends Component {
     const lcPlaceholder = (
       <textarea
         className="form-control"
-        placeholder={this.props.placeHolder} value={this.props.value} id={this.props.id} rows={this.props.numberOfRows}
+        placeholder={this.props.placeHolder}
+        value={this.props.value}
+        id={this.props.id}
+        rows={this.props.numberOfRows}
         onChange={(event) => this.props.onChange(event.target.value)} data-toggle="tooltip" title={this.props.tooltip}
       />);
 

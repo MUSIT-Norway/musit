@@ -38,6 +38,13 @@
     "name": "geolocation",
     "scalaName": "GeoLocationResource_V1",
     "host": "localhost",
+    "port": "7071",
+    "protocol": "http://"
+  },
+  {
+    "name": "storageadmin",
+    "scalaName": "StorageUnitResource",
+    "host": "localhost",
     "port": "7070",
     "protocol": "http://"
   }

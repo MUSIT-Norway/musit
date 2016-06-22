@@ -35,7 +35,7 @@ no:
           placeHolder: int
           addOnPrefix: "\u00b1"
         inertAir:
-          labelText: "inertAir"
+          labelText: "Inert luft"
           tooltip: "Måleenhet prosent oksygen, desimaltall"
           placeHolder: "% O2"
         inertAirTolerance:
@@ -49,9 +49,14 @@ no:
           labelText: Lysforhold
           tooltip: Lysforhold
         comments:
-          labelText: comments
+          labelText: Kommentarer
           tooltip: "Kommentar!"
-
+      storageType:
+        items:
+          storageunit: "Lagringsenhet"
+          room: Rom
+          building: "Bygning"
+          organization: "Organisasjon"
     welcomePage:
       title: >
         Universitetsmuseenes IT-organisasjon,

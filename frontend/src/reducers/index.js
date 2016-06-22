@@ -26,7 +26,9 @@ import authReducer from './auth'
 import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
 import autosuggestReducer from './suggest'
+import storageReducer from './storageunit-container'
 import organizationReducer from './organization'
+
 
 const rootReducer = combineReducers({
   routing: routerReducer,
@@ -35,6 +37,7 @@ const rootReducer = combineReducers({
   fakeAuthInfo: fakeAuthReducer,
   language: languageReducer,
   suggest: autosuggestReducer,
+  storageUnit: storageReducer,
   organization: organizationReducer,
   form: form
 })
