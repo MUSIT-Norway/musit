@@ -79,5 +79,5 @@ MusitDropDownField.propTypes = {
   maximumLength: PropTypes.number,
   validator: PropTypes.string,
   items: PropTypes.array.isRequired,
-  translate: PropTypes.func.isRequired,
+  translate: PropTypes.func,
 };
