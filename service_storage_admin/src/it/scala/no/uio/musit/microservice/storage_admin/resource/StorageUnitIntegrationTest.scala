@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storage_admin.resource
 
+import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.PlayTestDefaults
@@ -25,7 +26,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
 
-  def unknownStorageUnitMsg(id: Long) = StorageUnitService.unknownStorageUnitMsg(id)
+  def unknownStorageUnitMsg(id: Long) = StorageUnitDao.unknownStorageUnitMsg(id)
 
   def createStorageUnit(json: String) = {
     WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(json)

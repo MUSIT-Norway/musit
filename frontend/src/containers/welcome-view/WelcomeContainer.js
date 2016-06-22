@@ -1,7 +1,8 @@
+const styles = require('./WelcomeContainer.scss');
+
 import React from 'react'
 import { Panel, Grid, Row, Col, PageHeader } from 'react-bootstrap'
 import LoginButton from '../../components/login-button'
-require('./WelcomeContainer.scss')
 
 export default class WelcomeContainer extends React.Component {
   static propTypes = {
@@ -21,7 +22,7 @@ export default class WelcomeContainer extends React.Component {
                   <PageHeader>
                     {this.props.translate('musit.welcomePage.title', true)}
                   </PageHeader>
-                  <div className="panelWithBackground">
+                  <div className={styles.panelWithBackground}>
                     <span style={{ fontSize: 'larger', margin: '1em' }}>
                       {this.props.translate('musit.welcomePage.body', true)}
                     </span>

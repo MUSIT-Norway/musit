@@ -1,8 +1,10 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain._
+import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.microservices.common.utils.DaoHelper
+import no.uio.musit.microservices.common.utils.{ DaoHelper, ErrorHelper }
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
@@ -30,6 +32,12 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     Some(Seq(LinkService.self(s"/v1/${id.get}")))
   }
 
+  def unknownStorageUnitMsg(id: Long) = s"Unknown storageUnit with id: $id"
+
+  def storageUnitNotFoundError(id: Long): MusitError = {
+    ErrorHelper.notFound(unknownStorageUnitMsg(id))
+  }
+
   def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] = {
     val action = StorageUnitTable.filter(st => st.id === id && st.isDeleted === 0).result.headOption
     db.run(action)
@@ -50,14 +58,16 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  def getStorageType(id: Long): Future[Option[StorageUnitType]] = {
+  //def getStorageType(id: Long): Future[Option[StorageUnitType]] = {
+  def getStorageType(id: Long): MusitFuture[StorageUnitType] = {
     val action = StorageUnitTable.filter(_.id === id).map {
       _.storageType
     }.result.headOption
-    db.run(action).map {
-      _.map { storageType => StorageUnitType(storageType)
-      }
-    }
+    val res = db.run(action)
+    res.foldInnerOption(Left(storageUnitNotFoundError(id)), storageType => StorageUnitType(storageType) match {
+      case Some(st) => Right(st)
+      case _ => Left(ErrorHelper.conflict("Illegal storageType."))
+    })
   }
 
   def getWholeCollectionStorage(storageCollectionRoot: String): Future[Seq[StorageUnit]] = {

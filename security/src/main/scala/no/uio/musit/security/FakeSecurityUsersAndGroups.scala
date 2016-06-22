@@ -62,7 +62,7 @@ object FakeSecurityUsersAndGroups {
 
   def groupsIdsForUserId(userId: String) = groupsForUserMap(userId)
 
-  def groupsForUserId(userId: String) = groupsIdsForUserId(userId) map (groupId => findGroup(groupId).getOrThrow(s"Undefined groupId: $groupId"))
+  def groupsForUserId(userId: String) = groupsIdsForUserId(userId) map (groupId => findGroup(groupId).getOrFail(s"Undefined groupId: $groupId"))
 
   def fetchConfig = {
 
