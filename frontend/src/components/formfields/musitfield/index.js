@@ -17,7 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 import { validate } from '../common/validators'
 
 export default class MusitField extends Component {
