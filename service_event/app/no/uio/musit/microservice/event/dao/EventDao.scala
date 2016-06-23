@@ -33,8 +33,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
-  * Created by jstabel on 6/13/16.
-  */
+ * Created by jstabel on 6/13/16.
+ */
 object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._

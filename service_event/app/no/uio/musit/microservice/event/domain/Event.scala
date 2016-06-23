@@ -19,8 +19,9 @@
  */
 
 package no.uio.musit.microservice.event.domain
+
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{JsObject, JsResult}
+import play.api.libs.json.{JsObject, JsResult, Json}
 import slick.dbio.DBIO
 
 case class BaseEvent(id: Option[Long], eventType: Int, links: Option[Seq[Link]], note: Option[String])
@@ -29,35 +30,89 @@ class Event(eventType: EventType, dto: BaseEvent) {
   val id: Option[Long] = dto.id
   val note: Option[String] = dto.note
   val links: Option[Seq[Link]] = dto.links
+
   def extendedInsertAction: Option[DBIO[Long]] = None
 }
 
 object Event {
-  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Event] = ???
-  def fromJsonToBaseEvent = ???
+  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Event] = {
+    val baseEvent = fromJsonToBaseEvent(eventType, jsObject)
+    baseEvent.map(dto => new Event(eventType, dto))
+  }
+
+  def fromJsonToBaseEvent(eventType: EventType, jsObject: JsObject): JsResult[BaseEvent] = {
+    for {
+      id <- (jsObject \ "id").validateOpt[Long]
+      links <- (jsObject \ "links").validateOpt[Seq[Link]]
+      note <- (jsObject \ "note").validateOpt[String]
+    } yield BaseEvent(id, eventType.id, links, note)
+  }
 }
 
 case class MoveDTO(to: Option[String])
-class Move(eventType: EventType, baseDTO: BaseEvent, dto: MoveDTO) extends Event(eventType, baseDTO) {
-  val to: Option[String] = dto.to
-  override def extendedInsertAction = None
-}
-object Move {
-  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Event] = Event.fromJson(eventType, jsObject)
+
+object MoveDTO {
+
+  //  def tupled = (MoveDTO.apply _).tupled
+
+  implicit val format = Json.format[MoveDTO]
 }
 
-case class ControlDTO()
+class Move(eventType: EventType, baseDTO: BaseEvent, dto: MoveDTO) extends Event(eventType, baseDTO) {
+  val to: Option[String] = dto.to
+
+  override def extendedInsertAction = None
+}
+
+object Move {
+  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Move] = {
+    for {
+      baseEventDto <- Event.fromJsonToBaseEvent(eventType, jsObject)
+      moveEventDto <- jsObject.validate[MoveDTO]
+    } yield new Move(eventType, baseEventDto, moveEventDto)
+  }
+}
+
+case class ControlDTO(blablabla: Option[String])
+
+object ControlDTO {
+
+  //def tupled = (ControlDTO.apply _).tupled
+
+  implicit val format = Json.format[ControlDTO]
+}
+
 class Control(eventType: EventType, baseDTO: BaseEvent, dto: ControlDTO) extends Event(eventType, baseDTO) {
   override def extendedInsertAction = None
 }
+
 object Control {
-  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Control] = ???
+  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Control] = {
+    for {
+      baseEventDto <- Event.fromJsonToBaseEvent(eventType, jsObject)
+      controlEventDto <- jsObject.validate[ControlDTO]
+    } yield new Control(eventType, baseEventDto, controlEventDto)
+  }
 }
 
-case class ObservationDTO()
+case class ObservationDTO(blablabla: Option[String])
+
+object ObservationDTO {
+
+  //def tupled = (ObservationDTO.apply _).tupled
+
+  implicit val format = Json.format[ObservationDTO]
+}
+
 class Observation(eventType: EventType, baseDTO: BaseEvent, dto: ObservationDTO) extends Event(eventType, baseDTO) {
   override def extendedInsertAction = None
 }
+
 object Observation {
-  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Observation] = ???
+  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Observation] = {
+    for {
+      baseEventDto <- Event.fromJsonToBaseEvent(eventType, jsObject)
+      observationDto <- jsObject.validate[ObservationDTO]
+    } yield new Observation(eventType, baseEventDto, observationDto)
+  }
 }

@@ -37,8 +37,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class EventResource extends Controller {
 
   def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val evtType = (request.body \ "eventType").as[String]
-    EventType(evtType) match {
+    val evtTypeName = (request.body \ "eventType").as[String]
+    val maybeEventType = EventType.getByName(evtTypeName)
+    val maybeEventResult = maybeEventType.map(eventType => eventType.fromJsonToEvent(request.body))
+
+
+
+
+
+
+
+    EventType(evtTypeName) match {
       case Some(eventType) =>
         eventType.reads(request.body).asEither match {
           case Right(event) =>
@@ -50,7 +59,7 @@ class EventResource extends Controller {
             Future.successful(BadRequest(s"Invalid payload"))
         }
       case None =>
-        Future.successful(BadRequest(s"Invalid eventTupe $evtType"))
+        Future.successful(BadRequest(s"Invalid eventTupe $evtTypeName"))
     }
 
     request.body.validate[Event].asEither match {

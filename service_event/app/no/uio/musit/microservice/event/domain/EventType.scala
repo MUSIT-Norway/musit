@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.domain
 
-import play.api.libs.json.{JsObject, JsResult}
+import play.api.libs.json.{ JsObject, JsResult }
 
 class EventType(val id: Int, name: String, fromJsonToEvent: (EventType, JsObject) => JsResult[Event]) {
 
@@ -28,7 +28,7 @@ class EventType(val id: Int, name: String, fromJsonToEvent: (EventType, JsObject
     new EventType(1, "Move", Move.fromJson),
     new EventType(2, "Control", Control.fromJson),
     new EventType(3, "Observation", Observation.fromJson)
-    // Add new event type here....
+  // Add new event type here....
   )
 
   val eventTypeById: Map[Int, EventType] = eventTypes.map(evt => evt.id -> evt).toMap
