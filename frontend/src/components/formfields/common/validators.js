@@ -7,7 +7,7 @@ const validateString = (value, minimumLength = 1, maximumLength = 20) => {
 const validateNumber = (value, minimumLength = 1) => {
   const isSomething = value && value.length >= minimumLength
   const isValid = isSomething ? 'success' : null
-  return isSomething && isNaN(value) ? 'error' : isValid
+  return isSomething && !(/^-?\d+,\d+$/.test(value) || /^-?\d+$/.test(value)) ? 'error' : isValid
 }
 
 const validate = (source) => {
