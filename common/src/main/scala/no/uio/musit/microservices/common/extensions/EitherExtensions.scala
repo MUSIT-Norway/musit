@@ -21,6 +21,7 @@
 package no.uio.musit.microservices.common.extensions
 
 import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitResult
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Application
 
@@ -31,15 +32,12 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.functional.Functor
 import play.api.mvc.Result
 
-/**
- * Created by jstabel on 6/10/16.
- */
-
+// TODO: Move to another file (create MusitResult.scala), this is really MusitResult methods, not general Either methods. 
 object EitherExtensions {
 
   implicit class EitherExtensionsImp[T](val either: Either[MusitError, T]) extends AnyVal {
 
-    //Current content moved to ResourceHelper
-
+    def map[S](f: T => S) = either.right.map(f)
+    def flatMap[S](f: T => MusitResult[S]) = either.right.flatMap(f)
   }
 }

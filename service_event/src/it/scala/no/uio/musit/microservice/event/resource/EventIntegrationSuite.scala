@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.resource
 
-import no.uio.musit.microservice.event.domain.MoveEvent
+import no.uio.musit.microservice.event.domain.Move
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._

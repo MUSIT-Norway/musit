@@ -39,8 +39,18 @@ trait EventService {
   def eventNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(s"Unknown event with id: $id")
 
-  def insertEvent(eventInfo: Event): Future[Event] =
-    EventDao.insertEvent(eventInfo)
+  def insertAndGetNewEvent(event: Event): MusitFuture[Event] = {
+    insertEvent(event).musitFutureFlatMap(newId => getEvent(newId))
+  }
+
+  def insertEvent(event: Event): MusitFuture[Long] =
+    EventDao.insertEvent(event).toMusitFuture //We need MusitFuture here in the future,
+  //(to be able to report if user doesn't have the necessary groups etc)
+
+  def getEvent(id: Long): MusitFuture[Event] =
+    EventDao.getEvent(id).toMusitFuture(eventNotFoundError(id))
+
+  /*
 
   private def getBaseEvent(id: Long): MusitFuture[Event] =
     EventDao.getBaseEvent(id).toMusitFuture(eventNotFoundError(id))
@@ -53,7 +63,7 @@ trait EventService {
 
   def getById(id: Long): MusitFuture[Event] =
     getBaseEvent(id)
-
+*/
 }
 
 object EventService extends EventService

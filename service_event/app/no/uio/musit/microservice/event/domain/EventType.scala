@@ -22,8 +22,12 @@ package no.uio.musit.microservice.event.domain
 
 import play.api.libs.json.{ JsObject, JsResult }
 
-class EventType(val id: Int, name: String, fromJsonToEvent: (EventType, JsObject) => JsResult[Event]) {
+class EventType(val id: Int, val name: String, val fromJsonToEvent: (EventType, JsObject) => JsResult[Event]) {
 
+  def makeEvent(jsObject: JsObject) = fromJsonToEvent(this, jsObject)
+}
+
+object EventType {
   val eventTypes = Seq(
     new EventType(1, "Move", Move.fromJson),
     new EventType(2, "Control", Control.fromJson),

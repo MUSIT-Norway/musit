@@ -20,29 +20,44 @@
 
 package no.uio.musit.microservice.event.resource
 
-import no.uio.musit.microservice.event.domain.{ EventType, _ }
+import no.uio.musit.microservice.event.domain.{ Event, EventType }
+import no.uio.musit.microservice.event.domain.EventType._
 import no.uio.musit.microservice.event.service.EventService
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitFuture
-import no.uio.musit.microservices.common.utils.ResourceHelper
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.mvc.{ Action, BodyParsers, Controller, Result }
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
 
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EventResource extends Controller {
+  private def eventToJson(event: Event) = event.toJson
 
   def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val evtTypeName = (request.body \ "eventType").as[String]
-    val maybeEventType = EventType.getByName(evtTypeName)
-    val maybeEventResult = maybeEventType.map(eventType => eventType.fromJsonToEvent(request.body))
+    val maybeEventTypeResult = EventType.getByName(evtTypeName).toMusitResult(ErrorHelper.badRequest(s"Unknown eventType: $evtTypeName"))
 
+    val maybeEventResult = maybeEventTypeResult.flatMap {
+      eventType => eventType.makeEvent(request.body.asInstanceOf[JsObject]) |> ResourceHelper.jsResultToMusitResult
+    }
 
+    ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent, maybeEventResult, eventToJson)
 
+  }
+
+  def getEvent(id: Long) = Action.async { request =>
+    ResourceHelper.getRoot(EventService.getEvent, id, eventToJson)
+  }
+
+  /*
 
 
 
@@ -74,7 +89,5 @@ class EventResource extends Controller {
     }
   }
 
-  def getEvent(id: Long) = Action.async { request =>
-    ResourceHelper.getRoot(EventService.getById, id, (event: Event) => Json.toJson(event))
-  }
+  */
 }
