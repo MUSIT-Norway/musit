@@ -20,76 +20,20 @@
 
 package no.uio.musit.microservice.event.domain
 
-import play.api.libs.json.{ JsResult, JsValue, Json }
+import play.api.libs.json.{JsObject, JsResult}
 
-sealed trait EventType {
-  val id: Int
-  val reads: (JsValue) => JsResult[Event]
-  val typename: String
-}
+class EventType(val id: Int, name: String, fromJsonToEvent: (EventType, JsObject) => JsResult[Event]) {
 
-trait Companion[T] {
-  type C
-  def apply() : C
-}
-
-object Companion {
-  implicit def companion[T](implicit comp : Companion[T]) = comp()
-}
-
-object TestCompanion {
-  trait Foo
-
-  case class Meh(d: String) extends Foo
-
-  object Meh {
-    def bar = "wibble"
-
-    // Per-companion boilerplate for access via implicit resolution
-    implicit def companion = new Companion[Meh] {
-      type C = Meh.type
-      def apply() = Meh
-    }
-  }
-
-  import Companion._
-
-  val fc = companion[Meh]  // Type is Foo.type
-  val s = fc.bar          // bar is accessible
-}
-
-object EventType {
-
-  val eventTypeByName: Map[String, EventType] = Map(
-    MoveEvent.typename -> MoveEvent,
-    ControlEvent.typename -> ControlEvent,
-    ObservationEvent.typename -> ObservationEvent
+  val eventTypes = Seq(
+    new EventType(1, "Move", Move.fromJson),
+    new EventType(2, "Control", Control.fromJson),
+    new EventType(3, "Observation", Observation.fromJson)
+    // Add new event type here....
   )
 
-  val eventTypeById: Map[Int, EventType] = eventTypeByName.values.map(evt => evt.id -> evt).toMap
-  val eventNameById: Map[Int, String] = eventTypeByName.values.map(evt => evt.id -> evt.typename).toMap
-  val eventIdByName: Map[String, Int] = eventTypeByName.values.map(evt => evt.typename -> evt.id).toMap
+  val eventTypeById: Map[Int, EventType] = eventTypes.map(evt => evt.id -> evt).toMap
+  val eventTypeByName: Map[String, EventType] = eventTypes.map(evt => evt.name.toLowerCase -> evt).toMap
 
-  def getId(name: String) = eventIdByName.get(name).get
-  def getName(id: Int) = eventNameById.get(id).get
-  def apply(stType: String) = eventTypeByName.get(stType)
-  def apply(id: Int) = eventTypeById.get(id)
-}
-
-object MoveEvent extends EventType {
-  val id = 1
-  val reads = Move.format.reads _
-  val typename: String = "move"
-}
-
-object ControlEvent extends EventType {
-  val id = 2
-  val reads = Control.format.reads _
-  val typename: String = "control"
-}
-
-object ObservationEvent extends EventType {
-  val id = 3
-  val reads = Observation.format.reads _
-  val typename: String = "observation"
+  def getByName(name: String) = eventTypeByName.get(name.toLowerCase)
+  def getById(id: Int) = eventTypeById.get(id)
 }

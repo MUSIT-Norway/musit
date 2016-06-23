@@ -19,58 +19,45 @@
  */
 
 package no.uio.musit.microservice.event.domain
-
-import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json._
+import play.api.libs.json.{JsObject, JsResult}
+import slick.dbio.DBIO
 
-sealed trait Event extends BaseMusitDomain {
-  val id: Option[Long]
-  val links: Option[Seq[Link]]
-  val eventType: String
-  val note: Option[String]
+case class BaseEvent(id: Option[Long], eventType: Int, links: Option[Seq[Link]], note: Option[String])
+
+class Event(eventType: EventType, dto: BaseEvent) {
+  val id: Option[Long] = dto.id
+  val note: Option[String] = dto.note
+  val links: Option[Seq[Link]] = dto.links
+  def extendedInsertAction: Option[DBIO[Long]] = None
 }
 
 object Event {
-  implicit val format = Json.format[Move]
+  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Event] = ???
+  def fromJsonToBaseEvent = ???
 }
 
-case class DefaultEvent(
-  id: Option[Long],
-  links: Option[Seq[Link]],
-  eventType: String,
-  note: Option[String]
-) extends Event
-
-case class Move(
-  id: Option[Long],
-  links: Option[Seq[Link]],
-  eventType: String,
-  note: Option[String]
-) extends Event
-
+case class MoveDTO(to: Option[String])
+class Move(eventType: EventType, baseDTO: BaseEvent, dto: MoveDTO) extends Event(eventType, baseDTO) {
+  val to: Option[String] = dto.to
+  override def extendedInsertAction = None
+}
 object Move {
-  implicit val format = Json.format[Move]
+  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Event] = Event.fromJson(eventType, jsObject)
 }
 
-case class Observation(
-  id: Option[Long],
-  links: Option[Seq[Link]],
-  eventType: String,
-  note: Option[String]
-) extends Event
-
-object Observation {
-  implicit val format = Json.format[Observation]
+case class ControlDTO()
+class Control(eventType: EventType, baseDTO: BaseEvent, dto: ControlDTO) extends Event(eventType, baseDTO) {
+  override def extendedInsertAction = None
 }
-
-case class Control(
-  id: Option[Long],
-  links: Option[Seq[Link]],
-  eventType: String,
-  note: Option[String]
-) extends Event
-
 object Control {
-  implicit val format = Json.format[Control]
+  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Control] = ???
+}
+
+case class ObservationDTO()
+class Observation(eventType: EventType, baseDTO: BaseEvent, dto: ObservationDTO) extends Event(eventType, baseDTO) {
+  override def extendedInsertAction = None
+}
+object Observation {
+  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Observation] = ???
 }
