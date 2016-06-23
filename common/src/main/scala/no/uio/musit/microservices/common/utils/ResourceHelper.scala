@@ -1,6 +1,6 @@
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{MusitError, MusitStatusMessage}
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
@@ -9,12 +9,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
-  * Misc utilities for creating resources.
-  * Created by jstabel on 5/31/16.
-  *
-  * @author jstabel <jarle.stabell@usit.uio.no>
-  *
-  */
+ * Misc utilities for creating resources.
+ * Created by jstabel on 5/31/16.
+ *
+ * @author jstabel <jarle.stabell@usit.uio.no>
+ *
+ */
 
 object ResourceHelper {
 
@@ -29,12 +29,12 @@ object ResourceHelper {
     */
 
     /**
-      * If the either is Right, it is mapped into a future[Result] the obvious way.
-      * If it is Left, it is mapped into a successful future containing the error!
-      * So beware of further mapping of the result! (This explains the 'Final' in the name.)
-      * (Ideally I'd want to make this into a value (of a type) which cannot further be mapped etc on,
-      * to prevent potential bugs/misuse.)
-      */
+     * If the either is Right, it is mapped into a future[Result] the obvious way.
+     * If it is Left, it is mapped into a successful future containing the error!
+     * So beware of further mapping of the result! (This explains the 'Final' in the name.)
+     * (Ideally I'd want to make this into a value (of a type) which cannot further be mapped etc on,
+     * to prevent potential bugs/misuse.)
+     */
     def mapToFinalPlayResult[S](ifRight: T => Future[Result]): Future[Result] = {
       either match {
         case Left(l) => Future.successful(l.toPlayResult) //This is rather unsemantic,
@@ -47,7 +47,8 @@ object ResourceHelper {
 
   def postRoot[A](servicePostCall: A => Future[Either[MusitError, A]], objectToPost: A, toJsonTransformer: A => JsValue) = {
     val res = servicePostCall(objectToPost)
-    res.map { _.fold(
+    res.map {
+      _.fold(
         l => l.toPlayResult,
         r => Created(toJsonTransformer(r))
       )
@@ -56,7 +57,7 @@ object ResourceHelper {
 
   /** Same as postRoot, but the object to post is a MusitResult (Either[MusitError, A]) */
   def postRootWithMusitResult[A](servicePostCall: A => Future[Either[MusitError, A]], musitResultToPost: Either[MusitError, A],
-                                 toJsonTransformer: A => JsValue) = {
+    toJsonTransformer: A => JsValue) = {
     musitResultToPost.mapToFinalPlayResult {
       objectToPost => postRoot(servicePostCall, objectToPost, toJsonTransformer)
     }
@@ -70,16 +71,20 @@ object ResourceHelper {
   }
 
   /** Same as updateRoot, but the object to update is a MusitResult (Either[MusitError, A]) */
-  def updateRootWithMusitResult[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]],
-                                   id: Long, musitResultObjectToUpdate: Either[MusitError, A]): Future[Result] = {
+  def updateRootWithMusitResult[A](
+    serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]],
+    id: Long, musitResultObjectToUpdate: Either[MusitError, A]
+  ): Future[Result] = {
     musitResultObjectToUpdate.mapToFinalPlayResult {
       objectToUpdate => updateRoot(serviceUpdateCall, id, objectToUpdate)
     }
   }
 
   /* This one is perhaps not used anymore? If so, consider deleting it some time in the future.*/
-  def updateRootWithJsResult[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]],
-                                id: Long, validatedResult: JsResult[A]): Future[Result] = {
+  def updateRootWithJsResult[A](
+    serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]],
+    id: Long, validatedResult: JsResult[A]
+  ): Future[Result] = {
     updateRootWithMusitResult(serviceUpdateCall, id, jsResultToMusitResult(validatedResult))
   }
 

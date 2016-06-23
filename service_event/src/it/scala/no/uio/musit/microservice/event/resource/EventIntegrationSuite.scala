@@ -20,6 +20,7 @@
 
 package no.uio.musit.microservice.event.resource
 
+import no.uio.musit.microservice.event.domain.MoveEvent
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
@@ -72,11 +73,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
     "postWithoutLinks" in {
-      val json =
-        """
-  {
-   "eventType": "move",
-   "eventData": {"note": "Dette er et VELDIG viktig notat!"}}"""
+      val json = MoveEvent
 
       val response = createEvent(json)
       response.status mustBe 201

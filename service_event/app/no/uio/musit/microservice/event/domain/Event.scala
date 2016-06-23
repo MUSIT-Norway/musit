@@ -22,83 +22,55 @@ package no.uio.musit.microservice.event.domain
 
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json._
 
-/**
- * Created by jstabel on 6/10/16.
- */
-
-case class AtomLink(rel: String, href: String) {
-  def toLink(localId: Long) = Link(None, Some(localId), rel, href)
-
+sealed trait Event extends BaseMusitDomain {
+  val id: Option[Long]
+  val links: Option[Seq[Link]]
+  val eventType: String
+  val note: Option[String]
 }
 
-/**
- *
- * @param id
- * @param eventType meant to already be validated
- * @param eventData
- * @param links
- */
+object Event {
+  implicit val format = Json.format[Move]
+}
 
-case class EventInfo(id: Option[Long], eventType: String, eventData: Option[Event], links: Option[Seq[AtomLink]])
-
-case class Event(
-  override val id: Option[Long],
-  override val links: Option[Seq[Link]],
-  eventTypeId: Int,
+case class DefaultEvent(
+  id: Option[Long],
+  links: Option[Seq[Link]],
+  eventType: String,
   note: Option[String]
-) extends BaseMusitDomain {
+) extends Event
 
-  def eventType = EventType.apply(eventTypeId)
+case class Move(
+  id: Option[Long],
+  links: Option[Seq[Link]],
+  eventType: String,
+  note: Option[String]
+) extends Event
 
-  def asSeq[T](optSeq: Option[Seq[T]]) = optSeq.getOrElse(Seq.empty[T])
-
-  //def allAtomLinks = asSeq(actors) // Todo: Add places, artifacts etc.
+object Move {
+  implicit val format = Json.format[Move]
 }
 
-sealed trait EventExtension
+case class Observation(
+  id: Option[Long],
+  links: Option[Seq[Link]],
+  eventType: String,
+  note: Option[String]
+) extends Event
 
-object EventExtension {
-  def apply(eventType: String) : Option[EventExtension] = {
-    eventType match {
-      case "kontroll" => Some(Kontroll())
-      case other => None
-    }
-  }
+object Observation {
+  implicit val format = Json.format[Observation]
 }
 
-case class Kontroll(
-  override val id: Option[Long],
-  override val links: Option[Seq[Link]],
-  override val eventTypeId: Int,
-  override val note: Option[String]
-)  extends Event(id, links, eventTypeId, note)
+case class Control(
+  id: Option[Long],
+  links: Option[Seq[Link]],
+  eventType: String,
+  note: Option[String]
+) extends Event
 
-case class CompleteEvent(baseEvent: Event, eventExtension: Option[EventExtension], links: Option[Seq[AtomLink]]) {
-
+object Control {
+  implicit val format = Json.format[Control]
 }
-
-object CompleteEvent {
-
-}
-
-object AtomLink {
-  def tupled = (AtomLink.apply _).tupled
-
-  implicit val format = Json.format[AtomLink]
-
-  def createFromLink(link: Link) = AtomLink(link.rel, link.href)
-}
-
-object EventInfo {
-  def apply(json: JsValue) = {
-    EventInfo(
-      None,
-      (json \ "eventType").as[String],
-      (json \ "eventData").toOption.map(_.as[JsObject]),
-      (json \ "links").asOpt[List[AtomLink]]
-    )
-  }
-}
-

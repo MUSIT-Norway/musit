@@ -20,43 +20,52 @@
 
 package no.uio.musit.microservice.event.resource
 
-import io.swagger.annotations.ApiOperation
-import no.uio.musit.microservice.event.domain.{ AtomLink, CompleteEvent, EventInfo, EventType }
+import no.uio.musit.microservice.event.domain.{ EventType, _ }
 import no.uio.musit.microservice.event.service.EventService
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitFuture
+import no.uio.musit.microservices.common.utils.ResourceHelper
+import play.api.Logger
+import play.api.data.validation.ValidationError
 import play.api.libs.json._
-import play.api.mvc.{ Action, BodyParsers, Controller }
+import play.api.mvc.{ Action, BodyParsers, Controller, Result }
 
+import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
-
-/**
- * Created by jstabel on 6/10/16.
- */
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class EventResource extends Controller {
 
-  def eventInfoToJson(eventInfo: EventInfo) = Json.toJson(eventInfo)
-
-  def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val rawEventInfo = EventInfo(request.body)
-    val maybeEventInfo = {
-      val maybeEventType = rawEventInfo
-      maybeEventType match {
-        case Success(eventType) => Right(rawEventInfo)
-        case Failure(e) => Left(ErrorHelper.badRequest(e.getMessage))
-      }
+  def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    val evtType = (request.body \ "eventType").as[String]
+    EventType(evtType) match {
+      case Some(eventType) =>
+        eventType.reads(request.body).asEither match {
+          case Right(event) =>
+            EventService.insertEvent(event).map { created =>
+              Ok(Json.toJson(created))
+            }
+          case Left(error) =>
+            Logger.error(error.mkString)
+            Future.successful(BadRequest(s"Invalid payload"))
+        }
+      case None =>
+        Future.successful(BadRequest(s"Invalid eventTupe $evtType"))
     }
-    ResourceHelper.postRootWithMusitResult(EventService.createEvent, maybeEventInfo, eventInfoToJson)
-    // TODO parse shit
-    // TODO insert shit
+
+    request.body.validate[Event].asEither match {
+      case Right(event) =>
+        EventService.insertEvent(event).map { created =>
+          Ok(Json.toJson(created))
+        }
+      case Left(error) =>
+        Future.successful(
+          BadRequest(error.map(e => e._1.toJsonString -> e._2.fold("")((a1, a2) => a1 + ", " + a2)).mkString(","))
+        )
+    }
   }
 
-  def getRoot(id: Long) = Action.async { request =>
-    def completeEventToEventInfoToJson(completeEvent: CompleteEvent) =
-      EventService.completeEventToEventInfo(completeEvent) |> eventInfoToJson
-
-    ResourceHelper.getRoot(EventService.getById, id, completeEventToEventInfoToJson)
+  def getEvent(id: Long) = Action.async { request =>
+    ResourceHelper.getRoot(EventService.getById, id, (event: Event) => Json.toJson(event))
   }
 }
