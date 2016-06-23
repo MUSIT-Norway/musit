@@ -68,6 +68,12 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK(
  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
 );
 
+-- insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) values (1,'KASSE 5',45,45,'storageunit');
+-- insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) values (2,'KASSE 6',1,4,'storageunit');
+-- insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) values (3,'KASSE 7',3,4,'storageunit');
+-- insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) values (7,'KASSE 12',3,4,'storageunit');
+-- insert into MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,area,storage_type) values (9,'KASSE 12',4,'storageunit');
+
 # --- !Downs
 
 
