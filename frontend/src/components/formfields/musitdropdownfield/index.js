@@ -3,73 +3,81 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, Popover, ControlLabel, Col, InputGroup, OverlayTrigger } from 'react-bootstrap'
-import Select from 'react-select';
+import Select from 'react-select'
+import { validate } from '../common/validators'
 
 export default class MusitDropDownField extends Component {
 
-  static helpText(tip) {
-    return (
-      <Popover id="InputLinkPopover" title="Info">
-          {tip}
-      </Popover>
-    )
+  classNameOnlyWithInput() {
+    let lvString = ''
+    if (validate(this.props) === 'error') {
+      lvString = 'has-error'
+    } else {
+      lvString = ''
+    }
+    return lvString
   }
 
-  render() {
-    const v = this.props.valueText() ? this.props.valueText() : '';
-    const options = [{ value: '', label: 'Velg type' }]
-      .concat(
-        this.props.items.map((el) =>
-        ({ value: el, label: this.props.translate('musit.storageUnits.storageType.items.'.concat(el)) }))
-      );
+  classNameWithSpan() {
+    let lvString = ' '
+    if (validate(this.props) === 'error') {
+      lvString = 'input-group has-error'
+    } else {
+      lvString = 'input-group'
+    }
+    return lvString
+  }
 
-    return (
-      <FormGroup
-        controlId={this.props.controlId}
-        style={{
-          marginTop: 0,
-          marginBottom: '5px'
-        }}
-        validationState={this.props.validationState()}
+
+  render() {
+    const v = this.props.value ? this.props.value : '';
+    const options = this.props.items.map((el) =>
+        ({ value: el, label: this.props.translate('musit.storageUnits.storageType.items.'.concat(el)) }));
+    const lcAddOnPrefix = this.props.addOnPrefix ? <span className="input-group-addon" >{this.props.addOnPrefix}</span> : null;
+    const lcPlaceholder = (
+      <Select
+        id={this.props.id}
+        name="form-field-name"
+        value={v}
+        options={options}
+        onChange={(event) => this.props.onChange(event.value)}
+        data-toggle="tooltip"
+        title={this.props.tooltip}
+        clearable={false}
+      />);
+    const lcHelp = this.props.help ? <span className="input-group-addon" >?</span> : null;
+
+    return (lcAddOnPrefix !== null || lcHelp !== null) ? (
+      <div
+        className={this.classNameWithSpan()}
       >
-        <Col componentClass={ControlLabel} sm={3}>
-            {this.props.labelText}
-        </Col>
-        <Col sm={9}>
-          <InputGroup style={{ display: 'table' }}>
-            <Select
-              name="form-field-name"
-              value={v}
-              options={options}
-              onChange={(event) => this.props.onChange(event.value)}
-            />
-            {this.props.tooltip ?
-              <OverlayTrigger
-                trigger={['click']}
-                rootClose
-                placement="right"
-                overlay={MusitDropDownField.helpText(this.props.tooltip)}
-              >
-                <InputGroup.Addon>?</InputGroup.Addon>
-              </OverlayTrigger> : null}
-          </InputGroup>
-        </Col>
-      </FormGroup>
-    )
+        {lcAddOnPrefix}
+        {lcPlaceholder}
+        {lcHelp}
+      </div>
+     ) : (
+      <div
+        className={this.classNameOnlyWithInput()}
+      >
+          {lcPlaceholder}
+      </div>
+      )
   }
 }
 
 
 MusitDropDownField.propTypes = {
-  controlId: PropTypes.string.isRequired,
-  labelText: PropTypes.string.isRequired,
-  placeHolderText: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired, // Should be any
+  addOnPrefix: PropTypes.string,
+  help: PropTypes.string, // always ? on add on after
+  placeHolder: PropTypes.string,
   tooltip: PropTypes.string,
-  items: PropTypes.array,
-  valueText: PropTypes.func.isRequired,
-  valueType: PropTypes.string.isRequired,
-  validationState: PropTypes.func.isRequired,
-  onChange: PropTypes.func,
-  translate: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
+  validate: PropTypes.string.isRequired,
+  minimumLength: PropTypes.number,
+  maximumLength: PropTypes.number,
+  validator: PropTypes.string,
+  items: PropTypes.array.isRequired,
+  translate: PropTypes.func,
 };

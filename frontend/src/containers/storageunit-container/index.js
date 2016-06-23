@@ -74,7 +74,13 @@
 
    updateStorageUnit(data, key, value) {
      const newData = Object.assign({}, data);
-     newData[key] = value && value !== '' ? value : null
+     let v = null
+     if (isNaN(value)) {
+       v = value
+     } else {
+       v = value ? parseFloat(value) : null
+     }
+     newData[key] = v && v !== '' ? v : null
      this.setState({ storageUnit: newData })
    }
 
@@ -99,13 +105,13 @@
              updateName={(storageUnitName) =>
               this.updateStorageUnit(data, 'storageUnitName', storageUnitName)}
              updateAreal1={(area) =>
-              this.updateStorageUnit(data, 'area', area ? parseFloat(area) : area)}
+              this.updateStorageUnit(data, 'area', area)}
              updateAreal2={(areal2) =>
-              this.updateStorageUnit(data, 'area2', areal2 ? parseFloat(areal2) : areal2)}
+              this.updateStorageUnit(data, 'area2', areal2)}
              updateHeight1={(height) =>
-              this.updateStorageUnit(data, 'height', height ? parseFloat(height) : height)}
+              this.updateStorageUnit(data, 'height', height)}
              updateHeight2={(height2) =>
-              this.updateStorageUnit(data, 'height2', height2 ? parseFloat(height2) : height2)}
+              this.updateStorageUnit(data, 'height2', height2)}
              updateAddress={(address) =>
               this.updateStorageUnit(data, 'address', address)}
              onAddressSuggestionsUpdateRequested={this.props.onAddressSuggestionsUpdateRequested}

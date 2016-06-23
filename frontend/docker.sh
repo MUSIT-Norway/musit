@@ -1,4 +1,3 @@
-cp ../fake_security.json .
 docker stop musit-frontend
 docker rm musit-frontend
 docker build -t musit/frontend .
