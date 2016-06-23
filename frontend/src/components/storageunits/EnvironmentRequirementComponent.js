@@ -251,7 +251,10 @@ export default class EnvironmentRequirementComponent extends Component {
                       <label className="col-sm-3 control-label" htmlFor="comments">
                         {this.props.translate('musit.storageUnits.environmentRequirements.comments.labelText')}</label>
                       <div class="col-sm-9" is="null">
-                        <TextArea {...this.comments} value={this.state.environmentRequirement.comments} />
+                        <TextArea
+                          {...this.comments}
+                          value={this.state.environmentRequirement.comments}
+                        />
                       </div>
                     </div>
                   </form>
