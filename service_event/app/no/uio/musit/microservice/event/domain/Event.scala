@@ -20,15 +20,35 @@
 
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, MusitResult}
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{ JsObject, JsResult, Json }
+import no.uio.musit.microservices.common.utils.Misc._
+import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
+import play.api.libs.json.{JsObject, JsResult, Json}
 import slick.dbio.DBIO
 
 case class BaseEventDTO(id: Option[Long], links: Option[Seq[Link]], eventType: Int, note: Option[String])
 
+
+case class BaseEventDTOHack(id: Option[Long], links: Option[Seq[Link]], eventType: String, note: Option[String]) {
+
+
+}
+
+object BaseEventDTOHack {
+  def fromBaseEventDto(baseEvent: BaseEventDTO) = {
+    val eventTypeName = (EventType.getById(baseEvent.eventType).get).name
+    BaseEventDTOHack(baseEvent.id, baseEvent.links, eventTypeName, baseEvent.note)
+  }
+  implicit val format = Json.format[BaseEventDTOHack]
+}
+
 object BaseEventDTO {
   implicit val format = Json.format[BaseEventDTO]
 }
+
 
 class Event(eventType: EventType, dto: BaseEventDTO) {
   val id: Option[Long] = dto.id
@@ -38,16 +58,16 @@ class Event(eventType: EventType, dto: BaseEventDTO) {
   val baseEventDTO = dto
 
   /**
-   * possible method to create an action to insert the extended event info.
-   */
+    * possible method to create an action to insert the extended event info.
+    */
   // TODO: Should the function return DBIO[Unit] instead of DBIO[Long]? 
-  def extendedInsertAction: Option[Long => DBIO[Long]] = None
+  def extendedInsertAction: Option[(Long) => DBIO[Int]] = None
 
   //Override this in subclasses
   def extendedToJson: Option[JsObject] = None
 
   def toJson = {
-    val baseJson = Json.toJson(baseEventDTO).asInstanceOf[JsObject]
+    val baseJson = Json.toJson(BaseEventDTOHack.fromBaseEventDto(baseEventDTO)).asInstanceOf[JsObject]
     extendedToJson.fold(baseJson)(extendedJson => baseJson ++ extendedJson)
   }
 
@@ -66,6 +86,21 @@ object Event {
       note <- (jsObject \ "note").validateOpt[String]
     } yield BaseEventDTO(id, links, eventType.id, note)
   }
+
+  def fromDatabase(eventType: EventType, id: Long, baseEventDto: BaseEventDTO): MusitFuture[Event] = {
+    MusitFuture.successful(new Event(eventType, baseEventDto))
+  }
+
+  def genericValidate(jsObject: JsObject): MusitResult[Event] = {
+
+    val evtTypeName = (jsObject \ "eventType").as[String]
+    val maybeEventTypeResult = EventType.getByName(evtTypeName).toMusitResult(ErrorHelper.badRequest(s"Unknown eventType: $evtTypeName"))
+
+    val maybeEventResult = maybeEventTypeResult.flatMap {
+      eventType => eventType.makeEvent(jsObject) |> ResourceHelper.jsResultToMusitResult
+    }
+    maybeEventResult
+  }
 }
 
 case class MoveDTO(to: Option[String])
@@ -75,27 +110,15 @@ object MoveDTO {
 }
 
 trait EventController {
-  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Event]
+  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Event] = Event.fromJson(eventType, jsObject)
+
+  def fromDatabase(eventType: EventType, id: Long, baseEventDto: BaseEventDTO): MusitFuture[Event] = Event.fromDatabase(eventType, id, baseEventDto)
 }
 
-class Move(eventType: EventType, baseDTO: BaseEventDTO, dto: MoveDTO) extends Event(eventType, baseDTO) {
-  val to: Option[String] = dto.to
+class Move(eventType: EventType, baseDTO: BaseEventDTO) extends Event(eventType, baseDTO)
 
-  override def extendedInsertAction = None
+object Move extends EventController
 
-  override def extendedToJson: Option[JsObject] = Some(Json.toJson(dto).asInstanceOf[JsObject])
-
-}
-
-object Move extends EventController {
-
-  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Move] = {
-    for {
-      baseDto <- baseResult
-      moveEventDto <- jsObject.validate[MoveDTO]
-    } yield new Move(eventType, baseDto, moveEventDto)
-  }
-}
 
 case class ControlDTO(blablabla: Option[String])
 
@@ -103,12 +126,10 @@ object ControlDTO {
   implicit val format = Json.format[ControlDTO]
 }
 
-class Control(eventType: EventType, baseDTO: BaseEventDTO, dto: ControlDTO) extends Event(eventType, baseDTO) {
-  override def extendedInsertAction = None
-}
+class Control(eventType: EventType, baseDTO: BaseEventDTO, dto: ControlDTO) extends Event(eventType, baseDTO)
 
 object Control extends EventController {
-  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Control] = {
+  override def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Control] = {
     for {
       baseDto <- baseResult
       controlEventDto <- jsObject.validate[ControlDTO]
@@ -116,21 +137,3 @@ object Control extends EventController {
   }
 }
 
-case class ObservationDTO(blablabla: Option[String])
-
-object ObservationDTO {
-  implicit val format = Json.format[ObservationDTO]
-}
-
-class Observation(eventType: EventType, baseDTO: BaseEventDTO, dto: ObservationDTO) extends Event(eventType, baseDTO) {
-  override def extendedInsertAction = None
-}
-
-object Observation extends EventController {
-  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Observation] = {
-    for {
-      baseDto <- baseResult
-      observationEventDto <- jsObject.validate[ObservationDTO]
-    } yield new Observation(eventType, baseDto, observationEventDto)
-  }
-}

@@ -20,15 +20,18 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{ BaseEventDTO, Event }
+import no.uio.musit.microservice.event.domain.{BaseEventDTO, Event, EventType, ObservationDTO}
+import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitFuture
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
+import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -66,14 +69,35 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       extendedActionFactory =>
         (for {
           newEventId <- insertBaseAndLinksAction
-          _ <- extendedActionFactory(newEventId)
+          numInserted <- extendedActionFactory(newEventId)
         } yield newEventId).transactionally
     }
 
     db.run(combinedAction)
   }
 
-  def getEvent(id: Long): Future[Option[Event]] = ??? // {assert(false, "EventDao.getEvent not implemented yet!!!"???
+
+  def getBaseEvent(id: Long): Future[Option[BaseEventDTO]] = {
+    val action = EventBaseTable.filter(event => event.id === id).result.headOption
+    db.run(action)
+  }
+
+
+  def getEvent(id: Long): MusitFuture[Event] = {
+
+    val maybeBaseEventDto = getBaseEvent(id).toMusitFuture(ErrorHelper.badRequest(s"Event with id: $id not found"))
+
+    maybeBaseEventDto.musitFutureFlatMap{
+      baseEventDto =>
+          val maybeEventType = EventType.getById(baseEventDto.eventType)
+        maybeEventType match {
+          case Some(eventType) =>
+            eventType.createFromDatabase(id, baseEventDto)
+          case None => MusitFuture.fromError(ErrorHelper.badRequest(s"Unknown event type id: $baseEventDto.eventType"))
+          }
+      }
+  }
+
 
   /*#OLD
 
@@ -98,10 +122,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  def getBaseEvent(id: Long): Future[Option[Event]] = {
-    val action = EventBaseTable.filter(event => event.id === id).result.headOption
-    db.run(action)
-  }
   */
 
   private class EventBaseTable(tag: Tag) extends Table[BaseEventDTO](tag, Some("MUSARK_EVENT"), "EVENT") {
@@ -122,5 +142,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     def destroy(event: BaseEventDTO) = Some(event.id, event.eventType, event.note)
 
   }
+
+
+
 
 }

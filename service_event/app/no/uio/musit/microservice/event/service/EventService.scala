@@ -48,7 +48,7 @@ trait EventService {
   //(to be able to report if user doesn't have the necessary groups etc)
 
   def getEvent(id: Long): MusitFuture[Event] =
-    EventDao.getEvent(id).toMusitFuture(eventNotFoundError(id))
+    EventDao.getEvent(id)
 
   /*
 

@@ -30,6 +30,9 @@ class EventType(val id: Int, val name: String, val eventController: EventControl
     eventController.fromJson(this, baseEventDto, jsObject)
   }
 
+  def createFromDatabase(id: Long, baseEventDto: BaseEventDTO) = {
+    eventController.fromDatabase(this, id, baseEventDto)
+  }
 }
 
 object EventType {
