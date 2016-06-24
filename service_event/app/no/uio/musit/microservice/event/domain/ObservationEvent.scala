@@ -20,11 +20,15 @@
 
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
-import play.api.libs.json.{JsObject, JsResult, Json}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.libs.json.{ JsObject, JsResult, JsValue, Json }
 import slick.dbio._
 import slick.driver.JdbcProfile
+
+import scala.concurrent.Future
 
 case class ObservationDTO(id: Option[Long], temperature: Option[Double])
 
@@ -32,17 +36,11 @@ object ObservationDTO {
   implicit val format = Json.format[ObservationDTO]
 }
 
-class Observation(eventType: EventType, baseDTO: BaseEventDTO, dto: ObservationDTO) extends Event(eventType, baseDTO) {
-
-  val observationDTO = dto
-
-  override def extendedInsertAction: Option[(Long) => DBIO[Int]] = {
-    Some( (id: Long) => ObservationDAO.insertAction(id, this))
-  }
-
+class Observation(eventType: EventType, baseDTO: BaseEventDTO, val observationDTO: ObservationDTO) extends Event(eventType, baseDTO) {
+  val temperature = observationDTO.temperature
 }
 
-object Observation extends EventController {
+object Observation extends EventFactory {
 
   override def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Observation] = {
     for {
@@ -51,30 +49,37 @@ object Observation extends EventController {
     } yield new Observation(eventType, baseDto, observationEventDto)
   }
 
+  def toJson(event: Event): JsValue = Json.toJson(event.asInstanceOf[Observation].observationDTO)
+
+  def fromDatabase(eventType: EventType, id: Long, baseEventDto: BaseEventDTO): MusitFuture[Observation] = {
+    val maybeObservation = ObservationDAO.getObservation(id).toMusitFuture(ErrorHelper.badRequest(s"Unable to find observation with id: $id"))
+    maybeObservation.musitFutureMap(observationDTO => new Observation(eventType, baseEventDto, observationDTO))
+  }
+
+  def createDatabaseInsertAction(id: Long, event: Event): DBIO[Int] = ObservationDAO.insertAction(id, event.asInstanceOf[Observation])
 }
 
 object ObservationDAO extends HasDatabaseConfig[JdbcProfile] {
+
   import driver.api._
-
-
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val ObservationTable = TableQuery[ObservationTable]
 
-
   def insertAction(newId: Long, event: Observation): DBIO[Int] = {
-    println(s"insert action: event.temperature: ${event.observationDTO.temperature}")
-    val dtoToInsert = event.observationDTO.copy(id=Some(newId))
-    //val insertQuery = ObservationTable returning ObservationTable.map(_.id) // getOrFail("insertBaseAction: Internal error, should be a value here"))
+    val dtoToInsert = event.observationDTO.copy(id = Some(newId))
     val action = ObservationTable += dtoToInsert
     action
   }
 
-
+  def getObservation(id: Long): Future[Option[ObservationDTO]] = {
+    val action = ObservationTable.filter(event => event.id === id).result.headOption
+    db.run(action)
+  }
 
   private class ObservationTable(tag: Tag) extends Table[ObservationDTO](tag, Some("MUSARK_EVENT"), "OBSERVATION") {
-    def * = (id, temperature) <>(create.tupled, destroy) // scalastyle:ignore
+    def * = (id, temperature) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Option[Long]]("ID", O.PrimaryKey)
 
@@ -86,7 +91,6 @@ object ObservationDAO extends HasDatabaseConfig[JdbcProfile] {
       )
 
     def destroy(event: ObservationDTO) = Some(event.id, event.temperature)
-
   }
 
 }

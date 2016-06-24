@@ -20,10 +20,11 @@
 
 package no.uio.musit.microservice.event.resource
 
-import no.uio.musit.microservice.event.domain.{Event, Move}
+import no.uio.musit.microservice.event.domain.{Event, EventHelpers, Move, Observation}
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
@@ -86,7 +87,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       println(s"Create: ${response.body}")
 
 
-      val myEvent = Event.genericValidate(Json.parse(response.body).asInstanceOf[JsObject])
+      val myObservationEvent = EventHelpers.eventFromJson[Observation](Json.parse(response.body)).getOrFail
+      myObservationEvent.temperature mustBe Some(125)
 
 
       val responseGet = getEvent(1)

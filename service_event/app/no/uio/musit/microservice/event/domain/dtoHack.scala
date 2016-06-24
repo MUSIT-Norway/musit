@@ -18,23 +18,20 @@
  *
  */
 
-package no.uio.musit.microservice.event.resource
+package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservice.event.domain.{ Event, EventHelpers }
-import no.uio.musit.microservice.event.service.EventService
-import no.uio.musit.microservices.common.utils.ResourceHelper
-import play.api.libs.json._
-import play.api.mvc.{ Action, BodyParsers, Controller }
+import no.uio.musit.microservices.common.linking.domain.Link
+import play.api.libs.json.Json
 
-class EventResource extends Controller {
-  private def eventToJson(event: Event) = EventHelpers.toJson(event)
+/* Quick and dirty way to get the eventType to be the name instead of the integer id... Can and ought to be improved!*/
+case class BaseEventDTOHack(id: Option[Long], links: Option[Seq[Link]], eventType: String, note: Option[String])
 
-  def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val maybeEventResult = EventHelpers.validateEvent(request.body.asInstanceOf[JsObject])
-    ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent, maybeEventResult, eventToJson)
+object BaseEventDTOHack {
+  def fromBaseEventDto(baseEvent: BaseEventDTO) = {
+    val eventTypeName = (EventType.getById(baseEvent.eventType).get).name
+    BaseEventDTOHack(baseEvent.id, baseEvent.links, eventTypeName, baseEvent.note)
   }
 
-  def getEvent(id: Long) = Action.async { request =>
-    ResourceHelper.getRoot(EventService.getEvent, id, eventToJson)
-  }
+  implicit val format = Json.format[BaseEventDTOHack]
 }
+

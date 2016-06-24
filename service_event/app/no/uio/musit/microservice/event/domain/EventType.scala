@@ -20,31 +20,24 @@
 
 package no.uio.musit.microservice.event.domain
 
-import play.api.libs.json.JsObject
+class EventType(val id: Int, val name: String, val eventFactory: Option[EventFactory]) {
 
-class EventType(val id: Int, val name: String, val eventController: EventController) {
-
-  def makeEvent(jsObject: JsObject) = {
-
-    val baseEventDto = Event.fromJsonToBaseEvent(this, jsObject)
-    eventController.fromJson(this, baseEventDto, jsObject)
-  }
-
-  def createFromDatabase(id: Long, baseEventDto: BaseEventDTO) = {
-    eventController.fromDatabase(this, id, baseEventDto)
-  }
 }
 
 object EventType {
-  val eventTypes = Seq(
-    new EventType(1, "Move", Move),
-    new EventType(2, "Control", Control),
-    new EventType(3, "Observation", Observation)
+  private def simpleEventType(id: Int, name: String) = new EventType(id, name, None)
+
+  private def complexEventType(id: Int, name: String, factory: EventFactory) = new EventType(id, name, Some(factory))
+
+  private val eventTypes = Seq(
+    simpleEventType(1, "Move"),
+    complexEventType(2, "Control", Control),
+    complexEventType(3, "Observation", Observation)
   // Add new event type here....
   )
 
-  val eventTypeById: Map[Int, EventType] = eventTypes.map(evt => evt.id -> evt).toMap
-  val eventTypeByName: Map[String, EventType] = eventTypes.map(evt => evt.name.toLowerCase -> evt).toMap
+  private val eventTypeById: Map[Int, EventType] = eventTypes.map(evt => evt.id -> evt).toMap
+  private val eventTypeByName: Map[String, EventType] = eventTypes.map(evt => evt.name.toLowerCase -> evt).toMap
 
   def getByName(name: String) = eventTypeByName.get(name.toLowerCase)
 

@@ -39,5 +39,14 @@ object EitherExtensions {
 
     def map[S](f: T => S) = either.right.map(f)
     def flatMap[S](f: T => MusitResult[S]) = either.right.flatMap(f)
+
+    ///a quick and dirty way to get the value or throw an exception, only meant to be used for testing or quick and dirty stuff!
+    def getOrFail = {
+      either match {
+        case Left(l) => throw new Exception(l.message)
+        case Right(v) => v
+      }
+    }
+
   }
 }
