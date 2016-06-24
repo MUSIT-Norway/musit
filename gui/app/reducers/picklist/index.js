@@ -6,35 +6,15 @@ const REMOVE_LIST = 'musit/picklist/REMOVE-LIST'
 const ACTIVATE_LIST = 'musit/picklist/ACTIVATE-LIST'
 const TOGGLE_MARKED = 'musit/picklist/TOGGLE_MARKED'
 
-const initialState = {
+export const initialState = {
   active: 'default',
   marked: [],
   lists: {
     default: []
   }
 }
-const demoState = {
-  active: 'default',
-  marked: [],
-  lists: {
-    default: [
-      {
-        id: 1,
-        name: 'Foo'
-      },
-      {
-        id: 2,
-        name: 'Bar'
-      },
-      {
-        id: 3,
-        name: 'Bas'
-      }
-    ]
-  }
-}
 
-const picklistReducer = (state = demoState, action = {}) => {
+const picklistReducer = (state = initialState, action = {}) => {
   const subStateKey = action.destination
   const activeSubStateKey = state.active
   const subState = state.lists[subStateKey] ? state.lists[subStateKey] : []
@@ -60,8 +40,8 @@ const picklistReducer = (state = demoState, action = {}) => {
     case ACTIVATE_LIST:
       return {
         ...state,
-        active: action.destination,
-        marked: []
+        active: (state.lists[subStateKey]) ? action.destination : state.active,
+        marked: (state.lists[subStateKey]) ? [] : state.marked
       }
     case CREATE_LIST:
       return {
@@ -74,10 +54,12 @@ const picklistReducer = (state = demoState, action = {}) => {
     case REMOVE_LIST:
       return {
         ...state,
+        active: (subStateKey === state.active) ? 'default' : state.active,
         marked: (subStateKey === activeSubStateKey) ? [] : state.marked,
-        lists: subState.filter((item) => {
-          return item.key !== subStateKey
-        })
+        lists: {
+          ...state.lists,
+          [subStateKey]: []
+        }
       }
     case ADD:
       return {
@@ -95,13 +77,10 @@ const picklistReducer = (state = demoState, action = {}) => {
         ...state,
         lists: {
           ...state.lists,
-          [subStateKey]: subState.filter((item) => {
-            return item !== action.item
-          })
+          [subStateKey]: subState.filter((item) => { return item !== action.item })
         }
       }
-    case TOGGLE_MARKED: {
-      console.log(action)
+    case TOGGLE_MARKED:
       if (action.id) {
         // We operate on one or several spesific entries
         if (state.marked.indexOf(action.id) >= 0) {
@@ -129,7 +108,6 @@ const picklistReducer = (state = demoState, action = {}) => {
         ...state,
         marked: newMarked
       }
-    }
     default:
       return state
   }
