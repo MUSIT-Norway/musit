@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.domain
 
-import play.api.libs.json.{ JsObject, JsResult }
+import play.api.libs.json.JsObject
 
 class EventType(val id: Int, val name: String, val eventController: EventController) {
 
@@ -28,13 +28,6 @@ class EventType(val id: Int, val name: String, val eventController: EventControl
 
     val baseEventDto = Event.fromJsonToBaseEvent(this, jsObject)
     eventController.fromJson(this, baseEventDto, jsObject)
-/*
-    def fromJson(eventType: EventType, baseEventDTO: BaseEventDTO, jsObject: JsObject): JsResult[Observation] = {
-      for {
-        baseDto <- baseEventDTO
-        observationEventDto <- jsObject.validate[ObservationDTO]
-      } yield new Observation(eventType, baseDto, observationEventDto)
-    }*/
   }
 
 }
@@ -51,5 +44,6 @@ object EventType {
   val eventTypeByName: Map[String, EventType] = eventTypes.map(evt => evt.name.toLowerCase -> evt).toMap
 
   def getByName(name: String) = eventTypeByName.get(name.toLowerCase)
+
   def getById(id: Int) = eventTypeById.get(id)
 }

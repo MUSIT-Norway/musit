@@ -27,9 +27,6 @@ import slick.dbio.DBIO
 case class BaseEventDTO(id: Option[Long], links: Option[Seq[Link]], eventType: Int, note: Option[String])
 
 object BaseEventDTO {
-
-  //  def tupled = (BaseEventDTO.apply _).tupled
-
   implicit val format = Json.format[BaseEventDTO]
 }
 
@@ -39,10 +36,9 @@ class Event(eventType: EventType, dto: BaseEventDTO) {
   val links: Option[Seq[Link]] = dto.links
 
   val baseEventDTO = dto
+
   /**
    * possible method to create an action to insert the extended event info.
-   *
-   * @return
    */
   // TODO: Should the function return DBIO[Unit] instead of DBIO[Long]? 
   def extendedInsertAction: Option[Long => DBIO[Long]] = None
@@ -75,14 +71,10 @@ object Event {
 case class MoveDTO(to: Option[String])
 
 object MoveDTO {
-
-  //  def tupled = (MoveDTO.apply _).tupled
-
   implicit val format = Json.format[MoveDTO]
 }
 
-
-trait EventController  {
+trait EventController {
   def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Event]
 }
 
@@ -108,9 +100,6 @@ object Move extends EventController {
 case class ControlDTO(blablabla: Option[String])
 
 object ControlDTO {
-
-  //def tupled = (ControlDTO.apply _).tupled
-
   implicit val format = Json.format[ControlDTO]
 }
 
@@ -119,27 +108,17 @@ class Control(eventType: EventType, baseDTO: BaseEventDTO, dto: ControlDTO) exte
 }
 
 object Control extends EventController {
-/*
-  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Control] = {
-    for {
-      baseEventDto <- Event.fromJsonToBaseEvent(eventType, jsObject)
-      controlEventDto <- jsObject.validate[ControlDTO]
-    } yield new Control(eventType, baseEventDto, controlEventDto)
-  }
-*/
-  def fromJson(eventType: EventType, baseResult : JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Control] = {
+  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Control] = {
     for {
       baseDto <- baseResult
       controlEventDto <- jsObject.validate[ControlDTO]
     } yield new Control(eventType, baseDto, controlEventDto)
   }
-
 }
 
 case class ObservationDTO(blablabla: Option[String])
 
 object ObservationDTO {
-
   implicit val format = Json.format[ObservationDTO]
 }
 
@@ -154,13 +133,4 @@ object Observation extends EventController {
       observationEventDto <- jsObject.validate[ObservationDTO]
     } yield new Observation(eventType, baseDto, observationEventDto)
   }
-
-/*
-  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Observation] = {
-    for {
-      baseEventDto <- Event.fromJsonToBaseEvent(eventType, jsObject)
-      observationDto <- jsObject.validate[ObservationDTO]
-    } yield new Observation(eventType, baseEventDto, observationDto)
-  }
-  */
 }
