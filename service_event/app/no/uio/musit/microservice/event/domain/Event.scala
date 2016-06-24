@@ -81,6 +81,11 @@ object MoveDTO {
   implicit val format = Json.format[MoveDTO]
 }
 
+
+trait EventController  {
+  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Event]
+}
+
 class Move(eventType: EventType, baseDTO: BaseEventDTO, dto: MoveDTO) extends Event(eventType, baseDTO) {
   val to: Option[String] = dto.to
 
@@ -90,12 +95,13 @@ class Move(eventType: EventType, baseDTO: BaseEventDTO, dto: MoveDTO) extends Ev
 
 }
 
-object Move {
-  def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Move] = {
+object Move extends EventController {
+
+  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Move] = {
     for {
-      baseEventDto <- Event.fromJsonToBaseEvent(eventType, jsObject)
+      baseDto <- baseResult
       moveEventDto <- jsObject.validate[MoveDTO]
-    } yield new Move(eventType, baseEventDto, moveEventDto)
+    } yield new Move(eventType, baseDto, moveEventDto)
   }
 }
 
@@ -112,20 +118,27 @@ class Control(eventType: EventType, baseDTO: BaseEventDTO, dto: ControlDTO) exte
   override def extendedInsertAction = None
 }
 
-object Control {
+object Control extends EventController {
+/*
   def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Control] = {
     for {
       baseEventDto <- Event.fromJsonToBaseEvent(eventType, jsObject)
       controlEventDto <- jsObject.validate[ControlDTO]
     } yield new Control(eventType, baseEventDto, controlEventDto)
   }
+*/
+  def fromJson(eventType: EventType, baseResult : JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Control] = {
+    for {
+      baseDto <- baseResult
+      controlEventDto <- jsObject.validate[ControlDTO]
+    } yield new Control(eventType, baseDto, controlEventDto)
+  }
+
 }
 
 case class ObservationDTO(blablabla: Option[String])
 
 object ObservationDTO {
-
-  //def tupled = (ObservationDTO.apply _).tupled
 
   implicit val format = Json.format[ObservationDTO]
 }
@@ -134,11 +147,20 @@ class Observation(eventType: EventType, baseDTO: BaseEventDTO, dto: ObservationD
   override def extendedInsertAction = None
 }
 
-object Observation {
+object Observation extends EventController {
+  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Observation] = {
+    for {
+      baseDto <- baseResult
+      observationEventDto <- jsObject.validate[ObservationDTO]
+    } yield new Observation(eventType, baseDto, observationEventDto)
+  }
+
+/*
   def fromJson(eventType: EventType, jsObject: JsObject): JsResult[Observation] = {
     for {
       baseEventDto <- Event.fromJsonToBaseEvent(eventType, jsObject)
       observationDto <- jsObject.validate[ObservationDTO]
     } yield new Observation(eventType, baseEventDto, observationDto)
   }
+  */
 }

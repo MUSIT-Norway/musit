@@ -22,16 +22,28 @@ package no.uio.musit.microservice.event.domain
 
 import play.api.libs.json.{ JsObject, JsResult }
 
-class EventType(val id: Int, val name: String, val fromJsonToEvent: (EventType, JsObject) => JsResult[Event]) {
+class EventType(val id: Int, val name: String, val eventController: EventController) {
 
-  def makeEvent(jsObject: JsObject) = fromJsonToEvent(this, jsObject)
+  def makeEvent(jsObject: JsObject) = {
+
+    val baseEventDto = Event.fromJsonToBaseEvent(this, jsObject)
+    eventController.fromJson(this, baseEventDto, jsObject)
+/*
+    def fromJson(eventType: EventType, baseEventDTO: BaseEventDTO, jsObject: JsObject): JsResult[Observation] = {
+      for {
+        baseDto <- baseEventDTO
+        observationEventDto <- jsObject.validate[ObservationDTO]
+      } yield new Observation(eventType, baseDto, observationEventDto)
+    }*/
+  }
+
 }
 
 object EventType {
   val eventTypes = Seq(
-    new EventType(1, "Move", Move.fromJson),
-    new EventType(2, "Control", Control.fromJson),
-    new EventType(3, "Observation", Observation.fromJson)
+    new EventType(1, "Move", Move),
+    new EventType(2, "Control", Control),
+    new EventType(3, "Observation", Observation)
   // Add new event type here....
   )
 
