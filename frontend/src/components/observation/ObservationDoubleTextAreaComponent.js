@@ -20,17 +20,11 @@
 import React, { Component, PropTypes } from 'react'
 import { MusitTextArea } from '../../components/formfields'
 import { FormGroup, ControlLabel, Col } from 'react-bootstrap'
-import { connect } from 'react-redux'
-import Language from '../../components/language'
 
-const mapStateToProps = () => ({
-  translate: (key, markdown) => Language.translate(key, markdown)
-})
-
-@connect(mapStateToProps)
 export default class ObservationDoubleTextAreaComponent extends Component {
   static propTypes = {
     id: PropTypes.string.isRequired,
+    translate: PropTypes.func.isRequired,
     leftLabel: PropTypes.string.isRequired,
     leftValue: PropTypes.string.isRequired,
     leftTooltip: PropTypes.string.isRequired,
@@ -72,11 +66,11 @@ export default class ObservationDoubleTextAreaComponent extends Component {
 
     return (
       <FormGroup>
-        <Col xs={6}>
+        <Col xs={12} sm={6}>
           <ControlLabel>{leftLabel}</ControlLabel>
           <MusitTextArea {...left} value={leftValue} />
         </Col>
-        <Col xs={6}>
+        <Col xs={12} sm={6}>
           <ControlLabel>{rightLabel}</ControlLabel>
           <MusitTextArea {...right} value={rightValue} />
         </Col>

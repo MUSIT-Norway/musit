@@ -34,6 +34,7 @@ export default class ObservationView extends React.Component {
   }
 
   render() {
+    const { translate } = this.props
     return (
       <div>
         <main>
@@ -43,14 +44,15 @@ export default class ObservationView extends React.Component {
                 <Col sm={10} smOffset={1}>
                   <ObservationDoubleTextAreaComponent
                     id="test"
+                    translate={translate}
                     leftLabel="Left label"
-                    leftValue="left"
+                    leftValue="Left test value"
                     leftTooltip="Left tooltip"
-                    onChangeLeft={() => console.log('left changed')}
+                    onChangeLeft={() => ('left changed')}
                     rightLabel="Right label"
                     rightValue="right"
                     rightTooltip="Right tooltip"
-                    onChangeRight={() => console.log('Right changed')}
+                    onChangeRight={() => ('Right changed')}
                   />
                 </Col>
               </Row>
