@@ -18,7 +18,7 @@
  */
 
 import React from 'react'
-import { ObservationDoubleTextAreaComponent } from '../../components/observation'
+import { ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent } from '../../components/observation'
 import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
@@ -40,6 +40,21 @@ export default class ObservationView extends React.Component {
         <main>
           <Panel>
             <Grid>
+              <Row>
+                <Col sm={10} smOffset={1}>
+                  <ObservationFromToNumberCommentComponent
+                    id="test"
+                    translate={translate}
+                    leftLabel="Left labela"
+                    leftValue="122"
+                    leftTooltip="Left tooltip"
+                    onChangeLeft={() => ('left changed')}
+                    rightValue="1234"
+                    rightTooltip="Right tooltip"
+                    onChangeRight={() => ('Right changed')}
+                  />
+                </Col>
+              </Row>
               <Row>
                 <Col sm={10} smOffset={1}>
                   <ObservationDoubleTextAreaComponent

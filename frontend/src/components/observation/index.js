@@ -1,4 +1,5 @@
 import ObservationHeaderComponent from './ObservationHeaderComponent'
 import ObservationDoubleTextAreaComponent from './ObservationDoubleTextAreaComponent'
+import ObservationFromToNumberCommentComponent from './ObservationFromToNumberCommentComponent'
 
-export { ObservationHeaderComponent, ObservationDoubleTextAreaComponent }
+export { ObservationHeaderComponent, ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent }
