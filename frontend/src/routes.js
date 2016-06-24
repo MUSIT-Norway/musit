@@ -25,6 +25,7 @@ import StorageUnitsView from './containers/storageunits-view'
 import ExampleView from './containers/example-view'
 import StorageUnitContainer from './containers/storageunit-container'
 import WelcomeUserView from './containers/welcome-user'
+import ObservationView from './containers/observation'
 import App from './containers/app'
 
 export default (store) => {
@@ -55,6 +56,7 @@ export default (store) => {
 
       <Route path="/storageunits" component={StorageUnitsView} />
       <Route path="/example" component={ExampleView} />
+      <Route path="/observation" component={ObservationView} />
       <Route path="/storageunit/:id" component={StorageUnitContainer} />
       <Route path="/storageunit/add" component={StorageUnitContainer} />
 

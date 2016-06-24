@@ -91,6 +91,9 @@ class App extends Component {
               <LinkContainer to="/example">
                 <NavItem eventKey={5}>Example</NavItem>
               </LinkContainer>
+              <LinkContainer to="/observation">
+                <NavItem eventKey={5}>Observation</NavItem>
+              </LinkContainer>
               <LinkContainer to="/storageunits">
                 <NavItem eventKey={6}>Dummy list</NavItem>
               </LinkContainer>
