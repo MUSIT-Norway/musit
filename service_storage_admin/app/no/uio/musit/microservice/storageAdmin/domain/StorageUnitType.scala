@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain
 
+import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitResult
 import play.api.libs.json.{ Format, Json }
 
 /**
@@ -11,11 +12,11 @@ sealed trait StorageUnitType {
 }
 
 object StorageUnitType {
-  def apply(stType: String) = stType.toLowerCase match {
-    case "building" => Building
-    case "room" => Room
-    case "storageunit" => StUnit
-    case other => throw new Exception(s"Musit: Undefined StorageType:$other")
+  def apply(stType: String): Option[StorageUnitType] = stType.toLowerCase match {
+    case "building" => Some(Building)
+    case "room" => Some(Room)
+    case "storageunit" => Some(StUnit)
+    case _ => None //throw new Exception(s"Musit: Undefined StorageType:$other")
   }
 
 }
