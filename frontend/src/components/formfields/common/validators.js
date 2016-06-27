@@ -15,7 +15,7 @@ const validateNumber = (value, minimumLength = 1, maximumLength = 10, precision 
     '\\d{0,' +
     precision +
     '})?$'
-  /* eslint-enqable prefer-template */
+  /* eslint-enable prefer-template */
   const matcher = new RegExp(expression)
   return matcher.test(value) ? 'success' : 'error'
 }
