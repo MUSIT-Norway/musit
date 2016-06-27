@@ -1,12 +1,5 @@
 [
   {
-    "name": "example",
-    "scalaName": "ExampleResource",
-    "host": "localhost",
-    "port": "7070",
-    "protocol": "http://"
-  },
-  {
     "name": "core",
     "scalaName": "CoreResource",
     "host": "core",
