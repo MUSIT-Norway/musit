@@ -24,7 +24,7 @@ import Language from '../../components/language'
 
 const mapStateToProps = () => ({
   translate: (key, markdown) => Language.translate(key, markdown)
-});
+})
 
 @connect(mapStateToProps)
 export default class WelcomeUser extends Component {
@@ -45,6 +45,6 @@ export default class WelcomeUser extends Component {
           </Row>
         </Grid>
       </div>
-    );
+    )
   }
 }

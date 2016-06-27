@@ -5,6 +5,8 @@ en:
       title: "University Museums Collection database"
       body: "<TBD>"
       noAccess: "<TBD>"
+    pickList:
+      title: "Picklist"
     welcomeUserPage:
       body: >
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas arcu est, tempus eu tellus et, mollis maximus elit. Morbi est lorem, molestie fermentum interdum a, faucibus ultricies lectus. Ut eu lorem mi. In dictum neque vitae mollis posuere. Sed maximus, est eget rhoncus sagittis, dolor enim varius felis, at hendrerit urna urna a justo. Proin nunc ex, tristique sed bibendum vel, porta et elit. Vestibulum consectetur lacus nec elementum ornare. Vestibulum venenatis condimentum tortor sit amet pharetra. Maecenas tempus lectus vel vestibulum pharetra. Suspendisse euismod condimentum massa.
@@ -17,6 +19,11 @@ no:
   musit:
     texts:
       freetext: "Fritekst"
+    pickList:
+      title: "Plukkliste"
+      action:
+        markAll: "Alle"
+        executeAll: "Utfør (alle)"
     storageUnits:
       title: "Storage units"
       environmentRequirements:
