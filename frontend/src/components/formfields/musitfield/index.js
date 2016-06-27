@@ -83,5 +83,6 @@ MusitField.propTypes = {
   validate: PropTypes.string.isRequired,
   minimumLength: PropTypes.number,
   maximumLength: PropTypes.number,
-  validator: PropTypes.string
+  validator: PropTypes.string,
+  precision: PropTypes.number
 };
