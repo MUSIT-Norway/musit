@@ -10,6 +10,8 @@ RUN npm install
 ADD scripts scripts
 ADD api api
 ADD gateway gateway
+RUN rm -rf gateway/services.json
+RUN cp gateway/services_docker.json gateway/services.json
 ADD views views
 ADD .babelConfig.js .babelConfig.js
 ADD .babelrc .babelrc
