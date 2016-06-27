@@ -26,7 +26,7 @@ services:
         image: musit_service_musit_thing:0.1-SNAPSHOT
     core:
         image: musit_service_core:0.1-SNAPSHOT
-    storage_admin:
+    storageadmin:
         image: musit_service_storage_admin:0.1-SNAPSHOT
     actor:
         image: musit_service_actor:0.1-SNAPSHOT

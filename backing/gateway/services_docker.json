@@ -33,5 +33,12 @@
     "host": "geolocation",
     "port": "7070",
     "protocol": "http://"
+  },
+  {
+    "name": "storageadmin",
+    "scalaName": "StorageUnitResource",
+    "host": "storageadmin",
+    "port": "7070",
+    "protocol": "http://"
   }
 ]
