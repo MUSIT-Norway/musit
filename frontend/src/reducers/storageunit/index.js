@@ -65,6 +65,7 @@ export default storageInsertUnitContainerReducer;
 export const isLoaded = (globalState) => {
   return globalState.storageUnitContainer && globalState.storageUnitContainer.loaded;
 }
+
 export const load = (id) => {
   return {
     types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],

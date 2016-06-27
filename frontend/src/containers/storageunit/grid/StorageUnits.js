@@ -1,5 +1,5 @@
 import React from 'react'
-import StorageUnitList from '../../components/storageunits/StorageUnitList'
+import StorageUnitList from '../../../components/storageunits/StorageUnitList'
 import { Panel, Grid, Row, PageHeader } from 'react-bootstrap'
 
 export default class StorageUnitsContainer extends React.Component {

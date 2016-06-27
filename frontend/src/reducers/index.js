@@ -27,7 +27,7 @@ import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
 import autosuggestReducer from './suggest'
 import picklistReducer from './picklist'
-import storageReducer from './storageunit-container'
+import storageReducer from './storageunit'
 import organizationReducer from './organization'
 
 
