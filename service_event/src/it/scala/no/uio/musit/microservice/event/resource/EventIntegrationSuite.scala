@@ -86,7 +86,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       response.status mustBe 201
       println(s"Create: ${response.body}")
 
-
       val myObservationEvent = EventHelpers.eventFromJson[Observation](Json.parse(response.body)).getOrFail
       myObservationEvent.temperature mustBe Some(125)
 
@@ -96,8 +95,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       println(s"Get: ${responseGet.body}")
 
     }
-
-
 
     "postWithoutLinks" in {
       /*
@@ -137,17 +134,13 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       response.status mustBe 201
       println(s"Create: ${response.body}")
 
-
       val myControlEvent = EventHelpers.eventFromJson[Control](Json.parse(response.body)).getOrFail
       myControlEvent.controlType mustBe Some("skadedyr")
-
-
       val responseGet = getEvent(myControlEvent.id.get)
       responseGet.status mustBe 200
       println(s"Get: ${responseGet.body}")
 
     }
-
   }
 
 }
