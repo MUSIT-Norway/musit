@@ -17,13 +17,22 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-module.exports = {
-  styles: {
-    mixins: true,
-    core: true,
-    icons: true,
-    larger: false,
-    path: true,
-    animated: true,
-  }
-};
+import PickListContainer from './PickListContainer'
+import { connect } from 'react-redux'
+import Language from '../../components/language'
+import { toggleMarked } from '../../reducers/picklist'
+
+
+const mapStateToProps = (state) => ({
+  translate: (key, markdown) => Language.translate(key, markdown),
+  picks: state.picks.lists[state.picks.active],
+  marked: state.picks.marked,
+  activePicks: state.picks.active
+})
+
+const mapDispatchToProps = (dispatch) => ({
+  onToggleMarked: (e, id) => dispatch(toggleMarked(id))
+})
+
+@connect(mapStateToProps, mapDispatchToProps)
+export default class PickListPage extends PickListContainer {}

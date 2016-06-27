@@ -1,19 +1,20 @@
-const styles = require('./index.scss');
-import 'react-select/dist/react-select.css';
-import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { IndexLink } from 'react-router';
-import { LinkContainer } from 'react-router-bootstrap';
-import { Navbar, Nav, NavItem } from 'react-bootstrap';
-import { routerActions } from 'react-router-redux';
+import 'react-select/dist/react-select.css'
+import React, { Component, PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { IndexLink } from 'react-router'
+import { LinkContainer } from 'react-router-bootstrap'
+import { Navbar, Nav, NavItem, Badge } from 'react-bootstrap'
+import { routerActions } from 'react-router-redux'
 import { I18n } from 'react-i18nify'
+import FontAwesome from 'react-fontawesome'
 
 const mapStateToProps = (state) => {
   I18n.loadTranslations(state.language.data)
   I18n.setLocale('no')
   return {
     user: state.auth.user,
-    pushState: routerActions.push
+    pushState: routerActions.push,
+    pickListCount: state.picks.lists[state.picks.active].length
   }
 }
 
@@ -23,13 +24,14 @@ class App extends Component {
     children: PropTypes.object.isRequired,
     user: PropTypes.object,
     pushState: PropTypes.func.isRequired,
-    store: PropTypes.object
-  };
+    store: PropTypes.object,
+    pickListCount: PropTypes.number.isRequired
+  }
 
   static contextTypes = {
     store: PropTypes.object.isRequired,
     router: PropTypes.object.isRequired
-  };
+  }
 
   componentWillReceiveProps(nextProps) {
     if (!this.props.user && nextProps.user) {
@@ -50,8 +52,10 @@ class App extends Component {
   }
 
   render() {
-    const { user } = this.props;
+    const { user, pickListCount } = this.props;
+    const styles = require('./index.scss')
     const rootPath = user ? '/musit/' : '/'
+
     return (
       <div className={styles.app}>
         <Navbar fixedTop>
@@ -100,6 +104,11 @@ class App extends Component {
               <LinkContainer to="/musit/about">
                 <NavItem eventKey={7}>About Us</NavItem>
               </LinkContainer>
+              {user &&
+                <LinkContainer to="/picklist">
+                  <NavItem><Badge><FontAwesome name="shopping-cart" /> {pickListCount}</Badge></NavItem>
+                </LinkContainer>
+              }
               {user &&
                 <LinkContainer to="/musit/logout">
                   <NavItem eventKey={8} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
