@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.resource
 
-import no.uio.musit.microservice.event.domain.{Event, EventHelpers, Move, Observation}
+import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
@@ -124,6 +124,29 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       response.status mustBe 400
     }
 
+    "postWithControlEvent" in {
+      val json =
+        """
+  {
+   "eventType": "control",
+   "note": "Dette er et viktig notat for kontroll!",
+   "controlType": "skadedyr",
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+      val response = createEvent(json)
+      response.status mustBe 201
+      println(s"Create: ${response.body}")
+
+
+      val myControlEvent = EventHelpers.eventFromJson[Control](Json.parse(response.body)).getOrFail
+      myControlEvent.controlType mustBe Some("skadedyr")
+
+
+      val responseGet = getEvent(myControlEvent.id.get)
+      responseGet.status mustBe 200
+      println(s"Get: ${responseGet.body}")
+
+    }
 
   }
 

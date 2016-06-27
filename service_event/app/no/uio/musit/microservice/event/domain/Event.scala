@@ -108,7 +108,6 @@ object EventHelpers {
   }
 }
 
-
 //Example of a simple event....
 class Move(eventType: EventType, baseDTO: BaseEventDTO) extends Event(eventType, baseDTO)
 
