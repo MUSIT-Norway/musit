@@ -45,13 +45,18 @@ export default class ObservationView extends React.Component {
                   <ObservationFromToNumberCommentComponent
                     id="test"
                     translate={translate}
-                    leftLabel="Left labela"
-                    leftValue="122"
-                    leftTooltip="Left tooltip"
-                    onChangeLeft={() => ('left changed')}
-                    rightValue="1234"
-                    rightTooltip="Right tooltip"
-                    onChangeRight={() => ('Right changed')}
+                    fromLabel="from label"
+                    fromValue="122,123"
+                    fromTooltip="From tooltip"
+                    onChangeFrom={() => ('From changed')}
+                    toLabel="To labela"
+                    toValue="1234"
+                    toTooltip="To tooltip"
+                    onChangeTo={() => ('TO changed')}
+                    commentLabel="Comment label"
+                    commentValue="1234"
+                    commentTooltip="Comment tooltip"
+                    onChangeComment={() => ('Comment changed')}
                   />
                 </Col>
               </Row>

@@ -18,57 +18,76 @@
  */
 
 import React, { Component, PropTypes } from 'react'
-import { MusitField } from '../../components/formfields'
+import { MusitField, MusitTextArea } from '../../components/formfields'
 import { FormGroup, ControlLabel, Col } from 'react-bootstrap'
 
 export default class ObservationFromToNumberCommentComponent extends Component {
   static propTypes = {
     id: PropTypes.string.isRequired,
     translate: PropTypes.func.isRequired,
-    leftLabel: PropTypes.string.isRequired,
-    leftValue: PropTypes.string.isRequired,
-    leftTooltip: PropTypes.string.isRequired,
-    onChangeLeft: PropTypes.func.isRequired,
-    rightLabel: PropTypes.string.isRequired,
-    rightValue: PropTypes.string.isRequired,
-    rightTooltip: PropTypes.string.isRequired,
-    onChangeRight: PropTypes.func.isRequired,
+    fromLabel: PropTypes.string.isRequired,
+    fromValue: PropTypes.string.isRequired,
+    fromTooltip: PropTypes.string.isRequired,
+    onChangeFrom: PropTypes.func.isRequired,
+    toLabel: PropTypes.string.isRequired,
+    toValue: PropTypes.string.isRequired,
+    toTooltip: PropTypes.string.isRequired,
+    onChangeTo: PropTypes.func.isRequired,
+    commentLabel: PropTypes.string.isRequired,
+    commentValue: PropTypes.string.isRequired,
+    commentTooltip: PropTypes.string.isRequired,
+    onChangeComment: PropTypes.func.isRequired
   }
 
   constructor(props) {
     super(props)
-    const { id, leftTooltip, onChangeLeft, rightTooltip, onChangeRight, translate } = props
+    const { id, fromTooltip, onChangeFrom, toTooltip, onChangeTo, commentTooltip, onChangeComment, translate } = props
     this.fields = {
-      left: {
-        id: `${id}_left`,
-        placeHolder: translate('musit.texts.freetext'),
-        tooltip: leftTooltip,
-        onChange: onChangeLeft,
-        validate: 'number'
+      from: {
+        id: `${id}_from`,
+        placeHolder: 'Fra C',
+        tooltip: fromTooltip,
+        onChange: onChangeFrom,
+        validate: 'number',
+        precision: 3
       },
-      right: {
-        id: `${id}_right`,
+      to: {
+        id: `${id}_to`,
+        placeHolder: 'Til C',
+        tooltip: toTooltip,
+        onChange: onChangeTo,
+        validate: 'number',
+        precision: 3
+      },
+      comment: {
+        id: `${id}_comment`,
         placeHolder: translate('musit.texts.freetext'),
-        tooltip: rightTooltip,
-        onChange: onChangeRight,
-        validate: 'number'
+        tooltip: commentTooltip,
+        onChange: onChangeComment,
+        validate: 'text',
+        maximumLength: 250,
+        numberOfRows: 5
       }
     }
   }
 
   render() {
-    const { left, right } = this.fields
-    const { leftValue, rightValue, leftLabel, rightLabel } = this.props
+    const { from, to, comment } = this.fields
+    const { fromValue, toValue, fromLabel, toLabel, commentValue, commentLabel } = this.props
 
     return (
       <FormGroup>
-        <Col xs={12} sm={6}>
-          <ControlLabel>{leftLabel}</ControlLabel>
-          <MusitField {...left} value={leftValue} />
+        <Col xs={12} sm={3}>
+          <ControlLabel>{fromLabel}</ControlLabel>
+          <MusitField {...from} value={fromValue} />
+        </Col>
+        <Col xs={12} sm={3}>
+          <ControlLabel>{toLabel}</ControlLabel>
+          <MusitField {...to} value={toValue} />
         </Col>
         <Col xs={12} sm={6}>
-          <ControlLabel>{rightLabel}</ControlLabel>
-          <MusitField {...right} value={rightValue} />
+          <ControlLabel>{commentLabel}</ControlLabel>
+          <MusitTextArea {...comment} value={commentValue} />
         </Col>
       </FormGroup>
     )
