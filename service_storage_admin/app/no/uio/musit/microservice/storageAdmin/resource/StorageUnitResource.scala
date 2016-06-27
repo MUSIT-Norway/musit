@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
 import play.api.libs.json._
@@ -32,12 +33,19 @@ import scala.concurrent.Future
 
 class StorageUnitResource extends Controller {
 
-  @ApiOperation(value = "StorageUnit operation - inserts an StorageUnitTuple", notes = "simple json parsing and db insert", httpMethod = "POST")
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-
     val musitResultTriple = fromJsonToStorageUnitTriple(request.body)
-
     ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, storageUnitTripleToJson)
+  }
+
+  def validateChildren = Action.async(BodyParsers.parse.json) { request =>
+    request.body.validate[Seq[Link]].asEither match {
+      case Right(list) if list.nonEmpty =>
+        // FIXME For the actual implementation see MUSARK-120
+        Future.successful(Ok(Json.toJson(list.forall(!_.href.isEmpty))))
+      case Left(error) =>
+        Future.successful(BadRequest(error.mkString))
+    }
   }
 
   def getChildren(id: Long) = Action.async {
