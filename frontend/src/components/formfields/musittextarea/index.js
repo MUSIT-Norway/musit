@@ -73,5 +73,6 @@ MusitTextArea.propTypes = {
   minimumLength: PropTypes.number,
   maximumLength: PropTypes.number,
   validator: PropTypes.string,
+  precision: PropTypes.number,
   numberOfRows: PropTypes.number
 };

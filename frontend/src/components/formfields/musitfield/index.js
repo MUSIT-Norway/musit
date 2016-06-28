@@ -17,7 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 import { validate } from '../common/validators'
 
 export default class MusitField extends Component {
@@ -83,5 +83,6 @@ MusitField.propTypes = {
   validate: PropTypes.string.isRequired,
   minimumLength: PropTypes.number,
   maximumLength: PropTypes.number,
-  validator: PropTypes.string
+  validator: PropTypes.string,
+  precision: PropTypes.number
 };

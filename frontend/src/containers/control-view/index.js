@@ -19,7 +19,9 @@
 
 import React from 'react'
 import { connect } from 'react-redux'
-
+import { Grid, Row, Col } from 'react-bootstrap'
+import PairedToogleButtons from '../../components/controls/pairedToggleButtons'
+import FontAwesome from 'react-fontawesome'
 
 const mapStateToProps = (state) => ({
   suggest: state.suggest,
@@ -63,6 +65,7 @@ export default class ControlView extends React.Component {
       user: '',
       temperatureOK: '',
       inertAirOK: '',
+      relativeAirHum: '1',
       gasOK: '',
       lightConditionsOK: '',
       cleaningOK: '',
@@ -71,5 +74,30 @@ export default class ControlView extends React.Component {
       pestOK: '',
       storageUnit: ''
     }
+  }
+
+  render() {
+    return (<div>
+      <Grid>
+        <Row>
+          <Col md={5}>
+            <PairedToogleButtons label="Relativ luftfuktighet" value={false} />
+          </Col>
+          <Col md={7} />
+        </Row>
+        <Row>
+          <Col md={5}>
+            <PairedToogleButtons label="Relativ luftfuktighet" value />
+          </Col>
+          <Col md={7} />
+        </Row>
+        <Row>
+          <Col md={5}>
+            <PairedToogleButtons label="Relativ luftfuktighet" value={null} />
+          </Col>
+          <Col md={7} />
+        </Row>
+      </Grid>
+    </div>)
   }
 }

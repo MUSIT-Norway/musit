@@ -144,7 +144,7 @@ export default class StorageUnitComponent extends Component {
         <main>
           <Panel>
             <Grid>
-              <Row styleClass="row-centered">
+              <Row className="row-centered">
                 <Col md={6}>
                   <form className="form-horizontal">
                     <form className="form-group">

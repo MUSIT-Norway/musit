@@ -22,9 +22,12 @@ import { IndexRedirect, Route } from 'react-router'
 import NotFound from './components/NotFound'
 import WelcomeView from './containers/welcome-view'
 import StorageUnitsView from './containers/storageunits-view'
+import PickListView from './containers/picklist'
 import ExampleView from './containers/example-view'
 import StorageUnitContainer from './containers/storageunit-container'
 import WelcomeUserView from './containers/welcome-user'
+import ObservationView from './containers/observation'
+import ControlView from './containers/control-view'
 import App from './containers/app'
 
 export default (store) => {
@@ -53,10 +56,13 @@ export default (store) => {
 
       <Route path="/" component={WelcomeView} onEnter={redirectIfLoggedIn} />
 
+      <Route path="/picklist" component={PickListView} />
       <Route path="/storageunits" component={StorageUnitsView} />
       <Route path="/example" component={ExampleView} />
+      <Route path="/observation" component={ObservationView} />
       <Route path="/storageunit/:id" component={StorageUnitContainer} />
       <Route path="/storageunit/add" component={StorageUnitContainer} />
+      <Route path="/control" component={ControlView} />
 
       -- Authentication routes
       <Route path="/musit" component={WelcomeUserView} onEnter={requireLogin} />
