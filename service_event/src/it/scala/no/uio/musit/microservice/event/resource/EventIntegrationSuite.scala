@@ -45,12 +45,12 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
   def createEvent(json: String) = {
-    WS.url(s"http://localhost:9000/v1/event").postJsonString(json) |> waitFutureValue
+    WS.url(s"http://localhost:$port/v1/event").postJsonString(json) |> waitFutureValue
   }
 
 
   def getEvent(id: Long) = {
-    WS.url(s"http://localhost:9000/v1/event/$id").get |> waitFutureValue
+    WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
   }
 
 
