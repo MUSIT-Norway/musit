@@ -18,32 +18,20 @@
  *
  */
 
-package no.uio.musit.microservices.common.extensions
+package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitResult
+import no.uio.musit.microservices.common.linking.domain.Link
+import play.api.libs.json.Json
 
-/**
- * Created by jstabel on 4/28/16.
- */
+/* Quick and dirty way to get the eventType to be the name instead of the integer id... Can and ought to be improved!*/
+case class BaseEventDTOHack(id: Option[Long], links: Option[Seq[Link]], eventType: String, note: Option[String])
 
-object OptionExtensions {
-
-  implicit class OptionExtensionsImp[T](val opt: Option[T]) extends AnyVal {
-
-    ///a quick and dirty way to get the value or throw an exception, only meant to be used for testing or quick and dirty stuff!
-    def getOrFail(errorMsg: String) = {
-      opt match {
-        case Some(v) => v
-        case None => throw new Exception(errorMsg)
-      }
-    }
-
-    def toMusitResult(errorIfNone: => MusitError): MusitResult[T] = opt match {
-      case Some(x) => Right(x)
-      case None => Left(errorIfNone)
-    } //alternative, which didn't work, I don't know why! : opt.fold(Left(errorIfNone))(Right(_))
-
+object BaseEventDTOHack {
+  def fromBaseEventDto(baseEvent: BaseEventDTO) = {
+    val eventTypeName = (EventType.getById(baseEvent.eventType).get).name
+    BaseEventDTOHack(baseEvent.id, baseEvent.links, eventTypeName, baseEvent.note)
   }
 
+  implicit val format = Json.format[BaseEventDTOHack]
 }
+

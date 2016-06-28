@@ -26,94 +26,44 @@ import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.linking.domain.Link
+import no.uio.musit.microservices.common.utils.ErrorHelper._
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
 import play.api.libs.json.{ JsObject, Json }
+import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
- * Created by jstabel on 6/10/16.
- */
 trait EventService {
+  def eventNotFoundError(id: Long): MusitError =
+    ErrorHelper.notFound(s"Unknown event with id: $id")
 
-  //A separate function for this message because we want to verify we get this error message in some of the integration tests
-  def unknownEventMsg(id: Long) = s"Unknown event with id: $id"
-
-  private def eventNotFoundError(id: Long): MusitError = {
-    ErrorHelper.notFound(unknownEventMsg(id))
+  def insertAndGetNewEvent(event: Event): MusitFuture[Event] = {
+    insertEvent(event).musitFutureFlatMap(newId => getEvent(newId))
   }
 
-  def eventInfoToCompleteEvent(eventInfo: EventInfo): CompleteEvent = {
-    val eventType = EventType(eventInfo.eventType)
+  def insertEvent(event: Event): MusitFuture[Long] =
+    EventDao.insertEvent(event).toMusitFuture //We need MusitFuture here in the future,
+  //(to be able to report if user doesn't have the necessary groups etc)
 
-    def getNote = {
-      eventInfo.eventData.flatMap(jsObject => (jsObject \ "note").toOption.map(_.toString))
-    }
-    def interpretEventBase = {
-      Event(None, eventType.eventTypeId, getNote)
-    }
+  def getEvent(id: Long): MusitFuture[Event] =
+    EventDao.getEvent(id)
 
-    (eventType match {
-      case MoveEventType => CompleteEvent(interpretEventBase, None, None)
-      case ControlEventType => CompleteEvent(interpretEventBase, None, None)
-      case ObservationEventType => CompleteEvent(interpretEventBase, None, None)
-    }).copy(links = eventInfo.links)
-  }
+  /*
 
-  def baseEventDataToJson(baseEvent: Event): Option[JsObject] = {
-    val hasData = baseEvent.note.isDefined
-    if (hasData) {
-      Some(Json.obj("note" -> Json.toJson(baseEvent.note)))
-    } else {
-      None
-    }
-  }
+  private def getBaseEvent(id: Long): MusitFuture[Event] =
+    EventDao.getBaseEvent(id).toMusitFuture(eventNotFoundError(id))
 
-  def completeEventToEventInfo(completeEvent: CompleteEvent): EventInfo = {
-    val baseEvent = completeEvent.baseEvent
-    val eventTypeName = baseEvent.eventType.typename
-    val jsObject = baseEventDataToJson(baseEvent) //Todo: Include more attributes (including from the eventExtension object)
-    EventInfo(baseEvent.id, eventTypeName, jsObject, completeEvent.links)
-  }
+  private def getLinks(id: Long): MusitFuture[Seq[Link]] =
+    LinkDao.findByLocalTableId(id).toMusitFuture
 
-  def createEvent(eventInfo: EventInfo): MusitFuture[EventInfo] = {
+  private def getAtomLinks(id: Long): MusitFuture[Seq[Link]] =
+    getLinks(id)
 
-    val completeEvent = eventInfoToCompleteEvent(eventInfo)
-    val maybeLinks = completeEvent.links.getOrElse(Seq.empty)
-
-    ServiceHelper.daoInsert(EventDao.insertBaseEvent(completeEvent.baseEvent, maybeLinks).map(completeEventToEventInfo))
-  }
-
-  private def getBaseEvent(id: Long): MusitFuture[Event] = EventDao.getBaseEvent(id).toMusitFuture(eventNotFoundError(id))
-
-  private def getLinks(id: Long): MusitFuture[Seq[Link]] = LinkDao.findByLocalTableId(id).toMusitFuture
-
-  private def getAtomLinks(id: Long): MusitFuture[Seq[AtomLink]] = getLinks(id).musitFutureMap { links =>
-    links.map(AtomLink.createFromLink)
-  }
-
-  def getById(id: Long): MusitFuture[CompleteEvent] = {
-    val musitFutureBaseEvent = getBaseEvent(id)
-    val futureEventLinks = getAtomLinks(id)
-    val futCompleteEvent = futureEventLinks.musitFutureFlatMap { links =>
-      musitFutureBaseEvent.musitFutureMap(baseEvent => CompleteEvent(baseEvent, None, Some(links)))
-    }
-
-    futCompleteEvent
-    //TEMP!!! Fjernes når nedenstående kommer inn
-    //Todo, for de andre event-typene
-    /*
-    musitFutureBaseEvent.musitFutureFlatMap { baseEvent =>
-      storageUnit.storageKind match {
-        case StUnit => Future.successful(Right(StorageUnitTriple.createStorageUnit(storageUnit)))
-        case Building => getBuildingById(id).futureEitherMap(storageBuilding => StorageUnitTriple.createBuilding(storageUnit, storageBuilding))
-        case Room => getRoomById(id).futureEitherMap(storageRoom => StorageUnitTriple.createRoom(storageUnit, storageRoom))
-      }
-    }*/
-  }
-
+  def getById(id: Long): MusitFuture[Event] =
+    getBaseEvent(id)
+*/
 }
 
 object EventService extends EventService

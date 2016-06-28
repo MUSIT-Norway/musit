@@ -33,7 +33,7 @@ import scala.concurrent.Future
 object FutureExtensions {
 
   type MusitResult[T] = Either[MusitError, T]
-  type MusitFuture[T] = Future[MusitResult[T]]
+  type MusitFuture[T] = Future[Either[MusitError, T]]
 
   implicit class FutureOptionExtensions[T](val fut: Future[Option[T]]) extends AnyVal {
     def foldInnerOption[S](ifNone: => S, ifSome: T => S): Future[S] = fut.map(optValue => optValue.map(ifSome).getOrElse(ifNone))
@@ -79,6 +79,7 @@ object FutureExtensions {
 
   object MusitFuture {
     def successful[T](result: T): MusitFuture[T] = Future.successful(Right(result))
+    def fromError[T](error: MusitError): MusitFuture[T] = Future.successful(Left(error))
   }
 
 }

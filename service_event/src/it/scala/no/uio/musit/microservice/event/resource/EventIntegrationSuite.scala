@@ -20,13 +20,16 @@
 
 package no.uio.musit.microservice.event.resource
 
+import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.{JsObject, Json}
 import play.api.libs.ws.WS
 
 /**
@@ -56,7 +59,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
         """
   {
    "eventType": "move",
-   "eventData": {"note": "Dette er et viktig notat!"},
+   "note": "Dette er et viktig notat!",
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
       val response = createEvent(json)
@@ -70,13 +73,32 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
     }
 
-
-    "postWithoutLinks" in {
+    "post and get observation" in {
       val json =
         """
   {
-   "eventType": "move",
-   "eventData": {"note": "Dette er et VELDIG viktig notat!"}}"""
+   "eventType": "observation",
+   "note": "Dette er et viktig notat for observasjon!",
+   "temperature": 125,
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+      val response = createEvent(json)
+      response.status mustBe 201
+      println(s"Create: ${response.body}")
+
+      val myObservationEvent = EventHelpers.eventFromJson[Observation](Json.parse(response.body)).getOrFail
+      myObservationEvent.temperature mustBe Some(125)
+
+
+      val responseGet = getEvent(1)
+      responseGet.status mustBe 200
+      println(s"Get: ${responseGet.body}")
+
+    }
+
+    "postWithoutLinks" in {
+      /*
+      val json = MoveEvent
 
       val response = createEvent(json)
       response.status mustBe 201
@@ -84,6 +106,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val responseGet = getEvent(2)
       responseGet.status mustBe 200
       println(responseGet.body)
+      */
 
     }
 
@@ -98,7 +121,26 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       response.status mustBe 400
     }
 
+    "postWithControlEvent" in {
+      val json =
+        """
+  {
+   "eventType": "control",
+   "note": "Dette er et viktig notat for kontroll!",
+   "controlType": "skadedyr",
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
+      val response = createEvent(json)
+      response.status mustBe 201
+      println(s"Create: ${response.body}")
+
+      val myControlEvent = EventHelpers.eventFromJson[Control](Json.parse(response.body)).getOrFail
+      myControlEvent.controlType mustBe Some("skadedyr")
+      val responseGet = getEvent(myControlEvent.id.get)
+      responseGet.status mustBe 200
+      println(s"Get: ${responseGet.body}")
+
+    }
   }
 
 }
