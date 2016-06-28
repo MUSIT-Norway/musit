@@ -20,7 +20,6 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.Observation
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
@@ -29,7 +28,7 @@ import scala.concurrent.Future
 
 case class ObservationDTO(id: Option[Long], temperature: Option[Double])
 
-object ObservationDAO extends HasDatabaseConfig[JdbcProfile] {
+object ObservationDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
@@ -37,8 +36,8 @@ object ObservationDAO extends HasDatabaseConfig[JdbcProfile] {
 
   private val ObservationTable = TableQuery[ObservationTable]
 
-  def insertAction(newId: Long, event: Observation): DBIO[Int] =
-    ObservationTable += ObservationDTO(Some(newId), event.temperature)
+  def insertAction(event: ObservationDTO): DBIO[Int] =
+    ObservationTable += event
 
   def getObservation(id: Long): Future[Option[ObservationDTO]] =
     db.run(ObservationTable.filter(event => event.id === id).result.headOption)

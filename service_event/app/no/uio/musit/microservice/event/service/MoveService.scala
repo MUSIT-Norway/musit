@@ -7,7 +7,7 @@ import slick.dbio._
 
 import scala.concurrent.Future
 
-object MoveFactory extends SimpleFactory {
+object MoveService extends SimpleService {
 
   override def fromDatabase(id: Long, base: EventBase) =
     Future.successful(Right(Move(Some(id), base.links, base.note)))

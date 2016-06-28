@@ -20,7 +20,6 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.Control
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
@@ -29,7 +28,7 @@ import scala.concurrent.Future
 
 case class ControlDTO(id: Option[Long], controlType: Option[String])
 
-object ControlDAO extends HasDatabaseConfig[JdbcProfile] {
+object ControlDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
@@ -37,11 +36,8 @@ object ControlDAO extends HasDatabaseConfig[JdbcProfile] {
 
   private val ControlTable = TableQuery[ControlTable]
 
-  def insertAction(newId: Long, event: Control): DBIO[Int] = {
-    val dtoToInsert = ControlDTO(Some(newId), event.controlType)
-    val action = ControlTable += dtoToInsert
-    action
-  }
+  def insertAction(event: ControlDTO): DBIO[Int] =
+    ControlTable += event
 
   def getControl(id: Long): Future[Option[ControlDTO]] = {
     val action = ControlTable.filter(event => event.id === id).result.headOption

@@ -3,7 +3,6 @@ package no.uio.musit.microservice.event.domain
 import julienrf.json.derived.flat
 import no.uio.musit.microservice.event.dao.EventDao.EventBase
 import no.uio.musit.microservice.event.dao.{ ControlDTO, ObservationDTO }
-import no.uio.musit.microservice.event.service.{ ControlFactory, ObservationFactory }
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
@@ -33,6 +32,7 @@ case class Control(
 }
 
 object Control {
+  // FIXME should possibly reside in the service, since the service is the integrator between dto and public domain
   def apply(base: EventBase, controlEvent: ControlDTO): Control =
     Control(
       base.id,
@@ -53,6 +53,7 @@ case class Observation(
 }
 
 object Observation {
+  // FIXME should possibly reside in the service, since the service is the integrator between dto and public domain
   def apply(base: EventBase, observation: ObservationDTO): Observation =
     Observation(
       base.id,
