@@ -18,7 +18,8 @@
  */
 
 import React from 'react'
-import { ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent } from '../../components/observation'
+import { ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent, ObervationStatusPersentComment }
+  from '../../components/observation'
 import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
@@ -42,8 +43,30 @@ export default class ObservationView extends React.Component {
             <Grid>
               <Row>
                 <Col sm={10} smOffset={1}>
+                  <ObervationStatusPersentComment
+                    id="test1"
+                    translate={translate}
+                    statusLabel="from label"
+                    statusValue="122,123"
+                    statusTooltip="From tooltip"
+                    statusOptionValues={['a', 'b']}
+                    onChangeStatus={() => ('From changed')}
+                    volumeLabel="To labela"
+                    volumeValue="123"
+                    // volumeValue={this.volumeValue}
+                    volumeTooltip="To tooltip"
+                    onChangeVolume={() => ('TO changed')}
+                    commentLabel="Comment label"
+                    commentValue="1234"
+                    commentTooltip="Comment tooltip"
+                    onChangeComment={() => ('Comment changed')}
+                  />
+                </Col>
+              </Row>
+              <Row>
+                <Col sm={10} smOffset={1}>
                   <ObservationFromToNumberCommentComponent
-                    id="test"
+                    id="test2"
                     translate={translate}
                     fromLabel="from label"
                     fromValue="122,123"
@@ -63,7 +86,7 @@ export default class ObservationView extends React.Component {
               <Row>
                 <Col sm={10} smOffset={1}>
                   <ObservationDoubleTextAreaComponent
-                    id="test"
+                    id="test3"
                     translate={translate}
                     leftLabel="Left label"
                     leftValue="Left test value"
