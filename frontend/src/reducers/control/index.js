@@ -34,7 +34,8 @@ const controlReducer = (state = initialState, action = {}) => {
     case ADD_FAILURE: return {
       ...state,
       loading: false,
-      loaded: false
+      loaded: false,
+      error: action.error
     }
     default:
       return state
