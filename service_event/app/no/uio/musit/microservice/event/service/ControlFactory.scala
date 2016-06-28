@@ -8,12 +8,14 @@ import no.uio.musit.microservices.common.utils.ErrorHelper
 import slick.dbio._
 
 object ControlFactory extends EventFactory {
-  def fromDatabase(id: Long, baseEventDto: EventBase): MusitFuture[Control] = {
+
+  def fromDatabase(id: Long, base: EventBase) = {
     ControlDAO.getControl(id)
       .toMusitFuture(ErrorHelper.badRequest(s"Unable to find control with id: $id"))
-      .musitFutureMap(controlDTO => Control(baseEventDto, controlDTO))
+      .musitFutureMap(controlDTO => Control(base, controlDTO))
   }
 
-  def toDatabase(id: Long, event: Event): DBIO[Int] =
-    ControlDAO.insertAction(id, event.asInstanceOf[Control])
+  def maybeActionCreator =
+    Some((id, event) => ControlDAO.insertAction(id, event.asInstanceOf[Control]))
+
 }

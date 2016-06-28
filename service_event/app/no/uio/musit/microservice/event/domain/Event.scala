@@ -39,7 +39,7 @@ object Control {
       base.links,
       base.note,
       controlEvent.controlType,
-      base.valueLong.get > 2
+      if (base.valueLong.isDefined) base.valueLong.get > 2 else false
     )
 }
 

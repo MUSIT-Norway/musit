@@ -8,12 +8,11 @@ import no.uio.musit.microservices.common.utils.ErrorHelper
 import slick.dbio._
 
 object ObservationFactory extends EventFactory {
-  def fromDatabase(id: Long, baseEventDto: EventBase): MusitFuture[Observation] = {
+  def fromDatabase(id: Long, baseEventDto: EventBase) = {
     ObservationDAO.getObservation(id)
       .toMusitFuture(ErrorHelper.badRequest(s"Unable to find observation with id: $id"))
       .musitFutureMap(observationDTO => Observation(baseEventDto, observationDTO))
   }
 
-  def toDatabase(id: Long, event: Event): DBIO[Int] =
-    ObservationDAO.insertAction(id, event.asInstanceOf[Observation])
+  def maybeActionCreator = Some((id, event) => ObservationDAO.insertAction(id, event.asInstanceOf[Observation]))
 }

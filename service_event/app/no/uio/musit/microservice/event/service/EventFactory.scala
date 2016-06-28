@@ -5,10 +5,11 @@ import no.uio.musit.microservice.event.domain.{ Event, Event$ }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import slick.dbio._
 
-/**
- * Created by jarlandre on 28/06/16.
- */
 trait EventFactory {
   def fromDatabase(id: Long, baseEventDto: EventBase): MusitFuture[Event]
-  def toDatabase(id: Long, event: Event): DBIO[Int]
+  def maybeActionCreator: Option[(Long, Event) => DBIO[Int]]
+}
+
+abstract class SimpleFactory extends EventFactory {
+  def maybeActionCreator: Option[(Long, Event) => DBIO[Int]] = None
 }

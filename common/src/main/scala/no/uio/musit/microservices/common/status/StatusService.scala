@@ -19,25 +19,13 @@
 package no.uio.musit.microservices.common.status
 
 import play.api.mvc._
-import io.swagger.annotations._
 
-@Api(value = "/api/status", description = "Status service")
 class StatusService extends Controller {
 
-  @ApiOperation(
-    value = "Status operation - Show simple fast status, made for monitoring.",
-    notes = "Ment to be used for machine monitoring.",
-    httpMethod = "GET"
-  )
   def brief_status = Action {
     Ok("Status has not been implemented.")
   }
 
-  @ApiOperation(
-    value = "Extended status operation - Show an extended status to ease checking the internals.",
-    notes = "Ment to be used for diagnostic.",
-    httpMethod = "GET"
-  )
   def extended_status = Action {
     Ok("Extended status has not been implemented.")
   }

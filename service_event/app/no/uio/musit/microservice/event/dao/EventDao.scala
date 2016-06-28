@@ -58,11 +58,11 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       _ <- selfLink(newEventId) |> LinkDao.insertLinkAction
     } yield newEventId).transactionally
 
-    val combinedAction = event.eventType.eventFactory.fold(insertBaseAndLinksAction) {
-      eventFactory =>
+    val combinedAction = event.eventType.eventFactory.maybeActionCreator.fold(insertBaseAndLinksAction) {
+      actionCreator =>
         (for {
           newEventId <- insertBaseAndLinksAction
-          numInserted <- eventFactory.toDatabase(newEventId, event)
+          numInserted <- actionCreator(newEventId, event)
         } yield newEventId).transactionally
     }
 
@@ -80,7 +80,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val maybeBaseEventDto = getBaseEvent(id).toMusitFuture(ErrorHelper.badRequest(s"Event with id: $id not found"))
 
     maybeBaseEventDto.musitFutureFlatMap {
-      baseEventDto => baseEventDto.eventType.eventFactory.get.fromDatabase(id, baseEventDto)
+      baseEventDto => baseEventDto.eventType.eventFactory.fromDatabase(id, baseEventDto)
     }
   }
 

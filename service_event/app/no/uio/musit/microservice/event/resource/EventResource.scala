@@ -19,7 +19,7 @@
  */
 
 package no.uio.musit.microservice.event.resource
-import no.uio.musit.microservice.event.domain._
+import no.uio.musit.microservice.event.domain.Event
 import no.uio.musit.microservice.event.service.BaseService
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._

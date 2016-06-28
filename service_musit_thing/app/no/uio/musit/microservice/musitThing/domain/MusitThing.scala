@@ -19,12 +19,10 @@
 
 package no.uio.musit.microservice.musitThing.domain
 
-import io.swagger.annotations.ApiModel
 import no.uio.musit.microservices.common.domain.BaseMusitDomain
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
-@ApiModel
 case class MusitThing(id: Option[Long], displayid: String, displayname: String, links: Option[Seq[Link]]) extends BaseMusitDomain
 
 object MusitThing {

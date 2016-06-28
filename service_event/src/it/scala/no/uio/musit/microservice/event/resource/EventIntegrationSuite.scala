@@ -45,12 +45,12 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
   def createEvent(json: String) = {
-    WS.url(s"http://localhost:$port/v1/event").postJsonString(json) |> waitFutureValue
+    WS.url(s"http://localhost:9000/v1/event").postJsonString(json) |> waitFutureValue
   }
 
 
   def getEvent(id: Long) = {
-    WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
+    WS.url(s"http://localhost:9000/v1/event/$id").get |> waitFutureValue
   }
 
 
@@ -59,7 +59,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "eventType": "move",
+   "type": "Move",
    "note": "Dette er et viktig notat!",
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
@@ -78,7 +78,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "eventType": "observation",
+   "type": "Observation",
    "note": "Dette er et viktig notat for observasjon!",
    "temperature": 125,
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
@@ -115,7 +115,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "eventType": "hurra",
+   "type": "hurra",
    "eventData": {"note": "Dette er IKKE viktig notat!"}}"""
 
       val response = createEvent(json)
@@ -126,7 +126,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "eventType": "control",
+   "type": "Control",
+   "controlOk": true,
    "note": "Dette er et viktig notat for kontroll!",
    "controlType": "skadedyr",
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
