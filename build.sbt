@@ -173,6 +173,12 @@ lazy val service_storage_admin = (
 lazy val service_event = (
   PlayProject("service_event")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(libraryDependencies ++= Seq(
+      "org.julienrf" % "play-json-derived-codecs_2.11" % "3.3",
+      "com.beachape" %% "enumeratum" % "1.4.4",
+      "com.beachape" %% "enumeratum-play-json" % "1.4.4",
+      "com.beachape" %% "enumeratum-play" % "1.4.4"
+    ))
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(

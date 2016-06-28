@@ -24,46 +24,18 @@ import no.uio.musit.microservice.event.dao.EventDao
 import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservices.common.utils.ErrorHelper._
-import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
-import play.api.libs.json.{ JsObject, Json }
-import slick.dbio.DBIO
+import no.uio.musit.microservices.common.utils.ErrorHelper
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
-trait EventService {
+object BaseService {
   def eventNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(s"Unknown event with id: $id")
 
-  def insertAndGetNewEvent(event: Event): MusitFuture[Event] = {
+  def insertAndGetNewEvent(event: Event): MusitFuture[Event] =
     insertEvent(event).musitFutureFlatMap(newId => getEvent(newId))
-  }
 
   def insertEvent(event: Event): MusitFuture[Long] =
-    EventDao.insertEvent(event).toMusitFuture //We need MusitFuture here in the future,
-  //(to be able to report if user doesn't have the necessary groups etc)
+    EventDao.insertEvent(event).toMusitFuture
 
   def getEvent(id: Long): MusitFuture[Event] =
     EventDao.getEvent(id)
-
-  /*
-
-  private def getBaseEvent(id: Long): MusitFuture[Event] =
-    EventDao.getBaseEvent(id).toMusitFuture(eventNotFoundError(id))
-
-  private def getLinks(id: Long): MusitFuture[Seq[Link]] =
-    LinkDao.findByLocalTableId(id).toMusitFuture
-
-  private def getAtomLinks(id: Long): MusitFuture[Seq[Link]] =
-    getLinks(id)
-
-  def getById(id: Long): MusitFuture[Event] =
-    getBaseEvent(id)
-*/
 }
-
-object EventService extends EventService

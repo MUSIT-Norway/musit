@@ -18,45 +18,16 @@
  *
  */
 
-package no.uio.musit.microservice.event.domain
+package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.utils.ErrorHelper
+import no.uio.musit.microservice.event.domain.Control
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import play.api.libs.json.{ JsObject, JsResult, JsValue, Json }
-import slick.dbio._
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
 case class ControlDTO(id: Option[Long], controlType: Option[String])
-
-object ControlDTO {
-  implicit val format = Json.format[ControlDTO]
-}
-
-class Control(eventType: EventType, baseDTO: BaseEventDTO, val controlDTO: ControlDTO) extends Event(eventType, baseDTO) {
-  val controlType = controlDTO.controlType
-}
-
-object Control extends EventFactory {
-  override def fromJson(eventType: EventType, baseResult: JsResult[BaseEventDTO], jsObject: JsObject): JsResult[Control] = {
-    for {
-      baseDto <- baseResult
-      controlEventDto <- jsObject.validate[ControlDTO]
-    } yield new Control(eventType, baseDto, controlEventDto)
-  }
-
-  def toJson(event: Event): JsValue = Json.toJson(event.asInstanceOf[Control].controlDTO)
-
-  def fromDatabase(eventType: EventType, id: Long, baseEventDto: BaseEventDTO): MusitFuture[Event] = {
-    val maybeControl = ControlDAO.getControl(id).toMusitFuture(ErrorHelper.badRequest(s"Unable to find control with id: $id"))
-    maybeControl.musitFutureMap(controlDTO => new Control(eventType, baseEventDto, controlDTO))
-  }
-
-  def createDatabaseInsertAction(id: Long, event: Event): DBIO[Int] = ControlDAO.insertAction(id, event.asInstanceOf[Control])
-}
 
 object ControlDAO extends HasDatabaseConfig[JdbcProfile] {
 
@@ -67,7 +38,7 @@ object ControlDAO extends HasDatabaseConfig[JdbcProfile] {
   private val ControlTable = TableQuery[ControlTable]
 
   def insertAction(newId: Long, event: Control): DBIO[Int] = {
-    val dtoToInsert = event.controlDTO.copy(id = Some(newId))
+    val dtoToInsert = ControlDTO(Some(newId), event.controlType)
     val action = ControlTable += dtoToInsert
     action
   }
@@ -78,16 +49,14 @@ object ControlDAO extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class ControlTable(tag: Tag) extends Table[ControlDTO](tag, Some("MUSARK_EVENT"), "CONTROL") {
-    def * = (id, controlType) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, controlType) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Option[Long]]("ID", O.PrimaryKey)
+    val id = column[Long]("ID", O.PrimaryKey)
 
     val controlType = column[Option[String]]("CONTROLTYPE")
 
     def create = (id: Option[Long], controlType: Option[String]) =>
-      ControlDTO(
-        id, controlType
-      )
+      ControlDTO(id, controlType)
 
     def destroy(event: ControlDTO) = Some(event.id, event.controlType)
   }

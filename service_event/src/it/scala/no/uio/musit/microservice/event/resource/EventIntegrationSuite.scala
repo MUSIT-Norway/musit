@@ -21,6 +21,7 @@
 package no.uio.musit.microservice.event.resource
 
 import no.uio.musit.microservice.event.domain._
+import no.uio.musit.microservice.event.service.ControlFactory
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._

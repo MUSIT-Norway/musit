@@ -21,14 +21,15 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.domain._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
+import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,23 +42,18 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val EventBaseTable = TableQuery[EventBaseTable]
-  //private val EventLinkTable = TableQuery[EventLinkTable]
 
-  def insertBaseAction(eventBaseDto: BaseEventDTO): DBIO[Long] = {
-    val insertQuery = EventBaseTable returning EventBaseTable.map(_.id) // getOrFail("insertBaseAction: Internal error, should be a value here"))
-    val action = insertQuery += eventBaseDto
-    action.map(id => id.get)
-  }
+  def insertBaseAction(eventBaseDto: EventBase): DBIO[Long] =
+    EventBaseTable returning EventBaseTable.map(_.id) += eventBaseDto
 
-  def selfLink(id: Long) = {
-    LinkService.local(Some(id), "self", s"/v1/${id}")
-  }
+  def selfLink(id: Long) =
+    LinkService.local(Some(id), "self", s"/v1/$id")
 
   def insertEvent(event: Event): Future[Long] = {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
     val insertBaseAndLinksAction = (for {
-      newEventId <- insertBaseAction(event.baseEventDTO)
+      newEventId <- insertBaseAction(EventBase.fromEvent(event))
       _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(event, newEventId))
       _ <- selfLink(newEventId) |> LinkDao.insertLinkAction
     } yield newEventId).transactionally
@@ -66,7 +62,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       eventFactory =>
         (for {
           newEventId <- insertBaseAndLinksAction
-          numInserted <- eventFactory.createDatabaseInsertAction(newEventId, event)
+          numInserted <- eventFactory.toDatabase(newEventId, event)
         } yield newEventId).transactionally
     }
 
@@ -74,7 +70,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   }
 
-  def getBaseEvent(id: Long): Future[Option[BaseEventDTO]] = {
+  def getBaseEvent(id: Long): Future[Option[EventBase]] = {
     val action = EventBaseTable.filter(event => event.id === id).result.headOption
     db.run(action)
   }
@@ -84,32 +80,33 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val maybeBaseEventDto = getBaseEvent(id).toMusitFuture(ErrorHelper.badRequest(s"Event with id: $id not found"))
 
     maybeBaseEventDto.musitFutureFlatMap {
-      baseEventDto =>
-        val maybeEventType = EventType.getById(baseEventDto.eventType)
-        maybeEventType match {
-          case Some(eventType) =>
-            EventHelpers.fromDatabaseToEvent(eventType, id, baseEventDto)
-          case None => MusitFuture.fromError(ErrorHelper.badRequest(s"Unknown event type id: $baseEventDto.eventType"))
-        }
+      baseEventDto => baseEventDto.eventType.eventFactory.get.fromDatabase(id, baseEventDto)
     }
   }
 
-  private class EventBaseTable(tag: Tag) extends Table[BaseEventDTO](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id, eventTypeID, eventNote) <> (create.tupled, destroy) // scalastyle:ignore
+  case class EventBase(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], valueLong: Option[Long] = None)
+  object EventBase {
+    def fromEvent(evt: Event) = EventBase(evt.id, evt.links, evt.eventType, evt.note)
+  }
 
-    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
+  private class EventBaseTable(tag: Tag) extends Table[EventBase](tag, Some("MUSARK_EVENT"), "EVENT") {
+    def * = (id.?, eventTypeID, eventNote) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val eventTypeID = column[Int]("EVENT_TYPE_ID")
+    val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+
+    val eventTypeID = column[EventType]("EVENT_TYPE_ID")
 
     val eventNote = column[Option[String]]("NOTE")
 
-    def create = (id: Option[Long], eventTypeId: Int, note: Option[String]) =>
-      BaseEventDTO(
-        id, Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))), eventTypeId,
+    def create = (id: Option[Long], eventType: EventType, note: Option[String]) =>
+      EventBase(
+        id,
+        Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
+        eventType,
         note
       )
 
-    def destroy(event: BaseEventDTO) = Some(event.id, event.eventType, event.note)
+    def destroy(event: EventBase) = Some(event.id, event.eventType, event.note)
   }
 
 }

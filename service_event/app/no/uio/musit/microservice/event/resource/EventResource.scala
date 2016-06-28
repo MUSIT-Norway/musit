@@ -19,22 +19,20 @@
  */
 
 package no.uio.musit.microservice.event.resource
-
-import no.uio.musit.microservice.event.domain.{ Event, EventHelpers }
-import no.uio.musit.microservice.event.service.EventService
+import no.uio.musit.microservice.event.domain._
+import no.uio.musit.microservice.event.service.BaseService
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
-import play.api.mvc.{ Action, BodyParsers, Controller }
+import play.api.mvc.{Action, BodyParsers, Controller}
 
 class EventResource extends Controller {
-  private def eventToJson(event: Event) = EventHelpers.toJson(event)
 
   def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val maybeEventResult = EventHelpers.validateEvent(request.body.asInstanceOf[JsObject])
-    ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent, maybeEventResult, eventToJson)
+    val maybeEventResult = ResourceHelper.jsResultToMusitResult(request.body.validate[Event])
+    ResourceHelper.postRootWithMusitResult(BaseService.insertAndGetNewEvent, maybeEventResult, (event: Event) => Json.toJson(event))
   }
 
   def getEvent(id: Long) = Action.async { request =>
-    ResourceHelper.getRoot(EventService.getEvent, id, eventToJson)
+    ResourceHelper.getRoot(BaseService.getEvent, id, (event: Event) => Json.toJson(event))
   }
 }
