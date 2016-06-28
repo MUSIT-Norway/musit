@@ -19,10 +19,8 @@
 
 package no.uio.musit.microservice.core.domain
 
-import io.swagger.annotations.ApiModel
 import play.api.libs.json._
 
-@ApiModel
 case class Example(val id: Long, email: String, name: String)
 
 object Example {
