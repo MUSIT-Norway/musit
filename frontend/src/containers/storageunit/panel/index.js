@@ -2,7 +2,7 @@ import { connect } from 'react-redux';
 import Language from '../../../components/language'
 import { load, insert as insertStorageUnitContainer } from '../../../reducers/storageunit';
 import { suggestAddress, clearSuggest } from '../../../reducers/suggest'
-import StorageUnitContainerImpl from './StorageUnit'
+import StorageUnitContainerImpl from './StorageUnitContainer'
 
 const mapStateToProps = (state) => {
   return {
@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch) => {
     },
     onAddressSuggestionsUpdateRequested: ({ value, reason }) => {
       // Should only autosuggest on typing if you have more then 3 characters
-      if (reason && (reason === 'type') && value && (value.length >= 3)) {
+      if (reason && (reason === 'type') && value && value.length >= 3) {
         dispatch(suggestAddress('addressField', value))
       } else {
         dispatch(clearSuggest('addressField'))

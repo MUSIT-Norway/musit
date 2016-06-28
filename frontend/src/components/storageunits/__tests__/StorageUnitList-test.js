@@ -8,15 +8,15 @@ describe('StorageUnitList', () => {
         units={[
           {
             id: 1,
-            name: 'Hallo',
+            name: 'Hallo'
           },
           {
             id: 2,
-            name: 'Kokko',
+            name: 'Kokko'
           },
           {
             id: 3,
-            name: 'Lalal',
+            name: 'Lalal'
           }
         ]}
         onDelete={() => null}
