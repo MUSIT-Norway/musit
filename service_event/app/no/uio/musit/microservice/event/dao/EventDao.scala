@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.domain._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
@@ -29,7 +29,7 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -88,6 +88,11 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   object EventBase {
     def fromEvent(evt: Event) = EventBase(evt.id, evt.links, evt.eventType, evt.note)
   }
+
+  implicit lazy val libraryItemMapper = MappedColumnType.base[EventType, Int](
+    eventType => eventType.id,
+    id => EventType.getById(id)
+  )
 
   private class EventBaseTable(tag: Tag) extends Table[EventBase](tag, Some("MUSARK_EVENT"), "EVENT") {
     def * = (id.?, eventTypeID, eventNote) <> (create.tupled, destroy) // scalastyle:ignore

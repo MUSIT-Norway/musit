@@ -2,7 +2,7 @@ package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.dao.EventDao.EventBase
 import no.uio.musit.microservice.event.dao.ObservationDAO
-import no.uio.musit.microservice.event.domain.{Event, Observation}
+import no.uio.musit.microservice.event.domain.{ Event, Observation }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import slick.dbio._
