@@ -32,7 +32,7 @@ object OptionExtensions {
   implicit class OptionExtensionsImp[T](val opt: Option[T]) extends AnyVal {
 
     ///a quick and dirty way to get the value or throw an exception, only meant to be used for testing or quick and dirty stuff!
-    def getOrThrow(errorMsg: String) = {
+    def getOrFail(errorMsg: String) = {
       opt match {
         case Some(v) => v
         case None => throw new Exception(errorMsg)

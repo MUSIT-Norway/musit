@@ -21,9 +21,9 @@ require('babel-polyfill');
 
 export default {
   host: process.env.HOST || 'localhost',
-  port: process.env.PORT || 9090,
-  apiHost: process.env.APIHOST || 'localhost',
-  apiPort: process.env.APIPORT || 3030,
+  port: process.env.PORT || 8080,
+  gatewayHost: process.env.APIHOST || 'localhost',
+  gatewayPort: process.env.APIPORT || 3030,
   dataportenClientID: process.env.CLIENT_ID || '78bc59c0-023e-4a33-b5d2-321b865b68b2',
   dataportenClientSecret: process.env.CLIENT_SECRET,
 };

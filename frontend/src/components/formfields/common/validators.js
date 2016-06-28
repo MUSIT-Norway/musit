@@ -1,37 +1,36 @@
-const validateString = (value, props) => {
-  if (!props) {
-    props = {
-      minimumLength: 1,
-      maximumLength: 20
-    }
-  }
-  const isSomething = value.length >= props.minimumLength
+const validateString = (value, minimumLength = 1, maximumLength = 20) => {
+  const isSomething = value && value.length >= minimumLength
   const isValid = isSomething ? 'success' : null
-  return value.length > props.maximumLength ? 'error' : isValid
+  return value && value.length > maximumLength ? 'error' : isValid
 }
 
-const validateNumber = (value, props) => {
-  if (!props) {
-    props = {
-      minimumLength: 1
-    }
-  }
-  const isSomething = value.length >= props.minimumLength
-  const isValid = isSomething ? 'success' : null
-  return isSomething && isNaN(value) ? 'error' : isValid
+const validateNumber = (value, minimumLength = 1, maximumLength = 10, precision = 3) => {
+  /* eslint-disable prefer-template */
+  const expression = '^(-?\\d{' +
+    minimumLength +
+    ',' +
+    maximumLength +
+    '})(' +
+    ((precision > 0) ? ',' : '') +
+    '\\d{0,' +
+    precision +
+    '})?$'
+  /* eslint-enable prefer-template */
+  const matcher = new RegExp(expression)
+  return matcher.test(value) ? 'success' : 'error'
 }
 
-const validate = (source, value, validateType = 'text', props) => {
+const validate = (source) => {
   let lValue = ''
-  if (source.props.validator) {
-    lValue = source.props.validator(value, props)
+  if (source.validator) {
+    lValue = source.validator
   } else {
-    switch (validateType) {
+    switch (source.validate) {
       case 'text':
-        lValue = validateString(value, props)
+        lValue = validateString(source.value, source.minimumLength, source.maximumLength)
         break
       case 'number':
-        lValue = validateNumber(value, props)
+        lValue = validateNumber(source.value, source.minimumLength, source.maximumLength, source.precision)
         break
       default:
         lValue = null

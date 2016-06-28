@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storage_admin.resource
 
+import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.PlayTestDefaults
@@ -10,7 +11,7 @@ import no.uio.musit.microservices.common.utils.Misc._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json.{JsNumber, JsObject, JsString, Json}
 import play.api.libs.ws.WS
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,7 +26,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
 
-  def unknownStorageUnitMsg(id: Long) = StorageUnitService.unknownStorageUnitMsg(id)
+  def unknownStorageUnitMsg(id: Long) = StorageUnitDao.unknownStorageUnitMsg(id)
 
   def createStorageUnit(json: String) = {
     WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(json)
@@ -134,15 +135,20 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
 
     "update storageUnit" in {
-      val myJSon ="""{"storageType":"storageunit","storageUnitName":"hylle2"}"""
+      val myJSon ="""{"storageType":"storageunit","storageUnitName":"hylle2","areaTo":125}"""
       val response = createStorageUnit(myJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
       storageUnit.storageUnitName mustBe "hylle2"
 
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get
+      val areaTo = storageUnit.areaTo
+      areaTo mustBe Some(125)
 
-      val storageJson = Json.parse(response.body).asInstanceOf[JsObject].+("storageUnitName" -> JsString("hylle3"))
+      val storageJson = Json.parse(response.body).asInstanceOf[JsObject]
+        .+("storageUnitName" -> JsString("hylle3"))
+        .+("areaTo" -> JsNumber(130))
+        .+("heightTo" -> JsNumber(230))
 
       val antUpdated = updateStorageUnit(id, storageJson.toString()) |> waitFutureValue
       assert(antUpdated.status == 200)
@@ -150,7 +156,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val updatedObject = Json.parse(updatedObjectResponse.body).validate[StorageUnit].get
 
       updatedObject.storageUnitName mustBe ("hylle3")
-
+      updatedObject.areaTo mustBe Some(130)
     }
 
     "update storageRoom" in {

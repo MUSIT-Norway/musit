@@ -1,8 +1,10 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain._
+import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.microservices.common.utils.DaoHelper
+import no.uio.musit.microservices.common.utils.{ DaoHelper, ErrorHelper }
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
@@ -30,6 +32,12 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     Some(Seq(LinkService.self(s"/v1/${id.get}")))
   }
 
+  def unknownStorageUnitMsg(id: Long) = s"Unknown storageUnit with id: $id"
+
+  def storageUnitNotFoundError(id: Long): MusitError = {
+    ErrorHelper.notFound(unknownStorageUnitMsg(id))
+  }
+
   def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] = {
     val action = StorageUnitTable.filter(st => st.id === id && st.isDeleted === 0).result.headOption
     db.run(action)
@@ -50,14 +58,16 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  def getStorageType(id: Long): Future[Option[StorageUnitType]] = {
+  //def getStorageType(id: Long): Future[Option[StorageUnitType]] = {
+  def getStorageType(id: Long): MusitFuture[StorageUnitType] = {
     val action = StorageUnitTable.filter(_.id === id).map {
       _.storageType
     }.result.headOption
-    db.run(action).map {
-      _.map { storageType => StorageUnitType(storageType)
-      }
-    }
+    val res = db.run(action)
+    res.foldInnerOption(Left(storageUnitNotFoundError(id)), storageType => StorageUnitType(storageType) match {
+      case Some(st) => Right(st)
+      case _ => Left(ErrorHelper.conflict("Illegal storageType."))
+    })
   }
 
   def getWholeCollectionStorage(storageCollectionRoot: String): Future[Seq[StorageUnit]] = {
@@ -165,7 +175,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
-    def * = (id, storageType, storageUnitName, area, isPartOf, height, groupRead, groupWrite) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
@@ -175,9 +185,13 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     val area = column[Option[Long]]("AREA")
 
+    val areaTo = column[Option[Long]]("AREA_TO")
+
     val isPartOf = column[Option[Long]]("IS_PART_OF")
 
     val height = column[Option[Long]]("HEIGHT")
+
+    val heightTo = column[Option[Long]]("HEIGHT_TO")
 
     val groupRead = column[Option[String]]("GROUP_READ")
 
@@ -186,17 +200,17 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     val isDeleted = column[Int]("IS_DELETED") // this columns is not a member of the case class storageUnit. IT's not
     // part of the official/public API of storageUnit, only used internally.
 
-    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long],
-      isPartOf: Option[Long], height: Option[Long],
+    def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], areaTo: Option[Long],
+      isPartOf: Option[Long], height: Option[Long], heightTo: Option[Long],
       groupRead: Option[String], groupWrite: Option[String]) =>
       StorageUnit(
         id, storageType,
-        storageUnitName, area, isPartOf, height, groupRead, groupWrite,
+        storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite,
         linkText(id)
       )
 
     def destroy(unit: StorageUnit) = Some(unit.id, unit.storageType,
-      unit.storageUnitName, unit.area, unit.isPartOf, unit.height, unit.groupRead, unit.groupWrite)
+      unit.storageUnitName, unit.area, unit.areaTo, unit.isPartOf, unit.height, unit.heightTo, unit.groupRead, unit.groupWrite)
   }
 
   private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {

@@ -18,64 +18,61 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { FormGroup, FormControl, Popover, ControlLabel, Col, InputGroup, OverlayTrigger } from 'react-bootstrap';
-
+import { validate } from '../common/validators'
 
 export default class MusitTextArea extends Component {
 
-  static helpText(tip) {
-    return (
-      <Popover id="InputLinkPopover" title="Info">
-        {tip}
-      </Popover>
-    )
+  classNameWithSpan() {
+    let lvString = ' '
+    if (validate(this.props) === 'error') {
+      lvString = 'form-group has-error'
+    } else {
+      lvString = 'form-group'
+    }
+    return lvString
+  }
+
+  classNameOnlyWithInput() {
+    let lvString = ''
+    if (validate(this.props) === 'error') {
+      lvString = 'has-error'
+    } else {
+      lvString = ''
+    }
+    return lvString
   }
 
   render() {
-    return (
-      <FormGroup
-        controlId={this.props.controlId}
-        style={{
-          marginTop: 0,
-          marginBottom: '5px'
-        }}
-        validationState={this.props.validationState()}
-      >
-        <Col componentClass={ControlLabel} sm={3}>
-          {this.props.labelText}
-        </Col>
-        <Col sm={9}>
-          <InputGroup>
-            <FormControl
-              componentClass="textarea"
-              placeholder={this.props.placeHolderText}
-              value={this.props.valueText()}
-              onChange={(event) => this.props.onChange(event.target.value)}
-            />
+    const lcPlaceholder = (
+      <textarea
+        className="form-control"
+        placeholder={this.props.placeHolder}
+        value={this.props.value}
+        id={this.props.id}
+        rows={this.props.numberOfRows}
+        onChange={(event) => this.props.onChange(event.target.value)} data-toggle="tooltip" title={this.props.tooltip}
+      />);
 
-            {this.props.tooltip ?
-              <OverlayTrigger
-                trigger={['click']}
-                rootClose
-                placement="right"
-                overlay={MusitTextArea.helpText(this.props.tooltip)}
-              >
-                <InputGroup.Addon>?</InputGroup.Addon>
-              </OverlayTrigger> : null}
-          </InputGroup>
-        </Col>
-      </FormGroup>
+    return (
+      <div
+        className={this.classNameOnlyWithInput()}
+      >
+       {lcPlaceholder}
+      </div>
     )
   }
 }
 
 MusitTextArea.propTypes = {
-  controlId: PropTypes.string.isRequired,
-  labelText: PropTypes.string.isRequired,
-  placeHolderText: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired, // Should be any
+  placeHolder: PropTypes.string,
   tooltip: PropTypes.string,
-  valueText: PropTypes.func.isRequired,
-  validationState: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
-
+  validate: PropTypes.string.isRequired,
+  minimumLength: PropTypes.number,
+  maximumLength: PropTypes.number,
+  validator: PropTypes.string,
+  precision: PropTypes.number,
+  numberOfRows: PropTypes.number
 };

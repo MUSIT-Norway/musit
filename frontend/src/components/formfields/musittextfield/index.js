@@ -98,7 +98,6 @@ export default class MusitTextField extends Component {
               value={this.props.valueText()}
               onChange={(event) => this.props.onChange(event.target.value)}
             />}
-
         </Col>
       </FormGroup>
     )
@@ -121,5 +120,4 @@ MusitTextField.propTypes = {
   validationState2: PropTypes.func,
   onChange: PropTypes.func.isRequired,
   onChange2: PropTypes.func,
-
 };

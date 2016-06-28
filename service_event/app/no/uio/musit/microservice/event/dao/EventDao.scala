@@ -71,6 +71,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
 
     db.run(combinedAction)
+
   }
 
   def getBaseEvent(id: Long): Future[Option[BaseEventDTO]] = {
@@ -104,7 +105,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     def create = (id: Option[Long], eventTypeId: Int, note: Option[String]) =>
       BaseEventDTO(
-        id, Some(Seq(selfLink(id.getOrThrow("EventBaseTable internal error")))), eventTypeId,
+        id, Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))), eventTypeId,
         note
       )
 

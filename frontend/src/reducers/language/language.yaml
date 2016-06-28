@@ -5,6 +5,8 @@ en:
       title: "University Museums Collection database"
       body: "<TBD>"
       noAccess: "<TBD>"
+    pickList:
+      title: "Picklist"
     welcomeUserPage:
       body: >
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas arcu est, tempus eu tellus et, mollis maximus elit. Morbi est lorem, molestie fermentum interdum a, faucibus ultricies lectus. Ut eu lorem mi. In dictum neque vitae mollis posuere. Sed maximus, est eget rhoncus sagittis, dolor enim varius felis, at hendrerit urna urna a justo. Proin nunc ex, tristique sed bibendum vel, porta et elit. Vestibulum consectetur lacus nec elementum ornare. Vestibulum venenatis condimentum tortor sit amet pharetra. Maecenas tempus lectus vel vestibulum pharetra. Suspendisse euismod condimentum massa.
@@ -15,31 +17,55 @@ en:
     login: Login through Dataporten ![feide-logo-button](/assets/images/feide-login-icon.png "Feide Login")
 no:
   musit:
+    texts:
+      freetext: "Fritekst"
+    pickList:
+      title: "Plukkliste"
+      action:
+        markAll: "Alle"
+        executeAll: "Utfør (alle)"
     storageUnits:
       title: "Storage units"
       environmentRequirements:
         temperature:
           labelText: Temperatur
-          tooltip: "Måleenhet grader celsius, desimaltall, ett tall+toleranse"
-          placeHolderText: C
-          placeHolderText2: int
+          tooltip: "Måleenhet grader celsius, desimaltall"
+          placeHolder: C
+        temperatureTolerance:
+          tooltip: "Måleenhet toleranse, ett tall"
+          placeHolder: int
+          addOnPrefix: "\u00b1"
         relativeHumidity:
           labelText: "Rel. luftfuktighet"
-          tooltip: "Måleenhet prosent, desimaltall, ett tall+toleranse"
-          placeHolderText: "%"
-          placeHolderText2: "int"
+          tooltip: "Måleenhet prosent, desimaltall"
+          placeHolder: "%"
+        relativeHumidityTolerance:
+          tooltip: "Måleenhet prosent toleranse, ett tall"
+          placeHolder: int
+          addOnPrefix: "\u00b1"
         inertAir:
-          labelText: "Inertluft"
-          tooltip: "Måleenhet prosent oksygen, desimaltall, ett tall+toleranse"
-          placeHolderText: "% O2"
-          placeHolderText2: int
+          labelText: "Inert luft"
+          tooltip: "Måleenhet prosent oksygen, desimaltall"
+          placeHolder: "% O2"
+        inertAirTolerance:
+          tooltip: "Måleenhet prosent oksygen toleranse, ett tall"
+          placeHolder: int
+          addOnPrefix: "\u00b1"
         renhold:
           labelText: Renhold
           tooltip: Renhold
         lightCondition:
           labelText: Lysforhold
           tooltip: Lysforhold
-
+        comments:
+          labelText: Kommentarer
+          tooltip: "Kommentar!"
+      storageType:
+        items:
+          storageunit: "Lagringsenhet"
+          room: Rom
+          building: "Bygning"
+          organization: "Organisasjon"
     welcomePage:
       title: >
         Universitetsmuseenes IT-organisasjon,

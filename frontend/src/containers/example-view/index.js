@@ -18,10 +18,8 @@
  */
 
 import React from 'react'
-import { MusitTextField as TextField } from '../../components/formfields'
 import Options from '../../components/storageunits/EnvironmentOptions'
-import StorageUnitComponents from '../../components/storageunits/StorageUnitComponent'
-import { Button, Panel, Form, Grid, Row, PageHeader, Col } from 'react-bootstrap'
+import { Button, Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Autosuggest from 'react-autosuggest'
 import { suggestAddress, suggestCompany, clearSuggest } from '../../reducers/suggest'
@@ -117,17 +115,15 @@ export default class ExampleView extends React.Component {
       showCreate: false
     }
 
-    const clazz = this
-
     this.areal = {
       controlId: 'areal',
       labelText: 'Areal',
       tooltip: 'Areal',
       valueType: 'text',
       placeHolderText: 'enter areal here',
-      valueText: () => clazz.state.unit.areal,
-      validationState: () => ExampleView.validateNumber(clazz.state.unit.areal),
-      onChange: (areal) => clazz.setState({ unit: { ...this.state.unit, areal } })
+      valueText: () => this.state.unit.areal,
+      validationState: () => ExampleView.validateNumber(this.state.unit.areal),
+      onChange: (areal) => this.setState({ unit: { ...this.state.unit, areal } })
     }
 
     this.fields = [
@@ -137,9 +133,9 @@ export default class ExampleView extends React.Component {
         tooltip: 'Name',
         valueType: 'text',
         placeHolderText: 'enter name here',
-        valueText: () => clazz.state.unit.name,
-        validationState: () => ExampleView.validateString(clazz.state.unit.name),
-        onChange: (name) => clazz.setState({ unit: { ...clazz.state.unit, name } })
+        valueText: () => this.state.unit.name,
+        validationState: () => ExampleView.validateString(this.state.unit.name),
+        onChange: (name) => this.setState({ unit: { ...this.state.unit, name } })
       },
       {
         controlId: 'description',
@@ -147,9 +143,9 @@ export default class ExampleView extends React.Component {
         tooltip: 'Description',
         placeHolderText: 'enter description here',
         valueType: 'text',
-        valueText: () => clazz.state.unit.description,
-        validationState: () => ExampleView.validateString(clazz.state.unit.description),
-        onChange: (description) => clazz.setState({ unit: { ...clazz.state.unit, description } })
+        valueText: () => this.state.unit.description,
+        validationState: () => ExampleView.validateString(this.state.unit.description),
+        onChange: (description) => this.setState({ unit: { ...this.state.unit, description } })
       },
       {
         controlId: 'note',
@@ -157,9 +153,9 @@ export default class ExampleView extends React.Component {
         tooltip: 'Note',
         valueType: 'text',
         placeHolderText: 'enter note here',
-        valueText: () => clazz.state.unit.note,
-        validationState: () => ExampleView.validateString(clazz.state.unit.note),
-        onChange: (note) => clazz.setState({ unit: { ...clazz.state.unit, note } })
+        valueText: () => this.state.unit.note,
+        validationState: () => ExampleView.validateString(this.state.unit.note),
+        onChange: (note) => this.setState({ unit: { ...this.state.unit, note } })
       }
     ]
     this.onAddressChange = this.onAddressChange.bind(this)
@@ -263,23 +259,6 @@ export default class ExampleView extends React.Component {
           />
           <Panel>
             <Grid>
-              <Row styleClass="row-centered">
-                <PageHeader>
-                  Welcome to example view.
-                </PageHeader>
-                <Col md={6}>
-                  <Form horizontal>
-                    {this.fields.map(field => <TextField {...field} />)}
-                  </Form>
-                </Col>
-                <Col md={6}>
-                  <Form horizontal>
-                    <TextField {...this.areal} />
-                    <TextField {...this.areal} />
-                    <TextField {...this.areal} />
-                  </Form>
-                </Col>
-              </Row>
               <Row>
                 <Col md={2}>
                   <label htmlFor={'addressField'}>Adresse</label>
@@ -313,9 +292,7 @@ export default class ExampleView extends React.Component {
               </Row>
             </Grid>
           </Panel>
-          <StorageUnitComponents />
           <EnvironmentRequirementComponent translate={this.props.translate} />
-
           <Panel>
             <Options
               unit={this.state.sikringBevaring}
