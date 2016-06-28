@@ -20,6 +20,7 @@
 
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservice.event.dao.ObservationDAO
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
@@ -57,40 +58,4 @@ object Observation extends EventFactory {
   }
 
   def createDatabaseInsertAction(id: Long, event: Event): DBIO[Int] = ObservationDAO.insertAction(id, event.asInstanceOf[Observation])
-}
-
-object ObservationDAO extends HasDatabaseConfig[JdbcProfile] {
-
-  import driver.api._
-
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
-
-  private val ObservationTable = TableQuery[ObservationTable]
-
-  def insertAction(newId: Long, event: Observation): DBIO[Int] = {
-    val dtoToInsert = event.observationDTO.copy(id = Some(newId))
-    val action = ObservationTable += dtoToInsert
-    action
-  }
-
-  def getObservation(id: Long): Future[Option[ObservationDTO]] = {
-    val action = ObservationTable.filter(event => event.id === id).result.headOption
-    db.run(action)
-  }
-
-  private class ObservationTable(tag: Tag) extends Table[ObservationDTO](tag, Some("MUSARK_EVENT"), "OBSERVATION") {
-    def * = (id, temperature) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val id = column[Option[Long]]("ID", O.PrimaryKey)
-
-    val temperature = column[Option[Double]]("TEMPERATURE")
-
-    def create = (id: Option[Long], temperature: Option[Double]) =>
-      ObservationDTO(
-        id, temperature
-      )
-
-    def destroy(event: ObservationDTO) = Some(event.id, event.temperature)
-  }
-
 }

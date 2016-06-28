@@ -20,6 +20,7 @@
 
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservice.event.dao.ControlDAO
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
@@ -58,38 +59,3 @@ object Control extends EventFactory {
   def createDatabaseInsertAction(id: Long, event: Event): DBIO[Int] = ControlDAO.insertAction(id, event.asInstanceOf[Control])
 }
 
-object ControlDAO extends HasDatabaseConfig[JdbcProfile] {
-
-  import driver.api._
-
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
-
-  private val ControlTable = TableQuery[ControlTable]
-
-  def insertAction(newId: Long, event: Control): DBIO[Int] = {
-    val dtoToInsert = event.controlDTO.copy(id = Some(newId))
-    val action = ControlTable += dtoToInsert
-    action
-  }
-
-  def getControl(id: Long): Future[Option[ControlDTO]] = {
-    val action = ControlTable.filter(event => event.id === id).result.headOption
-    db.run(action)
-  }
-
-  private class ControlTable(tag: Tag) extends Table[ControlDTO](tag, Some("MUSARK_EVENT"), "CONTROL") {
-    def * = (id, controlType) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val id = column[Option[Long]]("ID", O.PrimaryKey)
-
-    val controlType = column[Option[String]]("CONTROLTYPE")
-
-    def create = (id: Option[Long], controlType: Option[String]) =>
-      ControlDTO(
-        id, controlType
-      )
-
-    def destroy(event: ControlDTO) = Some(event.id, event.controlType)
-  }
-
-}
