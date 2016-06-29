@@ -5,34 +5,35 @@ import { Button, Row } from 'react-bootstrap';
 export default class PairedToogleButtons extends Component {
   static propTypes = {
     label: PropTypes.string.isRequired,
-    value: PropTypes.bool
+    value: PropTypes.bool,
+    updatevalueOK: PropTypes.func.isRequired,
+    updatevalueNotOK: PropTypes.func.isRequired
   }
 
   render() {
     const { label, value } = this.props;
     const style = require('./index.scss')
-    const styleset = value ? style.true : style.false
-    const stackIcon = (icon1, icon2) => (
-      <span className="fa-stack">
-        <FontAwesome name={icon1} size="2x" stack="2x" />
-        <FontAwesome name={icon2} size="1x" stack="1x" />
-      </span>
-    )
 
     return (
-      <div>
+      <div className={style.pageMargin}>
         <Row>
           {label}
         </Row>
         <Row>
-          {value != null ? <FontAwesome name={value ? 'check' : 'close'} /> : <span>&nbsp;&nbsp;&nbsp;</span>}
-          <Button className={value ? styleset.buttonpaddingtrue : styleset.buttonpaddingfalse}>
-            <FontAwesome name="check" />
+          {value != null ? <FontAwesome name={value ? 'check-square-o' : 'times'} /> : <FontAwesome name="square-o" />}
+          <Button
+            className={value ? style.buttonpaddingtrue : style.buttonpaddingfalse}
+            onClick={this.props.updatevalueOK}
+          >
+            <FontAwesome name="check-square-o" />
             <span>&nbsp;</span>
             OK
           </Button>
-          <Button className={value ? styleset.buttonpaddingtrue : styleset.buttonpaddingfalse}>
-            <FontAwesome name="close" />
+          <Button
+            className={value != null && !value ? style.buttonpaddingtrue : style.buttonpaddingfalse}
+            onClick={this.props.updatevalueNotOK}
+          >
+            <FontAwesome name="times" />
             <span>&nbsp;</span>
             IKKE ok
           </Button>

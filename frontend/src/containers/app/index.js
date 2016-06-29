@@ -104,6 +104,9 @@ class App extends Component {
               <LinkContainer to="/musit/about">
                 <NavItem eventKey={7}>About Us</NavItem>
               </LinkContainer>
+              <LinkContainer to="/control">
+                <NavItem eventKey={8}>Control</NavItem>
+              </LinkContainer>
               {user &&
                 <LinkContainer to="/picklist">
                   <NavItem><Badge><FontAwesome name="shopping-cart" /> {pickListCount}</Badge></NavItem>

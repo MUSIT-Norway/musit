@@ -19,21 +19,24 @@
 
 import React from 'react'
 import { connect } from 'react-redux'
-import { Grid, Row, Col } from 'react-bootstrap'
+import { Grid, Row, Col, ButtonToolbar, Button } from 'react-bootstrap'
 import PairedToogleButtons from '../../components/controls/pairedToggleButtons'
-import FontAwesome from 'react-fontawesome'
+import { addControl } from '../../reducers/control'
+import Language from '../../components/language'
 
 const mapStateToProps = (state) => ({
-  suggest: state.suggest,
   user: state.auth.user,
-  environmentRequirements: state.environmentRequirements
+  environmentRequirements: state.environmentRequirements,
+  unit: state.control.data,
+  translate: (key, markdown) => Language.translate(key, markdown),
 })
 
 const mapDispatchToProps = (dispatch) => ({
-  dispatchCreateControl: (control) => {
-    if (control && control.date && control.date.length > 0) {
-      dispatch() // Todo: Create reducer etc
-    }
+  onLagreControl: (data) => {
+    dispatch(addControl(data))
+  },
+  updateControl: (data) => {
+    dispatch(addControl(data))
   }
 })
 
@@ -42,8 +45,9 @@ const mapDispatchToProps = (dispatch) => ({
 export default class ControlView extends React.Component {
   static propTypes = {
     translate: React.PropTypes.func.isRequired,
-    user: React.PropTypes.object.isRequired,
-    date: React.PropTypes.string.isRequired,
+    user: React.PropTypes.string.isRequired,
+    onLagreControl: React.PropTypes.func.isRequired,
+    updateControl: React.PropTypes.func.isRequired,
     unit: React.PropTypes.shape({
       temperatureOK: React.PropTypes.bool.isRequired,
       inertAirOK: React.PropTypes.bool.isRequired,
@@ -52,52 +56,288 @@ export default class ControlView extends React.Component {
       cleaningOK: React.PropTypes.bool.isRequired,
       alchoholOK: React.PropTypes.bool.isRequired,
       moldFungusOK: React.PropTypes.bool.isRequired,
+      relativeHumidity: React.PropTypes.bool.isRequired,
       pestOK: React.PropTypes.bool.isRequired,
       storageUnit: React.PropTypes.bool.isRequired
     })
   }
-
   constructor(props) {
     super(props)
-
     this.state = {
-      date: '',
-      user: '',
-      temperatureOK: '',
-      inertAirOK: '',
-      relativeAirHum: '1',
-      gasOK: '',
-      lightConditionsOK: '',
-      cleaningOK: '',
-      alchoholOK: '',
-      moldFungusOK: '',
-      pestOK: '',
-      storageUnit: ''
+      temperatureOK: null,
+      inertAirOK: null,
+      gasOK: null,
+      lightConditionsOK: null,
+      cleaningOK: null,
+      alchoholOK: null,
+      moldFungusOK: null,
+      relativeHumidity: null,
+      pestOK: null,
+      storageUnit: null
+    }
+    this.getDate = this.getDate.bind(this)
+    this.onTemperatureOKClick = this.onTemperatureOKClick.bind(this)
+    this.onTemperatureNotOKClick = this.onTemperatureNotOKClick.bind(this)
+    this.onInertAirOKClick = this.onInertAirOKClick.bind(this)
+    this.onInertAirNotOKClick = this.onInertAirNotOKClick.bind(this)
+    this.onRelativeHumidityOKClick = this.onRelativeHumidityOKClick.bind(this)
+    this.onRelativeHumidityNotOKClick = this.onRelativeHumidityNotOKClick.bind(this)
+
+    this.onCleaningOKClick = this.onCleaningOKClick.bind(this)
+    this.onCleaningNotOKClick = this.onCleaningNotOKClick.bind(this)
+
+    this.onLightConditionsOKClick = this.onLightConditionsOKClick.bind(this)
+    this.onLightConditionsNotOKClick = this.onLightConditionsNotOKClick.bind(this)
+
+    this.onAlchoholOKClick = this.onAlchoholOKClick.bind(this)
+    this.onAlchoholNotOKClick = this.onAlchoholNotOKClick.bind(this)
+
+    this.onPestOKClick = this.onPestOKClick.bind(this)
+    this.onPestNotOKClick = this.onPestNotOKClick.bind(this)
+
+    this.onMoldFungusOKClick = this.onMoldFungusOKClick.bind(this)
+    this.onMoldFungusNotOKClick = this.onMoldFungusNotOKClick.bind(this)
+  }
+
+  onTemperatureOKClick() {
+    if (this.state.temperatureOK != null && this.state.temperatureOK) {
+      this.setState({ ...this.state, temperatureOK: null })
+    } else {
+      this.setState({ ...this.state, temperatureOK: true })
+    }
+    this.props.updateControl(this.state)
+  }
+
+  onTemperatureNotOKClick() {
+    if (this.state.temperatureOK != null && !this.state.temperatureOK) {
+      this.setState({ ...this.state, temperatureOK: null })
+    } else {
+      this.setState({ ...this.state, temperatureOK: false })
+    }
+    this.props.updateControl(this.state)
+  }
+
+  onInertAirOKClick() {
+    if (this.state.inertAirOK != null && this.state.inertAirOK) {
+      this.setState({ ...this.state, inertAirOK: null })
+    } else {
+      this.setState({ ...this.state, inertAirOK: true })
     }
   }
 
+  onInertAirNotOKClick() {
+    if (this.state.inertAirOK != null && !this.state.inertAirOK) {
+      this.setState({ ...this.state, inertAirOK: null })
+    } else {
+      this.setState({ ...this.state, inertAirOK: false })
+    }
+  }
+
+  onRelativeHumidityOKClick() {
+    if (this.state.relativeHumidity != null && this.state.relativeHumidity) {
+      this.setState({ ...this.state, relativeHumidity: null })
+    } else {
+      this.setState({ ...this.state, relativeHumidity: true })
+    }
+  }
+
+  onRelativeHumidityNotOKClick() {
+    if (this.state.relativeHumidity != null && !this.state.relativeHumidity) {
+      this.setState({ ...this.state, relativeHumidity: null })
+    } else {
+      this.setState({ ...this.state, relativeHumidity: false })
+    }
+  }
+
+  onCleaningOKClick() {
+    if (this.state.cleaningOK != null && this.state.cleaningOK) {
+      this.setState({ ...this.state, cleaningOK: null })
+    } else {
+      this.setState({ ...this.state, cleaningOK: true })
+    }
+  }
+  onCleaningNotOKClick() {
+    if (this.state.cleaningOK != null && !this.state.cleaningOK) {
+      this.setState({ ...this.state, cleaningOK: null })
+    } else {
+      this.setState({ ...this.state, cleaningOK: false })
+    }
+  }
+
+  onLightConditionsOKClick() {
+    if (this.state.lightConditionsOK != null && this.state.lightConditionsOK) {
+      this.setState({ ...this.state, lightConditionsOK: null })
+    } else {
+      this.setState({ ...this.state, lightConditionsOK: true })
+    }
+  }
+  onLightConditionsNotOKClick() {
+    if (this.state.lightConditionsOK != null && !this.state.lightConditionsOK) {
+      this.setState({ ...this.state, lightConditionsOK: null })
+    } else {
+      this.setState({ ...this.state, lightConditionsOK: false })
+    }
+  }
+
+  onAlchoholOKClick() {
+    if (this.state.alchoholOK != null && this.state.alchoholOK) {
+      this.setState({ ...this.state, alchoholOK: null })
+    } else {
+      this.setState({ ...this.state, alchoholOK: true })
+    }
+  }
+  onAlchoholNotOKClick() {
+    if (this.state.alchoholOK != null && !this.state.alchoholOK) {
+      this.setState({ ...this.state, alchoholOK: null })
+    } else {
+      this.setState({ ...this.state, alchoholOK: false })
+    }
+  }
+
+  onPestOKClick() {
+    if (this.state.pestOK != null && this.state.pestOK) {
+      this.setState({ ...this.state, pestOK: null })
+    } else {
+      this.setState({ ...this.state, pestOK: true })
+    }
+  }
+  onPestNotOKClick() {
+    if (this.state.pestOK != null && !this.state.pestOK) {
+      this.setState({ ...this.state, pestOK: null })
+    } else {
+      this.setState({ ...this.state, pestOK: false })
+    }
+  }
+
+  onMoldFungusOKClick() {
+    if (this.state.moldFungusOK != null && this.state.moldFungusOK) {
+      this.setState({ ...this.state, moldFungusOK: null })
+    } else {
+      this.setState({ ...this.state, moldFungusOK: true })
+    }
+  }
+  onMoldFungusNotOKClick() {
+    if (this.state.moldFungusOK != null && !this.state.moldFungusOK) {
+      this.setState({ ...this.state, moldFungusOK: null })
+    } else {
+      this.setState({ ...this.state, moldFungusOK: false })
+    }
+  }
+
+  getDate() {
+    const d = new Date()
+    const r = `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`
+    return r
+  }
+
+
   render() {
-    return (<div>
-      <Grid>
-        <Row>
-          <Col md={5}>
-            <PairedToogleButtons label="Relativ luftfuktighet" value={false} />
-          </Col>
-          <Col md={7} />
-        </Row>
-        <Row>
-          <Col md={5}>
-            <PairedToogleButtons label="Relativ luftfuktighet" value />
-          </Col>
-          <Col md={7} />
-        </Row>
-        <Row>
-          <Col md={5}>
-            <PairedToogleButtons label="Relativ luftfuktighet" value={null} />
-          </Col>
-          <Col md={7} />
-        </Row>
-      </Grid>
-    </div>)
+    return (
+      <div>
+        <Grid>
+          <Row>
+            <h1 />
+          </Row>
+          <Row>
+            <Col md={5}>
+              {this.getDate()}
+            </Col>
+            <Col md={7}>
+              {this.props.user ? this.props.user.name : null}
+            </Col>
+          </Row>
+          <Row>
+            <Col md={5}>
+              <PairedToogleButtons
+                label="Temperatur"
+                value={this.state.temperatureOK}
+                updatevalueOK={this.onTemperatureOKClick}
+                updatevalueNotOK={this.onTemperatureNotOKClick}
+              />
+            </Col>
+            <Col md={7} />
+          </Row>
+          <Row>
+            <Col md={5}>
+              <PairedToogleButtons
+                label="Inert luft"
+                value={this.state.inertAirOK}
+                updatevalueOK={this.onInertAirOKClick}
+                updatevalueNotOK={this.onInertAirNotOKClick}
+              />
+            </Col>
+            <Col md={7} />
+          </Row>
+          <Row>
+            <Col md={5}>
+              <PairedToogleButtons
+                label="Relativ luftfuktighet"
+                value={this.state.relativeHumidity}
+                updatevalueOK={this.onRelativeHumidityOKClick}
+                updatevalueNotOK={this.onRelativeHumidityNotOKClick}
+              />
+            </Col>
+            <Col md={7} />
+          </Row>
+          <Row>
+            <Col md={5}>
+              <PairedToogleButtons
+                label="Rengjøring"
+                value={this.state.cleaningOK}
+                updatevalueOK={this.onCleaningOKClick}
+                updatevalueNotOK={this.onCleaningNotOKClick}
+              />
+            </Col>
+            <Col md={7} />
+          </Row>
+          <Row>
+            <Col md={5}>
+              <PairedToogleButtons
+                label="Lysforhold"
+                value={this.state.lightConditionsOK}
+                updatevalueOK={this.onLightConditionsOKClick}
+                updatevalueNotOK={this.onLightConditionsNotOKClick}
+              />
+            </Col>
+            <Col md={7} />
+          </Row>
+          <Row>
+            <Col md={5}>
+              <PairedToogleButtons
+                label="Sprit"
+                value={this.state.alchoholOK}
+                updatevalueOK={this.onAlchoholOKClick}
+                updatevalueNotOK={this.onAlchoholNotOKClick}
+              />
+            </Col>
+            <Col md={7} />
+          </Row>
+          <Row>
+            <Col md={5}>
+              <PairedToogleButtons
+                label="Skadedyr"
+                value={this.state.pestOK}
+                updatevalueOK={this.onPestOKClick}
+                updatevalueNotOK={this.onPestNotOKClick}
+              />
+            </Col>
+            <Col md={7} />
+          </Row>
+          <Row>
+            <Col md={5}>
+              <PairedToogleButtons
+                label="Mugg"
+                value={this.state.moldFungusOK}
+                updatevalueOK={this.onMoldFungusOKClick}
+                updatevalueNotOK={this.onMoldFungusNotOKClick}
+              />
+            </Col>
+            <Col md={7} />
+          </Row>
+        </Grid>
+        <ButtonToolbar>
+          <Button onClick={() => this.props.onLagreControl(this.state)}> Lagre </Button>
+        </ButtonToolbar>
+      </div>)
   }
 }

@@ -29,6 +29,7 @@ import autosuggestReducer from './suggest'
 import picklistReducer from './picklist'
 import storageReducer from './storageunit-container'
 import organizationReducer from './organization'
+import controlReducer from './control'
 
 
 const rootReducer = combineReducers({
@@ -41,7 +42,8 @@ const rootReducer = combineReducers({
   picks: picklistReducer,
   storageUnit: storageReducer,
   organization: organizationReducer,
-  form: form
+  form: form,
+  control: controlReducer
 })
 
 export default rootReducer
