@@ -18,7 +18,8 @@
  */
 
 import React from 'react'
-import { ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent } from '../../components/observation'
+import { ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent, ObervationStatusPercentageComment }
+  from '../../components/observation'
 import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
@@ -35,6 +36,7 @@ export default class ObservationView extends React.Component {
 
   render() {
     const { translate } = this.props
+    const statusOptions = ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende']
     return (
       <div>
         <main>
@@ -42,8 +44,31 @@ export default class ObservationView extends React.Component {
             <Grid>
               <Row>
                 <Col sm={10} smOffset={1}>
+                  <ObervationStatusPercentageComment
+                    id="test1"
+                    translate={translate}
+                    statusLabel="Tilstand"
+                    statusValue="122,123"
+                    statusTooltip="From tooltip"
+                    statusOptionValues={statusOptions}
+                    // statusOptionValues={['Adult', 'Puppe', 'Puppeskinn', 'Larva', 'Egg']}
+                    onChangeStatus={() => ('From changed')}
+                    volumeLabel="Volum %"
+                    volumeValue="123"
+                    // volumeValue={this.volumeValue}
+                    volumeTooltip="To tooltip"
+                    onChangeVolume={() => ('TO changed')}
+                    commentLabel="Tiltak/Kommerntar"
+                    commentValue=""
+                    commentTooltip="Comment tooltip"
+                    onChangeComment={() => ('Comment changed')}
+                  />
+                </Col>
+              </Row>
+              <Row>
+                <Col sm={10} smOffset={1}>
                   <ObservationFromToNumberCommentComponent
-                    id="test"
+                    id="test2"
                     translate={translate}
                     fromLabel="from label"
                     fromValue="122,123"
@@ -63,7 +88,7 @@ export default class ObservationView extends React.Component {
               <Row>
                 <Col sm={10} smOffset={1}>
                   <ObservationDoubleTextAreaComponent
-                    id="test"
+                    id="test3"
                     translate={translate}
                     leftLabel="Left label"
                     leftValue="Left test value"
