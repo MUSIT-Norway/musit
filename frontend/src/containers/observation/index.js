@@ -36,6 +36,7 @@ export default class ObservationView extends React.Component {
 
   render() {
     const { translate } = this.props
+    const statusOptions = ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende']
     return (
       <div>
         <main>
@@ -46,18 +47,19 @@ export default class ObservationView extends React.Component {
                   <ObervationStatusPersentComment
                     id="test1"
                     translate={translate}
-                    statusLabel="from label"
+                    statusLabel="Tilstand"
                     statusValue="122,123"
                     statusTooltip="From tooltip"
-                    statusOptionValues={['a', 'b']}
+                    statusOptionValues={statusOptions}
+                    // statusOptionValues={['Adult', 'Puppe', 'Puppeskinn', 'Larva', 'Egg']}
                     onChangeStatus={() => ('From changed')}
-                    volumeLabel="To labela"
+                    volumeLabel="Volum %"
                     volumeValue="123"
                     // volumeValue={this.volumeValue}
                     volumeTooltip="To tooltip"
                     onChangeVolume={() => ('TO changed')}
-                    commentLabel="Comment label"
-                    commentValue="1234"
+                    commentLabel="Tiltak/Kommerntar"
+                    commentValue=""
                     commentTooltip="Comment tooltip"
                     onChangeComment={() => ('Comment changed')}
                   />
