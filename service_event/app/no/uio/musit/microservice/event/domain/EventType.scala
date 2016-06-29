@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservice.event.service.{ ControlService, EventService, MoveService, ObservationService }
+import no.uio.musit.microservice.event.service._
 
 case class EventType(id: Int, name: String, eventFactory: EventService)
 
@@ -9,7 +9,9 @@ object EventType {
   private val eventTypes = Seq(
     EventType(1, Move.getClass.getSimpleName, MoveService),
     EventType(2, Control.getClass.getSimpleName, ControlService),
-    EventType(3, Observation.getClass.getSimpleName, ObservationService)
+    EventType(3, Observation.getClass.getSimpleName, ObservationService),
+    EventType(4, ControlTemperature.getClass.getSimpleName, ControlTemperatureService)
+  //EventType(5, ControlAir.getClass.getSimpleName, ControlService)
   // Add new event type here....
   )
 

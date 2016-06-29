@@ -1,24 +1,19 @@
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.EventDao.EventBase
-import no.uio.musit.microservice.event.dao.{ ControlDTO, ControlDao }
-import no.uio.musit.microservice.event.domain.Control
+import no.uio.musit.microservice.event.dao.EventDao.EventBaseDto
+import no.uio.musit.microservice.event.domain.{ Control, ControlTemperature }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.utils.ErrorHelper
 
-object ControlService extends EventService {
+object ControlService extends SimpleService {
 
-  def fromDatabase(id: Long, base: EventBase) = {
-    ControlDao.getControl(id)
-      .toMusitFuture(ErrorHelper.badRequest(s"Unable to find control with id: $id"))
-      .musitFutureMap(controlDTO => Control(base, controlDTO))
-  }
+  override def fromDatabase(id: Long, base: EventBaseDto) =
+    MusitFuture.successful(Control(Some(id), base.links, base.note, None))
 
-  def maybeActionCreator =
-    Some((id, event) => {
-      val control: Control = event.asInstanceOf[Control]
-      val controlDTO = ControlDTO(Some(id), control.controlType)
-      ControlDao.insertAction(controlDTO)
-    })
+}
+
+object ControlTemperatureService extends SimpleService {
+
+  override def fromDatabase(id: Long, base: EventBaseDto) =
+    MusitFuture.successful(ControlTemperature(Some(id), base.links, base.note, None, base.valueLongToBool, None))
 
 }
