@@ -18,7 +18,7 @@
  */
 
 import React from 'react'
-import { ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent, ObervationStatusPersentComment }
+import { ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent, ObervationStatusPercentageComment }
   from '../../components/observation'
 import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
@@ -44,7 +44,7 @@ export default class ObservationView extends React.Component {
             <Grid>
               <Row>
                 <Col sm={10} smOffset={1}>
-                  <ObervationStatusPersentComment
+                  <ObervationStatusPercentageComment
                     id="test1"
                     translate={translate}
                     statusLabel="Tilstand"

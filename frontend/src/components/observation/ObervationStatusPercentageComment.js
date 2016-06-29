@@ -21,22 +21,22 @@ import React, { Component, PropTypes } from 'react'
 import { MusitField, MusitTextArea, MusitDropDownField } from '../../components/formfields'
 import { FormGroup, ControlLabel, Col } from 'react-bootstrap'
 
-export default class ObervationStatusPersentComment extends Component {
+export default class ObervationStatusPercentageComment extends Component {
   static propTypes = {
     id: PropTypes.string.isRequired,
-    translate: PropTypes.func.isRequired,
-    statusLabel: PropTypes.string.isRequired,
+    translate: PropTypes.func,
+    statusLabel: PropTypes.string,
     statusValue: PropTypes.string.isRequired,
     statusOptionValues: PropTypes.array.isRequired,
-    statusTooltip: PropTypes.string.isRequired,
+    statusTooltip: PropTypes.string,
     onChangeStatus: PropTypes.func.isRequired,
-    volumeLabel: PropTypes.string.isRequired,
+    volumeLabel: PropTypes.string,
     volumeValue: PropTypes.string.isRequired,
-    volumeTooltip: PropTypes.string.isRequired,
+    volumeTooltip: PropTypes.string,
     onChangeVolume: PropTypes.func.isRequired,
-    commentLabel: PropTypes.string.isRequired,
+    commentLabel: PropTypes.string,
     commentValue: PropTypes.string.isRequired,
-    commentTooltip: PropTypes.string.isRequired,
+    commentTooltip: PropTypes.string,
     onChangeComment: PropTypes.func.isRequired
   }
 
@@ -55,8 +55,8 @@ export default class ObervationStatusPersentComment extends Component {
     } = props
     this.fields = {
       status: {
-        id: `${id}_from`,
-        placeHolder: 'Fra C',
+        id: `${id}_status`,
+        placeHolder: translate('musit.texts.makeChoice'),
         tooltip: statusTooltip,
         onChange: onChangeStatus,
         validate: 'text',
@@ -65,7 +65,7 @@ export default class ObervationStatusPersentComment extends Component {
         translate: this.props.translate
       },
       volume: {
-        id: `${id}_to`,
+        id: `${id}_percentage`,
         placeHolder: '%',
         tooltip: volumeTooltip,
         onChange: onChangeVolume,

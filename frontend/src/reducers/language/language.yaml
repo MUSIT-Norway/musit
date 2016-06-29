@@ -19,6 +19,7 @@ no:
   musit:
     texts:
       freetext: "Fritekst"
+      makeChoice: "Vennligst velg..."        
     pickList:
       title: "Plukkliste"
       action:
