@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import FontAwesome from 'react-fontawesome';
-import { Button, Row } from 'react-bootstrap';
+import { Button, Row, Col } from 'react-bootstrap';
 
 export default class PairedToogleButtons extends Component {
   static propTypes = {
@@ -17,26 +17,39 @@ export default class PairedToogleButtons extends Component {
     return (
       <div className={style.pageMargin}>
         <Row>
-          {label}
+          <Col xs={1} />
+          <Col xs={11}>
+            {label}
+          </Col>
         </Row>
         <Row>
-          {value != null ? <FontAwesome name={value ? 'check-square-o' : 'times'} /> : <FontAwesome name="square-o" />}
-          <Button
-            className={value ? style.buttonpaddingtrue : style.buttonpaddingfalse}
-            onClick={this.props.updatevalueOK}
-          >
-            <FontAwesome name="check-square-o" />
-            <span>&nbsp;</span>
-            OK
-          </Button>
-          <Button
-            className={value != null && !value ? style.buttonpaddingtrue : style.buttonpaddingfalse}
-            onClick={this.props.updatevalueNotOK}
-          >
-            <FontAwesome name="times" />
-            <span>&nbsp;</span>
-            IKKE ok
-          </Button>
+          <Col xs={1}>
+            {value != null ?
+              <FontAwesome
+                name={value ? 'check' : 'times'}
+                size={'2x'}
+                style={value ? { color: 'green' } : { color: 'red' }}
+              /> :
+              null}
+          </Col>
+          <Col xs={11}>
+            <Button
+              className={value ? style.buttonpaddingtrue : style.buttonpaddingfalse}
+              onClick={this.props.updatevalueOK}
+            >
+              <FontAwesome name="check" />
+              <span>&nbsp;</span>
+              OK
+            </Button>
+            <Button
+              className={value != null && !value ? style.buttonpaddingtrue : style.buttonpaddingfalse}
+              onClick={this.props.updatevalueNotOK}
+            >
+              <FontAwesome name="times" />
+              <span>&nbsp;</span>
+              IKKE ok
+            </Button>
+          </Col>
         </Row>
       </div>
     )

@@ -21,6 +21,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Grid, Row, Col, ButtonToolbar, Button } from 'react-bootstrap'
 import PairedToogleButtons from '../../components/controls/pairedToggleButtons'
+import Field from '../../components/formfields/musitfield'
 import { addControl } from '../../reducers/control'
 import Language from '../../components/language'
 
@@ -255,7 +256,9 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onTemperatureNotOKClick}
               />
             </Col>
-            <Col md={7} />
+            <Col md={7}>
+              <Field value="Hei" />
+            </Col>
           </Row>
           <Row>
             <Col md={5}>
