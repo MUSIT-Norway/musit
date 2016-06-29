@@ -17,13 +17,33 @@ trait EventWithSubEvents extends EventFields {
 
 sealed trait Event extends EventFields
 
+object MoveO {
+  sealed trait MoveOp extends EventFields {
+    val eventType = EventType.getByName(this.getClass.getSimpleName)
+  }
+  case class Move(
+    id: Option[Long],
+    links: Option[Seq[Link]],
+    note: Option[String],
+    subEvents: Option[Seq[MoveOp]]
+  ) extends MoveOp
+
+  object MoveOp {
+    implicit lazy val format: OFormat[MoveOp] = flat.oformat((__ \ "type").format[String])
+  }
+}
+
 case class Move(
     id: Option[Long],
     links: Option[Seq[Link]],
     note: Option[String],
-    subEvents: Option[Seq[Event]]
-) extends Event {
-  val eventType = EventType.getByName(this.getClass.getSimpleName)
+    subEvents: Option[Seq[MoveO.MoveOp]]
+) extends Event with MoveO.MoveOp {
+  //val eventType = EventType.getByName(this.getClass.getSimpleName)
+}
+
+object Move {
+  implicit val format = Json.format[Move]
 }
 
 trait ControlSpesific extends EventFields {
