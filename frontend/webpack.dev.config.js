@@ -1,9 +1,12 @@
 var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
 
+var host = process.env.PUBLIC_HOST || 'localhost';
+var port = process.env.PUBLIC_PORT || '8000';
+
 module.exports = {
   entry: [
-    "webpack-dev-server/client?http://localhost:8000/",
+    "webpack-dev-server/client?http://" + host + ":" + port + "/",
     'webpack/hot/only-dev-server',
     'bootstrap-sass!./src/theme/bootstrap.config.js',
     'font-awesome-webpack!./src/theme/font-awesome.config.js',
