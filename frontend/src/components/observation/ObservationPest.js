@@ -97,7 +97,7 @@ export default class ObservationPest extends Component {
     const renderObservation = (row, observation, withAddButton) => {
       return (
         <Row key={row}>
-          <Col xs={12} sm={3} >
+          <Col xs={12} sm={3} md={3}>
             {conditionalRender(observation, (obs) => (
               <span>
                 <ControlLabel>{translate('musit.observation.pest.lifeCycleLabel')}</ControlLabel>
@@ -110,7 +110,7 @@ export default class ObservationPest extends Component {
               </span>
             ))}
           </Col>
-          <Col xs={12} sm={3}>
+          <Col xs={12} sm={3} md={3}>
             {conditionalRender(observation, (obs) => (
               <span>
                 <ControlLabel>{translate('musit.observation.pest.countLabel')}</ControlLabel>
@@ -123,7 +123,7 @@ export default class ObservationPest extends Component {
               </span>
             ))}
           </Col>
-          <Col xs={12} sm={6}>
+          <Col xs={12} sm={6} md={6}>
             {conditionalRender(withAddButton, () => (
               <span>
                 <br />
@@ -140,12 +140,10 @@ export default class ObservationPest extends Component {
       ? observations.map((observation, index) => renderObservation(index, observation, index === 0))
       : renderObservation(0, null, true)
     return (
-      <span>
+      <div>
         <ObservationDoubleTextAreaComponent {...comments} leftValue={identificationValue} rightValue={commentsValue} />
-        <FormGroup>
-          {observationPart}
-        </FormGroup>
-      </span>
+        {observationPart}
+      </div>
     )
   }
 }
