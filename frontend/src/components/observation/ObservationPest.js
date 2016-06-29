@@ -20,7 +20,7 @@
 import React, { Component, PropTypes } from 'react'
 import { ObservationDoubleTextAreaComponent } from './index'
 import { MusitField, MusitDropDownField } from '../../components/formfields'
-import { FormGroup, ControlLabel, Row, Col, Button } from 'react-bootstrap'
+import { ControlLabel, Row, Col, Button } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 
 export default class ObservationPest extends Component {

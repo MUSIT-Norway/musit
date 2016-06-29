@@ -4,6 +4,7 @@ import ObservationFromToNumberCommentComponent from './ObservationFromToNumberCo
 import ObservationStatusPercentageComment from './ObservationStatusPercentageComment'
 import ObservationPest from './ObservationPest'
 
+
 export {
   ObservationHeaderComponent,
   ObservationDoubleTextAreaComponent,
