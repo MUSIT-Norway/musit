@@ -20,6 +20,18 @@ no:
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
+    observation:
+      newButtonLabel: "Legg til ny"
+      pest:
+        identificationLabel: "Identifikasjon"
+        identificationTooltip: "Identifikasjon tooltip!"
+        commentsLabel: "Tiltak/Kommentar"
+        commentsTooltip: "Tiltak/Kommentar tooltip!"
+        lifeCycleLabel: "Livssyklus"
+        lifeCycleTooltip: "Livssyklus tooltip"
+        countLabel: "Antall"
+        countPlaceHolder: "Heltall"
+        countTooltip: "Antall tooltip!"
     pickList:
       title: "Plukkliste"
       action:
