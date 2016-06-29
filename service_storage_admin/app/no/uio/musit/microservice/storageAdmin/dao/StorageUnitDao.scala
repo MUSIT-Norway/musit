@@ -39,7 +39,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] = {
-    val action = StorageUnitTable.filter(st => st.id === id && st.isDeleted === 0).result.headOption
+    val action = StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption
     db.run(action)
   }
 
@@ -119,7 +119,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   private def updateStorageUnitAction(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
-    StorageUnitTable.filter(st => st.id === id && st.isDeleted === 0).update(storageUnit)
+    StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
   }
 
   def updateStorageUnit(id: Long, storageUnit: StorageUnit): Future[Int] = {
@@ -167,15 +167,15 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def deleteStorageUnit(id: Long): Future[Int] = {
-    val q = for {
-      storageUnit <- StorageUnitTable if storageUnit.id === id && storageUnit.isDeleted === 0
-    } yield storageUnit.isDeleted
-    val updateAction = q.update(1)
-    db.run(updateAction)
+    db.run((for {
+      storageUnit <- StorageUnitTable if storageUnit.id === id && storageUnit.isDeleted === false
+    } yield storageUnit.isDeleted).update(true))
   }
 
+  case class StorageUnitStuff(id: Long, storageType: String, storageUnitName: String, area: Option[Long], areaTo: Option[Long],)
+
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
-    def * = (id, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
@@ -197,20 +197,27 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     val groupWrite = column[Option[String]]("GROUP_WRITE")
 
-    val isDeleted = column[Int]("IS_DELETED") // this columns is not a member of the case class storageUnit. IT's not
-    // part of the official/public API of storageUnit, only used internally.
+    val isDeleted = column[Boolean]("IS_DELETED")
 
     def create = (id: Option[Long], storageType: String, storageUnitName: String, area: Option[Long], areaTo: Option[Long],
       isPartOf: Option[Long], height: Option[Long], heightTo: Option[Long],
-      groupRead: Option[String], groupWrite: Option[String]) =>
+      groupRead: Option[String], groupWrite: Option[String], isDeleted: Boolean) =>
       StorageUnit(
-        id, storageType,
-        storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite,
+        id,
+        storageType,
+        storageUnitName,
+        area,
+        areaTo,
+        isPartOf,
+        height,
+        heightTo,
+        groupRead,
+        groupWrite,
         linkText(id)
-      )
+      ).delete(isDeleted)
 
     def destroy(unit: StorageUnit) = Some(unit.id, unit.storageType,
-      unit.storageUnitName, unit.area, unit.areaTo, unit.isPartOf, unit.height, unit.heightTo, unit.groupRead, unit.groupWrite)
+      unit.storageUnitName, unit.area, unit.areaTo, unit.isPartOf, unit.height, unit.heightTo, unit.groupRead, unit.groupWrite, unit.isDeleted)
   }
 
   private class RoomTable(tag: Tag) extends Table[StorageRoom](tag, Some("MUSARK_STORAGE"), "ROOM") {

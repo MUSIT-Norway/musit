@@ -35,7 +35,7 @@ class StorageUnitResource extends Controller {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val musitResultTriple = fromJsonToStorageUnitTriple(request.body)
-    ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, storageUnitTripleToJson)
+    ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, (triple: StorageUnitTriple) => triple.toJson)
   }
 
   def validateChildren = Action.async(BodyParsers.parse.json) { request =>
@@ -57,7 +57,7 @@ class StorageUnitResource extends Controller {
 
   def getById(id: Long) = Action.async {
     request =>
-      ResourceHelper.getRoot(StorageUnitService.getById, id, storageUnitTripleToJson)
+      ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: StorageUnitTriple) => triple.toJson)
   }
 
   def listAll = Action.async {
@@ -67,8 +67,6 @@ class StorageUnitResource extends Controller {
         case storageUnits => Ok(Json.toJson(storageUnits))
       }
   }
-
-  def storageUnitTripleToJson(triple: StorageUnitTriple) = triple.toJson
 
   def fromJsonToStorageUnitTriple(json: JsValue): Either[MusitError, StorageUnitTriple] = {
     val storageType = (json \ "storageType").as[String]
@@ -111,12 +109,12 @@ class StorageUnitResource extends Controller {
     request =>
       {
         val musitResultTriple = fromJsonToStorageUnitTriple(request.body)
-        ResourceHelper.updateRootWithMusitResult(StorageUnitService.updateStorageTripleByID _, id, musitResultTriple)
+        ResourceHelper.updateRootWithMusitResult(StorageUnitService.updateStorageTripleByID, id, musitResultTriple)
       }
   }
 
   def deleteRoot(id: Long) = Action.async {
-    ResourceHelper.deleteRoot(StorageUnitService.deleteStorageTriple _, id)
+    ResourceHelper.deleteRoot(StorageUnitService.deleteStorageTriple, id)
   }
 
 }

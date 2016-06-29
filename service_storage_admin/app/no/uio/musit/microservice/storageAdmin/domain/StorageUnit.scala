@@ -30,10 +30,9 @@ object LocalTypes {
 }
 
 sealed trait AbstractStorageUnit {
-  def storageKind: StorageUnitType = {
-    StUnit
-
-  }
+  var isDeleted: Boolean = false
+  def delete(isDeleted: Boolean) = this.isDeleted = isDeleted
+  def storageKind = StUnit
 }
 
 case class StorageUnit(

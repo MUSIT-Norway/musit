@@ -68,7 +68,7 @@ trait StorageUnitService {
 
   def getById(id: Long): MusitFuture[StorageUnitTriple] = {
     val musitFutureStorageUnit = getStorageUnitOnly(id)
-
+    println(musitFutureStorageUnit)
     musitFutureStorageUnit.musitFutureFlatMap { storageUnit =>
       storageUnit.storageKind match {
         case StUnit => MusitFuture.successful(StorageUnitTriple.createStorageUnit(storageUnit))
