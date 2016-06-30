@@ -6,6 +6,7 @@ const initialState = {
   data: {
     temperatureOK: null,
     inertAirOK: null,
+    gasOK: null,
     cleaningOK: null,
     relativeHumidity: null,
     lightConditionsOK: null,
