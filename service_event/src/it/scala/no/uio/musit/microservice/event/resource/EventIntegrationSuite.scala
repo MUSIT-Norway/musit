@@ -40,7 +40,7 @@ import play.api.libs.ws.WS
 
 class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
   val timeout = PlayTestDefaults.timeout
-  override lazy val port: Int = 19010
+  override lazy val port: Int = 8080
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
 
@@ -55,7 +55,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
   "EventIntegrationSuite " must {
-    "post" in {
+    /*"postMove" in {
       val json =
         """
   {
@@ -73,8 +73,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       println(s"Get: ${responseGet.body}")
 
     }
-
-    "post and get observation" in {
+*/
+    /*"post and get observation" in {
       val json =
         """
   {
@@ -88,7 +88,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       println(s"Create: ${response.body}")
 
       val myObservationEvent = Event.format.reads(response.json).get.asInstanceOf[Observation]
-      myObservationEvent.temperature mustBe Some(125)
+      myObservationEvent mustBe Some(125)
 
 
       val responseGet = getEvent(1)
@@ -96,18 +96,24 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       println(s"Get: ${responseGet.body}")
 
     }
+*/
+    "post Move" in {
 
-    "postWithoutLinks" in {
-      /*
-      val json = MoveEvent
+      val json =
+        """
+  {
+   "type": "Move",
+   "note": "Dette er et viktig notat for move!",
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
 
       val response = createEvent(json)
       response.status mustBe 201
+      val moveObject = (response.json).validate[Move].get
 
-      val responseGet = getEvent(2)
+      val responseGet = getEvent(moveObject.id.get)
       responseGet.status mustBe 200
       println(responseGet.body)
-      */
 
     }
 
@@ -122,7 +128,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       response.status mustBe 400
     }
 
-    "postWithControlEvent" in {
+    /*"postWithControlEvent" in {
       val json =
         """
   {
@@ -143,7 +149,32 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       println(s"Get: ${responseGet.body}")
 
     }
+  }*/
+    "post and get envRequirement" in {
+      val json =
+        """
+  {
+   "type": "EnvRequirement",
+   "note": "Dette er et viktig notat for miljøkravene!",
+   "temperature": 20,
+   "temperatureInterval" : 5,
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+      val response = createEvent(json)
+      response.status mustBe 201
+      println(s"Create: ${response.body}")
+
+      val myEnvReqEvent = Event.format.reads(response.json).get.asInstanceOf[EnvRequirement]
+      myEnvReqEvent.temperature mustBe Some(20)
+
+
+      val responseGet = getEvent(myEnvReqEvent.id.get)
+      responseGet.status mustBe 200
+      println(s"Get: ${responseGet.body}")
+
+    }
+
   }
 
-}
+  }
 

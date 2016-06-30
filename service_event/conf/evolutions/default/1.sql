@@ -48,12 +48,22 @@ CREATE TABLE MUSARK_EVENT.OBSERVATION (
   FOREIGN KEY (ID) REFERENCES MUSARK_EVENT.EVENT(ID)
 );
 
-CREATE TABLE MUSARK_EVENT.CONTROL (
-  ID BIGINT(20) NOT NULL,
-  CONTROLTYPE    VARCHAR2(20),
-  PRIMARY KEY (ID),
-  FOREIGN KEY (ID) REFERENCES MUSARK_EVENT.EVENT(ID)
+CREATE TABLE MUSARK_EVENT.E_ENVIRONMENT_REQUIREMENT
+(
+ id         BIGINT(20) NOT NULL,
+ temperature             NUMBER,
+ temp_interval    NUMBER,
+ air_humidity     NUMBER,
+ air_hum_interval NUMBER,
+ hypoxic_air      NUMBER,
+ hyp_air_interval NUMBER,
+ cleaning         VARCHAR2(250),
+ light            VARCHAR2(250),
+ PRIMARY KEY (ID),
+   FOREIGN KEY (ID) REFERENCES MUSARK_EVENT.EVENT(ID)
 );
+
+
 
 
 CREATE TABLE URI_LINKS (
@@ -69,6 +79,8 @@ CREATE TABLE URI_LINKS (
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,'Move');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'control');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'observation');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4,'controltemperature');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'envrequirement');
 
 # --- !Downs
 

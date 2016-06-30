@@ -112,11 +112,11 @@ case class EnvRequirement(
     links: Option[Seq[Link]],
     note: Option[String],
     temperature: Option[Int],
-    tempInterval: Option[Int],
+    temperatureInterval: Option[Int],
     airHumidity: Option[Int],
-    airHumInterval: Option[Int],
+    airHumidityInterval: Option[Int],
     hypoxicAir: Option[Int],
-    hypoxicInterval: Option[Int],
+    hypoxicAirInterval: Option[Int],
     cleaning: Option[String],
     light: Option[String]
 ) extends Event {
