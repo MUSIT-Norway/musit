@@ -20,7 +20,7 @@
 import React, { Component, PropTypes } from 'react'
 import { ObservationDoubleTextAreaComponent } from './index'
 import { MusitField, MusitDropDownField } from '../../components/formfields'
-import { ControlLabel, Row, Col, Button } from 'react-bootstrap'
+import { ControlLabel, FormGroup, Col, Button } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 
 export default class ObservationPest extends Component {
@@ -87,62 +87,63 @@ export default class ObservationPest extends Component {
       onChangeCount
     } = this.props
 
-    const conditionalRender = (shouldRender, body) => {
-      let retVal = ''
-      if (shouldRender) {
-        retVal = body(shouldRender)
-      }
-      return retVal
-    }
-    const renderObservation = (row, observation, withAddButton) => {
+    const renderSelectColumn = (items) => {
+      const observationBlock = items.map((observation, index) => {
+        return (
+          <span>
+            <ControlLabel>{translate('musit.observation.pest.lifeCycleLabel')}</ControlLabel>
+            <MusitDropDownField
+              {...lifeCycle}
+              id={`${id}_lifeCycle_${index}`}
+              value={observation.lifeCycle}
+              onChange={(lifeCycleValue) => onChangeLifeCycle(index, lifeCycleValue)}
+            />
+          </span>
+        )
+      })
       return (
-        <Row key={row}>
-          <Col xs={12} sm={3} md={3}>
-            {conditionalRender(observation, (obs) => (
-              <span>
-                <ControlLabel>{translate('musit.observation.pest.lifeCycleLabel')}</ControlLabel>
-                <MusitDropDownField
-                  {...lifeCycle}
-                  id={`${id}_lifeCycle_${row}`}
-                  value={obs.lifeCycle}
-                  onChange={(lifeCycleValue) => onChangeLifeCycle(row, lifeCycleValue)}
-                />
-              </span>
-            ))}
-          </Col>
-          <Col xs={12} sm={3} md={3}>
-            {conditionalRender(observation, (obs) => (
-              <span>
-                <ControlLabel>{translate('musit.observation.pest.countLabel')}</ControlLabel>
-                <MusitField
-                  {...count}
-                  id={`${id}_count_${row}`}
-                  value={obs.count}
-                  onChange={(countValue) => onChangeCount(row, countValue)}
-                />
-              </span>
-            ))}
-          </Col>
-          <Col xs={12} sm={6} md={6}>
-            {conditionalRender(withAddButton, () => (
-              <span>
-                <br />
-                <Button onClick={() => onAddPest()}>
-                  <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
-                </Button>
-              </span>
-            ))}
-          </Col>
-        </Row>
+        <Col xs={6} sm={3} md={3}>
+          {observationBlock}
+        </Col>
       )
     }
-    const observationPart = (observations && observations.length > 0)
-      ? observations.map((observation, index) => renderObservation(index, observation, index === 0))
-      : renderObservation(0, null, true)
+
+    const renderCountColumn = (items) => {
+      const observationBlock = items.map((observation, index) => {
+        return (
+          <span>
+            <ControlLabel>{translate('musit.observation.pest.countLabel')}</ControlLabel>
+            <MusitField
+              {...count}
+              id={`${id}_count_${index}`}
+              value={observation.count}
+              onChange={(countValue) => onChangeCount(index, countValue)}
+            />
+          </span>
+        )
+      })
+      return (
+        <Col xs={6} sm={3} md={3}>
+          {observationBlock}
+        </Col>
+      )
+    }
+
     return (
       <div>
         <ObservationDoubleTextAreaComponent {...comments} leftValue={identificationValue} rightValue={commentsValue} />
-        {observationPart}
+        <FormGroup>
+          {renderSelectColumn(observations)}
+          {renderCountColumn(observations)}
+          <Col xs={12} sm={6} md={6}>
+            <span>
+              <ControlLabel>{'\u00A0'}</ControlLabel><br />
+              <Button onClick={() => onAddPest()}>
+                <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
+              </Button>
+            </span>
+          </Col>
+        </FormGroup>
       </div>
     )
   }

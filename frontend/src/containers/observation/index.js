@@ -67,9 +67,9 @@ export default class ObservationView extends React.Component {
                   <ObservationPest
                     id="test6"
                     translate={translate}
-                    onChangeLifeCycle={(index, value) => console.log(`${index}:${value}`)}
+                    onChangeLifeCycle={(index, value) => (`${index}:${value}`)}
                     lifeCycleItems={['Adult', 'Puppe', 'Puppeskinn', 'Larva', 'Egg']}
-                    onChangeCount={(index, value) => console.log(`${index}:${value}`)}
+                    onChangeCount={(index, value) => (`${index}:${value}`)}
                     onChangeIdentification={() => ('Comment changed')}
                     onChangeComments={() => ('Comment changed')}
                     observations={pestObservations}
