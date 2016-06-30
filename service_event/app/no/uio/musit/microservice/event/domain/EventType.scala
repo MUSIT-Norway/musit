@@ -10,7 +10,8 @@ object EventType {
     EventType(1, Move.getClass.getSimpleName, MoveService),
     EventType(2, Control.getClass.getSimpleName, ControlService),
     EventType(3, Observation.getClass.getSimpleName, ObservationService),
-    EventType(4, ControlTemperature.getClass.getSimpleName, ControlTemperatureService)
+    EventType(4, ControlTemperature.getClass.getSimpleName, ControlTemperatureService),
+    EventType(4, EnvRequirement.getClass.getSimpleName, EnvRequirementService)
   //EventType(5, ControlAir.getClass.getSimpleName, ControlService)
   // Add new event type here....
   )

@@ -107,6 +107,22 @@ case class Observation(
     )
 }*/
 
+case class EnvRequirement(
+    id: Option[Long],
+    links: Option[Seq[Link]],
+    note: Option[String],
+    temperature: Option[Int],
+    tempInterval: Option[Int],
+    airHumidity: Option[Int],
+    airHumInterval: Option[Int],
+    hypoxicAir: Option[Int],
+    hypoxicInterval: Option[Int],
+    cleaning: Option[String],
+    light: Option[String]
+) extends Event {
+  val eventType = EventType.getByName(this.getClass.getSimpleName)
+}
+
 object Event {
   implicit lazy val format: OFormat[Event] = flat.oformat((__ \ "type").format[String])
 }
