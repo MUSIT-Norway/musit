@@ -18,7 +18,12 @@
  */
 
 import React from 'react'
-import { ObservationDoubleTextAreaComponent, ObservationFromToNumberCommentComponent, ObervationStatusPercentageComment }
+import {
+  ObservationDoubleTextAreaComponent,
+  ObservationFromToNumberCommentComponent,
+  ObservationStatusPercentageComment,
+  ObservationPest
+}
   from '../../components/observation'
 import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
@@ -34,8 +39,23 @@ export default class ObservationView extends React.Component {
     translate: React.PropTypes.func.isRequired
   }
 
+  constructor(props) {
+    super(props)
+    this.state = {
+      pestObservations: []
+    }
+
+    this.addPest = this.addPest.bind(this)
+  }
+
+  addPest() {
+    this.setState({ ...this.state, pestObservations: [...this.state.pestObservations, { lifeCycle: '', count: 0 }] })
+  }
+
   render() {
     const { translate } = this.props
+    const { pestObservations } = this.state
+
     const statusOptions = ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende']
     return (
       <div>
@@ -44,18 +64,33 @@ export default class ObservationView extends React.Component {
             <Grid>
               <Row>
                 <Col sm={10} smOffset={1}>
-                  <ObervationStatusPercentageComment
+                  <ObservationPest
+                    id="test6"
+                    translate={translate}
+                    onChangeLifeCycle={(index, value) => (`${index}:${value}`)}
+                    lifeCycleItems={['Adult', 'Puppe', 'Puppeskinn', 'Larva', 'Egg']}
+                    onChangeCount={(index, value) => (`${index}:${value}`)}
+                    onChangeIdentification={() => ('Comment changed')}
+                    onChangeComments={() => ('Comment changed')}
+                    observations={pestObservations}
+                    identificationValue="ID"
+                    commentsValue=""
+                    onAddPest={() => this.addPest()}
+                  / >
+                </Col>
+              </Row>
+              <Row>
+                <Col sm={10} smOffset={1}>
+                  <ObservationStatusPercentageComment
                     id="test1"
                     translate={translate}
                     statusLabel="Tilstand"
                     statusValue="122,123"
                     statusTooltip="From tooltip"
                     statusOptionValues={statusOptions}
-                    // statusOptionValues={['Adult', 'Puppe', 'Puppeskinn', 'Larva', 'Egg']}
                     onChangeStatus={() => ('From changed')}
                     volumeLabel="Volum %"
                     volumeValue="123"
-                    // volumeValue={this.volumeValue}
                     volumeTooltip="To tooltip"
                     onChangeVolume={() => ('TO changed')}
                     commentLabel="Tiltak/Kommerntar"
