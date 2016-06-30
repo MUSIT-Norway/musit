@@ -20,6 +20,11 @@ no:
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
+      ok: "Ok"
+      cancel: "Avbryt"
+      save: "Lagre"
+      doneBy: "Utført av"
+      date: "Dato"
     observation:
       newButtonLabel: "Legg til ny"
       pest:

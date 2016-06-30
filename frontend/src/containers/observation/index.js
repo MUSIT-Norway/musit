@@ -18,17 +18,16 @@
  */
 
 import React from 'react'
-import {
-  ObservationDoubleTextAreaComponent,
-  ObservationFromToNumberCommentComponent,
-  ObservationStatusPercentageComment,
-  ObservationPest
-}
-  from '../../components/observation'
-import { Panel, Grid, Row, Col } from 'react-bootstrap'
+
+import { Panel, Grid, Row, Col, FormGroup, Button, ControlLabel } from 'react-bootstrap'
+import FontAwesome from 'react-fontawesome'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
+import DatePicker from 'react-datepicker'
+import Autosuggest from 'react-autosuggest'
+import { observationTypeDefinitions, defineCommentType, defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
 
+// TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = () => ({
   translate: (key, markdown) => Language.translate(key, markdown)
 })
@@ -41,22 +40,131 @@ export default class ObservationView extends React.Component {
 
   constructor(props) {
     super(props)
-    this.state = {
-      pestObservations: []
+    const { translate } = props
+
+    this.observationTypeDefinitions = observationTypeDefinitions(translate, this.addPest)
+    // TODO: Language binding.
+    // TODO: Actom binding.
+    this.observationTypes = {
+      lux: defineCommentType('lux', 'Lysforhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      gas: defineCommentType('gas', 'Gass', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      cleaning: defineCommentType('cleaning', 'Renhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      mold: defineCommentType('mold', 'Mugg', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      skallsikring: defineCommentType('skallsikring', 'Skallsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      tyverisikring: defineCommentType('tyverisikring', 'Tyverisikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      brannsikring: defineCommentType('brannsikring', 'Brannsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      vannskaderisiko: defineCommentType('vannskaderisiko', 'Vannskaderisiko', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      temperature: defineFromToType('temperature', 'Temperatur', 'from label', 'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+      rh: defineFromToType('rh', 'Relativ luftfuktighet', 'from label', 'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+      hypoxicAir: defineFromToType('hypoxicAir', 'Inertluft', 'from label', 'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+      alcohol: defineStatusType('alcohol', 'Sprit', 'Status label', 'statusTooltip', ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende'], 'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip'),
+      pest: definePestType('pest', 'Skadedyr')
     }
 
+    this.state = {
+      observations: [
+        /* {
+          type: 'pest',
+          data: {
+            observations: [],
+            identificationValue: 'ID',
+            commentsValue: 'comment'
+          }
+        },
+        {
+          type: 'hypoxicAir',
+          data: {
+            fromValue: '122,123',
+            toValue: '123,122',
+            commentValue: '1234'
+          }
+        },
+        {
+          type: 'cleaning',
+          data: {
+            leftValue: 'Left test value',
+            rightValue: 'right'
+          }
+        },
+        {
+          type: 'alcohol',
+          data: {
+            statusValue: '122,123',
+            volumeValue: '123',
+            commentValue: ''
+          }
+        }*/
+      ]
+    }
+    this.addNewObservation = this.addNewObservation.bind(this)
+    this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
     this.addPest = this.addPest.bind(this)
   }
 
+  onChangeDoneBy(event, { newValue }) {
+    this.updateDoneBy(newValue)
+  }
+
+  getDoneBySuggestionValue(suggestion) {
+    return `${suggestion.fn}`
+  }
+
   addPest() {
-    this.setState({ ...this.state, pestObservations: [...this.state.pestObservations, { lifeCycle: '', count: 0 }] })
+    // this.setState({ ...this.state, pestObservations: [...this.state.pestObservations, { lifeCycle: '', count: 0 }] })
+    console.log('add pest')
+  }
+
+  addNewObservation() {
+    this.setState({ ...this.state, observations: [...this.state.observations, { type: '' }] })
+  }
+
+  updateDoneBy(newValue) {
+    console.log(newValue)
+  }
+
+  renderDoneBySuggestion(suggestion) {
+    const suggestionText = `${suggestion.fn}`
+    return (
+      <span className={'suggestion-content'}>{suggestionText}</span>
+    )
   }
 
   render() {
     const { translate } = this.props
-    const { pestObservations } = this.state
+    const { addNewObservation, getDoneBySuggestionValue, renderDoneBySuggestion, onDoneByUpdateRequested } = this
+    const { observations } = this.state
 
-    const statusOptions = ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende']
+    const doneByProps = {
+      id: 'addressField',
+      placeholder: 'addresse',
+      value: 'value to be changed',
+      type: 'search',
+      onChange: this.onChangeDoneBy
+    }
+
+    const renderActiveTypes = (items) => {
+      const block = items.map((observation, index) => {
+        // TODO: Check for new type, how to handle
+        const observationType = this.observationTypes[observation.type]
+        const observationTypeDef = this.observationTypeDefinitions[observationType.component.viewType]
+
+        // TODO: Draw type field. And action to change type, with state reset and default variables.
+        return (
+          <Row key={index}>
+            <Col sm={10} smOffset={1}>
+              {observationTypeDef.render({
+                ...observationType.component.props,
+                ...observationTypeDef.props,
+                ...observation.data
+              })}
+            </Col>
+          </Row>
+        )
+      })
+
+      return block
+    }
+
     return (
       <div>
         <main>
@@ -64,76 +172,41 @@ export default class ObservationView extends React.Component {
             <Grid>
               <Row>
                 <Col sm={10} smOffset={1}>
-                  <ObservationPest
-                    id="test6"
-                    translate={translate}
-                    onChangeLifeCycle={(index, value) => (`${index}:${value}`)}
-                    lifeCycleItems={['Adult', 'Puppe', 'Puppeskinn', 'Larva', 'Egg']}
-                    onChangeCount={(index, value) => (`${index}:${value}`)}
-                    onChangeIdentification={() => ('Comment changed')}
-                    onChangeComments={() => ('Comment changed')}
-                    observations={pestObservations}
-                    identificationValue="ID"
-                    commentsValue=""
-                    onAddPest={() => this.addPest()}
-                  / >
+                  <FormGroup>
+                    <Col xs={12} sm={6}>
+                      <ControlLabel>{translate('musit.texts.date')}</ControlLabel>
+                      <DatePicker />
+                    </Col>
+                    <Col xs={12} sm={6}>
+                      <ControlLabel>{translate('musit.texts.doneBy')}</ControlLabel>
+                      <Autosuggest
+                        suggestions={[{ fn: 'test1' }, { fn: 'test2' }]}
+                        onSuggestionsUpdateRequested={onDoneByUpdateRequested}
+                        getSuggestionValue={getDoneBySuggestionValue}
+                        renderSuggestion={renderDoneBySuggestion}
+                        inputProps={doneByProps}
+                        shouldRenderSuggestions={(v) => v !== 'undefined'}
+                      />
+                    </Col>
+                  </FormGroup>
+                </Col>
+              </Row>
+              {renderActiveTypes(observations)}
+              <Row>
+                <Col sm={10} smOffset={1} className="text-center">
+                  <Button onClick={() => addNewObservation()}>
+                    <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
+                  </Button>
                 </Col>
               </Row>
               <Row>
-                <Col sm={10} smOffset={1}>
-                  <ObservationStatusPercentageComment
-                    id="test1"
-                    translate={translate}
-                    statusLabel="Tilstand"
-                    statusValue="122,123"
-                    statusTooltip="From tooltip"
-                    statusOptionValues={statusOptions}
-                    onChangeStatus={() => ('From changed')}
-                    volumeLabel="Volum %"
-                    volumeValue="123"
-                    volumeTooltip="To tooltip"
-                    onChangeVolume={() => ('TO changed')}
-                    commentLabel="Tiltak/Kommerntar"
-                    commentValue=""
-                    commentTooltip="Comment tooltip"
-                    onChangeComment={() => ('Comment changed')}
-                  />
-                </Col>
-              </Row>
-              <Row>
-                <Col sm={10} smOffset={1}>
-                  <ObservationFromToNumberCommentComponent
-                    id="test2"
-                    translate={translate}
-                    fromLabel="from label"
-                    fromValue="122,123"
-                    fromTooltip="From tooltip"
-                    onChangeFrom={() => ('From changed')}
-                    toLabel="To labela"
-                    toValue="1234"
-                    toTooltip="To tooltip"
-                    onChangeTo={() => ('TO changed')}
-                    commentLabel="Comment label"
-                    commentValue="1234"
-                    commentTooltip="Comment tooltip"
-                    onChangeComment={() => ('Comment changed')}
-                  />
-                </Col>
-              </Row>
-              <Row>
-                <Col sm={10} smOffset={1}>
-                  <ObservationDoubleTextAreaComponent
-                    id="test3"
-                    translate={translate}
-                    leftLabel="Left label"
-                    leftValue="Left test value"
-                    leftTooltip="Left tooltip"
-                    onChangeLeft={() => ('left changed')}
-                    rightLabel="Right label"
-                    rightValue="right"
-                    rightTooltip="Right tooltip"
-                    onChangeRight={() => ('Right changed')}
-                  />
+                <Col sm={10} smOffset={1} className="text-center">
+                  <Button onClick={() => addNewObservation()}>
+                    {translate('musit.texts.save')}
+                  </Button>
+                  <Button onClick={() => addNewObservation()}>
+                    {translate('musit.texts.cancel')}
+                  </Button>
                 </Col>
               </Row>
             </Grid>
