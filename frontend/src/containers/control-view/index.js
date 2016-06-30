@@ -28,7 +28,6 @@ import Language from '../../components/language'
 const mapStateToProps = (state) => ({
   user: state.auth.user,
   environmentRequirements: state.environmentRequirements,
-  unit: state.control.data,
   translate: (key, markdown) => Language.translate(key, markdown),
 })
 
@@ -49,18 +48,6 @@ export default class ControlView extends React.Component {
     user: React.PropTypes.string.isRequired,
     onLagreControl: React.PropTypes.func.isRequired,
     updateControl: React.PropTypes.func.isRequired,
-    unit: React.PropTypes.shape({
-      temperatureOK: React.PropTypes.bool.isRequired,
-      inertAirOK: React.PropTypes.bool.isRequired,
-      gasOK: React.PropTypes.bool.isRequired,
-      lightConditionsOK: React.PropTypes.bool.isRequired,
-      cleaningOK: React.PropTypes.bool.isRequired,
-      alchoholOK: React.PropTypes.bool.isRequired,
-      moldFungusOK: React.PropTypes.bool.isRequired,
-      relativeHumidity: React.PropTypes.bool.isRequired,
-      pestOK: React.PropTypes.bool.isRequired,
-      storageUnit: React.PropTypes.bool.isRequired
-    })
   }
   constructor(props) {
     super(props)
@@ -225,12 +212,12 @@ export default class ControlView extends React.Component {
     }
   }
 
+
   getDate() {
     const d = new Date()
     const r = `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`
     return r
   }
-
 
   render() {
     return (
@@ -240,15 +227,15 @@ export default class ControlView extends React.Component {
             <h1 />
           </Row>
           <Row>
-            <Col md={5}>
+            <Col md={3}>
               {this.getDate()}
             </Col>
-            <Col md={7}>
+            <Col md={9}>
               {this.props.user ? this.props.user.name : null}
             </Col>
           </Row>
-          <Row>
-            <Col md={5}>
+          <Row styleclass="row-centered">
+            <Col md={3}>
               <PairedToogleButtons
                 label="Temperatur"
                 value={this.state.temperatureOK}
@@ -256,12 +243,14 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onTemperatureNotOKClick}
               />
             </Col>
-            <Col md={7}>
+            <Col md={9}>
+              <label>Hei</label>
               <Field value="Hei" />
+
             </Col>
           </Row>
           <Row>
-            <Col md={5}>
+            <Col md={3}>
               <PairedToogleButtons
                 label="Inert luft"
                 value={this.state.inertAirOK}
@@ -269,10 +258,10 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onInertAirNotOKClick}
               />
             </Col>
-            <Col md={7} />
+            <Col md={9} />
           </Row>
           <Row>
-            <Col md={5}>
+            <Col md={3}>
               <PairedToogleButtons
                 label="Relativ luftfuktighet"
                 value={this.state.relativeHumidity}
@@ -280,10 +269,10 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onRelativeHumidityNotOKClick}
               />
             </Col>
-            <Col md={7} />
+            <Col md={9} />
           </Row>
           <Row>
-            <Col md={5}>
+            <Col md={3}>
               <PairedToogleButtons
                 label="Rengjøring"
                 value={this.state.cleaningOK}
@@ -291,10 +280,10 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onCleaningNotOKClick}
               />
             </Col>
-            <Col md={7} />
+            <Col md={9} />
           </Row>
           <Row>
-            <Col md={5}>
+            <Col md={3}>
               <PairedToogleButtons
                 label="Lysforhold"
                 value={this.state.lightConditionsOK}
@@ -302,10 +291,10 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onLightConditionsNotOKClick}
               />
             </Col>
-            <Col md={7} />
+            <Col md={9} />
           </Row>
           <Row>
-            <Col md={5}>
+            <Col md={3}>
               <PairedToogleButtons
                 label="Sprit"
                 value={this.state.alchoholOK}
@@ -313,10 +302,10 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onAlchoholNotOKClick}
               />
             </Col>
-            <Col md={7} />
+            <Col md={9} />
           </Row>
           <Row>
-            <Col md={5}>
+            <Col md={3}>
               <PairedToogleButtons
                 label="Skadedyr"
                 value={this.state.pestOK}
@@ -324,10 +313,10 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onPestNotOKClick}
               />
             </Col>
-            <Col md={7} />
+            <Col md={9} />
           </Row>
           <Row>
-            <Col md={5}>
+            <Col md={3}>
               <PairedToogleButtons
                 label="Mugg"
                 value={this.state.moldFungusOK}
@@ -335,12 +324,15 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onMoldFungusNotOKClick}
               />
             </Col>
-            <Col md={7} />
+            <Col md={9} />
+          </Row>
+          <Row>
+            <Col md={3} />
+            <Col md={9}>
+              <Button pullRight onClick={() => this.props.onLagreControl(this.state)}> Lagre </Button>
+            </Col>
           </Row>
         </Grid>
-        <ButtonToolbar>
-          <Button onClick={() => this.props.onLagreControl(this.state)}> Lagre </Button>
-        </ButtonToolbar>
       </div>)
   }
 }

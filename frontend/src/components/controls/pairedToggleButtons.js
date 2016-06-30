@@ -17,22 +17,24 @@ export default class PairedToogleButtons extends Component {
     return (
       <div className={style.pageMargin}>
         <Row>
-          <Col xs={1} />
-          <Col xs={11}>
-            {label}
+          <Col xs={2} />
+          <Col xs={10}>
+            <label>
+              {label}
+            </label>
           </Col>
         </Row>
         <Row>
-          <Col xs={1}>
+          <Col xs={2}>
             {value != null ?
               <FontAwesome
                 name={value ? 'check' : 'times'}
                 size={'2x'}
-                style={value ? { color: 'green' } : { color: 'red' }}
+                style={value ? { color: 'green', padding: '2px' } : { color: 'red', padding: '2px' }}
               /> :
               null}
           </Col>
-          <Col xs={11}>
+          <Col xs={10}>
             <Button
               className={value ? style.buttonpaddingtrue : style.buttonpaddingfalse}
               onClick={this.props.updatevalueOK}
