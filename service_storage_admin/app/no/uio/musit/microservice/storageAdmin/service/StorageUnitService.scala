@@ -48,7 +48,7 @@ trait StorageUnitService {
   }
 
   def createStorageTriple(storageTriple: Storage): MusitFuture[Storage] = {
-    storageTriple.storageType match {
+    storageTriple match {
       case st: StorageUnit => create(st)
       case r: Room => RoomService.create(r.toStorageUnit, r)
       case b: Building => BuildingService.create(b.toStorageUnit, b)

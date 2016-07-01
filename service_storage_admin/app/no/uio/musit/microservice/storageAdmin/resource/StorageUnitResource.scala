@@ -26,6 +26,7 @@ import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class StorageUnitResource extends Controller {
 
