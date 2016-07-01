@@ -37,6 +37,7 @@ scalacOptions ++= Seq(
   "-Ywarn-nullary-override", // Warn when non-nullary overrides nullary, e.g. def foo() over def foo.
   "-Ywarn-numeric-widen", // Warn when numerics are widened.
   // For advanced language features
+  "-Ydependent-method-types",
   "-language:implicitConversions",
   "-language:higherKinds",
   "-language:existentials",

@@ -13,7 +13,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
-  implicit lazy val greetingMapper = MappedColumnType.base[StorageType, String](
+  implicit lazy val storageTypeMapper = MappedColumnType.base[StorageType, String](
     storageType => storageType.entryName,
     string => StorageType.withName(string)
   )
@@ -24,14 +24,11 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   def unknownStorageUnitMsg(id: Long) = s"Unknown storageUnit with id: $id"
 
-  def storageUnitNotFoundError(id: Long): MusitError = {
+  def storageUnitNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(unknownStorageUnitMsg(id))
-  }
 
-  def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] = {
-    val action = StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption
-    db.run(action)
-  }
+  def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] =
+    db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
   def getChildren(id: Long): Future[Seq[StorageUnit]] = {
     val action = StorageUnitTable.filter(_.isPartOf === id).result
@@ -48,16 +45,17 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  def all(): Future[Seq[StorageUnit]] = db.run(StorageUnitTable.result)
+  def all(): Future[Seq[StorageUnit]] =
+    db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
 
   def insert(storageUnit: StorageUnit): Future[StorageUnit] =
     db.run(insertAction(storageUnit))
 
   def insertAction(storageUnit: StorageUnit): DBIO[StorageUnit] = {
-    val insertQuery = StorageUnitTable returning StorageUnitTable.map(_.id) into
-      ((storageUnit, id) => storageUnit.copy(id = Some(id), links = Storage.linkText(Some(id))))
-    val action = insertQuery += storageUnit
-    action
+    StorageUnitTable returning StorageUnitTable.map(_.id) into
+      ((storageUnit, id) =>
+        storageUnit.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
+      storageUnit
   }
 
   def updateStorageUnitAction(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
@@ -71,7 +69,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def deleteStorageUnit(id: Long): Future[Int] = {
     db.run((for {
       storageUnit <- StorageUnitTable if storageUnit.id === id && storageUnit.isDeleted === false
-    } yield storageUnit.isDeleted).update(Some(true)))
+    } yield storageUnit.isDeleted).update(true))
   }
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
@@ -97,7 +95,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     val groupWrite = column[Option[String]]("GROUP_WRITE")
 
-    val isDeleted = column[Option[Boolean]]("IS_DELETED")
+    val isDeleted = column[Boolean]("IS_DELETED")
 
     def create = (
       id: Option[Long],
@@ -110,7 +108,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
       heightTo: Option[Long],
       groupRead: Option[String],
       groupWrite: Option[String],
-      isDeleted: Option[Boolean]
+      isDeleted: Boolean
     ) =>
       StorageUnit(
         id,
@@ -123,7 +121,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         groupRead,
         groupWrite,
         Storage.linkText(id),
-        isDeleted
+        Some(isDeleted)
       )
 
     def destroy(unit: StorageUnit) =
@@ -138,7 +136,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
-        unit.isDeleted
+        unit.isDeleted.getOrElse(false)
       )
   }
 

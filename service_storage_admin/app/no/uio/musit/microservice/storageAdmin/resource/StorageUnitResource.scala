@@ -47,9 +47,7 @@ class StorageUnitResource extends Controller {
 
   def getChildren(id: Long) = Action.async {
     request =>
-      StorageUnitService.getChildren(id).map {
-        storageUnits => Ok(Json.toJson(storageUnits))
-      }
+      StorageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
   }
 
   def getById(id: Long) = Action.async {
@@ -59,20 +57,13 @@ class StorageUnitResource extends Controller {
 
   def listAll = Action.async {
     request =>
-      val debugval = StorageUnitService.all
-      debugval.map {
-        case storageUnits =>
-          println(storageUnits)
-          Ok(Json.toJson(storageUnits))
-      }
+      StorageUnitService.all.map(__ => Ok(Json.toJson(__)))
   }
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
     request =>
-      {
-        val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
-        ResourceHelper.updateRootWithMusitResult(StorageUnitService.updateStorageTripleByID, id, musitResultTriple)
-      }
+      val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
+      ResourceHelper.updateRootWithMusitResult(StorageUnitService.updateStorageTripleByID, id, musitResultTriple)
   }
 
   def deleteRoot(id: Long) = Action.async {

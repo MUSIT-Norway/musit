@@ -2,10 +2,10 @@ package no.uio.musit.microservice.storageAdmin.domain
 
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservice.storageAdmin.utils.TupleImplicits._
 import play.api.libs.json.OFormat
 import julienrf.json.derived
 import play.api.libs.json.__
+import shapeless.syntax.std.tuple._
 
 sealed trait Storage {
   def storageType: StorageType
@@ -103,32 +103,32 @@ object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
 
+  def defaultValues(id: Option[Long]) = (id, null, None, None, None, None, None, None, None, None, None)
+  def defaultValues(unit: StorageUnit) = StorageUnit.unapply(unit).get
+
   def linkText(id: Option[Long]) =
     Some(Seq(LinkService.self(s"/v1/${id.get}")))
 
   def getBuilding(storageUnit: StorageUnit, building: Building) =
-    Building.tupled(StorageUnit.unapply(storageUnit).get
-      -> building.address)
+    Building.tupled(defaultValues(storageUnit) ++ Tuple1(building.address))
 
   def getBuilding(id: Option[Long], address: Option[String]) =
-    Building(id, null, None, None, None, None, None, None, None, None, None,
-      address)
+    Building.tupled(defaultValues(id) ++ Tuple1(address))
 
   def getRoom(storageUnit: StorageUnit, room: Room) =
-    Room.tupled(StorageUnit.unapply(storageUnit).get
-      -> (
-        room.sikringSkallsikring,
-        room.sikringTyverisikring,
-        room.sikringBrannsikring,
-        room.sikringVannskaderisiko,
-        room.sikringRutineOgBeredskap,
-        room.bevarLuftfuktOgTemp,
-        room.bevarLysforhold,
-        room.bevarPrevantKons
-      ))
+    Room.tupled(defaultValues(storageUnit) ++ (
+      room.sikringSkallsikring,
+      room.sikringTyverisikring,
+      room.sikringBrannsikring,
+      room.sikringVannskaderisiko,
+      room.sikringRutineOgBeredskap,
+      room.bevarLuftfuktOgTemp,
+      room.bevarLysforhold,
+      room.bevarPrevantKons
+    ))
 
   def getRoom(id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean], sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean], sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean], bevarLysforhold: Option[Boolean], bevarPrevantKons: Option[Boolean]) =
-    Room(id, null, None, None, None, None, None, None, None, None, None,
+    Room.tupled(defaultValues(id) ++ (
       sikringSkallsikring,
       sikringTyverisikring,
       sikringBrannsikring,
@@ -136,5 +136,6 @@ object Storage {
       sikringRutineOgBeredskap,
       bevarLuftfuktOgTemp,
       bevarLysforhold,
-      bevarPrevantKons)
+      bevarPrevantKons
+    ))
 }
