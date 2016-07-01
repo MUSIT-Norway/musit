@@ -1,0 +1,16 @@
+version: "2"
+services:
+    nginx:
+        build:
+            context: "./nginx"
+        ports:
+            - "8080:80"
+        links:
+            - backing
+        volumes:
+            - ./public:/usr/share/nginx/html
+    backing:
+        build:
+            context: "../../backing"
+        ports:
+            - "3030:3030"
