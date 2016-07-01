@@ -18,13 +18,10 @@
  */
 package no.uio.musit.microservice.storageAdmin.resource
 
-import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
-import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -34,8 +31,8 @@ import scala.concurrent.Future
 class StorageUnitResource extends Controller {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val musitResultTriple = fromJsonToStorageUnitTriple(request.body)
-    ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, (triple: StorageUnitTriple) => triple.toJson)
+    val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
+    ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, (triple: Storage) => Json.toJson(triple))
   }
 
   def validateChildren = Action.async(BodyParsers.parse.json) { request =>
@@ -57,58 +54,23 @@ class StorageUnitResource extends Controller {
 
   def getById(id: Long) = Action.async {
     request =>
-      ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: StorageUnitTriple) => triple.toJson)
+      ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
   }
 
   def listAll = Action.async {
     request =>
       val debugval = StorageUnitService.all
       debugval.map {
-        case storageUnits => Ok(Json.toJson(storageUnits))
+        case storageUnits =>
+          println(storageUnits)
+          Ok(Json.toJson(storageUnits))
       }
-  }
-
-  def fromJsonToStorageUnitTriple(json: JsValue): Either[MusitError, StorageUnitTriple] = {
-    val storageType = (json \ "storageType").as[String]
-
-    StorageUnitType(storageType) match {
-
-      case None => Left(ErrorHelper.badRequest(s"Undefined StorageType:$storageType"))
-      case Some(storageUnitType) =>
-
-        val jsRes = storageUnitType match {
-          case StUnit => {
-            val jsResultStUnit = json.validate[StorageUnit]
-            jsResultStUnit.map(StorageUnitTriple.createStorageUnit)
-
-          }
-          case Room => {
-            val roomResult = {
-              for {
-                storageUnit <- json.validate[StorageUnit]
-                storageRoom <- json.validate[StorageRoom]
-              } yield StorageUnitTriple.createRoom(storageUnit, storageRoom)
-            }
-            roomResult
-          }
-          case Building => {
-            val buildingResult = {
-              for {
-                storageUnit <- json.validate[StorageUnit]
-                storageBuilding <- json.validate[StorageBuilding]
-              } yield StorageUnitTriple.createBuilding(storageUnit, storageBuilding)
-            }
-            buildingResult
-          }
-        }
-        jsRes |> ResourceHelper.jsResultToMusitResult
-    }
   }
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
     request =>
       {
-        val musitResultTriple = fromJsonToStorageUnitTriple(request.body)
+        val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
         ResourceHelper.updateRootWithMusitResult(StorageUnitService.updateStorageTripleByID, id, musitResultTriple)
       }
   }

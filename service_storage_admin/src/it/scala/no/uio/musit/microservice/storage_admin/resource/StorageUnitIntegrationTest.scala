@@ -42,17 +42,17 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
   def getStorageUnit(id: Long) = WS.url(s"http://localhost:$port/v1/storageunit/${id}").get
 
-  def getRoomAsObject(id: Long): Future[StorageRoom] = {
+  def getRoomAsObject(id: Long): Future[Room] = {
     for {
       resp <- getStorageUnit(id)
-      room = Json.parse(resp.body).validate[StorageRoom].get
+      room = Json.parse(resp.body).validate[Room].get
     } yield room
   }
 
-  def getBuildingAsObject(id: Long): Future[StorageBuilding] = {
+  def getBuildingAsObject(id: Long): Future[Building] = {
     for {
       resp <- getStorageUnit(id)
-      room = Json.parse(resp.body).validate[StorageBuilding].get
+      room = Json.parse(resp.body).validate[Building].get
     } yield room
   }
 
@@ -86,7 +86,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val makeMyJSon ="""{"storageType":"Room","storageUnitName":"UkjentRom", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-      val storageRoom = Json.parse(response.body).validate[StorageRoom].get
+      val storageRoom = Json.parse(response.body).validate[Room].get
       storageUnit.id mustBe Some(1)
       storageUnit.storageKind mustBe Room
       storageUnit.storageUnitName mustBe "UkjentRom"
@@ -98,7 +98,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val makeMyJSon ="""{"id":-1, "storageType":"Building","storageUnitName":"KHM", "links":[]}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-      val storageBuilding = Json.parse(response.body).validate[StorageBuilding].get
+      val storageBuilding = Json.parse(response.body).validate[Building].get
       storageUnit.id mustBe Some(2)
       storageUnit.storageKind mustBe Building
       storageUnit.storageUnitName mustBe "KHM"
@@ -164,7 +164,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val future = createStorageUnit(myJSon)
       val response = future.futureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-      val storageRoom = Json.parse(response.body).validate[StorageRoom].get
+      val storageRoom = Json.parse(response.body).validate[Room].get
       storageRoom.sikringSkallsikring mustBe Some(false)
 
       storageUnit.id.isDefined mustBe true
@@ -189,7 +189,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val future = createStorageUnit(myJSon)
       val response = future |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[StorageUnit].get
-      val storageBuilding = Json.parse(response.body).validate[StorageBuilding].get
+      val storageBuilding = Json.parse(response.body).validate[Building].get
       storageBuilding.address mustBe Some("vet ikke")
 
       storageUnit.id.isDefined mustBe true
