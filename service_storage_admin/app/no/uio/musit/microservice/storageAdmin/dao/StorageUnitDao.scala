@@ -1,13 +1,50 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import no.uio.musit.microservice.storageAdmin.domain._
+import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageType, StorageUnit }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.libs.json.Json
 import slick.driver.JdbcProfile
+
 import scala.concurrent.Future
+
+case class StorageUnitDTO(
+  id: Option[Long],
+  name: String,
+  area: Option[Long],
+  areaTo: Option[Long],
+  isPartOf: Option[Long],
+  height: Option[Long],
+  heightTo: Option[Long],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  links: Option[Seq[Link]],
+  isDeleted: Option[Boolean],
+  `type`: StorageType
+)
+
+object StorageUnitDTO {
+  implicit val format = Json.format[StorageUnitDTO]
+  def fromStorageUnit[T <: Storage](su: T) =
+    StorageUnitDTO(
+      su.id,
+      su.name,
+      su.area,
+      su.areaTo,
+      su.isPartOf,
+      su.height,
+      su.heightTo,
+      su.groupRead,
+      su.groupWrite,
+      su.links,
+      su.isDeleted,
+      su.storageType
+    )
+}
 
 object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
@@ -27,10 +64,10 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def storageUnitNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(unknownStorageUnitMsg(id))
 
-  def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnit]] =
+  def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnitDTO]] =
     db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
-  def getChildren(id: Long): Future[Seq[StorageUnit]] = {
+  def getChildren(id: Long): Future[Seq[StorageUnitDTO]] = {
     val action = StorageUnitTable.filter(_.isPartOf === id).result
     db.run(action)
   }
@@ -40,29 +77,29 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
   }
 
-  def getWholeCollectionStorage(storageCollectionRoot: StorageType): Future[Seq[StorageUnit]] = {
+  def getWholeCollectionStorage(storageCollectionRoot: StorageType): Future[Seq[StorageUnitDTO]] = {
     val action = StorageUnitTable.filter(_.storageType === storageCollectionRoot).result
     db.run(action)
   }
 
-  def all(): Future[Seq[StorageUnit]] =
+  def all(): Future[Seq[StorageUnitDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
 
-  def insert(storageUnit: StorageUnit): Future[StorageUnit] =
+  def insert(storageUnit: StorageUnitDTO): Future[StorageUnitDTO] =
     db.run(insertAction(storageUnit))
 
-  def insertAction(storageUnit: StorageUnit): DBIO[StorageUnit] = {
+  def insertAction(storageUnit: StorageUnitDTO): DBIO[StorageUnitDTO] = {
     StorageUnitTable returning StorageUnitTable.map(_.id) into
       ((storageUnit, id) =>
         storageUnit.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
       storageUnit
   }
 
-  def updateStorageUnitAction(id: Long, storageUnit: StorageUnit): DBIO[Int] = {
+  def updateStorageUnitAction(id: Long, storageUnit: StorageUnitDTO): DBIO[Int] = {
     StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
   }
 
-  def updateStorageUnit(id: Long, storageUnit: StorageUnit): Future[Int] = {
+  def updateStorageUnit(id: Long, storageUnit: StorageUnitDTO): Future[Int] = {
     db.run(updateStorageUnitAction(id, storageUnit))
   }
 
@@ -72,7 +109,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     } yield storageUnit.isDeleted).update(true))
   }
 
-  private class StorageUnitTable(tag: Tag) extends Table[StorageUnit](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
+  private class StorageUnitTable(tag: Tag) extends Table[StorageUnitDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
     def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
@@ -110,7 +147,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
       groupWrite: Option[String],
       isDeleted: Boolean
     ) =>
-      StorageUnit(
+      StorageUnitDTO(
         id,
         storageUnitName,
         area,
@@ -121,13 +158,14 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         groupRead,
         groupWrite,
         Storage.linkText(id),
-        Some(isDeleted)
-      ).setType(storageType)
+        Some(isDeleted),
+        storageType
+      )
 
-    def destroy(unit: StorageUnit) =
+    def destroy(unit: StorageUnitDTO) =
       Some(
         unit.id,
-        unit.storageType,
+        unit.`type`,
         unit.name,
         unit.area,
         unit.areaTo,

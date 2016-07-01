@@ -30,7 +30,7 @@ object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, Building)) = {
-    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, storageUnitAndBuilding._1) |> DaoHelper.onlyAcceptOneUpdatedRecord
+    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, StorageUnitDTO.fromStorageUnit(storageUnitAndBuilding._1)) |> DaoHelper.onlyAcceptOneUpdatedRecord
     val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id))) }
     db.run(combinedAction.transactionally)
   }
@@ -42,7 +42,7 @@ object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
     action
   }
 
-  def insertBuilding(storageUnit: StorageUnit, storageBuilding: Building): Future[Storage] = {
+  def insertBuilding(storageUnit: StorageUnitDTO, storageBuilding: Building): Future[Storage] = {
     val action = (for {
       storageUnit <- StorageUnitDao.insertAction(storageUnit)
       n <- insertBuildingOnlyAction(storageBuilding.copy(id = storageUnit.id))

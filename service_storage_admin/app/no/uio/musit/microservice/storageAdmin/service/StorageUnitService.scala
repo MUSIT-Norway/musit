@@ -26,6 +26,7 @@ import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait StorageUnitService {
   //A separate function for this message because we want to verify we get this error message in some of the integration tests
@@ -43,20 +44,21 @@ trait StorageUnitService {
       s"but had the type: ${inDatabase.entryName} in the database.")
   }
 
-  def create(storageUnit: StorageUnit): MusitFuture[StorageUnit] = {
-    ServiceHelper.daoInsert(StorageUnitDao.insert(storageUnit)).musitFutureMap(st => st)
+  def create(storageUnit: StorageUnitDTO): MusitFuture[StorageUnit] = {
+    ServiceHelper.daoInsert(StorageUnitDao.insert(storageUnit)).musitFutureMap(StorageUnit.fromDTO)
   }
 
   def createStorageTriple(storageTriple: Storage): MusitFuture[Storage] = {
+    val storageUnit = StorageUnitDTO.fromStorageUnit(storageTriple)
     storageTriple match {
-      case st: StorageUnit => create(st)
-      case r: Room => RoomService.create(r.toStorageUnit.setType(StorageType.Room), r)
-      case b: Building => BuildingService.create(b.toStorageUnit.setType(StorageType.Building), b)
+      case st: StorageUnit => create(storageUnit)
+      case r: Room => RoomService.create(storageUnit, r)
+      case b: Building => BuildingService.create(storageUnit, b)
     }
   }
 
   def getChildren(id: Long): Future[Seq[StorageUnit]] = {
-    StorageUnitDao.getChildren(id)
+    StorageUnitDao.getChildren(id).map(_.map(StorageUnit.fromDTO))
   }
 
   private def getStorageUnitOnly(id: Long) = StorageUnitDao.getStorageUnitOnlyById(id).toMusitFuture(StorageUnitDao.storageUnitNotFoundError(id))
@@ -68,23 +70,22 @@ trait StorageUnitService {
   def getById(id: Long): MusitFuture[Storage] = {
     val musitFutureStorageUnit = getStorageUnitOnly(id)
     musitFutureStorageUnit.musitFutureFlatMap { storageUnit =>
-      println("Getting " + storageUnit.storageType)
-      storageUnit.storageType match {
-        case StorageType.StorageUnit => MusitFuture.successful(storageUnit)
-        case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding => Storage.getBuilding(storageUnit.setType(StorageType.Building), storageBuilding))
-        case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom => Storage.getRoom(storageUnit.setType(StorageType.Room), storageRoom))
+      storageUnit.`type` match {
+        case StorageType.StorageUnit => MusitFuture.successful(StorageUnit.fromDTO(storageUnit))
+        case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding => Storage.getBuilding(storageUnit, storageBuilding))
+        case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom => Storage.getRoom(storageUnit, storageRoom))
       }
     }
   }
 
   def getStorageType(id: Long): MusitFuture[StorageType] = StorageUnitDao.getStorageType(id)
 
-  def all: Future[Seq[StorageUnit]] = {
+  def all: Future[Seq[StorageUnitDTO]] = {
     StorageUnitDao.all()
   }
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
-    ServiceHelper.daoUpdate(StorageUnitDao.updateStorageUnit, id, storageUnit)
+    ServiceHelper.daoUpdate(StorageUnitDao.updateStorageUnit, id, StorageUnitDTO.fromStorageUnit(storageUnit))
   }
 
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageType): MusitFuture[Boolean] = {
@@ -115,7 +116,7 @@ object StorageUnitService extends StorageUnitService {
 }
 
 trait RoomService {
-  def create(storageUnit: StorageUnit, storageRoom: Room): MusitFuture[Storage] = {
+  def create(storageUnit: StorageUnitDTO, storageRoom: Room): MusitFuture[Storage] = {
     ServiceHelper.daoInsert(RoomDao.insertRoom(storageUnit, storageRoom))
   }
 
@@ -127,7 +128,7 @@ trait RoomService {
 object RoomService extends RoomService
 
 trait BuildingService {
-  def create(storageUnit: StorageUnit, storageBuilding: Building): MusitFuture[Storage] = {
+  def create(storageUnit: StorageUnitDTO, storageBuilding: Building): MusitFuture[Storage] = {
     ServiceHelper.daoInsert(BuildingDao.insertBuilding(storageUnit, storageBuilding))
   }
 

@@ -4,6 +4,7 @@ import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.OFormat
 import julienrf.json.derived
+import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDTO
 import play.api.libs.json.__
 import shapeless.syntax.std.tuple._
 
@@ -63,6 +64,23 @@ case class StorageUnit(
   }
 }
 
+object StorageUnit {
+  def fromDTO(dto: StorageUnitDTO) =
+    StorageUnit(
+      dto.id,
+      dto.name,
+      dto.area,
+      dto.areaTo,
+      dto.isPartOf,
+      dto.height,
+      dto.heightTo,
+      dto.groupRead,
+      dto.groupWrite,
+      dto.links,
+      dto.isDeleted
+    )
+}
+
 case class Room(
     id: Option[Long],
     name: String,
@@ -108,19 +126,44 @@ object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
 
-  def defaultValues(id: Option[Long]) = (id, null, None, None, None, None, None, None, None, None, None)
-  def defaultValues(unit: StorageUnit) = StorageUnit.unapply(unit).get
+  def defaultValues(id: Option[Long]) = (
+    id,
+    null,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None
+  )
+
+  def defaultValues(unit: StorageUnitDTO) = (
+    unit.id,
+    unit.name,
+    unit.area,
+    unit.areaTo,
+    unit.isPartOf,
+    unit.height,
+    unit.heightTo,
+    unit.groupRead,
+    unit.groupWrite,
+    unit.links,
+    unit.isDeleted
+  )
 
   def linkText(id: Option[Long]) =
     Some(Seq(LinkService.self(s"/v1/${id.get}")))
 
-  def getBuilding(storageUnit: StorageUnit, building: Building) =
+  def getBuilding(storageUnit: StorageUnitDTO, building: Building) =
     Building.tupled(defaultValues(storageUnit) ++ Tuple1(building.address))
 
   def getBuilding(id: Option[Long], address: Option[String]) =
     Building.tupled(defaultValues(id) ++ Tuple1(address))
 
-  def getRoom(storageUnit: StorageUnit, room: Room) =
+  def getRoom(storageUnit: StorageUnitDTO, room: Room) =
     Room.tupled(defaultValues(storageUnit) ++ (
       room.sikringSkallsikring,
       room.sikringTyverisikring,

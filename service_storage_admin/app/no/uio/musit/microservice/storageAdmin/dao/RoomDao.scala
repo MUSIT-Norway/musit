@@ -33,7 +33,7 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
     //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord
     // will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, storageUnitAndRoom._1) |> DaoHelper.onlyAcceptOneUpdatedRecord
+    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, StorageUnitDTO.fromStorageUnit(storageUnitAndRoom._1)) |> DaoHelper.onlyAcceptOneUpdatedRecord
 
     val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id))) }
 
@@ -48,7 +48,7 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
     action
   }
 
-  def insertRoom(storageUnit: StorageUnit, storageRoom: Room): Future[Storage] = {
+  def insertRoom(storageUnit: StorageUnitDTO, storageRoom: Room): Future[Storage] = {
     val action = (for {
       storageUnit <- StorageUnitDao.insertAction(storageUnit)
       n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
