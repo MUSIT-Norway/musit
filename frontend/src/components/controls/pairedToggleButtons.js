@@ -49,7 +49,7 @@ export default class PairedToogleButtons extends Component {
             >
               <FontAwesome name="times" />
               <span>&nbsp;</span>
-              IKKE ok
+              Ikke OK
             </Button>
           </Col>
         </Row>

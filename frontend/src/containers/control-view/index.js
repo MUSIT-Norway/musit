@@ -19,7 +19,7 @@
 
 import React from 'react'
 import { connect } from 'react-redux'
-import { Grid, Row, Col, ButtonToolbar, Button } from 'react-bootstrap'
+import { Grid, Row, Col, Button } from 'react-bootstrap'
 import PairedToogleButtons from '../../components/controls/pairedToggleButtons'
 import Field from '../../components/formfields/musitfield'
 import { addControl } from '../../reducers/control'
@@ -61,7 +61,9 @@ export default class ControlView extends React.Component {
       moldFungusOK: null,
       relativeHumidity: null,
       pestOK: null,
-      storageUnit: null
+      storageUnit: null,
+      temperature: '',
+      temperatureTolerance: ''
     }
     this.getDate = this.getDate.bind(this)
     this.onTemperatureOKClick = this.onTemperatureOKClick.bind(this)
@@ -227,14 +229,34 @@ export default class ControlView extends React.Component {
             <h1 />
           </Row>
           <Row>
+            <h1 />
+          </Row>
+          <Row>
+            <h1 />
+          </Row>
+          <Row>
+            <h1 />
+          </Row>
+          <Row>
             <Col md={3}>
-              {this.getDate()}
+              <Col md={2} />
+              <Col md={10}>
+                {this.getDate()}
+              </Col>
             </Col>
             <Col md={9}>
               {this.props.user ? this.props.user.name : null}
             </Col>
           </Row>
-          <Row styleclass="row-centered">
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+          <Row>
+            <h1 />
+          </Row>
+          <Row>
             <Col md={3}>
               <PairedToogleButtons
                 label="Temperatur"
@@ -244,11 +266,28 @@ export default class ControlView extends React.Component {
               />
             </Col>
             <Col md={9}>
-              <label>Hei</label>
-              <Field value="Hei" />
-
+              <Row>
+                <Col md={5}>
+                  <label> Temperatur </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={5}>
+                  <Field />
+                </Col>
+                <Col md={4}>
+                  <Field />
+                </Col>
+              </Row>
             </Col>
           </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
           <Row>
             <Col md={3}>
               <PairedToogleButtons
@@ -258,8 +297,29 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onInertAirNotOKClick}
               />
             </Col>
-            <Col md={9} />
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> Inert luft </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={5}>
+                  <Field />
+                </Col>
+                <Col md={4}>
+                  <Field />
+                </Col>
+              </Row>
+            </Col>
           </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
           <Row>
             <Col md={3}>
               <PairedToogleButtons
@@ -269,8 +329,30 @@ export default class ControlView extends React.Component {
                 updatevalueNotOK={this.onRelativeHumidityNotOKClick}
               />
             </Col>
-            <Col md={9} />
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> Relativ luftfuktighet </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={5}>
+                  <Field />
+                </Col>
+                <Col md={4}>
+                  <Field />
+                </Col>
+              </Row>
+            </Col>
           </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
+
           <Row>
             <Col md={3}>
               <PairedToogleButtons
@@ -282,6 +364,14 @@ export default class ControlView extends React.Component {
             </Col>
             <Col md={9} />
           </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
+
           <Row>
             <Col md={3}>
               <PairedToogleButtons
@@ -293,6 +383,14 @@ export default class ControlView extends React.Component {
             </Col>
             <Col md={9} />
           </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
+
           <Row>
             <Col md={3}>
               <PairedToogleButtons
@@ -304,6 +402,14 @@ export default class ControlView extends React.Component {
             </Col>
             <Col md={9} />
           </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
+
           <Row>
             <Col md={3}>
               <PairedToogleButtons
@@ -315,6 +421,14 @@ export default class ControlView extends React.Component {
             </Col>
             <Col md={9} />
           </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
+
           <Row>
             <Col md={3}>
               <PairedToogleButtons
@@ -326,10 +440,20 @@ export default class ControlView extends React.Component {
             </Col>
             <Col md={9} />
           </Row>
+
+          <Row>
+            <Col md={12}>
+              <p>
+                <hr />
+              </p>
+            </Col>
+          </Row>
+
+
           <Row>
             <Col md={3} />
-            <Col md={9}>
-              <Button pullRight onClick={() => this.props.onLagreControl(this.state)}> Lagre </Button>
+            <Col md={9} mdPush={8}>
+              <Button text-align="right" pullRight onClick={() => this.props.onLagreControl(this.state)}> Lagre </Button>
             </Col>
           </Row>
         </Grid>
