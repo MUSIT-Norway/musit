@@ -122,7 +122,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         groupWrite,
         Storage.linkText(id),
         Some(isDeleted)
-      )
+      ).setType(storageType)
 
     def destroy(unit: StorageUnit) =
       Some(

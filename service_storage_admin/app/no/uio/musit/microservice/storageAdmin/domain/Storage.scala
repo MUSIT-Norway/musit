@@ -7,8 +7,8 @@ import julienrf.json.derived
 import play.api.libs.json.__
 import shapeless.syntax.std.tuple._
 
-sealed trait Storage {
-  def storageType: StorageType
+sealed trait Storage extends TypeFields {
+  var storageType: StorageType
 }
 
 trait TypeFields {
@@ -54,8 +54,13 @@ case class StorageUnit(
     groupWrite: Option[String],
     links: Option[Seq[Link]],
     isDeleted: Option[Boolean]
-) extends Storage with TypeFields {
-  val storageType: StorageType = StorageType.StorageUnit
+) extends Storage {
+  var storageType: StorageType = StorageType.StorageUnit
+  def setType(st: StorageType) = {
+    println("Overriding existing storagetype " + storageType + " with " + st)
+    storageType = st
+    this
+  }
 }
 
 case class Room(
@@ -79,7 +84,7 @@ case class Room(
     bevarLysforhold: Option[Boolean],
     bevarPrevantKons: Option[Boolean]
 ) extends Storage with SubType {
-  val storageType: StorageType = StorageType.Room
+  var storageType: StorageType = StorageType.Room
 }
 
 case class Building(
@@ -96,7 +101,7 @@ case class Building(
     isDeleted: Option[Boolean],
     address: Option[String]
 ) extends Storage with SubType {
-  val storageType: StorageType = StorageType.Building
+  var storageType: StorageType = StorageType.Building
 }
 
 object Storage {

@@ -50,8 +50,8 @@ trait StorageUnitService {
   def createStorageTriple(storageTriple: Storage): MusitFuture[Storage] = {
     storageTriple match {
       case st: StorageUnit => create(st)
-      case r: Room => RoomService.create(r.toStorageUnit, r)
-      case b: Building => BuildingService.create(b.toStorageUnit, b)
+      case r: Room => RoomService.create(r.toStorageUnit.setType(StorageType.Room), r)
+      case b: Building => BuildingService.create(b.toStorageUnit.setType(StorageType.Building), b)
     }
   }
 
@@ -68,10 +68,11 @@ trait StorageUnitService {
   def getById(id: Long): MusitFuture[Storage] = {
     val musitFutureStorageUnit = getStorageUnitOnly(id)
     musitFutureStorageUnit.musitFutureFlatMap { storageUnit =>
+      println("Getting " + storageUnit.storageType)
       storageUnit.storageType match {
-        case st: StorageUnit => MusitFuture.successful(storageUnit)
-        case b: Building => getBuildingById(id).musitFutureMap(storageBuilding => Storage.getBuilding(storageUnit, storageBuilding))
-        case r: Room => getRoomById(id).musitFutureMap(storageRoom => Storage.getRoom(storageUnit, storageRoom))
+        case StorageType.StorageUnit => MusitFuture.successful(storageUnit)
+        case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding => Storage.getBuilding(storageUnit.setType(StorageType.Building), storageBuilding))
+        case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom => Storage.getRoom(storageUnit.setType(StorageType.Room), storageRoom))
       }
     }
   }
@@ -80,10 +81,6 @@ trait StorageUnitService {
 
   def all: Future[Seq[StorageUnit]] = {
     StorageUnitDao.all()
-  }
-
-  def find(id: Long) = {
-    getById(id)
   }
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) = {
@@ -102,11 +99,10 @@ trait StorageUnitService {
 
   def updateStorageTripleByID(id: Long, triple: Storage) = {
     verifyStorageTypeMatchesDatabase(id, triple.storageType).musitFutureFlatMap { _ =>
-
-      triple.storageType match {
+      triple match {
         case st: StorageUnit => updateStorageUnitByID(id, st)
-        case b: Building => BuildingService.updateBuildingByID(id, (b.toStorageUnit, b))
-        case r: Room => RoomService.updateRoomByID(id, (r.toStorageUnit, r))
+        case b: Building => BuildingService.updateBuildingByID(id, (b.toStorageUnit.setType(StorageType.Building), b))
+        case r: Room => RoomService.updateRoomByID(id, (r.toStorageUnit.setType(StorageType.Room), r))
       }
     }
   }
