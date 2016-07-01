@@ -19,7 +19,7 @@
 
 import React from 'react'
 
-import { Panel, Grid, Row, Col, FormGroup, Button, ControlLabel } from 'react-bootstrap'
+import { Panel, Grid, Row, Col, FormGroup, Button, ControlLabel, SplitButton, MenuItem } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
@@ -67,30 +67,30 @@ export default class ObservationView extends React.Component {
           type: 'pest',
           data: {
             observations: [],
-            identificationValue: 'ID',
-            commentsValue: 'comment'
+            identificationValue: '',
+            commentsValue: ''
           }
         },
         {
           type: 'hypoxicAir',
           data: {
-            fromValue: '122,123',
-            toValue: '123,122',
-            commentValue: '1234'
+            fromValue: '',
+            toValue: '',
+            commentValue: ''
           }
         },
         {
           type: 'cleaning',
           data: {
-            leftValue: 'Left test value',
-            rightValue: 'right'
+            leftValue: '',
+            rightValue: ''
           }
         },
         {
           type: 'alcohol',
           data: {
-            statusValue: '122,123',
-            volumeValue: '123',
+            statusValue: '',
+            volumeValue: '',
             commentValue: ''
           }
         }*/
@@ -99,6 +99,7 @@ export default class ObservationView extends React.Component {
     this.addNewObservation = this.addNewObservation.bind(this)
     this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
     this.addPest = this.addPest.bind(this)
+    this.selectType = this.selectType.bind(this)
   }
 
   onChangeDoneBy(event, { newValue }) {
@@ -118,6 +119,23 @@ export default class ObservationView extends React.Component {
     this.setState({ ...this.state, observations: [...this.state.observations, { type: '' }] })
   }
 
+  selectType(index, observationType) {
+    this.setState({
+      ...this.state,
+      observations: this.state.observations.map((obs, i) => {
+        let retVal = obs
+        if (index === i) {
+          const typeValue = observationType[0]
+          const obsType = observationType[1]
+          retVal = { ...obs, type: typeValue, data: this.observationTypeDefinitions[obsType.component.viewType].defaultValues }
+          console.log(retVal)
+          console.log(observationType)
+        }
+        return retVal
+      })
+    })
+  }
+
   updateDoneBy(newValue) {
     console.log(newValue)
   }
@@ -131,7 +149,14 @@ export default class ObservationView extends React.Component {
 
   render() {
     const { translate } = this.props
-    const { addNewObservation, getDoneBySuggestionValue, renderDoneBySuggestion, onDoneByUpdateRequested } = this
+    const {
+      addNewObservation,
+      observationTypes,
+      getDoneBySuggestionValue,
+      renderDoneBySuggestion,
+      onDoneByUpdateRequested,
+      selectType
+    } = this
     const { observations } = this.state
 
     const doneByProps = {
@@ -145,23 +170,37 @@ export default class ObservationView extends React.Component {
     const renderActiveTypes = (items) => {
       const block = items.map((observation, index) => {
         // TODO: Check for new type, how to handle
-        const observationType = this.observationTypes[observation.type]
-        const observationTypeDef = this.observationTypeDefinitions[observationType.component.viewType]
+        let subBlock = ''
+        if (observation.type && observation.type.length > 0) {
+          const observationType = this.observationTypes[observation.type]
+          const observationTypeDef = this.observationTypeDefinitions[observationType.component.viewType]
 
-        // TODO: Draw type field. And action to change type, with state reset and default variables.
+          // TODO: Draw type field. And action to change type, with state reset and default variables.
+          subBlock = observationTypeDef.render(index, {
+            ...observationType.component.props,
+            ...observationTypeDef.props,
+            ...observation.data
+          })
+        }
+        const menuItems = Object.entries(observationTypes).map((obsType, row) => (
+          <MenuItem key={row} eventKey={obsType}>{obsType[1].label}</MenuItem>
+        ))
         return (
           <Row key={index}>
             <Col sm={10} smOffset={1}>
-              {observationTypeDef.render({
-                ...observationType.component.props,
-                ...observationTypeDef.props,
-                ...observation.data
-              })}
+              <SplitButton
+                id={`new_${index}`}
+                title={observation.type || 'Vennligst velg...'}
+                pullRight
+                onSelect={(observationType) => selectType(index, observationType)}
+              >
+                {menuItems}
+              </SplitButton>
+              {subBlock}
             </Col>
           </Row>
         )
       })
-
       return block
     }
 

@@ -25,23 +25,23 @@ import {
   ObservationPest
 } from '../../components/observation'
 
-const renderDoubleTextArea = (props) => (
+const renderDoubleTextArea = (index, props) => (
   <ObservationDoubleTextAreaComponent {...props} />
 )
 
-const renderFromToNumber = (props) => (
+const renderFromToNumber = (index, props) => (
   <ObservationFromToNumberCommentComponent {...props} />
 )
 
-const renderStatusPercent = (props) => (
+const renderStatusPercent = (index, props) => (
   <ObservationStatusPercentageComment {...props} />
 )
 
-const renderPest = (props) => (
+const renderPest = (index, props) => (
   <ObservationPest {...props} />
 )
 
-const observationTypeDefinitions = (translate, addPest) => {
+const observationTypeDefinitions = (translate) => {
   return {
     pest: {
       viewLabel: translate('musit.texts.ok'),
@@ -49,11 +49,16 @@ const observationTypeDefinitions = (translate, addPest) => {
         id: 'pest',
         translate: translate,
         lifeCycleItems: ['Adult', 'Puppe', 'Puppeskin', 'Larva', 'Egg'],
-        onChangeLifeCycle: (index, value) => console.log(`${index}:${value}`),
-        onChangeCount: (index, value) => console.log(`${index}:${value}`),
-        onChangeIdentification: () => console.log('Comment changed'),
-        onChangeComments: () => console.log('Comment changed'),
-        onAddPest: () => addPest()
+        onChangeLifeCycle: (e) => console.log(e),
+        onChangeCount: (e) => console.log(e),
+        onChangeIdentification: (e) => console.log(e),
+        onChangeComments: (e) => console.log(e),
+        onAddPest: (e) => console.log(e)
+      },
+      defaultValues: {
+        observations: [],
+        identificationValue: '',
+        commentsValue: ''
       },
       render: renderPest
     },
@@ -65,6 +70,11 @@ const observationTypeDefinitions = (translate, addPest) => {
         onChangeVolume: () => console.log('TO changed'),
         onChangeComment: () => console.log('Comment changed')
       },
+      defaultValues: {
+        statusValue: '',
+        volumeValue: '',
+        commentValue: ''
+      },
       render: renderStatusPercent
     },
     comments: {
@@ -73,6 +83,10 @@ const observationTypeDefinitions = (translate, addPest) => {
         translate: translate,
         onChangeLeft: () => console.log('left changed'),
         onChangeRight: () => console.log('Right changed')
+      },
+      defaultValues: {
+        leftValue: '',
+        rightValue: ''
       },
       render: renderDoubleTextArea
     },
@@ -83,6 +97,11 @@ const observationTypeDefinitions = (translate, addPest) => {
         onChangeFrom: () => console.log('From changed'),
         onChangeTo: () => console.log('TO changed'),
         onChangeComment: () => console.log('Comment changed')
+      },
+      defaultValues: {
+        fromValue: '',
+        toValue: '',
+        commentValue: ''
       },
       render: renderFromToNumber
     }
