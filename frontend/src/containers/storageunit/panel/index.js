@@ -32,4 +32,4 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 @connect(mapStateToProps, mapDispatchToProps)
-export class StorageUnitContainer extends StorageUnitContainerImpl {}
+export default class StorageUnitContainer extends StorageUnitContainerImpl {}

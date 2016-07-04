@@ -17,8 +17,8 @@ class StorageUnitList extends React.Component {
           {this.props.units.map(u => (
             <tr>
               <td>{u.id}</td>
-              <td>{u.storageType}</td>
-              <td>{u.storageUnitName}</td>
+              <td>{u.type}</td>
+              <td>{u.name}</td>
               <td>
                 <button onClick={() => this.props.onPick(u)}>Pick</button>
                 <button onClick={() => this.props.onEdit(u)}>Edit</button>
