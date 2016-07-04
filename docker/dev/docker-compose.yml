@@ -1,0 +1,38 @@
+version: "2"
+services:
+    nginx:
+        build:
+            context: "./nginx"
+        ports:
+            - "8080:80"
+        links:
+            - backing
+            - webpack
+    webpack:
+        build:
+            context: "../../frontend"
+        volumes:
+            - ../../frontend/src:/usr/src/app/src
+            - ../../frontend/public:/usr/src/app/public
+            - ../../fake_security.json:/usr/src/fake_security.json:ro
+        environment:
+          - PUBLIC_PORT=8080
+    backing:
+        build:
+            context: "../../backing"
+        ports:
+            - "3030:3030"
+    thing:
+        image: musit_service_musit_thing:0.1-SNAPSHOT
+    core:
+        image: musit_service_core:0.1-SNAPSHOT
+    storageadmin:
+        image: musit_service_storage_admin:0.1-SNAPSHOT
+    actor:
+        image: musit_service_actor:0.1-SNAPSHOT
+    geolocation:
+        image: musit_service_geo_location:0.1-SNAPSHOT
+    event:
+        image: musit_service_event:0.1-SNAPSHOT
+    time:
+        image: musit_service_time:0.1-SNAPSHOT

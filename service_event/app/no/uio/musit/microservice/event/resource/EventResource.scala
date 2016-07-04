@@ -20,7 +20,6 @@
 
 package no.uio.musit.microservice.event.resource
 
-import io.swagger.annotations.ApiOperation
 import no.uio.musit.microservice.event.domain.{ AtomLink, CompleteEvent, EventInfo, EventType }
 import no.uio.musit.microservice.event.service.EventService
 import no.uio.musit.microservices.common.domain.MusitError
@@ -52,7 +51,6 @@ class EventResource extends Controller {
 
   }
 
-  @ApiOperation(value = "Event operation - inserts an Event", httpMethod = "POST")
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
 
     val eventInfoResult = jsonToEventInfo(request.body)

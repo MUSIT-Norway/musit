@@ -22,15 +22,15 @@ import Keys._
 
 object Dependencies {
 
-  val scala = "2.11.7"
+  val scala = "2.11.8"
 
   val resolvers = DefaultOptions.resolvers(snapshot = true) ++ Seq(
     "scalaz-releases" at "http://dl.bintray.com/scalaz/releases"
   )
 
   object PlayFrameWork {
-    val version = "2.4.6"
-    val slickVersion = "1.1.1"
+    val version = "2.5.4"
+    val slickVersion = "2.0.0"
 
     val slick = "com.typesafe.play" %% "play-slick" % slickVersion
     val slick_ext = "com.typesafe.play" %% "play-slick-evolutions" % slickVersion
@@ -41,17 +41,12 @@ object Dependencies {
 
   }
 
-  object Documentation {
-    val swaggerplay = "io.swagger" % "swagger-play2_2.11" % "1.5.1"
-    val swaggerUI = "org.webjars" % "swagger-ui" % "2.1.4"
-  }
-
-  val logback = "ch.qos.logback" % "logback-classic" % "1.1.3"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
 
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
-  val h2database = "com.h2database" % "h2" % "1.4.187"
+  val h2database = "com.h2database" % "h2" % "1.4.192"
   var scalatestSpec = "org.scalatest" %% "scalatest" % "2.2.4"
-  val scalatestplusSpec = "org.scalatestplus" %% "play" % "1.4.0"
+  val scalatestplusSpec = "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1"
   val scalatest = scalatestSpec % "it,test"
   val scalatestplus = scalatestplusSpec % "it,test"
 
@@ -63,8 +58,6 @@ object Dependencies {
     PlayFrameWork.cache,
     PlayFrameWork.ws,
     PlayFrameWork.json,
-    Documentation.swaggerplay,
-    Documentation.swaggerUI,
     logback
   )
 
