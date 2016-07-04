@@ -25,10 +25,11 @@ import Field from '../../components/formfields/musitfield'
 import { addControl } from '../../reducers/control'
 import Language from '../../components/language'
 
+
 const mapStateToProps = (state) => ({
   user: state.auth.user,
   environmentRequirements: state.environmentRequirements,
-  translate: (key, markdown) => Language.translate(key, markdown),
+  translate: (key, markdown) => Language.translate(key, markdown)
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -59,11 +60,18 @@ export default class ControlView extends React.Component {
       cleaningOK: null,
       alchoholOK: null,
       moldFungusOK: null,
-      relativeHumidity: null,
+      relativeHumidityOK: null,
       pestOK: null,
       storageUnit: null,
       temperature: '12',
-      temperatureTolerance: '2'
+      temperatureTolerance: '2',
+      relativeHumidity: '89',
+      relativeHumidityInterval: '4',
+      inertAir: '56',
+      inertAirInterval: '4',
+      light: 'Mørkt',
+      cleaning: 'Gullende rent'
+
     }
     this.getDate = this.getDate.bind(this)
     this.onTemperatureOKClick = this.onTemperatureOKClick.bind(this)
@@ -87,6 +95,9 @@ export default class ControlView extends React.Component {
 
     this.onMoldFungusOKClick = this.onMoldFungusOKClick.bind(this)
     this.onMoldFungusNotOKClick = this.onMoldFungusNotOKClick.bind(this)
+
+    this.onGasOKClick = this.onGasOKClick.bind(this)
+    this.onGasNotOKClick = this.onGasNotOKClick.bind(this)
   }
 
   onTemperatureOKClick() {
@@ -124,18 +135,18 @@ export default class ControlView extends React.Component {
   }
 
   onRelativeHumidityOKClick() {
-    if (this.state.relativeHumidity != null && this.state.relativeHumidity) {
-      this.setState({ ...this.state, relativeHumidity: null })
+    if (this.state.relativeHumidityOK != null && this.state.relativeHumidityOK) {
+      this.setState({ ...this.state, relativeHumidityOK: null })
     } else {
-      this.setState({ ...this.state, relativeHumidity: true })
+      this.setState({ ...this.state, relativeHumidityOK: true })
     }
   }
 
   onRelativeHumidityNotOKClick() {
-    if (this.state.relativeHumidity != null && !this.state.relativeHumidity) {
-      this.setState({ ...this.state, relativeHumidity: null })
+    if (this.state.relativeHumidityOK != null && !this.state.relativeHumidityOK) {
+      this.setState({ ...this.state, relativeHumidityOK: null })
     } else {
-      this.setState({ ...this.state, relativeHumidity: false })
+      this.setState({ ...this.state, relativeHumidityOK: false })
     }
   }
 
@@ -214,6 +225,21 @@ export default class ControlView extends React.Component {
     }
   }
 
+  onGasOKClick() {
+    if (this.state.gasOK != null && this.state.gasOK) {
+      this.setState({ ...this.state, gasOK: null })
+    } else {
+      this.setState({ ...this.state, gasOK: true })
+    }
+  }
+  onGasNotOKClick() {
+    if (this.state.gasOK != null && !this.state.gasOK) {
+      this.setState({ ...this.state, gasOK: null })
+    } else {
+      this.setState({ ...this.state, gasOK: false })
+    }
+  }
+
 
   getDate() {
     const d = new Date()
@@ -222,6 +248,18 @@ export default class ControlView extends React.Component {
   }
 
   render() {
+    const stateOKorNotOK = () => {
+      return (this.state.temperatureOK != null ||
+        this.state.relativeHumidityOK != null ||
+        this.state.inertAirOK != null ||
+        this.state.lightConditionsOK != null ||
+        this.state.cleaningOK != null ||
+        this.state.gasOK != null ||
+        this.state.alchoholOK != null ||
+        this.state.moldFungusOK != null ||
+        this.state.pestOK != null)
+    }
+
     const { translate } = this.props
     const renderReadOnly = (v) => {
       return <FormControl style={{ backgroundColor: '#f2f2f2' }} readonly value={v} />
@@ -241,9 +279,11 @@ export default class ControlView extends React.Component {
           <Row>
             <h1 />
           </Row>
-          <PageHeader>
-            {this.props.translate('musit.newControl.title', true)}
-          </PageHeader>
+          <Row styleClass="row-centered">
+            <PageHeader>
+              {this.props.translate('musit.newControl.title', true)}
+            </PageHeader>
+          </Row>
 
           <Row>
             <Col md={3}>
@@ -258,7 +298,7 @@ export default class ControlView extends React.Component {
                 </Row>
                 <Row>
                   <Col md={12}>
-                    <Field />
+                    <Field value={this.getDate()} />
                   </Col>
                 </Row>
               </Col>
@@ -273,7 +313,7 @@ export default class ControlView extends React.Component {
               </Row>
               <Row>
                 <Col md={9}>
-                  <Field />
+                  <Field value={this.props.user.name} />
                 </Col>
               </Row>
             </Col>
@@ -322,6 +362,38 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3}>
               <PairedToogleButtons
+                label={translate('musit.newControl.relativeHumidity')}
+                value={this.state.relativeHumidityOK}
+                updatevalueOK={this.onRelativeHumidityOKClick}
+                updatevalueNotOK={this.onRelativeHumidityNotOKClick}
+              />
+            </Col>
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> {translate('musit.newControl.envdata')} </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={5}>
+                  {renderReadOnly(this.state.relativeHumidity)}
+                </Col>
+                <Col md={4}>
+                  {renderReadOnly(this.state.relativeHumidityInterval)}
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={3}>
+              <PairedToogleButtons
                 label={translate('musit.newControl.inertAir')}
                 value={this.state.inertAirOK}
                 updatevalueOK={this.onInertAirOKClick}
@@ -336,75 +408,10 @@ export default class ControlView extends React.Component {
               </Row>
               <Row>
                 <Col md={5}>
-                  <Field />
+                  {renderReadOnly(this.state.inertAir)}
                 </Col>
                 <Col md={4}>
-                  <Field />
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.relativeHumidity')}
-                value={this.state.relativeHumidity}
-                updatevalueOK={this.onRelativeHumidityOKClick}
-                updatevalueNotOK={this.onRelativeHumidityNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={5}>
-                  <Field />
-                </Col>
-                <Col md={4}>
-                  <Field />
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.cleaning')}
-                value={this.state.cleaningOK}
-                updatevalueOK={this.onCleaningOKClick}
-                updatevalueNotOK={this.onCleaningNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={5}>
-                  <Field />
-                </Col>
-                <Col md={4}>
-                  <Field />
+                  {renderReadOnly(this.state.inertAirInterval)}
                 </Col>
               </Row>
             </Col>
@@ -433,12 +440,64 @@ export default class ControlView extends React.Component {
                 </Col>
               </Row>
               <Row>
+                <Col md={9}>
+                  {renderReadOnly(this.state.light)}
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+          <Row>
+            <Col md={3}>
+              <PairedToogleButtons
+                label={translate('musit.newControl.cleaning')}
+                value={this.state.cleaningOK}
+                updatevalueOK={this.onCleaningOKClick}
+                updatevalueNotOK={this.onCleaningNotOKClick}
+              />
+            </Col>
+            <Col md={9}>
+              <Row>
                 <Col md={5}>
-                  <Field />
+                  <label> {translate('musit.newControl.envdata')} </label>
                 </Col>
-                <Col md={4}>
-                  <Field />
+              </Row>
+              <Row>
+                <Col md={9}>
+                  {renderReadOnly(this.state.cleaning)}
                 </Col>
+              </Row>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={3}>
+              <PairedToogleButtons
+                label={translate('musit.newControl.gas')}
+                value={this.state.gasOK}
+                updatevalueOK={this.onGasOKClick}
+                updatevalueNotOK={this.onGasNotOKClick}
+              />
+            </Col>
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> {translate('musit.newControl.envdata')} </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={9}> --- </Col>
               </Row>
             </Col>
           </Row>
@@ -544,7 +603,14 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3} />
             <Col md={9} mdPush={8}>
-              <Button text-align="right" pullRight onClick={() => this.props.onLagreControl(this.state)}> Lagre </Button>
+              <Button
+                disabled={!stateOKorNotOK()}
+                text-align="right"
+                pullRight onClick={() =>
+                this.props.onLagreControl(this.state)}
+              >
+                Registrer observasjon
+              </Button>
             </Col>
           </Row>
         </Grid>

@@ -29,6 +29,7 @@ no:
       cleaning: "Renhold"
       lightCondition: "Lysforhold"
       alchohol: "Sprit"
+      gas: "Gass"
       mold: "Mugg"
       pest: "Skadedyr"
       envdata: "Miljødata"
