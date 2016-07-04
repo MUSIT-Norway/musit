@@ -1,12 +1,10 @@
 package no.uio.musit.microservice.storageAdmin.domain
 
-import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.OFormat
 import julienrf.json.derived
 import no.uio.musit.microservice.storageAdmin.domain.dto.{ BaseDTO, BuildingDTO, RoomDTO, StorageUnitDTO }
-import play.api.libs.json.__
-import shapeless.syntax.std.tuple._
+import no.uio.musit.microservices.common.linking.LinkService
+import no.uio.musit.microservices.common.linking.domain.Link
+import play.api.libs.json.{ OFormat, __ }
 
 sealed trait Storage {
   val id: Option[Long]
@@ -19,7 +17,6 @@ sealed trait Storage {
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val links: Option[Seq[Link]]
-  val isDeleted: Option[Boolean]
   val storageType: StorageType
 }
 
@@ -34,7 +31,6 @@ case class StorageUnit(
   groupRead: Option[String],
   groupWrite: Option[String],
   links: Option[Seq[Link]],
-  isDeleted: Option[Boolean],
   storageType: StorageType = StorageType.StorageUnit
 ) extends Storage
 
@@ -51,7 +47,6 @@ case class Room(
     groupRead: Option[String],
     groupWrite: Option[String],
     links: Option[Seq[Link]],
-    isDeleted: Option[Boolean],
     sikringSkallsikring: Option[Boolean],
     sikringTyverisikring: Option[Boolean],
     sikringBrannsikring: Option[Boolean],
@@ -75,7 +70,6 @@ case class Building(
     groupRead: Option[String],
     groupWrite: Option[String],
     links: Option[Seq[Link]],
-    isDeleted: Option[Boolean],
     address: Option[String]
 ) extends Storage {
   val storageType: StorageType = StorageType.Building
@@ -98,7 +92,6 @@ object Storage {
           isPartOf = stu.isPartOf,
           groupRead = stu.groupRead,
           groupWrite = stu.groupWrite,
-          isDeleted = stu.isDeleted,
           links = stu.links
         )
       case building: BuildingDTO =>
@@ -112,7 +105,6 @@ object Storage {
           isPartOf = building.isPartOf,
           groupRead = building.groupRead,
           groupWrite = building.groupWrite,
-          isDeleted = building.isDeleted,
           links = building.links,
           address = building.address
         )
@@ -127,7 +119,6 @@ object Storage {
           isPartOf = room.isPartOf,
           groupRead = room.groupRead,
           groupWrite = room.groupWrite,
-          isDeleted = room.isDeleted,
           links = room.links,
           sikringSkallsikring = room.sikringSkallsikring,
           sikringBrannsikring = room.sikringBrannsikring,
@@ -151,7 +142,6 @@ object Storage {
       isPartOf = unit.isPartOf,
       groupRead = unit.groupRead,
       groupWrite = unit.groupWrite,
-      isDeleted = unit.isDeleted,
       links = unit.links,
       address = building.address
     )
@@ -168,7 +158,6 @@ object Storage {
       isPartOf = unit.isPartOf,
       groupRead = unit.groupRead,
       groupWrite = unit.groupWrite,
-      isDeleted = unit.isDeleted,
       links = unit.links,
       sikringSkallsikring = room.sikringSkallsikring,
       sikringBrannsikring = room.sikringBrannsikring,
@@ -193,7 +182,7 @@ object Storage {
       groupRead = stu.groupRead,
       groupWrite = stu.groupWrite,
       links = stu.links,
-      isDeleted = stu.isDeleted,
+      isDeleted = Some(false), // hack, we check isDeleted in slick before update, so ..
       `type` = stu.storageType
     )
 

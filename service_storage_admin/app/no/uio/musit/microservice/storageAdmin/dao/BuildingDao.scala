@@ -59,7 +59,7 @@ object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
     def address = column[Option[String]]("POSTAL_ADDRESS")
 
     def create = (id: Option[Long], address: Option[String]) =>
-      Building(id, null, None, None, None, None, None, None, None, None, None,
+      Building(id, null, None, None, None, None, None, None, None, None,
         address)
 
     def destroy(building: Building) = Some(building.id, building.address)
