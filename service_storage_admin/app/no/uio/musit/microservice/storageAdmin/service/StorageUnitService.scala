@@ -28,6 +28,7 @@ import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Left
 
 trait StorageUnitService {
 
@@ -77,7 +78,7 @@ trait StorageUnitService {
     StorageUnitDao.all()
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =
-    ServiceHelper.daoUpdate(StorageUnitDao.updateStorageUnit, id, Storage.toDTO(storageUnit))
+    StorageUnitDao.updateStorageUnit(id, Storage.toDTO(storageUnit))
 
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageType): MusitFuture[Boolean] =
     getStorageType(id).musitFutureFlatMapInnerEither {
@@ -88,16 +89,19 @@ trait StorageUnitService {
         )
     }
 
-  def updateStorageTripleByID(id: Long, triple: Storage) =
-    verifyStorageTypeMatchesDatabase(id, triple.storageType).musitFutureFlatMap { _ =>
-      triple match {
-        case st: StorageUnit =>
-          updateStorageUnitByID(id, st)
-        case building: Building =>
-          BuildingService.updateBuildingByID(id, building)
-        case room: Room =>
-          RoomService.updateRoomByID(id, room)
-      }
+  def updateStorageTripleByID(id: Long, triple: Storage): Future[Either[MusitError, Int]] =
+    verifyStorageTypeMatchesDatabase(id, triple.storageType).flatMap {
+      case Right(true) =>
+        triple match {
+          case st: StorageUnit =>
+            updateStorageUnitByID(id, st).map(Right(_))
+          case building: Building =>
+            BuildingService.updateBuildingByID(id, building).map(Right(_))
+          case room: Room =>
+            RoomService.updateRoomByID(id, room).map(Right(_))
+        }
+      case Left(error) =>
+        Future.successful(Left(error))
     }
 
   def deleteStorageTriple(id: Long): MusitFuture[Int] =

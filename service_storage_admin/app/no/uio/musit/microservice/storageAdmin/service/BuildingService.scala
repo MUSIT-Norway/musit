@@ -11,7 +11,7 @@ trait BuildingService {
     ServiceHelper.daoInsert(BuildingDao.insertBuilding(storageUnit, storageBuilding))
 
   def updateBuildingByID(id: Long, building: Building) =
-    ServiceHelper.daoUpdate(BuildingDao.updateBuilding, id, building)
+    BuildingDao.updateBuilding(id, building)
 }
 
 object BuildingService extends BuildingService

@@ -11,7 +11,7 @@ trait RoomService {
     ServiceHelper.daoInsert(RoomDao.insertRoom(storageUnit, storageRoom))
 
   def updateRoomByID(id: Long, room: Room) =
-    ServiceHelper.daoUpdate(RoomDao.updateRoom, id, room)
+    RoomDao.updateRoom(id, room)
 }
 
 object RoomService extends RoomService

@@ -1,12 +1,12 @@
 import { connect } from 'react-redux';
 import Language from '../../../components/language'
-import { load, insert as insertStorageUnitContainer } from '../../../reducers/storageunit';
+import { load, insert as insertStorageUnitContainer } from '../../../reducers/storageunit/panel';
 import { suggestAddress, clearSuggest } from '../../../reducers/suggest'
 import StorageUnitContainerImpl from './StorageUnitContainer'
 
 const mapStateToProps = (state) => {
   return {
-    storageUnit: (state.storageUnit && state.storageUnit.data) ? state.storageUnit.data : {},
+    unit: (state.storagePanelUnit && state.storagePanelUnit.data) ? state.storagePanelUnit.data : {},
     translate: (key, markdown) => Language.translate(key, markdown),
     suggest: state.suggest
   }

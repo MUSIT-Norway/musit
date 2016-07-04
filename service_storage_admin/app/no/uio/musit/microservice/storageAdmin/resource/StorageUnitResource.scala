@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storageAdmin.resource
 import no.uio.musit.microservice.storageAdmin.dao.{ BuildingDao, RoomDao }
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
+import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
@@ -73,8 +74,17 @@ class StorageUnitResource extends Controller {
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
     request =>
-      val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
-      ResourceHelper.updateRootWithMusitResult(StorageUnitService.updateStorageTripleByID, id, musitResultTriple)
+      request.body.validate[Storage].asEither match {
+        case Right(storage) =>
+          StorageUnitService.updateStorageTripleByID(id, storage).flatMap {
+            case Right(1) => ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
+            case Right(n) => Future.successful(InternalServerError(s"Updated wrongly $n rows"))
+            case Left(error) => Future.successful(Status(error.status)(Json.toJson(error)))
+          }
+        case Left(error) =>
+          Future.successful(Status(400)(Json.toJson(MusitError(message = error.mkString))))
+      }
+
   }
 
   def deleteRoot(id: Long) = Action.async {

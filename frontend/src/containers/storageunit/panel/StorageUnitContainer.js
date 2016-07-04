@@ -24,7 +24,7 @@ import EnvironmentRequirementComponent from '../../../components/storageunits/En
 
 export default class StorageUnitContainer extends Component {
   static propTypes = {
-    storageUnit: PropTypes.object.isRequired,
+    unit: PropTypes.object.isRequired,
     id: PropTypes.number,
     loadStorageUnit: PropTypes.func.isRequired,
     onAddressSuggestionsUpdateRequested: PropTypes.func.isRequired,
@@ -41,44 +41,38 @@ export default class StorageUnitContainer extends Component {
 
   updateStorageUnit(data, key, value) {
     const newData = Object.assign({}, data);
-    let v = null
-    if (isNaN(value)) {
-      v = value
-    } else {
-      v = value ? parseFloat(value) : null
-    }
-    newData[key] = v && v !== '' ? v : null
-    this.setState({ storageUnit: newData })
+    newData[key] = value
+    this.setState({ unit: newData })
   }
 
   render() {
-    const data = (this.state && this.state.storageUnit) ? this.state.storageUnit : this.props.storageUnit;
+    const data = (this.state && this.state.unit) ? this.state.unit : this.props.unit;
     return (
       <div>
         <main>
           <Grid>
             <Row styleClass="row-centered">
               <ButtonToolbar>
-                <Button bsStyle="primary" onClick={() => this.props.onLagreClick(this.state.storageUnit)} >Lagre</Button>
-                <Button>Cancel</Button>
+                <Button bsStyle="primary" onClick={() => this.props.onLagreClick(data)} >Lagre</Button>
+                <Button onClick={() => window.history.back()}>Cancel</Button>
               </ButtonToolbar>
             </Row>
           </Grid>
           <StorageUnitComponents
             unit={data}
             translate={this.props.translate}
-            updateType={(storageType) =>
-              this.updateStorageUnit(data, 'storageType', storageType)}
-            updateName={(storageUnitName) =>
-              this.updateStorageUnit(data, 'storageUnitName', storageUnitName)}
+            updateType={(type) =>
+              this.updateStorageUnit(data, 'type', type)}
+            updateName={(name) =>
+              this.updateStorageUnit(data, 'name', name)}
             updateAreal1={(area) =>
-              this.updateStorageUnit(data, 'area', area)}
-            updateAreal2={(areal2) =>
-              this.updateStorageUnit(data, 'area2', areal2)}
+              this.updateStorageUnit(data, 'area', area !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(area) ? Number(area.replace(',', '.')) : area)}
+            updateAreal2={(areaTo) =>
+              this.updateStorageUnit(data, 'areaTo', areaTo !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(areaTo) ? Number(areaTo.replace(',', '.')) : areaTo)}
             updateHeight1={(height) =>
-              this.updateStorageUnit(data, 'height', height)}
-            updateHeight2={(height2) =>
-              this.updateStorageUnit(data, 'height2', height2)}
+              this.updateStorageUnit(data, 'height', height !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(height) ? Number(height.replace(',', '.')) : height)}
+            updateHeight2={(heightTo) =>
+              this.updateStorageUnit(data, 'heightTo', heightTo !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(heightTo) ? Number(heightTo.replace(',', '.')) : heightTo)}
             updateAddress={(address) =>
               this.updateStorageUnit(data, 'address', address)}
             onAddressSuggestionsUpdateRequested={this.props.onAddressSuggestionsUpdateRequested}
@@ -87,7 +81,7 @@ export default class StorageUnitContainer extends Component {
           <EnvironmentRequirementComponent
             translate={this.props.translate}
           />
-          {data.storageType === 'room' ?
+          {data.type === 'Room' ?
             <Options
               unit={data}
               // Disse må fikses (Mappe verdi av sikring fra bool -> {0,1})

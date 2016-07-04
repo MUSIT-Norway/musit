@@ -13,9 +13,9 @@ export default class StorageUnitComponent extends Component {
     unit: React.PropTypes.shape({
       name: React.PropTypes.string,
       area: React.PropTypes.string,
-      areal2: React.PropTypes.number,
+      areaTo: React.PropTypes.number,
       height: React.PropTypes.number,
-      height2: React.PropTypes.number,
+      heightTo: React.PropTypes.number,
       type: React.PropTypes.string,
       address: React.PropTypes.string }
     ),
@@ -43,7 +43,7 @@ export default class StorageUnitComponent extends Component {
       placeHolderText: 'enter areal 1 here',
       placeHolderText2: 'enter areal 2 here',
       valueText: () => this.props.unit.area,
-      valueText2: () => this.props.unit.areal2,
+      valueText2: () => this.props.unit.areaTo,
       onChange1: (area) => this.props.updateAreal1(area),
       onChange2: (areal2) => this.props.updateAreal2(areal2)
     }
@@ -56,7 +56,7 @@ export default class StorageUnitComponent extends Component {
       placeHolderText: 'enter høyde 1 here',
       placeHolderText2: 'enter høyde 2 here',
       valueText: () => this.props.unit.height,
-      valueText2: () => this.props.unit.height2,
+      valueText2: () => this.props.unit.heightTo,
       onChange1: (height) => this.props.updateHeight1(height),
       onChange2: (height2) => this.props.updateHeight2(height2)
     }
