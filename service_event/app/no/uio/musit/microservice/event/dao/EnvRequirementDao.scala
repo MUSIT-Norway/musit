@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.event.dao
 
+import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
@@ -19,8 +20,11 @@ object EnvRequirementDAO extends HasDatabaseConfig[JdbcProfile] {
   private val EnvRequirementTable = TableQuery[EnvRequirementTable]
 
   case class EnvRequirementDto(id: Option[Long], temperature: Option[Int], tempInterval: Option[Int], airHumidity: Option[Int],
-    airHumInterval: Option[Int], hypoxicAir: Option[Int], hypoxicInterval: Option[Int],
-    cleaning: Option[String], light: Option[String]) {}
+      airHumInterval: Option[Int], hypoxicAir: Option[Int], hypoxicInterval: Option[Int],
+      cleaning: Option[String], light: Option[String]) {
+
+    //def validateInterval = if(tempInterval.get > 0) tempInterval else throw new MusitInternalErrorException("Can't have negative intervals")
+  }
 
   /*def valueLongToOptBool = valueLong match {
     case Some(1) => Some(true)

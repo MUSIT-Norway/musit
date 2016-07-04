@@ -2,8 +2,7 @@ package no.uio.musit.microservice.event.domain
 
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
-case class EventType(id: Int, name: String, eventFactory: EventService)
-{println(s"Event name: $name")}
+case class EventType(id: Int, name: String, eventFactory: EventService) { println(s"Event name: $name") }
 
 object EventType {
 
@@ -21,7 +20,7 @@ object EventType {
   private val eventTypeByName: Map[String, EventType] = eventTypes.map(evt => evt.name.toLowerCase -> evt).toMap
 
   def getByName(name: String) = eventTypeByName.get(name.toLowerCase).getOrFail(s"Unable to find event type : $name")
-/*
+  /*
   def getByNameIgnoreDollar(name: String) = {
     assert(name.endsWith("$"))
     val nameWithout$:String = name.substring(0, name.length - 2)

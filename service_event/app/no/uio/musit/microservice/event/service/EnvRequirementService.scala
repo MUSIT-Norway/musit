@@ -26,7 +26,7 @@ object EnvRequirementService extends EventService {
     val envRequirementDto: EnvRequirementDto = EnvRequirementDto(Some(id), envReq.temperature, envReq.temperatureInterval, envReq.airHumidity,
       envReq.airHumidityInterval, envReq.hypoxicAir, envReq.hypoxicAirInterval, envReq.cleaning,
       envReq.light)
-    EnvRequirementDAO.insertAction(envRequirementDto.copy(id=Some(id)))
+    EnvRequirementDAO.insertAction(envRequirementDto.copy(id = Some(id)))
   })
 }
 

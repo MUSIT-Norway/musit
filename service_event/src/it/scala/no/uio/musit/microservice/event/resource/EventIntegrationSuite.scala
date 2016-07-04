@@ -158,6 +158,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "note": "Dette er et viktig notat for miljøkravene!",
    "temperature": 20,
    "temperatureInterval" : 5,
+   "airHumidity": -20,
+   "airHumidityInterval" : 4,
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
       val response = createEvent(json)
@@ -173,6 +175,31 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       println(s"Get: ${responseGet.body}")
 
     }
+
+    "post and get Air envRequirement" in {
+      val json =
+        """
+  {
+   "type": "EnvRequirement",
+   "note": "Dette er et viktig notat for miljøkravene!",
+   "airHumidity": -20,
+   "airHumidityInterval" : 5,
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+      val response = createEvent(json)
+      response.status mustBe 201
+      println(s"Create: ${response.body}")
+
+      val myEnvReqEvent = Event.format.reads(response.json).get.asInstanceOf[EnvRequirement]
+      myEnvReqEvent.airHumidity mustBe Some(-20)
+
+
+      val responseGet = getEvent(myEnvReqEvent.id.get)
+      responseGet.status mustBe 200
+      println(s"Get: ${responseGet.body}")
+
+    }
+
 
   }
 
