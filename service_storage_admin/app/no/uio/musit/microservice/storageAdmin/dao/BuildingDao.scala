@@ -1,6 +1,7 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain._
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.Play
@@ -29,9 +30,9 @@ object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
-  def updateBuilding(id: Long, storageUnitAndBuilding: (StorageUnit, Building)) = {
-    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, StorageUnitDTO.fromStorageUnit(storageUnitAndBuilding._1)) |> DaoHelper.onlyAcceptOneUpdatedRecord
-    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, storageUnitAndBuilding._2.copy(id = Some(id))) }
+  def updateBuilding(id: Long, building: Building) = {
+    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, Storage.toDTO(building)) |> DaoHelper.onlyAcceptOneUpdatedRecord
+    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, building.copy(id = Some(id))) }
     db.run(combinedAction.transactionally)
   }
 
@@ -57,7 +58,9 @@ object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
 
     def address = column[Option[String]]("POSTAL_ADDRESS")
 
-    def create = (id: Option[Long], address: Option[String]) => Storage.getBuilding(id, address)
+    def create = (id: Option[Long], address: Option[String]) =>
+      Building(id, null, None, None, None, None, None, None, None, None, None,
+        address)
 
     def destroy(building: Building) = Some(building.id, building.address)
   }

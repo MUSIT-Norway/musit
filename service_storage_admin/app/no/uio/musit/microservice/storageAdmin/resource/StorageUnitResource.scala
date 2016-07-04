@@ -18,6 +18,7 @@
  */
 package no.uio.musit.microservice.storageAdmin.resource
 
+import no.uio.musit.microservice.storageAdmin.dao.{ BuildingDao, RoomDao }
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.linking.domain.Link
@@ -46,18 +47,28 @@ class StorageUnitResource extends Controller {
   }
 
   def getChildren(id: Long) = Action.async {
-    request =>
-      StorageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
+    StorageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
   }
 
   def getById(id: Long) = Action.async {
-    request =>
-      ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
+    ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
   }
 
   def listAll = Action.async {
-    request =>
-      StorageUnitService.all.map(__ => Ok(Json.toJson(__)))
+    StorageUnitService.all.flatMap(list => {
+      Future.sequence(list.map(unit => {
+        unit.`type` match {
+          case StorageType.StorageUnit =>
+            Future.successful(Storage.fromDTO(unit))
+          case StorageType.Building =>
+            BuildingDao.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
+              Storage.getBuilding(unit, building)))
+          case StorageType.Room =>
+            RoomDao.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
+              Storage.getRoom(unit, room)))
+        }
+      })).map(__ => Ok(Json.toJson(__)))
+    })
   }
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {

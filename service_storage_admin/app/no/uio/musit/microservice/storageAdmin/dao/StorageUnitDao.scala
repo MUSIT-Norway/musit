@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
 import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageType, StorageUnit }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
@@ -11,40 +12,6 @@ import play.api.libs.json.Json
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
-
-case class StorageUnitDTO(
-  id: Option[Long],
-  name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
-  isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  links: Option[Seq[Link]],
-  isDeleted: Option[Boolean],
-  `type`: StorageType
-)
-
-object StorageUnitDTO {
-  implicit val format = Json.format[StorageUnitDTO]
-  def fromStorageUnit[T <: Storage](su: T) =
-    StorageUnitDTO(
-      su.id,
-      su.name,
-      su.area,
-      su.areaTo,
-      su.isPartOf,
-      su.height,
-      su.heightTo,
-      su.groupRead,
-      su.groupWrite,
-      su.links,
-      su.isDeleted,
-      su.storageType
-    )
-}
 
 object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
@@ -75,11 +42,6 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def getStorageType(id: Long): MusitFuture[StorageType] = {
     db.run(StorageUnitTable.filter(_.id === id).map(_.storageType).result.headOption)
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
-  }
-
-  def getWholeCollectionStorage(storageCollectionRoot: StorageType): Future[Seq[StorageUnitDTO]] = {
-    val action = StorageUnitTable.filter(_.storageType === storageCollectionRoot).result
-    db.run(action)
   }
 
   def all(): Future[Seq[StorageUnitDTO]] =
@@ -158,7 +120,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         groupRead,
         groupWrite,
         Storage.linkText(id),
-        Some(isDeleted),
+        Option(isDeleted),
         storageType
       )
 

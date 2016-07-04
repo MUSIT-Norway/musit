@@ -1,6 +1,7 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain._
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.Play
@@ -8,6 +9,7 @@ import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.libs.json.{ JsObject, Json }
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -28,14 +30,14 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
     RoomTable.filter(_.id === id).update(storageRoom)
   }
 
-  def updateRoom(id: Long, storageUnitAndRoom: (StorageUnit, Room)) = {
+  def updateRoom(id: Long, room: Room) = {
 
     //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord
     // will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, StorageUnitDTO.fromStorageUnit(storageUnitAndRoom._1)) |> DaoHelper.onlyAcceptOneUpdatedRecord
+    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, Storage.toDTO(room)) |> DaoHelper.onlyAcceptOneUpdatedRecord
 
-    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, storageUnitAndRoom._2.copy(id = Some(id))) }
+    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, room.copy(id = Some(id))) }
 
     db.run(combinedAction.transactionally)
   }
@@ -83,8 +85,7 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
       sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
       sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean],
       bevarLysforhold: Option[Boolean], bevarPrevantKons: Option[Boolean]) =>
-      Storage.getRoom(
-        id,
+      Room(id, null, None, None, None, None, None, None, None, None, None,
         sikringSkallsikring,
         sikringTyverisikring,
         sikringBrannsikring,
@@ -92,8 +93,7 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
         sikringRutineOgBeredskap,
         bevarLuftfuktOgTemp,
         bevarLysforhold,
-        bevarPrevantKons
-      )
+        bevarPrevantKons)
 
     def destroy(room: Room) = Some(room.id, room.sikringSkallsikring, room.sikringTyverisikring,
       room.sikringBrannsikring, room.sikringVannskaderisiko,
