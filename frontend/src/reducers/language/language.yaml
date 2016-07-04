@@ -19,6 +19,19 @@ no:
   musit:
     texts:
       freetext: "Fritekst"
+    newControl:
+      title: "Ny kontroll"
+      date: "Dato"
+      doneBy: "Utført av"
+      temperature: Temperatur
+      inertAir: "Inert luft"
+      relativeHumidity: "Relativ luftfuktighet"
+      cleaning: "Renhold"
+      lightCondition: "Lysforhold"
+      alchohol: "Sprit"
+      mold: "Mugg"
+      pest: "Skadedyr"
+      envdata: "Miljødata"
     pickList:
       title: "Plukkliste"
       action:
@@ -28,7 +41,7 @@ no:
       title: "Storage units"
       environmentRequirements:
         temperature:
-          labelText: Temperatur
+          labelText: "Temperatur"
           tooltip: "Måleenhet grader celsius, desimaltall"
           placeHolder: C
         temperatureTolerance:

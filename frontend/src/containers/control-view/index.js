@@ -19,7 +19,7 @@
 
 import React from 'react'
 import { connect } from 'react-redux'
-import { Grid, Row, Col, Button } from 'react-bootstrap'
+import { Grid, Row, Col, Button, FormControl, PageHeader } from 'react-bootstrap'
 import PairedToogleButtons from '../../components/controls/pairedToggleButtons'
 import Field from '../../components/formfields/musitfield'
 import { addControl } from '../../reducers/control'
@@ -62,8 +62,8 @@ export default class ControlView extends React.Component {
       relativeHumidity: null,
       pestOK: null,
       storageUnit: null,
-      temperature: '',
-      temperatureTolerance: ''
+      temperature: '12',
+      temperatureTolerance: '2'
     }
     this.getDate = this.getDate.bind(this)
     this.onTemperatureOKClick = this.onTemperatureOKClick.bind(this)
@@ -222,6 +222,10 @@ export default class ControlView extends React.Component {
   }
 
   render() {
+    const { translate } = this.props
+    const renderReadOnly = (v) => {
+      return <FormControl style={{ backgroundColor: '#f2f2f2' }} readonly value={v} />
+    }
     return (
       <div>
         <Grid>
@@ -237,17 +241,44 @@ export default class ControlView extends React.Component {
           <Row>
             <h1 />
           </Row>
+          <PageHeader>
+            {this.props.translate('musit.newControl.title', true)}
+          </PageHeader>
+
           <Row>
             <Col md={3}>
               <Col md={2} />
               <Col md={10}>
-                {this.getDate()}
+                <Row>
+                  <Col md={12}>
+                    <label>
+                        {translate('musit.newControl.date')}
+                    </label>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={12}>
+                    <Field />
+                  </Col>
+                </Row>
               </Col>
             </Col>
             <Col md={9}>
-              {this.props.user ? this.props.user.name : null}
+              <Row>
+                <Col md={5}>
+                  <label>
+                    {translate('musit.newControl.doneBy')}
+                  </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={9}>
+                  <Field />
+                </Col>
+              </Row>
             </Col>
           </Row>
+
           <Row>
             <Col md={12}>
               <hr />
@@ -259,7 +290,7 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3}>
               <PairedToogleButtons
-                label="Temperatur"
+                label={translate('musit.newControl.temperature')}
                 value={this.state.temperatureOK}
                 updatevalueOK={this.onTemperatureOKClick}
                 updatevalueNotOK={this.onTemperatureNotOKClick}
@@ -268,15 +299,15 @@ export default class ControlView extends React.Component {
             <Col md={9}>
               <Row>
                 <Col md={5}>
-                  <label> Temperatur </label>
+                  <label> {translate('musit.newControl.envdata')} </label>
                 </Col>
               </Row>
               <Row>
                 <Col md={5}>
-                  <Field />
+                  {renderReadOnly(this.state.temperature)}
                 </Col>
                 <Col md={4}>
-                  <Field />
+                  {renderReadOnly(this.state.temperatureTolerance)}
                 </Col>
               </Row>
             </Col>
@@ -291,7 +322,7 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3}>
               <PairedToogleButtons
-                label="Inert luft"
+                label={translate('musit.newControl.inertAir')}
                 value={this.state.inertAirOK}
                 updatevalueOK={this.onInertAirOKClick}
                 updatevalueNotOK={this.onInertAirNotOKClick}
@@ -300,7 +331,7 @@ export default class ControlView extends React.Component {
             <Col md={9}>
               <Row>
                 <Col md={5}>
-                  <label> Inert luft </label>
+                  <label> {translate('musit.newControl.envdata')} </label>
                 </Col>
               </Row>
               <Row>
@@ -323,7 +354,7 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3}>
               <PairedToogleButtons
-                label="Relativ luftfuktighet"
+                label={translate('musit.newControl.relativeHumidity')}
                 value={this.state.relativeHumidity}
                 updatevalueOK={this.onRelativeHumidityOKClick}
                 updatevalueNotOK={this.onRelativeHumidityNotOKClick}
@@ -332,7 +363,7 @@ export default class ControlView extends React.Component {
             <Col md={9}>
               <Row>
                 <Col md={5}>
-                  <label> Relativ luftfuktighet </label>
+                  <label> {translate('musit.newControl.envdata')} </label>
                 </Col>
               </Row>
               <Row>
@@ -356,13 +387,27 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3}>
               <PairedToogleButtons
-                label="Rengjøring"
+                label={translate('musit.newControl.cleaning')}
                 value={this.state.cleaningOK}
                 updatevalueOK={this.onCleaningOKClick}
                 updatevalueNotOK={this.onCleaningNotOKClick}
               />
             </Col>
-            <Col md={9} />
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> {translate('musit.newControl.envdata')} </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={5}>
+                  <Field />
+                </Col>
+                <Col md={4}>
+                  <Field />
+                </Col>
+              </Row>
+            </Col>
           </Row>
 
           <Row>
@@ -375,13 +420,27 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3}>
               <PairedToogleButtons
-                label="Lysforhold"
+                label={translate('musit.newControl.lightCondition')}
                 value={this.state.lightConditionsOK}
                 updatevalueOK={this.onLightConditionsOKClick}
                 updatevalueNotOK={this.onLightConditionsNotOKClick}
               />
             </Col>
-            <Col md={9} />
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> {translate('musit.newControl.envdata')} </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={5}>
+                  <Field />
+                </Col>
+                <Col md={4}>
+                  <Field />
+                </Col>
+              </Row>
+            </Col>
           </Row>
 
           <Row>
@@ -394,14 +453,26 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3}>
               <PairedToogleButtons
-                label="Sprit"
+                label={translate('musit.newControl.alchohol')}
                 value={this.state.alchoholOK}
                 updatevalueOK={this.onAlchoholOKClick}
                 updatevalueNotOK={this.onAlchoholNotOKClick}
               />
             </Col>
-            <Col md={9} />
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> {translate('musit.newControl.envdata')} </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={9}>
+                  ---
+                </Col>
+              </Row>
+            </Col>
           </Row>
+
 
           <Row>
             <Col md={12}>
@@ -413,32 +484,52 @@ export default class ControlView extends React.Component {
           <Row>
             <Col md={3}>
               <PairedToogleButtons
-                label="Skadedyr"
-                value={this.state.pestOK}
-                updatevalueOK={this.onPestOKClick}
-                updatevalueNotOK={this.onPestNotOKClick}
-              />
-            </Col>
-            <Col md={9} />
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label="Mugg"
+                label={translate('musit.newControl.mold')}
                 value={this.state.moldFungusOK}
                 updatevalueOK={this.onMoldFungusOKClick}
                 updatevalueNotOK={this.onMoldFungusNotOKClick}
               />
             </Col>
-            <Col md={9} />
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> {translate('musit.newControl.envdata')} </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={9}> --- </Col>
+              </Row>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={12}>
+              <hr />
+            </Col>
+          </Row>
+
+
+          <Row>
+            <Col md={3}>
+              <PairedToogleButtons
+                label={translate('musit.newControl.pest')}
+                value={this.state.pestOK}
+                updatevalueOK={this.onPestOKClick}
+                updatevalueNotOK={this.onPestNotOKClick}
+              />
+            </Col>
+            <Col md={9}>
+              <Row>
+                <Col md={5}>
+                  <label> {translate('musit.newControl.envdata')} </label>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={9}>
+                  ---
+                </Col>
+              </Row>
+            </Col>
           </Row>
 
           <Row>
