@@ -313,7 +313,7 @@ export default class ControlView extends React.Component {
               </Row>
               <Row>
                 <Col md={9}>
-                  <Field value={this.props.user.name} />
+                  <Field value={this.props.user ? this.props.user.name : null} />
                 </Col>
               </Row>
             </Col>
