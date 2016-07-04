@@ -29,18 +29,18 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
   def unknownStorageUnitMsg(id: Long) = StorageUnitDao.unknownStorageUnitMsg(id)
 
   def createStorageUnit(json: String) = {
-    WS.url(s"http://localhost:7070/v1/storageunit").postJsonString(json)
+    WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(json)
   }
 
   def updateStorageUnit(id: Long, json: String) = {
-    WS.url(s"http://localhost:7070/v1/storageunit/$id").putJsonString(json)
+    WS.url(s"http://localhost:$port/v1/storageunit/$id").putJsonString(json)
   }
 
   def deleteStorageUnit(id: Long) = {
-    WS.url(s"http://localhost:7070/v1/storageunit/$id").delete
+    WS.url(s"http://localhost:$port/v1/storageunit/$id").delete
   }
 
-  def getStorageUnit(id: Long) = WS.url(s"http://localhost:7070/v1/storageunit/$id").get
+  def getStorageUnit(id: Long) = WS.url(s"http://localhost:$port/v1/storageunit/$id").get
 
   def getRoomAsObject(id: Long): Future[Room] = {
     for {
@@ -115,7 +115,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "get all nodes" in {
-      val response = WS.url(s"http://localhost:7070/v1/storageunit").get() |> waitFutureValue
+      val response = WS.url(s"http://localhost:$port/v1/storageunit").get() |> waitFutureValue
       val storageUnits = Json.parse(response.body).validate[Seq[Storage]].get
       storageUnits.length mustBe 2
 
