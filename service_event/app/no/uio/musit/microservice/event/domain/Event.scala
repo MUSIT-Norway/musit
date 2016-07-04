@@ -15,8 +15,6 @@ import no.uio.musit.microservices.common.utils.Misc._
 
 
 object BaseEventProps {
-  def fromEvent(evt: Event) = BaseEventProps(evt.id, evt.links, evt.eventType, evt.note)
-
   def fromBaseEventDto(eventDto: BaseEventDto) = BaseEventProps(eventDto.id, eventDto.links, eventDto.eventType, eventDto.note)
 
   implicit object baseEventPropsWrites extends Writes[BaseEventProps] {
@@ -51,7 +49,7 @@ class Event(val baseEventProps: BaseEventProps) {
   //Extension points
   /** If you need to store anything in valueInteger or valueString, override this method to provide this data. Gets called before the data is written to the database
     **
-    *NB: Remember to call super!
+    *NB: Remember to call super if your override it!
     *
     *@example
     **
