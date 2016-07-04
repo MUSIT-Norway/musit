@@ -24,6 +24,7 @@ import PairedToogleButtons from '../../components/controls/pairedToggleButtons'
 import Field from '../../components/formfields/musitfield'
 import { addControl } from '../../reducers/control'
 import Language from '../../components/language'
+import { DatePicker } from 'react-datepicker'
 
 
 const mapStateToProps = (state) => ({
@@ -290,6 +291,9 @@ export default class ControlView extends React.Component {
               <Col md={2} />
               <Col md={10}>
                 <Row>
+                  <Col md={12}>
+                    <DatePicker selected={this.getDate()} />
+                  </Col>
                   <Col md={12}>
                     <label>
                         {translate('musit.newControl.date')}
