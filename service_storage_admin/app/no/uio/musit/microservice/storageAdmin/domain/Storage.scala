@@ -21,18 +21,19 @@ sealed trait Storage {
 }
 
 case class StorageUnit(
-  id: Option[Long],
-  name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
-  isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  links: Option[Seq[Link]],
-  storageType: StorageType = StorageType.StorageUnit
-) extends Storage
+    id: Option[Long],
+    name: String,
+    area: Option[Long],
+    areaTo: Option[Long],
+    isPartOf: Option[Long],
+    height: Option[Long],
+    heightTo: Option[Long],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    links: Option[Seq[Link]]
+) extends Storage {
+  val storageType = StorageType.StorageUnit
+}
 
 object StorageUnit
 

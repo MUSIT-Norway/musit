@@ -78,7 +78,7 @@ class StorageUnitResource extends Controller {
         case Right(storage) =>
           StorageUnitService.updateStorageTripleByID(id, storage).flatMap {
             case Right(1) => ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
-            case Right(n) => Future.successful(InternalServerError(s"Updated wrongly $n rows"))
+            case Right(n) => Future.successful(NotFound)
             case Left(error) => Future.successful(Status(error.status)(Json.toJson(error)))
           }
         case Left(error) =>
