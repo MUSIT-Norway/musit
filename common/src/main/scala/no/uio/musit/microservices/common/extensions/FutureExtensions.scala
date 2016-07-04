@@ -80,6 +80,7 @@ object FutureExtensions {
   object MusitFuture {
     def successful[T](result: T): MusitFuture[T] = Future.successful(Right(result))
     def fromError[T](error: MusitError): MusitFuture[T] = Future.successful(Left(error))
+    def fromMusitResult[T](musitResult: MusitResult[T]) = Future.successful(musitResult)
   }
 
 }

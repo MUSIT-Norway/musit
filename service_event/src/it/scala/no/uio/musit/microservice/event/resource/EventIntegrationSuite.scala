@@ -30,7 +30,7 @@ import no.uio.musit.microservices.common.utils.Misc._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WS
 
 /**
@@ -52,6 +52,18 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   def getEvent(id: Long) = {
     WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
   }
+
+  def validateEvent[T <: Event](jsObject: JsValue) = {
+    EventHelpers.eventFromJson[T](jsObject).getOrFail
+  }
+
+  /*
+  def getAndValidateEvent[T <: Event](id: Long) = {
+    val resp = getEvent(id)
+    validateEvent[T](resp)
+  }
+*/
+
 
 
   "EventIntegrationSuite " must {
@@ -109,7 +121,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
       val response = createEvent(json)
       response.status mustBe 201
-      val moveObject = (response.json).validate[Move].get
+      val moveObject = validateEvent[Move](response.json) // .validate[Move].get
 
       val responseGet = getEvent(moveObject.id.get)
       responseGet.status mustBe 200
@@ -163,17 +175,16 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
       val response = createEvent(json)
-      response.status mustBe 201
       println(s"Create: ${response.body}")
+      response.status mustBe 201
 
-      val myEnvReqEvent = Event.format.reads(response.json).get.asInstanceOf[EnvRequirement]
+      val myEnvReqEvent = validateEvent[EnvRequirement](response.json)
       myEnvReqEvent.temperature mustBe Some(20)
 
 
       val responseGet = getEvent(myEnvReqEvent.id.get)
       responseGet.status mustBe 200
       println(s"Get: ${responseGet.body}")
-
     }
 
     "post and get Air envRequirement" in {
@@ -187,17 +198,15 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
       val response = createEvent(json)
-      response.status mustBe 201
       println(s"Create: ${response.body}")
-
-      val myEnvReqEvent = Event.format.reads(response.json).get.asInstanceOf[EnvRequirement]
+      response.status mustBe 201
+      val myEnvReqEvent = validateEvent[EnvRequirement](response.json) //#OLD Event.format.reads(response.json).get.asInstanceOf[EnvRequirement]
       myEnvReqEvent.airHumidity mustBe Some(-20)
 
 
       val responseGet = getEvent(myEnvReqEvent.id.get)
       responseGet.status mustBe 200
       println(s"Get: ${responseGet.body}")
-
     }
 
 

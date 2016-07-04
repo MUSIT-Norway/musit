@@ -1,32 +1,37 @@
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.EnvRequirementDAO.EnvRequirementDto
-import no.uio.musit.microservice.event.dao.EventDao.EventBaseDto
-import no.uio.musit.microservice.event.domain.EnvRequirement
 import no.uio.musit.microservice.event.dao.EnvRequirementDAO
+import no.uio.musit.microservice.event.dao.EnvRequirementDAO.EnvRequirementDto
+import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
+import no.uio.musit.microservice.event.domain.{EnvRequirement, _}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
+import play.api.libs.json.{JsObject, JsResult, JsValue, Json}
 
 /**
- * Created by ellenjo on 6/30/16.
- */
+  * Created by ellenjo on 6/30/16.
+  */
 
-object EnvRequirementService extends EventService {
-  def fromDatabase(id: Long, baseEventDto: EventBaseDto) = {
+object EnvRequirementComplexEventType extends ComplexEventType {
+  def fromDatabase(id: Long, baseEventDto: BaseEventDto) = {
     EnvRequirementDAO.getEnvRequirement(id)
       .toMusitFuture(ErrorHelper.badRequest(s"Unable to find observation with id: $id"))
-      .musitFutureMap(envReq => EnvRequirement(baseEventDto.id, baseEventDto.links, baseEventDto.note,
-        envReq.temperature, envReq.tempInterval, envReq.airHumidity,
-        envReq.airHumInterval, envReq.hypoxicAir, envReq.hypoxicInterval, envReq.cleaning,
-        envReq.light))
+      .musitFutureMap(envReq => new EnvRequirement(baseEventDto.props, envReq))
   }
 
-  def maybeActionCreator = Some((id, event) => {
+  def createDatabaseInsertAction(id: Long, event: Event) = {
     val envReq = event.asInstanceOf[EnvRequirement]
-    val envRequirementDto: EnvRequirementDto = EnvRequirementDto(Some(id), envReq.temperature, envReq.temperatureInterval, envReq.airHumidity,
-      envReq.airHumidityInterval, envReq.hypoxicAir, envReq.hypoxicAirInterval, envReq.cleaning,
-      envReq.light)
-    EnvRequirementDAO.insertAction(envRequirementDto.copy(id = Some(id)))
-  })
+    EnvRequirementDAO.insertAction(envReq.envReqDto.copy(id = Some(id)))
+  }
 }
 
+object EnvRequirementJson extends JsonHandler {
+  def fromJson(eventType: EventType, baseResult: JsResult[BaseEventProps], jsObject: JsObject): JsResult[EnvRequirement] = {
+    for {
+      baseProps <- baseResult
+      envReqDto <- jsObject.validate[EnvRequirementDto]
+    } yield new EnvRequirement(baseProps, envReqDto)
+  }
+
+  def toJson(event: Event): JsValue = Json.toJson(event.asInstanceOf[EnvRequirement].envReqDto)
+}

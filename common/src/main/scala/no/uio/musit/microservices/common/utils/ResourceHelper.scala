@@ -1,6 +1,7 @@
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
+import no.uio.musit.microservices.common.domain.{MusitError, MusitStatusMessage}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitResult
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
@@ -124,9 +125,18 @@ object ResourceHelper {
   def jsResultToMusitResult[T](jsRes: JsResult[T]): Either[MusitError, T] = {
     jsRes match {
       case s: JsSuccess[T] => Right(s.value)
-      case e: JsError => Left(ErrorHelper.badRequest(e.toString))
+      case e: JsError => Left(ErrorHelper.badRequest(e.toString)) //todo: better way to get the string?
     }
   }
+
+ /** Quite ugly, please don't use this if not absolutely necessary! */
+  def musitResultToJsResult[T](musitResult: MusitResult[T]): JsResult[T] = {
+    musitResult match {
+      case Left(musitError) => JsError(musitError.message)
+      case Right(t) => JsSuccess(t)
+    }
+  }
+
 
 }
 

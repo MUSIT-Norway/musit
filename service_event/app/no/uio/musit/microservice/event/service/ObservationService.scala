@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.event.service
 
+/*
 import no.uio.musit.microservice.event.dao.EventDao.EventBaseDto
 import no.uio.musit.microservice.event.domain.Observation
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
@@ -10,3 +11,4 @@ object ObservationService extends SimpleService {
   }
 
 }
+*/
