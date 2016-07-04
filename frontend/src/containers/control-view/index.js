@@ -24,8 +24,8 @@ import PairedToogleButtons from '../../components/controls/pairedToggleButtons'
 import Field from '../../components/formfields/musitfield'
 import { addControl } from '../../reducers/control'
 import Language from '../../components/language'
-import { DatePicker } from 'react-datepicker'
-
+import DatePicker from 'react-bootstrap-date-picker'
+import moment from 'moment'
 
 const mapStateToProps = (state) => ({
   user: state.auth.user,
@@ -71,7 +71,8 @@ export default class ControlView extends React.Component {
       inertAir: '56',
       inertAirInterval: '4',
       light: 'Mørkt',
-      cleaning: 'Gullende rent'
+      cleaning: 'Gullende rent',
+      startDate: moment()
 
     }
     this.getDate = this.getDate.bind(this)
@@ -99,6 +100,11 @@ export default class ControlView extends React.Component {
 
     this.onGasOKClick = this.onGasOKClick.bind(this)
     this.onGasNotOKClick = this.onGasNotOKClick.bind(this)
+    this.onHandleDateChange = this.onHandleDateChange.bind(this)
+  }
+
+  onHandleDateChange(d) {
+    this.setState({ ...this.state, startDate: d })
   }
 
   onTemperatureOKClick() {
@@ -233,6 +239,8 @@ export default class ControlView extends React.Component {
       this.setState({ ...this.state, gasOK: true })
     }
   }
+
+
   onGasNotOKClick() {
     if (this.state.gasOK != null && !this.state.gasOK) {
       this.setState({ ...this.state, gasOK: null })
@@ -243,10 +251,10 @@ export default class ControlView extends React.Component {
 
 
   getDate() {
-    const d = new Date()
-    const r = `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`
-    return r
+    // const r = `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`
+    return moment().format('mm/dd/yyyy');
   }
+
 
   render() {
     const stateOKorNotOK = () => {
@@ -292,9 +300,6 @@ export default class ControlView extends React.Component {
               <Col md={10}>
                 <Row>
                   <Col md={12}>
-                    <DatePicker selected={this.getDate()} />
-                  </Col>
-                  <Col md={12}>
                     <label>
                         {translate('musit.newControl.date')}
                     </label>
@@ -302,7 +307,11 @@ export default class ControlView extends React.Component {
                 </Row>
                 <Row>
                   <Col md={12}>
-                    <Field value={this.getDate()} />
+                    <DatePicker
+                      dateFormat="DD/MM/YYYY"
+                      value={this.state.startDate}
+                      onChange={this.onHandleDateChange}
+                    />
                   </Col>
                 </Row>
               </Col>
