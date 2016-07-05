@@ -7,10 +7,11 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
 import play.api.libs.json._
 import slick.dbio.DBIO
 
+import scala.collection.parallel.mutable
 import scala.concurrent.Future
 
 object BaseEventProps {
@@ -41,6 +42,18 @@ class Event(val baseEventProps: BaseEventProps) {
   val note: Option[String] = baseEventProps.note
   val links: Option[Seq[Link]] = baseEventProps.links
   val eventType = baseEventProps.eventType
+
+  private var subEvents = Seq.empty[Event]
+
+  
+  def getTempSubEvents = subEvents // TODO: Make subEvents mutable or wrap it in an Atom 
+  
+  protected var parent: Option[Event] = None //The part of relation
+
+  def addSubEvents(subEvents: Seq[Event]) = {
+    this.subEvents = this.subEvents ++ subEvents
+    subEvents.foreach(subEvent=> subEvent.parent=Some(this))
+  }
 
   /*#OLD
   final def eventDtoToStoreInDatabase = this.specifyCustomData(baseEventProps.toBaseEventDto)
@@ -177,7 +190,7 @@ object EventHelpers {
     }
   }
 
-  def validateEvent(jsObject: JsObject): MusitResult[Event] = {
+  def validateSingleEvent(jsObject: JsObject): MusitResult[Event] = {
     val evtTypeName = (jsObject \ "eventType").as[String]
     val maybeEventTypeResult = EventType.getByName(evtTypeName).toMusitResult(ErrorHelper.badRequest(s"Unknown eventType: $evtTypeName"))
 
@@ -186,6 +199,38 @@ object EventHelpers {
     }
     maybeEventResult
   }
+
+
+  /** Handles recursion */
+  def validateEvent(jsObject: JsObject): MusitResult[Event] = {
+    val maybeEventResult = validateSingleEvent(jsObject)
+    maybeEventResult.map{
+      eventResult =>
+        (jsObject \ "subEvents").toOption match {
+          case Some(subEventsAsJson) =>
+            println("hallo, har subEvents!")
+            subEventsAsJson match {
+              case jsArray: JsArray =>
+                val subEvents = jsArray.value.map(jsValue => validateEvent(jsValue.asInstanceOf[JsObject]))
+                val concatenatedMusitResults = concatenateMusitResults(subEvents)
+                concatenatedMusitResults match {
+                  case Left(error) => Left(error)
+                  case Right(reallySubEvents) =>
+                    println(s"really subEvents: $reallySubEvents")
+                    eventResult.addSubEvents(reallySubEvents)
+                  eventResult
+                }
+
+              case _ => ErrorHelper.badRequest("expected array of subEvents in subEvent property")
+            }
+
+            eventResult
+          case None => eventResult
+        }
+    }
+  }
+
+
 
   def eventFromJson[T <: Event](jsValue: JsValue): MusitResult[T] = {
     validateEvent(jsValue.asInstanceOf[JsObject]).map(res => res.asInstanceOf[T])

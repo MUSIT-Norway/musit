@@ -21,11 +21,11 @@
 package no.uio.musit.microservices.common.extensions
 
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, MusitResult}
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Application
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -38,6 +38,7 @@ object EitherExtensions {
   implicit class EitherExtensionsImp[T](val either: Either[MusitError, T]) extends AnyVal {
 
     def map[S](f: T => S) = either.right.map(f)
+
     def flatMap[S](f: T => MusitResult[S]) = either.right.flatMap(f)
 
     ///a quick and dirty way to get the value or throw an exception, only meant to be used for testing or quick and dirty stuff!
@@ -47,6 +48,7 @@ object EitherExtensions {
         case Right(v) => v
       }
     }
+
     def toMusitFuture = MusitFuture.fromMusitResult(either)
 
   }
@@ -55,4 +57,28 @@ object EitherExtensions {
     def apply[T](t: T): MusitResult[T] = Right(t)
 
   }
+
+
+  // TODO: Really concatenate errors, now we take the first error!
+  def concatenateMusitResults[T](musitResults: Seq[MusitResult[T]]): MusitResult[Seq[T]] = {
+    if (musitResults.isEmpty)
+      Right(Seq.empty)
+    else {
+      val head = musitResults.head
+      val tail = musitResults.tail
+
+      val prevResult = concatenateMusitResults(tail)
+      val result = prevResult match {
+        case Left(errorT) => Left(errorT) //Todo, concatenate
+        case Right(seqT) =>
+          head match {
+            case Left(errorH) => Left(errorH)
+            case Right(headT) => Right(seqT :+ headT) //Is this the correct order or do we now get it in reverse? :)
+          }
+      }
+      result
+    }
+  }
+
+
 }
