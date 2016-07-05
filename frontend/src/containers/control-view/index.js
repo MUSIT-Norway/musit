@@ -72,8 +72,8 @@ export default class ControlView extends React.Component {
       inertAirInterval: '4',
       light: 'Mørkt',
       cleaning: 'Gullende rent',
-      startDate: moment()
-
+      startDate: moment(),
+      user: this.props.user ? this.props.user.name : ''
     }
     this.getDate = this.getDate.bind(this)
     this.onTemperatureOKClick = this.onTemperatureOKClick.bind(this)
@@ -326,7 +326,10 @@ export default class ControlView extends React.Component {
               </Row>
               <Row>
                 <Col md={9}>
-                  <Field value={this.props.user ? this.props.user.name : null} />
+                  <Field
+                    value={this.state.user}
+                    onChange={(v) => { this.setState({ ...this.state, user: v }) }}
+                  />
                 </Col>
               </Row>
             </Col>
