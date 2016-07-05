@@ -25,7 +25,8 @@ import { connect } from 'react-redux'
 import Language from '../../components/language'
 import DatePicker from 'react-datepicker'
 import Autosuggest from 'react-autosuggest'
-import { observationTypeDefinitions, defineCommentType, defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
+import { observationTypeDefinitions, defineCommentType,
+  defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
 
 // TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = () => ({
@@ -44,20 +45,29 @@ export default class ObservationView extends React.Component {
 
     this.observationTypeDefinitions = observationTypeDefinitions(translate, this.addPest)
     // TODO: Language binding.
-    // TODO: Actom binding.
+    // TODO: Action binding.
     this.observationTypes = {
       lux: defineCommentType('lux', 'Lysforhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
       gas: defineCommentType('gas', 'Gass', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
       cleaning: defineCommentType('cleaning', 'Renhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
       mold: defineCommentType('mold', 'Mugg', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      skallsikring: defineCommentType('skallsikring', 'Skallsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      tyverisikring: defineCommentType('tyverisikring', 'Tyverisikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      brannsikring: defineCommentType('brannsikring', 'Brannsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      vannskaderisiko: defineCommentType('vannskaderisiko', 'Vannskaderisiko', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      temperature: defineFromToType('temperature', 'Temperatur', 'from label', 'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
-      rh: defineFromToType('rh', 'Relativ luftfuktighet', 'from label', 'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
-      hypoxicAir: defineFromToType('hypoxicAir', 'Inertluft', 'from label', 'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
-      alcohol: defineStatusType('alcohol', 'Sprit', 'Status label', 'statusTooltip', ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende'], 'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip'),
+      skallsikring: defineCommentType('skallsikring',
+        'Skallsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      tyverisikring: defineCommentType('tyverisikring',
+        'Tyverisikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      brannsikring: defineCommentType('brannsikring',
+        'Brannsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      vannskaderisiko: defineCommentType('vannskaderisiko',
+        'Vannskaderisiko', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      temperature: defineFromToType('temperature', 'Temperatur', 'from label',
+        'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+      rh: defineFromToType('rh', 'Relativ luftfuktighet', 'from label', 'From tooltip',
+        'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+      hypoxicAir: defineFromToType('hypoxicAir', 'Inertluft', 'from label',
+        'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+      alcohol: defineStatusType('alcohol', 'Sprit', 'Status label', 'statusTooltip',
+        ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende'],
+        'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip'),
       pest: definePestType('pest', 'Skadedyr')
     }
 
@@ -183,7 +193,13 @@ export default class ObservationView extends React.Component {
           })
         }
         const menuItems = Object.entries(observationTypes).map((obsType, row) => (
-          <MenuItem key={row} eventKey={obsType}>{obsType[1].label}</MenuItem>
+          <MenuItem
+            key={row}
+            disabled={this.state.observations.find((e) => (e.type === obsType[0]))}
+            eventKey={obsType}
+          >
+            {obsType[1].label}
+          </MenuItem>
         ))
         return (
           <Row key={index}>
