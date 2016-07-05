@@ -21,7 +21,7 @@ import { Grid, Row, Col, ControlLabel } from 'react-bootstrap'
 import Language from '../../components/language'
 import { connect } from 'react-redux'
 import { ControlView } from '../../components/control'
-import DatePicker from 'react-datepicker'
+import DatePicker from 'react-bootstrap-date-picker'
 import { MusitField } from '../../components/formfields'
 
 
@@ -44,6 +44,11 @@ export default class ControlViewShow extends React.Component {
         <main>
           <Grid>
             <Row>
+              <br />
+              <br />
+              <br />
+            </Row>
+            <Row>
               <Col sm={4} smOffset={2}>
                 <ControlLabel>{translate('musit.texts.dateCompleted')}</ControlLabel>
                 <br />
@@ -64,12 +69,13 @@ export default class ControlViewShow extends React.Component {
               <Col sm={4} >
                 <ControlLabel>{translate('musit.texts.registeredBy')}</ControlLabel>
                 <br />
-                <li role="presentation" className="divider"></li>
                 <MusitField id="2" value="test user" validate="text" />
               </Col>
             </Row>
             <Row>
-              <ControlView />
+              <Col sm={8} smOffset={2}>
+                <ControlView />
+              </Col>
             </Row>
           </Grid>
         </main>
