@@ -43,7 +43,6 @@ const rootReducer = combineReducers({
   storagePanelUnit: storagePanelReducer,
   storageGridUnit: storageGridReducer,
   organization: organizationReducer,
-  form: form,
   control: controlReducer
 })
 
