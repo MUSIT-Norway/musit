@@ -18,94 +18,77 @@
  */
 package no.uio.musit.microservice.storageAdmin.resource
 
+import no.uio.musit.microservice.storageAdmin.dao.{ BuildingDao, RoomDao }
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservices.common.linking.domain.Link
+import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class StorageUnitResource extends Controller {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
+    ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, (triple: Storage) => Json.toJson(triple))
+  }
 
-    val musitResultTriple = fromJsonToStorageUnitTriple(request.body)
-
-    ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, storageUnitTripleToJson)
+  def validateChildren = Action.async(BodyParsers.parse.json) { request =>
+    request.body.validate[Seq[Link]].asEither match {
+      case Right(list) if list.nonEmpty =>
+        // FIXME For the actual implementation see MUSARK-120
+        Future.successful(Ok(Json.toJson(list.forall(!_.href.isEmpty))))
+      case Left(error) =>
+        Future.successful(BadRequest(error.mkString))
+    }
   }
 
   def getChildren(id: Long) = Action.async {
-    request =>
-      StorageUnitService.getChildren(id).map {
-        storageUnits => Ok(Json.toJson(storageUnits))
-      }
+    StorageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
   }
 
   def getById(id: Long) = Action.async {
-    request =>
-      ResourceHelper.getRoot(StorageUnitService.getById, id, storageUnitTripleToJson)
+    ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
   }
 
   def listAll = Action.async {
-    request =>
-      val debugval = StorageUnitService.all
-      debugval.map {
-        case storageUnits => Ok(Json.toJson(storageUnits))
-      }
-  }
-
-  def storageUnitTripleToJson(triple: StorageUnitTriple) = triple.toJson
-
-  def fromJsonToStorageUnitTriple(json: JsValue): Either[MusitError, StorageUnitTriple] = {
-    val storageType = (json \ "storageType").as[String]
-
-    StorageUnitType(storageType) match {
-
-      case None => Left(ErrorHelper.badRequest(s"Undefined StorageType:$storageType"))
-      case Some(storageUnitType) =>
-
-        val jsRes = storageUnitType match {
-          case StUnit => {
-            val jsResultStUnit = json.validate[StorageUnit]
-            jsResultStUnit.map(StorageUnitTriple.createStorageUnit)
-
-          }
-          case Room => {
-            val roomResult = {
-              for {
-                storageUnit <- json.validate[StorageUnit]
-                storageRoom <- json.validate[StorageRoom]
-              } yield StorageUnitTriple.createRoom(storageUnit, storageRoom)
-            }
-            roomResult
-          }
-          case Building => {
-            val buildingResult = {
-              for {
-                storageUnit <- json.validate[StorageUnit]
-                storageBuilding <- json.validate[StorageBuilding]
-              } yield StorageUnitTriple.createBuilding(storageUnit, storageBuilding)
-            }
-            buildingResult
-          }
+    StorageUnitService.all.flatMap(list => {
+      Future.sequence(list.map(unit => {
+        unit.`type` match {
+          case StorageType.StorageUnit =>
+            Future.successful(Storage.fromDTO(unit))
+          case StorageType.Building =>
+            BuildingDao.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
+              Storage.getBuilding(unit, building)))
+          case StorageType.Room =>
+            RoomDao.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
+              Storage.getRoom(unit, room)))
         }
-        jsRes |> ResourceHelper.jsResultToMusitResult
-    }
+      })).map(__ => Ok(Json.toJson(__)))
+    })
   }
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
     request =>
-      {
-        val musitResultTriple = fromJsonToStorageUnitTriple(request.body)
-        ResourceHelper.updateRootWithMusitResult(StorageUnitService.updateStorageTripleByID _, id, musitResultTriple)
+      request.body.validate[Storage].asEither match {
+        case Right(storage) =>
+          StorageUnitService.updateStorageTripleByID(id, storage).flatMap {
+            case Right(1) => ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
+            case Right(n) => Future.successful(NotFound)
+            case Left(error) => Future.successful(Status(error.status)(Json.toJson(error)))
+          }
+        case Left(error) =>
+          Future.successful(Status(400)(Json.toJson(MusitError(message = error.mkString))))
       }
+
   }
 
   def deleteRoot(id: Long) = Action.async {
-    ResourceHelper.deleteRoot(StorageUnitService.deleteStorageTriple _, id)
+    ResourceHelper.deleteRoot(StorageUnitService.deleteStorageTriple, id)
   }
 
 }

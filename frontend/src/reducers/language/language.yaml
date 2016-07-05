@@ -52,7 +52,7 @@ no:
         markAll: "Alle"
         executeAll: "Utfør (alle)"
     storageUnits:
-      title: "Storage units"
+      title: "Magasin"
       environmentRequirements:
         temperature:
           labelText: "Temperatur"

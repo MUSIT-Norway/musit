@@ -11,12 +11,12 @@ export default class StorageUnitComponent extends Component {
 
   static propTypes = {
     unit: React.PropTypes.shape({
-      storageUnitName: React.PropTypes.string,
+      name: React.PropTypes.string,
       area: React.PropTypes.string,
-      areal2: React.PropTypes.number,
+      areaTo: React.PropTypes.number,
       height: React.PropTypes.number,
-      height2: React.PropTypes.number,
-      storageType: React.PropTypes.string,
+      heightTo: React.PropTypes.number,
+      type: React.PropTypes.string,
       address: React.PropTypes.string }
     ),
     updateType: React.PropTypes.func.isRequired,
@@ -43,7 +43,7 @@ export default class StorageUnitComponent extends Component {
       placeHolderText: 'enter areal 1 here',
       placeHolderText2: 'enter areal 2 here',
       valueText: () => this.props.unit.area,
-      valueText2: () => this.props.unit.areal2,
+      valueText2: () => this.props.unit.areaTo,
       onChange1: (area) => this.props.updateAreal1(area),
       onChange2: (areal2) => this.props.updateAreal2(areal2)
     }
@@ -56,19 +56,19 @@ export default class StorageUnitComponent extends Component {
       placeHolderText: 'enter høyde 1 here',
       placeHolderText2: 'enter høyde 2 here',
       valueText: () => this.props.unit.height,
-      valueText2: () => this.props.unit.height2,
+      valueText2: () => this.props.unit.heightTo,
       onChange1: (height) => this.props.updateHeight1(height),
       onChange2: (height2) => this.props.updateHeight2(height2)
     }
 
     this.type = {
-      controlId: 'storageUnitType',
+      controlId: 'type',
       labelText: 'Type',
-      items: ['storageunit', 'room', 'building', 'organization'],
+      items: ['StorageUnit', 'Room', 'Building', 'Organization'],
       validate: 'text',
       tooltip: 'Type lagringsenhet',
       placeHolder: 'velg type here',
-      valueText: () => this.props.unit.storageType,
+      valueText: () => this.props.unit.type,
       onChange: (storageType) => this.props.updateType(storageType)
     }
     this.name = {
@@ -77,7 +77,7 @@ export default class StorageUnitComponent extends Component {
       tooltip: 'Navn',
       placeHolderText: 'enter name here',
       validate: 'text',
-      valueText: () => this.props.unit.storageUnitName,
+      valueText: () => this.props.unit.name,
       onChange: (storageUnitName) => this.props.updateName(storageUnitName)
     }
     this.onAddressChange = this.onAddressChange.bind(this)
@@ -223,7 +223,7 @@ export default class StorageUnitComponent extends Component {
               </Row >
               <Row>
                 <Col md={6}>
-                  {this.props.unit.storageType === 'building' ? addressBlock : null}
+                  {this.props.unit.type === 'building' ? addressBlock : null}
                 </Col>
               </Row>
             </Grid>

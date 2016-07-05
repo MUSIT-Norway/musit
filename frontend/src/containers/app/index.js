@@ -83,11 +83,6 @@ class App extends Component {
                 </LinkContainer>
               }
               {user &&
-                <LinkContainer to="/musit/magasin">
-                  <NavItem eventKey={3}>Magasin</NavItem>
-                </LinkContainer>
-              }
-              {user &&
                 <LinkContainer to="/musit/survey">
                   <NavItem eventKey={4}>Survey</NavItem>
                 </LinkContainer>
@@ -98,8 +93,8 @@ class App extends Component {
               <LinkContainer to="/observation">
                 <NavItem eventKey={5}>Observation</NavItem>
               </LinkContainer>
-              <LinkContainer to="/storageunits">
-                <NavItem eventKey={6}>Dummy list</NavItem>
+              <LinkContainer to="/magasin">
+                <NavItem eventKey={6}>Magasin</NavItem>
               </LinkContainer>
               <LinkContainer to="/musit/about">
                 <NavItem eventKey={7}>About Us</NavItem>

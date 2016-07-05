@@ -27,10 +27,10 @@ import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
 import autosuggestReducer from './suggest'
 import picklistReducer from './picklist'
-import storageReducer from './storageunit-container'
+import storagePanelReducer from './storageunit/panel'
+import storageGridReducer from './storageunit/grid'
 import organizationReducer from './organization'
 import controlReducer from './control'
-
 
 const rootReducer = combineReducers({
   routing: routerReducer,
@@ -40,7 +40,8 @@ const rootReducer = combineReducers({
   language: languageReducer,
   suggest: autosuggestReducer,
   picks: picklistReducer,
-  storageUnit: storageReducer,
+  storagePanelUnit: storagePanelReducer,
+  storageGridUnit: storageGridReducer,
   organization: organizationReducer,
   form: form,
   control: controlReducer
