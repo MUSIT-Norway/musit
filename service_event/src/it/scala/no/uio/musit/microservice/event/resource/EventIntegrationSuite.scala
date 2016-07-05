@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.resource
 
 import no.uio.musit.microservice.event.domain._
-import no.uio.musit.microservice.event.service.ControlService
+import no.uio.musit.microservice.event.service.{Control, ControlService, EnvRequirement}
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
@@ -71,7 +71,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "type": "Move",
+   "eventType": "Move",
    "note": "Dette er et viktig notat!",
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
@@ -90,7 +90,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "type": "Observation",
+   "eventType": "Observation",
    "note": "Dette er et viktig notat for observasjon!",
    "temperature": 125,
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
@@ -114,7 +114,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "type": "Move",
+   "eventType": "Move",
    "note": "Dette er et viktig notat for move!",
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
@@ -133,18 +133,42 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "type": "hurra",
-   "eventData": {"note": "Dette er IKKE viktig notat!"}}"""
+   "eventType": "hurra",
+   "note": "Dette er IKKE viktig notat!"}"""
 
       val response = createEvent(json)
       response.status mustBe 400
     }
 
-    /*"postWithControlEvent" in {
+    "postWithControlEvent" in {
       val json =
         """
   {
-   "type": "Control",
+   "eventType": "Control",
+   "note": "Dette er et viktig notat for kontroll!",
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+      val response = createEvent(json)
+      response.status mustBe 201
+      println(s"Create: ${response.body}")
+
+      val myControlEvent = validateEvent[Control](response.json)
+      myControlEvent.note mustBe Some("Dette er et viktig notat for kontroll!")
+      val responseGet = getEvent(myControlEvent.id.get)
+      responseGet.status mustBe 200
+      println(s"Get: ${responseGet.body}")
+
+    }
+  }
+
+
+
+  /*
+    "postWithControlEvent" in {
+      val json =
+        """
+  {
+   "eventType": "Control",
    "controlOk": true,
    "note": "Dette er et viktig notat for kontroll!",
    "controlType": "skadedyr",
@@ -154,19 +178,23 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       response.status mustBe 201
       println(s"Create: ${response.body}")
 
-      val myControlEvent = Event.format.reads(response.json).get.asInstanceOf[Control]
+      val myControlEvent = validateEvent[Control](response.json)
       myControlEvent.controlType mustBe Some("skadedyr")
       val responseGet = getEvent(myControlEvent.id.get)
       responseGet.status mustBe 200
       println(s"Get: ${responseGet.body}")
 
     }
-  }*/
+  }
+
+   */
+
+
     "post and get envRequirement" in {
       val json =
         """
   {
-   "type": "EnvRequirement",
+   "eventType": "EnvRequirement",
    "note": "Dette er et viktig notat for miljøkravene!",
    "temperature": 20,
    "temperatureInterval" : 5,
@@ -191,7 +219,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "type": "EnvRequirement",
+   "eventType": "EnvRequirement",
    "note": "Dette er et viktig notat for miljøkravene!",
    "airHumidity": -20,
    "airHumidityInterval" : 5,
@@ -210,7 +238,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     }
 
 
-  }
+
 
   }
 

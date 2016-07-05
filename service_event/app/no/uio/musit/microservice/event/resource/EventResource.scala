@@ -19,11 +19,11 @@
  */
 
 package no.uio.musit.microservice.event.resource
-import no.uio.musit.microservice.event.domain.{Event, EventHelpers}
+import no.uio.musit.microservice.event.domain.{ Event, EventHelpers }
 import no.uio.musit.microservice.event.service.BaseService
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
-import play.api.mvc.{Action, BodyParsers, Controller}
+import play.api.mvc.{ Action, BodyParsers, Controller }
 
 class EventResource extends Controller {
 

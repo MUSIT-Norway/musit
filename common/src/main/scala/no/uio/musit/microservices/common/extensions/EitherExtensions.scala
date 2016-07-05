@@ -21,11 +21,11 @@
 package no.uio.musit.microservices.common.extensions
 
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, MusitResult}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Application
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -50,7 +50,6 @@ object EitherExtensions {
     def toMusitFuture = MusitFuture.fromMusitResult(either)
 
   }
-
 
   object MusitResult {
     def apply[T](t: T): MusitResult[T] = Right(t)

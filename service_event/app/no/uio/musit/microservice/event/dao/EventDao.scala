@@ -20,9 +20,9 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{BaseEventProps, _}
+import no.uio.musit.microservice.event.domain.{ BaseEventProps, _ }
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
@@ -30,7 +30,7 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -55,16 +55,16 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
     val insertBaseAndLinksAction = (for {
-      newEventId <- insertBaseAction(event.eventDtoToStoreInDatabase)
+      newEventId <- insertBaseAction(EventHelpers.eventDtoToStoreInDatabase(event))
       _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(event, newEventId))
       _ <- selfLink(newEventId) |> LinkDao.insertLinkAction
     } yield newEventId).transactionally
 
-    val combinedAction = event.eventType.maybeComplexEventType.fold(insertBaseAndLinksAction) {
+    val combinedAction = event.eventType.maybeMultipleTablesMultipleDtos.fold(insertBaseAndLinksAction) {
       complexEventType =>
         (for {
           newEventId <- insertBaseAndLinksAction
-          numInserted <- complexEventType.createDatabaseInsertAction(newEventId, event)
+          numInserted <- complexEventType.createInsertCustomDtoAction(newEventId, event)
         } yield newEventId).transactionally
     }
 
@@ -82,39 +82,47 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val maybeBaseEventDto = getBaseEvent(id).toMusitFuture(ErrorHelper.badRequest(s"Event with id: $id not found"))
 
     maybeBaseEventDto.musitFutureFlatMap {
-      baseEventDto => baseEventDto.eventType.simpleOrComplexEventType match {
-        case Left(simpleEventType) => simpleEventType.createEventInMemory(baseEventDto).toMusitFuture
-        case Right(complexEventType) => complexEventType.fromDatabase(id, baseEventDto)
-      }
+      baseEventDto =>
+        baseEventDto.eventType.eventImplementation match {
+
+          case singleTableSingleDto: SingleTableSingleDto => MusitFuture.successful(singleTableSingleDto.createEventInMemory(baseEventDto.props))
+
+          case singleTableMultipleDtos: SingleTableMultipleDtos =>
+            val customDto = singleTableMultipleDtos.baseTableToCustomDto(baseEventDto)
+            MusitFuture.successful(singleTableMultipleDtos.createEventInMemory(baseEventDto.props, customDto))
+          case multipleTablesMultipleDtos: MultipleTablesMultipleDtos => multipleTablesMultipleDtos.getEventFromDatabase(id, baseEventDto)
+        }
     }
   }
 
-
   case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
-                            valueLong: Option[Long] = None) {
+      valueLong: Option[Long] = None) {
 
-    def valueLongToOptBool = valueLong match {
+    def getOptBool = valueLong match {
       case Some(1) => Some(true)
       case Some(0) => Some(false)
       case None => None
       case n => throw new MusitInternalErrorException(s"Wrong boolean value $n")
     }
 
-    def valueLongToBool = valueLongToOptBool match {
+    def getBool = getOptBool match {
       case Some(b) => b
       case None => throw new MusitInternalErrorException("Missing boolean value")
     }
 
+    private def boolToLong(bool: Boolean) = if (bool) 1 else 0
+
+    def setBool(value: Boolean) = this.copy(valueLong = Some(boolToLong(value)))
+
     def props = BaseEventProps.fromBaseEventDto(this)
+
   }
+
   /*#OLD
   object BaseEventDto {
     def fromEvent(evt: Event) = evt.fromEventToCustomBaseData(BaseEventDto(evt.id, evt.links, evt.eventType, evt.note))
   }
   */
-
-
-
 
   implicit lazy val libraryItemMapper = MappedColumnType.base[EventType, Int](
     eventType => eventType.id,

@@ -14,4 +14,4 @@ object MoveService extends SimpleService {
     Future.successful(Right(Move(Some(id), base.links, base.note, None)))
 
 }
-*/
+*/ 
