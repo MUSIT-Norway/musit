@@ -32,7 +32,8 @@ object BaseEventProps {
 }
 
 case class BaseEventProps(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String]) {
-  def toBaseEventDto = BaseEventDto(this.id, this.links, this.eventType, this.note)
+  /** Copies all data except custom event data over to the baseEventDto object */
+  def toBaseEventDto(parentId: Option[Long]) = BaseEventDto(this.id, this.links, this.eventType, this.note, parentId)
 
   def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
 }
@@ -45,44 +46,25 @@ class Event(val baseEventProps: BaseEventProps) {
 
   private var subEvents = Seq.empty[Event]
 
-  
+
   def getTempSubEvents = subEvents // TODO: Make subEvents mutable or wrap it in an Atom 
-  
+
   protected var parent: Option[Event] = None //The part of relation
+
+  def hasSubEvents = subEvents.length > 0
 
   def addSubEvents(subEvents: Seq[Event]) = {
     this.subEvents = this.subEvents ++ subEvents
-    subEvents.foreach(subEvent=> subEvent.parent=Some(this))
+    subEvents.foreach(subEvent => subEvent.parent = Some(this))
   }
-
-  /*#OLD
-  final def eventDtoToStoreInDatabase = this.specifyCustomData(baseEventProps.toBaseEventDto)
-
-
-  //Extension points
-  /** If you need to store anything in valueInteger or valueString, override this method to provide this data. Gets called before the data is written to the database
-    * *
-    * NB: Remember to call super if your override it!
-    *
-    * @example
-    * *
-    * override def specifyCustomData(baseEventDto: BaseEventDto) = {
-    * val data = super.specifyCustomData(baseEventDto)
-    * *
-    * data.copy(valueInteger = this.someProperty)
-    * }
-    */
-  def specifyCustomData(baseEventDto: BaseEventDto) = baseEventDto
-*/
-
 }
 
 /**
- * We split event implementations into three kinds:
- * 1) Those which store all their data in the base event table and doesn't use the custom generic fields (valueAsInteger etc). This means single table and single dto.
- * 2) Those which store all their data in the base event table, but also use the custom generic fields. This means single table and baseProps and a custom dto.
- * 3) Those which needs a separate table. They are not allowed to use the custom generic fields. This means single table and baseProps and a custom dto.
- */
+  * We split event implementations into three kinds:
+  * 1) Those which store all their data in the base event table and doesn't use the custom generic fields (valueAsInteger etc). This means single table and single dto.
+  * 2) Those which store all their data in the base event table, but also use the custom generic fields. This means single table and baseProps and a custom dto.
+  * 3) Those which needs a separate table. They are not allowed to use the custom generic fields. This means single table and baseProps and a custom dto.
+  */
 
 trait Dto
 
@@ -98,44 +80,44 @@ trait MultipleDtosEventType {
 }
 
 /**
- * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
- */
+  * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
+  */
 trait SingleDtoEventType {
   def createEventInMemory(baseEventProps: BaseEventProps): Event
 }
 
 /**
- * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
- */
+  * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
+  */
 
 trait SingleTableSingleDto extends EventImplementation with SingleDtoEventType {
 }
 
 /**
- * For event types which don't need to store extra properties than what is in the base event table, but does use custom generic fields in the base event table.
- *
- * Implement this event type if you need to store anything in valueInteger or valueString.
- *
- * Remember to call super if you implement further subtypes of this event implementation type
- */
+  * For event types which don't need to store extra properties than what is in the base event table, but does use custom generic fields in the base event table.
+  *
+  * Implement this event type if you need to store anything in valueInteger or valueString.
+  *
+  * Remember to call super if you implement further subtypes of this event implementation type
+  */
 trait SingleTableMultipleDtos extends EventImplementation with MultipleDtosEventType {
 
   /**
-   * Interprets/reads the custom fields it needs (and copies them into the Dto).
-   */
+    * Interprets/reads the custom fields it needs (and copies them into the Dto).
+    */
   def baseTableToCustomDto(baseEventDto: BaseEventDto): Dto
 
   /**
-   * Stores the custom values into a BaseEventDto instance.
-   * Use this if you need to store anything in valueInteger or valueString, override this method to provide this data. Gets called before the data is written to the database
-   */
+    * Stores the custom values into a BaseEventDto instance.
+    * Use this if you need to store anything in valueInteger or valueString, override this method to provide this data. Gets called before the data is written to the database
+    */
   def customDtoToBaseTable(event: Event, baseEventDto: BaseEventDto): BaseEventDto
 
 }
 
 /**
- * For event types which has their own extra properties table. Does *not* use any of the custom generic fields in the base event table.
- */
+  * For event types which has their own extra properties table. Does *not* use any of the custom generic fields in the base event table.
+  */
 trait MultipleTablesMultipleDtos extends EventImplementation with MultipleDtosEventType {
   /** creates an action which inserts the extended/specific properties into the database */
   def createInsertCustomDtoAction(id: Long, event: Event): DBIO[Int]
@@ -204,7 +186,7 @@ object EventHelpers {
   /** Handles recursion */
   def validateEvent(jsObject: JsObject): MusitResult[Event] = {
     val maybeEventResult = validateSingleEvent(jsObject)
-    maybeEventResult.map{
+    maybeEventResult.map {
       eventResult =>
         (jsObject \ "subEvents").toOption match {
           case Some(subEventsAsJson) =>
@@ -218,7 +200,7 @@ object EventHelpers {
                   case Right(reallySubEvents) =>
                     println(s"really subEvents: $reallySubEvents")
                     eventResult.addSubEvents(reallySubEvents)
-                  eventResult
+                    eventResult
                 }
 
               case _ => ErrorHelper.badRequest("expected array of subEvents in subEvent property")
@@ -231,7 +213,6 @@ object EventHelpers {
   }
 
 
-
   def eventFromJson[T <: Event](jsValue: JsValue): MusitResult[T] = {
     validateEvent(jsValue.asInstanceOf[JsObject]).map(res => res.asInstanceOf[T])
   }
@@ -241,9 +222,11 @@ object EventHelpers {
     event.eventType.maybeMultipleDtos.fold(baseJson)(jsonWriter => baseJson ++ (jsonWriter.customDtoToJson(event).asInstanceOf[JsObject]))
   }
 
-  def eventDtoToStoreInDatabase(event: Event) = event.eventType.maybeSingleTableMultipleDtos match {
-    case Some(singleTableMultipleDtos) => singleTableMultipleDtos.customDtoToBaseTable(event, event.baseEventProps.toBaseEventDto)
-    case None => event.baseEventProps.toBaseEventDto
+  def eventDtoToStoreInDatabase(event: Event, parentId: Option[Long]) = {
+    event.eventType.maybeSingleTableMultipleDtos match {
+      case Some(singleTableMultipleDtos) => singleTableMultipleDtos.customDtoToBaseTable(event, event.baseEventProps.toBaseEventDto(parentId))
+      case None => event.baseEventProps.toBaseEventDto(parentId)
+    }
   }
 }
 
