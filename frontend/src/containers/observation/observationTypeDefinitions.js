@@ -154,7 +154,8 @@ const definePestType = (id, dropdownLabel) => {
   }
 }
 
-const defineStatusType = (id, dropdownLabel, statusLabel, statusTooltip, statusOptionValues, volumeLabel, volumeTooltip, commentLabel, commentTooltip) => {
+const defineStatusType = (id, dropdownLabel, statusLabel, statusTooltip,
+  statusOptionValues, volumeLabel, volumeTooltip, commentLabel, commentTooltip) => {
   return {
     label: dropdownLabel,
     component: {

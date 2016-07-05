@@ -24,6 +24,7 @@ import FontAwesome from 'react-fontawesome'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
 import DatePicker from 'react-datepicker'
+require('react-datepicker/dist/react-datepicker.css');
 import Autosuggest from 'react-autosuggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
