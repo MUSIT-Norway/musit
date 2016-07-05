@@ -36,6 +36,7 @@ CREATE TABLE MUSARK_EVENT.EVENT (
   ID BIGINT(20) NOT NULL AUTO_INCREMENT,
   EVENT_TYPE_ID integer not null, -- Move to separate table if we want to allow multiple instantiations
   NOTE VARCHAR2(4000),
+  VALUE_LONG long, -- Custom value, events can choose to store some event-specific value here.
   PRIMARY KEY (ID),
   FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID)
 );

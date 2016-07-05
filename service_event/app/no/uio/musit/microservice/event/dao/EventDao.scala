@@ -130,7 +130,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   )
 
   private class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id.?, eventTypeID, eventNote) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, eventTypeID, eventNote, valueLong) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 
@@ -138,15 +138,18 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     val eventNote = column[Option[String]]("NOTE")
 
-    def create = (id: Option[Long], eventType: EventType, note: Option[String]) =>
+    val valueLong = column[Option[Long]]("VALUE_LONG")
+
+    def create = (id: Option[Long], eventType: EventType, note: Option[String], valueLong: Option[Long]) =>
       BaseEventDto(
         id,
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
         eventType,
-        note
+        note,
+        valueLong
       )
 
-    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note)
+    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.valueLong)
   }
 
 }

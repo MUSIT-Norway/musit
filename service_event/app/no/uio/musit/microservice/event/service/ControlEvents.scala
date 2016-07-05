@@ -38,7 +38,6 @@ trait ControlSpecificDtoBase extends DTO {
 */
 
 class ControlEvents {}
-/*
 
 case class ControlSpecificDto(ok: Boolean) extends Dto
 
@@ -51,6 +50,7 @@ object ControlSpecificDto {
 /** "Abstract" base class for specific events */
 class ControlSpecific(baseEventProps: BaseEventProps, val customDto: ControlSpecificDto) extends Event(baseEventProps) {
 
+  val ok = customDto.ok
 }
 
 /** "Abstract" base class for specific control event implementations */
@@ -73,4 +73,3 @@ class ControlTemperature(baseEventProps: BaseEventProps, customDto: ControlSpeci
 object ControlTemperatureService extends ControlSpecificService with SingleTableMultipleDtos {
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ControlTemperature(baseProps, customDto.asInstanceOf[ControlSpecificDto])
 }
-*/ 

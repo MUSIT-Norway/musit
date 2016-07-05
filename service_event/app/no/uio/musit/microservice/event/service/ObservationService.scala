@@ -1,14 +1,13 @@
 package no.uio.musit.microservice.event.service
 
-/*
-import no.uio.musit.microservice.event.dao.EventDao.EventBaseDto
-import no.uio.musit.microservice.event.domain.Observation
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservice.event.domain.{ BaseEventProps, Event, SingleTableSingleDto }
 
-object ObservationService extends SimpleService {
-  def fromDatabase(id: Long, base: EventBaseDto) = {
-    MusitFuture.successful(Observation(Some(id), base.links, base.note, None))
+class Observation(baseProps: BaseEventProps) extends Event(baseProps)
+
+object ObservationService extends SingleTableSingleDto {
+
+  def createEventInMemory(baseEventProps: BaseEventProps): Event = {
+    new Observation(baseEventProps)
   }
-
 }
-*/
+

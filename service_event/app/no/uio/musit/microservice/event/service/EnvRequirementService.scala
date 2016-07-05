@@ -11,11 +11,11 @@ import scala.concurrent.Future
 class EnvRequirement(val baseProps: BaseEventProps, val envReqDto: EnvRequirementDto) extends Event(baseProps) {
   val temperature = envReqDto.temperature
   val airHumidity = envReqDto.airHumidity
-  //todo....
+  //publish all the fields or none...
 
 }
 
-object EnvRequirementEventImplementation extends MultipleTablesMultipleDtos {
+object EnvRequirementService extends MultipleTablesMultipleDtos {
 
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new EnvRequirement(baseProps, customDto.asInstanceOf[EnvRequirementDto])
 
@@ -27,5 +27,6 @@ object EnvRequirementEventImplementation extends MultipleTablesMultipleDtos {
   }
 
   def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[EnvRequirementDto]
+
   def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[EnvRequirement].envReqDto).asInstanceOf[JsObject]
 }

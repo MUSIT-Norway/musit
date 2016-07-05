@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.resource
 
 import no.uio.musit.microservice.event.domain._
-import no.uio.musit.microservice.event.service.{Control, ControlService, EnvRequirement}
+import no.uio.musit.microservice.event.service.{Control, ControlService, ControlTemperature, EnvRequirement}
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
@@ -163,34 +163,62 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
 
-  /*
-    "postWithControlEvent" in {
+    "post controlTemperature with ok = true" in {
       val json =
         """
   {
-   "eventType": "Control",
-   "controlOk": true,
-   "note": "Dette er et viktig notat for kontroll!",
-   "controlType": "skadedyr",
+   "eventType": "ControlTemperature",
+   "ok": true,
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
       val response = createEvent(json)
+      println(s"Create Control temperature: ${response.body}")
       response.status mustBe 201
-      println(s"Create: ${response.body}")
 
-      val myControlEvent = validateEvent[Control](response.json)
-      myControlEvent.controlType mustBe Some("skadedyr")
+      val myControlEvent = validateEvent[ControlTemperature](response.json)
+      myControlEvent.ok mustBe true
       val responseGet = getEvent(myControlEvent.id.get)
       responseGet.status mustBe 200
       println(s"Get: ${responseGet.body}")
 
     }
+
+
+  "post controlTemperature with ok = false" in {
+    val json =
+      """
+  {
+   "eventType": "ControlTemperature",
+   "ok": false,
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    println(s"Create Control temperature: ${response.body}")
+    response.status mustBe 201
+
+    val myControlEvent = validateEvent[ControlTemperature](response.json)
+    myControlEvent.ok mustBe false
+    val responseGet = getEvent(myControlEvent.id.get)
+    responseGet.status mustBe 200
+    println(s"Get: ${responseGet.body}")
+
   }
 
-   */
+  "post controlTemperature should fail if missing ok-value" in {
+    val json =
+      """
+  {
+   "eventType": "ControlTemperature",
+   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    println(s"Create Control temperature without ok should fail: ${response.body}")
+    response.status mustBe 400
+  }
 
 
-    "post and get envRequirement" in {
+
+  "post and get envRequirement" in {
       val json =
         """
   {

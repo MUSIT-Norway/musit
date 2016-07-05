@@ -32,22 +32,6 @@ object EnvRequirementDAO extends HasDatabaseConfig[JdbcProfile] {
     implicit val format = Json.format[EnvRequirementDto]
   }
 
-  /*def valueLongToOptBool = valueLong match {
-    case Some(1) => Some(true)
-    case Some(0) => Some(false)
-    case None => None
-    case n => throw new MusitInternalErrorException(s"Wrong boolean value $n")
-  }
-
-  def valueLongToBool = valueLongToOptBool match {
-    case Some(b) => b
-    case None => throw new MusitInternalErrorException("Missing boolean value")
-  }
-}*/
-
-  /*object EnvRequirementDto {
-  def fromEvent(evt: Event) = EventBaseDto(evt.id, evt.links, evt.eventType, evt.note)
-}*/
   def insertAction(event: EnvRequirementDto): DBIO[Int] =
     EnvRequirementTable += event
 
