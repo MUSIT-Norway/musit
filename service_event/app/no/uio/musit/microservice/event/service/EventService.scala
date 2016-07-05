@@ -37,5 +37,5 @@ object EventService {
     EventDao.insertEvent(event, true).toMusitFuture
 
   def getEvent(id: Long): MusitFuture[Event] =
-    EventDao.getEvent(id)
+    EventDao.getEvent(id, true)
 }

@@ -47,9 +47,9 @@ class Event(val baseEventProps: BaseEventProps) {
   private var subEvents = Seq.empty[Event]
 
 
-  def getTempSubEvents = subEvents // TODO: Make subEvents mutable or wrap it in an Atom 
+  def getSubEvents = subEvents // TODO: Make subEvents mutable or wrap it in an Atom
 
-  protected var parent: Option[Event] = None //The part of relation
+  protected var parent: Option[Event] = None //The part_of relation
 
   def hasSubEvents = subEvents.length > 0
 
@@ -205,7 +205,6 @@ object EventHelpers {
 
               case _ => ErrorHelper.badRequest("expected array of subEvents in subEvent property")
             }
-
             eventResult
           case None => eventResult
         }

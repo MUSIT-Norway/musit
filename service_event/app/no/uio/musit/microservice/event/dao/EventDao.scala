@@ -55,6 +55,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   def insertEventAction(event: Event, parentId: Option[Long], recursive: Boolean): DBIO[Long] = {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
+    parentId.map(pid => println(s"parentID: $pid for event type: ${event.eventType.name}"))
+
     val insertBaseAndLinksAction = (for {
       newEventId <- insertBaseAction(EventHelpers.eventDtoToStoreInDatabase(event, parentId))
       _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(event, newEventId))
@@ -68,7 +70,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
           numInserted <- complexEventType.createInsertCustomDtoAction(newEventId, event)
         } yield newEventId).transactionally
     }
-    if(recursive && event.hasSubEvents) {
+    if (recursive && event.hasSubEvents) {
       (for {
         newEventId <- combinedAction
         numInserted <- insertChildrenAction(newEventId, event)
@@ -81,12 +83,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def insertEvent(event: Event, recursive: Boolean): Future[Long] = {
-    val action=insertEventAction(event, None, recursive)
+    val action = insertEventAction(event, None, recursive)
     db.run(action)
   }
 
   def insertChildrenAction(parentEventId: Long, parentEvent: Event) = {
-    val actions = parentEvent.getTempSubEvents.map(subEvent=>insertEventAction(subEvent, Some(parentEventId), true))
+    val actions = parentEvent.getSubEvents.map(subEvent => insertEventAction(subEvent, Some(parentEventId), true))
     new SequenceAction(actions.toIndexedSeq)
   }
 
@@ -95,21 +97,53 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  def getEvent(id: Long): MusitFuture[Event] = {
+  private def getSubEventDtos(parentId: Long): Future[Seq[BaseEventDto]] = {
+    val action = EventBaseTable.filter(event => event.partOf === parentId).result
+    db.run(action)
+  }
+
+  private def getEvent(baseEventDto: BaseEventDto, recursive: Boolean): MusitFuture[Event] = {
+    assert(baseEventDto.id.isDefined)
+    val id = baseEventDto.id.getOrFail("Internal error, id missing")
+    val futureEvent = baseEventDto.eventType.eventImplementation match {
+
+      case singleTableSingleDto: SingleTableSingleDto => MusitFuture.successful(singleTableSingleDto.createEventInMemory(baseEventDto.props))
+
+      case singleTableMultipleDtos: SingleTableMultipleDtos =>
+        val customDto = singleTableMultipleDtos.baseTableToCustomDto(baseEventDto)
+        MusitFuture.successful(singleTableMultipleDtos.createEventInMemory(baseEventDto.props, customDto))
+      case multipleTablesMultipleDtos: MultipleTablesMultipleDtos => multipleTablesMultipleDtos.getEventFromDatabase(id, baseEventDto)
+    }
+    if (recursive) {
+      val futureSubEvents = futureEvent.musitFutureFlatMap { event => getSubEvents(id, recursive)}
+
+      futureEvent.musitFutureFlatMap{event=>          //This would have been much prettier if we implemented the MusitFuture monad!
+        futureSubEvents.musitFutureMap{subEvents =>
+          event.addSubEvents(subEvents)
+          event
+        }
+      }
+    }
+    else
+      futureEvent
+  }
+
+  def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] = {
 
     val maybeBaseEventDto = getBaseEvent(id).toMusitFuture(ErrorHelper.badRequest(s"Event with id: $id not found"))
 
     maybeBaseEventDto.musitFutureFlatMap {
-      baseEventDto =>
-        baseEventDto.eventType.eventImplementation match {
+      baseEventDto => getEvent(baseEventDto, recursive)
+    }
+  }
 
-          case singleTableSingleDto: SingleTableSingleDto => MusitFuture.successful(singleTableSingleDto.createEventInMemory(baseEventDto.props))
+  def getSubEvents(parentId: Long, recursive: Boolean): MusitFuture[Seq[Event]] = {
+    val futureSubEventDtos = getSubEventDtos(parentId).toMusitFuture
 
-          case singleTableMultipleDtos: SingleTableMultipleDtos =>
-            val customDto = singleTableMultipleDtos.baseTableToCustomDto(baseEventDto)
-            MusitFuture.successful(singleTableMultipleDtos.createEventInMemory(baseEventDto.props, customDto))
-          case multipleTablesMultipleDtos: MultipleTablesMultipleDtos => multipleTablesMultipleDtos.getEventFromDatabase(id, baseEventDto)
-        }
+    futureSubEventDtos.musitFutureFlatMap {
+      subEventDtos: Seq[BaseEventDto] =>
+        MusitFuture.traverse(subEventDtos) { subEventDto: BaseEventDto => getEvent(subEventDto, recursive) }
+
     }
   }
 
