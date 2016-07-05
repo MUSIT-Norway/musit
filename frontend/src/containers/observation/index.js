@@ -23,8 +23,7 @@ import { Panel, Grid, Row, Col, FormGroup, Button, ControlLabel, SplitButton, Me
 import FontAwesome from 'react-fontawesome'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
-import DatePicker from 'react-datepicker'
-require('react-datepicker/dist/react-datepicker.css');
+import DatePicker from 'react-bootstrap-date-picker'
 import Autosuggest from 'react-autosuggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
@@ -109,12 +108,17 @@ export default class ObservationView extends React.Component {
     }
     this.addNewObservation = this.addNewObservation.bind(this)
     this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
+    this.onChangeDate = this.onChangeDate.bind(this)
     this.addPest = this.addPest.bind(this)
     this.selectType = this.selectType.bind(this)
   }
 
   onChangeDoneBy(event, { newValue }) {
     this.updateDoneBy(newValue)
+  }
+
+  onChangeDate(v) {
+    this.setState({ ...this.state, date: v })
   }
 
   getDoneBySuggestionValue(suggestion) {
@@ -148,7 +152,7 @@ export default class ObservationView extends React.Component {
   }
 
   updateDoneBy(newValue) {
-    console.log(newValue)
+    this.setState({ ...this.state, doneby: newValue })
   }
 
   renderDoneBySuggestion(suggestion) {
@@ -171,8 +175,8 @@ export default class ObservationView extends React.Component {
     const { observations } = this.state
 
     const doneByProps = {
-      id: 'addressField',
-      placeholder: 'addresse',
+      id: 'doneByField',
+      placeholder: 'Done by',
       value: 'value to be changed',
       type: 'search',
       onChange: this.onChangeDoneBy
@@ -231,7 +235,10 @@ export default class ObservationView extends React.Component {
                   <FormGroup>
                     <Col xs={12} sm={6}>
                       <ControlLabel>{translate('musit.texts.date')}</ControlLabel>
-                      <DatePicker />
+                      <DatePicker
+                        value={this.state.date}
+                        onChange={this.onChangeDate}
+                      />
                     </Col>
                     <Col xs={12} sm={6}>
                       <ControlLabel>{translate('musit.texts.doneBy')}</ControlLabel>
