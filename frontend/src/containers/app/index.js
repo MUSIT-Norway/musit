@@ -98,11 +98,14 @@ class App extends Component {
               <LinkContainer to="/observation">
                 <NavItem eventKey={5}>Observation</NavItem>
               </LinkContainer>
+              <LinkContainer to="/controlview">
+                <NavItem eventKey={6}>ContorlView</NavItem>
+              </LinkContainer>
               <LinkContainer to="/storageunits">
-                <NavItem eventKey={6}>Dummy list</NavItem>
+                <NavItem eventKey={7}>Dummy list</NavItem>
               </LinkContainer>
               <LinkContainer to="/musit/about">
-                <NavItem eventKey={7}>About Us</NavItem>
+                <NavItem eventKey={8}>About Us</NavItem>
               </LinkContainer>
               {user &&
                 <LinkContainer to="/picklist">

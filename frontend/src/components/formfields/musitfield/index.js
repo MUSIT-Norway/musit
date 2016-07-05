@@ -79,7 +79,7 @@ MusitField.propTypes = {
   help: PropTypes.string, // always ? on add on after
   placeHolder: PropTypes.string,
   tooltip: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
+  onChange: PropTypes.func,
   validate: PropTypes.string.isRequired,
   minimumLength: PropTypes.number,
   maximumLength: PropTypes.number,

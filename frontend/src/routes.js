@@ -27,6 +27,7 @@ import ExampleView from './containers/example-view'
 import StorageUnitContainer from './containers/storageunit-container'
 import WelcomeUserView from './containers/welcome-user'
 import ObservationView from './containers/observation'
+import ControlViewShow from './containers/control'
 import App from './containers/app'
 
 export default (store) => {
@@ -55,10 +56,11 @@ export default (store) => {
 
       <Route path="/" component={WelcomeView} onEnter={redirectIfLoggedIn} />
 
-      <Route path="/picklist" component={PickListView} />
-      <Route path="/storageunits" component={StorageUnitsView} />
+      <Route path="/controlview" component={ControlViewShow} />
       <Route path="/example" component={ExampleView} />
       <Route path="/observation" component={ObservationView} />
+      <Route path="/picklist" component={PickListView} />
+      <Route path="/storageunits" component={StorageUnitsView} />
       <Route path="/storageunit/:id" component={StorageUnitContainer} />
       <Route path="/storageunit/add" component={StorageUnitContainer} />
 

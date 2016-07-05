@@ -20,6 +20,10 @@ no:
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
+      dateCompleted: "Dato utført"
+      dateRegistered: "Dato registrert"
+      registeredBy: "Registrert av"
+      performedBy: "Utført av"
     observation:
       newButtonLabel: "Legg til ny"
       pest:
