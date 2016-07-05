@@ -18,7 +18,6 @@
  */
 
 import { routerReducer } from 'react-router-redux'
-import { reducer as form } from 'redux-form'
 import { combineReducers } from 'redux'
 
 import infoReducer from './info'
