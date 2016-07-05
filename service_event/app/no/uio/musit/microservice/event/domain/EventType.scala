@@ -1,9 +1,8 @@
 package no.uio.musit.microservice.event.domain
 
 import no.uio.musit.microservice.event.service._
-
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import play.api.libs.json.{ Json, Writes }
+import play.api.libs.json.{Json, Writes}
 
 object EventType {
 
@@ -12,13 +11,15 @@ object EventType {
   }
 
   private val eventTypes = Seq(
-    EventType(1, "Move", Move),
-    EventType(2, "Control", ControlService),
-    EventType(3, "Observation", ObservationService),
-    EventType(4, "ControlTemperature", ControlTemperatureService),
-    EventType(5, "EnvRequirement", EnvRequirementService)
+    eventType(1, "Move", Move),
+    eventType(2, "Control", ControlService),
+    eventType(3, "Observation", ObservationService),
+    eventType(4, "ControlTemperature", ControlTemperatureService),
+    eventType(5, "EnvRequirement", EnvRequirementService),
+    eventType(6, "ObservationTemperature", ObservationTemperatureService)
 
-  // Add new event type here....
+
+    // Add new event type here....
   )
 
   private val eventTypeById: Map[Int, EventType] = eventTypes.map(evt => evt.id -> evt).toMap
@@ -34,7 +35,8 @@ object EventType {
     def writes(eventType: EventType) = Json.toJson(eventType.name)
   }
 }
-case class EventType(id: Int, name: String, eventImplementation: EventImplementation /*, maybeJsonHandler: Option[JsonHandler]*/ ) {
+
+case class EventType(id: Int, name: String, eventImplementation: EventImplementation /*, maybeJsonHandler: Option[JsonHandler]*/) {
   //println(s"Event name: $name")
 
   def maybeMultipleTablesMultipleDtos = {

@@ -22,8 +22,8 @@ object EnvRequirementService extends MultipleTablesMultipleDtos {
   def getCustomDtoFromDatabase(id: Long, baseEventDto: BaseEventDto): Future[Option[Dto]] = EnvRequirementDAO.getEnvRequirement(id)
 
   def createInsertCustomDtoAction(id: Long, event: Event) = {
-    val envReq = event.asInstanceOf[EnvRequirement]
-    EnvRequirementDAO.insertAction(envReq.envReqDto.copy(id = Some(id)))
+    val specificEvent = event.asInstanceOf[EnvRequirement]
+    EnvRequirementDAO.insertAction(specificEvent.envReqDto.copy(id = Some(id)))
   }
 
   def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[EnvRequirementDto]

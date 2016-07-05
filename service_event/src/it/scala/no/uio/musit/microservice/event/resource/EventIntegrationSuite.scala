@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.resource
 
 import no.uio.musit.microservice.event.domain._
-import no.uio.musit.microservice.event.service.{Control, ControlService, ControlTemperature, EnvRequirement}
+import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
@@ -163,25 +163,25 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
 
-    "post controlTemperature with ok = true" in {
-      val json =
-        """
+  "post controlTemperature with ok = true" in {
+    val json =
+      """
   {
    "eventType": "ControlTemperature",
    "ok": true,
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
-      val response = createEvent(json)
-      println(s"Create Control temperature: ${response.body}")
-      response.status mustBe 201
+    val response = createEvent(json)
+    println(s"Create Control temperature: ${response.body}")
+    response.status mustBe 201
 
-      val myControlEvent = validateEvent[ControlTemperature](response.json)
-      myControlEvent.ok mustBe true
-      val responseGet = getEvent(myControlEvent.id.get)
-      responseGet.status mustBe 200
-      println(s"Get: ${responseGet.body}")
+    val myControlEvent = validateEvent[ControlTemperature](response.json)
+    myControlEvent.ok mustBe true
+    val responseGet = getEvent(myControlEvent.id.get)
+    responseGet.status mustBe 200
+    println(s"Get: ${responseGet.body}")
 
-    }
+  }
 
 
   "post controlTemperature with ok = false" in {
@@ -219,8 +219,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
   "post and get envRequirement" in {
-      val json =
-        """
+    val json =
+      """
   {
    "eventType": "EnvRequirement",
    "note": "Dette er et viktig notat for miljøkravene!",
@@ -230,22 +230,22 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "airHumidityInterval" : 4,
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
-      val response = createEvent(json)
-      println(s"Create: ${response.body}")
-      response.status mustBe 201
+    val response = createEvent(json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
 
-      val myEnvReqEvent = validateEvent[EnvRequirement](response.json)
-      myEnvReqEvent.temperature mustBe Some(20)
+    val myEnvReqEvent = validateEvent[EnvRequirement](response.json)
+    myEnvReqEvent.temperature mustBe Some(20)
 
 
-      val responseGet = getEvent(myEnvReqEvent.id.get)
-      responseGet.status mustBe 200
-      println(s"Get: ${responseGet.body}")
-    }
+    val responseGet = getEvent(myEnvReqEvent.id.get)
+    responseGet.status mustBe 200
+    println(s"Get: ${responseGet.body}")
+  }
 
-    "post and get Air envRequirement" in {
-      val json =
-        """
+  "post and get Air envRequirement" in {
+    val json =
+      """
   {
    "eventType": "EnvRequirement",
    "note": "Dette er et viktig notat for miljøkravene!",
@@ -253,20 +253,77 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "airHumidityInterval" : 5,
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
-      val response = createEvent(json)
-      println(s"Create: ${response.body}")
-      response.status mustBe 201
-      val myEnvReqEvent = validateEvent[EnvRequirement](response.json) //#OLD Event.format.reads(response.json).get.asInstanceOf[EnvRequirement]
-      myEnvReqEvent.airHumidity mustBe Some(-20)
+    val response = createEvent(json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+    val myEnvReqEvent = validateEvent[EnvRequirement](response.json) //#OLD Event.format.reads(response.json).get.asInstanceOf[EnvRequirement]
+    myEnvReqEvent.airHumidity mustBe Some(-20)
 
 
-      val responseGet = getEvent(myEnvReqEvent.id.get)
-      responseGet.status mustBe 200
-      println(s"Get: ${responseGet.body}")
-    }
-
-
-
-
+    val responseGet = getEvent(myEnvReqEvent.id.get)
+    responseGet.status mustBe 200
+    println(s"Get: ${responseGet.body}")
   }
+
+
+
+  "post and get ObservationTemperature" in {
+    val json =
+      """
+  {
+    "eventType": "observationTemperature",
+    "temperatureFrom": -20,
+    "temperatureTo" : 5,
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationTemperature](response.json)
+    myEvent.temperatureFrom mustBe Some(-20)
+    myEvent.temperatureTo mustBe Some(5)
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    println(s"Get: ${responseGet.body}")
+  }
+
+
+  "post and get complex Observation" in {
+    val json =
+      """
+    {
+        	"eventType": "observation",
+        	"note": "tekst til observasjonene",
+        	"links": [{
+        		"rel": "actor",
+        		"href": "actor/12"
+        	}],
+        	"subEvents": [{
+        		"eventType": "observationTemperature",
+        		"temperatureFrom": -20,
+        		"temperatureTo": 5,
+        		"links": [{
+        			"rel": "actor",
+        			"href": "actor/12"
+        		}]
+        	}]
+        }"""
+
+    val response = createEvent(json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+    val myEvent = validateEvent[Observation](response.json)
+    /*
+    myEvent.temperatureFrom mustBe Some(-20)
+    myEvent.temperatureTo mustBe Some(5)
+*/
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    println(s"Get: ${responseGet.body}")
+  }
+
+}
 

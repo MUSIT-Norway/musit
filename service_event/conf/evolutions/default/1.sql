@@ -42,9 +42,10 @@ CREATE TABLE MUSARK_EVENT.EVENT (
 );
 
 
-CREATE TABLE MUSARK_EVENT.OBSERVATION (
+CREATE TABLE MUSARK_EVENT.OBSERVATION_TEMPERATURE (
   ID BIGINT(20) NOT NULL,
-  TEMPERATURE NUMBER,
+  TEMPERATURE_FROM NUMBER,
+  TEMPERATURE_TO NUMBER,
   PRIMARY KEY (ID),
   FOREIGN KEY (ID) REFERENCES MUSARK_EVENT.EVENT(ID)
 );
@@ -82,6 +83,7 @@ insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'control');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'observation');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4,'controltemperature');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'envrequirement');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6,'observationtemperature');
 
 # --- !Downs
 
