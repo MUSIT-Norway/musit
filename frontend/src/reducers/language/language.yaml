@@ -20,6 +20,20 @@ no:
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
+    newControl:
+      title: "Ny kontroll"
+      date: "Dato"
+      doneBy: "Utført av"
+      temperature: Temperatur
+      inertAir: "Inert luft"
+      relativeHumidity: "Relativ luftfuktighet"
+      cleaning: "Renhold"
+      lightCondition: "Lysforhold"
+      alchohol: "Sprit"
+      gas: "Gass"
+      mold: "Mugg"
+      pest: "Skadedyr"
+      envdata: "Miljødata"
     observation:
       newButtonLabel: "Legg til ny"
       pest:
@@ -41,7 +55,7 @@ no:
       title: "Magasin"
       environmentRequirements:
         temperature:
-          labelText: Temperatur
+          labelText: "Temperatur"
           tooltip: "Måleenhet grader celsius, desimaltall"
           placeHolder: C
         temperatureTolerance:
