@@ -43,7 +43,7 @@ export default class ObservationView extends React.Component {
     super(props)
     const { translate } = props
 
-    this.observationTypeDefinitions = observationTypeDefinitions(translate, this.addPest)
+    this.observationTypeDefinitions = observationTypeDefinitions(translate, this.actions)
     // TODO: Language binding.
     // TODO: Action binding.
     this.observationTypes = {
@@ -69,6 +69,15 @@ export default class ObservationView extends React.Component {
         ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende'],
         'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip'),
       pest: definePestType('pest', 'Skadedyr')
+    }
+
+    this.actions = {
+      changeTempFrom: (v) => {
+        this.setState({ ...this.state, x: v })
+      },
+      changeTo: (l, r) => {
+        this.setState({ ...this.state, x: l, y: r })
+      }
     }
 
     this.state = {
