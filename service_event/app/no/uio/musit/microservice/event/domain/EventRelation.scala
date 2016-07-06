@@ -18,24 +18,27 @@
  *
  */
 
-package no.uio.musit.microservice.event.service
+package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservice.event.dao.EventDao
-import no.uio.musit.microservice.event.domain._
-import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.utils.ErrorHelper
+/**
+  * Created by jstabel on 7/6/16.
+  */
 
-object EventService {
-  def eventNotFoundError(id: Long): MusitError =
-    ErrorHelper.notFound(s"Unknown event with id: $id")
+/*
+case class EventRelation(name: String, inverseName: String)
 
-  def insertAndGetNewEvent(event: Event, recursive: Boolean): MusitFuture[Event] =
-    insertEvent(event).musitFutureFlatMap(newId => getEvent(newId, recursive))
 
-  def insertEvent(event: Event): MusitFuture[Long] =
-    EventDao.insertEvent(event, true).toMusitFuture
+object EventRelations {
 
-  def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] =
-    EventDao.getEvent(id, recursive)
-}
+    private def defineRelation(name: String, inverseName: String) {
+
+
+
+  }
+
+
+
+
+
+
+}*/

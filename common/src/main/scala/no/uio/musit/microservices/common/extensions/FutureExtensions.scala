@@ -25,11 +25,11 @@ import no.uio.musit.microservices.common.utils.Misc._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.collection.generic.CanBuildFrom
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
-  * Created by jstabel on 4/22/16.
-  */
+ * Created by jstabel on 4/22/16.
+ */
 
 object FutureExtensions {
 
@@ -40,8 +40,8 @@ object FutureExtensions {
     def foldInnerOption[S](ifNone: => S, ifSome: T => S): Future[S] = fut.map(optValue => optValue.map(ifSome).getOrElse(ifNone))
 
     /**
-      * Transforms a Future[Option[T]] to a MusitFuture[T] (Future[Either[MusitError, T]]) in the obvious way.
-      */
+     * Transforms a Future[Option[T]] to a MusitFuture[T] (Future[Either[MusitError, T]]) in the obvious way.
+     */
     def toMusitFuture(errorIfNone: => MusitError): MusitFuture[T] = fut.foldInnerOption(Left(errorIfNone), Right(_))
   }
 
@@ -61,18 +61,18 @@ object FutureExtensions {
     }
 
     /**
-      * The classical flatMap on "MusitFuture". f maps the T in a MusitFuture[T] into a MusitFuture[S]. This means we
-      * sort of end up with a MusitFuture[MusitFuture[S]], which we flatten into a MusitFuture[S]
-      */
+     * The classical flatMap on "MusitFuture". f maps the T in a MusitFuture[T] into a MusitFuture[S]. This means we
+     * sort of end up with a MusitFuture[MusitFuture[S]], which we flatten into a MusitFuture[S]
+     */
     def musitFutureFlatMap[S](f: T => Future[Either[MusitError, S]]): Future[Either[MusitError, S]] = {
       futureEitherFlatten(futEither.musitFutureMap(f))
     }
 
     /**
-      * Inside the future, flatMaps the Either part. f maps the T in a MusitFuture[T] into an Either[MusitError, S].
-      * This means we sort of end up with MusitFuture[Either[MusitError, S]], which we flatten into MusitFuture[S].
-      * (ie a regular Either flatMap on the "inner" Either.)
-      */
+     * Inside the future, flatMaps the Either part. f maps the T in a MusitFuture[T] into an Either[MusitError, S].
+     * This means we sort of end up with MusitFuture[Either[MusitError, S]], which we flatten into MusitFuture[S].
+     * (ie a regular Either flatMap on the "inner" Either.)
+     */
     def musitFutureFlatMapInnerEither[S](f: T => Either[MusitError, S]): Future[Either[MusitError, S]] = {
       futEither.map { either => either.right.flatMap(f) }
     }
@@ -88,10 +88,10 @@ object FutureExtensions {
     private def appendToSeq[T](mySeq: MusitResult[Seq[T]], elem: MusitResult[T]) = {
       mySeq match {
         case Left(seqError) =>
-            elem match {
-              case Left(elemError) => Left(seqError) // TODO: Concatenate in elemError!
-              case Right(elemT) =>  Left(seqError)
-            }
+          elem match {
+            case Left(elemError) => Left(seqError) // TODO: Concatenate in elemError!
+            case Right(elemT) => Left(seqError)
+          }
         case Right(seqT) =>
           elem match {
             case Left(elemError) => Left(elemError)

@@ -2,7 +2,7 @@ package no.uio.musit.microservice.event.domain
 
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{ Json, Writes }
 
 object EventType {
 
@@ -18,8 +18,7 @@ object EventType {
     eventType(5, "EnvRequirement", EnvRequirementService),
     eventType(6, "ObservationTemperature", ObservationTemperatureService)
 
-
-    // Add new event type here....
+  // Add new event type here....
   )
 
   private val eventTypeById: Map[Int, EventType] = eventTypes.map(evt => evt.id -> evt).toMap
@@ -36,7 +35,7 @@ object EventType {
   }
 }
 
-case class EventType(id: Int, name: String, eventImplementation: EventImplementation /*, maybeJsonHandler: Option[JsonHandler]*/) {
+case class EventType(id: Int, name: String, eventImplementation: EventImplementation /*, maybeJsonHandler: Option[JsonHandler]*/ ) {
   //println(s"Event name: $name")
 
   def maybeMultipleTablesMultipleDtos = {

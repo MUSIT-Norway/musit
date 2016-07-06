@@ -27,14 +27,14 @@ import play.api.mvc.{ Action, BodyParsers, Controller }
 
 class EventResource extends Controller {
 
-  private def eventToJson(event: Event) = EventHelpers.toJson(event)
+  private def eventToJson(event: Event) = EventHelpers.toJson(event, true)
 
   def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val maybeEventResult = EventHelpers.validateEvent(request.body.asInstanceOf[JsObject]) //ResourceHelper.jsResultToMusitResult(request.body.validate[Event])
-    ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent, maybeEventResult, eventToJson)
+    ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent(_: Event, true), maybeEventResult, eventToJson)
   }
 
   def getEvent(id: Long) = Action.async { request =>
-    ResourceHelper.getRoot(EventService.getEvent, id, eventToJson)
+    ResourceHelper.getRoot(EventService.getEvent(_: Long, true), id, eventToJson)
   }
 }

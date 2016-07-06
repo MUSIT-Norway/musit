@@ -20,9 +20,9 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{BaseEventProps, _}
+import no.uio.musit.microservice.event.domain.{ BaseEventProps, _ }
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
@@ -30,7 +30,7 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -76,7 +76,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         numInserted <- insertChildrenAction(newEventId, event)
       } yield newEventId).transactionally
 
-
     } else
       combinedAction
 
@@ -115,16 +114,15 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       case multipleTablesMultipleDtos: MultipleTablesMultipleDtos => multipleTablesMultipleDtos.getEventFromDatabase(id, baseEventDto)
     }
     if (recursive) {
-      val futureSubEvents = futureEvent.musitFutureFlatMap { event => getSubEvents(id, recursive)}
+      val futureSubEvents = futureEvent.musitFutureFlatMap { event => getSubEvents(id, recursive) }
 
-      futureEvent.musitFutureFlatMap{event=>          //This would have been much prettier if we implemented the MusitFuture monad!
-        futureSubEvents.musitFutureMap{subEvents =>
+      futureEvent.musitFutureFlatMap { event => //This would have been much prettier if we implemented the MusitFuture monad!
+        futureSubEvents.musitFutureMap { subEvents =>
           event.addSubEvents(subEvents)
           event
         }
       }
-    }
-    else
+    } else
       futureEvent
   }
 
@@ -148,7 +146,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
-                          partOf: Option[Long], valueLong: Option[Long] = None) {
+      partOf: Option[Long], valueLong: Option[Long] = None) {
 
     def getOptBool = valueLong match {
       case Some(1) => Some(true)
@@ -170,14 +168,13 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   }
 
-
   implicit lazy val libraryItemMapper = MappedColumnType.base[EventType, Int](
     eventType => eventType.id,
     id => EventType.getById(id)
   )
 
   private class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id.?, eventTypeID, eventNote, partOf, valueLong) <>(create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, eventTypeID, eventNote, partOf, valueLong) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 

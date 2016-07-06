@@ -5,7 +5,6 @@ import no.uio.musit.microservice.event.domain.{ BaseEventProps, Event, SingleTab
 class Observation(baseProps: BaseEventProps) extends Event(baseProps) {
   def subObservations = this.getSubEvents //TEMP!
 
-
 }
 
 object ObservationService extends SingleTableSingleDto {

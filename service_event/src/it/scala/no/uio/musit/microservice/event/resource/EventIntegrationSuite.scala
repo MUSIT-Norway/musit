@@ -293,22 +293,30 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   "post and get complex Observation" in {
     val json =
       """
-    {
-        	"eventType": "observation",
-        	"note": "tekst til observasjonene",
-        	"links": [{
-        		"rel": "actor",
-        		"href": "actor/12"
-        	}],
-        	"subEvents": [{
-        		"eventType": "observationTemperature",
-        		"temperatureFrom": -30,
-        		"temperatureTo": 25,
-        		"links": [{
-        			"rel": "actor",
-        			"href": "actor/12"
-        		}]
-        	}]
+        {
+          "eventType": "observation",
+          "note": "tekst til observasjonene",
+          "links": [{
+            "rel": "actor",
+            "href": "actor/12"
+          }],
+          "subEvents": [{
+            "eventType": "observationTemperature",
+            "temperatureFrom": -30,
+            "temperatureTo": 25,
+            "links": [{
+              "rel": "actor",
+              "href": "actor/12"
+            }]
+          }, {
+            "eventType": "observationTemperature",
+            "temperatureFrom": 20,
+            "temperatureTo": 50,
+            "links": [{
+              "rel": "actor",
+              "href": "actor/12"
+            }]
+          }]
         }"""
 
     val myRawEvent = validateEvent[Observation](Json.parse(json))
@@ -321,7 +329,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     println(s"Create: ${response.body}")
     response.status mustBe 201
     val myEvent = validateEvent[Observation](response.json)
-    assert(myEvent.subObservations.length > 0)
+    assert(myEvent.subObservations.length >= 2)
 
     val firstObsEvent = myEvent.subObservations(0).asInstanceOf[ObservationTemperature]
     firstObsEvent.temperatureFrom mustBe Some(-30)

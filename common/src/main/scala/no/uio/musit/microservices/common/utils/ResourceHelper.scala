@@ -1,13 +1,17 @@
 package no.uio.musit.microservices.common.utils
 
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
-import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitResult
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+
 
 /**
  * Misc utilities for creating resources.
@@ -35,6 +39,8 @@ object ResourceHelper {
      * So beware of further mapping of the result! (This explains the 'Final' in the name.)
      * (Ideally I'd want to make this into a value (of a type) which cannot further be mapped etc on,
      * to prevent potential bugs/misuse.)
+     *
+     * Even better would be to remove this function! :)
      */
     def mapToFinalPlayResult[S](ifRight: T => Future[Result]): Future[Result] = {
       either match {
@@ -46,9 +52,8 @@ object ResourceHelper {
     }
   }
 
-  def postRoot[A](servicePostCall: A => Future[Either[MusitError, A]], objectToPost: A, toJsonTransformer: A => JsValue) = {
-    val res = servicePostCall(objectToPost)
-    res.map {
+  def postRoot[A](objectToPost: MusitFuture[A], toJsonTransformer: A => JsValue): Future[Result] = {
+    objectToPost.map {
       _.fold(
         l => l.toPlayResult,
         r => Created(toJsonTransformer(r))
@@ -56,13 +61,25 @@ object ResourceHelper {
     }
   }
 
+  def postRoot[A](servicePostCall: A => MusitFuture[A], objectToPost: A, toJsonTransformer: A => JsValue): Future[Result] = {
+    postRoot(servicePostCall(objectToPost), toJsonTransformer)
+  }
+
   /** Same as postRoot, but the object to post is a MusitResult (Either[MusitError, A]) */
-  def postRootWithMusitResult[A](servicePostCall: A => Future[Either[MusitError, A]], musitResultToPost: Either[MusitError, A],
+  def postRootWithMusitResult[A](servicePostCall: A => MusitFuture[A], musitResultToPost: Either[MusitError, A],
+    toJsonTransformer: A => JsValue): Future[Result] = {
+    val musitFutureResult = MusitFuture.fromMusitResult(musitResultToPost) //Was not able to import the .toMusitFuture extension method for some unknown reason... :(
+    val result = musitFutureResult.musitFutureFlatMap(servicePostCall)
+    postRoot(result, toJsonTransformer)
+  }
+  /*#OLD
+  def postRootWithMusitResult[A](servicePostCall: A => MusitFuture[A], musitResultToPost: Either[MusitError, A],
     toJsonTransformer: A => JsValue) = {
     musitResultToPost.mapToFinalPlayResult {
       objectToPost => postRoot(servicePostCall, objectToPost, toJsonTransformer)
     }
   }
+   */
 
   def updateRoot[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, objectToUpdate: A): Future[Result] = {
     serviceUpdateCall(id, objectToUpdate).map {

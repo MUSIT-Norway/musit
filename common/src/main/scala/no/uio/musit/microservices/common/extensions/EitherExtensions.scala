@@ -58,7 +58,6 @@ object EitherExtensions {
 
   }
 
-
   // TODO: Really concatenate errors, now we take the first error!
   def concatenateMusitResults[T](musitResults: Seq[MusitResult[T]]): MusitResult[Seq[T]] = {
     if (musitResults.isEmpty)
@@ -71,14 +70,10 @@ object EitherExtensions {
       val result = prevResult match {
         case Left(errorT) => Left(errorT) //Todo, concatenate
         case Right(seqT) =>
-          head match {
-            case Left(errorH) => Left(errorH)
-            case Right(headT) => Right(seqT :+ headT) //Is this the correct order or do we now get it in reverse? :)
-          }
+          head.map { headT => (headT +: seqT) } //Could do: Check whether this is the fastest way, if not, change the order and reverse the list at the very end
+
       }
       result
     }
   }
-
-
 }
