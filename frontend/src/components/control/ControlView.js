@@ -1,71 +1,103 @@
-import React, { Component } from 'react'
+import React, { Component, PropTypes } from 'react'
 import { ControlLabel, Panel, FormGroup, Button, Col, Row } from 'react-bootstrap'
 import { MusitField } from '../formfields'
 import FontAwesome from 'react-fontawesome';
 
 export default class ControlView extends Component {
-  constructor(...args) {
-    super(...args);
+  static propTypes = {
+    id: PropTypes.string.isRequired,
+    translate: PropTypes.func.isRequired,
+    controls: PropTypes.arrayOf(PropTypes.shape({
+      type: PropTypes.string.isRequired,
+      ok: PropTypes.bool.isRequired
+    }))
+  }
+
+  static iconMap = {
+    temperature: 'asterisk',
+    relativeHumidity: 'sun-o'
+  }
+
+  constructor(props) {
+    super(props);
     this.state = {
-      open: false
+      temperature: {
+        open: false
+      },
+      relativeHumidity: {
+        open: false
+      }
     };
   }
+
   render() {
-    const observation = () => {
+    const { id } = this.props
+    const observation = (fontName, observationType) => {
       return (
         <Col xs={5} sm={5} >
-          <FontAwesome name="asterisk" />
-          {'  Temperatur'}
+          <FontAwesome name={fontName} />
+          {` ${observationType}`}
         </Col>
     ) }
-    const oK = (
+    const controlOk = (
       <Col xs={5} sm={5} >
         <FontAwesome name="check" />
-        {'  OK'}
+        {`  ${this.props.translate('musit.texts.ok')}`}
       </Col>
     )
-    const notOK = (
+    const controlNotOk = (
       <Col xs={5} sm={5} >
         <FontAwesome name="close" />
-        {'  Ikke OK'}
+        {`  ${this.props.translate('musit.texts.notOk')}`}
       </Col>
     )
-    const downButton = (
-      <Col xs={2} sm={2} >
-        <Button
-          onClick={() => this.setState({ open: !this.state.open })}
-          bsStyle="link"
-        >
-          <FontAwesome name="sort-desc" />
-        </Button>
-      </Col>
-    )
-    const oneTableRow = (booleanOk) => {
+    const downButton = (observationType) => {
+      return (
+        <Col xs={2} sm={2} >
+          <Button
+            id={`${id}_${observationType}_downButton`}
+            onClick={() => this.setState({ [observationType]: { open: !this.state[observationType].open } })}
+            bsStyle="link"
+          >
+            <FontAwesome name="sort-desc" />
+          </Button>
+        </Col>
+      ) }
+    const oneTableRow = (control) => {
+      const { type, ok } = control
       return (
         <div>
-          <FormGroup>
-            <Row>
-              {observation()}
-              {booleanOk ? oK : notOK}
-              {downButton}
-            </Row>
-            <Row>
-              <Panel collapsible expanded={this.state.open}>
-                <Col sm={4} >
-                  <ControlLabel>label text</ControlLabel>
-                  <br />
-                  <MusitField id="2" value="test user" validate="text" />
-                </Col>
-              </Panel>
-            </Row>
-          </FormGroup>
+          <Row>
+            {observation(ControlView.iconMap[type], this.props.translate(`musit.controls.${type}`))}
+            {ok ? controlOk : controlNotOk}
+            {downButton(type)}
+          </Row>
+          <Row>
+            <Panel collapsible expanded={this.state[type].open}>
+              <Col sm={4} >
+                <ControlLabel>label text</ControlLabel>
+                <br />
+                <MusitField id={`${id}_${type}_MusitField`} value="test user" validate="text" />
+              </Col>
+            </Panel>
+          </Row>
         </div>
       ) }
 
     return (
       <FormGroup>
-        <br />
-        {oneTableRow()}
+        {this.props.controls.map(c =>
+          oneTableRow(c)
+        )}
+
+{/*
+        {oneTableRow(this.props.fontName, this.props.observationType, this.props.booleanOk)}
+
+        {oneTableRow('asterisk', 'Temperatur', true)}
+        {oneTableRow('sun-o', 'Relativ luftfuktighet', false)}
+        {oneTableRow('bug', 'Lysforhold', true)}
+        {oneTableRow('percent', 'Sprit', false)}
+*/}
       </FormGroup>
     )
   }

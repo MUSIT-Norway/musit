@@ -24,6 +24,11 @@ no:
       dateRegistered: "Dato registrert"
       registeredBy: "Registrert av"
       performedBy: "Utført av"
+      ok: "OK"
+      notOk: "Ikke OK"
+    controls:
+      temperature: "Temperature"
+      relativeHumidity: "Relativ luftfuktighet"
     observation:
       newButtonLabel: "Legg til ny"
       pest:

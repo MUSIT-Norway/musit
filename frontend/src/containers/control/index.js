@@ -18,27 +18,35 @@
  */
 import React from 'react'
 import { Grid, Row, Col, ControlLabel } from 'react-bootstrap'
-import Language from '../../components/language'
-import { connect } from 'react-redux'
 import { ControlView } from '../../components/control'
 import DatePicker from 'react-bootstrap-date-picker'
 import { MusitField } from '../../components/formfields'
+import Language from '../../components/language'
+import { connect } from 'react-redux'
 
-
-const mapStateToProps = () => ({
-  translate: (key, markdown) => Language.translate(key, markdown)
+const mapStateToProps = (state) => ({
+  translate: (key, markdown) => Language.translate(key, markdown),
+  control: state.control.data
 })
 
 @connect(mapStateToProps)
-
 export default class ControlViewShow extends React.Component {
   static propTypes = {
-    translate: React.PropTypes.func.isRequired
+    translate: React.PropTypes.func.isRequired,
+    control: React.PropTypes.arrayOf(React.PropTypes.object)
   }
 
   render() {
     require('react-datepicker/dist/react-datepicker.css');
     const { translate } = this.props
+    const temperature = {
+      type: 'temperature',
+      ok: this.props.control.temperatureControl.ok
+    }
+    const relativeHumidity = {
+      type: 'relativeHumidity',
+      ok: this.props.control.relativeHumidity.ok
+    }
     return (
       <div>
         <main>
@@ -73,8 +81,18 @@ export default class ControlViewShow extends React.Component {
               </Col>
             </Row>
             <Row>
+              <br />
+            </Row>
+            <Row>
               <Col sm={8} smOffset={2}>
-                <ControlView />
+                <ControlView
+                  id="1"
+                  translate={translate}
+                  controls={[
+                    temperature,
+                    relativeHumidity
+                  ]}
+                />
               </Col>
             </Row>
           </Grid>
