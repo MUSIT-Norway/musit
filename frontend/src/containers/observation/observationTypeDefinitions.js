@@ -41,19 +41,14 @@ const renderPest = (index, props) => (
   <ObservationPest {...props} />
 )
 
-const observationTypeDefinitions = (translate, actions) => {
+const observationTypeDefinitions = (translate) => {
   return {
     pest: {
       viewLabel: translate('musit.texts.ok'),
       props: {
         id: 'pest',
         translate: translate,
-        lifeCycleItems: ['Adult', 'Puppe', 'Puppeskin', 'Larva', 'Egg'],
-        onChangeLifeCycle: (e) => console.log(e),
-        onChangeCount: (e) => console.log(e),
-        onChangeIdentification: (e) => console.log(e),
-        onChangeComments: (e) => console.log(e),
-        onAddPest: (e) => console.log(e)
+        lifeCycleItems: ['Adult', 'Puppe', 'Puppeskin', 'Larva', 'Egg']
       },
       defaultValues: {
         observations: [],
@@ -61,14 +56,12 @@ const observationTypeDefinitions = (translate, actions) => {
         commentsValue: ''
       },
       render: renderPest
+
     },
     status: {
       viewLabel: translate('musit.texts.ok'),
       props: {
-        translate: translate,
-        onChangeStatus: () => console.log('From changed'),
-        onChangeVolume: () => console.log('TO changed'),
-        onChangeComment: () => console.log('Comment changed')
+        translate: translate
       },
       defaultValues: {
         statusValue: '',
@@ -80,9 +73,7 @@ const observationTypeDefinitions = (translate, actions) => {
     comments: {
       viewLabel: translate('musit.texts.ok'),
       props: {
-        translate: translate,
-        onChangeLeft: () => console.log('left changed'),
-        onChangeRight: () => console.log('Right changed')
+        translate: translate
       },
       defaultValues: {
         leftValue: '',
@@ -93,10 +84,7 @@ const observationTypeDefinitions = (translate, actions) => {
     fromTo: {
       viewLabel: translate('musit.texts.ok'),
       props: {
-        translate: translate,
-        onChangeFrom: () => actions.changeFrom,
-        onChangeTo: () => console.log('TO changed'),
-        onChangeComment: () => console.log('Comment changed')
+        translate: translate
       },
       defaultValues: {
         fromValue: '',
@@ -108,7 +96,8 @@ const observationTypeDefinitions = (translate, actions) => {
   }
 }
 
-const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel, rightTooltip) => {
+const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel, rightTooltip,
+                          onchangeLeft, onchangeRight) => {
   return {
     label: dropdownLabel,
     component: {
@@ -119,6 +108,8 @@ const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel
         leftTooltip,
         rightLabel,
         rightTooltip,
+        onchangeLeft,
+        onchangeRight
       }
     }
   }
@@ -146,20 +137,24 @@ const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, to
   }
 }
 
-const definePestType = (id, dropdownLabel) => {
+const definePestType = (id, dropdownLabel, onAddPest, onChangeIdentification, onChangeComments) => {
   return {
     label: dropdownLabel,
     component: {
       viewType: 'pest',
       props: {
-        id
+        id,
+        onAddPest,
+        onChangeIdentification,
+        onChangeComments
       }
     }
   }
 }
 
 const defineStatusType = (id, dropdownLabel, statusLabel, statusTooltip,
-  statusOptionValues, volumeLabel, volumeTooltip, commentLabel, commentTooltip) => {
+  statusOptionValues, volumeLabel, volumeTooltip, commentLabel, commentTooltip,
+  onChangeStatus, onChangeVolume, onChangeStatusComment) => {
   return {
     label: dropdownLabel,
     component: {
@@ -172,7 +167,10 @@ const defineStatusType = (id, dropdownLabel, statusLabel, statusTooltip,
         volumeLabel,
         volumeTooltip,
         commentLabel,
-        commentTooltip
+        commentTooltip,
+        onChangeStatus,
+        onChangeVolume,
+        onChangeStatusComment
       }
     }
   }

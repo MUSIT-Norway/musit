@@ -46,68 +46,305 @@ export default class ObservationView extends React.Component {
     this.observationTypeDefinitions = observationTypeDefinitions(translate, this.actions)
     // TODO: Language binding.
     // TODO: Action binding.
+
+    this.actions = {
+      changeTempFrom: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'temperature') {
+            retVal = { ...o, data: { ...o.data, fromValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeTempTo: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'temperature') {
+            retVal = { ...o, data: { ...o.data, toValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeTempComment: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'temperature') {
+            retVal = { ...o, data: { ...o.data, commentValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeHypoxicAirFrom: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'hypoxicAir') {
+            retVal = { ...o, data: { ...o.data, fromValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeHypoxicAirTo: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'hypoxicAir') {
+            retVal = { ...o, data: { ...o.data, toValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeHypoxicAirComment: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'hypoxicAir') {
+            retVal = { ...o, data: { ...o.data, commentValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeRHFrom: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'rh') {
+            retVal = { ...o, data: { ...o.data, fromValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeRHTo: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'rh') {
+            retVal = { ...o, data: { ...o.data, toValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeRHComment: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'rh') {
+            retVal = { ...o, data: { ...o.data, commentValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeLuxLeft: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'lux') {
+            retVal = { ...o, data: { ...o.data, leftValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeLuxRight: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'lux') {
+            retVal = { ...o, data: { ...o.data, rightValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeGasLeft: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'gas') {
+            retVal = { ...o, data: { ...o.data, leftValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeGasRight: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'gas') {
+            retVal = { ...o, data: { ...o.data, rightValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeCleaningLeft: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'cleaning') {
+            retVal = { ...o, data: { ...o.data, leftValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeCleaningRight: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'cleaning') {
+            retVal = { ...o, data: { ...o.data, rightValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeMoldLeft: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'mold') {
+            retVal = { ...o, data: { ...o.data, leftValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeMoldRight: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'mold') {
+            retVal = { ...o, data: { ...o.data, rightValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeSkallSikringLeft: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'skallsikring') {
+            retVal = { ...o, data: { ...o.data, leftValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeSkallSikringRight: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'skallsikring') {
+            retVal = { ...o, data: { ...o.data, rightValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeTyveriSikringLeft: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'tyverisikring') {
+            retVal = { ...o, data: { ...o.data, leftValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeTyveriSikringRight: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'tyverisikring') {
+            retVal = { ...o, data: { ...o.data, rightValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeBrannSikringLeft: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'brannsikring') {
+            retVal = { ...o, data: { ...o.data, leftValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeBrannSikringRight: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'brannsikring') {
+            retVal = { ...o, data: { ...o.data, rightValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeVannskadeRisikoLeft: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'vannskaderisiko') {
+            retVal = { ...o, data: { ...o.data, leftValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeVannskadeRisikoRight: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'vannskaderisiko') {
+            retVal = { ...o, data: { ...o.data, rightValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeAlchoholStatus: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'alcohol') {
+            retVal = { ...o, data: { ...o.data, statusValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeAlchoholVolume: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'alcohol') {
+            retVal = { ...o, data: { ...o.data, volumeValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changeAlchoholComment: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'alcohol') {
+            retVal = { ...o, data: { ...o.data, commentValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      addPest: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'pest') {
+            retVal = { ...o, data: { ...o.data, observations: [...o.data.observations, v] } }
+          }
+          return retVal
+        }) })
+      }
+    }
+
     this.observationTypes = {
-      lux: defineCommentType('lux', 'Lysforhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      gas: defineCommentType('gas', 'Gass', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      cleaning: defineCommentType('cleaning', 'Renhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      mold: defineCommentType('mold', 'Mugg', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+      lux: defineCommentType('lux', 'Lysforhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+           this.actions.changeLuxLeft, this.actions.changeLuxRight),
+      gas: defineCommentType('gas', 'Gass', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+           this.actions.changeGasLeft, this.actions.changeLuxRight),
+      cleaning: defineCommentType('cleaning', 'Renhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+           this.actions.changeGasLeft, this.actions.changeGasRight),
+      mold: defineCommentType('mold', 'Mugg', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+           this.actions.changeMoldLeft, this.actions.changeMoldRight),
       skallsikring: defineCommentType('skallsikring',
-        'Skallsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+        'Skallsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+             this.actions.changeMoldLeft, this.actions.changeMoldRight),
       tyverisikring: defineCommentType('tyverisikring',
-        'Tyverisikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+        'Tyverisikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+             this.actions.changeTyveriSikringLeft, this.actions.changeTyveriSikringLeftRight),
       brannsikring: defineCommentType('brannsikring',
-        'Brannsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
+        'Brannsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+             this.actions.changeBrannSikringLeft, this.actions.changeBrannSikringRight),
       vannskaderisiko: defineCommentType('vannskaderisiko',
-        'Vannskaderisiko', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip'),
-      temperature: defineFromToType('temperature', 'Temperatur', 'from label',
-        'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+        'Vannskaderisiko', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+             this.actions.changeVannskadeRisikoLeft, this.actions.changeVannskadeRisikoRight),
+      temperature: defineFromToType('temperature', 'Temperatur', 'Temperatur',
+        'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip',
+        this.actions.changeTempFrom, this.actions.changeTempTo, this.actions.changeTempComment),
       rh: defineFromToType('rh', 'Relativ luftfuktighet', 'from label', 'From tooltip',
-        'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+        'from label', 'To tooltip', 'Comment label', 'Comment tooltip',
+        this.actions.changeRHFrom, this.actions.changeRHTo, this.actions.changeRHComment),
       hypoxicAir: defineFromToType('hypoxicAir', 'Inertluft', 'from label',
-        'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip'),
+        'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip',
+        this.actions.changeHypoxicAirFrom, this.actions.changeHypoxicAirTo, this.actions.changeHypoxicAirComment),
       alcohol: defineStatusType('alcohol', 'Sprit', 'Status label', 'statusTooltip',
         ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende'],
         'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip'),
-      pest: definePestType('pest', 'Skadedyr')
-    }
-
-    this.actions = {
-      changeTemp: (v) => {
-        this.state.observations.map((o) => {
-          let ret = o;
-          if (o[0] === 'temperature') {
-            ret = { ...o, fromValue: v }
-          }
-          return ret
-        })
-      },
-      changeTempInterval: (l, r) => {
-        this.setState({ ...this.state, x: l, y: r })
-      },
-      changeHyp: (l, r) => {
-        this.setState({ ...this.state, x: l, y: r })
-      },
-      changeHypInterval: (l, r) => {
-        this.setState({ ...this.state, x: l, y: r })
-      },
-      changeCleaningLeft: (v) => {
-        this.setState({ ...this.state, x: v })
-      },
-      changeCleaningRight: (v) => {
-        this.setState({ ...this.state, x: v })
-      },
-      changeAlchoholStatus: (l, r) => {
-        this.setState({ ...this.state, x: l, y: r })
-      },
-      changeAlchoholVolume: (l, r) => {
-        this.setState({ ...this.state, x: l, y: r })
-      },
-      changeAlchoholComment: (l, r) => {
-        this.setState({ ...this.state, x: l, y: r })
-      },
-      changeFireSecurityLeft: (v) => {
-        this.setState({ ...this.state, x: v })
-      }
+      pest: definePestType('pest', 'Skadedyr', this.actions.addPest)
     }
 
     this.state = {
@@ -237,7 +474,7 @@ export default class ObservationView extends React.Component {
         const menuItems = Object.entries(observationTypes).map((obsType, row) => (
           <MenuItem
             key={row}
-            disabled={this.state.observations.find((e) => (e.type === obsType[0]))}
+            disabled={this.state.observations.findIndex((e) => (e.type === obsType[0])) >= 0}
             eventKey={obsType}
           >
             {obsType[1].label}
