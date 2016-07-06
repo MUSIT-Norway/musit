@@ -358,12 +358,12 @@ export default class ObservationView extends React.Component {
       gas: defineCommentType('gas', 'Gass', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
            this.actions.changeGasLeft, this.actions.changeLuxRight),
       cleaning: defineCommentType('cleaning', 'Renhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
-           this.actions.changeGasLeft, this.actions.changeGasRight),
+           this.actions.changeCleaningLeft, this.actions.changeCleaningRight),
       mold: defineCommentType('mold', 'Mugg', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
            this.actions.changeMoldLeft, this.actions.changeMoldRight),
       skallsikring: defineCommentType('skallsikring',
         'Skallsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
-             this.actions.changeMoldLeft, this.actions.changeMoldRight),
+             this.actions.changeSkallSikringLeft, this.actions.changeSkallSikringRight),
       tyverisikring: defineCommentType('tyverisikring',
         'Tyverisikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
              this.actions.changeTyveriSikringLeft, this.actions.changeTyveriSikringLeftRight),
@@ -384,7 +384,8 @@ export default class ObservationView extends React.Component {
         this.actions.changeHypoxicAirFrom, this.actions.changeHypoxicAirTo, this.actions.changeHypoxicAirComment),
       alcohol: defineStatusType('alcohol', 'Sprit', 'Status label', 'statusTooltip',
         ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende'],
-        'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip'),
+        'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip', this.actions.changeAlchoholStatus,
+        this.actions.changeAlchoholVolume, this.actions.changeAlchoholComment),
       pest: definePestType('pest', 'Skadedyr', this.actions.addPest, this.actions.changeLifeCycle, this.actions.changeCount,
             this.actions.changePestIdentification, this.actions.changePestComment)
     }
@@ -519,6 +520,7 @@ export default class ObservationView extends React.Component {
         ))
         return (
           <Row key={index}>
+            <h1 />
             <Col sm={10} smOffset={1}>
               <SplitButton
                 id={`new_${index}`}
@@ -565,8 +567,10 @@ export default class ObservationView extends React.Component {
                   </FormGroup>
                 </Col>
               </Row>
+              <hr />
               {renderActiveTypes(observations)}
               <Row>
+                <h1 />
                 <Col sm={10} smOffset={1} className="text-center">
                   <Button onClick={() => addNewObservation()}>
                     <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}

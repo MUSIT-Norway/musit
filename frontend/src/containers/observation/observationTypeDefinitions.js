@@ -97,7 +97,7 @@ const observationTypeDefinitions = (translate) => {
 }
 
 const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel, rightTooltip,
-                          onchangeLeft, onchangeRight) => {
+                          onChangeLeft, onChangeRight) => {
   return {
     label: dropdownLabel,
     component: {
@@ -108,8 +108,8 @@ const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel
         leftTooltip,
         rightLabel,
         rightTooltip,
-        onchangeLeft,
-        onchangeRight
+        onChangeLeft,
+        onChangeRight
       }
     }
   }
