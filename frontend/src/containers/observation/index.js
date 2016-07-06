@@ -300,11 +300,52 @@ export default class ObservationView extends React.Component {
           return retVal
         }) })
       },
-      addPest: (v) => {
+      addPest: () => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          const p = { lifeCycle: '', count: 0 }
+          if (o.type === 'pest') {
+            retVal = { ...o, data: { ...o.data, observations: [...o.data.observations, p] } }
+          }
+          return retVal
+        }) })
+      },
+      changeLifeCycle: (i, v) => {
         this.setState({ ...this.state, observations: this.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'pest') {
-            retVal = { ...o, data: { ...o.data, observations: [...o.data.observations, v] } }
+            const po = o.data.observations
+            po[i] = { ...po[i], lifeCycle: v }
+            retVal = { ...o, data: { ...o.data, observations: po } }
+          }
+          return retVal
+        }) })
+      },
+      changeCount: (i, v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'pest') {
+            const po = o.data.observations
+            po[i] = { ...po[i], count: v }
+            retVal = { ...o, data: { ...o.data, observations: po } }
+          }
+          return retVal
+        }) })
+      },
+      changePestIdentification: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'pest') {
+            retVal = { ...o, data: { ...o.data, identificationValue: v } }
+          }
+          return retVal
+        }) })
+      },
+      changePestComment: (v) => {
+        this.setState({ ...this.state, observations: this.state.observations.map((o) => {
+          let retVal = o
+          if (o.type === 'pest') {
+            retVal = { ...o, data: { ...o.data, comments: v } }
           }
           return retVal
         }) })
@@ -344,7 +385,8 @@ export default class ObservationView extends React.Component {
       alcohol: defineStatusType('alcohol', 'Sprit', 'Status label', 'statusTooltip',
         ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende'],
         'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip'),
-      pest: definePestType('pest', 'Skadedyr', this.actions.addPest)
+      pest: definePestType('pest', 'Skadedyr', this.actions.addPest, this.actions.changeLifeCycle, this.actions.changeCount,
+            this.actions.changePestIdentification, this.actions.changePestComment)
     }
 
     this.state = {
@@ -385,7 +427,6 @@ export default class ObservationView extends React.Component {
     this.addNewObservation = this.addNewObservation.bind(this)
     this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
     this.onChangeDate = this.onChangeDate.bind(this)
-    this.addPest = this.addPest.bind(this)
     this.selectType = this.selectType.bind(this)
   }
 
@@ -401,10 +442,6 @@ export default class ObservationView extends React.Component {
     return `${suggestion.fn}`
   }
 
-  addPest() {
-    // this.setState({ ...this.state, pestObservations: [...this.state.pestObservations, { lifeCycle: '', count: 0 }] })
-    console.log('add pest')
-  }
 
   addNewObservation() {
     this.setState({ ...this.state, observations: [...this.state.observations, { type: '' }] })

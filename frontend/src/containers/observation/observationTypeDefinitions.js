@@ -137,7 +137,8 @@ const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, to
   }
 }
 
-const definePestType = (id, dropdownLabel, onAddPest, onChangeIdentification, onChangeComments) => {
+const definePestType = (id, dropdownLabel, onAddPest, onChangeLifeCycle, onChangeCount,
+  onChangeIdentification, onChangeComments) => {
   return {
     label: dropdownLabel,
     component: {
@@ -145,6 +146,8 @@ const definePestType = (id, dropdownLabel, onAddPest, onChangeIdentification, on
       props: {
         id,
         onAddPest,
+        onChangeLifeCycle,
+        onChangeCount,
         onChangeIdentification,
         onChangeComments
       }
