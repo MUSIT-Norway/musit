@@ -1,32 +1,39 @@
+const ADD = 'musit/control/ADD'
+
 const initialState = {
+  user: '',
+  date: '',
   data: {
-    datePerformed: '2016-05-19T16:00:00.000Z',
-    performedBy: 'Test user first',
-    dateRegistered: '2013-12-10T16:00:00.000Z',
-    registeredBy: 'Test user second',
-
-    control: {
-      temperatureControl: {
-        ok: true
-      },
-      relativeHumidity: {
-        ok: false
-      },
-      lightConditionControl: {
-        ok: false
-      },
-      pestControl: {
-        ok: false
-      },
-      alcoholControl: {
-        ok: true
-      }
-    }
+    temperatureOK: null,
+    inertAirOK: null,
+    gasOK: null,
+    cleaningOK: null,
+    relativeHumidity: null,
+    lightConditionsOK: null,
+    alchoholOK: null,
+    pestOK: null,
+    moldFungusOK: null
   }
-};
-
-const authReducer = (state = initialState) => {
-  return state;
 }
 
-export default authReducer
+const controlReducer = (state = initialState, action = {}) => {
+  switch (action.type) {
+    case ADD: return {
+      ...state,
+      loading: true,
+      loaded: false,
+      data: action.data
+    };
+    default:
+      return state;
+  }
+}
+
+export default controlReducer;
+
+export const addControl = (data) => {
+  return {
+    type: ADD,
+    data
+  }
+}

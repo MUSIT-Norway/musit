@@ -56,12 +56,6 @@ proxy.on('error', (error, req, res) => {
   if (error.code !== 'ECONNRESET') {
     logger.error('proxy error', error);
   }
-
-  if (!res.headersSent) {
-    res.writeHead(500, { 'content-type': 'application/json' });
-  }
-
-  res.end(JSON.stringify({ error: 'proxy_error', reason: error.message }));
 });
 
 app.use('/musit', Passport.authenticate('dataporten', { failWithError: true }),
@@ -79,7 +73,10 @@ app.use('/api', (req, res) => {
 });
 
 /* ----- DEVELOPMENT START ---- */
-app.use('/', (req, res) => {
+app.use('/assets', (req, res) => {
+  proxy.web(req, res, { target: 'http://localhost:8000/assets' });
+});
+app.use('/*', (req, res) => {
   proxy.web(req, res, { target: 'http://localhost:8000' });
 });
 /* ----- DEVELOPMENT END ---- */

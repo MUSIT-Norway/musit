@@ -19,14 +19,6 @@ import scala.concurrent.Future
 object ResourceHelper {
 
   implicit class EitherExtensionsImp[T](val either: Either[MusitError, T]) extends AnyVal {
-    /* Not used. (yet?)
-    def mapToMusitFuture[S](ifRight: T => Future[Either[MusitError, S]]): Future[Either[MusitError, S]] = {
-      either match {
-        case Left(l) => Future.successful(Left(l))
-        case Right(r) => ifRight(r)
-      }
-    }
-    */
 
     /**
      * If the either is Right, it is mapped into a future[Result] the obvious way.
@@ -80,21 +72,11 @@ object ResourceHelper {
     }
   }
 
-  /* This one is perhaps not used anymore? If so, consider deleting it some time in the future.*/
-  def updateRootWithJsResult[A](
-    serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]],
-    id: Long, validatedResult: JsResult[A]
-  ): Future[Result] = {
-    updateRootWithMusitResult(serviceUpdateCall, id, jsResultToMusitResult(validatedResult))
-  }
-
   def getRoot[A](serviceUpdateCall: (Long) => Future[Either[MusitError, A]], id: Long, toJsonTransformer: A => JsValue): Future[Result] = {
     val futResObject = serviceUpdateCall(id)
-    futResObject.map { resObject =>
-      resObject match {
-        case Right(obj) => Ok(toJsonTransformer(obj))
-        case Left(error) => error.toPlayResult
-      }
+    futResObject.map {
+      case Right(obj) => Ok(toJsonTransformer(obj))
+      case Left(error) => error.toPlayResult
     }
   }
 
@@ -110,16 +92,6 @@ object ResourceHelper {
       case Left(error) => error.toPlayResult
     }
   }
-
-  /*#OLD
-  def jsResultToEither[T](jsRes: JsResult[T]): Either[Result, T] = {
-    jsRes match {
-      case s: JsSuccess[T] => Right(s.value)
-      case e: JsError => Left(BadRequest(Json.toJson(e.toString)))
-    }
-  }
-    // TODO: Remove either the below or the above
-*/
 
   def jsResultToMusitResult[T](jsRes: JsResult[T]): Either[MusitError, T] = {
     jsRes match {

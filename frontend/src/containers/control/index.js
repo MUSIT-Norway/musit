@@ -26,7 +26,7 @@ import { connect } from 'react-redux'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
-  control: state.control.data
+  control: state.controlShow.data
 })
 
 @connect(mapStateToProps)
