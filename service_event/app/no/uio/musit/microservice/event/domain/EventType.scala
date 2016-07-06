@@ -16,7 +16,8 @@ object EventType {
     eventType(3, "Observation", ObservationService),
     eventType(4, "ControlTemperature", ControlTemperatureService),
     eventType(5, "EnvRequirement", EnvRequirementService),
-    eventType(6, "ObservationTemperature", ObservationTemperatureService)
+    eventType(6, "ObservationTemperature", ObservationTemperatureService),
+    eventType(7, "ControlAir", ControlAirService)
 
   // Add new event type here....
   )

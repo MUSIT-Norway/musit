@@ -12,7 +12,6 @@ import scala.concurrent.Future
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
-
 /**
  * Misc utilities for creating resources.
  * Created by jstabel on 5/31/16.

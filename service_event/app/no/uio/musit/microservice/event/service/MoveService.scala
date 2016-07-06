@@ -1,17 +1,12 @@
 package no.uio.musit.microservice.event.service
 
-/*#OLD
-import no.uio.musit.microservice.event.dao.EventDao.{ EventBaseDto, EventBaseDto$ }
-import no.uio.musit.microservice.event.domain.{ Event, Move }
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import slick.dbio._
+import no.uio.musit.microservice.event.domain.{ BaseEventProps, Event, SingleTableSingleDto }
 
-import scala.concurrent.Future
+class Move(baseProps: BaseEventProps) extends Event(baseProps)
 
-object MoveService extends SimpleService {
+object Move extends SingleTableSingleDto {
 
-  override def fromDatabase(id: Long, base: EventBaseDto) =
-    Future.successful(Right(Move(Some(id), base.links, base.note, None)))
-
+  def createEventInMemory(baseEventProps: BaseEventProps): Event = {
+    new Move(baseEventProps)
+  }
 }
-*/ 

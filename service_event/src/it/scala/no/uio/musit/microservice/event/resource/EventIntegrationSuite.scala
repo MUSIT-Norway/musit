@@ -67,48 +67,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
   "EventIntegrationSuite " must {
-    /*"postMove" in {
-      val json =
-        """
-  {
-   "eventType": "Move",
-   "note": "Dette er et viktig notat!",
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
-
-      val response = createEvent(json)
-      response.status mustBe 201
-      println(s"Create: ${response.body}")
 
 
-      val responseGet = getEvent(1)
-      responseGet.status mustBe 200
-      println(s"Get: ${responseGet.body}")
-
-    }
-*/
-    /*"post and get observation" in {
-      val json =
-        """
-  {
-   "eventType": "Observation",
-   "note": "Dette er et viktig notat for observasjon!",
-   "temperature": 125,
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
-
-      val response = createEvent(json)
-      response.status mustBe 201
-      println(s"Create: ${response.body}")
-
-      val myObservationEvent = Event.format.reads(response.json).get.asInstanceOf[Observation]
-      myObservationEvent mustBe Some(125)
-
-
-      val responseGet = getEvent(1)
-      responseGet.status mustBe 200
-      println(s"Get: ${responseGet.body}")
-
-    }
-*/
     "post Move" in {
 
       val json =
@@ -320,7 +280,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
         }"""
 
     val myRawEvent = validateEvent[Observation](Json.parse(json))
-    assert(myRawEvent.subObservations.length>=2)
+    assert(myRawEvent.subObservations.length >= 2)
     val firstObsTempEvent = myRawEvent.subObservations(0).asInstanceOf[ObservationTemperature]
     firstObsTempEvent.temperatureFrom mustBe Some(-30)
     firstObsTempEvent.temperatureTo mustBe Some(25)
@@ -342,5 +302,88 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     println(s"Get: ${responseGet.body}")
   }
 
-}
 
+
+  "post wrong subEvents-relation should result in 400" in {
+    val json =
+      """
+        {
+          "eventType": "observation",
+          "note": "tekst til observasjonene",
+
+          "subEvents-this_relation_does_not_exist": [{
+            "eventType": "observationTemperature",
+            "temperatureFrom": -30,
+            "temperatureTo": 25
+          }, {
+            "eventType": "observationTemperature",
+            "temperatureFrom": 20,
+            "temperatureTo": 50
+          }]
+        }"""
+    val response = createEvent(json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 400
+    assert(response.body.contains("this_relation_does_not_exist"))
+  }
+
+
+
+  "post composite control" in {
+    val json =
+      """ {
+    "eventType": "Control",
+    "note": "tekst",
+    "links": [{
+    "rel": "actor",
+    "href": "actor/12"
+  }],
+    "subEvents-parts": [{
+    "eventType": "controlAir",
+    "ok": true
+  }, {
+    "eventType": "controlTemperature",
+    "ok": false,
+    "subEvents-motivates": [{
+      "eventType": "observationTemperature",
+      "temperatureFrom": 20,
+      "temperatureTo": 50
+    }]
+  }]
+  }
+      """
+
+    val response = createEvent(json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+
+    val myEvent = validateEvent[Control](response.json)
+
+    assert(myEvent.getRelatedSubEvents.length == 1)
+
+    val parts = myEvent.subEventsWithRelation(EventRelations.relation_parts)
+    assert(parts.isDefined)
+
+    val specificControls = parts.get
+    assert(specificControls.length >= 2)
+    val okControl = specificControls(0).asInstanceOf[ControlAir]
+    val notOkControl = specificControls(1).asInstanceOf[ControlTemperature]
+
+    okControl.ok mustBe true
+    notOkControl.ok mustBe false
+
+    val motivatedObservations = notOkControl.subEventsWithRelation(EventRelations.relation_motivates)
+    val partsObservations = notOkControl.subEventsWithRelation(EventRelations.relation_parts)
+
+    assert(motivatedObservations.isDefined)
+    assert(!partsObservations.isDefined)
+
+
+    val ObsEvent = motivatedObservations.get(0).asInstanceOf[ObservationTemperature]
+    ObsEvent.temperatureFrom mustBe Some(20)
+    ObsEvent.temperatureTo mustBe Some(50)
+
+  }
+
+
+}

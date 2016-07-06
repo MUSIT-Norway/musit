@@ -68,8 +68,18 @@ class ControlSpecificService {
   def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[ControlSpecific].customDto).asInstanceOf[JsObject]
 }
 
+// --- ControlTemperature
+
 class ControlTemperature(baseEventProps: BaseEventProps, customDto: ControlSpecificDto) extends ControlSpecific(baseEventProps, customDto)
 
 object ControlTemperatureService extends ControlSpecificService with SingleTableMultipleDtos {
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ControlTemperature(baseProps, customDto.asInstanceOf[ControlSpecificDto])
+}
+
+// --- ControlAir
+
+class ControlAir(baseEventProps: BaseEventProps, customDto: ControlSpecificDto) extends ControlSpecific(baseEventProps, customDto)
+
+object ControlAirService extends ControlSpecificService with SingleTableMultipleDtos {
+  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ControlAir(baseProps, customDto.asInstanceOf[ControlSpecificDto])
 }

@@ -20,17 +20,17 @@
 
 package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservices.common.extensions.EitherExtensions.{MusitResult, _}
+import no.uio.musit.microservices.common.extensions.EitherExtensions.{ MusitResult, _ }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
-import play.api.libs.json.{JsArray, JsObject, JsResult, JsValue}
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import play.api.libs.json.{ JsArray, JsObject, JsResult, JsValue }
 
 /**
-  * Created by jstabel on 7/6/16.
-  */
+ * Created by jstabel on 7/6/16.
+ */
 object EventHelpers {
   private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject): JsResult[BaseEventProps] = {
     for {
@@ -79,7 +79,6 @@ object EventHelpers {
     }
   }
 
-
   def validatePotentialSubEvents(event: Event, jsObject: JsObject): MusitResult[Event] = {
 
     def mapToProperRelation(fieldName: String, jsValue: JsValue): MusitResult[(EventRelation, JsValue)] = {
@@ -108,7 +107,7 @@ object EventHelpers {
 
     val withProperRelations = potentialSubEvents.map { case (fieldName, value) => mapToProperRelation(fieldName, value) }
 
-    val result= withProperRelations.map { musitResultOfPair => musitResultOfPair.flatMap( pair => validateSingleRelationWithSubEvents(pair._1, pair._2))}
+    val result = withProperRelations.map { musitResultOfPair => musitResultOfPair.flatMap(pair => validateSingleRelationWithSubEvents(pair._1, pair._2)) }
     concatenateMusitResults(result).map(_ => event) //This is a method only for side-effects, so we only return the original event, but since we're mapping, we return the error, if any.
   }
 
@@ -120,7 +119,7 @@ object EventHelpers {
     val baseJson = event.baseEventProps.toJson // Json.toJson(event.baseEventProps).asInstanceOf[JsObject]
     val singleEventJson = event.eventType.maybeMultipleDtos.fold(baseJson)(jsonWriter => baseJson ++ (jsonWriter.customDtoToJson(event).asInstanceOf[JsObject]))
     if (recursive && event.hasSubEvents) {
-      event.getRelatedSubEvents.foldLeft(singleEventJson){
+      event.getRelatedSubEvents.foldLeft(singleEventJson) {
         (resultSoFar, relationWithSubEvents) =>
           val subEventsJsonSeq = relationWithSubEvents.events.map(subEvent => toJson(subEvent, recursive))
           resultSoFar.+((Constants.subEventsPrefix + relationWithSubEvents.relation.name, JsArray(subEventsJsonSeq)))
