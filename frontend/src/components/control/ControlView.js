@@ -15,7 +15,11 @@ export default class ControlView extends Component {
 
   static iconMap = {
     temperature: 'asterisk',
-    relativeHumidity: 'sun-o'
+    relativeHumidity: 'tint',
+    lightCondition: 'sun-o',
+    pest: 'bug',
+    alcohol: 'percent'
+
   }
 
   constructor(props) {
@@ -25,6 +29,15 @@ export default class ControlView extends Component {
         open: false
       },
       relativeHumidity: {
+        open: false
+      },
+      lightCondition: {
+        open: false
+      },
+      pest: {
+        open: false
+      },
+      alcohol: {
         open: false
       }
     };
@@ -89,15 +102,6 @@ export default class ControlView extends Component {
         {this.props.controls.map(c =>
           oneTableRow(c)
         )}
-
-{/*
-        {oneTableRow(this.props.fontName, this.props.observationType, this.props.booleanOk)}
-
-        {oneTableRow('asterisk', 'Temperatur', true)}
-        {oneTableRow('sun-o', 'Relativ luftfuktighet', false)}
-        {oneTableRow('bug', 'Lysforhold', true)}
-        {oneTableRow('percent', 'Sprit', false)}
-*/}
       </FormGroup>
     )
   }

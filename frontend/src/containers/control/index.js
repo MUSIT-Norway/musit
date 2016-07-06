@@ -47,6 +47,18 @@ export default class ControlViewShow extends React.Component {
       type: 'relativeHumidity',
       ok: this.props.control.relativeHumidity.ok
     }
+    const lightCondition = {
+      type: 'lightCondition',
+      ok: this.props.control.lightConditionControl.ok
+    }
+    const pest = {
+      type: 'pest',
+      ok: this.props.control.pestControl.ok
+    }
+    const alcohol = {
+      type: 'alcohol',
+      ok: this.props.control.alcoholControl.ok
+    }
     return (
       <div>
         <main>
@@ -90,7 +102,10 @@ export default class ControlViewShow extends React.Component {
                   translate={translate}
                   controls={[
                     temperature,
-                    relativeHumidity
+                    relativeHumidity,
+                    lightCondition,
+                    pest,
+                    alcohol
                   ]}
                 />
               </Col>

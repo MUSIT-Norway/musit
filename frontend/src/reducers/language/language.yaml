@@ -29,6 +29,9 @@ no:
     controls:
       temperature: "Temperature"
       relativeHumidity: "Relativ luftfuktighet"
+      lightCondition: "Lysforhold"
+      pest: "Skadedyr"
+      alcohol: "Sprit"
     observation:
       newButtonLabel: "Legg til ny"
       pest:

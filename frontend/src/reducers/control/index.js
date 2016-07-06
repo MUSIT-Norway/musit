@@ -5,6 +5,15 @@ const initialState = {
     },
     relativeHumidity: {
       ok: false
+    },
+    lightConditionControl: {
+      ok: false
+    },
+    pestControl: {
+      ok: false
+    },
+    alcoholControl: {
+      ok: false
     }
   }
 };
