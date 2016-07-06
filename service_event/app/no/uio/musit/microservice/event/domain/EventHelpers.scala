@@ -79,16 +79,6 @@ object EventHelpers {
       validateSingleEvent(jsObject, relatedEvents)
     }
   }
-  /*
-  /** Handles recursion */
-  def validateEvent(jsObject: JsObject): MusitResult[Event] = {
-    val maybeEventResult = validateSingleEvent(jsObject)
-    maybeEventResult.flatMap { event =>
-      validatePotentialSubEvents(event, jsObject)
-    }
-  }
-
- */
 
   def validatePotentialSubEvents(jsObject: JsObject): MusitResult[Seq[RelatedEvents]] = {
 
@@ -117,7 +107,7 @@ object EventHelpers {
     val withProperRelations = potentialSubEvents.map { case (fieldName, value) => mapToProperRelation(fieldName, value) }
 
     val result = withProperRelations.map { musitResultOfPair => musitResultOfPair.flatMap(pair => validateSingleRelationWithSubEvents(pair._1, pair._2)) }
-    concatenateMusitResults(result) //#OLD .map(_ => event) //This is a method only for side-effects, so we only return the original event, but since we're mapping, we return the error, if any.
+    concatenateMusitResults(result)
   }
 
   def eventFromJson[T <: Event](jsValue: JsValue): MusitResult[T] = {
@@ -125,7 +115,7 @@ object EventHelpers {
   }
 
   def toJson(event: Event, recursive: Boolean): JsObject = {
-    val baseJson = event.baseEventProps.toJson // Json.toJson(event.baseEventProps).asInstanceOf[JsObject]
+    val baseJson = event.baseEventProps.toJson
     val singleEventJson = event.eventType.maybeMultipleDtos.fold(baseJson)(jsonWriter => baseJson ++ (jsonWriter.customDtoToJson(event).asInstanceOf[JsObject]))
     if (recursive && event.hasSubEvents) {
       event.relatedSubEvents.foldLeft(singleEventJson) {

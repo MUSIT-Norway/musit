@@ -71,29 +71,28 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       _ <- LinkDao.insertLinkAction(selfLink(newEventId))
     } yield newEventId).transactionally
 
-    val combinedAction = event.eventType.maybeMultipleTablesMultipleDtos.fold(insertBaseAndLinksAction) {
+    var action = event.eventType.maybeMultipleTablesMultipleDtos.fold(insertBaseAndLinksAction) {
       complexEventType =>
         (for {
           newEventId <- insertBaseAndLinksAction
           numInserted <- complexEventType.createInsertCustomDtoAction(newEventId, event)
         } yield newEventId).transactionally
     }
-    val combinedAction2 = if (recursive && event.hasSubEvents) {
-      (for {
-        newEventId <- combinedAction
+    if (recursive && event.hasSubEvents) {
+      action = (for {
+        newEventId <- action
         numInserted <- insertChildrenAction(newEventId, event)
       } yield newEventId).transactionally
 
-    } else
-      combinedAction
+    }
 
     if (!isPartsRelation && partialEventLink.isDefined) {
-      (for {
-        newEventId <- combinedAction2
+      action = (for {
+        newEventId <- action
         numInserted <- EventLinkDao.insertEventLinkAction(partialEventLink.get.toFullLink(newEventId))
       } yield newEventId).transactionally
-    } else
-      combinedAction2
+    }
+    action
   }
 
   def insertEvent(event: Event, recursive: Boolean): Future[Long] = {
