@@ -32,12 +32,12 @@ import play.api.libs.json.{ JsArray, JsObject, JsResult, JsValue }
  * Created by jstabel on 7/6/16.
  */
 object EventHelpers {
-  private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject): JsResult[BaseEventProps] = {
+  private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventProps] = {
     for {
       id <- (jsObject \ "id").validateOpt[Long]
       links <- (jsObject \ "links").validateOpt[Seq[Link]]
       note <- (jsObject \ "note").validateOpt[String]
-    } yield BaseEventProps(id, links, eventType, note)
+    } yield BaseEventProps(id, links, eventType, note, relatedSubEvents)
   }
 
   def invokeJsonValidator(multipleDtos: MultipleDtosEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventProps], jsObject: JsObject) = {
@@ -47,8 +47,8 @@ object EventHelpers {
     } yield multipleDtos.createEventInMemory(baseProps, customDto)
   }
 
-  def fromJsonToEventResult(eventType: EventType, jsObject: JsObject): JsResult[Event] = {
-    val jsResBaseEventProps = fromJsonToBaseEventProps(eventType, jsObject)
+  def fromJsonToEventResult(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[Event] = {
+    val jsResBaseEventProps = fromJsonToBaseEventProps(eventType, jsObject, relatedSubEvents)
     eventType.singleOrMultipleDtos match {
       case Left(singleDto) =>
         jsResBaseEventProps.map {
@@ -61,16 +61,25 @@ object EventHelpers {
     }
   }
 
-  def validateSingleEvent(jsObject: JsObject): MusitResult[Event] = {
+  def validateSingleEvent(jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): MusitResult[Event] = {
     val evtTypeName = (jsObject \ "eventType").as[String]
     val maybeEventTypeResult = EventType.getByName(evtTypeName).toMusitResult(ErrorHelper.badRequest(s"Unknown eventType: $evtTypeName"))
 
     val maybeEventResult = maybeEventTypeResult.flatMap {
-      eventType => fromJsonToEventResult(eventType, jsObject) |> ResourceHelper.jsResultToMusitResult
+      eventType => fromJsonToEventResult(eventType, jsObject, relatedSubEvents) |> ResourceHelper.jsResultToMusitResult
     }
     maybeEventResult
   }
 
+  /** Handles recursion */
+  def validateEvent(jsObject: JsObject): MusitResult[Event] = {
+    val subRelatedEvents = validatePotentialSubEvents(jsObject)
+
+    subRelatedEvents.flatMap { relatedEvents =>
+      validateSingleEvent(jsObject, relatedEvents)
+    }
+  }
+  /*
   /** Handles recursion */
   def validateEvent(jsObject: JsObject): MusitResult[Event] = {
     val maybeEventResult = validateSingleEvent(jsObject)
@@ -79,7 +88,9 @@ object EventHelpers {
     }
   }
 
-  def validatePotentialSubEvents(event: Event, jsObject: JsObject): MusitResult[Event] = {
+ */
+
+  def validatePotentialSubEvents(jsObject: JsObject): MusitResult[Seq[RelatedEvents]] = {
 
     def mapToProperRelation(fieldName: String, jsValue: JsValue): MusitResult[(EventRelation, JsValue)] = {
       assert(fieldName.startsWith(Constants.subEventsPrefix))
@@ -88,15 +99,13 @@ object EventHelpers {
       EventRelations.getMusitResultByName(relName).map((_, jsValue))
     }
 
-    def validateSingleRelationWithSubEvents(eventRelation: EventRelation, jsValue: JsValue): MusitResult[Event] = {
-      println("Has subevents!")
+    def validateSingleRelationWithSubEvents(eventRelation: EventRelation, jsValue: JsValue): MusitResult[RelatedEvents] = {
       jsValue match {
         case jsArray: JsArray =>
           val subEvents = jsArray.value.map(jsValue => validateEvent(jsValue.asInstanceOf[JsObject]))
           val concatenatedMusitResults = concatenateMusitResults(subEvents)
           concatenatedMusitResults.map { reallySubEvents =>
-            event.addSubEvents(eventRelation, reallySubEvents)
-            event
+            RelatedEvents(eventRelation, reallySubEvents)
           }
 
         case _ => Left(ErrorHelper.badRequest("expected array of subEvents in subEvent property"))
@@ -108,7 +117,7 @@ object EventHelpers {
     val withProperRelations = potentialSubEvents.map { case (fieldName, value) => mapToProperRelation(fieldName, value) }
 
     val result = withProperRelations.map { musitResultOfPair => musitResultOfPair.flatMap(pair => validateSingleRelationWithSubEvents(pair._1, pair._2)) }
-    concatenateMusitResults(result).map(_ => event) //This is a method only for side-effects, so we only return the original event, but since we're mapping, we return the error, if any.
+    concatenateMusitResults(result) //#OLD .map(_ => event) //This is a method only for side-effects, so we only return the original event, but since we're mapping, we return the error, if any.
   }
 
   def eventFromJson[T <: Event](jsValue: JsValue): MusitResult[T] = {
@@ -119,7 +128,7 @@ object EventHelpers {
     val baseJson = event.baseEventProps.toJson // Json.toJson(event.baseEventProps).asInstanceOf[JsObject]
     val singleEventJson = event.eventType.maybeMultipleDtos.fold(baseJson)(jsonWriter => baseJson ++ (jsonWriter.customDtoToJson(event).asInstanceOf[JsObject]))
     if (recursive && event.hasSubEvents) {
-      event.getRelatedSubEvents.foldLeft(singleEventJson) {
+      event.relatedSubEvents.foldLeft(singleEventJson) {
         (resultSoFar, relationWithSubEvents) =>
           val subEventsJsonSeq = relationWithSubEvents.events.map(subEvent => toJson(subEvent, recursive))
           resultSoFar.+((Constants.subEventsPrefix + relationWithSubEvents.relation.name, JsArray(subEventsJsonSeq)))

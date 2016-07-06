@@ -40,7 +40,7 @@ object ObservationTemperatureService extends MultipleTablesMultipleDtos {
 
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationTemperature(baseProps, customDto.asInstanceOf[ObservationTemperatureDto])
 
-  def getCustomDtoFromDatabase(id: Long, baseEventDto: BaseEventDto): Future[Option[Dto]] = ObservationTemperatureDao.getObservation(id)
+  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventProps): Future[Option[Dto]] = ObservationTemperatureDao.getObservation(id)
 
   def createInsertCustomDtoAction(id: Long, event: Event) = {
     val specificEvent = event.asInstanceOf[ObservationTemperature]

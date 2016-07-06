@@ -19,7 +19,7 @@ object EnvRequirementService extends MultipleTablesMultipleDtos {
 
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new EnvRequirement(baseProps, customDto.asInstanceOf[EnvRequirementDto])
 
-  def getCustomDtoFromDatabase(id: Long, baseEventDto: BaseEventDto): Future[Option[Dto]] = EnvRequirementDAO.getEnvRequirement(id)
+  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventProps): Future[Option[Dto]] = EnvRequirementDAO.getEnvRequirement(id)
 
   def createInsertCustomDtoAction(id: Long, event: Event) = {
     val specificEvent = event.asInstanceOf[EnvRequirement]

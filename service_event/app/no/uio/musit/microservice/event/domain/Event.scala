@@ -10,7 +10,7 @@ import slick.dbio.DBIO
 import scala.concurrent.Future
 
 object BaseEventProps {
-  def fromBaseEventDto(eventDto: BaseEventDto) = BaseEventProps(eventDto.id, eventDto.links, eventDto.eventType, eventDto.note)
+  def fromBaseEventDto(eventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]) = BaseEventProps(eventDto.id, eventDto.links, eventDto.eventType, eventDto.note, relatedSubEvents)
 
   implicit object baseEventPropsWrites extends Writes[BaseEventProps] {
 
@@ -24,9 +24,10 @@ object BaseEventProps {
       )
     }
   }
+
 }
 
-case class BaseEventProps(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String]) {
+case class BaseEventProps(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents]) {
   /** Copies all data except custom event data over to the baseEventDto object */
   def toBaseEventDto(parentId: Option[Long]) = BaseEventDto(this.id, this.links, this.eventType, this.note, parentId)
 
@@ -41,17 +42,20 @@ class Event(val baseEventProps: BaseEventProps) {
   val links: Option[Seq[Link]] = baseEventProps.links
   val eventType = baseEventProps.eventType
 
-  private var subEvents = Seq.empty[RelatedEvents]
+  val relatedSubEvents = baseEventProps.relatedSubEvents
 
-  def getSubEvents = subEvents.flatMap(relatedEvents => relatedEvents.events) // TODO: Make subEvents mutable or wrap it in an Atom
+  def subEventsWithRelation(eventRelation: EventRelation) = relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
 
-  def getRelatedSubEvents = subEvents // TODO: Make subEvents mutable or wrap it in an Atom
+  def hasSubEvents = relatedSubEvents.length > 0 //We assume none of the event-lists are empty. This is perhaps a wrong assumption.
+
+  //Maybe not needed, just for convenience
+  def getAllSubEvents = relatedSubEvents.flatMap(relatedEvents => relatedEvents.events)
+  def getAllSubEventsAs[T] = getAllSubEvents.map(subEvent => subEvent.asInstanceOf[T])
+
+  /*#OLD ideas
+
   //protected var partOf: Option[Event] = None //The part_of relation. ("Semantic")
   // protected var jsonParent: Option[Event] = None //The parent container element in the json structure. ("Non-semantic")
-
-  def subEventsWithRelation(eventRelation: EventRelation) = subEvents.find(p => p.relation == eventRelation).map(_.events)
-
-  def hasSubEvents = subEvents.length > 0
 
   def addSubEvents(relation: EventRelation, subEvents: Seq[Event]) = {
     assert(subEvents.length > 0)
@@ -62,7 +66,7 @@ class Event(val baseEventProps: BaseEventProps) {
     /*
     if(relation==EventRelations.relation_parts)
       subEvents.foreach(subEvent => subEvent.partOf = Some(this)) */
-  }
+  }*/
 }
 
 /**
@@ -129,12 +133,12 @@ trait MultipleTablesMultipleDtos extends EventImplementation with MultipleDtosEv
   def createInsertCustomDtoAction(id: Long, event: Event): DBIO[Int]
 
   /** reads the extended/specific properties from the database. Won't typically need the baseEventDto parameter, remove this? */
-  def getCustomDtoFromDatabase(id: Long, baseEventDto: BaseEventDto): Future[Option[Dto]] //? MusitFuture[Dto]
+  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventProps): Future[Option[Dto]] //? MusitFuture[Dto]
 
-  def getEventFromDatabase(id: Long, baseEventDto: BaseEventDto) = {
-    getCustomDtoFromDatabase(id, baseEventDto)
-      .toMusitFuture(ErrorHelper.badRequest(s"Unable to find ${baseEventDto.eventType.name} with id: $id"))
-      .musitFutureMap(customDto => createEventInMemory(baseEventDto.props, customDto))
+  def getEventFromDatabase(id: Long, baseEventProps: BaseEventProps) = {
+    getCustomDtoFromDatabase(id, baseEventProps)
+      .toMusitFuture(ErrorHelper.badRequest(s"Unable to find ${baseEventProps.eventType.name} with id: $id"))
+      .musitFutureMap(customDto => createEventInMemory(baseEventProps, customDto))
   }
 }
 
