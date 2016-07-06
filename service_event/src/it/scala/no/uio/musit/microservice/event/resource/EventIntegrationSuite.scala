@@ -300,7 +300,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
             "rel": "actor",
             "href": "actor/12"
           }],
-          "subEvents": [{
+          "subEvents-parts": [{
             "eventType": "observationTemperature",
             "temperatureFrom": -30,
             "temperatureTo": 25,
@@ -320,6 +320,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
         }"""
 
     val myRawEvent = validateEvent[Observation](Json.parse(json))
+    assert(myRawEvent.subObservations.length>=2)
     val firstObsTempEvent = myRawEvent.subObservations(0).asInstanceOf[ObservationTemperature]
     firstObsTempEvent.temperatureFrom mustBe Some(-30)
     firstObsTempEvent.temperatureTo mustBe Some(25)

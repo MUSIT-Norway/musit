@@ -86,8 +86,15 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
+
   def insertChildrenAction(parentEventId: Long, parentEvent: Event) = {
-    val actions = parentEvent.getSubEvents.map(subEvent => insertEventAction(subEvent, Some(parentEventId), true))
+
+    def insertRelatedEvents(relatedEvents: RelatedEvents) = {
+      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(parentEventId), true)) //Todo, also handle other relations than parts
+      new SequenceAction(actions.toIndexedSeq)
+    }
+
+    val actions = parentEvent.getRelatedSubEvents.map(relatedEvents => insertRelatedEvents(relatedEvents))
     new SequenceAction(actions.toIndexedSeq)
   }
 
@@ -118,7 +125,9 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
       futureEvent.musitFutureFlatMap { event => //This would have been much prettier if we implemented the MusitFuture monad!
         futureSubEvents.musitFutureMap { subEvents =>
-          event.addSubEvents(subEvents)
+          if(subEvents.length>0)
+            event.addSubEvents(EventRelations.relation_parts, subEvents) // TODO: Generalize
+
           event
         }
       }
