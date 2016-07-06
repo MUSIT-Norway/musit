@@ -72,11 +72,41 @@ export default class ObservationView extends React.Component {
     }
 
     this.actions = {
-      changeTempFrom: (v) => {
+      changeTemp: (v) => {
+        this.state.observations.map((o) => {
+          let ret = o;
+          if (o[0] === 'temperature') {
+            ret = { ...o, fromValue: v }
+          }
+          return ret
+        })
+      },
+      changeTempInterval: (l, r) => {
+        this.setState({ ...this.state, x: l, y: r })
+      },
+      changeHyp: (l, r) => {
+        this.setState({ ...this.state, x: l, y: r })
+      },
+      changeHypInterval: (l, r) => {
+        this.setState({ ...this.state, x: l, y: r })
+      },
+      changeCleaningLeft: (v) => {
         this.setState({ ...this.state, x: v })
       },
-      changeTo: (l, r) => {
+      changeCleaningRight: (v) => {
+        this.setState({ ...this.state, x: v })
+      },
+      changeAlchoholStatus: (l, r) => {
         this.setState({ ...this.state, x: l, y: r })
+      },
+      changeAlchoholVolume: (l, r) => {
+        this.setState({ ...this.state, x: l, y: r })
+      },
+      changeAlchoholComment: (l, r) => {
+        this.setState({ ...this.state, x: l, y: r })
+      },
+      changeFireSecurityLeft: (v) => {
+        this.setState({ ...this.state, x: v })
       }
     }
 
@@ -152,8 +182,6 @@ export default class ObservationView extends React.Component {
           const typeValue = observationType[0]
           const obsType = observationType[1]
           retVal = { ...obs, type: typeValue, data: this.observationTypeDefinitions[obsType.component.viewType].defaultValues }
-          console.log(retVal)
-          console.log(observationType)
         }
         return retVal
       })

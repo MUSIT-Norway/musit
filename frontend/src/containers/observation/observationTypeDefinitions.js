@@ -41,7 +41,7 @@ const renderPest = (index, props) => (
   <ObservationPest {...props} />
 )
 
-const observationTypeDefinitions = (translate) => {
+const observationTypeDefinitions = (translate, actions) => {
   return {
     pest: {
       viewLabel: translate('musit.texts.ok'),
@@ -94,7 +94,7 @@ const observationTypeDefinitions = (translate) => {
       viewLabel: translate('musit.texts.ok'),
       props: {
         translate: translate,
-        onChangeFrom: () => console.log('From changed'),
+        onChangeFrom: () => actions.changeFrom,
         onChangeTo: () => console.log('TO changed'),
         onChangeComment: () => console.log('Comment changed')
       },
@@ -124,7 +124,8 @@ const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel
   }
 }
 
-const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, toTooltip, commentLabel, commentTooltip) => {
+const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, toTooltip, commentLabel, commentTooltip,
+  onChangeFrom, onChangeTo, onChangeComment) => {
   return {
     label: dropdownLabel,
     component: {
@@ -136,7 +137,10 @@ const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, to
         toLabel,
         toTooltip,
         commentLabel,
-        commentTooltip
+        commentTooltip,
+        onChangeFrom,
+        onChangeTo,
+        onChangeComment
       }
     }
   }
