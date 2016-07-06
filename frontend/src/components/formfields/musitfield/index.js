@@ -50,6 +50,7 @@ export default class MusitField extends Component {
         placeholder={this.props.placeHolder}
         value={this.props.value}
         id={this.props.id}
+        disabled={this.props.disabled}
         onChange={(event) => this.props.onChange(event.target.value)} data-toggle="tooltip" title={this.props.tooltip}
       />);
     const lcHelp = this.props.help ? <span className="input-group-addon" >?</span> : null;
@@ -80,9 +81,11 @@ MusitField.propTypes = {
   placeHolder: PropTypes.string,
   tooltip: PropTypes.string,
   onChange: PropTypes.func,
-  validate: PropTypes.string.isRequired,
+  validate: PropTypes.string,
   minimumLength: PropTypes.number,
   maximumLength: PropTypes.number,
   validator: PropTypes.string,
-  precision: PropTypes.number
+  precision: PropTypes.number,
+  disabled: PropTypes.bool
+
 };

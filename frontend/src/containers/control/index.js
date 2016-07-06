@@ -37,27 +37,26 @@ export default class ControlViewShow extends React.Component {
   }
 
   render() {
-    require('react-datepicker/dist/react-datepicker.css');
     const { translate } = this.props
     const temperature = {
       type: 'temperature',
-      ok: this.props.control.temperatureControl.ok
+      ok: this.props.control.control.temperatureControl.ok
     }
     const relativeHumidity = {
       type: 'relativeHumidity',
-      ok: this.props.control.relativeHumidity.ok
+      ok: this.props.control.control.relativeHumidity.ok
     }
     const lightCondition = {
       type: 'lightCondition',
-      ok: this.props.control.lightConditionControl.ok
+      ok: this.props.control.control.lightConditionControl.ok
     }
     const pest = {
       type: 'pest',
-      ok: this.props.control.pestControl.ok
+      ok: this.props.control.control.pestControl.ok
     }
     const alcohol = {
       type: 'alcohol',
-      ok: this.props.control.alcoholControl.ok
+      ok: this.props.control.control.alcoholControl.ok
     }
     return (
       <div>
@@ -70,26 +69,26 @@ export default class ControlViewShow extends React.Component {
             </Row>
             <Row>
               <Col sm={4} smOffset={2}>
-                <ControlLabel>{translate('musit.texts.dateCompleted')}</ControlLabel>
+                <ControlLabel>{translate('musit.texts.datePerformed')}</ControlLabel>
                 <br />
-                <DatePicker />
+                <DatePicker dateFormat="DD.MM.YYYY" value={this.props.control.datePerformed} />
               </Col>
               <Col sm={4} >
                 <ControlLabel>{translate('musit.texts.performedBy')}</ControlLabel>
                 <br />
-                <MusitField id="1" value="test user" validate="text" />
+                <MusitField id="performedBy" value={this.props.control.performedBy} validate="text" disabled={Boolean(true)} />
               </Col>
             </Row>
             <Row>
               <Col sm={4} smOffset={2}>
                 <ControlLabel>{translate('musit.texts.dateRegistered')}</ControlLabel>
                 <br />
-                <DatePicker />
+                <DatePicker dateFormat="DD.MM.YYYY" value={this.props.control.dateRegistered} />
               </Col>
               <Col sm={4} >
                 <ControlLabel>{translate('musit.texts.registeredBy')}</ControlLabel>
                 <br />
-                <MusitField id="2" value="test user" validate="text" />
+                <MusitField id="registeredBy" value={this.props.control.registeredBy} validate="text" disabled={Boolean(true)} />
               </Col>
             </Row>
             <Row>

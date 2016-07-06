@@ -20,7 +20,7 @@ no:
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
-      dateCompleted: "Dato utført"
+      datePerformed: "Dato utført"
       dateRegistered: "Dato registrert"
       registeredBy: "Registrert av"
       performedBy: "Utført av"
