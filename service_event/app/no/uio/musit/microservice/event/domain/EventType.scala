@@ -19,7 +19,8 @@ object EventType {
     eventType(6, "EnvRequirement", EnvRequirementService),
     eventType(7, "ObservationTemperature", ObservationTemperatureService),
     eventType(8, "ObservationRelativeHumidity", ObservationRelativeHumidityService),
-    eventType(9, "ObservationInertAir", ObservationInertAirService)
+    eventType(9, "ObservationInertAir", ObservationInertAirService),
+    eventType(10, "ObservationLys", ObservationLysService)
 
   // Add new event type here....
   )

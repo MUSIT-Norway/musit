@@ -413,4 +413,27 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   }
 
 
+
+  "post and get ObservationLys" in {
+    val json =
+      """
+  {
+    "eventType": "observationLys",
+    "lysforhold": "merkelige forhold",
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationLys](response.json)
+    myEvent.customDto.lysforhold mustBe Some("merkelige forhold")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationLys](responseGet.json)
+    myEventGet.customDto.lysforhold mustBe Some("merkelige forhold")
+  }
+
+
+
 }

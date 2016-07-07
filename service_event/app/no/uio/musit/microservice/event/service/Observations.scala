@@ -62,7 +62,9 @@ object ObservationRelativeHumidityService extends ObservationFromToServiceBase w
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationRelativeHumidity(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
 
-// ----------------------
+// ------------------------------------------------------------
+//  ObservationTemperature
+// ------------------------------------------------------------
 
 class ObservationTemperature(baseEventProps: BaseEventProps, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
@@ -72,11 +74,36 @@ object ObservationTemperatureService extends ObservationFromToServiceBase with M
 }
 
 
-// ----------------------
+// ------------------------------------------------------------
+//  ObservationInertAir
+// ------------------------------------------------------------
 
 class ObservationInertAir(baseEventProps: BaseEventProps, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
 object ObservationInertAirService extends ObservationFromToServiceBase with MultipleTablesMultipleDtos {
 
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationInertAir(baseProps, customDto.asInstanceOf[ObservationFromToDto])
+}
+
+
+// ------------------------------------------------------------
+//  ObservationLys
+// ------------------------------------------------------------
+class ObservationLys(baseEventProps: BaseEventProps, val customDto: ObservationLysDto) extends Event(baseEventProps)
+
+object ObservationLysService extends SingleTableMultipleDtos {
+
+  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationLys(baseProps, customDto.asInstanceOf[ObservationLysDto])
+
+  def baseTableToCustomDto(baseEventDto: BaseEventDto): Dto = ObservationLysDto(baseEventDto.valueString)
+
+  def customDtoToBaseTable(event: Event, baseEventDto: BaseEventDto): BaseEventDto = {
+    val thisEvent = event.asInstanceOf[ObservationLys]
+    baseEventDto.setOptionString(thisEvent.customDto.lysforhold)
+  }
+
+  def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[ObservationLysDto]
+
+  def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[ObservationLys].customDto).asInstanceOf[JsObject]
+
 }

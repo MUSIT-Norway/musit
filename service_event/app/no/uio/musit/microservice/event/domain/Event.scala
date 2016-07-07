@@ -25,7 +25,7 @@ object BaseEventProps {
 
 case class BaseEventProps(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents]) {
   /** Copies all data except custom event data over to the baseEventDto object */
-  def toBaseEventDto(parentId: Option[Long]) = BaseEventDto(this.id, this.links, this.eventType, this.note, parentId)
+  def toBaseEventDto(parentId: Option[Long]) = BaseEventDto(this.id, this.links, this.eventType, this.note, parentId, None, None)
 
   def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
 }
@@ -99,4 +99,12 @@ case class ObservationFromToDto(id: Option[Long],
 object ObservationFromToDto {
   implicit val format = Json.format[ObservationFromToDto]
 }
+
+
+case class ObservationLysDto(lysforhold: Option[String]) extends Dto
+
+object ObservationLysDto {
+  implicit val format = Json.format[ObservationLysDto]
+}
+
 

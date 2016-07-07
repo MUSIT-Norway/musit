@@ -37,6 +37,7 @@ CREATE TABLE MUSARK_EVENT.EVENT (
   EVENT_TYPE_ID integer not null, -- Move to separate table if we want to allow multiple instantiations
   NOTE VARCHAR2(4000),
   VALUE_LONG long, -- Custom value, events can choose to store some event-specific value here.
+  VALUE_String clob, -- Custom value, events can choose to store some event-specific value here.
   PART_OF long,
   PRIMARY KEY (ID),
   FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID),
@@ -98,6 +99,7 @@ insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6,'envrequirement');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7,'observationtemperature');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (8,'observationrelativehumidity');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (9,'observationinertair');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (10,'observationlys');
 
 
 

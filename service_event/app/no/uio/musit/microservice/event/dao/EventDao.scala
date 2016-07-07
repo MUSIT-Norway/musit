@@ -156,7 +156,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
   }
 
-/* Gets the subevents from of the event with id=parentId from the database. Embedded in the proper relations (RelatedEvents-objects)*/
+  /* Gets the subevents from of the event with id=parentId from the database. Embedded in the proper relations (RelatedEvents-objects)*/
 
   def getSubEvents(parentId: Long, recursive: Boolean): MusitFuture[Seq[RelatedEvents]] = {
 
@@ -218,7 +218,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
-                          partOf: Option[Long], valueLong: Option[Long] = None) {
+                          partOf: Option[Long], valueLong: Option[Long], valueString: Option[String]) {
 
     def getOptBool = valueLong match {
       case Some(1) => Some(true)
@@ -236,8 +236,17 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     def setBool(value: Boolean) = this.copy(valueLong = Some(boolToLong(value)))
 
-    def props(relatedSubEvents: Seq[RelatedEvents]) = BaseEventProps.fromBaseEventDto(this, relatedSubEvents)
+    def setString(value: String) = this.copy(valueString = Some(value))
 
+    def setOptionString(value: Option[String]) = {
+      value match {
+        case Some(s) => setString(s)
+        case None => this.copy(valueString = None)
+      }
+    }
+
+
+    def props(relatedSubEvents: Seq[RelatedEvents]) = BaseEventProps.fromBaseEventDto(this, relatedSubEvents)
   }
 
   implicit lazy val libraryItemMapper = MappedColumnType.base[EventType, Int](
@@ -246,7 +255,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   )
 
   class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id.?, eventTypeID, eventNote, partOf, valueLong) <>(create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, eventTypeID, eventNote, partOf, valueLong, valueString) <>(create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 
@@ -256,18 +265,20 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     val partOf = column[Option[Long]]("PART_OF")
     val valueLong = column[Option[Long]]("VALUE_LONG")
+    val valueString = column[Option[String]]("VALUE_STRING")
 
-    def create = (id: Option[Long], eventType: EventType, note: Option[String], partOf: Option[Long], valueLong: Option[Long]) =>
+    def create = (id: Option[Long], eventType: EventType, note: Option[String], partOf: Option[Long], valueLong: Option[Long], valueString: Option[String]) =>
       BaseEventDto(
         id,
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
         eventType,
         note,
         partOf,
-        valueLong
+        valueLong,
+        valueString
       )
 
-    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.partOf, event.valueLong)
+    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.partOf, event.valueLong, event.valueString)
   }
 
 }
