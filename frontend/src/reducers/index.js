@@ -28,8 +28,8 @@ import picklistReducer from './picklist'
 import storagePanelReducer from './storageunit/panel'
 import storageGridReducer from './storageunit/grid'
 import organizationReducer from './organization'
-import controlReducer from './control'
-import controlShowReducer from './control-show'
+import controlAddReducer from './control/add'
+import controlDetailsReducer from './control/view'
 
 const rootReducer = combineReducers({
   routing: routerReducer,
@@ -42,8 +42,8 @@ const rootReducer = combineReducers({
   storagePanelUnit: storagePanelReducer,
   storageGridUnit: storageGridReducer,
   organization: organizationReducer,
-  control: controlReducer,
-  controlShow: controlShowReducer
+  control: controlAddReducer,
+  controlDetails: controlDetailsReducer
 })
 
 export default rootReducer

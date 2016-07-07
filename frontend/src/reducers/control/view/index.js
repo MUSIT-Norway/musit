@@ -25,8 +25,8 @@ const initialState = {
   }
 };
 
-const authReducer = (state = initialState) => {
+const controlDetailsReducer = (state = initialState) => {
   return state;
 }
 
-export default authReducer
+export default controlDetailsReducer

@@ -1,4 +1,4 @@
-import { assert, React, ReactTestUtils } from '../../../../test/setup';
+import { assert, React, ReactTestUtils } from '../../../../../test/setup';
 import ControlView from '../ControlView';
 
 describe('ControlView', () => {

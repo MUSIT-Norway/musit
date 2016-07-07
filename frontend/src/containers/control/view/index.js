@@ -18,15 +18,15 @@
  */
 import React from 'react'
 import { Grid, Row, Col, ControlLabel } from 'react-bootstrap'
-import { ControlView } from '../../components/control'
+import { ControlView } from '../../../components/control/view'
 import DatePicker from 'react-bootstrap-date-picker'
-import { MusitField } from '../../components/formfields'
-import Language from '../../components/language'
+import { MusitField } from '../../../components/formfields'
+import Language from '../../../components/language'
 import { connect } from 'react-redux'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
-  control: state.controlShow.data
+  control: state.controlDetails.data
 })
 
 @connect(mapStateToProps)

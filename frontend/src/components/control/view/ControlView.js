@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import { ControlLabel, Panel, FormGroup, Button, Col, Row } from 'react-bootstrap'
-import { MusitField } from '../formfields'
+import { MusitField } from '../../formfields'
 import FontAwesome from 'react-fontawesome';
 
 export default class ControlView extends Component {

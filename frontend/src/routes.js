@@ -27,8 +27,8 @@ import ExampleView from './containers/example-view'
 import StorageUnitPanel from './containers/storageunit/panel'
 import WelcomeUserView from './containers/welcome-user'
 import ObservationView from './containers/observation'
-import ControlViewShow from './containers/control'
-import ControlView from './containers/control-view'
+import ControlView from './containers/control/view'
+import ControlAdd from './containers/control/add'
 import App from './containers/app'
 
 export default (store) => {
@@ -56,12 +56,13 @@ export default (store) => {
       <IndexRedirect to="/" />
 
       <Route path="/" component={WelcomeView} onEnter={redirectIfLoggedIn} />
-      <Route path="/controlview" component={ControlViewShow} />
+      <Route path="/control/:id" component={ControlAdd} />
+      <Route path="/control/add" component={ControlAdd} />
+      <Route path="/control" component={ControlView} />
       <Route path="/picklist" component={PickListView} />
       <Route path="/magasin" component={StorageUnitsTable} />
       <Route path="/example" component={ExampleView} />
       <Route path="/observation" component={ObservationView} />
-      <Route path="/control" component={ControlView} />
       <Route path="/storageunit/:id" component={StorageUnitPanel} />
       <Route path="/storageunit/add" component={StorageUnitPanel} />
 
