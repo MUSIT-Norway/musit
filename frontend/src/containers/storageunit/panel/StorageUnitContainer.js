@@ -66,13 +66,27 @@ export default class StorageUnitContainer extends Component {
             updateName={(name) =>
               this.updateStorageUnit(data, 'name', name)}
             updateAreal1={(area) =>
-              this.updateStorageUnit(data, 'area', area !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(area) ? Number(area.replace(',', '.')) : area)}
+              this.updateStorageUnit(
+                data, 'area', area !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(area) ? Number(area.replace(',', '.')) : area
+              )}
             updateAreal2={(areaTo) =>
-              this.updateStorageUnit(data, 'areaTo', areaTo !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(areaTo) ? Number(areaTo.replace(',', '.')) : areaTo)}
+              this.updateStorageUnit(
+                data,
+                'areaTo',
+                areaTo !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(areaTo) ? Number(areaTo.replace(',', '.')) : areaTo
+              )}
             updateHeight1={(height) =>
-              this.updateStorageUnit(data, 'height', height !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(height) ? Number(height.replace(',', '.')) : height)}
+              this.updateStorageUnit(
+                data,
+                'height',
+                height !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(height) ? Number(height.replace(',', '.')) : height
+              )}
             updateHeight2={(heightTo) =>
-              this.updateStorageUnit(data, 'heightTo', heightTo !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(heightTo) ? Number(heightTo.replace(',', '.')) : heightTo)}
+              this.updateStorageUnit(
+                data,
+                'heightTo',
+                heightTo !== '' && /^-?(\d+\.?\d*)$|(\d*\.?\d+)$/.test(heightTo) ? Number(heightTo.replace(',', '.')) : heightTo
+              )}
             updateAddress={(address) =>
               this.updateStorageUnit(data, 'address', address)}
             onAddressSuggestionsUpdateRequested={this.props.onAddressSuggestionsUpdateRequested}

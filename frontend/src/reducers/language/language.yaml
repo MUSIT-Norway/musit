@@ -20,6 +20,18 @@ no:
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
+      datePerformed: "Dato utført"
+      dateRegistered: "Dato registrert"
+      registeredBy: "Registrert av"
+      performedBy: "Utført av"
+      ok: "OK"
+      notOk: "Ikke OK"
+    controls:
+      temperature: "Temperature"
+      relativeHumidity: "Relativ luftfuktighet"
+      lightCondition: "Lysforhold"
+      pest: "Skadedyr"
+      alcohol: "Sprit"
     newControl:
       title: "Ny kontroll"
       date: "Dato"
