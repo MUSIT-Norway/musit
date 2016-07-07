@@ -18,7 +18,6 @@
  */
 
 import { routerReducer } from 'react-router-redux'
-import { reducer as form } from 'redux-form'
 import { combineReducers } from 'redux'
 
 import infoReducer from './info'
@@ -29,6 +28,7 @@ import autosuggestReducer from './suggest'
 import picklistReducer from './picklist'
 import storageReducer from './storageunit-container'
 import organizationReducer from './organization'
+import observationReducer from './observation'
 
 
 const rootReducer = combineReducers({
@@ -41,7 +41,7 @@ const rootReducer = combineReducers({
   picks: picklistReducer,
   storageUnit: storageReducer,
   organization: organizationReducer,
-  form: form
+  observation: observationReducer
 })
 
 export default rootReducer

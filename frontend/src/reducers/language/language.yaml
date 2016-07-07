@@ -37,6 +37,8 @@ no:
         countLabel: "Antall"
         countPlaceHolder: "Heltall"
         countTooltip: "Antall tooltip!"
+      inertAir:
+        fromLabel: "Fr"
     pickList:
       title: "Plukkliste"
       action:
@@ -46,38 +48,58 @@ no:
       title: "Storage units"
       environmentRequirements:
         temperature:
-          labelText: Temperatur
+          labelText: "Målt temperatur [fra]"
           tooltip: "Måleenhet grader celsius, desimaltall"
           placeHolder: C
+          comment: "Tiltak / kommentar"
         temperatureTolerance:
+          labelText: "Målt temperatur [til]"
           tooltip: "Måleenhet toleranse, ett tall"
           placeHolder: int
           addOnPrefix: "\u00b1"
         relativeHumidity:
-          labelText: "Rel. luftfuktighet"
+          labelText: "Rel. luftfuktighet [fra]"
           tooltip: "Måleenhet prosent, desimaltall"
           placeHolder: "%"
+          comment: "Tiltak / kommentar"
         relativeHumidityTolerance:
+          labelText: "Rel. luftfuktighet [til]"
           tooltip: "Måleenhet prosent toleranse, ett tall"
           placeHolder: int
           addOnPrefix: "\u00b1"
         inertAir:
-          labelText: "Inert luft"
+          labelText: "Inert luft [til]"
           tooltip: "Måleenhet prosent oksygen, desimaltall"
           placeHolder: "% O2"
+          comment: "Tiltak / kommentar"
         inertAirTolerance:
+          labelText: "Inert luft [til]"
           tooltip: "Måleenhet prosent oksygen toleranse, ett tall"
           placeHolder: int
           addOnPrefix: "\u00b1"
         renhold:
           labelText: Renhold
+          comment: "Tiltak / kommentar"
           tooltip: Renhold
         lightCondition:
           labelText: Lysforhold
+          comment: "Tiltak / kommentar"
           tooltip: Lysforhold
         comments:
           labelText: Kommentarer
           tooltip: "Kommentar!"
+        gas:
+          labelText: "Gass"
+          comment: "Tiltak / kommentar"
+          tooltip: "Gass"
+        skallsikring:
+          labelText: "Skallsikring"
+          comment: "Tiltak / kommentar"
+          tooltip: "Skallsikring"
+        mold:
+          labelText: "Mugg"
+          comment: "Tiltak / kommentar"
+          tooltip: "Mugg"
       storageType:
         items:
           storageunit: "Lagringsenhet"

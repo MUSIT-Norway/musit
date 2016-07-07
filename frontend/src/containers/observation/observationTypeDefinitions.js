@@ -116,7 +116,7 @@ const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel
 }
 
 const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, toTooltip, commentLabel, commentTooltip,
-  onChangeFrom, onChangeTo, onChangeComment) => {
+  onChangeFrom, onChangeTo, onChangeComment, fromPlaceHolder, toPlaceHolder) => {
   return {
     label: dropdownLabel,
     component: {
@@ -131,7 +131,9 @@ const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, to
         commentTooltip,
         onChangeFrom,
         onChangeTo,
-        onChangeComment
+        onChangeComment,
+        fromPlaceHolder,
+        toPlaceHolder
       }
     }
   }

@@ -353,35 +353,53 @@ export default class ObservationView extends React.Component {
     }
 
     this.observationTypes = {
-      lux: defineCommentType('lux', 'Lysforhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+      lux: defineCommentType('lux', 'Lysforhold', translate('musit.storageUnits.environmentRequirements.renhold.lightCondition'),
+      'Left tooltip', translate('musit.storageUnits.environmentRequirements.renhold.comment'), 'Right tooltip',
            this.actions.changeLuxLeft, this.actions.changeLuxRight),
-      gas: defineCommentType('gas', 'Gass', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
-           this.actions.changeGasLeft, this.actions.changeLuxRight),
-      cleaning: defineCommentType('cleaning', 'Renhold', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+      gas: defineCommentType('gas', 'Gass', translate('musit.storageUnits.environmentRequirements.gas.labelText'),
+      'Left tooltip', translate('musit.storageUnits.environmentRequirements.renhold.comment'), 'Right tooltip',
+           this.actions.changeGasLeft, this.actions.changeGasRight),
+      cleaning: defineCommentType('cleaning', 'Renhold',
+                translate('musit.storageUnits.environmentRequirements.renhold.labelText'),
+                'Left tooltip',
+                translate('musit.storageUnits.environmentRequirements.renhold.comment'), 'Right tooltip',
            this.actions.changeCleaningLeft, this.actions.changeCleaningRight),
-      mold: defineCommentType('mold', 'Mugg', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+      mold: defineCommentType('mold', 'Mugg', translate('musit.storageUnits.environmentRequirements.mold.labelText'),
+      'Left tooltip', translate('musit.storageUnits.environmentRequirements.renhold.comment'), 'Right tooltip',
            this.actions.changeMoldLeft, this.actions.changeMoldRight),
       skallsikring: defineCommentType('skallsikring',
-        'Skallsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+        'Skallsikring', translate('musit.storageUnits.environmentRequirements.skallsikring.labelText'),
+        'Left tooltip', translate('musit.storageUnits.environmentRequirements.skallsikring.comment'), 'Right tooltip',
              this.actions.changeSkallSikringLeft, this.actions.changeSkallSikringRight),
       tyverisikring: defineCommentType('tyverisikring',
-        'Tyverisikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
-             this.actions.changeTyveriSikringLeft, this.actions.changeTyveriSikringLeftRight),
+        'Tyverisikring', translate('musit.storageUnits.environmentRequirements.tyverisikring.labelText'),
+        'Left tooltip', translate('musit.storageUnits.environmentRequirements.renhold.comment'), 'Right tooltip',
+             this.actions.changeTyveriSikringLeft, this.actions.changeTyveriSikringRight),
       brannsikring: defineCommentType('brannsikring',
-        'Brannsikring', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+        'Brannsikring', translate('musit.storageUnits.environmentRequirements.brannsikring.labelText'),
+        'Left tooltip', translate('musit.storageUnits.environmentRequirements.renhold.comment'), 'Right tooltip',
              this.actions.changeBrannSikringLeft, this.actions.changeBrannSikringRight),
       vannskaderisiko: defineCommentType('vannskaderisiko',
-        'Vannskaderisiko', 'Left label', 'Left tooltip', 'Right label', 'Right tooltip',
+        'Vannskaderisiko', translate('musit.storageUnits.environmentRequirements.vannskaderisiko.labelText'),
+        'Left tooltip', translate('musit.storageUnits.environmentRequirements.renhold.comment'), 'Right tooltip',
              this.actions.changeVannskadeRisikoLeft, this.actions.changeVannskadeRisikoRight),
-      temperature: defineFromToType('temperature', 'Temperatur', 'Temperatur',
-        'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip',
-        this.actions.changeTempFrom, this.actions.changeTempTo, this.actions.changeTempComment),
-      rh: defineFromToType('rh', 'Relativ luftfuktighet', 'from label', 'From tooltip',
-        'from label', 'To tooltip', 'Comment label', 'Comment tooltip',
-        this.actions.changeRHFrom, this.actions.changeRHTo, this.actions.changeRHComment),
-      hypoxicAir: defineFromToType('hypoxicAir', 'Inertluft', 'from label',
-        'From tooltip', 'from label', 'To tooltip', 'Comment label', 'Comment tooltip',
-        this.actions.changeHypoxicAirFrom, this.actions.changeHypoxicAirTo, this.actions.changeHypoxicAirComment),
+      temperature: defineFromToType('temperature', 'Temperatur',
+        translate('musit.storageUnits.environmentRequirements.temperature.labelText'),
+        'From tooltip', translate('musit.storageUnits.environmentRequirements.temperatureTolerance.labelText'),
+        'To tooltip', translate('musit.storageUnits.environmentRequirements.temperature.comment'), 'Comment tooltip',
+        this.actions.changeTempFrom, this.actions.changeTempTo, this.actions.changeTempComment, '', ''),
+      rh: defineFromToType('rh', 'Relativ luftfuktighet',
+        translate('musit.storageUnits.environmentRequirements.relativeHumidity.labelText'), 'From tooltip',
+        translate('musit.storageUnits.environmentRequirements.relativeHumidityTolerance.labelText'),
+        'To tooltip', translate('musit.storageUnits.environmentRequirements.relativeHumidity.comment'), 'Comment tooltip',
+        this.actions.changeRHFrom, this.actions.changeRHTo, this.actions.changeRHComment, '', ''),
+      hypoxicAir: defineFromToType('hypoxicAir', 'Inert luft',
+        translate('musit.storageUnits.environmentRequirements.inertAir.labelText'),
+        'From tooltip',
+        translate('musit.storageUnits.environmentRequirements.inertAirTolerance.labelText'), 'To tooltip',
+        translate('musit.storageUnits.environmentRequirements.inertAir.comment'), 'Comment tooltip',
+        this.actions.changeHypoxicAirFrom, this.actions.changeHypoxicAirTo,
+        this.actions.changeHypoxicAirComment, 'Fra %', 'Til %'),
       alcohol: defineStatusType('alcohol', 'Sprit', 'Status label', 'statusTooltip',
         ['Uttørket', 'Nesten uttørket', 'Noe uttørket', 'Litt uttørket', 'Tilfredstillende'],
         'volumeLabel', 'volumeTooltip', 'commentLabel', 'commentTooltip', this.actions.changeAlchoholStatus,
@@ -420,7 +438,7 @@ export default class ObservationView extends React.Component {
           data: {
             statusValue: '',
             volumeValue: '',
-            commentValue: ''
+            commentValue: ''      console.log(this.observationTypes[observation.type])
           }
         }*/
       ]
@@ -496,13 +514,13 @@ export default class ObservationView extends React.Component {
 
     const renderActiveTypes = (items) => {
       const block = items.map((observation, index) => {
-        // TODO: Check for new type, how to handle
+        // TODO: Check for new type, how to handle STEIN: DONE (?)
         let subBlock = ''
         if (observation.type && observation.type.length > 0) {
           const observationType = this.observationTypes[observation.type]
           const observationTypeDef = this.observationTypeDefinitions[observationType.component.viewType]
 
-          // TODO: Draw type field. And action to change type, with state reset and default variables.
+          // TODO: Draw type field. And action to change type, with state reset and default variables. Stein:DONE
           subBlock = observationTypeDef.render(index, {
             ...observationType.component.props,
             ...observationTypeDef.props,
@@ -524,12 +542,13 @@ export default class ObservationView extends React.Component {
             <Col sm={10} smOffset={1}>
               <SplitButton
                 id={`new_${index}`}
-                title={observation.type || 'Vennligst velg...'}
+                title={observation.type ? observationTypes[observation.type].label : null || 'Vennligst velg...'}
                 pullRight
                 onSelect={(observationType) => selectType(index, observationType)}
               >
                 {menuItems}
               </SplitButton>
+              <h1 />
               {subBlock}
             </Col>
           </Row>
@@ -571,7 +590,7 @@ export default class ObservationView extends React.Component {
               {renderActiveTypes(observations)}
               <Row>
                 <h1 />
-                <Col sm={10} smOffset={1} className="text-center">
+                <Col sm={5} smOffset={1}>
                   <Button onClick={() => addNewObservation()}>
                     <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
                   </Button>
