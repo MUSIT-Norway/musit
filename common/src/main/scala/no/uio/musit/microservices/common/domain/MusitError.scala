@@ -60,6 +60,11 @@ class MusitNotImplementedYetException(message: String, private val developerMess
   override def status = Status.NOT_IMPLEMENTED //Perhaps not totally correct, but this method is only used during development.
 }
 
+class MusitInternalErrorException(message: String, private val developerMessage: String = "") extends Throwable {
+  def status = Status.INTERNAL_SERVER_ERROR
+  def toMusitError = MusitError(status, message, developerMessage)
+}
+
 /**
  * May get thrown when our sevices try to do http requests to other servers (or another of our services), but they fail.
  * Used in say DataPorten calls, which may fail. Error represents the result from the "external" server
