@@ -132,6 +132,7 @@ export default class ObservationPest extends Component {
     return (
       <div>
         <ObservationDoubleTextAreaComponent {...comments} leftValue={identificationValue} rightValue={commentsValue} />
+        <h1 />
         <FormGroup>
           {renderSelectColumn(observations)}
           {renderCountColumn(observations)}

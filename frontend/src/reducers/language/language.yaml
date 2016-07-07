@@ -26,6 +26,8 @@ no:
       performedBy: "Utført av"
       ok: "OK"
       notOk: "Ikke OK"
+      save: Lagre
+      cancel: Angre
     controls:
       temperature: "Temperature"
       relativeHumidity: "Relativ luftfuktighet"

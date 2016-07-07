@@ -27,16 +27,24 @@ import DatePicker from 'react-bootstrap-date-picker'
 import Autosuggest from 'react-autosuggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
+import { addObservation } from '../../reducers/observation'
 
 // TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = () => ({
   translate: (key, markdown) => Language.translate(key, markdown)
 })
 
-@connect(mapStateToProps)
+const mapDispatchToProps = (dispatch) => ({
+  onSaveObservation: (data) => {
+    dispatch(addObservation(data))
+  }
+})
+
+@connect(mapStateToProps, mapDispatchToProps)
 export default class ObservationView extends React.Component {
   static propTypes = {
-    translate: React.PropTypes.func.isRequired
+    translate: React.PropTypes.func.isRequired,
+    onSaveObservation: React.PropTypes.func.isRequired
   }
 
   constructor(props) {
@@ -345,7 +353,7 @@ export default class ObservationView extends React.Component {
         this.setState({ ...this.state, observations: this.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'pest') {
-            retVal = { ...o, data: { ...o.data, comments: v } }
+            retVal = { ...o, data: { ...o.data, commentsValue: v } }
           }
           return retVal
         }) })
@@ -493,7 +501,7 @@ export default class ObservationView extends React.Component {
   }
 
   render() {
-    const { translate } = this.props
+    const { translate, onSaveObservation } = this.props
     const {
       addNewObservation,
       observationTypes,
@@ -598,7 +606,7 @@ export default class ObservationView extends React.Component {
               </Row>
               <Row>
                 <Col sm={10} smOffset={1} className="text-center">
-                  <Button onClick={() => addNewObservation()}>
+                  <Button onClick={() => onSaveObservation({ data: this.state })}>
                     {translate('musit.texts.save')}
                   </Button>
                   <Button onClick={() => addNewObservation()}>

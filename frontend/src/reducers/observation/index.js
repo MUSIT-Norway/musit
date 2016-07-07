@@ -1,9 +1,9 @@
 const ADD = 'musit/observation/ADD'
 
 const initialState = {
-  user: '',
-  date: '',
   data: {
+    user: '',
+    date: '',
     observations: []
   }
 }
