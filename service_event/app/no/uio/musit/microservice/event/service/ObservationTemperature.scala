@@ -20,16 +20,15 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.{ ObservationTemperatureDao, ObservationTemperatureDto }
-import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
-import no.uio.musit.microservice.event.domain.{ BaseEventProps, Dto, Event, MultipleTablesMultipleDtos }
-import play.api.libs.json.{ JsObject, JsResult, Json }
+import no.uio.musit.microservice.event.dao.ObservationTemperatureDao
+import no.uio.musit.microservice.event.domain._
+import play.api.libs.json.{JsObject, JsResult, Json}
 
 import scala.concurrent.Future
 
 /**
- * Created by jstabel on 7/5/16.
- */
+  * Created by jstabel on 7/5/16.
+  */
 
 class ObservationTemperature(val baseProps: BaseEventProps, val customDto: ObservationTemperatureDto) extends Event(baseProps) {
   val temperatureFrom = customDto.temperatureFrom

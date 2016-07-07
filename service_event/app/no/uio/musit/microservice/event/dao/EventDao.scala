@@ -21,23 +21,22 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{ BaseEventProps, RelatedEvents, _ }
+import no.uio.musit.microservice.event.domain.{BaseEventProps, RelatedEvents, _}
+import no.uio.musit.microservice.event.service.{EventHelpers, MultipleTablesMultipleDtos, SingleTableMultipleDtos, SingleTableSingleDto}
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import slick.dbio.SequenceAction
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.extensions.EitherExtensions._
-import slick.dbio.SequenceAction
 
 object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
@@ -53,7 +52,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   def selfLink(id: Long) =
     LinkService.local(Some(id), "self", s"/v1/$id")
 
-  /*partialEventLink is used if the event is inserted as a subElement of a parent element. The id of the parent element is then in the partialEventLink.*/
+  /*Creates an action to insert the event and potentially all related subevents. PartialEventLink is used if the event is inserted as a subElement of a parent element. The id of the parent element is then in the partialEventLink.*/
   def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean): DBIO[Long] = {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
@@ -157,6 +156,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
   }
 
+/* Gets the subevents from of the event with id=parentId from the database. Embedded in the proper relations (RelatedEvents-objects)*/
+
   def getSubEvents(parentId: Long, recursive: Boolean): MusitFuture[Seq[RelatedEvents]] = {
 
     def getEventsFromEventDtos(eventDtos: MusitFuture[Seq[BaseEventDto]]): MusitFuture[Seq[Event]] = {
@@ -166,20 +167,18 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       }
     }
 
-    def asRelation(events: MusitFuture[Seq[Event]], eventRelation: EventRelation): MusitFuture[RelatedEvents] =
-      events.musitFutureMap(RelatedEvents(eventRelation, _))
-
     //The parts/partOf relation
     def getPartEvents: MusitFuture[RelatedEvents] = {
       val futureSubEventDtos = getSubEventDtos(parentId).toMusitFuture
-      asRelation(getEventsFromEventDtos(futureSubEventDtos), EventRelations.relation_parts)
+      //Create a parts-relation of the these subEvents
+      getEventsFromEventDtos(futureSubEventDtos).musitFutureMap(events => RelatedEvents(EventRelations.relation_parts, events))
     }
 
     //The "other" relations, those stored in the event_relation_event table
-    def getExtraRelatedEvents: MusitFuture[Seq[RelatedEvents]] = {
+    def getOtherRelatedEvents: MusitFuture[Seq[RelatedEvents]] = {
       def transfromGroup(group: Seq[(Int, BaseEventDto)]): MusitFuture[Seq[Event]] = {
-        val groupWithoutInt = group.map(_._2)
-        val groupOfMusitResultEvents = groupWithoutInt.map(dto => getEvent(dto, recursive))
+        val groupWithoutRelationIdInt = group.map(_._2)
+        val groupOfMusitResultEvents = groupWithoutRelationIdInt.map(dto => getEvent(dto, recursive))
 
         //Collapse the inner musitresults...
         val result = MusitFuture.traverse(groupOfMusitResultEvents)(identity)
@@ -203,12 +202,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
 
     val futurePartsEvents = getPartEvents
-    val futureExtraRelatedEvents = getExtraRelatedEvents
+    val futureOtherRelatedEvents = getOtherRelatedEvents
 
-    //Now we simply need to join the two
+    //Now we simply need to join the parts-events and the other related events
     futurePartsEvents.musitFutureFlatMap {
       partEvents =>
-        futureExtraRelatedEvents.musitFutureMap {
+        futureOtherRelatedEvents.musitFutureMap {
           extraRelatedEvents =>
             if (partEvents.events.isEmpty)
               extraRelatedEvents
@@ -216,11 +215,10 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
               partEvents +: extraRelatedEvents
         }
     }
-
   }
 
   case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
-      partOf: Option[Long], valueLong: Option[Long] = None) {
+                          partOf: Option[Long], valueLong: Option[Long] = None) {
 
     def getOptBool = valueLong match {
       case Some(1) => Some(true)
@@ -248,7 +246,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   )
 
   class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id.?, eventTypeID, eventNote, partOf, valueLong) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, eventTypeID, eventNote, partOf, valueLong) <>(create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 

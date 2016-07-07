@@ -22,8 +22,8 @@
 package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
-import no.uio.musit.microservice.event.domain.{ BaseEventProps, Dto, Event, SingleTableMultipleDtos }
-import play.api.libs.json.{ JsObject, JsResult, Json }
+import no.uio.musit.microservice.event.domain._
+import play.api.libs.json.{JsObject, JsResult, Json}
 
 import scala.concurrent.Future
 
@@ -39,13 +39,6 @@ trait ControlSpecificDtoBase extends DTO {
 
 class ControlEvents {}
 
-case class ControlSpecificDto(ok: Boolean) extends Dto
-
-// extends ControlSpecificDtoBase
-
-object ControlSpecificDto {
-  implicit val format = Json.format[ControlSpecificDto]
-}
 
 /** "Abstract" base class for specific events */
 class ControlSpecific(baseEventProps: BaseEventProps, val customDto: ControlSpecificDto) extends Event(baseEventProps) {

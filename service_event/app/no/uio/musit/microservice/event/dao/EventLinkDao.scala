@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.dao.EventDao._
-import no.uio.musit.microservice.event.domain.{ EventRelations, EventType, MultipleTablesMultipleDtos, SingleTableMultipleDtos, _ }
+import no.uio.musit.microservice.event.domain.{ EventRelations, EventType, _ }
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
@@ -58,14 +58,14 @@ object EventLinkDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def insertEventLinkDtoAction(eventLink: EventLinkDto): DBIO[Int] = {
-    println(s"inserLink: from: ${eventLink.idFrom} relation: ${eventLink.relationId} to: ${eventLink.idTo}")
+    //println(s"inserLink: from: ${eventLink.idFrom} relation: ${eventLink.relationId} to: ${eventLink.idTo}")
     EventLinkTable += eventLink
   }
 
   def getRelatedEventDtos(parentId: Long) /*: Future[Seq[(Int, BaseEventDto)]]*/ = {
     val relevantRelations = EventLinkTable.filter(evt => evt.idFrom === parentId)
 
-    println(s"gets relatedEventDtos for parentId: $parentId")
+    //println(s"gets relatedEventDtos for parentId: $parentId")
     val query = for {
       (eventBaseTable, relationTable) <- EventBaseTable join relevantRelations on (_.id === _.idTo)
     } yield (relationTable.relationId, eventBaseTable)

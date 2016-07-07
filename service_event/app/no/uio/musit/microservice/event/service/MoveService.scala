@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{ BaseEventProps, Event, SingleTableSingleDto }
+import no.uio.musit.microservice.event.domain.{ BaseEventProps, Event }
 
 class Move(baseProps: BaseEventProps) extends Event(baseProps)
 

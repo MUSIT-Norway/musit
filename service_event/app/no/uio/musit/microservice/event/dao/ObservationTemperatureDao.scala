@@ -20,19 +20,14 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.Dto
+import no.uio.musit.microservice.event.domain.{Dto, ObservationTemperatureDto}
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import play.api.libs.json.Json
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-case class ObservationTemperatureDto(id: Option[Long], temperatureFrom: Option[Double], temperatureTo: Option[Double]) extends Dto
-
-object ObservationTemperatureDto {
-  implicit val format = Json.format[ObservationTemperatureDto]
-}
 
 object ObservationTemperatureDao extends HasDatabaseConfig[JdbcProfile] {
 
