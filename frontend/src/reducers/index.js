@@ -19,17 +19,18 @@
 
 import { routerReducer } from 'react-router-redux'
 import { combineReducers } from 'redux'
-
 import infoReducer from './info'
 import authReducer from './auth'
 import fakeAuthReducer from './fake-auth-info'
 import languageReducer from './language'
 import autosuggestReducer from './suggest'
 import picklistReducer from './picklist'
-import storageReducer from './storageunit-container'
+import storagePanelReducer from './storageunit/panel'
+import storageGridReducer from './storageunit/grid'
 import organizationReducer from './organization'
 import observationReducer from './observation'
-
+import controlAddReducer from './control/add'
+import controlDetailsReducer from './control/view'
 
 const rootReducer = combineReducers({
   routing: routerReducer,
@@ -39,9 +40,12 @@ const rootReducer = combineReducers({
   language: languageReducer,
   suggest: autosuggestReducer,
   picks: picklistReducer,
-  storageUnit: storageReducer,
+  storagePanelUnit: storagePanelReducer,
+  storageGridUnit: storageGridReducer,
   organization: organizationReducer,
-  observation: observationReducer
+  observation: observationReducer,
+  control: controlAddReducer,
+  controlDetails: controlDetailsReducer
 })
 
 export default rootReducer

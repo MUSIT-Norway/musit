@@ -20,11 +20,32 @@ no:
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
-      ok: "Ok"
-      cancel: "Avbryt"
-      save: "Lagre"
-      doneBy: "Utført av"
+      datePerformed: "Dato utført"
+      dateRegistered: "Dato registrert"
+      registeredBy: "Registrert av"
+      performedBy: "Utført av"
+      ok: "OK"
+      notOk: "Ikke OK"
+    controls:
+      temperature: "Temperature"
+      relativeHumidity: "Relativ luftfuktighet"
+      lightCondition: "Lysforhold"
+      pest: "Skadedyr"
+      alcohol: "Sprit"
+    newControl:
+      title: "Ny kontroll"
       date: "Dato"
+      doneBy: "Utført av"
+      temperature: Temperatur
+      inertAir: "Inert luft"
+      relativeHumidity: "Relativ luftfuktighet"
+      cleaning: "Renhold"
+      lightCondition: "Lysforhold"
+      alchohol: "Sprit"
+      gas: "Gass"
+      mold: "Mugg"
+      pest: "Skadedyr"
+      envdata: "Miljødata"
     observation:
       newButtonLabel: "Legg til ny"
       pest:
@@ -45,7 +66,7 @@ no:
         markAll: "Alle"
         executeAll: "Utfør (alle)"
     storageUnits:
-      title: "Storage units"
+      title: "Magasin"
       environmentRequirements:
         temperature:
           labelText: "Målt temperatur [fra]"
