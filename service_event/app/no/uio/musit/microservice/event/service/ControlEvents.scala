@@ -37,9 +37,6 @@ trait ControlSpecificDtoBase extends DTO {
 }
 */
 
-class ControlEvents {}
-
-
 /** "Abstract" base class for specific events */
 class ControlSpecific(baseEventProps: BaseEventProps, val customDto: ControlSpecificDto) extends Event(baseEventProps) {
 

@@ -53,10 +53,10 @@ CREATE TABLE MUSARK_EVENT.EVENT_RELATION_EVENT (
 );
 
 
-CREATE TABLE MUSARK_EVENT.OBSERVATION_TEMPERATURE (
+CREATE TABLE MUSARK_EVENT.OBSERVATION_FROM_TO (
   ID BIGINT(20) NOT NULL,
-  TEMPERATURE_FROM NUMBER,
-  TEMPERATURE_TO NUMBER,
+  VALUE_FROM NUMBER,
+  VALUE_TO NUMBER,
   PRIMARY KEY (ID),
   FOREIGN KEY (ID) REFERENCES MUSARK_EVENT.EVENT(ID)
 );
@@ -93,9 +93,13 @@ insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,'Move');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'control');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'observation');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4,'controltemperature');
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'envrequirement');
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6,'observationtemperature');
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7,'controlair');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'controlair');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6,'envrequirement');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7,'observationtemperature');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (8,'observationrelativehumidity');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (9,'observationinertair');
+
+
 
 # --- !Downs
 

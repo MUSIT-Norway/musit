@@ -211,6 +211,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "note": "Dette er et viktig notat for miljøkravene!",
    "airHumidity": -20,
    "airHumidityInterval" : 5,
+   "cleaning":"Ikke særlig rent",
    "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
@@ -218,6 +219,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response.status mustBe 201
     val myEnvReqEvent = validateEvent[EnvRequirement](response.json) //#OLD Event.format.reads(response.json).get.asInstanceOf[EnvRequirement]
     myEnvReqEvent.airHumidity mustBe Some(-20)
+    myEnvReqEvent.envReqDto.cleaning mustBe Some("Ikke særlig rent")
 
 
     val responseGet = getEvent(myEnvReqEvent.id.get)
@@ -232,16 +234,16 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       """
   {
     "eventType": "observationTemperature",
-    "temperatureFrom": -20,
-    "temperatureTo" : 5,
+    "from": -20,
+    "to" : 5,
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     println(s"Create: ${response.body}")
     response.status mustBe 201
     val myEvent = validateEvent[ObservationTemperature](response.json)
-    myEvent.temperatureFrom mustBe Some(-20)
-    myEvent.temperatureTo mustBe Some(5)
+    myEvent.from mustBe Some(-20)
+    myEvent.to mustBe Some(5)
 
 
     val responseGet = getEvent(myEvent.id.get)
@@ -262,40 +264,65 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
           }],
           "subEvents-parts": [{
             "eventType": "observationTemperature",
-            "temperatureFrom": -30,
-            "temperatureTo": 25,
+            "from": -30,
+            "to": 25,
             "links": [{
               "rel": "actor",
               "href": "actor/12"
             }]
           }, {
             "eventType": "observationTemperature",
-            "temperatureFrom": 20,
-            "temperatureTo": 50,
+            "from": 20,
+            "to": 50,
             "links": [{
               "rel": "actor",
               "href": "actor/12"
-            }]
-          }]
+            }]},
+        {
+                    "eventType": "observationRelativeHumidity",
+                    "from": 1,
+                    "to": 2,
+                    "links": [{
+                      "rel": "actor",
+                      "href": "actor/12"
+                    }]
+            }, {
+                    "eventType": "observationInertAir",
+                    "from": 0.1,
+                    "to": 0.2,
+                    "links": [{
+                      "rel": "actor",
+                      "href": "actor/12"
+                    }]}
+          ]
         }"""
 
     val myRawEvent = validateEvent[Observation](Json.parse(json))
     assert(myRawEvent.subObservations.length >= 2)
     val firstObsTempEvent = myRawEvent.subObservations(0).asInstanceOf[ObservationTemperature]
-    firstObsTempEvent.temperatureFrom mustBe Some(-30)
-    firstObsTempEvent.temperatureTo mustBe Some(25)
+    firstObsTempEvent.from mustBe Some(-30)
+    firstObsTempEvent.to mustBe Some(25)
 
 
     val response = createEvent(json)
     println(s"Create: ${response.body}")
     response.status mustBe 201
     val myEvent = validateEvent[Observation](response.json)
-    assert(myEvent.subObservations.length >= 2)
+    assert(myEvent.subObservations.length >= 3)
 
     val firstObsEvent = myEvent.subObservations(0).asInstanceOf[ObservationTemperature]
-    firstObsEvent.temperatureFrom mustBe Some(-30)
-    firstObsEvent.temperatureTo mustBe Some(25)
+    firstObsEvent.from mustBe Some(-30)
+    firstObsEvent.to mustBe Some(25)
 
+
+    val humEvent = myEvent.subObservations(2).asInstanceOf[ObservationRelativeHumidity]
+    humEvent.from mustBe Some(1)
+    humEvent.to mustBe Some(2)
+
+
+    val airEvent = myEvent.subObservations(3).asInstanceOf[ObservationInertAir]
+    airEvent.from mustBe Some(0.1)
+    airEvent.to mustBe Some(0.2)
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
@@ -313,12 +340,12 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
           "subEvents-this_relation_does_not_exist": [{
             "eventType": "observationTemperature",
-            "temperatureFrom": -30,
-            "temperatureTo": 25
+            "from": -30,
+            "to": 25
           }, {
             "eventType": "observationTemperature",
-            "temperatureFrom": 20,
-            "temperatureTo": 50
+            "from": 20,
+            "to": 50
           }]
         }"""
     val response = createEvent(json)
@@ -346,8 +373,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     "ok": false,
     "subEvents-motivates": [{
       "eventType": "observationTemperature",
-      "temperatureFrom": 20,
-      "temperatureTo": 50
+      "from": 20,
+      "to": 50
     }]
   }]
   }
@@ -380,8 +407,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
     val ObsEvent = motivatedObservations.get(0).asInstanceOf[ObservationTemperature]
-    ObsEvent.temperatureFrom mustBe Some(20)
-    ObsEvent.temperatureTo mustBe Some(50)
+    ObsEvent.from mustBe Some(20)
+    ObsEvent.to mustBe Some(50)
 
   }
 

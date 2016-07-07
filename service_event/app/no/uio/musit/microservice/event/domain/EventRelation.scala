@@ -27,25 +27,21 @@ import no.uio.musit.microservices.common.utils.ErrorHelper
  * Created by jstabel on 7/6/16.
  */
 
-sealed trait RelationStorageStrategy
-
-case object RelationTableStrategy extends RelationStorageStrategy
-case object PartOfStrategy extends RelationStorageStrategy
 
 //isNormalizedDirection is whether this direction is the same which the links go in the event_relation_event table (from -> to).
-case class EventRelation(id: Int, name: String, inverseName: String, isNormalized: Boolean, storageStrategy: RelationStorageStrategy = RelationTableStrategy) {
+case class EventRelation(id: Int, name: String, inverseName: String, isNormalized: Boolean) {
 
   def getNormalizedDirection = if (isNormalized) this else EventRelations.getByNameOrFail(this.inverseName)
 }
 
 object EventRelations {
-  private def defRel(id: Int, name: String, inverseName: String, storageStrategy: RelationStorageStrategy = RelationTableStrategy) = EventRelation(id, name, inverseName, true, storageStrategy)
+  private def defRel(id: Int, name: String, inverseName: String) = EventRelation(id, name, inverseName, true)
   private val relations = Seq(
-    defRel(1, "parts", "part_of", PartOfStrategy),
+    defRel(1, "parts", "part_of"),
     defRel(2, "motivates", "motivated_by")
   )
 
-  private val bothSidesRelations = relations ++ relations.map(rel => EventRelation(rel.id, rel.inverseName, rel.name, !(rel.isNormalized), rel.storageStrategy))
+  private val bothSidesRelations = relations ++ relations.map(rel => EventRelation(rel.id, rel.inverseName, rel.name, !(rel.isNormalized)))
 
   private val relationByName: Map[String, EventRelation] = bothSidesRelations.map(rel => rel.name.toLowerCase -> rel).toMap
 

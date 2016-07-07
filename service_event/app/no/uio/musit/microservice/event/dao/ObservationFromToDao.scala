@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{Dto, ObservationTemperatureDto}
+import no.uio.musit.microservice.event.domain.{Dto, ObservationFromToDto}
 import play.api.Play
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import play.api.libs.json.Json
@@ -29,32 +29,32 @@ import slick.driver.JdbcProfile
 import scala.concurrent.Future
 
 
-object ObservationTemperatureDao extends HasDatabaseConfig[JdbcProfile] {
+object ObservationFromToDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val ObservationTable = TableQuery[ObservationTable]
+  private val ObservationFromToTable = TableQuery[ObservationFromToTable]
 
-  def insertAction(event: ObservationTemperatureDto): DBIO[Int] =
-    ObservationTable += event
+  def insertAction(event: ObservationFromToDto): DBIO[Int] =
+    ObservationFromToTable += event
 
-  def getObservation(id: Long): Future[Option[ObservationTemperatureDto]] =
-    db.run(ObservationTable.filter(event => event.id === id).result.headOption)
+  def getObservationFromTo(id: Long): Future[Option[ObservationFromToDto]] =
+    db.run(ObservationFromToTable.filter(event => event.id === id).result.headOption)
 
-  private class ObservationTable(tag: Tag) extends Table[ObservationTemperatureDto](tag, Some("MUSARK_EVENT"), "OBSERVATION_TEMPERATURE") {
-    def * = (id.?, temperatureFrom, temperatureTo) <> (create.tupled, destroy) // scalastyle:ignore
+  private class ObservationFromToTable(tag: Tag) extends Table[ObservationFromToDto](tag, Some("MUSARK_EVENT"), "OBSERVATION_FROM_TO") {
+    def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Long]("ID", O.PrimaryKey)
+    val id = column[Option[Long]]("ID", O.PrimaryKey)
 
-    val temperatureFrom = column[Option[Double]]("TEMPERATURE_FROM")
-    val temperatureTo = column[Option[Double]]("TEMPERATURE_TO")
+    val from = column[Option[Double]]("VALUE_FROM")
+    val to = column[Option[Double]]("VALUE_TO")
 
-    def create = (id: Option[Long], temperatureFrom: Option[Double], temperatureTo: Option[Double]) =>
-      ObservationTemperatureDto(id, temperatureFrom, temperatureTo)
+    def create = (id: Option[Long], from: Option[Double], to: Option[Double]) =>
+      ObservationFromToDto(id, from, to)
 
-    def destroy(event: ObservationTemperatureDto) = Some(event.id, event.temperatureFrom, event.temperatureTo)
+    def destroy(event: ObservationFromToDto) = Some(event.id, event.from, event.to)
   }
 
 }
