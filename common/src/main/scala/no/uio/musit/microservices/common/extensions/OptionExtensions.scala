@@ -20,6 +20,9 @@
 
 package no.uio.musit.microservices.common.extensions
 
+import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitResult
+
 /**
  * Created by jstabel on 4/28/16.
  */
@@ -35,6 +38,12 @@ object OptionExtensions {
         case None => throw new Exception(errorMsg)
       }
     }
+
+    def toMusitResult(errorIfNone: => MusitError): MusitResult[T] = opt match {
+      case Some(x) => Right(x)
+      case None => Left(errorIfNone)
+    } //alternative, which didn't work, I don't know why! : opt.fold(Left(errorIfNone))(Right(_))
+
   }
 
 }

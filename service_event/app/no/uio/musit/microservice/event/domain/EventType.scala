@@ -1,77 +1,72 @@
-/*
- *   MUSIT is a cooperation between the university museums of Norway.
- *   Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License,
- *   or any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License along
- *   with this program; if not, write to the Free Software Foundation, Inc.,
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
-
 package no.uio.musit.microservice.event.domain
 
-import play.api.libs.json.Json
+import no.uio.musit.microservice.event.service._
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import play.api.libs.json.{ Json, Writes }
 
-/**
- * Created by jstabel on 6/10/16.
- */
-
-sealed trait EventType {
-  def typename: String
-
-  def eventTypeId: Int
-
-}
-
-// TODO: Get them from the database somehow
 object EventType {
-  def apply(stType: String) = stType.toLowerCase match {
-    case "move" => MoveEventType
-    case "control" => ControlEventType
-    case "observation" => ObservationEventType
 
-    case other => throw new Exception(s"Musit: Undefined EventType:$other")
+  private def eventType(id: Int, name: String, eventImplementation: EventImplementation) = {
+    new EventType(id, name, eventImplementation)
   }
 
-  //def tupled = (EventType.apply _).tupled
+  private val eventTypes = Seq(
+    eventType(1, "Move", Move),
+    eventType(2, "Control", ControlService),
+    eventType(3, "Observation", ObservationService),
+    eventType(4, "ControlTemperature", ControlTemperatureService),
+    eventType(5, "ControlAir", ControlAirService),
+    eventType(6, "EnvRequirement", EnvRequirementService),
+    eventType(7, "ObservationTemperature", ObservationTemperatureService),
+    eventType(8, "ObservationRelativeHumidity", ObservationRelativeHumidityService),
+    eventType(9, "ObservationInertAir", ObservationInertAirService),
+    eventType(10, "ObservationLys", ObservationLysService)
 
-  //
-  // implicit val format = Json.format[EventType]
+  // Add new event type here....
+  )
 
-  def eventTypeIdToEventType(id: Int) = {
-    id match {
-      case 1 => MoveEventType
-      case 2 => ControlEventType
-      case 3 => ObservationEventType
+  private val eventTypeById: Map[Int, EventType] = eventTypes.map(evt => evt.id -> evt).toMap
+  private val eventTypeByName: Map[String, EventType] = eventTypes.map(evt => evt.name.toLowerCase -> evt).toMap
+
+  def getByName(name: String) = eventTypeByName.get(name.toLowerCase)
+
+  def getByNameOrFail(name: String) = getByName(name).getOrFail(s"Unable to find event type : $name")
+
+  def getById(id: Int) = eventTypeById.get(id).get
+
+  implicit val evenTypeWrites = new Writes[EventType] {
+    def writes(eventType: EventType) = Json.toJson(eventType.name)
+  }
+}
+
+case class EventType(id: Int, name: String, eventImplementation: EventImplementation /*, maybeJsonHandler: Option[JsonHandler]*/ ) {
+  //println(s"Event name: $name")
+
+  def maybeMultipleTablesMultipleDtos = {
+    eventImplementation match {
+      case s: MultipleTablesMultipleDtos => Some(s)
+      case _ => None
+    }
+  }
+
+  def maybeMultipleDtos = {
+    eventImplementation match {
+      case s: MultipleDtosEventType => Some(s)
+      case _ => None
+    }
+  }
+
+  def singleOrMultipleDtos: Either[SingleDtoEventType, MultipleDtosEventType] = {
+    eventImplementation match {
+      case s: SingleDtoEventType => Left(s)
+      case s: MultipleDtosEventType => Right(s)
+    }
+  }
+
+  def maybeSingleTableMultipleDtos = {
+    eventImplementation match {
+      case s: SingleTableMultipleDtos => Some(s)
+      case _ => None
     }
   }
 }
-
-object MoveEventType extends EventType {
-  def typename = "move"
-
-  def eventTypeId = 1
-}
-
-object ControlEventType extends EventType {
-  def typename = "control"
-
-  def eventTypeId = 2
-}
-
-object ObservationEventType extends EventType {
-  def typename = "observation"
-
-  def eventTypeId = 3
-}
-

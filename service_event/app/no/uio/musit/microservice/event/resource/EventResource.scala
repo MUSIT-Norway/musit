@@ -19,48 +19,22 @@
  */
 
 package no.uio.musit.microservice.event.resource
-
-import no.uio.musit.microservice.event.domain.{ AtomLink, CompleteEvent, EventInfo, EventType }
-import no.uio.musit.microservice.event.service.EventService
-import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservice.event.domain.Event
+import no.uio.musit.microservice.event.service.{EventHelpers, EventService}
+import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
-import play.api.mvc.{ Action, BodyParsers, Controller }
-
-import scala.util.{ Failure, Success, Try }
-
-/**
- * Created by jstabel on 6/10/16.
- */
+import play.api.mvc.{Action, BodyParsers, Controller}
 
 class EventResource extends Controller {
 
-  def eventInfoToJson(eventInfo: EventInfo) = Json.toJson(eventInfo)
+  private def eventToJson(event: Event) = EventHelpers.toJson(event, true)
 
-  def jsonToEventInfo(json: JsValue): Either[MusitError, EventInfo] = {
-    // TODO: Better error handling
-    val eventTypeName = (json \ "eventType").as[String]
-    val optJsObject = (json \ "eventData").toOption.map(_.as[JsObject])
-    val links = ((json \ "links").asOpt[List[AtomLink]]).getOrElse(Seq.empty)
-    val maybeEventType = Try(EventType(eventTypeName))
-    maybeEventType match {
-      case Success(eventType) => Right(EventInfo(None, eventTypeName, optJsObject, Some(links)))
-      case Failure(e) => Left(ErrorHelper.badRequest(e.getMessage))
-    }
-
+  def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    val maybeEventResult = EventHelpers.validateEvent(request.body.asInstanceOf[JsObject]) //ResourceHelper.jsResultToMusitResult(request.body.validate[Event])
+    ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent(_: Event, true), maybeEventResult, eventToJson)
   }
 
-  def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-
-    val eventInfoResult = jsonToEventInfo(request.body)
-    ResourceHelper.postRootWithMusitResult(EventService.createEvent, eventInfoResult, eventInfoToJson)
-  }
-
-  def getRoot(id: Long) = Action.async { request =>
-    def completeEventToEventInfoToJson(completeEvent: CompleteEvent) = {
-      EventService.completeEventToEventInfo(completeEvent) |> eventInfoToJson
-    }
-    ResourceHelper.getRoot(EventService.getById, id, completeEventToEventInfoToJson)
+  def getEvent(id: Long) = Action.async { request =>
+    ResourceHelper.getRoot(EventService.getEvent(_: Long, true), id, eventToJson)
   }
 }

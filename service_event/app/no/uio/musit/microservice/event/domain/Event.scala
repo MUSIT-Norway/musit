@@ -1,79 +1,110 @@
-/*
- *   MUSIT is a cooperation between the university museums of Norway.
- *   Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License,
- *   or any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License along
- *   with this program; if not, write to the Free Software Foundation, Inc.,
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
-
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{ JsObject, Json }
+import play.api.libs.json._
 
-/**
- * Created by jstabel on 6/10/16.
- */
+trait Dto
 
-case class AtomLink(rel: String, href: String) {
-  def toLink(localId: Long) = Link(None, Some(localId), rel, href)
+object BaseEventProps {
+  def fromBaseEventDto(eventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]) = BaseEventProps(eventDto.id, eventDto.links, eventDto.eventType, eventDto.note, relatedSubEvents)
 
-}
+  implicit object baseEventPropsWrites extends Writes[BaseEventProps] {
 
-/**
- *
- * @param id
- * @param eventType meant to already be validated
- * @param eventData
- * @param links
- */
-
-case class EventInfo(id: Option[Long], eventType: String, eventData: Option[JsObject], links: Option[Seq[AtomLink]])
-
-case class Event(id: Option[Long], eventTypeId: Int, note: Option[String]) {
-
-  def eventType = {
-    EventType.eventTypeIdToEventType(eventTypeId)
+    // TODO: Fix this, this currently writes "note": null if no note! 
+    def writes(a: BaseEventProps): JsValue = {
+      Json.obj(
+        "id" -> a.id,
+        "links" -> a.links,
+        "eventType" -> a.eventType,
+        "note" -> a.note
+      )
+    }
   }
-
-  def asSeq[T](optSeq: Option[Seq[T]]) = optSeq.getOrElse(Seq.empty[T])
-
-  //def allAtomLinks = asSeq(actors) // Todo: Add places, artefacts etc.
 }
 
-trait EventExtension
+case class BaseEventProps(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents]) {
+  /** Copies all data except custom event data over to the baseEventDto object */
+  def toBaseEventDto(parentId: Option[Long]) = BaseEventDto(this.id, this.links, this.eventType, this.note, parentId, None, None)
 
-case class CompleteEvent(baseEvent: Event, eventExtension: Option[EventExtension], links: Option[Seq[AtomLink]]) {
-
+  def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
 }
 
-object CompleteEvent {
+case class RelatedEvents(relation: EventRelation, events: Seq[Event])
 
+class Event(val baseEventProps: BaseEventProps) {
+  val id: Option[Long] = baseEventProps.id
+  val note: Option[String] = baseEventProps.note
+  val links: Option[Seq[Link]] = baseEventProps.links
+  val eventType = baseEventProps.eventType
+
+  val relatedSubEvents = baseEventProps.relatedSubEvents
+
+  def subEventsWithRelation(eventRelation: EventRelation) = relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
+
+  def hasSubEvents = relatedSubEvents.length > 0 //We assume none of the event-lists are empty. This is perhaps a wrong assumption.
+
+  //Maybe not needed, just for convenience
+  def getAllSubEvents = relatedSubEvents.flatMap(relatedEvents => relatedEvents.events)
+
+  def getAllSubEventsAs[T] = getAllSubEvents.map(subEvent => subEvent.asInstanceOf[T])
+
+  /*#OLD ideas
+
+  //protected var partOf: Option[Event] = None //The part_of relation. ("Semantic")
+  // protected var jsonParent: Option[Event] = None //The parent container element in the json structure. ("Non-semantic")
+
+  def addSubEvents(relation: EventRelation, subEvents: Seq[Event]) = {
+    assert(subEvents.length > 0)
+
+    this.subEvents = this.subEvents :+ RelatedEvents(relation, subEvents)
+    //subEvents.foreach(subEvent => subEvent.jsonParent = Some(this))
+
+    /*
+    if(relation==EventRelations.relation_parts)
+      subEvents.foreach(subEvent => subEvent.partOf = Some(this)) */
+  }*/
 }
 
-object AtomLink {
-  def tupled = (AtomLink.apply _).tupled
-
-  implicit val format = Json.format[AtomLink]
-
-  def createFromLink(link: Link) = AtomLink(link.rel, link.href)
+object Constants {
+  val subEventsPrefix = "subEvents-"
 }
 
-object EventInfo {
-  def tupled = (EventInfo.apply _).tupled
+case class EnvRequirementDto(id: Option[Long],
+                             temperature: Option[Int],
+                             tempInterval: Option[Int],
+                             airHumidity: Option[Int],
+                             airHumInterval: Option[Int],
+                             hypoxicAir: Option[Int],
+                             hypoxicInterval: Option[Int],
+                             cleaning: Option[String],
+                             light: Option[String]) extends Dto
 
-  implicit val format = Json.format[EventInfo]
+object EnvRequirementDto {
+  implicit val format = Json.format[EnvRequirementDto]
 }
+
+
+case class ControlSpecificDto(ok: Boolean) extends Dto
+
+object ControlSpecificDto {
+  implicit val format = Json.format[ControlSpecificDto]
+}
+
+
+case class ObservationFromToDto(id: Option[Long],
+                                from: Option[Double],
+                                to: Option[Double]) extends Dto
+
+object ObservationFromToDto {
+  implicit val format = Json.format[ObservationFromToDto]
+}
+
+
+case class ObservationLysDto(lysforhold: Option[String]) extends Dto
+
+object ObservationLysDto {
+  implicit val format = Json.format[ObservationLysDto]
+}
+
 

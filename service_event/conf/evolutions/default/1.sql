@@ -36,9 +36,49 @@ CREATE TABLE MUSARK_EVENT.EVENT (
   ID BIGINT(20) NOT NULL AUTO_INCREMENT,
   EVENT_TYPE_ID integer not null, -- Move to separate table if we want to allow multiple instantiations
   NOTE VARCHAR2(4000),
+  VALUE_LONG long, -- Custom value, events can choose to store some event-specific value here.
+  VALUE_String clob, -- Custom value, events can choose to store some event-specific value here.
+  PART_OF long,
   PRIMARY KEY (ID),
-  FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID)
+  FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID),
+  FOREIGN KEY (PART_OF) REFERENCES MUSARK_EVENT.EVENT(ID)
 );
+
+
+CREATE TABLE MUSARK_EVENT.EVENT_RELATION_EVENT (
+  FROM_EVENT_ID BIGINT(20) NOT NULL,
+  RELATION_ID integer not null,
+  TO_EVENT_ID BIGINT(20) NOT NULL,
+  FOREIGN KEY (FROM_EVENT_ID) REFERENCES MUSARK_EVENT.EVENT(ID),
+  FOREIGN KEY (TO_EVENT_ID) REFERENCES MUSARK_EVENT.EVENT(ID)
+);
+
+
+CREATE TABLE MUSARK_EVENT.OBSERVATION_FROM_TO (
+  ID BIGINT(20) NOT NULL,
+  VALUE_FROM NUMBER,
+  VALUE_TO NUMBER,
+  PRIMARY KEY (ID),
+  FOREIGN KEY (ID) REFERENCES MUSARK_EVENT.EVENT(ID)
+);
+
+CREATE TABLE MUSARK_EVENT.E_ENVIRONMENT_REQUIREMENT
+(
+ id         BIGINT(20) NOT NULL,
+ temperature             NUMBER,
+ temp_interval    NUMBER,
+ air_humidity     NUMBER,
+ air_hum_interval NUMBER,
+ hypoxic_air      NUMBER,
+ hyp_air_interval NUMBER,
+ cleaning         VARCHAR2(250),
+ light            VARCHAR2(250),
+ PRIMARY KEY (ID),
+   FOREIGN KEY (ID) REFERENCES MUSARK_EVENT.EVENT(ID)
+);
+
+
+
 
 CREATE TABLE URI_LINKS (
       ID bigint(20) NOT NULL AUTO_INCREMENT,
@@ -53,6 +93,15 @@ CREATE TABLE URI_LINKS (
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,'Move');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'control');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'observation');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4,'controltemperature');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'controlair');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6,'envrequirement');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7,'observationtemperature');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (8,'observationrelativehumidity');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (9,'observationinertair');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (10,'observationlys');
+
+
 
 # --- !Downs
 
