@@ -20,8 +20,7 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
-import no.uio.musit.microservice.event.domain.{BaseEventProps, Dto, Event}
+import no.uio.musit.microservice.event.domain.{BaseEventDto, Dto, Event}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.libs.json.{JsObject, JsResult}
@@ -43,7 +42,7 @@ import scala.concurrent.Future
 sealed trait EventImplementation
 
 trait MultipleDtosEventType {
-  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event
 
   //Json-stuff, consider moving this to a separate trait.
   def validateCustomDto(jsObject: JsObject): JsResult[Dto]
@@ -55,7 +54,7 @@ trait MultipleDtosEventType {
   * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
   */
 trait SingleDtoEventType {
-  def createEventInMemory(baseEventProps: BaseEventProps): Event
+  def createEventInMemory(baseEventProps: BaseEventDto): Event
 }
 
 /**
@@ -95,9 +94,9 @@ trait MultipleTablesMultipleDtos extends EventImplementation with MultipleDtosEv
   def createInsertCustomDtoAction(id: Long, event: Event): DBIO[Int]
 
   /** reads the extended/specific properties from the database. Won't typically need the baseEventDto parameter, remove this? */
-  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventProps): Future[Option[Dto]] //? MusitFuture[Dto]
+  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventDto): Future[Option[Dto]] //? MusitFuture[Dto]
 
-  def getEventFromDatabase(id: Long, baseEventProps: BaseEventProps) = {
+  def getEventFromDatabase(id: Long, baseEventProps: BaseEventDto) = {
     getCustomDtoFromDatabase(id, baseEventProps)
       .toMusitFuture(ErrorHelper.badRequest(s"Unable to find ${baseEventProps.eventType.name} with id: $id"))
       .musitFutureMap(customDto => createEventInMemory(baseEventProps, customDto))

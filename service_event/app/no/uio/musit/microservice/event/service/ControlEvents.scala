@@ -21,7 +21,6 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
 import no.uio.musit.microservice.event.domain._
 import play.api.libs.json.{JsObject, JsResult, Json}
 
@@ -38,7 +37,7 @@ trait ControlSpecificDtoBase extends DTO {
 */
 
 /** "Abstract" base class for specific events */
-class ControlSpecific(baseEventProps: BaseEventProps, val customDto: ControlSpecificDto) extends Event(baseEventProps) {
+class ControlSpecific(baseEventProps: BaseEventDto, val customDto: ControlSpecificDto) extends Event(baseEventProps) {
 
   val ok = customDto.ok
 }
@@ -60,16 +59,16 @@ class ControlSpecificService {
 
 // --- ControlTemperature
 
-class ControlTemperature(baseEventProps: BaseEventProps, customDto: ControlSpecificDto) extends ControlSpecific(baseEventProps, customDto)
+class ControlTemperature(baseEventProps: BaseEventDto, customDto: ControlSpecificDto) extends ControlSpecific(baseEventProps, customDto)
 
 object ControlTemperatureService extends ControlSpecificService with SingleTableMultipleDtos {
-  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ControlTemperature(baseProps, customDto.asInstanceOf[ControlSpecificDto])
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ControlTemperature(baseProps, customDto.asInstanceOf[ControlSpecificDto])
 }
 
 // --- ControlAir
 
-class ControlAir(baseEventProps: BaseEventProps, customDto: ControlSpecificDto) extends ControlSpecific(baseEventProps, customDto)
+class ControlAir(baseEventProps: BaseEventDto, customDto: ControlSpecificDto) extends ControlSpecific(baseEventProps, customDto)
 
 object ControlAirService extends ControlSpecificService with SingleTableMultipleDtos {
-  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ControlAir(baseProps, customDto.asInstanceOf[ControlSpecificDto])
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ControlAir(baseProps, customDto.asInstanceOf[ControlSpecificDto])
 }

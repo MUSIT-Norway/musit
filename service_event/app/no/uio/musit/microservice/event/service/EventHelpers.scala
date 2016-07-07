@@ -33,15 +33,15 @@ import play.api.libs.json.{JsArray, JsObject, JsResult, JsValue}
  * Created by jstabel on 7/6/16.
  */
 object EventHelpers {
-  private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventProps] = {
+  private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventDto] = {
     for {
       id <- (jsObject \ "id").validateOpt[Long]
       links <- (jsObject \ "links").validateOpt[Seq[Link]]
       note <- (jsObject \ "note").validateOpt[String]
-    } yield BaseEventProps(id, links, eventType, note, relatedSubEvents)
+    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, None, None)
   }
 
-  def invokeJsonValidator(multipleDtos: MultipleDtosEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventProps], jsObject: JsObject) = {
+  def invokeJsonValidator(multipleDtos: MultipleDtosEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {
     for {
       baseProps <- jsResBaseEventProps
       customDto <- multipleDtos.validateCustomDto(jsObject)
@@ -130,8 +130,8 @@ object EventHelpers {
 
   def eventDtoToStoreInDatabase(event: Event, parentId: Option[Long]) = {
     event.eventType.maybeSingleTableMultipleDtos match {
-      case Some(singleTableMultipleDtos) => singleTableMultipleDtos.customDtoToBaseTable(event, event.baseEventProps.toBaseEventDto(parentId))
-      case None => event.baseEventProps.toBaseEventDto(parentId)
+      case Some(singleTableMultipleDtos) => singleTableMultipleDtos.customDtoToBaseTable(event, event.baseEventProps.copy(partOf=parentId))
+      case None => event.baseEventProps.copy(partOf=parentId)
     }
   }
 }

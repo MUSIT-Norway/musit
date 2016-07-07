@@ -1,38 +1,15 @@
 package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 trait Dto
 
-object BaseEventProps {
-  def fromBaseEventDto(eventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]) = BaseEventProps(eventDto.id, eventDto.links, eventDto.eventType, eventDto.note, relatedSubEvents)
 
-  implicit object baseEventPropsWrites extends Writes[BaseEventProps] {
-
-    // TODO: Fix this, this currently writes "note": null if no note! 
-    def writes(a: BaseEventProps): JsValue = {
-      Json.obj(
-        "id" -> a.id,
-        "links" -> a.links,
-        "eventType" -> a.eventType,
-        "note" -> a.note
-      )
-    }
-  }
-}
-
-case class BaseEventProps(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents]) {
-  /** Copies all data except custom event data over to the baseEventDto object */
-  def toBaseEventDto(parentId: Option[Long]) = BaseEventDto(this.id, this.links, this.eventType, this.note, parentId, None, None)
-
-  def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
-}
 
 case class RelatedEvents(relation: EventRelation, events: Seq[Event])
 
-class Event(val baseEventProps: BaseEventProps) {
+class Event(val baseEventProps: BaseEventDto) {
   val id: Option[Long] = baseEventProps.id
   val note: Option[String] = baseEventProps.note
   val links: Option[Seq[Link]] = baseEventProps.links
@@ -69,6 +46,20 @@ class Event(val baseEventProps: BaseEventProps) {
 object Constants {
   val subEventsPrefix = "subEvents-"
 }
+
+/*
+object CustomValuesInEventTable {
+
+  def getBool(event: Event) = event.
+  setBool(event: Event)
+
+}
+
+
+
+val integerField = Some(
+*/
+
 
 case class EnvRequirementDto(id: Option[Long],
                              temperature: Option[Int],

@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{BaseEventProps, RelatedEvents, _}
+import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
 import no.uio.musit.microservice.event.service.{EventHelpers, MultipleTablesMultipleDtos, SingleTableMultipleDtos, SingleTableSingleDto}
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
@@ -122,7 +122,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
     val id = baseEventDto.id.getOrFail("Internal error, id missing")
-    val baseProps = baseEventDto.props(relatedSubEvents)
+    //val baseProps = baseEventDto.props(relatedSubEvents)
+    val baseProps = baseEventDto.copy(relatedSubEvents = relatedSubEvents)
     baseEventDto.eventType.eventImplementation match {
 
       case singleTableSingleDto: SingleTableSingleDto => MusitFuture.successful(singleTableSingleDto.createEventInMemory(baseProps))
@@ -217,37 +218,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
   }
 
-  case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
-                          partOf: Option[Long], valueLong: Option[Long], valueString: Option[String]) {
-
-    def getOptBool = valueLong match {
-      case Some(1) => Some(true)
-      case Some(0) => Some(false)
-      case None => None
-      case n => throw new MusitInternalErrorException(s"Wrong boolean value $n")
-    }
-
-    def getBool = getOptBool match {
-      case Some(b) => b
-      case None => throw new MusitInternalErrorException("Missing boolean value")
-    }
-
-    private def boolToLong(bool: Boolean) = if (bool) 1 else 0
-
-    def setBool(value: Boolean) = this.copy(valueLong = Some(boolToLong(value)))
-
-    def setString(value: String) = this.copy(valueString = Some(value))
-
-    def setOptionString(value: Option[String]) = {
-      value match {
-        case Some(s) => setString(s)
-        case None => this.copy(valueString = None)
-      }
-    }
-
-
-    def props(relatedSubEvents: Seq[RelatedEvents]) = BaseEventProps.fromBaseEventDto(this, relatedSubEvents)
-  }
 
   implicit lazy val libraryItemMapper = MappedColumnType.base[EventType, Int](
     eventType => eventType.id,
@@ -273,6 +243,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
         eventType,
         note,
+        Seq.empty,
         partOf,
         valueLong,
         valueString

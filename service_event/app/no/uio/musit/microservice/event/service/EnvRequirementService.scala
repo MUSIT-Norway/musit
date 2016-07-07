@@ -1,13 +1,12 @@
 package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.dao.EnvRequirementDao
-import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
 import no.uio.musit.microservice.event.domain._
 import play.api.libs.json.{ JsObject, JsResult, Json }
 
 import scala.concurrent.Future
 
-class EnvRequirement(val baseProps: BaseEventProps, val envReqDto: EnvRequirementDto) extends Event(baseProps) {
+class EnvRequirement(val baseProps: BaseEventDto, val envReqDto: EnvRequirementDto) extends Event(baseProps) {
   val temperature = envReqDto.temperature
   val airHumidity = envReqDto.airHumidity
   //publish all the fields or none...
@@ -16,9 +15,9 @@ class EnvRequirement(val baseProps: BaseEventProps, val envReqDto: EnvRequiremen
 
 object EnvRequirementService extends MultipleTablesMultipleDtos {
 
-  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new EnvRequirement(baseProps, customDto.asInstanceOf[EnvRequirementDto])
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new EnvRequirement(baseProps, customDto.asInstanceOf[EnvRequirementDto])
 
-  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventProps): Future[Option[Dto]] = EnvRequirementDao.getEnvRequirement(id)
+  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventDto): Future[Option[Dto]] = EnvRequirementDao.getEnvRequirement(id)
 
   def createInsertCustomDtoAction(id: Long, event: Event) = {
     val specificEvent = event.asInstanceOf[EnvRequirement]

@@ -21,14 +21,13 @@
 package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.dao.{EnvRequirementDao, ObservationFromToDao}
-import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
 import no.uio.musit.microservice.event.domain._
 import play.api.libs.json.{JsObject, JsResult, Json}
 
 import scala.concurrent.Future
 
 /** "Abstract" base class for specific to-from observations */
-class ObservationFromTo(baseEventProps: BaseEventProps, val customDto: ObservationFromToDto) extends Event(baseEventProps) {
+class ObservationFromTo(baseEventProps: BaseEventDto, val customDto: ObservationFromToDto) extends Event(baseEventProps) {
 
   val from = customDto.from
   val to = customDto.to
@@ -40,7 +39,7 @@ class ObservationFromTo(baseEventProps: BaseEventProps, val customDto: Observati
 class ObservationFromToServiceBase {
 
 
-  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventProps): Future[Option[Dto]] = ObservationFromToDao.getObservationFromTo(id)
+  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventDto): Future[Option[Dto]] = ObservationFromToDao.getObservationFromTo(id)
 
   def createInsertCustomDtoAction(id: Long, event: Event) = {
     val specificEvent = event.asInstanceOf[ObservationFromTo]
@@ -54,23 +53,23 @@ class ObservationFromToServiceBase {
 
 // ----------------------
 
-class ObservationRelativeHumidity(baseEventProps: BaseEventProps, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
+class ObservationRelativeHumidity(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
 
 object ObservationRelativeHumidityService extends ObservationFromToServiceBase with MultipleTablesMultipleDtos {
 
-  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationRelativeHumidity(baseProps, customDto.asInstanceOf[ObservationFromToDto])
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationRelativeHumidity(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
 
 // ------------------------------------------------------------
 //  ObservationTemperature
 // ------------------------------------------------------------
 
-class ObservationTemperature(baseEventProps: BaseEventProps, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
+class ObservationTemperature(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
 object ObservationTemperatureService extends ObservationFromToServiceBase with MultipleTablesMultipleDtos {
 
-  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationTemperature(baseProps, customDto.asInstanceOf[ObservationFromToDto])
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationTemperature(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
 
 
@@ -78,22 +77,22 @@ object ObservationTemperatureService extends ObservationFromToServiceBase with M
 //  ObservationInertAir
 // ------------------------------------------------------------
 
-class ObservationInertAir(baseEventProps: BaseEventProps, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
+class ObservationInertAir(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
 object ObservationInertAirService extends ObservationFromToServiceBase with MultipleTablesMultipleDtos {
 
-  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationInertAir(baseProps, customDto.asInstanceOf[ObservationFromToDto])
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationInertAir(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
 
 
 // ------------------------------------------------------------
 //  ObservationLys
 // ------------------------------------------------------------
-class ObservationLys(baseEventProps: BaseEventProps, val customDto: ObservationLysDto) extends Event(baseEventProps)
+class ObservationLys(baseEventProps: BaseEventDto, val customDto: ObservationLysDto) extends Event(baseEventProps)
 
 object ObservationLysService extends SingleTableMultipleDtos {
 
-  def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationLys(baseProps, customDto.asInstanceOf[ObservationLysDto])
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationLys(baseProps, customDto.asInstanceOf[ObservationLysDto])
 
   def baseTableToCustomDto(baseEventDto: BaseEventDto): Dto = ObservationLysDto(baseEventDto.valueString)
 
