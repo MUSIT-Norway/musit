@@ -22,7 +22,7 @@ package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
 import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
-import no.uio.musit.microservice.event.service.{EventHelpers, MultipleTablesMultipleDtos, SingleTableMultipleDtos, SingleTableSingleDto}
+import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
@@ -65,7 +65,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val partOfParent = partialEventLink.filter(_ => isPartsRelation).map(_.idFrom)
 
     val insertBaseAndLinksAction = (for {
-      newEventId <- insertBaseAction(EventHelpers.eventDtoToStoreInDatabase(event, partOfParent))
+      newEventId <- insertBaseAction(event.baseEventProps.copy(partOf=partOfParent)) //#OLD (EventHelpers.eventDtoToStoreInDatabase(event, partOfParent))
       _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(event, newEventId))
       _ <- LinkDao.insertLinkAction(selfLink(newEventId))
     } yield newEventId).transactionally
@@ -125,13 +125,18 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     //val baseProps = baseEventDto.props(relatedSubEvents)
     val baseProps = baseEventDto.copy(relatedSubEvents = relatedSubEvents)
     baseEventDto.eventType.eventImplementation match {
+      case singleTableEventType: SingleTableEventType => MusitFuture.successful(singleTableEventType.createEventInMemory(baseProps))
+      case multipleTablesEventType: MultipleTablesEventType => multipleTablesEventType.getEventFromDatabase(id, baseProps)
+/*#OLD
 
-      case singleTableSingleDto: SingleTableSingleDto => MusitFuture.successful(singleTableSingleDto.createEventInMemory(baseProps))
+              case singleTableSingleDto: SingleTableNotUsingCustomFields => MusitFuture.successful(singleTableSingleDto.createEventInMemory(baseProps))
 
-      case singleTableMultipleDtos: SingleTableMultipleDtos =>
+      case singleTableMultipleDtos: SingleTableUsingCustomFields =>
         val customDto = singleTableMultipleDtos.baseTableToCustomDto(baseEventDto)
         MusitFuture.successful(singleTableMultipleDtos.createEventInMemory(baseProps, customDto))
-      case multipleTablesMultipleDtos: MultipleTablesMultipleDtos => multipleTablesMultipleDtos.getEventFromDatabase(id, baseProps)
+      case multipleTablesMultipleDtos: MultipleTablesNotUsingCustomFields => multipleTablesMultipleDtos.getEventFromDatabase(id, baseProps)
+
+         */
     }
   }
 

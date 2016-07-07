@@ -425,13 +425,13 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
     val myEvent = validateEvent[ObservationLys](response.json)
-    myEvent.customDto.lysforhold mustBe Some("merkelige forhold")
+    myEvent.lysforhold mustBe Some("merkelige forhold")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
     val myEventGet = validateEvent[ObservationLys](responseGet.json)
-    myEventGet.customDto.lysforhold mustBe Some("merkelige forhold")
+    myEventGet.lysforhold mustBe Some("merkelige forhold")
   }
 
 

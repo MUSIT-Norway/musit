@@ -56,7 +56,7 @@ class ObservationFromToServiceBase {
 class ObservationRelativeHumidity(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
 
-object ObservationRelativeHumidityService extends ObservationFromToServiceBase with MultipleTablesMultipleDtos {
+object ObservationRelativeHumidityService extends ObservationFromToServiceBase with MultipleTablesNotUsingCustomFields {
 
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationRelativeHumidity(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
@@ -67,7 +67,7 @@ object ObservationRelativeHumidityService extends ObservationFromToServiceBase w
 
 class ObservationTemperature(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
-object ObservationTemperatureService extends ObservationFromToServiceBase with MultipleTablesMultipleDtos {
+object ObservationTemperatureService extends ObservationFromToServiceBase with MultipleTablesNotUsingCustomFields {
 
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationTemperature(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
@@ -79,7 +79,7 @@ object ObservationTemperatureService extends ObservationFromToServiceBase with M
 
 class ObservationInertAir(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
-object ObservationInertAirService extends ObservationFromToServiceBase with MultipleTablesMultipleDtos {
+object ObservationInertAirService extends ObservationFromToServiceBase with MultipleTablesNotUsingCustomFields {
 
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationInertAir(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
@@ -88,21 +88,13 @@ object ObservationInertAirService extends ObservationFromToServiceBase with Mult
 // ------------------------------------------------------------
 //  ObservationLys
 // ------------------------------------------------------------
-class ObservationLys(baseEventProps: BaseEventDto, val customDto: ObservationLysDto) extends Event(baseEventProps)
-
-object ObservationLysService extends SingleTableMultipleDtos {
-
-  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationLys(baseProps, customDto.asInstanceOf[ObservationLysDto])
-
-  def baseTableToCustomDto(baseEventDto: BaseEventDto): Dto = ObservationLysDto(baseEventDto.valueString)
-
-  def customDtoToBaseTable(event: Event, baseEventDto: BaseEventDto): BaseEventDto = {
-    val thisEvent = event.asInstanceOf[ObservationLys]
-    baseEventDto.setOptionString(thisEvent.customDto.lysforhold)
-  }
-
-  def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[ObservationLysDto]
-
-  def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[ObservationLys].customDto).asInstanceOf[JsObject]
-
+class ObservationLys(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val lysforhold = this.getCustomOptString
 }
+
+object ObservationLysService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationLys(baseProps)
+
+  def getCustomFieldsSpec = ObservationLysDtoSpec.customFieldsSpec
+}
+

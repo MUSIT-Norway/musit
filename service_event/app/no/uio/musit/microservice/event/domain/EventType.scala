@@ -44,28 +44,28 @@ case class EventType(id: Int, name: String, eventImplementation: EventImplementa
 
   def maybeMultipleTablesMultipleDtos = {
     eventImplementation match {
-      case s: MultipleTablesMultipleDtos => Some(s)
+      case s: MultipleTablesNotUsingCustomFields => Some(s)
       case _ => None
     }
   }
 
   def maybeMultipleDtos = {
     eventImplementation match {
-      case s: MultipleDtosEventType => Some(s)
+      case s: MultipleTablesEventType => Some(s)
       case _ => None
     }
   }
 
-  def singleOrMultipleDtos: Either[SingleDtoEventType, MultipleDtosEventType] = {
+  def singleOrMultipleDtos: Either[SingleTableEventType, MultipleTablesEventType] = {
     eventImplementation match {
-      case s: SingleDtoEventType => Left(s)
-      case s: MultipleDtosEventType => Right(s)
+      case s: SingleTableEventType => Left(s)
+      case s: MultipleTablesEventType => Right(s)
     }
   }
 
   def maybeSingleTableMultipleDtos = {
     eventImplementation match {
-      case s: SingleTableMultipleDtos => Some(s)
+      case s: SingleTableUsingCustomFields => Some(s)
       case _ => None
     }
   }

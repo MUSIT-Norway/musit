@@ -38,10 +38,14 @@ object EventHelpers {
       id <- (jsObject \ "id").validateOpt[Long]
       links <- (jsObject \ "links").validateOpt[Seq[Link]]
       note <- (jsObject \ "note").validateOpt[String]
-    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, None, None)
+
+      customValueLong <- CustomFieldsHandler.validateCustomIntegerFieldFromJsonIfAny(eventType, jsObject)
+      customValueString <- CustomFieldsHandler.validateCustomStringFieldFromJsonIfAny(eventType, jsObject)
+
+    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, customValueLong, customValueString)
   }
 
-  def invokeJsonValidator(multipleDtos: MultipleDtosEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {
+  def invokeJsonValidator(multipleDtos: MultipleTablesEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {
     for {
       baseProps <- jsResBaseEventProps
       customDto <- multipleDtos.validateCustomDto(jsObject)
@@ -128,10 +132,11 @@ object EventHelpers {
       singleEventJson
   }
 
+  /*#OLD
   def eventDtoToStoreInDatabase(event: Event, parentId: Option[Long]) = {
     event.eventType.maybeSingleTableMultipleDtos match {
       case Some(singleTableMultipleDtos) => singleTableMultipleDtos.customDtoToBaseTable(event, event.baseEventProps.copy(partOf=parentId))
       case None => event.baseEventProps.copy(partOf=parentId)
     }
-  }
+  }*/
 }

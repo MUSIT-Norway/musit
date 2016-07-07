@@ -7,7 +7,7 @@ class Observation(baseProps: BaseEventDto) extends Event(baseProps) {
 
 }
 
-object ObservationService extends SingleTableSingleDto {
+object ObservationService extends SingleTableNotUsingCustomFields {
 
   def createEventInMemory(baseEventProps: BaseEventDto): Event = {
     new Observation(baseEventProps)

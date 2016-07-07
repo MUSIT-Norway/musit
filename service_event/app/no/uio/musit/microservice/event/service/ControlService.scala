@@ -6,7 +6,7 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
 class Control(baseProps: BaseEventDto) extends Event(baseProps)
 
-object ControlService extends SingleTableSingleDto {
+object ControlService extends SingleTableNotUsingCustomFields {
 
   def createEventInMemory(baseEventProps: BaseEventDto): Event = {
     new Control(baseEventProps)

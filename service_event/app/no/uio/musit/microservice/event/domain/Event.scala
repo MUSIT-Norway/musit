@@ -17,6 +17,12 @@ class Event(val baseEventProps: BaseEventDto) {
 
   val relatedSubEvents = baseEventProps.relatedSubEvents
 
+  def getCustomBool = CustomValuesInEventTable.getBool(this)
+  def getCustomOptBool = CustomValuesInEventTable.getOptBool(this)
+  def getCustomString = CustomValuesInEventTable.getString(this)
+  def getCustomOptString = CustomValuesInEventTable.getOptString(this)
+
+
   def subEventsWithRelation(eventRelation: EventRelation) = relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
 
   def hasSubEvents = relatedSubEvents.length > 0 //We assume none of the event-lists are empty. This is perhaps a wrong assumption.
@@ -47,19 +53,6 @@ object Constants {
   val subEventsPrefix = "subEvents-"
 }
 
-/*
-object CustomValuesInEventTable {
-
-  def getBool(event: Event) = event.
-  setBool(event: Event)
-
-}
-
-
-
-val integerField = Some(
-*/
-
 
 case class EnvRequirementDto(id: Option[Long],
                              temperature: Option[Int],
@@ -76,10 +69,8 @@ object EnvRequirementDto {
 }
 
 
-case class ControlSpecificDto(ok: Boolean) extends Dto
-
-object ControlSpecificDto {
-  implicit val format = Json.format[ControlSpecificDto]
+object ControlSpecificDtoSpec {
+  val customFieldsSpec = CustomEventFieldsSpec().defineRequiredBoolean("ok")
 }
 
 
@@ -92,10 +83,9 @@ object ObservationFromToDto {
 }
 
 
-case class ObservationLysDto(lysforhold: Option[String]) extends Dto
-
-object ObservationLysDto {
-  implicit val format = Json.format[ObservationLysDto]
+object ObservationLysDtoSpec {
+  val customFieldsSpec = CustomEventFieldsSpec().defineOptString("lysforhold")
 }
+
 
 

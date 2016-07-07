@@ -13,7 +13,7 @@ class EnvRequirement(val baseProps: BaseEventDto, val envReqDto: EnvRequirementD
 
 }
 
-object EnvRequirementService extends MultipleTablesMultipleDtos {
+object EnvRequirementService extends MultipleTablesNotUsingCustomFields {
 
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new EnvRequirement(baseProps, customDto.asInstanceOf[EnvRequirementDto])
 

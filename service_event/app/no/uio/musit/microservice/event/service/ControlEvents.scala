@@ -30,45 +30,30 @@ import scala.concurrent.Future
  * Created by jstabel on 7/5/16.
  */
 
-/*
-trait ControlSpecificDtoBase extends DTO {
-  ok: Boolean
-}
-*/
 
 /** "Abstract" base class for specific events */
-class ControlSpecific(baseEventProps: BaseEventDto, val customDto: ControlSpecificDto) extends Event(baseEventProps) {
+class ControlSpecific(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
 
-  val ok = customDto.ok
+  val ok = getCustomBool
 }
 
 /** "Abstract" base class for specific control event implementations */
 class ControlSpecificService {
-
-  def baseTableToCustomDto(baseEventDto: BaseEventDto): Dto = ControlSpecificDto(baseEventDto.getBool)
-
-  def customDtoToBaseTable(event: Event, baseEventDto: BaseEventDto): BaseEventDto = {
-    val thisEvent = event.asInstanceOf[ControlSpecific]
-    baseEventDto.setBool(thisEvent.customDto.ok)
-  }
-
-  def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[ControlSpecificDto]
-
-  def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[ControlSpecific].customDto).asInstanceOf[JsObject]
+  def getCustomFieldsSpec = ControlSpecificDtoSpec.customFieldsSpec
 }
 
 // --- ControlTemperature
 
-class ControlTemperature(baseEventProps: BaseEventDto, customDto: ControlSpecificDto) extends ControlSpecific(baseEventProps, customDto)
+class ControlTemperature(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
 
-object ControlTemperatureService extends ControlSpecificService with SingleTableMultipleDtos {
-  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ControlTemperature(baseProps, customDto.asInstanceOf[ControlSpecificDto])
+object ControlTemperatureService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlTemperature(baseProps)
 }
 
 // --- ControlAir
 
-class ControlAir(baseEventProps: BaseEventDto, customDto: ControlSpecificDto) extends ControlSpecific(baseEventProps, customDto)
+class ControlAir(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
 
-object ControlAirService extends ControlSpecificService with SingleTableMultipleDtos {
-  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ControlAir(baseProps, customDto.asInstanceOf[ControlSpecificDto])
+object ControlAirService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlAir(baseProps)
 }
