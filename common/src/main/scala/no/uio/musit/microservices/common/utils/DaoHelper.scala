@@ -31,8 +31,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object DaoHelper {
 
   /*Inserting a single row returns DBIO[Int], while inserting multiple rows returns DBIO[Option[Int]]. The event framework assumes (or may be changed to assume) that 1 means the dto got inserted.
-If a dto has a many-insert as a part, it may want to assume everything went ok (if no exception happens).
- This is sort of a hack, but should work.  (Assuming multi-rows inserts throws an exception, as per the documentation, if not succeeds).*/
+    If a dto has a many-insert as a part, it may want to assume everything went ok (if no exception happens).
+    This is sort of a hack, but should work.  (Assuming multi-rows inserts throws an exception, as per the documentation, if not succeeds).*/
 
   def mapMultiRowInsertResultIntoOk(dbIoOptInt: DBIO[Option[Int]]): DBIO[Int] = dbIoOptInt.map { optInt => optInt.fold(1)(identity) }
 
