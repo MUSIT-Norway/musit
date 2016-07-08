@@ -36,16 +36,19 @@ export default class ObservationFromToNumberCommentComponent extends Component {
     commentLabel: PropTypes.string.isRequired,
     commentValue: PropTypes.string.isRequired,
     commentTooltip: PropTypes.string.isRequired,
-    onChangeComment: PropTypes.func.isRequired
+    onChangeComment: PropTypes.func.isRequired,
+    fromPlaceHolder: PropTypes.string,
+    toPlaceHolder: PropTypes.string
   }
 
   constructor(props) {
     super(props)
-    const { id, fromTooltip, onChangeFrom, toTooltip, onChangeTo, commentTooltip, onChangeComment, translate } = props
+    const { id, fromTooltip, onChangeFrom, toTooltip, onChangeTo, commentTooltip, onChangeComment, translate,
+      fromPlaceHolder, toPlaceHolder } = props
     this.fields = {
       from: {
         id: `${id}_from`,
-        placeHolder: 'Fra C',
+        placeHolder: fromPlaceHolder,
         tooltip: fromTooltip,
         onChange: onChangeFrom,
         validate: 'number',
@@ -53,7 +56,7 @@ export default class ObservationFromToNumberCommentComponent extends Component {
       },
       to: {
         id: `${id}_to`,
-        placeHolder: 'Til C',
+        placeHolder: toPlaceHolder,
         tooltip: toTooltip,
         onChange: onChangeTo,
         validate: 'number',
