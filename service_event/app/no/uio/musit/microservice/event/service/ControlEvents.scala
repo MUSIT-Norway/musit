@@ -22,14 +22,13 @@
 package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.domain._
-import play.api.libs.json.{JsObject, JsResult, Json}
+import play.api.libs.json.{ JsObject, JsResult, Json }
 
 import scala.concurrent.Future
 
 /**
  * Created by jstabel on 7/5/16.
  */
-
 
 /** "Abstract" base class for specific events */
 class ControlSpecific(baseEventProps: BaseEventDto) extends Event(baseEventProps) {

@@ -20,13 +20,14 @@
 
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservice.event.service.CustomFieldsHandler
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 /**
-  * Created by jstabel on 7/7/16.
-  */
+ * Created by jstabel on 7/7/16.
+ */
 
 object BaseEventDto {
   implicit object baseEventPropsWrites extends Writes[BaseEventDto] {
@@ -38,16 +39,16 @@ object BaseEventDto {
         "links" -> baseEventDto.links,
         "eventType" -> baseEventDto.eventType
       )
-      baseEventDto.note.foreach(note=> {
-        jsObj = jsObj.+("note"->JsString(note))
+      baseEventDto.note.foreach(note => {
+        jsObj = jsObj.+("note" -> JsString(note))
       })
       CustomFieldsHandler.writeCustomFieldsToJsonIfAny(baseEventDto, jsObj)
     }
   }
 }
 
-case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long], valueString: Option[String])  {
-    def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
+case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long], valueString: Option[String]) {
+  def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
 
   def getOptBool = valueLong match {
     case Some(1) => Some(true)

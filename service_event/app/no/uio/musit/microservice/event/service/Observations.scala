@@ -20,11 +20,27 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.{EnvRequirementDao, ObservationFromToDao}
+import no.uio.musit.microservice.event.dao.{ ObservationSkadedyrDao, ObservationFromToDao }
 import no.uio.musit.microservice.event.domain._
-import play.api.libs.json.{JsObject, JsResult, Json}
+import play.api.libs.json.{ JsObject, JsResult, Json }
 
 import scala.concurrent.Future
+
+// ------------------------------------------------------------
+//  Observation (generic container for subobservations)
+// ------------------------------------------------------------
+
+class Observation(baseProps: BaseEventDto) extends Event(baseProps) {
+  val subObservations = this.getAllSubEventsAs[Observation] //TEMP!   //Can be subtyped to SpecificObservation when that has been created
+}
+
+object ObservationService extends SingleTableNotUsingCustomFields {
+  def createEventInMemory(baseEventProps: BaseEventDto): Event = {
+    new Observation(baseEventProps)
+  }
+}
+
+// ----------------------
 
 /** "Abstract" base class for specific to-from observations */
 class ObservationFromTo(baseEventProps: BaseEventDto, val customDto: ObservationFromToDto) extends Event(baseEventProps) {
@@ -35,9 +51,7 @@ class ObservationFromTo(baseEventProps: BaseEventDto, val customDto: Observation
 
 /** "Abstract" base class for specific observationFromTo implementations */
 
-
 class ObservationFromToServiceBase {
-
 
   def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventDto): Future[Option[Dto]] = ObservationFromToDao.getObservationFromTo(id)
 
@@ -55,7 +69,6 @@ class ObservationFromToServiceBase {
 
 class ObservationRelativeHumidity(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
-
 object ObservationRelativeHumidityService extends ObservationFromToServiceBase with MultipleTablesNotUsingCustomFields {
 
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationRelativeHumidity(baseProps, customDto.asInstanceOf[ObservationFromToDto])
@@ -72,7 +85,6 @@ object ObservationTemperatureService extends ObservationFromToServiceBase with M
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationTemperature(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
 
-
 // ------------------------------------------------------------
 //  ObservationInertAir
 // ------------------------------------------------------------
@@ -84,10 +96,10 @@ object ObservationInertAirService extends ObservationFromToServiceBase with Mult
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationInertAir(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
 
-
 // ------------------------------------------------------------
 //  ObservationLys
 // ------------------------------------------------------------
+
 class ObservationLys(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
   val lysforhold = this.getCustomOptString
 }
@@ -95,6 +107,32 @@ class ObservationLys(baseEventProps: BaseEventDto) extends Event(baseEventProps)
 object ObservationLysService extends SingleTableUsingCustomFields {
   def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationLys(baseProps)
 
-  def getCustomFieldsSpec = ObservationLysDtoSpec.customFieldsSpec
+  def getCustomFieldsSpec = ObservationLysCustomFieldsSpec.customFieldsSpec
 }
 
+// ------------------------------------------------------------
+//  ObservationSkadedyr
+// ------------------------------------------------------------
+
+class ObservationSkadedyr(val baseProps: BaseEventDto, val dto: ObservationSkadedyrDto) extends Event(baseProps) {
+  val identifikasjon = this.getCustomOptString
+  val livssykluser = dto.livssykluser
+}
+
+object ObservationSkadedyrService extends MultipleTablesAndUsingCustomFields {
+
+  def getCustomFieldsSpec = ObservationSkadedyrCustomFieldsSpec.customFieldsSpec
+
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationSkadedyr(baseProps, customDto.asInstanceOf[ObservationSkadedyrDto])
+
+  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventDto): Future[Option[Dto]] = ObservationSkadedyrDao.getObservation(id)
+
+  def createInsertCustomDtoAction(id: Long, event: Event) = {
+    val specificEvent = event.asInstanceOf[ObservationSkadedyr]
+    ObservationSkadedyrDao.insertAction(id, specificEvent.dto)
+  }
+
+  def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[ObservationSkadedyrDto]
+
+  def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[ObservationSkadedyr].dto).asInstanceOf[JsObject]
+}

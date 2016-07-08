@@ -20,45 +20,41 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{BaseEventDto, CustomEventFieldsSpec, Dto, Event}
+import no.uio.musit.microservice.event.domain.{ BaseEventDto, Dto, Event }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.libs.json.{JsObject, JsResult}
+import play.api.libs.json.{ JsObject, JsResult }
 import slick.dbio._
 
 import scala.concurrent.Future
 
 /**
-  * Created by jstabel on 7/7/16.
-  */
+ * Created by jstabel on 7/7/16.
+ */
 /**
-  * We split event implementations into four kinds:
-  * 1) Those which store all their data in the base event table and doesn't use the custom generic fields (valueAsInteger etc).
-  * 2) Those which store all their data in the base event table, but also use the custom generic fields.
-  * 3) Those which needs a separate table. But not using the custom generic fields.
-  * 4) Those which needs a separate table. *AND* also uses the custom generic fields.
-  */
-
+ * We split event implementations into four kinds:
+ * 1) Those which store all their data in the base event table and doesn't use the custom generic fields (valueAsInteger etc).
+ * 2) Those which store all their data in the base event table, but also use the custom generic fields.
+ * 3) Those which needs a separate table. But not using the custom generic fields.
+ * 4) Those which needs a separate table. *AND* also uses the custom generic fields.
+ */
 
 sealed trait EventImplementation
 
-
 /**
-  * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
-  */
+ * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
+ */
 trait SingleTableEventType {
   def createEventInMemory(baseEventProps: BaseEventDto): Event
 }
 
-
 trait UsingCustomFieldsInBaseEventTable {
-  def getCustomFieldsSpec: CustomEventFieldsSpec
+  def getCustomFieldsSpec: CustomFieldsSpec
 }
 
-
-
-/** Abstract base trait for event types which has their own extra properties table.
-  */
+/**
+ * Abstract base trait for event types which has their own extra properties table.
+ */
 
 trait MultipleTablesEventType {
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event
@@ -67,7 +63,6 @@ trait MultipleTablesEventType {
   def validateCustomDto(jsObject: JsObject): JsResult[Dto]
 
   def customDtoToJson(event: Event): JsObject
-
 
   /** creates an action which inserts the extended/specific properties into the database */
   def createInsertCustomDtoAction(id: Long, event: Event): DBIO[Int]
@@ -82,27 +77,26 @@ trait MultipleTablesEventType {
   }
 }
 
-  //----------------------------------------------------------------------
-  // "Concrete" event traits (mixing in the above traits)
-  //----------------------------------------------------------------------
-
-
+//----------------------------------------------------------------------
+// "Concrete" event traits (mixing in the above traits)
+//----------------------------------------------------------------------
 
 /**
-  * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
-  */
+ * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
+ */
 
 trait SingleTableNotUsingCustomFields extends EventImplementation with SingleTableEventType {
 }
 
 /**
-  * For event types which don't need to store extra properties than what is in the base event table, but does use custom generic fields in the base event table.
-  *
-  * Implement this event type if you need to store anything in valueInteger or valueString.
-  *
-  * Remember to call super if you implement further subtypes of this event implementation type
-  */
-trait SingleTableUsingCustomFields extends EventImplementation with SingleTableEventType with UsingCustomFieldsInBaseEventTable {// with MultipleDtosEventType {
+ * For event types which don't need to store extra properties than what is in the base event table, but does use custom generic fields in the base event table.
+ *
+ * Implement this event type if you need to store anything in valueInteger or valueString.
+ *
+ * Remember to call super if you implement further subtypes of this event implementation type
+ */
+trait SingleTableUsingCustomFields extends EventImplementation with SingleTableEventType with UsingCustomFieldsInBaseEventTable {
+  // with MultipleDtosEventType {
 
   /*#OLD
   /**
@@ -118,17 +112,14 @@ trait SingleTableUsingCustomFields extends EventImplementation with SingleTableE
 */
 }
 
-
-
 /**
-  * For event types which has their own extra properties table. Does *not* use any of the custom generic fields in the base event table.
-  */
+ * For event types which has their own extra properties table. Does *not* use any of the custom generic fields in the base event table.
+ */
 trait MultipleTablesNotUsingCustomFields extends EventImplementation with MultipleTablesEventType {
 }
 
-
 /**
-  * For event types which has their own extra properties table. Does *also* use custom generic fields in the base event table.
-  */
-trait MultipleTablesAndUsingCustomFields extends EventImplementation  with MultipleTablesEventType with UsingCustomFieldsInBaseEventTable {
+ * For event types which has their own extra properties table. Does *also* use custom generic fields in the base event table.
+ */
+trait MultipleTablesAndUsingCustomFields extends EventImplementation with MultipleTablesEventType with UsingCustomFieldsInBaseEventTable {
 }

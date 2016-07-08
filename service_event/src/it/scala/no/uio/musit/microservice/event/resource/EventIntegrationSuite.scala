@@ -54,7 +54,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   }
 
   def validateEvent[T <: Event](jsObject: JsValue) = {
-    EventHelpers.eventFromJson[T](jsObject).getOrFail
+    JsonEventHelpers.eventFromJson[T](jsObject).getOrFail
   }
 
   /*
@@ -434,6 +434,67 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     myEventGet.lysforhold mustBe Some("merkelige forhold")
   }
 
+
+  "post and get ObservationSkadedyr" in {
+    val json =
+      """
+  {
+        	"eventType": "observationSkadedyr",
+        	"identifikasjon": "skadedyr i veggene",
+        	"note": "tekst til observationskadedyr",
+        	"livssykluser": [{
+        		"livssyklus": "Adult",
+        		"antall": 3
+        	}, {
+        		"livssyklus": "Puppe",
+        		"antall": 4
+        	}, {
+        		"livssyklus": "Puppeskinn",
+        		"antall": 5
+        	}, {
+        		"livssyklus": "Larve",
+        		"antall": 6
+        	}, {
+        		"livssyklus": "Egg",
+        		"antall": 7
+        	}]
+        }"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationSkadedyr](response.json)
+    myEvent.identifikasjon mustBe Some("skadedyr i veggene")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationSkadedyr](responseGet.json)
+    myEventGet.identifikasjon mustBe Some("skadedyr i veggene")
+
+    myEventGet.livssykluser.length mustBe 5
+    val livsSyklusFirst = myEventGet.livssykluser(0)
+    livsSyklusFirst.livssyklus mustBe Some("Adult")
+    livsSyklusFirst.antall mustBe Some(3)
+
+    val livsSyklusLast = myEventGet.livssykluser(4)
+    livsSyklusLast.livssyklus mustBe Some("Egg")
+    livsSyklusLast.antall mustBe Some(7)
+    livsSyklusLast.eventId mustBe None //We don't want these in the json output.
+
+  }
+
+  "redefining the same custom field should fail" in {
+    intercept[AssertionError] {
+      CustomFieldsSpec().defineRequiredBoolean("myBool").defineOptInt("myInt")
+    }
+
+    //Bool uses the long field, while string uses the string field, so it should be possible to define both a custom bool and a custom string
+    CustomFieldsSpec().defineRequiredBoolean("myBool").defineOptString("myString")
+
+    //And an int and a string
+    CustomFieldsSpec().defineRequiredInt("myInt").defineOptString("myString")
+
+  }
 
 
 }

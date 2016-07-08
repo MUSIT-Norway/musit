@@ -20,19 +20,24 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{Constants, EventRelations, _}
+import no.uio.musit.microservice.event.domain.{ EventRelations, _ }
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
-import play.api.libs.json.{JsArray, JsObject, JsResult, JsValue}
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import play.api.libs.json.{ JsArray, JsObject, JsResult, JsValue }
 
 /**
  * Created by jstabel on 7/6/16.
  */
-object EventHelpers {
+
+object Constants {
+  val subEventsPrefix = "subEvents-"
+}
+
+object JsonEventHelpers {
   private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventDto] = {
     for {
       id <- (jsObject \ "id").validateOpt[Long]
@@ -121,7 +126,7 @@ object EventHelpers {
 
   def toJson(event: Event, recursive: Boolean): JsObject = {
     val baseJson = event.baseEventProps.toJson
-    val singleEventJson = event.eventType.maybeMultipleDtos.fold(baseJson)(jsonWriter => baseJson ++ (jsonWriter.customDtoToJson(event).asInstanceOf[JsObject]))
+    val singleEventJson = event.eventType.maybeMultipleDtos.fold(baseJson)(jsonWriter => baseJson ++ (jsonWriter.customDtoToJson(event)))
     if (recursive && event.hasSubEvents) {
       event.relatedSubEvents.foldLeft(singleEventJson) {
         (resultSoFar, relationWithSubEvents) =>

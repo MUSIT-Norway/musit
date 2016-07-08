@@ -1,11 +1,10 @@
 package no.uio.musit.microservice.event.domain
 
+import no.uio.musit.microservice.event.service.{ CustomFieldsSpec, CustomValuesInEventTable }
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 trait Dto
-
-
 
 case class RelatedEvents(relation: EventRelation, events: Seq[Event])
 
@@ -21,7 +20,6 @@ class Event(val baseEventProps: BaseEventDto) {
   def getCustomOptBool = CustomValuesInEventTable.getOptBool(this)
   def getCustomString = CustomValuesInEventTable.getString(this)
   def getCustomOptString = CustomValuesInEventTable.getOptString(this)
-
 
   def subEventsWithRelation(eventRelation: EventRelation) = relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
 
@@ -49,43 +47,57 @@ class Event(val baseEventProps: BaseEventDto) {
   }*/
 }
 
-object Constants {
-  val subEventsPrefix = "subEvents-"
-}
-
-
-case class EnvRequirementDto(id: Option[Long],
-                             temperature: Option[Int],
-                             tempInterval: Option[Int],
-                             airHumidity: Option[Int],
-                             airHumInterval: Option[Int],
-                             hypoxicAir: Option[Int],
-                             hypoxicInterval: Option[Int],
-                             cleaning: Option[String],
-                             light: Option[String]) extends Dto
+case class EnvRequirementDto(
+  id: Option[Long],
+  temperature: Option[Int],
+  tempInterval: Option[Int],
+  airHumidity: Option[Int],
+  airHumInterval: Option[Int],
+  hypoxicAir: Option[Int],
+  hypoxicInterval: Option[Int],
+  cleaning: Option[String],
+  light: Option[String]
+) extends Dto
 
 object EnvRequirementDto {
   implicit val format = Json.format[EnvRequirementDto]
 }
 
-
 object ControlSpecificDtoSpec {
-  val customFieldsSpec = CustomEventFieldsSpec().defineRequiredBoolean("ok")
+  val customFieldsSpec = CustomFieldsSpec().defineRequiredBoolean("ok")
 }
 
-
-case class ObservationFromToDto(id: Option[Long],
-                                from: Option[Double],
-                                to: Option[Double]) extends Dto
+case class ObservationFromToDto(
+  id: Option[Long],
+  from: Option[Double],
+  to: Option[Double]
+) extends Dto
 
 object ObservationFromToDto {
   implicit val format = Json.format[ObservationFromToDto]
 }
 
-
-object ObservationLysDtoSpec {
-  val customFieldsSpec = CustomEventFieldsSpec().defineOptString("lysforhold")
+object ObservationLysCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("lysforhold")
 }
 
+// ---------------------------------------------------
+// ObservationSkadedyr
+// ---------------------------------------------------
+object ObservationSkadedyrCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("identifikasjon")
+}
 
+//Note: The eventId is only used during writing to the database, it is "None-ed out" after having been read from the database, to prevent it from showing up in json.
+case class LivssyklusDto(eventId: Option[Long], livssyklus: Option[String], antall: Option[Int])
+
+object LivssyklusDto {
+  implicit val format = Json.format[LivssyklusDto]
+}
+
+case class ObservationSkadedyrDto(livssykluser: Seq[LivssyklusDto]) extends Dto
+
+object ObservationSkadedyrDto {
+  implicit val format = Json.format[ObservationSkadedyrDto]
+}
 

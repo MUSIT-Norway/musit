@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{Dto, EnvRequirementDto}
+import no.uio.musit.microservice.event.domain.{ Dto, EnvRequirementDto }
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import play.api.libs.json.Json
 import slick.driver.JdbcProfile
 
@@ -20,7 +20,6 @@ object EnvRequirementDao extends HasDatabaseConfig[JdbcProfile] {
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val EnvRequirementTable = TableQuery[EnvRequirementTable]
-
 
   def insertAction(event: EnvRequirementDto): DBIO[Int] =
     EnvRequirementTable += event
