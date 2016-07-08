@@ -30,6 +30,8 @@ import storageGridReducer from './storageunit/grid'
 import organizationReducer from './organization'
 import controlAddReducer from './control/add'
 import controlDetailsReducer from './control/view'
+import objectGridReducer from './grid/object'
+
 
 const rootReducer = combineReducers({
   routing: routerReducer,
@@ -43,7 +45,8 @@ const rootReducer = combineReducers({
   storageGridUnit: storageGridReducer,
   organization: organizationReducer,
   control: controlAddReducer,
-  controlDetails: controlDetailsReducer
+  controlDetails: controlDetailsReducer,
+  objectGrid: objectGridReducer
 })
 
 export default rootReducer
