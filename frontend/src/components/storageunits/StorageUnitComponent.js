@@ -156,6 +156,7 @@ export default class StorageUnitComponent extends Component {
                           id={this.type.controlId}
                           value={this.type.valueText()}
                           translate={this.props.translate}
+                          translateKey={'musit.storageUnits.storageType.items.'}
                         />
                       </div>
                     </form>

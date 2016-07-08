@@ -60,6 +60,12 @@ no:
         countLabel: "Antall"
         countPlaceHolder: "Heltall"
         countTooltip: "Antall tooltip!"
+        lifeCycleItems:
+          adult: "Adult"
+          puppe: "Puppe"
+          puppeskin: "Puppeskin"
+          larva: "Larva"
+          egg: "Egg"
       inertAir:
         fromLabel: "Fr"
     pickList:
