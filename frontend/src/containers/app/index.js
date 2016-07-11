@@ -105,7 +105,7 @@ class App extends Component {
               <LinkContainer to="/control/1">
                 <NavItem eventKey={9}>ControlView</NavItem>
               </LinkContainer>
-              <LinkContainer to="/grid/object">
+              <LinkContainer to="/grid/object/1">
                 <NavItem eventKey={10}>ObjectGrid</NavItem>
               </LinkContainer>
               {user &&

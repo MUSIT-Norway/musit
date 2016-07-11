@@ -65,7 +65,7 @@ export default (store) => {
       <Route path="/observation" component={ObservationView} />
       <Route path="/storageunit/:id" component={StorageUnitPanel} />
       <Route path="/storageunit/add" component={StorageUnitPanel} />
-      <Route path="/grid/object" component={ObjectGridShow} />
+      <Route path="/grid/object/:id" component={ObjectGridShow} />
 
       -- Authentication routes
       <Route path="/musit" component={WelcomeUserView} onEnter={requireLogin} />

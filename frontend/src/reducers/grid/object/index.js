@@ -14,6 +14,11 @@ const initialState = {
       museumsNumber: 'C10003',
       uNumber: 3,
       term: 'Lavasteinnnn'
+    },
+    row_4: {
+      museumsNumber: 'C10004',
+      uNumber: 4,
+      term: 'Rar dings'
     }
 
   }
