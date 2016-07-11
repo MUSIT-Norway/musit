@@ -25,6 +25,7 @@ export default class ObervationStatusPercentageComment extends Component {
   static propTypes = {
     id: PropTypes.string.isRequired,
     translate: PropTypes.func,
+    translateKeyPrefix: PropTypes.string,
     statusLabel: PropTypes.string,
     statusValue: PropTypes.string.isRequired,
     statusOptionValues: PropTypes.array.isRequired,
@@ -51,7 +52,8 @@ export default class ObervationStatusPercentageComment extends Component {
       onChangeVolume,
       commentTooltip,
       onChangeComment,
-      translate
+      translate,
+      translateKeyPrefix
     } = props
     this.fields = {
       status: {
@@ -62,7 +64,8 @@ export default class ObervationStatusPercentageComment extends Component {
         validate: 'text',
         precision: 3,
         items: statusOptionValues,
-        translate: this.props.translate
+        translate: translate,
+        translateKey: translateKeyPrefix
       },
       volume: {
         id: `${id}_percentage`,
