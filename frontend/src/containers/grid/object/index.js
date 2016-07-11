@@ -28,7 +28,7 @@ const mapStateToProps = (state) => ({
 })
 
 @connect(mapStateToProps)
-export default class ControlViewShow extends React.Component {
+export default class ObjectGridShow extends React.Component {
   static propTypes = {
     translate: React.PropTypes.func.isRequired,
     objectGridData: React.PropTypes.arrayOf(React.PropTypes.object)
@@ -50,8 +50,11 @@ export default class ControlViewShow extends React.Component {
                 <ObjectGrid
                   id="1"
                   translate={translate}
-                  controls={this.props.objectGridData.
-                  }
+                  controls={[
+                    this.props.objectGridData.row_1,
+                    this.props.objectGridData.row_2,
+                    this.props.objectGridData.row_3
+                  ]}
                 />
               </Col>
             </Row>

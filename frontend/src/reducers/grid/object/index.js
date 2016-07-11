@@ -1,19 +1,19 @@
 const initialState = {
   data: {
-    1: {
+    row_1: {
       museumsNumber: 'C10001',
       uNumber: 1,
       term: 'Gråstein'
     },
-    2: {
+    row_2: {
       museumsNumber: 'C10002',
       uNumber: 2,
-      term: 'Gråstein'
+      term: 'Spydspiss'
     },
-    3: {
+    row_3: {
       museumsNumber: 'C10003',
       uNumber: 3,
-      term: 'Gråstein'
+      term: 'Lavasteinnnn'
     }
 
   }

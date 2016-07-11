@@ -18,13 +18,14 @@ export default class ObjectGrid extends Component {
       return (
         <tr id={c.type} >
           <td>
-            {c.type}
+            <FontAwesome name="rebel" />
+            {` ${c.museumsNumber}`}
           </td>
           <td>
-            {c.type}
+            {c.uNumber}
           </td>
           <td>
-            {c.type}
+            {c.term}
           </td>
           <td>
             <FontAwesome name="truck" />

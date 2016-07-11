@@ -29,7 +29,7 @@ import WelcomeUserView from './containers/welcome-user'
 import ObservationView from './containers/observation'
 import ControlView from './containers/control/view'
 import ControlAdd from './containers/control/add'
-import ObjectGrid from './containers/grid/object'
+import ObjectGridShow from './containers/grid/object'
 import App from './containers/app'
 
 export default (store) => {
@@ -65,7 +65,7 @@ export default (store) => {
       <Route path="/observation" component={ObservationView} />
       <Route path="/storageunit/:id" component={StorageUnitPanel} />
       <Route path="/storageunit/add" component={StorageUnitPanel} />
-      <Route path="/grid/object" component={ObjectGrid} />
+      <Route path="/grid/object" component={ObjectGridShow} />
 
       -- Authentication routes
       <Route path="/musit" component={WelcomeUserView} onEnter={requireLogin} />
