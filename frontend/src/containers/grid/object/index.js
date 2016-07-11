@@ -50,7 +50,7 @@ export default class ObjectGridShow extends React.Component {
                 <ObjectGrid
                   id="1"
                   translate={translate}
-                  controls={Object.keys(this.props.objectGridData).map(x => this.props.objectGridData[x])}
+                  tableData={Object.keys(this.props.objectGridData).map(x => this.props.objectGridData[x])}
                 />
               </Col>
             </Row>

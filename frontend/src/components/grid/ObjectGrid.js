@@ -7,9 +7,10 @@ export default class ObjectGrid extends Component {
   static propTypes = {
     id: PropTypes.string.isRequired,
     translate: PropTypes.func.isRequired,
-    controls: PropTypes.arrayOf(PropTypes.shape({
-      type: PropTypes.string.isRequired,
-      ok: PropTypes.bool.isRequired
+    tableData: PropTypes.arrayOf(PropTypes.shape({
+      museumsNumber: PropTypes.string.isRequired,
+      uNumber: PropTypes.string.isRequired,
+      term: PropTypes.string
     }))
   }
 
@@ -41,8 +42,8 @@ export default class ObjectGrid extends Component {
       <FormGroup>
         <div>
           <Row>
-            <Col sm={6} />
-            <Col sm={3}>
+            <Col xs={0} sm={5} />
+            <Col xs={12} sm={3}>
               <MusitField
                 id={`${id}_searchMusitField`}
                 addOnPrefix={'\u2315'}
@@ -50,7 +51,7 @@ export default class ObjectGrid extends Component {
                 value="" validate="text"
               />
             </Col>
-            <Col sm={3}>
+            <Col xs={12} sm={4}>
               <Button id={`${id}_Nodes`}>Noder</Button>
               <Button id={`${id}_Objects`}>Objeckter</Button>
             </Col>
@@ -74,7 +75,7 @@ export default class ObjectGrid extends Component {
               </tr>
             </thead>
             <tbody>
-              {this.props.controls.map(c =>
+              {this.props.tableData.map(c =>
                 objectGrid(c)
               )}
             </tbody>
