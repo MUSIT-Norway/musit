@@ -17,6 +17,13 @@ en:
     login: Login through Dataporten ![feide-logo-button](/assets/images/feide-login-icon.png "Feide Login")
 no:
   musit:
+    grid:
+      node:
+        nodeName: "Nodenavn"
+        nodeType: "Nodetype"
+        objectCount: "Ant. obj."
+        totalObjectCount: "Tot. ant. obj."
+        nodeCount: "Ant. noder"
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."

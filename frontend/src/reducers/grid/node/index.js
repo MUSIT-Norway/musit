@@ -3,24 +3,39 @@
 const initialState = {
   data: {
     row_1: {
-      museumsNumber: 'C10001',
-      uNumber: 1,
-      term: 'Gråstein'
+      nodeName: 'Eske',
+      nodeType: 'Lagringsenh',
+      objectCount: 0,
+      totalObjectCount: 12,
+      nodeCount: 0
     },
     row_2: {
-      museumsNumber: 'C10002',
-      uNumber: 2,
-      term: 'Spydspiss'
+      nodeName: 'Pose',
+      nodeType: 'Lagringsenh',
+      objectCount: 0,
+      totalObjectCount: 16,
+      nodeCount: 0
     },
     row_3: {
-      museumsNumber: 'C10003',
-      uNumber: 3,
-      term: 'Lavasteinnnn'
+      nodeName: 'Kurv',
+      nodeType: 'Lagringsenh',
+      objectCount: 0,
+      totalObjectCount: 8,
+      nodeCount: 0
     },
     row_4: {
-      museumsNumber: 'C10004',
-      uNumber: 4,
-      term: 'Rar dings'
+      nodeName: 'Boks',
+      nodeType: 'Lagringsenh',
+      objectCount: 0,
+      totalObjectCount: 7,
+      nodeCount: 0
+    },
+    row_5: {
+      nodeName: 'Dingseboms',
+      nodeType: 'Lagringsenh',
+      objectCount: 11,
+      totalObjectCount: 9,
+      nodeCount: 0
     }
 
   }

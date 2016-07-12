@@ -10,31 +10,45 @@ export default class NodeGrid extends Component {
     id: PropTypes.string.isRequired,
     translate: PropTypes.func.isRequired,
     tableData: PropTypes.arrayOf(PropTypes.shape({
-      museumsNumber: PropTypes.string.isRequired,
-      uNumber: PropTypes.string.isRequired,
-      term: PropTypes.string
+      nodeName: PropTypes.string.isRequired,
+      nodeType: PropTypes.string.isRequired,
+      objectCount: PropTypes.number.isRequired,
+      totalObjectCount: PropTypes.number.isRequired,
+      nodeCount: PropTypes.number.isRequired
     }))
   }
 
   render() {
-    const { id } = this.props
+    const { id, translate } = this.props
     const objectGrid = (c) => {
       return (
-        <tr id={`${id}_${c.museumsNumber}_${c.uNumber}`} >
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_museumNumber`}>
-            <FontAwesome name="rebel" />
-            {` ${c.museumsNumber}`}
+        <tr id={`${id}_${c.nodeName}_${c.nodeType}`} >
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeName`}>
+            <FontAwesome name="folder" />
+            {` ${c.nodeName}`}
           </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_uNumber`}>
-            {c.uNumber}
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeType`}>
+            {c.nodeType}
           </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_term`}>
-            {c.term}
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_objectCount`}>
+            {c.objectCount}
           </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_truck`}>
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_totalObjectCount`}>
+            {c.totalObjectCount}
+          </td>
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeCount`}>
+            {c.nodeCount}
+          </td>
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_eye`}>
+            <FontAwesome name="eye" />
+          </td>
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_search`}>
+            <FontAwesome name="search" />
+          </td>
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_truck`}>
             <FontAwesome name="truck" />
           </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_shoppingCart`}>
+          <td id={`${id}_${c.nodeName}_${c.nodeType}_shoppingCart`}>
             <FontAwesome name="shopping-cart" />
           </td>
         </tr>
@@ -62,13 +76,23 @@ export default class NodeGrid extends Component {
             <thead>
               <tr>
                 <th>
-                  Museumsnr
+                  {translate('musit.grid.node.nodeName')}
                 </th>
                 <th>
-                  Unr
+                  {translate('musit.grid.node.nodeType')}
                 </th>
                 <th>
-                  Term
+                  {translate('musit.grid.node.objectCount')}
+                </th>
+                <th>
+                  {translate('musit.grid.node.totalObjectCount')}
+                </th>
+                <th>
+                  {translate('musit.grid.node.nodeCount')}
+                </th>
+                <th>
+                </th>
+                <th>
                 </th>
                 <th>
                 </th>
