@@ -3,26 +3,95 @@
 const initialState = {
   data: {
     row_1: {
-      museumsNumber: 'C10001',
-      uNumber: 1,
-      term: 'Gråstein'
+      type: 'control',
+      date: '01.01.1983',
+      types: { temperature: true,
+        inertAir: null,
+        relativeHumidity: null,
+        cleaning: null,
+        lightCondition: null,
+        alchohol: true,
+        gas: null,
+        mold: null,
+        pest: true,
+        envdata: null },
+      doneBy: 'Blablabla...',
+      registeredDate: '01.01.1983',
+      registeredBy: 'Blabla...'
     },
     row_2: {
-      museumsNumber: 'C10002',
-      uNumber: 2,
-      term: 'Spydspiss'
+      type: 'observation',
+      date: '01.01.1984',
+      types: { temperature: true,
+        inertAir: null,
+        relativeHumidity: null,
+        cleaning: null,
+        lightCondition: true,
+        alchohol: false,
+        gas: null,
+        mold: null,
+        envdata: null },
+      doneBy: 'Blablabla...',
+      registeredDate: '01.01.1983',
+      registeredBy: 'Blabla...'
     },
     row_3: {
-      museumsNumber: 'C10003',
-      uNumber: 3,
-      term: 'Lavasteinnnn'
+      type: 'observation',
+      date: '01.01.1984',
+      types: { temperature: true,
+        inertAir: true,
+        relativeHumidity: true,
+        cleaning: true,
+        lightCondition: true,
+        alchohol: true,
+        gas: true,
+        mold: true,
+        envdata: true },
+      doneBy: 'Blablabla...',
+      registeredDate: '01.01.1983',
+      registeredBy: 'Blabla...'
     },
     row_4: {
-      museumsNumber: 'C10004',
-      uNumber: 4,
-      term: 'Rar dings'
+      type: 'observation',
+      date: '01.01.1984',
+      types: { temperature: false,
+        inertAir: false,
+        relativeHumidity: false,
+        cleaning: false,
+        lightCondition: false,
+        alchohol: false,
+        gas: false,
+        mold: false,
+        envdata: false },
+      doneBy: 'Blablabla...',
+      registeredDate: '01.01.1983',
+      registeredBy: 'Blabla...'
+    },
+    row_5: {
+      type: 'observation',
+      date: '01.01.1984',
+      types: { temperature: null,
+        inertAir: null,
+        relativeHumidity: null,
+        cleaning: null,
+        lightCondition: null,
+        alchohol: null,
+        gas: null,
+        mold: null,
+        envdata: null },
+      doneBy: 'Blablabla...',
+      registeredDate: '01.01.1983',
+      registeredBy: 'Blabla...'
+    },
+    row_6: {
+      type: 'observation',
+      date: '01.01.1984',
+      types: { temperature: false
+         },
+      doneBy: 'Blablabla...',
+      registeredDate: '01.01.1983',
+      registeredBy: 'Blabla...'
     }
-
   }
 }
 

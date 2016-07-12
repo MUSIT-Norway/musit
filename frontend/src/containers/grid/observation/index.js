@@ -50,7 +50,7 @@ export default class ObservationGridShow extends React.Component {
             <Row>
               <Col sm={8} smOffset={2}>
                 <ObservationGrid
-                  id="1"
+                  id="Reol 5"
                   translate={translate}
                   tableData={Object.keys(this.props.observationGridData).map(x => this.props.observationGridData[x])}
                 />
