@@ -45,12 +45,12 @@ export default class ObservationGrid extends Component {
     const { id, translate } = this.props
     const showEnabledIcon = (data, type) => {
       return (
-        (data) ? <FontAwesome name={ObservationGrid.iconMap[type]} /> : ''
+        (data) ? <FontAwesome style={{ padding: '2px' }} name={ObservationGrid.iconMap[type]} /> : ''
       )
     }
     const showDisabledIcon = (data, type) => {
       return (
-        (data === false) ? <FontAwesome name={ObservationGrid.iconMap[type]} /> : ''
+        (data === false) ? <FontAwesome style={{ color: 'gray', padding: '2px' }} name={ObservationGrid.iconMap[type]} /> : ''
       )
     }
     const objectGrid = (c) => {
