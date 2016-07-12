@@ -17,6 +17,11 @@ en:
     login: Login through Dataporten ![feide-logo-button](/assets/images/feide-login-icon.png "Feide Login")
 no:
   musit:
+    grid:
+      object:
+        museumsNumber: "Museumsnr"
+        uNumber: "Unr"
+        term: "Term"
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."

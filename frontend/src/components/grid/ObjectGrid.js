@@ -15,7 +15,7 @@ export default class ObjectGrid extends Component {
   }
 
   render() {
-    const { id } = this.props
+    const { id, translate } = this.props
     const objectGrid = (c) => {
       return (
         <tr id={`${id}_${c.museumsNumber}_${c.uNumber}`} >
@@ -60,13 +60,13 @@ export default class ObjectGrid extends Component {
             <thead>
               <tr>
                 <th>
-                  Museumsnr
+                  {translate('musit.grid.object.museumsNumber')}
                 </th>
                 <th>
-                  Unr
+                  {translate('musit.grid.object.uNumber')}
                 </th>
                 <th>
-                  Term
+                  {translate('musit.grid.object.term')}
                 </th>
                 <th>
                 </th>
