@@ -63,7 +63,7 @@ export default class NodeLeftMenuComponent extends Component {
         <main>
           <Grid>
             <Row>
-              <Col sm={2} smOffset={5}>
+              <Col xs={6} xsOffset={6} sm={2} smOffset={10} md={2} mdOffset={10}>
                 <Table responsive>
                   <tbody>
                     <tr style={{ border: 'none' }}>
