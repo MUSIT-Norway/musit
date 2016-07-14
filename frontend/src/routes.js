@@ -30,6 +30,7 @@ import ObservationView from './containers/observation'
 import ControlView from './containers/control/view'
 import ControlAdd from './containers/control/add'
 import App from './containers/app'
+import NodeLeftMenu from './containers/leftmenu/node'
 
 export default (store) => {
   const requireLogin = (nextState, replace, cb) => {
@@ -64,6 +65,7 @@ export default (store) => {
       <Route path="/observation" component={ObservationView} />
       <Route path="/storageunit/:id" component={StorageUnitPanel} />
       <Route path="/storageunit/add" component={StorageUnitPanel} />
+      <Route path="/nodeleftmenu" component={NodeLeftMenu} />
 
       -- Authentication routes
       <Route path="/musit" component={WelcomeUserView} onEnter={requireLogin} />
