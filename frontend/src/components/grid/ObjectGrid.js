@@ -15,7 +15,7 @@ export default class ObjectGrid extends Component {
   }
 
   render() {
-    const { id, translate } = this.props
+    const { id, translate, tableData } = this.props
     const objectGrid = (c) => {
       return (
         <tr id={`${id}_${c.museumsNumber}_${c.uNumber}`} >
@@ -75,7 +75,7 @@ export default class ObjectGrid extends Component {
               </tr>
             </thead>
             <tbody>
-              {this.props.tableData.map(c =>
+              {tableData.map(c =>
                 objectGrid(c)
               )}
             </tbody>

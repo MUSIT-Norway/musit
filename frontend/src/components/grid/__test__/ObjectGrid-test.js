@@ -10,15 +10,15 @@ describe('ObjectGrid', () => {
       <ObjectGrid
         id="1"
         translate={(key) => key}
-        objectGridData={[
+        tableData={[
           {
             museumsNumber: 'C10001',
-            uNumber: 1,
+            uNumber: '1',
             term: 'Gråstein'
           },
           {
             museumsNumber: 'C10002',
-            uNumber: 2,
+            uNumber: '2',
             term: 'Spydspiss'
           }
         ]}
