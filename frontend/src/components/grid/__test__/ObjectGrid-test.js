@@ -2,8 +2,7 @@ import { assert, React, ReactTestUtils } from '../../../../test/setup';
 import ObjectGrid from '../ObjectGrid';
 
 describe('ObjectGrid', () => {
-  let firstComponent;
-  let secondComponent;
+  let inputComponent;
 
   before('should render ObjectGrid', () => {
     const myDiv = ReactTestUtils.renderIntoDocument(
@@ -24,15 +23,25 @@ describe('ObjectGrid', () => {
         ]}
       />
     );
-    const inputComponent = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'td');
-    firstComponent = inputComponent[0];
-    secondComponent = inputComponent[1];
+    inputComponent = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'td');
   });
 
-  it('Check the temperature component is created by checking down button id', () => {
-    assert(firstComponent.getAttribute('id') === '1_C10001_1_museumNumber')
+  it('Check the 1st row Museum number id.', () => {
+    assert(inputComponent[0].getAttribute('id') === '1_C10001_1_museumNumber')
   })
-  it('Check the relativeHumidity component is created by checking down button id', () => {
-    assert(secondComponent.getAttribute('id') === '1_C10001_1_uNumber')
+  it('Check the 1st row Unr id', () => {
+    assert(inputComponent[1].getAttribute('id') === '1_C10001_1_uNumber')
+  })
+  it('Check the 1st row Unr value', () => {
+    assert(inputComponent[1].innerHTML === '1')
+  })
+  it('Check the 1st row Term value', () => {
+    assert(inputComponent[2].innerHTML === 'Gråstein')
+  })
+  it('Check the 2nd row Unr value', () => {
+    assert(inputComponent[6].innerHTML === '2')
+  })
+  it('Check the 2nd row Term value', () => {
+    assert(inputComponent[7].innerHTML === 'Spydspiss')
   })
 })
