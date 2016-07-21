@@ -4,7 +4,7 @@ import React, { Component, PropTypes } from 'react'
 import { PageHeader, Row, Col, Table, FormGroup } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 
-export default class ObservationGrid extends Component {
+export default class ObservationControlGrid extends Component {
   static propTypes = {
     id: PropTypes.string.isRequired,
     translate: PropTypes.func.isRequired,
@@ -12,6 +12,7 @@ export default class ObservationGrid extends Component {
       type: PropTypes.string.isRequired,
       date: PropTypes.string.isRequired,
       types: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number,
         temperature: PropTypes.bool,
         inertAir: PropTypes.bool,
         relativeHumidity: PropTypes.bool,
@@ -38,22 +39,23 @@ export default class ObservationGrid extends Component {
     gas: 'inr',
     mold: 'bolt',
     pest: 'bug',
-    envdata: ''
+    envdata: 'truck'
   }
 
   render() {
     const { id, translate } = this.props
     const showEnabledIcon = (data, type) => {
       return (
-        (data) ? <FontAwesome style={{ padding: '2px' }} name={ObservationGrid.iconMap[type]} /> : ''
+        (data) ? <FontAwesome style={{ padding: '2px' }} name={ObservationControlGrid.iconMap[type]} /> : ''
       )
     }
     const showDisabledIcon = (data, type) => {
       return (
-        (data === false) ? <FontAwesome style={{ color: 'gray', padding: '2px' }} name={ObservationGrid.iconMap[type]} /> : ''
+        (data === false) ?
+          <FontAwesome style={{ color: 'gray', padding: '2px' }} name={ObservationControlGrid.iconMap[type]} /> : ''
       )
     }
-    const objectGrid = (c) => {
+    const observationControlGrid = (c) => {
       return (
         <tr id={`${id}_${c.date}`} >
           <td id={`${id}_${c.date}_type`}>
@@ -136,7 +138,7 @@ export default class ObservationGrid extends Component {
             </thead>
             <tbody>
               {this.props.tableData.map(c =>
-                objectGrid(c)
+                observationControlGrid(c)
               )}
             </tbody>
           </Table>

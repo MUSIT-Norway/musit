@@ -1,3 +1,3 @@
-import ObservationGrid from './ObservationGrid'
+import ObservationControlGrid from './ObservationControlGrid'
 
-export { ObservationGrid }
+export { ObservationControlGrid }

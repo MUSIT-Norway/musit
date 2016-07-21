@@ -3,6 +3,7 @@
 const initialState = {
   data: {
     row_1: {
+      id: 1,
       type: 'control',
       date: '01.01.1983',
       types: { temperature: true,
@@ -20,6 +21,7 @@ const initialState = {
       registeredBy: 'Blabla...'
     },
     row_2: {
+      id: 2,
       type: 'observation',
       date: '01.01.1984',
       types: { temperature: true,
@@ -36,6 +38,7 @@ const initialState = {
       registeredBy: 'Blabla...'
     },
     row_3: {
+      id: 3,
       type: 'observation',
       date: '01.01.1984',
       types: { temperature: true,
@@ -52,6 +55,7 @@ const initialState = {
       registeredBy: 'Blabla...'
     },
     row_4: {
+      id: 4,
       type: 'observation',
       date: '01.01.1984',
       types: { temperature: false,
@@ -68,6 +72,7 @@ const initialState = {
       registeredBy: 'Blabla...'
     },
     row_5: {
+      id: 5,
       type: 'observation',
       date: '01.01.1984',
       types: { temperature: null,
@@ -84,6 +89,7 @@ const initialState = {
       registeredBy: 'Blabla...'
     },
     row_6: {
+      id: 6,
       type: 'observation',
       date: '01.01.1984',
       types: { temperature: false
@@ -96,8 +102,8 @@ const initialState = {
 }
 
 
-const observationGridReducer = (state = initialState) => {
+const observationControlGridReducer = (state = initialState) => {
   return state;
 }
 
-export default observationGridReducer
+export default observationControlGridReducer

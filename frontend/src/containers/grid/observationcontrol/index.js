@@ -20,20 +20,20 @@
  */
 import React from 'react'
 import { Grid, Row, Col } from 'react-bootstrap'
-import { ObservationGrid } from '../../../components/grid'
+import { ObservationControlGrid } from '../../../components/grid'
 import Language from '../../../components/language'
 import { connect } from 'react-redux'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
-  observationGridData: state.observationGrid.data
+  observationControlGridData: state.observationControlGrid.data
 })
 
 @connect(mapStateToProps)
-export default class ObservationGridShow extends React.Component {
+export default class ObservationControlGridShow extends React.Component {
   static propTypes = {
     translate: React.PropTypes.func.isRequired,
-    observationGridData: React.PropTypes.arrayOf(React.PropTypes.object)
+    observationControlGridData: React.PropTypes.arrayOf(React.PropTypes.object)
   }
 
   render() {
@@ -49,10 +49,12 @@ export default class ObservationGridShow extends React.Component {
             </Row>
             <Row>
               <Col sm={8} smOffset={2}>
-                <ObservationGrid
+                <ObservationControlGrid
                   id="Reol 5"
                   translate={translate}
-                  tableData={Object.keys(this.props.observationGridData).map(x => this.props.observationGridData[x])}
+                  tableData={
+                    Object.keys(this.props.observationControlGridData).map(x => this.props.observationControlGridData[x])
+                  }
                 />
               </Col>
             </Row>
