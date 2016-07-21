@@ -20,16 +20,16 @@ describe('ObservationControlComponent', () => {
     inputComponent = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'input');
     buttons = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'button');
   });
-  it('Check the New Observation button is created.', () => {
+  it('Check the new observation button is created.', () => {
     assert(buttons[0].getAttribute('id') === '1_newObservation')
   })
-  it('Check the New Control button is created.', () => {
+  it('Check the new control button is created.', () => {
     assert(buttons[1].getAttribute('id') === '1_newControl')
   })
-  it('Check the Control checkbox is created.', () => {
+  it('Check the control checkbox is created.', () => {
     assert(inputComponent[0].getAttribute('id') === '1_selectControl')
   })
-  it('Check the Observation checkbox is created.', () => {
+  it('Check the observation checkbox is created.', () => {
     assert(inputComponent[1].getAttribute('id') === '1_selectObservation')
   })
 })

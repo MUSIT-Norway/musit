@@ -17,11 +17,11 @@ export default class ObservationControl extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectObservation: {
-        checked: false
-      },
       selectControl: {
         checked: false
+      },
+      selectObservation: {
+        checked: true
       }
     };
   }

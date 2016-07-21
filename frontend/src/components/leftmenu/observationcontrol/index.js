@@ -15,68 +15,53 @@ export default class ObservationControlComponent extends Component {
     onClickSelectControl: PropTypes.func.isRequired,
   }
   render() {
-    const { id, translate } = this.props
+    const { id, translate, onClickSelectObservation, onClickSelectControl, onClickNewControl, onClickNewObservation } = this.props
+    const getFormat = (code) => {
+      return (
+        <Row>
+          <Col sm={8} smOffset={2}>
+            {code}
+          </Col>
+        </Row>
+      ) }
+    const getTranslate = (term) => (translate(`musit.leftmenu.observationControl.${term}`))
+    const buttonLogic = (type, eventType) => {
+      return (
+        getFormat(
+          <Button
+            id={`${id}_${type}`}
+            onClick={(event) => eventType(event.target.value)}
+          >
+            <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
+            {getTranslate(type)}
+          </Button>
+        )
+    ) }
+    const checkboxLogic = (type, eventType) => {
+      return (
+        getFormat(
+          <Checkbox
+            id={`${id}_${type}`}
+            checked={this.props[type]}
+            onChange={(event) => eventType(event.target.checked)}
+          >
+            {getTranslate(type)}
+          </Checkbox>
+        )
+    ) }
     return (
       <div>
         <main>
           <Grid>
-            <Row>
-              <Col sm={8} smOffset={2}>
-                <br />
-                <Button
-                  id={`${id}_newObservation`}
-                  onClick={(event) => this.props.onClickNewObservation(event.target.value)}
-                >
-                  <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
-                  {translate('musit.leftmenu.observationControl.newObservation')}
-                </Button>
-              </Col>
-            </Row>
-            <Row>
-              <Col sm={8} smOffset={2}>
-                <br />
-                <Button
-                  id={`${id}_newControl`}
-                  onClick={(event) => this.props.onClickNewControl(event.target.value)}
-                >
-                  <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
-                  {translate('musit.leftmenu.observationControl.newControl')}
-                </Button>
-              </Col>
-            </Row>
-            <Row>
-              <br />
-              <br />
-              <br />
-              <br />
-            </Row>
-            <Row>
-              <Col sm={8} smOffset={2}>
-                {translate('musit.leftmenu.observationControl.show')}
-              </Col>
-            </Row>
-            <Row>
-              <Col sm={8} smOffset={2}>
-                <Checkbox
-                  id={`${id}_selectControl`}
-                  checked={this.props.selectControl}
-                  onChange={(event) => this.props.onClickSelectControl(event.target.checked)}
-                >
-                  {translate('musit.leftmenu.observationControl.selectControl')}
-                </Checkbox>
-              </Col>
-            </Row>
-            <Row>
-              <Col sm={8} smOffset={2}>
-                <Checkbox
-                  id={`${id}_selectObservation`}
-                  checked={this.props.selectObservation}
-                  onChange={(event) => this.props.onClickSelectObservation(event.target.checked)}
-                >
-                  {translate('musit.leftmenu.observationControl.selectObservation')}
-                </Checkbox>
-              </Col>
-            </Row>
+            {buttonLogic('newObservation', onClickNewObservation)}
+            <br />
+            {buttonLogic('newControl', onClickNewControl)}
+            <br />
+            <br />
+            <br />
+            {getFormat(getTranslate('show'))}
+            {checkboxLogic('selectControl', onClickSelectControl)}
+            {checkboxLogic('selectObservation', onClickSelectObservation)}
           </Grid>
         </main>
       </div>
