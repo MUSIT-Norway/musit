@@ -34,9 +34,9 @@ export default class NodeLeftMenu extends Component {
           id="1"
           translate={translate}
           onClickNewNode={(key) => key}
-          objectsOnNode="11"
-          totalObjectCount="78"
-          underNodeCount="5"
+          objectsOnNode={11}
+          totalObjectCount={78}
+          underNodeCount={5}
           onClickProperties={(key) => key}
           onClickObservations={(key) => key}
           onClickController={(key) => key}

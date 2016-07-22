@@ -4,7 +4,7 @@ import { assert, React, ReactTestUtils } from '../../../../../test/setup';
 import NodeLeftMenuComponent from '../index';
 
 describe('NodeLeftMenuComponent', () => {
-  let inputComponent
+  let labels
   let buttons
   before('should render ObservationControlComponent', () => {
     const myDiv = ReactTestUtils.renderIntoDocument(
@@ -12,9 +12,9 @@ describe('NodeLeftMenuComponent', () => {
         id="1"
         translate={(key) => key}
         onClickNewNode={(key) => key}
-        objectsOnNode="11"
-        totalObjectCount="78"
-        underNodeCount="5"
+        objectsOnNode={11}
+        totalObjectCount={78}
+        underNodeCount={5}
         onClickProperties={(key) => key}
         onClickObservations={(key) => key}
         onClickController={(key) => key}
@@ -22,7 +22,7 @@ describe('NodeLeftMenuComponent', () => {
         onClickDelete={(key) => key}
       />
     );
-    inputComponent = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'label');
+    labels = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'label');
     buttons = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'button');
   });
   it('Check the New newNode button is created.', () => {
@@ -32,9 +32,9 @@ describe('NodeLeftMenuComponent', () => {
     assert(buttons[1].getAttribute('id') === '1_properties')
   })
   it('Check the objectsOnNode label is created.', () => {
-    assert(inputComponent[0].getAttribute('id') === '1_objectsOnNode')
+    assert(labels[0].getAttribute('id') === '1_objectsOnNode')
   })
   it('Check the totalObjectCount label is created.', () => {
-    assert(inputComponent[1].getAttribute('id') === '1_totalObjectCount')
+    assert(labels[1].getAttribute('id') === '1_totalObjectCount')
   })
 })

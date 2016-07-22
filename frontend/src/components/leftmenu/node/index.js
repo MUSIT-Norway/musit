@@ -34,7 +34,7 @@ export default class NodeLeftMenuComponent extends Component {
     const buttonLink = (type, icon, eventType) => {
       return (
         <tr style={{ border: 'none' }}>
-          <td style={{ border: 'none', 'text-align': 'center' }}>
+          <td style={{ border: 'none', textAlign: 'center' }}>
             <Button
               bsStyle="link"
               id={`${id}_${type}`}
@@ -51,10 +51,25 @@ export default class NodeLeftMenuComponent extends Component {
     const showCount = (type, typeText) => {
       return (
         <tr style={{ border: 'none' }}>
-          <td style={{ border: 'none', 'text-align': 'right' }}>
+          <td style={{ border: 'none', textAlign: 'right' }}>
             {translate(`musit.leftMenu.node.${typeText}`)}
             <br />
             <ControlLabel id={`${id}_${typeText}`}>{type}</ControlLabel>
+          </td>
+        </tr>
+      ) }
+    const newButton = (identity) => {
+      return (
+        <tr style={{ border: 'none' }}>
+          <td style={{ border: 'none', textAlign: 'right' }}>
+            <br />
+            <Button
+              id={`${identity}_newNode`}
+              onClick={(event) => onClickNewNode(event.target.value)}
+            >
+              <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
+              {translate('musit.leftMenu.node.newNode')}
+            </Button>
           </td>
         </tr>
       ) }
@@ -63,21 +78,10 @@ export default class NodeLeftMenuComponent extends Component {
         <main>
           <Grid>
             <Row>
-              <Col xs={6} xsOffset={6} sm={2} smOffset={10} md={2} mdOffset={10}>
+              <Col xs={6} sm={3} md={2}>
                 <Table responsive>
                   <tbody>
-                    <tr style={{ border: 'none' }}>
-                      <td style={{ border: 'none', 'text-align': 'right' }}>
-                        <br />
-                        <Button
-                          id={`${id}_newNode`}
-                          onClick={(event) => onClickNewNode(event.target.value)}
-                        >
-                          <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
-                          {translate('musit.leftMenu.node.newNode')}
-                        </Button>
-                      </td>
-                    </tr>
+                    {newButton(id)}
                     {showCount(objectsOnNode, 'objectsOnNode')}
                     {showCount(totalObjectCount, 'totalObjectCount')}
                     {showCount(underNodeCount, 'underNodeCount')}
