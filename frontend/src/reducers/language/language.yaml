@@ -24,6 +24,24 @@ no:
         selectObservation: "Observasjoner"
         selectControl: "Kontroller"
         show: "Vis"
+    grid:
+      observation:
+        date: "Dato"
+        types: "Typer"
+        doneBy: "Utført av"
+        registeredDate: "Reg. dato"
+        registeredBy: "Reg. av"
+        header: " - Kontroller / Observasjoner"
+      node:
+        nodeName: "Nodenavn"
+        nodeType: "Nodetype"
+        objectCount: "Ant. obj."
+        totalObjectCount: "Tot. ant. obj."
+        nodeCount: "Ant. noder"
+      object:
+        museumsNumber: "Museumsnr"
+        uNumber: "Unr"
+        term: "Term"
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
