@@ -16,28 +16,6 @@ export default class ObjectGrid extends Component {
 
   render() {
     const { id, translate, tableData } = this.props
-    const objectGrid = (c) => {
-      return (
-        <tr id={`${id}_${c.museumsNumber}_${c.uNumber}`} >
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_museumNumber`}>
-            <FontAwesome name="rebel" />
-            {` ${c.museumsNumber}`}
-          </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_uNumber`}>
-            {c.uNumber}
-          </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_term`}>
-            {c.term}
-          </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_truck`}>
-            <FontAwesome name="truck" />
-          </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_shoppingCart`}>
-            <FontAwesome name="shopping-cart" />
-          </td>
-        </tr>
-      )
-    }
     return (
       <FormGroup>
         <div>
@@ -76,7 +54,24 @@ export default class ObjectGrid extends Component {
             </thead>
             <tbody>
               {tableData.map(c =>
-                objectGrid(c)
+                <tr id={`${id}_${c.museumsNumber}_${c.uNumber}`} >
+                  <td id={`${id}_${c.museumsNumber}_${c.uNumber}_museumNumber`}>
+                    <FontAwesome name="rebel" />
+                    {` ${c.museumsNumber}`}
+                  </td>
+                  <td id={`${id}_${c.museumsNumber}_${c.uNumber}_uNumber`}>
+                    {c.uNumber}
+                  </td>
+                  <td id={`${id}_${c.museumsNumber}_${c.uNumber}_term`}>
+                    {c.term}
+                  </td>
+                  <td id={`${id}_${c.museumsNumber}_${c.uNumber}_truck`}>
+                    <FontAwesome name="truck" />
+                  </td>
+                  <td id={`${id}_${c.museumsNumber}_${c.uNumber}_shoppingCart`}>
+                    <FontAwesome name="shopping-cart" />
+                  </td>
+                </tr>
               )}
             </tbody>
           </Table>
