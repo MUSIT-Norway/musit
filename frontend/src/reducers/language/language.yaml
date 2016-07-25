@@ -18,6 +18,13 @@ en:
 no:
   musit:
     grid:
+      observation:
+        date: "Dato"
+        types: "Typer"
+        doneBy: "Utført av"
+        registeredDate: "Reg. dato"
+        registeredBy: "Reg. av"
+        header: " - Kontroller / Observasjoner"
       node:
         nodeName: "Nodenavn"
         nodeType: "Nodetype"
