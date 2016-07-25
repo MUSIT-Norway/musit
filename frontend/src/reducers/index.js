@@ -31,6 +31,7 @@ import organizationReducer from './organization'
 import observationReducer from './observation'
 import controlAddReducer from './control/add'
 import controlDetailsReducer from './control/view'
+import nodeGridReducer from './grid/node'
 import objectGridReducer from './grid/object'
 
 
@@ -48,6 +49,7 @@ const rootReducer = combineReducers({
   observation: observationReducer,
   control: controlAddReducer,
   controlDetails: controlDetailsReducer,
+  nodeGrid: nodeGridReducer,
   objectGrid: objectGridReducer
 })
 

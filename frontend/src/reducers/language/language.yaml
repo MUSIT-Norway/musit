@@ -18,6 +18,12 @@ en:
 no:
   musit:
     grid:
+      node:
+        nodeName: "Nodenavn"
+        nodeType: "Nodetype"
+        objectCount: "Ant. obj."
+        totalObjectCount: "Tot. ant. obj."
+        nodeCount: "Ant. noder"
       object:
         museumsNumber: "Museumsnr"
         uNumber: "Unr"
