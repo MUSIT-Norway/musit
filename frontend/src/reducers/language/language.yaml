@@ -24,6 +24,10 @@ no:
         objectCount: "Ant. obj."
         totalObjectCount: "Tot. ant. obj."
         nodeCount: "Ant. noder"
+      object:
+        museumsNumber: "Museumsnr"
+        uNumber: "Unr"
+        term: "Term"
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."

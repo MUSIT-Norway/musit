@@ -108,6 +108,9 @@ class App extends Component {
               <LinkContainer to="/grid/node">
                 <NavItem eventKey={12}>NodeGrid</NavItem>
               </LinkContainer>
+              <LinkContainer to="/grid/object/1">
+                <NavItem eventKey={10}>ObjectGrid</NavItem>
+              </LinkContainer>
               {user &&
                 <LinkContainer to="/picklist">
                   <NavItem><Badge><FontAwesome name="shopping-cart" /> {pickListCount}</Badge></NavItem>

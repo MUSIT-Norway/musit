@@ -1,5 +1,4 @@
-
-
 import NodeGrid from './NodeGrid'
+import ObjectGrid from './ObjectGrid'
 
-export { NodeGrid }
+export { ObjectGrid, NodeGrid }
