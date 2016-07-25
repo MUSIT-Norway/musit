@@ -55,53 +55,6 @@ export default class ObservationControlGrid extends Component {
           <FontAwesome style={{ color: 'gray', padding: '2px' }} name={ObservationControlGrid.iconMap[type]} /> : ''
       )
     }
-    const observationControlGrid = (c) => {
-      return (
-        <tr id={`${id}_${c.date}`} >
-          <td id={`${id}_${c.date}_type`}>
-            {c.type === 'control' ? <FontAwesome name="user-secret" /> : ''}
-            {c.type === 'observation' ? <FontAwesome name="eye" /> : ''}
-          </td>
-          <td id={`${id}_${c.date}_date`}>
-            {`${c.date}`}
-          </td>
-          <td id={`${id}_${c.date}_types`}>
-            {showEnabledIcon(c.types.temperature, 'temperature')}
-            {showDisabledIcon(c.types.temperature, 'temperature')}
-            {showEnabledIcon(c.types.inertAir, 'inertAir')}
-            {showDisabledIcon(c.types.inertAir, 'inertAir')}
-            {showEnabledIcon(c.types.relativeHumidity, 'relativeHumidity')}
-            {showDisabledIcon(c.types.relativeHumidity, 'relativeHumidity')}
-            {showEnabledIcon(c.types.cleaning, 'cleaning')}
-            {showDisabledIcon(c.types.cleaning, 'cleaning')}
-            {showEnabledIcon(c.types.lightCondition, 'lightCondition')}
-            {showDisabledIcon(c.types.lightCondition, 'lightCondition')}
-            {showEnabledIcon(c.types.alchohol, 'alchohol')}
-            {showDisabledIcon(c.types.alchohol, 'alchohol')}
-            {showEnabledIcon(c.types.gas, 'gas')}
-            {showDisabledIcon(c.types.gas, 'gas')}
-            {showEnabledIcon(c.types.mold, 'mold')}
-            {showDisabledIcon(c.types.mold, 'mold')}
-            {showEnabledIcon(c.types.pest, 'pest')}
-            {showDisabledIcon(c.types.pest, 'pest')}
-            {showEnabledIcon(c.types.envdata, 'envdata')}
-            {showDisabledIcon(c.types.envdata, 'envdata')}
-          </td>
-          <td id={`${id}_${c.date}_doneBy`}>
-            {`${c.doneBy}`}
-          </td>
-          <td id={`${id}_${c.date}_registeredDate`}>
-            {`${c.registeredDate}`}
-          </td>
-          <td id={`${id}_${c.date}_registeredBy`}>
-            {`${c.registeredBy}`}
-          </td>
-          <td id={`${id}_${c.museumsNumber}_${c.uNumber}_newspaper`}>
-            <FontAwesome name="newspaper-o" />
-          </td>
-        </tr>
-      )
-    }
     return (
       <FormGroup>
         <div>
@@ -138,7 +91,49 @@ export default class ObservationControlGrid extends Component {
             </thead>
             <tbody>
               {this.props.tableData.map(c =>
-                observationControlGrid(c)
+                <tr id={`${id}_${c.date}`} >
+                  <td id={`${id}_${c.date}_type`}>
+                    {c.type === 'control' ? <FontAwesome name="user-secret" /> : ''}
+                    {c.type === 'observation' ? <FontAwesome name="eye" /> : ''}
+                  </td>
+                  <td id={`${id}_${c.date}_date`}>
+                    {`${c.date}`}
+                  </td>
+                  <td id={`${id}_${c.date}_types`}>
+                    {showEnabledIcon(c.types.temperature, 'temperature')}
+                    {showDisabledIcon(c.types.temperature, 'temperature')}
+                    {showEnabledIcon(c.types.inertAir, 'inertAir')}
+                    {showDisabledIcon(c.types.inertAir, 'inertAir')}
+                    {showEnabledIcon(c.types.relativeHumidity, 'relativeHumidity')}
+                    {showDisabledIcon(c.types.relativeHumidity, 'relativeHumidity')}
+                    {showEnabledIcon(c.types.cleaning, 'cleaning')}
+                    {showDisabledIcon(c.types.cleaning, 'cleaning')}
+                    {showEnabledIcon(c.types.lightCondition, 'lightCondition')}
+                    {showDisabledIcon(c.types.lightCondition, 'lightCondition')}
+                    {showEnabledIcon(c.types.alchohol, 'alchohol')}
+                    {showDisabledIcon(c.types.alchohol, 'alchohol')}
+                    {showEnabledIcon(c.types.gas, 'gas')}
+                    {showDisabledIcon(c.types.gas, 'gas')}
+                    {showEnabledIcon(c.types.mold, 'mold')}
+                    {showDisabledIcon(c.types.mold, 'mold')}
+                    {showEnabledIcon(c.types.pest, 'pest')}
+                    {showDisabledIcon(c.types.pest, 'pest')}
+                    {showEnabledIcon(c.types.envdata, 'envdata')}
+                    {showDisabledIcon(c.types.envdata, 'envdata')}
+                  </td>
+                  <td id={`${id}_${c.date}_doneBy`}>
+                    {`${c.doneBy}`}
+                  </td>
+                  <td id={`${id}_${c.date}_registeredDate`}>
+                    {`${c.registeredDate}`}
+                  </td>
+                  <td id={`${id}_${c.date}_registeredBy`}>
+                    {`${c.registeredBy}`}
+                  </td>
+                  <td id={`${id}_${c.museumsNumber}_${c.uNumber}_newspaper`}>
+                    <FontAwesome name="newspaper-o" />
+                  </td>
+                </tr>
               )}
             </tbody>
           </Table>
