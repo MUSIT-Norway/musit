@@ -1,3 +1,5 @@
 import ObservationControlGrid from './ObservationControlGrid'
+import NodeGrid from './NodeGrid'
+import ObjectGrid from './ObjectGrid'
 
-export { ObservationControlGrid }
+export { ObjectGrid, NodeGrid, ObservationControlGrid }

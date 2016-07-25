@@ -32,6 +32,8 @@ import observationReducer from './observation'
 import controlAddReducer from './control/add'
 import controlDetailsReducer from './control/view'
 import observationControlGridReducer from './grid/observationcontrol'
+import nodeGridReducer from './grid/node'
+import objectGridReducer from './grid/object'
 
 const rootReducer = combineReducers({
   routing: routerReducer,
@@ -47,7 +49,9 @@ const rootReducer = combineReducers({
   observation: observationReducer,
   control: controlAddReducer,
   controlDetails: controlDetailsReducer,
-  observationControlGrid: observationControlGridReducer
+  observationControlGrid: observationControlGridReducer,
+  nodeGrid: nodeGridReducer,
+  objectGrid: objectGridReducer
 })
 
 export default rootReducer
