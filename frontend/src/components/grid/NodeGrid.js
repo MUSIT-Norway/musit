@@ -20,40 +20,6 @@ export default class NodeGrid extends Component {
 
   render() {
     const { id, translate } = this.props
-    const objectGrid = (c) => {
-      return (
-        <tr id={`${id}_${c.nodeName}_${c.nodeType}`} >
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeName`}>
-            <FontAwesome name="folder" />
-            {` ${c.nodeName}`}
-          </td>
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeType`}>
-            {c.nodeType}
-          </td>
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_objectCount`}>
-            {c.objectCount}
-          </td>
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_totalObjectCount`}>
-            {c.totalObjectCount}
-          </td>
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeCount`}>
-            {c.nodeCount}
-          </td>
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_eye`}>
-            <FontAwesome name="eye" />
-          </td>
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_search`}>
-            <FontAwesome name="search" />
-          </td>
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_truck`}>
-            <FontAwesome name="truck" />
-          </td>
-          <td id={`${id}_${c.nodeName}_${c.nodeType}_shoppingCart`}>
-            <FontAwesome name="shopping-cart" />
-          </td>
-        </tr>
-      )
-    }
     return (
       <FormGroup>
         <div>
@@ -102,7 +68,36 @@ export default class NodeGrid extends Component {
             </thead>
             <tbody>
               {this.props.tableData.map(c =>
-                objectGrid(c)
+                <tr id={`${id}_${c.nodeName}_${c.nodeType}`} >
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeName`}>
+                    <FontAwesome name="folder" />
+                    {` ${c.nodeName}`}
+                  </td>
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeType`}>
+                    {c.nodeType}
+                  </td>
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_objectCount`}>
+                    {c.objectCount}
+                  </td>
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_totalObjectCount`}>
+                    {c.totalObjectCount}
+                  </td>
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeCount`}>
+                    {c.nodeCount}
+                  </td>
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_eye`}>
+                    <FontAwesome name="eye" />
+                  </td>
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_search`}>
+                    <FontAwesome name="search" />
+                  </td>
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_truck`}>
+                    <FontAwesome name="truck" />
+                  </td>
+                  <td id={`${id}_${c.nodeName}_${c.nodeType}_shoppingCart`}>
+                    <FontAwesome name="shopping-cart" />
+                  </td>
+                </tr>
               )}
             </tbody>
           </Table>
