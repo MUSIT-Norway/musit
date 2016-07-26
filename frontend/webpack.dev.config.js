@@ -17,6 +17,7 @@ module.exports = {
     publicPath: '/assets/',
     filename: 'js/bundle.js'
   },
+  devtool: 'inline-source-map',
   plugins: [
     new webpack.DefinePlugin({
       __DEVELOPMENT__: true,
