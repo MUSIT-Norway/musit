@@ -23,7 +23,7 @@ import ReactDOM from 'react-dom';
 import createStore from './store/configureStore.js';
 import ApiClient from './helpers/ApiClient';
 import { Provider } from 'react-redux';
-import { Router, browserHistory } from 'react-router';
+import { Router, hashHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import getRoutes from './routes';
 import DevTools from './components/dev-tools';
@@ -31,7 +31,7 @@ import DevTools from './components/dev-tools';
 const client = new ApiClient();
 const dest = document.getElementById('content');
 const store = createStore(client);
-const history = syncHistoryWithStore(browserHistory, store);
+const history = syncHistoryWithStore(hashHistory, store);
 
 const component = (
   <Router
