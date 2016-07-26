@@ -96,9 +96,6 @@ class App extends Component {
               <LinkContainer to="/magasin">
                 <NavItem eventKey={6}>Magasin</NavItem>
               </LinkContainer>
-              <LinkContainer to="/musit/about">
-                <NavItem eventKey={7}>About Us</NavItem>
-              </LinkContainer>
               <LinkContainer to="/control/add">
                 <NavItem eventKey={8}>ControlAdd</NavItem>
               </LinkContainer>
@@ -106,16 +103,19 @@ class App extends Component {
                 <NavItem eventKey={9}>ControlView</NavItem>
               </LinkContainer>
               <LinkContainer to="/grid/object/1">
-                <NavItem eventKey={10}>ObjectGrid</NavItem>
+                <NavItem eventKey={10}>Object</NavItem>
               </LinkContainer>
               <LinkContainer to="/grid/observationcontrol/1">
-                <NavItem eventKey={11}>ObservationControlGrid</NavItem>
+                <NavItem eventKey={11}>ObsCon</NavItem>
               </LinkContainer>
               <LinkContainer to="/grid/node">
-                <NavItem eventKey={12}>NodeGrid</NavItem>
+                <NavItem eventKey={12}>Node</NavItem>
               </LinkContainer>
               <LinkContainer to="/observationcontrol">
-                <NavItem eventKey={13}>ObservatinControlLeftMenu</NavItem>
+                <NavItem eventKey={13}>ObsConLeft</NavItem>
+              </LinkContainer>
+              <LinkContainer to="/nodeleftmenu">
+                <NavItem eventKey={14}>NodeLeft</NavItem>
               </LinkContainer>
               {user &&
                 <LinkContainer to="/picklist">

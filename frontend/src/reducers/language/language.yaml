@@ -17,7 +17,17 @@ en:
     login: Login through Dataporten ![feide-logo-button](/assets/images/feide-login-icon.png "Feide Login")
 no:
   musit:
-    leftmenu:
+    leftMenu:
+      node:
+        newNode: "Ny node"
+        objectsOnNode: "Objekter på node:"
+        totalObjectCount: "Totalt ant objekter:"
+        underNodeCount: "Antall undernoder:"
+        properties: "Egenskaper"
+        observations: "Observasjoner"
+        controller: "Kontroller"
+        moveNode: "Flytt node"
+        delete: "Slett"
       observationControl:
         newObservation: "Ny observasjon"
         newControl: "Ny kontroll"
