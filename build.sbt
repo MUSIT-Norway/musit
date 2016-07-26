@@ -26,6 +26,7 @@ name := """musit"""
 version := "0.1"
 
 scalacOptions ++= Seq(
+  "-Xelide-below", "2000", // Disable assert keyword in scala predef
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   "-feature", // Emit warning and location for usages of features that should be imported explicitly.
   "-unchecked", // Enable additional warnings where generated code depends on assumptions.

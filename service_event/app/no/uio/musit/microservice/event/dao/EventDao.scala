@@ -21,17 +21,17 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{BaseEventProps, RelatedEvents, _}
-import no.uio.musit.microservice.event.service.{EventHelpers, MultipleTablesMultipleDtos, SingleTableMultipleDtos, SingleTableSingleDto}
+import no.uio.musit.microservice.event.domain.{ BaseEventProps, RelatedEvents, _ }
+import no.uio.musit.microservice.event.service.{ EventHelpers, MultipleTablesMultipleDtos, SingleTableMultipleDtos, SingleTableSingleDto }
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.dbio.SequenceAction
 import slick.driver.JdbcProfile
 
@@ -218,7 +218,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
-                          partOf: Option[Long], valueLong: Option[Long], valueString: Option[String]) {
+      partOf: Option[Long], valueLong: Option[Long], valueString: Option[String]) {
 
     def getOptBool = valueLong match {
       case Some(1) => Some(true)
@@ -245,7 +245,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       }
     }
 
-
     def props(relatedSubEvents: Seq[RelatedEvents]) = BaseEventProps.fromBaseEventDto(this, relatedSubEvents)
   }
 
@@ -255,7 +254,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   )
 
   class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id.?, eventTypeID, eventNote, partOf, valueLong, valueString) <>(create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, eventTypeID, eventNote, partOf, valueLong, valueString) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 
