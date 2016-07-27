@@ -54,23 +54,9 @@ case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: E
     case Some(1) => Some(true)
     case Some(0) => Some(false)
     case None => None
-    case n => throw new MusitInternalErrorException(s"Wrong boolean value $n on base event")
   }
 
-  def getBool = getOptBool match {
-    case Some(b) => b
-    case None => throw new MusitInternalErrorException("Missing boolean value onj base event")
-  }
-
-  def getInteger = valueLong match {
-    case Some(n) => n
-    case None => throw new MusitInternalErrorException("Missing integer value on base event")
-
-  }
-
-  private def boolToLong(bool: Boolean) = if (bool) 1 else 0
-
-  def setBool(value: Boolean) = this.copy(valueLong = Some(boolToLong(value)))
+  def setBool(value: Boolean) = this.copy(valueLong = Some(if (value) 1 else 0))
 
   def setString(value: String) = this.copy(valueString = Some(value))
 

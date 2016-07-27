@@ -52,7 +52,7 @@ case class ValueStringField(name: String, required: Boolean, validator: Option[I
 
 object CustomValuesInEventTable {
 
-  def getBool(event: Event) = event.baseEventProps.getBool
+  def getBool(event: Event) = event.baseEventProps.getOptBool.get
 
   def getOptBool(event: Event) = event.baseEventProps.getOptBool
 
@@ -87,11 +87,10 @@ object CustomFieldsHandler {
               valueLongFieldSpec match {
                 case BooleanField(name, req) =>
                   //println(s"Adding boolean field: $name value: ${baseEventDto.getBool}")
-                  jsObject.+(name -> JsBoolean(baseEventDto.getBool))
-
+                  jsObject.+(name -> JsBoolean(baseEventDto.getOptBool.get))
                 case IntegerField(name, _, _) =>
                   //println(s"Adding integer field: $name value: ${baseEventDto.getInteger}")
-                  jsObject.+(name -> JsNumber(baseEventDto.getInteger))
+                  jsObject.+(name -> JsNumber(baseEventDto.valueLong.get))
               }
           }
         }
