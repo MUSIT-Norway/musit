@@ -46,8 +46,8 @@ object ObservationSkadedyrDao extends HasDatabaseConfig[JdbcProfile] {
 
   def insertAction(eventId: Long, obsDto: ObservationSkadedyrDto): DBIO[Int] = {
     val livssykluserWithEventId = obsDto.livssykluser.map { livssyklus => livssyklus.copy(eventId = Some(eventId)) }
-    DaoHelper.mapMultiRowInsertResultIntoOk( //See doc for mapMultiRowInsertResultIntoOk for the reason of why this is done.
-      (LivssyklusTable ++= livssykluserWithEventId)
+    DaoHelper.mapMultiRowInsertResultIntoOk(
+      LivssyklusTable ++= livssykluserWithEventId
     )
   }
 
@@ -55,8 +55,9 @@ object ObservationSkadedyrDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(LivssyklusTable.filter(livssyklus => livssyklus.eventId === id).result).
       map {
         seqLivssyklus =>
-          if (seqLivssyklus.isEmpty) None
-          else {
+          if (seqLivssyklus.isEmpty) {
+            None
+          } else {
             val seqLivssyklusWithoutEventIds = seqLivssyklus.map(_.copy(eventId = None)) //We don't want the eventIds in json output.
             Some(ObservationSkadedyrDto(seqLivssyklusWithoutEventIds))
           }

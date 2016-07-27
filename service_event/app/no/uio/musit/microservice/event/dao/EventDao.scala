@@ -122,7 +122,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
     val id = baseEventDto.id.getOrFail("Internal error, id missing")
-    //val baseProps = baseEventDto.props(relatedSubEvents)
     val baseProps = baseEventDto.copy(relatedSubEvents = relatedSubEvents)
     baseEventDto.eventType.eventImplementation match {
       case singleTableEventType: SingleTableEventType => MusitFuture.successful(singleTableEventType.createEventInMemory(baseProps))

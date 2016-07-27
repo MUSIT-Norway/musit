@@ -32,17 +32,18 @@ import play.api.libs.json._
 object BaseEventDto {
   implicit object baseEventPropsWrites extends Writes[BaseEventDto] {
 
-    // TODO: Fix this, this currently writes "note": null if no note!
     def writes(baseEventDto: BaseEventDto): JsValue = {
       var jsObj = Json.obj(
         "id" -> baseEventDto.id,
         "links" -> baseEventDto.links,
         "eventType" -> baseEventDto.eventType
       )
-      baseEventDto.note.foreach(note => {
-        jsObj = jsObj.+("note" -> JsString(note))
-      })
-      CustomFieldsHandler.writeCustomFieldsToJsonIfAny(baseEventDto, jsObj)
+
+      val note = baseEventDto.note.map(note =>
+        if (note != null && note.nonEmpty) Json.obj("note" -> JsString(note))
+        else Json.obj()).getOrElse(Json.obj())
+
+      CustomFieldsHandler.writeCustomFieldsToJsonIfAny(baseEventDto, jsObj ++ note)
     }
   }
 }

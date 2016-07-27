@@ -56,12 +56,9 @@ object CustomValuesInEventTable {
 
   def getOptBool(event: Event) = event.baseEventProps.getOptBool
 
-  //Empty string if none.
   def getString(event: Event) = event.baseEventProps.getString
 
   def getOptString(event: Event) = event.baseEventProps.getOptString
-
-  //def setBool(event: Event, value: Boolean)
 
 }
 
@@ -83,15 +80,11 @@ object CustomFieldsHandler {
       var resultJsObject = baseEventDto.valueLong.fold(jsObject) { myValueLong =>
         {
           fieldsSpec.intValueHandler.fold(jsObject) {
-            valueLongFieldSpec =>
-              valueLongFieldSpec match {
-                case BooleanField(name, req) =>
-                  //println(s"Adding boolean field: $name value: ${baseEventDto.getBool}")
-                  jsObject.+(name -> JsBoolean(baseEventDto.getOptBool.get))
-                case IntegerField(name, _, _) =>
-                  //println(s"Adding integer field: $name value: ${baseEventDto.getInteger}")
-                  jsObject.+(name -> JsNumber(baseEventDto.valueLong.get))
-              }
+            case BooleanField(name, req) =>
+              jsObject.+(name -> JsBoolean(baseEventDto.getOptBool.get))
+
+            case IntegerField(name, _, _) =>
+              jsObject.+(name -> JsNumber(baseEventDto.valueLong.get))
           }
         }
       }
@@ -99,8 +92,7 @@ object CustomFieldsHandler {
         {
           fieldsSpec.stringValueHandler.fold(resultJsObject) {
             valueStringFieldSpec =>
-              //println(s"Adding string field: ${valueStringFieldSpec.name } value: ${myValueString}")
-              resultJsObject.+(valueStringFieldSpec.name -> JsString(myValueString))
+              resultJsObject + (valueStringFieldSpec.name -> JsString(myValueString))
           }
         }
       }
