@@ -61,7 +61,8 @@ const observationTypeDefinitions = (translate) => {
     status: {
       viewLabel: translate('musit.texts.ok'),
       props: {
-        translate: translate
+        translate: translate,
+        translateKeyPrefix: 'musit.storageUnits.environmentRequirements.alcohol.statusItems.'
       },
       defaultValues: {
         statusValue: '',

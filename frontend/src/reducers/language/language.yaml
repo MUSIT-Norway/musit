@@ -17,6 +17,41 @@ en:
     login: Login through Dataporten ![feide-logo-button](/assets/images/feide-login-icon.png "Feide Login")
 no:
   musit:
+    leftMenu:
+      node:
+        newNode: "Ny node"
+        objectsOnNode: "Objekter på node:"
+        totalObjectCount: "Totalt ant objekter:"
+        underNodeCount: "Antall undernoder:"
+        properties: "Egenskaper"
+        observations: "Observasjoner"
+        controller: "Kontroller"
+        moveNode: "Flytt node"
+        delete: "Slett"
+      observationControl:
+        newObservation: "Ny observasjon"
+        newControl: "Ny kontroll"
+        selectObservation: "Observasjoner"
+        selectControl: "Kontroller"
+        show: "Vis"
+    grid:
+      observation:
+        date: "Dato"
+        types: "Typer"
+        doneBy: "Utført av"
+        registeredDate: "Reg. dato"
+        registeredBy: "Reg. av"
+        header: " - Kontroller / Observasjoner"
+      node:
+        nodeName: "Nodenavn"
+        nodeType: "Nodetype"
+        objectCount: "Ant. obj."
+        totalObjectCount: "Tot. ant. obj."
+        nodeCount: "Ant. noder"
+      object:
+        museumsNumber: "Museumsnr"
+        uNumber: "Unr"
+        term: "Term"
     texts:
       freetext: "Fritekst"
       makeChoice: "Vennligst velg..."
@@ -60,6 +95,12 @@ no:
         countLabel: "Antall"
         countPlaceHolder: "Heltall"
         countTooltip: "Antall tooltip!"
+        lifeCycleItems:
+          adult: "Adult"
+          puppe: "Puppe"
+          puppeskin: "Puppeskin"
+          larva: "Larva"
+          egg: "Egg"
       inertAir:
         fromLabel: "Fr"
     pickList:
