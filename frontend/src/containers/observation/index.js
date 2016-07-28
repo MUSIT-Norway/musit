@@ -27,15 +27,18 @@ import DatePicker from 'react-bootstrap-date-picker'
 import Autosuggest from 'react-autosuggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
-import { addObservation, loadObservationDataToViewReducer } from '../../reducers/observation'
+import { addObservation, loadObservation } from '../../reducers/observation'
 
 // TODO: Bind finished page handling to redux and microservices.
-const mapStateToProps = () => ({
+const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
-  loadObservationDataToView: loadObservationDataToViewReducer
+  observationsFromServer: state.observation.data.observations
 })
 
 const mapDispatchToProps = (dispatch) => ({
+  loadObservation: () => {
+    dispatch(loadObservation())
+  },
   onSaveObservation: (data) => {
     dispatch(addObservation(data))
   }
@@ -44,9 +47,10 @@ const mapDispatchToProps = (dispatch) => ({
 @connect(mapStateToProps, mapDispatchToProps)
 export default class ObservationView extends React.Component {
   static propTypes = {
+    loadObservation: React.PropTypes.func.isRequired,
     translate: React.PropTypes.func.isRequired,
     onSaveObservation: React.PropTypes.func.isRequired,
-    loadObservationDataToView: React.PropTypes.arrayOf(React.PropTypes.object)
+    observationsFromServer: React.PropTypes.arrayOf(React.PropTypes.object)
   }
 
   constructor(props) {
@@ -452,7 +456,9 @@ export default class ObservationView extends React.Component {
             this.actions.changePestIdentification, this.actions.changePestComment)
     }
 
-    this.state = this.props.loadObservationDataToView
+    this.state = {
+      observations: this.props.observationsFromServer
+    }
     /* {
       observations: [
         {
@@ -492,6 +498,10 @@ export default class ObservationView extends React.Component {
     this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
     this.onChangeDate = this.onChangeDate.bind(this)
     this.selectType = this.selectType.bind(this)
+  }
+
+  componentWillMount() {
+    this.props.loadObservation(1)
   }
 
   onChangeDoneBy(event, { newValue }) {
@@ -547,7 +557,9 @@ export default class ObservationView extends React.Component {
       onDoneByUpdateRequested,
       selectType
     } = this
-    const { observations } = this.state
+    const { observationsFromServer } = this.props
+
+    const observations = observationsFromServer
 
     const doneByProps = {
       id: 'doneByField',
