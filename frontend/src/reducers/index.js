@@ -28,7 +28,7 @@ import picklistReducer from './picklist'
 import storagePanelReducer from './storageunit/panel'
 import storageGridReducer from './storageunit/grid'
 import organizationReducer from './organization'
-import observationReducer from './observation'
+import { observationReducer, loadObservationDataToViewReducer } from './observation'
 import controlAddReducer from './control/add'
 import controlDetailsReducer from './control/view'
 import observationControlGridReducer from './grid/observationcontrol'
@@ -51,7 +51,8 @@ const rootReducer = combineReducers({
   controlDetails: controlDetailsReducer,
   observationControlGrid: observationControlGridReducer,
   nodeGrid: nodeGridReducer,
-  objectGrid: objectGridReducer
+  objectGrid: objectGridReducer,
+  loadObservationDataToView: loadObservationDataToViewReducer
 })
 
 export default rootReducer

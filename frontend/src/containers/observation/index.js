@@ -27,11 +27,12 @@ import DatePicker from 'react-bootstrap-date-picker'
 import Autosuggest from 'react-autosuggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
-import { addObservation } from '../../reducers/observation'
+import { addObservation, loadObservationDataToViewReducer } from '../../reducers/observation'
 
 // TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = () => ({
-  translate: (key, markdown) => Language.translate(key, markdown)
+  translate: (key, markdown) => Language.translate(key, markdown),
+  loadObservationDataToView: loadObservationDataToViewReducer
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -44,7 +45,8 @@ const mapDispatchToProps = (dispatch) => ({
 export default class ObservationView extends React.Component {
   static propTypes = {
     translate: React.PropTypes.func.isRequired,
-    onSaveObservation: React.PropTypes.func.isRequired
+    onSaveObservation: React.PropTypes.func.isRequired,
+    loadObservationDataToView: React.PropTypes.arrayOf(React.PropTypes.object)
   }
 
   constructor(props) {
@@ -450,41 +452,42 @@ export default class ObservationView extends React.Component {
             this.actions.changePestIdentification, this.actions.changePestComment)
     }
 
-    this.state = {
+    this.state = this.props.loadObservationDataToView
+    /* {
       observations: [
-        /* {
+        {
           type: 'pest',
           data: {
-            observations: [],
-            identificationValue: '',
-            commentsValue: ''
+            observations: [{ lifeCycle: 'Puppe', count: 3 }, { lifeCycle: 'Egg', count: 4 }],
+            identificationValue: 'Test identification value.',
+            commentsValue: 'Test comments.'
           }
         },
         {
           type: 'hypoxicAir',
           data: {
-            fromValue: '',
-            toValue: '',
-            commentValue: ''
+            fromValue: '19',
+            toValue: '23',
+            commentValue: 'Test comments.'
           }
         },
         {
           type: 'cleaning',
           data: {
-            leftValue: '',
-            rightValue: ''
+            leftValue: 'Test cleaning value.',
+            rightValue: 'Test comments.'
           }
         },
         {
           type: 'alcohol',
           data: {
-            statusValue: '',
-            volumeValue: '',
-            commentValue: ''      console.log(this.observationTypes[observation.type])
+            statusValue: 'Tilfredsstillende',
+            volumeValue: '12',
+            commentValue: 'Sprit comments.'
           }
-        }*/
+        }
       ]
-    }
+    } */
     this.addNewObservation = this.addNewObservation.bind(this)
     this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
     this.onChangeDate = this.onChangeDate.bind(this)
