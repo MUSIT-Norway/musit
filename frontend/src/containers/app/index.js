@@ -72,24 +72,6 @@ class App extends Component {
           </Navbar.Header>
           <Navbar.Collapse eventKey={0}>
             <Nav navbar>
-              {user &&
-                <LinkContainer to="/musit/chat">
-                  <NavItem eventKey={1}>Chat</NavItem>
-                </LinkContainer>
-              }
-              {user &&
-                <LinkContainer to="/musit/widgets">
-                  <NavItem eventKey={2}>Widgets</NavItem>
-                </LinkContainer>
-              }
-              {user &&
-                <LinkContainer to="/musit/survey">
-                  <NavItem eventKey={4}>Survey</NavItem>
-                </LinkContainer>
-              }
-              <LinkContainer to="/example">
-                <NavItem eventKey={5}>Example</NavItem>
-              </LinkContainer>
               <LinkContainer to="/observation">
                 <NavItem eventKey={5}>Observation</NavItem>
               </LinkContainer>

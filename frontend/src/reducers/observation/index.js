@@ -1,14 +1,13 @@
 const ADD = 'musit/observation/ADD'
 const LOAD = 'musit/observation/LOAD'
 
-const initialState = {
+export const initialState = {
   data: {
     user: '',
     date: '',
     observations: []
   }
 }
-
 
 const observationReducer = (state = initialState, action = {}) => {
   switch (action.type) {
