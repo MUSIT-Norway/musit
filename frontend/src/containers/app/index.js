@@ -72,7 +72,7 @@ class App extends Component {
           </Navbar.Header>
           <Navbar.Collapse eventKey={0}>
             <Nav navbar>
-              <LinkContainer to="/observation">
+              <LinkContainer to="/observation/add">
                 <NavItem eventKey={5}>Observation</NavItem>
               </LinkContainer>
               <LinkContainer to="/magasin">
