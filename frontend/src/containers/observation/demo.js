@@ -76,7 +76,7 @@ export default class ObservationView extends React.Component {
                     identificationValue="ID"
                     commentsValue=""
                     onAddPest={() => this.addPest()}
-                  / >
+                  />
                 </Col>
               </Row>
               <Row>
