@@ -21,24 +21,23 @@
 package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
-import no.uio.musit.microservice.event.domain.{BaseEventProps, Dto, Event}
+import no.uio.musit.microservice.event.domain.{ BaseEventProps, Dto, Event }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.libs.json.{JsObject, JsResult}
+import play.api.libs.json.{ JsObject, JsResult }
 import slick.dbio._
 
 import scala.concurrent.Future
 
 /**
-  * Created by jstabel on 7/7/16.
-  */
+ * Created by jstabel on 7/7/16.
+ */
 /**
-  * We split event implementations into three kinds:
-  * 1) Those which store all their data in the base event table and doesn't use the custom generic fields (valueAsInteger etc). This means single table and single dto.
-  * 2) Those which store all their data in the base event table, but also use the custom generic fields. This means single table and baseProps and a custom dto.
-  * 3) Those which needs a separate table. They are not allowed to use the custom generic fields. This means single table and baseProps and a custom dto.
-  */
-
+ * We split event implementations into three kinds:
+ * 1) Those which store all their data in the base event table and doesn't use the custom generic fields (valueAsInteger etc). This means single table and single dto.
+ * 2) Those which store all their data in the base event table, but also use the custom generic fields. This means single table and baseProps and a custom dto.
+ * 3) Those which needs a separate table. They are not allowed to use the custom generic fields. This means single table and baseProps and a custom dto.
+ */
 
 sealed trait EventImplementation
 
@@ -52,44 +51,44 @@ trait MultipleDtosEventType {
 }
 
 /**
-  * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
-  */
+ * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
+ */
 trait SingleDtoEventType {
   def createEventInMemory(baseEventProps: BaseEventProps): Event
 }
 
 /**
-  * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
-  */
+ * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
+ */
 
 trait SingleTableSingleDto extends EventImplementation with SingleDtoEventType {
 }
 
 /**
-  * For event types which don't need to store extra properties than what is in the base event table, but does use custom generic fields in the base event table.
-  *
-  * Implement this event type if you need to store anything in valueInteger or valueString.
-  *
-  * Remember to call super if you implement further subtypes of this event implementation type
-  */
+ * For event types which don't need to store extra properties than what is in the base event table, but does use custom generic fields in the base event table.
+ *
+ * Implement this event type if you need to store anything in valueInteger or valueString.
+ *
+ * Remember to call super if you implement further subtypes of this event implementation type
+ */
 trait SingleTableMultipleDtos extends EventImplementation with MultipleDtosEventType {
 
   /**
-    * Interprets/reads the custom fields it needs (and copies them into the Dto).
-    */
+   * Interprets/reads the custom fields it needs (and copies them into the Dto).
+   */
   def baseTableToCustomDto(baseEventDto: BaseEventDto): Dto
 
   /**
-    * Stores the custom values into a BaseEventDto instance.
-    * Use this if you need to store anything in valueInteger or valueString, override this method to provide this data. Gets called before the data is written to the database
-    */
+   * Stores the custom values into a BaseEventDto instance.
+   * Use this if you need to store anything in valueInteger or valueString, override this method to provide this data. Gets called before the data is written to the database
+   */
   def customDtoToBaseTable(event: Event, baseEventDto: BaseEventDto): BaseEventDto
 
 }
 
 /**
-  * For event types which has their own extra properties table. Does *not* use any of the custom generic fields in the base event table.
-  */
+ * For event types which has their own extra properties table. Does *not* use any of the custom generic fields in the base event table.
+ */
 trait MultipleTablesMultipleDtos extends EventImplementation with MultipleDtosEventType {
   /** creates an action which inserts the extended/specific properties into the database */
   def createInsertCustomDtoAction(id: Long, event: Event): DBIO[Int]

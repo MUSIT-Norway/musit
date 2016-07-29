@@ -70,20 +70,21 @@ object Constants {
   val subEventsPrefix = "subEvents-"
 }
 
-case class EnvRequirementDto(id: Option[Long],
-                             temperature: Option[Int],
-                             tempInterval: Option[Int],
-                             airHumidity: Option[Int],
-                             airHumInterval: Option[Int],
-                             hypoxicAir: Option[Int],
-                             hypoxicInterval: Option[Int],
-                             cleaning: Option[String],
-                             light: Option[String]) extends Dto
+case class EnvRequirementDto(
+  id: Option[Long],
+  temperature: Option[Int],
+  tempInterval: Option[Int],
+  airHumidity: Option[Int],
+  airHumInterval: Option[Int],
+  hypoxicAir: Option[Int],
+  hypoxicInterval: Option[Int],
+  cleaning: Option[String],
+  light: Option[String]
+) extends Dto
 
 object EnvRequirementDto {
   implicit val format = Json.format[EnvRequirementDto]
 }
-
 
 case class ControlSpecificDto(ok: Boolean) extends Dto
 
@@ -91,20 +92,19 @@ object ControlSpecificDto {
   implicit val format = Json.format[ControlSpecificDto]
 }
 
-
-case class ObservationFromToDto(id: Option[Long],
-                                from: Option[Double],
-                                to: Option[Double]) extends Dto
+case class ObservationFromToDto(
+  id: Option[Long],
+  from: Option[Double],
+  to: Option[Double]
+) extends Dto
 
 object ObservationFromToDto {
   implicit val format = Json.format[ObservationFromToDto]
 }
-
 
 case class ObservationLysDto(lysforhold: Option[String]) extends Dto
 
 object ObservationLysDto {
   implicit val format = Json.format[ObservationLysDto]
 }
-
 

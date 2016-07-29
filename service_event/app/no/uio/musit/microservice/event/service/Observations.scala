@@ -20,10 +20,10 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.{EnvRequirementDao, ObservationFromToDao}
+import no.uio.musit.microservice.event.dao.{ EnvRequirementDao, ObservationFromToDao }
 import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
 import no.uio.musit.microservice.event.domain._
-import play.api.libs.json.{JsObject, JsResult, Json}
+import play.api.libs.json.{ JsObject, JsResult, Json }
 
 import scala.concurrent.Future
 
@@ -36,9 +36,7 @@ class ObservationFromTo(baseEventProps: BaseEventProps, val customDto: Observati
 
 /** "Abstract" base class for specific observationFromTo implementations */
 
-
 class ObservationFromToServiceBase {
-
 
   def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventProps): Future[Option[Dto]] = ObservationFromToDao.getObservationFromTo(id)
 
@@ -56,7 +54,6 @@ class ObservationFromToServiceBase {
 
 class ObservationRelativeHumidity(baseEventProps: BaseEventProps, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
-
 object ObservationRelativeHumidityService extends ObservationFromToServiceBase with MultipleTablesMultipleDtos {
 
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationRelativeHumidity(baseProps, customDto.asInstanceOf[ObservationFromToDto])
@@ -73,7 +70,6 @@ object ObservationTemperatureService extends ObservationFromToServiceBase with M
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationTemperature(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
 
-
 // ------------------------------------------------------------
 //  ObservationInertAir
 // ------------------------------------------------------------
@@ -84,7 +80,6 @@ object ObservationInertAirService extends ObservationFromToServiceBase with Mult
 
   def createEventInMemory(baseProps: BaseEventProps, customDto: Dto): Event = new ObservationInertAir(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
-
 
 // ------------------------------------------------------------
 //  ObservationLys

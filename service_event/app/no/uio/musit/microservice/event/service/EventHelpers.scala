@@ -20,14 +20,14 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{Constants, EventRelations, _}
+import no.uio.musit.microservice.event.domain.{ Constants, EventRelations, _ }
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
-import play.api.libs.json.{JsArray, JsObject, JsResult, JsValue}
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import play.api.libs.json.{ JsArray, JsObject, JsResult, JsValue }
 
 /**
  * Created by jstabel on 7/6/16.
