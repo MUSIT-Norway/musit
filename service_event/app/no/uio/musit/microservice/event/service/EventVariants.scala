@@ -96,20 +96,6 @@ trait SingleTableNotUsingCustomFields extends EventImplementation with SingleTab
  * Remember to call super if you implement further subtypes of this event implementation type
  */
 trait SingleTableUsingCustomFields extends EventImplementation with SingleTableEventType with UsingCustomFieldsInBaseEventTable {
-  // with MultipleDtosEventType {
-
-  /*#OLD
-  /**
-    * Interprets/reads the custom fields it needs (and copies them into the Dto).
-    */
-  def baseTableToCustomDto(baseEventDto: BaseEventDto): Dto
-
-  /**
-    * Stores the custom values into a BaseEventDto instance.
-    * Use this if you need to store anything in valueInteger or valueString, override this method to provide this data. Gets called before the data is written to the database
-    */
-  def customDtoToBaseTable(event: Event, baseEventDto: BaseEventDto): BaseEventDto
-*/
 }
 
 /**

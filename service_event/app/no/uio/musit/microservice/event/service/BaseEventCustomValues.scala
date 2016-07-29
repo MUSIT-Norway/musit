@@ -100,34 +100,27 @@ object CustomFieldsHandler {
     }
   }
 
-  val jsResultNoneOfLong: JsResult[Option[Long]] = JsSuccess[Option[Long]](None) //Wasn't able to get the below to compile with this stuff inline
-
   def validateCustomIntegerFieldFromJsonIfAny(eventType: EventType, jsObject: JsObject): JsResult[Option[Long]] = {
-    getOptFieldsSpec(eventType).fold(jsResultNoneOfLong) { fieldsSpec =>
-      fieldsSpec.intValueHandler.fold(jsResultNoneOfLong) {
-        valueLongFieldSpec =>
-          valueLongFieldSpec match {
-            case BooleanField(name, req) =>
-              if (req)
-                (jsObject \ name).validate[Boolean].map(b => if (b) Some(1L) else Some(0L))
-              else
-                (jsObject \ name).validateOpt[Boolean].map(optB => optB.map(b => if (b) 1L else 0L))
-            case IntegerField(name, req, _) =>
-              if (req)
-                (jsObject \ name).validate[Long].map(Some(_))
-              else
-                (jsObject \ name).validateOpt[Long]
+    getOptFieldsSpec(eventType).fold[JsResult[Option[Long]]](JsSuccess[Option[Long]](None)) { fieldsSpec =>
+      fieldsSpec.intValueHandler.fold[JsResult[Option[Long]]](JsSuccess[Option[Long]](None)) {
+        case BooleanField(name, req) =>
+          if (req)
+            (jsObject \ name).validate[Boolean].map(b => if (b) Some(1L) else Some(0L))
+          else
+            (jsObject \ name).validateOpt[Boolean].map(optB => optB.map(b => if (b) 1L else 0L))
+        case IntegerField(name, req, _) =>
+          if (req)
+            (jsObject \ name).validate[Long].map(Some(_))
+          else
+            (jsObject \ name).validateOpt[Long]
 
-          }
       }
     }
   }
 
-  val jsResultNoneOfString: JsResult[Option[String]] = JsSuccess[Option[String]](None) //Wasn't able to get the below to compile with this stuff inline
-
   def validateCustomStringFieldFromJsonIfAny(eventType: EventType, jsObject: JsObject): JsResult[Option[String]] = {
-    getOptFieldsSpec(eventType).fold(jsResultNoneOfString) { fieldsSpec =>
-      fieldsSpec.stringValueHandler.fold(jsResultNoneOfString) {
+    getOptFieldsSpec(eventType).fold[JsResult[Option[String]]](JsSuccess[Option[String]](None)) { fieldsSpec =>
+      fieldsSpec.stringValueHandler.fold[JsResult[Option[String]]](JsSuccess[Option[String]](None)) {
         valueStringFieldSpec =>
           if (valueStringFieldSpec.required)
             (jsObject \ valueStringFieldSpec.name).validate[String].map(Some(_))

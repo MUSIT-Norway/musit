@@ -136,12 +136,4 @@ object JsonEventHelpers {
     } else
       singleEventJson
   }
-
-  /*#OLD
-  def eventDtoToStoreInDatabase(event: Event, parentId: Option[Long]) = {
-    event.eventType.maybeSingleTableMultipleDtos match {
-      case Some(singleTableMultipleDtos) => singleTableMultipleDtos.customDtoToBaseTable(event, event.baseEventProps.copy(partOf=parentId))
-      case None => event.baseEventProps.copy(partOf=parentId)
-    }
-  }*/
 }
