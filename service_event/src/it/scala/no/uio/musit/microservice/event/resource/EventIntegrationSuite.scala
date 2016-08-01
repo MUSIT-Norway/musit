@@ -366,7 +366,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     "href": "actor/12"
   }],
     "subEvents-parts": [{
-    "eventType": "controlAir",
+    "eventType": "controlInertluft",
     "ok": true
   }, {
     "eventType": "controlTemperature",
@@ -393,7 +393,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
     val specificControls = parts.get
     assert(specificControls.length >= 2)
-    val okControl = specificControls(0).asInstanceOf[ControlAir]
+    val okControl = specificControls(0).asInstanceOf[ControlInertluft]
     val notOkControl = specificControls(1).asInstanceOf[ControlTemperature]
 
     okControl.ok mustBe true
@@ -496,5 +496,115 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
   }
 
+
+
+
+  "post controlRelativLuftfuktighet" in {
+    val json =
+      """ {
+    "eventType": "controlRelativLuftfuktighet",
+    "note": "tekst",
+    "ok": true
+  }
+      """
+    val response = createEvent(json)
+    response.status mustBe 201
+
+    val myEvent = validateEvent[ControlRelativLuftfuktighet](response.json)
+    myEvent.ok mustBe true
+  }
+
+  "post ControlLysforhold" in {
+    val json =
+      """ {
+    "eventType": "controlLysforhold",
+    "note": "tekst",
+    "ok": false
+  }
+      """
+    val response = createEvent(json)
+    response.status mustBe 201
+
+    val myEvent = validateEvent[ControlLysforhold](response.json)
+    myEvent.ok mustBe false
+  }
+
+  "post ControlRenhold" in {
+    val json =
+      """ {
+    "eventType": "controlRenhold",
+    "note": "tekst",
+    "ok": true
+  }
+      """
+    val response = createEvent(json)
+    response.status mustBe 201
+
+    val myEvent = validateEvent[ControlRenhold](response.json)
+    myEvent.ok mustBe true
+  }
+
+
+  "post ControlGass" in {
+    val json =
+      """ {
+    "eventType": "controlGass",
+    "note": "tekst",
+    "ok": false
+  }
+      """
+    val response = createEvent(json)
+    response.status mustBe 201
+
+    val myEvent = validateEvent[ControlGass](response.json)
+    myEvent.ok mustBe false
+  }
+
+
+  "post ControlMugg" in {
+    val json =
+      """ {
+    "eventType": "controlMugg",
+    "note": "tekst",
+    "ok": true
+  }
+      """
+    val response = createEvent(json)
+    response.status mustBe 201
+
+    val myEvent = validateEvent[ControlMugg](response.json)
+    myEvent.ok mustBe true
+  }
+
+
+  "post ControlSkadedyr" in {
+    val json =
+      """ {
+    "eventType": "controlSkadedyr",
+    "note": "tekst",
+    "ok": false
+  }
+      """
+    val response = createEvent(json)
+    response.status mustBe 201
+
+    val myEvent = validateEvent[ControlSkadedyr](response.json)
+    myEvent.ok mustBe false
+  }
+
+  "post ControlSprit" in {
+    val json =
+      """ {
+    "eventType": "controlSprit",
+    "note": "tekst",
+    "ok": true
+  }
+      """
+    val response = createEvent(json)
+    response.status mustBe 201
+
+    val myEvent = validateEvent[ControlSprit](response.json)
+    myEvent.ok mustBe true
+  }
 
 }
