@@ -20,14 +20,13 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{Dto, ObservationFromToDto}
+import no.uio.musit.microservice.event.domain.{ Dto, ObservationFromToDto }
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import play.api.libs.json.Json
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
-
 
 object ObservationFromToDao extends HasDatabaseConfig[JdbcProfile] {
 

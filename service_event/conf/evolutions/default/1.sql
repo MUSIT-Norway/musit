@@ -78,6 +78,13 @@ CREATE TABLE MUSARK_EVENT.E_ENVIRONMENT_REQUIREMENT
 );
 
 
+CREATE TABLE MUSARK_EVENT.OBSERVATION_SKADEDYR_LIVSSYKLUS
+(
+ event_id         BIGINT(20) NOT NULL,
+ livssyklus       VARCHAR2(250),
+ antall             integer,
+   FOREIGN KEY (event_id) REFERENCES MUSARK_EVENT.EVENT(ID)
+);
 
 
 CREATE TABLE URI_LINKS (
@@ -87,7 +94,6 @@ CREATE TABLE URI_LINKS (
       HREF varchar(2000) NOT NULL,
       PRIMARY KEY (ID)
     );
-
 
 
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,'Move');
@@ -100,6 +106,9 @@ insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7,'observationtemperature'
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (8,'observationrelativehumidity');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (9,'observationinertair');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (10,'observationlys');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (11,'observationskadedyr');
+
+
 
 
 

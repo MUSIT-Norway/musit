@@ -20,28 +20,37 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{Constants, EventRelations, _}
+import no.uio.musit.microservice.event.domain.{ EventRelations, _ }
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
-import play.api.libs.json.{JsArray, JsObject, JsResult, JsValue}
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import play.api.libs.json.{ JsArray, JsObject, JsResult, JsValue }
 
 /**
  * Created by jstabel on 7/6/16.
  */
-object EventHelpers {
-  private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventProps] = {
+
+object Constants {
+  val subEventsPrefix = "subEvents-"
+}
+
+object JsonEventHelpers {
+  private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventDto] = {
     for {
       id <- (jsObject \ "id").validateOpt[Long]
       links <- (jsObject \ "links").validateOpt[Seq[Link]]
       note <- (jsObject \ "note").validateOpt[String]
-    } yield BaseEventProps(id, links, eventType, note, relatedSubEvents)
+
+      customValueLong <- CustomFieldsHandler.validateCustomIntegerFieldFromJsonIfAny(eventType, jsObject)
+      customValueString <- CustomFieldsHandler.validateCustomStringFieldFromJsonIfAny(eventType, jsObject)
+
+    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, customValueLong, customValueString)
   }
 
-  def invokeJsonValidator(multipleDtos: MultipleDtosEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventProps], jsObject: JsObject) = {
+  def invokeJsonValidator(multipleDtos: MultipleTablesEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {
     for {
       baseProps <- jsResBaseEventProps
       customDto <- multipleDtos.validateCustomDto(jsObject)
@@ -117,7 +126,7 @@ object EventHelpers {
 
   def toJson(event: Event, recursive: Boolean): JsObject = {
     val baseJson = event.baseEventProps.toJson
-    val singleEventJson = event.eventType.maybeMultipleDtos.fold(baseJson)(jsonWriter => baseJson ++ (jsonWriter.customDtoToJson(event).asInstanceOf[JsObject]))
+    val singleEventJson = event.eventType.maybeMultipleDtos.fold(baseJson)(jsonWriter => baseJson ++ (jsonWriter.customDtoToJson(event)))
     if (recursive && event.hasSubEvents) {
       event.relatedSubEvents.foldLeft(singleEventJson) {
         (resultSoFar, relationWithSubEvents) =>
@@ -126,12 +135,5 @@ object EventHelpers {
       }
     } else
       singleEventJson
-  }
-
-  def eventDtoToStoreInDatabase(event: Event, parentId: Option[Long]) = {
-    event.eventType.maybeSingleTableMultipleDtos match {
-      case Some(singleTableMultipleDtos) => singleTableMultipleDtos.customDtoToBaseTable(event, event.baseEventProps.toBaseEventDto(parentId))
-      case None => event.baseEventProps.toBaseEventDto(parentId)
-    }
   }
 }

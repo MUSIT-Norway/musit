@@ -27,7 +27,6 @@ import no.uio.musit.microservices.common.utils.ErrorHelper
  * Created by jstabel on 7/6/16.
  */
 
-
 //isNormalizedDirection is whether this direction is the same which the links go in the event_relation_event table (from -> to).
 case class EventRelation(id: Int, name: String, inverseName: String, isNormalized: Boolean) {
 

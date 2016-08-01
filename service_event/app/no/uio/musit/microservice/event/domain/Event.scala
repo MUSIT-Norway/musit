@@ -1,44 +1,25 @@
 package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservice.event.dao.EventDao.BaseEventDto
+import no.uio.musit.microservice.event.service.{ CustomFieldsSpec, CustomValuesInEventTable }
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 trait Dto
 
-object BaseEventProps {
-  def fromBaseEventDto(eventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]) = BaseEventProps(eventDto.id, eventDto.links, eventDto.eventType, eventDto.note, relatedSubEvents)
-
-  implicit object baseEventPropsWrites extends Writes[BaseEventProps] {
-
-    // TODO: Fix this, this currently writes "note": null if no note! 
-    def writes(a: BaseEventProps): JsValue = {
-      Json.obj(
-        "id" -> a.id,
-        "links" -> a.links,
-        "eventType" -> a.eventType,
-        "note" -> a.note
-      )
-    }
-  }
-}
-
-case class BaseEventProps(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents]) {
-  /** Copies all data except custom event data over to the baseEventDto object */
-  def toBaseEventDto(parentId: Option[Long]) = BaseEventDto(this.id, this.links, this.eventType, this.note, parentId, None, None)
-
-  def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
-}
-
 case class RelatedEvents(relation: EventRelation, events: Seq[Event])
 
-class Event(val baseEventProps: BaseEventProps) {
+class Event(val baseEventProps: BaseEventDto) {
   val id: Option[Long] = baseEventProps.id
   val note: Option[String] = baseEventProps.note
   val links: Option[Seq[Link]] = baseEventProps.links
   val eventType = baseEventProps.eventType
 
   val relatedSubEvents = baseEventProps.relatedSubEvents
+
+  def getCustomBool = CustomValuesInEventTable.getBool(this)
+  def getCustomOptBool = CustomValuesInEventTable.getOptBool(this)
+  def getCustomString = CustomValuesInEventTable.getString(this)
+  def getCustomOptString = CustomValuesInEventTable.getOptString(this)
 
   def subEventsWithRelation(eventRelation: EventRelation) = relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
 
@@ -66,45 +47,57 @@ class Event(val baseEventProps: BaseEventProps) {
   }*/
 }
 
-object Constants {
-  val subEventsPrefix = "subEvents-"
-}
-
-case class EnvRequirementDto(id: Option[Long],
-                             temperature: Option[Int],
-                             tempInterval: Option[Int],
-                             airHumidity: Option[Int],
-                             airHumInterval: Option[Int],
-                             hypoxicAir: Option[Int],
-                             hypoxicInterval: Option[Int],
-                             cleaning: Option[String],
-                             light: Option[String]) extends Dto
+case class EnvRequirementDto(
+  id: Option[Long],
+  temperature: Option[Int],
+  tempInterval: Option[Int],
+  airHumidity: Option[Int],
+  airHumInterval: Option[Int],
+  hypoxicAir: Option[Int],
+  hypoxicInterval: Option[Int],
+  cleaning: Option[String],
+  light: Option[String]
+) extends Dto
 
 object EnvRequirementDto {
   implicit val format = Json.format[EnvRequirementDto]
 }
 
-
-case class ControlSpecificDto(ok: Boolean) extends Dto
-
-object ControlSpecificDto {
-  implicit val format = Json.format[ControlSpecificDto]
+object ControlSpecificDtoSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineRequiredBoolean("ok")
 }
 
-
-case class ObservationFromToDto(id: Option[Long],
-                                from: Option[Double],
-                                to: Option[Double]) extends Dto
+case class ObservationFromToDto(
+  id: Option[Long],
+  from: Option[Double],
+  to: Option[Double]
+) extends Dto
 
 object ObservationFromToDto {
   implicit val format = Json.format[ObservationFromToDto]
 }
 
-
-case class ObservationLysDto(lysforhold: Option[String]) extends Dto
-
-object ObservationLysDto {
-  implicit val format = Json.format[ObservationLysDto]
+object ObservationLysCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("lysforhold")
 }
 
+// ---------------------------------------------------
+// ObservationSkadedyr
+// ---------------------------------------------------
+object ObservationSkadedyrCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("identifikasjon")
+}
+
+//Note: The eventId is only used during writing to the database, it is "None-ed out" after having been read from the database, to prevent it from showing up in json.
+case class LivssyklusDto(eventId: Option[Long], livssyklus: Option[String], antall: Option[Int])
+
+object LivssyklusDto {
+  implicit val format = Json.format[LivssyklusDto]
+}
+
+case class ObservationSkadedyrDto(livssykluser: Seq[LivssyklusDto]) extends Dto
+
+object ObservationSkadedyrDto {
+  implicit val format = Json.format[ObservationSkadedyrDto]
+}
 

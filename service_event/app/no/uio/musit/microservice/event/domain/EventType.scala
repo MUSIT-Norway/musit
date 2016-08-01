@@ -20,7 +20,8 @@ object EventType {
     eventType(7, "ObservationTemperature", ObservationTemperatureService),
     eventType(8, "ObservationRelativeHumidity", ObservationRelativeHumidityService),
     eventType(9, "ObservationInertAir", ObservationInertAirService),
-    eventType(10, "ObservationLys", ObservationLysService)
+    eventType(10, "ObservationLys", ObservationLysService),
+    eventType(11, "ObservationSkadedyr", ObservationSkadedyrService)
 
   // Add new event type here....
   )
@@ -39,34 +40,24 @@ object EventType {
   }
 }
 
-case class EventType(id: Int, name: String, eventImplementation: EventImplementation /*, maybeJsonHandler: Option[JsonHandler]*/ ) {
-  //println(s"Event name: $name")
+case class EventType(id: Int, name: String, eventImplementation: EventImplementation) {
 
-  def maybeMultipleTablesMultipleDtos = {
+  //Some helper methods, used by the implementation of the event system. Ought to be moved somewhere else.
+
+  def maybeMultipleTables = {
     eventImplementation match {
-      case s: MultipleTablesMultipleDtos => Some(s)
+      case s: MultipleTablesEventType => Some(s)
       case _ => None
     }
   }
 
-  def maybeMultipleDtos = {
-    eventImplementation match {
-      case s: MultipleDtosEventType => Some(s)
-      case _ => None
-    }
-  }
+  def maybeMultipleDtos = maybeMultipleTables //Earlier on this wasn't the same, I want to preserve the semantic difference
+  // in case there' a revolt against the system for storing custom values in the base table! ;)
 
-  def singleOrMultipleDtos: Either[SingleDtoEventType, MultipleDtosEventType] = {
+  def singleOrMultipleDtos: Either[SingleTableEventType, MultipleTablesEventType] = {
     eventImplementation match {
-      case s: SingleDtoEventType => Left(s)
-      case s: MultipleDtosEventType => Right(s)
-    }
-  }
-
-  def maybeSingleTableMultipleDtos = {
-    eventImplementation match {
-      case s: SingleTableMultipleDtos => Some(s)
-      case _ => None
+      case s: SingleTableEventType => Left(s)
+      case s: MultipleTablesEventType => Right(s)
     }
   }
 }
