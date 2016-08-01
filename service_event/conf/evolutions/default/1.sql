@@ -107,6 +107,14 @@ insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (8,'observationrelativehumi
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (9,'observationinertair');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (10,'observationlys');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (11,'observationskadedyr');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (12,'observationrenhold');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (13,'observationgass');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (14,'observationmugg');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (15,'observationtyverisikring');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (16,'observationbrannsikring');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (17,'observationskallsikring');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (18,'observationvannskaderisiko');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (19,'observationsprit');
 
 
 

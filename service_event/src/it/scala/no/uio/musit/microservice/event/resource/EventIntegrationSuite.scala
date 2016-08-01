@@ -434,6 +434,145 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     myEventGet.lysforhold mustBe Some("merkelige forhold")
   }
 
+  "post and get ObservationRenhold" in {
+    val json =
+      """
+  {
+    "eventType": "observationRenhold",
+    "renhold": "merkelige renhold",
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationRenhold](response.json)
+    myEvent.renhold mustBe Some("merkelige renhold")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationRenhold](responseGet.json)
+    myEventGet.renhold mustBe Some("merkelige renhold")
+  }
+
+  "post and get ObservationGass" in {
+    val json =
+      """
+  {
+    "eventType": "observationGass",
+    "gass": "merkelig gass",
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationGass](response.json)
+    myEvent.gass mustBe Some("merkelig gass")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationGass](responseGet.json)
+    myEventGet.gass mustBe Some("merkelig gass")
+  }
+
+  "post and get ObservationMugg" in {
+    val json =
+      """
+  {
+    "eventType": "observationMugg",
+    "mugg": "merkelig mugg",
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationMugg](response.json)
+    myEvent.mugg mustBe Some("merkelig mugg")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationMugg](responseGet.json)
+    myEventGet.mugg mustBe Some("merkelig mugg")
+  }
+
+  "post and get ObservationTyveriSikring" in {
+    val json =
+      """
+  {
+    "eventType": "observationTyveriSikring",
+    "tyverisikring": "merkelig tyveriSikring",
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationTyveriSikring](response.json)
+    myEvent.tyveriSikring mustBe Some("merkelig tyveriSikring")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationTyveriSikring](responseGet.json)
+    myEventGet.tyveriSikring mustBe Some("merkelig tyveriSikring")
+  }
+
+  "post and get ObservationBrannSikring" in {
+    val json =
+      """
+  {
+    "eventType": "observationBrannSikring",
+    "brannsikring": "merkelig brannSikring",
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationBrannSikring](response.json)
+    myEvent.brannSikring mustBe Some("merkelig brannSikring")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationBrannSikring](responseGet.json)
+    myEventGet.brannSikring mustBe Some("merkelig brannSikring")
+  }
+
+  "post and get ObservationSkallSikring" in {
+    val json =
+      """
+  {
+    "eventType": "observationSkallSikring",
+    "skallsikring": "merkelig skallSikring",
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationSkallSikring](response.json)
+    myEvent.skallSikring mustBe Some("merkelig skallSikring")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationSkallSikring](responseGet.json)
+    myEventGet.skallSikring mustBe Some("merkelig skallSikring")
+  }
+
+  "post and get ObservationVannskadeRisiko" in {
+    val json =
+      """
+  {
+    "eventType": "observationVannskadeRisiko",
+    "vannskaderisiko": "merkelig vannskadeRisiko",
+    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationVannskadeRisiko](response.json)
+    myEvent.vannskadeRisiko mustBe Some("merkelig vannskadeRisiko")
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationVannskadeRisiko](responseGet.json)
+    myEventGet.vannskadeRisiko mustBe Some("merkelig vannskadeRisiko")
+  }
 
   "post and get ObservationSkadedyr" in {
     val json =

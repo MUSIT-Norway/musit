@@ -21,7 +21,15 @@ object EventType {
     eventType(8, "ObservationRelativeHumidity", ObservationRelativeHumidityService),
     eventType(9, "ObservationInertAir", ObservationInertAirService),
     eventType(10, "ObservationLys", ObservationLysService),
-    eventType(11, "ObservationSkadedyr", ObservationSkadedyrService)
+    eventType(11, "ObservationSkadedyr", ObservationSkadedyrService),
+    eventType(12, "ObservationRenhold", ObservationRenholdService),
+    eventType(13, "ObservationGass", ObservationGassService),
+    eventType(14, "ObservationMugg", ObservationMuggService),
+    eventType(15, "ObservationTyveriSikring", ObservationTyveriSikringService),
+    eventType(16, "ObservationBrannSikring", ObservationBrannSikringService),
+    eventType(17, "ObservationSkallSikring", ObservationSkallSikringService),
+    eventType(18, "ObservationVannskadeRisiko", ObservationVannskadeRisikoService),
+    eventType(19, "ObservationSprit", ObservationSpritService)
 
   // Add new event type here....
   )

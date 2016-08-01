@@ -81,6 +81,34 @@ object ObservationLysCustomFieldsSpec {
   val customFieldsSpec = CustomFieldsSpec().defineOptString("lysforhold")
 }
 
+object ObservationRenholdCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("renhold")
+}
+
+object ObservationGassCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("gass")
+}
+
+object ObservationMuggCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("mugg")
+}
+
+object ObservationTyveriSikringCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("tyverisikring")
+}
+
+object ObservationBrannSikringCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("brannsikring")
+}
+
+object ObservationSkallSikringCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("skallsikring")
+}
+
+object ObservationVannskadeRisikoCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("vannskaderisiko")
+}
+
 // ---------------------------------------------------
 // ObservationSkadedyr
 // ---------------------------------------------------
@@ -101,3 +129,19 @@ object ObservationSkadedyrDto {
   implicit val format = Json.format[ObservationSkadedyrDto]
 }
 
+// ---------------------------------------------------
+// ObservationSprit
+// ---------------------------------------------------
+
+//Note: The eventId is only used during writing to the database, it is "None-ed out" after having been read from the database, to prevent it from showing up in json.
+case class TilstandDto(eventId: Option[Long], tilstand: Option[String], volum: Option[Double])
+
+object TilstandDto {
+  implicit val format = Json.format[TilstandDto]
+}
+
+case class ObservationSpritDto(tilstander: Seq[TilstandDto]) extends Dto
+
+object ObservationSpritDto {
+  implicit val format = Json.format[ObservationSpritDto]
+}
