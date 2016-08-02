@@ -38,6 +38,7 @@ export default class MusitDropDownField extends Component {
     const lcPlaceholder = (
       <Select
         id={this.props.id}
+        disabled={this.props.disabled}
         name="form-field-name"
         value={v}
         options={options}
@@ -82,5 +83,6 @@ MusitDropDownField.propTypes = {
   precision: PropTypes.number,
   items: PropTypes.array.isRequired,
   translate: PropTypes.func,
-  translateKeyPrefix: PropTypes.string
+  translateKeyPrefix: PropTypes.string,
+  disabled: PropTypes.bool
 };
