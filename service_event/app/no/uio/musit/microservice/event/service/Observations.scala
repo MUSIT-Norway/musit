@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.{ ObservationSkadedyrDao, ObservationFromToDao }
+import no.uio.musit.microservice.event.dao.{ ObservationSpritDao, ObservationSkadedyrDao, ObservationFromToDao }
 import no.uio.musit.microservice.event.domain._
 import play.api.libs.json.{ JsObject, JsResult, Json }
 
@@ -243,9 +243,7 @@ class ObservationSprit(val baseProps: BaseEventDto, val dto: ObservationSpritDto
   val tilstander = dto.tilstander
 }
 
-object ObservationSpritService extends MultipleTablesAndUsingCustomFields {
-
-  def getCustomFieldsSpec = ObservationSpritCustomFieldsSpec.customFieldsSpec
+object ObservationSpritService extends MultipleTablesNotUsingCustomFields {
 
   def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationSprit(baseProps, customDto.asInstanceOf[ObservationSpritDto])
 
