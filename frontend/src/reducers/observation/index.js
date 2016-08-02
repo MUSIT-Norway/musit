@@ -1,3 +1,4 @@
+import { mapToBackEnd } from './mapper'
 const ADD = 'musit/observation/ADD'
 const LOAD = 'musit/observation/LOAD'
 
@@ -33,6 +34,8 @@ const observationReducer = (state = initialState, action = {}) => {
 export default observationReducer;
 
 export const addObservation = (data) => {
+  const l = mapToBackEnd(data)
+  console.log(l)
   return {
     type: ADD,
     data
