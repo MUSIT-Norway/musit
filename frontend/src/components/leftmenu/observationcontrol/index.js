@@ -6,6 +6,8 @@ export default class ObservationControlComponent extends Component {
   static propTypes = {
     id: PropTypes.number.isRequired,
     translate: PropTypes.func.isRequired,
+    selectObservation: PropTypes.bool,
+    selectControl: PropTypes.bool,
     onClickNewObservation: PropTypes.func.isRequired,
     onClickNewControl: PropTypes.func.isRequired,
     onClickSelectObservation: PropTypes.func.isRequired,

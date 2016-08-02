@@ -51,6 +51,8 @@ export default class ObservationControlGridShow extends React.Component {
         leftMenu={<ObservationControlComponent
           id={props.unit.id}
           translate={props.translate}
+          selectObservation
+          selectControl
           onClickNewObservation={(key) => key}
           onClickNewControl={(key) => key}
           onClickSelectObservation={(key) => key}

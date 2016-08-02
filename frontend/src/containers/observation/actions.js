@@ -2,7 +2,8 @@ export const actions = (thiz) => {
   return {
     changeTempFrom: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'temperature') {
             retVal = { ...o, data: { ...o.data, fromValue: v } }
@@ -13,7 +14,8 @@ export const actions = (thiz) => {
     },
     changeTempTo: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'temperature') {
             retVal = { ...o, data: { ...o.data, toValue: v } }
@@ -24,7 +26,8 @@ export const actions = (thiz) => {
     },
     changeTempComment: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'temperature') {
             retVal = { ...o, data: { ...o.data, commentValue: v } }
@@ -35,7 +38,8 @@ export const actions = (thiz) => {
     },
     changeHypoxicAirFrom: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'hypoxicAir') {
             retVal = { ...o, data: { ...o.data, fromValue: v } }
@@ -46,7 +50,8 @@ export const actions = (thiz) => {
     },
     changeHypoxicAirTo: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'hypoxicAir') {
             retVal = { ...o, data: { ...o.data, toValue: v } }
@@ -57,7 +62,8 @@ export const actions = (thiz) => {
     },
     changeHypoxicAirComment: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'hypoxicAir') {
             retVal = { ...o, data: { ...o.data, commentValue: v } }
@@ -68,7 +74,8 @@ export const actions = (thiz) => {
     },
     changeRHFrom: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'rh') {
             retVal = { ...o, data: { ...o.data, fromValue: v } }
@@ -79,7 +86,8 @@ export const actions = (thiz) => {
     },
     changeRHTo: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'rh') {
             retVal = { ...o, data: { ...o.data, toValue: v } }
@@ -90,7 +98,8 @@ export const actions = (thiz) => {
     },
     changeRHComment: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'rh') {
             retVal = { ...o, data: { ...o.data, commentValue: v } }
@@ -101,7 +110,8 @@ export const actions = (thiz) => {
     },
     changeLuxLeft: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'lux') {
             retVal = { ...o, data: { ...o.data, leftValue: v } }
@@ -112,7 +122,8 @@ export const actions = (thiz) => {
     },
     changeLuxRight: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'lux') {
             retVal = { ...o, data: { ...o.data, rightValue: v } }
@@ -123,7 +134,8 @@ export const actions = (thiz) => {
     },
     changeGasLeft: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'gas') {
             retVal = { ...o, data: { ...o.data, leftValue: v } }
@@ -134,7 +146,8 @@ export const actions = (thiz) => {
     },
     changeGasRight: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'gas') {
             retVal = { ...o, data: { ...o.data, rightValue: v } }
@@ -145,7 +158,8 @@ export const actions = (thiz) => {
     },
     changeCleaningLeft: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'cleaning') {
             retVal = { ...o, data: { ...o.data, leftValue: v } }
@@ -156,7 +170,8 @@ export const actions = (thiz) => {
     },
     changeCleaningRight: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'cleaning') {
             retVal = { ...o, data: { ...o.data, rightValue: v } }
@@ -167,7 +182,8 @@ export const actions = (thiz) => {
     },
     changeMoldLeft: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'mold') {
             retVal = { ...o, data: { ...o.data, leftValue: v } }
@@ -178,7 +194,8 @@ export const actions = (thiz) => {
     },
     changeMoldRight: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'mold') {
             retVal = { ...o, data: { ...o.data, rightValue: v } }
@@ -189,7 +206,8 @@ export const actions = (thiz) => {
     },
     changeSkallSikringLeft: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'skallsikring') {
             retVal = { ...o, data: { ...o.data, leftValue: v } }
@@ -200,7 +218,8 @@ export const actions = (thiz) => {
     },
     changeSkallSikringRight: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'skallsikring') {
             retVal = { ...o, data: { ...o.data, rightValue: v } }
@@ -211,7 +230,8 @@ export const actions = (thiz) => {
     },
     changeTyveriSikringLeft: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'tyverisikring') {
             retVal = { ...o, data: { ...o.data, leftValue: v } }
@@ -222,7 +242,8 @@ export const actions = (thiz) => {
     },
     changeTyveriSikringRight: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'tyverisikring') {
             retVal = { ...o, data: { ...o.data, rightValue: v } }
@@ -233,7 +254,8 @@ export const actions = (thiz) => {
     },
     changeBrannSikringLeft: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'brannsikring') {
             retVal = { ...o, data: { ...o.data, leftValue: v } }
@@ -244,7 +266,8 @@ export const actions = (thiz) => {
     },
     changeBrannSikringRight: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'brannsikring') {
             retVal = { ...o, data: { ...o.data, rightValue: v } }
@@ -255,7 +278,8 @@ export const actions = (thiz) => {
     },
     changeVannskadeRisikoLeft: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'vannskaderisiko') {
             retVal = { ...o, data: { ...o.data, leftValue: v } }
@@ -266,7 +290,8 @@ export const actions = (thiz) => {
     },
     changeVannskadeRisikoRight: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'vannskaderisiko') {
             retVal = { ...o, data: { ...o.data, rightValue: v } }
@@ -277,7 +302,8 @@ export const actions = (thiz) => {
     },
     changeAlchoholStatus: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'alcohol') {
             retVal = { ...o, data: { ...o.data, statusValue: v } }
@@ -288,7 +314,8 @@ export const actions = (thiz) => {
     },
     changeAlchoholVolume: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'alcohol') {
             retVal = { ...o, data: { ...o.data, volumeValue: v } }
@@ -299,7 +326,8 @@ export const actions = (thiz) => {
     },
     changeAlchoholComment: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'alcohol') {
             retVal = { ...o, data: { ...o.data, commentValue: v } }
@@ -310,7 +338,8 @@ export const actions = (thiz) => {
     },
     addPest: () => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           const p = { lifeCycle: '', count: 0 }
           if (o.type === 'pest') {
@@ -322,7 +351,8 @@ export const actions = (thiz) => {
     },
     changeLifeCycle: (i, v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'pest') {
             const po = o.data.observations
@@ -335,7 +365,8 @@ export const actions = (thiz) => {
     },
     changeCount: (i, v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'pest') {
             const po = o.data.observations
@@ -348,7 +379,8 @@ export const actions = (thiz) => {
     },
     changePestIdentification: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'pest') {
             retVal = { ...o, data: { ...o.data, identificationValue: v } }
@@ -359,7 +391,8 @@ export const actions = (thiz) => {
     },
     changePestComment: (v) => {
       thiz.setState({
-        ...thiz.state, observations: thiz.state.observations.map((o) => {
+        ...thiz.state,
+        observations: thiz.state.observations.map((o) => {
           let retVal = o
           if (o.type === 'pest') {
             retVal = { ...o, data: { ...o.data, commentsValue: v } }

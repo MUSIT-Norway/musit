@@ -49,8 +49,7 @@ export default class ObservationControlGrid extends Component {
           <Table responsive hover condensed>
             <thead>
               <tr>
-                <th>
-                </th>
+                <th />
                 <th>
                   {translate('musit.grid.observation.date')}
                 </th>
@@ -66,13 +65,12 @@ export default class ObservationControlGrid extends Component {
                 <th>
                   {translate('musit.grid.observation.registeredBy')}
                 </th>
-                <th>
-                </th>
+                <th />
               </tr>
             </thead>
             <tbody>
-              {this.props.tableData.map(c =>
-                <tr id={`${id}_${c.date}`} >
+              {this.props.tableData.map((c, i) =>
+                <tr key={i} id={`${id}_${c.date}`} >
                   <td id={`${id}_${c.date}_type`}>
                     {c.type === 'control' ? <FontAwesome name="user-secret" /> : ''}
                     {c.type === 'observation' ? <FontAwesome name="eye" /> : ''}

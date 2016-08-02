@@ -70,34 +70,34 @@ class App extends Component {
             </Navbar.Brand>
             <Navbar.Toggle />
           </Navbar.Header>
-          <Navbar.Collapse eventKey={0}>
+          <Navbar.Collapse>
             <Nav navbar>
               <LinkContainer to="/observation/add">
-                <NavItem eventKey={5}>Observation</NavItem>
+                <NavItem>Observation</NavItem>
               </LinkContainer>
               <LinkContainer to="/magasin">
-                <NavItem eventKey={6}>Magasin</NavItem>
+                <NavItem>Magasin</NavItem>
               </LinkContainer>
               <LinkContainer to="/control/add">
-                <NavItem eventKey={8}>ControlAdd</NavItem>
+                <NavItem>ControlAdd</NavItem>
               </LinkContainer>
               <LinkContainer to="/control/1">
-                <NavItem eventKey={9}>ControlView</NavItem>
+                <NavItem>ControlView</NavItem>
               </LinkContainer>
               <LinkContainer to="/grid/object/1">
-                <NavItem eventKey={10}>Object</NavItem>
+                <NavItem>Object</NavItem>
               </LinkContainer>
               <LinkContainer to="/grid/observationcontrol/1">
-                <NavItem eventKey={11}>ObsCon</NavItem>
+                <NavItem>ObsCon</NavItem>
               </LinkContainer>
               <LinkContainer to="/grid/node">
-                <NavItem eventKey={12}>Node</NavItem>
+                <NavItem>Node</NavItem>
               </LinkContainer>
               <LinkContainer to="/observationcontrol">
-                <NavItem eventKey={13}>ObsConLeft</NavItem>
+                <NavItem>ObsConLeft</NavItem>
               </LinkContainer>
               <LinkContainer to="/nodeleftmenu">
-                <NavItem eventKey={14}>NodeLeft</NavItem>
+                <NavItem>NodeLeft</NavItem>
               </LinkContainer>
               {user &&
                 <LinkContainer to="/picklist">
@@ -106,7 +106,7 @@ class App extends Component {
               }
               {user &&
                 <LinkContainer to="/musit/logout">
-                  <NavItem eventKey={8} className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
+                  <NavItem className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
                 </LinkContainer>
               }
               {!user &&
@@ -118,7 +118,12 @@ class App extends Component {
             {user &&
               <p className={`${styles.loggedInMessage} navbar-text`}>Logged in as <strong>{user.name}</strong>.</p>}
             <Nav navbar pullRight>
-              <NavItem eventKey={1} target="_blank" title="View on Github" href="https://github.com/MUSIT-Norway/musit">
+              <NavItem
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View on Github"
+                href="https://github.com/MUSIT-Norway/musit"
+              >
                 <i className="fa fa-github" />
               </NavItem>
             </Nav>
@@ -132,6 +137,7 @@ class App extends Component {
         <div className="well text-center">
           Have questions? Ask for help<a
             href="https://github.com/MUSIT-Norway/musit/issues"
+            rel="noopener noreferrer"
             target="_blank"
           >
             on Github

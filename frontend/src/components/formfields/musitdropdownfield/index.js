@@ -31,9 +31,12 @@ export default class MusitDropDownField extends Component {
 
   render() {
     const v = this.props.value ? this.props.value : '';
-    const options = this.props.items.map((el) =>
-        ({ value: el, label: this.props.translateKeyPrefix ?
-          this.props.translate(this.props.translateKeyPrefix.concat(el)) : el }));
+    const options = this.props.items.map((el) => (
+      {
+        value: el,
+        label: this.props.translateKeyPrefix ? this.props.translate(this.props.translateKeyPrefix.concat(el)) : el
+      }
+    ));
     const lcAddOnPrefix = this.props.addOnPrefix ? <span className="input-group-addon" >{this.props.addOnPrefix}</span> : null;
     const lcPlaceholder = (
       <Select
