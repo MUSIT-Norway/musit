@@ -19,48 +19,49 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 import React from 'react'
-import { Grid, Row, Col } from 'react-bootstrap'
 import { ObservationControlGrid } from '../../../components/grid'
+import ObservationControlComponent from '../../../components/leftmenu/observationcontrol'
 import Language from '../../../components/language'
+import Layout from '../../../layout'
 import { connect } from 'react-redux'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
-  observationControlGridData: state.observationControlGrid.data
+  observationControlGridData: state.observationControlGrid.data,
+  unit: {
+    id: 1,
+    name: 'Reol 5'
+  }
 })
 
 @connect(mapStateToProps)
 export default class ObservationControlGridShow extends React.Component {
   static propTypes = {
+    unit: React.PropTypes.object.isRequired,
     translate: React.PropTypes.func.isRequired,
     observationControlGridData: React.PropTypes.arrayOf(React.PropTypes.object)
   }
 
   render() {
-    const { translate } = this.props
+    const props = this.props;
     return (
-      <div>
-        <main>
-          <Grid>
-            <Row>
-              <br />
-              <br />
-              <br />
-            </Row>
-            <Row>
-              <Col sm={8} smOffset={2}>
-                <ObservationControlGrid
-                  id="Reol 5"
-                  translate={translate}
-                  tableData={
-                    Object.keys(this.props.observationControlGridData).map(x => this.props.observationControlGridData[x])
-                  }
-                />
-              </Col>
-            </Row>
-          </Grid>
-        </main>
-      </div>
+      <Layout
+        title={`${props.unit.name}${props.translate('musit.grid.observation.header')}`}
+        translate={props.translate}
+        leftMenu={<ObservationControlComponent
+          id={props.unit.id}
+          translate={props.translate}
+          onClickNewObservation={(key) => key}
+          onClickNewControl={(key) => key}
+          onClickSelectObservation={(key) => key}
+          onClickSelectControl={(key) => key}
+        />}
+        content={<ObservationControlGrid
+          id={props.unit.id}
+          translate={props.translate}
+          tableData={props.observationControlGridData}
+        />}
+      />
     )
   }
 }

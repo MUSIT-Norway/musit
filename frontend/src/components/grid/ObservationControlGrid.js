@@ -1,29 +1,17 @@
 
 
 import React, { Component, PropTypes } from 'react'
-import { PageHeader, Row, Col, Table, FormGroup } from 'react-bootstrap'
+import { Table, FormGroup } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 
 export default class ObservationControlGrid extends Component {
   static propTypes = {
-    id: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired,
     translate: PropTypes.func.isRequired,
     tableData: PropTypes.arrayOf(PropTypes.shape({
       type: PropTypes.string.isRequired,
       date: PropTypes.string.isRequired,
-      types: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.number,
-        temperature: PropTypes.bool,
-        inertAir: PropTypes.bool,
-        relativeHumidity: PropTypes.bool,
-        cleaning: PropTypes.bool,
-        lightCondition: PropTypes.bool,
-        alchohol: PropTypes.bool,
-        gas: PropTypes.bool,
-        mold: PropTypes.bool,
-        pest: PropTypes.bool,
-        envdata: PropTypes.bool
-      })),
+      types: PropTypes.object.isRequired,
       doneBy: PropTypes.string.isRequired,
       registeredDate: PropTypes.string.isRequired,
       registeredBy: PropTypes.string.isRequired
@@ -58,13 +46,6 @@ export default class ObservationControlGrid extends Component {
     return (
       <FormGroup>
         <div>
-          <Row>
-            <Col style={{ textAlign: 'center' }}>
-              <PageHeader>
-                {`${id}${translate('musit.grid.observation.header')}`}
-              </PageHeader>
-            </Col>
-          </Row>
           <Table responsive hover condensed>
             <thead>
               <tr>
