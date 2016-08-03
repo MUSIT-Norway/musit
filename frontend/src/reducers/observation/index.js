@@ -46,11 +46,11 @@ export const loadObservation = () => {
     note: 'tekst til observasjonene',
     links: [{ rel: 'actor', href: 'actor/12' }],
     subEvents: [
-    { eventType: 'observationTemperature', temperature_from: 25, temperature_to: 30,
+    { eventType: 'observationTemperature', temperature_from: '25', temperature_to: '30',
     note: 'tekst til observationTemperature' },
-    { eventType: 'observationRelativeHumidity', humidity_from: 40, humidity_to: 50,
+    { eventType: 'observationRelativeHumidity', humidity_from: '40', humidity_to: '50',
       note: 'tekst til observationRelativeHumidity' },
-    { eventType: 'observationInertLuft', inertLuft_from: 40, inertLuft_to: 50, note: 'tekst til observationInertLuft' },
+    { eventType: 'observationInertLuft', inertLuft_from: '40', inertLuft_to: '50', note: 'tekst til observationInertLuft' },
     { eventType: 'observationLight', Lysforhold: 'for mørkt', note: 'tekst til observationLight' },
     { eventType: 'observationRenhold', Renhold: 'støv i krokene', note: 'tekst til observationRenhold' },
     { eventType: 'observationGass', Gass: 'alt for mye gass i rommet', note: 'tekst til observationGass' },
@@ -67,11 +67,11 @@ export const loadObservation = () => {
     identifikasjon: 'skadedyr i veggene',
     note: 'tekst til observationskadedyr',
     livssykluser: [
-    { livssyklus: 'Adult', antall: 3 },
-    { livssyklus: 'Puppe', antall: 4 },
-    { livssyklus: 'Puppeskinn', antall: 5 },
-    { livssyklus: 'Larve', antall: 6 },
-    { livssyklus: 'Egg', antall: 7 }]
+    { livssyklus: 'Adult', antall: '3' },
+    { livssyklus: 'Puppe', antall: '4' },
+    { livssyklus: 'Puppeskinn', antall: '5' },
+    { livssyklus: 'Larve', antall: '6' },
+    { livssyklus: 'Egg', antall: '7' }]
     },
     { eventType: 'observationSprit',
       note: 'tekst til observationsprit',
@@ -80,7 +80,7 @@ export const loadObservation = () => {
     { Tilstand: 'nesten uttørket', Volum: '4,554' },
     { Tilstand: 'noe uttørket', Volum: '5,332' },
     { Tilstand: 'litt uttørket', Volum: '6,3' },
-    { Tilstand: 'tilfredsstillende', Volum: 7 }]
+    { Tilstand: 'tilfredsstillende', Volum: '7' }]
     }]
   }
   const toService = mapToFrontEnd(fromService)
