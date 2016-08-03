@@ -62,6 +62,7 @@ const wrap = (e) => {
         re.eventType = 'observationRelativeHumidity'
         re.humidity_from = el.data.fromValue
         re.humidity_to = el.data.toValue
+        re.note = el.data.commentValue
         break
       case 'mold':
         re.eventType = 'observationMugg'
@@ -92,6 +93,7 @@ const wrap = (e) => {
         re.eventType = 'observationInertLuft'
         re.inertLuft_from = el.data.fromValue
         re.inertLuft_to = el.data.toValue
+        re.note = el.data.commentValue
         break
       case 'alcohol':
         re.eventType = 'observationSprit'
@@ -103,6 +105,7 @@ const wrap = (e) => {
         re.eventType = 'observationTemperature'
         re.temperature_from = el.data.fromValue
         re.temperature_to = el.data.toValue
+        re.note = el.data.commentValue
         break
       default:
     }
