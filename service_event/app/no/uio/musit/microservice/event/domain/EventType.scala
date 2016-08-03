@@ -15,7 +15,7 @@ object EventType {
     eventType(2, "Control", ControlService),
     eventType(3, "Observation", ObservationService),
     eventType(4, "ControlTemperature", ControlTemperatureService),
-    eventType(5, "ControlAir", ControlAirService),
+    eventType(5, "ControlInertluft", ControlInertluftService),
     eventType(6, "EnvRequirement", EnvRequirementService),
     eventType(7, "ObservationTemperature", ObservationTemperatureService),
     eventType(8, "ObservationRelativeHumidity", ObservationRelativeHumidityService),
@@ -29,7 +29,14 @@ object EventType {
     eventType(16, "ObservationBrannSikring", ObservationBrannSikringService),
     eventType(17, "ObservationSkallSikring", ObservationSkallSikringService),
     eventType(18, "ObservationVannskadeRisiko", ObservationVannskadeRisikoService),
-    eventType(19, "ObservationSprit", ObservationSpritService)
+    eventType(19, "ObservationSprit", ObservationSpritService),
+    eventType(20, "ControlRelativLuftfuktighet", ControlRelativLuftfuktighetService),
+    eventType(21, "ControlLysforhold", ControlLysforholdService),
+    eventType(22, "ControlRenhold", ControlRenholdService),
+    eventType(23, "ControlGass", ControlGassService),
+    eventType(24, "ControlMugg", ControlMuggService),
+    eventType(25, "ControlSkadedyr", ControlSkadedyrService),
+    eventType(26, "ControlSprit", ControlSpritService)
 
   // Add new event type here....
   )
