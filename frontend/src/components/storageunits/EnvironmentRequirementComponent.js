@@ -1,7 +1,3 @@
-/**
- * Created by steinaol on 5/27/16.
- */
-
 import React, { Component } from 'react';
 import { MusitTextArea as TextArea, MusitField as Field } from '../../components/formfields'
 import { Panel, Form, Grid, Row, Col, FormGroup } from 'react-bootstrap'
@@ -181,7 +177,7 @@ export default class EnvironmentRequirementComponent extends Component {
         <main>
           <Panel>
             <Grid>
-              <Row styleClass="row-centered">
+              <Row className="row-centered">
                 <Col md={6}>
                   <form className="form-horizontal">
                     <div className="form-group">
@@ -214,7 +210,7 @@ export default class EnvironmentRequirementComponent extends Component {
                   </form>
                 </Col>
               </Row>
-              <Row styleClass="row-centered">
+              <Row className="row-centered">
                 <Col md={6}>
                   <form className="form-horizontal">
                     <div className="form-group">
@@ -236,7 +232,7 @@ export default class EnvironmentRequirementComponent extends Component {
                   </Form>
                 </Col>
               </Row>
-              <Row styleClass="row-centered">
+              <Row className="row-centered">
                 <Col md={6}>
                   <Form horizontal>
                     {renderFieldBlock(this.state.environmentRequirement.lightCondition, this.lightCondition,

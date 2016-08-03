@@ -49,10 +49,66 @@ object ControlTemperatureService extends ControlSpecificService with SingleTable
   def createEventInMemory(baseProps: BaseEventDto): Event = new ControlTemperature(baseProps)
 }
 
-// --- ControlAir
+// --- ControlInertluft
 
-class ControlAir(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
+class ControlInertluft(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
 
-object ControlAirService extends ControlSpecificService with SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlAir(baseProps)
+object ControlInertluftService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlInertluft(baseProps)
+}
+
+// --- ControlRelativLuftfuktighet
+
+class ControlRelativLuftfuktighet(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
+
+object ControlRelativLuftfuktighetService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlRelativLuftfuktighet(baseProps)
+}
+
+// --- ControlLysforhold
+
+class ControlLysforhold(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
+
+object ControlLysforholdService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlLysforhold(baseProps)
+}
+
+// --- ControlRenhold
+
+class ControlRenhold(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
+
+object ControlRenholdService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlRenhold(baseProps)
+}
+
+// --- ControlGass
+
+class ControlGass(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
+
+object ControlGassService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlGass(baseProps)
+}
+
+// --- ControlMugg
+
+class ControlMugg(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
+
+object ControlMuggService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlMugg(baseProps)
+}
+
+// --- ControlSkadedyr
+
+class ControlSkadedyr(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
+
+object ControlSkadedyrService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlSkadedyr(baseProps)
+}
+
+// --- ControlSprit
+
+class ControlSprit(baseEventProps: BaseEventDto) extends ControlSpecific(baseEventProps)
+
+object ControlSpritService extends ControlSpecificService with SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ControlSprit(baseProps)
 }
