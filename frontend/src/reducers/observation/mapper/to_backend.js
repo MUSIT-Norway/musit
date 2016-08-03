@@ -26,7 +26,6 @@
 
 */
 
-
 const wrap = (e) => {
   const r = {}
   r.subEvents = e.observations.map((el) => {

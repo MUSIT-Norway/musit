@@ -45,7 +45,7 @@ export const loadObservation = () => {
     eventType: 'Observation',
     note: 'tekst til observasjonene',
     links: [{ rel: 'actor', href: 'actor/12' }],
-    subevents: [
+    subEvents: [
     { eventType: 'observationTemperature', temperature_from: 25, temperature_to: 30,
     note: 'tekst til observationTemperature' },
     { eventType: 'observationRelativeHumidity', humidity_from: 40, humidity_to: 50,
@@ -87,37 +87,5 @@ export const loadObservation = () => {
   return {
     type: LOAD,
     data: toService
-    { observations: [
-      {
-        type: 'pest',
-        data: {
-          observations: [{ lifeCycle: 'Puppe', count: 4 }, { lifeCycle: 'Egg', count: 4 }],
-          identificationValue: 'Test identification value.',
-          commentsValue: 'Test comments.'
-        }
-      },
-      {
-        type: 'hypoxicAir',
-        data: {
-          fromValue: '19',
-          toValue: '23',
-          commentValue: 'Test comments.'
-        }
-      },
-      {
-        type: 'cleaning',
-        data: {
-          leftValue: 'Test cleaning value.',
-          rightValue: 'Test comments.'
-        }
-      },
-      {
-        type: 'alcohol',
-        data: {
-          statusValue: 'Tilfredsstillende',
-          volumeValue: '12',
-          commentValue: 'Sprit comments.'
-        }
-      }] }
   }
 }
