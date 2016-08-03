@@ -36,7 +36,7 @@ export default observationReducer;
 export const addObservation = (data) => {
   return {
     type: ADD,
-    data
+    data: data,
   }
 }
 

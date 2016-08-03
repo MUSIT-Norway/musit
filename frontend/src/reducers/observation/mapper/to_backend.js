@@ -71,7 +71,7 @@ const wrap = (e) => {
       case 'skallsikring':
         re.eventType = 'observationSkallSikring'
         re.Skallsikring = el.data.leftValue
-        re.note = el.data.rightValue
+        re.note = el.rightValue
         break
       case 'tyverisikring':
         re.eventType = 'observationTyveriSikring'

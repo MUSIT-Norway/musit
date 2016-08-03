@@ -19,91 +19,91 @@
 
 const wrap = (be) => {
   const ret = {}
-  ret.data = {}
-  ret.data.observations = be.subEvents.map((o) => {
+  ret.user = 'Arne And'
+  ret.date = '01-01.2012'
+  ret.observations = be.subEvents.map((o) => {
     const retobs = {}
+    retobs.data = {}
     switch (o.eventType) {
       case 'observationLight':
         retobs.type = 'lux'
-        retobs.leftValue = o.Lysforhold
-        retobs.rightValue = o.note
+        retobs.data.leftValue = o.Lysforhold
+        retobs.data.rightValue = o.note
         break
       case 'observationGass':
         retobs.type = 'gas'
-        retobs.leftValue = o.Gass
-        retobs.rightValue = o.note
+        retobs.data.leftValue = o.Gass
+        retobs.data.rightValue = o.note
         break
       case 'observationMugg':
         retobs.type = 'mold'
-        retobs.leftValue = o.Mugg
-        retobs.rightValue = o.note
+        retobs.data.leftValue = o.Mugg
+        retobs.data.rightValue = o.note
         break
       case 'observationRenhold':
         retobs.type = 'cleaning'
-        retobs.leftValue = o.Renhold
-        retobs.rightValue = o.note
+        retobs.data.leftValue = o.Renhold
+        retobs.data.rightValue = o.note
         break
       case 'observationSkallSikring':
         retobs.type = 'skallsikring'
-        retobs.leftValue = o.Skallsikring
-        retobs.rightValue = o.note
+        retobs.data.leftValue = o.Skallsikring
+        retobs.data.rightValue = o.note
         break
       case 'observationBrannSikring':
         retobs.type = 'brannsikring'
-        retobs.leftValue = o.BrannSikring
-        retobs.rightValue = o.note
+        retobs.data.leftValue = o.BrannSikring
+        retobs.data.rightValue = o.note
         break
       case 'observationTyveriSikring':
         retobs.type = 'tyverisikring'
-        retobs.leftValue = o.TyveriSikring
-        retobs.rightValue = o.note
+        retobs.data.leftValue = o.TyveriSikring
+        retobs.data.rightValue = o.note
         break
       case 'observationVannskadeRisiko':
         retobs.type = 'vannskaderisiko'
-        retobs.leftValue = o.VannskadeRisiko
-        retobs.rightValue = o.note
+        retobs.data.leftValue = o.VannskadeRisiko
+        retobs.data.rightValue = o.note
         break
       case 'observationInertLuft':
         retobs.type = 'hypoxicAir'
-        retobs.fromValue = o.inertLuft_from
-        retobs.toValue = o.inertLuft_to
-        retobs.commentValue = o.note
+        retobs.data.fromValue = o.inertLuft_from
+        retobs.data.toValue = o.inertLuft_to
+        retobs.data.commentValue = o.note
         break
       case 'observationTemperature':
-        retobs.type = 'hypoxicAir'
-        retobs.fromValue = o.temperature_from
-        retobs.toValue = o.temperature_to
-        retobs.commentValue = o.note
+        retobs.type = 'temperature'
+        retobs.data.fromValue = o.temperature_from
+        retobs.data.toValue = o.temperature_to
+        retobs.data.commentValue = o.note
         break
       case 'observationRelativeHumidity':
-        retobs.type = 'hypoxicAir'
-        retobs.fromValue = o.humidity_from
-        retobs.toValue = o.humidity_to
-        retobs.commentValue = o.note
+        retobs.type = 'rh'
+        retobs.data.fromValue = o.humidity_from
+        retobs.data.toValue = o.humidity_to
+        retobs.data.commentValue = o.note
         break
       case 'observationSkadedyr':
         retobs.type = 'pest'
-        retobs.identificationValue = o.identifikasjon
-        retobs.observations = o.livssykluser.map((l) => {
+        retobs.data.identificationValue = o.identifikasjon
+        retobs.data.observations = o.livssykluser.map((l) => {
           const obs = {}
           obs.lifeCycle = l.livssyklus
           obs.count = l.antall
           return obs
         }
-      )
+        )
         break
       case 'observationSprit':
         retobs.type = 'alcohol'
-        retobs.commentValue = o.note
-        retobs.statusValue = o.Tilstander[0].Tilstand
-        retobs.volume = o.Tilstander[0].Volum
+        retobs.data.commentValue = o.note
+        retobs.data.statusValue = o.Tilstander[0].Tilstand
+        retobs.data.volume = o.Tilstander[0].Volum
         break
       default:
     }
     return retobs
   })
-
-
   return ret
 }
 const toFrontEnd = (be) => {
