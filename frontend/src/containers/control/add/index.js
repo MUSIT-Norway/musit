@@ -297,7 +297,7 @@ export default class ControlView extends React.Component {
                   <Col md={12}>
                     <DatePicker
                       dateFormat="DD/MM/YYYY"
-                      value={this.state.startDate}
+                      value={this.state.startDate.toString()}
                       onChange={this.onHandleDateChange}
                     />
                   </Col>
@@ -315,6 +315,7 @@ export default class ControlView extends React.Component {
               <Row>
                 <Col md={9}>
                   <Field
+                    id={"user"}
                     value={this.state.user}
                     onChange={(v) => { this.setState({ ...this.state, user: v }) }}
                   />
