@@ -100,16 +100,20 @@ insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,'Move');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'control');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'observation');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4,'controltemperature');
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'controlair');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'controlinertluft');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6,'envrequirement');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7,'observationtemperature');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (8,'observationrelativehumidity');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (9,'observationinertair');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (10,'observationlys');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (11,'observationskadedyr');
-
-
-
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (20,'controlrelativluftfuktighet');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (21,'ControlLysforhold');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (22,'ControlRenhold');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (23,'ControlGass');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (24,'ControlMugg');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (25,'ControlSkadedyr');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (26,'ControlSprit');
 
 
 # --- !Downs
