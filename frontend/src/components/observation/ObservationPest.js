@@ -96,7 +96,7 @@ export default class ObservationPest extends Component {
     const renderSelectColumn = (items) => {
       const observationBlock = items.map((observation, index) => {
         return (
-          <span>
+          <span style={{ height: 50 }}>
             <ControlLabel>{translate('musit.observation.pest.lifeCycleLabel')}</ControlLabel>
             <MusitDropDownField
               {...lifeCycle}
@@ -124,6 +124,7 @@ export default class ObservationPest extends Component {
               id={`${id}_count_${index}`}
               value={observation.count}
               onChange={(countValue) => onChangeCount(index, countValue)}
+              style={{ height: 36 }}
             />
           </span>
         )

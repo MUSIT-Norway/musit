@@ -18,7 +18,6 @@
  */
 
 import React from 'react'
-
 import { PageHeader, Panel, Grid, Row, Col, Button, ControlLabel, SplitButton, MenuItem } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 import { connect } from 'react-redux'
@@ -360,13 +359,13 @@ export default class ObservationView extends React.Component {
                   </PageHeader>
                 </Col>
               </Row>
-              <Row>
+              <Row style={{ backgroundColor: '#f2f2f2' }} disabled>
                 <Col xs={12} sm={5} smOffset={1}>
                   <ControlLabel>{translate('musit.observation.date')}</ControlLabel>
                   <DatePicker
                     value={this.state.date}
-                    disabled={this.displayExisting}
                     onChange={this.onChangeDate}
+                    show
                   />
                 </Col>
                 <Col xs={12} sm={5}>
@@ -396,7 +395,7 @@ export default class ObservationView extends React.Component {
                   <Col sm={5} >
                     <ControlLabel>{translate('musit.texts.registeredBy')}</ControlLabel>
                     <br />
-                    <MusitField id="registeredBy" value="Change it" validate="text" disabled={Boolean(true)} />
+                    <MusitField id="registeredBy" value="Change it" validate="text" disabled="disabled" />
                   </Col>
                 </Row>
               : ''}
