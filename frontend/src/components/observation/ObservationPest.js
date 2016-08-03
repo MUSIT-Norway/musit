@@ -146,12 +146,13 @@ export default class ObservationPest extends Component {
           <Col xs={12} sm={6} md={6}>
             <span>
               <ControlLabel>{'\u00A0'}</ControlLabel><br />
-              <Button
-                onClick={() => onAddPest()}
-                disabled={Boolean(disabled)}
-              >
-                <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
-              </Button>
+              {disabled ? '' :
+                <Button
+                  onClick={() => onAddPest()}
+                  disabled={Boolean(disabled)}
+                >
+                  <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
+                </Button>}
             </span>
           </Col>
         </Row>

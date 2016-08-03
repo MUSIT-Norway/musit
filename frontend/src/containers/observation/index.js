@@ -359,13 +359,13 @@ export default class ObservationView extends React.Component {
                   </PageHeader>
                 </Col>
               </Row>
-              <Row style={{ backgroundColor: '#f2f2f2' }} disabled>
+              <Row>
                 <Col xs={12} sm={5} smOffset={1}>
                   <ControlLabel>{translate('musit.observation.date')}</ControlLabel>
                   <DatePicker
                     value={this.state.date}
                     onChange={this.onChangeDate}
-                    show
+                    disabled={this.displayExisting}
                   />
                 </Col>
                 <Col xs={12} sm={5}>
@@ -401,18 +401,20 @@ export default class ObservationView extends React.Component {
               : ''}
               <h1 />
               {renderActiveTypes(observations)}
-              <Row>
-                <h1 />
-                <hr />
-                <Col sm={5} smOffset={1}>
-                  <Button
-                    onClick={() => addNewObservation()}
-                    disabled={this.displayExisting}
-                  >
-                    <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
-                  </Button>
-                </Col>
-              </Row>
+              {this.displayExisting ? '' :
+                <Row>
+                  <h1 />
+                  <hr />
+                  <Col sm={5} smOffset={1}>
+                    <Button
+                      onClick={() => addNewObservation()}
+                      disabled={this.displayExisting}
+                    >
+                      <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
+                    </Button>
+                  </Col>
+                </Row>
+              }
               <Row>
                 <h1 />
                 <h1 />
