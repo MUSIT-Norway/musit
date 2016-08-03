@@ -39,4 +39,4 @@ const validate = (source) => {
   return lValue
 }
 
-export default { validate }
+export default validate

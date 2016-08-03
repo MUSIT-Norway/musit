@@ -88,13 +88,10 @@ class App extends Component {
                 <NavItem>Object</NavItem>
               </LinkContainer>
               <LinkContainer to="/grid/observationcontrol/1">
-                <NavItem>ObsCon</NavItem>
+                <NavItem>ObsConLayout</NavItem>
               </LinkContainer>
               <LinkContainer to="/grid/node">
                 <NavItem>Node</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/observationcontrol">
-                <NavItem>ObsConLeft</NavItem>
               </LinkContainer>
               <LinkContainer to="/nodeleftmenu">
                 <NavItem>NodeLeft</NavItem>
