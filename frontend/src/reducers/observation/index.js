@@ -46,7 +46,15 @@ export const loadObservation = () => {
       {
         type: 'pest',
         data: {
-          observations: [{ lifeCycle: 'Puppe', count: 4 }, { lifeCycle: 'Egg', count: 4 }],
+          observations: [
+            {
+              lifeCycle: 'Puppe',
+              count: 4
+            },
+            {
+              lifeCycle: 'Egg',
+              count: 4
+            }],
           identificationValue: 'Test identification value.',
           commentsValue: 'Test comments.'
         }
