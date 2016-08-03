@@ -19,7 +19,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { MusitField, MusitTextArea } from '../../components/formfields'
-import { FormGroup, ControlLabel, Col } from 'react-bootstrap'
+import { Row, ControlLabel, Col } from 'react-bootstrap'
 
 export default class ObservationFromToNumberCommentComponent extends Component {
   static propTypes = {
@@ -38,13 +38,14 @@ export default class ObservationFromToNumberCommentComponent extends Component {
     commentTooltip: PropTypes.string.isRequired,
     onChangeComment: PropTypes.func.isRequired,
     fromPlaceHolder: PropTypes.string,
-    toPlaceHolder: PropTypes.string
+    toPlaceHolder: PropTypes.string,
+    disabled: PropTypes.bool
   }
 
   constructor(props) {
     super(props)
     const { id, fromTooltip, onChangeFrom, toTooltip, onChangeTo, commentTooltip, onChangeComment, translate,
-      fromPlaceHolder, toPlaceHolder } = props
+      fromPlaceHolder, toPlaceHolder, disabled } = props
     this.fields = {
       from: {
         id: `${id}_from`,
@@ -52,7 +53,8 @@ export default class ObservationFromToNumberCommentComponent extends Component {
         tooltip: fromTooltip,
         onChange: onChangeFrom,
         validate: 'number',
-        precision: 3
+        precision: 3,
+        disabled: disabled
       },
       to: {
         id: `${id}_to`,
@@ -60,7 +62,8 @@ export default class ObservationFromToNumberCommentComponent extends Component {
         tooltip: toTooltip,
         onChange: onChangeTo,
         validate: 'number',
-        precision: 3
+        precision: 3,
+        disabled: disabled
       },
       comment: {
         id: `${id}_comment`,
@@ -69,7 +72,8 @@ export default class ObservationFromToNumberCommentComponent extends Component {
         onChange: onChangeComment,
         validate: 'text',
         maximumLength: 250,
-        numberOfRows: 5
+        numberOfRows: 5,
+        disabled: disabled
       }
     }
   }
@@ -79,7 +83,7 @@ export default class ObservationFromToNumberCommentComponent extends Component {
     const { fromValue, toValue, fromLabel, toLabel, commentValue, commentLabel } = this.props
 
     return (
-      <FormGroup>
+      <Row>
         <Col xs={12} sm={3}>
           <ControlLabel>{fromLabel}</ControlLabel>
           <MusitField {...from} value={fromValue} />
@@ -92,7 +96,7 @@ export default class ObservationFromToNumberCommentComponent extends Component {
           <ControlLabel>{commentLabel}</ControlLabel>
           <MusitTextArea {...comment} value={commentValue} />
         </Col>
-      </FormGroup>
+      </Row>
     )
   }
 }

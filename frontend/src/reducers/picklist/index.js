@@ -92,17 +92,14 @@ const picklistReducer = (state = initialState, action = {}) => {
           // it does not exist, so lets add
           newMarked = [...state.marked, action.id]
         }
+      } else if (state.marked.length > 0) {
+        // Lets toggle all off
+        newMarked = []
       } else {
-        // We operate on all
-        if (state.marked.length > 0) {
-          // Lets toggle all off
-          newMarked = []
-        } else {
-          // Lets toggle all on
-          newMarked = state.lists[activeSubStateKey].map((item) => {
-            return item.id
-          })
-        }
+        // Lets toggle all on
+        newMarked = state.lists[activeSubStateKey].map((item) => {
+          return item.id
+        })
       }
       return {
         ...state,
