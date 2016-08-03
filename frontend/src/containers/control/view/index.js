@@ -33,7 +33,7 @@ const mapStateToProps = (state) => ({
 export default class ControlViewShow extends React.Component {
   static propTypes = {
     translate: React.PropTypes.func.isRequired,
-    control: React.PropTypes.arrayOf(React.PropTypes.object)
+    control: React.PropTypes.object.isRequired
   }
 
   render() {

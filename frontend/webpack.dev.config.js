@@ -27,7 +27,7 @@ module.exports = {
   ],
   module: {
     loaders: [
-      { test: /\.js?$/, exclude: /node_modules/, loaders: ['react-hot', 'babel-loader', 'eslint-loader']},
+      { test: /\.jsx?$/, exclude: /node_modules/, loaders: ['react-hot', 'babel-loader', 'eslint-loader']},
       { test: /\.scss$/, loaders: ['style', 'css?modules&importLoaders=2', 'postcss', 'sass'] },
       { test: /\.css$/, loaders: ['style', 'css'] },
       { test: /\.woff(\?v=\d+\.\d+\.\d+)?$/, loader: "url?limit=10000&mimetype=application/font-woff&name=css/[name]_[hash].[ext]" },

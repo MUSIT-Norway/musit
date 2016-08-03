@@ -17,7 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-const bootstrapConfig = require('./bootstrap.config.js');
+const bootstrapConfig = require('./bootstrap.config');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 bootstrapConfig.styleLoader = ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader');
 module.exports = bootstrapConfig;

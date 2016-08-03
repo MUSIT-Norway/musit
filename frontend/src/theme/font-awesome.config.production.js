@@ -17,7 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-const fontAwesomeConfig = require('./font-awesome.config.js');
+const fontAwesomeConfig = require('./font-awesome.config');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 fontAwesomeConfig.styleLoader = ExtractTextPlugin.extract('style-loader', 'css-loader!less-loader');
 module.exports = fontAwesomeConfig;
