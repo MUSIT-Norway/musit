@@ -385,8 +385,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response.status mustBe 201
 
     val myEvent = validateEvent[Control](response.json)
-
-    assert(myEvent.relatedSubEvents.length == 1)
+    myEvent.relatedSubEvents.length mustBe 1
 
     val parts = myEvent.subEventsWithRelation(EventRelations.relation_parts)
     assert(parts.isDefined)
