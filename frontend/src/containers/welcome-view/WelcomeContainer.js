@@ -17,7 +17,7 @@ export default class WelcomeContainer extends React.Component {
         <main>
           <Panel>
             <Grid>
-              <Row styleClass="row-centered">
+              <Row className="row-centered">
                 <Col xs={10} md={10} style={{ textAlign: 'center' }}>
                   <PageHeader>
                     {this.props.translate('musit.welcomePage.title', true)}
@@ -30,7 +30,7 @@ export default class WelcomeContainer extends React.Component {
                 </Col>
               </Row>
               {!this.props.user &&
-                <Row styleClass="row-centered">
+                <Row className="row-centered">
                   <Col xs={10} md={10} style={{ textAlign: 'center' }}>
                     <LoginButton
                       setUser={this.props.setUser}
