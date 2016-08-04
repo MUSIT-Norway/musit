@@ -76,10 +76,10 @@ export default class ControlView extends Component {
           </Button>
         </Col>
       ) }
-    const oneTableRow = (control) => {
+    const oneTableRow = (control, i) => {
       const { type, ok } = control
       return (
-        <div>
+        <div key={i}>
           <Row>
             {observation(ControlView.iconMap[type], this.props.translate(`musit.controls.${type}`))}
             {ok ? controlOk : controlNotOk}
@@ -99,8 +99,8 @@ export default class ControlView extends Component {
 
     return (
       <FormGroup>
-        {this.props.controls.map(c =>
-          oneTableRow(c)
+        {this.props.controls.map((c, i) =>
+          oneTableRow(c, i)
         )}
       </FormGroup>
     )

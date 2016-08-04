@@ -18,7 +18,7 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { validate } from '../common/validators'
+import validate from '../common/validators'
 
 export default class MusitTextArea extends Component {
 
@@ -50,6 +50,7 @@ export default class MusitTextArea extends Component {
         value={this.props.value}
         id={this.props.id}
         rows={this.props.numberOfRows}
+        disabled={this.props.disabled}
         onChange={(event) => this.props.onChange(event.target.value)} data-toggle="tooltip" title={this.props.tooltip}
       />);
 
@@ -74,5 +75,6 @@ MusitTextArea.propTypes = {
   maximumLength: PropTypes.number,
   validator: PropTypes.string,
   precision: PropTypes.number,
-  numberOfRows: PropTypes.number
+  numberOfRows: PropTypes.number,
+  disabled: PropTypes.bool
 };

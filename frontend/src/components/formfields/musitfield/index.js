@@ -18,7 +18,7 @@
  */
 
 import React, { Component, PropTypes } from 'react'
-import { validate } from '../common/validators'
+import validate from '../common/validators'
 
 export default class MusitField extends Component {
 
@@ -46,6 +46,7 @@ export default class MusitField extends Component {
     const lcAddOnPrefix = this.props.addOnPrefix ? <span className="input-group-addon" >{this.props.addOnPrefix}</span> : null;
     const lcPlaceholder = (
       <input
+        style={this.props.style}
         type="text" className="form-control"
         placeholder={this.props.placeHolder}
         value={this.props.value}
@@ -86,6 +87,6 @@ MusitField.propTypes = {
   maximumLength: PropTypes.number,
   validator: PropTypes.string,
   precision: PropTypes.number,
-  disabled: PropTypes.bool
-
+  disabled: PropTypes.bool,
+  style: PropTypes.object
 };

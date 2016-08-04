@@ -56,14 +56,10 @@ export default class NodeGrid extends Component {
                 <th>
                   {translate('musit.grid.node.nodeCount')}
                 </th>
-                <th>
-                </th>
-                <th>
-                </th>
-                <th>
-                </th>
-                <th>
-                </th>
+                <th />
+                <th />
+                <th />
+                <th />
               </tr>
             </thead>
             <tbody>
