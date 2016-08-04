@@ -19,13 +19,14 @@
 
 import React from 'react'
 import { connect } from 'react-redux'
-import { Grid, Row, Col, Button, FormControl, PageHeader } from 'react-bootstrap'
+import { Grid, Row, Col, FormControl, PageHeader } from 'react-bootstrap'
 import PairedToogleButtons from '../../../components/control/add'
 import Field from '../../../components/formfields/musitfield'
 import { addControl } from '../../../reducers/control/add'
 import Language from '../../../components/language'
 import DatePicker from 'react-bootstrap-date-picker'
 import moment from 'moment'
+import SaveCancel from '../../../components/formfields/saveCancel/SaveCancel'
 
 const mapStateToProps = (state) => ({
   user: state.auth.user || { name: 'Unknown user' },
@@ -76,10 +77,13 @@ export default class ControlView extends React.Component {
       user: this.props.user ? this.props.user.name : ''
     }
     this.getDate = this.getDate.bind(this)
+
     this.onTemperatureOKClick = this.onTemperatureOKClick.bind(this)
     this.onTemperatureNotOKClick = this.onTemperatureNotOKClick.bind(this)
+
     this.onInertAirOKClick = this.onInertAirOKClick.bind(this)
     this.onInertAirNotOKClick = this.onInertAirNotOKClick.bind(this)
+
     this.onRelativeHumidityOKClick = this.onRelativeHumidityOKClick.bind(this)
     this.onRelativeHumidityNotOKClick = this.onRelativeHumidityNotOKClick.bind(this)
 
@@ -100,6 +104,7 @@ export default class ControlView extends React.Component {
 
     this.onGasOKClick = this.onGasOKClick.bind(this)
     this.onGasNotOKClick = this.onGasNotOKClick.bind(this)
+
     this.onHandleDateChange = this.onHandleDateChange.bind(this)
   }
 
@@ -257,6 +262,7 @@ export default class ControlView extends React.Component {
 
 
   render() {
+    /*
     const stateOKorNotOK = () => {
       return (this.state.temperatureOK != null ||
         this.state.relativeHumidityOK != null ||
@@ -267,6 +273,17 @@ export default class ControlView extends React.Component {
         this.state.alchoholOK != null ||
         this.state.moldFungusOK != null ||
         this.state.pestOK != null)
+    } */
+    const oneStateIsNotOK = () => {
+      return (this.state.temperatureOK === false ||
+        this.state.relativeHumidityOK === false ||
+        this.state.inertAirOK === false ||
+        this.state.lightConditionsOK === false ||
+        this.state.cleaningOK === false ||
+        this.state.gasOK === false ||
+        this.state.alchoholOK === false ||
+        this.state.moldFungusOK === false ||
+        this.state.pestOK === false)
     }
 
     const { translate } = this.props
@@ -603,19 +620,20 @@ export default class ControlView extends React.Component {
               </p>
             </Col>
           </Row>
-
-
           <Row>
-            <Col md={3} />
-            <Col md={9} mdPush={8}>
-              <Button
-                disabled={!stateOKorNotOK()}
-                onClick={() =>
+            {oneStateIsNotOK() ?
+              <SaveCancel
+                saveLabel={translate('musit.observation.registerObservation')}
+                translate={translate}
+                onClickSave={(a) => (a)}
+                onClickCancel={(a) => (a)}
+              /> :
+              <SaveCancel
+                translate={translate}
+                onClickSave={() =>
                 this.props.onLagreControl(this.state)}
-              >
-                Registrer observasjon
-              </Button>
-            </Col>
+                onClickCancel={(a) => (a)}
+              />}
           </Row>
         </Grid>
       </div>)
