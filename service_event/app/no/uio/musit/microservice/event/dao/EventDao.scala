@@ -126,16 +126,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     baseEventDto.eventType.eventImplementation match {
       case singleTableEventType: SingleTableEventType => MusitFuture.successful(singleTableEventType.createEventInMemory(baseProps))
       case multipleTablesEventType: MultipleTablesEventType => multipleTablesEventType.getEventFromDatabase(id, baseProps)
-      /*#OLD
-
-              case singleTableSingleDto: SingleTableNotUsingCustomFields => MusitFuture.successful(singleTableSingleDto.createEventInMemory(baseProps))
-
-      case singleTableMultipleDtos: SingleTableUsingCustomFields =>
-        val customDto = singleTableMultipleDtos.baseTableToCustomDto(baseEventDto)
-        MusitFuture.successful(singleTableMultipleDtos.createEventInMemory(baseProps, customDto))
-      case multipleTablesMultipleDtos: MultipleTablesNotUsingCustomFields => multipleTablesMultipleDtos.getEventFromDatabase(id, baseProps)
-
-         */
     }
   }
 
@@ -241,7 +231,13 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val valueString = column[Option[String]]("VALUE_STRING")
     val valueDouble = column[Option[Double]]("VALUE_FLOAT")
 
-    def create = (id: Option[Long], eventType: EventType, note: Option[String], partOf: Option[Long], valueLong: Option[Long], valueString: Option[String], valueDouble: Option[Double]) =>
+    def create = (id: Option[Long],
+      eventType: EventType,
+      note: Option[String],
+      partOf: Option[Long],
+      valueLong: Option[Long],
+      valueString: Option[String],
+      valueDouble: Option[Double]) =>
       BaseEventDto(
         id,
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
@@ -254,7 +250,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         valueDouble
       )
 
-    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.partOf, event.valueLong, event.valueString, event.valueDouble)
+    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.partOf, event.valueLong,
+      event.valueString, event.valueDouble)
   }
 
 }

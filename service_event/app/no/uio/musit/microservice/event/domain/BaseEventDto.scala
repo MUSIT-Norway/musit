@@ -49,7 +49,9 @@ object BaseEventDto {
   }
 }
 
-case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long], valueString: Option[String], valueDouble: Option[Double]) {
+case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
+    relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long],
+    valueString: Option[String], valueDouble: Option[Double]) {
   def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
 
   def getOptBool = valueLong match {
