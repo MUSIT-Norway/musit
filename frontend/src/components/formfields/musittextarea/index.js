@@ -18,7 +18,7 @@
  */
 
 import React, { Component, PropTypes } from 'react';
-import { validate } from '../common/validators'
+import validate from '../common/validators'
 
 export default class MusitTextArea extends Component {
 

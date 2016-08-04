@@ -28,7 +28,7 @@ import DatePicker from 'react-bootstrap-date-picker'
 import moment from 'moment'
 
 const mapStateToProps = (state) => ({
-  user: state.auth.user,
+  user: state.auth.user || { name: 'Unknown user' },
   environmentRequirements: state.environmentRequirements,
   translate: (key, markdown) => Language.translate(key, markdown)
 })
@@ -47,7 +47,7 @@ const mapDispatchToProps = (dispatch) => ({
 export default class ControlView extends React.Component {
   static propTypes = {
     translate: React.PropTypes.func.isRequired,
-    user: React.PropTypes.string.isRequired,
+    user: React.PropTypes.object.isRequired,
     onLagreControl: React.PropTypes.func.isRequired,
     updateControl: React.PropTypes.func.isRequired,
   }
@@ -271,24 +271,12 @@ export default class ControlView extends React.Component {
 
     const { translate } = this.props
     const renderReadOnly = (v) => {
-      return <FormControl style={{ backgroundColor: '#f2f2f2' }} readonly value={v} />
+      return <FormControl style={{ backgroundColor: '#f2f2f2' }} readOnly value={v} />
     }
     return (
       <div>
         <Grid>
-          <Row>
-            <h1 />
-          </Row>
-          <Row>
-            <h1 />
-          </Row>
-          <Row>
-            <h1 />
-          </Row>
-          <Row>
-            <h1 />
-          </Row>
-          <Row styleClass="row-centered">
+          <Row className="row-centered" style={{ paddingLeft: 40 }}>
             <PageHeader>
               {this.props.translate('musit.newControl.title', true)}
             </PageHeader>
@@ -309,7 +297,7 @@ export default class ControlView extends React.Component {
                   <Col md={12}>
                     <DatePicker
                       dateFormat="DD/MM/YYYY"
-                      value={this.state.startDate}
+                      value={this.state.startDate.toString()}
                       onChange={this.onHandleDateChange}
                     />
                   </Col>
@@ -327,6 +315,7 @@ export default class ControlView extends React.Component {
               <Row>
                 <Col md={9}>
                   <Field
+                    id={"user"}
                     value={this.state.user}
                     onChange={(v) => { this.setState({ ...this.state, user: v }) }}
                   />
@@ -621,8 +610,7 @@ export default class ControlView extends React.Component {
             <Col md={9} mdPush={8}>
               <Button
                 disabled={!stateOKorNotOK()}
-                text-align="right"
-                pullRight onClick={() =>
+                onClick={() =>
                 this.props.onLagreControl(this.state)}
               >
                 Registrer observasjon
