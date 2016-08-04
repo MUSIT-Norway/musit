@@ -395,7 +395,12 @@ export default class ObservationView extends React.Component {
                   <Col sm={5} >
                     <ControlLabel>{translate('musit.texts.registeredBy')}</ControlLabel>
                     <br />
-                    <MusitField id="registeredBy" value="Change it" validate="text" disabled="disabled" />
+                    <MusitField
+                      id="registeredBy"
+                      value="Change it"
+                      validate="text"
+                      disabled={this.displayExisting}
+                    />
                   </Col>
                 </Row>
               : ''}

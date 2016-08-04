@@ -43,11 +43,10 @@ export default class MusitField extends Component {
   }
 
   render() {
-    const { style } = this.props
     const lcAddOnPrefix = this.props.addOnPrefix ? <span className="input-group-addon" >{this.props.addOnPrefix}</span> : null;
     const lcPlaceholder = (
       <input
-        style={style}
+        style={this.props.style}
         type="text" className="form-control"
         placeholder={this.props.placeHolder}
         value={this.props.value}
