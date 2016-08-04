@@ -70,7 +70,7 @@ export const loadObservation = () => {
     { livssyklus: 'Adult', antall: '3' },
     { livssyklus: 'Puppe', antall: '4' },
     { livssyklus: 'Puppeskinn', antall: '5' },
-    { livssyklus: 'Larve', antall: '6' },
+    { livssyklus: 'Larva', antall: '6' },
     { livssyklus: 'Egg', antall: '7' }]
     },
     { eventType: 'observationSprit',

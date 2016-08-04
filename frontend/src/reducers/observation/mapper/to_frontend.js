@@ -16,11 +16,21 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+const wrapAlcoholState = ((s) => {
+  switch (s) {
+    case 'Uttørket': return 'Uttørket'
+    case 'nesten uttørket': return 'Nesten uttørket'
+    case 'litt uttørket': return 'Litt uttørket'
+    case 'noe uttørket': return 'Noe uttrørket'
+    case 'tilfredsstillende': return 'Tilfredsstillende'
+    default: return ''
+  }
+})
 
 const wrap = (be) => {
   const ret = {}
   ret.user = 'Arne And'
-  ret.date = '01/01/2012'
+  ret.date = '01-01.2012'
   ret.observations = be.subEvents.map((o) => {
     const retobs = {}
     retobs.data = {}
@@ -47,7 +57,7 @@ const wrap = (be) => {
         break
       case 'observationSkallSikring':
         retobs.type = 'skallsikring'
-        retobs.data.leftValue = o.Skallsikring
+        retobs.data.leftValue = o.SkallSikring
         retobs.data.rightValue = o.note
         break
       case 'observationBrannSikring':
@@ -86,6 +96,7 @@ const wrap = (be) => {
       case 'observationSkadedyr':
         retobs.type = 'pest'
         retobs.data.identificationValue = o.identifikasjon
+        retobs.data.commentsValue = o.note
         retobs.data.observations = o.livssykluser.map((l) => {
           const obs = {}
           obs.lifeCycle = l.livssyklus
@@ -97,8 +108,8 @@ const wrap = (be) => {
       case 'observationSprit':
         retobs.type = 'alcohol'
         retobs.data.commentValue = o.note
-        retobs.data.statusValue = o.Tilstander[0].Tilstand
-        retobs.data.volume = o.Tilstander[0].Volum
+        retobs.data.statusValue = wrapAlcoholState(o.Tilstander[0].Tilstand)
+        retobs.data.volumeValue = o.Tilstander[0].Volum
         break
       default:
     }
