@@ -87,5 +87,6 @@ export const loadObservation = () => {
   return {
     type: LOAD,
     data: toService
+
   }
 }
