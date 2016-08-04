@@ -38,6 +38,7 @@ CREATE TABLE MUSARK_EVENT.EVENT (
   NOTE VARCHAR2(4000),
   VALUE_LONG long, -- Custom value, events can choose to store some event-specific value here.
   VALUE_String clob, -- Custom value, events can choose to store some event-specific value here.
+  VALUE_FLOAT float, -- Custom value, events can choose to store some event-specific value here.
   PART_OF long,
   PRIMARY KEY (ID),
   FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID),
@@ -86,13 +87,6 @@ CREATE TABLE MUSARK_EVENT.OBSERVATION_SKADEDYR_LIVSSYKLUS
    FOREIGN KEY (event_id) REFERENCES MUSARK_EVENT.EVENT(ID)
 );
 
-CREATE TABLE MUSARK_EVENT.OBSERVATION_SPRIT_TILSTAND
-(
- event_id         BIGINT(20) NOT NULL,
- tilstand         VARCHAR2(250),
- volum             double,
-   FOREIGN KEY (event_id) REFERENCES MUSARK_EVENT.EVENT(ID)
-);
 CREATE TABLE URI_LINKS (
       ID bigint(20) NOT NULL AUTO_INCREMENT,
       LOCAL_TABLE_ID bigint(20) NOT NULL,

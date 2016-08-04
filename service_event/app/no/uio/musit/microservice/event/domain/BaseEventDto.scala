@@ -48,14 +48,17 @@ object BaseEventDto {
   }
 }
 
-case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long], valueString: Option[String]) {
+case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String], relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long], valueString: Option[String], valueDouble: Option[Double]) {
   def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
 
   def getOptBool = valueLong match {
     case Some(1) => Some(true)
     case Some(0) => Some(false)
     case None => None
+    case n => throw new Exception(s"Boolean value encoded as an opt integer should be either None, 0 or 1, not $n.") //If this happens, we have a bug in our code!
   }
+
+  def getBool = getOptBool.get
 
   def setBool(value: Boolean) = this.copy(valueLong = Some(if (value) 1 else 0))
 
@@ -68,9 +71,22 @@ case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: E
     }
   }
 
+  def setDouble(value: Double) = this.copy(valueDouble = Some(value))
+
+  def setOptionDouble(value: Option[Double]) = {
+    value match {
+      case Some(s) => setDouble(s)
+      case None => this.copy(valueDouble = None)
+    }
+  }
+
   def hasValueLong = valueLong.isDefined
   def hasValueString = valueString.isDefined
+  def hasValueDouble = valueDouble.isDefined
 
   def getOptString: Option[String] = valueString
   def getString: String = getOptString.getOrElse("")
+
+  def getOptDouble: Option[Double] = valueDouble
+  def getDouble: Double = getOptDouble.get
 }

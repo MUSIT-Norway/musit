@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.domain.{ BaseEventDto, Event, EventType }
-import no.uio.musit.microservice.event.service.Validators.{ IntegerValidator, StringValidator }
+import no.uio.musit.microservice.event.service.Validators.{ DoubleValidator, IntegerValidator, StringValidator }
 import play.api.libs.json._
 
 /**
@@ -39,7 +39,8 @@ import play.api.libs.json._
 
 object Validators {
   type IntegerValidator = Int => Option[String] //Not implemented yet. Should probably return a Success/Failure thing.
-  type StringValidator = Int => Option[String] //Not implemented yet. Should probably return a Success/Failure thing.
+  type StringValidator = String => Option[String] //Not implemented yet. Should probably return a Success/Failure thing.
+  type DoubleValidator = Double => Option[String] //Not implemented yet. Should probably return a Success/Failure thing.
 }
 
 sealed trait ValueLongField
@@ -48,17 +49,23 @@ case class BooleanField(name: String, required: Boolean) extends ValueLongField
 
 case class IntegerField(name: String, required: Boolean, validator: Option[IntegerValidator] = None) extends ValueLongField
 
-case class ValueStringField(name: String, required: Boolean, validator: Option[IntegerValidator] = None)
+case class ValueStringField(name: String, required: Boolean, validator: Option[StringValidator] = None)
+
+case class ValueDoubleField(name: String, required: Boolean, validator: Option[DoubleValidator] = None)
 
 object CustomValuesInEventTable {
 
-  def getBool(event: Event) = event.baseEventProps.getOptBool.get
+  def getBool(event: Event) = event.baseEventProps.getBool
 
   def getOptBool(event: Event) = event.baseEventProps.getOptBool
 
   def getString(event: Event) = event.baseEventProps.getString
 
   def getOptString(event: Event) = event.baseEventProps.getOptString
+
+  def getDouble(event: Event) = event.baseEventProps.getDouble
+
+  def getOptDouble(event: Event) = event.baseEventProps.getOptDouble
 
 }
 
@@ -96,6 +103,14 @@ object CustomFieldsHandler {
           }
         }
       }
+      resultJsObject = baseEventDto.valueDouble.fold(resultJsObject) { myValueDouble =>
+        {
+          fieldsSpec.doubleValueHandler.fold(resultJsObject) {
+            valueDoubleFieldSpec =>
+              resultJsObject + (valueDoubleFieldSpec.name -> JsNumber(myValueDouble))
+          }
+        }
+      }
       resultJsObject
     }
   }
@@ -130,68 +145,97 @@ object CustomFieldsHandler {
       }
     }
   }
+
+  def validateCustomDoubleFieldFromJsonIfAny(eventType: EventType, jsObject: JsObject): JsResult[Option[Double]] = {
+    getOptFieldsSpec(eventType).fold[JsResult[Option[Double]]](JsSuccess[Option[Double]](None)) { fieldsSpec =>
+      fieldsSpec.doubleValueHandler.fold[JsResult[Option[Double]]](JsSuccess[Option[Double]](None)) {
+        valueDoubleFieldSpec =>
+          if (valueDoubleFieldSpec.required)
+            (jsObject \ valueDoubleFieldSpec.name).validate[Double].map(Some(_))
+          else
+            (jsObject \ valueDoubleFieldSpec.name).validateOpt[Double]
+
+      }
+    }
+  }
+
 }
 
-case class CustomFieldsSpec(intValueHandler: Option[ValueLongField] = None, stringValueHandler: Option[ValueStringField] = None) {
+case class CustomFieldsSpec(intValueHandler: Option[ValueLongField] = None, stringValueHandler: Option[ValueStringField] = None, doubleValueHandler: Option[ValueDoubleField] = None) {
 
   //Just a precondition, check that the programmer aren't trying to define to different usages of the same valueLong-field in the event-table!
-  def assertNotAlreadyDefinedIntValueHandler() = {
-    assert(!intValueHandler.isDefined)
+  def assertNotAlreadyDefinedIntValueHandler(name: String) = {
+    assert(!intValueHandler.isDefined, s"Assert failed, custom integer field already in use, when trying to define property with name $name")
 
   }
 
   //Just a precondition, check that the programmer aren't trying to define to different usages of the same valueString-field in the event-table!
-  def assertNotAlreadyDefinedStringValueHandler() = {
-    assert(!stringValueHandler.isDefined)
+  def assertNotAlreadyDefinedStringValueHandler(name: String) = {
+    assert(!stringValueHandler.isDefined, s"Assert failed, custom string field already in use, when trying to define property with name $name")
+  }
+
+  //Just a precondition, check that the programmer aren't trying to define to different usages of the same valueDouble-field in the event-table!
+  def assertNotAlreadyDefinedDoubleValueHandler(name: String) = {
+    assert(!doubleValueHandler.isDefined, s"Assert failed, custom double field already in use, when trying to define property with name $name")
   }
 
   def defineRequiredBoolean(name: String) = {
-    assertNotAlreadyDefinedIntValueHandler()
+    assertNotAlreadyDefinedIntValueHandler(name)
     this.copy(intValueHandler = Some(BooleanField(name, true)))
   }
 
   def defineRequiredInt(name: String) = {
-    assertNotAlreadyDefinedIntValueHandler()
+    assertNotAlreadyDefinedIntValueHandler(name)
     this.copy(intValueHandler = Some(IntegerField(name, true, None)))
   }
 
   def defineRequiredInt(name: String, validator: IntegerValidator) = {
-    assertNotAlreadyDefinedIntValueHandler()
+    assertNotAlreadyDefinedIntValueHandler(name)
     this.copy(intValueHandler = Some(IntegerField(name, true, Some(validator))))
   }
 
   def defineRequiredString(name: String) = {
-    assertNotAlreadyDefinedStringValueHandler()
+    assertNotAlreadyDefinedStringValueHandler(name)
     this.copy(stringValueHandler = Some(ValueStringField(name, true, None)))
   }
 
   def defineRequiredString(name: String, validator: StringValidator) = {
-    assertNotAlreadyDefinedStringValueHandler()
+    assertNotAlreadyDefinedStringValueHandler(name)
     this.copy(stringValueHandler = Some(ValueStringField(name, true, Some(validator))))
   }
 
+  def defineRequiredDouble(name: String) = {
+    assertNotAlreadyDefinedDoubleValueHandler(name)
+    this.copy(doubleValueHandler = Some(ValueDoubleField(name, true, None)))
+  }
+
+  def defineOptDouble(name: String) = {
+    assertNotAlreadyDefinedDoubleValueHandler(name)
+    this.copy(doubleValueHandler = Some(ValueDoubleField(name, false, None)))
+  }
+
   def defineOptBoolean(name: String) = {
-    assertNotAlreadyDefinedIntValueHandler()
+    assertNotAlreadyDefinedIntValueHandler(name)
     this.copy(intValueHandler = Some(BooleanField(name, false)))
   }
 
   def defineOptInt(name: String) = {
-    assertNotAlreadyDefinedIntValueHandler()
+    assertNotAlreadyDefinedIntValueHandler(name)
     this.copy(intValueHandler = Some(IntegerField(name, false, None)))
   }
 
   def defineOptInt(name: String, validator: IntegerValidator) = {
-    assertNotAlreadyDefinedIntValueHandler()
+    assertNotAlreadyDefinedIntValueHandler(name)
     this.copy(intValueHandler = Some(IntegerField(name, false, Some(validator))))
   }
 
   def defineOptString(name: String) = {
-    assertNotAlreadyDefinedStringValueHandler()
+    assertNotAlreadyDefinedStringValueHandler(name)
     this.copy(stringValueHandler = Some(ValueStringField(name, false, None)))
   }
 
   def defineOptString(name: String, validator: StringValidator) = {
-    assertNotAlreadyDefinedStringValueHandler()
+    assertNotAlreadyDefinedStringValueHandler(name)
     this.copy(stringValueHandler = Some(ValueStringField(name, false, Some(validator))))
   }
 }

@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.{ ObservationSpritDao, ObservationSkadedyrDao, ObservationFromToDao }
+import no.uio.musit.microservice.event.dao.{ ObservationSkadedyrDao, ObservationFromToDao }
 import no.uio.musit.microservice.event.domain._
 import play.api.libs.json.{ JsObject, JsResult, Json }
 
@@ -239,22 +239,14 @@ object ObservationSkadedyrService extends MultipleTablesAndUsingCustomFields {
 //  ObservationSprit
 // ------------------------------------------------------------
 
-class ObservationSprit(val baseProps: BaseEventDto, val dto: ObservationSpritDto) extends Event(baseProps) {
-  val tilstander = dto.tilstander
+class ObservationSprit(val baseProps: BaseEventDto) extends Event(baseProps) {
+  val tilstand = baseProps.getOptString
+  val volum = baseProps.getOptDouble
 }
 
-object ObservationSpritService extends MultipleTablesNotUsingCustomFields {
+object ObservationSpritService extends SingleTableUsingCustomFields {
 
-  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationSprit(baseProps, customDto.asInstanceOf[ObservationSpritDto])
+  def getCustomFieldsSpec = ObservationSpritCustomFieldsSpec.customFieldsSpec
 
-  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventDto): Future[Option[Dto]] = ObservationSpritDao.getObservation(id)
-
-  def createInsertCustomDtoAction(id: Long, event: Event) = {
-    val specificEvent = event.asInstanceOf[ObservationSprit]
-    ObservationSpritDao.insertAction(id, specificEvent.dto)
-  }
-
-  def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[ObservationSpritDto]
-
-  def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[ObservationSprit].dto).asInstanceOf[JsObject]
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationSprit(baseProps)
 }

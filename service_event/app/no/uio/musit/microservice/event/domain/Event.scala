@@ -20,6 +20,8 @@ class Event(val baseEventProps: BaseEventDto) {
   def getCustomOptBool = CustomValuesInEventTable.getOptBool(this)
   def getCustomString = CustomValuesInEventTable.getString(this)
   def getCustomOptString = CustomValuesInEventTable.getOptString(this)
+  def getCustomDouble = CustomValuesInEventTable.getDouble(this)
+  def getCustomOptDouble = CustomValuesInEventTable.getOptDouble(this)
 
   def subEventsWithRelation(eventRelation: EventRelation) = relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
 
@@ -132,16 +134,6 @@ object ObservationSkadedyrDto {
 // ---------------------------------------------------
 // ObservationSprit
 // ---------------------------------------------------
-
-//Note: The eventId is only used during writing to the database, it is "None-ed out" after having been read from the database, to prevent it from showing up in json.
-case class TilstandDto(eventId: Option[Long], tilstand: Option[String], volum: Option[Double])
-
-object TilstandDto {
-  implicit val format = Json.format[TilstandDto]
-}
-
-case class ObservationSpritDto(tilstander: Seq[TilstandDto]) extends Dto
-
-object ObservationSpritDto {
-  implicit val format = Json.format[ObservationSpritDto]
+object ObservationSpritCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("tilstand").defineOptDouble("volum")
 }

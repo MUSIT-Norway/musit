@@ -627,22 +627,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
       "eventType": "observationSprit",
       "note": "tekst til observationsprit",
-      "tilstander": [{
-        "tilstand": "Uttørket",
-        "volum": 3.2
-      }, {
-        "tilstand": "nesten uttørket",
-        "volum": 4.554
-      }, {
-        "tilstand": "noe uttørket",
-        "volum": 5.332
-      }, {
-        "tilstand": "litt uttørket",
-        "volum": 6.3
-      }, {
-        "tilstand": "tilfredsstillende",
-        "volum": 7
-      }]
+       "tilstand": "Uttørket",
+       "volum": 3.2
     }"""
 
     val response = createEvent(json)
@@ -654,15 +640,30 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     responseGet.status mustBe 200
     val myEventGet = validateEvent[ObservationSprit](responseGet.json)
 
-    myEventGet.tilstander.length mustBe 5
-    val tilstandFirst = myEventGet.tilstander(0)
-    tilstandFirst.tilstand mustBe Some("Uttørket")
-    tilstandFirst.volum mustBe Some(3.2)
+    myEvent.tilstand mustBe Some("Uttørket")
+    myEvent.volum mustBe Some(3.2)
 
-    val tilstandLast = myEventGet.tilstander(3)
-    tilstandLast.tilstand mustBe Some("litt uttørket")
-    tilstandLast.volum mustBe Some(6.3)
-    tilstandLast.eventId mustBe None //We don't want these in the json output.
+  }
+
+  "post and get ObservationSprit without tilstand and volumn" in {
+    val json =
+      """
+  {
+      "eventType": "observationSprit",
+      "note": "tekst til observationsprit"
+    }"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val myEvent = validateEvent[ObservationSprit](response.json)
+
+
+    val responseGet = getEvent(myEvent.id.get)
+    responseGet.status mustBe 200
+    val myEventGet = validateEvent[ObservationSprit](responseGet.json)
+
+    myEvent.tilstand mustBe None
+    myEvent.volum mustBe None
 
   }
 
