@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.domain
 
 import no.uio.musit.microservice.event.service.CustomFieldsHandler
-import no.uio.musit.microservices.common.domain.MusitInternalErrorException
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
@@ -30,6 +30,7 @@ import play.api.libs.json._
  */
 
 object BaseEventDto {
+
   implicit object baseEventPropsWrites extends Writes[BaseEventDto] {
 
     def writes(baseEventDto: BaseEventDto): JsValue = {
@@ -55,38 +56,38 @@ case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: E
     case Some(1) => Some(true)
     case Some(0) => Some(false)
     case None => None
-    case n => throw new Exception(s"Boolean value encoded as an opt integer should be either None, 0 or 1, not $n.") //If this happens, we have a bug in our code!
+    case n => throw new Exception(s"Boolean value encoded as an opt integer should be either None, 0 or 1, not $n.")
+    //If this happens, we have a bug in our code!
   }
 
-  def getBool = getOptBool.get
+  def getBool = getOptBool.getOrFail("Missing required custom boolean value")
 
   def setBool(value: Boolean) = this.copy(valueLong = Some(if (value) 1 else 0))
 
+  def getOptString: Option[String] = valueString
+
+  def getString: String = getOptString.getOrFail("Missing required custom string value")
+
   def setString(value: String) = this.copy(valueString = Some(value))
 
-  def setOptionString(value: Option[String]) = {
+  def setOptString(value: Option[String]) = {
     value match {
       case Some(s) => setString(s)
       case None => this.copy(valueString = None)
     }
   }
 
+  def getOptDouble: Option[Double] = valueDouble
+
+  def getDouble: Double = getOptDouble.getOrFail("Missing required custom double value")
+
   def setDouble(value: Double) = this.copy(valueDouble = Some(value))
 
-  def setOptionDouble(value: Option[Double]) = {
+  def setOptDouble(value: Option[Double]) = {
     value match {
       case Some(s) => setDouble(s)
       case None => this.copy(valueDouble = None)
     }
   }
 
-  def hasValueLong = valueLong.isDefined
-  def hasValueString = valueString.isDefined
-  def hasValueDouble = valueDouble.isDefined
-
-  def getOptString: Option[String] = valueString
-  def getString: String = getOptString.getOrElse("")
-
-  def getOptDouble: Option[Double] = valueDouble
-  def getDouble: Double = getOptDouble.get
 }

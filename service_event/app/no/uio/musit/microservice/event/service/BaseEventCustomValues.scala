@@ -154,14 +154,17 @@ object CustomFieldsHandler {
             (jsObject \ valueDoubleFieldSpec.name).validate[Double].map(Some(_))
           else
             (jsObject \ valueDoubleFieldSpec.name).validateOpt[Double]
-
       }
     }
   }
 
 }
 
-case class CustomFieldsSpec(intValueHandler: Option[ValueLongField] = None, stringValueHandler: Option[ValueStringField] = None, doubleValueHandler: Option[ValueDoubleField] = None) {
+case class CustomFieldsSpec(
+  intValueHandler: Option[ValueLongField] = None,
+    stringValueHandler: Option[ValueStringField] = None,
+    doubleValueHandler: Option[ValueDoubleField] = None
+) {
 
   //Just a precondition, check that the programmer aren't trying to define to different usages of the same valueLong-field in the event-table!
   def assertNotAlreadyDefinedIntValueHandler(name: String) = {
