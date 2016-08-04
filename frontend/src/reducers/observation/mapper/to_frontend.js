@@ -37,60 +37,60 @@ const wrap = (be) => {
     switch (o.eventType) {
       case 'observationLight':
         retobs.type = 'lux'
-        retobs.data.leftValue = o.Lysforhold
+        retobs.data.leftValue = o.lysforhold
         retobs.data.rightValue = o.note
         break
       case 'observationGass':
         retobs.type = 'gas'
-        retobs.data.leftValue = o.Gass
+        retobs.data.leftValue = o.gass
         retobs.data.rightValue = o.note
         break
       case 'observationMugg':
         retobs.type = 'mold'
-        retobs.data.leftValue = o.Mugg
+        retobs.data.leftValue = o.mugg
         retobs.data.rightValue = o.note
         break
       case 'observationRenhold':
         retobs.type = 'cleaning'
-        retobs.data.leftValue = o.Renhold
+        retobs.data.leftValue = o.renhold
         retobs.data.rightValue = o.note
         break
       case 'observationSkallSikring':
         retobs.type = 'skallsikring'
-        retobs.data.leftValue = o.SkallSikring
+        retobs.data.leftValue = o.skallSikring
         retobs.data.rightValue = o.note
         break
       case 'observationBrannSikring':
         retobs.type = 'brannsikring'
-        retobs.data.leftValue = o.BrannSikring
+        retobs.data.leftValue = o.brannSikring
         retobs.data.rightValue = o.note
         break
       case 'observationTyveriSikring':
         retobs.type = 'tyverisikring'
-        retobs.data.leftValue = o.TyveriSikring
+        retobs.data.leftValue = o.tyveriSikring
         retobs.data.rightValue = o.note
         break
       case 'observationVannskadeRisiko':
         retobs.type = 'vannskaderisiko'
-        retobs.data.leftValue = o.VannskadeRisiko
+        retobs.data.leftValue = o.vannskadeRisiko
         retobs.data.rightValue = o.note
         break
       case 'observationInertLuft':
         retobs.type = 'hypoxicAir'
-        retobs.data.fromValue = o.inertLuft_from
-        retobs.data.toValue = o.inertLuft_to
+        retobs.data.fromValue = o.inertLuftFrom
+        retobs.data.toValue = o.inertLuftTo
         retobs.data.commentValue = o.note
         break
       case 'observationTemperature':
         retobs.type = 'temperature'
-        retobs.data.fromValue = o.temperature_from
-        retobs.data.toValue = o.temperature_to
+        retobs.data.fromValue = o.temperatureFrom
+        retobs.data.toValue = o.temperatureTo
         retobs.data.commentValue = o.note
         break
       case 'observationRelativeHumidity':
         retobs.type = 'rh'
-        retobs.data.fromValue = o.humidity_from
-        retobs.data.toValue = o.humidity_to
+        retobs.data.fromValue = o.humidityFrom
+        retobs.data.toValue = o.humidityTo
         retobs.data.commentValue = o.note
         break
       case 'observationSkadedyr':
@@ -108,8 +108,8 @@ const wrap = (be) => {
       case 'observationSprit':
         retobs.type = 'alcohol'
         retobs.data.commentValue = o.note
-        retobs.data.statusValue = wrapAlcoholState(o.Tilstander[0].Tilstand)
-        retobs.data.volumeValue = o.Tilstander[0].Volum
+        retobs.data.statusValue = wrapAlcoholState(o.tilstand)
+        retobs.data.volumeValue = o.volum
         break
       default:
     }

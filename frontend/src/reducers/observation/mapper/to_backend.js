@@ -44,66 +44,66 @@ const wrap = (e) => {
         break
       case 'lux':
         re.eventType = 'observationLight'
-        re.Lysforhold = el.data.leftValue
+        re.lysforhold = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'gas':
         re.eventType = 'observationGass'
-        re.Gass = el.data.leftValue
+        re.gass = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'cleaning':
         re.eventType = 'observationRenhold'
-        re.Renhold = el.data.leftValue
+        re.renhold = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'rh':
         re.eventType = 'observationRelativeHumidity'
-        re.humidity_from = el.data.fromValue
-        re.humidity_to = el.data.toValue
+        re.humidityFrom = el.data.fromValue
+        re.humidityTo = el.data.toValue
         re.note = el.data.commentValue
         break
       case 'mold':
         re.eventType = 'observationMugg'
-        re.Mugg = el.data.leftValue
+        re.mugg = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'skallsikring':
         re.eventType = 'observationSkallSikring'
-        re.Skallsikring = el.data.leftValue
+        re.skallSikring = el.data.leftValue
         re.note = el.rightValue
         break
       case 'tyverisikring':
         re.eventType = 'observationTyveriSikring'
-        re.TyveriSikring = el.data.leftValue
+        re.tyveriSikring = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'brannsikring':
-        re.eventType = 'observationBrannSikring'
-        re.BrannSikring = el.data.leftValue
+        re.eventType = 'observationBrannsikring'
+        re.brannSikring = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'vannskaderisiko':
-        re.eventType = 'observationVannskadeRisiko'
-        re.VannskadeRisiko = el.data.leftValue
+        re.eventType = 'observationVannskaderisiko'
+        re.vannskadeRisiko = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'hypoxicAir':
         re.eventType = 'observationInertLuft'
-        re.inertLuft_from = el.data.fromValue
-        re.inertLuft_to = el.data.toValue
+        re.inertLuftFrom = el.data.fromValue
+        re.inertLuftTo = el.data.toValue
         re.note = el.data.commentValue
         break
       case 'alcohol':
         re.eventType = 'observationSprit'
         re.note = el.data.commentValue
-        re.Tilstander = [{ Tilstand: el.data.statusValue, Volum: el.data.volumeValue }]
-        re.Tilstander[0].Volum = el.data.volumeValue
+        re.tilstand = el.data.statusValue
+        re.volum = el.data.volume
         break
       case 'temperature':
         re.eventType = 'observationTemperature'
-        re.temperature_from = el.data.fromValue
-        re.temperature_to = el.data.toValue
+        re.temperatureFrom = el.data.fromValue
+        re.temperatureTo = el.data.toValue
         re.note = el.data.commentValue
         break
       default:

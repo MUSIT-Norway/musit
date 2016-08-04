@@ -1,4 +1,4 @@
-import { mapToFrontEnd } from './mapper'
+import { mapToFrontEnd, mapToBackEnd } from './mapper'
 const ADD = 'musit/observation/ADD'
 const LOAD = 'musit/observation/LOAD'
 
@@ -34,9 +34,10 @@ const observationReducer = (state = initialState, action = {}) => {
 export default observationReducer;
 
 export const addObservation = (data) => {
+  const dataToAdd = mapToBackEnd(data)
   return {
     type: ADD,
-    data: data,
+    data: dataToAdd,
   }
 }
 
@@ -69,7 +70,7 @@ export const loadObservation = () => {
     livssykluser: [
     { livssyklus: 'Adult', antall: '3' },
     { livssyklus: 'Puppe', antall: '4' },
-    { livssyklus: 'Puppeskinn', antall: '5' },
+    { livssyklus: 'Puppeskin', antall: '5' },
     { livssyklus: 'Larva', antall: '6' },
     { livssyklus: 'Egg', antall: '7' }]
     },
