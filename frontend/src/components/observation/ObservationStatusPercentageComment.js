@@ -19,7 +19,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { MusitField, MusitTextArea, MusitDropDownField } from '../../components/formfields'
-import { FormGroup, ControlLabel, Col } from 'react-bootstrap'
+import { Row, ControlLabel, Col } from 'react-bootstrap'
 
 export default class ObervationStatusPercentageComment extends Component {
   static propTypes = {
@@ -38,7 +38,8 @@ export default class ObervationStatusPercentageComment extends Component {
     commentLabel: PropTypes.string,
     commentValue: PropTypes.string.isRequired,
     commentTooltip: PropTypes.string,
-    onChangeComment: PropTypes.func.isRequired
+    onChangeComment: PropTypes.func.isRequired,
+    disabled: PropTypes.bool
   }
 
   constructor(props) {
@@ -53,7 +54,8 @@ export default class ObervationStatusPercentageComment extends Component {
       commentTooltip,
       onChangeComment,
       translate,
-      translateKeyPrefix
+      translateKeyPrefix,
+      disabled
     } = props
     this.fields = {
       status: {
@@ -65,7 +67,8 @@ export default class ObervationStatusPercentageComment extends Component {
         precision: 3,
         items: statusOptionValues,
         translate: translate,
-        translateKey: translateKeyPrefix
+        translateKey: translateKeyPrefix,
+        disabled: disabled
       },
       volume: {
         id: `${id}_percentage`,
@@ -73,7 +76,8 @@ export default class ObervationStatusPercentageComment extends Component {
         tooltip: volumeTooltip,
         onChange: onChangeVolume,
         validate: 'number',
-        precision: 3
+        precision: 3,
+        disabled: disabled
       },
       comment: {
         id: `${id}_comment`,
@@ -82,7 +86,8 @@ export default class ObervationStatusPercentageComment extends Component {
         onChange: onChangeComment,
         validate: 'text',
         maximumLength: 250,
-        numberOfRows: 5
+        numberOfRows: 5,
+        disabled: disabled
       }
     }
   }
@@ -92,7 +97,7 @@ export default class ObervationStatusPercentageComment extends Component {
     const { statusValue, volumeValue, statusLabel, volumeLabel, commentValue, commentLabel } = this.props
 
     return (
-      <FormGroup>
+      <Row>
         <Col xs={12} sm={3}>
           <ControlLabel>{statusLabel}</ControlLabel>
           <MusitDropDownField {...status} value={statusValue} />
@@ -105,7 +110,7 @@ export default class ObervationStatusPercentageComment extends Component {
           <ControlLabel>{commentLabel}</ControlLabel>
           <MusitTextArea {...comment} value={commentValue} />
         </Col>
-      </FormGroup>
+      </Row>
     )
   }
 }

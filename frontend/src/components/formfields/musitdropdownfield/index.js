@@ -4,7 +4,7 @@
 
 import React, { Component, PropTypes } from 'react';
 import Select from 'react-select'
-import { validate } from '../common/validators'
+import validate from '../common/validators'
 
 export default class MusitDropDownField extends Component {
 
@@ -31,13 +31,17 @@ export default class MusitDropDownField extends Component {
 
   render() {
     const v = this.props.value ? this.props.value : '';
-    const options = this.props.items.map((el) =>
-        ({ value: el, label: this.props.translateKeyPrefix ?
-          this.props.translate(this.props.translateKeyPrefix.concat(el)) : el }));
+    const options = this.props.items.map((el) => (
+      {
+        value: el,
+        label: this.props.translateKeyPrefix ? this.props.translate(this.props.translateKeyPrefix.concat(el)) : el
+      }
+    ));
     const lcAddOnPrefix = this.props.addOnPrefix ? <span className="input-group-addon" >{this.props.addOnPrefix}</span> : null;
     const lcPlaceholder = (
       <Select
         id={this.props.id}
+        disabled={this.props.disabled}
         name="form-field-name"
         value={v}
         options={options}
@@ -82,5 +86,6 @@ MusitDropDownField.propTypes = {
   precision: PropTypes.number,
   items: PropTypes.array.isRequired,
   translate: PropTypes.func,
-  translateKeyPrefix: PropTypes.string
+  translateKeyPrefix: PropTypes.string,
+  disabled: PropTypes.bool
 };

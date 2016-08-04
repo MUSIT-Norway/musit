@@ -1,8 +1,8 @@
 
 
 const initialState = {
-  data: {
-    row_1: {
+  data: [
+    {
       id: 1,
       type: 'control',
       date: '01.01.1983',
@@ -20,7 +20,7 @@ const initialState = {
       registeredDate: '01.01.1983',
       registeredBy: 'Blabla...'
     },
-    row_2: {
+    {
       id: 2,
       type: 'observation',
       date: '01.01.1984',
@@ -37,7 +37,7 @@ const initialState = {
       registeredDate: '01.01.1983',
       registeredBy: 'Blabla...'
     },
-    row_3: {
+    {
       id: 3,
       type: 'observation',
       date: '01.01.1984',
@@ -54,7 +54,7 @@ const initialState = {
       registeredDate: '01.01.1983',
       registeredBy: 'Blabla...'
     },
-    row_4: {
+    {
       id: 4,
       type: 'observation',
       date: '01.01.1984',
@@ -71,7 +71,7 @@ const initialState = {
       registeredDate: '01.01.1983',
       registeredBy: 'Blabla...'
     },
-    row_5: {
+    {
       id: 5,
       type: 'observation',
       date: '01.01.1984',
@@ -88,7 +88,7 @@ const initialState = {
       registeredDate: '01.01.1983',
       registeredBy: 'Blabla...'
     },
-    row_6: {
+    {
       id: 6,
       type: 'observation',
       date: '01.01.1984',
@@ -98,7 +98,7 @@ const initialState = {
       registeredDate: '01.01.1983',
       registeredBy: 'Blabla...'
     }
-  }
+  ]
 }
 
 

@@ -46,10 +46,8 @@ export default class ObjectGrid extends Component {
                 <th>
                   {translate('musit.grid.object.term')}
                 </th>
-                <th>
-                </th>
-                <th>
-                </th>
+                <th />
+                <th />
               </tr>
             </thead>
             <tbody>
