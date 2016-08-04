@@ -18,10 +18,10 @@
  */
 
 import com.typesafe.sbt.SbtNativePackager
-import com.typesafe.sbt.SbtNativePackager.autoImport._
 import com.typesafe.sbt.packager.docker.DockerPlugin
+import play.sbt.{Play, PlayLayoutPlugin}
+import sbt.Keys._
 import sbt._
-import Keys._
 
 object CommonSettings {
 
@@ -33,21 +33,21 @@ object CommonSettings {
     parallelExecution in Test := false
   )
 
-  def BaseProject(name: String): Project = (
+  def BaseProject(name: String): Project =
     Project(name, file(name))
-    settings(projectSettings:_*)
-    settings(Defaults.itSettings: _*)
-    configs(IntegrationTest)
-  )
+      .settings(projectSettings: _*)
+      .settings(Defaults.itSettings: _*)
+      .configs(IntegrationTest)
 
-  def PlayProject(name: String): Project = (
+  def PlayProject(name: String): Project =
     BaseProject(name)
-    enablePlugins(play.sbt.Play)
-    enablePlugins(SbtNativePackager)
-    enablePlugins(DockerPlugin)
-    settings(Defaults.itSettings: _*)
-    configs(IntegrationTest)
-    //enablePlugins(DockerSpotifyClientPlugin) get spotify client running and you have no dependencies to local docker
-  )
-  
+      .enablePlugins(
+        Play,
+        SbtNativePackager,
+        DockerPlugin
+      )
+      .disablePlugins(PlayLayoutPlugin)
+      .settings(Defaults.itSettings: _*)
+      .configs(IntegrationTest)
+
 }
