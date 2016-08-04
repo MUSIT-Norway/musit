@@ -6,6 +6,7 @@ import play.api.libs.json._
 
 trait Dto
 
+/**Events related (via relation) to a given event. */
 case class RelatedEvents(relation: EventRelation, events: Seq[Event])
 
 class Event(val baseEventProps: BaseEventDto) {
