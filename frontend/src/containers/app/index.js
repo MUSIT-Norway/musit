@@ -72,29 +72,8 @@ class App extends Component {
           </Navbar.Header>
           <Navbar.Collapse>
             <Nav navbar>
-              <LinkContainer to="/observation/add">
-                <NavItem>Observation</NavItem>
-              </LinkContainer>
               <LinkContainer to="/magasin">
                 <NavItem>Magasin</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/control/add">
-                <NavItem>ControlAdd</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/control/1">
-                <NavItem>ControlView</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/grid/object/1">
-                <NavItem>Object</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/grid/observationcontrol/1">
-                <NavItem>ObsConLayout</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/grid/node">
-                <NavItem>Node</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/nodeleftmenu">
-                <NavItem>NodeLeft</NavItem>
               </LinkContainer>
               {user &&
                 <LinkContainer to="/picklist">
@@ -104,11 +83,6 @@ class App extends Component {
               {user &&
                 <LinkContainer to="/musit/logout">
                   <NavItem className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
-                </LinkContainer>
-              }
-              {!user &&
-                <LinkContainer to="/musit/">
-                  <NavItem onClick={this.handleFakeLogin} eventKey={7}>Login</NavItem>
                 </LinkContainer>
               }
             </Nav>

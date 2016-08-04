@@ -10,11 +10,11 @@ export default class NodeGrid extends Component {
     id: PropTypes.string.isRequired,
     translate: PropTypes.func.isRequired,
     tableData: PropTypes.arrayOf(PropTypes.shape({
-      nodeName: PropTypes.string.isRequired,
-      nodeType: PropTypes.string.isRequired,
-      objectCount: PropTypes.number.isRequired,
-      totalObjectCount: PropTypes.number.isRequired,
-      nodeCount: PropTypes.number.isRequired
+      name: PropTypes.string.isRequired,
+      type: PropTypes.string.isRequired,
+      objectCount: PropTypes.number,
+      totalObjectCount: PropTypes.number,
+      nodeCount: PropTypes.number
     }))
   }
 
@@ -23,21 +23,6 @@ export default class NodeGrid extends Component {
     return (
       <FormGroup>
         <div>
-          <Row>
-            <Col xs={0} sm={5} />
-            <Col xs={12} sm={3}>
-              <MusitField
-                id={`${id}_searchMusitField`}
-                addOnPrefix={'\u2315'}
-                placeHolder="Filterer i liste"
-                value="" validate="text"
-              />
-            </Col>
-            <Col xs={12} sm={4}>
-              <Button id={`${id}_Nodes`}>Noder</Button>
-              <Button id={`${id}_Objects`}>Objeckter</Button>
-            </Col>
-          </Row>
           <Table responsive hover condensed>
             <thead>
               <tr>
@@ -63,34 +48,34 @@ export default class NodeGrid extends Component {
               </tr>
             </thead>
             <tbody>
-              {this.props.tableData.map(c =>
-                <tr id={`${id}_${c.nodeName}_${c.nodeType}`} >
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeName`}>
+              {this.props.tableData.map((c, i) =>
+                <tr key={i} id={`${id}_${c.name}_${c.type}`} >
+                  <td id={`${id}_${c.name}_${c.type}_nodeName`}>
                     <FontAwesome name="folder" />
-                    {` ${c.nodeName}`}
+                    {` ${c.name}`}
                   </td>
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeType`}>
-                    {c.nodeType}
+                  <td id={`${id}_${c.name}_${c.type}_nodeType`}>
+                    {c.type}
                   </td>
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_objectCount`}>
+                  <td id={`${id}_${c.name}_${c.type}_objectCount`}>
                     {c.objectCount}
                   </td>
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_totalObjectCount`}>
+                  <td id={`${id}_${c.name}_${c.type}_totalObjectCount`}>
                     {c.totalObjectCount}
                   </td>
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_nodeCount`}>
+                  <td id={`${id}_${c.name}_${c.type}_nodeCount`}>
                     {c.nodeCount}
                   </td>
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_eye`}>
+                  <td id={`${id}_${c.name}_${c.type}_eye`}>
                     <FontAwesome name="eye" />
                   </td>
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_search`}>
+                  <td id={`${id}_${c.name}_${c.type}_search`}>
                     <FontAwesome name="search" />
                   </td>
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_truck`}>
+                  <td id={`${id}_${c.name}_${c.type}_truck`}>
                     <FontAwesome name="truck" />
                   </td>
-                  <td id={`${id}_${c.nodeName}_${c.nodeType}_shoppingCart`}>
+                  <td id={`${id}_${c.name}_${c.type}_shoppingCart`}>
                     <FontAwesome name="shopping-cart" />
                   </td>
                 </tr>

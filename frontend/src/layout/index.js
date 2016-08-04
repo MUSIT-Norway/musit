@@ -17,7 +17,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 import React from 'react'
-import { Grid, Row, Col, PageHeader } from 'react-bootstrap'
+import { Grid, Row, Button, Col, PageHeader } from 'react-bootstrap'
+import { MusitField } from '../components/formfields'
 
 export default class Layout extends React.Component {
   static propTypes = {
@@ -29,23 +30,35 @@ export default class Layout extends React.Component {
 
   render() {
     return (
-      <div>
+      <div style={{ paddingTop: 20 }}>
         <main>
           <Grid>
             <Row>
-              <Row>
-                <Col style={{ textAlign: 'left', paddingLeft: 40 }}>
-                  <PageHeader>
-                    {this.props.title}
-                  </PageHeader>
-                </Col>
-              </Row>
+              <PageHeader style={{ marginTop: 0 }}>{this.props.title}</PageHeader>
+            </Row>
+            <Row style={{ paddingBottom: 10 }}>
+              <Col xs={6} xsOffset={2} style={{ display: 'inline-block', lineHeight: '30px', verticalAlign: 'center' }}>
+                Museum / Papirdunken / Esken inn i der
+              </Col>
+              <Col xs={2}>
+                <MusitField
+                  id={"search"}
+                  addOnPrefix={'\u2315'}
+                  placeHolder="Filtrer i liste"
+                  value=""
+                  validate="text"
+                />
+              </Col>
+              <Col xs={2}>
+                <Button>Noder</Button>
+                <Button>Objekter</Button>
+              </Col>
             </Row>
             <Row>
-              <Col md={2} style={{ paddingTop: 30 }}>
+              <Col xs={2} style={{ borderTop: '#cdcdcd 1px solid', borderRight: '#cdcdcd 1px solid' }}>
                 {this.props.leftMenu}
               </Col>
-              <Col md={8}>
+              <Col xs={10} style={{ borderTop: '#cdcdcd 1px solid' }}>
                 {this.props.content}
               </Col>
             </Row>

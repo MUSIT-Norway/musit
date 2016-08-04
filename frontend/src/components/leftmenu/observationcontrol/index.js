@@ -22,35 +22,18 @@ export default class ObservationControlComponent extends Component {
         <Button
           id={`${id}_${type}`}
           onClick={(event) => eventType(event.target.value)}
+          style={{ width: '100%', textAlign: 'left'}}
         >
           <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
           {getTranslate(type)}
         </Button>
       )
     }
-    const checkboxLogic = (type, eventType) => {
-      return (
-        <Checkbox
-          id={`${id}_${type}`}
-          checked={this.props[type]}
-          onChange={(event) => eventType(event.target.checked)}
-        >
-          {getTranslate(type)}
-        </Checkbox>
-      )
-    }
     return (
-      <Grid>
+      <div>
         {buttonLogic('newObservation', onClickNewObservation)}
-        <br />
         {buttonLogic('newControl', onClickNewControl)}
-        <br />
-        <br />
-        <br />
-        {getTranslate('show')}
-        {checkboxLogic('selectControl', onClickSelectControl)}
-        {checkboxLogic('selectObservation', onClickSelectObservation)}
-      </Grid>
+      </div>
     )
   }
 }

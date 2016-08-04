@@ -46,7 +46,7 @@ export default class ObservationControlGridShow extends React.Component {
     const props = this.props;
     return (
       <Layout
-        title={`${props.unit.name}${props.translate('musit.grid.observation.header')}`}
+        title={`${props.translate('musit.grid.observation.header')}`}
         translate={props.translate}
         leftMenu={<ObservationControlComponent
           id={props.unit.id}

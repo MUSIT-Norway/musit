@@ -32,7 +32,6 @@ import ControlAdd from './containers/control/add'
 import ObjectGridShow from './containers/grid/object'
 import App from './containers/app'
 import NodeLeftMenu from './containers/leftmenu/node'
-import ObservationControl from './containers/leftmenu/observationcontrol'
 import ObservationControlGridShow from './containers/grid/observationcontrol'
 import NodeGridShow from './containers/grid/node'
 
@@ -71,7 +70,6 @@ export default (store) => {
       <Route path="/storageunit/:id" component={StorageUnitPanel} />
       <Route path="/storageunit/add" component={StorageUnitPanel} />
       <Route path="/nodeleftmenu" component={NodeLeftMenu} />
-      <Route path="/observationcontrol" component={ObservationControl} />
       <Route path="/grid/observationcontrol/:id" component={ObservationControlGridShow} />
       <Route path="/grid/node/:id" component={NodeGridShow} />
       <Route path="/grid/node" component={NodeGridShow} />

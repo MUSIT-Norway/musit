@@ -29,21 +29,19 @@ export default class NodeLeftMenu extends Component {
   render() {
     const { translate } = this.props
     return (
-      <div>
-        <NodeLeftMenuComponent
-          id="1"
-          translate={translate}
-          onClickNewNode={(key) => key}
-          objectsOnNode={11}
-          totalObjectCount={78}
-          underNodeCount={5}
-          onClickProperties={(key) => key}
-          onClickObservations={(key) => key}
-          onClickController={(key) => key}
-          onClickMoveNode={(key) => key}
-          onClickDelete={(key) => key}
-        />
-      </div>
+      <NodeLeftMenuComponent
+        id="1"
+        translate={translate}
+        onClickNewNode={(key) => key}
+        objectsOnNode={11}
+        totalObjectCount={78}
+        underNodeCount={5}
+        onClickProperties={(key) => key}
+        onClickObservations={(key) => key}
+        onClickController={(key) => key}
+        onClickMoveNode={(key) => key}
+        onClickDelete={(key) => key}
+      />
     )
   }
 }

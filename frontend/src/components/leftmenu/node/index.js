@@ -33,69 +33,55 @@ export default class NodeLeftMenuComponent extends Component {
     } = this.props
     const buttonLink = (type, icon, eventType) => {
       return (
-        <tr style={{ border: 'none' }}>
-          <td style={{ border: 'none', textAlign: 'center' }}>
-            <Button
-              bsStyle="link"
-              id={`${id}_${type}`}
-              onClick={(event) => eventType(event.target.value)}
-              style={{ color: 'black' }}
-            >
-              <FontAwesome name={icon} style={{ padding: '2px' }} />
-              <br />
-              {translate(`musit.leftMenu.node.${type}`)}
-            </Button>
-          </td>
-        </tr>
+        <div style={{ border: 'none', textAlign: 'center' }}>
+          <Button
+            bsStyle="link"
+            id={`${id}_${type}`}
+            onClick={(event) => eventType(event.target.value)}
+            style={{ color: 'black' }}
+          >
+            <FontAwesome name={icon} style={{ padding: '2px' }} />
+            <br />
+            {translate(`musit.leftMenu.node.${type}`)}
+          </Button>
+        </div>
       ) }
     const showCount = (type, typeText) => {
       return (
-        <tr style={{ border: 'none' }}>
-          <td style={{ border: 'none', textAlign: 'right' }}>
+        <div style={{ border: 'none', textAlign: 'center' }}>
             {translate(`musit.leftMenu.node.${typeText}`)}
             <br />
             <ControlLabel id={`${id}_${typeText}`}>{type}</ControlLabel>
-          </td>
-        </tr>
-      ) }
+        </div>
+      )
+    }
     const newButton = (identity) => {
       return (
-        <tr style={{ border: 'none' }}>
-          <td style={{ border: 'none', textAlign: 'right' }}>
-            <br />
-            <Button
-              id={`${identity}_newNode`}
-              onClick={(event) => onClickNewNode(event.target.value)}
-            >
-              <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
-              {translate('musit.leftMenu.node.newNode')}
-            </Button>
-          </td>
-        </tr>
-      ) }
+        <div  style={{ border: 'none', textAlign: 'center' }}>
+          <Button
+            id={`${identity}_newNode`}
+            onClick={(event) => onClickNewNode(event.target.value)}
+            style={{ width: '100%', textAlign: 'left'}}
+          >
+            <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
+            {translate('musit.leftMenu.node.newNode')}
+          </Button>
+        </div>
+      )
+    }
     return (
       <div>
-        <main>
-          <Grid>
-            <Row>
-              <Col xs={6} sm={3} md={2}>
-                <Table responsive>
-                  <tbody>
-                    {newButton(id)}
-                    {showCount(objectsOnNode, 'objectsOnNode')}
-                    {showCount(totalObjectCount, 'totalObjectCount')}
-                    {showCount(underNodeCount, 'underNodeCount')}
-                    {buttonLink('properties', 'cog', onClickProperties)}
-                    {buttonLink('observations', 'eye', onClickObservations)}
-                    {buttonLink('controller', 'user-secret', onClickController)}
-                    {buttonLink('moveNode', 'truck', onClickMoveNode)}
-                    {buttonLink('delete', 'trash-o', onClickDelete)}
-                  </tbody>
-                </Table>
-              </Col>
-            </Row>
-          </Grid>
-        </main>
+        {newButton(id)}
+        <hr />
+        {showCount(objectsOnNode, 'objectsOnNode')}
+        {showCount(totalObjectCount, 'totalObjectCount')}
+        {showCount(underNodeCount, 'underNodeCount')}
+        <hr />
+        {buttonLink('properties', 'cog', onClickProperties)}
+        {buttonLink('observations', 'eye', onClickObservations)}
+        {buttonLink('controller', 'user-secret', onClickController)}
+        {buttonLink('moveNode', 'truck', onClickMoveNode)}
+        {buttonLink('delete', 'trash-o', onClickDelete)}
       </div>
     )
   }
