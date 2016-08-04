@@ -577,25 +577,25 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val json =
       """
   {
-        	"eventType": "observationSkadedyr",
-        	"identifikasjon": "skadedyr i veggene",
-        	"note": "tekst til observationskadedyr",
-        	"livssykluser": [{
-        		"livssyklus": "Adult",
-        		"antall": 3
-        	}, {
-        		"livssyklus": "Puppe",
-        		"antall": 4
-        	}, {
-        		"livssyklus": "Puppeskinn",
-        		"antall": 5
-        	}, {
-        		"livssyklus": "Larve",
-        		"antall": 6
-        	}, {
-        		"livssyklus": "Egg",
-        		"antall": 7
-        	}]
+          "eventType": "observationSkadedyr",
+          "identifikasjon": "skadedyr i veggene",
+          "note": "tekst til observationskadedyr",
+          "livssykluser": [{
+            "livssyklus": "Adult",
+            "antall": 3
+          }, {
+            "livssyklus": "Puppe",
+            "antall": 4
+          }, {
+            "livssyklus": "Puppeskinn",
+            "antall": 5
+          }, {
+            "livssyklus": "Larve",
+            "antall": 6
+          }, {
+            "livssyklus": "Egg",
+            "antall": 7
+          }]
         }"""
 
     val response = createEvent(json)
@@ -625,25 +625,25 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val json =
       """
   {
-        	"eventType": "observationSprit",
-        	"note": "tekst til observationsprit",
-        	"tilstander": [{
-        		"tilstand": "Uttørket",
-        		"volum": 3.2
-        	}, {
-        		"tilstand": "nesten uttørket",
-        		"volum": 4.554
-        	}, {
-        		"tilstand": "noe uttørket",
-        		"volum": 5.332
-        	}, {
-        		"tilstand": "litt uttørket",
-        		"volum": 6.3
-        	}, {
-        		"tilstand": "tilfredsstillende",
-        		"volum": 7
-        	}]
-        }"""
+      "eventType": "observationSprit",
+      "note": "tekst til observationsprit",
+      "tilstander": [{
+        "tilstand": "Uttørket",
+        "volum": 3.2
+      }, {
+        "tilstand": "nesten uttørket",
+        "volum": 4.554
+      }, {
+        "tilstand": "noe uttørket",
+        "volum": 5.332
+      }, {
+        "tilstand": "litt uttørket",
+        "volum": 6.3
+      }, {
+        "tilstand": "tilfredsstillende",
+        "volum": 7
+      }]
+    }"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -665,8 +665,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     tilstandLast.eventId mustBe None //We don't want these in the json output.
 
   }
-  
-  
+
   "redefining the same custom field should fail" in {
     intercept[AssertionError] {
       CustomFieldsSpec().defineRequiredBoolean("myBool").defineOptInt("myInt")
