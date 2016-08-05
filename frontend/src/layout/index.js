@@ -17,15 +17,16 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 import React from 'react'
-import { Grid, Row, Button, Col, PageHeader } from 'react-bootstrap'
-import { MusitField } from '../components/formfields'
+import { Grid, Row, Col, PageHeader } from 'react-bootstrap'
 
 export default class Layout extends React.Component {
   static propTypes = {
     title: React.PropTypes.string.isRequired,
     translate: React.PropTypes.func.isRequired,
     leftMenu: React.PropTypes.object.isRequired,
-    content: React.PropTypes.object.isRequired
+    content: React.PropTypes.object.isRequired,
+    breadcrumb: React.PropTypes.string,
+    toolbar: React.PropTypes.element
   }
 
   render() {
@@ -38,20 +39,10 @@ export default class Layout extends React.Component {
             </Row>
             <Row style={{ paddingBottom: 10 }}>
               <Col xs={6} xsOffset={2} style={{ display: 'inline-block', lineHeight: '30px', verticalAlign: 'center' }}>
-                Museum / Papirdunken / Esken inn i der
+                {this.props.breadcrumb}
               </Col>
-              <Col xs={2}>
-                <MusitField
-                  id={"search"}
-                  addOnPrefix={'\u2315'}
-                  placeHolder="Filtrer i liste"
-                  value=""
-                  validate="text"
-                />
-              </Col>
-              <Col xs={2}>
-                <Button>Noder</Button>
-                <Button>Objekter</Button>
+              <Col xs={4}>
+                {this.props.toolbar}
               </Col>
             </Row>
             <Row>

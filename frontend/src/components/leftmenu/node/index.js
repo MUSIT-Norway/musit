@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react'
-import { Table, ControlLabel, Grid, Row, Col, Button } from 'react-bootstrap'
+import { ControlLabel, Button } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
-
 
 export default class NodeLeftMenuComponent extends Component {
   static propTypes = {
@@ -49,19 +48,19 @@ export default class NodeLeftMenuComponent extends Component {
     const showCount = (type, typeText) => {
       return (
         <div style={{ border: 'none', textAlign: 'center' }}>
-            {translate(`musit.leftMenu.node.${typeText}`)}
-            <br />
-            <ControlLabel id={`${id}_${typeText}`}>{type}</ControlLabel>
+          {translate(`musit.leftMenu.node.${typeText}`)}
+          <br />
+          <ControlLabel id={`${id}_${typeText}`}>{type}</ControlLabel>
         </div>
       )
     }
     const newButton = (identity) => {
       return (
-        <div  style={{ border: 'none', textAlign: 'center' }}>
+        <div style={{ border: 'none', textAlign: 'center' }}>
           <Button
             id={`${identity}_newNode`}
             onClick={(event) => onClickNewNode(event.target.value)}
-            style={{ width: '100%', textAlign: 'left'}}
+            style={{ width: '100%', textAlign: 'left' }}
           >
             <FontAwesome name="plus-circle" style={{ padding: '2px' }} />
             {translate('musit.leftMenu.node.newNode')}

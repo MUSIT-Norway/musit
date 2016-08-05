@@ -7,6 +7,7 @@ import { browserHistory } from 'react-router'
 import { NodeGrid } from '../../../components/grid'
 import Layout from '../../../layout'
 import NodeLeftMenuComponent from '../../../components/leftmenu/node'
+import Toolbar from './Toolbar'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
@@ -38,6 +39,8 @@ export default class StorageUnitsContainer extends React.Component {
       <Layout
         title={"Magasin"}
         translate={this.props.translate}
+        breadcrumb={"Museum / Papirdunken / Esken inn i der"}
+        toolbar={<Toolbar />}
         leftMenu={<NodeLeftMenuComponent
           id="1"
           translate={this.props.translate}
@@ -49,7 +52,7 @@ export default class StorageUnitsContainer extends React.Component {
           onClickObservations={(key) => key}
           onClickController={(key) => key}
           onClickMoveNode={(key) => key}
-          onClickDelete={(key) => key}
+          onClickDelete={this.props.onDelete}
         />}
         content={<NodeGrid
           id="1"
