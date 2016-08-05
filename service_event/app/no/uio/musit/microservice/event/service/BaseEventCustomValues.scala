@@ -161,7 +161,7 @@ object CustomFieldsHandler {
 }
 
 case class CustomFieldsSpec(
-  intValueHandler: Option[ValueLongField] = None,
+    intValueHandler: Option[ValueLongField] = None,
     stringValueHandler: Option[ValueStringField] = None,
     doubleValueHandler: Option[ValueDoubleField] = None
 ) {
