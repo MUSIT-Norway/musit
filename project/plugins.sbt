@@ -17,8 +17,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 resolvers ++= DefaultOptions.resolvers(snapshot = true)
-resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
-resolvers += "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/"
+resolvers += Resolver.typesafeRepo("releases")
+resolvers += Resolver.sonatypeRepo("releases")
 
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
 
