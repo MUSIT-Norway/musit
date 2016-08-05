@@ -7,6 +7,8 @@ import { Navbar, Nav, NavItem, Badge } from 'react-bootstrap'
 import { routerActions } from 'react-router-redux'
 import { I18n } from 'react-i18nify'
 import FontAwesome from 'react-fontawesome'
+import { connectUser } from '../../reducers/auth';
+import LoginButton from '../../components/login-button'
 
 const mapStateToProps = (state) => {
   I18n.loadTranslations(state.language.data)
@@ -18,7 +20,13 @@ const mapStateToProps = (state) => {
   }
 }
 
-@connect(mapStateToProps)
+const mapDispatchToProps = (dispatch) => {
+  return {
+    setUser: (user) => dispatch(connectUser(user))
+  }
+}
+
+@connect(mapStateToProps, mapDispatchToProps)
 class App extends Component {
   static propTypes = {
     children: PropTypes.object.isRequired,
@@ -72,9 +80,11 @@ class App extends Component {
           </Navbar.Header>
           <Navbar.Collapse>
             <Nav navbar>
+              {user &&
               <LinkContainer to="/magasin">
                 <NavItem>Magasin</NavItem>
               </LinkContainer>
+              }
               {user &&
                 <LinkContainer to="/picklist">
                   <NavItem><Badge><FontAwesome name="shopping-cart" /> {pickListCount}</Badge></NavItem>
@@ -84,6 +94,15 @@ class App extends Component {
                 <LinkContainer to="/musit/logout">
                   <NavItem className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
                 </LinkContainer>
+              }
+              {!user &&
+              <LinkContainer to="/musit/login">
+                  <LoginButton
+                    setUser={this.props.setUser}
+                  >
+                    Login
+                  </LoginButton>
+              </LinkContainer>
               }
             </Nav>
             {user &&

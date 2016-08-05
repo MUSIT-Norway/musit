@@ -1,6 +1,6 @@
 import React from 'react'
 import { PickListComponent } from '../../components/picklist'
-import { Panel, PageHeader, Button } from 'react-bootstrap'
+import { Panel, PageHeader, Grid, Button } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 
 export default class PickListContainer extends React.Component {
@@ -44,14 +44,12 @@ export default class PickListContainer extends React.Component {
     const style = require('../../components/picklist/index.scss')
     const { translate, picks, marked, onToggleMarked } = this.props
     const { showActionDialog } = this.state
-    const renderIcon = () => { return (<FontAwesome name="archive" />) }
-    const renderLabel = (pick) => { return pick.name }
     const checkSymbol = (marked.length > 0) ? 'square-o' : 'check-square-o'
 
     return (
       <div className={style.picklist}>
         <main>
-          <Panel>
+          <Grid>
             <PageHeader>
               {translate('musit.pickList.title', false)}
               <Button onClick={(e) => onToggleMarked(e, null)}>
@@ -69,14 +67,14 @@ export default class PickListContainer extends React.Component {
               actions={demoActions}
               showActionDialog={showActionDialog}
               onCloseActionDialog={() => this.onCloseActionDialog()}
-              iconRendrer={renderIcon}
-              labelRendrer={renderLabel}
+              iconRendrer={() => <FontAwesome name="archive" />}
+              labelRendrer={(pick) => pick.name}
               onToggleMarked={onToggleMarked}
             />
             <div style={{ textAlign: 'right' }}>
               {marked.length}/{picks.length} node(r) valgt.
             </div>
-          </Panel>
+          </Grid>
         </main>
       </div>
     )

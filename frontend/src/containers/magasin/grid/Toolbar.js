@@ -4,9 +4,10 @@ import { MusitField } from '../../../components/formfields'
 
 export default class Toolbar extends React.Component {
   render() {
+    const styles = require('./Toolbar.scss')
     return (
-      <Row>
-        <Col xs={6}>
+      <div className={styles.wrapper}>
+        <div className={styles.searchField}>
           <MusitField
             id={"search"}
             addOnPrefix={'\u2315'}
@@ -14,12 +15,12 @@ export default class Toolbar extends React.Component {
             value=""
             validate="text"
           />
-        </Col>
-        <Col xs={6}>
-          <Button>Noder</Button>
-          <Button>Objekter</Button>
-        </Col>
-      </Row>
+        </div>
+        <div className={styles.toolBarButtons}>
+          <Button active={this.props.showNodes ? "active" : undefined} onClick={() => this.props.clickShowNodes()}>Noder</Button>
+          <Button active={this.props.showObjects ? "active" : undefined} onClick={() => this.props.clickShowObjects()}>Objekter</Button>
+        </div>
+      </div>
     )
   }
 }

@@ -19,21 +19,6 @@ export default class ObjectGrid extends Component {
     return (
       <FormGroup>
         <div>
-          <Row>
-            <Col xs={0} sm={5} />
-            <Col xs={12} sm={3}>
-              <MusitField
-                id={`${id}_searchMusitField`}
-                addOnPrefix={'\u2315'}
-                placeHolder="Filterer i liste"
-                value="" validate="text"
-              />
-            </Col>
-            <Col xs={12} sm={4}>
-              <Button id={`${id}_Nodes`}>Noder</Button>
-              <Button id={`${id}_Objects`}>Objeckter</Button>
-            </Col>
-          </Row>
           <Table responsive hover condensed>
             <thead>
               <tr>

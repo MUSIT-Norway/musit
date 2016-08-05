@@ -14,7 +14,10 @@ export default class NodeGrid extends Component {
       objectCount: PropTypes.number,
       totalObjectCount: PropTypes.number,
       nodeCount: PropTypes.number
-    }))
+    })),
+    onPick: PropTypes.func.isRequired,
+    onDelete: PropTypes.func.isRequired,
+    onItemClick: PropTypes.func.isRequired
   }
 
   render() {
@@ -50,8 +53,16 @@ export default class NodeGrid extends Component {
               {this.props.tableData.map((c, i) =>
                 <tr key={i} id={`${id}_${c.name}_${c.type}`} >
                   <td id={`${id}_${c.name}_${c.type}_nodeName`}>
-                    <FontAwesome name="folder" />
-                    {` ${c.name}`}
+                    <a
+                      href=""
+                      onClick={(e) => {
+                        e.preventDefault()
+                        this.props.onItemClick(c)
+                      }}
+                    >
+                      <FontAwesome name="folder" />
+                      {` ${c.name}`}
+                    </a>
                   </td>
                   <td id={`${id}_${c.name}_${c.type}_nodeType`}>
                     {c.type}
@@ -75,7 +86,26 @@ export default class NodeGrid extends Component {
                     <FontAwesome name="truck" />
                   </td>
                   <td id={`${id}_${c.name}_${c.type}_shoppingCart`}>
-                    <FontAwesome name="shopping-cart" />
+                    <a
+                      href=""
+                      onClick={(e) => {
+                        e.preventDefault()
+                        this.props.onPick(c)
+                      }}
+                    >
+                      <FontAwesome name="shopping-cart" />
+                    </a>
+                  </td>
+                  <td id={`${id}_${c.name}_${c.type}_delete`}>
+                    <a
+                      href=""
+                      onClick={(e) => {
+                        e.preventDefault()
+                        this.props.onDelete(c)
+                      }}
+                    >
+                      <FontAwesome name="trash-o" />
+                    </a>
                   </td>
                 </tr>
               )}
