@@ -6,6 +6,7 @@ import play.api.libs.json._
 
 trait Dto
 
+/**Events related (via relation) to a given event. */
 case class RelatedEvents(relation: EventRelation, events: Seq[Event])
 
 class Event(val baseEventProps: BaseEventDto) {
@@ -20,6 +21,8 @@ class Event(val baseEventProps: BaseEventDto) {
   def getCustomOptBool = CustomValuesInEventTable.getOptBool(this)
   def getCustomString = CustomValuesInEventTable.getString(this)
   def getCustomOptString = CustomValuesInEventTable.getOptString(this)
+  def getCustomDouble = CustomValuesInEventTable.getDouble(this)
+  def getCustomOptDouble = CustomValuesInEventTable.getOptDouble(this)
 
   def subEventsWithRelation(eventRelation: EventRelation) = relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
 
@@ -81,6 +84,34 @@ object ObservationLysCustomFieldsSpec {
   val customFieldsSpec = CustomFieldsSpec().defineOptString("lysforhold")
 }
 
+object ObservationRenholdCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("renhold")
+}
+
+object ObservationGassCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("gass")
+}
+
+object ObservationMuggCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("mugg")
+}
+
+object ObservationTyveriSikringCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("tyverisikring")
+}
+
+object ObservationBrannSikringCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("brannsikring")
+}
+
+object ObservationSkallSikringCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("skallsikring")
+}
+
+object ObservationVannskadeRisikoCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("vannskaderisiko")
+}
+
 // ---------------------------------------------------
 // ObservationSkadedyr
 // ---------------------------------------------------
@@ -101,3 +132,9 @@ object ObservationSkadedyrDto {
   implicit val format = Json.format[ObservationSkadedyrDto]
 }
 
+// ---------------------------------------------------
+// ObservationSprit
+// ---------------------------------------------------
+object ObservationSpritCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("tilstand").defineOptDouble("volum")
+}
