@@ -27,12 +27,16 @@ import no.uio.musit.microservices.common.utils.ErrorHelper
  * Created by jstabel on 7/6/16.
  */
 
-//isNormalizedDirection is whether this direction is the same which the links go in the event_relation_event table (from -> to).
+/** isNormalizedDirection is whether this direction is the same which the links go in the event_relation_event table (from -> to). */
 case class EventRelation(id: Int, name: String, inverseName: String, isNormalized: Boolean) {
 
   def getNormalizedDirection = if (isNormalized) this else EventRelations.getByNameOrFail(this.inverseName)
 }
 
+
+/** Please try to make the normalized direction reflect the "natural" json/document-embedding.
+  * Being consistent here may be useful for a document store (or ElasticSearch) and can make it possible to optimize the generic links part during json-serialization.
+   */
 object EventRelations {
   private def defRel(id: Int, name: String, inverseName: String) = EventRelation(id, name, inverseName, true)
   private val relations = Seq(

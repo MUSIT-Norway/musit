@@ -21,17 +21,15 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
+import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
 import no.uio.musit.microservice.event.service._
-import no.uio.musit.microservices.common.domain.MusitInternalErrorException
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.dbio.SequenceAction
 import slick.driver.JdbcProfile
 
@@ -86,6 +84,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
 
     if (!isPartsRelation && partialEventLink.isDefined) {
+      //The partOf-relation is stored in the main event table, so this is only used for the other relations (stored in the EVENT_RELATION_EVENT table).
       action = (for {
         newEventId <- action
         numInserted <- EventLinkDao.insertEventLinkAction(partialEventLink.get.toFullLink(newEventId))
@@ -115,10 +114,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  private def getSubEventDtos(parentId: Long): Future[Seq[BaseEventDto]] = {
-    val action = EventBaseTable.filter(event => event.partOf === parentId).result
-    db.run(action)
-  }
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
     val id = baseEventDto.id.getOrFail("Internal error, id missing")
@@ -151,7 +146,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
   }
 
-  /* Gets the subevents from of the event with id=parentId from the database. Embedded in the proper relations (RelatedEvents-objects)*/
+  /** Gets the subevents from the event with id=parentId from the database. Embedded in the proper relations (RelatedEvents-objects) */
 
   def getSubEvents(parentId: Long, recursive: Boolean): MusitFuture[Seq[RelatedEvents]] = {
 
@@ -161,6 +156,13 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
           MusitFuture.traverse(subEventDtos) { subEventDto: BaseEventDto => getEvent(subEventDto, recursive) }
       }
     }
+
+    /** Gets the base event data for the children (parts) of the event with id = parentId */
+    def getSubEventDtos(parentId: Long): Future[Seq[BaseEventDto]] = {
+      val action = EventBaseTable.filter(event => event.partOf === parentId).result
+      db.run(action)
+    }
+
 
     //The parts/partOf relation
     def getPartEvents: MusitFuture[RelatedEvents] = {
