@@ -27,6 +27,7 @@ import Language from '../../../components/language'
 import DatePicker from 'react-bootstrap-date-picker'
 import moment from 'moment'
 import SaveCancel from '../../../components/formfields/saveCancel/SaveCancel'
+import { hashHistory } from 'react-router'
 
 const mapStateToProps = (state) => ({
   user: state.auth.user || { name: 'Unknown user' },
@@ -105,6 +106,7 @@ export default class ControlView extends React.Component {
     this.onGasOKClick = this.onGasOKClick.bind(this)
     this.onGasNotOKClick = this.onGasNotOKClick.bind(this)
 
+    this.onClickSave = this.onClickSave.bind(this)
     this.onHandleDateChange = this.onHandleDateChange.bind(this)
   }
 
@@ -254,12 +256,28 @@ export default class ControlView extends React.Component {
     }
   }
 
-
+  oneStateIsNotOK() {
+    return (this.state.temperatureOK === false ||
+      this.state.relativeHumidityOK === false ||
+      this.state.inertAirOK === false ||
+      this.state.lightConditionsOK === false ||
+      this.state.cleaningOK === false ||
+      this.state.gasOK === false ||
+      this.state.alchoholOK === false ||
+      this.state.moldFungusOK === false ||
+      this.state.pestOK === false)
+  }
+  onClickSave() {
+    if (this.oneStateIsNotOK()) {
+      hashHistory.push('/observation/control/add')
+    } else {
+      this.props.onLagreControl(this.state)
+    }
+  }
   getDate() {
     // const r = `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`
     return moment().format('mm/dd/yyyy');
   }
-
 
   render() {
     /*
@@ -274,22 +292,19 @@ export default class ControlView extends React.Component {
         this.state.moldFungusOK != null ||
         this.state.pestOK != null)
     } */
-    const oneStateIsNotOK = () => {
-      return (this.state.temperatureOK === false ||
-        this.state.relativeHumidityOK === false ||
-        this.state.inertAirOK === false ||
-        this.state.lightConditionsOK === false ||
-        this.state.cleaningOK === false ||
-        this.state.gasOK === false ||
-        this.state.alchoholOK === false ||
-        this.state.moldFungusOK === false ||
-        this.state.pestOK === false)
-    }
+
 
     const { translate } = this.props
     const renderReadOnly = (v) => {
       return <FormControl style={{ backgroundColor: '#f2f2f2' }} readOnly value={v} />
     }
+
+    const btnTbr = (<SaveCancel
+      saveLabel={translate(this.oneStateIsNotOK() ? 'musit.observation.registerObservation' : 'musit.texts.save')}
+      translate={translate}
+      onClickSave={this.onClickSave}
+      onClickCancel={(a) => (a)}
+    />)
     return (
       <div>
         <Grid>
@@ -621,19 +636,7 @@ export default class ControlView extends React.Component {
             </Col>
           </Row>
           <Row>
-            {oneStateIsNotOK() ?
-              <SaveCancel
-                saveLabel={translate('musit.observation.registerObservation')}
-                translate={translate}
-                onClickSave={(a) => (a)}
-                onClickCancel={(a) => (a)}
-              /> :
-              <SaveCancel
-                translate={translate}
-                onClickSave={() =>
-                this.props.onLagreControl(this.state)}
-                onClickCancel={(a) => (a)}
-              />}
+            {btnTbr}
           </Row>
         </Grid>
       </div>)
