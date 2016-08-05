@@ -46,8 +46,9 @@ object JsonEventHelpers {
 
       customValueLong <- CustomFieldsHandler.validateCustomIntegerFieldFromJsonIfAny(eventType, jsObject)
       customValueString <- CustomFieldsHandler.validateCustomStringFieldFromJsonIfAny(eventType, jsObject)
+      customValueDouble <- CustomFieldsHandler.validateCustomDoubleFieldFromJsonIfAny(eventType, jsObject)
 
-    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, customValueLong, customValueString)
+    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble)
   }
 
   def invokeJsonValidator(multipleDtos: MultipleTablesEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {
