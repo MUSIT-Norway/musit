@@ -77,13 +77,13 @@ const wrap = (be) => {
         break
       case 'observationInertLuft':
         retobs.type = 'hypoxicAir'
-        retobs.data.fromValue = o.inertLuftFrom
+        retobs.data.fromValue = parseFloat(o.inertLuftFrom.replace(',', '.'))
         retobs.data.toValue = o.inertLuftTo
         retobs.data.commentValue = o.note
         break
       case 'observationTemperature':
         retobs.type = 'temperature'
-        retobs.data.fromValue = o.temperatureFrom
+        retobs.data.fromValue = parseFloat(o.temperatureFrom.replace(',', '.'))
         retobs.data.toValue = o.temperatureTo
         retobs.data.commentValue = o.note
         break
