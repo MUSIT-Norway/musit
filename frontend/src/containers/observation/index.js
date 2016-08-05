@@ -59,8 +59,25 @@ export default class ObservationView extends React.Component {
     super(props)
 
     const { translate } = props
-
     this.displayExisting = !!this.props.params.id
+    this.newControlObservation = !!this.props.params.control
+
+    this.ifff = (condition1, block1, condition2, block2, blockElse) => {
+      let lvString = ''
+      if (condition1) {
+        lvString = block1
+      } else if (condition2) {
+        lvString = block2
+      } else {
+        lvString = blockElse
+      }
+      return lvString
+    }
+
+    /* eslint-disable no-console */
+    console.log('Rituvesh show log below')
+    console.log(this.props.params.control)
+    /* eslint-disable no-console */
 
     this.observationTypeDefinitions = observationTypeDefinitions(translate, this.actions)
     // TODO: Language binding.
@@ -288,7 +305,8 @@ export default class ObservationView extends React.Component {
       getDoneBySuggestionValue,
       renderDoneBySuggestion,
       onDoneByUpdateRequested,
-      selectType
+      selectType,
+      ifff
     } = this
 
     const { observations } = this.displayExisting ? this.props : this.state
@@ -354,8 +372,17 @@ export default class ObservationView extends React.Component {
               <Row>
                 <Col style={{ textAlign: 'center' }}>
                   <PageHeader>
-                    {this.displayExisting ? translate('musit.observation.viewObservationHeader') :
-                    translate('musit.observation.newObservationHeader')}
+                    {ifff(
+                      this.newControlObservation,
+                      translate('musit.newControl.title')
+                      ,
+                      this.displayExisting,
+                      translate('musit.observation.viewObservationHeader'),
+                      translate('musit.observation.newObservationHeader')
+                    )}
+                  </PageHeader>
+                  <PageHeader>
+                    { this.newControlObservation ? translate('musit.observation.registerObservations') : ''}
                   </PageHeader>
                 </Col>
               </Row>

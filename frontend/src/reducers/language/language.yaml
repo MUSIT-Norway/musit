@@ -87,6 +87,7 @@ no:
       envdata: "Miljødata"
     observation:
       registerObservation: "Registrer observasjon"
+      registerObservations: "Registrer observasjoner"
       date: "Dato"
       doneBy: "Utført av"
       registeredDate: "Reg. dato"
