@@ -19,7 +19,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { MusitTextArea } from '../../components/formfields'
-import { FormGroup, ControlLabel, Col } from 'react-bootstrap'
+import { Row, ControlLabel, Col } from 'react-bootstrap'
 
 export default class ObservationDoubleTextAreaComponent extends Component {
   static propTypes = {
@@ -33,11 +33,12 @@ export default class ObservationDoubleTextAreaComponent extends Component {
     rightValue: PropTypes.string.isRequired,
     rightTooltip: PropTypes.string.isRequired,
     onChangeRight: PropTypes.func.isRequired,
+    disabled: PropTypes.bool
   }
 
   constructor(props) {
     super(props)
-    const { id, leftTooltip, onChangeLeft, rightTooltip, onChangeRight, translate } = props
+    const { id, leftTooltip, onChangeLeft, rightTooltip, onChangeRight, translate, disabled } = props
     this.fields = {
       left: {
         id: `${id}_left`,
@@ -46,7 +47,8 @@ export default class ObservationDoubleTextAreaComponent extends Component {
         onChange: onChangeLeft,
         validate: 'text',
         maximumLength: 100,
-        numberOfRows: 5
+        numberOfRows: 5,
+        disabled: disabled
       },
       right: {
         id: `${id}_right`,
@@ -55,7 +57,8 @@ export default class ObservationDoubleTextAreaComponent extends Component {
         onChange: onChangeRight,
         validate: 'text',
         maximumLength: 250,
-        numberOfRows: 5
+        numberOfRows: 5,
+        disabled: disabled
       }
     }
   }
@@ -65,7 +68,7 @@ export default class ObservationDoubleTextAreaComponent extends Component {
     const { leftValue, rightValue, leftLabel, rightLabel } = this.props
 
     return (
-      <FormGroup>
+      <Row>
         <Col xs={12} sm={6}>
           <ControlLabel>{leftLabel}</ControlLabel>
           <MusitTextArea {...left} value={leftValue} />
@@ -74,7 +77,7 @@ export default class ObservationDoubleTextAreaComponent extends Component {
           <ControlLabel>{rightLabel}</ControlLabel>
           <MusitTextArea {...right} value={rightValue} />
         </Col>
-      </FormGroup>
+      </Row>
     )
   }
 }

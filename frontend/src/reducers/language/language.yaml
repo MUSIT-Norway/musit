@@ -87,6 +87,12 @@ no:
       envdata: "Miljødata"
     observation:
       registerObservation: "Registrer observasjon"
+      date: "Dato"
+      doneBy: "Utført av"
+      registeredDate: "Reg. dato"
+      registeredBy: "Reg. av"
+      newObservationHeader: "Ny observasjon"
+      viewObservationHeader: "Observasjon"
       newButtonLabel: "Legg til ny"
       pest:
         identificationLabel: "Identifikasjon"
@@ -94,6 +100,12 @@ no:
         commentsLabel: "Tiltak/Kommentar"
         commentsTooltip: "Tiltak/Kommentar tooltip!"
         lifeCycleLabel: "Livssyklus"
+        lifeCycleLabelMenu:
+          adult: "Adult"
+          puppe: "Puppe"
+          puppeskin: "Puppeskin"
+          larva: "Larva"
+          egg: "Eggg"
         lifeCycleTooltip: "Livssyklus tooltip"
         countLabel: "Antall"
         countPlaceHolder: "Heltall"
@@ -135,7 +147,7 @@ no:
           placeHolder: int
           addOnPrefix: "\u00b1"
         inertAir:
-          labelText: "Inert luft [til]"
+          labelText: "Inert luft [fra]"
           tooltip: "Måleenhet prosent oksygen, desimaltall"
           placeHolder: "% O2"
           comment: "Tiltak / kommentar"

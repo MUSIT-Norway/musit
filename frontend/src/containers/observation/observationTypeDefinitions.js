@@ -48,7 +48,12 @@ const observationTypeDefinitions = (translate) => {
       props: {
         id: 'pest',
         translate: translate,
-        lifeCycleItems: ['Adult', 'Puppe', 'Puppeskin', 'Larva', 'Egg']
+        lifeCycleItems:
+          [translate('musit.observation.lifeCycleLabelMenu.puppe'),
+          translate('musit.observation.lifeCycleLabelMenu.adult'),
+          translate('musit.observation.lifeCycleLabelMenu.puppeskin'),
+          translate('musit.observation.lifeCycleLabelMenu.larva'),
+          translate('musit.observation.lifeCycleLabelMenu.egg')]
       },
       defaultValues: {
         observations: [],
@@ -98,7 +103,7 @@ const observationTypeDefinitions = (translate) => {
 }
 
 const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel, rightTooltip,
-                          onChangeLeft, onChangeRight) => {
+                          onChangeLeft, onChangeRight, disabled) => {
   return {
     label: dropdownLabel,
     component: {
@@ -110,14 +115,15 @@ const defineCommentType = (id, dropdownLabel, leftLabel, leftTooltip, rightLabel
         rightLabel,
         rightTooltip,
         onChangeLeft,
-        onChangeRight
+        onChangeRight,
+        disabled
       }
     }
   }
 }
 
 const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, toTooltip, commentLabel, commentTooltip,
-  onChangeFrom, onChangeTo, onChangeComment, fromPlaceHolder, toPlaceHolder) => {
+  onChangeFrom, onChangeTo, onChangeComment, fromPlaceHolder, toPlaceHolder, disabled) => {
   return {
     label: dropdownLabel,
     component: {
@@ -134,14 +140,15 @@ const defineFromToType = (id, dropdownLabel, fromLabel, fromTooltip, toLabel, to
         onChangeTo,
         onChangeComment,
         fromPlaceHolder,
-        toPlaceHolder
+        toPlaceHolder,
+        disabled
       }
     }
   }
 }
 
 const definePestType = (id, dropdownLabel, onAddPest, onChangeLifeCycle, onChangeCount,
-  onChangeIdentification, onChangeComments) => {
+  onChangeIdentification, onChangeComments, disabled) => {
   return {
     label: dropdownLabel,
     component: {
@@ -152,7 +159,8 @@ const definePestType = (id, dropdownLabel, onAddPest, onChangeLifeCycle, onChang
         onChangeLifeCycle,
         onChangeCount,
         onChangeIdentification,
-        onChangeComments
+        onChangeComments,
+        disabled
       }
     }
   }
@@ -160,7 +168,7 @@ const definePestType = (id, dropdownLabel, onAddPest, onChangeLifeCycle, onChang
 
 const defineStatusType = (id, dropdownLabel, statusLabel, statusTooltip,
   statusOptionValues, volumeLabel, volumeTooltip, commentLabel, commentTooltip,
-  onChangeStatus, onChangeVolume, onChangeComment) => {
+  onChangeStatus, onChangeVolume, onChangeComment, disabled) => {
   return {
     label: dropdownLabel,
     component: {
@@ -176,7 +184,8 @@ const defineStatusType = (id, dropdownLabel, statusLabel, statusTooltip,
         commentTooltip,
         onChangeStatus,
         onChangeVolume,
-        onChangeComment
+        onChangeComment,
+        disabled
       }
     }
   }
