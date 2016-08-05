@@ -25,7 +25,7 @@ object Dependencies {
   val scala = "2.11.8"
 
   val resolvers = DefaultOptions.resolvers(snapshot = true) ++ Seq(
-    "scalaz-releases" at "http://dl.bintray.com/scalaz/releases"
+    Resolver.bintrayRepo("scalaz", "releases")
   )
 
   object PlayFrameWork {
