@@ -17,12 +17,6 @@ module.exports = {
     publicPath: '/assets/',
     filename: 'js/bundle.js'
   },
-  externals: {
-    'cheerio': 'window',
-    'react/addons': true, // important!!
-    'react/lib/ExecutionEnvironment': true,
-    'react/lib/ReactContext': true
-  },
   devtool: 'inline-source-map',
   plugins: [
     new webpack.DefinePlugin({
