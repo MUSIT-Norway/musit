@@ -1,6 +1,6 @@
 var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
-
+var path = require('path');
 var host = process.env.PUBLIC_HOST || 'localhost';
 var port = process.env.PUBLIC_PORT || '8000';
 
@@ -16,6 +16,12 @@ module.exports = {
     path: __dirname + '/public/assets',
     publicPath: '/assets/',
     filename: 'js/bundle.js'
+  },
+  externals: {
+    'cheerio': 'window',
+    'react/addons': true, // important!!
+    'react/lib/ExecutionEnvironment': true,
+    'react/lib/ReactContext': true
   },
   devtool: 'inline-source-map',
   plugins: [
@@ -36,7 +42,8 @@ module.exports = {
       { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, loader: "file?name=css/[name]_[hash].[ext]" },
       { test: /\.svg(\?v=\d+\.\d+\.\d+)?$/, loader: "url?limit=10000&mimetype=image/svg+xml&name=css/[name]_[hash].[ext]" },
       { test: /\.json$/, loader: 'json' },
-      { test: /\.yaml/, loader: 'json!yaml' }
+      { test: /\.yaml/, loader: 'json!yaml' },
+      {test: /\.rt$/, loaders: ['react-templates-loader'], include: path.join(__dirname, 'src')}
     ]
   },
   postcss: [ autoprefixer({ browsers: ['last 2 versions'] }) ]

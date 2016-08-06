@@ -36,7 +36,7 @@ export default class NodeLeftMenuComponent extends Component {
           <Button
             bsStyle="link"
             id={`${id}_${type}`}
-            onClick={(event) => eventType(id)}
+            onClick={() => eventType(id)}
             style={{ color: 'black' }}
           >
             <FontAwesome name={icon} style={{ padding: '2px' }} />
@@ -59,7 +59,7 @@ export default class NodeLeftMenuComponent extends Component {
         <div style={{ border: 'none', textAlign: 'center' }}>
           <Button
             id={`${identity}_newNode`}
-            onClick={(event) => onClickNewNode()}
+            onClick={() => onClickNewNode()}
             style={{ width: '100%', textAlign: 'left' }}
           >
             <FontAwesome name="plus-circle" style={{ padding: '2px' }} />

@@ -1,6 +1,6 @@
 import React from 'react'
 import { PickListComponent } from '../../components/picklist'
-import { Panel, PageHeader, Grid, Button } from 'react-bootstrap'
+import { PageHeader, Grid, Button } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 
 export default class PickListContainer extends React.Component {

@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react'
-import { Row, Col, Button, Table, FormGroup } from 'react-bootstrap'
+import { Table, FormGroup } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
-import { MusitField } from '../formfields'
 
 export default class ObjectGrid extends Component {
   static propTypes = {

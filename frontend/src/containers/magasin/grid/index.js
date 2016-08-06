@@ -32,7 +32,10 @@ export default class StorageUnitsContainer extends React.Component {
     onDelete: React.PropTypes.func.isRequired,
     onEdit: React.PropTypes.func.isRequired,
     onPick: React.PropTypes.func.isRequired,
-    props: React.PropTypes.object
+    props: React.PropTypes.object,
+    params: React.PropTypes.object,
+    history: React.PropTypes.object,
+    loadChildren: React.PropTypes.func
   }
 
   constructor(props) {
@@ -60,8 +63,8 @@ export default class StorageUnitsContainer extends React.Component {
         toolbar={<Toolbar
           showObjects={this.state.showObjects}
           showNodes={this.state.showNodes}
-          clickShowObjects={() => this.setState({...this.state, showObjects: true, showNodes: false})}
-          clickShowNodes={() => this.setState({...this.state, showObjects: false, showNodes: true})}
+          clickShowObjects={() => this.setState({ ...this.state, showObjects: true, showNodes: false })}
+          clickShowNodes={() => this.setState({ ...this.state, showObjects: false, showNodes: true })}
         />}
         leftMenu={<NodeLeftMenuComponent
           id="1"

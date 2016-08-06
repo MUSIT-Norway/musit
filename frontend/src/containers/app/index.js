@@ -7,8 +7,7 @@ import { Navbar, Nav, NavItem, Badge } from 'react-bootstrap'
 import { routerActions } from 'react-router-redux'
 import { I18n } from 'react-i18nify'
 import FontAwesome from 'react-fontawesome'
-import { connectUser } from '../../reducers/auth';
-import LoginButton from '../../components/login-button'
+import { clearUser } from '../../reducers/auth';
 
 const mapStateToProps = (state) => {
   I18n.loadTranslations(state.language.data)
@@ -22,7 +21,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    setUser: (user) => dispatch(connectUser(user))
+    clearUser: () => dispatch(clearUser())
   }
 }
 
@@ -33,7 +32,8 @@ class App extends Component {
     user: PropTypes.object,
     pushState: PropTypes.func.isRequired,
     store: PropTypes.object,
-    pickListCount: PropTypes.number.isRequired
+    pickListCount: PropTypes.number.isRequired,
+    clearUser: PropTypes.func.isRequired
   }
 
   static contextTypes = {
@@ -51,12 +51,11 @@ class App extends Component {
 
   handleLogout = (event) => {
     event.preventDefault()
-    // this.props.dispatch(this.props.logout())
+    this.props.clearUser()
   }
 
   handleFakeLogin = (event) => {
     event.preventDefault()
-    // this.props.dispatch(this.props.login('fake'))
   }
 
   render() {
@@ -81,9 +80,9 @@ class App extends Component {
           <Navbar.Collapse>
             <Nav navbar>
               {user &&
-              <LinkContainer to="/magasin">
-                <NavItem>Magasin</NavItem>
-              </LinkContainer>
+                <LinkContainer to="/magasin">
+                  <NavItem>Magasin</NavItem>
+                </LinkContainer>
               }
               {user &&
                 <LinkContainer to="/picklist">
@@ -94,15 +93,6 @@ class App extends Component {
                 <LinkContainer to="/musit/logout">
                   <NavItem className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
                 </LinkContainer>
-              }
-              {!user &&
-              <LinkContainer to="/musit/login">
-                  <LoginButton
-                    setUser={this.props.setUser}
-                  >
-                    Login
-                  </LoginButton>
-              </LinkContainer>
               }
             </Nav>
             {user &&
