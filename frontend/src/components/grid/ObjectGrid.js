@@ -35,8 +35,8 @@ export default class ObjectGrid extends Component {
               </tr>
             </thead>
             <tbody>
-              {tableData.map(c =>
-                <tr id={`${id}_${c.museumsNumber}_${c.uNumber}`} >
+              {tableData.map((c, i) =>
+                <tr key={i} id={`${id}_${c.museumsNumber}_${c.uNumber}`} >
                   <td id={`${id}_${c.museumsNumber}_${c.uNumber}_museumNumber`}>
                     <FontAwesome name="rebel" />
                     {` ${c.museumsNumber}`}

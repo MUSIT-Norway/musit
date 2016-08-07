@@ -16,8 +16,7 @@ export default class NodeGrid extends Component {
       nodeCount: PropTypes.number
     })),
     onPick: PropTypes.func.isRequired,
-    onDelete: PropTypes.func.isRequired,
-    onItemClick: PropTypes.func.isRequired
+    onClick: PropTypes.func.isRequired
   }
 
   render() {
@@ -57,7 +56,7 @@ export default class NodeGrid extends Component {
                       href=""
                       onClick={(e) => {
                         e.preventDefault()
-                        this.props.onItemClick(c)
+                        this.props.onClick(c)
                       }}
                     >
                       <FontAwesome name="folder" />
@@ -94,17 +93,6 @@ export default class NodeGrid extends Component {
                       }}
                     >
                       <FontAwesome name="shopping-cart" />
-                    </a>
-                  </td>
-                  <td id={`${id}_${c.name}_${c.type}_delete`}>
-                    <a
-                      href=""
-                      onClick={(e) => {
-                        e.preventDefault()
-                        this.props.onDelete(c)
-                      }}
-                    >
-                      <FontAwesome name="trash-o" />
                     </a>
                   </td>
                 </tr>

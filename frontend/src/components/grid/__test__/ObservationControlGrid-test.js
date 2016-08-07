@@ -7,7 +7,7 @@ describe('ObservationControlGrid', () => {
   before('should render ObservationControlGrid', () => {
     const myDiv = ReactTestUtils.renderIntoDocument(
       <ObjectGrid
-        id="1"
+        id={1}
         translate={(key) => key}
         tableData={[
           {

@@ -54,45 +54,61 @@ export default class StorageUnitsContainer extends React.Component {
     }
   }
 
+  makeToolbar() {
+    return (<Toolbar
+      showObjects={this.state.showObjects}
+      showNodes={this.state.showNodes}
+      clickShowObjects={() => this.setState({ ...this.state, showObjects: true, showNodes: false })}
+      clickShowNodes={() => this.setState({ ...this.state, showObjects: false, showNodes: true })}
+    />)
+  }
+
+  makeLeftMenu() {
+    return (<div style={{ paddingTop: 10 }}>
+      <NodeLeftMenuComponent
+        id="1"
+        translate={this.props.translate}
+        onClickNewNode={() => this.props.history.push('/storageunit/add')}
+        objectsOnNode={11}
+        totalObjectCount={78}
+        underNodeCount={5}
+        onClickProperties={(key) => key}
+        onClickObservations={(id) => this.props.history.push(`/grid/observationcontrol/${id}`)}
+        onClickController={(id) => this.props.history.push(`/grid/observationcontrol/${id}`)}
+        onClickMoveNode={(key) => key}
+        onClickDelete={this.props.onDelete}
+      />
+    </div>)
+  }
+
+  makeContentGrid() {
+    if (this.state.showNodes) {
+      return (<NodeGrid
+        id="1"
+        translate={this.props.translate}
+        tableData={this.props.units}
+        onPick={this.props.onPick}
+        onClick={(unit) => {
+          this.props.loadChildren(unit.id)
+          this.props.history.push(`/magasin/${unit.id}`)
+        }}
+      />)
+    }
+    return (<ObjectGrid
+      translate={this.props.translate}
+      tableData={[]}
+    />)
+  }
+
   render() {
     return (
       <Layout
         title={"Magasin"}
         translate={this.props.translate}
         breadcrumb={"Museum / Papirdunken / Esken inni der"}
-        toolbar={<Toolbar
-          showObjects={this.state.showObjects}
-          showNodes={this.state.showNodes}
-          clickShowObjects={() => this.setState({ ...this.state, showObjects: true, showNodes: false })}
-          clickShowNodes={() => this.setState({ ...this.state, showObjects: false, showNodes: true })}
-        />}
-        leftMenu={<NodeLeftMenuComponent
-          id="1"
-          translate={this.props.translate}
-          onClickNewNode={(key) => key}
-          objectsOnNode={11}
-          totalObjectCount={78}
-          underNodeCount={5}
-          onClickProperties={(key) => key}
-          onClickObservations={(id) => this.props.history.push(`/grid/observationcontrol/${id}`)}
-          onClickController={(id) => this.props.history.push(`/grid/observationcontrol/${id}`)}
-          onClickMoveNode={(key) => key}
-          onClickDelete={this.props.onDelete}
-        />}
-        content={this.state.showNodes ? <NodeGrid
-          id="1"
-          translate={this.props.translate}
-          tableData={this.props.units}
-          onPick={this.props.onPick}
-          onDelete={this.props.onDelete}
-          onItemClick={(unit) => {
-            this.props.loadChildren(unit.id)
-            this.props.history.push(`/magasin/${unit.id}`)
-          }}
-        /> : <ObjectGrid
-          translate={this.props.translate}
-          tableData={[]}
-        />}
+        toolbar={this.makeToolbar()}
+        leftMenu={this.makeLeftMenu()}
+        content={this.makeContentGrid()}
       />
     )
   }

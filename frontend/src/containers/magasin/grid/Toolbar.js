@@ -24,10 +24,10 @@ export default class Toolbar extends React.Component {
           />
         </div>
         <div className={styles.toolBarButtons}>
-          <Button active={this.props.showNodes ? 'active' : undefined} onClick={() => this.props.clickShowNodes()}>
+          <Button active={this.props.showNodes} onClick={() => this.props.clickShowNodes()}>
             Noder
           </Button>
-          <Button active={this.props.showObjects ? 'active' : undefined} onClick={() => this.props.clickShowObjects()}>
+          <Button active={this.props.showObjects} onClick={() => this.props.clickShowObjects()}>
             Objekter
           </Button>
         </div>

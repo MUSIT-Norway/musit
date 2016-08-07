@@ -1,3 +1,0 @@
-<button type="button" class="btn btn-default" onClick={this.login}>
-    {this.props.children}
-</button>

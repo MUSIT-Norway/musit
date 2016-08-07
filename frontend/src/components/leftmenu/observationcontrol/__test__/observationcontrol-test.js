@@ -7,7 +7,7 @@ describe('ObservationControlComponent', () => {
   before('should render ObservationControlComponent', () => {
     const myDiv = ReactTestUtils.renderIntoDocument(
       <ObservationControlComponent
-        id="1"
+        id={1}
         translate={(key) => key}
         selectObservation={(key) => key}
         selectControl={(key) => key}
@@ -25,11 +25,5 @@ describe('ObservationControlComponent', () => {
   })
   it('Check the new control button is created.', () => {
     assert(buttons[1].getAttribute('id') === '1_newControl')
-  })
-  it('Check the control checkbox is created.', () => {
-    assert(inputComponent[0].getAttribute('id') === '1_selectControl')
-  })
-  it('Check the observation checkbox is created.', () => {
-    assert(inputComponent[1].getAttribute('id') === '1_selectObservation')
   })
 })
