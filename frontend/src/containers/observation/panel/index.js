@@ -24,7 +24,7 @@ import { connect } from 'react-redux'
 import Language from '../../../components/language'
 import DatePicker from 'react-bootstrap-date-picker'
 import Autosuggest from 'react-autosuggest'
-import { suggestPerson, clearSuggest } from '../../reducers/suggest'
+import { suggestPerson, clearSuggest } from '../../../reducers/suggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
 import { addObservation, loadObservation } from '../../../reducers/observation'
