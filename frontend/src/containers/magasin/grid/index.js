@@ -7,11 +7,15 @@ import { hashHistory } from 'react-router'
 import { NodeGrid, ObjectGrid } from '../../../components/grid'
 import Layout from '../../../layout'
 import NodeLeftMenuComponent from '../../../components/leftmenu/node'
-import Toolbar from './Toolbar'
+import Toolbar from '../../../layout/Toolbar'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
-  units: state.storageGridUnit.data || []
+  children: state.storageGridUnit.data || [],
+  unit: {
+    id: 1,
+    name: 'Root'
+  }
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -26,7 +30,11 @@ const mapDispatchToProps = (dispatch) => ({
 @connect(mapStateToProps, mapDispatchToProps)
 export default class StorageUnitsContainer extends React.Component {
   static propTypes = {
-    units: React.PropTypes.arrayOf(React.PropTypes.object),
+    children: React.PropTypes.arrayOf(React.PropTypes.object),
+    unit: React.PropTypes.shape({
+      id: React.PropTypes.number.isRequired,
+      name: React.PropTypes.string.isRequired
+    }),
     translate: React.PropTypes.func.isRequired,
     loadStorageUnits: React.PropTypes.func.isRequired,
     onDelete: React.PropTypes.func.isRequired,
@@ -56,10 +64,13 @@ export default class StorageUnitsContainer extends React.Component {
 
   makeToolbar() {
     return (<Toolbar
-      showObjects={this.state.showObjects}
-      showNodes={this.state.showNodes}
-      clickShowObjects={() => this.setState({ ...this.state, showObjects: true, showNodes: false })}
-      clickShowNodes={() => this.setState({ ...this.state, showObjects: false, showNodes: true })}
+      showRight={this.state.showObjects}
+      showLeft={this.state.showNodes}
+      labelRight="Objekter"
+      labelLeft="Noder"
+      placeHolderSearch="Filtrer i liste"
+      clickShowRight={() => this.setState({ ...this.state, showObjects: true, showNodes: false })}
+      clickShowLeft={() => this.setState({ ...this.state, showObjects: false, showNodes: true })}
     />)
   }
 
@@ -73,8 +84,8 @@ export default class StorageUnitsContainer extends React.Component {
         totalObjectCount={78}
         underNodeCount={5}
         onClickProperties={(key) => key}
-        onClickObservations={(id) => this.props.history.push(`/grid/observationcontrol/${id}`)}
-        onClickController={(id) => this.props.history.push(`/grid/observationcontrol/${id}`)}
+        onClickObservations={(id) => this.props.history.push(`/observationcontrol/${id}`)}
+        onClickController={(id) => this.props.history.push(`/observationcontrol/${id}`)}
         onClickMoveNode={(key) => key}
         onClickDelete={this.props.onDelete}
       />
@@ -84,17 +95,17 @@ export default class StorageUnitsContainer extends React.Component {
   makeContentGrid() {
     if (this.state.showNodes) {
       return (<NodeGrid
-        id="1"
+        id={this.props.unit.id}
         translate={this.props.translate}
-        tableData={this.props.units}
+        tableData={this.props.children}
         onPick={this.props.onPick}
-        onClick={(unit) => {
-          this.props.loadChildren(unit.id)
+        onClick={(unit) =>
           this.props.history.push(`/magasin/${unit.id}`)
-        }}
+        }
       />)
     }
     return (<ObjectGrid
+      id={this.props.unit.id}
       translate={this.props.translate}
       tableData={[]}
     />)

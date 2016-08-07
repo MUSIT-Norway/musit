@@ -4,7 +4,7 @@ import FontAwesome from 'react-fontawesome'
 
 export default class ObjectGrid extends Component {
   static propTypes = {
-    id: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired,
     translate: PropTypes.func.isRequired,
     tableData: PropTypes.arrayOf(PropTypes.shape({
       museumsNumber: PropTypes.string.isRequired,

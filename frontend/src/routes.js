@@ -26,14 +26,11 @@ import PickListView from './containers/picklist'
 import ExampleView from './containers/example-view'
 import StorageUnitPanel from './containers/magasin/panel'
 import WelcomeUserView from './containers/welcome-user'
-import ObservationView from './containers/observation'
+import ObservationView from './containers/observation/panel'
 import ControlView from './containers/control/view'
 import ControlAdd from './containers/control/add'
-import ObjectGridShow from './containers/grid/object'
 import App from './containers/app'
-import NodeLeftMenu from './containers/leftmenu/node'
-import ObservationControlGridShow from './containers/grid/observationcontrol'
-import NodeGridShow from './containers/grid/node'
+import ObservationControlGridShow from './containers/observationcontrol/grid'
 
 export default (store) => {
   const requireLogin = (nextState, replace, cb) => {
@@ -70,11 +67,7 @@ export default (store) => {
       <Route path="/observation/:id" component={ObservationView} />
       <Route path="/storageunit/:id" component={StorageUnitPanel} />
       <Route path="/storageunit/add" component={StorageUnitPanel} />
-      <Route path="/nodeleftmenu" component={NodeLeftMenu} />
-      <Route path="/grid/observationcontrol/:id" component={ObservationControlGridShow} />
-      <Route path="/grid/node/:id" component={NodeGridShow} />
-      <Route path="/grid/node" component={NodeGridShow} />
-      <Route path="/grid/object/:id" component={ObjectGridShow} />
+      <Route path="/observationcontrol/:id" component={ObservationControlGridShow} />
 
       -- Authentication routes
       <Route path="/musit" component={WelcomeUserView} onEnter={requireLogin} />

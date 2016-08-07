@@ -2,7 +2,6 @@ import { assert, React, ReactTestUtils } from '../../../../../test/setup';
 import ObservationControlComponent from '../index';
 
 describe('ObservationControlComponent', () => {
-  let inputComponent
   let buttons
   before('should render ObservationControlComponent', () => {
     const myDiv = ReactTestUtils.renderIntoDocument(
@@ -17,7 +16,6 @@ describe('ObservationControlComponent', () => {
         onClickSelectControl={(key) => key}
       />
     );
-    inputComponent = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'input');
     buttons = ReactTestUtils.scryRenderedDOMComponentsWithTag(myDiv, 'button');
   });
   it('Check the new observation button is created.', () => {

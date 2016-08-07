@@ -24,6 +24,7 @@ import ObservationControlComponent from '../../../components/leftmenu/observatio
 import Language from '../../../components/language'
 import Layout from '../../../layout'
 import { connect } from 'react-redux'
+import Toolbar from '../../../layout/Toolbar'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
@@ -42,27 +43,58 @@ export default class ObservationControlGridShow extends React.Component {
     observationControlGridData: React.PropTypes.arrayOf(React.PropTypes.object)
   }
 
+  constructor(props) {
+    super(props)
+    this.state = {
+      showControls: true,
+      showObservations: true
+    }
+  }
+
+  makeToolbar() {
+    return (<Toolbar
+      showRight={this.state.showControls}
+      showLeft={this.state.showObservations}
+      labelRight="Kontroller"
+      labelLeft="Observasjoner"
+      placeHolderSearch="Filtrer i liste"
+      clickShowRight={() => this.setState({ ...this.state, showControls: !this.state.showControls })}
+      clickShowLeft={() => this.setState({ ...this.state, showObservations: !this.state.showObservations })}
+    />)
+  }
+
+  makeLeftMenu() {
+    return (<div style={{ paddingTop: 10 }}>
+      <ObservationControlComponent
+        id={this.props.unit.id}
+        translate={this.props.translate}
+        selectObservation
+        selectControl
+        onClickNewObservation={(key) => key}
+        onClickNewControl={(key) => key}
+        onClickSelectObservation={(key) => key}
+        onClickSelectControl={(key) => key}
+      />
+    </div>)
+  }
+
+  makeContent() {
+    return (<ObservationControlGrid
+      id={this.props.unit.id}
+      translate={this.props.translate}
+      tableData={this.props.observationControlGridData}
+    />)
+  }
+
   render() {
-    const props = this.props;
     return (
       <Layout
-        title={`${props.translate('musit.grid.observation.header')}`}
-        translate={props.translate}
-        leftMenu={<ObservationControlComponent
-          id={props.unit.id}
-          translate={props.translate}
-          selectObservation
-          selectControl
-          onClickNewObservation={(key) => key}
-          onClickNewControl={(key) => key}
-          onClickSelectObservation={(key) => key}
-          onClickSelectControl={(key) => key}
-        />}
-        content={<ObservationControlGrid
-          id={props.unit.id}
-          translate={props.translate}
-          tableData={props.observationControlGridData}
-        />}
+        title={`${this.props.translate('musit.grid.observation.header')}`}
+        translate={this.props.translate}
+        breadcrumb={"Museum / Papirdunken / Esken inni der"}
+        toolbar={this.makeToolbar()}
+        leftMenu={this.makeLeftMenu()}
+        content={this.makeContent()}
       />
     )
   }

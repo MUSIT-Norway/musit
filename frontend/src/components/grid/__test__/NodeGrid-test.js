@@ -6,7 +6,7 @@ describe('NodeGrid', () => {
   before('should render NodeGrid', () => {
     const myDiv = ReactTestUtils.renderIntoDocument(
       <NodeGrid
-        id="1"
+        id={1}
         translate={(key) => key}
         onPick={(key) => key}
         onClick={(key) => key}

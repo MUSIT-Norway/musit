@@ -21,14 +21,14 @@ import React from 'react'
 import { PageHeader, Panel, Grid, Row, Col, Button, ControlLabel, SplitButton, MenuItem } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 import { connect } from 'react-redux'
-import Language from '../../components/language'
+import Language from '../../../components/language'
 import DatePicker from 'react-bootstrap-date-picker'
 import Autosuggest from 'react-autosuggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
-import { addObservation, loadObservation } from '../../reducers/observation'
+import { addObservation, loadObservation } from '../../../reducers/observation'
 import { actions } from './actions'
-import { MusitField } from '../../components/formfields'
+import { MusitField } from '../../../components/formfields'
 
 // TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = (state) => ({

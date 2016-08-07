@@ -2,8 +2,7 @@ import { assert, React, ReactTestUtils } from '../../../../test/setup';
 import ObjectGrid from '../ObservationControlGrid';
 
 describe('ObservationControlGrid', () => {
-  let inputComponent;
-
+  let inputComponent
   before('should render ObservationControlGrid', () => {
     const myDiv = ReactTestUtils.renderIntoDocument(
       <ObjectGrid
