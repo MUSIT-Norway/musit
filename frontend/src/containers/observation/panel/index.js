@@ -24,6 +24,7 @@ import { connect } from 'react-redux'
 import Language from '../../../components/language'
 import DatePicker from 'react-bootstrap-date-picker'
 import Autosuggest from 'react-autosuggest'
+import { suggestPerson, clearSuggest } from '../../reducers/suggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
 import { addObservation, loadObservation } from '../../../reducers/observation'
@@ -33,7 +34,8 @@ import { MusitField } from '../../../components/formfields'
 // TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
-  observations: state.observation.data.observations
+  observations: state.observation.data.observations,
+  suggest: state.suggest
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -42,6 +44,14 @@ const mapDispatchToProps = (dispatch) => ({
   },
   onSaveObservation: (data) => {
     dispatch(addObservation(data))
+  },
+  onDoneBySuggestionsUpdateRequested: ({ value, reason }) => {
+    // Should only autosuggest on typing if you have more then 2 characters
+    if (reason && (reason === 'type') && value && value.length >= 2) {
+      dispatch(suggestPerson('doneByField', value))
+    } else {
+      dispatch(clearSuggest('doneByField'))
+    }
   }
 })
 
@@ -52,7 +62,9 @@ export default class ObservationView extends React.Component {
     translate: React.PropTypes.func.isRequired,
     onSaveObservation: React.PropTypes.func.isRequired,
     observations: React.PropTypes.arrayOf(React.PropTypes.object),
-    params: React.PropTypes.object
+    params: React.PropTypes.object,
+    onDoneBySuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    suggest: React.PropTypes.array.isRequired,
   }
 
   constructor(props) {
@@ -230,6 +242,7 @@ export default class ObservationView extends React.Component {
     this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
     this.onChangeDate = this.onChangeDate.bind(this)
     this.selectType = this.selectType.bind(this)
+    this.onCancelObservation = this.onCancelObservation.bind(this)
   }
 
   componentWillMount() {
@@ -246,12 +259,23 @@ export default class ObservationView extends React.Component {
     this.setState({ ...this.state, date: v })
   }
 
+  onCancelObservation() {
+    this.clearState()
+    if (this.props.params.id) {
+      this.props.loadObservation(this.props.params.id)
+    }
+  }
+
   getDoneBySuggestionValue(suggestion) {
     return `${suggestion.fn}`
   }
 
   addNewObservation() {
     this.setState({ ...this.state, observations: [...this.state.observations, { type: '' }] })
+  }
+
+  clearState() {
+    this.setState({ ...this.state, observations: [], date: '', doneBy: '' })
   }
 
   selectType(index, observationType) {
@@ -270,7 +294,7 @@ export default class ObservationView extends React.Component {
   }
 
   updateDoneBy(newValue) {
-    this.setState({ ...this.state, doneby: newValue })
+    this.setState({ ...this.state, doneBy: newValue })
   }
 
   renderDoneBySuggestion(suggestion) {
@@ -281,24 +305,34 @@ export default class ObservationView extends React.Component {
   }
 
   render() {
-    const { translate, onSaveObservation } = this.props
+    const {
+      translate,
+      onSaveObservation,
+      onDoneBySuggestionsUpdateRequested,
+      suggest
+    } = this.props
     const {
       addNewObservation,
       observationTypes,
       getDoneBySuggestionValue,
       renderDoneBySuggestion,
-      onDoneByUpdateRequested,
-      selectType
+      selectType,
+      onChangeDoneBy,
+      onCancelObservation
     } = this
 
-    const { observations } = this.displayExisting ? this.props : this.state
+    const { observations, date, doneBy } = this.displayExisting ? this.props : this.state
+
+    const { doneByField } = suggest
+
+    const suggestions = doneByField && doneByField.data ? doneByField.data : [];
 
     const doneByProps = {
       id: 'doneByField',
       placeholder: 'Done by',
-      value: 'value to be changed',
+      value: doneBy,
       type: 'search',
-      onChange: this.onChangeDoneBy
+      onChange: onChangeDoneBy
     }
 
     const renderActiveTypes = (items) => {
@@ -363,7 +397,7 @@ export default class ObservationView extends React.Component {
                 <Col xs={12} sm={5} smOffset={1}>
                   <ControlLabel>{translate('musit.observation.date')}</ControlLabel>
                   <DatePicker
-                    value={this.state.date}
+                    value={date}
                     onChange={this.onChangeDate}
                     disabled={this.displayExisting}
                   />
@@ -371,9 +405,9 @@ export default class ObservationView extends React.Component {
                 <Col xs={12} sm={5}>
                   <ControlLabel>{translate('musit.observation.doneBy')}</ControlLabel>
                   <Autosuggest
-                    suggestions={[{ fn: 'test1' }, { fn: 'test2' }]}
+                    suggestions={suggestions}
                     disabled={this.displayExisting}
-                    onSuggestionsUpdateRequested={onDoneByUpdateRequested}
+                    onSuggestionsUpdateRequested={onDoneBySuggestionsUpdateRequested}
                     getSuggestionValue={getDoneBySuggestionValue}
                     renderSuggestion={renderDoneBySuggestion}
                     inputProps={doneByProps}
@@ -388,7 +422,7 @@ export default class ObservationView extends React.Component {
                     <br />
                     <DatePicker
                       dateFormat="DD.MM.YYYY"
-                      value={this.state.date}
+                      value={date}
                       disabled={this.displayExisting}
                     />
                   </Col>
@@ -432,7 +466,7 @@ export default class ObservationView extends React.Component {
                     {translate('musit.texts.save')}
                   </Button>
                   <Button
-                    onClick={() => addNewObservation()}
+                    onClick={() => onCancelObservation()}
                     disabled={this.displayExisting}
                   >
                     {translate('musit.texts.cancel')}

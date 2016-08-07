@@ -33,10 +33,10 @@ case class EventRelation(id: Int, name: String, inverseName: String, isNormalize
   def getNormalizedDirection = if (isNormalized) this else EventRelations.getByNameOrFail(this.inverseName)
 }
 
-
-/** Please try to make the normalized direction reflect the "natural" json/document-embedding.
-  * Being consistent here may be useful for a document store (or ElasticSearch) and can make it possible to optimize the generic links part during json-serialization.
-   */
+/**
+ * Please try to make the normalized direction reflect the "natural" json/document-embedding.
+ * Being consistent here may be useful for a document store (or ElasticSearch) and can make it possible to optimize the generic links part during json-serialization.
+ */
 object EventRelations {
   private def defRel(id: Int, name: String, inverseName: String) = EventRelation(id, name, inverseName, true)
   private val relations = Seq(
