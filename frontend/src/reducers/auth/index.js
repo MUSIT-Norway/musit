@@ -1,8 +1,20 @@
 const SET_USER = 'musit/auth/SET_USER';
 const CLEAR_USER = 'musit/auth/CLEAR_USER';
 
+const loadFromStorage = () => {
+  if (localStorage.getItem('musitUserName')) {
+    return {
+      name: localStorage.getItem('musitUserName'),
+      accessToken: localStorage.getItem('musitAccessToken'),
+      email: localStorage.getItem('musitUserEmail'),
+      userId: localStorage.getItem('musitUserId')
+    }
+  }
+  return null
+}
+
 const initialState = {
-  user: null
+  user: loadFromStorage()
 };
 
 const authReducer = (state = initialState, action = {}) => {
@@ -32,6 +44,11 @@ export const connectUser = (user) => {
 }
 
 export const clearUser = () => {
+  localStorage.removeItem('musitAccessToken');
+  localStorage.removeItem('musitUserId');
+  localStorage.removeItem('musitUserName');
+  localStorage.removeItem('musitUserAvatar');
+  localStorage.removeItem('musitUserEmail');
   return {
     type: CLEAR_USER
   };
