@@ -7,6 +7,7 @@ import { Navbar, Nav, NavItem, Badge } from 'react-bootstrap'
 import { routerActions } from 'react-router-redux'
 import { I18n } from 'react-i18nify'
 import FontAwesome from 'react-fontawesome'
+import { clearUser } from '../../reducers/auth';
 
 const mapStateToProps = (state) => {
   I18n.loadTranslations(state.language.data)
@@ -18,14 +19,21 @@ const mapStateToProps = (state) => {
   }
 }
 
-@connect(mapStateToProps)
+const mapDispatchToProps = (dispatch) => {
+  return {
+    clearUser: () => dispatch(clearUser())
+  }
+}
+
+@connect(mapStateToProps, mapDispatchToProps)
 class App extends Component {
   static propTypes = {
     children: PropTypes.object.isRequired,
     user: PropTypes.object,
     pushState: PropTypes.func.isRequired,
     store: PropTypes.object,
-    pickListCount: PropTypes.number.isRequired
+    pickListCount: PropTypes.number.isRequired,
+    clearUser: PropTypes.func.isRequired
   }
 
   static contextTypes = {
@@ -43,12 +51,11 @@ class App extends Component {
 
   handleLogout = (event) => {
     event.preventDefault()
-    // this.props.dispatch(this.props.logout())
+    this.props.clearUser()
   }
 
   handleFakeLogin = (event) => {
     event.preventDefault()
-    // this.props.dispatch(this.props.login('fake'))
   }
 
   render() {
@@ -72,30 +79,11 @@ class App extends Component {
           </Navbar.Header>
           <Navbar.Collapse>
             <Nav navbar>
-              <LinkContainer to="/observation/add">
-                <NavItem>Observation</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/magasin">
-                <NavItem>Magasin</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/control/add">
-                <NavItem>ControlAdd</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/control/1">
-                <NavItem>ControlView</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/grid/object/1">
-                <NavItem>Object</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/grid/observationcontrol/1">
-                <NavItem>ObsConLayout</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/grid/node">
-                <NavItem>Node</NavItem>
-              </LinkContainer>
-              <LinkContainer to="/nodeleftmenu">
-                <NavItem>NodeLeft</NavItem>
-              </LinkContainer>
+              {user &&
+                <LinkContainer to="/magasin">
+                  <NavItem>Magasin</NavItem>
+                </LinkContainer>
+              }
               {user &&
                 <LinkContainer to="/picklist">
                   <NavItem><Badge><FontAwesome name="shopping-cart" /> {pickListCount}</Badge></NavItem>
@@ -104,11 +92,6 @@ class App extends Component {
               {user &&
                 <LinkContainer to="/musit/logout">
                   <NavItem className="logout-link" onClick={this.handleLogout}>Logout</NavItem>
-                </LinkContainer>
-              }
-              {!user &&
-                <LinkContainer to="/musit/">
-                  <NavItem onClick={this.handleFakeLogin} eventKey={7}>Login</NavItem>
                 </LinkContainer>
               }
             </Nav>
