@@ -39,12 +39,12 @@ const wrap = (e) => {
         re.livssykluser = el.data.observations.map((o) => {
           const ret = {}
           ret.livssyklus = o.lifeCycle
-          ret.antall = o.count
+          ret.antall = parseFloat(o.count.replace(',', '.'))
           return ret
         })
         break
       case 'lux':
-        re.eventType = 'observationLight'
+        re.eventType = 'observationLys'
         re.lysforhold = el.data.leftValue
         re.note = el.data.rightValue
         break
@@ -60,8 +60,8 @@ const wrap = (e) => {
         break
       case 'rh':
         re.eventType = 'observationRelativeHumidity'
-        re.humidityFrom = el.data.fromValue
-        re.humidityTo = el.data.toValue
+        re.from = el.data.fromValue ? parseFloat(el.data.fromValue.replace(',', '.')) : null
+        re.to = el.data.toValue ? parseFloat(el.data.toValue.replace(',', '.')) : null
         re.note = el.data.commentValue
         break
       case 'mold':
@@ -85,26 +85,26 @@ const wrap = (e) => {
         re.note = el.data.rightValue
         break
       case 'vannskaderisiko':
-        re.eventType = 'observationVannskaderisiko'
+        re.eventType = 'observationVannskadeRisiko'
         re.vannskadeRisiko = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'hypoxicAir':
         re.eventType = 'observationInertLuft'
-        re.inertLuftFrom = el.data.fromValue
-        re.inertLuftTo = el.data.toValue
+        re.from = parseFloat(el.data.fromValue.replace(',', '.'))
+        re.to = parseFloat(el.data.toValue.replace(',', '.'))
         re.note = el.data.commentValue
         break
       case 'alcohol':
         re.eventType = 'observationSprit'
         re.note = el.data.commentValue
         re.tilstand = el.data.statusValue
-        re.volum = el.data.volume
+        re.volum = parseFloat(el.data.volume.replace(',', '.'))
         break
       case 'temperature':
         re.eventType = 'observationTemperature'
-        re.temperatureFrom = el.data.fromValue
-        re.temperatureTo = el.data.toValue
+        re.from = parseFloat(el.data.fromValue.replace(',', '.'))
+        re.to = parseFloat(el.data.toValue.replace(',', '.'))
         re.note = el.data.commentValue
         break
       default:

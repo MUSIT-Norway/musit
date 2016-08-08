@@ -29,91 +29,92 @@ const wrapAlcoholState = ((s) => {
 
 const wrap = (be) => {
   const ret = {}
-  ret.user = 'Arne And'
-  ret.date = '01-01.2012'
+  ret.user = be.user
+  ret.date = be.dato
   ret.observations = be['subEvents-parts'].map((o) => {
     const retobs = {}
     retobs.data = {}
-    switch (o.eventType) {
-      case 'observationLight':
+    switch (o.eventType.toLowerCase()) {
+      case 'observationlys':
         retobs.type = 'lux'
         retobs.data.leftValue = o.lysforhold
         retobs.data.rightValue = o.note
-        break
-      case 'observationGass':
+        return retobs
+      case 'observationgass':
         retobs.type = 'gas'
         retobs.data.leftValue = o.gass
         retobs.data.rightValue = o.note
-        break
-      case 'observationMugg':
+        return retobs
+      case 'observationmugg':
         retobs.type = 'mold'
         retobs.data.leftValue = o.mugg
         retobs.data.rightValue = o.note
-        break
-      case 'observationRenhold':
+        return retobs
+      case 'observationrenhold':
         retobs.type = 'cleaning'
         retobs.data.leftValue = o.renhold
         retobs.data.rightValue = o.note
-        break
-      case 'observationSkallSikring':
+        return retobs
+      case 'observationskallsikring':
         retobs.type = 'skallsikring'
         retobs.data.leftValue = o.skallSikring
         retobs.data.rightValue = o.note
-        break
-      case 'observationBrannSikring':
+        return retobs
+      case 'observationbrannsikring':
         retobs.type = 'brannsikring'
         retobs.data.leftValue = o.brannSikring
         retobs.data.rightValue = o.note
-        break
-      case 'observationTyveriSikring':
+        return retobs
+      case 'observationtyverisikring':
         retobs.type = 'tyverisikring'
         retobs.data.leftValue = o.tyveriSikring
         retobs.data.rightValue = o.note
-        break
-      case 'observationVannskadeRisiko':
+        return retobs
+      case 'observationvannskaderisiko':
         retobs.type = 'vannskaderisiko'
         retobs.data.leftValue = o.vannskadeRisiko
         retobs.data.rightValue = o.note
-        break
-      case 'observationInertLuft':
+        return retobs
+      case 'observationinertair':
         retobs.type = 'hypoxicAir'
-        retobs.data.fromValue = parseFloat(o.inertLuftFrom.replace(',', '.'))
-        retobs.data.toValue = o.inertLuftTo
+        retobs.data.fromValue = parseFloat(o.from.replace('.', ','))
+        retobs.data.toValue = parseFloat(o.to.replace('.', ','))
         retobs.data.commentValue = o.note
-        break
-      case 'observationTemperature':
+        return retobs
+      case 'observationtemperature':
         retobs.type = 'temperature'
-        retobs.data.fromValue = parseFloat(o.temperatureFrom.replace(',', '.'))
-        retobs.data.toValue = o.temperatureTo
+        retobs.data.fromValue = parseFloat(o.from.replace('.', ','))
+        retobs.data.toValue = parseFloat(o.to.replace('.', ','))
         retobs.data.commentValue = o.note
-        break
-      case 'observationRelativeHumidity':
+        return retobs
+      case 'observationrelativehumidity':
         retobs.type = 'rh'
-        retobs.data.fromValue = o.humidityFrom
-        retobs.data.toValue = o.humidityTo
+        retobs.data.fromValue = parseFloat(o.from.replace('.', ','))
+        retobs.data.toValue = parseFloat(o.to.replace('.', ','))
         retobs.data.commentValue = o.note
-        break
-      case 'observationSkadedyr':
+        return retobs
+      case 'observationskadedyr':
         retobs.type = 'pest'
         retobs.data.identificationValue = o.identifikasjon
         retobs.data.commentsValue = o.note
         retobs.data.observations = o.livssykluser.map((l) => {
           const obs = {}
           obs.lifeCycle = l.livssyklus
-          obs.count = l.antall
+          obs.count = parseFloat(l.antall.replace('.', ','))
           return obs
         }
         )
-        break
-      case 'observationSprit':
+        return retobs
+      case 'observationsprit':
         retobs.type = 'alcohol'
         retobs.data.commentValue = o.note
         retobs.data.statusValue = wrapAlcoholState(o.tilstand)
-        retobs.data.volumeValue = o.volum
-        break
+        retobs.data.volumeValue = parseFloat(o.volum.replace('.', ','))
+        return retobs
       default:
+        retobs.data.error = 'Nots supported'
+        return retobs
     }
-    return retobs
   })
   return ret
 }

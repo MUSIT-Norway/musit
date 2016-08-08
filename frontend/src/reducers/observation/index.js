@@ -56,6 +56,7 @@ export const addObservation = (data) => {
   const action = 'post'
   const url = '/api/event/v1/event'
   const dataToPost = mapToBackEnd(data)
+  console.log(dataToPost)
   return {
     types: [ADD, ADD_SUCCESS, ADD_FAIL],
     promise: (client) => client[action](url, { data: dataToPost })
