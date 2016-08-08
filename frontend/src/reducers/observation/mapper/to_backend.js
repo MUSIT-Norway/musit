@@ -28,7 +28,8 @@
 
 const wrap = (e) => {
   const r = {}
-  r.subEvents = e.observations.map((el) => {
+  r.eventType = 'observation'
+  r['subEvents-parts'] = e.observations.map((el) => {
     const re = {}
     switch (el.type) {
       case 'pest':

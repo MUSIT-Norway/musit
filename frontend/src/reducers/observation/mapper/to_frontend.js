@@ -31,7 +31,7 @@ const wrap = (be) => {
   const ret = {}
   ret.user = 'Arne And'
   ret.date = '01-01.2012'
-  ret.observations = be.subEvents.map((o) => {
+  ret.observations = be['subEvents-parts'].map((o) => {
     const retobs = {}
     retobs.data = {}
     switch (o.eventType) {
