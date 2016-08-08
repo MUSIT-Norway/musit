@@ -24,28 +24,32 @@ export default class Layout extends React.Component {
     title: React.PropTypes.string.isRequired,
     translate: React.PropTypes.func.isRequired,
     leftMenu: React.PropTypes.object.isRequired,
-    content: React.PropTypes.object.isRequired
+    content: React.PropTypes.object.isRequired,
+    breadcrumb: React.PropTypes.string,
+    toolbar: React.PropTypes.element
   }
 
   render() {
     return (
-      <div>
+      <div style={{ paddingTop: 20 }}>
         <main>
           <Grid>
             <Row>
-              <Row>
-                <Col style={{ textAlign: 'left', paddingLeft: 40 }}>
-                  <PageHeader>
-                    {this.props.title}
-                  </PageHeader>
-                </Col>
-              </Row>
+              <PageHeader style={{ marginTop: 0 }}>{this.props.title}</PageHeader>
+            </Row>
+            <Row style={{ paddingBottom: 10 }}>
+              <Col xs={6} xsOffset={2} style={{ display: 'inline-block', lineHeight: '30px', verticalAlign: 'center' }}>
+                {this.props.breadcrumb}
+              </Col>
+              <Col xs={4}>
+                {this.props.toolbar}
+              </Col>
             </Row>
             <Row>
-              <Col md={2} style={{ paddingTop: 30 }}>
+              <Col xs={2} style={{ borderTop: '#cdcdcd 1px solid', borderRight: '#cdcdcd 1px solid' }}>
                 {this.props.leftMenu}
               </Col>
-              <Col md={8}>
+              <Col xs={10} style={{ borderTop: '#cdcdcd 1px solid' }}>
                 {this.props.content}
               </Col>
             </Row>

@@ -24,10 +24,10 @@ import {
   ObservationStatusPercentageComment,
   ObservationPest
 }
-  from '../../components/observation'
+  from '../../../components/observation'
 import { Panel, Grid, Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import Language from '../../components/language'
+import Language from '../../../components/language'
 
 const mapStateToProps = () => ({
   translate: (key, markdown) => Language.translate(key, markdown)
