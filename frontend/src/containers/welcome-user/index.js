@@ -35,7 +35,7 @@ export default class WelcomeUser extends Component {
     return (
       <div>
         <Grid>
-          <Row styleClass="row-centered">
+          <Row className="row-centered">
             <Col xs={10} md={10}>
               <br />
               <Panel>

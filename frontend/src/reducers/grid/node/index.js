@@ -41,20 +41,7 @@ const initialState = {
       objectCount: 11,
       totalObjectCount: 9,
       nodeCount: 0
-    }/* ,
-    real_1: {
-      id: 1,
-      name: 'String',
-      area: 1,
-      areaTo: 1,
-      isPartOf: 1,
-      height: 1,
-      heightTo: 1,
-      groupRead: 'Option[String]',
-      groupWrite: 'Option[String]',
-      links: 'Option[Seq[Link]]',
-      storageType: 'StorageType'
-    }*/
+    }
   }
 }
 

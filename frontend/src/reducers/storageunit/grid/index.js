@@ -65,6 +65,13 @@ export const loadAll = () => {
   };
 }
 
+export const loadChildren = (id) => {
+  return {
+    types: [LOADALL, LOADALL_SUCCESS, LOADALL_FAIL],
+    promise: (client) => client.get(`/api/storageadmin/v1/storageunit/${id}/children`)
+  };
+}
+
 export const deleteUnit = (id) => {
   return {
     types: [DELETE, DELETE_SUCCESS, DELETE_FAIL],
