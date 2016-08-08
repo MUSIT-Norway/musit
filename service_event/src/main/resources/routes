@@ -6,3 +6,10 @@
 
 GET     /v1/event/:id                             no.uio.musit.microservice.event.resource.EventResource.getEvent(id:Long)
 POST    /v1/event                                 no.uio.musit.microservice.event.resource.EventResource.postEvent
+GET     /v1/events       no.uio.musit.microservice.event.resource.EventResource.getEvents(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
+
+# GET     /v1/events/:eventType/:relation/:id       no.uio.musit.microservice.event.resource.EventResource.getEventsFor(eventType: String, relation: String, id:Long)
+
+
+
+

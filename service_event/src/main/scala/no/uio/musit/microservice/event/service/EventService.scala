@@ -25,6 +25,9 @@ import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object EventService {
   def eventNotFoundError(id: Long): MusitError =
@@ -38,4 +41,22 @@ object EventService {
 
   def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] =
     EventDao.getEvent(id, recursive)
+
+  private def getEventsFor(eventTypeId: Int, relation: String, uri: String): MusitFuture[Seq[Event]] = {
+    ???
+  }
+
+  def getEventsFor(eventType: String, relation: String, id: Long): MusitFuture[Seq[Event]] = {
+    val eventTypeIdAndObjectUri: MusitResult[(Int, String)] =
+      for {
+        eventType <- EventType.getByNameAsMusitResult(eventType)
+        objectUri <- EventRelations.getObjectUriViaRelation(id, relation).toMusitResult(MusitError(message = s"Unable to get objectUri via relation: $relation"))
+      } yield (eventType.id, objectUri)
+
+    val blabla = eventTypeIdAndObjectUri.toMusitFuture.musitFutureFlatMap {
+      case (eventTypeId, objectUri) =>
+        getEventsFor(eventTypeId, relation, objectUri)
+    }
+    ???
+  }
 }

@@ -24,6 +24,11 @@ import no.uio.musit.microservice.event.service.{ JsonEventHelpers, EventService 
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
 import play.api.mvc.{ Action, BodyParsers, Controller }
+import no.uio.musit.microservices.common.domain.MusitSearch
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import no.uio.musit.microservices.common.domain.MusitError
 
 class EventResource extends Controller {
 
@@ -36,5 +41,34 @@ class EventResource extends Controller {
 
   def getEvent(id: Long) = Action.async { request =>
     ResourceHelper.getRoot(EventService.getEvent(_: Long, true), id, eventToJson)
+  }
+
+  def getAsMusitResult(search: MusitSearch, keyname: String) = {
+    val keyvalue = search.searchMap.get(keyname)
+    keyvalue.toMusitResult(MusitError(message = s"Missing required key/fieldname: $keyname in search"))
+  }
+
+  def getEvents(optSearch: Option[MusitSearch]) = Action.async { request =>
+    val tempResult: MusitResult[(String, String, Long)] = optSearch match {
+      case Some(search) => {
+        for {
+          eventType <- getAsMusitResult(search, "eventType")
+          relation <- getAsMusitResult(search, "rel")
+          id <- getAsMusitResult(search, "id")
+          idAsLong <- MusitResult.create(id.toLong)
+        } yield (eventType, relation, idAsLong)
+      }
+      case None => Left(MusitError(message = "Missing search parameters object"))
+    }
+
+    //EventService.getEventsFor(eventType, relation, id)
+    ???
+    //ResourceHelper.getRoot(EventService.getEventsFor(_: Long, true), id, eventToJson)
+  }
+
+  def getEventsFor(eventType: String, relation: String, id: Long) = Action.async { request =>
+    //EventService.getEventsFor(eventType, relation, id)
+    ???
+    //ResourceHelper.getRoot(EventService.getEventsFor(_: Long, true), id, eventToJson)
   }
 }

@@ -18,16 +18,14 @@
  */
 package no.uio.musit.microservices.common.domain
 
-case class MusitSearch(searchMap: Map[String, Option[String]], searchStrings: List[String])
+case class MusitSearch(searchMap: Map[String, String], searchStrings: List[String])
 
 object MusitSearch {
 
-  def parseParams(p: List[String]): Map[String, Option[String]] =
-    p.foldLeft(Map[String, Option[String]]())((acc, next) => next.split("=") match {
+  def parseParams(p: List[String]): Map[String, String] =
+    p.foldLeft(Map[String, String]())((acc, next) => next.split("=") match {
       case Array(key, value) if value.nonEmpty =>
-        acc + (key -> Some(value))
-      case other =>
-        acc + (other.head -> None)
+        acc + (key -> value)
     })
 
   def parseSearch(search: String): MusitSearch =

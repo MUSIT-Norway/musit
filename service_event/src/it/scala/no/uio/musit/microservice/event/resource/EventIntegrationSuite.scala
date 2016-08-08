@@ -364,7 +364,14 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     "links": [{
     "rel": "actor",
     "href": "actor/12"
-  }],
+  },
+
+        {
+            "rel": "storageunit-location",
+            "href": "storageunit/532"
+          }
+
+  ],
     "subEvents-parts": [{
     "eventType": "controlInertluft",
     "ok": true
@@ -790,5 +797,11 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val myEvent = validateEvent[ControlSprit](response.json)
     myEvent.ok mustBe true
   }
+
+
+  "getObjectUriViaRelation test" in {
+    EventRelations.getObjectUriViaRelation(532, "storageunit-location") mustBe Some("/storageunit/532")
+  }
+
 
 }

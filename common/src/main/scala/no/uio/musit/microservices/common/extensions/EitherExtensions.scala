@@ -24,6 +24,7 @@ import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.Application
+import play.api.http.Status
 
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration._
@@ -31,6 +32,9 @@ import scala.reflect.ClassTag
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.functional.Functor
 import play.api.mvc.Result
+
+import scala.util.control.NonFatal
+import scala.util.{ Failure, Success, Try }
 
 // TODO: Move to another file (create MusitResult.scala), this is really MusitResult methods, not general Either methods. 
 object EitherExtensions {
@@ -56,6 +60,11 @@ object EitherExtensions {
   object MusitResult {
     def apply[T](t: T): MusitResult[T] = Right(t)
 
+    def create[T](r: => T, status: Int = Status.BAD_REQUEST): MusitResult[T] = {
+      try Right(r) catch {
+        case NonFatal(e) => Left(MusitError(status, e.getMessage))
+      }
+    }
   }
 
   // TODO: Really concatenate errors, now we take the first error!

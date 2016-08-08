@@ -64,4 +64,23 @@ object EventRelations {
 
   def getByNameOrFail(name: String) = getByName(name).getOrFail(s"Unable to find relation with name : $name")
   def getMusitResultByName(name: String) = getByName(name).toMusitResult(ErrorHelper.badRequest(s"Unable to find relation with name : $name"))
+
+  /**
+   * Gets whatever is in front of "-". We assume the relation has two parts, 1) the type of objects at the "end" of the relation, 2) what the relation is.
+   * Gets "storageunit" from "storageunit-location", "blablabla" from "blablabla-someBlablablaRelation"
+   */
+
+  private def getObjectTypeFromRelation(relation: String): Option[String] = {
+    val index = relation.indexOf('-')
+    if (index == -1)
+      None
+    else
+      Some(relation.substring(0, index))
+  }
+
+  def mkUri(objectTypeName: String, id: Long) = s"/$objectTypeName/$id"
+
+  def getObjectUriViaRelation(id: Long, relation: String): Option[String] = {
+    getObjectTypeFromRelation(relation).map(objectTypeName => mkUri(objectTypeName, id))
+  }
 }

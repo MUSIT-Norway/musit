@@ -3,6 +3,7 @@ package no.uio.musit.microservice.event.domain
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import play.api.libs.json.{ Json, Writes }
+import no.uio.musit.microservices.common.domain.MusitError
 
 object EventType {
 
@@ -46,7 +47,10 @@ object EventType {
 
   def getByName(name: String) = eventTypeByName.get(name.toLowerCase)
 
-  def getByNameOrFail(name: String) = getByName(name).getOrFail(s"Unable to find event type : $name")
+  /** If not found, a 400 error (with text "Unable to find event type: name") gets returned */
+  def getByNameAsMusitResult(name: String) = getByName(name).toMusitResult(MusitError(message = s"Unable to find event type : $name"))
+
+  //#OLD def getByNameOrFail(name: String) = getByName(name).getOrFail(s"Unable to find event type : $name")
 
   def getById(id: Int) = eventTypeById.get(id).get
 
