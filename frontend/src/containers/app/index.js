@@ -7,7 +7,8 @@ import { Navbar, Nav, NavItem, Badge } from 'react-bootstrap'
 import { routerActions } from 'react-router-redux'
 import { I18n } from 'react-i18nify'
 import FontAwesome from 'react-fontawesome'
-import { clearUser } from '../../reducers/auth';
+import { connectUser, clearUser } from '../../reducers/auth';
+import LoginButton from '../../components/login-button'
 
 const mapStateToProps = (state) => {
   I18n.loadTranslations(state.language.data)
@@ -21,7 +22,8 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    clearUser: () => dispatch(clearUser())
+    clearUser: () => dispatch(clearUser()),
+    setUser: (user) => dispatch(connectUser(user))
   }
 }
 
@@ -33,7 +35,8 @@ class App extends Component {
     pushState: PropTypes.func.isRequired,
     store: PropTypes.object,
     pickListCount: PropTypes.number.isRequired,
-    clearUser: PropTypes.func.isRequired
+    clearUser: PropTypes.func.isRequired,
+    setUser: PropTypes.func.isRequired
   }
 
   static contextTypes = {
@@ -54,8 +57,9 @@ class App extends Component {
     this.props.clearUser()
   }
 
-  handleFakeLogin = (event) => {
+  handleLogin = (event) => {
     event.preventDefault()
+    new LoginButton().doLogin(this.props.setUser)
   }
 
   render() {
@@ -87,6 +91,11 @@ class App extends Component {
               {user &&
                 <LinkContainer to="/picklist">
                   <NavItem><Badge><FontAwesome name="shopping-cart" /> {pickListCount}</Badge></NavItem>
+                </LinkContainer>
+              }
+              {!user &&
+                <LinkContainer to="/musit/login">
+                  <NavItem className="login-link" onClick={this.handleLogin}>Login</NavItem>
                 </LinkContainer>
               }
               {user &&
