@@ -23,21 +23,36 @@ import { Grid, Row, Col } from 'react-bootstrap'
 import { NodeGrid } from '../../../components/grid'
 import Language from '../../../components/language'
 import { connect } from 'react-redux'
+import { loadNode } from '../../../reducers/grid/node'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
   nodeGridData: state.nodeGrid.data
 })
 
-@connect(mapStateToProps)
+const mapDispatchToProps = (dispatch) => ({
+  loadStorageNode: (id) => {
+    dispatch(loadNode(id))
+  }
+})
+
+@connect(mapStateToProps, mapDispatchToProps)
 export default class NodeGridShow extends React.Component {
   static propTypes = {
+    params: React.PropTypes.object,
     translate: React.PropTypes.func.isRequired,
-    nodeGridData: React.PropTypes.arrayOf(React.PropTypes.object)
+    nodeGridData: React.PropTypes.arrayOf(React.PropTypes.object),
+    loadStorageNode: React.PropTypes.func.isRequired
+  }
+
+  componentWillMount() {
+    if (this.props.params.id) {
+      this.props.loadStorageNode(this.props.params.id)
+    }
   }
 
   render() {
-    const { translate } = this.props
+    const { translate, nodeGridData, loadStorageNode } = this.props
     return (
       <div>
         <main>
@@ -52,7 +67,8 @@ export default class NodeGridShow extends React.Component {
                 <NodeGrid
                   id="1"
                   translate={translate}
-                  tableData={Object.keys(this.props.nodeGridData).map(x => this.props.nodeGridData[x])}
+                  tableData={Object.keys(nodeGridData).map(x => nodeGridData[x])}
+                  loadNode={loadStorageNode}
                 />
               </Col>
             </Row>
