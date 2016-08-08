@@ -18,22 +18,24 @@
  */
 
 import React from 'react'
-
-import { Panel, Grid, Row, Col, FormGroup, Button, ControlLabel, SplitButton, MenuItem } from 'react-bootstrap'
+import { PageHeader, Panel, Grid, Row, Col, Button, ControlLabel, SplitButton, MenuItem } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 import { connect } from 'react-redux'
 import Language from '../../components/language'
 import DatePicker from 'react-bootstrap-date-picker'
 import Autosuggest from 'react-autosuggest'
+import { suggestPerson, clearSuggest } from '../../reducers/suggest'
 import { observationTypeDefinitions, defineCommentType,
   defineFromToType, definePestType, defineStatusType } from './observationTypeDefinitions'
 import { addObservation, loadObservation } from '../../reducers/observation'
 import { actions } from './actions'
+import { MusitField } from '../../components/formfields'
 
 // TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
-  observations: state.observation.data.observations
+  observations: state.observation.data.observations,
+  suggest: state.suggest
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -42,6 +44,14 @@ const mapDispatchToProps = (dispatch) => ({
   },
   onSaveObservation: (data) => {
     dispatch(addObservation(data))
+  },
+  onDoneBySuggestionsUpdateRequested: ({ value, reason }) => {
+    // Should only autosuggest on typing if you have more then 2 characters
+    if (reason && (reason === 'type') && value && value.length >= 2) {
+      dispatch(suggestPerson('doneByField', value))
+    } else {
+      dispatch(clearSuggest('doneByField'))
+    }
   }
 })
 
@@ -52,7 +62,9 @@ export default class ObservationView extends React.Component {
     translate: React.PropTypes.func.isRequired,
     onSaveObservation: React.PropTypes.func.isRequired,
     observations: React.PropTypes.arrayOf(React.PropTypes.object),
-    params: React.PropTypes.object
+    params: React.PropTypes.object,
+    onDoneBySuggestionsUpdateRequested: React.PropTypes.func.isRequired,
+    suggest: React.PropTypes.array.isRequired,
   }
 
   constructor(props) {
@@ -78,7 +90,8 @@ export default class ObservationView extends React.Component {
         label('renhold.comment'),
         label('renhold.comment'),
         this.actions.changeLuxLeft,
-        this.actions.changeLuxRight
+        this.actions.changeLuxRight,
+        this.displayExisting
       ),
       gas: defineCommentType(
         'gas', 'Gass',
@@ -87,7 +100,8 @@ export default class ObservationView extends React.Component {
         label('renhold.comment'),
         label('renhold.comment'),
         this.actions.changeGasLeft,
-        this.actions.changeGasRight
+        this.actions.changeGasRight,
+        this.displayExisting
       ),
       cleaning: defineCommentType(
         'cleaning', 'Renhold',
@@ -95,7 +109,8 @@ export default class ObservationView extends React.Component {
         label('renhold.tooltip'),
         label('renhold.comment'), 'Right tooltip',
         this.actions.changeCleaningLeft,
-        this.actions.changeCleaningRight
+        this.actions.changeCleaningRight,
+        this.displayExisting
       ),
       mold: defineCommentType(
         'mold', 'Mugg',
@@ -104,7 +119,8 @@ export default class ObservationView extends React.Component {
         label('renhold.comment'),
         label('renhold.comment'),
         this.actions.changeMoldLeft,
-        this.actions.changeMoldRight
+        this.actions.changeMoldRight,
+        this.displayExisting
       ),
       skallsikring: defineCommentType(
         'skallsikring',
@@ -113,7 +129,8 @@ export default class ObservationView extends React.Component {
         label('skallsikring.comment'),
         label('skallsikring.comment'),
         this.actions.changeSkallSikringLeft,
-        this.actions.changeSkallSikringRight
+        this.actions.changeSkallSikringRight,
+        this.displayExisting
       ),
       tyverisikring: defineCommentType(
         'tyverisikring', 'Tyverisikring',
@@ -122,7 +139,8 @@ export default class ObservationView extends React.Component {
         label('renhold.comment'),
         label('renhold.comment'),
         this.actions.changeTyveriSikringLeft,
-        this.actions.changeTyveriSikringRight
+        this.actions.changeTyveriSikringRight,
+        this.displayExisting
       ),
       brannsikring: defineCommentType(
         'brannsikring', 'Brannsikring',
@@ -131,7 +149,8 @@ export default class ObservationView extends React.Component {
         label('brannsikring.comment'),
         label('brannsikring.comment'),
         this.actions.changeBrannSikringLeft,
-        this.actions.changeBrannSikringRight
+        this.actions.changeBrannSikringRight,
+        this.displayExisting
       ),
       vannskaderisiko: defineCommentType(
         'vannskaderisiko', 'Vannskaderisiko',
@@ -140,46 +159,50 @@ export default class ObservationView extends React.Component {
         label('vannskaderisiko.comment'),
         label('vannskaderisiko.comment'),
         this.actions.changeVannskadeRisikoLeft,
-        this.actions.changeVannskadeRisikoRight
+        this.actions.changeVannskadeRisikoRight,
+        this.displayExisting
       ),
       temperature: defineFromToType(
         'temperature', 'Temperatur',
         label('temperature.labelText'),
         label('temperature.tooltip'),
         label('temperatureTolerance.labelText'),
-        label('temperatureTolerance.labelText'),
+        label('temperatureTolerance.tooltip'),
         label('temperature.comment'),
         label('temperature.comment'),
         this.actions.changeTempFrom,
         this.actions.changeTempTo,
         this.actions.changeTempComment,
-        '', ''
+        '', '',
+        this.displayExisting
       ),
       rh: defineFromToType(
         'rh', 'Relativ luftfuktighet',
         label('relativeHumidity.labelText'),
         label('relativeHumidity.tooltip'),
         label('relativeHumidityTolerance.labelText'),
-        label('relativeHumidityTolerance.labelText'),
+        label('relativeHumidityTolerance.tooltip'),
         label('relativeHumidity.comment'),
         label('relativeHumidity.comment'),
         this.actions.changeRHFrom,
         this.actions.changeRHTo,
         this.actions.changeRHComment,
-        '', ''
+        '', '',
+        this.displayExisting
       ),
       hypoxicAir: defineFromToType(
         'hypoxicAir', 'Inert luft',
         label('inertAir.labelText'),
         label('inertAir.tooltip'),
         label('inertAirTolerance.labelText'),
-        label('inertAirTolerance.labelText'),
+        label('inertAirTolerance.tooltip'),
         label('inertAir.comment'),
         label('inertAir.comment'),
         this.actions.changeHypoxicAirFrom,
         this.actions.changeHypoxicAirTo,
         this.actions.changeHypoxicAirComment,
-        'Fra %', 'Til %'
+        'Fra %', 'Til %',
+        this.displayExisting
       ),
       alcohol: defineStatusType(
         'alcohol',
@@ -197,7 +220,8 @@ export default class ObservationView extends React.Component {
         label('alcohol.comment'),
         this.actions.changeAlchoholStatus,
         this.actions.changeAlchoholVolume,
-        this.actions.changeAlchoholComment
+        this.actions.changeAlchoholComment,
+        this.displayExisting
       ),
       pest: definePestType(
         'pest', 'Skadedyr',
@@ -205,7 +229,8 @@ export default class ObservationView extends React.Component {
         this.actions.changeLifeCycle,
         this.actions.changeCount,
         this.actions.changePestIdentification,
-        this.actions.changePestComment
+        this.actions.changePestComment,
+        this.displayExisting
       )
     }
 
@@ -217,6 +242,7 @@ export default class ObservationView extends React.Component {
     this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
     this.onChangeDate = this.onChangeDate.bind(this)
     this.selectType = this.selectType.bind(this)
+    this.onCancelObservation = this.onCancelObservation.bind(this)
   }
 
   componentWillMount() {
@@ -233,12 +259,23 @@ export default class ObservationView extends React.Component {
     this.setState({ ...this.state, date: v })
   }
 
+  onCancelObservation() {
+    this.clearState()
+    if (this.props.params.id) {
+      this.props.loadObservation(this.props.params.id)
+    }
+  }
+
   getDoneBySuggestionValue(suggestion) {
     return `${suggestion.fn}`
   }
 
   addNewObservation() {
     this.setState({ ...this.state, observations: [...this.state.observations, { type: '' }] })
+  }
+
+  clearState() {
+    this.setState({ ...this.state, observations: [], date: '', doneBy: '' })
   }
 
   selectType(index, observationType) {
@@ -257,7 +294,7 @@ export default class ObservationView extends React.Component {
   }
 
   updateDoneBy(newValue) {
-    this.setState({ ...this.state, doneby: newValue })
+    this.setState({ ...this.state, doneBy: newValue })
   }
 
   renderDoneBySuggestion(suggestion) {
@@ -268,24 +305,34 @@ export default class ObservationView extends React.Component {
   }
 
   render() {
-    const { translate, onSaveObservation } = this.props
+    const {
+      translate,
+      onSaveObservation,
+      onDoneBySuggestionsUpdateRequested,
+      suggest
+    } = this.props
     const {
       addNewObservation,
       observationTypes,
       getDoneBySuggestionValue,
       renderDoneBySuggestion,
-      onDoneByUpdateRequested,
-      selectType
+      selectType,
+      onChangeDoneBy,
+      onCancelObservation
     } = this
 
-    const { observations } = this.displayExisting ? this.props : this.state
+    const { observations, date, doneBy } = this.displayExisting ? this.props : this.state
+
+    const { doneByField } = suggest
+
+    const suggestions = doneByField && doneByField.data ? doneByField.data : [];
 
     const doneByProps = {
       id: 'doneByField',
       placeholder: 'Done by',
-      value: 'value to be changed',
+      value: doneBy,
       type: 'search',
-      onChange: this.onChangeDoneBy
+      onChange: onChangeDoneBy
     }
 
     const renderActiveTypes = (items) => {
@@ -314,12 +361,13 @@ export default class ObservationView extends React.Component {
         ))
         return (
           <Row key={index}>
-            <h1 />
+            <hr />
             <Col sm={10} smOffset={1}>
               <SplitButton
                 id={`new_${index}`}
                 title={observation.type ? observationTypes[observation.type].label : null || 'Vennligst velg...'}
                 pullRight
+                disabled={this.displayExisting}
                 onSelect={(observationType) => selectType(index, observationType)}
               >
                 {menuItems}
@@ -338,45 +386,89 @@ export default class ObservationView extends React.Component {
           <Panel>
             <Grid>
               <Row>
-                <Col sm={10} smOffset={1}>
-                  <FormGroup>
-                    <Col xs={12} sm={6}>
-                      <ControlLabel>{translate('musit.texts.date')}</ControlLabel>
-                      <DatePicker
-                        value={this.state.date}
-                        onChange={this.onChangeDate}
-                      />
-                    </Col>
-                    <Col xs={12} sm={6}>
-                      <ControlLabel>{translate('musit.texts.doneBy')}</ControlLabel>
-                      <Autosuggest
-                        suggestions={[{ fn: 'test1' }, { fn: 'test2' }]}
-                        onSuggestionsUpdateRequested={onDoneByUpdateRequested}
-                        getSuggestionValue={getDoneBySuggestionValue}
-                        renderSuggestion={renderDoneBySuggestion}
-                        inputProps={doneByProps}
-                        shouldRenderSuggestions={(v) => v !== 'undefined'}
-                      />
-                    </Col>
-                  </FormGroup>
+                <Col style={{ textAlign: 'center' }}>
+                  <PageHeader>
+                    {this.displayExisting ? translate('musit.observation.viewObservationHeader') :
+                    translate('musit.observation.newObservationHeader')}
+                  </PageHeader>
                 </Col>
               </Row>
-              <hr />
+              <Row>
+                <Col xs={12} sm={5} smOffset={1}>
+                  <ControlLabel>{translate('musit.observation.date')}</ControlLabel>
+                  <DatePicker
+                    value={date}
+                    onChange={this.onChangeDate}
+                    disabled={this.displayExisting}
+                  />
+                </Col>
+                <Col xs={12} sm={5}>
+                  <ControlLabel>{translate('musit.observation.doneBy')}</ControlLabel>
+                  <Autosuggest
+                    suggestions={suggestions}
+                    disabled={this.displayExisting}
+                    onSuggestionsUpdateRequested={onDoneBySuggestionsUpdateRequested}
+                    getSuggestionValue={getDoneBySuggestionValue}
+                    renderSuggestion={renderDoneBySuggestion}
+                    inputProps={doneByProps}
+                    shouldRenderSuggestions={(v) => v !== 'undefined'}
+                  />
+                </Col>
+              </Row>
+              {this.displayExisting ?
+                <Row>
+                  <Col sm={5} smOffset={1}>
+                    <ControlLabel>{translate('musit.texts.dateRegistered')}</ControlLabel>
+                    <br />
+                    <DatePicker
+                      dateFormat="DD.MM.YYYY"
+                      value={date}
+                      disabled={this.displayExisting}
+                    />
+                  </Col>
+                  <Col sm={5} >
+                    <ControlLabel>{translate('musit.texts.registeredBy')}</ControlLabel>
+                    <br />
+                    <MusitField
+                      id="registeredBy"
+                      value="Change it"
+                      validate="text"
+                      disabled={this.displayExisting}
+                    />
+                  </Col>
+                </Row>
+              : ''}
+              <h1 />
               {renderActiveTypes(observations)}
+              {this.displayExisting ? '' :
+                <Row>
+                  <h1 />
+                  <hr />
+                  <Col sm={5} smOffset={1}>
+                    <Button
+                      onClick={() => addNewObservation()}
+                      disabled={this.displayExisting}
+                    >
+                      <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
+                    </Button>
+                  </Col>
+                </Row>
+              }
               <Row>
                 <h1 />
-                <Col sm={5} smOffset={1}>
-                  <Button onClick={() => addNewObservation()}>
-                    <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
-                  </Button>
-                </Col>
-              </Row>
-              <Row>
+                <h1 />
+                <hr />
                 <Col sm={10} smOffset={1} className="text-center">
-                  <Button onClick={() => onSaveObservation(this.state)}>
+                  <Button
+                    onClick={() => onSaveObservation(this.state)}
+                    disabled={this.displayExisting}
+                  >
                     {translate('musit.texts.save')}
                   </Button>
-                  <Button onClick={() => addNewObservation()}>
+                  <Button
+                    onClick={() => onCancelObservation()}
+                    disabled={this.displayExisting}
+                  >
                     {translate('musit.texts.cancel')}
                   </Button>
                 </Col>

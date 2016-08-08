@@ -20,7 +20,7 @@
 import React, { Component, PropTypes } from 'react'
 import { ObservationDoubleTextAreaComponent } from './index'
 import { MusitField, MusitDropDownField } from '../../components/formfields'
-import { ControlLabel, FormGroup, Col, Button } from 'react-bootstrap'
+import { ControlLabel, Row, Col, Button } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
 
 export default class ObservationPest extends Component {
@@ -35,7 +35,8 @@ export default class ObservationPest extends Component {
     observations: PropTypes.array.isRequired,
     identificationValue: PropTypes.string.isRequired,
     commentsValue: PropTypes.string.isRequired,
-    onAddPest: PropTypes.func.isRequired
+    onAddPest: PropTypes.func.isRequired,
+    disabled: PropTypes.bool
   }
 
   constructor(props) {
@@ -45,7 +46,8 @@ export default class ObservationPest extends Component {
       lifeCycleItems,
       onChangeIdentification,
       onChangeComments,
-      translate
+      translate,
+      disabled
     } = props
     this.fields = {
       lifeCycle: {
@@ -53,13 +55,15 @@ export default class ObservationPest extends Component {
         tooltip: translate('musit.observation.pest.lifeCycleTooltip'),
         validate: 'text',
         items: lifeCycleItems,
-        translate: translate
+        translate: translate,
+        disabled: disabled
       },
       count: {
         placeHolder: translate('musit.observation.pest.countPlaceHolder'),
         tooltip: translate('musit.observation.pest.countTooltip'),
         validate: 'number',
-        precision: 3
+        precision: 3,
+        disabled: disabled
       },
       comments: {
         id: `${id}_comments`,
@@ -69,7 +73,8 @@ export default class ObservationPest extends Component {
         onChangeLeft: onChangeIdentification,
         rightLabel: translate('musit.observation.pest.commentsLabel'),
         rightTooltip: translate('musit.observation.pest.commentsTooltip'),
-        onChangeRight: onChangeComments
+        onChangeRight: onChangeComments,
+        disabled: disabled
       }
     }
   }
@@ -84,13 +89,14 @@ export default class ObservationPest extends Component {
       onAddPest,
       translate,
       onChangeLifeCycle,
-      onChangeCount
+      onChangeCount,
+      disabled
     } = this.props
 
     const renderSelectColumn = (items) => {
       const observationBlock = items.map((observation, index) => {
         return (
-          <span>
+          <span key={index} style={{ height: 50 }}>
             <ControlLabel>{translate('musit.observation.pest.lifeCycleLabel')}</ControlLabel>
             <MusitDropDownField
               {...lifeCycle}
@@ -111,13 +117,14 @@ export default class ObservationPest extends Component {
     const renderCountColumn = (items) => {
       const observationBlock = items.map((observation, index) => {
         return (
-          <span>
+          <span key={index}>
             <ControlLabel>{translate('musit.observation.pest.countLabel')}</ControlLabel>
             <MusitField
               {...count}
               id={`${id}_count_${index}`}
               value={observation.count}
               onChange={(countValue) => onChangeCount(index, countValue)}
+              style={{ height: 36 }}
             />
           </span>
         )
@@ -133,18 +140,22 @@ export default class ObservationPest extends Component {
       <div>
         <ObservationDoubleTextAreaComponent {...comments} leftValue={identificationValue} rightValue={commentsValue} />
         <h1 />
-        <FormGroup>
+        <Row>
           {renderSelectColumn(observations)}
           {renderCountColumn(observations)}
           <Col xs={12} sm={6} md={6}>
             <span>
               <ControlLabel>{'\u00A0'}</ControlLabel><br />
-              <Button onClick={() => onAddPest()}>
-                <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
-              </Button>
+              {disabled ? '' :
+                <Button
+                  onClick={() => onAddPest()}
+                  disabled={Boolean(disabled)}
+                >
+                  <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
+                </Button>}
             </span>
           </Col>
-        </FormGroup>
+        </Row>
       </div>
     )
   }

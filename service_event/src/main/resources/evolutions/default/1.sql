@@ -38,6 +38,7 @@ CREATE TABLE MUSARK_EVENT.EVENT (
   NOTE VARCHAR2(4000),
   VALUE_LONG long, -- Custom value, events can choose to store some event-specific value here.
   VALUE_String clob, -- Custom value, events can choose to store some event-specific value here.
+  VALUE_FLOAT float, -- Custom value, events can choose to store some event-specific value here.
   PART_OF long,
   PRIMARY KEY (ID),
   FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID),
@@ -86,7 +87,6 @@ CREATE TABLE MUSARK_EVENT.OBSERVATION_SKADEDYR_LIVSSYKLUS
    FOREIGN KEY (event_id) REFERENCES MUSARK_EVENT.EVENT(ID)
 );
 
-
 CREATE TABLE URI_LINKS (
       ID bigint(20) NOT NULL AUTO_INCREMENT,
       LOCAL_TABLE_ID bigint(20) NOT NULL,
@@ -100,16 +100,28 @@ insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,'Move');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2,'control');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3,'observation');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4,'controltemperature');
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'controlair');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5,'controlinertluft');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6,'envrequirement');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7,'observationtemperature');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (8,'observationrelativehumidity');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (9,'observationinertair');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (10,'observationlys');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (11,'observationskadedyr');
-
-
-
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (12,'observationrenhold');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (13,'observationgass');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (14,'observationmugg');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (15,'observationtyverisikring');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (16,'observationbrannsikring');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (17,'observationskallsikring');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (18,'observationvannskaderisiko');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (19,'observationsprit');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (20,'controlrelativluftfuktighet');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (21,'ControlLysforhold');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (22,'ControlRenhold');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (23,'ControlGass');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (24,'ControlMugg');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (25,'ControlSkadedyr');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (26,'ControlSprit');
 
 
 # --- !Downs

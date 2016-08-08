@@ -23,12 +23,10 @@ package no.uio.musit.microservice.event.dao
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
 import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
 import no.uio.musit.microservice.event.service._
-import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
@@ -86,6 +84,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
 
     if (!isPartsRelation && partialEventLink.isDefined) {
+      //The partOf-relation is stored in the main event table, so this is only used for the other relations (stored in the EVENT_RELATION_EVENT table).
       action = (for {
         newEventId <- action
         numInserted <- EventLinkDao.insertEventLinkAction(partialEventLink.get.toFullLink(newEventId))
@@ -115,27 +114,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  private def getSubEventDtos(parentId: Long): Future[Seq[BaseEventDto]] = {
-    val action = EventBaseTable.filter(event => event.partOf === parentId).result
-    db.run(action)
-  }
-
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
     val id = baseEventDto.id.getOrFail("Internal error, id missing")
     val baseProps = baseEventDto.copy(relatedSubEvents = relatedSubEvents)
     baseEventDto.eventType.eventImplementation match {
       case singleTableEventType: SingleTableEventType => MusitFuture.successful(singleTableEventType.createEventInMemory(baseProps))
       case multipleTablesEventType: MultipleTablesEventType => multipleTablesEventType.getEventFromDatabase(id, baseProps)
-      /*#OLD
-
-              case singleTableSingleDto: SingleTableNotUsingCustomFields => MusitFuture.successful(singleTableSingleDto.createEventInMemory(baseProps))
-
-      case singleTableMultipleDtos: SingleTableUsingCustomFields =>
-        val customDto = singleTableMultipleDtos.baseTableToCustomDto(baseEventDto)
-        MusitFuture.successful(singleTableMultipleDtos.createEventInMemory(baseProps, customDto))
-      case multipleTablesMultipleDtos: MultipleTablesNotUsingCustomFields => multipleTablesMultipleDtos.getEventFromDatabase(id, baseProps)
-
-         */
     }
   }
 
@@ -161,7 +145,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
   }
 
-  /* Gets the subevents from of the event with id=parentId from the database. Embedded in the proper relations (RelatedEvents-objects)*/
+  /** Gets the subevents from the event with id=parentId from the database. Embedded in the proper relations (RelatedEvents-objects) */
 
   def getSubEvents(parentId: Long, recursive: Boolean): MusitFuture[Seq[RelatedEvents]] = {
 
@@ -170,6 +154,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         subEventDtos: Seq[BaseEventDto] =>
           MusitFuture.traverse(subEventDtos) { subEventDto: BaseEventDto => getEvent(subEventDto, recursive) }
       }
+    }
+
+    /** Gets the base event data for the children (parts) of the event with id = parentId */
+    def getSubEventDtos(parentId: Long): Future[Seq[BaseEventDto]] = {
+      val action = EventBaseTable.filter(event => event.partOf === parentId).result
+      db.run(action)
     }
 
     //The parts/partOf relation
@@ -228,7 +218,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   )
 
   class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id.?, eventTypeID, eventNote, partOf, valueLong, valueString) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, eventTypeID, eventNote, partOf, valueLong, valueString, valueDouble) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 
@@ -239,8 +229,15 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val partOf = column[Option[Long]]("PART_OF")
     val valueLong = column[Option[Long]]("VALUE_LONG")
     val valueString = column[Option[String]]("VALUE_STRING")
+    val valueDouble = column[Option[Double]]("VALUE_FLOAT")
 
-    def create = (id: Option[Long], eventType: EventType, note: Option[String], partOf: Option[Long], valueLong: Option[Long], valueString: Option[String]) =>
+    def create = (id: Option[Long],
+      eventType: EventType,
+      note: Option[String],
+      partOf: Option[Long],
+      valueLong: Option[Long],
+      valueString: Option[String],
+      valueDouble: Option[Double]) =>
       BaseEventDto(
         id,
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
@@ -249,10 +246,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         Seq.empty,
         partOf,
         valueLong,
-        valueString
+        valueString,
+        valueDouble
       )
 
-    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.partOf, event.valueLong, event.valueString)
+    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.partOf, event.valueLong,
+      event.valueString, event.valueDouble)
   }
 
 }
