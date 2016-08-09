@@ -42,7 +42,7 @@ class GeoLocationServiceSpec extends PlaySpec with ScalaFutures {
 
         val response = service.searchGeoNorway("paal bergs vei 56, RYKKINN")
         whenReady(response, timeout) { geoAddresses =>
-          assert(geoAddresses.nonEmpty)
+          geoAddresses must not be empty
         }
       }
     }

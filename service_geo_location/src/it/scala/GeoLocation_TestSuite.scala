@@ -16,6 +16,7 @@ class GeoLocation_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
   // Extra long timeout since the integration call calls an external service
   val timeout = Timeout(10 seconds)
+  override lazy val port: Int = 19004
 
   "GeoLocation integration" must {
     "search for address" in {
