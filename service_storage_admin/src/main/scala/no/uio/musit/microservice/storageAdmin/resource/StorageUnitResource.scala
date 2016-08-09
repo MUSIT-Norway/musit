@@ -33,6 +33,7 @@ import scala.concurrent.Future
 class StorageUnitResource extends Controller {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    println(request.body)
     val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
     ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, (triple: Storage) => Json.toJson(triple))
   }
@@ -58,7 +59,7 @@ class StorageUnitResource extends Controller {
   def listAll = Action.async {
     StorageUnitService.all.flatMap(list => {
       Future.sequence(list.map(unit => {
-        unit.`type` match {
+        unit.storageType match {
           case StorageType.StorageUnit =>
             Future.successful(Storage.fromDTO(unit))
           case StorageType.Building =>

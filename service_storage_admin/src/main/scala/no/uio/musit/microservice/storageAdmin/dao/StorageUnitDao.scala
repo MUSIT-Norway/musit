@@ -47,6 +47,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def all(): Future[Seq[StorageUnitDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
 
+  def setPartOf(id: Long, partOf: Long) =
+    db.run(StorageUnitTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
+
   def insert(storageUnit: StorageUnitDTO): Future[StorageUnitDTO] =
     db.run(insertAction(storageUnit))
 
@@ -120,14 +123,14 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         groupRead,
         groupWrite,
         Storage.linkText(id),
-        Option(isDeleted),
+        isDeleted,
         storageType
       )
 
     def destroy(unit: StorageUnitDTO) =
       Some(
         unit.id,
-        unit.`type`,
+        unit.storageType,
         unit.name,
         unit.area,
         unit.areaTo,
@@ -136,7 +139,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
-        unit.isDeleted.getOrElse(false)
+        unit.isDeleted
       )
   }
 

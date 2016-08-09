@@ -35,8 +35,6 @@ case class StorageUnit(
   val storageType = StorageType.StorageUnit
 }
 
-object StorageUnit
-
 case class Room(
     id: Option[Long],
     name: String,
@@ -78,7 +76,7 @@ case class Building(
 
 object Storage {
 
-  implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
+  implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "storageType").format[String])
 
   def fromDTO[T <: BaseDTO](dto: T) =
     dto match {
@@ -183,8 +181,8 @@ object Storage {
       groupRead = stu.groupRead,
       groupWrite = stu.groupWrite,
       links = stu.links,
-      isDeleted = Some(false), // hack, we check isDeleted in slick before update, so ..
-      `type` = stu.storageType
+      isDeleted = false, // hack, we check isDeleted in slick before update, so ..
+      storageType = stu.storageType
     )
 
   def linkText(id: Option[Long]) =

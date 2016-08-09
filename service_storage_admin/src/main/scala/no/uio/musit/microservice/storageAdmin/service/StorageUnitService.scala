@@ -63,7 +63,7 @@ trait StorageUnitService {
   def getById(id: Long): MusitFuture[Storage] = {
     val musitFutureStorageUnit = getStorageUnitOnly(id)
     musitFutureStorageUnit.musitFutureFlatMap { storageUnit =>
-      storageUnit.`type` match {
+      storageUnit.storageType match {
         case StorageType.StorageUnit => MusitFuture.successful(Storage.fromDTO(storageUnit))
         case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding => Storage.getBuilding(storageUnit, storageBuilding))
         case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom => Storage.getRoom(storageUnit, storageRoom))
