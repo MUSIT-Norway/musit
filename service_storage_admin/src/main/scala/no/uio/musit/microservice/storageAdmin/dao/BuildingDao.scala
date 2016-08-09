@@ -1,23 +1,23 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservices.common.utils.DaoHelper
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
-import no.uio.musit.microservices.common.utils.Misc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
+@Singleton
+class BuildingDao @Inject()(
+  dbConfigProvider: DatabaseConfigProvider,
+  storageUnitDao: StorageUnitDao
+) extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+  protected val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   private val BuildingTable = TableQuery[BuildingTable]
 
@@ -31,7 +31,7 @@ object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def updateBuilding(id: Long, building: Building) = {
-    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, Storage.toDTO(building))
+    val updateStorageUnitOnlyAction = storageUnitDao.updateStorageUnitAction(id, Storage.toDTO(building))
     val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, building.copy(id = Some(id))) }
     db.run(combinedAction.transactionally)
   }
@@ -45,7 +45,7 @@ object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
 
   def insertBuilding(storageUnit: StorageUnitDTO, storageBuilding: Building): Future[Storage] = {
     val action = (for {
-      storageUnit <- StorageUnitDao.insertAction(storageUnit)
+      storageUnit <- storageUnitDao.insertAction(storageUnit)
       n <- insertBuildingOnlyAction(storageBuilding.copy(id = storageUnit.id))
     } yield Storage.getBuilding(storageUnit, storageBuilding)).transactionally
     db.run(action)
@@ -59,10 +59,10 @@ object BuildingDao extends HasDatabaseConfig[JdbcProfile] {
     def address = column[Option[String]]("POSTAL_ADDRESS")
 
     def create = (id: Option[Long], address: Option[String]) =>
-      Building(id, null, None, None, None, None, None, None, None, None,
-        address)
+      Building(id, null, None, None, None, None, None, None, None, None, address)
 
     def destroy(building: Building) = Some(building.id, building.address)
   }
+
 }
 

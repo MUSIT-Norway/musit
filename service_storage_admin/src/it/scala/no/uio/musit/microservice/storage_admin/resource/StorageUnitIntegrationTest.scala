@@ -1,8 +1,6 @@
 package no.uio.musit.microservice.storage_admin.resource
 
-import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.domain.MusitError
@@ -18,29 +16,28 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
-  * Created by ellenjo on 5/27/16.
-  */
+ * Created by ellenjo on 5/27/16.
+ */
 class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
-  //val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 19002
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
 
-  def unknownStorageUnitMsg(id: Long) = StorageUnitDao.unknownStorageUnitMsg(id)
+  val unknownStorageUnitMsg = (id: Long) => s"Unknown storageUnit with id: $id"
 
   def createStorageUnit(json: String) = {
-    WS.url(s"http://localhost:$port/v1/storageunit").postJsonString(json)
+    wsUrl("/v1/storageunit").postJsonString(json)
   }
 
   def updateStorageUnit(id: Long, json: String) = {
-    WS.url(s"http://localhost:$port/v1/storageunit/$id").putJsonString(json)
+    wsUrl(s"/v1/storageunit/$id").putJsonString(json)
   }
 
   def deleteStorageUnit(id: Long) = {
-    WS.url(s"http://localhost:$port/v1/storageunit/$id").delete
+    wsUrl(s"/v1/storageunit/$id").delete
   }
 
-  def getStorageUnit(id: Long) = WS.url(s"http://localhost:$port/v1/storageunit/$id").get
+  def getStorageUnit(id: Long) = wsUrl(s"/v1/storageunit/$id").get
 
   def getRoomAsObject(id: Long): Future[Room] = {
     for {
@@ -167,7 +164,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       res.name mustBe "RomNyttNavn"
       res.sikringSkallsikring mustBe Some(true)
 
-    val myJSonRoom = s"""{"type":"Room","id": $id, "name":"ROM1"}"""
+      val myJSonRoom = s"""{"type":"Room","id": $id, "name":"ROM1"}"""
 
       val future2 = for {
         oppdat <- updateStorageUnit(id, myJSonRoom)
