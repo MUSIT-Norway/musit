@@ -28,7 +28,7 @@
 
 const wrap = (e) => {
   const r = {}
-  r.eventType = 'observation'
+  r.eventType = 'Observation'
   r['subEvents-parts'] = e.observations.map((el) => {
     const re = {}
     switch (el.type) {
@@ -90,7 +90,7 @@ const wrap = (e) => {
         re.note = el.data.rightValue
         break
       case 'hypoxicAir':
-        re.eventType = 'observationInertLuft'
+        re.eventType = 'ObservationInertAir'
         re.from = parseFloat(el.data.fromValue.replace(',', '.'))
         re.to = parseFloat(el.data.toValue.replace(',', '.'))
         re.note = el.data.commentValue

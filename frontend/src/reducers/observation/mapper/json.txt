@@ -1,0 +1,91 @@
+Backend-json:
+ {
+  id: 1,
+  eventType: "Observation",
+    links: [
+     {rel: "Rel1", link: "Link1"},
+     {rel: "Rel2", link: "Link2"}
+    ],
+  subEvents-parts: [
+    {
+      id:2,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:3,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:4,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:5,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:6,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:7,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:8,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:9,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:10,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:11,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:12,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:13,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+    {
+      id:2,
+      eventType: "observationLysforhold",
+      lysforhold: "Lyst",
+      note: "Altfor lyst"
+    },
+
+  ]
+
+ }

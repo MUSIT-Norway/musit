@@ -77,42 +77,42 @@ const wrap = (be) => {
         return retobs
       case 'observationinertair':
         retobs.type = 'hypoxicAir'
-        retobs.data.fromValue = parseFloat(o.from.replace('.', ','))
-        retobs.data.toValue = parseFloat(o.to.replace('.', ','))
+        retobs.data.fromValue = o.from.toString().replace('.', ',')
+        retobs.data.toValue = o.to.toString().replace('.', ',')
         retobs.data.commentValue = o.note
         return retobs
       case 'observationtemperature':
         retobs.type = 'temperature'
-        retobs.data.fromValue = parseFloat(o.from.replace('.', ','))
-        retobs.data.toValue = parseFloat(o.to.replace('.', ','))
+        retobs.data.fromValue = o.from.toString().replace('.', ',')
+        retobs.data.toValue = o.to.toString().replace('.', ',')
         retobs.data.commentValue = o.note
         return retobs
       case 'observationrelativehumidity':
         retobs.type = 'rh'
-        retobs.data.fromValue = parseFloat(o.from.replace('.', ','))
-        retobs.data.toValue = parseFloat(o.to.replace('.', ','))
+        retobs.data.fromValue = o.from.toString().replace('.', ',')
+        retobs.data.toValue = o.to.toString().replace('.', ',')
         retobs.data.commentValue = o.note
         return retobs
       case 'observationskadedyr':
         retobs.type = 'pest'
         retobs.data.identificationValue = o.identifikasjon
         retobs.data.commentsValue = o.note
-        retobs.data.observations = o.livssykluser.map((l) => {
+        retobs.data.observations = o.livssykluser ? o.livssykluser.map((l) => {
           const obs = {}
           obs.lifeCycle = l.livssyklus
-          obs.count = parseFloat(l.antall.replace('.', ','))
+          obs.count = l.antall
           return obs
         }
-        )
+      ) : []
         return retobs
       case 'observationsprit':
         retobs.type = 'alcohol'
         retobs.data.commentValue = o.note
         retobs.data.statusValue = wrapAlcoholState(o.tilstand)
-        retobs.data.volumeValue = parseFloat(o.volum.replace('.', ','))
+        retobs.data.volumeValue = parseFloat(o.volum).replace('.', ',')
         return retobs
       default:
-        retobs.data.error = 'Nots supported'
+        retobs.data.error = 'Not supported / ikke støttet'
         return retobs
     }
   })
