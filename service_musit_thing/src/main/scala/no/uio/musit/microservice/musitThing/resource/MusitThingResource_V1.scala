@@ -27,7 +27,7 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-class MusitThingResource_V1 @Inject()(musitThingService: MusitThingService) extends Controller {
+class MusitThingResource_V1 @Inject() (musitThingService: MusitThingService) extends Controller {
 
   def list = Action.async { request =>
     musitThingService.all.map(musitThing => Ok(Json.toJson(musitThing)))

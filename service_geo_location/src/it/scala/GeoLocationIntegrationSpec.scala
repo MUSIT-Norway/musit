@@ -12,7 +12,7 @@ import play.api.libs.json.{JsError, JsSuccess, Json}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class GeoLocation_TestSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
+class GeoLocationIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   // Extra long timeout since the integration call calls an external service
   val timeout = Timeout(10 seconds)

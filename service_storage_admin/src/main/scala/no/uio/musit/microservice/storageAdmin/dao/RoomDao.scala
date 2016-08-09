@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
@@ -11,13 +11,11 @@ import scala.concurrent.Future
 
 @Singleton
 class RoomDao @Inject() (
-    dbConfigProvider: DatabaseConfigProvider,
-    storageUnitDao: StorageUnitDao
-) extends HasDatabaseConfig[JdbcProfile] {
+    val dbConfigProvider: DatabaseConfigProvider,
+    val storageUnitDao: StorageUnitDao
+) extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._
-
-  protected val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   private val RoomTable = TableQuery[RoomTable]
 

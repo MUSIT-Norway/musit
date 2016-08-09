@@ -18,22 +18,20 @@
  */
 package no.uio.musit.microservice.musitThing.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
 @Singleton
-class MusitThingDao @Inject()(
-  databaseConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfig[JdbcProfile] {
+class MusitThingDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
+) extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._
-
-  protected val dbConfig = databaseConfigProvider.get[JdbcProfile]
 
   private val ThingTable = TableQuery[MusitThingTable] // scalastyle:ignore
 
@@ -43,7 +41,7 @@ class MusitThingDao @Inject()(
     db.run(
       ThingTable returning ThingTable.map(_.id) into (
         (musitThing, id) => musitThing.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/${id.getOrElse("")}"))))
-        ) += musitThing
+      ) += musitThing
     )
   }
 

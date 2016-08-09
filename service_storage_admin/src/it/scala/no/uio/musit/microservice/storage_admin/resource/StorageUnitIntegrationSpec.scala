@@ -10,7 +10,6 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsNumber, JsObject, JsString, Json}
-import play.api.libs.ws.WS
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -18,7 +17,7 @@ import scala.concurrent.Future
 /**
  * Created by ellenjo on 5/27/16.
  */
-class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with ScalaFutures {
+class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
   override lazy val port: Int = 19002
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
