@@ -3,4 +3,4 @@
 # ~~~~
 
 # Setup endpoints
-GET     /v1/address                 no.uio.musit.microservice.geoLocation.resource.GeoLocationResource_V1.searchExternal
+GET     /v1/address      no.uio.musit.microservice.geoLocation.resource.GeoLocationResource_V1.searchExternal(search: Option[String] ?= None)
