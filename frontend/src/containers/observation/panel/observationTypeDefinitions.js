@@ -23,7 +23,7 @@ import {
   ObservationFromToNumberCommentComponent,
   ObservationStatusPercentageComment,
   ObservationPest
-} from '../../components/observation'
+} from '../../../components/observation'
 
 const renderDoubleTextArea = (index, props) => (
   <ObservationDoubleTextAreaComponent {...props} />

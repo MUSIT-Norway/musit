@@ -8,6 +8,7 @@ describe('MusitTextArea', () => {
       <MusitTextArea
         id="navn"
         placeHolder="skriv inn navn her"
+        validate="string"
         value="flint"
         onChange={() => null}
       />
@@ -23,6 +24,7 @@ describe('MusitTextArea', () => {
       <MusitTextArea
         id="navn"
         placeHolder="skriv inn navn her"
+        validate="string"
         value=""
         onChange={() => null}
       />
@@ -38,6 +40,7 @@ describe('MusitTextArea', () => {
       <MusitTextArea
         id="navn"
         placeHolder="skriv inn navn her"
+        validate="string"
         value="123454566"
         onChange={() => null}
       />
