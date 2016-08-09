@@ -18,19 +18,22 @@
  */
 package no.uio.musit.microservice.musitThing.dao
 
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
+@Singleton
+class MusitThingDao @Inject()(
+  databaseConfigProvider: DatabaseConfigProvider
+) extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+  protected val dbConfig = databaseConfigProvider.get[JdbcProfile]
 
   private val ThingTable = TableQuery[MusitThingTable] // scalastyle:ignore
 
@@ -40,14 +43,14 @@ object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(
       ThingTable returning ThingTable.map(_.id) into (
         (musitThing, id) => musitThing.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/${id.getOrElse("")}"))))
-      ) += musitThing
+        ) += musitThing
     )
   }
 
   def getDisplayName(id: Long): Future[Option[String]] =
     db.run(ThingTable.filter(_.id === id).map(_.displayName).result.headOption)
 
-  def getDisplayID(id: Long): Future[Option[String]] =
+  def getDisplayId(id: Long): Future[Option[String]] =
     db.run(ThingTable.filter(_.id === id).map(_.displayId).result.headOption)
 
   def getById(id: Long): Future[Option[MusitThing]] =
