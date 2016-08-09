@@ -21,20 +21,20 @@ package no.uio.musit.microservice.storageAdmin.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservice.storageAdmin.domain.{Building, Room, _}
+import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ErrorHelper, ServiceHelper}
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 import scala.util.Left
 
-class StorageUnitService @Inject()(
-  storageUnitDao: StorageUnitDao,
-  roomService: RoomService,
-  buildingService: BuildingService
+class StorageUnitService @Inject() (
+    storageUnitDao: StorageUnitDao,
+    roomService: RoomService,
+    buildingService: BuildingService
 ) {
 
   private def storageUnitTypeMismatch(id: Long, expected: StorageType, inDatabase: StorageType): MusitError =

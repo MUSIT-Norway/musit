@@ -112,7 +112,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "get all nodes" in {
-      val response = WS.url(s"http://localhost:$port/v1/storageunit").get() |> waitFutureValue
+      val response = wsUrl("/v1/storageunit").get() |> waitFutureValue
       val storageUnits = Json.parse(response.body).validate[Seq[Storage]].get
       storageUnits.length mustBe 2
 

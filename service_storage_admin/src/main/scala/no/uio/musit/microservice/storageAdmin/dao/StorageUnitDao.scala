@@ -1,19 +1,19 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservice.storageAdmin.domain.{Storage, StorageType}
+import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageType }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
 @Singleton
-class StorageUnitDao @Inject()(
-  dbConfigProvider: DatabaseConfigProvider
+class StorageUnitDao @Inject() (
+    dbConfigProvider: DatabaseConfigProvider
 ) extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._

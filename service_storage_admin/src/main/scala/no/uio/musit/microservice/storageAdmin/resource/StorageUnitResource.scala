@@ -20,7 +20,7 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.service.{BuildingService, RoomService, StorageUnitService}
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ResourceHelper
@@ -30,10 +30,10 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-class StorageUnitResource @Inject()(
-  storageUnitService: StorageUnitService,
-  buildingService: BuildingService,
-  roomService: RoomService
+class StorageUnitResource @Inject() (
+    storageUnitService: StorageUnitService,
+    buildingService: BuildingService,
+    roomService: RoomService
 ) extends Controller {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>

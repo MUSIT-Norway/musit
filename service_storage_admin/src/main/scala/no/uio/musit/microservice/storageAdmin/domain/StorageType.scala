@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain
 
-import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
+import enumeratum.{ Enum, EnumEntry, PlayJsonEnum }
 
 sealed trait StorageType extends EnumEntry
 
