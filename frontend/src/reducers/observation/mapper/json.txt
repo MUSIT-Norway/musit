@@ -9,83 +9,184 @@ Backend-json:
   subEvents-parts: [
     {
       id:2,
-      eventType: "observationLysforhold",
+      eventType: "observationLight",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:3,
-      eventType: "observationLysforhold",
+      eventType: "observationGass",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:4,
-      eventType: "observationLysforhold",
+      eventType: "observationSprit",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:5,
-      eventType: "observationLysforhold",
+      eventType: "observationMugg",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:6,
-      eventType: "observationLysforhold",
+      eventType: "observationRenhold",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:7,
-      eventType: "observationLysforhold",
+      eventType: "observationBrannSikring",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:8,
-      eventType: "observationLysforhold",
+      eventType: "observationTyveriSikring",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:9,
-      eventType: "observationLysforhold",
+      eventType: "observationInertAir",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:10,
-      eventType: "observationLysforhold",
+      eventType: "observationRelativeHumidity",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:11,
-      eventType: "observationLysforhold",
+      eventType: "observationskadedyr",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:12,
-      eventType: "observationLysforhold",
+      eventType: "observationVannskadeRisiko",
       lysforhold: "Lyst",
       note: "Altfor lyst"
     },
     {
       id:13,
-      eventType: "observationLysforhold",
+      eventType: "observationTemperature",
       lysforhold: "Lyst",
       note: "Altfor lyst"
-    },
-    {
-      id:2,
-      eventType: "observationLysforhold",
-      lysforhold: "Lyst",
-      note: "Altfor lyst"
-    },
-
+    }
   ]
 
  }
+
+
+ Frontend-json:
+  {
+   id: 1,
+   type: "Observation",
+     links: [
+      {rel: "Rel1", link: "Link1"},
+      {rel: "Rel2", link: "Link2"}
+     ],
+   Observations: [
+     {
+       id:2,
+       type: "observationLight",
+       data: {
+             leftValue: "Vannskade",
+             rightValue: "Altfor vått"
+             }
+     },
+     {
+       id:3,
+       type: "observationGass",
+       data: {
+             leftValue: "Vannskade",
+             rightValue: "Altfor vått"
+             }
+     },
+     {
+       id:4,
+       type: "observationSprit",
+       lysforhold: "Lyst",
+       note: "Altfor lyst"
+     },
+     {
+       id:5,
+       type: "observationMugg",
+       data: {
+             leftValue: "Vannskade",
+             rightValue: "Altfor vått"
+             }
+     },
+     {
+       id:6,
+       type: "observationRenhold",
+       leftValue: "Lyst",
+       rightValue: "Altfor lyst"
+     },
+     {
+       id:7,
+       type: "observationBrannSikring",
+       data: {
+             leftValue: "Vannskade",
+             rightValue: "Altfor vått"
+             }
+     },
+     {
+       id:8,
+       type: "observationTyveriSikring",
+       data: {
+             leftValue: "Vannskade",
+             rightValue: "Altfor vått"
+             }
+     {
+       id:9,
+       type: "observationInertAir",
+       data: {
+              fromValue: "1,4",
+              toValue: "4,4"
+              commentsValue: "Altfor fuktig"}
+              },
+     },
+     {
+       id:10,
+       type: "observationRelativeHumidity",
+       data: {
+              fromValue: "1,4",
+              toValue: "4,4"
+              commentsValue: "Altfor fuktig"}
+              },
+     {
+       id:11,
+       type: "observationskadedyr",
+       data: {
+             leftValue: "Vannskade",
+             rightValue: "Altfor vått"
+             }
+     },
+     {
+       id:12,
+       type: "observationVannskadeRisiko",
+       data: {
+             leftValue: "Vannskade",
+             rightValue: "Altfor vått"
+             }
+     },
+     {
+       id:13,
+       type: "observationTemperature",
+       data: {
+              fromValue: "1,4",
+              toValue: "4,4"
+              commentsValue: "Altfor fuktig"}
+              },
+     }
+
+   ]
+
+  }
