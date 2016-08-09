@@ -24,7 +24,7 @@ import no.uio.musit.microservice.musitThing.dao.MusitThingDao
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import play.api.mvc.Request
 
-class MusitThingService @Inject()(musitThingDao: MusitThingDao) {
+class MusitThingService @Inject() (musitThingDao: MusitThingDao) {
 
   def all = musitThingDao.all
 
