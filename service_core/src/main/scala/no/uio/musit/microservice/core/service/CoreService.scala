@@ -19,6 +19,19 @@
 
 package no.uio.musit.microservice.core.service
 
-trait CoreService {
+import com.google.inject.Inject
+import no.uio.musit.microservice.core.dao.CoreDao
+
+import scala.concurrent.Future
+
+/*
+  This service will be made available to the Controller through DI.
+
+  https://www.playframework.com/documentation/2.5.x/ScalaDependencyInjection
+ */
+
+class CoreService @Inject() (coreDao: CoreDao) {
+
+  def getFoo: Future[String] = coreDao.foo
 
 }

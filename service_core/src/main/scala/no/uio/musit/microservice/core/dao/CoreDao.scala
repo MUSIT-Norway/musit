@@ -17,15 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.core.domain
+package no.uio.musit.microservice.core.dao
 
-import play.api.libs.json._
+import com.google.inject.{ Inject, Singleton }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import slick.driver.JdbcProfile
 
-case class Example(id: Long, email: String, name: String)
+import scala.concurrent.Future
 
-object Example {
-  def tupled = (Example.apply _).tupled
+@Singleton
+class CoreDao @Inject() (
+    dbConfigProvider: DatabaseConfigProvider
+) extends HasDatabaseConfig[JdbcProfile] {
 
-  implicit val format = Json.format[Example]
+  override val dbConfig = dbConfigProvider.get[JdbcProfile]
+
+  // Other necessary stuff to perform queries against the tables...
+
+  // Dummy
+  def foo: Future[String] = Future.successful("Foo")
 }
-

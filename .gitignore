@@ -25,6 +25,7 @@ src_managed/
 project/project
 .scala_dependencies
 .worksheet
+*.sc
 node_modules/
 npm-debug.log
 webpack-assets.json
