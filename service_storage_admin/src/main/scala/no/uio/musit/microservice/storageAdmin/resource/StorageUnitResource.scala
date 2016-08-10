@@ -90,12 +90,5 @@ class StorageUnitResource extends Controller {
   def deleteRoot(id: Long) = Action.async {
     ResourceHelper.deleteRoot(StorageUnitService.deleteStorageTriple, id)
   }
-
-  def setPartOf(id: Long, partOf: Long) = Action.async {
-    StorageUnitService.setPartOf(id, partOf).map {
-      case Right(_) => Ok
-      case Left(error) => Status(error.status)(Json.toJson(error))
-    }
-  }
 }
 

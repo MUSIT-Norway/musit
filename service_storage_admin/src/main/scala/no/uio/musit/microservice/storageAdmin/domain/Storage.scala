@@ -1,7 +1,7 @@
 package no.uio.musit.microservice.storageAdmin.domain
 
 import julienrf.json.derived
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageDTO, BuildingDTO, RoomDTO, StorageUnitDTO }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ BuildingDTO, RoomDTO, StorageDTO, StorageUnitDTO }
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.{ OFormat, __ }

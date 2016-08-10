@@ -107,12 +107,11 @@ trait StorageUnitService {
   def deleteStorageTriple(id: Long): MusitFuture[Int] =
     StorageUnitDao.deleteStorageUnit(id).toMusitFuture
 
-  def setPartOf(id: Long, partOf: Long): Future[Either[MusitError, Boolean]] = {
+  def setPartOf(id: Long, partOf: Long): Future[Either[MusitError, Boolean]] =
     StorageUnitDao.setPartOf(id, partOf).map {
       case 1 => Right(true)
-      case num => Left(MusitError(message = s"Wrong number of updated rows: $num"))
+      case num => Left(MusitError(message = s"Failed while setting partOf=$partOf for id=$id. Got $num updated rows."))
     }
-  }
 }
 
 object StorageUnitService extends StorageUnitService
