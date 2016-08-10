@@ -2,7 +2,7 @@ package no.uio.musit.microservice.storageAdmin.service
 
 import no.uio.musit.microservice.storageAdmin.dao.RoomDao
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservice.storageAdmin.domain.{ Room, Storage, StorageUnit }
+import no.uio.musit.microservice.storageAdmin.domain.{ Room, Storage }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
 

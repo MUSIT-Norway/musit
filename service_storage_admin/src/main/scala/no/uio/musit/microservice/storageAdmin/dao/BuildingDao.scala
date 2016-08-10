@@ -2,13 +2,9 @@ package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import play.api.libs.json.{ JsObject, JsValue, Json }
 import slick.driver.JdbcProfile
-import no.uio.musit.microservices.common.utils.Misc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

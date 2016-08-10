@@ -1,14 +1,12 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageType, StorageUnit }
+import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageType }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import play.api.libs.json.Json
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
@@ -47,7 +45,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def all(): Future[Seq[StorageUnitDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
 
-  def setPartOf(id: Long, partOf: Long) =
+  def setPartOf(id: Long, partOf: Long): Future[Int] =
     db.run(StorageUnitTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
 
   def insert(storageUnit: StorageUnitDTO): Future[StorageUnitDTO] =

@@ -83,7 +83,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
   "StorageUnitIntegration " must {
     "postCreate some IDs" in {
-      val makeMyJSon ="""{"type":"Room","name":"UkjentRom", "sikringSkallsikring": true}"""
+      val makeMyJSon ="""{"storageType":"Room","name":"UkjentRom", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
       storageUnit.id mustBe Some(1)
@@ -94,7 +94,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
 
     "postCreate a building" in {
-      val makeMyJSon ="""{"id":-1, "type":"Building","name":"KHM", "links":[]}"""
+      val makeMyJSon ="""{"id":-1, "storageType":"Building","name":"KHM", "links":[]}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
       storageUnit.id mustBe Some(2)
@@ -122,7 +122,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "update storageUnit" in {
-      val myJSon ="""{"type":"StorageUnit","name":"hylle2","areaTo":125}"""
+      val myJSon ="""{"storageType":"StorageUnit","name":"hylle2","areaTo":125}"""
       val response = createStorageUnit(myJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get
       storageUnit.name mustBe "hylle2"
@@ -147,7 +147,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "update storageRoom" in {
-      val myJSon ="""{"type":"Room","name":"Rom1", "sikringSkallsikring": false}"""
+      val myJSon ="""{"storageType":"Room","name":"Rom1", "sikringSkallsikring": false}"""
       val future = createStorageUnit(myJSon)
       val response = future.futureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
@@ -159,7 +159,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       storageUnit.name mustBe "Rom1"
       storageUnit.sikringSkallsikring mustBe Some(false)
 
-      val udateRoomJson = s"""{"type":"Room","id": $id, "name":"RomNyttNavn", "sikringSkallsikring": true}"""
+      val udateRoomJson = s"""{"storageType":"Room","id": $id, "name":"RomNyttNavn", "sikringSkallsikring": true}"""
       val res = (for {
         _ <- updateStorageUnit(id, udateRoomJson)
         room <- getRoomAsObject(id)
@@ -167,7 +167,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       res.name mustBe "RomNyttNavn"
       res.sikringSkallsikring mustBe Some(true)
 
-    val myJSonRoom = s"""{"type":"Room","id": $id, "name":"ROM1"}"""
+    val myJSonRoom = s"""{"storageType":"Room","id": $id, "name":"ROM1"}"""
 
       val future2 = for {
         oppdat <- updateStorageUnit(id, myJSonRoom)
@@ -178,7 +178,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "update storageBuilding" in {
-      val myJSon ="""{"type":"Building","name":"Bygning0", "address": "vet ikke"}"""
+      val myJSon ="""{"storageType":"Building","name":"Bygning0", "address": "vet ikke"}"""
       val future = createStorageUnit(myJSon)
       val response = future |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
@@ -186,7 +186,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val id = storageUnit.id.get
       storageUnit.name mustBe "Bygning0"
 
-      val udateJson = s"""{"type":"Building","id": $id, "name":"NyBygning", "address": "OrdentligAdresse"}"""
+      val udateJson = s"""{"storageType":"Building","id": $id, "name":"NyBygning", "address": "OrdentligAdresse"}"""
       val res = (for {
         res <- updateStorageUnit(id, udateJson)
         room <- getBuildingAsObject(id)
@@ -196,7 +196,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "update room should fail with bad id" in {
-      val myJSonRoom ="""{"type":"Room","name":"ROM1"}"""
+      val myJSonRoom ="""{"storageType":"Room","name":"ROM1"}"""
       val response = updateStorageUnit(125254764, myJSonRoom) |> waitFutureValue
 
       val error = Json.parse(response.body).validate[MusitError].get
@@ -204,7 +204,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "postCreate should not be able to insert too long field value" in {
-      val makeMyJSon =s"""{"type":"Room","name":"$veryLongUnitName", "sikringSkallsikring": true}"""
+      val makeMyJSon =s"""{"storageType":"Room","name":"$veryLongUnitName", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
 
       val error = Json.parse(response.body).validate[MusitError].get
@@ -214,14 +214,14 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
 
     "create room transaction should not create a storageUnit in the database if the room doesn't get created. (Transaction failure)" in {
-      val makeMyJSon ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
+      val makeMyJSon ="""{"storageType":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
 
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get //Just to know which is the current id, the next is supposed to fail....
 
-      val jsonWhichShouldFail =s"""{"type":"Room","name":"$veryLongUnitName", "sikringSkallsikring": false}"""
+      val jsonWhichShouldFail =s"""{"storageType":"Room","name":"$veryLongUnitName", "sikringSkallsikring": false}"""
       val response2 = createStorageUnit(jsonWhichShouldFail) |> waitFutureValue
       val error = Json.parse(response2.body).validate[MusitError].get
 
@@ -235,7 +235,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
     }
 
     "create and delete room" in {
-      val makeMyJSon ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
+      val makeMyJSon ="""{"storageType":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
       response.status mustBe 201 //Successfully created the room
@@ -261,7 +261,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
     "not be able to update a deleted storageUnit" in {
 
-      val json ="""{"type":"StorageUnit","name":"UkjentUnit"}"""
+      val json ="""{"storageType":"StorageUnit","name":"UkjentUnit"}"""
       val response = createStorageUnit(json) |> waitFutureValue
       println("deleted storageUnit " + response.body)
       response.status mustBe 201 //Successfully created the room
@@ -274,7 +274,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       println("deleted storageUnit " + responsDel.body)
       responsDel.status mustBe 200 //Successfully deleted
 
-      val updateJson = s"""{"type":"StorageUnit","id": $id, "name":"NyUkjentUnit"}"""
+      val updateJson = s"""{"storageType":"StorageUnit","id": $id, "name":"NyUkjentUnit"}"""
       val updateResponse = updateStorageUnit(id, updateJson) |> waitFutureValue
       println("deleted storageUnit " + updateResponse.body)
       updateResponse.status mustBe 404 //Should not be able to update a deleted object
@@ -282,7 +282,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
     "not be able to update a deleted room" in {
 
-      val json ="""{"type":"Room","name":"UkjentRom"}"""
+      val json ="""{"storageType":"Room","name":"UkjentRom"}"""
       val response = createStorageUnit(json) |> waitFutureValue
       println("deleted room " + response.body)
       response.status mustBe 201 //Successfully created the room
@@ -295,7 +295,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       println("deleted room " + responsDel.body)
       responsDel.status mustBe 200 //Successfully deleted
 
-      val updateJson = """{"type":"Room","name":"NyttRom", "sikringSkallsikring": true}"""
+      val updateJson = """{"storageType":"Room","name":"NyttRom", "sikringSkallsikring": true}"""
       val updateResponse = updateStorageUnit(id, updateJson) |> waitFutureValue
       println("deleted room " + updateResponse.body)
       updateResponse.status mustBe 404 //Should not be able to update a deleted object
@@ -303,7 +303,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
     "not be able to update a deleted building" in {
 
-      val json ="""{"type":"Building","name":"UkjentBygning"}"""
+      val json ="""{"storageType":"Building","name":"UkjentBygning"}"""
       val response = createStorageUnit(json) |> waitFutureValue
       println("deleted building " + response.body)
       response.status mustBe 201 //Successfully created the room
@@ -316,7 +316,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       println("deleted building " + responsDel.body)
       responsDel.status mustBe 200 //Successfully deleted
 
-      val updateJson = """{"type":"Building","name":"NyBygning", "address": "OrdentligAdresse"}"""
+      val updateJson = """{"storageType":"Building","name":"NyBygning", "address": "OrdentligAdresse"}"""
       val updateResponse = updateStorageUnit(id, updateJson) |> waitFutureValue
       println("deleted building " + updateResponse.body)
       updateResponse.status mustBe 404 //Should not be able to update a deleted object
@@ -326,7 +326,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
 
 
     "update should fail (with Conflict=409) if inconsistent storage types" in {
-      val json ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
+      val json ="""{"storageType":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
       val response = createStorageUnit(json) |> waitFutureValue
       response.status mustBe 201 //Created
 
@@ -335,13 +335,13 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get
 
-      val updatedJson ="""{"type":"Building", "name":"Ukjent bygning", "address":"HelloAddress"}"""
+      val updatedJson ="""{"storageType":"Building", "name":"Ukjent bygning", "address":"HelloAddress"}"""
       val responseUpdate = updateStorageUnit(id, updatedJson) |> waitFutureValue
       responseUpdate.status mustBe 409 //Conflict
     }
 
     "create should fail with invalid input data" in {
-      val json ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": 1}"""
+      val json ="""{"storageType":"Room","name":"UkjentRom2", "sikringSkallsikring": 1}"""
       val response = createStorageUnit(json) |> waitFutureValue
       response.status mustBe 400
     }

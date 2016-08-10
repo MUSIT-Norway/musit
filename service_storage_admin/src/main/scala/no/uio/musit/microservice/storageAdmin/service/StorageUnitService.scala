@@ -26,8 +26,8 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.util.Left
 
 trait StorageUnitService {
@@ -106,6 +106,13 @@ trait StorageUnitService {
 
   def deleteStorageTriple(id: Long): MusitFuture[Int] =
     StorageUnitDao.deleteStorageUnit(id).toMusitFuture
+
+  def setPartOf(id: Long, partOf: Long): Future[Either[MusitError, Boolean]] = {
+    StorageUnitDao.setPartOf(id, partOf).map {
+      case 1 => Right(true)
+      case num => Left(MusitError(message = s"Wrong number of updated rows: $num"))
+    }
+  }
 }
 
 object StorageUnitService extends StorageUnitService

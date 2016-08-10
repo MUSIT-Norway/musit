@@ -33,7 +33,6 @@ import scala.concurrent.Future
 class StorageUnitResource extends Controller {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    println(request.body)
     val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
     ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, (triple: Storage) => Json.toJson(triple))
   }
@@ -92,5 +91,11 @@ class StorageUnitResource extends Controller {
     ResourceHelper.deleteRoot(StorageUnitService.deleteStorageTriple, id)
   }
 
+  def setPartOf(id: Long, partOf: Long) = Action.async {
+    StorageUnitService.setPartOf(id, partOf).map {
+      case Right(_) => Ok
+      case Left(error) => Status(error.status)(Json.toJson(error))
+    }
+  }
 }
 
