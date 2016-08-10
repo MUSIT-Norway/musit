@@ -41,7 +41,7 @@ no:
         doneBy: "Utført av"
         registeredDate: "Reg. dato"
         registeredBy: "Reg. av"
-        header: " - Kontroller / Observasjoner"
+        header: "Kontroller og observasjoner"
       node:
         nodeName: "Nodenavn"
         nodeType: "Nodetype"
