@@ -1,14 +1,13 @@
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
+import no.uio.musit.microservices.common.domain.{MusitError, MusitException, MusitStatusMessage}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, MusitResult}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
@@ -21,6 +20,21 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
  */
 
 object ResourceHelper {
+
+
+
+    implicit class MusitFutureExtensionsImp[T](val musitFuture: MusitFuture[T]) extends AnyVal {
+
+      def mapMusitExceptionToMusitError: MusitFuture[T] = {
+        musitFuture.recover {
+          case e: MusitException => {
+            println("Mapping MusitException!")
+            Left(e.toMusitError)
+          }
+        }
+      }
+    }
+
 
   implicit class EitherExtensionsImp[T](val either: Either[MusitError, T]) extends AnyVal {
 
@@ -42,6 +56,9 @@ object ResourceHelper {
       }
     }
   }
+
+
+
 
   def postRoot[A](objectToPost: MusitFuture[A], toJsonTransformer: A => JsValue): Future[Result] = {
     objectToPost.map {
@@ -89,12 +106,19 @@ object ResourceHelper {
     }
   }
 
-  def getRoot[A](serviceUpdateCall: (Long) => Future[Either[MusitError, A]], id: Long, toJsonTransformer: A => JsValue): Future[Result] = {
-    val futResObject = serviceUpdateCall(id)
-    futResObject.map {
+
+
+  def getRoot[A](futureResultObject: Future[Either[MusitError, A]], toJsonTransformer: A => JsValue): Future[Result] = {
+    futureResultObject.mapMusitExceptionToMusitError.map {
       case Right(obj) => Ok(toJsonTransformer(obj))
       case Left(error) => error.toPlayResult
     }
+  }
+
+
+  def getRoot[A](serviceUpdateCall: (Long) => Future[Either[MusitError, A]], id: Long, toJsonTransformer: A => JsValue): Future[Result] = {
+    val futResObject = serviceUpdateCall(id)
+    getRoot(futResObject, toJsonTransformer)
   }
 
   //Int is expected to be number of records deleted by serviceDeleteCall

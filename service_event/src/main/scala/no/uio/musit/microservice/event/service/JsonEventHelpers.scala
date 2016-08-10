@@ -20,14 +20,14 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{ EventRelations, _ }
+import no.uio.musit.microservice.event.domain.{EventRelations, _}
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
-import play.api.libs.json.{ JsArray, JsObject, JsResult, JsValue }
+import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
+import play.api.libs.json._
 
 /**
  * Created by jstabel on 7/6/16.
@@ -37,7 +37,11 @@ object Constants {
   val subEventsPrefix = "subEvents-"
 }
 
-object JsonEventHelpers {
+object JsonEventHelpers{
+  implicit object JsonEventWriter extends Writes[Event] {
+    def writes(event: Event) = JsonEventHelpers.toJson(event, true)
+  }
+
   private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventDto] = {
     for {
       id <- (jsObject \ "id").validateOpt[Long]
@@ -138,3 +142,5 @@ object JsonEventHelpers {
       singleEventJson
   }
 }
+
+

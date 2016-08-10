@@ -42,21 +42,28 @@ object EventService {
   def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] =
     EventDao.getEvent(id, recursive)
 
-  private def getEventsFor(eventTypeId: Int, relation: String, uri: String): MusitFuture[Seq[Event]] = {
-    ???
+  private def getEventIdsFor(eventType: EventType, relation: String, objectUri: String): MusitFuture[Seq[Long]] = {
+    EventDao.getEventIds(eventType, relation, objectUri).toMusitFuture
   }
 
-  def getEventsFor(eventType: String, relation: String, id: Long): MusitFuture[Seq[Event]] = {
+  private def getEventsFor(eventType: EventType, relation: String, objectUri: String): MusitFuture[Seq[Event]] = {
+    val futEventIds = getEventIdsFor(eventType, relation, objectUri)
+    MusitFuture.traverse(futEventIds)(eventId=> getEvent(eventId, true))
+  }
+
+
+  def getEventsFor(eventType: EventType, relation: String, id: Long): MusitFuture[Seq[Event]] = {
+
+    val objectUri = EventRelations.getObjectUriViaRelation(id, relation).toMusitResult(MusitError(message = s"Unable to get objectUri via relation: $relation"))
+    /*
     val eventTypeIdAndObjectUri: MusitResult[(Int, String)] =
       for {
         eventType <- EventType.getByNameAsMusitResult(eventType)
         objectUri <- EventRelations.getObjectUriViaRelation(id, relation).toMusitResult(MusitError(message = s"Unable to get objectUri via relation: $relation"))
       } yield (eventType.id, objectUri)
-
-    val blabla = eventTypeIdAndObjectUri.toMusitFuture.musitFutureFlatMap {
-      case (eventTypeId, objectUri) =>
-        getEventsFor(eventTypeId, relation, objectUri)
+*/
+    objectUri.toMusitFuture.musitFutureFlatMap {
+      objectUri => getEventsFor(eventType, relation, objectUri)
     }
-    ???
   }
 }

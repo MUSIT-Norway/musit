@@ -21,7 +21,7 @@ package no.uio.musit.microservices.common.domain
 import java.net.URI
 
 import play.api.http.Status
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 
 case class MusitError(status: Int = Status.BAD_REQUEST, message: String, private val developerMessage: String = "") {
 
@@ -31,10 +31,10 @@ case class MusitError(status: Int = Status.BAD_REQUEST, message: String, private
   def getDeveloperMessage = if (inDevEnvironment) developerMessage else ""
 
   /**
-   * Returns this MusitError as the Result structure wanted by PlayFramework.
-   * This construct appears quite often in the implementation of our services so far.
-   * I'm not sure this is exactly what we want in the end so it's better to have a common implementation than lots of them spread all over our services.
-   */
+    * Returns this MusitError as the Result structure wanted by PlayFramework.
+    * This construct appears quite often in the implementation of our services so far.
+    * I'm not sure this is exactly what we want in the end so it's better to have a common implementation than lots of them spread all over our services.
+    */
   def toPlayResult = play.api.mvc.Results.Status(status)(Json.toJson(this))
 }
 
@@ -45,7 +45,16 @@ object MusitError {
 
 class MusitException(message: String, private val developerMessage: String = "") extends Throwable {
   def status = Status.BAD_REQUEST
+  def isClientError = status == Status.BAD_REQUEST //NOT_FOUND, is that a client or server error? (Or is it "it depends"?)
+
   def toMusitError = MusitError(status, message, developerMessage)
+}
+
+
+
+
+class MusitBadRequestException(message: String, private val developerMessage: String = "") extends MusitException(message, developerMessage) {
+  override def status = Status.BAD_REQUEST
 }
 
 class MusitNotFoundException(message: String, private val developerMessage: String = "") extends MusitException(message, developerMessage) {
@@ -62,16 +71,21 @@ class MusitNotImplementedYetException(message: String, private val developerMess
 
 class MusitInternalErrorException(message: String, private val developerMessage: String = "") extends Throwable {
   def status = Status.INTERNAL_SERVER_ERROR
+
   def toMusitError = MusitError(status, message, developerMessage)
 }
 
 /**
- * May get thrown when our sevices try to do http requests to other servers (or another of our services), but they fail.
- * Used in say DataPorten calls, which may fail. Error represents the result from the "external" server
- */
+  * May get thrown when our sevices try to do http requests to other servers (or another of our services), but they fail.
+  * Used in say DataPorten calls, which may fail. Error represents the result from the "external" server
+  */
 // TODO: Replace the exceptions in PlayExtensions.scala with this one
 class HttpCallException(val uri: Option[URI], error: MusitError) extends MusitException(error.message, "") {
-  override def status = error.status //Propagates the status, that may be wrong in some circumstances?
+  override def status = error.status
+
+  //Propagates the status, that may be wrong in some circumstances?
   override def toMusitError = error
 }
+
+
 

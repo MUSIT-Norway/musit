@@ -26,6 +26,7 @@ object MusitSearch {
     p.foldLeft(Map[String, String]())((acc, next) => next.split("=") match {
       case Array(key, value) if value.nonEmpty =>
         acc + (key -> value)
+      case other => throw new IllegalArgumentException(s"Syntax error in (part of) search part of URL: $next") //MusitBadRequestException
     })
 
   def parseSearch(search: String): MusitSearch =

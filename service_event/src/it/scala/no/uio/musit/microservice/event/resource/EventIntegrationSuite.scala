@@ -69,6 +69,13 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   "EventIntegrationSuite " must {
 
 
+    "getObjectUriViaRelation test" in {
+      EventRelations.getObjectUriViaRelation(532, "storageunit-location") mustBe Some("/storageunit/532")
+    }
+
+
+
+
     "post Move" in {
 
       val json =
@@ -354,11 +361,10 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     assert(response.body.contains("this_relation_does_not_exist"))
   }
 
+  val storageUnitId = 532 //arbitrary id for some storageUnit
 
-
-  "post composite control" in {
-    val json =
-      """ {
+  val postCompositeControlJson =
+    s""" {
     "eventType": "Control",
     "note": "tekst",
     "links": [{
@@ -368,7 +374,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
         {
             "rel": "storageunit-location",
-            "href": "storageunit/532"
+            "href": "storageunit/$storageUnitId"
           }
 
   ],
@@ -385,9 +391,11 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     }]
   }]
   }
-      """
+  """
 
-    val response = createEvent(json)
+
+  "post composite control" in {
+    val response = createEvent(postCompositeControlJson)
     println(s"Create: ${response.body}")
     response.status mustBe 201
 
@@ -798,10 +806,28 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     myEvent.ok mustBe true
   }
 
+  "check that we fail on missing events parameters" in {
+    //We deliberately leave out id to get an error.
+    val url=s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location]"
 
-  "getObjectUriViaRelation test" in {
-    EventRelations.getObjectUriViaRelation(532, "storageunit-location") mustBe Some("/storageunit/532")
+    val response=WS.url(url).get |> waitFutureValue
+    response.status mustBe 400
   }
+
+  "check that getEvents" in {
+    val response = createEvent(postCompositeControlJson)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+
+//    val controlEvent =  validateEvent[Control](response.json)
+
+
+    val url=s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location, id=$storageUnitId]"
+
+    val response2=WS.url(url).get |> waitFutureValue
+    response2.status mustBe 200
+  }
+
 
 
 }

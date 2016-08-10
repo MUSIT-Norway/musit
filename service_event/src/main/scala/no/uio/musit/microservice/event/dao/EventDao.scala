@@ -21,20 +21,22 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
+import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
 import no.uio.musit.microservice.event.service._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.dbio.SequenceAction
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import no.uio.musit.microservices.common.linking.dao.LinkDao
+import no.uio.musit.microservices.common.linking.dao.LinkDao.LinkTable
 
 object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
@@ -43,6 +45,9 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val EventBaseTable = TableQuery[EventBaseTable]
+  private val LinkTable = TableQuery[LinkTable]
+
+
 
   def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] =
     EventBaseTable returning EventBaseTable.map(_.id) += eventBaseDto
@@ -210,6 +215,18 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
               partEvents +: extraRelatedEvents
         }
     }
+  }
+
+/** Gets the id of the events having a specific eventType and having a specific relation to a specific "external" object (in the generic links table) */
+  def getEventIds(eventType: EventType, relation: String, objectUri: String): Future[Seq[Long]] = {
+    val eventsWithCorrectType = EventBaseTable.filter(evt => evt.eventTypeID===eventType)
+    val linksWithCorrectRelationAndId = LinkTable.filter(link => link.rel === relation && link.href === objectUri)
+
+    val query = for {
+      (eventBaseTable, _) <- eventsWithCorrectType join linksWithCorrectRelationAndId on (_.id === _.localTableId)
+    } yield (eventBaseTable.id) //Here we are arbitrarily selecting the event table to project the id from, could just as well returned the localTableId from the linksTable
+
+    db.run(query.result)
   }
 
   implicit lazy val libraryItemMapper = MappedColumnType.base[EventType, Int](

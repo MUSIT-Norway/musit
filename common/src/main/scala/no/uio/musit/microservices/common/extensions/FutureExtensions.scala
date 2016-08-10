@@ -76,6 +76,8 @@ object FutureExtensions {
     def musitFutureFlatMapInnerEither[S](f: T => Either[MusitError, S]): Future[Either[MusitError, S]] = {
       futEither.map { either => either.right.flatMap(f) }
     }
+
+
   }
 
   object MusitFuture {
@@ -84,6 +86,8 @@ object FutureExtensions {
     def fromError[T](error: MusitError): MusitFuture[T] = Future.successful(Left(error))
 
     def fromMusitResult[T](musitResult: MusitResult[T]) = Future.successful(musitResult)
+
+
 
     private def appendToSeq[T](mySeq: MusitResult[Seq[T]], elem: MusitResult[T]) = {
       mySeq match {
@@ -113,6 +117,12 @@ object FutureExtensions {
         for (r <- fr; b <- fb) yield (r += b)
       }.map(_.result())
       */
+
+    def traverse[A, B](in: MusitFuture[Seq[A]])(fn: A => MusitFuture[B]): MusitFuture[Seq[B]] = {
+      in.musitFutureFlatMap(innerSeq=>traverse(innerSeq)(fn))
+    }
+
+
   }
 
 }
