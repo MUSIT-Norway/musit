@@ -72,6 +72,24 @@ class StorageUnitResource extends Controller {
     })
   }
 
+  def listRootNode = Action.async {
+    def readGroup = "foo" // TODO: Replace with actual groups when security is added!!!
+    StorageUnitService.rootNodes(readGroup).flatMap(list => {
+      Future.sequence(list.map(unit => {
+        unit.`type` match {
+          case StorageType.StorageUnit =>
+            Future.successful(Storage.fromDTO(unit))
+          case StorageType.Building =>
+            BuildingDao.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
+              Storage.getBuilding(unit, building)))
+          case StorageType.Room =>
+            RoomDao.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
+              Storage.getRoom(unit, room)))
+        }
+      })).map(__ => Ok(Json.toJson(__)))
+    })
+  }
+
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {
     request =>
       request.body.validate[Storage].asEither match {

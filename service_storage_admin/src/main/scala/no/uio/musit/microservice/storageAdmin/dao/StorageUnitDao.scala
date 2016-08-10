@@ -47,6 +47,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
   def all(): Future[Seq[StorageUnitDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
 
+  def rootNodes(readGroup: String): Future[Seq[StorageUnitDTO]] =
+    db.run(StorageUnitTable.filter(st => st.isDeleted === false && st.isPartOf.isEmpty && st.groupRead === readGroup).result)
+
   def insert(storageUnit: StorageUnitDTO): Future[StorageUnitDTO] =
     db.run(insertAction(storageUnit))
 

@@ -77,6 +77,9 @@ trait StorageUnitService {
   def all: Future[Seq[StorageUnitDTO]] =
     StorageUnitDao.all()
 
+  def rootNodes(readGroup: String): Future[Seq[StorageUnitDTO]] =
+    StorageUnitDao.rootNodes(readGroup)
+
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =
     StorageUnitDao.updateStorageUnit(id, Storage.toDTO(storageUnit))
 
