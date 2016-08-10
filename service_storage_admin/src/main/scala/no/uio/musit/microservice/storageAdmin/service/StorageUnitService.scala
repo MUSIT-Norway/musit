@@ -90,7 +90,7 @@ trait StorageUnitService {
     }
 
   def updateStorageTripleByID(id: Long, triple: Storage): Future[Either[MusitError, Int]] =
-    verifyStorageTypeMatchesDatabase(id, triple.storageType).flatMap {
+    verifyStorageTypeMatchesDatabase(id, triple.`type`).flatMap {
       case Right(true) =>
         triple match {
           case st: StorageUnit =>

@@ -17,7 +17,7 @@ sealed trait Storage {
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val links: Option[Seq[Link]]
-  val storageType: String
+  val `type`: String
 }
 
 object StorageUnit {
@@ -36,7 +36,7 @@ case class StorageUnit(
     groupWrite: Option[String],
     links: Option[Seq[Link]]
 ) extends Storage {
-  val storageType = StorageUnit.storageType
+  val `type` = StorageUnit.storageType
 }
 
 object Room {
@@ -63,7 +63,7 @@ case class Room(
     bevarLysforhold: Option[Boolean],
     bevarPrevantKons: Option[Boolean]
 ) extends Storage {
-  val storageType = Room.storageType
+  val `type` = Room.storageType
 }
 
 object Building {
@@ -83,12 +83,12 @@ case class Building(
     links: Option[Seq[Link]],
     address: Option[String]
 ) extends Storage {
-  val storageType = Building.storageType
+  val `type` = Building.storageType
 }
 
 object Storage {
 
-  implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "storageType").format[String])
+  implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
 
   def fromDTO[T <: StorageDTO](dto: T) =
     dto match {
@@ -194,7 +194,7 @@ object Storage {
       groupWrite = stu.groupWrite,
       links = stu.links,
       isDeleted = false, // hack, we check isDeleted in slick before update, so ..
-      storageType = stu.storageType
+      storageType = stu.`type`
     )
 
   def linkText(id: Option[Long]) =
