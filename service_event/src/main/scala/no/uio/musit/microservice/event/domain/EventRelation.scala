@@ -78,7 +78,7 @@ object EventRelations {
       Some(relation.substring(0, index))
   }
 
-  def mkUri(objectTypeName: String, id: Long) = s"/$objectTypeName/$id"
+  def mkUri(objectTypeName: String, id: Long) = s"$objectTypeName/$id"
 
   def getObjectUriViaRelation(id: Long, relation: String): Option[String] = {
     getObjectTypeFromRelation(relation).map(objectTypeName => mkUri(objectTypeName, id))
