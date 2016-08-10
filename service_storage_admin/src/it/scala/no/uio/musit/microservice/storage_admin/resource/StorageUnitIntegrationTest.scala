@@ -2,7 +2,6 @@ package no.uio.musit.microservice.storage_admin.resource
 
 import no.uio.musit.microservice.storageAdmin.dao.StorageUnitDao
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.domain.MusitError
@@ -87,7 +86,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
       storageUnit.id mustBe Some(1)
-      storageUnit.storageType mustBe StorageType.Room
+      storageUnit.storageType mustBe Room.storageType
       storageUnit.name mustBe "UkjentRom"
 
     }
@@ -98,7 +97,7 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
       storageUnit.id mustBe Some(2)
-      storageUnit.storageType mustBe StorageType.Building
+      storageUnit.storageType mustBe Building.storageType
       storageUnit.name mustBe "KHM"
 
     }
