@@ -269,6 +269,7 @@ export default class ControlView extends React.Component {
   }
   onClickSave() {
     if (this.oneStateIsNotOK()) {
+      this.props.onLagreControl(this.state)
       hashHistory.push('/observation/control/add/3')
     } else {
       this.props.onLagreControl(this.state)
