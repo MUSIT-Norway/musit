@@ -2,7 +2,7 @@ package no.uio.musit.microservice.storageAdmin.domain.dto
 
 import no.uio.musit.microservices.common.linking.domain.Link
 
-sealed trait BaseDTO {
+sealed trait StorageDTO {
   val id: Option[Long]
   val name: String
   val area: Option[Long]
@@ -31,7 +31,7 @@ case class BuildingDTO(
   isDeleted: Boolean,
   storageType: String,
   address: Option[String]
-) extends BaseDTO
+) extends StorageDTO
 
 case class RoomDTO(
   id: Option[Long],
@@ -54,7 +54,7 @@ case class RoomDTO(
   bevarLuftfuktOgTemp: Option[Boolean],
   bevarLysforhold: Option[Boolean],
   bevarPrevantKons: Option[Boolean]
-) extends BaseDTO
+) extends StorageDTO
 
 case class StorageUnitDTO(
   id: Option[Long],
@@ -69,4 +69,4 @@ case class StorageUnitDTO(
   links: Option[Seq[Link]],
   isDeleted: Boolean,
   storageType: String
-) extends BaseDTO
+) extends StorageDTO

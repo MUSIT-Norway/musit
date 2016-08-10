@@ -1,7 +1,7 @@
 package no.uio.musit.microservice.storageAdmin.domain
 
 import julienrf.json.derived
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ BaseDTO, BuildingDTO, RoomDTO, StorageUnitDTO }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageDTO, BuildingDTO, RoomDTO, StorageUnitDTO }
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.{ OFormat, __ }
@@ -90,7 +90,7 @@ object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "storageType").format[String])
 
-  def fromDTO[T <: BaseDTO](dto: T) =
+  def fromDTO[T <: StorageDTO](dto: T) =
     dto match {
       case stu: StorageUnitDTO =>
         StorageUnit(
@@ -142,7 +142,7 @@ object Storage {
         )
     }
 
-  def getBuilding(unit: BaseDTO, building: Building): Building = {
+  def getBuilding(unit: StorageDTO, building: Building): Building = {
     Building(
       id = unit.id,
       name = unit.name,
@@ -158,7 +158,7 @@ object Storage {
     )
   }
 
-  def getRoom(unit: BaseDTO, room: Room): Room = {
+  def getRoom(unit: StorageDTO, room: Room): Room = {
     Room(
       id = unit.id,
       name = unit.name,
