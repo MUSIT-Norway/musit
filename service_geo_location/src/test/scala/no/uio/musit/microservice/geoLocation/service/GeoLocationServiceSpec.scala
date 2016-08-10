@@ -23,7 +23,7 @@ import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import play.api.test.WsTestClient
-import play.api.{Configuration, Environment}
+import play.api.{ Configuration, Environment }
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
