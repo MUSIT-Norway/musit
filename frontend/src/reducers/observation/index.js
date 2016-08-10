@@ -26,7 +26,6 @@ const observationReducer = (state = initialState, action = {}) => {
       };
     case ADD_SUCCESS:
       d = mapToFrontEnd(action.result)
-      console.log(d)
       return {
         ...state,
         loading: false,
@@ -48,9 +47,7 @@ const observationReducer = (state = initialState, action = {}) => {
         data: {}
       };
     case LOAD_SUCCESS:
-      console.log('Før')
       d = mapToFrontEnd(action.result)
-      console.log(d)
       return {
         ...state,
         loading: false,
