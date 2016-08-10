@@ -17,7 +17,11 @@ sealed trait Storage {
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val links: Option[Seq[Link]]
-  val storageType: StorageType
+  val storageType: String
+}
+
+object StorageUnit {
+  val storageType = "StorageUnit"
 }
 
 case class StorageUnit(
@@ -32,7 +36,11 @@ case class StorageUnit(
     groupWrite: Option[String],
     links: Option[Seq[Link]]
 ) extends Storage {
-  val storageType = StorageType.StorageUnit
+  val storageType = StorageUnit.storageType
+}
+
+object Room {
+  val storageType = "Room"
 }
 
 case class Room(
@@ -55,7 +63,11 @@ case class Room(
     bevarLysforhold: Option[Boolean],
     bevarPrevantKons: Option[Boolean]
 ) extends Storage {
-  val storageType: StorageType = StorageType.Room
+  val storageType = Room.storageType
+}
+
+object Building {
+  val storageType = "Building"
 }
 
 case class Building(
@@ -71,7 +83,7 @@ case class Building(
     links: Option[Seq[Link]],
     address: Option[String]
 ) extends Storage {
-  val storageType: StorageType = StorageType.Building
+  val storageType = Building.storageType
 }
 
 object Storage {

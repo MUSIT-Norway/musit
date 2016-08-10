@@ -1,6 +1,5 @@
 package no.uio.musit.microservice.storageAdmin.domain.dto
 
-import no.uio.musit.microservice.storageAdmin.domain.StorageType
 import no.uio.musit.microservices.common.linking.domain.Link
 
 sealed trait BaseDTO {
@@ -15,7 +14,7 @@ sealed trait BaseDTO {
   val groupWrite: Option[String]
   val links: Option[Seq[Link]]
   val isDeleted: Boolean
-  val storageType: StorageType
+  val storageType: String
 }
 
 case class BuildingDTO(
@@ -30,7 +29,7 @@ case class BuildingDTO(
   groupWrite: Option[String],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
-  storageType: StorageType,
+  storageType: String,
   address: Option[String]
 ) extends BaseDTO
 
@@ -46,7 +45,7 @@ case class RoomDTO(
   groupWrite: Option[String],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
-  storageType: StorageType,
+  storageType: String,
   sikringSkallsikring: Option[Boolean],
   sikringTyverisikring: Option[Boolean],
   sikringBrannsikring: Option[Boolean],
@@ -69,5 +68,5 @@ case class StorageUnitDTO(
   groupWrite: Option[String],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
-  storageType: StorageType
+  storageType: String
 ) extends BaseDTO

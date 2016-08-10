@@ -59,12 +59,12 @@ class StorageUnitResource extends Controller {
     StorageUnitService.all.flatMap(list => {
       Future.sequence(list.map(unit => {
         unit.storageType match {
-          case StorageType.StorageUnit =>
+          case StorageUnit.storageType =>
             Future.successful(Storage.fromDTO(unit))
-          case StorageType.Building =>
+          case Building.storageType =>
             BuildingDao.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
               Storage.getBuilding(unit, building)))
-          case StorageType.Room =>
+          case Room.storageType =>
             RoomDao.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
               Storage.getRoom(unit, room)))
         }
