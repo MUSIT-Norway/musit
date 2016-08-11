@@ -20,23 +20,21 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{ LivssyklusDto, ObservationSkadedyrDto }
+import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.event.domain.{LivssyklusDto, ObservationSkadedyrDto}
 import no.uio.musit.microservices.common.utils.DaoHelper
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import slick.driver.JdbcProfile
+import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
  * Created by jstabel on 7/8/16.
  */
-object ObservationSkadedyrDao extends HasDatabaseConfig[JdbcProfile] {
+@Singleton
+class ObservationSkadedyrDao @Inject()(val dbConfigProvider: DatabaseConfigProvider) extends BaseEventDao {
 
   import driver.api._
-
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val LivssyklusTable = TableQuery[LivssyklusTable]
 

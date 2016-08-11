@@ -1,10 +1,8 @@
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{ Dto, EnvRequirementDto }
-import no.uio.musit.microservices.common.domain.MusitInternalErrorException
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import play.api.libs.json.Json
+import com.google.inject.Inject
+import no.uio.musit.microservice.event.domain.EnvRequirementDto
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
@@ -13,11 +11,11 @@ import scala.concurrent.Future
  * Created by ellenjo on 6/30/16.
  */
 
-object EnvRequirementDao extends HasDatabaseConfig[JdbcProfile] {
+class EnvRequirementDao @Inject()(
+  val dbConfigProvider: DatabaseConfigProvider
+) extends BaseEventDao {
 
   import driver.api._
-
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val EnvRequirementTable = TableQuery[EnvRequirementTable]
 
@@ -41,9 +39,11 @@ object EnvRequirementDao extends HasDatabaseConfig[JdbcProfile] {
     val cleaning = column[Option[String]]("CLEANING")
     val light = column[Option[String]]("LIGHT")
 
-    def create = (id: Option[Long], temp: Option[Int], temp_interval: Option[Int], air_humidity: Option[Int],
+    def create = (
+      id: Option[Long], temp: Option[Int], temp_interval: Option[Int], air_humidity: Option[Int],
       air_hum_interval: Option[Int], hypoxic_air: Option[Int], hyp_air_interval: Option[Int],
-      cleaning: Option[String], light: Option[String]) =>
+      cleaning: Option[String], light: Option[String]
+    ) =>
       EnvRequirementDto(
         id, temp, temp_interval, air_humidity, air_hum_interval, hypoxic_air, hyp_air_interval, cleaning, light
 

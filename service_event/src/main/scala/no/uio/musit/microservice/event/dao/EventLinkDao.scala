@@ -20,38 +20,22 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.dao.EventDao._
-import no.uio.musit.microservice.event.domain.{ EventRelations, EventType, _ }
-import no.uio.musit.microservices.common.domain.MusitInternalErrorException
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
-import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservices.common.utils.ErrorHelper
-import no.uio.musit.microservices.common.utils.Misc._
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import slick.driver.JdbcProfile
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import no.uio.musit.microservices.common.extensions.EitherExtensions._
-import slick.dbio.SequenceAction
+import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.event.dao.EventLinks._
+import play.api.db.slick.DatabaseConfigProvider
 
 /**
  * Created by jstabel on 7/6/16.
  */
 
-object EventLinkDao extends HasDatabaseConfig[JdbcProfile] {
+@Singleton
+class EventLinkDao @Inject()(val dbConfigProvider: DatabaseConfigProvider) extends SharedEventTables {
 
   import driver.api._
 
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
-
   private val EventLinkTable = TableQuery[EventLinkTable]
 
-  private val EventBaseTable = TableQuery[EventDao.EventBaseTable]
+  private val EventBaseTable = TableQuery[EventBaseTable]
 
   def insertEventLinkAction(eventLink: EventLink): DBIO[Int] = {
     insertEventLinkDtoAction(eventLink.toNormalizedEventLinkDto)
@@ -72,24 +56,6 @@ object EventLinkDao extends HasDatabaseConfig[JdbcProfile] {
 
     db.run(query.result)
 
-  }
-
-  case class PartialEventLink(idFrom: Long, relation: EventRelation) {
-    def toFullLink(idTo: Long) = EventLink(idFrom, relation, idTo)
-  }
-
-  case class EventLink(idFrom: Long, relation: EventRelation, idTo: Long) {
-    def normalizedDirection = if (relation.isNormalized)
-      this
-    else
-      EventLink(idTo, relation.getNormalizedDirection, idFrom)
-
-    def toEventLinkDto = EventLinkDto(idFrom, relation.id, idTo)
-
-    def toNormalizedEventLinkDto = normalizedDirection.toEventLinkDto
-  }
-
-  case class EventLinkDto(idFrom: Long, relationId: Int, idTo: Long) {
   }
 
   /*

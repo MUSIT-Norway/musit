@@ -20,13 +20,14 @@
 
 package no.uio.musit.microservice.event.service
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.event.dao.EventDao
 import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 
-object EventService {
+class EventService @Inject()(val eventDao: EventDao) {
   def eventNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(s"Unknown event with id: $id")
 
@@ -34,8 +35,8 @@ object EventService {
     insertEvent(event).musitFutureFlatMap(newId => getEvent(newId, recursive))
 
   def insertEvent(event: Event): MusitFuture[Long] =
-    EventDao.insertEvent(event, true).toMusitFuture
+    eventDao.insertEvent(event, true).toMusitFuture
 
   def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] =
-    EventDao.getEvent(id, recursive)
+    eventDao.getEvent(id, recursive)
 }
