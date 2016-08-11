@@ -18,19 +18,20 @@
  */
 package no.uio.musit.microservice.musitThing.dao
 
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.linking.LinkService
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
+@Singleton
+class MusitThingDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
+) extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._
-
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val ThingTable = TableQuery[MusitThingTable] // scalastyle:ignore
 
@@ -47,7 +48,7 @@ object MusitThingDao extends HasDatabaseConfig[JdbcProfile] {
   def getDisplayName(id: Long): Future[Option[String]] =
     db.run(ThingTable.filter(_.id === id).map(_.displayName).result.headOption)
 
-  def getDisplayID(id: Long): Future[Option[String]] =
+  def getDisplayId(id: Long): Future[Option[String]] =
     db.run(ThingTable.filter(_.id === id).map(_.displayId).result.headOption)
 
   def getById(id: Long): Future[Option[MusitThing]] =
