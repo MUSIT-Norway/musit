@@ -1,7 +1,7 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain.Storage
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
@@ -14,6 +14,11 @@ import scala.concurrent.Future
 object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
+
+  implicit lazy val storageTypeMapper = MappedColumnType.base[StorageType, String](
+    storageType => storageType.toString,
+    string => StorageType.fromString(string)
+  )
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
@@ -32,7 +37,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(action)
   }
 
-  def getStorageType(id: Long): MusitFuture[String] = {
+  def getStorageType(id: Long): MusitFuture[StorageType] = {
     db.run(StorageUnitTable.filter(_.id === id).map(_.storageType).result.headOption)
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
   }
@@ -72,7 +77,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     val id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
 
-    val storageType = column[String]("STORAGE_TYPE")
+    val storageType = column[StorageType]("STORAGE_TYPE")
 
     val storageUnitName = column[String]("STORAGE_UNIT_NAME")
 
@@ -94,7 +99,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
     def create = (
       id: Option[Long],
-      storageType: String,
+      storageType: StorageType,
       storageUnitName: String,
       area: Option[Long],
       areaTo: Option[Long],

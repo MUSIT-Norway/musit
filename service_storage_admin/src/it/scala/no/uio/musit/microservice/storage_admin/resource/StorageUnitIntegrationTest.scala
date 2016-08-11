@@ -86,7 +86,6 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
       storageUnit.id mustBe Some(1)
-      storageUnit.`type` mustBe Room.storageType
       storageUnit.name mustBe "UkjentRom"
 
     }
@@ -97,7 +96,6 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
       storageUnit.id mustBe Some(2)
-      storageUnit.`type` mustBe Building.storageType
       storageUnit.name mustBe "KHM"
 
     }
@@ -184,7 +182,6 @@ class StorageUnitIntegrationTest extends PlaySpec with OneServerPerSuite with Sc
       storageUnit.address mustBe Some("vet ikke")
       val id = storageUnit.id.get
       storageUnit.name mustBe "Bygning0"
-
       val udateJson = s"""{"type":"Building","id": $id, "name":"NyBygning", "address": "OrdentligAdresse"}"""
       val res = (for {
         res <- updateStorageUnit(id, udateJson)

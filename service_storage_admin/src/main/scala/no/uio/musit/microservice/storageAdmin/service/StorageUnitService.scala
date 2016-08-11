@@ -19,7 +19,7 @@
 package no.uio.musit.microservice.storageAdmin.service
 
 import no.uio.musit.microservice.storageAdmin.dao._
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
 import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
@@ -32,7 +32,7 @@ import scala.util.Left
 
 trait StorageUnitService {
 
-  private def storageUnitTypeMismatch(id: Long, expected: String, inDatabase: String): MusitError =
+  private def storageUnitTypeMismatch(id: Long, expected: StorageType, inDatabase: StorageType): MusitError =
     ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: $expected, " +
       s"but had the type: $inDatabase in the database.")
 
@@ -64,14 +64,14 @@ trait StorageUnitService {
     val musitFutureStorageUnit = getStorageUnitOnly(id)
     musitFutureStorageUnit.musitFutureFlatMap { storageUnit =>
       storageUnit.storageType match {
-        case StorageUnit.storageType => MusitFuture.successful(Storage.fromDTO(storageUnit))
-        case Building.storageType => getBuildingById(id).musitFutureMap(storageBuilding => Storage.getBuilding(storageUnit, storageBuilding))
-        case Room.storageType => getRoomById(id).musitFutureMap(storageRoom => Storage.getRoom(storageUnit, storageRoom))
+        case StorageType.StorageUnit => MusitFuture.successful(Storage.fromDTO(storageUnit))
+        case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding => Storage.getBuilding(storageUnit, storageBuilding))
+        case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom => Storage.getRoom(storageUnit, storageRoom))
       }
     }
   }
 
-  def getStorageType(id: Long): MusitFuture[String] =
+  def getStorageType(id: Long): MusitFuture[StorageType] =
     StorageUnitDao.getStorageType(id)
 
   def all: Future[Seq[StorageUnitDTO]] =
@@ -80,7 +80,7 @@ trait StorageUnitService {
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =
     StorageUnitDao.updateStorageUnit(id, Storage.toDTO(storageUnit))
 
-  def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: String): MusitFuture[Boolean] =
+  def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageType): MusitFuture[Boolean] =
     getStorageType(id).musitFutureFlatMapInnerEither {
       storageUnitTypeInDatabase =>
         boolToMusitBool(
@@ -90,7 +90,7 @@ trait StorageUnitService {
     }
 
   def updateStorageTripleByID(id: Long, triple: Storage): Future[Either[MusitError, Int]] =
-    verifyStorageTypeMatchesDatabase(id, triple.`type`).flatMap {
+    verifyStorageTypeMatchesDatabase(id, StorageType.fromStorage(triple)).flatMap {
       case Right(true) =>
         triple match {
           case st: StorageUnit =>

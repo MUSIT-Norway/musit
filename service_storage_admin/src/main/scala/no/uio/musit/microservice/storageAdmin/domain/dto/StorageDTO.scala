@@ -14,7 +14,7 @@ sealed trait StorageDTO {
   val groupWrite: Option[String]
   val links: Option[Seq[Link]]
   val isDeleted: Boolean
-  val storageType: String
+  val storageType: StorageType
 }
 
 case class BuildingDTO(
@@ -29,7 +29,7 @@ case class BuildingDTO(
   groupWrite: Option[String],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
-  storageType: String,
+  storageType: StorageType,
   address: Option[String]
 ) extends StorageDTO
 
@@ -45,7 +45,7 @@ case class RoomDTO(
   groupWrite: Option[String],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
-  storageType: String,
+  storageType: StorageType,
   sikringSkallsikring: Option[Boolean],
   sikringTyverisikring: Option[Boolean],
   sikringBrannsikring: Option[Boolean],
@@ -68,5 +68,5 @@ case class StorageUnitDTO(
   groupWrite: Option[String],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
-  storageType: String
+  storageType: StorageType
 ) extends StorageDTO

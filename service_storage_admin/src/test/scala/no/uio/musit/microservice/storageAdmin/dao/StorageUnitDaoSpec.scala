@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain.StorageUnit
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
@@ -38,8 +38,8 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
     "setting isPartOf for a StorageUnit" should {
       "succeed" in {
-        StorageUnitDao.insert(StorageUnitDTO(None, "C2", None, None, None, None, None, None, None, None, isDeleted = false, StorageUnit.storageType))
-        StorageUnitDao.insert(StorageUnitDTO(None, "C2", None, None, None, None, None, None, None, None, isDeleted = false, StorageUnit.storageType))
+        StorageUnitDao.insert(StorageUnitDTO(None, "C2", None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
+        StorageUnitDao.insert(StorageUnitDTO(None, "C2", None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
         val result = StorageUnitDao.all().futureValue
         result.size mustBe 2
         StorageUnitDao.setPartOf(1, 2).futureValue mustBe 1

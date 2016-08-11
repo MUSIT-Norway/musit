@@ -20,6 +20,7 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import no.uio.musit.microservice.storageAdmin.dao.{ BuildingDao, RoomDao }
 import no.uio.musit.microservice.storageAdmin.domain._
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageType
 import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
@@ -59,12 +60,12 @@ class StorageUnitResource extends Controller {
     StorageUnitService.all.flatMap(list => {
       Future.sequence(list.map(unit => {
         unit.storageType match {
-          case StorageUnit.storageType =>
+          case StorageType.StorageUnit =>
             Future.successful(Storage.fromDTO(unit))
-          case Building.storageType =>
+          case StorageType.Building =>
             BuildingDao.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
               Storage.getBuilding(unit, building)))
-          case Room.storageType =>
+          case StorageType.Room =>
             RoomDao.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
               Storage.getRoom(unit, room)))
         }
