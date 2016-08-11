@@ -40,5 +40,12 @@
     "host": "localhost",
     "port": "7070",
     "protocol": "http://"
+  },
+  {
+    "name": "event",
+    "scalaName": "EventResource",
+    "host": "localhost",
+    "port": "7070",
+    "protocol": "http://"
   }
 ]
