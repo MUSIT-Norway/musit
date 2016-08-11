@@ -68,7 +68,7 @@ export default class NodeLeftMenuComponent extends Component {
         <div style={{ border: 'none', textAlign: 'center' }}>
           <Button
             id={`${identity}_newNode`}
-            onClick={() => onClickNewNode()}
+            onClick={() => onClickNewNode(identity)}
             style={{ width: '100%', textAlign: 'left' }}
           >
             <FontAwesome name="plus-circle" style={{ padding: '2px' }} />

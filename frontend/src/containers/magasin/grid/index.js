@@ -78,19 +78,27 @@ export default class StorageUnitsContainer extends React.Component {
   }
 
   makeLeftMenu(rootNode, statistics) {
+    const { onEdit } = this.props
+
     return (<div style={{ paddingTop: 10 }}>
       <NodeLeftMenuComponent
         id={rootNode ? rootNode.id : null}
         translate={this.props.translate}
-        onClickNewNode={() => this.props.history.push('/storageunit/add')}
+        onClickNewNode={(parentId) => {
+          if (parentId) {
+            this.props.history.push(`/storageunit/${parentId}/add`)
+          } else {
+            this.props.history.push('/storageunit/add')
+          }
+        }}
         objectsOnNode={statistics ? statistics.objectsOnNode : null}
         totalObjectCount={statistics ? statistics.totalObjectCount : null}
         underNodeCount={statistics ? statistics.underNodeCount : null}
-        onClickProperties={(key) => key}
+        onClickProperties={(id) => onEdit({ id })}
         onClickObservations={(id) => this.props.history.push(`/observationcontrol/${id}`)}
         onClickController={(id) => this.props.history.push(`/observationcontrol/${id}`)}
-        onClickMoveNode={(key) => key}
-        onClickDelete={this.props.onDelete}
+        onClickMoveNode={(id) => id/* TODO: Add move action for rootnode*/}
+        onClickDelete={this.props.onDelete/* TODO: Get working */}
       />
     </div>)
   }
