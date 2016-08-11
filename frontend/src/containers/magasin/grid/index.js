@@ -12,11 +12,7 @@ import Toolbar from '../../../layout/Toolbar'
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
   children: state.storageGridUnit.data || [],
-  rootNode: state.storageGridUnit.root,
-  unit: {
-    id: 1,
-    name: 'Root'
-  }
+  rootNode: state.storageGridUnit.root
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -39,10 +35,6 @@ export default class StorageUnitsContainer extends React.Component {
   static propTypes = {
     children: React.PropTypes.arrayOf(React.PropTypes.object),
     rootNode: React.PropTypes.object,
-    unit: React.PropTypes.shape({
-      id: React.PropTypes.number.isRequired,
-      name: React.PropTypes.string.isRequired
-    }),
     translate: React.PropTypes.func.isRequired,
     loadStorageUnits: React.PropTypes.func.isRequired,
     onDelete: React.PropTypes.func.isRequired,
@@ -85,15 +77,15 @@ export default class StorageUnitsContainer extends React.Component {
     />)
   }
 
-  makeLeftMenu(rootNode) {
+  makeLeftMenu(rootNode, statistics) {
     return (<div style={{ paddingTop: 10 }}>
       <NodeLeftMenuComponent
-        id={rootNode ? rootNode.data.id : null}
+        id={rootNode ? rootNode.id : null}
         translate={this.props.translate}
         onClickNewNode={() => this.props.history.push('/storageunit/add')}
-        objectsOnNode={rootNode ? rootNode.statistics.objectsOnNode : null}
-        totalObjectCount={rootNode ? rootNode.statistics.totalObjectCount : null}
-        underNodeCount={rootNode ? rootNode.statistics.underNodeCount : null}
+        objectsOnNode={statistics ? statistics.objectsOnNode : null}
+        totalObjectCount={statistics ? statistics.totalObjectCount : null}
+        underNodeCount={statistics ? statistics.underNodeCount : null}
         onClickProperties={(key) => key}
         onClickObservations={(id) => this.props.history.push(`/observationcontrol/${id}`)}
         onClickController={(id) => this.props.history.push(`/observationcontrol/${id}`)}
@@ -103,10 +95,10 @@ export default class StorageUnitsContainer extends React.Component {
     </div>)
   }
 
-  makeContentGrid(filter, children) {
+  makeContentGrid(filter, rootNode, children) {
     if (this.state.showNodes) {
       return (<NodeGrid
-        id={this.props.unit.id}
+        id={rootNode ? rootNode.id : 0}
         translate={this.props.translate}
         tableData={children.filter((row) => row.name.indexOf(filter) !== -1)}
         onPick={this.props.onPick}
@@ -114,7 +106,7 @@ export default class StorageUnitsContainer extends React.Component {
       />)
     }
     return (<ObjectGrid
-      id={this.props.unit.id}
+      id={rootNode ? rootNode.id : 0}
       translate={this.props.translate}
       tableData={[]}
     />)
@@ -122,15 +114,16 @@ export default class StorageUnitsContainer extends React.Component {
 
   render() {
     const { searchPattern } = this.state
-    const { rootNode, children } = this.props
+    const { children } = this.props
+    const { data: rootNodeData, statistics } = this.props.rootNode
     return (
       <Layout
         title={"Magasin"}
         translate={this.props.translate}
         breadcrumb={"Museum / Papirdunken / Esken inni der"}
         toolbar={this.makeToolbar()}
-        leftMenu={this.makeLeftMenu(rootNode)}
-        content={this.makeContentGrid(searchPattern, children)}
+        leftMenu={this.makeLeftMenu(rootNodeData, statistics)}
+        content={this.makeContentGrid(searchPattern, rootNodeData, children)}
       />
     )
   }

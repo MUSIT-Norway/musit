@@ -9,7 +9,7 @@ const DELETE = 'musit/storageunit-grid/DELETE'
 const DELETE_SUCCESS = 'musit/storageunit-grid/DELETE_SUCCESS'
 const DELETE_FAIL = 'musit/storageunit-grid/DELETE_FAIL'
 
-const initialState = {}
+const initialState = { root: {} }
 
 const storageUnitGridReducer = (state = initialState, action = {}) => {
   switch (action.type) {
@@ -62,14 +62,13 @@ const storageUnitGridReducer = (state = initialState, action = {}) => {
           ...state.root,
           loading: false,
           loaded: false,
-          data: {},
           error: action.error
         }
       }
     case CLEAR_ROOT: {
       return {
         ...state,
-        root: undefined
+        root: {}
       }
     }
     case DELETE:
