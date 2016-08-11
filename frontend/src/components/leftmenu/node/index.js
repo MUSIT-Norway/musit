@@ -57,7 +57,7 @@ export default class NodeLeftMenuComponent extends Component {
           <div style={{ border: 'none', textAlign: 'center' }}>
             {translate(`musit.leftMenu.node.${typeText}`)}
             <br />
-            <ControlLabel id={`${id}_${typeText}`}>{type}</ControlLabel>
+            <ControlLabel id={`${id}_${typeText}`}>{Number.isNaN(type) ? 'N/A' : type}</ControlLabel>
           </div>
         )
       }

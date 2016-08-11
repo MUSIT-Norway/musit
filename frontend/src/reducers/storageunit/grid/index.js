@@ -46,9 +46,9 @@ const storageUnitGridReducer = (state = initialState, action = {}) => {
         root: {
           ...state.root,
           statistics: {
-            objectsOnNode: 0,
-            totalObjectCount: 0,
-            underNodeCount: 0
+            objectsOnNode: Number.NaN,
+            totalObjectCount: Number.NaN,
+            underNodeCount: Number.NaN
           },
           loading: false,
           loaded: true,

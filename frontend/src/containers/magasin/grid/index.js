@@ -91,9 +91,9 @@ export default class StorageUnitsContainer extends React.Component {
             this.props.history.push('/storageunit/add')
           }
         }}
-        objectsOnNode={statistics ? statistics.objectsOnNode : null}
-        totalObjectCount={statistics ? statistics.totalObjectCount : null}
-        underNodeCount={statistics ? statistics.underNodeCount : null}
+        objectsOnNode={statistics ? statistics.objectsOnNode : Number.NaN}
+        totalObjectCount={statistics ? statistics.totalObjectCount : Number.NaN}
+        underNodeCount={statistics ? statistics.underNodeCount : Number.NaN}
         onClickProperties={(id) => onEdit({ id })}
         onClickObservations={(id) => this.props.history.push(`/observationcontrol/${id}`)}
         onClickController={(id) => this.props.history.push(`/observationcontrol/${id}`)}
