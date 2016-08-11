@@ -270,31 +270,16 @@ export default class ControlView extends React.Component {
   onClickSave() {
     if (this.oneStateIsNotOK()) {
       this.props.onLagreControl(this.state)
-      hashHistory.push('/observation/control/add/3')
+      hashHistory.push('/observation/control/add')
     } else {
       this.props.onLagreControl(this.state)
     }
   }
   getDate() {
-    // const r = `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`
     return moment().format('mm/dd/yyyy');
   }
 
   render() {
-    /*
-    const stateOKorNotOK = () => {
-      return (this.state.temperatureOK != null ||
-        this.state.relativeHumidityOK != null ||
-        this.state.inertAirOK != null ||
-        this.state.lightConditionsOK != null ||
-        this.state.cleaningOK != null ||
-        this.state.gasOK != null ||
-        this.state.alchoholOK != null ||
-        this.state.moldFungusOK != null ||
-        this.state.pestOK != null)
-    } */
-
-
     const { translate } = this.props
     const renderReadOnly = (v) => {
       return <FormControl style={{ backgroundColor: '#f2f2f2' }} readOnly value={v} />

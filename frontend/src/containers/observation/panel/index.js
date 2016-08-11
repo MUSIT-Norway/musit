@@ -31,6 +31,8 @@ import { addObservation, loadObservation } from '../../../reducers/observation'
 import { actions } from './actions'
 import { MusitField } from '../../../components/formfields'
 import SaveCancel from '../../../components/formfields/saveCancel/SaveCancel'
+import { resolveConditions } from '../../../util'
+
 // TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
@@ -67,6 +69,7 @@ export default class ObservationView extends React.Component {
     controlObservations: React.PropTypes.object,
     onDoneBySuggestionsUpdateRequested: React.PropTypes.func.isRequired,
     suggest: React.PropTypes.array.isRequired,
+    route: React.PropTypes.object,
   }
 
   constructor(props) {
@@ -74,19 +77,6 @@ export default class ObservationView extends React.Component {
 
     const { translate } = props
     this.displayExisting = !!this.props.params.id
-    this.newControlObservation = !!this.props.params.control
-
-    this.ifff = (condition1, block1, condition2, block2, blockElse) => {
-      let lvString = ''
-      if (condition1) {
-        lvString = block1
-      } else if (condition2) {
-        lvString = block2
-      } else {
-        lvString = blockElse
-      }
-      return lvString
-    }
 
     this.observationTypeDefinitions = observationTypeDefinitions(translate, this.actions)
     // TODO: Language binding.
@@ -255,9 +245,8 @@ export default class ObservationView extends React.Component {
     }
 
     this.addNewControlObservationArrayOfJson = (array, obsType, defaultValuesType) => {
-      const arr = array
-      arr.push(this.addNewControlObservationJson(obsType, defaultValuesType))
-      return arr
+      array.push(this.addNewControlObservationJson(obsType, defaultValuesType))
+      return array
     }
     this.mapControlObservation = (arr, controlType, obsType, defaultValuesType) => {
       if (this.props.controlObservations[controlType] === false) {
@@ -279,10 +268,10 @@ export default class ObservationView extends React.Component {
       return arr
     }
     this.state = {
-      observations: this.ifff(
+      observations: resolveConditions(
         this.displayExisting,
         this.props.observations,
-        this.newControlObservation,
+        this.props.route.newControlObservation,
         this.addNewControlObservation(),
         []
       )
@@ -316,7 +305,7 @@ export default class ObservationView extends React.Component {
   }
 
   getDoneBySuggestionValue(suggestion) {
-    return `${suggestion.fn}`
+    return suggestion.fn
   }
 
 
@@ -366,7 +355,6 @@ export default class ObservationView extends React.Component {
       observationTypes,
       getDoneBySuggestionValue,
       renderDoneBySuggestion,
-      ifff,
       selectType,
       onChangeDoneBy,
       onCancelObservation
@@ -418,7 +406,7 @@ export default class ObservationView extends React.Component {
                 id={`new_${index}`}
                 title={observation.type ? observationTypes[observation.type].label : null || 'Vennligst velg...'}
                 pullRight
-                disabled={this.displayExisting || this.newControlObservation}
+                disabled={this.displayExisting || this.props.route.newControlObservation}
                 onSelect={(observationType) => selectType(index, observationType)}
               >
                 {menuItems}
@@ -439,16 +427,15 @@ export default class ObservationView extends React.Component {
               <Row>
                 <Col style={{ textAlign: 'center' }}>
                   <PageHeader>
-                    {ifff(
-                      this.newControlObservation,
-                      translate('musit.newControl.title')
-                      ,
+                    {resolveConditions(
+                      this.props.route.newControlObservation,
+                      translate('musit.newControl.title'),
                       this.displayExisting,
                       translate('musit.observation.viewObservationHeader'),
                       translate('musit.observation.newObservationHeader')
                     )}
                     <br />
-                    { this.newControlObservation ? translate('musit.observation.registerObservations') : ''}
+                    { this.props.route.newControlObservation ? translate('musit.observation.registerObservations') : ''}
                   </PageHeader>
                 </Col>
               </Row>
@@ -499,14 +486,14 @@ export default class ObservationView extends React.Component {
               : ''}
               <h1 />
               {renderActiveTypes(observations)}
-              {this.displayExisting || this.newControlObservation ? '' :
+              {this.displayExisting || this.props.route.newControlObservation ? '' :
                 <Row>
                   <h1 />
                   <hr />
                   <Col sm={5} smOffset={1}>
                     <Button
                       onClick={() => addNewObservation()}
-                      disabled={this.displayExisting || this.newControlObservation}
+                      disabled={this.displayExisting || this.props.route.newControlObservation}
                     >
                       <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
                     </Button>
