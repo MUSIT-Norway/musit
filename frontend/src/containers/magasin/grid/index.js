@@ -38,6 +38,7 @@ const mapDispatchToProps = (dispatch) => ({
 export default class StorageUnitsContainer extends React.Component {
   static propTypes = {
     children: React.PropTypes.arrayOf(React.PropTypes.object),
+    rootNode: React.PropTypes.object,
     unit: React.PropTypes.shape({
       id: React.PropTypes.number.isRequired,
       name: React.PropTypes.string.isRequired
@@ -84,9 +85,7 @@ export default class StorageUnitsContainer extends React.Component {
     />)
   }
 
-  makeLeftMenu() {
-    const { rootNode } = this.state
-
+  makeLeftMenu(rootNode) {
     return (<div style={{ paddingTop: 10 }}>
       <NodeLeftMenuComponent
         id={rootNode ? rootNode.data.id : null}
@@ -104,16 +103,14 @@ export default class StorageUnitsContainer extends React.Component {
     </div>)
   }
 
-  makeContentGrid(filter) {
+  makeContentGrid(filter, children) {
     if (this.state.showNodes) {
       return (<NodeGrid
         id={this.props.unit.id}
         translate={this.props.translate}
-        tableData={this.props.children.filter((row) => row.name.indexOf(filter) !== -1)}
+        tableData={children.filter((row) => row.name.indexOf(filter) !== -1)}
         onPick={this.props.onPick}
-        onClick={(unit) =>
-          this.props.history.push(`/magasin/${unit.id}`)
-        }
+        onClick={(row) => this.props.loadChildren(row.id)}
       />)
     }
     return (<ObjectGrid
@@ -125,14 +122,15 @@ export default class StorageUnitsContainer extends React.Component {
 
   render() {
     const { searchPattern } = this.state
+    const { rootNode, children } = this.props
     return (
       <Layout
         title={"Magasin"}
         translate={this.props.translate}
         breadcrumb={"Museum / Papirdunken / Esken inni der"}
         toolbar={this.makeToolbar()}
-        leftMenu={this.makeLeftMenu()}
-        content={this.makeContentGrid(searchPattern)}
+        leftMenu={this.makeLeftMenu(rootNode)}
+        content={this.makeContentGrid(searchPattern, children)}
       />
     )
   }

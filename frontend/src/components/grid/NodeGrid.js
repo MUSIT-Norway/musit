@@ -9,6 +9,7 @@ export default class NodeGrid extends Component {
     id: PropTypes.number.isRequired,
     translate: PropTypes.func.isRequired,
     tableData: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.number.isRequired,
       name: PropTypes.string.isRequired,
       type: PropTypes.string.isRequired,
       objectCount: PropTypes.number,
