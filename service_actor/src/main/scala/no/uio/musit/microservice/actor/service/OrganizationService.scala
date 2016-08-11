@@ -18,38 +18,39 @@
  */
 package no.uio.musit.microservice.actor.service
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Organization
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch, MusitStatusMessage }
 import play.api.http.Status
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
  * Business logic for the Person entity in the microservice, simple lookups and so on.
  */
-trait OrganizationService {
+class OrganizationService @Inject() (val actorDao: ActorDao) {
 
   def all: Future[Seq[Organization]] = {
-    ActorDao.allOrganizations()
+    actorDao.allOrganizations()
   }
 
   def find(id: Long): Future[Option[Organization]] = {
-    ActorDao.getOrganizationById(id)
+    actorDao.getOrganizationById(id)
   }
 
   def find(search: MusitSearch): Future[Seq[Organization]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
-    ActorDao.getOrganizationByName(searchString)
+    actorDao.getOrganizationByName(searchString)
   }
 
   def create(organization: Organization): Future[Organization] = {
-    ActorDao.insertOrganization(organization)
+    actorDao.insertOrganization(organization)
   }
 
   def update(organization: Organization): Future[Either[MusitError, MusitStatusMessage]] = {
-    ActorDao.updateOrganization(organization).map {
+    actorDao.updateOrganization(organization).map {
       case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
       case 1 => Right(MusitStatusMessage("Record was updated!"))
       case _ => Left(MusitError(Status.BAD_REQUEST, "Update updated several records!"))
@@ -57,7 +58,7 @@ trait OrganizationService {
   }
 
   def remove(id: Long): Future[Int] = {
-    ActorDao.deleteOrganization(id)
+    actorDao.deleteOrganization(id)
   }
 
 }

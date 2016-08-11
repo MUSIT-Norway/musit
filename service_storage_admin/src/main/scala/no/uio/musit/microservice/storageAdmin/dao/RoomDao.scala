@@ -1,19 +1,21 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object RoomDao extends HasDatabaseConfig[JdbcProfile] {
+@Singleton
+class RoomDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider,
+    val storageUnitDao: StorageUnitDao
+) extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._
-
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val RoomTable = TableQuery[RoomTable]
 
@@ -31,7 +33,7 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
     //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord
     // will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = StorageUnitDao.updateStorageUnitAction(id, Storage.toDTO(room))
+    val updateStorageUnitOnlyAction = storageUnitDao.updateStorageUnitAction(id, Storage.toDTO(room))
 
     val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, room.copy(id = Some(id))) }
 
@@ -48,7 +50,7 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
 
   def insertRoom(storageUnit: StorageUnitDTO, storageRoom: Room): Future[Storage] = {
     val action = (for {
-      storageUnit <- StorageUnitDao.insertAction(storageUnit)
+      storageUnit <- storageUnitDao.insertAction(storageUnit)
       n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
     } yield Storage.getRoom(storageUnit, storageRoom)).transactionally
     db.run(action)
@@ -77,10 +79,12 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
 
     def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
 
-    def create = (id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean],
+    def create = (
+      id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean],
       sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
       sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean],
-      bevarLysforhold: Option[Boolean], bevarPrevantKons: Option[Boolean]) =>
+      bevarLysforhold: Option[Boolean], bevarPrevantKons: Option[Boolean]
+    ) =>
       Room(id, null, None, None, None, None, None, None, None, None,
         sikringSkallsikring,
         sikringTyverisikring,
@@ -95,4 +99,5 @@ object RoomDao extends HasDatabaseConfig[JdbcProfile] {
       room.sikringBrannsikring, room.sikringVannskaderisiko,
       room.sikringRutineOgBeredskap, room.bevarLuftfuktOgTemp, room.bevarLysforhold, room.bevarPrevantKons)
   }
+
 }

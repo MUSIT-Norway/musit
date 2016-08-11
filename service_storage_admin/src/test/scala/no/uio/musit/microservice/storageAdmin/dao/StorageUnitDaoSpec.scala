@@ -19,14 +19,12 @@
 
 package no.uio.musit.microservice.storageAdmin.dao
 
-import no.uio.musit.microservice.storageAdmin.domain.StorageUnit
 import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-
-import scala.util.Success
 
 class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
@@ -34,17 +32,22 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
     .configure(PlayTestDefaults.inMemoryDatabaseConfig())
     .build()
 
+  val storageDao: StorageUnitDao = {
+    val instance = Application.instanceCache[StorageUnitDao]
+    instance(app)
+  }
+
   "Interacting with the StorageUnitDao" when {
 
     "setting isPartOf for a StorageUnit" should {
       "succeed" in {
-        StorageUnitDao.insert(StorageUnitDTO(None, "C2", None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
-        StorageUnitDao.insert(StorageUnitDTO(None, "C2", None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
-        val result = StorageUnitDao.all().futureValue
+        storageDao.insert(StorageUnitDTO(None, "C2", None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
+        storageDao.insert(StorageUnitDTO(None, "C2", None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
+        val result = storageDao.all().futureValue
         result.size mustBe 2
-        StorageUnitDao.setPartOf(1, 2).futureValue mustBe 1
+        storageDao.setPartOf(1, 2).futureValue mustBe 1
         import scala.concurrent.ExecutionContext.Implicits.global
-        StorageUnitDao.getStorageUnitOnlyById(1).map(_.get.isPartOf).futureValue mustBe Some(2)
+        storageDao.getStorageUnitOnlyById(1).map(_.get.isPartOf).futureValue mustBe Some(2)
       }
     }
   }

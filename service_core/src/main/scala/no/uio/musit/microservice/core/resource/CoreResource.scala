@@ -18,21 +18,22 @@
  */
 package no.uio.musit.microservice.core.resource
 
-import no.uio.musit.microservice.core.service.CoreService
 import no.uio.musit.security.Security
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, Controller }
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class CoreResource extends Controller with CoreService {
+class CoreResource extends Controller {
 
-  def getSecurityGroupsForCurrentUser = Action.async { request =>
+  def getSecurityGroupsForCurrentUser = Action.async { implicit request =>
     Security.create(request) match {
-      case Right(futureConnection) => futureConnection.map(conn => Ok(Json.toJson(conn.groupIds)))
+      case Right(futureConnection) =>
+        futureConnection.map(conn => Ok(Json.toJson(conn.groupIds)))
 
-      case Left(error) => Future.successful(Unauthorized(Json.toJson(error)))
+      case Left(error) =>
+        Future.successful(Unauthorized(Json.toJson(error)))
     }
   }
 

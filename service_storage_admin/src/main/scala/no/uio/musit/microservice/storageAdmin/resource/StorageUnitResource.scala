@@ -18,24 +18,28 @@
  */
 package no.uio.musit.microservice.storageAdmin.resource
 
-import no.uio.musit.microservice.storageAdmin.dao.{ BuildingDao, RoomDao }
+import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageType
-import no.uio.musit.microservice.storageAdmin.service.StorageUnitService
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ResourceHelper
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class StorageUnitResource extends Controller {
+class StorageUnitResource @Inject() (
+    storageUnitService: StorageUnitService,
+    buildingService: BuildingService,
+    roomService: RoomService
+) extends Controller {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
-    ResourceHelper.postRootWithMusitResult(StorageUnitService.createStorageTriple, musitResultTriple, (triple: Storage) => Json.toJson(triple))
+    ResourceHelper.postRootWithMusitResult(storageUnitService.createStorageTriple, musitResultTriple, (triple: Storage) => Json.toJson(triple))
   }
 
   def validateChildren = Action.async(BodyParsers.parse.json) { request =>
@@ -49,24 +53,24 @@ class StorageUnitResource extends Controller {
   }
 
   def getChildren(id: Long) = Action.async {
-    StorageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
+    storageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
   }
 
   def getById(id: Long) = Action.async {
-    ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
+    ResourceHelper.getRoot(storageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
   }
 
   def listAll = Action.async {
-    StorageUnitService.all.flatMap(list => {
+    storageUnitService.all.flatMap(list => {
       Future.sequence(list.map(unit => {
         unit.storageType match {
           case StorageType.StorageUnit =>
             Future.successful(Storage.fromDTO(unit))
           case StorageType.Building =>
-            BuildingDao.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
+            buildingService.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
               Storage.getBuilding(unit, building)))
           case StorageType.Room =>
-            RoomDao.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
+            roomService.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
               Storage.getRoom(unit, room)))
         }
       })).map(__ => Ok(Json.toJson(__)))
@@ -77,8 +81,8 @@ class StorageUnitResource extends Controller {
     request =>
       request.body.validate[Storage].asEither match {
         case Right(storage) =>
-          StorageUnitService.updateStorageTripleByID(id, storage).flatMap {
-            case Right(1) => ResourceHelper.getRoot(StorageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
+          storageUnitService.updateStorageTripleByID(id, storage).flatMap {
+            case Right(1) => ResourceHelper.getRoot(storageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
             case Right(n) => Future.successful(NotFound)
             case Left(error) => Future.successful(Status(error.status)(Json.toJson(error)))
           }
@@ -89,7 +93,7 @@ class StorageUnitResource extends Controller {
   }
 
   def deleteRoot(id: Long) = Action.async {
-    ResourceHelper.deleteRoot(StorageUnitService.deleteStorageTriple, id)
+    ResourceHelper.deleteRoot(storageUnitService.deleteStorageTriple, id)
   }
 }
 
