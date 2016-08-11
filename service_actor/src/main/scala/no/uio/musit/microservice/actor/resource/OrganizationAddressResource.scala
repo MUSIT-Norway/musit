@@ -18,6 +18,7 @@
  */
 package no.uio.musit.microservice.actor.resource
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.OrganizationAddress
 import no.uio.musit.microservice.actor.service.OrganizationAddressService
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
@@ -27,14 +28,18 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-class OrganizationAddressResource extends Controller with OrganizationAddressService {
+class OrganizationAddressResource @Inject() (
+    val orgAdrService: OrganizationAddressService
+) extends Controller {
 
   def listRoot(organizationId: Long): Action[AnyContent] = Action.async { request =>
-    all(organizationId).map(addr => { Ok(Json.toJson(addr)) })
+    orgAdrService.all(organizationId).map(addr => {
+      Ok(Json.toJson(addr))
+    })
   }
 
   def getRoot(organizationId: Long, id: Long): Action[AnyContent] = Action.async { request =>
-    find(id).map {
+    orgAdrService.find(id).map {
       case Some(addr) => Ok(Json.toJson(addr))
       case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
     }
@@ -44,7 +49,7 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
     val actorResult: JsResult[OrganizationAddress] = request.body.validate[OrganizationAddress]
     actorResult match {
       case s: JsSuccess[OrganizationAddress] =>
-        create(s.get).map { newAddr => Created(Json.toJson(newAddr)) }
+        orgAdrService.create(s.get).map { newAddr => Created(Json.toJson(newAddr)) }
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
     }
   }
@@ -53,7 +58,7 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
     val actorResult: JsResult[OrganizationAddress] = request.body.validate[OrganizationAddress]
     actorResult match {
       case s: JsSuccess[OrganizationAddress] =>
-        update(s.get).map {
+        orgAdrService.update(s.get).map {
           case Right(statusMessage) => Ok(Json.toJson(statusMessage))
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
@@ -62,6 +67,8 @@ class OrganizationAddressResource extends Controller with OrganizationAddressSer
   }
 
   def deleteRoot(organizationId: Long, id: Long): Action[AnyContent] = Action.async { request =>
-    remove(id).map { noDeleted => Ok(Json.toJson(MusitStatusMessage(s"Deleted $noDeleted record(s)."))) }
+    orgAdrService.remove(id).map { noDeleted =>
+      Ok(Json.toJson(MusitStatusMessage(s"Deleted $noDeleted record(s).")))
+    }
   }
 }

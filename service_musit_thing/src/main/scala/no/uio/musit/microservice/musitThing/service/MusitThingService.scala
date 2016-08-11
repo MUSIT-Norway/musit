@@ -19,9 +19,23 @@
 
 package no.uio.musit.microservice.musitThing.service
 
+import com.google.inject.Inject
+import no.uio.musit.microservice.musitThing.dao.MusitThingDao
+import no.uio.musit.microservice.musitThing.domain.MusitThing
 import play.api.mvc.Request
 
-trait MusitThingService {
+class MusitThingService @Inject() (musitThingDao: MusitThingDao) {
+
+  def all = musitThingDao.all
+
+  def getById(id: Long) = musitThingDao.getById(id)
+
+  def getDisplayId(id: Long) = musitThingDao.getDisplayId(id)
+
+  def getDisplayName(id: Long) = musitThingDao.getDisplayName(id)
+
+  def create(thing: MusitThing) = musitThingDao.insert(thing)
+
   def extractFilterFromRequest(request: Request[_]): Array[String] = {
     request.getQueryString("filter") match {
       case Some(filterString) => "^\\[(\\w*)\\]$".r.findFirstIn(filterString) match {

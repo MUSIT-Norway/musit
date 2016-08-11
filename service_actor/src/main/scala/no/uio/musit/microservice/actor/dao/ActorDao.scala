@@ -18,18 +18,20 @@
  */
 package no.uio.musit.microservice.actor.dao
 
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.actor.domain.{ Organization, OrganizationAddress, Person }
 import no.uio.musit.microservices.common.linking.LinkService
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-object ActorDao extends HasDatabaseConfig[JdbcProfile] {
-  import driver.api._
+@Singleton
+class ActorDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
+) extends HasDatabaseConfigProvider[JdbcProfile] {
 
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+  import driver.api._
 
   private val ActorTable = TableQuery[ActorTable]
   private val PersonTable = TableQuery[PersonTable]
