@@ -20,13 +20,13 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{EventRelations, _}
+import no.uio.musit.microservice.event.domain.{ EventRelations, _ }
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
 import play.api.libs.json._
 
 /**
@@ -37,7 +37,7 @@ object Constants {
   val subEventsPrefix = "subEvents-"
 }
 
-object JsonEventHelpers{
+object JsonEventHelpers {
   implicit object JsonEventWriter extends Writes[Event] {
     def writes(event: Event) = JsonEventHelpers.toJson(event, true)
   }
@@ -142,5 +142,4 @@ object JsonEventHelpers{
       singleEventJson
   }
 }
-
 

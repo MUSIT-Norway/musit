@@ -70,7 +70,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
     "getObjectUriViaRelation test" in {
-      EventRelations.getObjectUriViaRelation(532, "storageunit-location") mustBe Some("/storageunit/532")
+      EventRelations.getObjectUriViaRelation(532, "storageunit-location") mustBe Some("storageunit/532")
     }
 
 

@@ -19,11 +19,11 @@
  */
 
 package no.uio.musit.microservice.event.resource
-import no.uio.musit.microservice.event.domain.{Event, EventType}
-import no.uio.musit.microservice.event.service.{EventService, JsonEventHelpers}
+import no.uio.musit.microservice.event.domain.{ Event, EventType }
+import no.uio.musit.microservice.event.service.{ EventService, JsonEventHelpers }
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
-import play.api.mvc.{Action, BodyParsers, Controller}
+import play.api.mvc.{ Action, BodyParsers, Controller }
 import no.uio.musit.microservices.common.domain.MusitSearch
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
@@ -32,6 +32,7 @@ import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservice.event.service.JsonEventHelpers.JsonEventWriter
 
 import scala.concurrent.Future
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class EventResource extends Controller {
 
@@ -53,25 +54,27 @@ class EventResource extends Controller {
 
   def getEvents(optSearch: Option[MusitSearch]) = Action.async { request =>
 
-    val tempResult: MusitResult[(EventType, String, Long)] = optSearch match {
-      case Some(search) => {
-        for {
-          eventTypeName <- getAsMusitResult(search, "eventType")
-          relation <- getAsMusitResult(search, "rel")
-          id <- getAsMusitResult(search, "id")
-          idAsLong <- MusitResult.create(id.toLong)
-          eventType <- EventType.getByNameAsMusitResult(eventTypeName)
-        } yield (eventType, relation, idAsLong)
+    val tempResult: MusitFuture[(EventType, String, Long)] = Future {
+      optSearch match {
+        case Some(search) => {
+          for {
+            eventTypeName <- getAsMusitResult(search, "eventType")
+            relation <- getAsMusitResult(search, "rel")
+            id <- getAsMusitResult(search, "id")
+            idAsLong <- MusitResult.create(id.toLong)
+            eventType <- EventType.getByNameAsMusitResult(eventTypeName)
+          } yield (eventType, relation, idAsLong)
+        }
+        case None => Left(MusitError(message = "Missing search parameters object"))
       }
-      case None => Left(MusitError(message = "Missing search parameters object"))
     }
-    val futureEvents = tempResult.toMusitFuture.musitFutureFlatMap {
+    println("Etter tempResult")
+    val futureEvents = tempResult.musitFutureFlatMap {
       case (eventType, relation, objectId) => getEventsFor(eventType, relation, objectId)
 
     }
 
-    def eventsToJson(events:Seq[Event]) = Json.toJson(events)
-
+    def eventsToJson(events: Seq[Event]) = Json.toJson(events)
     ResourceHelper.getRoot(futureEvents, eventsToJson)
   }
 

@@ -21,15 +21,15 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
+import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
 import no.uio.musit.microservice.event.service._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.dbio.SequenceAction
 import slick.driver.JdbcProfile
 
@@ -46,8 +46,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   private val EventBaseTable = TableQuery[EventBaseTable]
   private val LinkTable = TableQuery[LinkTable]
-
-
 
   def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] =
     EventBaseTable returning EventBaseTable.map(_.id) += eventBaseDto
@@ -217,9 +215,9 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
   }
 
-/** Gets the id of the events having a specific eventType and having a specific relation to a specific "external" object (in the generic links table) */
+  /** Gets the id of the events having a specific eventType and having a specific relation to a specific "external" object (in the generic links table) */
   def getEventIds(eventType: EventType, relation: String, objectUri: String): Future[Seq[Long]] = {
-    val eventsWithCorrectType = EventBaseTable.filter(evt => evt.eventTypeID===eventType)
+    val eventsWithCorrectType = EventBaseTable.filter(evt => evt.eventTypeID === eventType)
     val linksWithCorrectRelationAndId = LinkTable.filter(link => link.rel === relation && link.href === objectUri)
 
     val query = for {

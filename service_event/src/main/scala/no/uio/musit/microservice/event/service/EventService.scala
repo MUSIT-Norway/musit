@@ -48,9 +48,8 @@ object EventService {
 
   private def getEventsFor(eventType: EventType, relation: String, objectUri: String): MusitFuture[Seq[Event]] = {
     val futEventIds = getEventIdsFor(eventType, relation, objectUri)
-    MusitFuture.traverse(futEventIds)(eventId=> getEvent(eventId, true))
+    MusitFuture.traverse(futEventIds)(eventId => getEvent(eventId, true))
   }
-
 
   def getEventsFor(eventType: EventType, relation: String, id: Long): MusitFuture[Seq[Event]] = {
 

@@ -24,8 +24,7 @@ import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.utils.Misc._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.collection.generic.CanBuildFrom
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 
 /**
  * Created by jstabel on 4/22/16.
@@ -77,7 +76,6 @@ object FutureExtensions {
       futEither.map { either => either.right.flatMap(f) }
     }
 
-
   }
 
   object MusitFuture {
@@ -86,8 +84,6 @@ object FutureExtensions {
     def fromError[T](error: MusitError): MusitFuture[T] = Future.successful(Left(error))
 
     def fromMusitResult[T](musitResult: MusitResult[T]) = Future.successful(musitResult)
-
-
 
     private def appendToSeq[T](mySeq: MusitResult[Seq[T]], elem: MusitResult[T]) = {
       mySeq match {
@@ -119,9 +115,8 @@ object FutureExtensions {
       */
 
     def traverse[A, B](in: MusitFuture[Seq[A]])(fn: A => MusitFuture[B]): MusitFuture[Seq[B]] = {
-      in.musitFutureFlatMap(innerSeq=>traverse(innerSeq)(fn))
+      in.musitFutureFlatMap(innerSeq => traverse(innerSeq)(fn))
     }
-
 
   }
 
