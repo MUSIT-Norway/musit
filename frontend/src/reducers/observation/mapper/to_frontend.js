@@ -29,9 +29,8 @@ const wrapAlcoholState = ((s) => {
 
 const wrap = (be) => {
   const ret = {}
-  ret.user = be.user
-  ret.date = be.dato
-  ret.observations = be['subEvents-parts'].map((o) => {
+  ret.doneBy = be.links.filter((f) => { return f.rel === 'actor' })[0].href
+  ret.observations = be['subEvents-parts'] ? be['subEvents-parts'].map((o) => {
     const retobs = {}
     retobs.data = {}
     switch (o.eventType.toLowerCase()) {
@@ -62,17 +61,17 @@ const wrap = (be) => {
         return retobs
       case 'observationbrannsikring':
         retobs.type = 'brannsikring'
-        retobs.data.leftValue = o.brannSikring
+        retobs.data.leftValue = o.brannsikring
         retobs.data.rightValue = o.note
         return retobs
       case 'observationtyverisikring':
         retobs.type = 'tyverisikring'
-        retobs.data.leftValue = o.tyveriSikring
+        retobs.data.leftValue = o.tyverisikring
         retobs.data.rightValue = o.note
         return retobs
       case 'observationvannskaderisiko':
         retobs.type = 'vannskaderisiko'
-        retobs.data.leftValue = o.vannskadeRisiko
+        retobs.data.leftValue = o.vannskaderisiko
         retobs.data.rightValue = o.note
         return retobs
       case 'observationinertair':
@@ -115,7 +114,7 @@ const wrap = (be) => {
         retobs.data.error = 'Not supported / ikke støttet'
         return retobs
     }
-  })
+  }) : []
   return ret
 }
 const toFrontEnd = (be) => {

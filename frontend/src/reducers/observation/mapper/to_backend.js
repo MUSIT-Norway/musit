@@ -30,7 +30,7 @@ const wrap = (e) => {
   const r = {}
   r.eventType = 'Observation'
   r.links = [{ rel: 'actor', href: `actor/${e.doneBy}` }]
-  r['subEvents-parts'] = e.observations.map((el) => {
+  r['subEvents-parts'] = e.observations ? e.observations.map((el) => {
     const re = {}
     switch (el.type) {
       case 'pest':
@@ -72,22 +72,22 @@ const wrap = (e) => {
         break
       case 'skallsikring':
         re.eventType = 'observationSkallSikring'
-        re.skallSikring = el.data.leftValue
+        re.skallsikring = el.data.leftValue
         re.note = el.rightValue
         break
       case 'tyverisikring':
         re.eventType = 'observationTyveriSikring'
-        re.tyveriSikring = el.data.leftValue
+        re.tyverisikring = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'brannsikring':
         re.eventType = 'observationBrannsikring'
-        re.brannSikring = el.data.leftValue
+        re.brannsikring = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'vannskaderisiko':
         re.eventType = 'observationVannskadeRisiko'
-        re.vannskadeRisiko = el.data.leftValue
+        re.vannskaderisiko = el.data.leftValue
         re.note = el.data.rightValue
         break
       case 'hypoxicAir':
@@ -112,7 +112,7 @@ const wrap = (e) => {
     }
     return re
   }
-  )
+) : []
   return r
 }
 

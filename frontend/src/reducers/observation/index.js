@@ -47,7 +47,6 @@ const observationReducer = (state = initialState, action = {}) => {
         data: {}
       };
     case LOAD_SUCCESS:
-      console.log('Success')
       d = mapToFrontEnd(action.result)
       return {
         ...state,
@@ -73,7 +72,6 @@ export const addObservation = (data) => {
   const action = 'post'
   const url = '/api/event/v1/event'
   const dataToPost = mapToBackEnd(data)
-  console.log(dataToPost)
   return {
     types: [ADD, ADD_SUCCESS, ADD_FAIL],
     promise: (client) => client[action](url, { data: dataToPost })
