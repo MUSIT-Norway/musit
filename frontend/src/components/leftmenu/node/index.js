@@ -4,12 +4,12 @@ import FontAwesome from 'react-fontawesome'
 
 export default class NodeLeftMenuComponent extends Component {
   static propTypes = {
-    id: PropTypes.string.isRequired,
+    id: PropTypes.number,
     translate: PropTypes.func.isRequired,
     onClickNewNode: PropTypes.func.isRequired,
-    objectsOnNode: PropTypes.number.isRequired,
-    totalObjectCount: PropTypes.number.isRequired,
-    underNodeCount: PropTypes.number.isRequired,
+    objectsOnNode: PropTypes.number,
+    totalObjectCount: PropTypes.number,
+    underNodeCount: PropTypes.number,
     onClickProperties: PropTypes.func.isRequired,
     onClickObservations: PropTypes.func.isRequired,
     onClickController: PropTypes.func.isRequired,
@@ -31,28 +31,37 @@ export default class NodeLeftMenuComponent extends Component {
       onClickDelete
     } = this.props
     const buttonLink = (type, icon, eventType) => {
-      return (
-        <div style={{ border: 'none', textAlign: 'center' }}>
-          <Button
-            bsStyle="link"
-            id={`${id}_${type}`}
-            onClick={() => eventType(id)}
-            style={{ color: 'black' }}
-          >
-            <FontAwesome name={icon} style={{ padding: '2px' }} />
-            <br />
-            {translate(`musit.leftMenu.node.${type}`)}
-          </Button>
-        </div>
-      ) }
+      let fragment = null
+      if (Number.isInteger(id)) {
+        fragment = (
+          <div style={{ border: 'none', textAlign: 'center' }}>
+            <Button
+              bsStyle="link"
+              id={`${id}_${type}`}
+              onClick={() => eventType(id)}
+              style={{ color: 'black' }}
+            >
+              <FontAwesome name={icon} style={{ padding: '2px' }} />
+              <br />
+              {translate(`musit.leftMenu.node.${type}`)}
+            </Button>
+          </div>
+        )
+      }
+      return fragment
+    }
     const showCount = (type, typeText) => {
-      return (
-        <div style={{ border: 'none', textAlign: 'center' }}>
-          {translate(`musit.leftMenu.node.${typeText}`)}
-          <br />
-          <ControlLabel id={`${id}_${typeText}`}>{type}</ControlLabel>
-        </div>
-      )
+      let fragment = null
+      if (Number.isInteger(id)) {
+        fragment = (
+          <div style={{ border: 'none', textAlign: 'center' }}>
+            {translate(`musit.leftMenu.node.${typeText}`)}
+            <br />
+            <ControlLabel id={`${id}_${typeText}`}>{type}</ControlLabel>
+          </div>
+        )
+      }
+      return fragment
     }
     const newButton = (identity) => {
       return (
@@ -71,11 +80,11 @@ export default class NodeLeftMenuComponent extends Component {
     return (
       <div>
         {newButton(id)}
-        <hr />
+        {(Number.isInteger(id)) ? (<hr />) : null}
         {showCount(objectsOnNode, 'objectsOnNode')}
         {showCount(totalObjectCount, 'totalObjectCount')}
         {showCount(underNodeCount, 'underNodeCount')}
-        <hr />
+        {(Number.isInteger(id)) ? (<hr />) : null}
         {buttonLink('properties', 'cog', onClickProperties)}
         {buttonLink('observations', 'eye', onClickObservations)}
         {buttonLink('controller', 'user-secret', onClickController)}

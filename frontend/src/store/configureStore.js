@@ -32,7 +32,7 @@ const createStore = (client, data) => {
   if (__DEVELOPMENT__) {
     const logger = createLogger()
     finalCreateStore = compose(
-      applyMiddleware(logger, ...middleware),
+      applyMiddleware(...middleware, logger),
       window.devToolsExtension ? window.devToolsExtension() : DevTools.instrument(),
       persistState(window.location.href.match(/[?&]debug_session=([^&]+)\b/))
     )(_createStore)

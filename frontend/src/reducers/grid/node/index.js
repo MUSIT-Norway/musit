@@ -51,7 +51,6 @@ const nodeGridReducer = (state = initialState) => {
 }
 
 export const loadNode = (id) => {
-  console.log('dispatching load for node '+id)
   return {
     type: LOAD_NODE,
     id: id
