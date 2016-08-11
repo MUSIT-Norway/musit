@@ -1,7 +1,7 @@
 export const mapToBackend = (state) => {
   const r = {}
   r.eventType = 'Control'
-  r['subEvents-parts'] = Object.keys(state.data).filter((key) => key.endsWith('OK')).map( (key) => {
+  r['subEvents-parts'] = Object.keys(state.data).filter((key) => key.endsWith('OK')).map((key) => {
     switch (key) {
       case 'inertAirOK':
         return {
@@ -49,7 +49,7 @@ export const mapToBackend = (state) => {
           ok: state.data[key]
         }
       default:
-        throw Error("Unsupported control state key: " + key)
+        throw Error(`Unsupported control state key: ${key}`)
     }
   })
   return r

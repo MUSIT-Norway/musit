@@ -22,7 +22,7 @@ const initialState = {
 
 const controlReducer = (state = initialState, action = {}) => {
   switch (action.type) {
-    case ADD:
+    case ADD: {
       const data = mapToBackend(action.data)
       return {
         ...state,
@@ -30,6 +30,7 @@ const controlReducer = (state = initialState, action = {}) => {
         loaded: false,
         data
       };
+    }
     default:
       return state;
   }
