@@ -25,7 +25,7 @@ export default class Layout extends React.Component {
     translate: React.PropTypes.func.isRequired,
     leftMenu: React.PropTypes.object.isRequired,
     content: React.PropTypes.object.isRequired,
-    breadcrumb: React.PropTypes.string,
+    breadcrumb: React.PropTypes.element,
     toolbar: React.PropTypes.element
   }
 

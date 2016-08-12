@@ -24,7 +24,7 @@ export default function clientMiddleware(client) {
         return action(dispatch, getState);
       }
 
-      const { promise, types, ...rest } = action; // eslint-disable-line no-redeclare
+      const { promise, types, callback, ...rest } = action; // eslint-disable-line no-redeclare
       if (!promise) {
         return next(action);
       }
@@ -34,10 +34,26 @@ export default function clientMiddleware(client) {
 
       const actionPromise = promise(client);
       actionPromise.then(
-        (result) => next({ ...rest, result, type: SUCCESS }),
-        (error) => next({ ...rest, error, type: FAILURE })
+        (result) => {
+          next({ ...rest, result, type: SUCCESS })
+          if (callback) {
+            const { onSuccess } = callback
+            if (typeof onSuccess === 'function') onSuccess()
+          }
+        },
+        (error) => {
+          next({ ...rest, error, type: FAILURE })
+          if (callback) {
+            const { onFailure } = callback
+            if (typeof onFailure === 'function') onFailure()
+          }
+        }
       ).catch((error) => {
         next({ ...rest, error, type: FAILURE });
+        if (callback) {
+          const { onFailure } = callback
+          if (typeof onFailure === 'function') onFailure()
+        }
       });
 
       return actionPromise;

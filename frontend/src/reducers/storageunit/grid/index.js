@@ -79,9 +79,8 @@ const storageUnitGridReducer = (state = initialState, action = {}) => {
     case DELETE_SUCCESS:
       return {
         ...state,
-        loading: false,
-        loaded: true,
-        data: state.data.filter(d => d.id !== action.id)
+        root: {},
+        data: []
       }
     case DELETE_FAIL:
       return {
@@ -131,11 +130,12 @@ export const loadChildren = (id) => {
   };
 }
 
-export const deleteUnit = (id) => {
+export const deleteUnit = (id, callback) => {
   return {
     types: [DELETE, DELETE_SUCCESS, DELETE_FAIL],
     promise: (client) => client.del(`/api/storageadmin/v1/storageunit/${id}`),
-    id
+    id,
+    callback
   };
 }
 

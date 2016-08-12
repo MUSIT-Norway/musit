@@ -8,6 +8,7 @@ import { NodeGrid, ObjectGrid } from '../../../components/grid'
 import Layout from '../../../layout'
 import NodeLeftMenuComponent from '../../../components/leftmenu/node'
 import Toolbar from '../../../layout/Toolbar'
+import Breadcrumb from '../../../layout/Breadcrumb'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
@@ -27,7 +28,21 @@ const mapDispatchToProps = (dispatch) => ({
   onPick: (unit) => dispatch(add('default', unit)),
   onItemClick: (unit) => { hashHistory.push(`/magasin/${unit.id}`) },
   onEdit: (unit) => { hashHistory.push(`/storageunit/${unit.id}`) },
-  onDelete: (unit) => dispatch(deleteUnit(unit.id))
+  onDelete: (id, currentNode) => { // TODO: Problems with delete slower then callback (async)
+    if (id === currentNode.id) {
+      dispatch(deleteUnit(id, {
+        onSuccess: () => {
+          dispatch(clearRoot())
+          if (currentNode.isPartOf) {
+            dispatch(loadChildren(currentNode.isPartOf))
+            dispatch(loadRoot(currentNode.isPartOf))
+          } else {
+            dispatch(loadRoot())
+          }
+        }
+      }))
+    }
+  }
 })
 
 @connect(mapStateToProps, mapDispatchToProps)
@@ -78,7 +93,7 @@ export default class StorageUnitsContainer extends React.Component {
   }
 
   makeLeftMenu(rootNode, statistics) {
-    const { onEdit } = this.props
+    const { onEdit, onDelete, history } = this.props
 
     return (<div style={{ paddingTop: 10 }}>
       <NodeLeftMenuComponent
@@ -86,19 +101,19 @@ export default class StorageUnitsContainer extends React.Component {
         translate={this.props.translate}
         onClickNewNode={(parentId) => {
           if (parentId) {
-            this.props.history.push(`/storageunit/${parentId}/add`)
+            history.push(`/storageunit/${parentId}/add`)
           } else {
-            this.props.history.push('/storageunit/add')
+            history.push('/storageunit/add')
           }
         }}
         objectsOnNode={statistics ? statistics.objectsOnNode : Number.NaN}
         totalObjectCount={statistics ? statistics.totalObjectCount : Number.NaN}
         underNodeCount={statistics ? statistics.underNodeCount : Number.NaN}
         onClickProperties={(id) => onEdit({ id })}
-        onClickObservations={(id) => this.props.history.push(`/observationcontrol/${id}`)}
-        onClickController={(id) => this.props.history.push(`/observationcontrol/${id}`)}
+        onClickObservations={(id) => history.push(`/observationcontrol/${id}`)}
+        onClickController={(id) => history.push(`/observationcontrol/${id}`)}
         onClickMoveNode={(id) => id/* TODO: Add move action for rootnode*/}
-        onClickDelete={this.props.onDelete/* TODO: Get working */}
+        onClickDelete={(id) => onDelete(id, rootNode)}
       />
     </div>)
   }
@@ -120,15 +135,44 @@ export default class StorageUnitsContainer extends React.Component {
     />)
   }
 
+  makeBreadcrumb() {
+    return (<Breadcrumb
+      nodes={[
+        {
+          id: 1,
+          name: 'Magasin',
+          type: 'foo'
+        },
+        {
+          id: 2,
+          name: 'Test',
+          type: 'foo'
+        },
+        {
+          id: 3,
+          name: 'Tast',
+          type: ''
+        }
+      ]}
+      nodeTypes={[
+        {
+          type: 'foo',
+          iconName: 'folder'
+        }
+      ]}
+      onClickCrumb={(node, index) => console.log(`Valgt ${node.name} på index ${index}`)}
+    />)
+  }
+
   render() {
     const { searchPattern } = this.state
-    const { children } = this.props
+    const { children, translate } = this.props
     const { data: rootNodeData, statistics } = this.props.rootNode
     return (
       <Layout
         title={"Magasin"}
-        translate={this.props.translate}
-        breadcrumb={"Museum / Papirdunken / Esken inni der"}
+        translate={translate}
+        breadcrumb={this.makeBreadcrumb()}
         toolbar={this.makeToolbar()}
         leftMenu={this.makeLeftMenu(rootNodeData, statistics)}
         content={this.makeContentGrid(searchPattern, rootNodeData, children)}

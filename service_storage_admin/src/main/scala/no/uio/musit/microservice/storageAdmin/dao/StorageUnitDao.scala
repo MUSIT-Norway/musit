@@ -35,12 +35,12 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
   def getChildren(id: Long): Future[Seq[StorageUnitDTO]] = {
-    val action = StorageUnitTable.filter(_.isPartOf === id).result
+    val action = StorageUnitTable.filter(st => st.isPartOf === id && st.isDeleted === false).result
     db.run(action)
   }
 
   def getStorageType(id: Long): MusitFuture[StorageType] = {
-    db.run(StorageUnitTable.filter(_.id === id).map(_.storageType).result.headOption)
+    db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).map(_.storageType).result.headOption)
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
   }
 
