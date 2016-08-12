@@ -31,21 +31,32 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.libs.ws.WS
+import play.api.libs.ws.{WS, WSRequest}
 
 /**
   * Created by jstabel on 6/10/16.
   */
 
+object WSRequestFakeHelper {
+
+
+  implicit class WSRequestImp2(val wsr: WSRequest) extends AnyVal {
+    def withFakeUser = wsr.withBearerToken("fake-token-zab-xy-musitTestUser")
+  }
+
+}
 
 class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
+  import WSRequestFakeHelper._
+
   val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 8080
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
 
+
   def createEvent(json: String) = {
-    WS.url(s"http://localhost:$port/v1/event").postJsonString(json) |> waitFutureValue
+    WS.url(s"http://localhost:$port/v1/event").withFakeUser.postJsonString(json) |> waitFutureValue
   }
 
 

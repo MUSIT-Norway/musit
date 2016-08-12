@@ -20,23 +20,27 @@
 
 package no.uio.musit.microservice.event.dao
 
+import java.sql.Timestamp
+import java.util.Calendar
+
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
+import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
 import no.uio.musit.microservice.event.service._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
+import no.uio.musit.microservices.common.linking.dao.LinkDao.LinkTable
 import no.uio.musit.microservices.common.utils.ErrorHelper
+import no.uio.musit.security.SecurityConnection
+import org.joda.time.DateTime
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.dbio.SequenceAction
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.linking.dao.LinkDao.LinkTable
 
 object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
@@ -53,8 +57,19 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   def selfLink(id: Long) =
     LinkService.local(Some(id), "self", s"/v1/$id")
 
+
+  /*
+  def currentDateTimeInIsoFormat = {
+
+    val time = new DateTime()
+
+    val isoFormat = ISODateTimeFormat.dateTime.withZone(DateTimeZone.getDefault)
+    isoFormat.print(time)
+  }
+*/
+
   /*Creates an action to insert the event and potentially all related subevents. PartialEventLink is used if the event is inserted as a subElement of a parent element. The id of the parent element is then in the partialEventLink.*/
-  def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean): DBIO[Long] = {
+  def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean, securityConnection: SecurityConnection): DBIO[Long] = {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
     val parentId = partialEventLink.map(_.idFrom)
@@ -65,8 +80,14 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     val partOfParent = partialEventLink.filter(_ => isPartsRelation).map(_.idFrom)
 
+
+    val _registeredBy = securityConnection.userName
+
+    val today = new java.util.Date() //TODO: Find a way to get the date+time
+    val _registeredDate = new java.sql.Timestamp(today.getTime())//Calendar.getInstance().getTime() // new DateTime()
+
     val insertBaseAndLinksAction = (for {
-      newEventId <- insertBaseAction(event.baseEventProps.copy(partOf = partOfParent)) //#OLD (EventHelpers.eventDtoToStoreInDatabase(event, partOfParent))
+      newEventId <- insertBaseAction(event.baseEventProps.copy(partOf = partOfParent, registeredBy = Some(_registeredBy), registeredDate = Some(_registeredDate))) //#OLD (EventHelpers.eventDtoToStoreInDatabase(event, partOfParent))
       _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(event, newEventId))
       _ <- LinkDao.insertLinkAction(selfLink(newEventId))
     } yield newEventId).transactionally
@@ -81,7 +102,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     if (recursive && event.hasSubEvents) {
       action = (for {
         newEventId <- action
-        numInserted <- insertChildrenAction(newEventId, event)
+        numInserted <- insertChildrenAction(newEventId, event, securityConnection)
       } yield newEventId).transactionally
 
     }
@@ -96,15 +117,15 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     action
   }
 
-  def insertEvent(event: Event, recursive: Boolean): Future[Long] = {
-    val action = insertEventAction(event, None, recursive)
+  def insertEvent(event: Event, recursive: Boolean, securityConnection: SecurityConnection): Future[Long] = {
+    val action = insertEventAction(event, None, recursive, securityConnection)
     db.run(action)
   }
 
-  def insertChildrenAction(parentEventId: Long, parentEvent: Event) = {
+  def insertChildrenAction(parentEventId: Long, parentEvent: Event, securityConnection: SecurityConnection) = {
 
     def insertRelatedEvents(relatedEvents: RelatedEvents) = {
-      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true)) //Todo, also handle other relations than parts
+      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true, securityConnection)) //Todo, also handle other relations than parts
       new SequenceAction(actions.toIndexedSeq)
     }
 
@@ -233,7 +254,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   )
 
   class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id.?, eventTypeID, eventNote, partOf, valueLong, valueString, valueDouble) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, eventTypeID, eventNote, partOf, valueLong, valueString, valueDouble, registeredBy, registeredDate) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 
@@ -245,6 +266,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val valueLong = column[Option[Long]]("VALUE_LONG")
     val valueString = column[Option[String]]("VALUE_STRING")
     val valueDouble = column[Option[Double]]("VALUE_FLOAT")
+    val registeredBy = column[Option[String]]("REGISTERED_BY")
+    val registeredDate = column[Option[Timestamp]]("REGISTERED_DATE")
 
     def create = (id: Option[Long],
       eventType: EventType,
@@ -252,7 +275,9 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       partOf: Option[Long],
       valueLong: Option[Long],
       valueString: Option[String],
-      valueDouble: Option[Double]) =>
+      valueDouble: Option[Double],
+      registeredBy: Option[String],
+      registeredDate: Option[Timestamp]) =>
       BaseEventDto(
         id,
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
@@ -262,11 +287,13 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         partOf,
         valueLong,
         valueString,
-        valueDouble
+        valueDouble,
+        registeredBy,
+        registeredDate
       )
 
     def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.partOf, event.valueLong,
-      event.valueString, event.valueDouble)
+      event.valueString, event.valueDouble, event.registeredBy, event.registeredDate)
   }
 
 }

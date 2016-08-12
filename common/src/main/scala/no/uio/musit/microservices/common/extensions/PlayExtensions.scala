@@ -22,7 +22,7 @@ package no.uio.musit.microservices.common.extensions
 
 import java.net.URI
 
-import play.api.libs.ws.{WSRequest, WSResponse}
+import play.api.libs.ws.{ WSRequest, WSResponse }
 import play.api.mvc.Request
 
 //import play.mvc.results._

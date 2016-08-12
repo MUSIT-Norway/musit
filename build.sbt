@@ -181,7 +181,7 @@ lazy val service_event = (
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_event"
   ))
-  )  dependsOn(common, common_test % "it,test")
+  )  dependsOn(common, security, common_test % "it,test")
 
 // Extra tasks
 // TODO: Fix codegen task to have external properties not in GIT

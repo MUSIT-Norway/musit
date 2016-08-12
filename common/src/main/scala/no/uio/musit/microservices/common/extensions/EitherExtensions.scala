@@ -21,7 +21,7 @@
 package no.uio.musit.microservices.common.extensions
 
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, MusitResult}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
 import play.api.http.Status
 
 import scala.util.control.NonFatal

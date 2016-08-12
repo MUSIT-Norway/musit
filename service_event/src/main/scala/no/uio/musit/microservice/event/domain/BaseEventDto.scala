@@ -20,9 +20,13 @@
 
 package no.uio.musit.microservice.event.domain
 
+import java.sql.{Date, Timestamp}
+
 import no.uio.musit.microservice.event.service.CustomFieldsHandler
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
+import org.joda.time.{DateTimeZone, Instant}
+import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json._
 
 /**
@@ -31,13 +35,23 @@ import play.api.libs.json._
 
 object BaseEventDto {
 
+  val isoFormat = ISODateTimeFormat.dateTime.withZone(DateTimeZone.getDefault)
+  def timeStampToIsoFormat(timestamp: Timestamp) = {
+    val instant = new Instant(timestamp.getTime())
+    isoFormat.print(instant)
+  }
+
+  def optTimeStampToIsoFormat(timestamp: Option[Timestamp]) = {timestamp.map(timeStampToIsoFormat)}
+
   implicit object baseEventPropsWrites extends Writes[BaseEventDto] {
 
     def writes(baseEventDto: BaseEventDto): JsValue = {
       var jsObj = Json.obj(
         "id" -> baseEventDto.id,
         "links" -> baseEventDto.links,
-        "eventType" -> baseEventDto.eventType
+        "eventType" -> baseEventDto.eventType,
+        "registeredBy" -> baseEventDto.registeredBy,
+        "registeredDate" -> optTimeStampToIsoFormat(baseEventDto.registeredDate)
       )
 
       val note = baseEventDto.note.map(note =>
@@ -48,10 +62,10 @@ object BaseEventDto {
     }
   }
 }
-
+//RegisteredBy and registeredDate are options even though they are required in the database, because they will be None in input-json
 case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
     relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long],
-    valueString: Option[String], valueDouble: Option[Double]) {
+    valueString: Option[String], valueDouble: Option[Double], registeredBy: Option[String], registeredDate: Option[Timestamp]) {
   def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
 
   def getOptBool = valueLong match {

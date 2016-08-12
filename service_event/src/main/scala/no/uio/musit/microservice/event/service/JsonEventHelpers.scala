@@ -20,13 +20,16 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{ EventRelations, _ }
+import java.sql.Timestamp
+import java.time.LocalDateTime
+
+import no.uio.musit.microservice.event.domain.{EventRelations, _}
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
 import play.api.libs.json._
 
 /**
@@ -43,16 +46,29 @@ object JsonEventHelpers {
   }
 
   private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventDto] = {
+
+    /*
+    //TODO: This is a hack, we don't want to insert the current date, we obviously want to read it from json!
+    val date = new java.util.Date()
+    val timestamp = new java.sql.Timestamp(date.getTime)
+*/
+    def localDateTimeToTimestamp(optLocalDateTime: Option[LocalDateTime]) = {
+      optLocalDateTime.map(localDateTime=>Timestamp.valueOf(localDateTime))
+    }
+
     for {
       id <- (jsObject \ "id").validateOpt[Long]
       links <- (jsObject \ "links").validateOpt[Seq[Link]]
       note <- (jsObject \ "note").validateOpt[String]
+      registeredBy <- (jsObject \ "registeredBy").validateOpt[String]
+      registeredDate <- (jsObject \ "registeredDate").validateOpt[LocalDateTime]
 
       customValueLong <- CustomFieldsHandler.validateCustomIntegerFieldFromJsonIfAny(eventType, jsObject)
       customValueString <- CustomFieldsHandler.validateCustomStringFieldFromJsonIfAny(eventType, jsObject)
       customValueDouble <- CustomFieldsHandler.validateCustomDoubleFieldFromJsonIfAny(eventType, jsObject)
 
-    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble)
+    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble,
+        registeredBy, localDateTimeToTimestamp(registeredDate))
   }
 
   def invokeJsonValidator(multipleDtos: MultipleTablesEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {
