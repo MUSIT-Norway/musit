@@ -11,12 +11,23 @@ const initialState = {
     temperatureOK: null,
     inertAirOK: null,
     gasOK: null,
-    cleaningOK: null,
-    relativeHumidity: null,
     lightConditionsOK: null,
+    cleaningOK: null,
     alchoholOK: null,
+    moldFungusOK: null,
+    relativeHumidityOK: null,
     pestOK: null,
-    moldFungusOK: null
+    storageUnit: null,
+    temperature: '12',
+    temperatureTolerance: '2',
+    relativeHumidity: '89',
+    relativeHumidityInterval: '4',
+    inertAir: '56',
+    inertAirInterval: '4',
+    light: 'Mørkt',
+    cleaning: 'Gullende rent',
+    startDate: null, // moment(),
+    user: null // this.props.user ? this.props.user.name : ''
   }
 }
 

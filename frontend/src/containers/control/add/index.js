@@ -39,8 +39,8 @@ const mapDispatchToProps = (dispatch) => ({
   onLagreControl: (data) => {
     dispatch(addControl(data))
   },
-  updateControl: (data) => {
-    dispatch(addControl(data))
+  updateControl: () => {
+    // dispatch(addControl(data))
   }
 })
 
@@ -51,8 +51,9 @@ export default class ControlView extends React.Component {
     translate: React.PropTypes.func.isRequired,
     user: React.PropTypes.object.isRequired,
     onLagreControl: React.PropTypes.func.isRequired,
-    updateControl: React.PropTypes.func.isRequired,
+    updateControl: React.PropTypes.func.isRequired
   }
+
   constructor(props) {
     super(props)
     this.state = {
@@ -79,32 +80,9 @@ export default class ControlView extends React.Component {
     }
     this.getDate = this.getDate.bind(this)
 
-    this.onTemperatureOKClick = this.onTemperatureOKClick.bind(this)
-    this.onTemperatureNotOKClick = this.onTemperatureNotOKClick.bind(this)
-
-    this.onInertAirOKClick = this.onInertAirOKClick.bind(this)
-    this.onInertAirNotOKClick = this.onInertAirNotOKClick.bind(this)
-
-    this.onRelativeHumidityOKClick = this.onRelativeHumidityOKClick.bind(this)
-    this.onRelativeHumidityNotOKClick = this.onRelativeHumidityNotOKClick.bind(this)
-
-    this.onCleaningOKClick = this.onCleaningOKClick.bind(this)
-    this.onCleaningNotOKClick = this.onCleaningNotOKClick.bind(this)
-
-    this.onLightConditionsOKClick = this.onLightConditionsOKClick.bind(this)
-    this.onLightConditionsNotOKClick = this.onLightConditionsNotOKClick.bind(this)
-
-    this.onAlchoholOKClick = this.onAlchoholOKClick.bind(this)
-    this.onAlchoholNotOKClick = this.onAlchoholNotOKClick.bind(this)
-
-    this.onPestOKClick = this.onPestOKClick.bind(this)
-    this.onPestNotOKClick = this.onPestNotOKClick.bind(this)
-
-    this.onMoldFungusOKClick = this.onMoldFungusOKClick.bind(this)
-    this.onMoldFungusNotOKClick = this.onMoldFungusNotOKClick.bind(this)
-
-    this.onGasOKClick = this.onGasOKClick.bind(this)
-    this.onGasNotOKClick = this.onGasNotOKClick.bind(this)
+    this.onControlClick = this.onControlClick.bind(this)
+    this.onControlClickOK = this.onControlClickOK.bind(this)
+    this.onControlClickNOK = this.onControlClickNOK.bind(this)
 
     this.onClickSave = this.onClickSave.bind(this)
     this.onHandleDateChange = this.onHandleDateChange.bind(this)
@@ -114,159 +92,30 @@ export default class ControlView extends React.Component {
     this.setState({ ...this.state, startDate: d })
   }
 
-  onTemperatureOKClick() {
-    if (this.state.temperatureOK != null && this.state.temperatureOK) {
-      this.setState({ ...this.state, temperatureOK: null })
-    } else {
-      this.setState({ ...this.state, temperatureOK: true })
-    }
-    this.props.updateControl(this.state)
-  }
-
-  onTemperatureNotOKClick() {
-    if (this.state.temperatureOK != null && !this.state.temperatureOK) {
-      this.setState({ ...this.state, temperatureOK: null })
-    } else {
-      this.setState({ ...this.state, temperatureOK: false })
-    }
-    this.props.updateControl(this.state)
-  }
-
-  onInertAirOKClick() {
-    if (this.state.inertAirOK != null && this.state.inertAirOK) {
-      this.setState({ ...this.state, inertAirOK: null })
-    } else {
-      this.setState({ ...this.state, inertAirOK: true })
+  onControlClick(key, bool) {
+    const me = this
+    return () => {
+      if (me.state[key] != null && me.state[key] === bool) {
+        me.setState({ ...me.state, [key]: null })
+      } else {
+        me.setState({ ...me.state, [key]: bool })
+      }
+      me.props.updateControl(me.state)
     }
   }
 
-  onInertAirNotOKClick() {
-    if (this.state.inertAirOK != null && !this.state.inertAirOK) {
-      this.setState({ ...this.state, inertAirOK: null })
-    } else {
-      this.setState({ ...this.state, inertAirOK: false })
-    }
+  onControlClickOK(key) {
+    return this.onControlClick(key, true)
   }
 
-  onRelativeHumidityOKClick() {
-    if (this.state.relativeHumidityOK != null && this.state.relativeHumidityOK) {
-      this.setState({ ...this.state, relativeHumidityOK: null })
-    } else {
-      this.setState({ ...this.state, relativeHumidityOK: true })
-    }
-  }
-
-  onRelativeHumidityNotOKClick() {
-    if (this.state.relativeHumidityOK != null && !this.state.relativeHumidityOK) {
-      this.setState({ ...this.state, relativeHumidityOK: null })
-    } else {
-      this.setState({ ...this.state, relativeHumidityOK: false })
-    }
-  }
-
-  onCleaningOKClick() {
-    if (this.state.cleaningOK != null && this.state.cleaningOK) {
-      this.setState({ ...this.state, cleaningOK: null })
-    } else {
-      this.setState({ ...this.state, cleaningOK: true })
-    }
-  }
-  onCleaningNotOKClick() {
-    if (this.state.cleaningOK != null && !this.state.cleaningOK) {
-      this.setState({ ...this.state, cleaningOK: null })
-    } else {
-      this.setState({ ...this.state, cleaningOK: false })
-    }
-  }
-
-  onLightConditionsOKClick() {
-    if (this.state.lightConditionsOK != null && this.state.lightConditionsOK) {
-      this.setState({ ...this.state, lightConditionsOK: null })
-    } else {
-      this.setState({ ...this.state, lightConditionsOK: true })
-    }
-  }
-  onLightConditionsNotOKClick() {
-    if (this.state.lightConditionsOK != null && !this.state.lightConditionsOK) {
-      this.setState({ ...this.state, lightConditionsOK: null })
-    } else {
-      this.setState({ ...this.state, lightConditionsOK: false })
-    }
-  }
-
-  onAlchoholOKClick() {
-    if (this.state.alchoholOK != null && this.state.alchoholOK) {
-      this.setState({ ...this.state, alchoholOK: null })
-    } else {
-      this.setState({ ...this.state, alchoholOK: true })
-    }
-  }
-  onAlchoholNotOKClick() {
-    if (this.state.alchoholOK != null && !this.state.alchoholOK) {
-      this.setState({ ...this.state, alchoholOK: null })
-    } else {
-      this.setState({ ...this.state, alchoholOK: false })
-    }
-  }
-
-  onPestOKClick() {
-    if (this.state.pestOK != null && this.state.pestOK) {
-      this.setState({ ...this.state, pestOK: null })
-    } else {
-      this.setState({ ...this.state, pestOK: true })
-    }
-  }
-  onPestNotOKClick() {
-    if (this.state.pestOK != null && !this.state.pestOK) {
-      this.setState({ ...this.state, pestOK: null })
-    } else {
-      this.setState({ ...this.state, pestOK: false })
-    }
-  }
-
-  onMoldFungusOKClick() {
-    if (this.state.moldFungusOK != null && this.state.moldFungusOK) {
-      this.setState({ ...this.state, moldFungusOK: null })
-    } else {
-      this.setState({ ...this.state, moldFungusOK: true })
-    }
-  }
-  onMoldFungusNotOKClick() {
-    if (this.state.moldFungusOK != null && !this.state.moldFungusOK) {
-      this.setState({ ...this.state, moldFungusOK: null })
-    } else {
-      this.setState({ ...this.state, moldFungusOK: false })
-    }
-  }
-
-  onGasOKClick() {
-    if (this.state.gasOK != null && this.state.gasOK) {
-      this.setState({ ...this.state, gasOK: null })
-    } else {
-      this.setState({ ...this.state, gasOK: true })
-    }
-  }
-
-
-  onGasNotOKClick() {
-    if (this.state.gasOK != null && !this.state.gasOK) {
-      this.setState({ ...this.state, gasOK: null })
-    } else {
-      this.setState({ ...this.state, gasOK: false })
-    }
+  onControlClickNOK(key) {
+    return this.onControlClick(key, false)
   }
 
   oneStateIsNotOK() {
-    return (this.state.temperatureOK === false ||
-      this.state.relativeHumidityOK === false ||
-      this.state.inertAirOK === false ||
-      this.state.lightConditionsOK === false ||
-      this.state.cleaningOK === false ||
-      this.state.gasOK === false ||
-      this.state.alchoholOK === false ||
-      this.state.moldFungusOK === false ||
-      this.state.pestOK === false)
+    return Object.keys(this.state).filter((k) => k.endsWith('OK') && this.state[k] === false).length > 0
   }
+
   onClickSave() {
     if (this.oneStateIsNotOK()) {
       this.props.onLagreControl(this.state)
@@ -275,14 +124,33 @@ export default class ControlView extends React.Component {
       this.props.onLagreControl(this.state)
     }
   }
+
   getDate() {
     return moment().format('mm/dd/yyyy');
   }
 
   render() {
     const { translate } = this.props
-    const renderReadOnly = (v) => {
-      return <FormControl style={{ backgroundColor: '#f2f2f2' }} readOnly value={v} />
+
+    const renderReadOnly = (leftValue, rightValue) => {
+      const make = (v) => <FormControl style={{ backgroundColor: '#f2f2f2' }} readOnly value={v} />
+
+      if (leftValue && rightValue) {
+        return (<div>
+          <Col md={5}>
+            {make(leftValue)}
+          </Col>
+          <Col md={4}>
+            {make(rightValue)}
+          </Col>
+        </div>)
+      }
+
+      if (leftValue) {
+        return <Col md={9}>{make(leftValue)}</Col>
+      }
+
+      return (<Col md={9}> --- </Col>)
     }
 
     const btnTbr = (<SaveCancel
@@ -291,12 +159,43 @@ export default class ControlView extends React.Component {
       onClickSave={this.onClickSave}
       onClickCancel={(a) => (a)}
     />)
+
+    const fields = [
+      {
+        key: 'temperature',
+        leftValue: this.state.temperature,
+        rightValue: this.state.temperatureTolerance
+      },
+      {
+        key: 'relativeHumidity',
+        leftValue: this.state.relativeHumidity,
+        rightValue: this.state.relativeHumidityInterval
+      },
+      {
+        key: 'inertAir',
+        leftValue: this.state.inertAir,
+        rightValue: this.state.inertAirInterval
+      },
+      {
+        key: 'lightConditions',
+        leftValue: this.state.light
+      },
+      {
+        key: 'cleaning',
+        leftValue: this.state.cleaning
+      },
+      { key: 'gas' },
+      { key: 'alcohol' },
+      { key: 'mold' },
+      { key: 'pest' }
+    ]
+
     return (
       <div>
         <Grid>
           <Row className="row-centered" style={{ paddingLeft: 40 }}>
             <PageHeader>
-              {this.props.translate('musit.newControl.title', true)}
+              {this.props.translate('musit.newControl.title', false)}
             </PageHeader>
           </Row>
 
@@ -342,289 +241,37 @@ export default class ControlView extends React.Component {
             </Col>
           </Row>
 
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-          <Row>
-            <h1 />
-          </Row>
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.temperature')}
-                value={this.state.temperatureOK}
-                updatevalueOK={this.onTemperatureOKClick}
-                updatevalueNotOK={this.onTemperatureNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={5}>
-                  {renderReadOnly(this.state.temperature)}
-                </Col>
-                <Col md={4}>
-                  {renderReadOnly(this.state.temperatureTolerance)}
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.relativeHumidity')}
-                value={this.state.relativeHumidityOK}
-                updatevalueOK={this.onRelativeHumidityOKClick}
-                updatevalueNotOK={this.onRelativeHumidityNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={5}>
-                  {renderReadOnly(this.state.relativeHumidity)}
-                </Col>
-                <Col md={4}>
-                  {renderReadOnly(this.state.relativeHumidityInterval)}
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.inertAir')}
-                value={this.state.inertAirOK}
-                updatevalueOK={this.onInertAirOKClick}
-                updatevalueNotOK={this.onInertAirNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={5}>
-                  {renderReadOnly(this.state.inertAir)}
-                </Col>
-                <Col md={4}>
-                  {renderReadOnly(this.state.inertAirInterval)}
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.lightCondition')}
-                value={this.state.lightConditionsOK}
-                updatevalueOK={this.onLightConditionsOKClick}
-                updatevalueNotOK={this.onLightConditionsNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={9}>
-                  {renderReadOnly(this.state.light)}
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.cleaning')}
-                value={this.state.cleaningOK}
-                updatevalueOK={this.onCleaningOKClick}
-                updatevalueNotOK={this.onCleaningNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={9}>
-                  {renderReadOnly(this.state.cleaning)}
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.gas')}
-                value={this.state.gasOK}
-                updatevalueOK={this.onGasOKClick}
-                updatevalueNotOK={this.onGasNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={9}> --- </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.alchohol')}
-                value={this.state.alchoholOK}
-                updatevalueOK={this.onAlchoholOKClick}
-                updatevalueNotOK={this.onAlchoholNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={9}>
-                  ---
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.mold')}
-                value={this.state.moldFungusOK}
-                updatevalueOK={this.onMoldFungusOKClick}
-                updatevalueNotOK={this.onMoldFungusNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={9}> --- </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <hr />
-            </Col>
-          </Row>
-
-
-          <Row>
-            <Col md={3}>
-              <PairedToogleButtons
-                label={translate('musit.newControl.pest')}
-                value={this.state.pestOK}
-                updatevalueOK={this.onPestOKClick}
-                updatevalueNotOK={this.onPestNotOKClick}
-              />
-            </Col>
-            <Col md={9}>
-              <Row>
-                <Col md={5}>
-                  <label> {translate('musit.newControl.envdata')} </label>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={9}>
-                  ---
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={12}>
-              <p>
+          {fields.map((e, i) => {
+            return (
+              <Row key={i}>
                 <hr />
-              </p>
-            </Col>
-          </Row>
-          <Row>
-            {btnTbr}
-          </Row>
+                <Col md={3}>
+                  <PairedToogleButtons
+                    label={translate(`musit.newControl.${e.key}`)}
+                    value={this.state[`${e.key}OK`]}
+                    updatevalueOK={this.onControlClickOK(`${e.key}OK`)}
+                    updatevalueNotOK={this.onControlClickNOK(`${e.key}OK`)}
+                  />
+                </Col>
+                <Col md={9}>
+                  <Row>
+                    <Col md={5}>
+                      <label> {translate('musit.newControl.envdata')} </label>
+                    </Col>
+                  </Row>
+                  <Row>
+                    {renderReadOnly(e.leftValue, e.rightValue)}
+                  </Row>
+                </Col>
+              </Row>
+            )
+          })}
+
+          <hr />
+
+          {btnTbr}
         </Grid>
-      </div>)
+      </div>
+    )
   }
 }
