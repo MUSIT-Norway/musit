@@ -19,29 +19,30 @@
 
 package no.uio.musit.microservice.actor.service
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservices.common.domain.MusitSearch
 
 import scala.concurrent.Future
 
-trait LegacyPersonService {
+class LegacyPersonService @Inject() (val actorDao: ActorDao) {
 
   def all: Future[Seq[Person]] = {
-    ActorDao.allPersonsLegacy()
+    actorDao.allPersonsLegacy()
   }
 
   def find(id: Long): Future[Option[Person]] = {
-    ActorDao.getPersonLegacyById(id)
+    actorDao.getPersonLegacyById(id)
   }
 
   def find(search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
-    ActorDao.getPersonLegacyByName(searchString)
+    actorDao.getPersonLegacyByName(searchString)
   }
 
   def create(person: Person): Future[Person] = {
-    ActorDao.insertPersonLegacy(person)
+    actorDao.insertPersonLegacy(person)
   }
 
 }

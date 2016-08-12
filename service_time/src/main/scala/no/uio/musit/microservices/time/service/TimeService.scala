@@ -23,7 +23,7 @@ import no.uio.musit.microservices.time.domain._
 import org.joda.time.DateTime
 import org.joda.time.DateTime.now
 
-trait TimeService {
+class TimeService {
 
   def convertToNow(maybeFilter: Option[MusitFilter]): Either[MusitError, MusitTime] =
     maybeFilter.map(f => resolveNow(f)).getOrElse(Right(fromDateTime(now)))

@@ -18,6 +18,7 @@
  */
 package no.uio.musit.microservice.storageAdmin.service
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
 import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
@@ -25,40 +26,44 @@ import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Left
 
-trait StorageUnitService {
+class StorageUnitService @Inject() (
+    storageUnitDao: StorageUnitDao,
+    roomService: RoomService,
+    buildingService: BuildingService
+) {
 
   private def storageUnitTypeMismatch(id: Long, expected: StorageType, inDatabase: StorageType): MusitError =
     ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: ${expected.entryName}, " +
       s"but had the type: ${inDatabase.entryName} in the database.")
 
   def create(storageUnit: StorageUnitDTO): MusitFuture[Storage] =
-    ServiceHelper.daoInsert(StorageUnitDao.insert(storageUnit)).musitFutureMap(Storage.fromDTO)
+    ServiceHelper.daoInsert(storageUnitDao.insert(storageUnit)).musitFutureMap(Storage.fromDTO)
 
   def createStorageTriple(storage: Storage): MusitFuture[Storage] = {
     val storageDTO = Storage.toDTO(storage)
     storage match {
       case su: StorageUnit => create(storageDTO)
-      case room: Room => RoomService.create(storageDTO, room)
-      case building: Building => BuildingService.create(storageDTO, building)
+      case room: Room => roomService.create(storageDTO, room)
+      case building: Building => buildingService.create(storageDTO, building)
     }
   }
 
   def getChildren(id: Long): Future[Seq[Storage]] =
-    StorageUnitDao.getChildren(id).map(_.map(Storage.fromDTO))
+    storageUnitDao.getChildren(id).map(_.map(Storage.fromDTO))
 
   private def getStorageUnitOnly(id: Long) =
-    StorageUnitDao.getStorageUnitOnlyById(id).toMusitFuture(StorageUnitDao.storageUnitNotFoundError(id))
+    storageUnitDao.getStorageUnitOnlyById(id).toMusitFuture(storageUnitDao.storageUnitNotFoundError(id))
 
   private def getBuildingById(id: Long) =
-    BuildingDao.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
+    buildingService.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
 
   private def getRoomById(id: Long) =
-    RoomDao.getRoomById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageRoom with id: $id"))
+    roomService.getRoomById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageRoom with id: $id"))
 
   def getById(id: Long): MusitFuture[Storage] = {
     val musitFutureStorageUnit = getStorageUnitOnly(id)
@@ -72,13 +77,13 @@ trait StorageUnitService {
   }
 
   def getStorageType(id: Long): MusitFuture[StorageType] =
-    StorageUnitDao.getStorageType(id)
+    storageUnitDao.getStorageType(id)
 
   def all: Future[Seq[StorageUnitDTO]] =
-    StorageUnitDao.all()
+    storageUnitDao.all()
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =
-    StorageUnitDao.updateStorageUnit(id, Storage.toDTO(storageUnit))
+    storageUnitDao.updateStorageUnit(id, Storage.toDTO(storageUnit))
 
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageType): MusitFuture[Boolean] =
     getStorageType(id).musitFutureFlatMapInnerEither {
@@ -96,17 +101,14 @@ trait StorageUnitService {
           case st: StorageUnit =>
             updateStorageUnitByID(id, st).map(Right(_))
           case building: Building =>
-            BuildingService.updateBuildingByID(id, building).map(Right(_))
+            buildingService.updateBuildingByID(id, building).map(Right(_))
           case room: Room =>
-            RoomService.updateRoomByID(id, room).map(Right(_))
+            roomService.updateRoomByID(id, room).map(Right(_))
         }
       case Left(error) =>
         Future.successful(Left(error))
     }
 
   def deleteStorageTriple(id: Long): MusitFuture[Int] =
-    StorageUnitDao.deleteStorageUnit(id).toMusitFuture
+    storageUnitDao.deleteStorageUnit(id).toMusitFuture
 }
-
-object StorageUnitService extends StorageUnitService
-

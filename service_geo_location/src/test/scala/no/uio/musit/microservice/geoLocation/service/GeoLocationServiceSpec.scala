@@ -16,25 +16,37 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservice.core.resource
 
-import no.uio.musit.security.Security
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.Json
-import play.api.mvc.{ Action, Controller }
+package no.uio.musit.microservice.geoLocation.service
 
-import scala.concurrent.Future
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.PlaySpec
+import play.api.test.WsTestClient
+import play.api.{ Configuration, Environment }
 
-class CoreResource extends Controller {
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
-  def getSecurityGroupsForCurrentUser = Action.async { implicit request =>
-    Security.create(request) match {
-      case Right(futureConnection) =>
-        futureConnection.map(conn => Ok(Json.toJson(conn.groupIds)))
+class GeoLocationServiceSpec extends PlaySpec with ScalaFutures {
 
-      case Left(error) =>
-        Future.successful(Unauthorized(Json.toJson(error)))
+  val timeout = Timeout(10 seconds)
+
+  val config = Configuration.load(Environment.simple())
+
+  "GeoLocationService rest integration" must {
+
+    "searchAddress" in {
+      WsTestClient.withClient { client =>
+        val service = new GeoLocationService(config, client)
+
+        val response = service.searchGeoNorway("paal bergs vei 56, RYKKINN")
+        whenReady(response, timeout) { geoAddresses =>
+          geoAddresses must not be empty
+        }
+      }
     }
+
   }
 
 }
