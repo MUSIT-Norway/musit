@@ -31,16 +31,12 @@ import { hashHistory } from 'react-router'
 
 const mapStateToProps = (state) => ({
   user: state.auth.user || { name: 'Unknown user' },
-  environmentRequirements: state.environmentRequirements,
   translate: (key, markdown) => Language.translate(key, markdown)
 })
 
 const mapDispatchToProps = (dispatch) => ({
-  onLagreControl: (data) => {
+  saveControl: (data) => {
     dispatch(addControl(data))
-  },
-  updateControl: () => {
-    // dispatch(addControl(data))
   }
 })
 
@@ -50,8 +46,7 @@ export default class ControlView extends React.Component {
   static propTypes = {
     translate: React.PropTypes.func.isRequired,
     user: React.PropTypes.object.isRequired,
-    onLagreControl: React.PropTypes.func.isRequired,
-    updateControl: React.PropTypes.func.isRequired
+    saveControl: React.PropTypes.func.isRequired
   }
 
   constructor(props) {
@@ -118,10 +113,13 @@ export default class ControlView extends React.Component {
 
   onClickSave() {
     if (this.oneStateIsNotOK()) {
-      this.props.onLagreControl(this.state)
-      hashHistory.push('/observation/control/add')
+      hashHistory.push('/observation/control/add', {
+        state: {
+          control: this.state
+        }
+      })
     } else {
-      this.props.onLagreControl(this.state)
+      this.props.saveControl(this.state)
     }
   }
 
