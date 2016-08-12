@@ -73,7 +73,7 @@ const wrap = (e) => {
       case 'skallsikring':
         re.eventType = 'observationSkallSikring'
         re.skallsikring = el.data.leftValue
-        re.note = el.rightValue
+        re.note = el.data.rightValue
         break
       case 'tyverisikring':
         re.eventType = 'observationTyveriSikring'
@@ -100,7 +100,7 @@ const wrap = (e) => {
         re.eventType = 'observationSprit'
         re.note = el.data.commentValue
         re.tilstand = el.data.statusValue
-        re.volum = parseFloat(el.data.volume.replace(',', '.'))
+        re.volum = parseFloat(el.data.volumeValue.replace(',', '.'))
         break
       case 'temperature':
         re.eventType = 'observationTemperature'
@@ -109,6 +109,7 @@ const wrap = (e) => {
         re.note = el.data.commentValue
         break
       default:
+        break
     }
     return re
   }

@@ -78,6 +78,7 @@ export const addObservation = (data) => {
   };
 }
 
+
 export const loadObservation = (id) => {
   // const fromService = {
   //   eventType: 'Observation',

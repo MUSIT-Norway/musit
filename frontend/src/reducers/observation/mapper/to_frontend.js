@@ -23,15 +23,16 @@ const wrapAlcoholState = ((s) => {
     case 'litt uttørket': return 'Litt uttørket'
     case 'noe uttørket': return 'Noe uttrørket'
     case 'tilfredsstillende': return 'Tilfredsstillende'
-    default: return ''
+    default: return s
   }
 })
 
 const wrap = (be) => {
   const ret = {}
-  ret.doneBy = be.links.filter((f) => { return f.rel === 'actor' })[0].href
+  // ret.doneBy = be.links.filter((f) => { return f.rel === 'actor' })[0].href
   ret.observations = be['subEvents-parts'] ? be['subEvents-parts'].map((o) => {
     const retobs = {}
+    retobs.type = ''
     retobs.data = {}
     switch (o.eventType.toLowerCase()) {
       case 'observationlys':
@@ -56,7 +57,7 @@ const wrap = (be) => {
         return retobs
       case 'observationskallsikring':
         retobs.type = 'skallsikring'
-        retobs.data.leftValue = o.skallSikring
+        retobs.data.leftValue = o.skallsikring
         retobs.data.rightValue = o.note
         return retobs
       case 'observationbrannsikring':
@@ -99,16 +100,16 @@ const wrap = (be) => {
         retobs.data.observations = o.livssykluser ? o.livssykluser.map((l) => {
           const obs = {}
           obs.lifeCycle = l.livssyklus
-          obs.count = l.antall
+          obs.count = l.antall.toString().replace('.', ',')
           return obs
         }
       ) : []
         return retobs
       case 'observationsprit':
         retobs.type = 'alcohol'
-        retobs.data.commentValue = o.note
         retobs.data.statusValue = wrapAlcoholState(o.tilstand)
-        retobs.data.volumeValue = parseFloat(o.volum).replace('.', ',')
+        retobs.data.volumeValue = o.volum.toString().replace('.', ',')
+        retobs.data.commentValue = o.note
         return retobs
       default:
         retobs.data.error = 'Not supported / ikke støttet'
