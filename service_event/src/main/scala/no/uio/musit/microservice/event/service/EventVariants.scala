@@ -20,13 +20,16 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{ BaseEventDto, Dto, Event }
+import no.uio.musit.microservice.event.domain.{Dto, Event}
+import no.uio.musit.microservice.event.dto.{BaseEventDto, Dto}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.libs.json.{ JsObject, JsResult }
+import play.api.libs.json.{JsObject, JsResult}
 import slick.dbio._
 
 import scala.concurrent.Future
+
+// FIXME: DTO Specifics?
 
 /**
  * Created by jstabel on 7/7/16.

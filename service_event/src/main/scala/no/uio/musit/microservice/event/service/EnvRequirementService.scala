@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.event.dao.EnvRequirementDao
 import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservice.event.domain.dto.BaseEventDto
+import no.uio.musit.microservice.event.dto.{BaseEventDto, Dto, EnvRequirementDto}
 import play.api.libs.json.{JsObject, JsResult, Json}
 
 import scala.concurrent.Future

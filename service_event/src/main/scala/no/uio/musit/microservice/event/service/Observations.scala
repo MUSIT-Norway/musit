@@ -20,9 +20,10 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.{ ObservationSkadedyrDao, ObservationFromToDao }
+import no.uio.musit.microservice.event.dao.{ObservationFromToDao, ObservationSkadedyrDao}
 import no.uio.musit.microservice.event.domain._
-import play.api.libs.json.{ JsObject, JsResult, Json }
+import no.uio.musit.microservice.event.dto.{BaseEventDto, Dto, ObservationFromToDto, ObservationSkadedyrDto}
+import play.api.libs.json.{JsObject, JsResult, Json}
 
 import scala.concurrent.Future
 
@@ -245,8 +246,8 @@ class ObservationSprit(val baseProps: BaseEventDto) extends Event(baseProps) {
 }
 
 object ObservationSpritService extends SingleTableUsingCustomFields {
-
   def getCustomFieldsSpec = ObservationSpritCustomFieldsSpec.customFieldsSpec
+
 
   def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationSprit(baseProps)
 }

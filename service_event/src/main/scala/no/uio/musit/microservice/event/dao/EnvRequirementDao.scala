@@ -1,7 +1,7 @@
 package no.uio.musit.microservice.event.dao
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.event.domain.EnvRequirementDto
+import no.uio.musit.microservice.event.dto.EnvRequirementDto
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 

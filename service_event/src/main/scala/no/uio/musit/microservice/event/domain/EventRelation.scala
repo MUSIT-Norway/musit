@@ -27,18 +27,27 @@ import no.uio.musit.microservices.common.utils.ErrorHelper
  * Created by jstabel on 7/6/16.
  */
 
-/** isNormalizedDirection is whether this direction is the same which the links go in the event_relation_event table (from -> to). */
+/**
+ * isNormalizedDirection is whether this direction is the same which the links
+ * go in the event_relation_event table (from -> to).
+ */
 case class EventRelation(id: Int, name: String, inverseName: String, isNormalized: Boolean) {
 
-  def getNormalizedDirection = if (isNormalized) this else EventRelations.getByNameOrFail(this.inverseName)
+  def getNormalizedDirection =
+    if (isNormalized) this
+    else EventRelations.getByNameOrFail(this.inverseName)
 }
 
 /**
- * Please try to make the normalized direction reflect the "natural" json/document-embedding.
- * Being consistent here may be useful for a document store (or ElasticSearch) and can make it possible to optimize the generic links part during json-serialization.
+ * Please try to make the normalized direction reflect the "natural"
+ * json/document-embedding.
+ * Being consistent here may be useful for a document store (or ElasticSearch)
+ * and can make it possible to optimize the generic links part during
+ * json-serialization.
  */
 object EventRelations {
   private def defRel(id: Int, name: String, inverseName: String) = EventRelation(id, name, inverseName, true)
+
   private val relations = Seq(
     defRel(1, "parts", "part_of"),
     defRel(2, "motivates", "motivated_by")
@@ -48,20 +57,27 @@ object EventRelations {
 
   private val relationByName: Map[String, EventRelation] = bothSidesRelations.map(rel => rel.name.toLowerCase -> rel).toMap
 
-  //Note that this one is deliberately one-sided, we only want to find the one in the "proper" direction when searching by id. Else we need separate ids for the reverse relations
+  //Note that this one is deliberately one-sided, we only want to find the one
+  // in the "proper" direction when searching by id. Else we need separate ids
+  // for the reverse relations
   private val relationById: Map[Int, EventRelation] = relations.map(rel => rel.id -> rel).toMap
 
-  //This one is hardcoded some places in the system, because it is treated in a special way (not stored in the event-relation-table, but in the base event-table directly
+  //This one is hardcoded some places in the system, because it is treated in a
+  // special way (not stored in the event-relation-table, but in the base
+  // event-table directly
   val relation_parts = getByNameOrFail("parts")
 
-  //Shouldn't be used in the main framework, but perhaps used by tests and some other logic
+  //Shouldn't be used in the main framework, but perhaps used by tests and
+  // some other logic
   val relation_motivates = getByNameOrFail("motivates")
 
   def getByName(name: String) = relationByName.get(name.toLowerCase)
 
   def getById(id: Int) = relationById.get(id)
+
   def getByIdOrFail(id: Int) = getById(id).getOrFail(s"Unable to find relation with id: $id")
 
   def getByNameOrFail(name: String) = getByName(name).getOrFail(s"Unable to find relation with name : $name")
+
   def getMusitResultByName(name: String) = getByName(name).toMusitResult(ErrorHelper.badRequest(s"Unable to find relation with name : $name"))
 }

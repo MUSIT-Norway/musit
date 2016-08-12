@@ -1,13 +1,31 @@
+/*
+ * MUSIT is a museum database to archive natural and cultural history data.
+ * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License,
+ * or any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package no.uio.musit.microservice.event.domain
 
-import no.uio.musit.microservice.event.service.{ CustomFieldsSpec, CustomValuesInEventTable }
+import no.uio.musit.microservice.event.dto.BaseEventDto
+import no.uio.musit.microservice.event.service.{CustomFieldsSpec, CustomValuesInEventTable}
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json._
 
-trait Dto
-
-/**Events related (via relation) to a given event. */
-case class RelatedEvents(relation: EventRelation, events: Seq[Event])
+trait HasCustomField {
+  val customFieldsSpec: CustomFieldsSpec
+}
 
 class Event(val baseEventProps: BaseEventDto) {
   val id: Option[Long] = baseEventProps.id
@@ -18,123 +36,26 @@ class Event(val baseEventProps: BaseEventDto) {
   val relatedSubEvents = baseEventProps.relatedSubEvents
 
   def getCustomBool = CustomValuesInEventTable.getBool(this)
+
   def getCustomOptBool = CustomValuesInEventTable.getOptBool(this)
+
   def getCustomString = CustomValuesInEventTable.getString(this)
+
   def getCustomOptString = CustomValuesInEventTable.getOptString(this)
+
   def getCustomDouble = CustomValuesInEventTable.getDouble(this)
+
   def getCustomOptDouble = CustomValuesInEventTable.getOptDouble(this)
 
-  def subEventsWithRelation(eventRelation: EventRelation) = relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
+  def subEventsWithRelation(eventRelation: EventRelation) =
+    relatedSubEvents.find(p => p.relation == eventRelation).map(_.events)
 
-  def hasSubEvents = relatedSubEvents.length > 0 //We assume none of the event-lists are empty. This is perhaps a wrong assumption.
+  // We assume none of the event-lists are empty. This is perhaps a wrong assumption.
+  def hasSubEvents = relatedSubEvents.nonEmpty
 
   //Maybe not needed, just for convenience
   def getAllSubEvents = relatedSubEvents.flatMap(relatedEvents => relatedEvents.events)
 
   def getAllSubEventsAs[T] = getAllSubEvents.map(subEvent => subEvent.asInstanceOf[T])
 
-  /*#OLD ideas
-
-  //protected var partOf: Option[Event] = None //The part_of relation. ("Semantic")
-  // protected var jsonParent: Option[Event] = None //The parent container element in the json structure. ("Non-semantic")
-
-  def addSubEvents(relation: EventRelation, subEvents: Seq[Event]) = {
-    assert(subEvents.length > 0)
-
-    this.subEvents = this.subEvents :+ RelatedEvents(relation, subEvents)
-    //subEvents.foreach(subEvent => subEvent.jsonParent = Some(this))
-
-    /*
-    if(relation==EventRelations.relation_parts)
-      subEvents.foreach(subEvent => subEvent.partOf = Some(this)) */
-  }*/
-}
-
-case class EnvRequirementDto(
-  id: Option[Long],
-  temperature: Option[Int],
-  tempInterval: Option[Int],
-  airHumidity: Option[Int],
-  airHumInterval: Option[Int],
-  hypoxicAir: Option[Int],
-  hypoxicInterval: Option[Int],
-  cleaning: Option[String],
-  light: Option[String]
-) extends Dto
-
-object EnvRequirementDto {
-  implicit val format = Json.format[EnvRequirementDto]
-}
-
-object ControlSpecificDtoSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineRequiredBoolean("ok")
-}
-
-case class ObservationFromToDto(
-  id: Option[Long],
-  from: Option[Double],
-  to: Option[Double]
-) extends Dto
-
-object ObservationFromToDto {
-  implicit val format = Json.format[ObservationFromToDto]
-}
-
-object ObservationLysCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("lysforhold")
-}
-
-object ObservationRenholdCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("renhold")
-}
-
-object ObservationGassCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("gass")
-}
-
-object ObservationMuggCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("mugg")
-}
-
-object ObservationTyveriSikringCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("tyverisikring")
-}
-
-object ObservationBrannSikringCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("brannsikring")
-}
-
-object ObservationSkallSikringCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("skallsikring")
-}
-
-object ObservationVannskadeRisikoCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("vannskaderisiko")
-}
-
-// ---------------------------------------------------
-// ObservationSkadedyr
-// ---------------------------------------------------
-object ObservationSkadedyrCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("identifikasjon")
-}
-
-//Note: The eventId is only used during writing to the database, it is "None-ed out" after having been read from the database, to prevent it from showing up in json.
-case class LivssyklusDto(eventId: Option[Long], livssyklus: Option[String], antall: Option[Int])
-
-object LivssyklusDto {
-  implicit val format = Json.format[LivssyklusDto]
-}
-
-case class ObservationSkadedyrDto(livssykluser: Seq[LivssyklusDto]) extends Dto
-
-object ObservationSkadedyrDto {
-  implicit val format = Json.format[ObservationSkadedyrDto]
-}
-
-// ---------------------------------------------------
-// ObservationSprit
-// ---------------------------------------------------
-object ObservationSpritCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("tilstand").defineOptDouble("volum")
 }

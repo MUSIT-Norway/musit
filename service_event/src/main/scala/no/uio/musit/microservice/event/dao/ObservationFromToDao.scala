@@ -21,7 +21,7 @@
 package no.uio.musit.microservice.event.dao
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.event.domain.ObservationFromToDto
+import no.uio.musit.microservice.event.dto.ObservationFromToDto
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future

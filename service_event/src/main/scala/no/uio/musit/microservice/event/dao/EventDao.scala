@@ -24,6 +24,7 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.event.dao.EventLinks.PartialEventLink
 import no.uio.musit.microservice.event.domain.dto.BaseEventDto
 import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
+import no.uio.musit.microservice.event.dto.BaseEventDto
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._

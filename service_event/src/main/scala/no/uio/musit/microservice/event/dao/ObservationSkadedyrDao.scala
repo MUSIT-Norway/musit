@@ -21,7 +21,8 @@
 package no.uio.musit.microservice.event.dao
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.event.domain.{LivssyklusDto, ObservationSkadedyrDto}
+import no.uio.musit.microservice.event.domain.ObservationSkadedyrDto
+import no.uio.musit.microservice.event.dto.{LivssyklusDto, ObservationSkadedyrDto}
 import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

@@ -1,4 +1,4 @@
-import no.uio.musit.microservice.event.domain.BaseEventDto
+import no.uio.musit.microservice.event.dto.BaseEventDto
 import org.scalatestplus.play.PlaySpec
 
 import scala.util.Try
