@@ -1,8 +1,8 @@
 import { mapToBackend } from './mapper/to_backend'
 
 const ADD = 'musit/control/ADD'
-const ADD_SUCCESS = 'musit/contol/ADD_SUCCESS'
-const ADD_FAILURE = 'musit/contol/ADD_FAILURE'
+const ADD_SUCCESS = 'musit/control/ADD_SUCCESS'
+const ADD_FAIL = 'musit/control/ADD_FAILURE'
 
 const initialState = {
   user: '',
@@ -40,6 +40,19 @@ const controlReducer = (state = initialState, action = {}) => {
         loaded: false
       };
     }
+    case ADD_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        loaded: true
+      };
+    case ADD_FAIL:
+      return {
+        ...state,
+        loading: false,
+        loaded: false,
+        error: action.error
+      }
     default:
       return state;
   }
@@ -50,7 +63,7 @@ export default controlReducer;
 export const addControl = (controlData) => {
   const data = mapToBackend(controlData)
   return {
-    types: [ADD, ADD_SUCCESS, ADD_FAILURE],
+    types: [ADD, ADD_SUCCESS, ADD_FAIL],
     promise: (client) => client.post('/api/event/v1/event', { data })
   }
 }

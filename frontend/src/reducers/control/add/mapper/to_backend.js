@@ -1,8 +1,8 @@
 export const mapToBackend = (state) => {
   const r = {}
   r.eventType = 'Control'
-  r.doneBY = state.user
-  r.doneDate = state.startDate
+  r.doneBY = state.doneBy
+  r.doneDate = state.doneDate
   r['subEvents-parts'] = Object.keys(state).filter((key) => key.endsWith('OK')).map((key) => {
     switch (key) {
       case 'inertAirOK':
