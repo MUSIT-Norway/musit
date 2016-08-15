@@ -63,9 +63,9 @@ describe('ObservationControlGrid', () => {
     assert(inputComponent[4].innerHTML === '01.01.1983')
   })
   it('Check the 2nd row Date value', () => {
-    assert(inputComponent[8].innerHTML === '01.01.1984')
+    assert(inputComponent[7].innerHTML === '01.01.1984')
   })
   it('Check the 2nd row registered date value', () => {
-    assert(inputComponent[11].innerHTML === '01.01.1983')
+    assert(inputComponent[10].innerHTML === '01.01.1983')
   })
 })
