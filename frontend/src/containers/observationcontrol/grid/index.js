@@ -40,7 +40,8 @@ export default class ObservationControlGridShow extends React.Component {
   static propTypes = {
     unit: React.PropTypes.object.isRequired,
     translate: React.PropTypes.func.isRequired,
-    observationControlGridData: React.PropTypes.arrayOf(React.PropTypes.object)
+    observationControlGridData: React.PropTypes.arrayOf(React.PropTypes.object),
+    params: React.PropTypes.object,
   }
 
   constructor(props) {
@@ -66,7 +67,7 @@ export default class ObservationControlGridShow extends React.Component {
   makeLeftMenu() {
     return (<div style={{ paddingTop: 10 }}>
       <ObservationControlComponent
-        id={this.props.unit.id}
+        id={this.props.params.id}
         translate={this.props.translate}
         selectObservation
         selectControl
@@ -80,7 +81,7 @@ export default class ObservationControlGridShow extends React.Component {
 
   makeContent() {
     return (<ObservationControlGrid
-      id={this.props.unit.id}
+      id={this.props.params.id}
       translate={this.props.translate}
       tableData={this.props.observationControlGridData}
     />)
@@ -89,7 +90,7 @@ export default class ObservationControlGridShow extends React.Component {
   render() {
     return (
       <Layout
-        title={`${this.props.translate('musit.grid.observation.header')}`}
+        title={`${this.props.unit.name} - ${this.props.translate('musit.grid.observation.header')}`}
         translate={this.props.translate}
         breadcrumb={"Museum / Papirdunken / Esken inni der"}
         toolbar={this.makeToolbar()}
