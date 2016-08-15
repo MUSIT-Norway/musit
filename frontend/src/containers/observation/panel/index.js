@@ -305,6 +305,10 @@ export default class ObservationView extends React.Component {
     }
   }
 
+  onSuggestionSelected(event, { suggestion }) {
+    this.updateDoneBy(suggestion)
+  }
+
   getDoneBySuggestionValue(suggestion) {
     return suggestion.fn
   }
@@ -344,9 +348,6 @@ export default class ObservationView extends React.Component {
     )
   }
 
-  onSuggestionSelected(event, { suggestion, suggestionValue, sectionIndex, method }) {
-    this.updateDoneBy(suggestion)
-  }
 
   render() {
     const {
