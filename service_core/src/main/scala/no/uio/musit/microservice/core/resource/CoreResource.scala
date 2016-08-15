@@ -29,11 +29,22 @@ import scala.concurrent.Future
 class CoreResource extends Controller with CoreService {
 
   def getSecurityGroupsForCurrentUser = Action.async { request =>
-    Security.create(request) match {
+    Security.create(request).map {
+      case Right(securityConnection) => Ok(Json.toJson(securityConnection.groupIds))
+
+      case Left(error) => Unauthorized(Json.toJson(error))
+    }
+
+    /*
+
+
+      Security.create(request) match {
       case Right(futureConnection) => futureConnection.map(conn => Ok(Json.toJson(conn.groupIds)))
 
       case Left(error) => Future.successful(Unauthorized(Json.toJson(error)))
     }
+
+     */
   }
 
 }

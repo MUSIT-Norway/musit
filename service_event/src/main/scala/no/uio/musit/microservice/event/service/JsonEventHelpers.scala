@@ -23,13 +23,13 @@ package no.uio.musit.microservice.event.service
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
-import no.uio.musit.microservice.event.domain.{EventRelations, _}
+import no.uio.musit.microservice.event.domain.{ EventRelations, _ }
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
 import play.api.libs.json._
 
 /**
@@ -53,7 +53,7 @@ object JsonEventHelpers {
     val timestamp = new java.sql.Timestamp(date.getTime)
 */
     def localDateTimeToTimestamp(optLocalDateTime: Option[LocalDateTime]) = {
-      optLocalDateTime.map(localDateTime=>Timestamp.valueOf(localDateTime))
+      optLocalDateTime.map(localDateTime => Timestamp.valueOf(localDateTime))
     }
 
     for {
@@ -68,7 +68,7 @@ object JsonEventHelpers {
       customValueDouble <- CustomFieldsHandler.validateCustomDoubleFieldFromJsonIfAny(eventType, jsObject)
 
     } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble,
-        registeredBy, localDateTimeToTimestamp(registeredDate))
+      registeredBy, localDateTimeToTimestamp(registeredDate))
   }
 
   def invokeJsonValidator(multipleDtos: MultipleTablesEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {

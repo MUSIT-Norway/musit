@@ -37,7 +37,7 @@ CREATE TABLE MUSARK_EVENT.EVENT (
   EVENT_TYPE_ID integer not null, -- Move to separate table if we want to allow multiple instantiations
   NOTE VARCHAR2(4000),
   REGISTERED_BY VARCHAR2(100),
-  REGISTERED_DATE date,
+  REGISTERED_DATE timestamp, -- could probably equivalently use datetime.
   VALUE_LONG long, -- Custom value, events can choose to store some event-specific value here.
   VALUE_String clob, -- Custom value, events can choose to store some event-specific value here.
   VALUE_FLOAT float, -- Custom value, events can choose to store some event-specific value here.

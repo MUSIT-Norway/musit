@@ -100,7 +100,7 @@ object ResourceHelper {
     }
   }
 
-  def error(err: MusitError) = {Future.successful(err.toPlayResult)}
+  def error(err: MusitError) = { Future.successful(err.toPlayResult) }
 
   def getRoot[A](futureResultObject: Future[Either[MusitError, A]], toJsonTransformer: A => JsValue): Future[Result] = {
     futureResultObject.mapMusitExceptionToMusitError.map {

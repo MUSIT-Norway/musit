@@ -23,18 +23,18 @@
 package no.uio.musit.security
 
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 import no.uio.musit.security.dataporten.Dataporten
 import play.api.mvc.Request
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 /**
-  * Created by jstabel on 4/15/16.
-  */
+ * Created by jstabel on 4/15/16.
+ */
 
 case class UserInfo(id: String, name: String)
 
@@ -43,9 +43,9 @@ case class GroupInfo(groupType: String, id: String, displayName: String, descrip
 //type TokenToUserIdProvider =  (String) => String
 
 /**
-  * Represents what a "connection" is expected to know of the current user
-  *
-  */
+ * Represents what a "connection" is expected to know of the current user
+ *
+ */
 trait ConnectionInfoProvider {
   def getUserInfo: Future[UserInfo]
 

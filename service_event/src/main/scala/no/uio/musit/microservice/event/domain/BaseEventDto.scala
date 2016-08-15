@@ -20,12 +20,12 @@
 
 package no.uio.musit.microservice.event.domain
 
-import java.sql.{Date, Timestamp}
+import java.sql.{ Date, Timestamp }
 
 import no.uio.musit.microservice.event.service.CustomFieldsHandler
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
-import org.joda.time.{DateTimeZone, Instant}
+import org.joda.time.{ DateTimeZone, Instant }
 import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json._
 
@@ -41,7 +41,7 @@ object BaseEventDto {
     isoFormat.print(instant)
   }
 
-  def optTimeStampToIsoFormat(timestamp: Option[Timestamp]) = {timestamp.map(timeStampToIsoFormat)}
+  def optTimeStampToIsoFormat(timestamp: Option[Timestamp]) = { timestamp.map(timeStampToIsoFormat) }
 
   implicit object baseEventPropsWrites extends Writes[BaseEventDto] {
 

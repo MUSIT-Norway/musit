@@ -24,9 +24,9 @@ import java.sql.Timestamp
 import java.util.Calendar
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
+import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
 import no.uio.musit.microservice.event.service._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
@@ -35,7 +35,7 @@ import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.security.SecurityConnection
 import org.joda.time.DateTime
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.dbio.SequenceAction
 import slick.driver.JdbcProfile
 
@@ -56,7 +56,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   def selfLink(id: Long) =
     LinkService.local(Some(id), "self", s"/v1/$id")
-
 
   /*
   def currentDateTimeInIsoFormat = {
@@ -80,11 +79,9 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     val partOfParent = partialEventLink.filter(_ => isPartsRelation).map(_.idFrom)
 
-
     val _registeredBy = securityConnection.userName
 
-    val today = new java.util.Date() //TODO: Find a way to get the date+time
-    val _registeredDate = new java.sql.Timestamp(today.getTime())//Calendar.getInstance().getTime() // new DateTime()
+    val _registeredDate = new java.sql.Timestamp(DateTime.now().getMillis)
 
     val insertBaseAndLinksAction = (for {
       newEventId <- insertBaseAction(event.baseEventProps.copy(partOf = partOfParent, registeredBy = Some(_registeredBy), registeredDate = Some(_registeredDate))) //#OLD (EventHelpers.eventDtoToStoreInDatabase(event, partOfParent))

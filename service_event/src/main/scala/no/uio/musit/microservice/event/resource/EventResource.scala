@@ -19,11 +19,11 @@
  */
 
 package no.uio.musit.microservice.event.resource
-import no.uio.musit.microservice.event.domain.{Event, EventType}
-import no.uio.musit.microservice.event.service.{EventService, JsonEventHelpers}
+import no.uio.musit.microservice.event.domain.{ Event, EventType }
+import no.uio.musit.microservice.event.service.{ EventService, JsonEventHelpers }
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import play.api.libs.json._
-import play.api.mvc.{Action, BodyParsers, Controller, Result}
+import play.api.mvc.{ Action, BodyParsers, Controller, Result }
 import no.uio.musit.microservices.common.domain.MusitSearch
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
@@ -41,12 +41,12 @@ class EventResource extends Controller {
   private def eventToJson(event: Event) = JsonEventHelpers.toJson(event, true)
 
   def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-        Security.create(request).flatMap{
-          case Left(error) => ResourceHelper.error(error)
-          case Right(securityConnection) =>
-            val maybeEventResult = JsonEventHelpers.validateEvent(request.body.asInstanceOf[JsObject]) //ResourceHelper.jsResultToMusitResult(request.body.validate[Event])
-            ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent(_: Event, true, securityConnection), maybeEventResult, eventToJson)
-        }
+    Security.create(request).flatMap {
+      case Left(error) => ResourceHelper.error(error)
+      case Right(securityConnection) =>
+        val maybeEventResult = JsonEventHelpers.validateEvent(request.body.asInstanceOf[JsObject]) //ResourceHelper.jsResultToMusitResult(request.body.validate[Event])
+        ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent(_: Event, true, securityConnection), maybeEventResult, eventToJson)
+    }
   }
 
   def getEvent(id: Long) = Action.async { request =>
