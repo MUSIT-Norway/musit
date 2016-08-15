@@ -34,12 +34,10 @@ const initialState = {
 const controlReducer = (state = initialState, action = {}) => {
   switch (action.type) {
     case ADD: {
-      const data = mapToBackend(action.data)
       return {
         ...state,
         loading: true,
-        loaded: false,
-        data
+        loaded: false
       };
     }
     default:
@@ -49,7 +47,8 @@ const controlReducer = (state = initialState, action = {}) => {
 
 export default controlReducer;
 
-export const addControl = (data) => {
+export const addControl = (controlData) => {
+  const data = mapToBackend(controlData)
   return {
     types: [ADD, ADD_SUCCESS, ADD_FAILURE],
     promise: (client) => client.post('/api/event/v1/event', { data })

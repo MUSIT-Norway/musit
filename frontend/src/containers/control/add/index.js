@@ -30,7 +30,7 @@ import SaveCancel from '../../../components/formfields/saveCancel/SaveCancel'
 import { hashHistory } from 'react-router'
 
 const mapStateToProps = (state) => ({
-  user: state.auth.user || { name: 'Unknown user' },
+  user: state.auth.user,
   translate: (key, markdown) => Language.translate(key, markdown)
 })
 
@@ -41,11 +41,10 @@ const mapDispatchToProps = (dispatch) => ({
 })
 
 @connect(mapStateToProps, mapDispatchToProps)
-
 export default class ControlView extends React.Component {
   static propTypes = {
     translate: React.PropTypes.func.isRequired,
-    user: React.PropTypes.object.isRequired,
+    user: React.PropTypes.object,
     saveControl: React.PropTypes.func.isRequired
   }
 
@@ -57,8 +56,8 @@ export default class ControlView extends React.Component {
       gasOK: null,
       lightConditionsOK: null,
       cleaningOK: null,
-      alchoholOK: null,
-      moldFungusOK: null,
+      alcoholOK: null,
+      moldOK: null,
       relativeHumidityOK: null,
       pestOK: null,
       storageUnit: null,
@@ -70,7 +69,7 @@ export default class ControlView extends React.Component {
       inertAirInterval: '4',
       light: 'Mørkt',
       cleaning: 'Gullende rent',
-      startDate: moment(),
+      startDate: moment().format(),
       user: this.props.user ? this.props.user.name : ''
     }
     this.getDate = this.getDate.bind(this)
@@ -95,7 +94,6 @@ export default class ControlView extends React.Component {
       } else {
         me.setState({ ...me.state, [key]: bool })
       }
-      me.props.updateControl(me.state)
     }
   }
 
@@ -212,7 +210,7 @@ export default class ControlView extends React.Component {
                   <Col md={12}>
                     <DatePicker
                       dateFormat="DD/MM/YYYY"
-                      value={this.state.startDate.toString()}
+                      value={this.state.startDate}
                       onChange={this.onHandleDateChange}
                     />
                   </Col>

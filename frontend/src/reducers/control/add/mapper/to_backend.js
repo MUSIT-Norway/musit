@@ -1,52 +1,54 @@
 export const mapToBackend = (state) => {
   const r = {}
   r.eventType = 'Control'
-  r['subEvents-parts'] = Object.keys(state.data).filter((key) => key.endsWith('OK')).map((key) => {
+  r.doneBY = state.user
+  r.doneDate = state.startDate
+  r['subEvents-parts'] = Object.keys(state).filter((key) => key.endsWith('OK')).map((key) => {
     switch (key) {
       case 'inertAirOK':
         return {
           eventType: 'ControlInertluft',
-          ok: state.data[key]
+          ok: state[key]
         }
       case 'temperatureOK':
         return {
           eventType: 'ControlTemperature',
-          ok: state.data[key]
+          ok: state[key]
         }
       case 'gasOK':
         return {
-          eventType: 'ControlGas',
-          ok: state.data[key]
+          eventType: 'ControlGass',
+          ok: state[key]
         }
       case 'cleaningOK':
         return {
-          eventType: 'ControlCleaning',
-          ok: state.data[key]
+          eventType: 'ControlRenhold',
+          ok: state[key]
         }
       case 'relativeHumidityOK':
         return {
-          eventType: 'ControlRelativeHumidity',
-          ok: state.data[key]
+          eventType: 'ControlRelativLuftfuktighet',
+          ok: state[key]
         }
       case 'lightConditionsOK':
         return {
-          eventType: 'ControlLightConditions',
-          ok: state.data[key]
+          eventType: 'ControlLysforhold',
+          ok: state[key]
         }
       case 'alcoholOK':
         return {
-          eventType: 'ControlAlcohol',
-          ok: state.data[key]
+          eventType: 'ControlSprit',
+          ok: state[key]
         }
       case 'pestOK':
         return {
-          eventType: 'ControlPest',
-          ok: state.data[key]
+          eventType: 'ControlSkadedyr',
+          ok: state[key]
         }
-      case 'moldFungusOK':
+      case 'moldOK':
         return {
-          eventType: 'ControlMoldFungus',
-          ok: state.data[key]
+          eventType: 'ControlMugg',
+          ok: state[key]
         }
       default:
         throw Error(`Unsupported control state key: ${key}`)
