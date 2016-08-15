@@ -7,3 +7,15 @@ export const resolveConditions = (condition1, block1, condition2, block2, blockE
   }
   return blockElse
 }
+
+export const flatten = (arr) => {
+  const obj = {};
+
+  for (let i = 0; i < arr.length; i++) {
+    Object.keys(arr[i]).forEach((x) => {
+      obj[x] = arr[i][x]
+    })
+  }
+
+  return obj
+}

@@ -28,6 +28,7 @@ import DatePicker from 'react-bootstrap-date-picker'
 import moment from 'moment'
 import SaveCancel from '../../../components/formfields/saveCancel/SaveCancel'
 import { hashHistory } from 'react-router'
+import { flatten } from '../../../util'
 
 const mapStateToProps = (state) => ({
   user: state.auth.user,
@@ -111,10 +112,22 @@ export default class ControlView extends React.Component {
 
   onClickSave() {
     if (this.oneStateIsNotOK()) {
-      hashHistory.push('/observation/control/add', {
-        state: {
-          control: this.state
-        }
+      // Could extract it, but its only used here and in the method above
+      const controls = Object.keys(this.state)
+          .filter((k) => k.endsWith('OK') && this.state[k] !== null && typeof this.state[k] !== 'undefined')
+          .map((k) => ({
+            [k]: this.state[k]
+          }));
+      // Create a nice representation of the control state
+      const controlState = {
+        ...flatten(controls),
+        doneBy: this.state.user,
+        doneDate: this.state.startDate
+      };
+      // push a new path onto the history, with the provided nice control state
+      hashHistory.push({
+        pathname: '/observation/control/add',
+        state: controlState
       })
     } else {
       this.props.saveControl(this.state)
