@@ -18,6 +18,7 @@
  */
 package no.uio.musit.microservice.actor.resource
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Organization
 import no.uio.musit.microservice.actor.service.OrganizationService
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch, MusitStatusMessage }
@@ -27,17 +28,17 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-class OrganizationResource extends Controller with OrganizationService {
+class OrganizationResource @Inject() (orgService: OrganizationService) extends Controller {
 
   def listRoot(search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
     search match {
-      case Some(criteria) => find(criteria).map(orgs => Ok(Json.toJson(orgs)))
-      case None => all.map(org => { Ok(Json.toJson(org)) })
+      case Some(criteria) => orgService.find(criteria).map(orgs => Ok(Json.toJson(orgs)))
+      case None => orgService.all.map(org => Ok(Json.toJson(org)))
     }
   }
 
   def getRoot(id: Long): Action[AnyContent] = Action.async { request =>
-    find(id).map {
+    orgService.find(id).map {
       case Some(person) => Ok(Json.toJson(person))
       case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
     }
@@ -46,7 +47,7 @@ class OrganizationResource extends Controller with OrganizationService {
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val actorResult: JsResult[Organization] = request.body.validate[Organization]
     actorResult match {
-      case s: JsSuccess[Organization] => create(s.get).map { org => Created(Json.toJson(org)) }
+      case s: JsSuccess[Organization] => orgService.create(s.get).map(org => Created(Json.toJson(org)))
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
     }
   }
@@ -55,7 +56,7 @@ class OrganizationResource extends Controller with OrganizationService {
     val actorResult: JsResult[Organization] = request.body.validate[Organization]
     actorResult match {
       case s: JsSuccess[Organization] =>
-        update(s.get).map {
+        orgService.update(s.get).map {
           case Right(updateStatus) => Ok(Json.toJson(updateStatus))
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
@@ -64,6 +65,8 @@ class OrganizationResource extends Controller with OrganizationService {
   }
 
   def deleteRoot(id: Long): Action[AnyContent] = Action.async { request =>
-    remove(id).map { noDeleted => Ok(Json.toJson(MusitStatusMessage(s"Deleted $noDeleted record(s)."))) }
+    orgService.remove(id).map { noDeleted =>
+      Ok(Json.toJson(MusitStatusMessage(s"Deleted $noDeleted record(s).")))
+    }
   }
 }

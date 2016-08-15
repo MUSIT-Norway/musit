@@ -18,19 +18,18 @@
  */
 package no.uio.musit.microservice.geoLocation.resource
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.geoLocation.service.GeoLocationService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 
-class GeoLocationResource_V1 extends Controller with GeoLocationService {
+class GeoLocationResource_V1 @Inject() (geoLocService: GeoLocationService) extends Controller {
 
-  def searchExternal = Action.async { request =>
-    {
-      val expression = request.getQueryString("search").getOrElse("")
-      searchGeoNorway(expression).map { location =>
-        Ok(Json.toJson(location))
-      }
+  def searchExternal(search: Option[String]) = Action.async { request =>
+    val expression = search.getOrElse("")
+    geoLocService.searchGeoNorway(expression).map { location =>
+      Ok(Json.toJson(location))
     }
   }
 }

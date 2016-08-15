@@ -3,4 +3,4 @@
 # ~~~~
 
 # Setup endpoints
-GET     /v1/my-groups               no.uio.musit.microservice.core.resource.CoreResource.getSecurityGroupsForCurrentUser
+GET     /v1/my-groups        no.uio.musit.microservice.core.resource.CoreResource.getSecurityGroupsForCurrentUser

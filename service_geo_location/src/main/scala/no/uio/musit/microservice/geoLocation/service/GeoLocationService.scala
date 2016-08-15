@@ -19,30 +19,35 @@
 
 package no.uio.musit.microservice.geoLocation.service
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.geoLocation.domain.GeoNorwayAddress
-import play.api.Play.current
+import play.api.Configuration
 import play.api.libs.json._
-import play.api.libs.ws.WS
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait GeoLocationService {
+class GeoLocationService @Inject() (config: Configuration, ws: WSClient) {
+
   def searchGeoNorway(expression: String): Future[Seq[GeoNorwayAddress]] = {
-    val hitsPerResult = play.api.Play.current.configuration.getInt("musit.geoLocation.geoNorway.hitsPerResult").getOrElse(10)
-    val responseFuture = WS.url(s"http://ws.geonorge.no/AdresseWS/adresse/sok?sokestreng=$expression&antPerSide=$hitsPerResult").get
-    responseFuture.map(response => {
+    val hitsPerResult = config.getInt("musit.geoLocation.geoNorway.hitsPerResult").getOrElse(10)
+    val searchUrl = s"http://ws.geonorge.no/AdresseWS/adresse/sok?sokestreng=$expression&antPerSide=$hitsPerResult"
+
+    val responseFuture = ws.url(searchUrl).get
+
+    responseFuture.map { response =>
       val json = Json.parse(response.body)
-      val adresser = (json \ "adresser").as[List[Map[String, String]]]
-      adresser.map(adresse => {
+      val addresses = (json \ "adresser").as[List[Map[String, String]]]
+      addresses.map(address => {
         GeoNorwayAddress(
-          street = adresse.get("adressenavn").getOrElse(""),
-          streetNo = adresse.get("husnr").getOrElse(""),
-          place = adresse.get("poststed").getOrElse(""),
-          zip = adresse.get("postnr").getOrElse("")
+          street = address.getOrElse("adressenavn", ""),
+          streetNo = address.getOrElse("husnr", ""),
+          place = address.getOrElse("poststed", ""),
+          zip = address.getOrElse("postnr", "")
         )
       })
-    })
+    }
   }
 
 }
