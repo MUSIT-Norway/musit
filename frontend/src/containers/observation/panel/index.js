@@ -281,6 +281,7 @@ export default class ObservationView extends React.Component {
     this.onChangeDate = this.onChangeDate.bind(this)
     this.selectType = this.selectType.bind(this)
     this.onCancelObservation = this.onCancelObservation.bind(this)
+    this.onSuggestionSelected = this.onSuggestionSelected.bind(this)
   }
 
   componentWillMount() {
@@ -343,6 +344,10 @@ export default class ObservationView extends React.Component {
     )
   }
 
+  onSuggestionSelected(event, { suggestion, suggestionValue, sectionIndex, method }) {
+    this.updateDoneBy(suggestion)
+  }
+
   render() {
     const {
       translate,
@@ -369,7 +374,7 @@ export default class ObservationView extends React.Component {
     const doneByProps = {
       id: 'doneByField',
       placeholder: 'Done by',
-      value: doneBy,
+      value: doneBy ? doneBy.fn : '',
       type: 'search',
       onChange: onChangeDoneBy
     }
@@ -458,6 +463,7 @@ export default class ObservationView extends React.Component {
                     renderSuggestion={renderDoneBySuggestion}
                     inputProps={doneByProps}
                     shouldRenderSuggestions={(v) => v !== 'undefined'}
+                    onSuggestionSelected={this.onSuggestionSelected}
                   />
                 </Col>
               </Row>

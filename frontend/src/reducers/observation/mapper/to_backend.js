@@ -29,7 +29,8 @@
 const wrap = (e) => {
   const r = {}
   r.eventType = 'Observation'
-  r.links = [{ rel: 'actor', href: `actor/${e.doneBy}` }]
+  r.doneBy = e.doneBy.id
+  r.doneDate = e.date
   r['subEvents-parts'] = e.observations ? e.observations.map((el) => {
     const re = {}
     switch (el.type) {
