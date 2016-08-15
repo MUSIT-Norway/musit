@@ -25,6 +25,7 @@ import Language from '../../../components/language'
 import Layout from '../../../layout'
 import { connect } from 'react-redux'
 import Toolbar from '../../../layout/Toolbar'
+import { hashHistory } from 'react-router'
 
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
@@ -40,7 +41,8 @@ export default class ObservationControlGridShow extends React.Component {
   static propTypes = {
     unit: React.PropTypes.object.isRequired,
     translate: React.PropTypes.func.isRequired,
-    observationControlGridData: React.PropTypes.arrayOf(React.PropTypes.object)
+    observationControlGridData: React.PropTypes.arrayOf(React.PropTypes.object),
+    params: React.PropTypes.object,
   }
 
   constructor(props) {
@@ -70,10 +72,8 @@ export default class ObservationControlGridShow extends React.Component {
         translate={this.props.translate}
         selectObservation
         selectControl
-        onClickNewObservation={(key) => key}
-        onClickNewControl={(key) => key}
-        onClickSelectObservation={(key) => key}
-        onClickSelectControl={(key) => key}
+        onClickNewObservation={() => hashHistory.push(`${this.props.params.id}/observation/add`)}
+        onClickNewControl={() => hashHistory.push(`${this.props.params.id}/control/add`)}
       />
     </div>)
   }

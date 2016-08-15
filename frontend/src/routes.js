@@ -57,15 +57,15 @@ export default (store) => {
       <IndexRedirect to="/" />
 
       <Route path="/" component={WelcomeView} onEnter={redirectIfLoggedIn} />
-      <Route path="/control/add" component={ControlAdd} />
-      <Route path="/control/:id" component={ControlView} />
+      <Route path="/:id/control/add" component={ControlAdd} />
+      <Route path="/:id/control/:controlId" component={ControlView} />
       <Route path="/picklist" component={PickListView} />
       <Route path="/magasin" component={StorageUnitsTable} />
       <Route path="/magasin/:id" component={StorageUnitsTable} />
       <Route path="/example" component={ExampleView} />
-      <Route path="/observation/add" component={ObservationView} />
-      <Route path="/observation/:id" component={ObservationView} />
-      <Route path="/observation/control/add" newControlObservation component={ObservationView} />
+      <Route path="/:id/observation/add" component={ObservationView} />
+      <Route path="/:id/observation/:obsId" component={ObservationView} />
+      <Route path="/:id/observation/control/add" newControlObservation component={ObservationView} />
       <Route path="/storageunit/:id" component={StorageUnitPanel} />
       <Route path="/storageunit/add" component={StorageUnitPanel} />
       <Route path="/observationcontrol/:id" component={ObservationControlGridShow} />
