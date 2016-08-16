@@ -20,7 +20,7 @@ package no.uio.musit.microservice.storageAdmin.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
 import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
@@ -38,8 +38,8 @@ class StorageUnitService @Inject() (
 ) {
 
   private def storageUnitTypeMismatch(id: Long, expected: StorageType, inDatabase: StorageType): MusitError =
-    ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: ${expected.entryName}, " +
-      s"but had the type: ${inDatabase.entryName} in the database.")
+    ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: $expected, " +
+      s"but had the type: $inDatabase in the database.")
 
   def create(storageUnit: StorageUnitDTO): MusitFuture[Storage] =
     ServiceHelper.daoInsert(storageUnitDao.insert(storageUnit)).musitFutureMap(Storage.fromDTO)
@@ -68,7 +68,7 @@ class StorageUnitService @Inject() (
   def getById(id: Long): MusitFuture[Storage] = {
     val musitFutureStorageUnit = getStorageUnitOnly(id)
     musitFutureStorageUnit.musitFutureFlatMap { storageUnit =>
-      storageUnit.`type` match {
+      storageUnit.storageType match {
         case StorageType.StorageUnit => MusitFuture.successful(Storage.fromDTO(storageUnit))
         case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding => Storage.getBuilding(storageUnit, storageBuilding))
         case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom => Storage.getRoom(storageUnit, storageRoom))
@@ -95,7 +95,7 @@ class StorageUnitService @Inject() (
     }
 
   def updateStorageTripleByID(id: Long, triple: Storage): Future[Either[MusitError, Int]] =
-    verifyStorageTypeMatchesDatabase(id, triple.storageType).flatMap {
+    verifyStorageTypeMatchesDatabase(id, StorageType.fromStorage(triple)).flatMap {
       case Right(true) =>
         triple match {
           case st: StorageUnit =>
@@ -111,4 +111,10 @@ class StorageUnitService @Inject() (
 
   def deleteStorageTriple(id: Long): MusitFuture[Int] =
     storageUnitDao.deleteStorageUnit(id).toMusitFuture
+
+  def setPartOf(id: Long, partOf: Long): Future[Either[MusitError, Boolean]] =
+    storageUnitDao.setPartOf(id, partOf).map {
+      case 1 => Right(true)
+      case num => Left(MusitError(message = s"Failed while setting partOf=$partOf for id=$id. Got $num updated rows."))
+    }
 }

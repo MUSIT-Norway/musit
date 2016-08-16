@@ -1,8 +1,8 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageType }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
+import no.uio.musit.microservice.storageAdmin.domain.Storage
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
@@ -19,8 +19,8 @@ class StorageUnitDao @Inject() (
   import driver.api._
 
   implicit lazy val storageTypeMapper = MappedColumnType.base[StorageType, String](
-    storageType => storageType.entryName,
-    string => StorageType.withName(string)
+    storageType => storageType.toString,
+    string => StorageType.fromString(string)
   )
 
   private val StorageUnitTable = TableQuery[StorageUnitTable]
@@ -45,6 +45,9 @@ class StorageUnitDao @Inject() (
 
   def all(): Future[Seq[StorageUnitDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
+
+  def setPartOf(id: Long, partOf: Long): Future[Int] =
+    db.run(StorageUnitTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
 
   def insert(storageUnit: StorageUnitDTO): Future[StorageUnitDTO] =
     db.run(insertAction(storageUnit))
@@ -119,14 +122,14 @@ class StorageUnitDao @Inject() (
         groupRead,
         groupWrite,
         Storage.linkText(id),
-        Option(isDeleted),
+        isDeleted,
         storageType
       )
 
     def destroy(unit: StorageUnitDTO) =
       Some(
         unit.id,
-        unit.`type`,
+        unit.storageType,
         unit.name,
         unit.area,
         unit.areaTo,
@@ -135,7 +138,7 @@ class StorageUnitDao @Inject() (
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
-        unit.isDeleted.getOrElse(false)
+        unit.isDeleted
       )
   }
 
