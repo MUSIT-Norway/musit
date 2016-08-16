@@ -1,0 +1,27 @@
+{
+  "eventType": "Control",
+  "note": "tekst",
+  "links": [
+    {
+      "rel": "actor",
+      "href": "actor/12"
+    }
+  ],
+  "subEvents-parts": [
+    {
+      "eventType": "controlInertluft",
+      "ok": true
+    },
+    {
+      "eventType": "controlTemperature",
+      "ok": false,
+      "subEvents-motivates": [
+        {
+          "eventType": "observationTemperature",
+          "from": 20,
+          "to": 50
+        }
+      ]
+    }
+  ]
+}
