@@ -37,17 +37,19 @@ describe('ObservationReducer', () => {
           }
         }
       ]
-    }
-    )
-    const fe = mapToFrontEnd(mapToBackEnd(frontEnd))
-    console.log(JSON.stringify(frontEnd))
-    console.log('-----------------------')
-    console.log(JSON.stringify(fe))
+    })
+    // TODO fix this
+    const fixedFrontend = { ...frontEnd, doneBy: { id: '' } }
+    const fe = mapToFrontEnd(mapToBackEnd(fixedFrontend))
+    // console.log(JSON.stringify(frontEnd))
+    // console.log('-----------------------')
+    // console.log(JSON.stringify(fe))
     assert(JSON.stringify(fe) === JSON.stringify(frontEnd))
   })
 
   it('add observation should update state', () => {
     const fromServer = deepFreeze({
+      doneBy: { id: '' },
       observations: [
         {
           type: 'hypoxicAir',
@@ -177,10 +179,12 @@ describe('ObservationReducer', () => {
             commentValue: 'Altfor fuktig' }
         }
       ] }
-    const s = mapToFrontEnd(mapToBackEnd(completeFrontEnd))
-    console.log(JSON.stringify(completeFrontEnd))
-    console.log('-----------------------')
-    console.log(JSON.stringify(s))
+    // TODO fix this
+    const fixedFrontend = { ...completeFrontEnd, doneBy: { id: '' } }
+    const s = mapToFrontEnd(mapToBackEnd(fixedFrontend))
+    // console.log(JSON.stringify(completeFrontEnd))
+    // console.log('-----------------------')
+    // console.log(JSON.stringify(s))
     assert(JSON.stringify(s) === JSON.stringify(completeFrontEnd))
   })
 })
