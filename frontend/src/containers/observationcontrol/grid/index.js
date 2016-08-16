@@ -72,8 +72,8 @@ export default class ObservationControlGridShow extends React.Component {
         translate={this.props.translate}
         selectObservation
         selectControl
-        onClickNewObservation={() => hashHistory.push(`${this.props.params.id}/observation/add`)}
-        onClickNewControl={() => hashHistory.push(`${this.props.params.id}/control/add`)}
+        onClickNewObservation={() => hashHistory.push(`magasin/${this.props.params.id}/observation/add`)}
+        onClickNewControl={() => hashHistory.push(`magasin/${this.props.params.id}/control/add`)}
       />
     </div>)
   }
