@@ -74,11 +74,14 @@ export default class ObservationControlGrid extends Component {
                 <tr
                   key={i}
                   id={`${c.id}_${c.date}`}
-                  onClick={() => (hashHistory.push(c.type === 'control' ? `${id}/observation/${c.id}` : `${id}/control/${c.id}`))}
+                  onClick={() =>
+                    (hashHistory.push(c.type === 'control' ?
+                    `magasin/${id}/control/${c.id}` : `magasin/${id}/observation/${c.id}`
+                  ))}
                 >
                   <td id={`${c.id}_${c.date}_type`}>
-                    {c.type === 'control' ? <FontAwesome name="eye" /> : ''}
-                    {c.type === 'observation' ? <FontAwesome name="user-secret" /> : ''}
+                    {c.type === 'control' ? <FontAwesome name="user-secret" /> : ''}
+                    {c.type === 'observation' ? <FontAwesome name="eye" /> : ''}
                   </td>
                   <td id={`${c.id}_${c.date}_date`}>
                     {`${c.date}`}
