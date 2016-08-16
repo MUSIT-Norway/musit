@@ -20,34 +20,48 @@
 
 package no.uio.musit.microservice.event.resource
 import no.uio.musit.microservice.event.domain.{ Event, EventType }
-import no.uio.musit.microservice.event.service.{ EventService, JsonEventHelpers }
-import no.uio.musit.microservices.common.utils.ResourceHelper
-import play.api.libs.json._
-import play.api.mvc.{ Action, BodyParsers, Controller, Result }
-import no.uio.musit.microservices.common.domain.MusitSearch
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.extensions.EitherExtensions._
-import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.extensions.PlayExtensions._
-import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservice.event.service.JsonEventHelpers.JsonEventWriter
+import no.uio.musit.microservice.event.service.{ EventService, JsonEventHelpers }
+import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper, Misc }
+import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.security.Security
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json._
+import play.api.mvc.{ Action, BodyParsers, Controller, Request }
 
 import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class EventResource extends Controller {
 
   private def eventToJson(event: Event) = JsonEventHelpers.toJson(event, true)
 
-  def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+  private def handlePostEvent(request: Request[JsValue], jsonValidator: JsObject => MusitResult[Event]) = {
     Security.create(request).flatMap {
       case Left(error) => ResourceHelper.error(error)
       case Right(securityConnection) =>
-        val maybeEventResult = JsonEventHelpers.validateEvent(request.body.asInstanceOf[JsObject]) //ResourceHelper.jsResultToMusitResult(request.body.validate[Event])
+        val maybeEventResult = jsonValidator(request.body.asInstanceOf[JsObject])
         ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent(_: Event, true, securityConnection), maybeEventResult, eventToJson)
     }
   }
+
+  def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request: Request[JsValue] =>
+    handlePostEvent(request, JsonEventHelpers.validateEvent)
+  }
+
+  /*#OLD
+    def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    Security.create(request).flatMap {
+      case Left(error) => ResourceHelper.error(error)
+      case Right(securityConnection) =>
+        val maybeEventResult = JsonEventHelpers.validateEvent(request.body.asInstanceOf[JsObject])
+        ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent(_: Event, true, securityConnection), maybeEventResult, eventToJson)
+    }
+  }
+   */
 
   def getEvent(id: Long) = Action.async { request =>
     ResourceHelper.getRoot(EventService.getEvent(_: Long, true), id, eventToJson)
@@ -74,7 +88,6 @@ class EventResource extends Controller {
         case None => Left(MusitError(message = "Missing search parameters object"))
       }
     }
-    println("Etter tempResult")
     val futureEvents = tempResult.musitFutureFlatMap {
       case (eventType, relation, objectId) => getEventsFor(eventType, relation, objectId)
 
@@ -89,4 +102,39 @@ class EventResource extends Controller {
 
   }
 
+  def validateEventTypeIsMissingOrEqualTo(jsObject: JsObject, eventType: EventType): MusitResult[Boolean] = {
+    val optEventTypeName = (jsObject \ "eventType").validateOpt[String]
+    ResourceHelper.jsResultToMusitResult(optEventTypeName).flatMap {
+      case Some(eventTypeName) =>
+        boolToMusitBool(
+          eventType.hasName(eventTypeName),
+          ErrorHelper.badRequest(s"Eventtype mismatch, expecting: ${eventType.name}, got: $eventTypeName")
+        )
+      case None => musitTrue
+    }
+  }
+
+  val controlEventType = EventType.getByNameOrFail("control")
+  def addStorageNodeRelationAndEventType(jsObject: JsObject, storageNodeId: Int, eventType: EventType): JsObject = {
+    val newObject = JsObject(
+      Seq(
+        ("eventType" -> JsString(eventType.name)),
+        "links" -> JsArray(Seq(JsObject(Seq(
+          ("rel" -> JsString("storageunit-location")),
+          ("href" -> JsString(s"storageunit/$storageNodeId"))
+        ))))
+      )
+    )
+    jsObject.deepMerge(newObject)
+  }
+
+  def postControl(nodeId: Int): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    def validator(jsObject: JsObject): MusitResult[Event] = {
+      validateEventTypeIsMissingOrEqualTo(jsObject, controlEventType).flatMap { _ =>
+        val resultJsObject = addStorageNodeRelationAndEventType(jsObject, nodeId, controlEventType)
+        JsonEventHelpers.validateEvent(resultJsObject)
+      }
+    }
+    handlePostEvent(request, validator)
+  }
 }

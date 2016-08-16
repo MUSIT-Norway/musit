@@ -75,4 +75,6 @@ object Misc {
     else
       Left(errorIfFalse) //Here we signal the error
   }
+
+  def musitTrue = Right(true)
 }

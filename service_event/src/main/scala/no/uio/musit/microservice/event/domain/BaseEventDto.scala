@@ -75,17 +75,19 @@ object BaseEventDto {
 }
 
 trait EventRoleActor {
-  def asPartial: PartialEventRoleActor
-
-  def roleId: Int = asPartial.roleID
-  def actorId: Int = asPartial.actorID
+  def roleId: Int
+  def actorId: Int
 }
+
 case class PartialEventRoleActor(roleID: Int, actorID: Int) extends EventRoleActor {
   def toTotal(eventId: Long) = TotalEventRoleActor(eventId, this.roleID, this.actorID)
-  override def asPartial = this
+  def roleId = roleID
+  def actorId = actorID
 }
 case class TotalEventRoleActor(eventID: Long, roleID: Int, actorID: Int) extends EventRoleActor {
-  override def asPartial = PartialEventRoleActor(roleID, actorID)
+  //  override def asPartial = PartialEventRoleActor(roleID, actorID)
+  def roleId = roleID
+  def actorId = actorID
 }
 
 //RegisteredBy and registeredDate are options even though they are required in the database, because they will be None in input-json

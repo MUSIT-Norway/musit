@@ -62,6 +62,10 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     WS.url(s"http://localhost:$port/v1/event").withFakeUser.postJsonString(json) |> waitFutureValue
   }
 
+  def createControlEvent(nodeId: Int, json: String) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/control").withFakeUser.postJsonString(json) |> waitFutureValue
+  }
+
 
   def getEvent(id: Long) = {
     WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
@@ -856,7 +860,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       """
 
     val response = createEvent(json)
-    println(s"Create: ${response.body}")
+    // println(s"Create: ${response.body}")
     response.status mustBe 201
 
     val controlEvent =  validateEvent[ControlTemperature](response.json)
@@ -864,9 +868,56 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     controlEvent.eventDate mustBe Some(myDate)
 
     controlEvent.relatedActors.length mustBe 1
+  }
+
+  "post explicit control on node should fail if wrong eventType" in {
+    val json =
+      s""" {
+    "eventType": "Observation",
+    "note": "tekst"
+    }
+    """
+
+    val response = createControlEvent(1, json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 400
+  }
+
+  def createStorageNode() = 1 //TODO: insert storageNode, but needs to wait for merging of service_event and service_storageAdmin!
+
+  "post explicit control on node" in {
+    val json =
+      s""" {
+    "note": "tekst",
+    "links": [{
+    "rel": "actor",
+    "href": "actor/12"
+  }
+  ],
+    "subEvents-parts": [{
+    "eventType": "controlInertluft",
+    "ok": true
+  }, {
+    "eventType": "controlTemperature",
+    "ok": false,
+    "subEvents-motivates": [{
+      "eventType": "observationTemperature",
+      "from": 20,
+      "to": 50
+    }]
+  }]
+  }
+  """
+
+    val storageNodeId = createStorageNode()
+
+    val response = createControlEvent(storageNodeId, json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
 
 
   }
+
 
 
 }

@@ -50,7 +50,7 @@ object EventType {
   /** If not found, a 400 error (with text "Unable to find event type: name") gets returned */
   def getByNameAsMusitResult(name: String) = getByName(name).toMusitResult(MusitError(message = s"Unable to find event type : $name"))
 
-  //#OLD def getByNameOrFail(name: String) = getByName(name).getOrFail(s"Unable to find event type : $name")
+  def getByNameOrFail(name: String) = getByName(name).getOrFail(s"Unable to find event type : $name")
 
   def getById(id: Int) = eventTypeById.get(id).get
 
@@ -60,6 +60,8 @@ object EventType {
 }
 
 case class EventType(id: Int, name: String, eventImplementation: EventImplementation) {
+
+  def hasName(someName: String) = name.equalsIgnoreCase(someName)
 
   //Some helper methods, used by the implementation of the event system. Ought to be moved somewhere else.
 
