@@ -56,7 +56,7 @@ const initialState = {
     },
     {
       id: 4,
-      type: 'observation',
+      type: 'control',
       date: '01.01.1984',
       types: { temperature: false,
         inertAir: false,
@@ -90,7 +90,7 @@ const initialState = {
     },
     {
       id: 6,
-      type: 'observation',
+      type: 'control',
       date: '01.01.1984',
       types: { temperature: false
          },

@@ -3,12 +3,14 @@
 import React, { Component, PropTypes } from 'react'
 import { Table, FormGroup } from 'react-bootstrap'
 import FontAwesome from 'react-fontawesome'
+import { hashHistory } from 'react-router'
 
 export default class ObservationControlGrid extends Component {
   static propTypes = {
     id: PropTypes.number.isRequired,
     translate: PropTypes.func.isRequired,
     tableData: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
       type: PropTypes.string.isRequired,
       date: PropTypes.string.isRequired,
       types: PropTypes.object.isRequired,
@@ -65,20 +67,26 @@ export default class ObservationControlGrid extends Component {
                 <th>
                   {translate('musit.grid.observation.registeredBy')}
                 </th>
-                <th />
               </tr>
             </thead>
             <tbody>
               {this.props.tableData.map((c, i) =>
-                <tr key={i} id={`${id}_${c.date}`} >
-                  <td id={`${id}_${c.date}_type`}>
+                <tr
+                  key={i}
+                  id={`${c.id}_${c.date}`}
+                  onClick={() =>
+                    (hashHistory.push(c.type === 'control' ?
+                    `magasin/${id}/control/${c.id}` : `magasin/${id}/observation/${c.id}`
+                  ))}
+                >
+                  <td id={`${c.id}_${c.date}_type`}>
                     {c.type === 'control' ? <FontAwesome name="user-secret" /> : ''}
                     {c.type === 'observation' ? <FontAwesome name="eye" /> : ''}
                   </td>
-                  <td id={`${id}_${c.date}_date`}>
+                  <td id={`${c.id}_${c.date}_date`}>
                     {`${c.date}`}
                   </td>
-                  <td id={`${id}_${c.date}_types`}>
+                  <td id={`${c.id}_${c.date}_types`}>
                     {showEnabledIcon(c.types.temperature, 'temperature')}
                     {showDisabledIcon(c.types.temperature, 'temperature')}
                     {showEnabledIcon(c.types.inertAir, 'inertAir')}
@@ -100,17 +108,14 @@ export default class ObservationControlGrid extends Component {
                     {showEnabledIcon(c.types.envdata, 'envdata')}
                     {showDisabledIcon(c.types.envdata, 'envdata')}
                   </td>
-                  <td id={`${id}_${c.date}_doneBy`}>
+                  <td id={`${c.id}_${c.date}_doneBy`}>
                     {`${c.doneBy}`}
                   </td>
-                  <td id={`${id}_${c.date}_registeredDate`}>
+                  <td id={`${c.id}_${c.date}_registeredDate`}>
                     {`${c.registeredDate}`}
                   </td>
-                  <td id={`${id}_${c.date}_registeredBy`}>
+                  <td id={`${c.id}_${c.date}_registeredBy`}>
                     {`${c.registeredBy}`}
-                  </td>
-                  <td id={`${id}_${c.museumsNumber}_${c.uNumber}_newspaper`}>
-                    <FontAwesome name="newspaper-o" />
                   </td>
                 </tr>
               )}
