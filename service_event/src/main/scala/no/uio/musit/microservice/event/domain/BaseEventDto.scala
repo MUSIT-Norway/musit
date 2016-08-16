@@ -46,6 +46,9 @@ object BaseEventDto {
   implicit object baseEventPropsWrites extends Writes[BaseEventDto] {
 
     def writes(baseEventDto: BaseEventDto): JsValue = {
+
+      require(baseEventDto.relatedActors.length <= 1, "This code must be changed when we get multiple related actors in the future!")
+
       var jsObj = Json.obj(
         "id" -> baseEventDto.id,
         "links" -> baseEventDto.links,
@@ -54,16 +57,40 @@ object BaseEventDto {
         "registeredDate" -> optTimeStampToIsoFormat(baseEventDto.registeredDate)
       )
 
-      val note = baseEventDto.note.map(note =>
-        if (note != null && note.nonEmpty) Json.obj("note" -> JsString(note))
-        else Json.obj()).getOrElse(Json.obj())
+      baseEventDto.note.foreach { note =>
+        jsObj = jsObj + ("note", JsString(note))
+      }
 
-      CustomFieldsHandler.writeCustomFieldsToJsonIfAny(baseEventDto, jsObj ++ note)
+      baseEventDto.eventDate.foreach { eventDate =>
+        jsObj = jsObj + ("doneDate", JsString(eventDate.toString))
+      }
+
+      baseEventDto.relatedActors.foreach { relatedActor =>
+        jsObj = jsObj + ("doneBy", JsNumber(relatedActor.actorId)) //Currently we only have one actor, this code must be changed when we get multiple related actors for events.
+      }
+
+      CustomFieldsHandler.writeCustomFieldsToJsonIfAny(baseEventDto, jsObj)
     }
   }
 }
+
+trait EventRoleActor {
+  def asPartial: PartialEventRoleActor
+
+  def roleId: Int = asPartial.roleID
+  def actorId: Int = asPartial.actorID
+}
+case class PartialEventRoleActor(roleID: Int, actorID: Int) extends EventRoleActor {
+  def toTotal(eventId: Long) = TotalEventRoleActor(eventId, this.roleID, this.actorID)
+  override def asPartial = this
+}
+case class TotalEventRoleActor(eventID: Long, roleID: Int, actorID: Int) extends EventRoleActor {
+  override def asPartial = PartialEventRoleActor(roleID, actorID)
+}
+
 //RegisteredBy and registeredDate are options even though they are required in the database, because they will be None in input-json
-case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, note: Option[String],
+case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, eventDate: Option[Date],
+    relatedActors: Seq[EventRoleActor], note: Option[String],
     relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long],
     valueString: Option[String], valueDouble: Option[Double], registeredBy: Option[String], registeredDate: Option[Timestamp]) {
   def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]

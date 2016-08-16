@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.service
 
-import java.sql.Timestamp
+import java.sql.{ Date, Timestamp }
 import java.time.LocalDateTime
 
 import no.uio.musit.microservice.event.domain.{ EventRelations, _ }
@@ -63,11 +63,16 @@ object JsonEventHelpers {
       registeredBy <- (jsObject \ "registeredBy").validateOpt[String]
       registeredDate <- (jsObject \ "registeredDate").validateOpt[LocalDateTime]
 
+      eventDate <- (jsObject \ "doneDate").validateOpt[Date]
+      doneBy <- (jsObject \ "doneBy").validateOpt[Int]
+
       customValueLong <- CustomFieldsHandler.validateCustomIntegerFieldFromJsonIfAny(eventType, jsObject)
       customValueString <- CustomFieldsHandler.validateCustomStringFieldFromJsonIfAny(eventType, jsObject)
       customValueDouble <- CustomFieldsHandler.validateCustomDoubleFieldFromJsonIfAny(eventType, jsObject)
 
-    } yield BaseEventDto(id, links, eventType, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble,
+      eventRoleActor = if (doneBy.isDefined) Seq(PartialEventRoleActor(1, doneBy.get)) else Seq.empty
+
+    } yield BaseEventDto(id, links, eventType, eventDate, eventRoleActor, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble,
       registeredBy, localDateTimeToTimestamp(registeredDate))
   }
 

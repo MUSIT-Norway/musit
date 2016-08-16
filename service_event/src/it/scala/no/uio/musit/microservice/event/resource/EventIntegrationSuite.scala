@@ -20,6 +20,8 @@
 
 package no.uio.musit.microservice.event.resource
 
+import java.sql.Date
+
 import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.PlayTestDefaults
@@ -27,6 +29,7 @@ import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
+import org.joda.time.DateTime
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -839,6 +842,31 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response2.status mustBe 200
   }
 
+
+
+  "check that we can post and get doneDate and doneBy" in {
+    val json =
+      """ {
+    "eventType": "controlTemperature",
+    "note": "tekst",
+    "ok": true,
+    "doneBy": 1,
+    "doneDate": "2016-08-01"
+  }
+      """
+
+    val response = createEvent(json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+
+    val controlEvent =  validateEvent[ControlTemperature](response.json)
+    val myDate: java.sql.Date = new java.sql.Date(DateTime.parse("2016-08-01").getMillis)
+    controlEvent.eventDate mustBe Some(myDate)
+
+    controlEvent.relatedActors.length mustBe 1
+
+
+  }
 
 
 }

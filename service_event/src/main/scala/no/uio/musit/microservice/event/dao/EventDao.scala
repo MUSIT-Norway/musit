@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.dao
 
-import java.sql.Timestamp
+import java.sql.{ Date, Timestamp }
 import java.util.Calendar
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
@@ -111,6 +111,13 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         numInserted <- EventLinkDao.insertEventLinkAction(partialEventLink.get.toFullLink(newEventId))
       } yield newEventId).transactionally
     }
+
+    if (event.relatedActors.nonEmpty) {
+      action = (for {
+        newEventId <- action
+        numInserted <- EventActorsDao.insertActors(newEventId, event.relatedActors)
+      } yield newEventId).transactionally
+    }
     action
   }
 
@@ -131,8 +138,17 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   }
 
   def getBaseEvent(id: Long): Future[Option[BaseEventDto]] = {
+
     val action = EventBaseTable.filter(event => event.id === id).result.headOption
-    db.run(action)
+    val futOptBaseEvent = db.run(action)
+
+    //get the related actors
+    val futRelatedActors = EventActorsDao.getRelatedActors(id)
+
+    // Copy in the related actors into the base event data
+    futRelatedActors.flatMap { relatedActors =>
+      futOptBaseEvent.map(optBaseEvent => optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors)))
+    }
   }
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
@@ -251,11 +267,13 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   )
 
   class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
-    def * = (id.?, eventTypeID, eventNote, partOf, valueLong, valueString, valueDouble, registeredBy, registeredDate) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, eventTypeID, eventDate, eventNote, partOf, valueLong, valueString, valueDouble, registeredBy, registeredDate) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 
     val eventTypeID = column[EventType]("EVENT_TYPE_ID")
+
+    val eventDate = column[Option[Date]]("EVENT_DATE")
 
     val eventNote = column[Option[String]]("NOTE")
 
@@ -268,6 +286,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     def create = (id: Option[Long],
       eventType: EventType,
+      eventDate: Option[Date],
       note: Option[String],
       partOf: Option[Long],
       valueLong: Option[Long],
@@ -279,6 +298,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         id,
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
         eventType,
+        eventDate,
+        Seq.empty,
         note,
         Seq.empty,
         partOf,
@@ -289,7 +310,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         registeredDate
       )
 
-    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.note, event.partOf, event.valueLong,
+    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.eventDate, event.note, event.partOf, event.valueLong,
       event.valueString, event.valueDouble, event.registeredBy, event.registeredDate)
   }
 
