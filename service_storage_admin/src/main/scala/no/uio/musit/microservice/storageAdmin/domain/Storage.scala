@@ -1,7 +1,7 @@
 package no.uio.musit.microservice.storageAdmin.domain
 
 import julienrf.json.derived
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ BaseDTO, BuildingDTO, RoomDTO, StorageUnitDTO }
+import no.uio.musit.microservice.storageAdmin.domain.dto._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.{ OFormat, __ }
@@ -17,70 +17,61 @@ sealed trait Storage {
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val links: Option[Seq[Link]]
-  val storageType: StorageType
 }
 
 case class StorageUnit(
-    id: Option[Long],
-    name: String,
-    area: Option[Long],
-    areaTo: Option[Long],
-    isPartOf: Option[Long],
-    height: Option[Long],
-    heightTo: Option[Long],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    links: Option[Seq[Link]]
-) extends Storage {
-  val storageType = StorageType.StorageUnit
-}
-
-object StorageUnit
+  id: Option[Long],
+  name: String,
+  area: Option[Long],
+  areaTo: Option[Long],
+  isPartOf: Option[Long],
+  height: Option[Long],
+  heightTo: Option[Long],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  links: Option[Seq[Link]]
+) extends Storage
 
 case class Room(
-    id: Option[Long],
-    name: String,
-    area: Option[Long],
-    areaTo: Option[Long],
-    isPartOf: Option[Long],
-    height: Option[Long],
-    heightTo: Option[Long],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    links: Option[Seq[Link]],
-    sikringSkallsikring: Option[Boolean],
-    sikringTyverisikring: Option[Boolean],
-    sikringBrannsikring: Option[Boolean],
-    sikringVannskaderisiko: Option[Boolean],
-    sikringRutineOgBeredskap: Option[Boolean],
-    bevarLuftfuktOgTemp: Option[Boolean],
-    bevarLysforhold: Option[Boolean],
-    bevarPrevantKons: Option[Boolean]
-) extends Storage {
-  val storageType: StorageType = StorageType.Room
-}
+  id: Option[Long],
+  name: String,
+  area: Option[Long],
+  areaTo: Option[Long],
+  isPartOf: Option[Long],
+  height: Option[Long],
+  heightTo: Option[Long],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  links: Option[Seq[Link]],
+  sikringSkallsikring: Option[Boolean],
+  sikringTyverisikring: Option[Boolean],
+  sikringBrannsikring: Option[Boolean],
+  sikringVannskaderisiko: Option[Boolean],
+  sikringRutineOgBeredskap: Option[Boolean],
+  bevarLuftfuktOgTemp: Option[Boolean],
+  bevarLysforhold: Option[Boolean],
+  bevarPrevantKons: Option[Boolean]
+) extends Storage
 
 case class Building(
-    id: Option[Long],
-    name: String,
-    area: Option[Long],
-    areaTo: Option[Long],
-    isPartOf: Option[Long],
-    height: Option[Long],
-    heightTo: Option[Long],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    links: Option[Seq[Link]],
-    address: Option[String]
-) extends Storage {
-  val storageType: StorageType = StorageType.Building
-}
+  id: Option[Long],
+  name: String,
+  area: Option[Long],
+  areaTo: Option[Long],
+  isPartOf: Option[Long],
+  height: Option[Long],
+  heightTo: Option[Long],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  links: Option[Seq[Link]],
+  address: Option[String]
+) extends Storage
 
 object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
 
-  def fromDTO[T <: BaseDTO](dto: T) =
+  def fromDTO[T <: StorageDTO](dto: T) =
     dto match {
       case stu: StorageUnitDTO =>
         StorageUnit(
@@ -132,7 +123,7 @@ object Storage {
         )
     }
 
-  def getBuilding(unit: BaseDTO, building: Building): Building = {
+  def getBuilding(unit: StorageDTO, building: Building): Building = {
     Building(
       id = unit.id,
       name = unit.name,
@@ -148,7 +139,7 @@ object Storage {
     )
   }
 
-  def getRoom(unit: BaseDTO, room: Room): Room = {
+  def getRoom(unit: StorageDTO, room: Room): Room = {
     Room(
       id = unit.id,
       name = unit.name,
@@ -183,8 +174,8 @@ object Storage {
       groupRead = stu.groupRead,
       groupWrite = stu.groupWrite,
       links = stu.links,
-      isDeleted = Some(false), // hack, we check isDeleted in slick before update, so ..
-      `type` = stu.storageType
+      isDeleted = false,
+      storageType = StorageType.fromStorage(stu)
     )
 
   def linkText(id: Option[Long]) =
