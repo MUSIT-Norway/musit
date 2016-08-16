@@ -76,7 +76,7 @@ export default class ObservationView extends React.Component {
     super(props)
 
     const { translate } = props
-    this.displayExisting = !!this.props.params.id
+    this.displayExisting = !!this.props.params.obsId
 
     this.observationTypeDefinitions = observationTypeDefinitions(translate, this.actions)
     // TODO: Language binding.

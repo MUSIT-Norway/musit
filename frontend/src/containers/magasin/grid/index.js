@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch) => ({
   loadChildren: (id) => dispatch(loadChildren(id)),
   onPick: (unit) => dispatch(add('default', unit)),
   onItemClick: (unit) => { hashHistory.push(`/magasin/${unit.id}`) },
-  onEdit: (unit) => { hashHistory.push(`/storageunit/${unit.id}`) },
+  onEdit: (unit) => { hashHistory.push(`/magasin/${unit.id}/view`) },
   onDelete: (unit) => dispatch(deleteUnit(unit.id))
 })
 
@@ -79,13 +79,13 @@ export default class StorageUnitsContainer extends React.Component {
       <NodeLeftMenuComponent
         id="1"
         translate={this.props.translate}
-        onClickNewNode={() => this.props.history.push('/storageunit/add')}
+        onClickNewNode={() => this.props.history.push('/magasin/add')}
         objectsOnNode={11}
         totalObjectCount={78}
         underNodeCount={5}
         onClickProperties={(key) => key}
-        onClickObservations={(id) => this.props.history.push(`/observationcontrol/${id}`)}
-        onClickController={(id) => this.props.history.push(`/observationcontrol/${id}`)}
+        onClickObservations={(id) => this.props.history.push(`/magasin/${id}/observationcontrol`)}
+        onClickController={(id) => this.props.history.push(`/magasin/${id}/observationcontrol`)}
         onClickMoveNode={(key) => key}
         onClickDelete={this.props.onDelete}
       />

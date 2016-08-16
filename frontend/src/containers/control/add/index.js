@@ -52,6 +52,7 @@ export default class ControlView extends React.Component {
     user: React.PropTypes.object.isRequired,
     onLagreControl: React.PropTypes.func.isRequired,
     updateControl: React.PropTypes.func.isRequired,
+    params: React.PropTypes.object,
   }
   constructor(props) {
     super(props)
@@ -270,7 +271,7 @@ export default class ControlView extends React.Component {
   onClickSave() {
     if (this.oneStateIsNotOK()) {
       this.props.onLagreControl(this.state)
-      hashHistory.push('/observation/control/add')
+      hashHistory.push(`magasin/${this.props.params.id}/observation/control/add`)
     } else {
       this.props.onLagreControl(this.state)
     }

@@ -23,7 +23,7 @@ import NotFound from './components/NotFound'
 import WelcomeView from './containers/welcome-view'
 import StorageUnitsTable from './containers/magasin/grid'
 import PickListView from './containers/picklist'
-import ExampleView from './containers/example-view'
+// import ExampleView from './containers/example-view'
 import StorageUnitPanel from './containers/magasin/panel'
 import WelcomeUserView from './containers/welcome-user'
 import ObservationView from './containers/observation/panel'
@@ -57,18 +57,17 @@ export default (store) => {
       <IndexRedirect to="/" />
 
       <Route path="/" component={WelcomeView} onEnter={redirectIfLoggedIn} />
-      <Route path="/control/add" component={ControlAdd} />
-      <Route path="/control/:id" component={ControlView} />
       <Route path="/picklist" component={PickListView} />
       <Route path="/magasin" component={StorageUnitsTable} />
       <Route path="/magasin/:id" component={StorageUnitsTable} />
-      <Route path="/example" component={ExampleView} />
-      <Route path="/observation/add" component={ObservationView} />
-      <Route path="/observation/:id" component={ObservationView} />
-      <Route path="/observation/control/add" newControlObservation component={ObservationView} />
-      <Route path="/storageunit/:id" component={StorageUnitPanel} />
-      <Route path="/storageunit/add" component={StorageUnitPanel} />
-      <Route path="/observationcontrol/:id" component={ObservationControlGridShow} />
+      <Route path="/magasin/:id/view" component={StorageUnitPanel} />
+      <Route path="/magasin/add" component={StorageUnitPanel} />
+      <Route path="/magasin/:id/observationcontrol" component={ObservationControlGridShow} />
+      <Route path="/magasin/:id/control/add" component={ControlAdd} />
+      <Route path="/magasin/:id/control/:controlId" component={ControlView} />
+      <Route path="/magasin/:id/observation/add" component={ObservationView} />
+      <Route path="/magasin/:id/observation/:obsId" component={ObservationView} />
+      <Route path="/magasin/:id/observation/control/add" newControlObservation component={ObservationView} />
 
       -- Authentication routes
       <Route path="/musit" component={WelcomeUserView} onEnter={requireLogin} />
