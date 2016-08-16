@@ -1,9 +1,8 @@
 package no.uio.musit.microservice.storageAdmin.domain.dto
 
-import no.uio.musit.microservice.storageAdmin.domain.StorageType
 import no.uio.musit.microservices.common.linking.domain.Link
 
-sealed trait BaseDTO {
+sealed trait StorageDTO {
   val id: Option[Long]
   val name: String
   val area: Option[Long]
@@ -14,8 +13,8 @@ sealed trait BaseDTO {
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val links: Option[Seq[Link]]
-  val isDeleted: Option[Boolean]
-  val `type`: StorageType
+  val isDeleted: Boolean
+  val storageType: StorageType
 }
 
 case class BuildingDTO(
@@ -29,10 +28,10 @@ case class BuildingDTO(
   groupRead: Option[String],
   groupWrite: Option[String],
   links: Option[Seq[Link]],
-  isDeleted: Option[Boolean],
-  `type`: StorageType,
+  isDeleted: Boolean,
+  storageType: StorageType,
   address: Option[String]
-) extends BaseDTO
+) extends StorageDTO
 
 case class RoomDTO(
   id: Option[Long],
@@ -45,8 +44,8 @@ case class RoomDTO(
   groupRead: Option[String],
   groupWrite: Option[String],
   links: Option[Seq[Link]],
-  isDeleted: Option[Boolean],
-  `type`: StorageType,
+  isDeleted: Boolean,
+  storageType: StorageType,
   sikringSkallsikring: Option[Boolean],
   sikringTyverisikring: Option[Boolean],
   sikringBrannsikring: Option[Boolean],
@@ -55,7 +54,7 @@ case class RoomDTO(
   bevarLuftfuktOgTemp: Option[Boolean],
   bevarLysforhold: Option[Boolean],
   bevarPrevantKons: Option[Boolean]
-) extends BaseDTO
+) extends StorageDTO
 
 case class StorageUnitDTO(
   id: Option[Long],
@@ -68,6 +67,6 @@ case class StorageUnitDTO(
   groupRead: Option[String],
   groupWrite: Option[String],
   links: Option[Seq[Link]],
-  isDeleted: Option[Boolean],
-  `type`: StorageType
-) extends BaseDTO
+  isDeleted: Boolean,
+  storageType: StorageType
+) extends StorageDTO
