@@ -23,6 +23,7 @@ import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{ Seconds, Span }
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.db.slick.DatabaseConfigProvider
@@ -40,6 +41,8 @@ class MusitThingDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     val instance = Application.instanceCache[MusitThingDao]
     instance(app)
   }
+
+  implicit val defaultPatience = PatienceConfig(timeout = Span(10, Seconds))
 
   "Interacting with the MusitThingDao" when {
 
