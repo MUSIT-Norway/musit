@@ -47,11 +47,6 @@ object JsonEventHelpers {
 
   private def fromJsonToBaseEventProps(eventType: EventType, jsObject: JsObject, relatedSubEvents: Seq[RelatedEvents]): JsResult[BaseEventDto] = {
 
-    /*
-    //TODO: This is a hack, we don't want to insert the current date, we obviously want to read it from json!
-    val date = new java.util.Date()
-    val timestamp = new java.sql.Timestamp(date.getTime)
-*/
     def localDateTimeToTimestamp(optLocalDateTime: Option[LocalDateTime]) = {
       optLocalDateTime.map(localDateTime => Timestamp.valueOf(localDateTime))
     }

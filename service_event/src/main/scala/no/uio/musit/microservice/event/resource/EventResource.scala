@@ -26,8 +26,8 @@ import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper, Misc }
 import no.uio.musit.microservices.common.utils.Misc._
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
 import no.uio.musit.security.Security
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -38,6 +38,7 @@ import scala.concurrent.Future
 class EventResource extends Controller {
 
   private def eventToJson(event: Event) = JsonEventHelpers.toJson(event, true)
+  private def eventsToJson(events: Seq[Event]) = Json.toJson(events)
 
   private def handlePostEvent(request: Request[JsValue], jsonValidator: JsObject => MusitResult[Event]) = {
     Security.create(request).flatMap {
@@ -51,17 +52,6 @@ class EventResource extends Controller {
   def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request: Request[JsValue] =>
     handlePostEvent(request, JsonEventHelpers.validateEvent)
   }
-
-  /*#OLD
-    def postEvent: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    Security.create(request).flatMap {
-      case Left(error) => ResourceHelper.error(error)
-      case Right(securityConnection) =>
-        val maybeEventResult = JsonEventHelpers.validateEvent(request.body.asInstanceOf[JsObject])
-        ResourceHelper.postRootWithMusitResult(EventService.insertAndGetNewEvent(_: Event, true, securityConnection), maybeEventResult, eventToJson)
-    }
-  }
-   */
 
   def getEvent(id: Long) = Action.async { request =>
     ResourceHelper.getRoot(EventService.getEvent(_: Long, true), id, eventToJson)
@@ -125,31 +115,22 @@ class EventResource extends Controller {
     jsObject.deepMerge(newObject)
   }
 
-  val controlEventType = EventType.getByNameOrFail("control")
-
-  def postControl(nodeId: Int): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+  def postEventRelatedToStorageNode(eventType: EventType, nodeId: Int): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     def validator(jsObject: JsObject): MusitResult[Event] = {
-      validateEventTypeIsMissingOrEqualTo(jsObject, controlEventType).flatMap { _ =>
-        val resultJsObject = addStorageNodeRelationAndEventType(jsObject, nodeId, controlEventType)
+      validateEventTypeIsMissingOrEqualTo(jsObject, eventType).flatMap { _ =>
+        val resultJsObject = addStorageNodeRelationAndEventType(jsObject, nodeId, eventType)
         JsonEventHelpers.validateEvent(resultJsObject)
       }
     }
     handlePostEvent(request, validator)
   }
 
+  val controlEventType = EventType.getByNameOrFail("control")
   val observationEventType = EventType.getByNameOrFail("observation")
 
-  def postObservation(nodeId: Int): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    def validator(jsObject: JsObject): MusitResult[Event] = {
-      validateEventTypeIsMissingOrEqualTo(jsObject, observationEventType).flatMap { _ =>
-        val resultJsObject = addStorageNodeRelationAndEventType(jsObject, nodeId, observationEventType)
-        JsonEventHelpers.validateEvent(resultJsObject)
-      }
-    }
-    handlePostEvent(request, validator)
-  }
+  def postControl(nodeId: Int): Action[JsValue] = postEventRelatedToStorageNode(controlEventType, nodeId)
 
-  def eventsToJson(events: Seq[Event]) = Json.toJson(events)
+  def postObservation(nodeId: Int): Action[JsValue] = postEventRelatedToStorageNode(observationEventType, nodeId)
 
   def getControls(nodeId: Int) = Action.async {
     val events = getEventsFor(controlEventType, "storageunit-location", nodeId)
@@ -160,5 +141,4 @@ class EventResource extends Controller {
     val events = getEventsFor(observationEventType, "storageunit-location", nodeId)
     ResourceHelper.getRoot(events, eventsToJson)
   }
-
 }

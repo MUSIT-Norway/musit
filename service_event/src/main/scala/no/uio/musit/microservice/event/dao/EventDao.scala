@@ -58,16 +58,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   def selfLink(id: Long) =
     LinkService.local(Some(id), "self", s"/v1/$id")
 
-  /*
-  def currentDateTimeInIsoFormat = {
-
-    val time = new DateTime()
-
-    val isoFormat = ISODateTimeFormat.dateTime.withZone(DateTimeZone.getDefault)
-    isoFormat.print(time)
-  }
-*/
-
   /*Creates an action to insert the event and potentially all related subevents. PartialEventLink is used if the event is inserted as a subElement of a parent element. The id of the parent element is then in the partialEventLink.*/
   def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean, securityConnection: SecurityConnection): DBIO[Long] = {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))

@@ -47,12 +47,6 @@ object EitherExtensions {
 
   }
 
-  /*Not used
-  implicit class BooleanExtensionsImp[T](val condition: Boolean) extends AnyVal {
-    def toMusitResult(errorIfFail: String) = MusitResult.fromBoolean(condition, errorIfFail)
-  }
-  */
-
   object MusitResult {
     def apply[T](t: T): MusitResult[T] = Right(t)
 

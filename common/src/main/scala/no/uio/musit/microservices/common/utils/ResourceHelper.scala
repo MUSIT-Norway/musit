@@ -26,7 +26,6 @@ object ResourceHelper {
     def mapMusitExceptionToMusitError: MusitFuture[T] = {
       musitFuture.recover {
         case e: MusitException => {
-          println("Mapping MusitException!")
           Left(e.toMusitError)
         }
       }
@@ -74,14 +73,6 @@ object ResourceHelper {
     val result = musitFutureResult.musitFutureFlatMap(servicePostCall)
     postRoot(result, toJsonTransformer)
   }
-  /*#OLD
-  def postRootWithMusitResult[A](servicePostCall: A => MusitFuture[A], musitResultToPost: Either[MusitError, A],
-    toJsonTransformer: A => JsValue) = {
-    musitResultToPost.mapToFinalPlayResult {
-      objectToPost => postRoot(servicePostCall, objectToPost, toJsonTransformer)
-    }
-  }
-   */
 
   def updateRoot[A](serviceUpdateCall: (Long, A) => Future[Either[MusitError, MusitStatusMessage]], id: Long, objectToUpdate: A): Future[Result] = {
     serviceUpdateCall(id, objectToUpdate).map {

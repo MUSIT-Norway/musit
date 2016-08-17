@@ -45,7 +45,6 @@ object MusitError {
 
 class MusitException(message: String, private val developerMessage: String = "") extends Throwable {
   def status = Status.BAD_REQUEST
-  def isClientError = status == Status.BAD_REQUEST //NOT_FOUND, is that a client or server error? (Or is it "it depends"?)
 
   def toMusitError = MusitError(status, message, developerMessage)
 }
@@ -80,7 +79,6 @@ class MusitInternalErrorException(message: String, private val developerMessage:
 class HttpCallException(val uri: Option[URI], error: MusitError) extends MusitException(error.message, "") {
   override def status = error.status
 
-  //Propagates the status, that may be wrong in some circumstances?
   override def toMusitError = error
 }
 

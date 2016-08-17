@@ -55,13 +55,6 @@ object EventService {
   def getEventsFor(eventType: EventType, relation: String, id: Long): MusitFuture[Seq[Event]] = {
 
     val objectUri = EventRelations.getObjectUriViaRelation(id, relation).toMusitResult(MusitError(message = s"Unable to get objectUri via relation: $relation"))
-    /*
-    val eventTypeIdAndObjectUri: MusitResult[(Int, String)] =
-      for {
-        eventType <- EventType.getByNameAsMusitResult(eventType)
-        objectUri <- EventRelations.getObjectUriViaRelation(id, relation).toMusitResult(MusitError(message = s"Unable to get objectUri via relation: $relation"))
-      } yield (eventType.id, objectUri)
-*/
     objectUri.toMusitFuture.musitFutureFlatMap {
       objectUri => getEventsFor(eventType, relation, objectUri)
     }

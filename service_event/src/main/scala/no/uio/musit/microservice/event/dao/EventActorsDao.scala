@@ -64,47 +64,6 @@ object EventActorsDao extends HasDatabaseConfig[JdbcProfile] {
     db.run(query.result)
   }
 
-  /*
-  def insertEventLinkAction(eventLink: EventLink): DBIO[Int] = {
-    insertEventLinkDtoAction(eventLink.toNormalizedEventLinkDto)
-  }
-
-  def insertEventLinkDtoAction(eventLink: EventLinkDto): DBIO[Int] = {
-    //println(s"inserLink: from: ${eventLink.idFrom} relation: ${eventLink.relationId} to: ${eventLink.idTo}")
-    EventLinkTable += eventLink
-  }
-
-  def getRelatedEventDtos(parentId: Long) /*: Future[Seq[(Int, BaseEventDto)]]*/ = {
-    val relevantRelations = EventLinkTable.filter(evt => evt.idFrom === parentId)
-
-    //println(s"gets relatedEventDtos for parentId: $parentId")
-    val query = for {
-      (eventBaseTable, relationTable) <- EventBaseTable join relevantRelations on (_.id === _.idTo)
-    } yield (relationTable.relationId, eventBaseTable)
-
-    db.run(query.result)
-
-  }
-
-  case class PartialEventLink(idFrom: Long, relation: EventRelation) {
-    def toFullLink(idTo: Long) = EventLink(idFrom, relation, idTo)
-  }
-
-  case class EventLink(idFrom: Long, relation: EventRelation, idTo: Long) {
-    def normalizedDirection = if (relation.isNormalized)
-      this
-    else
-      EventLink(idTo, relation.getNormalizedDirection, idFrom)
-
-    def toEventLinkDto = EventLinkDto(idFrom, relation.id, idTo)
-
-    def toNormalizedEventLinkDto = normalizedDirection.toEventLinkDto
-  }
-
-  case class EventLinkDto(idFrom: Long, relationId: Int, idTo: Long) {
-  }
-
-*/
   private class EventActorsTable(tag: Tag) extends Table[TotalEventRoleActor](tag, Some("MUSARK_EVENT"), "EVENT_ROLE_ACTOR") {
     def * = (eventId, roleId, actorId) <> (create.tupled, destroy) // scalastyle:ignore
 
