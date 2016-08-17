@@ -21,17 +21,6 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
 object ResourceHelper {
 
-  implicit class MusitFutureExtensionsImp[T](val musitFuture: MusitFuture[T]) extends AnyVal {
-
-    def mapMusitExceptionToMusitError: MusitFuture[T] = {
-      musitFuture.recover {
-        case e: MusitException => {
-          Left(e.toMusitError)
-        }
-      }
-    }
-  }
-
   implicit class EitherExtensionsImp[T](val either: Either[MusitError, T]) extends AnyVal {
 
     /**
@@ -94,7 +83,7 @@ object ResourceHelper {
   def error(err: MusitError) = { Future.successful(err.toPlayResult) }
 
   def getRoot[A](futureResultObject: Future[Either[MusitError, A]], toJsonTransformer: A => JsValue): Future[Result] = {
-    futureResultObject.mapMusitExceptionToMusitError.map {
+    futureResultObject.map {
       case Right(obj) => Ok(toJsonTransformer(obj))
       case Left(error) => error.toPlayResult
     }

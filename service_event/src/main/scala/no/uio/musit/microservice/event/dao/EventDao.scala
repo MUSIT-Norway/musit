@@ -21,7 +21,6 @@
 package no.uio.musit.microservice.event.dao
 
 import java.sql.{ Date, Timestamp }
-import java.util.Calendar
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
 import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
@@ -31,7 +30,6 @@ import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.linking.dao.LinkDao.LinkTable
-import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.security.SecurityConnection
 import org.joda.time.DateTime
@@ -75,7 +73,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val _registeredDate = new java.sql.Timestamp(DateTime.now().getMillis)
 
     val insertBaseAndLinksAction = (for {
-      newEventId <- insertBaseAction(event.baseEventProps.copy(partOf = partOfParent, registeredBy = Some(_registeredBy), registeredDate = Some(_registeredDate))) //#OLD (EventHelpers.eventDtoToStoreInDatabase(event, partOfParent))
+      newEventId <- insertBaseAction(event.baseEventProps.copy(partOf = partOfParent, registeredBy = Some(_registeredBy), registeredDate = Some(_registeredDate)))
       _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(event, newEventId))
       _ <- LinkDao.insertLinkAction(selfLink(newEventId))
     } yield newEventId).transactionally
@@ -120,7 +118,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   def insertChildrenAction(parentEventId: Long, parentEvent: Event, securityConnection: SecurityConnection) = {
 
     def insertRelatedEvents(relatedEvents: RelatedEvents) = {
-      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true, securityConnection)) //Todo, also handle other relations than parts
+      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true, securityConnection))
       new SequenceAction(actions.toIndexedSeq)
     }
 
