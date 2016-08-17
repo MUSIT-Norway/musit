@@ -45,7 +45,12 @@ object MusitError {
 
 class MusitException(message: String, private val developerMessage: String = "") extends Throwable {
   def status = Status.BAD_REQUEST
+
   def toMusitError = MusitError(status, message, developerMessage)
+}
+
+class MusitBadRequestException(message: String, private val developerMessage: String = "") extends MusitException(message, developerMessage) {
+  override def status = Status.BAD_REQUEST
 }
 
 class MusitNotFoundException(message: String, private val developerMessage: String = "") extends MusitException(message, developerMessage) {
@@ -62,6 +67,7 @@ class MusitNotImplementedYetException(message: String, private val developerMess
 
 class MusitInternalErrorException(message: String, private val developerMessage: String = "") extends Throwable {
   def status = Status.INTERNAL_SERVER_ERROR
+
   def toMusitError = MusitError(status, message, developerMessage)
 }
 
@@ -71,7 +77,8 @@ class MusitInternalErrorException(message: String, private val developerMessage:
  */
 // TODO: Replace the exceptions in PlayExtensions.scala with this one
 class HttpCallException(val uri: Option[URI], error: MusitError) extends MusitException(error.message, "") {
-  override def status = error.status //Propagates the status, that may be wrong in some circumstances?
+  override def status = error.status
+
   override def toMusitError = error
 }
 

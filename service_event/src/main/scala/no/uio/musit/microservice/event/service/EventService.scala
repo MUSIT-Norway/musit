@@ -25,17 +25,38 @@ import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import no.uio.musit.security.SecurityConnection
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object EventService {
   def eventNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(s"Unknown event with id: $id")
 
-  def insertAndGetNewEvent(event: Event, recursive: Boolean): MusitFuture[Event] =
-    insertEvent(event).musitFutureFlatMap(newId => getEvent(newId, recursive))
+  def insertAndGetNewEvent(event: Event, recursive: Boolean, securityConnection: SecurityConnection): MusitFuture[Event] =
+    insertEvent(event, securityConnection).musitFutureFlatMap(newId => getEvent(newId, recursive))
 
-  def insertEvent(event: Event): MusitFuture[Long] =
-    EventDao.insertEvent(event, true).toMusitFuture
+  def insertEvent(event: Event, securityConnection: SecurityConnection): MusitFuture[Long] =
+    EventDao.insertEvent(event, true, securityConnection: SecurityConnection).toMusitFuture
 
   def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] =
     EventDao.getEvent(id, recursive)
+
+  private def getEventIdsFor(eventType: EventType, relation: String, objectUri: String): MusitFuture[Seq[Long]] = {
+    EventDao.getEventIds(eventType, relation, objectUri).toMusitFuture
+  }
+
+  private def getEventsFor(eventType: EventType, relation: String, objectUri: String): MusitFuture[Seq[Event]] = {
+    val futEventIds = getEventIdsFor(eventType, relation, objectUri)
+    MusitFuture.traverse(futEventIds)(eventId => getEvent(eventId, true))
+  }
+
+  def getEventsFor(eventType: EventType, relation: String, id: Long): MusitFuture[Seq[Event]] = {
+
+    val objectUri = EventRelations.getObjectUriViaRelation(id, relation).toMusitResult(MusitError(message = s"Unable to get objectUri via relation: $relation"))
+    objectUri.toMusitFuture.musitFutureFlatMap {
+      objectUri => getEventsFor(eventType, relation, objectUri)
+    }
+  }
 }

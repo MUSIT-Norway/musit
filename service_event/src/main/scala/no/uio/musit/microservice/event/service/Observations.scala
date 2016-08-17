@@ -43,8 +43,7 @@ object ObservationService extends SingleTableNotUsingCustomFields {
 // ----------------------
 
 /** "Abstract" base class for specific to-from observations */
-class ObservationFromTo(baseEventProps: BaseEventDto, val customDto: ObservationFromToDto) extends Event(baseEventProps) {
-
+abstract class ObservationFromTo(baseEventProps: BaseEventDto, val customDto: ObservationFromToDto) extends Event(baseEventProps) {
   val from = customDto.from
   val to = customDto.to
 }

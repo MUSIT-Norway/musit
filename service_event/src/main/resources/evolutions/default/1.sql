@@ -36,9 +36,16 @@ CREATE TABLE MUSARK_EVENT.EVENT (
   ID BIGINT(20) NOT NULL AUTO_INCREMENT,
   EVENT_TYPE_ID integer not null, -- Move to separate table if we want to allow multiple instantiations
   NOTE VARCHAR2(4000),
+
+  EVENT_DATE date, -- When the event happened
+
+  REGISTERED_BY VARCHAR2(100),
+  REGISTERED_DATE timestamp, -- could probably equivalently use datetime.
+
   VALUE_LONG long, -- Custom value, events can choose to store some event-specific value here.
   VALUE_String clob, -- Custom value, events can choose to store some event-specific value here.
   VALUE_FLOAT float, -- Custom value, events can choose to store some event-specific value here.
+
   PART_OF long,
   PRIMARY KEY (ID),
   FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_EVENT.EVENT_TYPE(ID),
@@ -52,6 +59,25 @@ CREATE TABLE MUSARK_EVENT.EVENT_RELATION_EVENT (
   TO_EVENT_ID BIGINT(20) NOT NULL,
   FOREIGN KEY (FROM_EVENT_ID) REFERENCES MUSARK_EVENT.EVENT(ID),
   FOREIGN KEY (TO_EVENT_ID) REFERENCES MUSARK_EVENT.EVENT(ID)
+);
+
+CREATE TABLE MUSARK_EVENT.ACTOR_ROLE (
+  ID Integer NOT NULL,
+  NAME varchar2(200) NOT NULL,
+  DESCRIPTION varchar2(200),
+  PRIMARY KEY (ID)
+);
+
+insert into MUSARK_EVENT.ACTOR_ROLE(ID, NAME, DESCRIPTION) VALUES (1, 'DoneBy', 'The actor who has executed/done the event');
+
+CREATE TABLE MUSARK_EVENT.EVENT_ROLE_ACTOR (
+  EVENT_ID BIGINT(20) NOT NULL,
+  ROLE_ID Integer NOT NULL,
+  ACTOR_ID integer NOT NULL,
+  PRIMARY KEY (EVENT_ID, ROLE_ID, ACTOR_ID),
+  FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_EVENT.EVENT(ID),
+  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_EVENT.ACTOR_ROLE(ID)
+  --Actor_ID is in another microservice so no foreign key allowed... :(
 );
 
 

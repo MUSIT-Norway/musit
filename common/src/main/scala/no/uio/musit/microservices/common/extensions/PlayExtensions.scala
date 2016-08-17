@@ -24,13 +24,13 @@ import java.net.URI
 
 import play.api.libs.ws.{ WSRequest, WSResponse }
 import play.api.mvc.Request
-import play.api.mvc.Results._
 
 //import play.mvc.results._
 
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json.Json
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 //Not sure about whether it is a good practice to use this
 
 /**

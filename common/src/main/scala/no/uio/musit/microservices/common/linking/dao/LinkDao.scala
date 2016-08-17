@@ -66,7 +66,7 @@ object LinkDao extends HasDatabaseConfig[JdbcProfile] {
    *   PRIMARY KEY (ID)
    * );
    */
-  private class LinkTable(tag: Tag) extends Table[Link](tag, "URI_LINKS") {
+  class LinkTable(tag: Tag) extends Table[Link](tag, "URI_LINKS") {
     def id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
     def localTableId = column[Option[Long]]("LOCAL_TABLE_ID")
     def rel = column[String]("REL")
