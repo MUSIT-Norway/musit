@@ -21,20 +21,16 @@ import React from 'react'
 import { IndexRedirect, Route } from 'react-router'
 import NotFound from './components/NotFound'
 import WelcomeView from './containers/welcome-view'
-import StorageUnitsTable from './containers/storageunit/grid'
+import StorageUnitsTable from './containers/magasin/grid'
 import PickListView from './containers/picklist'
 import ExampleView from './containers/example-view'
-import StorageUnitPanel from './containers/storageunit/panel'
+import StorageUnitPanel from './containers/magasin/panel'
 import WelcomeUserView from './containers/welcome-user'
-import ObservationView from './containers/observation'
+import ObservationView from './containers/observation/panel'
 import ControlView from './containers/control/view'
 import ControlAdd from './containers/control/add'
-import ObjectGridShow from './containers/grid/object'
 import App from './containers/app'
-import NodeLeftMenu from './containers/leftmenu/node'
-import ObservationControl from './containers/leftmenu/observationcontrol'
-import ObservationControlGridShow from './containers/grid/observationcontrol'
-import NodeGridShow from './containers/grid/node'
+import ObservationControlGridShow from './containers/observationcontrol/grid'
 
 export default (store) => {
   const requireLogin = (nextState, replace, cb) => {
@@ -65,17 +61,14 @@ export default (store) => {
       <Route path="/control/:id" component={ControlView} />
       <Route path="/picklist" component={PickListView} />
       <Route path="/magasin" component={StorageUnitsTable} />
+      <Route path="/magasin/:id" component={StorageUnitsTable} />
       <Route path="/example" component={ExampleView} />
       <Route path="/observation/add" component={ObservationView} />
       <Route path="/observation/:id" component={ObservationView} />
+      <Route path="/observation/control/add" newControlObservation component={ObservationView} />
       <Route path="/storageunit/:id" component={StorageUnitPanel} />
       <Route path="/storageunit/add" component={StorageUnitPanel} />
-      <Route path="/nodeleftmenu" component={NodeLeftMenu} />
-      <Route path="/observationcontrol" component={ObservationControl} />
-      <Route path="/grid/observationcontrol/:id" component={ObservationControlGridShow} />
-      <Route path="/grid/node/:id" component={NodeGridShow} />
-      <Route path="/grid/node" component={NodeGridShow} />
-      <Route path="/grid/object/:id" component={ObjectGridShow} />
+      <Route path="/observationcontrol/:id" component={ObservationControlGridShow} />
 
       -- Authentication routes
       <Route path="/musit" component={WelcomeUserView} onEnter={requireLogin} />

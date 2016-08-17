@@ -18,6 +18,7 @@
  */
 package no.uio.musit.microservice.actor.resource
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservice.actor.service.LegacyPersonService
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
@@ -28,17 +29,17 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 // TODO: Activate new routes and delete old ones for Actor, and rename resource to LegacyPerson + redo the integration tests
-class LegacyPersonResource extends Controller with LegacyPersonService {
+class LegacyPersonResource @Inject() (legacyPersonService: LegacyPersonService) extends Controller {
 
   def list(search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
     search match {
-      case Some(criteria) => find(criteria).map(persons => { Ok(Json.toJson(persons)) })
-      case None => all.map(persons => { Ok(Json.toJson(persons)) })
+      case Some(criteria) => legacyPersonService.find(criteria).map(persons => Ok(Json.toJson(persons)))
+      case None => legacyPersonService.all.map(persons => Ok(Json.toJson(persons)))
     }
   }
 
   def getById(id: Long): Action[AnyContent] = Action.async { request =>
-    find(id).map {
+    legacyPersonService.find(id).map {
       case Some(actor) => Ok(Json.toJson(actor))
       case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
     }
@@ -47,7 +48,7 @@ class LegacyPersonResource extends Controller with LegacyPersonService {
   def add: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val actorResult: JsResult[Person] = request.body.validate[Person]
     actorResult match {
-      case s: JsSuccess[Person] => create(s.get).map { newActor => Created(Json.toJson(newActor)) }
+      case s: JsSuccess[Person] => legacyPersonService.create(s.get).map(newActor => Created(Json.toJson(newActor)))
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
     }
   }

@@ -18,17 +18,19 @@
  */
 package no.uio.musit.microservices.time.resource
 
+import com.google.inject.Inject
 import no.uio.musit.microservices.common.domain.{ MusitFilter, MusitSearch }
 import play.api.libs.json.Json
 import play.api.mvc._
+
 import scala.concurrent.Future
 import no.uio.musit.microservices.time.service.TimeService
 
-class TimeResource extends Controller with TimeService {
+class TimeResource @Inject() (timeService: TimeService) extends Controller {
 
   def now(filter: Option[MusitFilter], search: Option[MusitSearch]) = Action.async { request =>
     Future.successful(
-      convertToNow(filter) match {
+      timeService.convertToNow(filter) match {
         case Right(mt) => Ok(Json.toJson(mt))
         case Left(err) => Status(err.status)(Json.toJson(err))
       }

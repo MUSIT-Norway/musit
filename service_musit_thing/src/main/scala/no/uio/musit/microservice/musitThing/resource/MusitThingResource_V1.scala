@@ -18,30 +18,30 @@
  */
 package no.uio.musit.microservice.musitThing.resource
 
-import no.uio.musit.microservice.musitThing.dao.MusitThingDao
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import com.google.inject.Inject
 import no.uio.musit.microservice.musitThing.domain.MusitThing
 import no.uio.musit.microservice.musitThing.service.MusitThingService
-import play.api.mvc._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
+import play.api.mvc._
 
 import scala.concurrent.Future
 
-class MusitThingResource_V1 extends Controller with MusitThingService {
+class MusitThingResource_V1 @Inject() (musitThingService: MusitThingService) extends Controller {
 
-  def list = Action.async {
-    MusitThingDao.all.map(musitThing => Ok(Json.toJson(musitThing)))
+  def list = Action.async { request =>
+    musitThingService.all.map(musitThing => Ok(Json.toJson(musitThing)))
   }
 
   def getById(id: Long) = Action.async { request =>
-    extractFilterFromRequest(request) match {
+    musitThingService.extractFilterFromRequest(request) match {
       case Array(filter) => filter.toLowerCase match {
         case "displayid" =>
-          MusitThingDao.getDisplayID(id).map(_.map(displayId => Ok(Json.toJson(displayId)))
+          musitThingService.getDisplayId(id).map(_.map(displayId => Ok(Json.toJson(displayId)))
             .getOrElse(NotFound(s"Didn't find displayId for object with id [$id]")))
 
         case "displayname" =>
-          MusitThingDao.getDisplayName(id).map(_.map(displayName => Ok(Json.toJson(displayName)))
+          musitThingService.getDisplayName(id).map(_.map(displayName => Ok(Json.toJson(displayName)))
             .getOrElse(NotFound(s"Didn't find displayName for object with id: $id")))
 
         case whatever =>
@@ -52,13 +52,13 @@ class MusitThingResource_V1 extends Controller with MusitThingService {
         Future(BadRequest("Filter can not contain more than one attribute"))
 
       case emptyArray =>
-        MusitThingDao.getById(id).map(_.map(thing => Ok(Json.toJson(thing)))
+        musitThingService.getById(id).map(_.map(thing => Ok(Json.toJson(thing)))
           .getOrElse(NotFound(s"Didn't find object with id: $id")))
     }
   }
 
   def add = Action.async(BodyParsers.parse.json) { request =>
-    request.body.validate[MusitThing].map(thing => MusitThingDao.insert(thing).map {
+    request.body.validate[MusitThing].map(thing => musitThingService.create(thing).map {
       newThing => Created(Json.toJson(newThing))
     }).getOrElse(Future(BadRequest(Json.obj(
       "status" -> 400,
