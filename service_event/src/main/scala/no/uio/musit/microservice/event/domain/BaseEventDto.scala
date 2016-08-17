@@ -69,6 +69,13 @@ object BaseEventDto {
         jsObj = jsObj + ("doneBy", JsNumber(relatedActor.actorId)) //Currently we only have one actor, this code must be changed when we get multiple related actors for events.
       }
 
+      baseEventDto.links match {
+        case Some(links) if (links.nonEmpty) =>
+          val linksAsJson = Json.toJson(links)
+          jsObj = jsObj + ("links", linksAsJson)
+        case _ => ()
+      }
+
       CustomFieldsHandler.writeCustomFieldsToJsonIfAny(baseEventDto, jsObj)
     }
   }

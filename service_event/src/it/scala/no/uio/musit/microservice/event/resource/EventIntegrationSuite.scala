@@ -33,7 +33,7 @@ import org.joda.time.DateTime
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.libs.ws.{WS, WSRequest}
 
 /**
@@ -66,6 +66,17 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     WS.url(s"http://localhost:$port/v1/node/$nodeId/control").withFakeUser.postJsonString(json) |> waitFutureValue
   }
 
+  def createObservationEvent(nodeId: Int, json: String) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/observation").withFakeUser.postJsonString(json) |> waitFutureValue
+  }
+
+  def getControlsForNode(nodeId:Int) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/controls").get |> waitFutureValue
+  }
+
+  def getObservationsForNode(nodeId:Int) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/observations").get |> waitFutureValue
+  }
 
   def getEvent(id: Long) = {
     WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
@@ -889,11 +900,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val json =
       s""" {
     "note": "tekst",
-    "links": [{
-    "rel": "actor",
-    "href": "actor/12"
-  }
-  ],
     "subEvents-parts": [{
     "eventType": "controlInertluft",
     "ok": true
@@ -918,6 +924,105 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
   }
 
+  "post explicit observation on node" in {
+    val json =
+      """ {
+    "note": "tekst",
+    "doneBy": 1,
+    "subEvents-parts": [{
+    "eventType": "observationTemperature",
+    "from": 20,
+    "to": 50
+  }, {
+    "eventType": "ObservationMugg",
+    "mugg":"mye mugg"
+  }]
+  }
+  """
+
+    val storageNodeId = createStorageNode()
+
+    val response = createObservationEvent(storageNodeId, json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
 
 
+  }
+  "get explicit controls on node" in {
+    val json =
+      s""" {
+    "note": "tekst",
+    "subEvents-parts": [{
+    "eventType": "controlInertluft",
+    "ok": true
+  }, {
+    "eventType": "controlTemperature",
+    "ok": false,
+    "subEvents-motivates": [{
+      "eventType": "observationTemperature",
+      "from": 20,
+      "to": 50
+    }]
+  }]
+  }
+  """
+
+    val storageNodeId = createStorageNode()
+
+    val response = createControlEvent(storageNodeId, json)
+    response.status mustBe 201
+    val response2 = createControlEvent(storageNodeId, json)
+  //  println(s"Create: ${response.body}")
+    response2.status mustBe 201
+
+    val response3 = getControlsForNode(storageNodeId)
+    response3.status mustBe 200
+
+
+  }
+
+  "get explicit observations on node" in {
+    val json =
+      """ {
+    "note": "tekst",
+    "doneBy": 1,
+    "subEvents-parts": [{
+    "eventType": "observationTemperature",
+    "from": 20,
+    "to": 50
+  }, {
+    "eventType": "ObservationMugg",
+    "mugg":"mye mugg"
+  }]
+  }
+      """
+
+    val storageNodeId = 777 //createStorageNode()
+
+    val response = createObservationEvent(storageNodeId, json)
+    response.status mustBe 201
+    val response2 = createObservationEvent(storageNodeId, json)
+    val response4 = createObservationEvent(storageNodeId, json)
+    val responseOther = createObservationEvent(5252525, json)
+    //  println(s"Create: ${response.body}")
+    response2.status mustBe 201
+
+    val response3 = getObservationsForNode(storageNodeId)
+    response3.status mustBe 200
+
+    val arrayLength = response3.json match {
+      case arr: JsArray => arr.value.length
+    }
+    arrayLength mustBe 3
+
+
+    val response5 = getObservationsForNode(5252525)
+    response5.status mustBe 200
+
+    val arrayLength2 = response5.json match {
+      case arr: JsArray => arr.value.length
+    }
+    arrayLength2 mustBe 1
+
+  }
 }

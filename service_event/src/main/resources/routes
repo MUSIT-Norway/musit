@@ -9,6 +9,10 @@ POST    /v1/event                                 no.uio.musit.microservice.even
 GET     /v1/events       no.uio.musit.microservice.event.resource.EventResource.getEvents(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
 
 POST    /v1/node/:id/control    no.uio.musit.microservice.event.resource.EventResource.postControl(id: Int)
+POST    /v1/node/:id/observation    no.uio.musit.microservice.event.resource.EventResource.postObservation(id: Int)
+
+GET    /v1/node/:id/controls    no.uio.musit.microservice.event.resource.EventResource.getControls(id: Int)
+GET    /v1/node/:id/observations    no.uio.musit.microservice.event.resource.EventResource.getObservations(id: Int)
 
 
 

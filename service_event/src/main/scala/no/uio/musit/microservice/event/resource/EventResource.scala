@@ -92,8 +92,6 @@ class EventResource extends Controller {
       case (eventType, relation, objectId) => getEventsFor(eventType, relation, objectId)
 
     }
-
-    def eventsToJson(events: Seq[Event]) = Json.toJson(events)
     ResourceHelper.getRoot(futureEvents, eventsToJson)
   }
 
@@ -114,7 +112,6 @@ class EventResource extends Controller {
     }
   }
 
-  val controlEventType = EventType.getByNameOrFail("control")
   def addStorageNodeRelationAndEventType(jsObject: JsObject, storageNodeId: Int, eventType: EventType): JsObject = {
     val newObject = JsObject(
       Seq(
@@ -128,6 +125,8 @@ class EventResource extends Controller {
     jsObject.deepMerge(newObject)
   }
 
+  val controlEventType = EventType.getByNameOrFail("control")
+
   def postControl(nodeId: Int): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     def validator(jsObject: JsObject): MusitResult[Event] = {
       validateEventTypeIsMissingOrEqualTo(jsObject, controlEventType).flatMap { _ =>
@@ -137,4 +136,29 @@ class EventResource extends Controller {
     }
     handlePostEvent(request, validator)
   }
+
+  val observationEventType = EventType.getByNameOrFail("observation")
+
+  def postObservation(nodeId: Int): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    def validator(jsObject: JsObject): MusitResult[Event] = {
+      validateEventTypeIsMissingOrEqualTo(jsObject, observationEventType).flatMap { _ =>
+        val resultJsObject = addStorageNodeRelationAndEventType(jsObject, nodeId, observationEventType)
+        JsonEventHelpers.validateEvent(resultJsObject)
+      }
+    }
+    handlePostEvent(request, validator)
+  }
+
+  def eventsToJson(events: Seq[Event]) = Json.toJson(events)
+
+  def getControls(nodeId: Int) = Action.async {
+    val events = getEventsFor(controlEventType, "storageunit-location", nodeId)
+    ResourceHelper.getRoot(events, eventsToJson)
+  }
+
+  def getObservations(nodeId: Int) = Action.async {
+    val events = getEventsFor(observationEventType, "storageunit-location", nodeId)
+    ResourceHelper.getRoot(events, eventsToJson)
+  }
+
 }

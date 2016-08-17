@@ -31,6 +31,7 @@ import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.linking.dao.LinkDao.LinkTable
+import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.security.SecurityConnection
 import org.joda.time.DateTime
@@ -142,13 +143,17 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val action = EventBaseTable.filter(event => event.id === id).result.headOption
     val futOptBaseEvent = db.run(action)
 
+    //get the generic links
+    val futureLinks = LinkDao.findByLocalTableId(id)
+
     //get the related actors
     val futRelatedActors = EventActorsDao.getRelatedActors(id)
 
-    // Copy in the related actors into the base event data
-    futRelatedActors.flatMap { relatedActors =>
-      futOptBaseEvent.map(optBaseEvent => optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors)))
-    }
+    for {
+      optBaseEvent <- futOptBaseEvent
+      links <- futureLinks
+      relatedActors <- futRelatedActors
+    } yield (optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors, links = Some(links))))
   }
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
