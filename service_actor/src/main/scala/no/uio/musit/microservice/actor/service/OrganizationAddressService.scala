@@ -18,33 +18,34 @@
  */
 package no.uio.musit.microservice.actor.service
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.OrganizationAddress
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitStatusMessage }
 import play.api.http.Status
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
  * Business logic for the Person entity in the microservice, simple lookups and so on.
  */
-trait OrganizationAddressService {
+class OrganizationAddressService @Inject() (val actorDao: ActorDao) {
 
   def all(organizationId: Long): Future[Seq[OrganizationAddress]] = {
-    ActorDao.allAddressesForOrganization(organizationId)
+    actorDao.allAddressesForOrganization(organizationId)
   }
 
   def find(id: Long): Future[Option[OrganizationAddress]] = {
-    ActorDao.getOrganizationAddressById(id)
+    actorDao.getOrganizationAddressById(id)
   }
 
   def create(address: OrganizationAddress): Future[OrganizationAddress] = {
-    ActorDao.insertOrganizationAddress(address)
+    actorDao.insertOrganizationAddress(address)
   }
 
   def update(address: OrganizationAddress): Future[Either[MusitError, MusitStatusMessage]] = {
-    ActorDao.updateOrganizationAddress(address).map {
+    actorDao.updateOrganizationAddress(address).map {
       case 0 => Left(MusitError(Status.BAD_REQUEST, "No records were updated!"))
       case 1 => Right(MusitStatusMessage("Record was updated!"))
       case _ => Left(MusitError(Status.BAD_REQUEST, "Several records were updated!"))
@@ -52,7 +53,7 @@ trait OrganizationAddressService {
   }
 
   def remove(id: Long): Future[Int] = {
-    ActorDao.deleteOrganizationAddress(id)
+    actorDao.deleteOrganizationAddress(id)
   }
 
 }

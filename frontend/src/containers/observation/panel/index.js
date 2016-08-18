@@ -30,11 +30,14 @@ import { observationTypeDefinitions, defineCommentType,
 import { addObservation, loadObservation } from '../../../reducers/observation'
 import { actions } from './actions'
 import { MusitField } from '../../../components/formfields'
+import SaveCancel from '../../../components/formfields/saveCancel/SaveCancel'
+import { resolveConditions } from '../../../util'
 
 // TODO: Bind finished page handling to redux and microservices.
 const mapStateToProps = (state) => ({
   translate: (key, markdown) => Language.translate(key, markdown),
   observations: state.observation.data.observations,
+  controlObservations: state.control.data,
   suggest: state.suggest
 })
 
@@ -63,15 +66,16 @@ export default class ObservationView extends React.Component {
     onSaveObservation: React.PropTypes.func.isRequired,
     observations: React.PropTypes.arrayOf(React.PropTypes.object),
     params: React.PropTypes.object,
+    controlObservations: React.PropTypes.object,
     onDoneBySuggestionsUpdateRequested: React.PropTypes.func.isRequired,
     suggest: React.PropTypes.array.isRequired,
+    route: React.PropTypes.object,
   }
 
   constructor(props) {
     super(props)
 
     const { translate } = props
-
     this.displayExisting = !!this.props.params.id
 
     this.observationTypeDefinitions = observationTypeDefinitions(translate, this.actions)
@@ -233,16 +237,51 @@ export default class ObservationView extends React.Component {
         this.displayExisting
       )
     }
-
-    this.state = {
-      observations: this.displayExisting ? this.props.observations : []
+    this.addNewControlObservationJson = (obsType, defaultValuesType) => {
+      const json = {}
+      json.type = obsType
+      json.data = this.observationTypeDefinitions[defaultValuesType].defaultValues
+      return json
     }
 
+    this.addNewControlObservationArrayOfJson = (array, obsType, defaultValuesType) => {
+      array.push(this.addNewControlObservationJson(obsType, defaultValuesType))
+      return array
+    }
+    this.mapControlObservation = (arr, controlType, obsType, defaultValuesType) => {
+      if (this.props.controlObservations[controlType] === false) {
+        this.addNewControlObservationArrayOfJson(arr, obsType, defaultValuesType)
+      }
+    }
+
+    this.addNewControlObservation = () => {
+      const arr = []
+      this.mapControlObservation(arr, 'lightConditionsOK', 'lux', 'comments')
+      this.mapControlObservation(arr, 'gasOK', 'gas', 'comments')
+      this.mapControlObservation(arr, 'cleaningOK', 'cleaning', 'comments')
+      this.mapControlObservation(arr, 'moldFungusOK', 'mold', 'comments')
+      this.mapControlObservation(arr, 'temperatureOK', 'temperature', 'fromTo')
+      this.mapControlObservation(arr, 'relativeHumidityOK', 'rh', 'fromTo')
+      this.mapControlObservation(arr, 'inertAirOK', 'hypoxicAir', 'fromTo')
+      this.mapControlObservation(arr, 'alchoholOK', 'alcohol', 'status')
+      this.mapControlObservation(arr, 'pestOK', 'pest', 'pest')
+      return arr
+    }
+    this.state = {
+      observations: resolveConditions(
+        this.displayExisting,
+        this.props.observations,
+        this.props.route.newControlObservation,
+        this.addNewControlObservation(),
+        []
+      )
+    }
     this.addNewObservation = this.addNewObservation.bind(this)
     this.onChangeDoneBy = this.onChangeDoneBy.bind(this)
     this.onChangeDate = this.onChangeDate.bind(this)
     this.selectType = this.selectType.bind(this)
     this.onCancelObservation = this.onCancelObservation.bind(this)
+    this.onSuggestionSelected = this.onSuggestionSelected.bind(this)
   }
 
   componentWillMount() {
@@ -266,9 +305,14 @@ export default class ObservationView extends React.Component {
     }
   }
 
-  getDoneBySuggestionValue(suggestion) {
-    return `${suggestion.fn}`
+  onSuggestionSelected(event, { suggestion }) {
+    this.updateDoneBy(suggestion)
   }
+
+  getDoneBySuggestionValue(suggestion) {
+    return suggestion.fn
+  }
+
 
   addNewObservation() {
     this.setState({ ...this.state, observations: [...this.state.observations, { type: '' }] })
@@ -304,6 +348,7 @@ export default class ObservationView extends React.Component {
     )
   }
 
+
   render() {
     const {
       translate,
@@ -330,7 +375,7 @@ export default class ObservationView extends React.Component {
     const doneByProps = {
       id: 'doneByField',
       placeholder: 'Done by',
-      value: doneBy,
+      value: doneBy ? doneBy.fn : '',
       type: 'search',
       onChange: onChangeDoneBy
     }
@@ -367,7 +412,7 @@ export default class ObservationView extends React.Component {
                 id={`new_${index}`}
                 title={observation.type ? observationTypes[observation.type].label : null || 'Vennligst velg...'}
                 pullRight
-                disabled={this.displayExisting}
+                disabled={this.displayExisting || this.props.route.newControlObservation}
                 onSelect={(observationType) => selectType(index, observationType)}
               >
                 {menuItems}
@@ -388,8 +433,15 @@ export default class ObservationView extends React.Component {
               <Row>
                 <Col style={{ textAlign: 'center' }}>
                   <PageHeader>
-                    {this.displayExisting ? translate('musit.observation.viewObservationHeader') :
-                    translate('musit.observation.newObservationHeader')}
+                    {resolveConditions(
+                      this.props.route.newControlObservation,
+                      translate('musit.newControl.title'),
+                      this.displayExisting,
+                      translate('musit.observation.viewObservationHeader'),
+                      translate('musit.observation.newObservationHeader')
+                    )}
+                    <br />
+                    { this.props.route.newControlObservation ? translate('musit.observation.registerObservations') : ''}
                   </PageHeader>
                 </Col>
               </Row>
@@ -412,6 +464,7 @@ export default class ObservationView extends React.Component {
                     renderSuggestion={renderDoneBySuggestion}
                     inputProps={doneByProps}
                     shouldRenderSuggestions={(v) => v !== 'undefined'}
+                    onSuggestionSelected={this.onSuggestionSelected}
                   />
                 </Col>
               </Row>
@@ -440,39 +493,30 @@ export default class ObservationView extends React.Component {
               : ''}
               <h1 />
               {renderActiveTypes(observations)}
-              {this.displayExisting ? '' :
+              {this.displayExisting || this.props.route.newControlObservation ? '' :
                 <Row>
                   <h1 />
                   <hr />
                   <Col sm={5} smOffset={1}>
                     <Button
                       onClick={() => addNewObservation()}
-                      disabled={this.displayExisting}
+                      disabled={this.displayExisting || this.props.route.newControlObservation}
                     >
                       <FontAwesome name="plus-circle" /> {translate('musit.observation.newButtonLabel')}
                     </Button>
                   </Col>
                 </Row>
               }
-              <Row>
-                <h1 />
-                <h1 />
-                <hr />
-                <Col sm={10} smOffset={1} className="text-center">
-                  <Button
-                    onClick={() => onSaveObservation(this.state)}
-                    disabled={this.displayExisting}
-                  >
-                    {translate('musit.texts.save')}
-                  </Button>
-                  <Button
-                    onClick={() => onCancelObservation()}
-                    disabled={this.displayExisting}
-                  >
-                    {translate('musit.texts.cancel')}
-                  </Button>
-                </Col>
-              </Row>
+              <h1 />
+              <hr />
+              <h1 />
+              <SaveCancel
+                translate={translate}
+                onClickSave={() => onSaveObservation(this.state)}
+                onClickCancel={() => onCancelObservation()}
+                saveDisabled={this.displayExisting}
+                cancelDisabled={this.displayExisting}
+              />
             </Grid>
           </Panel>
         </main>

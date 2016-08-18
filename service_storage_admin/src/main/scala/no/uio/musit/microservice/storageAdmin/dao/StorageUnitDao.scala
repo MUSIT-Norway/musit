@@ -1,28 +1,27 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageType, StorageUnit }
+import com.google.inject.{ Inject, Singleton }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
+import no.uio.musit.microservice.storageAdmin.domain.Storage
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import play.api.libs.json.Json
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
+@Singleton
+class StorageUnitDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
+) extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._
 
   implicit lazy val storageTypeMapper = MappedColumnType.base[StorageType, String](
-    storageType => storageType.entryName,
-    string => StorageType.withName(string)
+    storageType => storageType.toString,
+    string => StorageType.fromString(string)
   )
-
-  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val StorageUnitTable = TableQuery[StorageUnitTable]
 
@@ -49,6 +48,9 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
 
   def rootNodes(readGroup: String): Future[Seq[StorageUnitDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false && st.isPartOf.isEmpty && st.groupRead === readGroup).result)
+
+  def setPartOf(id: Long, partOf: Long): Future[Int] =
+    db.run(StorageUnitTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
 
   def insert(storageUnit: StorageUnitDTO): Future[StorageUnitDTO] =
     db.run(insertAction(storageUnit))
@@ -123,14 +125,14 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         groupRead,
         groupWrite,
         Storage.linkText(id),
-        Option(isDeleted),
+        isDeleted,
         storageType
       )
 
     def destroy(unit: StorageUnitDTO) =
       Some(
         unit.id,
-        unit.`type`,
+        unit.storageType,
         unit.name,
         unit.area,
         unit.areaTo,
@@ -139,7 +141,7 @@ object StorageUnitDao extends HasDatabaseConfig[JdbcProfile] {
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
-        unit.isDeleted.getOrElse(false)
+        unit.isDeleted
       )
   }
 

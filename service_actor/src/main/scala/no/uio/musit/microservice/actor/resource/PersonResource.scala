@@ -18,6 +18,7 @@
  */
 package no.uio.musit.microservice.actor.resource
 
+import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservice.actor.service.PersonService
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
@@ -27,17 +28,17 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-class PersonResource extends Controller with PersonService {
+class PersonResource @Inject() (personService: PersonService) extends Controller {
 
   def listRoot(search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
     search match {
-      case Some(criteria) => find(criteria).map(persons => Ok(Json.toJson(persons)))
-      case None => all.map(person => { Ok(Json.toJson(person)) })
+      case Some(criteria) => personService.find(criteria).map(persons => Ok(Json.toJson(persons)))
+      case None => personService.all.map(person => Ok(Json.toJson(person)))
     }
   }
 
   def getRoot(id: Long): Action[AnyContent] = Action.async { request =>
-    find(id).map {
+    personService.find(id).map {
       case Some(person) => Ok(Json.toJson(person)) // Ok
       case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
     }
@@ -47,7 +48,7 @@ class PersonResource extends Controller with PersonService {
     val personResult: JsResult[Person] = request.body.validate[Person]
     personResult match {
       case s: JsSuccess[Person] =>
-        create(s.get).map { newPerson => Created(Json.toJson(newPerson)) }
+        personService.create(s.get).map(newPerson => Created(Json.toJson(newPerson)))
       case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
     }
   }
@@ -56,7 +57,7 @@ class PersonResource extends Controller with PersonService {
     val personResult: JsResult[Person] = request.body.validate[Person]
     personResult match {
       case s: JsSuccess[Person] =>
-        update(s.get).map {
+        personService.update(s.get).map {
           case Right(updateStatus) => Ok(Json.toJson(updateStatus))
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
@@ -65,6 +66,6 @@ class PersonResource extends Controller with PersonService {
   }
 
   def deleteRoot(id: Long): Action[AnyContent] = Action.async { request =>
-    remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
+    personService.remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
   }
 }
