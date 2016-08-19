@@ -82,6 +82,9 @@ class StorageUnitService @Inject() (
   def all: Future[Seq[StorageUnitDTO]] =
     storageUnitDao.all()
 
+  def rootNodes(readGroup: String): Future[Seq[StorageUnitDTO]] =
+    storageUnitDao.rootNodes(readGroup)
+
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =
     storageUnitDao.updateStorageUnit(id, Storage.toDTO(storageUnit))
 
