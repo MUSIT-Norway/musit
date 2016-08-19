@@ -121,7 +121,7 @@ CREATE TABLE URI_LINKS (
       PRIMARY KEY (ID)
     );
 
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,  'Move');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1, 'Move');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2, 'EnvRequirement');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3, 'Control');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4, 'Observation');
