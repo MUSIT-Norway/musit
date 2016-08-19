@@ -22,6 +22,7 @@ package no.uio.musit.microservice.storageAdmin.dao
 import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{ Seconds, Span }
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -36,6 +37,8 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
     val instance = Application.instanceCache[StorageUnitDao]
     instance(app)
   }
+
+  implicit val defaultPatience = PatienceConfig(timeout = Span(10, Seconds))
 
   "Interacting with the StorageUnitDao" when {
 

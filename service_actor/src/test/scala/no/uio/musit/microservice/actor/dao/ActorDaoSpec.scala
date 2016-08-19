@@ -26,6 +26,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import org.scalatest.time.{ Span, Seconds, Millis }
 
 class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
@@ -37,6 +38,8 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     val instance = Application.instanceCache[ActorDao]
     instance(app)
   }
+
+  implicit val defaultPatience = PatienceConfig(timeout = Span(10, Seconds))
 
   "Actor dao" when {
 
