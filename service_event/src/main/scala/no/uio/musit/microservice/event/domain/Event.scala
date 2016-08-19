@@ -84,61 +84,61 @@ object ObservationFromToDto {
   implicit val format = Json.format[ObservationFromToDto]
 }
 
-object ObservationLysCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("lysforhold")
+object ObservationLightingConditionCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("lightingCondition")
 }
 
-object ObservationRenholdCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("renhold")
+object ObservationCleaningCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("cleaning")
 }
 
-object ObservationGassCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("gass")
+object ObservationGasCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("gas")
 }
 
-object ObservationMuggCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("mugg")
+object ObservationMoldCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("mold")
 }
 
-object ObservationTyveriSikringCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("tyverisikring")
+object ObservationTheftProtectionCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("theftProtection")
 }
 
-object ObservationBrannSikringCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("brannsikring")
+object ObservationFireProtectionCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("fireProtection")
 }
 
-object ObservationSkallSikringCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("skallsikring")
+object ObservationPerimeterSecurityCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("perimeterSecurity")
 }
 
-object ObservationVannskadeRisikoCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("vannskaderisiko")
+object ObservationWaterDamageAssessmentCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("waterDamageAssessment")
 }
 
 // ---------------------------------------------------
-// ObservationSkadedyr
+// ObservationPest
 // ---------------------------------------------------
-object ObservationSkadedyrCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("identifikasjon")
+object ObservationPestCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("identification")
 }
 
 //Note: The eventId is only used during writing to the database, it is "None-ed out" after having been read from the database, to prevent it from showing up in json.
-case class LivssyklusDto(eventId: Option[Long], livssyklus: Option[String], antall: Option[Int])
+case class LifeCycleDto(eventId: Option[Long], stage: Option[String], number: Option[Int])
 
-object LivssyklusDto {
-  implicit val format = Json.format[LivssyklusDto]
+object LifeCycleDto {
+  implicit val format = Json.format[LifeCycleDto]
 }
 
-case class ObservationSkadedyrDto(livssykluser: Seq[LivssyklusDto]) extends Dto
+case class ObservationPestDto(lifeCycles: Seq[LifeCycleDto]) extends Dto
 
-object ObservationSkadedyrDto {
-  implicit val format = Json.format[ObservationSkadedyrDto]
+object ObservationPestDto {
+  implicit val format = Json.format[ObservationPestDto]
 }
 
 // ---------------------------------------------------
-// ObservationSprit
+// ObservationAlcohol
 // ---------------------------------------------------
-object ObservationSpritCustomFieldsSpec {
-  val customFieldsSpec = CustomFieldsSpec().defineOptString("tilstand").defineOptDouble("volum")
+object ObservationAlcoholCustomFieldsSpec {
+  val customFieldsSpec = CustomFieldsSpec().defineOptString("condition").defineOptDouble("volume")
 }

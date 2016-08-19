@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{ LivssyklusDto, ObservationSkadedyrDto }
+import no.uio.musit.microservice.event.domain.{ LifeCycleDto, ObservationPestDto, ObservationPestDto$ }
 import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
@@ -32,48 +32,48 @@ import scala.concurrent.Future
 /**
  * Created by jstabel on 7/8/16.
  */
-object ObservationSkadedyrDao extends HasDatabaseConfig[JdbcProfile] {
+object ObservationPestDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val LivssyklusTable = TableQuery[LivssyklusTable]
+  private val LifeCycleTable = TableQuery[LifeCycleTable]
 
   // The insertAction and getObservation are somewhat more complex than necessary because I don't know how to remove the
   // EventId field from the livssyklus case class and still get it inserted using Slick. Please feel free to remove the
   // need for the EventId in the dto, that would clean this up a bit.
 
-  def insertAction(eventId: Long, obsDto: ObservationSkadedyrDto): DBIO[Int] = {
-    val livssykluserWithEventId = obsDto.livssykluser.map { livssyklus => livssyklus.copy(eventId = Some(eventId)) }
+  def insertAction(eventId: Long, obsDto: ObservationPestDto): DBIO[Int] = {
+    val lifeCyclesWithEventId = obsDto.lifeCycles.map { lifeCycle => lifeCycle.copy(eventId = Some(eventId)) }
     DaoHelper.mapMultiRowInsertResultIntoOk(
-      LivssyklusTable ++= livssykluserWithEventId
+      LifeCycleTable ++= lifeCyclesWithEventId
     )
   }
 
-  def getObservation(id: Long): Future[Option[ObservationSkadedyrDto]] =
-    db.run(LivssyklusTable.filter(livssyklus => livssyklus.eventId === id).result).
+  def getObservation(id: Long): Future[Option[ObservationPestDto]] =
+    db.run(LifeCycleTable.filter(lifeCycle => lifeCycle.eventId === id).result).
       map {
-        seqLivssyklus =>
-          if (seqLivssyklus.isEmpty) {
+        seqLifeCycle =>
+          if (seqLifeCycle.isEmpty) {
             None
           } else {
-            val seqLivssyklusWithoutEventIds = seqLivssyklus.map(_.copy(eventId = None)) //We don't want the eventIds in json output.
-            Some(ObservationSkadedyrDto(seqLivssyklusWithoutEventIds))
+            val seqLifeCycleWithoutEventIds = seqLifeCycle.map(_.copy(eventId = None)) //We don't want the eventIds in json output.
+            Some(ObservationPestDto(seqLifeCycleWithoutEventIds))
           }
       }
 
-  private class LivssyklusTable(tag: Tag) extends Table[LivssyklusDto](tag, Some("MUSARK_EVENT"), "OBSERVATION_SKADEDYR_LIVSSYKLUS") {
-    def * = (eventId, livssyklus, antall) <> (create.tupled, destroy) // scalastyle:ignore
+  private class LifeCycleTable(tag: Tag) extends Table[LifeCycleDto](tag, Some("MUSARK_EVENT"), "OBSERVATION_PEST_LIFECYCLE") {
+    def * = (eventId, stage, number) <> (create.tupled, destroy) // scalastyle:ignore
 
     val eventId = column[Option[Long]]("EVENT_ID")
-    val livssyklus = column[Option[String]]("LIVSSYKLUS")
-    val antall = column[Option[Int]]("ANTALL")
+    val stage = column[Option[String]]("STAGE")
+    val number = column[Option[Int]]("NUMBER")
 
-    def create = (eventId: Option[Long], livssyklus: Option[String], antall: Option[Int]) =>
-      LivssyklusDto(eventId, livssyklus, antall)
+    def create = (eventId: Option[Long], stage: Option[String], number: Option[Int]) =>
+      LifeCycleDto(eventId, stage, number)
 
-    def destroy(livssyklus: LivssyklusDto) = Some(livssyklus.eventId, livssyklus.livssyklus, livssyklus.antall)
+    def destroy(lifeCycle: LifeCycleDto) = Some(lifeCycle.eventId, lifeCycle.stage, lifeCycle.number)
   }
 
 }
