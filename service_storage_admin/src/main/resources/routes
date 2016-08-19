@@ -3,6 +3,7 @@
 # ~~~~
 
 # Setup endpoints
+GET     /v1/storageunit/root                   no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.listRootNode
 GET     /v1/storageunit/:id                    no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.getById(id:Long)
 GET     /v1/storageunit/:id/children           no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.getChildren(id:Long)
 POST    /v1/storageunit/validate               no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.validateChildren
