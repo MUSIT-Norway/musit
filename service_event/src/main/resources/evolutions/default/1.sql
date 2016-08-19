@@ -122,33 +122,33 @@ CREATE TABLE URI_LINKS (
     );
 
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1,  'Move');
-insert into MUSARK_EVENT.EVENT_TYPE   (id,Name) values (2, 'EnvRequirement');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (3, 'Control');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (4, 'Observation');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2, 'EnvRequirement');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3, 'Control');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4, 'Observation');
     
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5, 'ControlAlcohol');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (6, 'ControlCleaning');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (7, 'ControlGas');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (8, 'ControlHypoxicAir');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (9, 'ControlLightingCondition');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (10, 'ControlMold');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (11, 'ControlPest');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (12, 'ControlRelativeHumidity');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (13, 'ControlTemperature');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6, 'ControlCleaning');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7, 'ControlGas');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (8, 'ControlHypoxicAir');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (9, 'ControlLightingCondition');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (10, 'ControlMold');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (11, 'ControlPest');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (12, 'ControlRelativeHumidity');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (13, 'ControlTemperature');
 
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (14, 'ObservationAlcohol');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (15, 'ObservationCleaning');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (16, 'ObservationFireProtection');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (17, 'ObservationGas');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (18, 'ObservationHypoxicAir');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (19, 'ObservationLightingCondition');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (20, 'ObservationMold');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (21, 'ObservationPerimeterSecurity');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (22, 'ObservationRelativeHumidity');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (23, 'ObservationPest');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (24, 'ObservationTemperature');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (25, 'ObservationTheftProtection');
-insert into MUSARK_EVENT.EVENT_TYPE  (id,Name) values (26, 'ObservationWaterDamageAssessment');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (14, 'ObservationAlcohol');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (15, 'ObservationCleaning');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (16, 'ObservationFireProtection');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (17, 'ObservationGas');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (18, 'ObservationHypoxicAir');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (19, 'ObservationLightingCondition');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (20, 'ObservationMold');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (21, 'ObservationPerimeterSecurity');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (22, 'ObservationRelativeHumidity');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (23, 'ObservationPest');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (24, 'ObservationTemperature');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (25, 'ObservationTheftProtection');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (26, 'ObservationWaterDamageAssessment');
 
 
 
