@@ -1,10 +1,12 @@
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.MovePlaceDao
 import no.uio.musit.microservice.event.domain.{ BaseEventDto, Event }
-import slick.dbio.DBIO
 
 class MoveObject(baseProps: BaseEventDto) extends Event(baseProps) {
+  def execute(): Unit = {
+
+  }
+
 }
 
 object MoveObject extends SingleTableNotUsingCustomFields {
@@ -14,13 +16,7 @@ object MoveObject extends SingleTableNotUsingCustomFields {
   }
 }
 
-class MovePlace(baseProps: BaseEventDto) extends Event(baseProps) {
-  def doExecute(eventId: Long): DBIO[Unit] = {
-    MovePlaceDao.executeMove(eventId, this)
-  }
-
-  override def execute = Some(doExecute)
-}
+class MovePlace(baseProps: BaseEventDto) extends Event(baseProps)
 
 object MovePlace extends SingleTableNotUsingCustomFields {
 

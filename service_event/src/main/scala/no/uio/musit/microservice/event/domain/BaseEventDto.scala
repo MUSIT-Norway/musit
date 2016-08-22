@@ -81,25 +81,26 @@ object BaseEventDto {
   }
 }
 
-trait EventRoleActor {
-  def roleId: Int
-  def actorId: Int
+case class ActorWithRole(roleId: Int, actorId: Int) {
+  def toEventRoleActor(eventId: Long) = EventRoleActor(eventId, roleId, actorId)
 }
 
-case class PartialEventRoleActor(roleID: Int, actorID: Int) extends EventRoleActor {
-  def toTotal(eventId: Long) = TotalEventRoleActor(eventId, this.roleID, this.actorID)
-  def roleId = roleID
-  def actorId = actorID
+case class EventRoleActor(eventId: Long, roleId: Int, actorId: Int) {
+  def toActorWithRole = ActorWithRole(roleId, actorId)
 }
-case class TotalEventRoleActor(eventID: Long, roleID: Int, actorID: Int) extends EventRoleActor {
-  //  override def asPartial = PartialEventRoleActor(roleID, actorID)
-  def roleId = roleID
-  def actorId = actorID
+
+case class ObjectWithRole(roleId: Int, objectId: Int) {
+  def toEventRoleObject(eventId: Long) = EventRoleObject(eventId, roleId, objectId)
+}
+
+case class EventRoleObject(eventId: Long, roleId: Int, objectId: Int) {
+  def toObjectWithRole = ObjectWithRole(roleId, objectId)
 }
 
 //RegisteredBy and registeredDate are options even though they are required in the database, because they will be None in input-json
 case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, eventDate: Option[Date],
-    relatedActors: Seq[EventRoleActor], note: Option[String],
+    relatedActors: Seq[ActorWithRole], relatedObjects: Seq[ObjectWithRole],
+    note: Option[String],
     relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long],
     valueString: Option[String], valueDouble: Option[Double], registeredBy: Option[String], registeredDate: Option[Timestamp]) {
   def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]

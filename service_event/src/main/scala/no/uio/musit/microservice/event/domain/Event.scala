@@ -16,6 +16,7 @@ class Event(val baseEventProps: BaseEventDto) {
   val id: Option[Long] = baseEventProps.id
   val eventDate: Option[Date] = baseEventProps.eventDate
   val relatedActors = baseEventProps.relatedActors
+  val relatedObjects = baseEventProps.relatedObjects
   val note: Option[String] = baseEventProps.note
   val links: Option[Seq[Link]] = baseEventProps.links
   val eventType = baseEventProps.eventType
