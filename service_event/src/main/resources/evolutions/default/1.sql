@@ -80,6 +80,33 @@ CREATE TABLE MUSARK_EVENT.EVENT_ROLE_ACTOR (
   --Actor_ID is in another microservice so no foreign key allowed... :(
 );
 
+CREATE TABLE MUSARK_EVENT.OBJECT_ROLE (
+  ID Integer NOT NULL,
+  NAME varchar2(200) NOT NULL,
+  DESCRIPTION varchar2(200),
+  PRIMARY KEY (ID)
+);
+
+insert into MUSARK_EVENT.OBJECT_ROLE(ID, NAME, DESCRIPTION) VALUES (1, 'DoneWith', 'The object who was done something with in a spesific event');
+
+CREATE TABLE MUSARK_EVENT.LOCAL_OBJECT
+(
+ object_id         BIGINT(20) NOT NULL,
+ latest_move_id      BIGINT(20) NOT NULL,
+ current_location_id  integer, -- maybe for later use
+   FOREIGN KEY (latest_move_id) REFERENCES MUSARK_EVENT.EVENT(ID)
+   --FOREIGN KEY (current_location_id) REFERENCES MUSARK_EVENT.storageAdminNodehvatever(ID)
+);
+
+CREATE TABLE MUSARK_EVENT.EVENT_ROLE_OBJECT (
+  EVENT_ID BIGINT(20) NOT NULL,
+  ROLE_ID Integer NOT NULL,
+  OBJECT_ID integer NOT NULL,
+  PRIMARY KEY (EVENT_ID, ROLE_ID, OBJECT_ID),
+  FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_EVENT.EVENT(ID),
+  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_EVENT.OBJECT_ROLE(ID),
+  FOREIGN KEY (OBJECT_ID) REFERENCES MUSARK_EVENT.LOCAL_OBJECT(OBJECT_ID)
+);
 
 CREATE TABLE MUSARK_EVENT.OBSERVATION_FROM_TO (
   ID BIGINT(20) NOT NULL,
@@ -113,6 +140,9 @@ CREATE TABLE MUSARK_EVENT.OBSERVATION_PEST_LIFECYCLE
    FOREIGN KEY (event_id) REFERENCES MUSARK_EVENT.EVENT(ID)
 );
 
+
+
+
 CREATE TABLE URI_LINKS (
       ID bigint(20) NOT NULL AUTO_INCREMENT,
       LOCAL_TABLE_ID bigint(20) NOT NULL,
@@ -121,11 +151,11 @@ CREATE TABLE URI_LINKS (
       PRIMARY KEY (ID)
     );
 
-insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1, 'Move');
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (1, 'MoveObject');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (2, 'EnvRequirement');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (3, 'Control');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (4, 'Observation');
-    
+
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (5, 'ControlAlcohol');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (6, 'ControlCleaning');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (7, 'ControlGas');
@@ -149,7 +179,7 @@ insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (23, 'ObservationPest');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (24, 'ObservationTemperature');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (25, 'ObservationTheftProtection');
 insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (26, 'ObservationWaterDamageAssessment');
-
+insert into MUSARK_EVENT.EVENT_TYPE (id,Name) values (27, 'MovePlace');
 
 
 # --- !Downs

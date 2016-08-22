@@ -107,6 +107,15 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         numInserted <- EventActorsDao.insertActors(newEventId, event.relatedActors)
       } yield newEventId).transactionally
     }
+
+    action = event.execute match {
+      case Some(executeFunc) =>
+        (for {
+          newEventId <- action
+          _ <- executeFunc(newEventId)
+        } yield newEventId).transactionally
+      case None => action
+    }
     action
   }
 
