@@ -60,14 +60,16 @@ object JsonEventHelpers {
 
       eventDate <- (jsObject \ "doneDate").validateOpt[Date]
       doneBy <- (jsObject \ "doneBy").validateOpt[Int]
+      doneWith <- (jsObject \ "doneWith").validateOpt[Int]
 
       customValueLong <- CustomFieldsHandler.validateCustomIntegerFieldFromJsonIfAny(eventType, jsObject)
       customValueString <- CustomFieldsHandler.validateCustomStringFieldFromJsonIfAny(eventType, jsObject)
       customValueDouble <- CustomFieldsHandler.validateCustomDoubleFieldFromJsonIfAny(eventType, jsObject)
 
-      eventRoleActor = if (doneBy.isDefined) Seq(PartialEventRoleActor(1, doneBy.get)) else Seq.empty
+      eventRoleActor = if (doneBy.isDefined) Seq(ActorWithRole(1, doneBy.get)) else Seq.empty
+      eventRoleObject = if (doneWith.isDefined) Seq(ObjectWithRole(1, doneWith.get)) else Seq.empty
 
-    } yield BaseEventDto(id, links, eventType, eventDate, eventRoleActor, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble,
+    } yield BaseEventDto(id, links, eventType, eventDate, eventRoleActor, eventRoleObject, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble,
       registeredBy, localDateTimeToTimestamp(registeredDate))
   }
 

@@ -107,6 +107,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         numInserted <- EventActorsDao.insertActors(newEventId, event.relatedActors)
       } yield newEventId).transactionally
     }
+    if (event.relatedObjects.nonEmpty) {
+      action = (for {
+        newEventId <- action
+        numInserted <- EventObjectsDao.insertObjects(newEventId, event.relatedObjects)
+      } yield newEventId).transactionally
+    }
     action
   }
 
@@ -137,11 +143,15 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     //get the related actors
     val futRelatedActors = EventActorsDao.getRelatedActors(id)
 
+    //get the related objects
+    val futRelatedObjects = EventObjectsDao.getRelatedObjects(id)
+
     for {
       optBaseEvent <- futOptBaseEvent
       links <- futureLinks
       relatedActors <- futRelatedActors
-    } yield (optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors, links = Some(links))))
+      relatedObjects <- futRelatedObjects
+    } yield (optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors, relatedObjects = relatedObjects, links = Some(links))))
   }
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
@@ -292,6 +302,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
         eventType,
         eventDate,
+        Seq.empty,
         Seq.empty,
         note,
         Seq.empty,

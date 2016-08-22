@@ -110,14 +110,14 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "eventType": "Move",
-   "note": "Dette er et viktig notat for move!",
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+   "eventType": "MoveObject",
+   "note": "Dette er et viktig notat for move!"
+   }"""
 
 
       val response = createEvent(json)
       response.status mustBe 201
-      val moveObject = validateEvent[Move](response.json) // .validate[Move].get
+      val moveObject = validateEvent[MoveObject](response.json) // .validate[Move].get
 
       val responseGet = getEvent(moveObject.id.get)
       responseGet.status mustBe 200
@@ -1023,6 +1023,27 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       case arr: JsArray => arr.value.length
     }
     arrayLength2 mustBe 1
+
+  }
+
+  "post MoveObject" in {
+
+    val json =
+      """
+  {
+   "eventType": "MoveObject",
+   "doneWith": 1,
+   "note": "Dette er et viktig notat for move!"
+   }"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val moveObject = validateEvent[MoveObject](response.json) // .validate[Move].get
+
+    val responseGet = getEvent(moveObject.id.get)
+    responseGet.status mustBe 200
+    val moveObject2 = validateEvent[MoveObject](responseGet.json) // .validate[Move].get
+    moveObject2.relatedObjects.length mustBe 1
 
   }
 }

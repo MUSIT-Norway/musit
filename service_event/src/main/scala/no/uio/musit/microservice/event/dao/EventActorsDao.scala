@@ -51,20 +51,20 @@ object EventActorsDao extends HasDatabaseConfig[JdbcProfile] {
 
   private val EventActorsTable = TableQuery[EventActorsTable]
 
-  def insertActors(newEventId: Long, relatedActors: Seq[EventRoleActor]): DBIO[Option[Int]] = {
+  def insertActors(newEventId: Long, relatedActors: Seq[ActorWithRole]): DBIO[Option[Int]] = {
     val relActors = relatedActors.map {
-      case total: TotalEventRoleActor => total
-      case partial: PartialEventRoleActor => partial.toTotal(newEventId)
+      _.toEventRoleActor(newEventId)
     }
     EventActorsTable ++= relActors
   }
 
-  def getRelatedActors(eventId: Long): Future[Seq[EventRoleActor]] = {
+  def getRelatedActors(eventId: Long): Future[Seq[ActorWithRole]] = {
     val query = EventActorsTable.filter(evt => evt.eventId === eventId)
-    db.run(query.result)
+    val futEventRoleActorSeq = db.run(query.result)
+    futEventRoleActorSeq.map(eventRoleActorSeq => eventRoleActorSeq.map(eventRoleActor => eventRoleActor.toActorWithRole))
   }
 
-  private class EventActorsTable(tag: Tag) extends Table[TotalEventRoleActor](tag, Some("MUSARK_EVENT"), "EVENT_ROLE_ACTOR") {
+  private class EventActorsTable(tag: Tag) extends Table[EventRoleActor](tag, Some("MUSARK_EVENT"), "EVENT_ROLE_ACTOR") {
     def * = (eventId, roleId, actorId) <> (create.tupled, destroy) // scalastyle:ignore
 
     val eventId = column[Long]("EVENT_ID")
@@ -72,13 +72,13 @@ object EventActorsDao extends HasDatabaseConfig[JdbcProfile] {
     val actorId = column[Int]("ACTOR_ID")
 
     def create = (eventId: Long, roleId: Int, actorId: Int) =>
-      TotalEventRoleActor(
+      EventRoleActor(
         eventId,
         roleId,
         actorId
       )
 
-    def destroy(eventRoleActor: TotalEventRoleActor) = Some(eventRoleActor.eventID, eventRoleActor.roleID, eventRoleActor.actorID)
+    def destroy(eventRoleActor: EventRoleActor) = Some(eventRoleActor.eventId, eventRoleActor.roleId, eventRoleActor.actorId)
   }
 
 }
