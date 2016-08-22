@@ -48,6 +48,7 @@ object BaseEventDto {
     def writes(baseEventDto: BaseEventDto): JsValue = {
 
       require(baseEventDto.relatedActors.length <= 1, "This code must be changed when we get multiple related actors in the future!")
+      require(baseEventDto.relatedObjects.length <= 1, "This code must be changed when we get multiple related objects in the future!")
 
       var jsObj = Json.obj(
         "id" -> baseEventDto.id,
@@ -67,6 +68,10 @@ object BaseEventDto {
 
       baseEventDto.relatedActors.foreach { relatedActor =>
         jsObj = jsObj + ("doneBy", JsNumber(relatedActor.actorId)) //Currently we only have one actor, this code must be changed when we get multiple related actors for events.
+      }
+
+      baseEventDto.relatedObjects.foreach { relatedObject =>
+        jsObj = jsObj + ("doneWith", JsNumber(relatedObject.objectId)) //Currently we only have one related object, this code must be changed when we get multiple related objects for events.
       }
 
       baseEventDto.links match {

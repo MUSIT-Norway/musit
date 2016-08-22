@@ -20,24 +20,13 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.dao.EventDao._
-import no.uio.musit.microservice.event.domain.{ EventRelations, EventType, _ }
-import no.uio.musit.microservices.common.domain.MusitInternalErrorException
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
-import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservices.common.utils.ErrorHelper
-import no.uio.musit.microservices.common.utils.Misc._
+import no.uio.musit.microservice.event.domain._
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import no.uio.musit.microservices.common.extensions.EitherExtensions._
-import slick.dbio.SequenceAction
 
 /**
  * Created by jstabel on 7/6/16.
