@@ -38,7 +38,7 @@
     "name": "storageadmin",
     "scalaName": "StorageUnitResource",
     "host": "localhost",
-    "port": "7070",
+    "port": "7072",
     "protocol": "http://"
   },
   {
