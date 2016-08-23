@@ -19,6 +19,8 @@
  */
 
 package no.uio.musit.microservice.event.resource
+import java.sql.Date
+
 import no.uio.musit.microservice.event.domain.{ Event, EventType }
 import no.uio.musit.microservice.event.service.JsonEventHelpers.JsonEventWriter
 import no.uio.musit.microservice.event.service.{ EventService, JsonEventHelpers }
@@ -102,12 +104,14 @@ class EventResource extends Controller {
     }
   }
 
+  private val storageUnitLocationRel: String = "storageunit-location"
+
   def addStorageNodeRelationAndEventType(jsObject: JsObject, storageNodeId: Int, eventType: EventType): JsObject = {
     val newObject = JsObject(
       Seq(
         ("eventType" -> JsString(eventType.name)),
         "links" -> JsArray(Seq(JsObject(Seq(
-          ("rel" -> JsString("storageunit-location")),
+          ("rel" -> JsString(storageUnitLocationRel)),
           ("href" -> JsString(s"storageunit/$storageNodeId"))
         ))))
       )
@@ -133,12 +137,25 @@ class EventResource extends Controller {
   def postObservation(nodeId: Int): Action[JsValue] = postEventRelatedToStorageNode(observationEventType, nodeId)
 
   def getControls(nodeId: Int) = Action.async {
-    val events = getEventsFor(controlEventType, "storageunit-location", nodeId)
+    val events = getEventsFor(controlEventType, storageUnitLocationRel, nodeId)
     ResourceHelper.getRoot(events, eventsToJson)
   }
 
   def getObservations(nodeId: Int) = Action.async {
-    val events = getEventsFor(observationEventType, "storageunit-location", nodeId)
+    val events = getEventsFor(observationEventType, storageUnitLocationRel, nodeId)
     ResourceHelper.getRoot(events, eventsToJson)
+  }
+
+  def getControlsAndObservations(nodeId: Int) = Action.async {
+    val futControls = getEventsFor(controlEventType, storageUnitLocationRel, nodeId)
+    val futObservations = getEventsFor(observationEventType, storageUnitLocationRel, nodeId)
+
+    val futEvents = futControls.musitFutureFlatMap { controls =>
+      futObservations.musitFutureMap { observations =>
+        import no.uio.musit.microservice.event.service.EventOrderingUtils.eventByRegisteredDateOrdering
+        controls.union(observations).sorted(eventByRegisteredDateOrdering)
+      }
+    }
+    ResourceHelper.getRoot(futEvents, eventsToJson)
   }
 }
