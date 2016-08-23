@@ -94,12 +94,16 @@ case class EventRoleActor(eventId: Long, roleId: Int, actorId: Int) {
   def toActorWithRole = ActorWithRole(roleId, actorId)
 }
 
-case class ObjectWithRole(roleId: Int, objectId: Int) {
+case class ObjectWithRole(roleId: Int, objectId: Long) {
   def toEventRoleObject(eventId: Long) = EventRoleObject(eventId, roleId, objectId)
 }
 
-case class EventRoleObject(eventId: Long, roleId: Int, objectId: Int) {
+case class EventRoleObject(eventId: Long, roleId: Int, objectId: Long) {
   def toObjectWithRole = ObjectWithRole(roleId, objectId)
+}
+
+case class LocalObject(objectId: Long, latestMoveId: Long, currentLocationId: Int) {
+
 }
 
 //RegisteredBy and registeredDate are options even though they are required in the database, because they will be None in input-json

@@ -92,7 +92,7 @@ insert into MUSARK_EVENT.OBJECT_ROLE(ID, NAME, DESCRIPTION) VALUES (1, 'DoneWith
 CREATE TABLE MUSARK_EVENT.LOCAL_OBJECT
 (
  object_id         BIGINT(20) NOT NULL,
- latest_move_id      BIGINT(20) NOT NULL,
+ latest_move_id      BIGINT(20) ,
  current_location_id  integer, -- maybe for later use
    FOREIGN KEY (latest_move_id) REFERENCES MUSARK_EVENT.EVENT(ID)
    --FOREIGN KEY (current_location_id) REFERENCES MUSARK_EVENT.storageAdminNodehvatever(ID)

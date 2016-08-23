@@ -57,9 +57,9 @@ object EventObjectsDao extends HasDatabaseConfig[JdbcProfile] {
 
     val eventId = column[Long]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
-    val objectId = column[Int]("OBJECT_ID")
+    val objectId = column[Long]("OBJECT_ID")
 
-    def create = (eventId: Long, roleId: Int, objectId: Int) =>
+    def create = (eventId: Long, roleId: Int, objectId: Long) =>
       EventRoleObject(
         eventId,
         roleId,
