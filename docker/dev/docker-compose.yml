@@ -8,11 +8,6 @@ services:
         links:
             - backing
             - webpack
-    db:
-      image: postgres
-      environment:
-        POSTGRES_PASSWORD: docker
-        POSTGRES_USER: docker
     webpack:
         build:
             context: "../../frontend"
@@ -29,29 +24,15 @@ services:
             - "3030:3030"
     thing:
         image: musit_service_musit_thing:0.1-SNAPSHOT
-        links:
-          - db
     core:
         image: musit_service_core:0.1-SNAPSHOT
-        links:
-          - db
     storageadmin:
         image: musit_service_storage_admin:0.1-SNAPSHOT
-        links:
-          - db
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
-        links:
-          - db
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
-        links:
-          - db
     event:
         image: musit_service_event:0.1-SNAPSHOT
-        links:
-          - db
     time:
         image: musit_service_time:0.1-SNAPSHOT
-        links:
-          - db
