@@ -21,8 +21,8 @@ object MoveObjectDao extends HasDatabaseConfig[JdbcProfile] {
 
   private val LocalObjectsTable = TableQuery[LocalObjectsTable]
 
-  def InsertLocalObject(NewObjectId: Long): DBIO[Unit] = {
-    val res = LocalObjectsTable.map(lot => lot.objectId) += (NewObjectId)
+  def insertLocalObject(newObjectId: Long): DBIO[Unit] = {
+    val res = LocalObjectsTable.map(lot => lot.objectId) += (newObjectId)
     res.map(_ => ())
   }
 
@@ -33,11 +33,11 @@ object MoveObjectDao extends HasDatabaseConfig[JdbcProfile] {
     q.update(Some(newEventId), Some(currentLocationId)).map(_ => ())
   }
 
-  def MaybeInsertLocalObject(localObjectId: Long): DBIO[Unit] = {
+  def maybeInsertLocalObject(localObjectId: Long): DBIO[Unit] = {
     val futOptRes = FutureAction(db.run(LocalObjectsTable.filter(museumObject => museumObject.objectId === localObjectId).result.headOption))
     futOptRes.flatMap { res =>
       res match {
-        case None => InsertLocalObject(localObjectId)
+        case None => insertLocalObject(localObjectId)
         case _ =>
           DBIO.successful(())
       }
@@ -52,7 +52,7 @@ object MoveObjectDao extends HasDatabaseConfig[JdbcProfile] {
 
       case None => throw new Exception("Missing object to move")
       case Some(localObjectAndRelation) =>
-        MaybeInsertLocalObject(localObjectAndRelation.objectId)
+        maybeInsertLocalObject(localObjectAndRelation.objectId)
           .andThen(updateLocalObjectLatestMove(localObjectAndRelation.objectId, newEventId, dummyPlaceId))
     }
   }

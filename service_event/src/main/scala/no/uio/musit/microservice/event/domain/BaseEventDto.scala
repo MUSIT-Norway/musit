@@ -67,11 +67,13 @@ object BaseEventDto {
       }
 
       baseEventDto.relatedActors.foreach { relatedActor =>
-        jsObj = jsObj + ("doneBy", JsNumber(relatedActor.actorId)) //Currently we only have one actor, this code must be changed when we get multiple related actors for events.
+        jsObj = jsObj + ("doneBy", JsNumber(relatedActor.actorId))
+        //Currently we only have one actor, this code must be changed when we get multiple related actors for events.
       }
 
       baseEventDto.relatedObjects.foreach { relatedObject =>
-        jsObj = jsObj + ("doneWith", JsNumber(relatedObject.objectId)) //Currently we only have one related object, this code must be changed when we get multiple related objects for events.
+        jsObj = jsObj + ("doneWith", JsNumber(relatedObject.objectId))
+        //Currently we only have one related object, this code must be changed when we get multiple related objects for events.
       }
 
       baseEventDto.links match {
@@ -111,7 +113,8 @@ case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: E
     relatedActors: Seq[ActorWithRole], relatedObjects: Seq[ObjectWithRole],
     note: Option[String],
     relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long],
-    valueString: Option[String], valueDouble: Option[Double], registeredBy: Option[String], registeredDate: Option[Timestamp]) {
+    valueString: Option[String], valueDouble: Option[Double], registeredBy: Option[String],
+    registeredDate: Option[Timestamp]) {
   def toJson: JsObject = Json.toJson(this).asInstanceOf[JsObject]
 
   def getOptBool = valueLong match {

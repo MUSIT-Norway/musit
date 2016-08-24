@@ -69,11 +69,13 @@ object JsonEventHelpers {
       eventRoleActor = if (doneBy.isDefined) Seq(ActorWithRole(1, doneBy.get)) else Seq.empty
       eventRoleObject = if (doneWith.isDefined) Seq(ObjectWithRole(1, doneWith.get)) else Seq.empty
 
-    } yield BaseEventDto(id, links, eventType, eventDate, eventRoleActor, eventRoleObject, note, relatedSubEvents, None, customValueLong, customValueString, customValueDouble,
+    } yield BaseEventDto(id, links, eventType, eventDate, eventRoleActor, eventRoleObject, note, relatedSubEvents,
+      None, customValueLong, customValueString, customValueDouble,
       registeredBy, localDateTimeToTimestamp(registeredDate))
   }
 
-  def invokeJsonValidator(multipleDtos: MultipleTablesEventType, eventType: EventType, jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {
+  def invokeJsonValidator(multipleDtos: MultipleTablesEventType, eventType: EventType,
+    jsResBaseEventProps: JsResult[BaseEventDto], jsObject: JsObject) = {
     for {
       baseProps <- jsResBaseEventProps
       customDto <- multipleDtos.validateCustomDto(jsObject)
