@@ -41,6 +41,16 @@ object Dependencies {
 
   }
 
+  object PlayJson {
+    val derivedCodecs = "org.julienrf" %% "play-json-derived-codecs" % "3.3"
+  }
+
+  object Enumeratum {
+    val enumeratum = "com.beachape" %% "enumeratum" % "1.4.4"
+    val enumeratumPlayJson = "com.beachape" %% "enumeratum-play-json" % "1.4.4"
+    val enumeratumPlay = "com.beachape" %% "enumeratum-play" % "1.4.4"
+  }
+
   val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
 
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
