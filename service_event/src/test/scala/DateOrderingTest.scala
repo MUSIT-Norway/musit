@@ -1,11 +1,10 @@
 /**
  * Created by jarle on 23.08.16.
  */
-import java.sql.Timestamp
-import java.sql.Date
+import java.sql.{Date, Timestamp}
 
-import no.uio.musit.microservice.event.domain.BaseEventDto
 import no.uio.musit.microservice.event.service.EventOrderingUtils
+import no.uio.musit.microservice.event.service.EventOrderingUtils._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 class DateOrderingTest extends PlaySpec {
@@ -19,12 +18,21 @@ class DateOrderingTest extends PlaySpec {
       val optYesterday = Some(yesterday)
       val optToday = Some(today)
 
-      val ordering = EventOrderingUtils.dateOrdering[Option[Date]]
+
+      val ordering = EventOrderingUtils.optionOrdering(sqlDateOrdering)
       ordering.compare(optYesterday, optToday) mustBe -1
       ordering.compare(optYesterday, optToday) mustBe -1
       ordering.compare(optToday, optYesterday) mustBe 1
       ordering.compare(None, None) mustBe 0
       ordering.compare(None, optYesterday) mustBe -1
+
+      val ordering2 = EventOrderingUtils.optionOrdering[Date]
+      ordering2.compare(optYesterday, optToday) mustBe -1
+      ordering2.compare(optYesterday, optToday) mustBe -1
+      ordering2.compare(optToday, optYesterday) mustBe 1
+      ordering2.compare(None, None) mustBe 0
+      ordering2.compare(None, optYesterday) mustBe -1
+
     }
 
     "some timestamp tests must succeed" in {
@@ -35,7 +43,7 @@ class DateOrderingTest extends PlaySpec {
       val optYesterday = Some(yesterday)
       val optToday = Some(today)
 
-      val ordering = EventOrderingUtils.timestampOrdering[Option[Timestamp]]
+      val ordering = EventOrderingUtils.optionOrdering[Timestamp]
       ordering.compare(optYesterday, optToday) mustBe -1
       ordering.compare(optYesterday, optToday) mustBe -1
       ordering.compare(optToday, optYesterday) mustBe 1

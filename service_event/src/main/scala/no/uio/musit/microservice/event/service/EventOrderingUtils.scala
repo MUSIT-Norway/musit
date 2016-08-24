@@ -9,63 +9,56 @@ import no.uio.musit.microservice.event.domain.Event
  */
 
 object EventOrderingUtils {
-  /*If I had known Scala well, I'd be able to get something similar to the following to work...
 
-  implicit def optionOrdering[T <: Ordered[T], A <: Option[T]]: Ordering[A] = new Ordering[A] {
-    override def compare(optX: A, optY: A): Int = {
-      optX match {
-        case Some(x) =>
-          optY match {
-            case Some(y) => x.compareTo(y)
-            case None => 1
-          }
-        case None =>
-          optY match {
-            case Some(_) => -1
-            case None => 0
-          }
+  implicit def optionOrdering[A](implicit ao: Ordering[A]): Ordering[Option[A]] =
+    new Ordering[Option[A]] {
+      override def compare(optX: Option[A], optY: Option[A]): Int = {
+        optX match {
+          case Some(x) =>
+            optY match {
+              case Some(y) =>
+                ao.compare(x, y)
+              case None => 1
+            }
+          case None =>
+            optY match {
+              case Some(_) => -1
+              case None => 0
+            }
+        }
       }
     }
-  }
+
+  /*
+  These two gave infinite recursion, I don't know Scala well enough in order to understand why...
+
+  implicit val dateOrdering: Ordering[Date] = Ordering.comparatorToOrdering[Date]
+  implicit val timestampOrdering: Ordering[Timestamp] = Ordering.comparatorToOrdering[Timestamp]
 */
 
-  implicit def dateOrdering[A <: Option[Date]]: Ordering[A] = new Ordering[A] {
-    override def compare(optX: A, optY: A): Int = {
-      optX match {
-        case Some(x) =>
-          optY match {
-            case Some(y) => x.compareTo(y)
-            case None => 1
-          }
-        case None =>
-          optY match {
-            case Some(_) => -1
-            case None => 0
-          }
-      }
+  implicit val utilDateOrdering = new Ordering[java.util.Date] {
+    def compare(x: java.util.Date, y: java.util.Date): Int = x compareTo y
+  }
+
+  implicit val sqlDateOrdering = new Ordering[java.sql.Date] {
+    def compare(x: java.sql.Date, y: java.sql.Date): Int = x compareTo y
+  }
+
+  implicit val timestampOrdering = new Ordering[Timestamp] {
+    def compare(x: Timestamp, y: Timestamp): Int = x compareTo y
+  }
+
+  object EventByDoneDateOrdering extends Ordering[Event] {
+    val optDateOrd: Ordering[Option[Date]] = optionOrdering(sqlDateOrdering)
+    def compare(eventX: Event, eventY: Event): Int = {
+      optDateOrd.compare(eventX.eventDate, eventY.eventDate)
     }
   }
 
-  implicit def timestampOrdering[A <: Option[Timestamp]]: Ordering[A] = new Ordering[A] {
-    override def compare(optX: A, optY: A): Int = {
-      optX match {
-        case Some(x) =>
-          optY match {
-            case Some(y) => x.compareTo(y)
-            case None => 1
-          }
-        case None =>
-          optY match {
-            case Some(_) => -1
-            case None => 0
-          }
-      }
-    }
-  }
-
-  implicit def eventByRegisteredDateOrdering[A <: Event]: Ordering[A] = new Ordering[A] {
-    override def compare(eventX: A, eventY: A): Int = {
-      timestampOrdering.compare(eventX.registeredDate, eventY.registeredDate)
+  object EventByRegisteredDateOrdering extends Ordering[Event] {
+    val optOrd: Ordering[Option[Timestamp]] = optionOrdering(timestampOrdering)
+    def compare(eventX: Event, eventY: Event): Int = {
+      optOrd.compare(eventX.registeredDate, eventY.registeredDate)
     }
   }
 }

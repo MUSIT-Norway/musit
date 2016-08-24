@@ -152,8 +152,9 @@ class EventResource extends Controller {
 
     val futEvents = futControls.musitFutureFlatMap { controls =>
       futObservations.musitFutureMap { observations =>
-        import no.uio.musit.microservice.event.service.EventOrderingUtils.eventByRegisteredDateOrdering
-        controls.union(observations).sorted(eventByRegisteredDateOrdering)
+        import no.uio.musit.microservice.event.service.EventOrderingUtils
+        controls.union(observations).sorted(EventOrderingUtils.EventByDoneDateOrdering)
+
       }
     }
     ResourceHelper.getRoot(futEvents, eventsToJson)
