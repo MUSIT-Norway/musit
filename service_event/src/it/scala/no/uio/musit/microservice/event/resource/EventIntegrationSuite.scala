@@ -111,6 +111,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
         """
   {
    "eventType": "MoveObject",
+   "doneWith": 10,
+   "toPlace" : -666,
    "note": "Dette er et viktig notat for move!"
    }"""
 
@@ -1032,7 +1034,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       """
   {
    "eventType": "MoveObject",
-   "doneWith": 1,
+   "doneWith": 10,
+   "toPlace" : -666,
    "note": "Dette er et viktig notat for move!"
    }"""
 
@@ -1044,6 +1047,5 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     responseGet.status mustBe 200
     val moveObject2 = validateEvent[MoveObject](responseGet.json) // .validate[Move].get
     moveObject2.relatedObjects.length mustBe 1
-
   }
 }

@@ -107,13 +107,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         numInserted <- EventActorsDao.insertActors(newEventId, event.relatedActors)
       } yield newEventId).transactionally
     }
-    if (event.relatedObjects.nonEmpty) {
-      action = (for {
-        newEventId <- action
-        numInserted <- EventObjectsDao.insertObjects(newEventId, event.relatedObjects)
-      } yield newEventId).transactionally
-    }
-
     action = event.execute match {
       case Some(executeFunc) =>
         (for {
@@ -121,6 +114,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
           _ <- executeFunc(newEventId)
         } yield newEventId).transactionally
       case None => action
+    }
+    if (event.relatedObjects.nonEmpty) {
+      action = (for {
+        newEventId <- action
+        numInserted <- EventObjectsDao.insertObjects(newEventId, event.relatedObjects)
+      } yield newEventId).transactionally
     }
     action
   }

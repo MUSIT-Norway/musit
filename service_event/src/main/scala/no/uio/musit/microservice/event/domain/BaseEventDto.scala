@@ -102,7 +102,7 @@ case class EventRoleObject(eventId: Long, roleId: Int, objectId: Long) {
   def toObjectWithRole = ObjectWithRole(roleId, objectId)
 }
 
-case class LocalObject(objectId: Long, latestMoveId: Long, currentLocationId: Int) {
+case class LocalObject(objectId: Long, latestMoveId: Option[Long], currentLocationId: Option[Int]) {
 
 }
 
