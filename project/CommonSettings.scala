@@ -33,6 +33,7 @@ object CommonSettings {
     parallelExecution in Test := false
   )
 
+  // scalastyle:off
   def BaseProject(name: String): Project =
     Project(name, file(name))
       .settings(projectSettings: _*)

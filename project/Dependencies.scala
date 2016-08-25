@@ -18,7 +18,6 @@
  */
 
 import sbt._
-import Keys._
 
 object Dependencies {
 
@@ -29,7 +28,7 @@ object Dependencies {
   )
 
   object PlayFrameWork {
-    val version = "2.5.4"
+    val version = "2.5.6"
     val slickVersion = "2.0.0"
 
     val slick = "com.typesafe.play" %% "play-slick" % slickVersion
@@ -50,6 +49,17 @@ object Dependencies {
   val scalatest = scalatestSpec % "it,test"
   val scalatestplus = scalatestplusSpec % "it,test"
 
+
+  val enumeratumDependencies: Seq[ModuleID] = {
+    val enumeratumVersion = "1.4.10"
+    Seq(
+      "com.beachape" %% "enumeratum" % enumeratumVersion,
+      "com.beachape" %% "enumeratum-play-json" % enumeratumVersion,
+      "com.beachape" %% "enumeratum-play" % enumeratumVersion
+    )
+  }
+
+  val playJsDerivedCodecs = "org.julienrf" %% "play-json-derived-codecs" % "3.3"
 
   // packager for RPM and Docker
   val dockerClient = "com.spotify" % "docker-client" % "3.2.1"

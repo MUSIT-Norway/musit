@@ -54,6 +54,7 @@ import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt._
 import scalariform.formatter.preferences._
 
+
 scalariformSettings
 
 ScalariformKeys.preferences := ScalariformKeys.preferences.value
@@ -79,8 +80,19 @@ val noPublish = Seq(
   publishLocal := {}
 )
 
-lazy val root = project in file(".") settings noPublish aggregate(common_test, common, security, service_core, service_musit_thing, service_actor, service_geo_location, service_time,
-  service_storage_admin, service_event)
+lazy val root = project in file(".") settings noPublish aggregate(
+  common_test,
+  common,
+  security,
+  service_core,
+  service_musit_thing,
+  service_actor,
+  service_geo_location,
+  service_time,
+  service_storage_admin,
+  service_event,
+  service_storagefacility
+)
 
 // Base projects used as dependencies
 lazy val common = (
@@ -159,18 +171,26 @@ lazy val service_time = (
 lazy val service_storage_admin = (
   PlayProject("service_storage_admin")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(libraryDependencies ++= Seq(
-      "org.julienrf" % "play-json-derived-codecs_2.11" % "3.3",
-    "com.beachape" %% "enumeratum" % "1.4.4",
-    "com.beachape" %% "enumeratum-play-json" % "1.4.4",
-    "com.beachape" %% "enumeratum-play" % "1.4.4"
-    ))
+    settings(libraryDependencies ++= enumeratumDependencies)
+    settings(libraryDependencies += playJsDerivedCodecs)
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(
       packageName in Docker := "musit_service_storage_admin"
     ))
   )  dependsOn(common, common_test % "it,test")
+
+lazy val service_storagefacility = (
+  PlayProject("service_storagefacility")
+  settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+  settings(libraryDependencies ++= enumeratumDependencies)
+  settings(libraryDependencies += playJsDerivedCodecs)
+  settings(routesGenerator := InjectedRoutesGenerator)
+  settings(scoverageSettings: _*)
+  settings(baseDockerSettings ++ Seq(
+    packageName in Docker := "musit_service_storagefacility"
+  ))
+) dependsOn(common, common_test % "it,test")
 
 
 lazy val service_event = (

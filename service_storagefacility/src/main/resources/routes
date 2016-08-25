@@ -1,0 +1,12 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Setup endpoints
+GET     /v1/storageunit/:id                    no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getById(id:Long)
+GET     /v1/storageunit/:id/children           no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getChildren(id:Long)
+POST    /v1/storageunit/validate               no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.validateChildren
+GET     /v1/storageunit                        no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.listAll
+POST    /v1/storageunit                        no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.postRoot
+PUT     /v1/storageunit/:id                    no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.updateRoot(id:Long)
+DELETE  /v1/storageunit/:id                    no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.deleteRoot(id:Long)
