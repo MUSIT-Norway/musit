@@ -19,13 +19,13 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.{SubEvent, subEventWithNameOption}
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.{ SubEvent, subEventWithNameOption }
 import no.uio.musit.microservice.storagefacility.domain.event.Implicits._
 import no.uio.musit.microservice.storagefacility.domain.event.PropTypes.PropValidation
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Reads, _}
+import play.api.libs.json.{ Reads, _ }
 
 /**
  * Top level representation of _all_ event types with definitions for the
@@ -47,10 +47,10 @@ object MusitSubEvent {
 
   implicit val format: Format[MusitEventBase] = (
     (__ \ "id").formatNullable[Long] and
-      (__ \ "links").formatNullable[Seq[Link]] and
-      (__ \ "note").formatNullable[String] and
-      (__ \ "partOf").formatNullable[Long]
-    ) (MusitEventBase.apply, unlift(MusitEventBase.unapply))
+    (__ \ "links").formatNullable[Seq[Link]] and
+    (__ \ "note").formatNullable[String] and
+    (__ \ "partOf").formatNullable[Long]
+  )(MusitEventBase.apply, unlift(MusitEventBase.unapply))
 
   /**
    * Handy function to make JSON parsing of MusitSubEvent sub-types more to the
