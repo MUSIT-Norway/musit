@@ -1,0 +1,26 @@
+Edit, add node er ikke komplett.
+--------
+Du kan ikke adde med parent node.
+Når du legger til en node, henger state ofte med siste state.
+Har oppdatert ruter så du kan legge til rot node, legge til undernoder og hente spesifik node.
+
+Flytting
+---------
+Ikke lagt til
+
+Sletting
+---------
+Ikke lagt til
+
+MouseOvers/Hjelpetekster
+---------
+Mangler over alt
+
+Valgt node mangler statistikkdata
+---------
+Mangler metode for å fylle inn statistikk data for en valgt node i nodetreet.
+
+Breadcrumb
+---------
+Mangler en skikkelig breadcrumb
+

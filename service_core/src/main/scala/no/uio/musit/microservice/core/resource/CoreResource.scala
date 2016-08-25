@@ -23,18 +23,13 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, Controller }
 
-import scala.concurrent.Future
-
 class CoreResource extends Controller {
 
   def getSecurityGroupsForCurrentUser = Action.async { implicit request =>
-    Security.create(request) match {
-      case Right(futureConnection) =>
-        futureConnection.map(conn => Ok(Json.toJson(conn.groupIds)))
+    Security.create(request).map {
+      case Right(securityConnection) => Ok(Json.toJson(securityConnection.groupIds))
 
-      case Left(error) =>
-        Future.successful(Unauthorized(Json.toJson(error)))
+      case Left(error) => Unauthorized(Json.toJson(error))
     }
   }
-
 }

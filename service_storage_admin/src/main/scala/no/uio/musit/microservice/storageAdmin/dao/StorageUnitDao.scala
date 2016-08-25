@@ -1,8 +1,8 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
-import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageType }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
+import no.uio.musit.microservice.storageAdmin.domain.Storage
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
@@ -19,8 +19,8 @@ class StorageUnitDao @Inject() (
   import driver.api._
 
   implicit lazy val storageTypeMapper = MappedColumnType.base[StorageType, String](
-    storageType => storageType.entryName,
-    string => StorageType.withName(string)
+    storageType => storageType.toString,
+    string => StorageType.fromString(string)
   )
 
   private val StorageUnitTable = TableQuery[StorageUnitTable]
@@ -34,17 +34,23 @@ class StorageUnitDao @Inject() (
     db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
   def getChildren(id: Long): Future[Seq[StorageUnitDTO]] = {
-    val action = StorageUnitTable.filter(_.isPartOf === id).result
+    val action = StorageUnitTable.filter(st => st.isPartOf === id && st.isDeleted === false).result
     db.run(action)
   }
 
   def getStorageType(id: Long): MusitFuture[StorageType] = {
-    db.run(StorageUnitTable.filter(_.id === id).map(_.storageType).result.headOption)
+    db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).map(_.storageType).result.headOption)
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
   }
 
   def all(): Future[Seq[StorageUnitDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
+
+  def rootNodes(readGroup: String): Future[Seq[StorageUnitDTO]] =
+    db.run(StorageUnitTable.filter(st => st.isDeleted === false && st.isPartOf.isEmpty && st.groupRead === readGroup).result)
+
+  def setPartOf(id: Long, partOf: Long): Future[Int] =
+    db.run(StorageUnitTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
 
   def insert(storageUnit: StorageUnitDTO): Future[StorageUnitDTO] =
     db.run(insertAction(storageUnit))
@@ -119,14 +125,14 @@ class StorageUnitDao @Inject() (
         groupRead,
         groupWrite,
         Storage.linkText(id),
-        Option(isDeleted),
+        isDeleted,
         storageType
       )
 
     def destroy(unit: StorageUnitDTO) =
       Some(
         unit.id,
-        unit.`type`,
+        unit.storageType,
         unit.name,
         unit.area,
         unit.areaTo,
@@ -135,7 +141,7 @@ class StorageUnitDao @Inject() (
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
-        unit.isDeleted.getOrElse(false)
+        unit.isDeleted
       )
   }
 

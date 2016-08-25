@@ -20,6 +20,7 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.domain._
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageType
 import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
@@ -62,7 +63,25 @@ class StorageUnitResource @Inject() (
   def listAll = Action.async {
     storageUnitService.all.flatMap(list => {
       Future.sequence(list.map(unit => {
-        unit.`type` match {
+        unit.storageType match {
+          case StorageType.StorageUnit =>
+            Future.successful(Storage.fromDTO(unit))
+          case StorageType.Building =>
+            buildingService.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
+              Storage.getBuilding(unit, building)))
+          case StorageType.Room =>
+            roomService.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
+              Storage.getRoom(unit, room)))
+        }
+      })).map(__ => Ok(Json.toJson(__)))
+    })
+  }
+
+  def listRootNode = Action.async {
+    def readGroup = "foo" // TODO: Replace with actual groups when security is added!!!
+    storageUnitService.rootNodes(readGroup).flatMap(list => {
+      Future.sequence(list.map(unit => {
+        unit.storageType match {
           case StorageType.StorageUnit =>
             Future.successful(Storage.fromDTO(unit))
           case StorageType.Building =>
@@ -94,6 +113,5 @@ class StorageUnitResource @Inject() (
   def deleteRoot(id: Long) = Action.async {
     ResourceHelper.deleteRoot(storageUnitService.deleteStorageTriple, id)
   }
-
 }
 

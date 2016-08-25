@@ -23,6 +23,14 @@
       "emails": [ "foo@bar.bas" ],
       "groups": ["EtnoLes", "FotoLes"],
       "accessToken": "fake-token-zab-xy-stein"
+    },
+    {
+      "userId": "musitTestUser",
+      "name": "Fake Musit Test User",
+      "emails": [ "foo@bar.bas" ],
+      "groups": ["EtnoLes", "FotoLes"],
+      "accessToken": "fake-token-zab-xy-musitTestUser"
     }
+
   ]
 }
