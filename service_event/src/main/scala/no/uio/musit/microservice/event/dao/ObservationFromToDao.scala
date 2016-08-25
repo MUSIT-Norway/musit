@@ -20,16 +20,19 @@
 
 package no.uio.musit.microservice.event.dao
 
-import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.event.dto.ObservationFromToDto
-import play.api.db.slick.DatabaseConfigProvider
+import no.uio.musit.microservice.event.domain.{ Dto, ObservationFromToDto }
+import play.api.Play
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.libs.json.Json
+import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-@Singleton
-class ObservationFromToDao @Inject()(val dbConfigProvider: DatabaseConfigProvider) extends BaseEventDao {
+object ObservationFromToDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
+
+  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val ObservationFromToTable = TableQuery[ObservationFromToTable]
 

@@ -3,6 +3,7 @@ package no.uio.musit.microservice.event.domain
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import play.api.libs.json.{ Json, Writes }
+import no.uio.musit.microservices.common.domain.MusitError
 
 object EventType {
 
@@ -12,31 +13,33 @@ object EventType {
 
   private val eventTypes = Seq(
     eventType(1, "Move", Move),
-    eventType(2, "Control", ControlService),
-    eventType(3, "Observation", ObservationService),
-    eventType(4, "ControlTemperature", ControlTemperatureService),
-    eventType(5, "ControlInertluft", ControlInertluftService),
-    eventType(6, "EnvRequirement", EnvRequirementService),
-    eventType(7, "ObservationTemperature", ObservationTemperatureService),
-    eventType(8, "ObservationRelativeHumidity", ObservationRelativeHumidityService),
-    eventType(9, "ObservationInertAir", ObservationInertAirService),
-    eventType(10, "ObservationLys", ObservationLysService),
-    eventType(11, "ObservationSkadedyr", ObservationSkadedyrService),
-    eventType(12, "ObservationRenhold", ObservationRenholdService),
-    eventType(13, "ObservationGass", ObservationGassService),
-    eventType(14, "ObservationMugg", ObservationMuggService),
-    eventType(15, "ObservationTyveriSikring", ObservationTyveriSikringService),
-    eventType(16, "ObservationBrannSikring", ObservationBrannSikringService),
-    eventType(17, "ObservationSkallSikring", ObservationSkallSikringService),
-    eventType(18, "ObservationVannskadeRisiko", ObservationVannskadeRisikoService),
-    eventType(19, "ObservationSprit", ObservationSpritService),
-    eventType(20, "ControlRelativLuftfuktighet", ControlRelativLuftfuktighetService),
-    eventType(21, "ControlLysforhold", ControlLysforholdService),
-    eventType(22, "ControlRenhold", ControlRenholdService),
-    eventType(23, "ControlGass", ControlGassService),
-    eventType(24, "ControlMugg", ControlMuggService),
-    eventType(25, "ControlSkadedyr", ControlSkadedyrService),
-    eventType(26, "ControlSprit", ControlSpritService)
+    eventType(2, "EnvRequirement", EnvRequirementService),
+    eventType(3, "Control", ControlService),
+    eventType(4, "Observation", ObservationService),
+
+    eventType(5, "ControlAlcohol", ControlAlcoholService),
+    eventType(6, "ControlCleaning", ControlCleaningService),
+    eventType(7, "ControlGas", ControlGasService),
+    eventType(8, "ControlHypoxicAir", ControlHypoxicAirService),
+    eventType(9, "ControlLightingCondition", ControlLightingConditionService),
+    eventType(10, "ControlMold", ControlMoldService),
+    eventType(11, "ControlPest", ControlPestService),
+    eventType(12, "ControlRelativeHumidity", ControlRelativeHumidityService),
+    eventType(13, "ControlTemperature", ControlTemperatureService),
+
+    eventType(14, "ObservationAlcohol", ObservationAlcoholService),
+    eventType(15, "ObservationCleaning", ObservationCleaningService),
+    eventType(16, "ObservationFireProtection", ObservationFireProtectionService),
+    eventType(17, "ObservationGas", ObservationGasService),
+    eventType(18, "ObservationHypoxicAir", ObservationHypoxicAirService),
+    eventType(19, "ObservationLightingCondition", ObservationLightingConditionService),
+    eventType(20, "ObservationMold", ObservationMoldService),
+    eventType(21, "ObservationPerimeterSecurity", ObservationPerimeterSecurityService),
+    eventType(22, "ObservationRelativeHumidity", ObservationRelativeHumidityService),
+    eventType(23, "ObservationPest", ObservationPestService),
+    eventType(24, "ObservationTemperature", ObservationTemperatureService),
+    eventType(25, "ObservationTheftProtection", ObservationTheftProtectionService),
+    eventType(26, "ObservationWaterDamageAssessment", ObservationWaterDamageAssessmentService)
 
   // Add new event type here....
   )
@@ -45,6 +48,9 @@ object EventType {
   private val eventTypeByName: Map[String, EventType] = eventTypes.map(evt => evt.name.toLowerCase -> evt).toMap
 
   def getByName(name: String) = eventTypeByName.get(name.toLowerCase)
+
+  /** If not found, a 400 error (with text "Unable to find event type: name") gets returned */
+  def getByNameAsMusitResult(name: String) = getByName(name).toMusitResult(MusitError(message = s"Unable to find event type : $name"))
 
   def getByNameOrFail(name: String) = getByName(name).getOrFail(s"Unable to find event type : $name")
 
@@ -56,6 +62,8 @@ object EventType {
 }
 
 case class EventType(id: Int, name: String, eventImplementation: EventImplementation) {
+
+  def hasName(someName: String) = name.equalsIgnoreCase(someName)
 
   //Some helper methods, used by the implementation of the event system. Ought to be moved somewhere else.
 

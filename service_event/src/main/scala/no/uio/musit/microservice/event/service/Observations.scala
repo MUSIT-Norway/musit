@@ -20,10 +20,9 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.{ObservationFromToDao, ObservationSkadedyrDao}
+import no.uio.musit.microservice.event.dao.{ ObservationPestDao, ObservationFromToDao }
 import no.uio.musit.microservice.event.domain._
-import no.uio.musit.microservice.event.dto.{BaseEventDto, Dto, ObservationFromToDto, ObservationSkadedyrDto}
-import play.api.libs.json.{JsObject, JsResult, Json}
+import play.api.libs.json.{ JsObject, JsResult, Json }
 
 import scala.concurrent.Future
 
@@ -44,8 +43,7 @@ object ObservationService extends SingleTableNotUsingCustomFields {
 // ----------------------
 
 /** "Abstract" base class for specific to-from observations */
-class ObservationFromTo(baseEventProps: BaseEventDto, val customDto: ObservationFromToDto) extends Event(baseEventProps) {
-
+abstract class ObservationFromTo(baseEventProps: BaseEventDto, val customDto: ObservationFromToDto) extends Event(baseEventProps) {
   val from = customDto.from
   val to = customDto.to
 }
@@ -87,167 +85,167 @@ object ObservationTemperatureService extends ObservationFromToServiceBase with M
 }
 
 // ------------------------------------------------------------
-//  ObservationInertAir
+//
 // ------------------------------------------------------------
 
-class ObservationInertAir(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
+class ObservationHypoxicAir(baseEventProps: BaseEventDto, customDto: ObservationFromToDto) extends ObservationFromTo(baseEventProps, customDto)
 
-object ObservationInertAirService extends ObservationFromToServiceBase with MultipleTablesNotUsingCustomFields {
+object ObservationHypoxicAirService extends ObservationFromToServiceBase with MultipleTablesNotUsingCustomFields {
 
-  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationInertAir(baseProps, customDto.asInstanceOf[ObservationFromToDto])
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationHypoxicAir(baseProps, customDto.asInstanceOf[ObservationFromToDto])
 }
 
 // ------------------------------------------------------------
-//  ObservationLys
+//  ObservationLightingCondition
 // ------------------------------------------------------------
 
-class ObservationLys(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
-  val lysforhold = this.getCustomOptString
+class ObservationLightingCondition(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val lightingCondition = this.getCustomOptString
 }
 
-object ObservationLysService extends SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationLys(baseProps)
+object ObservationLightingConditionService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationLightingCondition(baseProps)
 
-  def getCustomFieldsSpec = ObservationLysCustomFieldsSpec.customFieldsSpec
-}
-
-// ------------------------------------------------------------
-//  ObservationRenhold
-// ------------------------------------------------------------
-
-class ObservationRenhold(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
-  val renhold = this.getCustomOptString
-}
-
-object ObservationRenholdService extends SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationRenhold(baseProps)
-
-  def getCustomFieldsSpec = ObservationRenholdCustomFieldsSpec.customFieldsSpec
+  def getCustomFieldsSpec = ObservationLightingConditionCustomFieldsSpec.customFieldsSpec
 }
 
 // ------------------------------------------------------------
-//  ObservationGass
+//  ObservationCleaning
 // ------------------------------------------------------------
 
-class ObservationGass(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
-  val gass = this.getCustomOptString
+class ObservationCleaning(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val cleaning = this.getCustomOptString
 }
 
-object ObservationGassService extends SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationGass(baseProps)
+object ObservationCleaningService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationCleaning(baseProps)
 
-  def getCustomFieldsSpec = ObservationGassCustomFieldsSpec.customFieldsSpec
-}
-
-// ------------------------------------------------------------
-//  ObservationMugg
-// ------------------------------------------------------------
-
-class ObservationMugg(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
-  val mugg = this.getCustomOptString
-}
-
-object ObservationMuggService extends SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationMugg(baseProps)
-
-  def getCustomFieldsSpec = ObservationMuggCustomFieldsSpec.customFieldsSpec
+  def getCustomFieldsSpec = ObservationCleaningCustomFieldsSpec.customFieldsSpec
 }
 
 // ------------------------------------------------------------
-//  ObservationTyveriSikring
+//  ObservationGas
 // ------------------------------------------------------------
 
-class ObservationTyveriSikring(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
-  val tyveriSikring = this.getCustomOptString
+class ObservationGas(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val gas = this.getCustomOptString
 }
 
-object ObservationTyveriSikringService extends SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationTyveriSikring(baseProps)
+object ObservationGasService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationGas(baseProps)
 
-  def getCustomFieldsSpec = ObservationTyveriSikringCustomFieldsSpec.customFieldsSpec
-}
-
-// ------------------------------------------------------------
-//  ObservationBrannSikring
-// ------------------------------------------------------------
-
-class ObservationBrannSikring(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
-  val brannSikring = this.getCustomOptString
-}
-
-object ObservationBrannSikringService extends SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationBrannSikring(baseProps)
-
-  def getCustomFieldsSpec = ObservationBrannSikringCustomFieldsSpec.customFieldsSpec
+  def getCustomFieldsSpec = ObservationGasCustomFieldsSpec.customFieldsSpec
 }
 
 // ------------------------------------------------------------
-//  ObservationSkallSikring
+//  ObservationMold
 // ------------------------------------------------------------
 
-class ObservationSkallSikring(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
-  val skallSikring = this.getCustomOptString
+class ObservationMold(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val mold = this.getCustomOptString
 }
 
-object ObservationSkallSikringService extends SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationSkallSikring(baseProps)
+object ObservationMoldService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationMold(baseProps)
 
-  def getCustomFieldsSpec = ObservationSkallSikringCustomFieldsSpec.customFieldsSpec
-}
-
-// ------------------------------------------------------------
-//  ObservationVannskadeRisiko
-// ------------------------------------------------------------
-
-class ObservationVannskadeRisiko(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
-  val vannskadeRisiko = this.getCustomOptString
-}
-
-object ObservationVannskadeRisikoService extends SingleTableUsingCustomFields {
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationVannskadeRisiko(baseProps)
-
-  def getCustomFieldsSpec = ObservationVannskadeRisikoCustomFieldsSpec.customFieldsSpec
+  def getCustomFieldsSpec = ObservationMoldCustomFieldsSpec.customFieldsSpec
 }
 
 // ------------------------------------------------------------
-//  ObservationSkadedyr
+//  ObservationTheftProtection
 // ------------------------------------------------------------
 
-class ObservationSkadedyr(val baseProps: BaseEventDto, val dto: ObservationSkadedyrDto) extends Event(baseProps) {
-  val identifikasjon = this.getCustomOptString
-  val livssykluser = dto.livssykluser
+class ObservationTheftProtection(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val theftProtection = this.getCustomOptString
 }
 
-object ObservationSkadedyrService extends MultipleTablesAndUsingCustomFields {
+object ObservationTheftProtectionService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationTheftProtection(baseProps)
 
-  def getCustomFieldsSpec = ObservationSkadedyrCustomFieldsSpec.customFieldsSpec
+  def getCustomFieldsSpec = ObservationTheftProtectionCustomFieldsSpec.customFieldsSpec
+}
 
-  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationSkadedyr(baseProps, customDto.asInstanceOf[ObservationSkadedyrDto])
+// ------------------------------------------------------------
+//  ObservationFireProtection
+// ------------------------------------------------------------
 
-  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventDto): Future[Option[Dto]] = ObservationSkadedyrDao.getObservation(id)
+class ObservationFireProtection(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val fireProtection = this.getCustomOptString
+}
+
+object ObservationFireProtectionService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationFireProtection(baseProps)
+
+  def getCustomFieldsSpec = ObservationFireProtectionCustomFieldsSpec.customFieldsSpec
+}
+
+// ------------------------------------------------------------
+//  ObservationPerimeterSecurity
+// ------------------------------------------------------------
+
+class ObservationPerimeterSecurity(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val perimeterSecurity = this.getCustomOptString
+}
+
+object ObservationPerimeterSecurityService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationPerimeterSecurity(baseProps)
+
+  def getCustomFieldsSpec = ObservationPerimeterSecurityCustomFieldsSpec.customFieldsSpec
+}
+
+// ------------------------------------------------------------
+//  ObservationWaterDamageAssessment
+// ------------------------------------------------------------
+
+class ObservationWaterDamageAssessment(baseEventProps: BaseEventDto) extends Event(baseEventProps) {
+  val waterDamageAssessment = this.getCustomOptString
+}
+
+object ObservationWaterDamageAssessmentService extends SingleTableUsingCustomFields {
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationWaterDamageAssessment(baseProps)
+
+  def getCustomFieldsSpec = ObservationWaterDamageAssessmentCustomFieldsSpec.customFieldsSpec
+}
+
+// ------------------------------------------------------------
+//  ObservationPest
+// ------------------------------------------------------------
+
+class ObservationPest(val baseProps: BaseEventDto, val dto: ObservationPestDto) extends Event(baseProps) {
+  val identification = this.getCustomOptString
+  val livssykluser = dto.lifeCycles
+}
+
+object ObservationPestService extends MultipleTablesAndUsingCustomFields {
+
+  def getCustomFieldsSpec = ObservationPestCustomFieldsSpec.customFieldsSpec
+
+  def createEventInMemory(baseProps: BaseEventDto, customDto: Dto): Event = new ObservationPest(baseProps, customDto.asInstanceOf[ObservationPestDto])
+
+  def getCustomDtoFromDatabase(id: Long, baseEventProps: BaseEventDto): Future[Option[Dto]] = ObservationPestDao.getObservation(id)
 
   def createInsertCustomDtoAction(id: Long, event: Event) = {
-    val specificEvent = event.asInstanceOf[ObservationSkadedyr]
-    ObservationSkadedyrDao.insertAction(id, specificEvent.dto)
+    val specificEvent = event.asInstanceOf[ObservationPest]
+    ObservationPestDao.insertAction(id, specificEvent.dto)
   }
 
-  def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[ObservationSkadedyrDto]
+  def validateCustomDto(jsObject: JsObject): JsResult[Dto] = jsObject.validate[ObservationPestDto]
 
-  def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[ObservationSkadedyr].dto).asInstanceOf[JsObject]
+  def customDtoToJson(event: Event): JsObject = Json.toJson(event.asInstanceOf[ObservationPest].dto).asInstanceOf[JsObject]
 }
 
 // ------------------------------------------------------------
-//  ObservationSprit
+//  ObservationAlcohol
 // ------------------------------------------------------------
 
-class ObservationSprit(val baseProps: BaseEventDto) extends Event(baseProps) {
-  val tilstand = baseProps.getOptString
-  val volum = baseProps.getOptDouble
+class ObservationAlcohol(val baseProps: BaseEventDto) extends Event(baseProps) {
+  val condition = baseProps.getOptString
+  val volume = baseProps.getOptDouble
 }
 
-object ObservationSpritService extends SingleTableUsingCustomFields {
-  def getCustomFieldsSpec = ObservationSpritCustomFieldsSpec.customFieldsSpec
+object ObservationAlcoholService extends SingleTableUsingCustomFields {
 
+  def getCustomFieldsSpec = ObservationAlcoholCustomFieldsSpec.customFieldsSpec
 
-  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationSprit(baseProps)
+  def createEventInMemory(baseProps: BaseEventDto): Event = new ObservationAlcohol(baseProps)
 }

@@ -20,36 +20,44 @@
 
 package no.uio.musit.microservice.event.dao
 
-import com.google.inject.Inject
-import no.uio.musit.microservice.event.dao.EventLinks.PartialEventLink
-import no.uio.musit.microservice.event.domain.dto.BaseEventDto
-import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
-import no.uio.musit.microservice.event.dto.BaseEventDto
-import no.uio.musit.microservice.event.service._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
-import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.dbio.SequenceAction
+import java.sql.{ Date, Timestamp }
 
+import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
+import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
+import no.uio.musit.microservice.event.service._
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.OptionExtensions._
+import no.uio.musit.microservices.common.linking.LinkService
+import no.uio.musit.microservices.common.linking.dao.LinkDao
+import no.uio.musit.microservices.common.linking.dao.LinkDao.LinkTable
+import no.uio.musit.microservices.common.utils.ErrorHelper
+import no.uio.musit.security.SecurityConnection
+import org.joda.time.DateTime
+import play.api.Play
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import slick.dbio.SequenceAction
+import slick.driver.JdbcProfile
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class EventDao @Inject()(
-  val dbConfigProvider: DatabaseConfigProvider,
-  val eventLinkDao: EventLinkDao
-) extends SharedEventTables {
+object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
+  protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+
   private val EventBaseTable = TableQuery[EventBaseTable]
+  private val LinkTable = TableQuery[LinkTable]
 
   def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] =
     EventBaseTable returning EventBaseTable.map(_.id) += eventBaseDto
 
+  def selfLink(id: Long) =
+    LinkService.local(Some(id), "self", s"/v1/$id")
+
   /*Creates an action to insert the event and potentially all related subevents. PartialEventLink is used if the event is inserted as a subElement of a parent element. The id of the parent element is then in the partialEventLink.*/
-  def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean): DBIO[Long] = {
+  def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean, securityConnection: SecurityConnection): DBIO[Long] = {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
     val parentId = partialEventLink.map(_.idFrom)
@@ -60,8 +68,12 @@ class EventDao @Inject()(
 
     val partOfParent = partialEventLink.filter(_ => isPartsRelation).map(_.idFrom)
 
+    val _registeredBy = securityConnection.userName
+
+    val _registeredDate = new java.sql.Timestamp(DateTime.now().getMillis)
+
     val insertBaseAndLinksAction = (for {
-      newEventId <- insertBaseAction(event.baseEventProps.copy(partOf = partOfParent)) //#OLD (EventHelpers.eventDtoToStoreInDatabase(event, partOfParent))
+      newEventId <- insertBaseAction(event.baseEventProps.copy(partOf = partOfParent, registeredBy = Some(_registeredBy), registeredDate = Some(_registeredDate)))
       _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(event, newEventId))
       _ <- LinkDao.insertLinkAction(selfLink(newEventId))
     } yield newEventId).transactionally
@@ -76,7 +88,7 @@ class EventDao @Inject()(
     if (recursive && event.hasSubEvents) {
       action = (for {
         newEventId <- action
-        numInserted <- insertChildrenAction(newEventId, event)
+        numInserted <- insertChildrenAction(newEventId, event, securityConnection)
       } yield newEventId).transactionally
 
     }
@@ -85,21 +97,28 @@ class EventDao @Inject()(
       //The partOf-relation is stored in the main event table, so this is only used for the other relations (stored in the EVENT_RELATION_EVENT table).
       action = (for {
         newEventId <- action
-        numInserted <- eventLinkDao.insertEventLinkAction(partialEventLink.get.toFullLink(newEventId))
+        numInserted <- EventLinkDao.insertEventLinkAction(partialEventLink.get.toFullLink(newEventId))
+      } yield newEventId).transactionally
+    }
+
+    if (event.relatedActors.nonEmpty) {
+      action = (for {
+        newEventId <- action
+        numInserted <- EventActorsDao.insertActors(newEventId, event.relatedActors)
       } yield newEventId).transactionally
     }
     action
   }
 
-  def insertEvent(event: Event, recursive: Boolean): Future[Long] = {
-    val action = insertEventAction(event, None, recursive)
+  def insertEvent(event: Event, recursive: Boolean, securityConnection: SecurityConnection): Future[Long] = {
+    val action = insertEventAction(event, None, recursive, securityConnection)
     db.run(action)
   }
 
-  def insertChildrenAction(parentEventId: Long, parentEvent: Event) = {
+  def insertChildrenAction(parentEventId: Long, parentEvent: Event, securityConnection: SecurityConnection) = {
 
     def insertRelatedEvents(relatedEvents: RelatedEvents) = {
-      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true)) //Todo, also handle other relations than parts
+      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true, securityConnection))
       new SequenceAction(actions.toIndexedSeq)
     }
 
@@ -108,8 +127,21 @@ class EventDao @Inject()(
   }
 
   def getBaseEvent(id: Long): Future[Option[BaseEventDto]] = {
+
     val action = EventBaseTable.filter(event => event.id === id).result.headOption
-    db.run(action)
+    val futOptBaseEvent = db.run(action)
+
+    //get the generic links
+    val futureLinks = LinkDao.findByLocalTableId(id)
+
+    //get the related actors
+    val futRelatedActors = EventActorsDao.getRelatedActors(id)
+
+    for {
+      optBaseEvent <- futOptBaseEvent
+      links <- futureLinks
+      relatedActors <- futRelatedActors
+    } yield (optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors, links = Some(links))))
   }
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
@@ -127,9 +159,9 @@ class EventDao @Inject()(
     val futureSubEvents =
       if (recursive) {
         getSubEvents(id, recursive)
-      } else {
+
+      } else
         MusitFuture.successful(Seq.empty[RelatedEvents])
-      }
 
     futureSubEvents.musitFutureFlatMap(subEvents => createEventInMemory(baseEventDto, subEvents))
   }
@@ -143,11 +175,8 @@ class EventDao @Inject()(
     }
   }
 
-  /**
-   * Gets the subevents from the event with id=parentId from the database.
-   * Embedded in the proper relations (RelatedEvents-objects)
-   */
-  //noinspection ScalaStyle
+  /** Gets the subevents from the event with id=parentId from the database. Embedded in the proper relations (RelatedEvents-objects) */
+
   def getSubEvents(parentId: Long, recursive: Boolean): MusitFuture[Seq[RelatedEvents]] = {
 
     def getEventsFromEventDtos(eventDtos: MusitFuture[Seq[BaseEventDto]]): MusitFuture[Seq[Event]] = {
@@ -177,11 +206,11 @@ class EventDao @Inject()(
         val groupOfMusitResultEvents = groupWithoutRelationIdInt.map(dto => getEvent(dto, recursive))
 
         //Collapse the inner musitresults...
-        val result = MusitFuture.traverse[MusitFuture[Event], Event](groupOfMusitResultEvents)(identity)
+        val result = MusitFuture.traverse(groupOfMusitResultEvents)(identity)
         result
       }
 
-      val futureRelatedDtos = eventLinkDao.getRelatedEventDtos(parentId).toMusitFuture
+      val futureRelatedDtos = EventLinkDao.getRelatedEventDtos(parentId).toMusitFuture
 
       futureRelatedDtos.musitFutureFlatMap { relatedDtos =>
 
@@ -201,19 +230,81 @@ class EventDao @Inject()(
     val futureOtherRelatedEvents = getOtherRelatedEvents
 
     //Now we simply need to join the parts-events and the other related events
-    futurePartsEvents.musitFutureFlatMap { partEvents =>
-      futureOtherRelatedEvents.musitFutureMap { extraRelatedEvents =>
-        if (partEvents.events.isEmpty)
-          extraRelatedEvents
-        else
-          partEvents +: extraRelatedEvents
-      }
+    futurePartsEvents.musitFutureFlatMap {
+      partEvents =>
+        futureOtherRelatedEvents.musitFutureMap {
+          extraRelatedEvents =>
+            if (partEvents.events.isEmpty)
+              extraRelatedEvents
+            else
+              partEvents +: extraRelatedEvents
+        }
     }
+  }
+
+  /** Gets the id of the events having a specific eventType and having a specific relation to a specific "external" object (in the generic links table) */
+  def getEventIds(eventType: EventType, relation: String, objectUri: String): Future[Seq[Long]] = {
+    val eventsWithCorrectType = EventBaseTable.filter(evt => evt.eventTypeID === eventType)
+    val linksWithCorrectRelationAndId = LinkTable.filter(link => link.rel === relation && link.href === objectUri)
+
+    val query = for {
+      (eventBaseTable, _) <- eventsWithCorrectType join linksWithCorrectRelationAndId on (_.id === _.localTableId)
+    } yield (eventBaseTable.id) //Here we are arbitrarily selecting the event table to project the id from, could just as well returned the localTableId from the linksTable
+
+    db.run(query.result)
   }
 
   implicit lazy val libraryItemMapper = MappedColumnType.base[EventType, Int](
     eventType => eventType.id,
     id => EventType.getById(id)
   )
+
+  class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_EVENT"), "EVENT") {
+    def * = (id.?, eventTypeID, eventDate, eventNote, partOf, valueLong, valueString, valueDouble, registeredBy, registeredDate) <> (create.tupled, destroy) // scalastyle:ignore
+
+    val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+
+    val eventTypeID = column[EventType]("EVENT_TYPE_ID")
+
+    val eventDate = column[Option[Date]]("EVENT_DATE")
+
+    val eventNote = column[Option[String]]("NOTE")
+
+    val partOf = column[Option[Long]]("PART_OF")
+    val valueLong = column[Option[Long]]("VALUE_LONG")
+    val valueString = column[Option[String]]("VALUE_STRING")
+    val valueDouble = column[Option[Double]]("VALUE_FLOAT")
+    val registeredBy = column[Option[String]]("REGISTERED_BY")
+    val registeredDate = column[Option[Timestamp]]("REGISTERED_DATE")
+
+    def create = (id: Option[Long],
+      eventType: EventType,
+      eventDate: Option[Date],
+      note: Option[String],
+      partOf: Option[Long],
+      valueLong: Option[Long],
+      valueString: Option[String],
+      valueDouble: Option[Double],
+      registeredBy: Option[String],
+      registeredDate: Option[Timestamp]) =>
+      BaseEventDto(
+        id,
+        Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
+        eventType,
+        eventDate,
+        Seq.empty,
+        note,
+        Seq.empty,
+        partOf,
+        valueLong,
+        valueString,
+        valueDouble,
+        registeredBy,
+        registeredDate
+      )
+
+    def destroy(event: BaseEventDto) = Some(event.id, event.eventType, event.eventDate, event.note, event.partOf, event.valueLong,
+      event.valueString, event.valueDouble, event.registeredBy, event.registeredDate)
+  }
 
 }

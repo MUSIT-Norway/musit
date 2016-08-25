@@ -20,6 +20,8 @@
 
 package no.uio.musit.microservice.event.resource
 
+import java.sql.Date
+
 import no.uio.musit.microservice.event.domain._
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.PlayTestDefaults
@@ -27,27 +29,54 @@ import no.uio.musit.microservices.common.PlayTestDefaults._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
+import org.joda.time.DateTime
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.libs.ws.WS
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
+import play.api.libs.ws.{WS, WSRequest}
 
 /**
   * Created by jstabel on 6/10/16.
   */
 
+object WSRequestFakeHelper {
+
+
+  implicit class WSRequestImp2(val wsr: WSRequest) extends AnyVal {
+    def withFakeUser = wsr.withBearerToken("fake-token-zab-xy-musitTestUser")
+  }
+
+}
 
 class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
+  import WSRequestFakeHelper._
+
   val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 8080
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
 
+
   def createEvent(json: String) = {
-    WS.url(s"http://localhost:$port/v1/event").postJsonString(json) |> waitFutureValue
+    WS.url(s"http://localhost:$port/v1/event").withFakeUser.postJsonString(json) |> waitFutureValue
   }
 
+  def createControlEvent(nodeId: Int, json: String) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/control").withFakeUser.postJsonString(json) |> waitFutureValue
+  }
+
+  def createObservationEvent(nodeId: Int, json: String) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/observation").withFakeUser.postJsonString(json) |> waitFutureValue
+  }
+
+  def getControlsForNode(nodeId:Int) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/controls").get |> waitFutureValue
+  }
+
+  def getObservationsForNode(nodeId:Int) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/observations").get |> waitFutureValue
+  }
 
   def getEvent(id: Long) = {
     WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
@@ -67,6 +96,13 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
   "EventIntegrationSuite " must {
+
+
+    "getObjectUriViaRelation test" in {
+      EventRelations.getObjectUriViaRelation(532, "storageunit-location") mustBe Some("storageunit/532")
+    }
+
+
 
 
     "post Move" in {
@@ -287,7 +323,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
                       "href": "actor/12"
                     }]
             }, {
-                    "eventType": "observationInertAir",
+                    "eventType": "ObservationHypoxicAir",
                     "from": 0.1,
                     "to": 0.2,
                     "links": [{
@@ -320,7 +356,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     humEvent.to mustBe Some(2)
 
 
-    val airEvent = myEvent.subObservations(3).asInstanceOf[ObservationInertAir]
+    val airEvent = myEvent.subObservations(3).asInstanceOf[ObservationHypoxicAir]
     airEvent.from mustBe Some(0.1)
     airEvent.to mustBe Some(0.2)
 
@@ -354,19 +390,25 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     assert(response.body.contains("this_relation_does_not_exist"))
   }
 
+  val storageUnitId = 532 //arbitrary id for some storageUnit
 
-
-  "post composite control" in {
-    val json =
-      """ {
+  val postCompositeControlJson =
+    s""" {
     "eventType": "Control",
     "note": "tekst",
     "links": [{
     "rel": "actor",
     "href": "actor/12"
-  }],
+  },
+
+        {
+            "rel": "storageunit-location",
+            "href": "storageunit/$storageUnitId"
+          }
+
+  ],
     "subEvents-parts": [{
-    "eventType": "controlInertluft",
+    "eventType": "ControlHypoxicAir",
     "ok": true
   }, {
     "eventType": "controlTemperature",
@@ -378,9 +420,11 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     }]
   }]
   }
-      """
+  """
 
-    val response = createEvent(json)
+
+  "post composite control" in {
+    val response = createEvent(postCompositeControlJson)
     println(s"Create: ${response.body}")
     response.status mustBe 201
 
@@ -392,7 +436,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
     val specificControls = parts.get
     assert(specificControls.length >= 2)
-    val okControl = specificControls(0).asInstanceOf[ControlInertluft]
+    val okControl = specificControls(0).asInstanceOf[ControlHypoxicAir]
     val notOkControl = specificControls(1).asInstanceOf[ControlTemperature]
 
     okControl.ok mustBe true
@@ -413,257 +457,257 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
 
-  "post and get ObservationLys" in {
+  "post and get ObservationLightingCondition" in {
     val json =
       """
   {
-    "eventType": "observationLys",
-    "lysforhold": "merkelige forhold",
+    "eventType": "ObservationLightingCondition",
+    "lightingCondition": "merkelige forhold",
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationLys](response.json)
-    myEvent.lysforhold mustBe Some("merkelige forhold")
+    val myEvent = validateEvent[ObservationLightingCondition](response.json)
+    myEvent.lightingCondition mustBe Some("merkelige forhold")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationLys](responseGet.json)
-    myEventGet.lysforhold mustBe Some("merkelige forhold")
+    val myEventGet = validateEvent[ObservationLightingCondition](responseGet.json)
+    myEventGet.lightingCondition mustBe Some("merkelige forhold")
   }
 
-  "post and get ObservationRenhold" in {
+  "post and get ObservationCleaning" in {
     val json =
       """
   {
-    "eventType": "observationRenhold",
-    "renhold": "merkelige renhold",
+    "eventType": "ObservationCleaning",
+    "cleaning": "merkelige renhold",
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationRenhold](response.json)
-    myEvent.renhold mustBe Some("merkelige renhold")
+    val myEvent = validateEvent[ObservationCleaning](response.json)
+    myEvent.cleaning mustBe Some("merkelige renhold")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationRenhold](responseGet.json)
-    myEventGet.renhold mustBe Some("merkelige renhold")
+    val myEventGet = validateEvent[ObservationCleaning](responseGet.json)
+    myEventGet.cleaning mustBe Some("merkelige renhold")
   }
 
-  "post and get ObservationGass" in {
+  "post and get ObservationGas" in {
     val json =
       """
   {
-    "eventType": "observationGass",
-    "gass": "merkelig gass",
+    "eventType": "observationGas",
+    "gas": "merkelig gass",
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationGass](response.json)
-    myEvent.gass mustBe Some("merkelig gass")
+    val myEvent = validateEvent[ObservationGas](response.json)
+    myEvent.gas mustBe Some("merkelig gass")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationGass](responseGet.json)
-    myEventGet.gass mustBe Some("merkelig gass")
+    val myEventGet = validateEvent[ObservationGas](responseGet.json)
+    myEventGet.gas mustBe Some("merkelig gass")
   }
 
-  "post and get ObservationMugg" in {
+  "post and get ObservationMold" in {
     val json =
       """
   {
-    "eventType": "observationMugg",
-    "mugg": "merkelig mugg",
+    "eventType": "ObservationMold",
+    "mold": "merkelig mugg",
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationMugg](response.json)
-    myEvent.mugg mustBe Some("merkelig mugg")
+    val myEvent = validateEvent[ObservationMold](response.json)
+    myEvent.mold mustBe Some("merkelig mugg")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationMugg](responseGet.json)
-    myEventGet.mugg mustBe Some("merkelig mugg")
+    val myEventGet = validateEvent[ObservationMold](responseGet.json)
+    myEventGet.mold mustBe Some("merkelig mugg")
   }
 
   "post and get ObservationTyveriSikring" in {
     val json =
       """
   {
-    "eventType": "observationTyveriSikring",
-    "tyverisikring": "merkelig tyveriSikring",
+    "eventType": "ObservationTheftProtection",
+    "theftProtection": "merkelig tyveriSikring",
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationTyveriSikring](response.json)
-    myEvent.tyveriSikring mustBe Some("merkelig tyveriSikring")
+    val myEvent = validateEvent[ObservationTheftProtection](response.json)
+    myEvent.theftProtection mustBe Some("merkelig tyveriSikring")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationTyveriSikring](responseGet.json)
-    myEventGet.tyveriSikring mustBe Some("merkelig tyveriSikring")
+    val myEventGet = validateEvent[ObservationTheftProtection](responseGet.json)
+    myEventGet.theftProtection mustBe Some("merkelig tyveriSikring")
   }
 
-  "post and get ObservationBrannSikring" in {
+  "post and get ObservationFireProtection" in {
     val json =
       """
   {
-    "eventType": "observationBrannSikring",
-    "brannsikring": "merkelig brannSikring",
+    "eventType": "ObservationFireProtection",
+    "fireProtection": "merkelig brannSikring",
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationBrannSikring](response.json)
-    myEvent.brannSikring mustBe Some("merkelig brannSikring")
+    val myEvent = validateEvent[ObservationFireProtection](response.json)
+    myEvent.fireProtection mustBe Some("merkelig brannSikring")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationBrannSikring](responseGet.json)
-    myEventGet.brannSikring mustBe Some("merkelig brannSikring")
+    val myEventGet = validateEvent[ObservationFireProtection](responseGet.json)
+    myEventGet.fireProtection mustBe Some("merkelig brannSikring")
   }
 
-  "post and get ObservationSkallSikring" in {
+  "post and get ObservationPerimeterSecurity" in {
     val json =
       """
   {
-    "eventType": "observationSkallSikring",
-    "skallsikring": "merkelig skallSikring",
+    "eventType": "ObservationPerimeterSecurity",
+    "perimeterSecurity": "merkelig skallSikring",
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationSkallSikring](response.json)
-    myEvent.skallSikring mustBe Some("merkelig skallSikring")
+    val myEvent = validateEvent[ObservationPerimeterSecurity](response.json)
+    myEvent.perimeterSecurity mustBe Some("merkelig skallSikring")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationSkallSikring](responseGet.json)
-    myEventGet.skallSikring mustBe Some("merkelig skallSikring")
+    val myEventGet = validateEvent[ObservationPerimeterSecurity](responseGet.json)
+    myEventGet.perimeterSecurity mustBe Some("merkelig skallSikring")
   }
 
-  "post and get ObservationVannskadeRisiko" in {
+  "post and get ObservationWaterDamageAssessment" in {
     val json =
       """
   {
-    "eventType": "observationVannskadeRisiko",
-    "vannskaderisiko": "merkelig vannskadeRisiko",
+    "eventType": "ObservationWaterDamageAssessment",
+    "waterDamageAssessment": "merkelig vannskadeRisiko",
     "links": [{"rel": "actor", "href": "actor/12"}]}"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationVannskadeRisiko](response.json)
-    myEvent.vannskadeRisiko mustBe Some("merkelig vannskadeRisiko")
+    val myEvent = validateEvent[ObservationWaterDamageAssessment](response.json)
+    myEvent.waterDamageAssessment mustBe Some("merkelig vannskadeRisiko")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationVannskadeRisiko](responseGet.json)
-    myEventGet.vannskadeRisiko mustBe Some("merkelig vannskadeRisiko")
+    val myEventGet = validateEvent[ObservationWaterDamageAssessment](responseGet.json)
+    myEventGet.waterDamageAssessment mustBe Some("merkelig vannskadeRisiko")
   }
 
-  "post and get ObservationSkadedyr" in {
+  "post and get ObservationPest" in {
     val json =
       """
   {
-          "eventType": "observationSkadedyr",
-          "identifikasjon": "skadedyr i veggene",
+          "eventType": "ObservationPest",
+          "identification": "skadedyr i veggene",
           "note": "tekst til observationskadedyr",
-          "livssykluser": [{
-            "livssyklus": "Adult",
-            "antall": 3
+          "lifeCycles": [{
+            "stage": "Adult",
+            "number": 3
           }, {
-            "livssyklus": "Puppe",
-            "antall": 4
+            "stage": "Puppe",
+            "number": 4
           }, {
-            "livssyklus": "Puppeskinn",
-            "antall": 5
+            "stage": "Puppeskinn",
+            "number": 5
           }, {
-            "livssyklus": "Larve",
-            "antall": 6
+            "stage": "Larve",
+            "number": 6
           }, {
-            "livssyklus": "Egg",
-            "antall": 7
+            "stage": "Egg",
+            "number": 7
           }]
         }"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationSkadedyr](response.json)
-    myEvent.identifikasjon mustBe Some("skadedyr i veggene")
+    val myEvent = validateEvent[ObservationPest](response.json)
+    myEvent.identification mustBe Some("skadedyr i veggene")
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationSkadedyr](responseGet.json)
-    myEventGet.identifikasjon mustBe Some("skadedyr i veggene")
+    val myEventGet = validateEvent[ObservationPest](responseGet.json)
+    myEventGet.identification mustBe Some("skadedyr i veggene")
 
     myEventGet.livssykluser.length mustBe 5
     val livsSyklusFirst = myEventGet.livssykluser(0)
-    livsSyklusFirst.livssyklus mustBe Some("Adult")
-    livsSyklusFirst.antall mustBe Some(3)
+    livsSyklusFirst.stage mustBe Some("Adult")
+    livsSyklusFirst.number mustBe Some(3)
 
     val livsSyklusLast = myEventGet.livssykluser(4)
-    livsSyklusLast.livssyklus mustBe Some("Egg")
-    livsSyklusLast.antall mustBe Some(7)
+    livsSyklusLast.stage mustBe Some("Egg")
+    livsSyklusLast.number mustBe Some(7)
     livsSyklusLast.eventId mustBe None //We don't want these in the json output.
 
   }
 
-  "post and get ObservationSprit" in {
+  "post and get ObservationAlcohol" in {
     val json =
       """
   {
-      "eventType": "observationSprit",
+      "eventType": "ObservationAlcohol",
       "note": "tekst til observationsprit",
-       "tilstand": "Uttørket",
-       "volum": 3.2
+       "condition": "Uttørket",
+       "volume": 3.2
     }"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationSprit](response.json)
+    val myEvent = validateEvent[ObservationAlcohol](response.json)
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationSprit](responseGet.json)
+    val myEventGet = validateEvent[ObservationAlcohol](responseGet.json)
 
-    myEvent.tilstand mustBe Some("Uttørket")
-    myEvent.volum mustBe Some(3.2)
+    myEvent.condition mustBe Some("Uttørket")
+    myEvent.volume mustBe Some(3.2)
 
   }
 
-  "post and get ObservationSprit without tilstand and volumn" in {
+  "post and get ObservationAlcohol without tilstand and volumn" in {
     val json =
       """
   {
-      "eventType": "observationSprit",
-      "note": "tekst til observationsprit"
+      "eventType": "ObservationAlcohol",
+      "note": "tekst til ObservationAlcohol"
     }"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val myEvent = validateEvent[ObservationSprit](response.json)
+    val myEvent = validateEvent[ObservationAlcohol](response.json)
 
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
-    val myEventGet = validateEvent[ObservationSprit](responseGet.json)
+    val myEventGet = validateEvent[ObservationAlcohol](responseGet.json)
 
-    myEvent.tilstand mustBe None
-    myEvent.volum mustBe None
+    myEvent.condition mustBe None
+    myEvent.volume mustBe None
 
   }
 
@@ -683,10 +727,10 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
 
-  "post controlRelativLuftfuktighet" in {
+  "post ControlRelativeHumidity" in {
     val json =
       """ {
-    "eventType": "controlRelativLuftfuktighet",
+    "eventType": "ControlRelativeHumidity",
     "note": "tekst",
     "ok": true
   }
@@ -694,14 +738,14 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
 
-    val myEvent = validateEvent[ControlRelativLuftfuktighet](response.json)
+    val myEvent = validateEvent[ControlRelativeHumidity](response.json)
     myEvent.ok mustBe true
   }
 
-  "post ControlLysforhold" in {
+  "post ControlLightingCondition" in {
     val json =
       """ {
-    "eventType": "controlLysforhold",
+    "eventType": "ControlLightingCondition",
     "note": "tekst",
     "ok": false
   }
@@ -709,14 +753,14 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
 
-    val myEvent = validateEvent[ControlLysforhold](response.json)
+    val myEvent = validateEvent[ControlLightingCondition](response.json)
     myEvent.ok mustBe false
   }
 
-  "post ControlRenhold" in {
+  "post ControlCleaning" in {
     val json =
       """ {
-    "eventType": "controlRenhold",
+    "eventType": "ControlCleaning",
     "note": "tekst",
     "ok": true
   }
@@ -724,15 +768,15 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
 
-    val myEvent = validateEvent[ControlRenhold](response.json)
+    val myEvent = validateEvent[ControlCleaning](response.json)
     myEvent.ok mustBe true
   }
 
 
-  "post ControlGass" in {
+  "post ControlGas" in {
     val json =
       """ {
-    "eventType": "controlGass",
+    "eventType": "controlGas",
     "note": "tekst",
     "ok": false
   }
@@ -740,15 +784,15 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
 
-    val myEvent = validateEvent[ControlGass](response.json)
+    val myEvent = validateEvent[ControlGas](response.json)
     myEvent.ok mustBe false
   }
 
 
-  "post ControlMugg" in {
+  "post ControlMold" in {
     val json =
       """ {
-    "eventType": "controlMugg",
+    "eventType": "ControlMold",
     "note": "tekst",
     "ok": true
   }
@@ -756,15 +800,15 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
 
-    val myEvent = validateEvent[ControlMugg](response.json)
+    val myEvent = validateEvent[ControlMold](response.json)
     myEvent.ok mustBe true
   }
 
 
-  "post ControlSkadedyr" in {
+  "post ControlPest" in {
     val json =
       """ {
-    "eventType": "controlSkadedyr",
+    "eventType": "ControlPest",
     "note": "tekst",
     "ok": false
   }
@@ -772,14 +816,14 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
 
-    val myEvent = validateEvent[ControlSkadedyr](response.json)
+    val myEvent = validateEvent[ControlPest](response.json)
     myEvent.ok mustBe false
   }
 
-  "post ControlSprit" in {
+  "post ControlAlcohol" in {
     val json =
       """ {
-    "eventType": "controlSprit",
+    "eventType": "ControlAlcohol",
     "note": "tekst",
     "ok": true
   }
@@ -787,8 +831,198 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
 
-    val myEvent = validateEvent[ControlSprit](response.json)
+    val myEvent = validateEvent[ControlAlcohol](response.json)
     myEvent.ok mustBe true
   }
 
+  "check that we fail on missing events parameters" in {
+    //We deliberately leave out id to get an error.
+    val url=s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location]"
+
+    val response=WS.url(url).get |> waitFutureValue
+    response.status mustBe 400
+  }
+
+  "check that getEvents" in {
+    val response = createEvent(postCompositeControlJson)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+
+//    val controlEvent =  validateEvent[Control](response.json)
+
+
+    val url=s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location, id=$storageUnitId]"
+
+    val response2=WS.url(url).get |> waitFutureValue
+    response2.status mustBe 200
+  }
+
+
+
+  "check that we can post and get doneDate and doneBy" in {
+    val json =
+      """ {
+    "eventType": "controlTemperature",
+    "note": "tekst",
+    "ok": true,
+    "doneBy": 1,
+    "doneDate": "2016-08-01"
+  }
+      """
+
+    val response = createEvent(json)
+    // println(s"Create: ${response.body}")
+    response.status mustBe 201
+
+    val controlEvent =  validateEvent[ControlTemperature](response.json)
+    val myDate: java.sql.Date = new java.sql.Date(DateTime.parse("2016-08-01").getMillis)
+    controlEvent.eventDate mustBe Some(myDate)
+
+    controlEvent.relatedActors.length mustBe 1
+  }
+
+  "post explicit control on node should fail if wrong eventType" in {
+    val json =
+      s""" {
+    "eventType": "Observation",
+    "note": "tekst"
+    }
+    """
+
+    val response = createControlEvent(1, json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 400
+  }
+
+  def createStorageNode() = 1 //TODO: insert storageNode, but needs to wait for merging of service_event and service_storageAdmin!
+
+  "post explicit control on node" in {
+    val json =
+      s""" {
+    "note": "tekst",
+    "subEvents-parts": [{
+    "eventType": "ControlHypoxicAir",
+    "ok": true
+  }, {
+    "eventType": "controlTemperature",
+    "ok": false,
+    "subEvents-motivates": [{
+      "eventType": "observationTemperature",
+      "from": 20,
+      "to": 50
+    }]
+  }]
+  }
+  """
+
+    val storageNodeId = createStorageNode()
+
+    val response = createControlEvent(storageNodeId, json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+
+
+  }
+
+  "post explicit observation on node" in {
+    val json =
+      """ {
+    "note": "tekst",
+    "doneBy": 1,
+    "subEvents-parts": [{
+    "eventType": "observationTemperature",
+    "from": 20,
+    "to": 50
+  }, {
+    "eventType": "ObservationMold",
+    "mold":"mye mugg"
+  }]
+  }
+  """
+
+    val storageNodeId = createStorageNode()
+
+    val response = createObservationEvent(storageNodeId, json)
+    println(s"Create: ${response.body}")
+    response.status mustBe 201
+
+
+  }
+  "get explicit controls on node" in {
+    val json =
+      s""" {
+    "note": "tekst",
+    "subEvents-parts": [{
+    "eventType": "ControlHypoxicAir",
+    "ok": true
+  }, {
+    "eventType": "controlTemperature",
+    "ok": false,
+    "subEvents-motivates": [{
+      "eventType": "observationTemperature",
+      "from": 20,
+      "to": 50
+    }]
+  }]
+  }
+  """
+
+    val storageNodeId = createStorageNode()
+
+    val response = createControlEvent(storageNodeId, json)
+    response.status mustBe 201
+    val response2 = createControlEvent(storageNodeId, json)
+  //  println(s"Create: ${response.body}")
+    response2.status mustBe 201
+
+    val response3 = getControlsForNode(storageNodeId)
+    response3.status mustBe 200
+
+
+  }
+
+  "get explicit observations on node" in {
+    val json =
+      """ {
+    "note": "tekst",
+    "doneBy": 1,
+    "subEvents-parts": [{
+    "eventType": "observationTemperature",
+    "from": 20,
+    "to": 50
+  }, {
+    "eventType": "ObservationMold",
+    "mold":"mye mugg"
+  }]
+  }
+      """
+
+    val storageNodeId = 777 //createStorageNode()
+
+    val response = createObservationEvent(storageNodeId, json)
+    response.status mustBe 201
+    val response2 = createObservationEvent(storageNodeId, json)
+    val response4 = createObservationEvent(storageNodeId, json)
+    val responseOther = createObservationEvent(5252525, json)
+    //  println(s"Create: ${response.body}")
+    response2.status mustBe 201
+
+    val response3 = getObservationsForNode(storageNodeId)
+    response3.status mustBe 200
+
+    val arrayLength = response3.json match {
+      case arr: JsArray => arr.value.length
+    }
+    arrayLength mustBe 3
+
+
+    val response5 = getObservationsForNode(5252525)
+    response5.status mustBe 200
+
+    val arrayLength2 = response5.json match {
+      case arr: JsArray => arr.value.length
+    }
+    arrayLength2 mustBe 1
+
+  }
 }
