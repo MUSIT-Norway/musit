@@ -1,8 +1,6 @@
-package no.uio.musit.microservice.event.service
+package no.uio.musit.microservice.event.domain
 
 import java.sql.{ Date, Timestamp }
-
-import no.uio.musit.microservice.event.domain.Event
 
 /**
  * Created by jarle on 23.08.16.
@@ -16,14 +14,13 @@ object EventOrderingUtils {
         optX match {
           case Some(x) =>
             optY match {
-              case Some(y) =>
-                ao.compare(x, y)
-              case None => 1
+              case Some(y) => ao.compare(x, y)
+              case None => 1 // x is Some, y is None, then y is considered the smallest one
             }
           case None =>
             optY match {
-              case Some(_) => -1
-              case None => 0
+              case Some(_) => -1 // x is None and y is Some, then x is considered the smallest one
+              case None => 0 // Both are None, then we consider them equal
             }
         }
       }
