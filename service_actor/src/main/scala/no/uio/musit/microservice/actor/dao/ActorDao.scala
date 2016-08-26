@@ -60,6 +60,10 @@ class ActorDao @Inject() (
     db.run(PersonTable.filter(_.fn like s"%$searchString%").result)
   }
 
+  def getPersonByDataportenId(dataportenId: String): Future[Option[Person]] = {
+    db.run(PersonTable.filter(_.dataportenId === dataportenId).result.headOption)
+  }
+
   def getOrganizationById(id: Long): Future[Option[Organization]] = {
     db.run(OrganizationTable.filter(_.id === id).result.headOption)
   }
@@ -148,13 +152,15 @@ class ActorDao @Inject() (
     val tel = column[Option[String]]("TEL")
     val web = column[Option[String]]("WEB")
     val email = column[Option[String]]("EMAIL")
+    val dataportenId = column[Option[String]]("DATAPORTEN_ID")
 
     val create = (id: Option[Long], fn: String, title: Option[String], role: Option[String], tel: Option[String], web: Option[String],
-      email: Option[String]) =>
-      Person(id, fn, title, role, tel, web, email, Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}"))))
-    val destroy = (person: Person) => Some(person.id, person.fn, person.title, person.role, person.tel, person.web, person.email)
+      email: Option[String], dataportenId: Option[String]) =>
+      Person(id, fn, title, role, tel, web, email, dataportenId, Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}"))))
+    val destroy = (person: Person) => Some(person.id, person.fn, person.title, person.role, person.tel,
+      person.web, person.email, person.dataportenId)
 
-    def * = (id, fn, title, role, tel, web, email) <> (create.tupled, destroy)
+    def * = (id, fn, title, role, tel, web, email, dataportenId) <> (create.tupled, destroy)
   }
 
   private class OrganizationTable(tag: Tag) extends Table[Organization](tag, Some("MUSARK_ACTOR"), "ORGANIZATION") {

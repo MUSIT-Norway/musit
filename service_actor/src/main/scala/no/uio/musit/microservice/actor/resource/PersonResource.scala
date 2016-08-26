@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservice.actor.service.PersonService
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.security.Security
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -67,5 +68,21 @@ class PersonResource @Inject() (personService: PersonService) extends Controller
 
   def deleteRoot(id: Long): Action[AnyContent] = Action.async { request =>
     personService.remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
+  }
+
+  def getCurrentUserAsActor: Action[AnyContent] = Action.async { request =>
+    ???
+    /*
+    Security.create(request).map {
+      case Right(securityConnection) => Ok(Json.toJson(securityConnection.groupIds))
+
+      case Left(error) => Unauthorized(Json.toJson(error))
+    }
+    Securi
+
+    personService.getCurrentUserAsActorfind(5).map {
+      case Some(person) => Ok(Json.toJson(person)) // Ok
+      case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
+    }*/
   }
 }

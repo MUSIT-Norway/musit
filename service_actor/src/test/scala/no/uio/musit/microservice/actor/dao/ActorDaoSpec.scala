@@ -60,6 +60,20 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
         res mustBe None
       }
     }
-  }
 
+
+    "dataporten integration" should {
+      "return a Person if the dataportenId is valid" in {
+        val expected = Person(Some(2), "Herr Larmerud", dataportenId = Some("a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f"),
+                                links = Some(Seq(LinkService.self("/v1/person/2"))))
+        val res = actorDao.getPersonByDataportenId("a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f").futureValue
+        res.isDefined mustBe true
+        val person = res.get
+        person.fn mustBe "Herr Larmerud"
+        person.dataportenId mustBe Some("a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f")
+        person.id mustBe Some(2)
+
+      }
+    }
+  }
 }
