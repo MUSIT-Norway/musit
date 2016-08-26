@@ -21,7 +21,8 @@ package no.uio.musit.microservice.actor.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch, MusitStatusMessage }
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch, MusitStatusMessage}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitFuture
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -61,4 +62,12 @@ class PersonService @Inject() (val actorDao: ActorDao) {
     actorDao.deletePerson(id)
   }
 
+
+  def getCurrentUserAsActor(dataportenId: String): MusitFuture[Person] = {
+    val futureMusitActor = actorDao.getPersonByDataportenId(dataportenId)
+    futureMusitActor.map{
+      case Some(person) => person
+      case None =>
+    }
+  }
 }

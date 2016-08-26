@@ -71,18 +71,14 @@ class PersonResource @Inject() (personService: PersonService) extends Controller
   }
 
   def getCurrentUserAsActor: Action[AnyContent] = Action.async { request =>
-    ???
-    /*
     Security.create(request).map {
-      case Right(securityConnection) => Ok(Json.toJson(securityConnection.groupIds))
-
+      case Right(securityConnection) =>
+        val dataportenId = securityConnection.userId
+        personService.getCurrentUserAsActor(dataportenId).map {
+          case Some(person) => Ok(Json.toJson(person)) // Ok
+          case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find actor matching the current user, dataporten-id: $id")))
+        }
       case Left(error) => Unauthorized(Json.toJson(error))
     }
-    Securi
-
-    personService.getCurrentUserAsActorfind(5).map {
-      case Some(person) => Ok(Json.toJson(person)) // Ok
-      case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
-    }*/
   }
 }

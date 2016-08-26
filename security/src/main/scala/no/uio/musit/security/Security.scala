@@ -23,20 +23,19 @@
 package no.uio.musit.security
 
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
-import no.uio.musit.security.dataporten.Dataporten
 import play.api.mvc.Request
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 /**
  * Created by jstabel on 4/15/16.
  */
 
-case class UserInfo(id: String, name: String)
+case class UserInfo(id: String, name: String, email: Option[String] = None)
 
 case class GroupInfo(groupType: String, id: String, displayName: String, description: Option[String])
 
@@ -87,6 +86,8 @@ trait SecurityConnection {
   def userName: String = state.userInfo.name
 
   def userId: String = state.userInfo.id
+
+  def userEmail: Option[String] = state.userInfo.email
 
   def hasGroup(groupid: String): Boolean = state.hasGroup(groupid)
 
