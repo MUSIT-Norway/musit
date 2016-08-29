@@ -38,6 +38,17 @@ class LegacyPersonResource @Inject() (legacyPersonService: LegacyPersonService) 
     }
   }
 
+
+  def getPersonDetails: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    val ids: JsResult[Seq[Long]] = request.body.validate[Seq[Long]]
+    ids match {
+      case s: JsSuccess[Seq[Long]] =>
+        println(s.get)
+        Future.successful(Ok)
+      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
+    }
+  }
+
   def getById(id: Long): Action[AnyContent] = Action.async { request =>
     legacyPersonService.find(id).map {
       case Some(actor) => Ok(Json.toJson(actor))
