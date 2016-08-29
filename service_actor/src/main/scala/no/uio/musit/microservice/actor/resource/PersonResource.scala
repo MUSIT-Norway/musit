@@ -53,6 +53,16 @@ class PersonResource @Inject() (personService: PersonService) extends Controller
     }
   }
 
+  def getPersonDetails: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    val ids: JsResult[Seq[Long]] = request.body.validate[Seq[Long]]
+    ids match {
+      case s: JsSuccess[Seq[Long]] =>
+        println(s.get)
+        Future.successful(Ok)
+      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
+    }
+  }
+
   def updateRoot(id: Long): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val personResult: JsResult[Person] = request.body.validate[Person]
     personResult match {
