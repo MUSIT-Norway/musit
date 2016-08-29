@@ -9,18 +9,21 @@ class MoveObject(baseProps: BaseEventDto) extends Event(baseProps) {
     MoveObjectDao.executeMove(eventId, this)
   }
   override def execute = Some(doExecute)
+
+
 }
 
 object MoveObject extends SingleTableNotUsingCustomFields {
-
   def createEventInMemory(baseEventProps: BaseEventDto): Event = {
     new MoveObject(baseEventProps)
   }
 }
 
-class MovePlace(baseProps: BaseEventDto) extends Event(baseProps)
+class MovePlace(baseProps: BaseEventDto) extends Event(baseProps) {
+}
 
 object MovePlace extends SingleTableNotUsingCustomFields {
+  override def storeObjectsInPlaceRelationTable = true
 
   def createEventInMemory(baseEventProps: BaseEventDto): Event = {
     new MovePlace(baseEventProps)

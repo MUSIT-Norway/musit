@@ -3,15 +3,15 @@ package no.uio.musit.microservice.event.dao
 import no.uio.musit.microservice.event.domain.LocalObject
 import no.uio.musit.microservice.event.service.MoveObject
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.dbio.FutureAction
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
- * Created by jarle on 22.08.16.
- */
+  * Created by jarle on 22.08.16.
+  */
 
 object MoveObjectDao extends HasDatabaseConfig[JdbcProfile] {
 
@@ -46,14 +46,24 @@ object MoveObjectDao extends HasDatabaseConfig[JdbcProfile] {
 
   def executeMove(newEventId: Long, moveObject: MoveObject): DBIO[Unit] = {
     require(moveObject.relatedObjects.length <= 1, "More than one objectId in executeMove.")
-    val localObjectAndRelation = moveObject.relatedObjects.headOption
-    val dummyPlaceId = -666 // note: must get from moveObject.relatedPlaces when MUSARK-249 is finished !!!
-    localObjectAndRelation match {
+    require(moveObject.relatedPlaces.length <= 1, "More than one place in related places.")
 
-      case None => throw new Exception("Missing object to move")
-      case Some(localObjectAndRelation) =>
-        maybeInsertLocalObject(localObjectAndRelation.objectId)
-          .andThen(updateLocalObjectLatestMove(localObjectAndRelation.objectId, newEventId, dummyPlaceId))
+    val localObjectAndRelation = moveObject.relatedObjects.headOption
+
+    val optPlaceWithRelation = moveObject.relatedPlaces.headOption //TODO: Needs more elaborate logic here if we specify both from and to later on,
+    // now we assume we only have a toPlace relation..
+    optPlaceWithRelation match {
+
+      case None => throw new Exception("Missing place for move event")
+      case Some(placeWithRelation) =>
+
+        localObjectAndRelation match {
+
+          case None => throw new Exception("Missing object to move")
+          case Some(localObjectAndRelation) =>
+            maybeInsertLocalObject(localObjectAndRelation.objectId)
+              .andThen(updateLocalObjectLatestMove(localObjectAndRelation.objectId, newEventId, placeWithRelation.placeId))
+        }
     }
   }
 

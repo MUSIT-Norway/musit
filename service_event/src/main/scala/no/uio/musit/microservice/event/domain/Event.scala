@@ -41,6 +41,8 @@ class Event(val baseEventProps: BaseEventDto) {
   def getAllSubEventsAs[T] = getAllSubEvents.map(subEvent => subEvent.asInstanceOf[T])
 
   def execute: Option[(Long) => DBIO[Unit]] = None
+
+
   /*#OLD ideas
 
   //protected var partOf: Option[Event] = None //The part_of relation. ("Semantic")

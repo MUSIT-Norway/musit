@@ -69,7 +69,11 @@ object JsonEventHelpers {
       eventRoleActor = if (doneBy.isDefined) Seq(ActorWithRole(1, doneBy.get)) else Seq.empty
       eventRoleObject = if (doneWith.isDefined) Seq(ObjectWithRole(1, doneWith.get)) else Seq.empty
 
-    } yield BaseEventDto(id, links, eventType, eventDate, eventRoleActor, eventRoleObject, note, relatedSubEvents,
+      toPlace <-(jsObject \ "toPlace").validateOpt[Int]
+
+      eventRolePlace = if (toPlace.isDefined) Seq(PlaceWithRole(1, toPlace.get)) else Seq.empty //TODO: Needs to handle all related places and roles properly!
+
+    } yield BaseEventDto(id, links, eventType, eventDate, eventRoleActor, eventRoleObject, eventRolePlace, note, relatedSubEvents,
       None, customValueLong, customValueString, customValueDouble,
       registeredBy, localDateTimeToTimestamp(registeredDate))
   }

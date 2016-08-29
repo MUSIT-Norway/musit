@@ -77,6 +77,12 @@ object BaseEventDto {
         //Currently we only have one related object, this code must be changed when we get multiple related objects for events.
       }
 
+      baseEventDto.relatedPlaces.foreach { relatedPlace =>
+        jsObj = jsObj + ("toPlace", JsNumber(relatedPlace.placeId))
+        //TODO: Must handle all place roles!
+      }
+
+
       baseEventDto.links match {
         case Some(links) if (links.nonEmpty) =>
           val linksAsJson = Json.toJson(links)
@@ -105,11 +111,11 @@ case class EventRoleObject(eventId: Long, roleId: Int, objectId: Long) {
   def toObjectWithRole = ObjectWithRole(roleId, objectId)
 }
 
-case class PlaceWithRole(roleId: Int, placeId: Long) {
+case class PlaceWithRole(roleId: Int, placeId: Int) {
   def toEventRolePlace(eventId: Long) = EventRolePlace(eventId, roleId, placeId)
 }
 
-case class EventRolePlace(eventId: Long, roleId: Int, placeId: Long) {
+case class EventRolePlace(eventId: Long, roleId: Int, placeId: Int) {
   def toPlaceWithRole = PlaceWithRole(roleId, placeId)
 }
 

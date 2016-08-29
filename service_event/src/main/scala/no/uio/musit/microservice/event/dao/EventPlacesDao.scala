@@ -57,9 +57,9 @@ object EventPlacesDao extends HasDatabaseConfig[JdbcProfile] {
 
     val eventId = column[Long]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
-    val placeId = column[Long]("PLACE_ID")
+    val placeId = column[Int]("PLACE_ID")
 
-    def create = (eventId: Long, roleId: Int, placeId: Long) =>
+    def create = (eventId: Long, roleId: Int, placeId: Int) =>
       EventRolePlace(
         eventId,
         roleId,

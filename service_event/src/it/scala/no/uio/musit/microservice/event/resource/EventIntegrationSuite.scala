@@ -123,7 +123,9 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
       val responseGet = getEvent(moveObject.id.get)
       responseGet.status mustBe 200
-      println(responseGet.body)
+      val moveObject2 = validateEvent[MoveObject](responseGet.json) // .validate[Move].get
+      moveObject2.relatedPlaces.length mustBe 1
+      moveObject2.relatedPlaces.head.placeId mustBe -666
 
     }
 
@@ -145,7 +147,13 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
       val responseGet = getEvent(movePlace.id.get)
       responseGet.status mustBe 200
-      println(responseGet.body)
+
+      val moveObject2 = validateEvent[MovePlace](responseGet.json) // .validate[Move].get
+      moveObject2.relatedPlaces.length mustBe 1
+      moveObject2.relatedPlaces.head.placeId mustBe -777
+
+      moveObject2.relatedObjects.length mustBe 1
+      moveObject2.relatedObjects.head.objectId mustBe 11
 
     }
 
@@ -1078,7 +1086,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       """
   {
    "eventType": "MovePlace",
-   "doneWith": 10,
+   "doneWith": 11,
    "toPlace" : -666,
    "note": "Dette er et viktig notat for move!"
    }"""
@@ -1091,7 +1099,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     responseGet.status mustBe 200
     val movePlace2 = validateEvent[MovePlace](responseGet.json) // .validate[Move].get
     movePlace2.relatedObjects.length mustBe 1
-
   }
   
 }

@@ -119,15 +119,32 @@ CREATE TABLE MUSARK_EVENT.PLACE_ROLE (
 insert into MUSARK_EVENT.PLACE_ROLE(ID, NAME, DESCRIPTION) VALUES (1, 'DoneWith', 'The storagenode who was done something with in a spesific event');
 
 
+--This is the generic event-to-place relation, the place of where an event happened, the place of where something was moved to etc.
 CREATE TABLE MUSARK_EVENT.EVENT_ROLE_PLACE (
   EVENT_ID BIGINT(20) NOT NULL,
   ROLE_ID Integer NOT NULL,
   PLACE_ID integer NOT NULL,
   PRIMARY KEY (EVENT_ID, ROLE_ID, PLACE_ID),
   FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_EVENT.EVENT(ID),
-  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_EVENT.PLACE_ROLE(ID),
-  FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_EVENT.LOCAL_PLACE(PLACE_ID)
+  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_EVENT.PLACE_ROLE(ID)--,
+  --FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_EVENT.PLACE(PLACE_ID)
 );
+
+-- For some event types, the "objects" really are places. Read it as Event_Role_PlaceAsObject.
+-- This situation is stored in this table.
+-- We could have used the EVENT_ROLE_OBJECT, but then we would loose foreign keys and would have needed to tag which is which.
+CREATE TABLE MUSARK_EVENT.EVENT_ROLE_PLACE_AS_OBJECT (
+  EVENT_ID BIGINT(20) NOT NULL,
+  ROLE_ID Integer NOT NULL,
+  PLACE_ID integer NOT NULL,
+  PRIMARY KEY (EVENT_ID, ROLE_ID, PLACE_ID),
+  FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_EVENT.EVENT(ID),
+  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_EVENT.PLACE_ROLE(ID)--,
+  --FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_EVENT.PLACE(PLACE_ID)
+);
+
+
+
 
 CREATE TABLE MUSARK_EVENT.OBSERVATION_FROM_TO (
   ID BIGINT(20) NOT NULL,
