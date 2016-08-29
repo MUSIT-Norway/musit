@@ -127,6 +127,29 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
     }
 
+    "post MovePlace" in {
+
+      val json =
+        """
+  {
+   "eventType": "MovePlace",
+   "doneWith": 11,
+   "toPlace" : -777,
+   "note": "Dette er et viktig notat for move place!"
+   }"""
+
+
+      val response = createEvent(json)
+      response.status mustBe 201
+      val movePlace = validateEvent[MovePlace](response.json) // .validate[Move].get
+
+      val responseGet = getEvent(movePlace.id.get)
+      responseGet.status mustBe 200
+      println(responseGet.body)
+
+    }
+
+
     "postWithWrongEvent" in {
       val json =
         """
@@ -1048,4 +1071,27 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val moveObject2 = validateEvent[MoveObject](responseGet.json) // .validate[Move].get
     moveObject2.relatedObjects.length mustBe 1
   }
+
+  "post MovePlace" in {
+
+    val json =
+      """
+  {
+   "eventType": "MovePlace",
+   "doneWith": 10,
+   "toPlace" : -666,
+   "note": "Dette er et viktig notat for move!"
+   }"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val movePlace = validateEvent[MovePlace](response.json) // .validate[Move].get
+
+    val responseGet = getEvent(movePlace.id.get)
+    responseGet.status mustBe 200
+    val movePlace2 = validateEvent[MovePlace](responseGet.json) // .validate[Move].get
+    movePlace2.relatedObjects.length mustBe 1
+
+  }
+  
 }

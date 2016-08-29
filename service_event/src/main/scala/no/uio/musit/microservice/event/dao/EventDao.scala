@@ -121,6 +121,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         numInserted <- EventObjectsDao.insertObjects(newEventId, event.relatedObjects)
       } yield newEventId).transactionally
     }
+//    if (event.relatedObjects.nonEmpty) {
+//      action = (for {
+//        newEventId <- action
+//        numInserted <- EventObjectsDao.insertObjects(newEventId, event.relatedObjects)
+//      } yield newEventId).transactionally
+//    }
     action
   }
 
