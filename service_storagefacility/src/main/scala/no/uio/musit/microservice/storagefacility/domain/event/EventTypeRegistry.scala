@@ -20,14 +20,26 @@
 package no.uio.musit.microservice.storagefacility.domain.event
 
 import enumeratum._
-import no.uio.musit.microservice.storagefacility.domain.event.PropTypes.PropValidation._
-import no.uio.musit.microservice.storagefacility.domain.event.PropTypes._
+import play.api.libs.json._
+
+import scala.reflect.ClassTag
+
+case class EventTypeId(underlying: Int) extends AnyVal
+
+object EventTypeId {
+
+  implicit val reads: Reads[EventTypeId] = __.read[Int].map(EventTypeId.apply)
+  implicit val writes: Writes[EventTypeId] = Writes { etid =>
+    Json.toJson[Int](etid.underlying)
+  }
+
+}
 
 /**
  * Represents an entry in the event type registry
  */
 sealed trait EventTypeEntry extends EnumEntry {
-  val id: Int
+  val id: EventTypeId
 }
 
 /**
@@ -41,21 +53,40 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
   val values = findValues
 
   /**
+   * Function that will try to locate an EventTypeEntry based on its EventTypeId
+   *
+   * @param id the EventTypeId to look for
+   * @return An Option[EventTypeEntry] that may contain the located entry.
+   */
+  def fromId(id: EventTypeId): Option[EventTypeEntry] = values.find(_.id == id)
+
+  /**
+   * Unsafe retrieval of an EventTypeEntry that assumes the entry exists.
+   * If it does not exist, the function will explode in your face with an
+   * exception. Use with care!
+   */
+  def unsafeFromId(id: EventTypeId): EventTypeEntry = fromId(id).get
+
+  def unsafeTypedFromId[T <: SubEventType](id: EventTypeId): T = {
+    ???
+  }
+
+  /**
    * All events that appear at the root of an event structure should extend
    * the TopLevelEvent type.
    */
   sealed abstract class TopLevelEvent(
-    val id: Int,
+    val id: EventTypeId,
     override val entryName: String
   ) extends EventTypeEntry
 
-  case object MoveEventType extends TopLevelEvent(1, "Move")
+  case object MoveEventType extends TopLevelEvent(EventTypeId(1), "Move")
 
-  case object EnvRequirementEventType extends TopLevelEvent(1, "EnvRequirement")
+  case object EnvRequirementEventType extends TopLevelEvent(EventTypeId(2), "EnvRequirement")
 
-  case object ControlEventType extends TopLevelEvent(3, "Control")
+  case object ControlEventType extends TopLevelEvent(EventTypeId(3), "Control")
 
-  case object ObservationEventType extends TopLevelEvent(4, "Observation")
+  case object ObservationEventType extends TopLevelEvent(EventTypeId(4), "Observation")
 
   /**
    * All events that typically appears below the root of an event structure
@@ -72,101 +103,10 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
    * this map represents the valid name of the extra attribute. And each value
    * represents the expected data type for the MusitSubEvent property.
    */
-  sealed abstract class SubEvent(
-      val id: Int,
-      override val entryName: String
-  ) extends EventTypeEntry {
-    val propTypes: Map[String, PropType[_]]
-  }
-
-  /**
-   * Companion object for SubEvent.
-   */
-  object SubEvent {
-
-    /**
-     * Perform a diff between two instances of Map[String, Any], "a" and "b".
-     *
-     * @param a The map to diff against
-     * @param b The map to diff with
-     *
-     * @return A Set[String] containing the keys that were different.
-     */
-    private[this] def diff(a: EventProps, b: EventProps): Set[String] =
-      a.keySet.diff(b.keySet)
-
-    /**
-     * Validate the type of value in the tuple `kv`. The value is checked
-     * against the PropertyType registered with the sub-event type in the
-     * registry. The validated key value pair is returned if the value is OK.
-     *
-     * FIXME: Too much OOP. The algorithm shouldn't need the m.
-     */
-    private[this] def validateType(
-      se: SubEvent,
-      m: EventProps,
-      kv: (String, Any)
-    ): Option[(String, Any)] = {
-      se.propTypes.get(kv._1).flatMap { typeValidator =>
-        typeValidator.transform(kv._2).map { valid =>
-          kv._1 -> valid
-        }
-      }
-    }
-
-    /**
-     * This function folds over the `props` to validate the value for each key
-     * is of the same type as defined for the key in the SubEvent.propTypes.
-     * If a value doesn't match the expected type, the key/value pair is removed
-     * from the map. Only _valid_ entries are kept.
-     * The function will return an Option of a Tuple containing a Map of the
-     * valid entries, and a Set with the keys that were invalid.
-     *
-     * @param se The SubEvent to use for validation
-     * @param props The EventProps (or Map[String, Any]) to validate.
-     *
-     * @return Option[(EventProps, Set[String])]
-     */
-    private[this] def transformValid(
-      se: SubEvent, props: EventProps
-    ): Option[(EventProps, Set[String])] = {
-      val transformed = props.foldLeft(Map.empty[String, Any]) { (pm, kv) =>
-        validateType(se, pm, kv) match {
-          case Some(valid) => pm + valid
-          case None => pm
-        }
-      }
-      val tpeErr = diff(props, transformed)
-
-      if (transformed.isEmpty) None
-      else Some(transformed, tpeErr)
-    }
-
-    /**
-     * Validates the key/value pairs in the `props` argument with the
-     * name and type defined in the SubEvent parameter.
-     */
-    def validateProps(se: SubEvent, props: EventProps): ValidatedProps = {
-      val missing = diff(se.propTypes, props)
-      val invalid = diff(props, se.propTypes)
-
-      // Identify valid and invalid properties.
-      val maybeValidated: Option[(EventProps, Set[String])] = {
-        if (missing.isEmpty && invalid.isEmpty) {
-          transformValid(se, props)
-        } else {
-          None
-        }
-      }
-
-      maybeValidated.map {
-        case (v, tpeErr) if tpeErr.nonEmpty => InvalidProps(missing, invalid, tpeErr)
-        case (v, tpeErr) if tpeErr.isEmpty => ValidProps(v)
-      }.getOrElse {
-        InvalidProps(missing, invalid, Set.empty)
-      }
-    }
-  }
+  sealed abstract class SubEventType(
+    val id: EventTypeId,
+    override val entryName: String
+  ) extends EventTypeEntry
 
   /**
    * Locate a SubEvent in the event registry based on it's name.
@@ -174,140 +114,87 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
    * @param n the String representation of the SubEvent name
    * @return an Option[SubEvent]
    */
-  def subEventWithNameOption(n: String): Option[SubEvent] = {
+  def subEventWithNameOption(n: String): Option[SubEventType] = {
     withNameInsensitiveOption(n).flatMap {
-      case se: SubEvent => Some(se)
+      case se: SubEventType => Some(se)
       case _ => None
     }
   }
 
-  /* CONTROL TYPES */
+  /**
+   * Locate a specific sub-type `T` of SubEvent in the event registry based on
+   * it's name.
+   *
+   * @param n String containing the name to look for
+   * @param ct implicit `ClassTag` argument to ensure the type `T` isn't erased.
+   * @tparam T The sub-type of `SubEventType` to look for.
+   * @return An Option[T]
+   */
+  def typedWithNameOption[T <: SubEventType](n: String)(implicit ct: ClassTag[T]): Option[T] = {
+    subEventWithNameOption(n).flatMap {
+      case se: T => Some(se)
+      case _ => None
+    }
+  }
 
-  abstract class CtrlSubEvent(
-    val evtId: Int,
+  /**
+   * CONTROL TYPES
+   */
+  sealed abstract class CtrlSubEventType(
+    val evtId: EventTypeId,
     val eName: String
-  ) extends SubEvent(evtId, eName) {
-    override val propTypes: Map[String, PropType[_]] =
-      Map("ok" -> BooleanPropType)
-  }
+  ) extends SubEventType(evtId, eName)
 
-  case object ControlAlcohol extends CtrlSubEvent(5, "ControlAlcohol")
+  case object CtrlAlcoholType extends CtrlSubEventType(EventTypeId(5), "ControlAlcohol")
 
-  case object ControlCleaning extends CtrlSubEvent(6, "ControlCleaning")
+  case object CtrlCleaningType extends CtrlSubEventType(EventTypeId(6), "ControlCleaning")
 
-  case object ControlGas extends CtrlSubEvent(7, "ControlGas")
+  case object CtrlGasType extends CtrlSubEventType(EventTypeId(7), "ControlGas")
 
-  case object ControlHypoxicAir extends CtrlSubEvent(8, "ControlHypoxicAir")
+  case object CtrlHypoxicAirType extends CtrlSubEventType(EventTypeId(8), "ControlHypoxicAir")
 
-  case object ControlLightingCondition extends CtrlSubEvent(9, "ControlLightingCondition")
+  case object CtrlLightingType extends CtrlSubEventType(EventTypeId(9), "ControlLightingCondition")
 
-  case object ControlMold extends CtrlSubEvent(10, "ControlMold")
+  case object CtrlMoldType extends CtrlSubEventType(EventTypeId(10), "ControlMold")
 
-  case object ControlPest extends CtrlSubEvent(11, "ControlPest")
+  case object CtrlPestType extends CtrlSubEventType(EventTypeId(11), "ControlPest")
 
-  case object ControlRelativeHumidity extends CtrlSubEvent(12, "ControlRelativeHumidity")
+  case object CtrlHumidityType extends CtrlSubEventType(EventTypeId(12), "ControlRelativeHumidity")
 
-  case object ControlTemperature extends CtrlSubEvent(13, "ControlTemperature")
+  case object CtrlTemperatureType extends CtrlSubEventType(EventTypeId(13), "ControlTemperature")
 
+  /**
+   * OBSERVATION TYPES
+   */
+  sealed abstract class ObsSubEventType(
+    val evtId: EventTypeId,
+    val eName: String
+  ) extends SubEventType(evtId, eName)
 
+  case object ObsAlcoholType extends ObsSubEventType(EventTypeId(14), "ObservationAlcohol")
 
-  /* OBSERVATION TYPES */
-  // TODO: Consider possibilities for separating types to separate files and enums
+  case object ObsCleaningType extends ObsSubEventType(EventTypeId(15), "ObservationCleaning")
 
-  case object ObservationAlcohol extends SubEvent(14, "ObservationAlcohol") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "condition" -> StringPropType,
-        "volume" -> DoublePropType
-      )
-  }
+  case object ObsFireType extends ObsSubEventType(EventTypeId(16), "ObservationFireProtection")
 
-  case object ObservationCleaning extends SubEvent(15, "ObservationCleaning") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "cleaning" -> StringPropType
-      )
-  }
+  case object ObsGasType extends ObsSubEventType(EventTypeId(17), "ObservationGas")
 
-  case object ObservationFireProtection extends SubEvent(16, "ObservationFireProtection") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "fireProtection" -> StringPropType
-      )
-  }
+  case object ObsHypoxicAirType extends ObsSubEventType(EventTypeId(18), "ObservationHypoxicAir")
 
-  case object ObservationGas extends SubEvent(17, "ObservationGas") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "gas" -> StringPropType
-      )
-  }
+  case object ObsLightingType extends ObsSubEventType(EventTypeId(19), "ObservationLightingCondition")
 
-  case object ObservationHypoxicAir extends SubEvent(18, "ObservationHypoxicAir") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "from" -> DoublePropType,
-        "to" -> DoublePropType
-      )
-  }
+  case object ObsMoldType extends ObsSubEventType(EventTypeId(20), "ObservationMold")
 
-  case object ObservationLightingCondition extends SubEvent(19, "ObservationLightingCondition") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "lightingCondition" -> StringPropType
-      )
-  }
+  case object ObsPerimeterType extends ObsSubEventType(EventTypeId(21), "ObservationPerimeterSecurity")
 
-  case object ObservationMold extends SubEvent(20, "ObservationMold") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "mold" -> StringPropType
-      )
-  }
+  case object ObsHumidityType extends ObsSubEventType(EventTypeId(22), "ObservationRelativeHumidity")
 
-  case object ObservationPerimeterSecurity extends SubEvent(21, "ObservationPerimeterSecurity") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "perimeterSecurity" -> StringPropType
-      )
-  }
+  case object ObsPestType extends ObsSubEventType(EventTypeId(23), "ObservationPest")
 
-  case object ObservationRelativeHumidity extends SubEvent(22, "ObservationRelativeHumidity") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "from" -> DoublePropType,
-        "to" -> DoublePropType
-      )
-  }
+  case object ObsTemperatureType extends ObsSubEventType(EventTypeId(24), "ObservationTemperature")
 
-  case object ObservationPest extends SubEvent(23, "ObservationPest") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "identification" -> StringPropType
-        // TODO: This event actually needs to have a Seq[Lifecycle] attribute :-(
-      )
-  }
+  case object ObsTheftType extends ObsSubEventType(EventTypeId(25), "ObservationTheftProtection")
 
-  case object ObservationTemperature extends SubEvent(24, "ObservationTemperature") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "from" -> DoublePropType,
-        "to" -> DoublePropType
-      )
-  }
-
-  case object ObservationTheftProtection extends SubEvent(25, "ObservationTheftProtection") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "theftProtection" -> StringPropType
-      )
-  }
-
-  case object ObservationWaterDamageAssessment extends SubEvent(26, "ObservationWaterDamageAssessment") {
-    override val propTypes: Map[String, PropType[_]] =
-      Map(
-        "waterDamageAssessment" -> StringPropType
-      )
-  }
+  case object ObsWaterDamageType extends ObsSubEventType(EventTypeId(26), "ObservationWaterDamageAssessment")
 
 }

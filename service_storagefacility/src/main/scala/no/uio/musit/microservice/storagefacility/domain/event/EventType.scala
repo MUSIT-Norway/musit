@@ -22,9 +22,17 @@ package no.uio.musit.microservice.storagefacility.domain.event
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
-case class EventType(name: String)
+case class EventType(name: String) extends AnyVal {
+
+  def registeredEventId: EventTypeId =
+    EventTypeRegistry.withNameInsensitive(name).id
+
+}
 
 object EventType {
+
+  def fromEventTypeId(id: EventTypeId): EventType =
+    EventType(EventTypeRegistry.unsafeFromId(id).entryName)
 
   implicit val reads: Reads[EventType] =
     __.read[String].filter(ValidationError("Unsupported event type")) { et =>

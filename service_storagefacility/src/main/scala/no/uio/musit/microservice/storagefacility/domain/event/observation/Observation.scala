@@ -17,19 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event
+package no.uio.musit.microservice.storagefacility.domain.event.observation
 
-import no.uio.musit.microservice.storagefacility.domain.event.Implicits._
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEvent, MusitEventBase, Parts }
 import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.json.{ Format, _ }
 
-/**
- * Representation of an observation.
- *
- * @param baseEvent MusitEventBase shared attributes for all MusitEvents
- * @param eventType EventType that specifies the which event this is.
- * @param parts Optional collection of ObservationSubEvent parts.
- */
+import ObservationSubEventFormats.ObservationSubEventFormat
+
 case class Observation(
   baseEvent: MusitEventBase,
   eventType: EventType,
@@ -42,32 +37,4 @@ object Observation {
     (__ \ "eventType").format[EventType] and
     (__ \ "parts").formatNullable[Seq[ObservationSubEvent]]
   )(Observation.apply, unlift(Observation.unapply))
-}
-
-/**
- * Representation of an observation sub-event
- *
- * @param baseEvent MusitEventBase shared attributes for all MusitEvents
- * @param eventType EventType that specifies the which event this is.
- * @param properties Additional properties associated with specified eventType.
- */
-case class ObservationSubEvent(
-  baseEvent: MusitEventBase,
-  eventType: EventType,
-  properties: Map[String, Any]
-) extends MusitSubEvent
-
-object ObservationSubEvent {
-
-  implicit val reads: Reads[ObservationSubEvent] =
-    MusitSubEvent.fromJson { (json, base, evtType, validProps) =>
-      JsSuccess(ObservationSubEvent(base, evtType, validProps))
-    }
-
-  implicit val writes: Writes[ObservationSubEvent] = (
-    __.write[MusitEventBase] and
-    (__ \ "eventType").write[EventType] and
-    (__ \ "properties").write[EventProps]
-  )(unlift(ObservationSubEvent.unapply))
-
 }

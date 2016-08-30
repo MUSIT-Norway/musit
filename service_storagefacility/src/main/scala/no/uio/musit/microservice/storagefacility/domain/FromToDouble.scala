@@ -17,9 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event.dto
+package no.uio.musit.microservice.storagefacility.domain
 
-/**
- * Events related (via relation) to a given event.
- */
-case class RelatedEvents(relation: EventRelation, events: Seq[Dto])
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{ Format, _ }
+
+case class FromToDouble(from: Option[Double], to: Option[Double])
+
+object FromToDouble {
+  implicit val formats: Format[FromToDouble] = (
+    (__ \ "from").formatNullable[Double] and
+    (__ \ "to").formatNullable[Double]
+  )(FromToDouble.apply, unlift(FromToDouble.unapply))
+
+}

@@ -17,9 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event.dto
+package no.uio.musit.microservice.storagefacility.domain.event.control
 
-/**
- * Events related (via relation) to a given event.
- */
-case class RelatedEvents(relation: EventRelation, events: Seq[Dto])
+import no.uio.musit.microservice.storagefacility.domain.event._
+import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEventFormats.ControlSubEventsFormat
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+
+case class Control(
+  baseEvent: MusitEventBase,
+  eventType: EventType,
+  parts: Option[Seq[ControlSubEvent]] = None
+) extends MusitEvent with Parts[ControlSubEvent]
+
+object Control {
+  implicit val format: Format[Control] = (
+    __.format[MusitEventBase] and
+    (__ \ "eventType").format[EventType] and
+    (__ \ "parts").formatNullable[Seq[ControlSubEvent]]
+  )(Control.apply, unlift(Control.unapply))
+
+}

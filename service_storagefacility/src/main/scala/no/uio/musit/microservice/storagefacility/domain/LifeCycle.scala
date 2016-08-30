@@ -17,9 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event.dto
+package no.uio.musit.microservice.storagefacility.domain
 
-/**
- * Events related (via relation) to a given event.
- */
-case class RelatedEvents(relation: EventRelation, events: Seq[Dto])
+import play.api.libs.json.Json
+
+case class LifeCycle(stage: Option[String], number: Option[Int])
+
+object LifeCycle {
+  implicit val format = Json.format[LifeCycle]
+}

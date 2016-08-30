@@ -19,6 +19,7 @@
 //
 //package no.uio.musit.microservice.storagefacility.domain.event.dto
 //
+//import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 //import no.uio.musit.microservices.common.extensions.OptionExtensions._
 //import no.uio.musit.microservices.common.linking.domain.Link
 //
@@ -27,16 +28,18 @@
 // */
 //
 //case class BaseEventDto(
-//    id: Option[Long],
-//    links: Option[Seq[Link]],
-//    eventType: EventType,
-//    note: Option[String],
-//    relatedSubEvents: Seq[RelatedEvents],
-//    partOf: Option[Long],
-//    valueLong: Option[Long] = None,
-//    valueString: Option[String] = None,
-//    valueDouble: Option[Double] = None
-//) {
+//  id: Option[Long],
+//  links: Option[Seq[Link]],
+//  eventType: EventTypeId,
+//  note: Option[String],
+//  //  relatedSubEvents: Seq[RelatedEvents],
+//  partOf: Option[Long],
+//  valueLong: Option[Long] = None,
+//  valueString: Option[String] = None,
+//  valueDouble: Option[Double] = None
+//)
+//
+//{
 //
 //  def getOptBool = valueLong match {
 //    case Some(1) => Some(true)
