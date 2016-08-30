@@ -18,9 +18,7 @@ object MovePlaceDao extends HasDatabaseConfig[JdbcProfile] {
 
   //  private val EventActorsTable = TableQuery[EventActorsTable]
 
-  def executeMove(newEventId: Long, movePlace: MovePlace): DBIO[Unit] = {
-    val res = sql"""select 1 from MUSARK_EVENT.EVENT""".as[Long].head
-    res.map(_ => ())
-  }
+  def executeMove(newEventId: Long, movePlace: MovePlace): DBIO[Unit] =
+    DBIO.successful()
 }
 
