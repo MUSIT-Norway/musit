@@ -77,7 +77,7 @@ class StorageUnitDao @Inject() (
   }
 
   private class StorageUnitTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
-    def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, latestMoveId, isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
 
@@ -99,6 +99,8 @@ class StorageUnitDao @Inject() (
 
     val groupWrite = column[Option[String]]("GROUP_WRITE")
 
+    val latestMoveId = column[Option[Long]]("LATEST_MOVE_ID")
+
     val isDeleted = column[Boolean]("IS_DELETED")
 
     def create = (
@@ -112,6 +114,7 @@ class StorageUnitDao @Inject() (
       heightTo: Option[Long],
       groupRead: Option[String],
       groupWrite: Option[String],
+      latestMoveId: Option[Long],
       isDeleted: Boolean
     ) =>
       StorageNodeDTO(
@@ -124,6 +127,7 @@ class StorageUnitDao @Inject() (
         heightTo,
         groupRead,
         groupWrite,
+        latestMoveId,
         Storage.linkText(id),
         isDeleted,
         storageType
@@ -141,6 +145,7 @@ class StorageUnitDao @Inject() (
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
+        unit.latestMoveId,
         unit.isDeleted
       )
   }
