@@ -3,15 +3,15 @@ package no.uio.musit.microservice.event.dao
 import no.uio.musit.microservice.event.domain.LocalObject
 import no.uio.musit.microservice.event.service.MoveObject
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.dbio.FutureAction
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
-  * Created by jarle on 22.08.16.
-  */
+ * Created by jarle on 22.08.16.
+ */
 
 object MoveObjectDao extends HasDatabaseConfig[JdbcProfile] {
 

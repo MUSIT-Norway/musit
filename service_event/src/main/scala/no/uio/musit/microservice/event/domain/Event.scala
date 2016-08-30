@@ -42,7 +42,6 @@ class Event(val baseEventProps: BaseEventDto) {
 
   def execute: Option[(Long) => DBIO[Unit]] = None
 
-
   /*#OLD ideas
 
   //protected var partOf: Option[Event] = None //The part_of relation. ("Semantic")
