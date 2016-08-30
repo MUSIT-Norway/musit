@@ -82,7 +82,6 @@ object BaseEventDto {
         //TODO: Must handle all place roles!
       }
 
-
       baseEventDto.links match {
         case Some(links) if (links.nonEmpty) =>
           val linksAsJson = Json.toJson(links)
