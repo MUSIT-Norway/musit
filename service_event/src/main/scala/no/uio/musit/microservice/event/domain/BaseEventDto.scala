@@ -41,8 +41,6 @@ object BaseEventDto {
     isoFormat.print(instant)
   }
 
-
-  
   def optTimeStampToIsoFormat(timestamp: Option[Timestamp]) = { timestamp.map(timeStampToIsoFormat) }
 
   implicit object baseEventPropsWrites extends Writes[BaseEventDto] {

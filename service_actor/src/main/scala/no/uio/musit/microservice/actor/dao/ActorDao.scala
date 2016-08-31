@@ -73,7 +73,7 @@ class ActorDao @Inject() (
   }
 
   def getPersonDetailsByIds(ids: Set[Long]): Future[Seq[Person]] = {
-    db.run(PersonTable.filter(_.id inSet ids).result)
+    db.run(ActorTable.filter(_.id inSet ids).result)
   }
 
   /* CREATES and UPDATES */
