@@ -38,14 +38,14 @@
     "name": "storageadmin",
     "scalaName": "StorageUnitResource",
     "host": "localhost",
-    "port": "7072",
+    "port": "7070",
     "protocol": "http://"
   },
   {
     "name": "event",
     "scalaName": "EventResource",
     "host": "localhost",
-    "port": "7071",
+    "port": "7070",
     "protocol": "http://"
   }
 ]
