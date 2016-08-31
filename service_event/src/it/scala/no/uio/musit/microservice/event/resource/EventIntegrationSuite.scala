@@ -196,8 +196,9 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   "post and get envRequirement" in {
     val json =
       """
-  {
-   "eventType": "EnvRequirement",
+         {
+          "eventType": "EnvRequirement",
+          "doneWith": 11,
    "note": "Dette er et viktig notat for miljøkravene!",
    "temperature": 20,
    "temperatureInterval" : 5,
@@ -223,6 +224,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       """
   {
    "eventType": "EnvRequirement",
+    "doneWith": 14,
    "note": "Dette er et viktig notat for miljøkravene!",
    "airHumidity": -20,
    "airHumidityInterval" : 5,
@@ -1054,6 +1056,30 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     moveObject2.relatedPlaces.length mustBe 1
     moveObject2.relatedPlaces.head.placeId mustBe -777
 
+    moveObject2.relatedObjects.length mustBe 1
+    moveObject2.relatedObjects.head.objectId mustBe 11
+  }
+
+  "post NewEnvReqEvent" in {
+
+    val json =
+      """
+  {
+   "eventType": "EnvRequirement",
+   "doneWith": 11,
+   "temperature": 333,
+   "note": "nye miljøkrav hehe...!"
+   }"""
+
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val envRequirement = validateEvent[EnvRequirement](response.json)
+
+    val responseGet = getEvent(envRequirement.id.get)
+    responseGet.status mustBe 200
+
+    val moveObject2 = validateEvent[EnvRequirement](responseGet.json)
     moveObject2.relatedObjects.length mustBe 1
     moveObject2.relatedObjects.head.objectId mustBe 11
   }

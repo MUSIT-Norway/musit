@@ -48,21 +48,5 @@ object MovePlaceDao extends HasDatabaseConfig[JdbcProfile] {
     }
   }
 
-  private class LocalObjectsTable(tag: Tag) extends Table[LocalObject](tag, Some("MUSARK_EVENT"), "LOCAL_OBJECT") {
-    def * = (objectId, latestMoveId, currentLocationId) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val objectId = column[Long]("OBJECT_ID")
-    val latestMoveId = column[Option[Long]]("LATEST_MOVE_ID")
-    val currentLocationId = column[Option[Int]]("CURRENT_LOCATION_ID")
-
-    def create = (objectId: Long, latestMoveId: Option[Long], currentLocationId: Option[Int]) =>
-      LocalObject(
-        objectId,
-        latestMoveId,
-        currentLocationId
-      )
-
-    def destroy(localObject: LocalObject) = Some(localObject.objectId, localObject.latestMoveId, localObject.currentLocationId)
-  }
 }
 
