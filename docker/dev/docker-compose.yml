@@ -42,14 +42,14 @@ services:
         image: musit_service_storage_admin:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
-          - EVOLUTION_ENABLED=false
+          - EVOLUTION_ENABLED=true
         links:
           - db
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
-          - EVOLUTION_ENABLED=false
+          - EVOLUTION_ENABLED=true
         links:
           - db
     geolocation:
@@ -60,7 +60,7 @@ services:
         image: musit_service_event:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
-          - EVOLUTION_ENABLED=false
+          - EVOLUTION_ENABLED=true
         links:
           - db
     time:
