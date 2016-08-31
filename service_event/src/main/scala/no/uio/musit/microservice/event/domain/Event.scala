@@ -5,6 +5,7 @@ import java.sql.{ Date, Timestamp }
 import no.uio.musit.microservice.event.service.{ CustomFieldsSpec, CustomValuesInEventTable }
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
+import slick.dbio.DBIO
 
 trait Dto
 
@@ -16,6 +17,7 @@ class Event(val baseEventProps: BaseEventDto) {
   val eventDate: Option[Date] = baseEventProps.eventDate
   val registeredDate: Option[Timestamp] = baseEventProps.registeredDate
   val relatedActors = baseEventProps.relatedActors
+  val relatedObjects = baseEventProps.relatedObjects
   val note: Option[String] = baseEventProps.note
   val links: Option[Seq[Link]] = baseEventProps.links
   val eventType = baseEventProps.eventType
@@ -38,6 +40,7 @@ class Event(val baseEventProps: BaseEventDto) {
 
   def getAllSubEventsAs[T] = getAllSubEvents.map(subEvent => subEvent.asInstanceOf[T])
 
+  def execute: Option[(Long) => DBIO[Unit]] = None
   /*#OLD ideas
 
   //protected var partOf: Option[Event] = None //The part_of relation. ("Semantic")
