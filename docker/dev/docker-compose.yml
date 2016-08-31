@@ -19,20 +19,51 @@ services:
           - PUBLIC_PORT=80
     backing:
         build:
-            context: "../../backing"
+          context: "../../backing"
         ports:
-            - "3030:3030"
+          - "3030:3030"
+    db:
+        image: postgres
+        environment:
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=postgres
+          - POSTGRES_DB=postgres
+        volumes:
+          - ../../postgres-storage:/var/lib/postgresql/data/
     thing:
         image: musit_service_musit_thing:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
     core:
         image: musit_service_core:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
     storageadmin:
         image: musit_service_storage_admin:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - EVOLUTION_ENABLED=false
+        links:
+          - db
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - EVOLUTION_ENABLED=false
+        links:
+          - db
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
     event:
         image: musit_service_event:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - EVOLUTION_ENABLED=false
+        links:
+          - db
     time:
         image: musit_service_time:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
