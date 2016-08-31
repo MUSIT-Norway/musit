@@ -73,7 +73,7 @@ object Storage {
 
   def fromDTO[T <: StorageDTO](dto: T) =
     dto match {
-      case stu: StorageUnitDTO =>
+      case stu: StorageNodeDTO =>
         StorageUnit(
           id = stu.id,
           name = stu.name,
@@ -163,7 +163,7 @@ object Storage {
   }
 
   def toDTO[T <: Storage](stu: T) =
-    StorageUnitDTO(
+    StorageNodeDTO(
       id = stu.id,
       name = stu.name,
       area = stu.area,

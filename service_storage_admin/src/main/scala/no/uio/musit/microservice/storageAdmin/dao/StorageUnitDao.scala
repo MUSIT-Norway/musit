@@ -1,7 +1,7 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageNodeDTO }
 import no.uio.musit.microservice.storageAdmin.domain.Storage
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
@@ -30,10 +30,10 @@ class StorageUnitDao @Inject() (
   def storageUnitNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(unknownStorageUnitMsg(id))
 
-  def getStorageUnitOnlyById(id: Long): Future[Option[StorageUnitDTO]] =
+  def getStorageUnitOnlyById(id: Long): Future[Option[StorageNodeDTO]] =
     db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
-  def getChildren(id: Long): Future[Seq[StorageUnitDTO]] = {
+  def getChildren(id: Long): Future[Seq[StorageNodeDTO]] = {
     val action = StorageUnitTable.filter(st => st.isPartOf === id && st.isDeleted === false).result
     db.run(action)
   }
@@ -43,30 +43,30 @@ class StorageUnitDao @Inject() (
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
   }
 
-  def all(): Future[Seq[StorageUnitDTO]] =
+  def all(): Future[Seq[StorageNodeDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
 
-  def rootNodes(readGroup: String): Future[Seq[StorageUnitDTO]] =
+  def rootNodes(readGroup: String): Future[Seq[StorageNodeDTO]] =
     db.run(StorageUnitTable.filter(st => st.isDeleted === false && st.isPartOf.isEmpty && st.groupRead === readGroup).result)
 
   def setPartOf(id: Long, partOf: Long): Future[Int] =
     db.run(StorageUnitTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
 
-  def insert(storageUnit: StorageUnitDTO): Future[StorageUnitDTO] =
+  def insert(storageUnit: StorageNodeDTO): Future[StorageNodeDTO] =
     db.run(insertAction(storageUnit))
 
-  def insertAction(storageUnit: StorageUnitDTO): DBIO[StorageUnitDTO] = {
+  def insertAction(storageUnit: StorageNodeDTO): DBIO[StorageNodeDTO] = {
     StorageUnitTable returning StorageUnitTable.map(_.id) into
       ((storageUnit, id) =>
         storageUnit.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
       storageUnit
   }
 
-  def updateStorageUnitAction(id: Long, storageUnit: StorageUnitDTO): DBIO[Int] = {
+  def updateStorageUnitAction(id: Long, storageUnit: StorageNodeDTO): DBIO[Int] = {
     StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
   }
 
-  def updateStorageUnit(id: Long, storageUnit: StorageUnitDTO): Future[Int] = {
+  def updateStorageUnit(id: Long, storageUnit: StorageNodeDTO): Future[Int] = {
     db.run(updateStorageUnitAction(id, storageUnit))
   }
 
@@ -76,14 +76,14 @@ class StorageUnitDao @Inject() (
     } yield storageUnit.isDeleted).update(true))
   }
 
-  private class StorageUnitTable(tag: Tag) extends Table[StorageUnitDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
+  private class StorageUnitTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
     def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Long]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Long]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
 
     val storageType = column[StorageType]("STORAGE_TYPE")
 
-    val storageUnitName = column[String]("STORAGE_UNIT_NAME")
+    val storageUnitName = column[String]("STORAGE_NODE_NAME")
 
     val area = column[Option[Long]]("AREA")
 
@@ -114,7 +114,7 @@ class StorageUnitDao @Inject() (
       groupWrite: Option[String],
       isDeleted: Boolean
     ) =>
-      StorageUnitDTO(
+      StorageNodeDTO(
         id,
         storageUnitName,
         area,
@@ -129,7 +129,7 @@ class StorageUnitDao @Inject() (
         storageType
       )
 
-    def destroy(unit: StorageUnitDTO) =
+    def destroy(unit: StorageNodeDTO) =
       Some(
         unit.id,
         unit.storageType,

@@ -2,7 +2,7 @@ package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageNodeDTO
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
@@ -48,7 +48,7 @@ class RoomDao @Inject() (
     action
   }
 
-  def insertRoom(storageUnit: StorageUnitDTO, storageRoom: Room): Future[Storage] = {
+  def insertRoom(storageUnit: StorageNodeDTO, storageRoom: Room): Future[Storage] = {
     val action = (for {
       storageUnit <- storageUnitDao.insertAction(storageUnit)
       n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
@@ -61,7 +61,7 @@ class RoomDao @Inject() (
     def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, // scalastyle:ignore
       sikringRutineOgBeredskap, bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
 
-    def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
+    def id = column[Option[Long]]("STORAGE_NODE_ID", O.PrimaryKey)
 
     def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
 

@@ -56,7 +56,7 @@ case class RoomDTO(
   bevarPrevantKons: Option[Boolean]
 ) extends StorageDTO
 
-case class StorageUnitDTO(
+case class StorageNodeDTO(
   id: Option[Long],
   name: String,
   area: Option[Long],

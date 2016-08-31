@@ -118,7 +118,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
     def getRelatedObjects(newEventId: Long): DBIO[Option[Int]] = {
       if (event.eventType.storeObjectsInPlaceRelationTable) {
-        throw new Exception("ikke ferdig!!!")
+        EventPlacesAsObjectsDao.insertObjects(newEventId, event.relatedObjects)
       } else {
         EventObjectsDao.insertObjects(newEventId, event.relatedObjects)
       }
@@ -157,9 +157,10 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   def getRelatedObjects(eventType: EventType, eventId: Long): Future[Seq[ObjectWithRole]] = {
 
     if (eventType.storeObjectsInPlaceRelationTable) {
-      throw new Exception("ikke ferdig!!!")
-    } else
+      EventPlacesAsObjectsDao.getRelatedObjects(eventId)
+    } else {
       EventObjectsDao.getRelatedObjects(eventId)
+    }
   }
 
   def getBaseEvent(id: Long): Future[Option[BaseEventDto]] = {
