@@ -35,10 +35,12 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE(
  storage_type      varchar(100) default 'storageunit',
  group_read        varchar(4000),
  group_write       varchar(4000),
+ latest_move_id    BIGINT,
+ latest_environment_id BIGINT,
 primary key (storage_node_id)
 );
 
-CREATE TABLE MUSARK_STORAGE.ROOXM(
+CREATE TABLE MUSARK_STORAGE.ROOM(
  storage_node_id             BIGINT not null,
  sikring_skallsikring        integer,
  sikring_tyverisikring       integer,

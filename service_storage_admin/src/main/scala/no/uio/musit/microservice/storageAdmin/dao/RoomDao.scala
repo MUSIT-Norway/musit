@@ -85,7 +85,7 @@ class RoomDao @Inject() (
       sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean],
       bevarLysforhold: Option[Boolean], bevarPrevantKons: Option[Boolean]
     ) =>
-      Room(id, null, None, None, None, None, None, None, None, None,
+      Room(id, null, None, None, None, None, None, None, None, None, None,
         sikringSkallsikring,
         sikringTyverisikring,
         sikringBrannsikring,

@@ -19,43 +19,31 @@ object MovePlaceDao extends HasDatabaseConfig[JdbcProfile] {
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  def updateStorageNodeLatestMove(storageNodeId: Int, newEventId: Long, currentLocationId: Int): DBIO[Unit] = {
+  def updateStorageNodeLatestMove(storageNodeId: Int, newEventId: Long, parentNodeId: Int): DBIO[Unit] = {
+    /* TODO: When service_storageAdmin and service_event has been merged, activate this code (also need to import StorageNodeTable)
     val q = for {
-      l <- StorageNodeTable if l.objectId === localObjectId
-    } yield (l.latestMoveId, l.currentLocationId)
-    q.update(Some(newEventId), Some(currentLocationId)).map(_ => ())
+      l <- StorageNodeTable if l.storageNodeId === storageNodeId
+    } yield (l.latestMoveId, l.isPartOf)
+    q.update(Some(newEventId), Some(parentNodeId)).map(_ => ())
+    */
+    DBIO.successful(())
   }
 
-  def maybeInsertLocalObject(localObjectId: Long): DBIO[Unit] = {
-    val futOptRes = FutureAction(db.run(LocalObjectsTable.filter(museumObject => museumObject.objectId === localObjectId).result.headOption))
-    futOptRes.flatMap { res =>
-      res match {
-        case None => insertLocalObject(localObjectId)
-        case _ =>
-          DBIO.successful(())
-      }
-    }
-  }
+  def executeMove(newEventId: Long, movePlace: MovePlace): DBIO[Unit] = {
+    require(movePlace.relatedObjects.length <= 1, "More than one objectId in executeMovePlace.")
+    require(movePlace.relatedPlaces.length <= 1, "More than one place in related places.")
 
-  def executeMove(newEventId: Long, moveObject: MoveObject): DBIO[Unit] = {
-    require(moveObject.relatedObjects.length <= 1, "More than one objectId in executeMove.")
-    require(moveObject.relatedPlaces.length <= 1, "More than one place in related places.")
+    val optPlaceAsObjectAndRelation = movePlace.relatedObjects.headOption
 
-    val localObjectAndRelation = moveObject.relatedObjects.headOption
-
-    val optPlaceWithRelation = moveObject.relatedPlaces.headOption //TODO: Needs more elaborate logic here if we specify both from and to later on,
+    val optPlaceWithRelation = movePlace.relatedPlaces.headOption //TODO: Needs more elaborate logic here if we specify both from and to later on,
     // now we assume we only have a toPlace relation..
     optPlaceWithRelation match {
-
-      case None => throw new Exception("Missing place for move event")
+      case None => throw new Exception("Missing place to move to for MovePlace event")
       case Some(placeWithRelation) =>
-
-        localObjectAndRelation match {
-
-          case None => throw new Exception("Missing object to move")
-          case Some(localObjectAndRelation) =>
-            maybeInsertLocalObject(localObjectAndRelation.objectId)
-              .andThen(updateLocalObjectLatestMove(localObjectAndRelation.objectId, newEventId, placeWithRelation.placeId))
+        optPlaceAsObjectAndRelation match {
+          case None => throw new Exception("Missing place to move for MovePlace event")
+          case Some(placeAsObjectAndRelation) =>
+            updateStorageNodeLatestMove(placeAsObjectAndRelation.objectId.toInt, newEventId, placeWithRelation.placeId)
         }
     }
   }
