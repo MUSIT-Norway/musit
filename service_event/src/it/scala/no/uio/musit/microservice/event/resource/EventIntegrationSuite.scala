@@ -77,6 +77,11 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     WS.url(s"http://localhost:$port/v1/node/$nodeId/observations").get |> waitFutureValue
   }
 
+  def getControlsAndObservationsForNode(nodeId:Int) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/controlsAndObservations").get |> waitFutureValue
+  }
+
+
   def getEvent(id: Long) = {
     WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
   }
@@ -397,6 +402,36 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val ObsEvent = motivatedObservations.get(0).asInstanceOf[ObservationTemperature]
     ObsEvent.from mustBe Some(20)
     ObsEvent.to mustBe Some(50)
+  }
+  "get controlsAndObservations" in {
+    val jsonObservation =
+      s""" {
+    "eventType": "Observation",
+    "note": "text observation"
+    }
+    """
+    val jsonControl =
+      s""" {
+    "eventType": "Control",
+    "note": "text control"
+    }
+    """
+    val storageNodeId = 555
+    val response = createControlEvent(storageNodeId, jsonControl)
+    response.status mustBe 201
+    val response2 = createControlEvent(storageNodeId, jsonControl)
+    response2.status mustBe 201
+    val response3 = createObservationEvent(storageNodeId, jsonObservation)
+    response3.status mustBe 201
+
+    val response4 = getControlsAndObservationsForNode(storageNodeId)
+    response4.status mustBe 200
+
+    val arrayLength = response4.json match {
+      case arr: JsArray => arr.value.length
+    }
+    arrayLength mustBe 3
+
   }
 
 

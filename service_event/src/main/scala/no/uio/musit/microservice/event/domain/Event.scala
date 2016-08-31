@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.event.domain
 
-import java.sql.Date
+import java.sql.{ Date, Timestamp }
 
 import no.uio.musit.microservice.event.service.{ CustomFieldsSpec, CustomValuesInEventTable }
 import no.uio.musit.microservices.common.linking.domain.Link
@@ -15,6 +15,7 @@ case class RelatedEvents(relation: EventRelation, events: Seq[Event])
 class Event(val baseEventProps: BaseEventDto) {
   val id: Option[Long] = baseEventProps.id
   val eventDate: Option[Date] = baseEventProps.eventDate
+  val registeredDate: Option[Timestamp] = baseEventProps.registeredDate
   val relatedActors = baseEventProps.relatedActors
   val relatedObjects = baseEventProps.relatedObjects
   val relatedPlaces = baseEventProps.relatedPlaces

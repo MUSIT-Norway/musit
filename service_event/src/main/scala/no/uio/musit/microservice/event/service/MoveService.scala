@@ -9,7 +9,6 @@ class MoveObject(baseProps: BaseEventDto) extends Event(baseProps) {
     MoveObjectDao.executeMove(eventId, this)
   }
   override def execute = Some(doExecute)
-
 }
 
 object MoveObject extends SingleTableNotUsingCustomFields {
