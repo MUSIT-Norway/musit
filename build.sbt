@@ -43,7 +43,8 @@ scalacOptions ++= Seq(
   "-language:existentials",
   "-language:postfixOps",
   "-target:jvm-1.8",
-  "-encoding", "UTF-8"
+  "-encoding", "UTF-8",
+  "-Xmax-classfile-name", "240" // This will limit the classname generation to 240 characters.
 )
 
 javacOptions ++= Seq(
