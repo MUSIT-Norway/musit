@@ -50,7 +50,7 @@ object CommonSettings {
       "-language:postfixOps",
       "-target:jvm-1.8",
       "-encoding", "UTF-8",
-      "-Xmax-classfile-name", "78" // This will limit the classname generation to 240 characters.
+      "-Xmax-classfile-name", "100" // This will limit the classname generation to 240 characters.
     )
   )
 
