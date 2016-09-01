@@ -65,17 +65,33 @@ sealed trait DtoExtension
  * conversions between domain and to.
  */
 case class ExtendedDto(
-  id: Option[Long],
-  links: Option[Seq[Link]],
-  eventTypeId: EventTypeId,
-  note: Option[String],
-  relatedSubEvents: Seq[RelatedEvents],
-  partOf: Option[Long],
-  valueLong: Option[Long] = None,
-  valueString: Option[String] = None,
-  valueDouble: Option[Double] = None,
-  extension: DtoExtension
-) extends Dto
+    id: Option[Long],
+    links: Option[Seq[Link]],
+    eventTypeId: EventTypeId,
+    note: Option[String],
+    relatedSubEvents: Seq[RelatedEvents],
+    partOf: Option[Long],
+    valueLong: Option[Long] = None,
+    valueString: Option[String] = None,
+    valueDouble: Option[Double] = None,
+    extension: DtoExtension
+) extends Dto {
+
+  def baseEventDto: BaseEventDto = {
+    BaseEventDto(
+      id = id,
+      links = links,
+      eventTypeId = eventTypeId,
+      note = note,
+      relatedSubEvents = relatedSubEvents,
+      partOf = partOf,
+      valueLong = valueLong,
+      valueString = valueString,
+      valueDouble = valueDouble
+    )
+  }
+
+}
 
 /**
  * Dto to handle environment requirements.

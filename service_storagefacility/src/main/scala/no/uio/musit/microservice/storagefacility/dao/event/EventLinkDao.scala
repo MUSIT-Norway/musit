@@ -20,10 +20,10 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
+import com.google.inject.{ Inject, Singleton }
+import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.dao.event.EventLinks._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventRelation, EventRelations}
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventRelation, EventRelations }
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 
@@ -32,7 +32,9 @@ import play.api.db.slick.DatabaseConfigProvider
  */
 
 @Singleton
-class EventLinkDao @Inject()(val dbConfigProvider: DatabaseConfigProvider) extends SharedEventTables with ColumnTypeMappers {
+class EventLinkDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
+) extends SharedEventTables with ColumnTypeMappers {
 
   private val logger = Logger(classOf[EventLinkDao])
 
@@ -58,8 +60,10 @@ class EventLinkDao @Inject()(val dbConfigProvider: DatabaseConfigProvider) exten
 
     logger.debug(s"gets relatedEventDtos for parentId: $parentId")
 
+    val action = EventBaseTable.join(relevantRelations).on(_.id === _.idTo)
+
     val query = for {
-      (eventBaseTable, relationTable) <- EventBaseTable join relevantRelations on (_.id === _.idTo)
+      (eventBaseTable, relationTable) <- action
     } yield (relationTable.relationId, eventBaseTable)
 
     db.run(query.result)
@@ -71,7 +75,10 @@ class EventLinkDao @Inject()(val dbConfigProvider: DatabaseConfigProvider) exten
     id => EventRelations.getByIdOrFail(id)
   )
 
-  private class EventLinkTable(tag: Tag) extends Table[EventLinkDto](tag, Some("MUSARK_STORAGE"), "EVENT_RELATION_EVENT") {
+  private class EventLinkTable(
+      val tag: Tag
+  ) extends Table[EventLinkDto](tag, SchemaName, "EVENT_RELATION_EVENT") {
+
     def * = (idFrom, relationId, idTo) <> (create.tupled, destroy) // scalastyle:ignore
 
     val idFrom = column[Long]("FROM_EVENT_ID")

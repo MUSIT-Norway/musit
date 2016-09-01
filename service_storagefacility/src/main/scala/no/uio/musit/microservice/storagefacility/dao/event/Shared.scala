@@ -19,14 +19,16 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, EventTypeId }
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, EventRelation }
+import no.uio.musit.microservice.storagefacility.dao.{ ColumnTypeMappers, SchemaName }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, EventRelation, ObservationFromToDto }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
+
+import scala.concurrent.Future
 
 object EventLinks {
 
@@ -95,7 +97,9 @@ private[dao] trait SharedEventTables extends BaseEventDao
 
   import driver.api._
 
-  class EventBaseTable(tag: Tag) extends Table[BaseEventDto](tag, Some("MUSARK_STORAGE"), "EVENT") {
+  class EventBaseTable(
+      val tag: Tag
+  ) extends Table[BaseEventDto](tag, SchemaName, "EVENT") {
 
     // scalastyle:off method.name
     def * = (
@@ -107,6 +111,7 @@ private[dao] trait SharedEventTables extends BaseEventDao
       valueString,
       valueDouble
     ) <> (create.tupled, destroy)
+
     // scalastyle:on method.name
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
@@ -152,5 +157,34 @@ private[dao] trait SharedEventTables extends BaseEventDao
         event.valueDouble
       )
   }
+
+  class ObservationFromToTable(
+      val tag: Tag
+  ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
+
+    def * = (id, from, to) <> (create.tupled, destroy)
+
+    val id = column[Option[Long]]("ID", O.PrimaryKey)
+
+    val from = column[Option[Double]]("VALUE_FROM")
+    val to = column[Option[Double]]("VALUE_TO")
+
+    def create =
+      (id: Option[Long], from: Option[Double], to: Option[Double]) =>
+        ObservationFromToDto(id, from, to)
+
+    def destroy(event: ObservationFromToDto) =
+      Some(event.id, event.from, event.to)
+  }
+
+  val ObservationFromToTable = TableQuery[ObservationFromToTable]
+
+  def insertObservationFromToAction(event: ObservationFromToDto): DBIO[Int] =
+    ObservationFromToTable += event
+
+  def getObservationFromTo(id: Long): Future[Option[ObservationFromToDto]] =
+    db.run(
+      ObservationFromToTable.filter(event => event.id === id).result.headOption
+    )
 
 }
