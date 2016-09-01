@@ -20,7 +20,7 @@ package no.uio.musit.microservice.storageAdmin.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageUnitDTO }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageNodeDTO }
 import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
@@ -41,7 +41,7 @@ class StorageUnitService @Inject() (
     ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: $expected, " +
       s"but had the type: $inDatabase in the database.")
 
-  def create(storageUnit: StorageUnitDTO): MusitFuture[Storage] =
+  def create(storageUnit: StorageNodeDTO): MusitFuture[Storage] =
     ServiceHelper.daoInsert(storageUnitDao.insert(storageUnit)).musitFutureMap(Storage.fromDTO)
 
   def createStorageTriple(storage: Storage): MusitFuture[Storage] = {
@@ -79,10 +79,10 @@ class StorageUnitService @Inject() (
   def getStorageType(id: Long): MusitFuture[StorageType] =
     storageUnitDao.getStorageType(id)
 
-  def all: Future[Seq[StorageUnitDTO]] =
+  def all: Future[Seq[StorageNodeDTO]] =
     storageUnitDao.all()
 
-  def rootNodes(readGroup: String): Future[Seq[StorageUnitDTO]] =
+  def rootNodes(readGroup: String): Future[Seq[StorageNodeDTO]] =
     storageUnitDao.rootNodes(readGroup)
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =

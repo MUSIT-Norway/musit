@@ -81,6 +81,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     "postCreate some IDs" in {
       val makeMyJSon ="""{"type":"Room","name":"UkjentRom", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
+      response.status mustBe 201
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
       storageUnit.id mustBe Some(1)
       storageUnit.name mustBe "UkjentRom"

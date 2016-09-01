@@ -49,6 +49,7 @@ object BaseEventDto {
 
       require(baseEventDto.relatedActors.length <= 1, "This code must be changed when we get multiple related actors in the future!")
       require(baseEventDto.relatedObjects.length <= 1, "This code must be changed when we get multiple related objects in the future!")
+      require(baseEventDto.relatedPlaces.length <= 1, "This code must be changed when we get multiple related objects in the future!")
 
       var jsObj = Json.obj(
         "id" -> baseEventDto.id,
@@ -74,6 +75,11 @@ object BaseEventDto {
       baseEventDto.relatedObjects.foreach { relatedObject =>
         jsObj = jsObj + ("doneWith", JsNumber(relatedObject.objectId))
         //Currently we only have one related object, this code must be changed when we get multiple related objects for events.
+      }
+
+      baseEventDto.relatedPlaces.foreach { relatedPlace =>
+        jsObj = jsObj + ("toPlace", JsNumber(relatedPlace.placeId))
+        //TODO: Must handle all place roles!
       }
 
       baseEventDto.links match {
@@ -104,13 +110,21 @@ case class EventRoleObject(eventId: Long, roleId: Int, objectId: Long) {
   def toObjectWithRole = ObjectWithRole(roleId, objectId)
 }
 
+case class PlaceWithRole(roleId: Int, placeId: Int) {
+  def toEventRolePlace(eventId: Long) = EventRolePlace(eventId, roleId, placeId)
+}
+
+case class EventRolePlace(eventId: Long, roleId: Int, placeId: Int) {
+  def toPlaceWithRole = PlaceWithRole(roleId, placeId)
+}
+
 case class LocalObject(objectId: Long, latestMoveId: Option[Long], currentLocationId: Option[Int]) {
 
 }
 
 //RegisteredBy and registeredDate are options even though they are required in the database, because they will be None in input-json
 case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, eventDate: Option[Date],
-    relatedActors: Seq[ActorWithRole], relatedObjects: Seq[ObjectWithRole],
+    relatedActors: Seq[ActorWithRole], relatedObjects: Seq[ObjectWithRole], relatedPlaces: Seq[PlaceWithRole],
     note: Option[String],
     relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long],
     valueString: Option[String], valueDouble: Option[Double], registeredBy: Option[String],

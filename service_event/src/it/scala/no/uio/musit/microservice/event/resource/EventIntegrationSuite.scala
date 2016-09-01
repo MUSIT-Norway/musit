@@ -46,16 +46,15 @@ object WSRequestFakeHelper {
   implicit class WSRequestImp2(val wsr: WSRequest) extends AnyVal {
     def withFakeUser = wsr.withBearerToken("fake-token-zab-xy-musitTestUser")
   }
-
 }
 
 class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
+
   import WSRequestFakeHelper._
 
   val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 8080
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
-
 
 
   def createEvent(json: String) = {
@@ -70,11 +69,11 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     WS.url(s"http://localhost:$port/v1/node/$nodeId/observation").withFakeUser.postJsonString(json) |> waitFutureValue
   }
 
-  def getControlsForNode(nodeId:Int) = {
+  def getControlsForNode(nodeId: Int) = {
     WS.url(s"http://localhost:$port/v1/node/$nodeId/controls").get |> waitFutureValue
   }
 
-  def getObservationsForNode(nodeId:Int) = {
+  def getObservationsForNode(nodeId: Int) = {
     WS.url(s"http://localhost:$port/v1/node/$nodeId/observations").get |> waitFutureValue
   }
 
@@ -108,30 +107,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     }
 
 
-
-
-    "post Move" in {
-
-      val json =
-        """
-  {
-   "eventType": "MoveObject",
-   "doneWith": 10,
-   "toPlace" : -666,
-   "note": "Dette er et viktig notat for move!"
-   }"""
-
-
-      val response = createEvent(json)
-      response.status mustBe 201
-      val moveObject = validateEvent[MoveObject](response.json) // .validate[Move].get
-
-      val responseGet = getEvent(moveObject.id.get)
-      responseGet.status mustBe 200
-      println(responseGet.body)
-
-    }
-
     "postWithWrongEvent" in {
       val json =
         """
@@ -149,7 +124,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
    "eventType": "Control",
    "note": "Dette er et viktig notat for kontroll!",
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+   "doneBy": 12}"""
 
       val response = createEvent(json)
       response.status mustBe 201
@@ -172,7 +147,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
    "eventType": "ControlTemperature",
    "ok": true,
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+   "doneBy": 12}"""
 
     val response = createEvent(json)
     println(s"Create Control temperature: ${response.body}")
@@ -193,18 +168,15 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
    "eventType": "ControlTemperature",
    "ok": false,
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+   "doneBy": 12}"""
 
     val response = createEvent(json)
-    println(s"Create Control temperature: ${response.body}")
     response.status mustBe 201
 
     val myControlEvent = validateEvent[ControlTemperature](response.json)
     myControlEvent.ok mustBe false
     val responseGet = getEvent(myControlEvent.id.get)
     responseGet.status mustBe 200
-    println(s"Get: ${responseGet.body}")
-
   }
 
   "post controlTemperature should fail if missing ok-value" in {
@@ -212,7 +184,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       """
   {
    "eventType": "ControlTemperature",
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+   "doneBy": 12}"""
 
     val response = createEvent(json)
     println(s"Create Control temperature without ok should fail: ${response.body}")
@@ -231,7 +203,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "temperatureInterval" : 5,
    "airHumidity": -20,
    "airHumidityInterval" : 4,
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+   "doneBy": 12}"""
 
     val response = createEvent(json)
     println(s"Create: ${response.body}")
@@ -255,7 +227,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "airHumidity": -20,
    "airHumidityInterval" : 5,
    "cleaning":"Ikke særlig rent",
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+   "doneBy": 12}"""
 
     val response = createEvent(json)
     println(s"Create: ${response.body}")
@@ -279,7 +251,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     "eventType": "observationTemperature",
     "from": -20,
     "to" : 5,
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     println(s"Create: ${response.body}")
@@ -301,42 +273,24 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
         {
           "eventType": "observation",
           "note": "tekst til observasjonene",
-          "links": [{
-            "rel": "actor",
-            "href": "actor/12"
-          }],
+          "doneBy": 12,
           "subEvents-parts": [{
             "eventType": "observationTemperature",
             "from": -30,
-            "to": 25,
-            "links": [{
-              "rel": "actor",
-              "href": "actor/12"
-            }]
+            "to": 25
           }, {
             "eventType": "observationTemperature",
             "from": 20,
-            "to": 50,
-            "links": [{
-              "rel": "actor",
-              "href": "actor/12"
-            }]},
+            "to": 50},
         {
                     "eventType": "observationRelativeHumidity",
                     "from": 1,
-                    "to": 2,
-                    "links": [{
-                      "rel": "actor",
-                      "href": "actor/12"
-                    }]
+                    "to": 2
             }, {
                     "eventType": "ObservationHypoxicAir",
                     "from": 0.1,
-                    "to": 0.2,
-                    "links": [{
-                      "rel": "actor",
-                      "href": "actor/12"
-                    }]}
+                    "to": 0.2
+            }
           ]
         }"""
 
@@ -403,17 +357,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     s""" {
     "eventType": "Control",
     "note": "tekst",
-    "links": [{
-    "rel": "actor",
-    "href": "actor/12"
-  },
-
-        {
-            "rel": "storageunit-location",
-            "href": "storageunit/$storageUnitId"
-          }
-
-  ],
+    "doneBy": 12,
     "subEvents-parts": [{
     "eventType": "ControlHypoxicAir",
     "ok": true
@@ -431,7 +375,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
 
   "post composite control" in {
-    val response = createEvent(postCompositeControlJson)
+    val response = createControlEvent(storageUnitId, postCompositeControlJson)
     println(s"Create: ${response.body}")
     response.status mustBe 201
 
@@ -455,13 +399,40 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     assert(motivatedObservations.isDefined)
     assert(!partsObservations.isDefined)
 
-
     val ObsEvent = motivatedObservations.get(0).asInstanceOf[ObservationTemperature]
     ObsEvent.from mustBe Some(20)
     ObsEvent.to mustBe Some(50)
+  }
+  "get controlsAndObservations" in {
+    val jsonObservation =
+      s""" {
+    "eventType": "Observation",
+    "note": "text observation"
+    }
+    """
+    val jsonControl =
+      s""" {
+    "eventType": "Control",
+    "note": "text control"
+    }
+    """
+    val storageNodeId = 555
+    val response = createControlEvent(storageNodeId, jsonControl)
+    response.status mustBe 201
+    val response2 = createControlEvent(storageNodeId, jsonControl)
+    response2.status mustBe 201
+    val response3 = createObservationEvent(storageNodeId, jsonObservation)
+    response3.status mustBe 201
+
+    val response4 = getControlsAndObservationsForNode(storageNodeId)
+    response4.status mustBe 200
+
+    val arrayLength = response4.json match {
+      case arr: JsArray => arr.value.length
+    }
+    arrayLength mustBe 3
 
   }
-
 
 
   "post and get ObservationLightingCondition" in {
@@ -470,7 +441,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
     "eventType": "ObservationLightingCondition",
     "lightingCondition": "merkelige forhold",
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -490,7 +461,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
     "eventType": "ObservationCleaning",
     "cleaning": "merkelige renhold",
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -510,7 +481,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
     "eventType": "observationGas",
     "gas": "merkelig gass",
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -530,7 +501,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
     "eventType": "ObservationMold",
     "mold": "merkelig mugg",
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -550,7 +521,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
     "eventType": "ObservationTheftProtection",
     "theftProtection": "merkelig tyveriSikring",
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -570,7 +541,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
     "eventType": "ObservationFireProtection",
     "fireProtection": "merkelig brannSikring",
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -590,7 +561,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
     "eventType": "ObservationPerimeterSecurity",
     "perimeterSecurity": "merkelig skallSikring",
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -610,7 +581,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   {
     "eventType": "ObservationWaterDamageAssessment",
     "waterDamageAssessment": "merkelig vannskadeRisiko",
-    "links": [{"rel": "actor", "href": "actor/12"}]}"""
+    "doneBy": 12}"""
 
     val response = createEvent(json)
     response.status mustBe 201
@@ -728,11 +699,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
     //And an int and a string
     CustomFieldsSpec().defineRequiredInt("myInt").defineOptString("myString")
-
   }
-
-
-
 
   "post ControlRelativeHumidity" in {
     val json =
@@ -844,23 +811,28 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
   "check that we fail on missing events parameters" in {
     //We deliberately leave out id to get an error.
-    val url=s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location]"
+    val url = s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location]"
 
-    val response=WS.url(url).get |> waitFutureValue
+    val response = WS.url(url).get |> waitFutureValue
     response.status mustBe 400
   }
 
-  "check that getEvents" in {
-    val response = createEvent(postCompositeControlJson)
-    println(s"Create: ${response.body}")
+  "check that getControls works" in {
+    val response = createControlEvent(storageUnitId, postCompositeControlJson)
     response.status mustBe 201
 
-//    val controlEvent =  validateEvent[Control](response.json)
+    val controlEvent =  validateEvent[Control](response.json)
+
+    val response2 = getControlsForNode(storageUnitId)
+    //#OLD val url=s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location, id=$storageUnitId]"
 
 
-    val url=s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location, id=$storageUnitId]"
+    val arrayLength = response2.json match {
+      case arr: JsArray => arr.value.length
+    }
+    assert(arrayLength>=1)
 
-    val response2=WS.url(url).get |> waitFutureValue
+
     response2.status mustBe 200
   }
 
@@ -881,7 +853,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     // println(s"Create: ${response.body}")
     response.status mustBe 201
 
-    val controlEvent =  validateEvent[ControlTemperature](response.json)
+    val controlEvent = validateEvent[ControlTemperature](response.json)
     val myDate: java.sql.Date = new java.sql.Date(DateTime.parse("2016-08-01").getMillis)
     controlEvent.eventDate mustBe Some(myDate)
 
@@ -945,7 +917,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     "mold":"mye mugg"
   }]
   }
-  """
+      """
 
     val storageNodeId = createStorageNode()
 
@@ -979,7 +951,7 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createControlEvent(storageNodeId, json)
     response.status mustBe 201
     val response2 = createControlEvent(storageNodeId, json)
-  //  println(s"Create: ${response.body}")
+    //  println(s"Create: ${response.body}")
     response2.status mustBe 201
 
     val response3 = getControlsForNode(storageNodeId)
@@ -1033,58 +1005,57 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
   }
 
+
+
   "post MoveObject" in {
 
     val json =
       """
   {
    "eventType": "MoveObject",
-   "doneWith": 10,
+   "doneWith": -12345,
    "toPlace" : -666,
    "note": "Dette er et viktig notat for move!"
    }"""
 
     val response = createEvent(json)
     response.status mustBe 201
-    val moveObject = validateEvent[MoveObject](response.json) // .validate[Move].get
+    val moveObject = validateEvent[MoveObject](response.json)
 
     val responseGet = getEvent(moveObject.id.get)
     responseGet.status mustBe 200
-    val moveObject2 = validateEvent[MoveObject](responseGet.json) // .validate[Move].get
+    val moveObject2 = validateEvent[MoveObject](responseGet.json)
+    moveObject2.relatedPlaces.length mustBe 1
+    moveObject2.relatedPlaces.head.placeId mustBe -666
     moveObject2.relatedObjects.length mustBe 1
+    moveObject2.relatedObjects.head.objectId mustBe -12345
   }
 
+  "post MovePlace" in {
+
+    val json =
+      """
+  {
+   "eventType": "MovePlace",
+   "doneWith": 11,
+   "toPlace" : -777,
+   "note": "Dette er et viktig notat for move place!"
+   }"""
 
 
-  "get controlsAndObservations" in {
-    val jsonObservation =
-      s""" {
-    "eventType": "Observation",
-    "note": "text observation"
-    }
-    """
-    val jsonControl =
-      s""" {
-    "eventType": "Control",
-    "note": "text control"
-    }
-    """
-    val storageNodeId = 555
-    val response = createControlEvent(storageNodeId, jsonControl)
+    val response = createEvent(json)
     response.status mustBe 201
-    val response2 = createControlEvent(storageNodeId, jsonControl)
-    response2.status mustBe 201
-    val response3 = createObservationEvent(storageNodeId, jsonObservation)
-    response3.status mustBe 201
+    val movePlace = validateEvent[MovePlace](response.json)
 
-    val response4 = getControlsAndObservationsForNode(storageNodeId)
-    response4.status mustBe 200
+    val responseGet = getEvent(movePlace.id.get)
+    responseGet.status mustBe 200
 
-    val arrayLength = response4.json match {
-      case arr: JsArray => arr.value.length
-    }
-    arrayLength mustBe 3
+    val moveObject2 = validateEvent[MovePlace](responseGet.json)
+    moveObject2.relatedPlaces.length mustBe 1
+    moveObject2.relatedPlaces.head.placeId mustBe -777
 
+    moveObject2.relatedObjects.length mustBe 1
+    moveObject2.relatedObjects.head.objectId mustBe 11
   }
 
 }

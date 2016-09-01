@@ -18,6 +18,7 @@ class Event(val baseEventProps: BaseEventDto) {
   val registeredDate: Option[Timestamp] = baseEventProps.registeredDate
   val relatedActors = baseEventProps.relatedActors
   val relatedObjects = baseEventProps.relatedObjects
+  val relatedPlaces = baseEventProps.relatedPlaces
   val note: Option[String] = baseEventProps.note
   val links: Option[Seq[Link]] = baseEventProps.links
   val eventType = baseEventProps.eventType
@@ -41,6 +42,7 @@ class Event(val baseEventProps: BaseEventDto) {
   def getAllSubEventsAs[T] = getAllSubEvents.map(subEvent => subEvent.asInstanceOf[T])
 
   def execute: Option[(Long) => DBIO[Unit]] = None
+
   /*#OLD ideas
 
   //protected var partOf: Option[Event] = None //The part_of relation. ("Semantic")

@@ -2,7 +2,7 @@ package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageUnitDTO
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageNodeDTO
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
@@ -41,7 +41,7 @@ class BuildingDao @Inject() (
     action
   }
 
-  def insertBuilding(storageUnit: StorageUnitDTO, storageBuilding: Building): Future[Storage] = {
+  def insertBuilding(storageUnit: StorageNodeDTO, storageBuilding: Building): Future[Storage] = {
     val action = (for {
       storageUnit <- storageUnitDao.insertAction(storageUnit)
       n <- insertBuildingOnlyAction(storageBuilding.copy(id = storageUnit.id))
@@ -52,12 +52,12 @@ class BuildingDao @Inject() (
   private class BuildingTable(tag: Tag) extends Table[Building](tag, Some("MUSARK_STORAGE"), "BUILDING") {
     def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
 
-    def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
+    def id = column[Option[Long]]("STORAGE_NODE_ID", O.PrimaryKey)
 
     def address = column[Option[String]]("POSTAL_ADDRESS")
 
     def create = (id: Option[Long], address: Option[String]) =>
-      Building(id, null, None, None, None, None, None, None, None, None, address)
+      Building(id, null, None, None, None, None, None, None, None, None, None, address)
 
     def destroy(building: Building) = Some(building.id, building.address)
   }

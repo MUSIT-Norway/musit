@@ -84,4 +84,7 @@ case class EventType(id: Int, name: String, eventImplementation: EventImplementa
       case s: MultipleTablesEventType => Right(s)
     }
   }
+
+  def storeObjectsInPlaceRelationTable: Boolean = eventImplementation.storeObjectsInPlaceRelationTable
+
 }
