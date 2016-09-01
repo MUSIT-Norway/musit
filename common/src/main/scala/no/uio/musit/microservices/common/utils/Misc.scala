@@ -19,7 +19,7 @@ object Misc {
   }
 
   def futureEitherFlatten[L, R](futureEitherFutureEither: Future[Either[L, Future[Either[L, R]]]]): Future[Either[L, R]] = {
-    def flattenFutureEitherFuture[L, R](futureEitherFuture: Future[Either[L, Future[R]]]): Future[Either[L, R]] = {
+    def flattenFutureEitherFuture[A, B](futureEitherFuture: Future[Either[A, Future[B]]]): Future[Either[A, B]] = {
       futureEitherFuture.map(eitherFuture => {
         eitherFuture.fold(l => Future.successful(Left(l)), innerFuture => innerFuture.map(Right(_)))
       }).flatMap(identity)
