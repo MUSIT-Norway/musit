@@ -47,6 +47,5 @@ object MovePlaceDao extends HasDatabaseConfig[JdbcProfile] {
         }
     }
   }
-
 }
 

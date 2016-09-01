@@ -49,12 +49,12 @@ object WSRequestFakeHelper {
 }
 
 class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFutures {
-
   import WSRequestFakeHelper._
 
   val timeout = PlayTestDefaults.timeout
   override lazy val port: Int = 8080
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
+
 
 
   def createEvent(json: String) = {

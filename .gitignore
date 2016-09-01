@@ -30,3 +30,5 @@ node_modules/
 npm-debug.log
 webpack-assets.json
 *.orig
+postgres-storage/*
+!postgres-storage/install.sql
