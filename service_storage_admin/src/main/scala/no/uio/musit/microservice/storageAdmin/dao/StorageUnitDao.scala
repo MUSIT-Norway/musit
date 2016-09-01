@@ -104,7 +104,7 @@ class StorageUnitDao @Inject() (
 
     val isDeleted = column[Boolean]("IS_DELETED")
 
-    val latestEnvReqId = column[Option[Long]]("latest_envreq_id")
+    val latestEnvReqId = column[Option[Long]]("LATEST_ENVREQ_ID")
 
     def create = (
       id: Option[Long],
