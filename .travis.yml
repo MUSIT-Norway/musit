@@ -14,7 +14,7 @@ before_cache:
 
 script:
   - sbt clean scalastyle
-  - sbt -Xmax-classfile-name 240 coverage test it:test
+  - sbt -J-Xmax-classfile-name 240 coverage test it:test
   - sbt coverageReport
   - sbt coverageAggregate
   - sbt codacyCoverage
