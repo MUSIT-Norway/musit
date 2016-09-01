@@ -42,18 +42,19 @@ object DtoConverters {
    * Helper function to generate a base Dto that is shared across all event
    * types.
    */
-  private[this] def toDto[T <: MusitEvent](
+  private[this] def toBaseDto[T <: MusitEvent](
     sub: T,
     maybeStr: Option[String] = None,
     maybeLong: Option[Long] = None,
-    maybeDouble: Option[Double] = None
-  )(relatedEvents: Unit => Seq[RelatedEvents]): EventDto = {
-    EventDto(
+    maybeDouble: Option[Double] = None,
+    relEvents: Seq[RelatedEvents] = Seq.empty
+  ): BaseEventDto = {
+    BaseEventDto(
       id = sub.baseEvent.id,
       links = sub.baseEvent.links,
-      eventType = sub.eventType.registeredEventId,
+      eventTypeId = sub.eventType.registeredEventId,
       note = sub.baseEvent.note,
-      relatedSubEvents = relatedEvents(),
+      relatedSubEvents = relEvents,
       partOf = sub.baseEvent.partOf,
       valueLong = maybeLong,
       valueString = maybeStr,
@@ -63,16 +64,37 @@ object DtoConverters {
 
   /**
    * Helper function to generate a base Dto that is shared across all event
-   * types. Differes from `toEventDto` in that it will initialise the
+   * types. Differes from the above function in that it will initialise the
    * `releatedEvents` property with an empty collection.
    */
-  private[this] def toDtoNoChildren[T <: MusitEvent](
+  private[this] def toBaseDtoNoChildren[T <: MusitEvent](
     sub: T,
     maybeStr: Option[String] = None,
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None
-  ): EventDto = {
-    toDto(sub, maybeStr, maybeLong, maybeDouble)(_ => Seq.empty)
+  ): BaseEventDto = {
+    toBaseDto(sub, maybeStr, maybeLong, maybeDouble)
+  }
+
+  private[this] def toExtendedDto[A <: MusitEvent, B <: DtoExtension](
+    sub: A,
+    maybeStr: Option[String] = None,
+    maybeLong: Option[Long] = None,
+    maybeDouble: Option[Double] = None,
+    ext: B
+  ): ExtendedDto = {
+    ExtendedDto(
+      id = sub.baseEvent.id,
+      links = sub.baseEvent.links,
+      eventTypeId = sub.eventType.registeredEventId,
+      note = sub.baseEvent.note,
+      relatedSubEvents = Seq.empty[RelatedEvents],
+      partOf = sub.baseEvent.partOf,
+      valueLong = maybeLong,
+      valueString = maybeStr,
+      valueDouble = maybeDouble,
+      extension = ext
+    )
   }
 
   /**
@@ -101,24 +123,22 @@ object DtoConverters {
    */
   object CtrlConverters {
 
-    def controlToDto(ctrl: Control): EventDto = {
-      toDto(ctrl) { _ =>
-        // TODO: Clarify what the nested collections in for related events mean.
-        Seq(
-          RelatedEvents(
-            relation = EventRelations.PartsOfRelation,
-            events = ctrl.parts.map { c =>
-              c.map(controlSubEventToDto)
-            }.getOrElse(Seq.empty)
-          )
+    def controlToDto(ctrl: Control): BaseEventDto = {
+      val relEvt = Seq(
+        RelatedEvents(
+          relation = EventRelations.PartsOfRelation,
+          events = ctrl.parts.map { c =>
+            c.map(controlSubEventToDto)
+          }.getOrElse(Seq.empty)
         )
-      }
+      )
+      toBaseDto(sub = ctrl, relEvents = relEvt)
     }
 
-    def controlFromDto(dto: EventDto): Control = {
+    def controlFromDto(dto: BaseEventDto): Control = {
       val p = {
         dto.relatedSubEvents.headOption.map { re =>
-          re.events.map(e => controlSubEventFromDto(e.asInstanceOf[EventDto]))
+          re.events.map(e => controlSubEventFromDto(e.asInstanceOf[BaseEventDto]))
         }
       }
       Control(
@@ -128,30 +148,30 @@ object DtoConverters {
           note = dto.note,
           partOf = dto.partOf
         ),
-        eventType = EventType.fromEventTypeId(dto.eventType),
+        eventType = EventType.fromEventTypeId(dto.eventTypeId),
         parts = p
       )
     }
 
     def controlSubEventToDto(subCtrl: ControlSubEvent): Dto = {
-      toDto(subCtrl, maybeLong = subCtrl.ok) { _ =>
-        subCtrl.motivates.map { ose =>
-          Seq(
-            RelatedEvents(
-              relation = EventRelations.MotivatesRelation,
-              events = subCtrl.motivates.map { m =>
-                Seq(ObsConverters.observationSubEventToDto(m))
-              }.getOrElse(Seq.empty)
-            )
+      val relations = subCtrl.motivates.map { ose =>
+        Seq(
+          RelatedEvents(
+            relation = EventRelations.MotivatesRelation,
+            events = subCtrl.motivates.map { m =>
+              Seq(ObsConverters.observationSubEventToDto(m))
+            }.getOrElse(Seq.empty)
           )
-        }.getOrElse(Seq.empty)
-      }
+        )
+      }.getOrElse(Seq.empty)
+
+      toBaseDto(subCtrl, maybeLong = subCtrl.ok, relEvents = relations)
     }
 
     // scalastyle:off method.length
-    def controlSubEventFromDto(dto: EventDto): ControlSubEvent = {
+    def controlSubEventFromDto(dto: BaseEventDto): ControlSubEvent = {
       val base = MusitEventBase(dto.id, dto.links, dto.note, dto.partOf)
-      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventType)
+      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
       val ok = dto.valueLong
       val motivates = {
@@ -243,20 +263,18 @@ object DtoConverters {
   object ObsConverters {
 
     def observationToDto(obs: Observation): Dto = {
-      toDto(obs) { _ =>
-        // TODO: Clarify what the nested collections in for related events mean.
-        Seq(
-          RelatedEvents(
-            relation = EventRelations.PartsOfRelation,
-            events = obs.parts.map { o =>
-              o.map(ose => observationSubEventToDto(ose))
-            }.getOrElse(Seq.empty)
-          )
+      val relEvt = Seq(
+        RelatedEvents(
+          relation = EventRelations.PartsOfRelation,
+          events = obs.parts.map { o =>
+            o.map(ose => observationSubEventToDto(ose))
+          }.getOrElse(Seq.empty)
         )
-      }
+      )
+      toBaseDto(sub = obs, relEvents = relEvt)
     }
 
-    def observationFromDto(dto: EventDto): Observation = {
+    def observationFromDto(dto: BaseEventDto): Observation = {
       val p = {
         dto.relatedSubEvents.headOption.map { re =>
           re.events.map(e => observationSubEventFromDto(e))
@@ -269,7 +287,7 @@ object DtoConverters {
           note = dto.note,
           partOf = dto.partOf
         ),
-        eventType = EventType.fromEventTypeId(dto.eventType),
+        eventType = EventType.fromEventTypeId(dto.eventTypeId),
         parts = p
       )
     }
@@ -278,9 +296,9 @@ object DtoConverters {
     def observationSubEventToDto(subObs: ObservationSubEvent): Dto = {
       subObs match {
         case obs: ObservationFromTo =>
-          ExtendedDto(
-            baseEvent = toDtoNoChildren(obs),
-            extension = ObservationFromToDto(
+          toExtendedDto(
+            sub = obs,
+            ext = ObservationFromToDto(
               id = None,
               from = obs.range.from,
               to = obs.range.to
@@ -288,36 +306,37 @@ object DtoConverters {
           )
 
         case obs: ObservationLightingCondition =>
-          toDtoNoChildren(obs, maybeStr = obs.lightingCondition)
+          toBaseDtoNoChildren(obs, maybeStr = obs.lightingCondition)
 
         case obs: ObservationCleaning =>
-          toDtoNoChildren(obs, maybeStr = obs.cleaning)
+          toBaseDtoNoChildren(obs, maybeStr = obs.cleaning)
 
         case obs: ObservationGas =>
-          toDtoNoChildren(obs, maybeStr = obs.gas)
+          toBaseDtoNoChildren(obs, maybeStr = obs.gas)
 
         case obs: ObservationMold =>
-          toDtoNoChildren(obs, maybeStr = obs.mold)
+          toBaseDtoNoChildren(obs, maybeStr = obs.mold)
 
         case obs: ObservationTheftProtection =>
-          toDtoNoChildren(obs, maybeStr = obs.theftProtection)
+          toBaseDtoNoChildren(obs, maybeStr = obs.theftProtection)
 
         case obs: ObservationFireProtection =>
-          toDtoNoChildren(obs, maybeStr = obs.fireProtection)
+          toBaseDtoNoChildren(obs, maybeStr = obs.fireProtection)
 
         case obs: ObservationWaterDamageAssessment =>
-          toDtoNoChildren(obs, maybeStr = obs.waterDamageAssessment)
+          toBaseDtoNoChildren(obs, maybeStr = obs.waterDamageAssessment)
 
         case obs: ObservationPest =>
-          ExtendedDto(
-            baseEvent = toDtoNoChildren(obs, maybeStr = obs.identification),
-            extension = ObservationPestDto(
+          toExtendedDto(
+            sub = obs,
+            maybeStr = obs.identification,
+            ext = ObservationPestDto(
               lifeCycles = obs.lifecycles.map(LifeCyleConverters.lifecycleToDto)
             )
           )
 
         case obs: ObservationAlcohol =>
-          toDtoNoChildren(
+          toBaseDtoNoChildren(
             obs,
             maybeStr = obs.condition,
             maybeDouble = obs.volume
@@ -327,19 +346,11 @@ object DtoConverters {
 
     def observationSubEventFromDto(dto: Dto): ObservationSubEvent = {
       dto match {
-        case eventDto: EventDto =>
+        case eventDto: BaseEventDto =>
           obsSubEventFromBasicDto(eventDto)
 
         case extended: ExtendedDto =>
           obsSubEventFromExtendedDto(extended)
-
-        case unhandled =>
-          // It shouldn't be possible, but this is unfortunate :-(
-          // This is needed due to the weak typing of the DTO's for Event.
-          throw new IllegalStateException(
-            s"Encountered unexpected Dto type ${unhandled.getClass} when" +
-              s"mapping to an ObservationSubEvent"
-          )
       }
     }
 
@@ -348,14 +359,14 @@ object DtoConverters {
      * custom properties in a separate table in the DB.
      */
     // scalastyle:off cyclomatic.complexity
-    def obsSubEventFromBasicDto(dto: EventDto): ObservationSubEvent = {
+    def obsSubEventFromBasicDto(dto: BaseEventDto): ObservationSubEvent = {
       val base = MusitEventBase(
         id = dto.id,
         links = dto.links,
         note = dto.note,
         partOf = dto.partOf
       )
-      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventType)
+      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
 
       registeredEvent match {
@@ -398,12 +409,12 @@ object DtoConverters {
      */
     def obsSubEventFromExtendedDto(dto: ExtendedDto): ObservationSubEvent = {
       val base = MusitEventBase(
-        id = dto.baseEvent.id,
-        links = dto.baseEvent.links,
-        note = dto.baseEvent.note,
-        partOf = dto.baseEvent.partOf
+        id = dto.id,
+        links = dto.links,
+        note = dto.note,
+        partOf = dto.partOf
       )
-      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.baseEvent.eventType)
+      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
 
       registeredEvent match {
@@ -414,7 +425,7 @@ object DtoConverters {
           ObservationPest(
             baseEvent = base,
             eventType = evtType,
-            identification = dto.baseEvent.valueString,
+            identification = dto.valueString,
             lifecycles = lc
           )
 

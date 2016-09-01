@@ -20,36 +20,51 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDTO
-import no.uio.musit.microservice.storagefacility.domain.storage.{ Building, Storage }
+import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
+import no.uio.musit.microservice.storagefacility.domain.storage.{ Building, Storage, StorageNodeId }
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
+/**
+ * TODO: Document me!!!
+ */
 @Singleton
 class BuildingDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
-    storageUnitDao: StorageUnitDao
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+    val storageUnitDao: StorageUnitDao
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
   private val BuildingTable = TableQuery[BuildingTable]
 
-  def getBuildingById(id: Long): Future[Option[Building]] = {
+  /**
+   * TODO: Document me!!!
+   */
+  def getBuildingById(id: StorageNodeId): Future[Option[Building]] = {
     val action = BuildingTable.filter(_.id === id).result.headOption
     db.run(action)
   }
 
-  def updateBuildingOnlyAction(id: Long, storageBuilding: Building): DBIO[Int] = {
+  /**
+   * TODO: Document me!!!
+   */
+  def updateBuildingOnlyAction(id: StorageNodeId, storageBuilding: Building): DBIO[Int] = {
     BuildingTable.filter(_.id === id).update(storageBuilding)
   }
 
-  def updateBuilding(id: Long, building: Building) = {
+  /**
+   * TODO: Document me!!!
+   */
+  def updateBuilding(id: StorageNodeId, building: Building) = {
     val updateStorageUnitOnlyAction = storageUnitDao.updateStorageUnitAction(id, Storage.toDTO(building))
-    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateBuildingOnlyAction(id, building.copy(id = Some(id))) }
+    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ =>
+      updateBuildingOnlyAction(id, building.copy(id = Some(id)))
+    }
     db.run(combinedAction.transactionally)
   }
 
@@ -60,22 +75,26 @@ class BuildingDao @Inject() (
     action
   }
 
-  def insertBuilding(storageUnit: StorageUnitDTO, storageBuilding: Building): Future[Storage] = {
+  /**
+   * TODO: Document me!!!
+   */
+  def insertBuilding(storageUnit: StorageUnitDto, storageBuilding: Building): Future[Storage] = {
     val action = (for {
       storageUnit <- storageUnitDao.insertAction(storageUnit)
       n <- insertBuildingOnlyAction(storageBuilding.copy(id = storageUnit.id))
     } yield Storage.getBuilding(storageUnit, storageBuilding)).transactionally
+
     db.run(action)
   }
 
   private class BuildingTable(tag: Tag) extends Table[Building](tag, Some("MUSARK_STORAGE"), "BUILDING") {
     def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
 
-    def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
+    def id = column[Option[StorageNodeId]]("STORAGE_UNIT_ID", O.PrimaryKey)
 
     def address = column[Option[String]]("POSTAL_ADDRESS")
 
-    def create = (id: Option[Long], address: Option[String]) =>
+    def create = (id: Option[StorageNodeId], address: Option[String]) =>
       Building(id, null, None, None, None, None, None, None, None, None, address)
 
     def destroy(building: Building) = Some(building.id, building.address)

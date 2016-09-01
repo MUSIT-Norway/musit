@@ -19,24 +19,8 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
-import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+case class EventId(underlying: Long) extends AnyVal
 
-// TODO: Change id and partOf to EventId
+object EventId {
 
-case class MusitEventBase(
-  id: Option[Long],
-  links: Option[Seq[Link]],
-  note: Option[String],
-  partOf: Option[Long]
-)
-
-object MusitEventBase {
-  implicit val format: Format[MusitEventBase] = (
-    (__ \ "id").formatNullable[Long] and
-    (__ \ "links").formatNullable[Seq[Link]] and
-    (__ \ "note").formatNullable[String] and
-    (__ \ "partOf").formatNullable[Long]
-  )(MusitEventBase.apply, unlift(MusitEventBase.unapply))
 }

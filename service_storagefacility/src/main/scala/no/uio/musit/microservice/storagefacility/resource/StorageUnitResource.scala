@@ -80,7 +80,7 @@ class StorageUnitResource @Inject() (
     request =>
       request.body.validate[Storage].asEither match {
         case Right(storage) =>
-          storageUnitService.updateStorageTripleByID(id, storage).flatMap {
+          storageUnitService.updateStorageTripleById(id, storage).flatMap {
             case Right(1) => ResourceHelper.getRoot(storageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
             case Right(n) => Future.successful(NotFound)
             case Left(error) => Future.successful(Status(error.status)(Json.toJson(error)))

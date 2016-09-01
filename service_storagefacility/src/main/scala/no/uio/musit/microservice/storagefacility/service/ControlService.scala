@@ -17,26 +17,45 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event
+package no.uio.musit.microservice.storagefacility.service
 
-import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
+import no.uio.musit.microservice.storagefacility.domain.event.control.Control
+import no.uio.musit.microservices.common.domain.MusitError
 
-// TODO: Change id and partOf to EventId
+import scala.concurrent.Future
 
-case class MusitEventBase(
-  id: Option[Long],
-  links: Option[Seq[Link]],
-  note: Option[String],
-  partOf: Option[Long]
-)
+class ControlService {
 
-object MusitEventBase {
-  implicit val format: Format[MusitEventBase] = (
-    (__ \ "id").formatNullable[Long] and
-    (__ \ "links").formatNullable[Seq[Link]] and
-    (__ \ "note").formatNullable[String] and
-    (__ \ "partOf").formatNullable[Long]
-  )(MusitEventBase.apply, unlift(MusitEventBase.unapply))
+  /**
+   *
+   * @param ctrl
+   * @param registeredBy
+   * @return
+   */
+  def addControl(
+    ctrl: Control,
+    registeredBy: String
+  ): Future[Either[MusitError, EventId]] = {
+    ???
+  }
+
+  /**
+   *
+   * @param id
+   * @return
+   */
+  def getControlWithSubEvents(id: EventId): Future[Either[MusitError, Control]] = {
+    ???
+  }
+
+  /**
+   *
+   * @param id
+   * @return
+   */
+  def getControl(id: EventId): Future[Either[MusitError, Control]] = {
+    ???
+  }
+
 }

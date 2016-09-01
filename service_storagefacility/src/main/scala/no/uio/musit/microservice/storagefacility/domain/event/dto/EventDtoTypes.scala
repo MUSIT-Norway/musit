@@ -22,43 +22,65 @@ package no.uio.musit.microservice.storagefacility.domain.event.dto
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 import no.uio.musit.microservices.common.linking.domain.Link
 
-trait Dto
+// TODO: Change id and partOf to EventId
+
+sealed trait Dto {
+  val id: Option[Long]
+  val links: Option[Seq[Link]]
+  val eventTypeId: EventTypeId
+  val note: Option[String]
+  val relatedSubEvents: Seq[RelatedEvents]
+  val partOf: Option[Long]
+  /*
+     TODO: Additional attributes should be handled in a uniform way.
+     Being consistent in how additional attributes are handled, allows for
+     cleaner and more reusable code. It will also put less strain on the
+     cognitive load for a developer, because all data of similar characteristics
+     are treated the same way (pattern).
+   */
+  val valueLong: Option[Long]
+  val valueString: Option[String]
+  val valueDouble: Option[Double]
+}
 
 /**
  * The EventDto contains attributes that are common across _all_ event types.
  */
-case class EventDto(
+case class BaseEventDto(
   id: Option[Long],
   links: Option[Seq[Link]],
-  eventType: EventTypeId,
+  eventTypeId: EventTypeId,
   note: Option[String],
   relatedSubEvents: Seq[RelatedEvents],
   partOf: Option[Long],
-  // TODO: It would be preferable to handle custom attributes in a uniform way.
   valueLong: Option[Long] = None,
   valueString: Option[String] = None,
   valueDouble: Option[Double] = None
 ) extends Dto
 
-trait DtoExtension extends Dto
+sealed trait DtoExtension
 
 /**
  * Having the ExtendedDto include the base EventDto allows for easier
  * conversions between domain and to.
- *
- * @param baseEvent EventDto general attributes.
- * @param extension An instance of a DtoExtension.
  */
 case class ExtendedDto(
-  baseEvent: EventDto,
+  id: Option[Long],
+  links: Option[Seq[Link]],
+  eventTypeId: EventTypeId,
+  note: Option[String],
+  relatedSubEvents: Seq[RelatedEvents],
+  partOf: Option[Long],
+  valueLong: Option[Long] = None,
+  valueString: Option[String] = None,
+  valueDouble: Option[Double] = None,
   extension: DtoExtension
-) extends DtoExtension
+) extends Dto
 
 /**
  * Dto to handle environment requirements.
  */
 case class EnvRequirementDto(
-  baseEvent: EventDto,
   id: Option[Long],
   temperature: Option[Int],
   tempInterval: Option[Int],
@@ -82,13 +104,15 @@ case class ObservationFromToDto(
 /**
  * Dto to handle observation events related to pest control.
  */
-case class ObservationPestDto(lifeCycles: Seq[LifecycleDto]) extends DtoExtension
+case class ObservationPestDto(
+  lifeCycles: Seq[LifecycleDto]
+) extends DtoExtension
 
 /**
  * Note: The eventId is only used during writing to the database. It is set to
  * None when reading from the database.
  *
- * FIXME: The comment above is no longer valid. The eventId should be set now.
+ * FIXME: The comment above is no longer valid. Id should be set for all DTO's.
  */
 case class LifecycleDto(
   eventId: Option[Long],

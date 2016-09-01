@@ -26,11 +26,11 @@ import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json.{ OFormat, __ }
 
 sealed trait Storage {
-  val id: Option[Long]
+  val id: Option[StorageNodeId]
   val name: String
   val area: Option[Long]
   val areaTo: Option[Long]
-  val isPartOf: Option[Long]
+  val isPartOf: Option[StorageNodeId]
   val height: Option[Long]
   val heightTo: Option[Long]
   val groupRead: Option[String]
@@ -40,11 +40,11 @@ sealed trait Storage {
 }
 
 case class StorageUnit(
-    id: Option[Long],
+    id: Option[StorageNodeId],
     name: String,
     area: Option[Long],
     areaTo: Option[Long],
-    isPartOf: Option[Long],
+    isPartOf: Option[StorageNodeId],
     height: Option[Long],
     heightTo: Option[Long],
     groupRead: Option[String],
@@ -57,11 +57,11 @@ case class StorageUnit(
 object StorageUnit
 
 case class Room(
-    id: Option[Long],
+    id: Option[StorageNodeId],
     name: String,
     area: Option[Long],
     areaTo: Option[Long],
-    isPartOf: Option[Long],
+    isPartOf: Option[StorageNodeId],
     height: Option[Long],
     heightTo: Option[Long],
     groupRead: Option[String],
@@ -80,11 +80,11 @@ case class Room(
 }
 
 case class Building(
-    id: Option[Long],
+    id: Option[StorageNodeId],
     name: String,
     area: Option[Long],
     areaTo: Option[Long],
-    isPartOf: Option[Long],
+    isPartOf: Option[StorageNodeId],
     height: Option[Long],
     heightTo: Option[Long],
     groupRead: Option[String],
@@ -99,9 +99,9 @@ object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
 
-  def fromDTO[T <: BaseDTO](dto: T) =
+  def fromDTO[T <: BaseDto](dto: T) =
     dto match {
-      case stu: StorageUnitDTO =>
+      case stu: StorageUnitDto =>
         StorageUnit(
           id = stu.id,
           name = stu.name,
@@ -114,7 +114,7 @@ object Storage {
           groupWrite = stu.groupWrite,
           links = stu.links
         )
-      case building: BuildingDTO =>
+      case building: BuildingDto =>
         Building(
           id = building.id,
           name = building.name,
@@ -128,7 +128,7 @@ object Storage {
           links = building.links,
           address = building.address
         )
-      case room: RoomDTO =>
+      case room: RoomDto =>
         Room(
           id = room.id,
           name = room.name,
@@ -151,7 +151,7 @@ object Storage {
         )
     }
 
-  def getBuilding(unit: BaseDTO, building: Building): Building = {
+  def getBuilding(unit: BaseDto, building: Building): Building = {
     Building(
       id = unit.id,
       name = unit.name,
@@ -167,7 +167,7 @@ object Storage {
     )
   }
 
-  def getRoom(unit: BaseDTO, room: Room): Room = {
+  def getRoom(unit: BaseDto, room: Room): Room = {
     Room(
       id = unit.id,
       name = unit.name,
@@ -191,7 +191,7 @@ object Storage {
   }
 
   def toDTO[T <: Storage](stu: T) =
-    StorageUnitDTO(
+    StorageUnitDto(
       id = stu.id,
       name = stu.name,
       area = stu.area,

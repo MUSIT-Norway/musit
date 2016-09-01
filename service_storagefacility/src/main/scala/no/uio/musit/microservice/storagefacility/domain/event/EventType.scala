@@ -34,6 +34,8 @@ object EventType {
   def fromEventTypeId(id: EventTypeId): EventType =
     EventType(EventTypeRegistry.unsafeFromId(id).entryName)
 
+  def fromInt(i: Int): EventType = fromEventTypeId(EventTypeId(i))
+
   implicit val reads: Reads[EventType] =
     __.read[String].filter(ValidationError("Unsupported event type")) { et =>
       EventTypeRegistry.withNameOption(et).isDefined

@@ -32,21 +32,20 @@
 //  links: Option[Seq[Link]],
 //  eventType: EventTypeId,
 //  note: Option[String],
-//  //  relatedSubEvents: Seq[RelatedEvents],
+//  relatedSubEvents: Seq[RelatedEvents],
 //  partOf: Option[Long],
 //  valueLong: Option[Long] = None,
 //  valueString: Option[String] = None,
 //  valueDouble: Option[Double] = None
-//)
-//
-//{
+//) {
 //
 //  def getOptBool = valueLong match {
 //    case Some(1) => Some(true)
 //    case Some(0) => Some(false)
 //    case None => None
-//    case n => throw new Exception(s"Boolean value encoded as an opt integer should be either None, 0 or 1, not $n.")
-//    //If this happens, we have a bug in our code!
+//    case n =>
+//      // If this happens, we have a bug in our code!
+//      throw new Exception(s"Boolean value encoded as an opt integer should be either None, 0 or 1, not $n.")
 //  }
 //
 //  def getBool = getOptBool.getOrFail("Missing required custom boolean value")

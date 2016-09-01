@@ -20,8 +20,9 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDTO
-import no.uio.musit.microservice.storagefacility.domain.storage.{ Room, Storage }
+import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
+import no.uio.musit.microservice.storagefacility.domain.storage.{ Room, Storage, StorageNodeId }
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
@@ -32,18 +33,18 @@ import scala.concurrent.Future
 class RoomDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
     val storageUnitDao: StorageUnitDao
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
   private val RoomTable = TableQuery[RoomTable]
 
-  def getRoomById(id: Long): Future[Option[Room]] = {
+  def getRoomById(id: StorageNodeId): Future[Option[Room]] = {
     val action = RoomTable.filter(_.id === id).result.headOption
     db.run(action)
   }
 
-  private def updateRoomOnlyAction(id: Long, storageRoom: Room): DBIO[Int] = {
+  private def updateRoomOnlyAction(id: StorageNodeId, storageRoom: Room): DBIO[Int] = {
     RoomTable.filter(_.id === id).update(storageRoom)
   }
 
@@ -67,7 +68,7 @@ class RoomDao @Inject() (
     action
   }
 
-  def insertRoom(storageUnit: StorageUnitDTO, storageRoom: Room): Future[Storage] = {
+  def insertRoom(storageUnit: StorageUnitDto, storageRoom: Room): Future[Storage] = {
     val action = (for {
       storageUnit <- storageUnitDao.insertAction(storageUnit)
       n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
@@ -80,7 +81,7 @@ class RoomDao @Inject() (
     def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, // scalastyle:ignore
       sikringRutineOgBeredskap, bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
 
-    def id = column[Option[Long]]("STORAGE_UNIT_ID", O.PrimaryKey)
+    def id = column[Option[StorageNodeId]]("STORAGE_UNIT_ID", O.PrimaryKey)
 
     def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
 
@@ -99,24 +100,49 @@ class RoomDao @Inject() (
     def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
 
     def create = (
-      id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean],
-      sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
-      sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean],
-      bevarLysforhold: Option[Boolean], bevarPrevantKons: Option[Boolean]
+      id: Option[StorageNodeId],
+      sikringSkallsikring: Option[Boolean],
+      sikringTyverisikring: Option[Boolean],
+      sikringBrannsikring: Option[Boolean],
+      sikringVannskaderisiko: Option[Boolean],
+      sikringRutineOgBeredskap: Option[Boolean],
+      bevarLuftfuktOgTemp: Option[Boolean],
+      bevarLysforhold: Option[Boolean],
+      bevarPrevantKons: Option[Boolean]
     ) =>
-      Room(id, null, None, None, None, None, None, None, None, None,
-        sikringSkallsikring,
-        sikringTyverisikring,
-        sikringBrannsikring,
-        sikringVannskaderisiko,
-        sikringRutineOgBeredskap,
-        bevarLuftfuktOgTemp,
-        bevarLysforhold,
-        bevarPrevantKons)
+      Room(
+        id = id,
+        name = null,
+        area = None,
+        areaTo = None,
+        isPartOf = None,
+        height = None,
+        heightTo = None,
+        groupRead = None,
+        groupWrite = None,
+        links = None,
+        sikringSkallsikring = sikringSkallsikring,
+        sikringTyverisikring = sikringTyverisikring,
+        sikringBrannsikring = sikringBrannsikring,
+        sikringVannskaderisiko = sikringVannskaderisiko,
+        sikringRutineOgBeredskap = sikringRutineOgBeredskap,
+        bevarLuftfuktOgTemp = bevarLuftfuktOgTemp,
+        bevarLysforhold = bevarLysforhold,
+        bevarPrevantKons = bevarPrevantKons
+      )
 
-    def destroy(room: Room) = Some(room.id, room.sikringSkallsikring, room.sikringTyverisikring,
-      room.sikringBrannsikring, room.sikringVannskaderisiko,
-      room.sikringRutineOgBeredskap, room.bevarLuftfuktOgTemp, room.bevarLysforhold, room.bevarPrevantKons)
+    def destroy(room: Room) =
+      Some(
+        room.id,
+        room.sikringSkallsikring,
+        room.sikringTyverisikring,
+        room.sikringBrannsikring,
+        room.sikringVannskaderisiko,
+        room.sikringRutineOgBeredskap,
+        room.bevarLuftfuktOgTemp,
+        room.bevarLysforhold,
+        room.bevarPrevantKons
+      )
   }
 
 }
