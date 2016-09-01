@@ -10,7 +10,7 @@ import no.uio.musit.security.SecurityConnection
  */
 object ActorAuth {
 
-  def canWriteActor(securityConnection: SecurityConnection, person: Person) = {
+  def canInsertActor(securityConnection: SecurityConnection, person: Person) = {
     true //Todo: !!!
   }
 
@@ -19,6 +19,6 @@ object ActorAuth {
   }
 
   def verifyCanInsertActor(securityConnection: SecurityConnection, person: Person): MusitBool = {
-    genericVerify(() => canWriteActor(securityConnection, person), "Not allowed to insert actor")
+    genericVerify(() => canInsertActor(securityConnection, person), "Not allowed to insert actor")
   }
 }

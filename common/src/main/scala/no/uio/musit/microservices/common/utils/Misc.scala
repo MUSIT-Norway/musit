@@ -67,16 +67,14 @@ object Misc {
    * *
    */
 
-  type MusitBool = MusitResult[Boolean]
+  type MusitBool = MusitResult[Boolean] //Use MusitResult[Unit] instead?
 
   // Not sure why I needed this object and couldn't directly use EitherExtensions. Should ideally use EitherExtensions instead.
   object MusitBoolExtensions {
 
     implicit class MusitBoolExtensionsImp(val either: MusitBool) extends AnyVal {
-
       def toMusitFuture = MusitFuture.fromMusitResult(either)
     }
-
   }
 
   /**
