@@ -22,9 +22,9 @@
 
 CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 
-CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT(
- storage_unit_id   BIGINT NOT NULL  AUTO_INCREMENT,
- storage_unit_name VARCHAR(512),
+CREATE TABLE MUSARK_STORAGE.STORAGE_NODE(
+ storage_node_id   BIGINT NOT NULL  AUTO_INCREMENT,
+ storage_node_name VARCHAR(512),
  area              INTEGER,
  area_to           INTEGER,
  is_storage_unit   VARCHAR(1) DEFAULT '1',
@@ -32,14 +32,16 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT(
  height            INTEGER,
  height_to         INTEGER,
  is_deleted        integer not null default 0,
- storage_type      varchar(100) default 'StorageUnit',
+ storage_type      varchar(100) default 'storageunit',
  group_read        varchar(4000),
  group_write       varchar(4000),
-primary key (storage_unit_id)
+ latest_move_id    BIGINT,
+ latest_environment_id BIGINT,
+primary key (storage_node_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.ROOM(
- storage_unit_id             BIGINT not null,
+ storage_node_id             BIGINT not null,
  sikring_skallsikring        integer,
  sikring_tyverisikring       integer,
  sikring_brannsikring        integer,
@@ -48,24 +50,24 @@ CREATE TABLE MUSARK_STORAGE.ROOM(
  bevar_luftfukt_og_temp      integer,
  bevar_lysforhold            integer,
  bevar_prevant_kons          integer,
- PRIMARY KEY (STORAGE_UNIT_ID),
- FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
+ PRIMARY KEY (storage_node_id),
+ FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
  );
 
 CREATE TABLE MUSARK_STORAGE.BUILDING(
- storage_unit_id INTEGER not null ,
+ storage_node_id INTEGER not null ,
  postal_address  VARCHAR(512),
-PRIMARY KEY (STORAGE_UNIT_ID),
-FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
+PRIMARY KEY (storage_node_id),
+FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK(
  link_id         BIGINT not null,
- storage_unit_id BIGINT not null,
+ storage_node_id BIGINT not null,
  link            VARCHAR(255) not null,
  relation        VARCHAR(100) not null,
  PRIMARY KEY (link_id),
- FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
+ FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
 # --- !Downs
@@ -74,4 +76,4 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK(
 DROP TABLE ROOM;
 DROP TABLE BUILDING;
 DROP TABLE STORAGE_UNIT_LINK;
-DROP TABLE STORAGE_UNIT;
+DROP TABLE STORAGE_NODE;

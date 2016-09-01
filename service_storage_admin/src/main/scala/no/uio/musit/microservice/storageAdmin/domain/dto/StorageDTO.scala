@@ -12,6 +12,7 @@ sealed trait StorageDTO {
   val heightTo: Option[Long]
   val groupRead: Option[String]
   val groupWrite: Option[String]
+  val latestMoveId: Option[Long]
   val links: Option[Seq[Link]]
   val isDeleted: Boolean
   val storageType: StorageType
@@ -27,6 +28,7 @@ case class BuildingDTO(
   heightTo: Option[Long],
   groupRead: Option[String],
   groupWrite: Option[String],
+  latestMoveId: Option[Long],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
   storageType: StorageType,
@@ -43,6 +45,7 @@ case class RoomDTO(
   heightTo: Option[Long],
   groupRead: Option[String],
   groupWrite: Option[String],
+  latestMoveId: Option[Long],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
   storageType: StorageType,
@@ -56,7 +59,7 @@ case class RoomDTO(
   bevarPrevantKons: Option[Boolean]
 ) extends StorageDTO
 
-case class StorageUnitDTO(
+case class StorageNodeDTO(
   id: Option[Long],
   name: String,
   area: Option[Long],
@@ -66,6 +69,7 @@ case class StorageUnitDTO(
   heightTo: Option[Long],
   groupRead: Option[String],
   groupWrite: Option[String],
+  latestMoveId: Option[Long],
   links: Option[Seq[Link]],
   isDeleted: Boolean,
   storageType: StorageType

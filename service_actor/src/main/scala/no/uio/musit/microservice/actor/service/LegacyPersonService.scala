@@ -36,6 +36,10 @@ class LegacyPersonService @Inject() (val actorDao: ActorDao) {
     actorDao.getPersonLegacyById(id)
   }
 
+  def findDetails(ids: Set[Long]): Future[Seq[Person]] = {
+    actorDao.getPersonDetailsByIds(ids)
+  }
+
   def find(search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
     actorDao.getPersonLegacyByName(searchString)

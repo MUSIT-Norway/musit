@@ -9,7 +9,7 @@ class BaseEventDTOTest extends PlaySpec {
     val date = new java.util.Date()
     val timestamp = new java.sql.Timestamp(date.getTime)
 
-    BaseEventDto(None, None, null, None, Seq.empty, None, Seq.empty, None, valueLong = value, None, None, Some("nobody"), Some(timestamp)
+    BaseEventDto(None, None, null, None, Seq.empty, Seq.empty, Seq.empty, None, Seq.empty, None, valueLong = value, None, None, Some("nobody"), Some(timestamp)
     )
   }
 

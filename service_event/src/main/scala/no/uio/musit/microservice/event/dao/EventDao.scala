@@ -94,7 +94,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
 
     if (!isPartsRelation && partialEventLink.isDefined) {
-      //The partOf-relation is stored in the main event table, so this is only used for the other relations (stored in the EVENT_RELATION_EVENT table).
+      //The partOf-relation is stored in the main event table, so this is only used for the other relations
+      // (stored in the EVENT_RELATION_EVENT table).
       action = (for {
         newEventId <- action
         numInserted <- EventLinkDao.insertEventLinkAction(partialEventLink.get.toFullLink(newEventId))
@@ -105,6 +106,33 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       action = (for {
         newEventId <- action
         numInserted <- EventActorsDao.insertActors(newEventId, event.relatedActors)
+      } yield newEventId).transactionally
+    }
+    action = event.execute match {
+      case Some(executeFunc) =>
+        (for {
+          newEventId <- action
+          _ <- executeFunc(newEventId)
+        } yield newEventId).transactionally
+      case None => action
+    }
+    def getRelatedObjects(newEventId: Long): DBIO[Option[Int]] = {
+      if (event.eventType.storeObjectsInPlaceRelationTable) {
+        EventPlacesAsObjectsDao.insertObjects(newEventId, event.relatedObjects)
+      } else {
+        EventObjectsDao.insertObjects(newEventId, event.relatedObjects)
+      }
+    }
+    if (event.relatedObjects.nonEmpty) {
+      action = (for {
+        newEventId <- action
+        numInserted <- getRelatedObjects(newEventId)
+      } yield newEventId).transactionally
+    }
+    if (event.relatedPlaces.nonEmpty) {
+      action = (for {
+        newEventId <- action
+        numInserted <- EventPlacesDao.insertPlaces(newEventId, event.relatedPlaces)
       } yield newEventId).transactionally
     }
     action
@@ -126,6 +154,15 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     new SequenceAction(actions.toIndexedSeq)
   }
 
+  def getRelatedObjects(eventType: EventType, eventId: Long): Future[Seq[ObjectWithRole]] = {
+
+    if (eventType.storeObjectsInPlaceRelationTable) {
+      EventPlacesAsObjectsDao.getRelatedObjects(eventId)
+    } else {
+      EventObjectsDao.getRelatedObjects(eventId)
+    }
+  }
+
   def getBaseEvent(id: Long): Future[Option[BaseEventDto]] = {
 
     val action = EventBaseTable.filter(event => event.id === id).result.headOption
@@ -137,11 +174,17 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     //get the related actors
     val futRelatedActors = EventActorsDao.getRelatedActors(id)
 
+    //get the related places
+    val futRelatedPlaces = EventPlacesDao.getRelatedPlaces(id)
+
     for {
       optBaseEvent <- futOptBaseEvent
       links <- futureLinks
       relatedActors <- futRelatedActors
-    } yield (optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors, links = Some(links))))
+      relatedObjects <- getRelatedObjects(optBaseEvent.get.eventType, id)
+      relatedPlaces <- futRelatedPlaces
+
+    } yield (optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors, relatedObjects = relatedObjects, relatedPlaces = relatedPlaces, links = Some(links))))
   }
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
@@ -292,6 +335,8 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
         Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
         eventType,
         eventDate,
+        Seq.empty,
+        Seq.empty,
         Seq.empty,
         note,
         Seq.empty,

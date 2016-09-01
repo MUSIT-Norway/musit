@@ -12,7 +12,7 @@ object EventType {
   }
 
   private val eventTypes = Seq(
-    eventType(1, "Move", Move),
+    eventType(1, "MoveObject", MoveObject),
     eventType(2, "EnvRequirement", EnvRequirementService),
     eventType(3, "Control", ControlService),
     eventType(4, "Observation", ObservationService),
@@ -39,7 +39,8 @@ object EventType {
     eventType(23, "ObservationPest", ObservationPestService),
     eventType(24, "ObservationTemperature", ObservationTemperatureService),
     eventType(25, "ObservationTheftProtection", ObservationTheftProtectionService),
-    eventType(26, "ObservationWaterDamageAssessment", ObservationWaterDamageAssessmentService)
+    eventType(26, "ObservationWaterDamageAssessment", ObservationWaterDamageAssessmentService),
+    eventType(27, "MovePlace", MovePlace)
 
   // Add new event type here....
   )
@@ -83,4 +84,7 @@ case class EventType(id: Int, name: String, eventImplementation: EventImplementa
       case s: MultipleTablesEventType => Right(s)
     }
   }
+
+  def storeObjectsInPlaceRelationTable: Boolean = eventImplementation.storeObjectsInPlaceRelationTable
+
 }

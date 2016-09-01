@@ -8,6 +8,7 @@ GET     /v1/dataporten/currentUser             no.uio.musit.microservice.actor.r
 
 ## Mapping routes, TODO: Remove these endpoints when database is migrated.
 GET     /v1/person                                 no.uio.musit.microservice.actor.resource.LegacyPersonResource.list(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
+POST    /v1/person/details                         no.uio.musit.microservice.actor.resource.LegacyPersonResource.getPersonDetails
 GET     /v1/person/:id                             no.uio.musit.microservice.actor.resource.LegacyPersonResource.getById(id:Long)
 
 
