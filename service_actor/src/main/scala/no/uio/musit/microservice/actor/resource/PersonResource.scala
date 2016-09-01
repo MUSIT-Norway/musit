@@ -26,6 +26,9 @@ import no.uio.musit.security.Security
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.utils.ResourceHelper
+import no.uio.musit.microservices.common.utils.ResourceHelper._
 
 import scala.concurrent.Future
 
@@ -71,14 +74,9 @@ class PersonResource @Inject() (personService: PersonService) extends Controller
   }
 
   def getCurrentUserAsActor: Action[AnyContent] = Action.async { request =>
-    Security.create(request).map {
-      case Right(securityConnection) =>
-        val dataportenId = securityConnection.userId
-        personService.getCurrentUserAsActor(dataportenId).map {
-          case Some(person) => Ok(Json.toJson(person)) // Ok
-          case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find actor matching the current user, dataporten-id: $id")))
-        }
-      case Left(error) => Unauthorized(Json.toJson(error))
+    val futPerson = Security.create(request).musitFutureFlatMap { securityConnection =>
+      personService.getCurrentUserAsActor(securityConnection)
     }
+    ResourceHelper.getRoot(futPerson, (p: Person) => Json.toJson(p))
   }
 }

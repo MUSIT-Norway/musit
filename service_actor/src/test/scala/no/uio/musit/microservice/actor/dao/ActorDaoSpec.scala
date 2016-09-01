@@ -22,8 +22,9 @@ package no.uio.musit.microservice.actor.dao
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
+import no.uio.musit.security.FakeSecurity
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
@@ -73,6 +74,31 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
         person.dataportenId mustBe Some("a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f")
         person.id mustBe Some(2)
 
+      }
+
+
+      "Don't find actor with unknown dataportenId" in {
+        val res = actorDao.getPersonByDataportenId("tullballId").futureValue
+        res.isDefined mustBe false
+      }
+
+      "Don't find actor with unknown dataportenId based on security connection etc" in {
+        val secConnection = FakeSecurity.createInMemoryFromFakeAccessToken("fake-token-zab-xy-jarle", false).futureValue
+        val res = actorDao.getPersonByDataportenId(secConnection.userId).futureValue
+        res.isDefined mustBe false
+
+        val person = actorDao.insertActorWithDataportenUserInfo(secConnection).futureValue
+        person.isRight mustBe true
+        person.right.map {
+          p =>
+            p.dataportenId mustBe Some(secConnection.userId)
+            p.fn mustBe secConnection.userName
+            p.email mustBe secConnection.userEmail
+        }
+
+        val res2 = actorDao.getPersonByDataportenId(secConnection.userId).futureValue
+        res2.isDefined mustBe true
+        res2.get.fn mustBe secConnection.userName
       }
     }
   }

@@ -1,6 +1,7 @@
 package no.uio.musit.microservices.common.utils
 
 import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -58,7 +59,7 @@ object Misc {
    *
    * (If we actually create a type in Scala like MusitFuture, we can even use for-comprehensions on them)
    *
-   * MusitBooleanResult represents whether some code succeeded or not. If "false", it also holds the information about why it is false/failed. (in its Either-Left branch)
+   * MusitBool/MusitBooleanResult represents whether some code succeeded or not. If "false", it also holds the information about why it is false/failed. (in its Either-Left branch)
    * If Either.Right, it means True (irrespective of what is in the right branch, ideally I'd like to use Either[MusitError, Unit] (ie Unit instead of Boolean), but I
    * tried that and the compiler ended up allowing a bit too much.
    *
@@ -66,14 +67,27 @@ object Misc {
    * *
    */
 
+  type MusitBool = MusitResult[Boolean]
+
+  // Not sure why I needed this object and couldn't directly use EitherExtensions. Should ideally use EitherExtensions instead.
+  object MusitBoolExtensions {
+
+    implicit class MusitBoolExtensionsImp(val either: MusitBool) extends AnyVal {
+
+      def toMusitFuture = MusitFuture.fromMusitResult(either)
+    }
+
+  }
+
   /**
-   * Maps a boolean condition to a "MusitBooleanResult" (see above discussion).
+   * Maps a boolean condition to a "MusitBool" (see above discussion).
    */
   def boolToMusitBool(condition: Boolean, errorIfFalse: => MusitError): Either[MusitError, Boolean] = {
-    if (condition)
+    if (condition) {
       Right(true) //Ok, we're in the true/right branch
-    else
+    } else {
       Left(errorIfFalse) //Here we signal the error
+    }
   }
 
   def musitTrue = Right(true)

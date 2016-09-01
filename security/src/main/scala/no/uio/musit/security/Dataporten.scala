@@ -32,7 +32,6 @@ object Dataporten {
     (JsPath \ "description").readNullable[String]
   )(createGroupInfo _)
 
-
   def createSecurityConnection(accessToken: String, useCache: Boolean = true) = {
     val infoProvider = new DataportenUserInfoProvider(accessToken)
     Security.createSecurityConnectionFromInfoProvider(infoProvider, useCache)
@@ -56,6 +55,5 @@ object Dataporten {
 
     def accessToken = _accessToken
   }
-
 
 }

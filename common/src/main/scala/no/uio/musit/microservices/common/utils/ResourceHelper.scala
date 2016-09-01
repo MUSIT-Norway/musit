@@ -82,6 +82,7 @@ object ResourceHelper {
 
   def error(err: MusitError) = { Future.successful(err.toPlayResult) }
 
+  /*Returns a 200-OK if futureResultObject succeeds, together with its json-serialization. Else the MusitError gets appropriately reported.*/
   def getRoot[A](futureResultObject: Future[Either[MusitError, A]], toJsonTransformer: A => JsValue): Future[Result] = {
     futureResultObject.map {
       case Right(obj) => Ok(toJsonTransformer(obj))

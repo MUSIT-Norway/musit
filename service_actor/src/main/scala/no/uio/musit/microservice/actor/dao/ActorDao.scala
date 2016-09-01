@@ -19,8 +19,11 @@
 package no.uio.musit.microservice.actor.dao
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.actor.domain.{ Organization, OrganizationAddress, Person }
+import no.uio.musit.microservice.actor.domain.{ ActorAuth, Organization, OrganizationAddress, Person }
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
+import no.uio.musit.security.SecurityConnection
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
@@ -62,6 +65,17 @@ class ActorDao @Inject() (
 
   def getPersonByDataportenId(dataportenId: String): Future[Option[Person]] = {
     db.run(PersonTable.filter(_.dataportenId === dataportenId).result.headOption)
+  }
+
+  def dataportenUserToPerson(securityConnection: SecurityConnection): Person = {
+    Person(None, securityConnection.userName, None, None, None, None, securityConnection.userEmail, Some(securityConnection.userId), None)
+  }
+
+  def insertActorWithDataportenUserInfo(securityConnection: SecurityConnection): MusitFuture[Person] = {
+    val person = dataportenUserToPerson(securityConnection)
+    ActorAuth.verifyCanInsertActor(securityConnection, person).toMusitFuture.musitFutureFlatMap { _ =>
+      insertPerson(person).toMusitFuture
+    }
   }
 
   def getOrganizationById(id: Long): Future[Option[Organization]] = {
