@@ -13,6 +13,7 @@ POST    /v1/node/:id/observation    no.uio.musit.microservice.event.resource.Eve
 
 GET    /v1/node/:id/controls    no.uio.musit.microservice.event.resource.EventResource.getControls(id: Int)
 GET    /v1/node/:id/observations    no.uio.musit.microservice.event.resource.EventResource.getObservations(id: Int)
+GET    /v1/node/:id/controlsAndObservations    no.uio.musit.microservice.event.resource.EventResource.getControlsAndObservations(id: Int)
 
 
 

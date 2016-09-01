@@ -90,6 +90,7 @@ object Dependencies {
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     PlayFrameWork.slick,
     PlayFrameWork.slick_ext,
+    postgresql,
     h2database
   )
 

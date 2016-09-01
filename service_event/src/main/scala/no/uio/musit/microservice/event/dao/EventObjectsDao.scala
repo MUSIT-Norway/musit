@@ -1,3 +1,8 @@
+package no.uio.musit.microservice.event.dao
+
+/**
+ * Created by ellenjo on 8/22/16.
+ */
 /*
  *   MUSIT is a cooperation between the university museums of Norway.
  *   Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
@@ -18,9 +23,7 @@
  *
  */
 
-package no.uio.musit.microservice.event.dao
-
-import no.uio.musit.microservice.event.domain._
+import no.uio.musit.microservice.event.domain.{ EventRoleObject, ObjectWithRole }
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
@@ -28,46 +31,42 @@ import slick.driver.JdbcProfile
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
- * Created by jstabel on 7/6/16.
- */
-
-object EventActorsDao extends HasDatabaseConfig[JdbcProfile] {
+object EventObjectsDao extends HasDatabaseConfig[JdbcProfile] {
 
   import driver.api._
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  private val EventActorsTable = TableQuery[EventActorsTable]
+  private val EventObjectsTable = TableQuery[EventObjectsTable]
 
-  def insertActors(newEventId: Long, relatedActors: Seq[ActorWithRole]): DBIO[Option[Int]] = {
-    val relActors = relatedActors.map {
-      _.toEventRoleActor(newEventId)
+  def insertObjects(newEventId: Long, relatedObjects: Seq[ObjectWithRole]): DBIO[Option[Int]] = {
+    val relObjects = relatedObjects.map {
+      _.toEventRoleObject(newEventId)
     }
-    EventActorsTable ++= relActors
+    EventObjectsTable ++= relObjects
   }
 
-  def getRelatedActors(eventId: Long): Future[Seq[ActorWithRole]] = {
-    val query = EventActorsTable.filter(evt => evt.eventId === eventId)
-    val futEventRoleActorSeq = db.run(query.result)
-    futEventRoleActorSeq.map(eventRoleActorSeq => eventRoleActorSeq.map(eventRoleActor => eventRoleActor.toActorWithRole))
+  def getRelatedObjects(eventId: Long): Future[Seq[ObjectWithRole]] = {
+    val query = EventObjectsTable.filter(evt => evt.eventId === eventId)
+    val futEventRoleObjectSeq = db.run(query.result)
+    futEventRoleObjectSeq.map(eventRoleObjectSeq => eventRoleObjectSeq.map(eventRoleObject => eventRoleObject.toObjectWithRole))
   }
 
-  private class EventActorsTable(tag: Tag) extends Table[EventRoleActor](tag, Some("MUSARK_EVENT"), "EVENT_ROLE_ACTOR") {
-    def * = (eventId, roleId, actorId) <> (create.tupled, destroy) // scalastyle:ignore
+  private class EventObjectsTable(tag: Tag) extends Table[EventRoleObject](tag, Some("MUSARK_EVENT"), "EVENT_ROLE_OBJECT") {
+    def * = (eventId, roleId, objectId) <> (create.tupled, destroy) // scalastyle:ignore
 
     val eventId = column[Long]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
-    val actorId = column[Int]("ACTOR_ID")
+    val objectId = column[Long]("OBJECT_ID")
 
-    def create = (eventId: Long, roleId: Int, actorId: Int) =>
-      EventRoleActor(
+    def create = (eventId: Long, roleId: Int, objectId: Long) =>
+      EventRoleObject(
         eventId,
         roleId,
-        actorId
+        objectId
       )
 
-    def destroy(eventRoleActor: EventRoleActor) = Some(eventRoleActor.eventId, eventRoleActor.roleId, eventRoleActor.actorId)
+    def destroy(eventRoleObject: EventRoleObject) = Some(eventRoleObject.eventId, eventRoleObject.roleId, eventRoleObject.objectId)
   }
 
 }

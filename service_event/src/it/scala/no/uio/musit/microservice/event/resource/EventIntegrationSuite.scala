@@ -78,6 +78,11 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     WS.url(s"http://localhost:$port/v1/node/$nodeId/observations").get |> waitFutureValue
   }
 
+  def getControlsAndObservationsForNode(nodeId:Int) = {
+    WS.url(s"http://localhost:$port/v1/node/$nodeId/controlsAndObservations").get |> waitFutureValue
+  }
+
+
   def getEvent(id: Long) = {
     WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
   }
@@ -110,14 +115,16 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
       val json =
         """
   {
-   "eventType": "Move",
-   "note": "Dette er et viktig notat for move!",
-   "links": [{"rel": "actor", "href": "actor/12"}]}"""
+   "eventType": "MoveObject",
+   "doneWith": 10,
+   "toPlace" : -666,
+   "note": "Dette er et viktig notat for move!"
+   }"""
 
 
       val response = createEvent(json)
       response.status mustBe 201
-      val moveObject = validateEvent[Move](response.json) // .validate[Move].get
+      val moveObject = validateEvent[MoveObject](response.json) // .validate[Move].get
 
       val responseGet = getEvent(moveObject.id.get)
       responseGet.status mustBe 200
@@ -1025,4 +1032,59 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     arrayLength2 mustBe 1
 
   }
+
+  "post MoveObject" in {
+
+    val json =
+      """
+  {
+   "eventType": "MoveObject",
+   "doneWith": 10,
+   "toPlace" : -666,
+   "note": "Dette er et viktig notat for move!"
+   }"""
+
+    val response = createEvent(json)
+    response.status mustBe 201
+    val moveObject = validateEvent[MoveObject](response.json) // .validate[Move].get
+
+    val responseGet = getEvent(moveObject.id.get)
+    responseGet.status mustBe 200
+    val moveObject2 = validateEvent[MoveObject](responseGet.json) // .validate[Move].get
+    moveObject2.relatedObjects.length mustBe 1
+  }
+
+
+
+  "get controlsAndObservations" in {
+    val jsonObservation =
+      s""" {
+    "eventType": "Observation",
+    "note": "text observation"
+    }
+    """
+    val jsonControl =
+      s""" {
+    "eventType": "Control",
+    "note": "text control"
+    }
+    """
+    val storageNodeId = 555
+    val response = createControlEvent(storageNodeId, jsonControl)
+    response.status mustBe 201
+    val response2 = createControlEvent(storageNodeId, jsonControl)
+    response2.status mustBe 201
+    val response3 = createObservationEvent(storageNodeId, jsonObservation)
+    response3.status mustBe 201
+
+    val response4 = getControlsAndObservationsForNode(storageNodeId)
+    response4.status mustBe 200
+
+    val arrayLength = response4.json match {
+      case arr: JsArray => arr.value.length
+    }
+    arrayLength mustBe 3
+
+  }
+
 }

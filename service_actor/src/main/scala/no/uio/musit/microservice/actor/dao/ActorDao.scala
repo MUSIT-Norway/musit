@@ -72,6 +72,10 @@ class ActorDao @Inject() (
     db.run(OrganizationAddressTable.filter(_.id === id).result.headOption)
   }
 
+  def getPersonDetailsByIds(ids: Set[Long]): Future[Seq[Person]] = {
+    db.run(ActorTable.filter(_.id inSet ids).result)
+  }
+
   /* CREATES and UPDATES */
   def insertPersonLegacy(actor: Person): Future[Person] = {
     val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}")))))
