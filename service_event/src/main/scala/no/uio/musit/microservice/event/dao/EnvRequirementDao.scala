@@ -1,6 +1,7 @@
 package no.uio.musit.microservice.event.dao
 
 import no.uio.musit.microservice.event.domain.{ Dto, EnvRequirementDto }
+import no.uio.musit.microservice.event.service.EnvRequirement
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
@@ -23,6 +24,27 @@ object EnvRequirementDao extends HasDatabaseConfig[JdbcProfile] {
 
   def insertAction(event: EnvRequirementDto): DBIO[Int] =
     EnvRequirementTable += event
+
+  def updateStorageNodeLatestEnvReq(storageNodeId: Int, newEventId: Long): DBIO[Unit] = {
+    /* TODO: When service_storageAdmin and service_event has been merged, activate this code (also need to import StorageNodeTable)
+    val q = for {
+      l <- StorageNodeTable if l.storageNodeId === storageNodeId
+    } yield (l.latestEntReqId)
+    q.update(Some(newEventId)).map(_ => ())
+    */
+    DBIO.successful(())
+  }
+
+  def execute(newEventId: Long, envRequirement: EnvRequirement): DBIO[Unit] = {
+    require(envRequirement.relatedObjects.length <= 1, "More than one objectId in executeMovePlace.")
+
+    val optPlaceAsObjectAndRelation = envRequirement.relatedObjects.headOption
+    optPlaceAsObjectAndRelation match {
+      case None => throw new Exception("Missing place/storageNode to create environmentRequirement for.")
+      case Some(placeAsObjectAndRelation) =>
+        updateStorageNodeLatestEnvReq(placeAsObjectAndRelation.objectId.toInt, newEventId)
+    }
+  }
 
   def getEnvRequirement(id: Long): Future[Option[EnvRequirementDto]] =
     db.run(EnvRequirementTable.filter(event => event.id === id).result.headOption)
