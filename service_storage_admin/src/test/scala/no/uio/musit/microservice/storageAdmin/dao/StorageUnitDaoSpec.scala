@@ -41,8 +41,8 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
     "setting isPartOf for a StorageUnit" should {
       "succeed" in {
-        storageDao.insert(StorageNodeDTO(None, "C2", None, None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
-        storageDao.insert(StorageNodeDTO(None, "C2", None, None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
+        storageDao.insert(StorageNodeDTO(None, "C2", None, None, None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
+        storageDao.insert(StorageNodeDTO(None, "C2", None, None, None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit))
         val result = storageDao.all().futureValue
         result.size mustBe 2
         storageDao.setPartOf(1, 2).futureValue mustBe 1
