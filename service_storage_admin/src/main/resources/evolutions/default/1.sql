@@ -36,7 +36,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE(
  group_read        varchar(4000),
  group_write       varchar(4000),
  latest_move_id    BIGINT,
- latest_environment_id BIGINT,
+ latest_envreq_id BIGINT,
 primary key (storage_node_id)
 );
 
