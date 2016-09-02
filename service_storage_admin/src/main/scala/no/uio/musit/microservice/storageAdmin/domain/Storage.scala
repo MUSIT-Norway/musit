@@ -49,14 +49,15 @@ case class Room(
   latestMoveId: Option[Long],
   latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
-  sikringSkallsikring: Option[Boolean],
-  sikringTyverisikring: Option[Boolean],
-  sikringBrannsikring: Option[Boolean],
-  sikringVannskaderisiko: Option[Boolean],
-  sikringRutineOgBeredskap: Option[Boolean],
-  bevarLuftfuktOgTemp: Option[Boolean],
-  bevarLysforhold: Option[Boolean],
-  bevarPrevantKons: Option[Boolean]
+  perimeterSecurity: Option[Boolean],
+  theftProtection: Option[Boolean],
+  fireProtection: Option[Boolean],
+  waterDamageAssessment: Option[Boolean],
+  routinesAndContingencyPlan: Option[Boolean],
+  relativeHumidity: Option[Boolean],
+  temperatureAssessment: Option[Boolean],
+  lightingCondition: Option[Boolean],
+  preventiveConservation: Option[Boolean]
 ) extends Storage
 
 case class Building(
@@ -126,14 +127,15 @@ object Storage {
           latestMoveId = room.latestMoveId,
           latestEnvReqId = room.latestEnvReqId,
           links = room.links,
-          sikringSkallsikring = room.sikringSkallsikring,
-          sikringBrannsikring = room.sikringBrannsikring,
-          sikringTyverisikring = room.sikringTyverisikring,
-          sikringVannskaderisiko = room.sikringVannskaderisiko,
-          sikringRutineOgBeredskap = room.sikringRutineOgBeredskap,
-          bevarLuftfuktOgTemp = room.bevarLuftfuktOgTemp,
-          bevarLysforhold = room.bevarLysforhold,
-          bevarPrevantKons = room.bevarPrevantKons
+          perimeterSecurity = room.perimeterSecurity,
+          fireProtection = room.fireProtection,
+          theftProtection = room.theftProtection,
+          waterDamageAssessment = room.waterDamageAssessment,
+          routinesAndContingencyPlan = room.routinesAndContingencyPlan,
+          relativeHumidity = room.relativeHumidity,
+          temperatureAssessment = room.temperatureAssessment,
+          lightingCondition = room.lightingCondition,
+          preventiveConservation = room.preventiveConservation
         )
     }
 
@@ -169,14 +171,15 @@ object Storage {
       latestMoveId = unit.latestMoveId,
       latestEnvReqId = unit.latestEnvReqId,
       links = unit.links,
-      sikringSkallsikring = room.sikringSkallsikring,
-      sikringBrannsikring = room.sikringBrannsikring,
-      sikringTyverisikring = room.sikringTyverisikring,
-      sikringVannskaderisiko = room.sikringVannskaderisiko,
-      sikringRutineOgBeredskap = room.sikringRutineOgBeredskap,
-      bevarLuftfuktOgTemp = room.bevarLuftfuktOgTemp,
-      bevarLysforhold = room.bevarLysforhold,
-      bevarPrevantKons = room.bevarPrevantKons
+      perimeterSecurity = room.perimeterSecurity,
+      fireProtection = room.fireProtection,
+      theftProtection = room.theftProtection,
+      waterDamageAssessment = room.waterDamageAssessment,
+      routinesAndContingencyPlan = room.routinesAndContingencyPlan,
+      relativeHumidity = room.relativeHumidity,
+      temperatureAssessment = room.temperatureAssessment,
+      lightingCondition = room.lightingCondition,
+      preventiveConservation = room.preventiveConservation
     )
   }
 

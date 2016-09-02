@@ -42,14 +42,15 @@ primary key (storage_node_id)
 
 CREATE TABLE MUSARK_STORAGE.ROOM(
  storage_node_id             BIGINT not null,
- sikring_skallsikring        integer,
- sikring_tyverisikring       integer,
- sikring_brannsikring        integer,
- sikring_vannskaderisiko     integer,
- sikring_rutine_og_beredskap integer,
- bevar_luftfukt_og_temp      integer,
- bevar_lysforhold            integer,
- bevar_prevant_kons          integer,
+ perimeter_security        integer,-- not null default 0,
+ theft_protection       integer,-- not null default 1,
+ fire_protection        integer,-- not null default 0,
+ water_damage_assessment     integer,-- not null default 0,
+ routines_and_contingency_plan integer,-- not null default 0,
+ RELATIVE_HUMIDITY           integer,-- not null default 0,
+ TEMPERATURE_ASSESSMENT      integer,-- not null default 0,
+ lighting_condition            integer,-- not null default 0,
+ preventive_conservation          integer,-- not null default 0,
  PRIMARY KEY (storage_node_id),
  FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
  );

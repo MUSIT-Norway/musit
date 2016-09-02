@@ -62,14 +62,14 @@
 --
 -- insert into MUSARK_STORAGE.ROOM (
 --  storage_unit_id,
---  sikring_skallsikring,
---  sikring_tyverisikring,
---  sikring_brannsikring,
---  sikring_vannskaderisiko,
---  sikring_rutine_og_beredskap,
+--  perimeter_security,
+--  theft_protection,
+--  fire_protection,
+--  water_damage_assessment,
+--  routines_and_contingency_plan,
 --  bevar_luftfukt_og_temp,
---  bevar_lysforhold,
---  bevar_prevant_kons
+--  lighting_condition,
+--  preventive_conservation
 -- ) values (
 -- 	2,
 -- 	1,

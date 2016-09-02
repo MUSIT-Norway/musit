@@ -58,46 +58,48 @@ class RoomDao @Inject() (
 
   private class RoomTable(tag: Tag) extends Table[Room](tag, Some("MUSARK_STORAGE"), "ROOM") {
 
-    def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, // scalastyle:ignore
-      sikringRutineOgBeredskap, bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
+    def * = (id, perimeterSecurity, theftProtection, fireProtection, waterDamageAssessment, // scalastyle:ignore
+      routinesAndContingencyPlan, relativeHumidity, temperatureAssessment, lightingCondition, preventiveConservation) <> (create.tupled, destroy)
 
     def id = column[Option[Long]]("STORAGE_NODE_ID", O.PrimaryKey)
 
-    def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
+    def perimeterSecurity = column[Option[Boolean]]("PERIMETER_SECURITY")
 
-    def sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING")
+    def theftProtection = column[Option[Boolean]]("THEFT_PROTECTION")
 
-    def sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING")
+    def fireProtection = column[Option[Boolean]]("FIRE_PROTECTION")
 
-    def sikringVannskaderisiko = column[Option[Boolean]]("SIKRING_VANNSKADERISIKO")
+    def waterDamageAssessment = column[Option[Boolean]]("WATER_DAMAGE_ASSESSMENT")
 
-    def sikringRutineOgBeredskap = column[Option[Boolean]]("SIKRING_RUTINE_OG_BEREDSKAP")
+    def routinesAndContingencyPlan = column[Option[Boolean]]("ROUTINES_AND_CONTINGENCY_PLAN")
 
-    def bevarLuftfuktOgTemp = column[Option[Boolean]]("BEVAR_LUFTFUKT_OG_TEMP")
+    def relativeHumidity = column[Option[Boolean]]("RELATIVE_HUMIDITY")
+    def temperatureAssessment = column[Option[Boolean]]("TEMPERATURE_ASSESSMENT")
 
-    def bevarLysforhold = column[Option[Boolean]]("BEVAR_LYSFORHOLD")
+    def lightingCondition = column[Option[Boolean]]("LIGHTING_CONDITION")
 
-    def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
+    def preventiveConservation = column[Option[Boolean]]("PREVENTIVE_CONSERVATION")
 
     def create = (
-      id: Option[Long], sikringSkallsikring: Option[Boolean], sikringTyverisikring: Option[Boolean],
-      sikringBrannsikring: Option[Boolean], sikringVannskaderisiko: Option[Boolean],
-      sikringRutineOgBeredskap: Option[Boolean], bevarLuftfuktOgTemp: Option[Boolean],
-      bevarLysforhold: Option[Boolean], bevarPrevantKons: Option[Boolean]
+      id: Option[Long], perimeterSecurity: Option[Boolean], theftProtection: Option[Boolean],
+      fireProtection: Option[Boolean], waterDamageAssessment: Option[Boolean],
+      routinesAndContingencyPlan: Option[Boolean], relativeHumidity: Option[Boolean], temperatureAssessment: Option[Boolean],
+      lightingCondition: Option[Boolean], preventiveConservation: Option[Boolean]
     ) =>
       Room(id, null, None, None, None, None, None, None, None, None, None, None,
-        sikringSkallsikring,
-        sikringTyverisikring,
-        sikringBrannsikring,
-        sikringVannskaderisiko,
-        sikringRutineOgBeredskap,
-        bevarLuftfuktOgTemp,
-        bevarLysforhold,
-        bevarPrevantKons)
+        perimeterSecurity,
+        theftProtection,
+        fireProtection,
+        waterDamageAssessment,
+        routinesAndContingencyPlan,
+        relativeHumidity,
+        temperatureAssessment,
+        lightingCondition,
+        preventiveConservation)
 
-    def destroy(room: Room) = Some(room.id, room.sikringSkallsikring, room.sikringTyverisikring,
-      room.sikringBrannsikring, room.sikringVannskaderisiko,
-      room.sikringRutineOgBeredskap, room.bevarLuftfuktOgTemp, room.bevarLysforhold, room.bevarPrevantKons)
+    def destroy(room: Room) = Some(room.id, room.perimeterSecurity, room.theftProtection,
+      room.fireProtection, room.waterDamageAssessment,
+      room.routinesAndContingencyPlan, room.relativeHumidity, room.temperatureAssessment, room.lightingCondition, room.preventiveConservation)
   }
 
 }
