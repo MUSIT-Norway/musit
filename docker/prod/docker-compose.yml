@@ -43,11 +43,11 @@ services:
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
           - EVOLUTION_ENABLED=false
-          - SLICK_DRIVER="slick.driver.PostgresDriver$"
-          - SLICL_DB_DRIVER="org.postgresql.Driver"
-          - SLICK_DB_URL="jdbc:postgresql://db/postgres"
-          - SLICL_DB_USER="postgres"
-          - SLICK_DB_PASSWORD="postgres"
+          - SLICK_DRIVER
+          - SLICL_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICL_DB_USER
+          - SLICK_DB_PASSWORD
         links:
           - db
     actor:
@@ -55,11 +55,11 @@ services:
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
           - EVOLUTION_ENABLED=false
-          - SLICK_DRIVER="slick.driver.PostgresDriver$"
-          - SLICL_DB_DRIVER="org.postgresql.Driver"
-          - SLICK_DB_URL="jdbc:postgresql://db/postgres"
-          - SLICL_DB_USER="postgres"
-          - SLICK_DB_PASSWORD="postgres"
+          - SLICK_DRIVER
+          - SLICL_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICL_DB_USER
+          - SLICK_DB_PASSWORD
         links:
           - db
     geolocation:
@@ -71,11 +71,11 @@ services:
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
           - EVOLUTION_ENABLED=false
-          - SLICK_DRIVER="slick.driver.PostgresDriver$"
-          - SLICL_DB_DRIVER="org.postgresql.Driver"
-          - SLICK_DB_URL="jdbc:postgresql://db/postgres"
-          - SLICL_DB_USER="postgres"
-          - SLICK_DB_PASSWORD="postgres"
+          - SLICK_DRIVER
+          - SLICL_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICL_DB_USER
+          - SLICK_DB_PASSWORD
         links:
           - db
     time:
