@@ -5,11 +5,11 @@ import no.uio.musit.microservices.common.linking.domain.Link
 sealed trait StorageDTO {
   val id: Option[Long]
   val name: String
-  val area: Option[Long]
-  val areaTo: Option[Long]
+  val area: Option[Double]
+  val areaTo: Option[Double]
   val isPartOf: Option[Long]
-  val height: Option[Long]
-  val heightTo: Option[Long]
+  val height: Option[Double]
+  val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val latestMoveId: Option[Long]
@@ -22,11 +22,11 @@ sealed trait StorageDTO {
 case class BuildingDTO(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
@@ -40,11 +40,11 @@ case class BuildingDTO(
 case class RoomDTO(
                     id: Option[Long],
                     name: String,
-                    area: Option[Long],
-                    areaTo: Option[Long],
+                    area: Option[Double],
+                    areaTo: Option[Double],
                     isPartOf: Option[Long],
-                    height: Option[Long],
-                    heightTo: Option[Long],
+                    height: Option[Double],
+                    heightTo: Option[Double],
                     groupRead: Option[String],
                     groupWrite: Option[String],
                     latestMoveId: Option[Long],
@@ -58,7 +58,7 @@ case class RoomDTO(
                     waterDamageAssessment: Option[Boolean],
                     routinesAndContingencyPlan: Option[Boolean],
                     relativeHumidity: Option[Boolean],
-                    temperatureAssessment: Option[Boolean],
+                    temperature: Option[Boolean],
                     lightingCondition: Option[Boolean],
                     preventiveConservation: Option[Boolean]
 ) extends StorageDTO
@@ -66,11 +66,11 @@ case class RoomDTO(
 case class StorageNodeDTO(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],

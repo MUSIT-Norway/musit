@@ -86,15 +86,15 @@ class StorageUnitDao @Inject() (
 
     val storageUnitName = column[String]("STORAGE_NODE_NAME")
 
-    val area = column[Option[Long]]("AREA")
+    val area = column[Option[Double]]("AREA")
 
-    val areaTo = column[Option[Long]]("AREA_TO")
+    val areaTo = column[Option[Double]]("AREA_TO")
 
     val isPartOf = column[Option[Long]]("IS_PART_OF")
 
-    val height = column[Option[Long]]("HEIGHT")
+    val height = column[Option[Double]]("HEIGHT")
 
-    val heightTo = column[Option[Long]]("HEIGHT_TO")
+    val heightTo = column[Option[Double]]("HEIGHT_TO")
 
     val groupRead = column[Option[String]]("GROUP_READ")
 
@@ -110,11 +110,11 @@ class StorageUnitDao @Inject() (
       id: Option[Long],
       storageType: StorageType,
       storageUnitName: String,
-      area: Option[Long],
-      areaTo: Option[Long],
+      area: Option[Double],
+      areaTo: Option[Double],
       isPartOf: Option[Long],
-      height: Option[Long],
-      heightTo: Option[Long],
+      height: Option[Double],
+      heightTo: Option[Double],
       groupRead: Option[String],
       groupWrite: Option[String],
       latestMoveId: Option[Long],

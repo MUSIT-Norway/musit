@@ -25,8 +25,8 @@ CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 CREATE TABLE MUSARK_STORAGE.STORAGE_NODE(
  storage_node_id   BIGINT NOT NULL  AUTO_INCREMENT,
  storage_node_name VARCHAR(512),
- area              INTEGER,
- area_to           INTEGER,
+ area              FLOAT,
+ area_to           FLOAT,
  is_storage_unit   VARCHAR(1) DEFAULT '1',
  is_part_of        INTEGER,
  height            INTEGER,

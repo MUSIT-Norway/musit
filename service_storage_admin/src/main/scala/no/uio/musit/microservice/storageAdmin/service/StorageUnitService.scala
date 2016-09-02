@@ -99,7 +99,7 @@ class StorageUnitService @Inject() (
 
   def updateStorageTripleByID(id: Long, triple: Storage): Future[Either[MusitError, Int]] =
     verifyStorageTypeMatchesDatabase(id, StorageType.fromStorage(triple)).flatMap {
-      case Right(true) =>
+      case Right(_) =>
         triple match {
           case st: StorageUnit =>
             updateStorageUnitByID(id, st).map(Right(_))

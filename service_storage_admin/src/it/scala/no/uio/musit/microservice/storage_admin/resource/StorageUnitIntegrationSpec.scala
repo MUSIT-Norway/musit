@@ -89,13 +89,50 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     }
 
 
-    "postCreate a building" in {
-      val makeMyJSon ="""{"id":-1, "type":"Building","name":"KHM", "links":[]}"""
+    "postCreate a room" in {
+      val makeMyJSon =
+        """
+          {
+          	"type": "Room2",
+          	"name": "Trygve Lies rom",
+          	"area": 100,
+          	"areaTo": 120.25,
+          	"height": 2.12,
+          	"heightTo": 2.40,
+          	"environmentRequirement": {
+          		"temperature": 20.4,
+          		"temperatureTolerance": 4,
+          		"hypoxicAir": 40,
+          		"hypoxicAirTolerance": 4,
+          		"lightningConditions": "Mørkt",
+          		"relativeHumidity": 71,
+          		"relativeHumidityTolerance": 4,
+          		"cleaning": "Veldig sort",
+          		"comments": "Dårlig miljø"
+          	},
+          	"securityAssessment": {
+          		"perimeter": true,
+          		"theftProtection": true,
+          		"fireProtection": false,
+          		"waterDamage": false,
+          	"routinesAndContingencyPlan": true
+          	},
+          	"environmentAssessment": {
+          		"relativeHumidity": true,
+          		"temperature": true,
+          		"lightingCondition": false,
+          		"preventiveConservation": true
+          	}
+          }
+        """.stripMargin
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
-      storageUnit.id mustBe Some(2)
-      storageUnit.name mustBe "KHM"
-
+      val room = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+      room.id mustBe Some(2)
+      room.name mustBe "Trygve Lies rom"
+      room.area mustBe Some(100.0)
+      room.areaTo mustBe Some(120.25)
+      room.height mustBe Some(2.12)
+      room.heightTo mustBe Some(2.40)
     }
 
     "get by id" in {

@@ -9,11 +9,11 @@ import play.api.libs.json.{ OFormat, __ }
 sealed trait Storage {
   val id: Option[Long]
   val name: String
-  val area: Option[Long]
-  val areaTo: Option[Long]
+  val area: Option[Double]
+  val areaTo: Option[Double]
   val isPartOf: Option[Long]
-  val height: Option[Long]
-  val heightTo: Option[Long]
+  val height: Option[Double]
+  val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val latestMoveId: Option[Long]
@@ -24,11 +24,11 @@ sealed trait Storage {
 case class StorageUnit(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
@@ -39,11 +39,11 @@ case class StorageUnit(
 case class Room(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
@@ -63,11 +63,11 @@ case class Room(
 case class Building(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
@@ -133,7 +133,7 @@ object Storage {
           waterDamageAssessment = room.waterDamageAssessment,
           routinesAndContingencyPlan = room.routinesAndContingencyPlan,
           relativeHumidity = room.relativeHumidity,
-          temperatureAssessment = room.temperatureAssessment,
+          temperatureAssessment = room.temperature,
           lightingCondition = room.lightingCondition,
           preventiveConservation = room.preventiveConservation
         )
