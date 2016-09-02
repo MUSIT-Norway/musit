@@ -38,6 +38,7 @@ object Dependencies {
     val cache = "com.typesafe.play" %% "play-cache" % version
     val ws = "com.typesafe.play" %% "play-ws" % version
     val json = "com.typesafe.play" %% "play-json" % version
+    val logback = "com.typesafe.play" %% "play-logback" % version
 
   }
 

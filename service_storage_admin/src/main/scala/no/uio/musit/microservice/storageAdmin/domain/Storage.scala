@@ -17,6 +17,7 @@ sealed trait Storage {
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val latestMoveId: Option[Long]
+  val latestEnvReqId: Option[Long]
   val links: Option[Seq[Link]]
 }
 
@@ -31,6 +32,7 @@ case class StorageUnit(
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]]
 ) extends Storage
 
@@ -45,6 +47,7 @@ case class Room(
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   sikringSkallsikring: Option[Boolean],
   sikringTyverisikring: Option[Boolean],
@@ -67,6 +70,7 @@ case class Building(
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   address: Option[String]
 ) extends Storage
@@ -89,6 +93,7 @@ object Storage {
           groupRead = stu.groupRead,
           groupWrite = stu.groupWrite,
           latestMoveId = stu.latestMoveId,
+          latestEnvReqId = stu.latestEnvReqId,
           links = stu.links
         )
       case building: BuildingDTO =>
@@ -103,6 +108,7 @@ object Storage {
           groupRead = building.groupRead,
           groupWrite = building.groupWrite,
           latestMoveId = building.latestMoveId,
+          latestEnvReqId = building.latestEnvReqId,
           links = building.links,
           address = building.address
         )
@@ -118,6 +124,7 @@ object Storage {
           groupRead = room.groupRead,
           groupWrite = room.groupWrite,
           latestMoveId = room.latestMoveId,
+          latestEnvReqId = room.latestEnvReqId,
           links = room.links,
           sikringSkallsikring = room.sikringSkallsikring,
           sikringBrannsikring = room.sikringBrannsikring,
@@ -142,6 +149,7 @@ object Storage {
       groupRead = unit.groupRead,
       groupWrite = unit.groupWrite,
       latestMoveId = unit.latestMoveId,
+      latestEnvReqId = unit.latestEnvReqId,
       links = unit.links,
       address = building.address
     )
@@ -159,6 +167,7 @@ object Storage {
       groupRead = unit.groupRead,
       groupWrite = unit.groupWrite,
       latestMoveId = unit.latestMoveId,
+      latestEnvReqId = unit.latestEnvReqId,
       links = unit.links,
       sikringSkallsikring = room.sikringSkallsikring,
       sikringBrannsikring = room.sikringBrannsikring,
@@ -183,6 +192,7 @@ object Storage {
       groupRead = stu.groupRead,
       groupWrite = stu.groupWrite,
       latestMoveId = stu.latestMoveId,
+      latestEnvReqId = stu.latestEnvReqId,
       links = stu.links,
       isDeleted = false,
       storageType = StorageType.fromStorage(stu)
