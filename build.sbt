@@ -54,14 +54,25 @@ val noPublish = Seq(
   publishLocal := {}
 )
 
-lazy val root = project in file(".") settings noPublish aggregate(common_test, common, security, service_core, service_musit_thing, service_actor, service_geo_location, service_time,
-  service_storage_admin, service_event)
+lazy val root = project in file(".") settings noPublish aggregate(
+  common_test,
+  common,
+  security,
+  service_core,
+  service_musit_thing,
+  service_actor,
+  service_geo_location,
+  service_time,
+  service_storage_admin,
+  service_event
+)
 
 // Base projects used as dependencies
 lazy val common = (
   BaseProject("common")
     settings noPublish
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(libraryDependencies += PlayFrameWork.logback)
     settings(scoverageSettings: _*)
   ) dependsOn(common_test % "it,test")
 

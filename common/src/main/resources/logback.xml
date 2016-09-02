@@ -1,5 +1,5 @@
 <configuration>
-    
+
   <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -10,7 +10,7 @@
 
   <include resource="local-logback.xml"/>
 
-  <appender name="SLACK" class="no.uio.musit.microservices.common.log.SlackLogbackAppender">
+  <!--appender name="SLACK" class="no.uio.musit.microservices.common.log.SlackLogbackAppender">
     <webhook>https://hooks.slack.com/services/${musit.slack.systemHookKey}</webhook>
     <host>${HOSTNAME}</host>
     <service>${applicationName}</service>
@@ -21,7 +21,7 @@
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>ERROR</level>
     </filter>
-  </appender>
+  </appender-->
 
   <!--
     The logger name is typically the Java/Scala package name.
@@ -32,7 +32,7 @@
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
-    <appender-ref ref="ASYNC_SLACK" />
+    <!--appender-ref ref="ASYNC_SLACK" /-->
   </root>
 
 </configuration>
