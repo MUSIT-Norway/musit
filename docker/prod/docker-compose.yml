@@ -4,13 +4,81 @@ services:
         build:
             context: "./nginx"
         ports:
-            - "8080:80"
+            - "80:80"
         links:
             - backing
+            - webpack
+    webpack:
+        build:
+            context: "../../frontend"
         volumes:
-            - ./public:/usr/share/nginx/html
+            - ../../frontend/src:/usr/src/app/src
+            - ../../frontend/public:/usr/src/app/public
+            - ../../fake_security.json:/usr/src/fake_security.json:ro
+        environment:
+          - PUBLIC_PORT=80
     backing:
         build:
-            context: "../../backing"
+          context: "../../backing"
         ports:
-            - "3030:3030"
+          - "3030:3030"
+    db:
+        image: postgres
+        environment:
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=postgres
+          - POSTGRES_DB=postgres
+        volumes:
+          - ../../postgres-storage:/var/lib/postgresql/data/
+    thing:
+        image: musit_service_musit_thing:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+    core:
+        image: musit_service_core:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+    storageadmin:
+        image: musit_service_storage_admin:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - EVOLUTION_ENABLED=false
+          - SLICK_DRIVER="slick.driver.PostgresDriver$"
+          - SLICL_DB_DRIVER="org.postgresql.Driver"
+          - SLICK_DB_URL="jdbc:postgresql://db/postgres"
+          - SLICL_DB_USER="postgres"
+          - SLICK_DB_PASSWORD="postgres"
+        links:
+          - db
+    actor:
+        image: musit_service_actor:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - EVOLUTION_ENABLED=false
+          - SLICK_DRIVER="slick.driver.PostgresDriver$"
+          - SLICL_DB_DRIVER="org.postgresql.Driver"
+          - SLICK_DB_URL="jdbc:postgresql://db/postgres"
+          - SLICL_DB_USER="postgres"
+          - SLICK_DB_PASSWORD="postgres"
+        links:
+          - db
+    geolocation:
+        image: musit_service_geo_location:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+    event:
+        image: musit_service_event:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - EVOLUTION_ENABLED=false
+          - SLICK_DRIVER="slick.driver.PostgresDriver$"
+          - SLICL_DB_DRIVER="org.postgresql.Driver"
+          - SLICK_DB_URL="jdbc:postgresql://db/postgres"
+          - SLICL_DB_USER="postgres"
+          - SLICK_DB_PASSWORD="postgres"
+        links:
+          - db
+    time:
+        image: musit_service_time:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
