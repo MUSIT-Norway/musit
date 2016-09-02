@@ -41,24 +41,24 @@ services:
     storageadmin:
         image: musit_service_storage_admin:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED=false
           - SLICK_DRIVER
-          - SLICL_DB_DRIVER
+          - SLICK_DB_DRIVER
           - SLICK_DB_URL
-          - SLICL_DB_USER
+          - SLICK_DB_USER
           - SLICK_DB_PASSWORD
         links:
           - db
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED=false
           - SLICK_DRIVER
-          - SLICL_DB_DRIVER
+          - SLICK_DB_DRIVER
           - SLICK_DB_URL
-          - SLICL_DB_USER
+          - SLICK_DB_USER
           - SLICK_DB_PASSWORD
         links:
           - db
@@ -69,16 +69,16 @@ services:
     event:
         image: musit_service_event:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED=false
           - SLICK_DRIVER
-          - SLICL_DB_DRIVER
+          - SLICK_DB_DRIVER
           - SLICK_DB_URL
-          - SLICL_DB_USER
+          - SLICK_DB_USER
           - SLICK_DB_PASSWORD
         links:
           - db
     time:
         image: musit_service_time:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - APPLICATION_SECRET
