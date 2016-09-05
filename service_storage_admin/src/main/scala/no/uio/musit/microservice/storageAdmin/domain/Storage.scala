@@ -16,6 +16,8 @@ sealed trait Storage {
   val heightTo: Option[Long]
   val groupRead: Option[String]
   val groupWrite: Option[String]
+  val latestMoveId: Option[Long]
+  val latestEnvReqId: Option[Long]
   val links: Option[Seq[Link]]
 }
 
@@ -29,6 +31,8 @@ case class StorageUnit(
   heightTo: Option[Long],
   groupRead: Option[String],
   groupWrite: Option[String],
+  latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]]
 ) extends Storage
 
@@ -42,6 +46,8 @@ case class Room(
   heightTo: Option[Long],
   groupRead: Option[String],
   groupWrite: Option[String],
+  latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   sikringSkallsikring: Option[Boolean],
   sikringTyverisikring: Option[Boolean],
@@ -63,6 +69,8 @@ case class Building(
   heightTo: Option[Long],
   groupRead: Option[String],
   groupWrite: Option[String],
+  latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   address: Option[String]
 ) extends Storage
@@ -73,7 +81,7 @@ object Storage {
 
   def fromDTO[T <: StorageDTO](dto: T) =
     dto match {
-      case stu: StorageUnitDTO =>
+      case stu: StorageNodeDTO =>
         StorageUnit(
           id = stu.id,
           name = stu.name,
@@ -84,6 +92,8 @@ object Storage {
           isPartOf = stu.isPartOf,
           groupRead = stu.groupRead,
           groupWrite = stu.groupWrite,
+          latestMoveId = stu.latestMoveId,
+          latestEnvReqId = stu.latestEnvReqId,
           links = stu.links
         )
       case building: BuildingDTO =>
@@ -97,6 +107,8 @@ object Storage {
           isPartOf = building.isPartOf,
           groupRead = building.groupRead,
           groupWrite = building.groupWrite,
+          latestMoveId = building.latestMoveId,
+          latestEnvReqId = building.latestEnvReqId,
           links = building.links,
           address = building.address
         )
@@ -111,6 +123,8 @@ object Storage {
           isPartOf = room.isPartOf,
           groupRead = room.groupRead,
           groupWrite = room.groupWrite,
+          latestMoveId = room.latestMoveId,
+          latestEnvReqId = room.latestEnvReqId,
           links = room.links,
           sikringSkallsikring = room.sikringSkallsikring,
           sikringBrannsikring = room.sikringBrannsikring,
@@ -134,6 +148,8 @@ object Storage {
       isPartOf = unit.isPartOf,
       groupRead = unit.groupRead,
       groupWrite = unit.groupWrite,
+      latestMoveId = unit.latestMoveId,
+      latestEnvReqId = unit.latestEnvReqId,
       links = unit.links,
       address = building.address
     )
@@ -150,6 +166,8 @@ object Storage {
       isPartOf = unit.isPartOf,
       groupRead = unit.groupRead,
       groupWrite = unit.groupWrite,
+      latestMoveId = unit.latestMoveId,
+      latestEnvReqId = unit.latestEnvReqId,
       links = unit.links,
       sikringSkallsikring = room.sikringSkallsikring,
       sikringBrannsikring = room.sikringBrannsikring,
@@ -163,7 +181,7 @@ object Storage {
   }
 
   def toDTO[T <: Storage](stu: T) =
-    StorageUnitDTO(
+    StorageNodeDTO(
       id = stu.id,
       name = stu.name,
       area = stu.area,
@@ -173,6 +191,8 @@ object Storage {
       heightTo = stu.heightTo,
       groupRead = stu.groupRead,
       groupWrite = stu.groupWrite,
+      latestMoveId = stu.latestMoveId,
+      latestEnvReqId = stu.latestEnvReqId,
       links = stu.links,
       isDeleted = false,
       storageType = StorageType.fromStorage(stu)

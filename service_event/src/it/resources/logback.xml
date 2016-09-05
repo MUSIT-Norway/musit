@@ -30,7 +30,7 @@
 
     <logger name="ch.qos.logback" level="ERROR"/>
     <logger name="logger" level="ERROR"/>
-    <logger name="slick.jdbc" level="DEBUG"/>
+    <logger name="slick.jdbc" level="WARN"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

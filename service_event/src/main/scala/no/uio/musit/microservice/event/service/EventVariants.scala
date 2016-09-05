@@ -39,7 +39,10 @@ import scala.concurrent.Future
  * 4) Those which needs a separate table. *AND* also uses the custom generic fields.
  */
 
-sealed trait EventImplementation
+sealed trait EventImplementation {
+
+  def storeObjectsInPlaceRelationTable = false
+}
 
 /**
  * For event types which don't need to store extra properties than what is in the base event table and doesn't use the custom generic fields.
