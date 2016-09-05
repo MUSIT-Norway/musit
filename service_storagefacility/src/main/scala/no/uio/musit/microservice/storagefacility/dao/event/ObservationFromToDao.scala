@@ -27,6 +27,9 @@ import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
 
+/**
+ * TODO: Document me!
+ */
 @Singleton
 class ObservationFromToDao @Inject()(
   val dbConfigProvider: DatabaseConfigProvider
@@ -34,13 +37,21 @@ class ObservationFromToDao @Inject()(
 
   import driver.api._
 
-  private val ObservationFromToTable = TableQuery[ObservationFromToTable]
+  private val observationFromToTable = TableQuery[ObservationFromToTable]
 
+  /**
+   * TODO: Document me!
+   */
   def insertAction(event: ObservationFromToDto): DBIO[Int] =
-    ObservationFromToTable += event
+    observationFromToTable += event
 
+  /**
+   * TODO: Document me!
+   */
   def getObservationFromTo(id: Long): Future[Option[ObservationFromToDto]] =
-    db.run(ObservationFromToTable.filter(event => event.id === id).result.headOption)
+    db.run(
+      observationFromToTable.filter(event => event.id === id).result.headOption
+    )
 
   private class ObservationFromToTable(
     val tag: Tag

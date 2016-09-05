@@ -20,47 +20,48 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao._
-import no.uio.musit.microservice.storagefacility.dao.event.EventLinks._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventRelation, EventRelations }
+import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes._
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, EventRelation, EventRelations}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+
+import scala.concurrent.Future
 
 /**
  * Created by jstabel on 7/6/16.
  */
 
 @Singleton
-class EventLinkDao @Inject() (
+class EventRelationDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends SharedEventTables with ColumnTypeMappers {
 
-  private val logger = Logger(classOf[EventLinkDao])
+  private val logger = Logger(classOf[EventRelationDao])
 
   import driver.api._
 
-  private val EventLinkTable = TableQuery[EventLinkTable]
+  private val eventLinkTable = TableQuery[EventRelationTable]
+  private val eventBaseTable = TableQuery[EventBaseTable]
 
-  private val EventBaseTable = TableQuery[EventBaseTable]
-
-  def insertEventLinkAction(eventLink: EventLink): DBIO[Int] = {
+  def insertEventLinkAction(eventLink: FullEventRelation): DBIO[Int] = {
     insertEventLinkDtoAction(eventLink.toNormalizedEventLinkDto)
   }
 
-  def insertEventLinkDtoAction(eventLink: EventLinkDto): DBIO[Int] = {
+  def insertEventLinkDtoAction(eventLink: EventRelationDto): DBIO[Int] = {
     logger.debug(s"inserLink: from: ${eventLink.idFrom} " +
       s"relation: ${eventLink.relationId} to: ${eventLink.idTo}")
 
-    EventLinkTable += eventLink
+    eventLinkTable += eventLink
   }
 
-  def getRelatedEventDtos(parentId: Long) /*: Future[Seq[(Int, BaseEventDto)]]*/ = {
-    val relevantRelations = EventLinkTable.filter(evt => evt.idFrom === parentId)
+  def getRelatedEventDtos(parentId: Long): Future[Seq[(Int, BaseEventDto)]] = {
+    val relevantRelations = eventLinkTable.filter(evt => evt.idFrom === parentId)
 
     logger.debug(s"gets relatedEventDtos for parentId: $parentId")
 
-    val action = EventBaseTable.join(relevantRelations).on(_.id === _.idTo)
+    val action = eventBaseTable.join(relevantRelations).on(_.id === _.idTo)
 
     val query = for {
       (eventBaseTable, relationTable) <- action
@@ -70,14 +71,9 @@ class EventLinkDao @Inject() (
 
   }
 
-  implicit lazy val eventRelationMapper = MappedColumnType.base[EventRelation, Int](
-    eventRelation => eventRelation.id,
-    id => EventRelations.getByIdOrFail(id)
-  )
-
-  private class EventLinkTable(
+  private class EventRelationTable(
       val tag: Tag
-  ) extends Table[EventLinkDto](tag, SchemaName, "EVENT_RELATION_EVENT") {
+  ) extends Table[EventRelationDto](tag, SchemaName, "EVENT_RELATION_EVENT") {
 
     def * = (idFrom, relationId, idTo) <> (create.tupled, destroy) // scalastyle:ignore
 
@@ -86,14 +82,14 @@ class EventLinkDao @Inject() (
     val relationId = column[Int]("RELATION_ID")
 
     def create = (idFrom: Long, relationId: Int, idTo: Long) =>
-      EventLinkDto(
+      EventRelationDto(
         idFrom,
         relationId,
         idTo
       )
 
-    def destroy(link: EventLinkDto) = Some(link.idFrom, link.relationId, link.idTo)
+    def destroy(link: EventRelationDto) =
+      Some(link.idFrom, link.relationId, link.idTo)
   }
 
 }
-

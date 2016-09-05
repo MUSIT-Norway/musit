@@ -41,7 +41,7 @@ class StorageUnitDao @Inject() (
 
   import driver.api._
 
-  private val StorageUnitTable = TableQuery[StorageUnitTable]
+  private val storageUnitTable = TableQuery[StorageUnitTable]
 
   def unknownStorageUnitMsg(id: StorageNodeId) =
     s"Unknown storageUnit with id: ${id.underlying}"
@@ -53,13 +53,13 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def getStorageUnitOnlyById(id: StorageNodeId): Future[Option[StorageUnitDto]] =
-    db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
+    db.run(storageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
   /**
    * TODO: Document me!!!
    */
   def getChildren(id: StorageNodeId): Future[Seq[StorageUnitDto]] = {
-    val action = StorageUnitTable.filter(_.isPartOf === id).result
+    val action = storageUnitTable.filter(_.isPartOf === id).result
     db.run(action)
   }
 
@@ -67,7 +67,7 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def getStorageType(id: StorageNodeId): MusitFuture[StorageType] = {
-    db.run(StorageUnitTable.filter(_.id === id).map(_.storageType).result.headOption)
+    db.run(storageUnitTable.filter(_.id === id).map(_.storageType).result.headOption)
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
   }
 
@@ -75,7 +75,7 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def all(): Future[Seq[StorageUnitDto]] =
-    db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
+    db.run(storageUnitTable.filter(st => st.isDeleted === false).result)
 
   /**
    * TODO: Document me!!!
@@ -87,7 +87,7 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def insertAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
-    StorageUnitTable returning StorageUnitTable.map(_.id) into
+    storageUnitTable returning storageUnitTable.map(_.id) into
       ((storageUnit, id) =>
         storageUnit.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
       storageUnit
@@ -97,7 +97,7 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def updateStorageUnitAction(id: StorageNodeId, storageUnit: StorageUnitDto): DBIO[Int] = {
-    StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
+    storageUnitTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
   }
 
   /**
@@ -112,7 +112,7 @@ class StorageUnitDao @Inject() (
    */
   def deleteStorageUnit(id: StorageNodeId): Future[Int] = {
     db.run((for {
-      storageUnit <- StorageUnitTable if storageUnit.id === id && storageUnit.isDeleted === false
+      storageUnit <- storageUnitTable if storageUnit.id === id && storageUnit.isDeleted === false
     } yield storageUnit.isDeleted).update(true))
   }
 

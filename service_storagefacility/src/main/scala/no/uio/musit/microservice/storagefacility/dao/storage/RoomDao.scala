@@ -37,15 +37,15 @@ class RoomDao @Inject() (
 
   import driver.api._
 
-  private val RoomTable = TableQuery[RoomTable]
+  private val roomTable = TableQuery[RoomTable]
 
   def getRoomById(id: StorageNodeId): Future[Option[Room]] = {
-    val action = RoomTable.filter(_.id === id).result.headOption
+    val action = roomTable.filter(_.id === id).result.headOption
     db.run(action)
   }
 
   private def updateRoomOnlyAction(id: StorageNodeId, storageRoom: Room): DBIO[Int] = {
-    RoomTable.filter(_.id === id).update(storageRoom)
+    roomTable.filter(_.id === id).update(storageRoom)
   }
 
   def updateRoom(id: Long, room: Room) = {
@@ -63,7 +63,7 @@ class RoomDao @Inject() (
   private def insertRoomOnlyAction(storageRoom: Room): DBIO[Int] = {
     assert(storageRoom.id.isDefined) //if failed then it's our bug
     val stRoom = storageRoom.copy(links = Storage.linkText(storageRoom.id))
-    val insertQuery = RoomTable
+    val insertQuery = roomTable
     val action = insertQuery += stRoom
     action
   }

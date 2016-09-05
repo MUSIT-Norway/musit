@@ -40,13 +40,13 @@ class BuildingDao @Inject() (
 
   import driver.api._
 
-  private val BuildingTable = TableQuery[BuildingTable]
+  private val buildingTable = TableQuery[BuildingTable]
 
   /**
    * TODO: Document me!!!
    */
   def getBuildingById(id: StorageNodeId): Future[Option[Building]] = {
-    val action = BuildingTable.filter(_.id === id).result.headOption
+    val action = buildingTable.filter(_.id === id).result.headOption
     db.run(action)
   }
 
@@ -54,7 +54,7 @@ class BuildingDao @Inject() (
    * TODO: Document me!!!
    */
   def updateBuildingOnlyAction(id: StorageNodeId, storageBuilding: Building): DBIO[Int] = {
-    BuildingTable.filter(_.id === id).update(storageBuilding)
+    buildingTable.filter(_.id === id).update(storageBuilding)
   }
 
   /**
@@ -70,7 +70,7 @@ class BuildingDao @Inject() (
 
   private def insertBuildingOnlyAction(storageBuilding: Building): DBIO[Int] = {
     val stBuilding = storageBuilding.copy(links = Storage.linkText(storageBuilding.id))
-    val insertQuery = BuildingTable
+    val insertQuery = buildingTable
     val action = insertQuery += stBuilding
     action
   }

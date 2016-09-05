@@ -20,13 +20,11 @@
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
-import no.uio.musit.microservices.common.linking.domain.Link
 
 // TODO: Change id and partOf to EventId
 
 sealed trait Dto {
   val id: Option[Long]
-  val links: Option[Seq[Link]]
   val eventTypeId: EventTypeId
   val note: Option[String]
   val relatedSubEvents: Seq[RelatedEvents]
@@ -48,7 +46,6 @@ sealed trait Dto {
  */
 case class BaseEventDto(
   id: Option[Long],
-  links: Option[Seq[Link]],
   eventTypeId: EventTypeId,
   note: Option[String],
   relatedSubEvents: Seq[RelatedEvents],
@@ -65,22 +62,20 @@ sealed trait DtoExtension
  * conversions between domain and to.
  */
 case class ExtendedDto(
-    id: Option[Long],
-    links: Option[Seq[Link]],
-    eventTypeId: EventTypeId,
-    note: Option[String],
-    relatedSubEvents: Seq[RelatedEvents],
-    partOf: Option[Long],
-    valueLong: Option[Long] = None,
-    valueString: Option[String] = None,
-    valueDouble: Option[Double] = None,
-    extension: DtoExtension
+  id: Option[Long],
+  eventTypeId: EventTypeId,
+  note: Option[String],
+  relatedSubEvents: Seq[RelatedEvents],
+  partOf: Option[Long],
+  valueLong: Option[Long] = None,
+  valueString: Option[String] = None,
+  valueDouble: Option[Double] = None,
+  extension: DtoExtension
 ) extends Dto {
 
   def baseEventDto: BaseEventDto = {
     BaseEventDto(
       id = id,
-      links = links,
       eventTypeId = eventTypeId,
       note = note,
       relatedSubEvents = relatedSubEvents,
@@ -92,6 +87,25 @@ case class ExtendedDto(
   }
 
 }
+
+object ExtendedDto {
+
+  def apply(bed: BaseEventDto, ext: DtoExtension): ExtendedDto = {
+    ExtendedDto(
+      id = bed.id,
+      eventTypeId = bed.eventTypeId,
+      note = bed.note,
+      relatedSubEvents = bed.relatedSubEvents,
+      partOf = bed.partOf,
+      valueLong = bed.valueLong,
+      valueDouble = bed.valueDouble,
+      valueString = bed.valueString,
+      extension = ext
+    )
+  }
+
+}
+
 
 /**
  * Dto to handle environment requirements.

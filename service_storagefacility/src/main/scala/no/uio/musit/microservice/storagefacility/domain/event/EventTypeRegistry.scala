@@ -37,6 +37,9 @@ object EventTypeId {
 
 /**
  * Represents an entry in the event type registry
+ *
+ * TODO: RE-THINK - This should possibly be modified slightly to avoid very
+ * large pattern matches.
  */
 sealed trait EventTypeEntry extends EnumEntry {
   val id: EventTypeId
@@ -66,10 +69,6 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
    * exception. Use with care!
    */
   def unsafeFromId(id: EventTypeId): EventTypeEntry = fromId(id).get
-
-  def unsafeTypedFromId[T <: SubEventType](id: EventTypeId): T = {
-    ???
-  }
 
   /**
    * All events that appear at the root of an event structure should extend
@@ -135,6 +134,27 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
       case se: T => Some(se)
       case _ => None
     }
+  }
+
+  /**
+   * Try to look up a SubEventType with a given ID in the registry.
+   *
+   * @param id the ID of the SubEventType to look for
+   * @tparam T the type of SubEventType to look for
+   * @return
+   * @throws IllegalArgumentException if the SubEventType doesn't match T. // scalstyle:ignore
+   */
+  def unsafeSubFromId[T <: SubEventType](id: EventTypeId)(implicit ct: ClassTag[T]): T =
+  unsafeFromId(id) match {
+    case sub: T => sub
+    case bad =>
+      val expStr = ct.toString
+      val expected = expStr.substring(expStr.lastIndexOf("$") + 1)
+      // scalastyle:off
+      throw new IllegalArgumentException(
+        s"Sub-event type ${bad.entryName} " +
+          s"is not a valid $expected"
+      ) // scalastyle:on
   }
 
   /**

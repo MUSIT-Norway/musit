@@ -51,7 +51,6 @@ object DtoConverters {
   ): BaseEventDto = {
     BaseEventDto(
       id = sub.baseEvent.id,
-      links = sub.baseEvent.links,
       eventTypeId = sub.eventType.registeredEventId,
       note = sub.baseEvent.note,
       relatedSubEvents = relEvents,
@@ -85,7 +84,6 @@ object DtoConverters {
   ): ExtendedDto = {
     ExtendedDto(
       id = sub.baseEvent.id,
-      links = sub.baseEvent.links,
       eventTypeId = sub.eventType.registeredEventId,
       note = sub.baseEvent.note,
       relatedSubEvents = Seq.empty[RelatedEvents],
@@ -144,7 +142,6 @@ object DtoConverters {
       Control(
         baseEvent = MusitEventBase(
           id = dto.id,
-          links = dto.links,
           note = dto.note,
           partOf = dto.partOf
         ),
@@ -170,7 +167,7 @@ object DtoConverters {
 
     // scalastyle:off method.length
     def controlSubEventFromDto(dto: BaseEventDto): ControlSubEvent = {
-      val base = MusitEventBase(dto.id, dto.links, dto.note, dto.partOf)
+      val base = MusitEventBase(dto.id, dto.note, dto.partOf)
       val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
       val ok = dto.valueLong
@@ -283,7 +280,6 @@ object DtoConverters {
       Observation(
         baseEvent = MusitEventBase(
           id = dto.id,
-          links = dto.links,
           note = dto.note,
           partOf = dto.partOf
         ),
@@ -362,7 +358,6 @@ object DtoConverters {
     def obsSubEventFromBasicDto(dto: BaseEventDto): ObservationSubEvent = {
       val base = MusitEventBase(
         id = dto.id,
-        links = dto.links,
         note = dto.note,
         partOf = dto.partOf
       )
@@ -410,7 +405,6 @@ object DtoConverters {
     def obsSubEventFromExtendedDto(dto: ExtendedDto): ObservationSubEvent = {
       val base = MusitEventBase(
         id = dto.id,
-        links = dto.links,
         note = dto.note,
         partOf = dto.partOf
       )

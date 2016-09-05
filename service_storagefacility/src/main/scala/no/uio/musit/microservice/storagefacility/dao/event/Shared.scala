@@ -19,43 +19,46 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import no.uio.musit.microservice.storagefacility.dao.{ ColumnTypeMappers, SchemaName }
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, EventRelation, ObservationFromToDto }
-import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.microservices.common.linking.domain.Link
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, EventRelation, ObservationFromToDto}
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-object EventLinks {
+object EventRelationTypes {
+
+  // FIXME: Really struggling to see why the below types are necessary.
 
   /**
-   * TODO: What am I?
+   * TODO: What am I and what is my purpose?
    */
-  case class PartialEventLink(idFrom: Long, relation: EventRelation) {
-    def toFullLink(idTo: Long) = EventLink(idFrom, relation, idTo)
+  case class PartialEventRelation(idFrom: Long, relation: EventRelation) {
+    def toFullLink(idTo: Long) = FullEventRelation(idFrom, relation, idTo)
   }
 
   /**
-   * TODO: What am I?
+   * TODO: What am I and what is my purpose?
    */
-  case class EventLink(idFrom: Long, relation: EventRelation, idTo: Long) {
+  case class FullEventRelation(
+    idFrom: Long,
+    relation: EventRelation,
+    idTo: Long
+  ) {
 
     /**
      * TODO: What do I do?
      */
     def normalizedDirection = {
       if (relation.isNormalized) this
-      else EventLink(idTo, relation.getNormalizedDirection, idFrom)
+      else FullEventRelation(idTo, relation.getNormalizedDirection, idFrom)
     }
 
     /**
      * TODO: What do I do?
      */
-    def toEventLinkDto = EventLinkDto(idFrom, relation.id, idTo)
+    def toEventLinkDto = EventRelationDto(idFrom, relation.id, idTo)
 
     /**
      * TODO: What do I do?
@@ -65,21 +68,9 @@ object EventLinks {
   }
 
   /**
-   * TODO: What am I?
+   * TODO: What am I and what is my purpose?
    */
-  case class EventLinkDto(idFrom: Long, relationId: Int, idTo: Long)
-
-}
-
-/**
- * Helper functions that can be shared across DAO implementations
- */
-private[dao] trait EventHelpers {
-
-  /**
-   * Creates a link for a given ID to itself
-   */
-  def selfLink(id: Long): Link = LinkService.local(Some(id), "self", s"/v1/$id")
+  case class EventRelationDto(idFrom: Long, relationId: Int, idTo: Long)
 
 }
 
@@ -92,13 +83,12 @@ private[dao] trait BaseEventDao extends HasDatabaseConfigProvider[JdbcProfile]
  * Tables definitions that are required across DAO implementations.
  */
 private[dao] trait SharedEventTables extends BaseEventDao
-    with EventHelpers
-    with ColumnTypeMappers {
+  with ColumnTypeMappers {
 
   import driver.api._
 
   class EventBaseTable(
-      val tag: Tag
+    val tag: Tag
   ) extends Table[BaseEventDto](tag, SchemaName, "EVENT") {
 
     // scalastyle:off method.name
@@ -110,7 +100,7 @@ private[dao] trait SharedEventTables extends BaseEventDao
       valueLong,
       valueString,
       valueDouble
-    ) <> (create.tupled, destroy)
+      ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
 
@@ -136,7 +126,6 @@ private[dao] trait SharedEventTables extends BaseEventDao
     ) =>
       BaseEventDto(
         id = id,
-        links = Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
         eventTypeId = eventTypeId,
         note = note,
         relatedSubEvents = Seq.empty,
@@ -159,7 +148,7 @@ private[dao] trait SharedEventTables extends BaseEventDao
   }
 
   class ObservationFromToTable(
-      val tag: Tag
+    val tag: Tag
   ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
 
     def * = (id, from, to) <> (create.tupled, destroy)
@@ -177,14 +166,14 @@ private[dao] trait SharedEventTables extends BaseEventDao
       Some(event.id, event.from, event.to)
   }
 
-  val ObservationFromToTable = TableQuery[ObservationFromToTable]
+  val observationFromToTable = TableQuery[ObservationFromToTable]
 
   def insertObservationFromToAction(event: ObservationFromToDto): DBIO[Int] =
-    ObservationFromToTable += event
+    observationFromToTable += event
 
   def getObservationFromTo(id: Long): Future[Option[ObservationFromToDto]] =
     db.run(
-      ObservationFromToTable.filter(event => event.id === id).result.headOption
+      observationFromToTable.filter(event => event.id === id).result.headOption
     )
 
 }

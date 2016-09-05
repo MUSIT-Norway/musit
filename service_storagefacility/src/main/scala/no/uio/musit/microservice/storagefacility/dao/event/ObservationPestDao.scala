@@ -20,10 +20,9 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{LifecycleDto, ObservationPestDto}
-import no.uio.musit.microservices.common.utils.DaoHelper
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ LifecycleDto, ObservationPestDto }
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -33,13 +32,13 @@ import scala.concurrent.Future
  * Created by jstabel on 7/8/16.
  */
 @Singleton
-class ObservationPestDao @Inject()(
-  val dbConfigProvider: DatabaseConfigProvider
+class ObservationPestDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
 ) extends BaseEventDao {
 
   import driver.api._
 
-  private val LifeCycleTable = TableQuery[LifeCycleTable]
+  private val lifeCycleTable = TableQuery[LifeCycleTable]
 
   /**
    * The insertAction and getObservation are somewhat more complex than
@@ -52,20 +51,20 @@ class ObservationPestDao @Inject()(
     val lifeCyclesWithEventId = obsDto.lifeCycles.map { lifeCycle =>
       lifeCycle.copy(eventId = Some(eventId))
     }
-    DaoHelper.mapMultiRowInsertResultIntoOk(
-      LifeCycleTable ++= lifeCyclesWithEventId
-    )
+    (lifeCycleTable ++= lifeCyclesWithEventId).map { maybeInt =>
+      maybeInt.fold(1)(identity)
+    }
   }
 
   def getObservation(id: Long): Future[Option[ObservationPestDto]] =
-    db.run(LifeCycleTable.filter(lifeCycle => lifeCycle.eventId === id).result)
+    db.run(lifeCycleTable.filter(lifeCycle => lifeCycle.eventId === id).result)
       .map {
         case Nil => None
         case lifeCycles => Some(ObservationPestDto(lifeCycles))
       }
 
   private class LifeCycleTable(
-    val tag: Tag
+      val tag: Tag
   ) extends Table[LifecycleDto](tag, SchemaName, "OBSERVATION_PEST_LIFECYCLE") {
     def * = (eventId, stage, number) <> (create.tupled, destroy)
 
