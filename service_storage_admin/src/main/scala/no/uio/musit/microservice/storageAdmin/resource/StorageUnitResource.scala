@@ -62,16 +62,17 @@ class StorageUnitResource @Inject() (
 
   def listAll = Action.async {
     storageUnitService.all.flatMap(list => {
-      Future.sequence(list.map(unit => {
-        unit.storageType match {
+      Future.sequence(list.map(node => {
+
+        node.storageType match {
           case StorageType.StorageUnit =>
-            Future.successful(Storage.fromDTO(unit))
+            Future.successful(Storage.fromDTO(node))
           case StorageType.Building =>
-            buildingService.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
-              Storage.getBuilding(unit, building)))
+            buildingService.getBuildingById(node.id.get).map(_.fold(Storage.fromDTO(node))(building =>
+              Storage.getBuilding(node, building)))
           case StorageType.Room =>
-            roomService.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
-              Storage.getRoom(unit, room)))
+            roomService.getRoomById(node.id.get).map(_.fold(Storage.fromDTO(node))(room =>
+              Storage.getRoom(node, room)))
         }
       })).map(__ => Ok(Json.toJson(__)))
     })

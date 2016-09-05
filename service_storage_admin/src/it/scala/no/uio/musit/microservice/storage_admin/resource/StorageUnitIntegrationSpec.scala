@@ -104,7 +104,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           		"temperatureTolerance": 4,
           		"hypoxicAir": 40,
           		"hypoxicAirTolerance": 4,
-          		"lightningConditions": "Mørkt",
+          		"lightingConditions": "Mørkt",
           		"relativeHumidity": 71,
           		"relativeHumidityTolerance": 4,
           		"cleaning": "Veldig sort",
@@ -183,7 +183,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val future = createStorageUnit(myJSon)
       val response = future.futureValue
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
-      storageUnit.perimeterSecurity mustBe Some(false)
+      storageUnit.securityAssessment.perimeterSecurity mustBe Some(false)
 
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get

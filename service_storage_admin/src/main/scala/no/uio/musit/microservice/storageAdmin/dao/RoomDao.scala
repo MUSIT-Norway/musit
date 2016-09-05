@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageNodeDTO
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{CompleteRoomDto, RoomDTO, StorageDtoConverter, StorageNodeDTO}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
@@ -13,50 +13,59 @@ import scala.concurrent.Future
 class RoomDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
     val storageUnitDao: StorageUnitDao
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with StorageDtoConverter{
 
   import driver.api._
 
   private val RoomTable = TableQuery[RoomTable]
 
-  def getRoomById(id: Long): Future[Option[Room]] = {
+  def getRoomById(id: Long): Future[Option[RoomDTO]] = {
     val action = RoomTable.filter(_.id === id).result.headOption
     db.run(action)
   }
 
-  private def updateRoomOnlyAction(id: Long, storageRoom: Room): DBIO[Int] = {
+  private def updateRoomOnlyAction(id: Long, storageRoom: RoomDTO): DBIO[Int] = {
     RoomTable.filter(_.id === id).update(storageRoom)
   }
 
   def updateRoom(id: Long, room: Room) = {
+    val roomDto = roomToDto(room)
+    val storageNodePart = roomDto.storageNode
+    val roomPart = roomDto.roomDto
 
     //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord
     // will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = storageUnitDao.updateStorageUnitAction(id, Storage.toDTO(room))
+    val updateStorageUnitOnlyAction = storageUnitDao.updateNodeUnitAction(id, storageNodePart)
+    //TODO: Pipe the above into DaoHelper.onlyAcceptOneUpdatedRecord or similar (like it was done in an earlier version of this code),
+    // because the above line needs to throw an exception if it for some reason doesn't update the given row
+    //(As an example, we don't want to update the RoomOnly if the node has been logically deleted or the user doesn't have write access to the node in the first place)
 
-    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, room.copy(id = Some(id))) }
+    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, roomPart.copy(id = Some(id))) }
 
     db.run(combinedAction.transactionally)
   }
 
-  private def insertRoomOnlyAction(storageRoom: Room): DBIO[Int] = {
-    assert(storageRoom.id.isDefined) //if failed then it's our bug
-    val stRoom = storageRoom.copy(links = Storage.linkText(storageRoom.id))
+  private def insertRoomOnlyAction(storageRoom: RoomDTO): DBIO[Int] = {
+    require(storageRoom.id.isDefined) //if failed then it's our bug
     val insertQuery = RoomTable
-    val action = insertQuery += stRoom
+    val action = insertQuery += storageRoom
     action
   }
 
-  def insertRoom(storageUnit: StorageNodeDTO, storageRoom: Room): Future[Storage] = {
+  def insertRoom(completeRoomDto: CompleteRoomDto): Future[Storage] = {
+    val nodePartIn = completeRoomDto.storageNode
+    val roomPartIn = completeRoomDto.roomDto
+
     val action = (for {
-      storageUnit <- storageUnitDao.insertAction(storageUnit)
-      n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
-    } yield Storage.getRoom(storageUnit, storageRoom)).transactionally
+      nodePartOut <- storageUnitDao.insertAction(nodePartIn)
+      roomPartOut = roomPartIn.copy(id = nodePartOut.id)
+      n <- insertRoomOnlyAction(roomPartOut)
+    } yield fromDto(CompleteRoomDto(nodePartOut, roomPartOut))).transactionally
     db.run(action)
   }
 
-  private class RoomTable(tag: Tag) extends Table[Room](tag, Some("MUSARK_STORAGE"), "ROOM") {
+  private class RoomTable(tag: Tag) extends Table[RoomDTO](tag, Some("MUSARK_STORAGE"), "ROOM") {
 
     def * = (id, perimeterSecurity, theftProtection, fireProtection, waterDamageAssessment, // scalastyle:ignore
       routinesAndContingencyPlan, relativeHumidity, temperatureAssessment, lightingCondition, preventiveConservation) <> (create.tupled, destroy)
@@ -86,7 +95,7 @@ class RoomDao @Inject() (
       routinesAndContingencyPlan: Option[Boolean], relativeHumidity: Option[Boolean], temperatureAssessment: Option[Boolean],
       lightingCondition: Option[Boolean], preventiveConservation: Option[Boolean]
     ) =>
-      Room(id, null, None, None, None, None, None, None, None, None, None, None,
+      RoomDTO(id,
         perimeterSecurity,
         theftProtection,
         fireProtection,
@@ -97,7 +106,7 @@ class RoomDao @Inject() (
         lightingCondition,
         preventiveConservation)
 
-    def destroy(room: Room) = Some(room.id, room.perimeterSecurity, room.theftProtection,
+    def destroy(room: RoomDTO) = Some(room.id, room.perimeterSecurity, room.theftProtection,
       room.fireProtection, room.waterDamageAssessment,
       room.routinesAndContingencyPlan, room.relativeHumidity, room.temperatureAssessment, room.lightingCondition, room.preventiveConservation)
   }
