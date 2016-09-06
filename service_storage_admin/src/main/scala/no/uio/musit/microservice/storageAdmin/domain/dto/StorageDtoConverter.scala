@@ -26,26 +26,6 @@ trait StorageDtoConverter {
     }
   }
 
-/*
-  def toDTO[T <: Storage](stu: T) =
-    StorageNodeDTO(
-      id = stu.id,
-      name = stu.name,
-      area = stu.area,
-      areaTo = stu.areaTo,
-      isPartOf = stu.isPartOf,
-      height = stu.height,
-      heightTo = stu.heightTo,
-      groupRead = stu.groupRead,
-      groupWrite = stu.groupWrite,
-      latestMoveId = stu.latestMoveId,
-      latestEnvReqId = stu.latestEnvReqId,
-      links = stu.links,
-      isDeleted = false,
-      storageType = StorageType.fromStorage(stu)
-    )
-*/
-
   def storageNodeToDto(storage: Storage): StorageNodeDTO = {
     StorageNodeDTO(
       id = storage.id,
