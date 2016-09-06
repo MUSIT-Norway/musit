@@ -4,10 +4,13 @@
 
 # Setup endpoints
 
-## Mapping routes, TODO: Remove these enpoints when database is migrated.
+GET     /v1/dataporten/currentUser             no.uio.musit.microservice.actor.resource.PersonResource.getCurrentUserAsActor
+
+## Mapping routes, TODO: Remove these endpoints when database is migrated.
 GET     /v1/person                                 no.uio.musit.microservice.actor.resource.LegacyPersonResource.list(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
 POST    /v1/person/details                         no.uio.musit.microservice.actor.resource.LegacyPersonResource.getPersonDetails
 GET     /v1/person/:id                             no.uio.musit.microservice.actor.resource.LegacyPersonResource.getById(id:Long)
+
 
 ## Person routes, the new actor TODO: Use new endpoints when database is migrated.
 #GET     /v1/person                                 no.uio.musit.microservice.actor.resource.PersonResource.listRoot(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
@@ -29,3 +32,5 @@ POST    /v1/organization/:orgId/address            no.uio.musit.microservice.act
 PUT     /v1/organization/:orgId/address/:id        no.uio.musit.microservice.actor.resource.OrganizationAddressResource.updateRoot(orgId:Long, id:Long)
 GET     /v1/organization/:orgId/address/:id        no.uio.musit.microservice.actor.resource.OrganizationAddressResource.getRoot(orgId:Long, id:Long)
 DELETE  /v1/organization/:orgId/address/:id        no.uio.musit.microservice.actor.resource.OrganizationAddressResource.deleteRoot(orgId:Long, id:Long)
+
+

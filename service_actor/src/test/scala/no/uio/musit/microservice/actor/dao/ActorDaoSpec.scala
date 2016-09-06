@@ -22,6 +22,7 @@ package no.uio.musit.microservice.actor.dao
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
+import no.uio.musit.security.FakeSecurity
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
@@ -60,6 +61,47 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
         res mustBe None
       }
     }
-  }
 
+    "dataporten integration" should {
+      "return a Person if the dataportenId is valid" in {
+        val uid = "a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f"
+        val newPerson = Person(Some(2), "Herr Larmerud", dataportenId = Some(uid),
+          links = Some(Seq(LinkService.self("/v1/person/2"))))
+
+        val personId = actorDao.insertPerson(newPerson).futureValue.id.get
+
+        val res = actorDao.getPersonByDataportenId(uid).futureValue
+        res.isDefined mustBe true
+        val person = res.get
+        person.fn mustBe "Herr Larmerud"
+        person.dataportenId mustBe Some(uid)
+        person.id mustBe Some(personId)
+        actorDao.deletePerson(personId)
+      }
+
+      "Don't find actor with unknown dataportenId" in {
+        val res = actorDao.getPersonByDataportenId("tullballId").futureValue
+        res.isDefined mustBe false
+      }
+
+      "Don't find actor with unknown dataportenId based on security connection etc" in {
+        val secConnection = FakeSecurity.createInMemoryFromFakeAccessToken("fake-token-zab-xy-jarle", false).futureValue
+        val res = actorDao.getPersonByDataportenId(secConnection.userId).futureValue
+        res.isDefined mustBe false
+
+        val person = actorDao.insertActorWithDataportenUserInfo(secConnection).futureValue
+        person.isRight mustBe true
+        person.right.map {
+          p =>
+            p.dataportenId mustBe Some(secConnection.userId)
+            p.fn mustBe secConnection.userName
+            p.email mustBe secConnection.userEmail
+        }
+
+        val res2 = actorDao.getPersonByDataportenId(secConnection.userId).futureValue
+        res2.isDefined mustBe true
+        res2.get.fn mustBe secConnection.userName
+      }
+    }
+  }
 }

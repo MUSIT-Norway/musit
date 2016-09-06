@@ -22,9 +22,13 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservice.actor.service.PersonService
 import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.security.Security
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
+import no.uio.musit.microservices.common.utils.ResourceHelper
+import no.uio.musit.microservices.common.utils.ResourceHelper._
 
 import scala.concurrent.Future
 
@@ -67,5 +71,12 @@ class PersonResource @Inject() (personService: PersonService) extends Controller
 
   def deleteRoot(id: Long): Action[AnyContent] = Action.async { request =>
     personService.remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
+  }
+
+  def getCurrentUserAsActor: Action[AnyContent] = Action.async { request =>
+    val futPerson = Security.create(request).musitFutureFlatMap { securityConnection =>
+      personService.getCurrentUserAsActor(securityConnection)
+    }
+    ResourceHelper.getRoot(futPerson, (p: Person) => Json.toJson(p))
   }
 }
