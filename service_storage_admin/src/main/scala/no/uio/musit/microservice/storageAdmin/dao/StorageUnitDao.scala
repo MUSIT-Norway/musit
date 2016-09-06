@@ -38,6 +38,11 @@ class StorageUnitDao @Inject() (
     db.run(action)
   }
 
+  def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
+    val action = StorageUnitTable.filter(st => st.isPartOf === id && st.isDeleted === false).result
+    db.run(action)
+  }
+
   def getStorageType(id: Long): MusitFuture[StorageType] = {
     db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).map(_.storageType).result.headOption)
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
