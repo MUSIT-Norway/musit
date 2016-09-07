@@ -36,22 +36,6 @@ case class StorageUnit(
   links: Option[Seq[Link]]
 ) extends Storage
 
-
-case class SecurityAssessment(
-                               perimeterSecurity: Option[Boolean],
-                              theftProtection: Option[Boolean],
-                              fireProtection: Option[Boolean],
-                              waterDamageAssessment: Option[Boolean],
-                              routinesAndContingencyPlan: Option[Boolean]
-                             )
-
-case class EnvironmentAssessment(
-                                  relativeHumidity: Option[Boolean],
-                                  temperatureAssessment: Option[Boolean],
-                                  lightingCondition: Option[Boolean],
-                                  preventiveConservation: Option[Boolean]
-                             )
-
 case class Room(
   id: Option[Long],
   name: String,

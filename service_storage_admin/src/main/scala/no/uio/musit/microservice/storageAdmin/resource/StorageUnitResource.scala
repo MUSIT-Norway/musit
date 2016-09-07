@@ -20,8 +20,8 @@ package no.uio.musit.microservice.storageAdmin.resource
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageType
-import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{CompleteBuildingDto, CompleteStorageUnitDto, StorageDtoConverter, StorageType}
+import no.uio.musit.microservice.storageAdmin.service.{BuildingService, RoomService, StorageUnitService}
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ResourceHelper
@@ -35,7 +35,7 @@ class StorageUnitResource @Inject() (
     storageUnitService: StorageUnitService,
     buildingService: BuildingService,
     roomService: RoomService
-) extends Controller {
+) extends Controller with StorageDtoConverter {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
@@ -66,9 +66,9 @@ class StorageUnitResource @Inject() (
 
         node.storageType match {
           case StorageType.StorageUnit =>
-            Future.successful(Storage.fromDTO(node))
+            Future.successful(storageUnitFromDto(CompleteStorageUnitDto(node)))
           case StorageType.Building =>
-            buildingService.getBuildingById(node.id.get).map(_.fold(Storage.fromDTO(node))(building =>
+            buildingService.getBuildingById(node.id.get).map(_.fold(buildingFromDto(CompleteBuildingDto(node,building =>
               Storage.getBuilding(node, building)))
           case StorageType.Room =>
             roomService.getRoomById(node.id.get).map(_.fold(Storage.fromDTO(node))(room =>
