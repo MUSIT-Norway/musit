@@ -1,12 +1,12 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.domain.{Storage, StorageUnit}
+import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageUnit }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -60,13 +60,10 @@ class StorageUnitDao @Inject() (
   def insert(storageUnit: CompleteStorageUnitDto): Future[StorageNodeDTO] =
     db.run(insertAction(storageUnit.storageNode))
 
-
   def insertStorageUnit(completeStorageUnitDto: CompleteStorageUnitDto): Future[Storage] = {
     val futStorageUnitDto = insert(completeStorageUnitDto)
     futStorageUnitDto.map(storageUnitDto => fromDto(CompleteStorageUnitDto(storageUnitDto)))
   }
-
-
 
   def insertAction(storageNodePart: StorageNodeDTO): DBIO[StorageNodeDTO] = {
     StorageNodeTable returning StorageNodeTable.map(_.id) into

@@ -22,16 +22,16 @@ case class BuildingDTO(
 ) extends StorageDTO
 
 case class RoomDTO(
-                    id: Option[Long],
-                    perimeterSecurity: Option[Boolean],
-                    theftProtection: Option[Boolean],
-                    fireProtection: Option[Boolean],
-                    waterDamageAssessment: Option[Boolean],
-                    routinesAndContingencyPlan: Option[Boolean],
-                    relativeHumidity: Option[Boolean],
-                    temperatureAssessment: Option[Boolean],
-                    lightingCondition: Option[Boolean],
-                    preventiveConservation: Option[Boolean]
+  id: Option[Long],
+  perimeterSecurity: Option[Boolean],
+  theftProtection: Option[Boolean],
+  fireProtection: Option[Boolean],
+  waterDamageAssessment: Option[Boolean],
+  routinesAndContingencyPlan: Option[Boolean],
+  relativeHumidity: Option[Boolean],
+  temperatureAssessment: Option[Boolean],
+  lightingCondition: Option[Boolean],
+  preventiveConservation: Option[Boolean]
 ) extends StorageDTO
 
 case class StorageNodeDTO(
@@ -51,14 +51,11 @@ case class StorageNodeDTO(
   storageType: StorageType
 ) extends StorageDTO
 
-
-
 sealed trait CompleteStorageNodeDto {
   val storageNode: StorageNodeDTO
 }
 
 case class CompleteBuildingDto(storageNode: StorageNodeDTO, buildingDto: BuildingDTO) extends CompleteStorageNodeDto
-case class CompleteRoomDto(storageNode: StorageNodeDTO, roomDto: RoomDTO)  extends CompleteStorageNodeDto
-case class CompleteStorageUnitDto(storageNode: StorageNodeDTO)  extends CompleteStorageNodeDto
-
+case class CompleteRoomDto(storageNode: StorageNodeDTO, roomDto: RoomDTO) extends CompleteStorageNodeDto
+case class CompleteStorageUnitDto(storageNode: StorageNodeDTO) extends CompleteStorageNodeDto
 

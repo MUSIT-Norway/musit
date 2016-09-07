@@ -4,7 +4,7 @@ import julienrf.json.derived
 import no.uio.musit.microservice.storageAdmin.domain.dto._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{ OFormat, __ }
+import play.api.libs.json.{ Json, OFormat, __ }
 
 sealed trait Storage {
   val id: Option[Long]
@@ -19,6 +19,8 @@ sealed trait Storage {
   val latestMoveId: Option[Long]
   val latestEnvReqId: Option[Long]
   val links: Option[Seq[Link]]
+
+  //TODO  val environmentRequirement: Option[EnvironmentRequirement] //TODO: Optional or required?
 }
 
 case class StorageUnit(
@@ -49,8 +51,8 @@ case class Room(
   latestMoveId: Option[Long],
   latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
-  securityAssessment: SecurityAssessment,
-  environmentAssessment: EnvironmentAssessment
+  securityAssessment: SecurityAssessment, //TODO: Optional or required?
+  environmentAssessment: EnvironmentAssessment //TODO: Optional or required?
 ) extends Storage
 
 case class Building(
@@ -69,10 +71,24 @@ case class Building(
   address: Option[String]
 ) extends Storage
 
+case class EnvironmentRequirement(
+  temperature: Option[Double],
+  temperatureTolerance: Option[Double],
+  hypoxicAir: Option[Double],
+  hypoxicTolerance: Option[Double],
+  relativeHumidity: Option[Double],
+  relativeHumidityTolerance: Option[Double],
+  cleaning: Option[String],
+  comments: Option[String]
+)
+
+object EnvironmentRequirement {
+  implicit val format = Json.format[EnvironmentRequirement]
+}
+
 object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
-
 
   def linkText(id: Option[Long]) =
     Some(Seq(LinkService.self(s"/v1/${id.get}")))

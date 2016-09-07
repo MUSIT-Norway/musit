@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.domain.dto.{BuildingDTO, CompleteBuildingDto, StorageNodeDTO}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ BuildingDTO, CompleteBuildingDto, StorageNodeDTO }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
@@ -47,7 +47,7 @@ class BuildingDao @Inject() (
 
   def insertBuilding(completeBuildingDto: CompleteBuildingDto): Future[Storage] = {
     val nodePartIn = completeBuildingDto.storageNode
-    val buildingPartIn =completeBuildingDto.buildingDto
+    val buildingPartIn = completeBuildingDto.buildingDto
 
     val action = (for {
       nodePartOut <- storageUnitDao.insertAction(nodePartIn)

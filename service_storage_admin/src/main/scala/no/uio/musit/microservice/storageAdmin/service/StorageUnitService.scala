@@ -20,24 +20,24 @@ package no.uio.musit.microservice.storageAdmin.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
-import no.uio.musit.microservice.storageAdmin.domain.dto.{CompleteStorageUnitDto, StorageDtoConverter, StorageNodeDTO, StorageType}
-import no.uio.musit.microservice.storageAdmin.domain.{Building, Room, _}
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ CompleteStorageUnitDto, StorageDtoConverter, StorageNodeDTO, StorageType }
+import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ErrorHelper, Misc, ServiceHelper}
+import no.uio.musit.microservices.common.utils.{ ErrorHelper, Misc, ServiceHelper }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 import scala.util.Left
 
-class StorageUnitService @Inject()(
-                                    storageUnitDao: StorageUnitDao,
-                                    roomService: RoomService,
-                                    buildingService: BuildingService,
-                                    storageDao: StorageDao
+class StorageUnitService @Inject() (
+    storageUnitDao: StorageUnitDao,
+    roomService: RoomService,
+    buildingService: BuildingService,
+    storageDao: StorageDao
 
-                                  ) extends Object with StorageDtoConverter {
+) extends Object with StorageDtoConverter {
 
   private def storageUnitTypeMismatch(id: Long, expected: StorageType, inDatabase: StorageType): MusitError =
     ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: $expected, " +
@@ -45,7 +45,6 @@ class StorageUnitService @Inject()(
 
   def create(storageUnit: StorageUnit): MusitFuture[Storage] =
     storageUnitDao.insertStorageUnit(storageUnitToDto(storageUnit)).toMusitFuture // musitFutureMap(stNodeDto=> fromDto(stNodeDto))
-
 
   def createStorageTriple(storage: Storage): MusitFuture[Storage] = {
     storage match {

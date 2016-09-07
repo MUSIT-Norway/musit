@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.domain.dto.{CompleteRoomDto, RoomDTO, StorageDtoConverter, StorageNodeDTO}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ CompleteRoomDto, RoomDTO, StorageDtoConverter, StorageNodeDTO }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
@@ -13,7 +13,7 @@ import scala.concurrent.Future
 class RoomDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
     val storageUnitDao: StorageUnitDao
-) extends HasDatabaseConfigProvider[JdbcProfile] with StorageDtoConverter{
+) extends HasDatabaseConfigProvider[JdbcProfile] with StorageDtoConverter {
 
   import driver.api._
 
@@ -95,7 +95,8 @@ class RoomDao @Inject() (
       routinesAndContingencyPlan: Option[Boolean], relativeHumidity: Option[Boolean], temperatureAssessment: Option[Boolean],
       lightingCondition: Option[Boolean], preventiveConservation: Option[Boolean]
     ) =>
-      RoomDTO(id,
+      RoomDTO(
+        id,
         perimeterSecurity,
         theftProtection,
         fireProtection,
@@ -104,7 +105,8 @@ class RoomDao @Inject() (
         relativeHumidity,
         temperatureAssessment,
         lightingCondition,
-        preventiveConservation)
+        preventiveConservation
+      )
 
     def destroy(room: RoomDTO) = Some(room.id, room.perimeterSecurity, room.theftProtection,
       room.fireProtection, room.waterDamageAssessment,

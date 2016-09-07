@@ -3,29 +3,26 @@ package no.uio.musit.microservice.storageAdmin.dao
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.domain.Storage
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.service.{BuildingService, RoomService}
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.utils.ErrorHelper
 
 import scala.concurrent.Future
 
-class StorageDao  @Inject() (
-                             storageUnitDao: StorageUnitDao,
-                             roomDao: RoomDao,
-                             buildingDao: BuildingDao
-                           ) extends Object with StorageDtoConverter {
+class StorageDao @Inject() (
+    storageUnitDao: StorageUnitDao,
+    roomDao: RoomDao,
+    buildingDao: BuildingDao
+) extends Object with StorageDtoConverter {
 
   private def getStorageNodeOnly(id: Long) =
     storageUnitDao.getStorageUnitOnlyById(id).toMusitFuture(storageUnitDao.storageUnitNotFoundError(id))
 
-
   private def getBuildingById(id: Long): MusitFuture[BuildingDTO] =
     buildingDao.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
 
-
   private def getRoomById(id: Long): MusitFuture[RoomDTO] =
     roomDao.getRoomById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageRoom with id: $id"))
-
 
   def getByNode(storageNode: StorageNodeDTO): MusitFuture[Storage] = {
     val id = storageNode.id.get

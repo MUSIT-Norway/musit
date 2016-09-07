@@ -21,8 +21,8 @@ package no.uio.musit.microservice.storageAdmin.resource
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao.StorageDao
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.domain.dto.{CompleteBuildingDto, CompleteStorageUnitDto, StorageDtoConverter, StorageType}
-import no.uio.musit.microservice.storageAdmin.service.{BuildingService, RoomService, StorageUnitService}
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ CompleteBuildingDto, CompleteStorageUnitDto, StorageDtoConverter, StorageType }
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ResourceHelper
@@ -65,24 +65,22 @@ class StorageUnitResource @Inject() (
   }
 
   def listAll = Action.async {
-    val nodes = storageUnitService.all.map{
+    val nodes = storageUnitService.all.map {
       list =>
-        list.map{
+        list.map {
           dtoNode => storageDao.getByNode(dtoNode)
-      }
+        }
     }
     val res = nodes.flatMap(list => Misc.filterSuccesses(list))
     res.map(x => Ok(Json.toJson(x)))
-   }
-
-
+  }
 
   def listRootNode = Action.async {
     def readGroup = "foo" // TODO: Replace with actual groups when security is added!!!
 
-    val nodes = storageUnitService.rootNodes(readGroup).map{
+    val nodes = storageUnitService.rootNodes(readGroup).map {
       list =>
-        list.map{
+        list.map {
           dtoNode => storageDao.getByNode(dtoNode)
         }
     }

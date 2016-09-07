@@ -14,7 +14,6 @@ trait StorageDtoConverter {
         roomFromDto(room)
     }
 
-
   def toDto[T <: Storage](node: T) = {
     node match {
       case stu: StorageUnit =>
@@ -44,7 +43,6 @@ trait StorageDtoConverter {
       storageType = StorageType.fromStorage(storage)
     )
 
-
   }
   def storageUnitToDto(storageUnit: StorageUnit): CompleteStorageUnitDto = {
     CompleteStorageUnitDto(storageNodeToDto(storageUnit))
@@ -54,7 +52,6 @@ trait StorageDtoConverter {
     val buildingPart = BuildingDTO(building.id, building.address)
     CompleteBuildingDto(storageNodeToDto(building), buildingPart)
   }
-
 
   def roomToDto(room: Room): CompleteRoomDto = {
     val sec = room.securityAssessment
@@ -73,7 +70,6 @@ trait StorageDtoConverter {
     )
     CompleteRoomDto(storageNodeToDto(room), roomPart)
   }
-
 
   def roomFromDto(room: CompleteRoomDto): Room = {
     val nodePart = room.storageNode
@@ -133,7 +129,7 @@ trait StorageDtoConverter {
   }
 
   def storageUnitFromDto(completeStorageUnit: CompleteStorageUnitDto) = {
-    val nodePart =  completeStorageUnit.storageNode
+    val nodePart = completeStorageUnit.storageNode
     StorageUnit(
       id = nodePart.id,
       name = nodePart.name,
