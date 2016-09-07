@@ -27,7 +27,7 @@ class StorageDao  @Inject() (
     roomDao.getRoomById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageRoom with id: $id"))
 
 
-  def getByNode(storageNode: StorageNodeDTO) = {
+  def getByNode(storageNode: StorageNodeDTO): MusitFuture[Storage] = {
     val id = storageNode.id.get
     storageNode.storageType match {
       case StorageType.StorageUnit => MusitFuture.successful(fromDto(CompleteStorageUnitDto(storageNode)))

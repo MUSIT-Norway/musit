@@ -1,6 +1,7 @@
 package no.uio.musit.microservices.common.utils
 
 import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservices.common.extensions.FutureExtensions.MusitFuture
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -25,6 +26,21 @@ object Misc {
       }).flatMap(identity)
     }
     flattenFutureEitherFuture(futureEitherFutureEither).map(flattenEither)
+  }
+
+
+
+  /*"Removes" the failures and "inverts" the futures */
+  def filterSuccesses[T](values: Seq[MusitFuture[T]]): Future[Seq[T]] = {
+    val tempValues: Seq[Future[Option[T]]] =
+    values.map { futEither =>
+      futEither.map {
+        case Left(_) => None
+        case Right(t) => Some(t)
+      }
+    }
+    val tempValues2 = Future.sequence(tempValues)
+    tempValues2.map(_.flatten)
   }
 
   /**

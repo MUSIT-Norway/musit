@@ -20,50 +20,58 @@ package no.uio.musit.microservice.storageAdmin.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageNodeDTO }
-import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{CompleteStorageUnitDto, StorageDtoConverter, StorageNodeDTO, StorageType}
+import no.uio.musit.microservice.storageAdmin.domain.{Building, Room, _}
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
+import no.uio.musit.microservices.common.utils.{ErrorHelper, Misc, ServiceHelper}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 import scala.util.Left
 
-class StorageUnitService @Inject() (
-    storageUnitDao: StorageUnitDao,
-    roomService: RoomService,
-    buildingService: BuildingService,
-    storageDao: StorageDao
+class StorageUnitService @Inject()(
+                                    storageUnitDao: StorageUnitDao,
+                                    roomService: RoomService,
+                                    buildingService: BuildingService,
+                                    storageDao: StorageDao
 
-) {
+                                  ) extends Object with StorageDtoConverter {
 
   private def storageUnitTypeMismatch(id: Long, expected: StorageType, inDatabase: StorageType): MusitError =
     ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: $expected, " +
       s"but had the type: $inDatabase in the database.")
 
   def create(storageUnit: StorageUnit): MusitFuture[Storage] =
-    ServiceHelper.daoInsert(storageUnitDao.insert(storageUnit)).musitFutureMap(Storage.fromDTO)
+    storageUnitDao.insertStorageUnit(storageUnitToDto(storageUnit)).toMusitFuture // musitFutureMap(stNodeDto=> fromDto(stNodeDto))
+
 
   def createStorageTriple(storage: Storage): MusitFuture[Storage] = {
     storage match {
       case su: StorageUnit => create(su)
-      case room: Room => roomService.create(storage)
-      case building: Building => buildingService.create(storage)
+      case room: Room => roomService.create(room)
+      case building: Building => buildingService.create(building)
     }
   }
 
   def getChildren(id: Long): Future[Seq[Storage]] =
-    storageUnitDao.getChildren(id).map(_.map(Storage.fromDTO))
+    storageUnitDao.getChildren(id).flatMap {
+      list =>
+        val res = list.map {
+          storageNodeDto =>
+            storageDao.getByNode(storageNodeDto)
+        }
+        Misc.filterSuccesses(res)
+    }
 
-/*
-  private def getBuildingById(id: Long) =
-    buildingService.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
+  /*
+    private def getBuildingById(id: Long) =
+      buildingService.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
 
-  private def getRoomById(id: Long) =
-    roomService.getRoomById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageRoom with id: $id"))
-*/
+    private def getRoomById(id: Long) =
+      roomService.getRoomById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageRoom with id: $id"))
+  */
   def getById(id: Long): MusitFuture[Storage] = {
     storageDao.getById(id)
   }
@@ -78,7 +86,7 @@ class StorageUnitService @Inject() (
     storageUnitDao.rootNodes(readGroup)
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =
-    storageUnitDao.updateStorageNode(id, Storage.toDTO(storageUnit))
+    storageUnitDao.updateStorageNode(id, toDto(storageUnit).storageNode)
 
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageType): MusitFuture[Boolean] =
     getStorageType(id).musitFutureFlatMapInnerEither {

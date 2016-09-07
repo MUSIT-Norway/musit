@@ -54,6 +54,7 @@ case class StorageNodeDTO(
 
 
 sealed trait CompleteStorageNodeDto {
+  val storageNode: StorageNodeDTO
 }
 
 case class CompleteBuildingDto(storageNode: StorageNodeDTO, buildingDto: BuildingDTO) extends CompleteStorageNodeDto
