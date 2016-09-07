@@ -56,7 +56,6 @@ class StorageUnitResource @Inject() (
     storageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
   }
 
-
   def getPath(id: Long) = Action.async {
     storageUnitService.getPath(id).map(__ => Ok(Json.toJson(__)))
   }
