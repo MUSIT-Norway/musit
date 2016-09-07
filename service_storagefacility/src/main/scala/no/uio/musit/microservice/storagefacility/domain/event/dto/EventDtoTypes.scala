@@ -62,15 +62,15 @@ sealed trait DtoExtension
  * conversions between domain and to.
  */
 case class ExtendedDto(
-  id: Option[Long],
-  eventTypeId: EventTypeId,
-  note: Option[String],
-  relatedSubEvents: Seq[RelatedEvents],
-  partOf: Option[Long],
-  valueLong: Option[Long] = None,
-  valueString: Option[String] = None,
-  valueDouble: Option[Double] = None,
-  extension: DtoExtension
+    id: Option[Long],
+    eventTypeId: EventTypeId,
+    note: Option[String],
+    relatedSubEvents: Seq[RelatedEvents],
+    partOf: Option[Long],
+    valueLong: Option[Long] = None,
+    valueString: Option[String] = None,
+    valueDouble: Option[Double] = None,
+    extension: DtoExtension
 ) extends Dto {
 
   def baseEventDto: BaseEventDto = {
@@ -105,7 +105,6 @@ object ExtendedDto {
   }
 
 }
-
 
 /**
  * Dto to handle environment requirements.

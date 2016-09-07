@@ -22,8 +22,9 @@ package no.uio.musit.microservice.storagefacility.domain.event.dto
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
+import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
-import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
+import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval, LifeCycle }
 
 object DtoConverters {
 
@@ -37,6 +38,14 @@ object DtoConverters {
    */
   implicit def maybeLongToBool(mi: Option[Long]): Boolean =
     mi.exists(i => if (i == 1) true else false)
+
+  /**
+   * Converts a pair of values to an Interval.
+   */
+  def toInterval[A](
+    base: Option[A],
+    tolerance: Option[A]
+  ): Option[Interval[A]] = base.map(b => Interval[A](b, tolerance))
 
   /**
    * Helper function to generate a base Dto that is shared across all event
@@ -453,6 +462,55 @@ object DtoConverters {
       }
     }
 
+  }
+
+  /**
+   * Converters for the Environment requirement event
+   */
+  object EnvReqConverters {
+
+    private[this] def toEnvReqDto(envReq: EnvRequirement): EnvRequirementDto = {
+      EnvRequirementDto(
+        id = envReq.baseEvent.id,
+        temperature = envReq.temperature.map(_.base),
+        tempInterval = envReq.temperature.flatMap(_.tolerance),
+        airHumidity = envReq.airHumidity.map(_.base),
+        airHumInterval = envReq.airHumidity.flatMap(_.tolerance),
+        hypoxicAir = envReq.hypoxicAir.map(_.base),
+        hypoxicInterval = envReq.hypoxicAir.flatMap(_.tolerance),
+        cleaning = envReq.cleaning,
+        light = envReq.light
+      )
+    }
+
+    def envReqToDto(envReq: EnvRequirement): ExtendedDto = {
+      toExtendedDto(
+        sub = envReq,
+        ext = toEnvReqDto(envReq)
+      )
+    }
+
+    def envReqFromDto(dto: ExtendedDto): EnvRequirement = {
+      val envReqDto = dto.extension.asInstanceOf[EnvRequirementDto]
+
+      val temp = toInterval(envReqDto.temperature, envReqDto.tempInterval)
+      val humidity = toInterval(envReqDto.airHumidity, envReqDto.airHumInterval)
+      val hypoxic = toInterval(envReqDto.hypoxicAir, envReqDto.hypoxicInterval)
+
+      EnvRequirement(
+        baseEvent = MusitEventBase(
+          id = dto.id,
+          note = dto.note,
+          partOf = dto.partOf
+        ),
+        eventType = EventType.fromEventTypeId(dto.eventTypeId),
+        temperature = temp,
+        airHumidity = humidity,
+        hypoxicAir = hypoxic,
+        cleaning = envReqDto.cleaning,
+        light = envReqDto.light
+      )
+    }
   }
 
 }

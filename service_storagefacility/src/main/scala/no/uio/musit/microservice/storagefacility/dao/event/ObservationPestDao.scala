@@ -47,17 +47,18 @@ class ObservationPestDao @Inject() (
    * free to remove the need for the EventId in the dto, that would clean this
    * up a bit.
    */
-  def insertAction(eventId: Long, obsDto: ObservationPestDto): DBIO[Int] = {
+  def insertAction(parentId: Long, obsDto: ObservationPestDto): DBIO[Int] = {
+    // Need to enrich the lifecycles with the parentId
     val lifeCyclesWithEventId = obsDto.lifeCycles.map { lifeCycle =>
-      lifeCycle.copy(eventId = Some(eventId))
+      lifeCycle.copy(eventId = Some(parentId))
     }
     (lifeCycleTable ++= lifeCyclesWithEventId).map { maybeInt =>
       maybeInt.fold(1)(identity)
     }
   }
 
-  def getObservation(id: Long): Future[Option[ObservationPestDto]] =
-    db.run(lifeCycleTable.filter(lifeCycle => lifeCycle.eventId === id).result)
+  def getObservation(eventId: Long): Future[Option[ObservationPestDto]] =
+    db.run(lifeCycleTable.filter(lifeCycle => lifeCycle.eventId === eventId).result)
       .map {
         case Nil => None
         case lifeCycles => Some(ObservationPestDto(lifeCycles))
@@ -77,7 +78,7 @@ class ObservationPestDao @Inject() (
         LifecycleDto(eventId, stage, number)
 
     def destroy(lifeCycle: LifecycleDto) =
-      Some(lifeCycle.eventId, lifeCycle.stage, lifeCycle.number)
+      Some((lifeCycle.eventId, lifeCycle.stage, lifeCycle.number))
   }
 
 }

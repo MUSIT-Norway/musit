@@ -26,23 +26,35 @@ import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.Pa
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
-import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.utils.ErrorHelper
+import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.dbio.SequenceAction
 
 import scala.concurrent.Future
 
-class EventDao @Inject()(
-  val dbConfigProvider: DatabaseConfigProvider,
-  val eventLinkDao: EventRelationDao,
-  val obsFromToDao: ObservationFromToDao,
-  val obsPestDao: ObservationPestDao
+/*
+  General Note:
+    The code here is a very big source for potential bugs. There's a lot of
+    unnecessary complexity due to its generic nature.
+ */
+
+/**
+ * TODO: Document me!!!
+ */
+class EventDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider,
+    val eventRelationDao: EventRelationDao,
+    val obsFromToDao: ObservationFromToDao,
+    val obsPestDao: ObservationPestDao,
+    val envReqDao: EnvRequirementDao
 ) extends SharedEventTables with ColumnTypeMappers {
 
   import driver.api._
+
+  private val logger = Logger(classOf[EventDao])
 
   private val eventBaseTable = TableQuery[EventBaseTable]
 
@@ -51,14 +63,14 @@ class EventDao @Inject()(
    * @param eventBaseDto
    * @return
    */
-  def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] = {
+  private def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] = {
     eventBaseTable returning eventBaseTable.map(_.id) += eventBaseDto
   }
 
   /**
    * Helper to build up the correct insert action depending on Dto type.
    */
-  def buildInsertAction(event: Dto, parentId: Option[Long]): DBIO[Long] = {
+  private def buildInsertAction(event: Dto, parentId: Option[Long]): DBIO[Long] = {
     event match {
       case simple: BaseEventDto =>
         insertBaseAction(simple.copy(partOf = parentId))
@@ -68,17 +80,13 @@ class EventDao @Inject()(
         insertBaseAction(base).flatMap { eventId =>
           val extendedAction: DBIO[Int] = complex.extension match {
             case ext: ObservationFromToDto =>
-              // FIXME: When observation to from DAO is completed.
-              // obsToFromDao.insert
-              ???
+              obsFromToDao.insertAction(ext.copy(id = Option(eventId)))
 
             case ext: ObservationPestDto =>
-              // FIXME: When observation pest DAO is completed.
-              ???
+              obsPestDao.insertAction(eventId, ext)
 
             case ext: EnvRequirementDto =>
-              // FIXME: When environment req DAO is completed.
-              ???
+              envReqDao.insertAction(ext.copy(id = Option(eventId)))
           }
           extendedAction.map(_ => eventId)
         }
@@ -98,7 +106,7 @@ class EventDao @Inject()(
 
     // We want partOfParent to be Some(parentId) if event has a parent and that
     // parent is in the parts-relation to us.
-    // TODO: The following two lines of code is very confusing, what is it supposed to do?
+    // TODO: The following two lines of code are very confusing, what is it supposed to do?
     val isPartsRelation = partialRelation.exists(_.relation == EventRelations.relation_parts)
     val partOfParent = partialRelation.filter(_ => isPartsRelation).map(_.idFrom)
 
@@ -110,7 +118,7 @@ class EventDao @Inject()(
         _ <- insertChildrenAction(theEventId, event.relatedSubEvents)
         _ <- {
           partialRelation.filterNot(_ => isPartsRelation).map { pel =>
-            eventLinkDao.insertEventLinkAction(pel.toFullLink(theEventId))
+            eventRelationDao.insertRelationAction(pel.toFullLink(theEventId))
           }.getOrElse(DBIO.successful[Int](0))
         }
       } yield theEventId
@@ -129,7 +137,7 @@ class EventDao @Inject()(
   /**
    * TODO: Document me!!!
    */
-  def insertChildrenAction(parentEventId: Long, children: Seq[RelatedEvents]) = {
+  private def insertChildrenAction(parentEventId: Long, children: Seq[RelatedEvents]) = {
     val actions = children.map { relatedEvents =>
       val relActions = relatedEvents.events.map { subEvent =>
         insertEventAction(
@@ -151,64 +159,102 @@ class EventDao @Inject()(
     db.run(action)
   }
 
-  private def initCompleteDto(
-    baseEventDto: BaseEventDto,
-    relatedSubEvents: Seq[RelatedEvents]
-  ): MusitFuture[Dto] = {
-    // The ID field will never be None or null in this context
-    val baseWithSubs = baseEventDto.copy(relatedSubEvents = relatedSubEvents)
+  /**
+   * TODO: Document me!
+   */
+  private def enrichDto(dto: Dto): Future[Dto] = {
 
-    EventTypeRegistry.unsafeSubFromId[SubEventType](baseWithSubs.eventTypeId) match {
+    val base: BaseEventDto = dto match {
+      case b: BaseEventDto => b
+      case e: ExtendedDto => e.baseEventDto
+    }
+
+    val tpe = EventTypeRegistry.unsafeSubFromId[SubEventType](base.eventTypeId)
+
+    tpe match {
       case ctrlSub: CtrlSubEventType =>
-        // Standard control sub-events are plain BaseEventDto's
-        MusitFuture.successful(baseWithSubs)
+        logger.debug(s"found CtrlSubEventType ${ctrlSub.entryName}")
+        Future.successful(base)
 
       case obsSub: ObsSubEventType =>
+        logger.debug(s"found ObsSubEventType ${obsSub.entryName}")
         obsSub match {
           case ObsHumidityType | ObsTemperatureType | ObsHypoxicAirType =>
             // We are dealing with an ObservationFromToDto now, go fetch
             // additional data required for building up the result.
-            obsFromToDao.getObservationFromTo(baseWithSubs.id.get).map { mft =>
+            obsFromToDao.getObservationFromTo(base.id.get).map { mft =>
               mft.map { ft =>
-                ExtendedDto(baseWithSubs, ft)
-              }.toRight(
-                MusitError(404, "Could not find ObservationFromTo data")
-              )
+                ExtendedDto(base, ft)
+              }.getOrElse {
+                logger.warn("Could not find ObservationFromTo data using BaseEvent data")
+                base
+              }
             }
 
           case ObsPestType =>
             // We've got an ObservationPestDto on our hands.
-            obsPestDao.getObservation(baseWithSubs.id.get).map { maybePest =>
+            obsPestDao.getObservation(base.id.get).map { maybePest =>
               maybePest.map { pest =>
-                ExtendedDto(baseWithSubs, pest)
-              }.toRight(
-                MusitError(404, "Could not find ObservationPest data")
-              )
+                ExtendedDto(base, pest)
+              }.getOrElse {
+                // FIXME: MusitError must be changed
+                logger.warn("Could not find ObservationPest data using BaseEvent data")
+                base
+              }
             }
 
           case others =>
             // Any other Observation sub-events are BaseEventDto's
-            MusitFuture.successful(baseWithSubs)
+            Future.successful(base)
         }
     }
-
   }
 
-  private def getEvent(
+  // FIXME: All of this code would be unnecessary with stronger typing of DTO's
+  private def initCompleteDto(
+    baseEventDto: BaseEventDto,
+    relatedSubEvents: Seq[RelatedEvents]
+  ): MusitFuture[Dto] = {
+    val related = relatedSubEvents.map { subs =>
+      val futureSubEvents = Future.traverse(subs.events)(re => enrichDto(re))
+      futureSubEvents.map(se => subs.copy(events = se))
+    }
+
+    Future.sequence(related).map[Dto] { rel =>
+      baseEventDto.copy(relatedSubEvents = rel)
+    }.toMusitFuture
+  }
+
+  private def getFullEvent(
     baseEventDto: BaseEventDto,
     recursive: Boolean
   ): MusitFuture[Dto] = {
-    val futureSubEvents =
-      if (recursive) {
-        // ID can never be None or null in this context, so it's safe to .get
-        getSubEvents(baseEventDto.id.get, recursive)
-      } else {
-        MusitFuture.successful(Seq.empty[RelatedEvents])
-      }
 
-    futureSubEvents.musitFutureFlatMap { subEvents =>
-      initCompleteDto(baseEventDto, subEvents)
+    EventTypeRegistry.unsafeFromId(baseEventDto.eventTypeId) match {
+      case EnvRequirementEventType =>
+        envReqDao.getEnvRequirement(baseEventDto.id.get).map[Dto] { mer =>
+          mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
+        }.toMusitFuture
+
+      case MoveEventType =>
+        // TODO: Implement Move support
+        ???
+
+      case _ =>
+        val futureSubEvents =
+          if (recursive) {
+            // ID can never be None or null in this context, so it's safe to .get
+            getSubEvents(baseEventDto.id.get, recursive)
+          } else {
+            MusitFuture.successful(Seq.empty[RelatedEvents])
+          }
+
+        futureSubEvents.musitFutureFlatMap { subEvents =>
+          initCompleteDto(baseEventDto, subEvents)
+        }
+
     }
+
   }
 
   /**
@@ -226,7 +272,7 @@ class EventDao @Inject()(
     }
 
     maybeBaseEventDto.musitFutureFlatMap { baseEventDto =>
-      getEvent(baseEventDto, recursive)
+      getFullEvent(baseEventDto, recursive)
     }
   }
 
@@ -245,11 +291,10 @@ class EventDao @Inject()(
     eventDtos: MusitFuture[Seq[BaseEventDto]],
     recursive: Boolean
   ): MusitFuture[Seq[Dto]] = {
-    eventDtos.musitFutureFlatMap {
-      subEventDtos: Seq[BaseEventDto] =>
-        MusitFuture.traverse(subEventDtos) { subEventDto =>
-          getEvent(subEventDto, recursive)
-        }
+    eventDtos.musitFutureFlatMap { subEventDtos =>
+      MusitFuture.traverse(subEventDtos) { subEventDto =>
+        getFullEvent(subEventDto, recursive)
+      }
     }
   }
 
@@ -274,12 +319,12 @@ class EventDao @Inject()(
   ): MusitFuture[Seq[RelatedEvents]] = {
 
     def transform(group: Seq[(Int, BaseEventDto)]): MusitFuture[Seq[Dto]] = {
-      val groupedEvents = group.map(_._2).map(dto => getEvent(dto, recursive))
+      val groupedEvents = group.map(_._2).map(dto => getFullEvent(dto, recursive))
       //Collapse the inner musitresults...
       MusitFuture.traverse[MusitFuture[Dto], Dto](groupedEvents)(identity)
     }
 
-    val futureRelatedDtos = eventLinkDao.getRelatedEventDtos(parentId).toMusitFuture
+    val futureRelatedDtos = eventRelationDao.getRelatedEvents(parentId).toMusitFuture
 
     futureRelatedDtos.musitFutureFlatMap { relatedDtos =>
       val groups = relatedDtos.groupBy(_._1).map {

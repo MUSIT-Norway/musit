@@ -1,3 +1,6 @@
 <included>
   <define name="applicationName" value="StorageAdmin"/>
+
+  <logger name="no.uio.musit.microservice.storagefacility.dao.event" level="DEBUG" />
 </included>
+

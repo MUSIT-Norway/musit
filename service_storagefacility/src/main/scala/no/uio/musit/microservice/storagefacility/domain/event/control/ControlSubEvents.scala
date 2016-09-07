@@ -22,9 +22,7 @@ package no.uio.musit.microservice.storagefacility.domain.event.control
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, Motivates, MusitEventBase, MusitSubEvent }
 
-/**
- *
- */
+// TODO: Document me!!!
 sealed trait ControlSubEvent extends MusitSubEvent with Motivates[ObservationSubEvent] {
   val ok: Boolean
 }

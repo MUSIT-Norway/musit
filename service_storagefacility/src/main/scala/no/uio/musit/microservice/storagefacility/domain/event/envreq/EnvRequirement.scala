@@ -17,23 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event
+package no.uio.musit.microservice.storagefacility.domain.event.envreq
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import no.uio.musit.microservice.storagefacility.domain.Interval
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEvent, MusitEventBase }
 
-// TODO: Change id and partOf to EventId
-
-case class MusitEventBase(
-  id: Option[Long],
-  note: Option[String],
-  partOf: Option[Long]
-)
-
-object MusitEventBase {
-  implicit val format: Format[MusitEventBase] = (
-    (__ \ "id").formatNullable[Long] and
-    (__ \ "note").formatNullable[String] and
-    (__ \ "partOf").formatNullable[Long]
-  )(MusitEventBase.apply, unlift(MusitEventBase.unapply))
-}
+case class EnvRequirement(
+  baseEvent: MusitEventBase,
+  eventType: EventType,
+  temperature: Option[Interval[Int]],
+  airHumidity: Option[Interval[Int]],
+  hypoxicAir: Option[Interval[Int]],
+  cleaning: Option[String],
+  light: Option[String]
+) extends MusitEvent

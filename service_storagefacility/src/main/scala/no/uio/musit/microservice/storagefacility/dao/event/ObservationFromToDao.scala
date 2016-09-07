@@ -20,9 +20,10 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.event.dto.ObservationFromToDto
+import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
@@ -31,19 +32,23 @@ import scala.concurrent.Future
  * TODO: Document me!
  */
 @Singleton
-class ObservationFromToDao @Inject()(
-  val dbConfigProvider: DatabaseConfigProvider
+class ObservationFromToDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
 ) extends BaseEventDao {
 
   import driver.api._
+
+  val logger = Logger(classOf[ObservationFromToDao])
 
   private val observationFromToTable = TableQuery[ObservationFromToTable]
 
   /**
    * TODO: Document me!
    */
-  def insertAction(event: ObservationFromToDto): DBIO[Int] =
+  def insertAction(event: ObservationFromToDto): DBIO[Int] = {
+    logger.debug(s"Received ObservationFromTo with parentId ${event.id}")
     observationFromToTable += event
+  }
 
   /**
    * TODO: Document me!
@@ -54,7 +59,7 @@ class ObservationFromToDao @Inject()(
     )
 
   private class ObservationFromToTable(
-    val tag: Tag
+      val tag: Tag
   ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
     def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
 
@@ -68,7 +73,7 @@ class ObservationFromToDao @Inject()(
         ObservationFromToDto(id, from, to)
 
     def destroy(event: ObservationFromToDto) =
-      Some(event.id, event.from, event.to)
+      Some((event.id, event.from, event.to))
   }
 
 }

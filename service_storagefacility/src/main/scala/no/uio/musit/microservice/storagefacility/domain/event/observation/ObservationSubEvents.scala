@@ -22,8 +22,10 @@ package no.uio.musit.microservice.storagefacility.domain.event.observation
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
 import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEventBase, MusitSubEvent }
 
+// TODO: Document me!!!
 sealed trait ObservationSubEvent extends MusitSubEvent
 
+// TODO: Document me!!!
 sealed trait ObservationFromTo extends ObservationSubEvent {
   val range: FromToDouble
 }

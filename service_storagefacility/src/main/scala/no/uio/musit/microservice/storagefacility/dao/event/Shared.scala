@@ -19,9 +19,9 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.dao.{ ColumnTypeMappers, SchemaName }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, EventRelation, ObservationFromToDto}
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, EventRelation, ObservationFromToDto }
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
@@ -42,9 +42,9 @@ object EventRelationTypes {
    * TODO: What am I and what is my purpose?
    */
   case class FullEventRelation(
-    idFrom: Long,
-    relation: EventRelation,
-    idTo: Long
+      idFrom: Long,
+      relation: EventRelation,
+      idTo: Long
   ) {
 
     /**
@@ -83,12 +83,12 @@ private[dao] trait BaseEventDao extends HasDatabaseConfigProvider[JdbcProfile]
  * Tables definitions that are required across DAO implementations.
  */
 private[dao] trait SharedEventTables extends BaseEventDao
-  with ColumnTypeMappers {
+    with ColumnTypeMappers {
 
   import driver.api._
 
   class EventBaseTable(
-    val tag: Tag
+      val tag: Tag
   ) extends Table[BaseEventDto](tag, SchemaName, "EVENT") {
 
     // scalastyle:off method.name
@@ -100,7 +100,7 @@ private[dao] trait SharedEventTables extends BaseEventDao
       valueLong,
       valueString,
       valueDouble
-      ) <> (create.tupled, destroy)
+    ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
 
@@ -136,7 +136,7 @@ private[dao] trait SharedEventTables extends BaseEventDao
       )
 
     def destroy(event: BaseEventDto) =
-      Some(
+      Some((
         event.id,
         event.eventTypeId,
         event.note,
@@ -144,11 +144,11 @@ private[dao] trait SharedEventTables extends BaseEventDao
         event.valueLong,
         event.valueString,
         event.valueDouble
-      )
+      ))
   }
 
   class ObservationFromToTable(
-    val tag: Tag
+      val tag: Tag
   ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
 
     def * = (id, from, to) <> (create.tupled, destroy)
@@ -163,7 +163,7 @@ private[dao] trait SharedEventTables extends BaseEventDao
         ObservationFromToDto(id, from, to)
 
     def destroy(event: ObservationFromToDto) =
-      Some(event.id, event.from, event.to)
+      Some((event.id, event.from, event.to))
   }
 
   val observationFromToTable = TableQuery[ObservationFromToTable]

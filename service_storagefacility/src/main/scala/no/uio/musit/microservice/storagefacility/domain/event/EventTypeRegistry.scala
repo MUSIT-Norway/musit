@@ -137,25 +137,43 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
   }
 
   /**
+   * Try to look up a TopLevelEventType with a given ID in the registry.
+   *
+   * @param id the ID of the SubEventType to look for
+   * @return
+   * @throws IllegalArgumentException if the SubEventType doesn't match T.
+   */
+  // FIXME: refactor to avoid the unsafeness
+  def unsafeTopLevelFromId(id: EventTypeId): TopLevelEvent =
+    unsafeFromId(id) match {
+      case top: TopLevelEvent => top
+      case bad =>
+        // scalastyle:off
+        throw new IllegalArgumentException(
+          s"event type ${bad.entryName} is not a valid TopLevelEvent"
+        ) // scalastyle:on
+    }
+
+  /**
    * Try to look up a SubEventType with a given ID in the registry.
    *
    * @param id the ID of the SubEventType to look for
    * @tparam T the type of SubEventType to look for
    * @return
-   * @throws IllegalArgumentException if the SubEventType doesn't match T. // scalstyle:ignore
+   * @throws IllegalArgumentException if the SubEventType doesn't match T.
    */
+  // FIXME: refactor to avoid the unsafeness
   def unsafeSubFromId[T <: SubEventType](id: EventTypeId)(implicit ct: ClassTag[T]): T =
-  unsafeFromId(id) match {
-    case sub: T => sub
-    case bad =>
-      val expStr = ct.toString
-      val expected = expStr.substring(expStr.lastIndexOf("$") + 1)
-      // scalastyle:off
-      throw new IllegalArgumentException(
-        s"Sub-event type ${bad.entryName} " +
-          s"is not a valid $expected"
-      ) // scalastyle:on
-  }
+    unsafeFromId(id) match {
+      case sub: T => sub
+      case bad =>
+        val expStr = ct.toString
+        val expected = expStr.substring(expStr.lastIndexOf("$") + 1)
+        // scalastyle:off
+        throw new IllegalArgumentException(
+          s"event type ${bad.entryName} is not a valid $expected"
+        ) // scalastyle:on
+    }
 
   /**
    * CONTROL TYPES

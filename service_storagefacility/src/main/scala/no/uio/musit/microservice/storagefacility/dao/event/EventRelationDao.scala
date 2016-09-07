@@ -20,10 +20,10 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, EventRelation, EventRelations}
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, EventRelation, EventRelations }
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 
@@ -42,26 +42,26 @@ class EventRelationDao @Inject() (
 
   import driver.api._
 
-  private val eventLinkTable = TableQuery[EventRelationTable]
+  private val eventRelTable = TableQuery[EventRelationTable]
   private val eventBaseTable = TableQuery[EventBaseTable]
 
-  def insertEventLinkAction(eventLink: FullEventRelation): DBIO[Int] = {
-    insertEventLinkDtoAction(eventLink.toNormalizedEventLinkDto)
+  def insertRelationAction(relation: FullEventRelation): DBIO[Int] = {
+    insertEventRelationDtoAction(relation.toNormalizedEventLinkDto)
   }
 
-  def insertEventLinkDtoAction(eventLink: EventRelationDto): DBIO[Int] = {
-    logger.debug(s"inserLink: from: ${eventLink.idFrom} " +
-      s"relation: ${eventLink.relationId} to: ${eventLink.idTo}")
+  def insertEventRelationDtoAction(relation: EventRelationDto): DBIO[Int] = {
+    logger.debug(s"inserting relation with relationId: ${relation.relationId}" +
+      s" from: ${relation.idFrom} to: ${relation.idTo}")
 
-    eventLinkTable += eventLink
+    eventRelTable += relation
   }
 
-  def getRelatedEventDtos(parentId: Long): Future[Seq[(Int, BaseEventDto)]] = {
-    val relevantRelations = eventLinkTable.filter(evt => evt.idFrom === parentId)
+  def getRelatedEvents(parentId: Long): Future[Seq[(Int, BaseEventDto)]] = {
+    val relevantRelations = eventRelTable.filter(evt => evt.fromId === parentId)
 
     logger.debug(s"gets relatedEventDtos for parentId: $parentId")
 
-    val action = eventBaseTable.join(relevantRelations).on(_.id === _.idTo)
+    val action = eventBaseTable.join(relevantRelations).on(_.id === _.toId)
 
     val query = for {
       (eventBaseTable, relationTable) <- action
@@ -75,10 +75,10 @@ class EventRelationDao @Inject() (
       val tag: Tag
   ) extends Table[EventRelationDto](tag, SchemaName, "EVENT_RELATION_EVENT") {
 
-    def * = (idFrom, relationId, idTo) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (fromId, relationId, toId) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val idFrom = column[Long]("FROM_EVENT_ID")
-    val idTo = column[Long]("TO_EVENT_ID")
+    val fromId = column[Long]("FROM_EVENT_ID")
+    val toId = column[Long]("TO_EVENT_ID")
     val relationId = column[Int]("RELATION_ID")
 
     def create = (idFrom: Long, relationId: Int, idTo: Long) =>
@@ -88,8 +88,8 @@ class EventRelationDao @Inject() (
         idTo
       )
 
-    def destroy(link: EventRelationDto) =
-      Some(link.idFrom, link.relationId, link.idTo)
+    def destroy(relation: EventRelationDto) =
+      Some((relation.idFrom, relation.relationId, relation.idTo))
   }
 
 }
