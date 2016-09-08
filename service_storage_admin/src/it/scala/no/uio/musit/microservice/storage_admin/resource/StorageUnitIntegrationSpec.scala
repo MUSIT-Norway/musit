@@ -52,6 +52,13 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     } yield room
   }
 
+  def getOrganisationAsObject(id: Long): Future[Organisation] = {
+    for {
+      resp <- getStorageUnit(id)
+      room = Json.parse(resp.body).validate[Storage].get.asInstanceOf[Organisation]
+    } yield room
+  }
+  
 
   def getStorageUnitAsObject(id: Long): Future[StorageUnit] = {
     for {
@@ -317,8 +324,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     }
 
 
-
-
     "update should fail (with Conflict=409) if inconsistent storage types" in {
       val json ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
       val response = createStorageUnit(json) |> waitFutureValue
@@ -339,5 +344,51 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(json) |> waitFutureValue
       response.status mustBe 400
     }
+
+    "postCreate a organisation" in {
+      val makeMyJSon ="""{"id":-1, "type":"Organisation","name":"KHM", "links":[]}"""
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Organisation]
+      storageUnit.name mustBe "KHM"
+
+    }
+
+    "update storageOrganisation" in {
+      val myJSon ="""{"type":"Organisation","name":"Organisasjon0", "address": "vet ikke"}"""
+      val future = createStorageUnit(myJSon)
+      val response = future |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Organisation]
+      storageUnit.address mustBe Some("vet ikke")
+      val id = storageUnit.id.get
+      storageUnit.name mustBe "Organisasjon0"
+      val udateJson = s"""{"type":"Organisation","id": $id, "name":"NyOrganisasjon", "address": "OrdentligAdresse"}"""
+      val res = (for {
+        res <- updateStorageUnit(id, udateJson)
+        room <- getOrganisationAsObject(id)
+      } yield (room, res)) |> waitFutureValue
+      res._1.name mustBe "NyOrganisasjon"
+      res._1.address mustBe Some("OrdentligAdresse")
+    }
+    "not be able to update a deleted organisation" in {
+
+      val json ="""{"type":"Organisation","name":"UkjentOrganisasjon"}"""
+      val response = createStorageUnit(json) |> waitFutureValue
+      println("deleted organisation " + response.body)
+      response.status mustBe 201 //Successfully created the room
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Organisation]
+
+      storageUnit.id.isDefined mustBe true
+      val id = storageUnit.id.get
+
+      val responsDel = deleteStorageUnit(id) |> waitFutureValue
+      println("deleted organisation " + responsDel.body)
+      responsDel.status mustBe 200 //Successfully deleted
+
+      val updateJson = """{"type":"Organisation","name":"NyOrganisasjon", "address": "OrdentligAdresse"}"""
+      val updateResponse = updateStorageUnit(id, updateJson) |> waitFutureValue
+      println("deleted organisation " + updateResponse.body)
+      updateResponse.status mustBe 404 //Should not be able to update a deleted object
+    }
+
   }
 }

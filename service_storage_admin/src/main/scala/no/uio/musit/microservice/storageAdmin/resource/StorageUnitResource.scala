@@ -21,7 +21,7 @@ package no.uio.musit.microservice.storageAdmin.resource
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageType
-import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService, OrganisationService }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ResourceHelper
@@ -34,7 +34,8 @@ import scala.concurrent.Future
 class StorageUnitResource @Inject() (
     storageUnitService: StorageUnitService,
     buildingService: BuildingService,
-    roomService: RoomService
+    roomService: RoomService,
+    organisationService: OrganisationService
 ) extends Controller {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
@@ -72,6 +73,9 @@ class StorageUnitResource @Inject() (
           case StorageType.Room =>
             roomService.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
               Storage.getRoom(unit, room)))
+          case StorageType.Organisation =>
+            organisationService.getOrganisationById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(organsiation =>
+              Storage.getOrganisation(unit, organsiation)))
         }
       })).map(__ => Ok(Json.toJson(__)))
     })
@@ -90,6 +94,9 @@ class StorageUnitResource @Inject() (
           case StorageType.Room =>
             roomService.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
               Storage.getRoom(unit, room)))
+          case StorageType.Organisation =>
+            organisationService.getOrganisationById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(organisation =>
+              Storage.getOrganisation(unit, organisation)))
         }
       })).map(__ => Ok(Json.toJson(__)))
     })

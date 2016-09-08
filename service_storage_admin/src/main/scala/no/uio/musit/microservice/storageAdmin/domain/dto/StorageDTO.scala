@@ -62,6 +62,24 @@ case class RoomDTO(
   bevarPrevantKons: Option[Boolean]
 ) extends StorageDTO
 
+case class OrganisationDTO(
+  id: Option[Long],
+  name: String,
+  area: Option[Long],
+  areaTo: Option[Long],
+  isPartOf: Option[Long],
+  height: Option[Long],
+  heightTo: Option[Long],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
+  links: Option[Seq[Link]],
+  isDeleted: Boolean,
+  storageType: StorageType,
+  address: Option[String]
+) extends StorageDTO
+
 case class StorageNodeDTO(
   id: Option[Long],
   name: String,
