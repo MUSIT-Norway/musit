@@ -1,20 +1,22 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageNodeDTO }
-import no.uio.musit.microservice.storageAdmin.domain.Storage
+import no.uio.musit.microservice.storageAdmin.domain.dto._
+import no.uio.musit.microservice.storageAdmin.domain.{ Storage, StorageUnit }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
+/*** Handles the storageNode table. */
 @Singleton
 class StorageUnitDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with StorageDtoConverter {
 
   import driver.api._
 
@@ -23,7 +25,7 @@ class StorageUnitDao @Inject() (
     string => StorageType.fromString(string)
   )
 
-  private val StorageUnitTable = TableQuery[StorageUnitTable]
+  private val StorageNodeTable = TableQuery[StorageNodeTable]
 
   def unknownStorageUnitMsg(id: Long) = s"Unknown storageUnit with id: $id"
 
@@ -31,52 +33,60 @@ class StorageUnitDao @Inject() (
     ErrorHelper.notFound(unknownStorageUnitMsg(id))
 
   def getStorageUnitOnlyById(id: Long): Future[Option[StorageNodeDTO]] =
-    db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
+    db.run(StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
   def getChildren(id: Long): Future[Seq[StorageNodeDTO]] = {
-    val action = StorageUnitTable.filter(st => st.isPartOf === id && st.isDeleted === false).result
+    val action = StorageNodeTable.filter(st => st.isPartOf === id && st.isDeleted === false).result
     db.run(action)
   }
 
   def getStorageType(id: Long): MusitFuture[StorageType] = {
-    db.run(StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).map(_.storageType).result.headOption)
+    db.run(StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).map(_.storageType).result.headOption)
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
   }
 
   def all(): Future[Seq[StorageNodeDTO]] =
-    db.run(StorageUnitTable.filter(st => st.isDeleted === false).result)
+    db.run(StorageNodeTable.filter(st => st.isDeleted === false).result)
 
   def rootNodes(readGroup: String): Future[Seq[StorageNodeDTO]] =
-    db.run(StorageUnitTable.filter(st => st.isDeleted === false && st.isPartOf.isEmpty && st.groupRead === readGroup).result)
+    db.run(StorageNodeTable.filter(st => st.isDeleted === false && st.isPartOf.isEmpty && st.groupRead === readGroup).result)
 
   def setPartOf(id: Long, partOf: Long): Future[Int] =
-    db.run(StorageUnitTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
+    db.run(StorageNodeTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
 
-  def insert(storageUnit: StorageNodeDTO): Future[StorageNodeDTO] =
-    db.run(insertAction(storageUnit))
+  def insert(storageUnit: StorageUnit): Future[StorageNodeDTO] =
+    insert(storageUnitToDto(storageUnit))
 
-  def insertAction(storageUnit: StorageNodeDTO): DBIO[StorageNodeDTO] = {
-    StorageUnitTable returning StorageUnitTable.map(_.id) into
-      ((storageUnit, id) =>
-        storageUnit.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
-      storageUnit
+  def insert(storageUnit: CompleteStorageUnitDto): Future[StorageNodeDTO] =
+    db.run(insertAction(storageUnit.storageNode))
+
+  def insertStorageUnit(completeStorageUnitDto: CompleteStorageUnitDto): Future[Storage] = {
+    val futStorageUnitDto = insert(completeStorageUnitDto)
+    futStorageUnitDto.map(storageUnitDto => fromDto(CompleteStorageUnitDto(storageUnitDto, completeStorageUnitDto.envReqDto)))
   }
 
-  def updateStorageUnitAction(id: Long, storageUnit: StorageNodeDTO): DBIO[Int] = {
-    StorageUnitTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
+  def insertAction(storageNodePart: StorageNodeDTO): DBIO[StorageNodeDTO] = {
+    StorageNodeTable returning StorageNodeTable.map(_.id) into
+      ((storageNode, id) =>
+        storageNode.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
+      storageNodePart
   }
 
-  def updateStorageUnit(id: Long, storageUnit: StorageNodeDTO): Future[Int] = {
-    db.run(updateStorageUnitAction(id, storageUnit))
+  def updateNodeUnitAction(id: Long, storageUnit: StorageNodeDTO): DBIO[Int] = {
+    StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
   }
 
-  def deleteStorageUnit(id: Long): Future[Int] = {
+  def updateStorageNode(id: Long, storageNode: StorageNodeDTO): Future[Int] = {
+    db.run(updateNodeUnitAction(id, storageNode))
+  }
+
+  def deleteStorageNode(id: Long): Future[Int] = {
     db.run((for {
-      storageUnit <- StorageUnitTable if storageUnit.id === id && storageUnit.isDeleted === false
+      storageUnit <- StorageNodeTable if storageUnit.id === id && storageUnit.isDeleted === false
     } yield storageUnit.isDeleted).update(true))
   }
 
-  private class StorageUnitTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
+  private class StorageNodeTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
     def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, latestMoveId, latestEnvReqId,
       isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
 
@@ -86,15 +96,15 @@ class StorageUnitDao @Inject() (
 
     val storageUnitName = column[String]("STORAGE_NODE_NAME")
 
-    val area = column[Option[Long]]("AREA")
+    val area = column[Option[Double]]("AREA")
 
-    val areaTo = column[Option[Long]]("AREA_TO")
+    val areaTo = column[Option[Double]]("AREA_TO")
 
     val isPartOf = column[Option[Long]]("IS_PART_OF")
 
-    val height = column[Option[Long]]("HEIGHT")
+    val height = column[Option[Double]]("HEIGHT")
 
-    val heightTo = column[Option[Long]]("HEIGHT_TO")
+    val heightTo = column[Option[Double]]("HEIGHT_TO")
 
     val groupRead = column[Option[String]]("GROUP_READ")
 
@@ -110,11 +120,11 @@ class StorageUnitDao @Inject() (
       id: Option[Long],
       storageType: StorageType,
       storageUnitName: String,
-      area: Option[Long],
-      areaTo: Option[Long],
+      area: Option[Double],
+      areaTo: Option[Double],
       isPartOf: Option[Long],
-      height: Option[Long],
-      heightTo: Option[Long],
+      height: Option[Double],
+      heightTo: Option[Double],
       groupRead: Option[String],
       groupWrite: Option[String],
       latestMoveId: Option[Long],

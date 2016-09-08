@@ -28,6 +28,19 @@ object Misc {
     flattenFutureEitherFuture(futureEitherFutureEither).map(flattenEither)
   }
 
+  /*"Removes" the failures and "inverts" the futures */
+  def filterSuccesses[T](values: Seq[MusitFuture[T]]): Future[Seq[T]] = {
+    val tempValues: Seq[Future[Option[T]]] =
+      values.map { futEither =>
+        futEither.map {
+          case Left(_) => None
+          case Right(t) => Some(t)
+        }
+      }
+    val tempValues2 = Future.sequence(tempValues)
+    tempValues2.map(_.flatten)
+  }
+
   /**
    * Some notes about error handling, especially related to Futures.
    *
