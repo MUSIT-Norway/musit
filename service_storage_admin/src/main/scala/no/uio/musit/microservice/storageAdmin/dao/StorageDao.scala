@@ -17,7 +17,7 @@ class StorageDao @Inject() (
 ) extends Object with StorageDtoConverter {
 
   private def getStorageNodeOnly(id: Long) =
-    storageUnitDao.getStorageUnitOnlyById(id).toMusitFuture(storageUnitDao.storageUnitNotFoundError(id))
+    storageUnitDao.getStorageNodeOnlyById(id).toMusitFuture(storageUnitDao.storageUnitNotFoundError(id))
 
   private def getBuildingById(id: Long): MusitFuture[BuildingDTO] =
     buildingDao.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
@@ -27,13 +27,13 @@ class StorageDao @Inject() (
 
   def getByNode(storageNode: StorageNodeDTO): MusitFuture[Storage] = {
     val id = storageNode.id.get
-    val optFutOptEnvReq = storageNode.latestEnvReqId.map{
+    val optFutOptEnvReq = storageNode.latestEnvReqId.map {
       envreqId => envReqDao.getById(envreqId)
     }
     val noneEnvReq: Option[EnvReqDto] = None
-    val futOptEnvReq = optFutOptEnvReq.fold{
+    val futOptEnvReq = optFutOptEnvReq.fold {
       Future.successful(noneEnvReq)
-    }{ identity }
+    } { identity }
 
     val musFutOptEnvReq: MusitFuture[Option[EnvReqDto]] = futOptEnvReq.map(Right(_))
     musFutOptEnvReq.musitFutureFlatMap { optEnvReqDto =>

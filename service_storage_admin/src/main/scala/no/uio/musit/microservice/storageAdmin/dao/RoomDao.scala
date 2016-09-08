@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
@@ -37,7 +37,7 @@ class RoomDao @Inject() (
     //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord
     // will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = storageUnitDao.updateStorageNodeAction(id, storageNodePart)
+    val updateStorageUnitOnlyAction = storageUnitDao.updateStorageNodeAndMaybeEnvReqAction(id, room)
     //TODO: Pipe the above into DaoHelper.onlyAcceptOneUpdatedRecord or similar (like it was done in an earlier version of this code),
     // because the above line needs to throw an exception if it for some reason doesn't update the given row
     //(As an example, we don't want to update the RoomOnly if the node has been logically deleted or the user doesn't have write access to the node in the first place)

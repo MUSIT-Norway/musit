@@ -45,12 +45,12 @@ trait StorageDtoConverter {
 
   }
   def storageUnitToDto(storageUnit: StorageUnit): CompleteStorageUnitDto = {
-    CompleteStorageUnitDto(storageNodeToDto(storageUnit),envReqToDto(storageUnit))
+    CompleteStorageUnitDto(storageNodeToDto(storageUnit), envReqToDto(storageUnit))
   }
 
   def buildingToDto(building: Building): CompleteBuildingDto = {
     val buildingPart = BuildingDTO(building.id, building.address)
-    CompleteBuildingDto(storageNodeToDto(building), buildingPart,envReqToDto(building))
+    CompleteBuildingDto(storageNodeToDto(building), buildingPart, envReqToDto(building))
   }
 
   def roomToDto(room: Room): CompleteRoomDto = {
@@ -68,9 +68,8 @@ trait StorageDtoConverter {
       lightingCondition = env.lightingCondition,
       preventiveConservation = env.preventiveConservation
     )
-    CompleteRoomDto(storageNodeToDto(room), roomPart,envReqToDto(room))
+    CompleteRoomDto(storageNodeToDto(room), roomPart, envReqToDto(room))
   }
-
 
   def roomFromDto(room: CompleteRoomDto): Room = {
     val nodePart = room.storageNode
@@ -101,8 +100,8 @@ trait StorageDtoConverter {
       isPartOf = nodePart.isPartOf,
       groupRead = nodePart.groupRead,
       groupWrite = nodePart.groupWrite,
-//      latestMoveId = nodePart.latestMoveId,
-//      latestEnvReqId = nodePart.latestEnvReqId,
+      //      latestMoveId = nodePart.latestMoveId,
+      //      latestEnvReqId = nodePart.latestEnvReqId,
       links = nodePart.links,
       environmentRequirement = fromEnvReqDto(room.envReqDto),
       securityAssessment = secAssessment,
@@ -123,8 +122,8 @@ trait StorageDtoConverter {
       isPartOf = nodePart.isPartOf,
       groupRead = nodePart.groupRead,
       groupWrite = nodePart.groupWrite,
-//      latestMoveId = nodePart.latestMoveId,
-//      latestEnvReqId = nodePart.latestEnvReqId,
+      //      latestMoveId = nodePart.latestMoveId,
+      //      latestEnvReqId = nodePart.latestEnvReqId,
       links = nodePart.links,
       environmentRequirement = fromEnvReqDto(building.envReqDto),
       address = buildingPart.address
@@ -143,41 +142,44 @@ trait StorageDtoConverter {
       isPartOf = nodePart.isPartOf,
       groupRead = nodePart.groupRead,
       groupWrite = nodePart.groupWrite,
-//      latestMoveId = nodePart.latestMoveId,
-//      latestEnvReqId = nodePart.latestEnvReqId,
+      //      latestMoveId = nodePart.latestMoveId,
+      //      latestEnvReqId = nodePart.latestEnvReqId,
       links = nodePart.links,
       environmentRequirement = fromEnvReqDto(completeStorageUnit.envReqDto)
     )
   }
 
-  private def fromEnvReqDto(optEnvReqDto:Option[EnvReqDto]) ={
+  private def fromEnvReqDto(optEnvReqDto: Option[EnvReqDto]) = {
     optEnvReqDto.map { envReqDto =>
       EnvironmentRequirement(
-        temperature= envReqDto.temperature,
-        temperatureTolerance= envReqDto.temperatureTolerance,
-        hypoxicAir= envReqDto.hypoxicAir,
-        hypoxicAirTolerance= envReqDto.hypoxicAirTolerance,
-        relativeHumidity= envReqDto.relativeHumidity,
-        relativeHumidityTolerance=envReqDto.relativeHumidityTolerance,
+        temperature = envReqDto.temperature,
+        temperatureTolerance = envReqDto.temperatureTolerance,
+        hypoxicAir = envReqDto.hypoxicAir,
+        hypoxicAirTolerance = envReqDto.hypoxicAirTolerance,
+        relativeHumidity = envReqDto.relativeHumidity,
+        relativeHumidityTolerance = envReqDto.relativeHumidityTolerance,
         lightingCondition = envReqDto.lightingCond,
-        cleaning= envReqDto.cleaning,
-        comments = envReqDto.note)
+        cleaning = envReqDto.cleaning,
+        comments = envReqDto.note
+      )
     }
   }
 
   private def envReqToDto(storageNode: Storage) = {
     storageNode.environmentRequirement.map {
-      envReq => EnvReqDto(
-        id = storageNode.id,
-      temperature = envReq.temperature,
-      temperatureTolerance = envReq.temperatureTolerance,
-      hypoxicAir =envReq.hypoxicAir,
-      hypoxicAirTolerance = envReq.hypoxicAirTolerance,
-      relativeHumidity = envReq.relativeHumidity,
-      relativeHumidityTolerance = envReq.relativeHumidityTolerance,
-      lightingCond = envReq.lightingCondition,
-      cleaning = envReq.cleaning,
-      note = envReq.comments)
+      envReq =>
+        EnvReqDto(
+          id = storageNode.id,
+          temperature = envReq.temperature,
+          temperatureTolerance = envReq.temperatureTolerance,
+          hypoxicAir = envReq.hypoxicAir,
+          hypoxicAirTolerance = envReq.hypoxicAirTolerance,
+          relativeHumidity = envReq.relativeHumidity,
+          relativeHumidityTolerance = envReq.relativeHumidityTolerance,
+          lightingCond = envReq.lightingCondition,
+          cleaning = envReq.cleaning,
+          note = envReq.comments
+        )
     }
   }
 

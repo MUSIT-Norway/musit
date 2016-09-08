@@ -85,7 +85,7 @@ class StorageUnitService @Inject() (
     storageUnitDao.rootNodes(readGroup)
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =
-    storageUnitDao.updateStorageUnit(id, toDto(storageUnit).storageNode)
+    storageUnitDao.updateStorageUnitAndMaybeEnvReq(id, storageUnit)
 
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageType): MusitFuture[Boolean] =
     getStorageType(id).musitFutureFlatMapInnerEither {
@@ -97,15 +97,15 @@ class StorageUnitService @Inject() (
     }
 
   def updateStorageTripleByID(id: Long, triple: Storage): Future[Either[MusitError, Int]] =
-    verifyStorageTypeMatchesDatabase(id, StorageType.fromStorage(triple)).musitFutureFlatMap{_=>
-        triple match {
-          case st: StorageUnit =>
-            updateStorageUnitByID(id, st).toMusitFuture
-          case building: Building =>
-            buildingService.updateBuildingByID(id, building).toMusitFuture
-          case room: Room =>
-            roomService.updateRoomByID(id, room).toMusitFuture
-        }
+    verifyStorageTypeMatchesDatabase(id, StorageType.fromStorage(triple)).musitFutureFlatMap { _ =>
+      triple match {
+        case st: StorageUnit =>
+          updateStorageUnitByID(id, st).toMusitFuture
+        case building: Building =>
+          buildingService.updateBuildingByID(id, building).toMusitFuture
+        case room: Room =>
+          roomService.updateRoomByID(id, room).toMusitFuture
+      }
     }
 
   def deleteStorageTriple(id: Long): MusitFuture[Int] =

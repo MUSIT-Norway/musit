@@ -49,7 +49,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
         result.size mustBe 2
         storageDao.setPartOf(1, 2).futureValue mustBe 1
         import scala.concurrent.ExecutionContext.Implicits.global
-        storageDao.getStorageUnitOnlyById(1).map(_.get.isPartOf).futureValue mustBe Some(2)
+        storageDao.getStorageNodeOnlyById(1).map(_.get.isPartOf).futureValue mustBe Some(2)
       }
     }
   }

@@ -11,6 +11,7 @@ import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import no.uio.musit.microservices.common.extensions.OptionExtensions.OptionExtensionsImp
 
 /*** Handles the storageNode table. */
 @Singleton
@@ -33,7 +34,7 @@ class StorageUnitDao @Inject() (
   def storageUnitNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(unknownStorageUnitMsg(id))
 
-  def getStorageUnitOnlyById(id: Long): Future[Option[StorageNodeDTO]] =
+  def getStorageNodeOnlyById(id: Long): Future[Option[StorageNodeDTO]] =
     db.run(StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
   def getChildren(id: Long): Future[Seq[StorageNodeDTO]] = {
@@ -79,13 +80,47 @@ class StorageUnitDao @Inject() (
         storageNode.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
       storageNodePart
   }
-  //updateStorageNodeAndMaybeEnvReqAction
-  def updateStorageNodeAction(id: Long, storageUnit: StorageNodeDTO): DBIO[Int] = {
-    StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
+  //An action updating the common node part and also updates/creates a new envReq if different from the current one
+  def updateStorageNodeAndMaybeEnvReqAction(id: Long, storage: Storage): DBIO[Int] = {
+    val storageNodeDto = toDto(storage)
+    val nodePart = storageNodeDto.storageNode
+
+    val envReqNone: Option[EnvReqDto] = None //TODO: Ask KP on how to get rid of the need of this.
+
+    val envReqAction =  DBIO.successful(envReqNone) //TEMP!
+
+    /*TODO:
+
+  getStorageNodeOnlyById(id).ap {optNodeInDatabase =>
+    val nodeInDatabase = optNodeInDatabase.getOrFail("Unable to find storage node with id: $id")
+    nodeInDatabase.latestEnvReqId match {
+      case None => {
+        storage.environmentRequirement match {
+          case None => DBIO.successful(envReqNone) //No latestEnvReqId and no current EnvReq, so nothing to do
+          case Some(envReq) => {
+
+
+
+          }
+        }
+      }
+
+
+      case Some(latestEnvReqId) => {
+          //Get it from the database and compare it to the new one. If the new one is different, then create the new one.
+
+
+      }
+    }
+    */
+
+    val updStorageNodeAction = StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).update(nodePart)
+
+    envReqAction.andThen(updStorageNodeAction)
   }
 
-  def updateStorageUnit(id: Long, storageNode: StorageNodeDTO): Future[Int] = {
-    db.run(updateStorageNodeAction(id, storageNode))
+  def updateStorageUnitAndMaybeEnvReq(id: Long, storageUnit: Storage): Future[Int] = {
+    db.run(updateStorageNodeAndMaybeEnvReqAction(id, storageUnit))
   }
 
   def deleteStorageNode(id: Long): Future[Int] = {
@@ -93,8 +128,6 @@ class StorageUnitDao @Inject() (
       storageUnit <- StorageNodeTable if storageUnit.id === id && storageUnit.isDeleted === false
     } yield storageUnit.isDeleted).update(true))
   }
-
-
 
   private class StorageNodeTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
     def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, latestMoveId, latestEnvReqId,

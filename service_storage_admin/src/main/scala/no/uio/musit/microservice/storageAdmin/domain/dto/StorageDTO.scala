@@ -56,7 +56,7 @@ sealed trait CompleteStorageNodeDto {
   val envReqDto: Option[EnvReqDto]
 }
 
-case class CompleteBuildingDto(storageNode: StorageNodeDTO, buildingDto: BuildingDTO,envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
-case class CompleteRoomDto(storageNode: StorageNodeDTO, roomDto: RoomDTO,envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
-case class CompleteStorageUnitDto(storageNode: StorageNodeDTO,envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
+case class CompleteBuildingDto(storageNode: StorageNodeDTO, buildingDto: BuildingDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
+case class CompleteRoomDto(storageNode: StorageNodeDTO, roomDto: RoomDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
+case class CompleteStorageUnitDto(storageNode: StorageNodeDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
 

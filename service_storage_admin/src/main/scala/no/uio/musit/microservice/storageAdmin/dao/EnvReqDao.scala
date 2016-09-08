@@ -1,11 +1,11 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import play.api.Play
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
-import no.uio.musit.microservice.storageAdmin.domain.{EnvironmentRequirement, Storage}
-import no.uio.musit.microservice.storageAdmin.domain.dto.{EnvReqDto, StorageDtoConverter}
+import no.uio.musit.microservice.storageAdmin.domain.{ EnvironmentRequirement, Storage }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ EnvReqDto, StorageDtoConverter }
 
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -14,12 +14,11 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
  * Created by ellenjo on 08.09.16.
  */
 
-
 @Singleton
 class EnvReqDao @Inject() (
-                              val dbConfigProvider: DatabaseConfigProvider
+    val dbConfigProvider: DatabaseConfigProvider
 
-                            ) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._
 
@@ -28,17 +27,15 @@ class EnvReqDao @Inject() (
   def insertAction(event: EnvReqDto): DBIO[EnvReqDto] =
 
     EnvReqTable returning EnvReqTable.map(_.id) into
-    ((eventX, id) =>
-      eventX.copy(id = id)) +=  event
-
-
+      ((eventX, id) =>
+        eventX.copy(id = id)) += event
 
   def insertAction(optEvent: Option[EnvReqDto]): DBIO[Option[EnvReqDto]] =
     optEvent match {
       case None => DBIO.successful(None)
       case Some(event) => insertAction(event).map(Some(_))
     }
-/*
+  /*
 
   def updateStorageNodeLatestEnvReq(storageNodeId: Int, newEventId: Long): DBIO[Unit] = {
     /* TODO: When service_storageAdmin and service_event has been merged, activate this code (also need to import StorageNodeTable)
@@ -62,10 +59,8 @@ class EnvReqDao @Inject() (
   }
 */
 
-
   def getById(id: Long): Future[Option[EnvReqDto]] =
     db.run(EnvReqTable.filter(event => event.id === id).result.headOption)
-
 
   private class EnvReqTable(tag: Tag) extends Table[EnvReqDto](tag, Some("MUSARK_STORAGE"), "E_ENVIRONMENT_REQUIREMENT") {
     def * = (id, temperature, tempTolerance, relativeHumidity, relativeHumidityTolerance, hypoxicAir, hypAirTolerance,
@@ -81,7 +76,6 @@ class EnvReqDao @Inject() (
     val cleaning = column[Option[String]]("CLEANING")
     val lightingCond = column[Option[String]]("LIGHTING_COND")
     val note = column[Option[String]]("NOTE")
-
 
     def create = (id: Option[Long],
       temp: Option[Double],

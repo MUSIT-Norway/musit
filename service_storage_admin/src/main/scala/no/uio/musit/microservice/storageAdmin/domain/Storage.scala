@@ -17,7 +17,7 @@ sealed trait Storage {
   val groupRead: Option[String]
   val groupWrite: Option[String]
   //val latestMoveId: Option[Long]
-//  val latestEnvReqId: Option[Long]
+  //  val latestEnvReqId: Option[Long]
   val links: Option[Seq[Link]]
   val environmentRequirement: Option[EnvironmentRequirement]
 }
@@ -33,7 +33,7 @@ case class StorageUnit(
   groupRead: Option[String],
   groupWrite: Option[String],
   //latestMoveId: Option[Long],
-//  latestEnvReqId: Option[Long],
+  //  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement]
 ) extends Storage
@@ -48,8 +48,8 @@ case class Room(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-//  latestMoveId: Option[Long],
-//  latestEnvReqId: Option[Long],
+  //  latestMoveId: Option[Long],
+  //  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement],
   securityAssessment: SecurityAssessment,
@@ -67,11 +67,11 @@ case class Building(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-//  latestMoveId: Option[Long],4
-//  latestEnvReqId: Option[Long],
+  //  latestMoveId: Option[Long],4
+  //  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement],
-    address: Option[String]
+  address: Option[String]
 ) extends Storage
 
 case class EnvironmentRequirement(
