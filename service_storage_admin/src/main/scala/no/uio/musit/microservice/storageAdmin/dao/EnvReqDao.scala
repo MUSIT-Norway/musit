@@ -17,8 +17,8 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 @Singleton
 class EnvReqDao @Inject() (
-                              val dbConfigProvider: DatabaseConfigProvider,
-                              storageUnitDao: StorageUnitDao
+                              val dbConfigProvider: DatabaseConfigProvider
+
                             ) extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._

@@ -43,12 +43,12 @@ class StorageUnitService @Inject() (
     ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: $expected, " +
       s"but had the type: $inDatabase in the database.")
 
-  def create(storageUnit: StorageUnit): MusitFuture[Storage] =
+  def createStorageUnit(storageUnit: StorageUnit): MusitFuture[Storage] =
     storageUnitDao.insertStorageUnit(storageUnitToDto(storageUnit)).toMusitFuture // musitFutureMap(stNodeDto=> fromDto(stNodeDto))
 
   def createStorageTriple(storage: Storage): MusitFuture[Storage] = {
     storage match {
-      case su: StorageUnit => create(su)
+      case su: StorageUnit => createStorageUnit(su)
       case room: Room => roomService.create(room)
       case building: Building => buildingService.create(building)
     }
@@ -85,7 +85,7 @@ class StorageUnitService @Inject() (
     storageUnitDao.rootNodes(readGroup)
 
   def updateStorageUnitByID(id: Long, storageUnit: StorageUnit) =
-    storageUnitDao.updateStorageNode(id, toDto(storageUnit).storageNode)
+    storageUnitDao.updateStorageUnit(id, toDto(storageUnit).storageNode)
 
   def verifyStorageTypeMatchesDatabase(id: Long, expectedStorageUnitType: StorageType): MusitFuture[Boolean] =
     getStorageType(id).musitFutureFlatMapInnerEither {
@@ -97,18 +97,15 @@ class StorageUnitService @Inject() (
     }
 
   def updateStorageTripleByID(id: Long, triple: Storage): Future[Either[MusitError, Int]] =
-    verifyStorageTypeMatchesDatabase(id, StorageType.fromStorage(triple)).flatMap {
-      case Right(_) =>
+    verifyStorageTypeMatchesDatabase(id, StorageType.fromStorage(triple)).musitFutureFlatMap{_=>
         triple match {
           case st: StorageUnit =>
-            updateStorageUnitByID(id, st).map(Right(_))
+            updateStorageUnitByID(id, st).toMusitFuture
           case building: Building =>
-            buildingService.updateBuildingByID(id, building).map(Right(_))
+            buildingService.updateBuildingByID(id, building).toMusitFuture
           case room: Room =>
-            roomService.updateRoomByID(id, room).map(Right(_))
+            roomService.updateRoomByID(id, room).toMusitFuture
         }
-      case Left(error) =>
-        Future.successful(Left(error))
     }
 
   def deleteStorageTriple(id: Long): MusitFuture[Int] =

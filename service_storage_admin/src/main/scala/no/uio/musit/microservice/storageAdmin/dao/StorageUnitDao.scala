@@ -15,7 +15,8 @@ import scala.concurrent.Future
 /*** Handles the storageNode table. */
 @Singleton
 class StorageUnitDao @Inject() (
-    val dbConfigProvider: DatabaseConfigProvider
+    val dbConfigProvider: DatabaseConfigProvider,
+    val envReqDao: EnvReqDao
 ) extends HasDatabaseConfigProvider[JdbcProfile] with StorageDtoConverter {
 
   import driver.api._
@@ -61,8 +62,15 @@ class StorageUnitDao @Inject() (
     db.run(insertAction(storageUnit.storageNode))
 
   def insertStorageUnit(completeStorageUnitDto: CompleteStorageUnitDto): Future[Storage] = {
-    val futStorageUnitDto = insert(completeStorageUnitDto)
-    futStorageUnitDto.map(storageUnitDto => fromDto(CompleteStorageUnitDto(storageUnitDto, completeStorageUnitDto.envReqDto)))
+    val envReqInsertAction = envReqDao.insertAction(completeStorageUnitDto.envReqDto)
+    val nodePartIn = completeStorageUnitDto.storageNode
+
+    val action = (for {
+      optEnvReq <- envReqInsertAction
+      nodePart = nodePartIn.copy(latestEnvReqId = optEnvReq.map(_.id).flatten)
+      nodePartOut <- insertAction(nodePart)
+    } yield fromDto(CompleteStorageUnitDto(nodePartOut, optEnvReq))).transactionally
+    db.run(action)
   }
 
   def insertAction(storageNodePart: StorageNodeDTO): DBIO[StorageNodeDTO] = {
@@ -71,13 +79,13 @@ class StorageUnitDao @Inject() (
         storageNode.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
       storageNodePart
   }
-
-  def updateNodeUnitAction(id: Long, storageUnit: StorageNodeDTO): DBIO[Int] = {
+  //updateStorageNodeAndMaybeEnvReqAction
+  def updateStorageNodeAction(id: Long, storageUnit: StorageNodeDTO): DBIO[Int] = {
     StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
   }
 
-  def updateStorageNode(id: Long, storageNode: StorageNodeDTO): Future[Int] = {
-    db.run(updateNodeUnitAction(id, storageNode))
+  def updateStorageUnit(id: Long, storageNode: StorageNodeDTO): Future[Int] = {
+    db.run(updateStorageNodeAction(id, storageNode))
   }
 
   def deleteStorageNode(id: Long): Future[Int] = {
@@ -85,6 +93,8 @@ class StorageUnitDao @Inject() (
       storageUnit <- StorageNodeTable if storageUnit.id === id && storageUnit.isDeleted === false
     } yield storageUnit.isDeleted).update(true))
   }
+
+
 
   private class StorageNodeTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
     def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, latestMoveId, latestEnvReqId,

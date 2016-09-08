@@ -12,7 +12,8 @@ import scala.concurrent.Future
 @Singleton
 class RoomDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
-    val storageUnitDao: StorageUnitDao
+    val storageUnitDao: StorageUnitDao,
+    val envReqDao: EnvReqDao
 ) extends HasDatabaseConfigProvider[JdbcProfile] with StorageDtoConverter {
 
   import driver.api._
@@ -36,7 +37,7 @@ class RoomDao @Inject() (
     //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord
     // will make this DBIO/Future fail with an appropriate MusitException.
     // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = storageUnitDao.updateNodeUnitAction(id, storageNodePart)
+    val updateStorageUnitOnlyAction = storageUnitDao.updateStorageNodeAction(id, storageNodePart)
     //TODO: Pipe the above into DaoHelper.onlyAcceptOneUpdatedRecord or similar (like it was done in an earlier version of this code),
     // because the above line needs to throw an exception if it for some reason doesn't update the given row
     //(As an example, we don't want to update the RoomOnly if the node has been logically deleted or the user doesn't have write access to the node in the first place)
@@ -53,7 +54,9 @@ class RoomDao @Inject() (
     action
   }
 
-  def insertRoom(envReqInsertAction: DBIO[Option[EnvReqDto]], completeRoomDto: CompleteRoomDto): Future[Storage] = {
+  def insertRoom(completeRoomDto: CompleteRoomDto): Future[Storage] = {
+    val envReqInsertAction = envReqDao.insertAction(completeRoomDto.envReqDto)
+
     val nodePartIn = completeRoomDto.storageNode
     val roomPartIn = completeRoomDto.roomDto
 

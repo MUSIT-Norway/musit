@@ -553,7 +553,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
 
     }
 
-        "create storageNode with envReq" in {
+        "create room with envReq" in {
         val makeMyJSon =
           """{"type":"Room","name":"UkjentRom2",
             |  "securityAssessment": {
@@ -600,5 +600,93 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
         }
 
 
+    "create building with envReq" in {
+      val makeMyJSon =
+        """{"type":"Building","name":"UkjentBygning",
+          |
+          |  "environmentRequirement": {
+          |     "temperature": 20.4,
+          |     "temperatureTolerance": 4,
+          |     "hypoxicAir": 40,
+          |     "hypoxicAirTolerance": 4,
+          |     "lightingCondition": "Mørkt",
+          |     "relativeHumidity": 71,
+          |     "relativeHumidityTolerance": 4,
+          |     "cleaning": "Veldig sort",
+          |     "comments": "Dårlig miljø"
+          |   }
+          |}""".
+          stripMargin
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
+      response.status mustBe 201 //Successfully created the room
 
-}}
+      storageUnit.id.isDefined mustBe true
+      val id = storageUnit.id.get
+      //Just to know which is the current id, the next is supposed to fail....
+      val responsGet = getStorageUnit(id) |>
+        waitFutureValue
+      val building = Json.parse(responsGet.body).validate[Storage].get.asInstanceOf[Building]
+
+      val optEnvReq = building.environmentRequirement
+      assert(optEnvReq.isDefined)
+
+      val envReq = optEnvReq.get
+      envReq.temperature mustBe Some(20.4)
+      envReq.temperatureTolerance mustBe Some(4)
+      envReq.hypoxicAir mustBe Some(40)
+      envReq.hypoxicAirTolerance mustBe Some(4)
+      envReq.lightingCondition mustBe Some("Mørkt")
+      envReq.relativeHumidity mustBe Some(71)
+      envReq.relativeHumidityTolerance mustBe Some(4)
+      envReq.cleaning mustBe Some("Veldig sort")
+      envReq.comments mustBe Some("Dårlig miljø")
+    }
+
+
+
+    "create storage unit with envReq" in {
+      val makeMyJSon =
+        """{"type":"StorageUnit","name":"Ukjent storage unit",
+          |
+          |  "environmentRequirement": {
+          |     "temperature": 20.4,
+          |     "temperatureTolerance": 4,
+          |     "hypoxicAir": 40,
+          |     "hypoxicAirTolerance": 4,
+          |     "lightingCondition": "Mørkt",
+          |     "relativeHumidity": 71,
+          |     "relativeHumidityTolerance": 4,
+          |     "cleaning": "Veldig sort",
+          |     "comments": "Dårlig miljø"
+          |   }
+          |}""".
+          stripMargin
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[StorageUnit]
+      response.status mustBe 201 //Successfully created the room
+
+      storageUnit.id.isDefined mustBe true
+      val id = storageUnit.id.get
+      //Just to know which is the current id, the next is supposed to fail....
+      val responsGet = getStorageUnit(id) |>
+        waitFutureValue
+      val stUnit = Json.parse(responsGet.body).validate[Storage].get.asInstanceOf[StorageUnit]
+
+      val optEnvReq = stUnit.environmentRequirement
+      assert(optEnvReq.isDefined)
+
+      val envReq = optEnvReq.get
+      envReq.temperature mustBe Some(20.4)
+      envReq.temperatureTolerance mustBe Some(4)
+      envReq.hypoxicAir mustBe Some(40)
+      envReq.hypoxicAirTolerance mustBe Some(4)
+      envReq.lightingCondition mustBe Some("Mørkt")
+      envReq.relativeHumidity mustBe Some(71)
+      envReq.relativeHumidityTolerance mustBe Some(4)
+      envReq.cleaning mustBe Some("Veldig sort")
+      envReq.comments mustBe Some("Dårlig miljø")
+    }
+
+
+  }}
