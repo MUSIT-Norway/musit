@@ -12,6 +12,8 @@ case class SecurityAssessment(
 
 object SecurityAssessment {
   implicit val format: Format[SecurityAssessment] = Json.format[SecurityAssessment]
+
+  val empty = SecurityAssessment(None, None, None, None, None)
 }
 
 case class EnvironmentAssessment(
@@ -23,4 +25,6 @@ case class EnvironmentAssessment(
 
 object EnvironmentAssessment {
   implicit val format: Format[EnvironmentAssessment] = Json.format[EnvironmentAssessment]
+
+  val empty = EnvironmentAssessment(None, None, None, None)
 }

@@ -8,11 +8,11 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
 
 class RoomService @Inject() (
-  roomDao: RoomDao,
+    roomDao: RoomDao,
     envReqDao: EnvReqDao
 ) extends Object with StorageDtoConverter {
   def create(storageRoom: Room): MusitFuture[Storage] = {
-    roomDao.insertRoom(roomToDto(storageRoom)).toMusitFuture
+    roomDao.insertRoom(storageRoom).toMusitFuture
   }
 
   def updateRoomByID(id: Long, room: Room) =

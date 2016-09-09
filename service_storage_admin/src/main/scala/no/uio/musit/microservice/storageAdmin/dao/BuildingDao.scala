@@ -44,7 +44,7 @@ class BuildingDao @Inject() (
     action
   }
 
-  def insertBuilding(completeBuildingDto: CompleteBuildingDto): Future[Storage] = {
+  def insertBuilding(completeBuildingDto: CompleteBuildingDto): Future[CompleteBuildingDto] = {
     val envReqInsertAction = envReqDao.insertAction(completeBuildingDto.envReqDto)
 
     val nodePartIn = completeBuildingDto.storageNode
@@ -56,8 +56,11 @@ class BuildingDao @Inject() (
       nodePartOut <- storageUnitDao.insertAction(nodePart)
       buildingPartOut = buildingPartIn.copy(id = nodePartOut.id)
       n <- insertBuildingOnlyAction(buildingPartOut)
-    } yield buildingFromDto(CompleteBuildingDto(nodePartOut, buildingPartOut, optEnvReq))).transactionally
+    } yield CompleteBuildingDto(nodePartOut, buildingPartOut, optEnvReq)).transactionally
     db.run(action)
+  }
+  def insertBuilding(building: Building): Future[Building] = {
+    insertBuilding(buildingToDto(building)).map(buildingFromDto)
   }
 
   private class BuildingTable(tag: Tag) extends Table[BuildingDTO](tag, Some("MUSARK_STORAGE"), "BUILDING") {

@@ -8,12 +8,11 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
 
 class BuildingService @Inject() (
-  buildingDao: BuildingDao,
+    buildingDao: BuildingDao,
     envReqDao: EnvReqDao
 ) extends Object with StorageDtoConverter {
   def create(storageBuilding: Building): MusitFuture[Storage] = {
-    val buildingDto = buildingToDto(storageBuilding)
-    buildingDao.insertBuilding(buildingDto).toMusitFuture
+    buildingDao.insertBuilding(storageBuilding).toMusitFuture
   }
 
   def updateBuildingByID(id: Long, building: Building) =

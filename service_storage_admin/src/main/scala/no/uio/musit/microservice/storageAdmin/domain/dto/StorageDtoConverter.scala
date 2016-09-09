@@ -153,20 +153,19 @@ trait StorageDtoConverter {
     optEnvReqDto.map(fromEnvReqDto)
   }
 
-  def fromEnvReqDto(envReqDto: EnvReqDto): EnvironmentRequirement  = {
-      EnvironmentRequirement(
-        temperature = envReqDto.temperature,
-        temperatureTolerance = envReqDto.temperatureTolerance,
-        hypoxicAir = envReqDto.hypoxicAir,
-        hypoxicAirTolerance = envReqDto.hypoxicAirTolerance,
-        relativeHumidity = envReqDto.relativeHumidity,
-        relativeHumidityTolerance = envReqDto.relativeHumidityTolerance,
-        lightingCondition = envReqDto.lightingCond,
-        cleaning = envReqDto.cleaning,
-        comments = envReqDto.note
-      )
+  def fromEnvReqDto(envReqDto: EnvReqDto): EnvironmentRequirement = {
+    EnvironmentRequirement(
+      temperature = envReqDto.temperature,
+      temperatureTolerance = envReqDto.temperatureTolerance,
+      hypoxicAir = envReqDto.hypoxicAir,
+      hypoxicAirTolerance = envReqDto.hypoxicAirTolerance,
+      relativeHumidity = envReqDto.relativeHumidity,
+      relativeHumidityTolerance = envReqDto.relativeHumidityTolerance,
+      lightingCondition = envReqDto.lightingCond,
+      cleaning = envReqDto.cleaning,
+      comments = envReqDto.note
+    )
   }
-
 
   private def envReqToDto(storageNode: Storage) = {
     storageNode.environmentRequirement.map {

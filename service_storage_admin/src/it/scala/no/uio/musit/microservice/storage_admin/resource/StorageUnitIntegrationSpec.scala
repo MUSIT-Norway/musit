@@ -727,7 +727,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           |     "relativeHumidity": 71,
           |     "relativeHumidityTolerance": 4,
           |     "cleaning": "Veldig sort",
-          |     "comments": "Dårlig miljø"
+          |     "comments": "Bra miljø"
           |   }
           |}""".
           stripMargin
@@ -750,7 +750,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       envReq.relativeHumidity mustBe Some(71)
       envReq.relativeHumidityTolerance mustBe Some(4)
       envReq.cleaning mustBe Some("Veldig sort")
-      envReq.comments mustBe Some("Dårlig miljø")
+      envReq.comments mustBe Some("Bra miljø")
     }
 
 

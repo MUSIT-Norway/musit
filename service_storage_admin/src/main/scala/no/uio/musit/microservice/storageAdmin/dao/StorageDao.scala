@@ -28,7 +28,7 @@ class StorageDao @Inject() (
   def getByNode(storageNode: StorageNodeDTO): MusitFuture[Storage] = {
     val id = storageNode.id.get
     val optFutOptEnvReq = storageNode.latestEnvReqId.map {
-      envreqId => envReqDao.getById(envreqId)
+      envReqId => envReqDao.getById(envReqId)
     }
     val noneEnvReq: Option[EnvReqDto] = None
     val futOptEnvReq = optFutOptEnvReq.fold {

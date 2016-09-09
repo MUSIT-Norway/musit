@@ -1,12 +1,12 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.domain.{Storage, StorageUnit}
+import no.uio.musit.microservice.storageAdmin.domain.{ Building, Storage, StorageUnit }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -15,10 +15,10 @@ import no.uio.musit.microservices.common.extensions.OptionExtensions.OptionExten
 
 /** * Handles the storageNode table. */
 @Singleton
-class StorageUnitDao @Inject()(
-                                val dbConfigProvider: DatabaseConfigProvider,
-                                val envReqDao: EnvReqDao
-                              ) extends HasDatabaseConfigProvider[JdbcProfile] with StorageDtoConverter {
+class StorageUnitDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider,
+    val envReqDao: EnvReqDao
+) extends HasDatabaseConfigProvider[JdbcProfile] with StorageDtoConverter {
 
   import driver.api._
 
@@ -62,7 +62,7 @@ class StorageUnitDao @Inject()(
   def insert(storageUnit: CompleteStorageUnitDto): Future[StorageNodeDTO] =
     db.run(insertAction(storageUnit.storageNode))
 
-  def insertStorageUnit(completeStorageUnitDto: CompleteStorageUnitDto): Future[Storage] = {
+  def insertStorageUnit(completeStorageUnitDto: CompleteStorageUnitDto): Future[CompleteStorageUnitDto] = {
     val envReqInsertAction = envReqDao.insertAction(completeStorageUnitDto.envReqDto)
     val nodePartIn = completeStorageUnitDto.storageNode
 
@@ -70,8 +70,12 @@ class StorageUnitDao @Inject()(
       optEnvReq <- envReqInsertAction
       nodePart = nodePartIn.copy(latestEnvReqId = optEnvReq.map(_.id).flatten)
       nodePartOut <- insertAction(nodePart)
-    } yield fromDto(CompleteStorageUnitDto(nodePartOut, optEnvReq))).transactionally
+    } yield CompleteStorageUnitDto(nodePartOut, optEnvReq)).transactionally
     db.run(action)
+  }
+
+  def insertStorageUnit(storageUnit: StorageUnit): Future[StorageUnit] = {
+    insertStorageUnit(storageUnitToDto(storageUnit)).map(storageUnitFromDto)
   }
 
   def insertAction(storageNodePart: StorageNodeDTO): DBIO[StorageNodeDTO] = {
@@ -90,7 +94,6 @@ class StorageUnitDao @Inject()(
     StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).update(storageNodeDto)
   }
 
-
   //An action updating the common node part and also updates/creates a new envReq if different from the current one
   def updateStorageNodeAndMaybeEnvReqAction(id: Long, storage: Storage) /*: Future[DBIO[Int]]*/ = {
     def insertEnvReqAndUpdateNode(combinedNodeDto: StorageNodeDTO, envReqDto: EnvReqDto) = {
@@ -104,7 +107,8 @@ class StorageUnitDao @Inject()(
       val nodeInDatabase = optNodeInDatabase.getOrFail(s"Unable to find storage node with id: $id")
       val newStorageNodeDto = toDto(storage)
       require(nodeInDatabase.id == Some(id))
-      val combinedNodeDto = newStorageNodeDto.storageNode.copy(latestMoveId = nodeInDatabase.latestMoveId, id = nodeInDatabase.id)
+      val combinedNodeDto = newStorageNodeDto.storageNode.copy(latestMoveId = nodeInDatabase.latestMoveId,
+                                        latestEnvReqId = nodeInDatabase.latestEnvReqId,id = nodeInDatabase.id)
       val envReqAction = DBIO.successful[Option[EnvReqDto]](None) //TEMP!
       assert(newStorageNodeDto.envReqDto.isDefined == storage.environmentRequirement.isDefined)
 
@@ -132,8 +136,7 @@ class StorageUnitDao @Inject()(
                   //We do the equality check on the domain class, because we
                   // don't want to compare against reqistered date and other potential "hidden" fields in the dto class.
                   updateStorageNodeAction(id, combinedNodeDto)
-                }
-                else {
+                } else {
                   insertEnvReqAndUpdateNode(combinedNodeDto, envReqDto)
                 }
               }
@@ -185,20 +188,20 @@ class StorageUnitDao @Inject()(
     val latestEnvReqId = column[Option[Long]]("LATEST_ENVREQ_ID")
 
     def create = (
-                   id: Option[Long],
-                   storageType: StorageType,
-                   storageUnitName: String,
-                   area: Option[Double],
-                   areaTo: Option[Double],
-                   isPartOf: Option[Long],
-                   height: Option[Double],
-                   heightTo: Option[Double],
-                   groupRead: Option[String],
-                   groupWrite: Option[String],
-                   latestMoveId: Option[Long],
-                   latestEnvReqId: Option[Long],
-                   isDeleted: Boolean
-                 ) =>
+      id: Option[Long],
+      storageType: StorageType,
+      storageUnitName: String,
+      area: Option[Double],
+      areaTo: Option[Double],
+      isPartOf: Option[Long],
+      height: Option[Double],
+      heightTo: Option[Double],
+      groupRead: Option[String],
+      groupWrite: Option[String],
+      latestMoveId: Option[Long],
+      latestEnvReqId: Option[Long],
+      isDeleted: Boolean
+    ) =>
       StorageNodeDTO(
         id,
         storageUnitName,

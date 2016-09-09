@@ -29,7 +29,8 @@ class RoomDao @Inject() (
     RoomTable.filter(_.id === id).update(storageRoom)
   }
 
-  def updateRoom(id: Long, room: Room) = {
+  /** Returns how many rooms has been updated. (1 or else error) */
+  def updateRoom(id: Long, room: Room): Future[Int] = {
     val roomDto = roomToDto(room)
     val storageNodePart = roomDto.storageNode
     val roomPart = roomDto.roomDto
@@ -54,7 +55,7 @@ class RoomDao @Inject() (
     action
   }
 
-  def insertRoom(completeRoomDto: CompleteRoomDto): Future[Storage] = {
+  def insertRoom(completeRoomDto: CompleteRoomDto): Future[CompleteRoomDto] = {
     val envReqInsertAction = envReqDao.insertAction(completeRoomDto.envReqDto)
 
     val nodePartIn = completeRoomDto.storageNode
@@ -66,8 +67,12 @@ class RoomDao @Inject() (
       nodePartOut <- storageUnitDao.insertAction(nodePart)
       roomPartOut = roomPartIn.copy(id = nodePartOut.id)
       n <- insertRoomOnlyAction(roomPartOut)
-    } yield fromDto(CompleteRoomDto(nodePartOut, roomPartOut, optEnvReq))).transactionally
+    } yield CompleteRoomDto(nodePartOut, roomPartOut, optEnvReq)).transactionally
     db.run(action)
+  }
+
+  def insertRoom(room: Room): Future[Room] = {
+    insertRoom(roomToDto(room)).map(roomFromDto)
   }
 
   private class RoomTable(tag: Tag) extends Table[RoomDTO](tag, Some("MUSARK_STORAGE"), "ROOM") {

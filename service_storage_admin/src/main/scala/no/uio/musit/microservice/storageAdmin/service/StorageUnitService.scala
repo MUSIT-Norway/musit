@@ -43,8 +43,8 @@ class StorageUnitService @Inject() (
     ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: $expected, " +
       s"but had the type: $inDatabase in the database.")
 
-  def createStorageUnit(storageUnit: StorageUnit): MusitFuture[Storage] =
-    storageUnitDao.insertStorageUnit(storageUnitToDto(storageUnit)).toMusitFuture // musitFutureMap(stNodeDto=> fromDto(stNodeDto))
+  def createStorageUnit(storageUnit: StorageUnit): MusitFuture[StorageUnit] =
+    storageUnitDao.insertStorageUnit(storageUnit).toMusitFuture // musitFutureMap(stNodeDto=> fromDto(stNodeDto))
 
   def createStorageTriple(storage: Storage): MusitFuture[Storage] = {
     storage match {
