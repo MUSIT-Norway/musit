@@ -23,7 +23,7 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, EventRelation, EventRelations }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 

@@ -79,13 +79,15 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
     override val entryName: String
   ) extends EventTypeEntry
 
-  case object MoveEventType extends TopLevelEvent(EventTypeId(1), "Move")
+  case object MoveObjectType extends TopLevelEvent(EventTypeId(1), "MoveObject")
 
-  case object EnvRequirementEventType extends TopLevelEvent(EventTypeId(2), "EnvRequirement")
+  case object MoveNodeType extends TopLevelEvent(EventTypeId(2), "MovePlace")
 
-  case object ControlEventType extends TopLevelEvent(EventTypeId(3), "Control")
+  case object EnvRequirementEventType extends TopLevelEvent(EventTypeId(3), "EnvRequirement")
 
-  case object ObservationEventType extends TopLevelEvent(EventTypeId(4), "Observation")
+  case object ControlEventType extends TopLevelEvent(EventTypeId(4), "Control")
+
+  case object ObservationEventType extends TopLevelEvent(EventTypeId(5), "Observation")
 
   /**
    * All events that typically appears below the root of an event structure
@@ -183,23 +185,23 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
     val eName: String
   ) extends SubEventType(evtId, eName)
 
-  case object CtrlAlcoholType extends CtrlSubEventType(EventTypeId(5), "ControlAlcohol")
+  case object CtrlAlcoholType extends CtrlSubEventType(EventTypeId(6), "ControlAlcohol")
 
-  case object CtrlCleaningType extends CtrlSubEventType(EventTypeId(6), "ControlCleaning")
+  case object CtrlCleaningType extends CtrlSubEventType(EventTypeId(7), "ControlCleaning")
 
-  case object CtrlGasType extends CtrlSubEventType(EventTypeId(7), "ControlGas")
+  case object CtrlGasType extends CtrlSubEventType(EventTypeId(8), "ControlGas")
 
-  case object CtrlHypoxicAirType extends CtrlSubEventType(EventTypeId(8), "ControlHypoxicAir")
+  case object CtrlHypoxicAirType extends CtrlSubEventType(EventTypeId(9), "ControlHypoxicAir")
 
-  case object CtrlLightingType extends CtrlSubEventType(EventTypeId(9), "ControlLightingCondition")
+  case object CtrlLightingType extends CtrlSubEventType(EventTypeId(10), "ControlLightingCondition")
 
-  case object CtrlMoldType extends CtrlSubEventType(EventTypeId(10), "ControlMold")
+  case object CtrlMoldType extends CtrlSubEventType(EventTypeId(11), "ControlMold")
 
-  case object CtrlPestType extends CtrlSubEventType(EventTypeId(11), "ControlPest")
+  case object CtrlPestType extends CtrlSubEventType(EventTypeId(12), "ControlPest")
 
-  case object CtrlHumidityType extends CtrlSubEventType(EventTypeId(12), "ControlRelativeHumidity")
+  case object CtrlHumidityType extends CtrlSubEventType(EventTypeId(13), "ControlRelativeHumidity")
 
-  case object CtrlTemperatureType extends CtrlSubEventType(EventTypeId(13), "ControlTemperature")
+  case object CtrlTemperatureType extends CtrlSubEventType(EventTypeId(14), "ControlTemperature")
 
   /**
    * OBSERVATION TYPES
@@ -209,30 +211,30 @@ object EventTypeRegistry extends Enum[EventTypeEntry] {
     val eName: String
   ) extends SubEventType(evtId, eName)
 
-  case object ObsAlcoholType extends ObsSubEventType(EventTypeId(14), "ObservationAlcohol")
+  case object ObsAlcoholType extends ObsSubEventType(EventTypeId(15), "ObservationAlcohol")
 
-  case object ObsCleaningType extends ObsSubEventType(EventTypeId(15), "ObservationCleaning")
+  case object ObsCleaningType extends ObsSubEventType(EventTypeId(16), "ObservationCleaning")
 
-  case object ObsFireType extends ObsSubEventType(EventTypeId(16), "ObservationFireProtection")
+  case object ObsFireType extends ObsSubEventType(EventTypeId(17), "ObservationFireProtection")
 
-  case object ObsGasType extends ObsSubEventType(EventTypeId(17), "ObservationGas")
+  case object ObsGasType extends ObsSubEventType(EventTypeId(18), "ObservationGas")
 
-  case object ObsHypoxicAirType extends ObsSubEventType(EventTypeId(18), "ObservationHypoxicAir")
+  case object ObsHypoxicAirType extends ObsSubEventType(EventTypeId(19), "ObservationHypoxicAir")
 
-  case object ObsLightingType extends ObsSubEventType(EventTypeId(19), "ObservationLightingCondition")
+  case object ObsLightingType extends ObsSubEventType(EventTypeId(20), "ObservationLightingCondition")
 
-  case object ObsMoldType extends ObsSubEventType(EventTypeId(20), "ObservationMold")
+  case object ObsMoldType extends ObsSubEventType(EventTypeId(21), "ObservationMold")
 
-  case object ObsPerimeterType extends ObsSubEventType(EventTypeId(21), "ObservationPerimeterSecurity")
+  case object ObsPerimeterType extends ObsSubEventType(EventTypeId(22), "ObservationPerimeterSecurity")
 
-  case object ObsHumidityType extends ObsSubEventType(EventTypeId(22), "ObservationRelativeHumidity")
+  case object ObsHumidityType extends ObsSubEventType(EventTypeId(23), "ObservationRelativeHumidity")
 
-  case object ObsPestType extends ObsSubEventType(EventTypeId(23), "ObservationPest")
+  case object ObsPestType extends ObsSubEventType(EventTypeId(24), "ObservationPest")
 
-  case object ObsTemperatureType extends ObsSubEventType(EventTypeId(24), "ObservationTemperature")
+  case object ObsTemperatureType extends ObsSubEventType(EventTypeId(25), "ObservationTemperature")
 
-  case object ObsTheftType extends ObsSubEventType(EventTypeId(25), "ObservationTheftProtection")
+  case object ObsTheftType extends ObsSubEventType(EventTypeId(26), "ObservationTheftProtection")
 
-  case object ObsWaterDamageType extends ObsSubEventType(EventTypeId(26), "ObservationWaterDamageAssessment")
+  case object ObsWaterDamageType extends ObsSubEventType(EventTypeId(27), "ObservationWaterDamageAssessment")
 
 }

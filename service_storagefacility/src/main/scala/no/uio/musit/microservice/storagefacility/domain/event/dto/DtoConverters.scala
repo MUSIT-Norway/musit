@@ -19,10 +19,12 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
+import no.uio.musit.microservice.storagefacility.domain.datetime.Implicits._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
+import no.uio.musit.microservice.storagefacility.domain.event.move.{ Move, MoveNode, MoveObject }
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval, LifeCycle }
 
@@ -47,6 +49,19 @@ object DtoConverters {
     tolerance: Option[A]
   ): Option[Interval[A]] = base.map(b => Interval[A](b, tolerance))
 
+  private[this] def baseFromDto(dto: Dto): MusitEventBase = {
+    MusitEventBase(
+      id = dto.id,
+      doneDate = dto.eventDate,
+      doneBy = dto.relatedActors.map(EventRoleActor.toActorRole).headOption,
+      affectedThing = dto.relatedObjects.map(EventRoleObject.toObjectRole).headOption,
+      note = dto.note,
+      partOf = dto.partOf,
+      registeredBy = dto.registeredBy,
+      registeredDate = dto.registeredDate
+    )
+  }
+
   /**
    * Helper function to generate a base Dto that is shared across all event
    * types.
@@ -56,23 +71,32 @@ object DtoConverters {
     maybeStr: Option[String] = None,
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None,
-    relEvents: Seq[RelatedEvents] = Seq.empty
+    relEvents: Seq[RelatedEvents] = Seq.empty,
+    relPlaces: Seq[PlaceRole] = Seq.empty
   ): BaseEventDto = {
     BaseEventDto(
       id = sub.baseEvent.id,
       eventTypeId = sub.eventType.registeredEventId,
+      eventDate = sub.baseEvent.doneDate,
+      // For the following related* fields, we do not yet know the ID to set.
+      // So they are initialised with the eventId property to None.
+      relatedActors = sub.baseEvent.doneBy.map(ar => EventRoleActor.toEventRoleActor(ar)).toSeq,
+      relatedObjects = sub.baseEvent.affectedThing.map(or => EventRoleObject.toEventRoleObject(or)).toSeq,
+      relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr)),
       note = sub.baseEvent.note,
       relatedSubEvents = relEvents,
       partOf = sub.baseEvent.partOf,
       valueLong = maybeLong,
       valueString = maybeStr,
-      valueDouble = maybeDouble
+      valueDouble = maybeDouble,
+      registeredBy = sub.baseEvent.registeredBy,
+      registeredDate = sub.baseEvent.registeredDate
     )
   }
 
   /**
    * Helper function to generate a base Dto that is shared across all event
-   * types. Differes from the above function in that it will initialise the
+   * types. Differs from the above function in that it will initialise the
    * `releatedEvents` property with an empty collection.
    */
   private[this] def toBaseDtoNoChildren[T <: MusitEvent](
@@ -89,17 +113,26 @@ object DtoConverters {
     maybeStr: Option[String] = None,
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None,
+    relPlaces: Seq[PlaceRole] = Seq.empty,
     ext: B
   ): ExtendedDto = {
     ExtendedDto(
       id = sub.baseEvent.id,
       eventTypeId = sub.eventType.registeredEventId,
+      eventDate = sub.baseEvent.doneDate,
+      // For the following related* fields, we do not yet know the ID to set.
+      // So they are initialised with the eventId property to None.
+      relatedActors = sub.baseEvent.doneBy.map(ar => EventRoleActor.toEventRoleActor(ar)).toSeq,
+      relatedObjects = sub.baseEvent.affectedThing.map(or => EventRoleObject.toEventRoleObject(or)).toSeq,
+      relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr)),
       note = sub.baseEvent.note,
       relatedSubEvents = Seq.empty[RelatedEvents],
       partOf = sub.baseEvent.partOf,
       valueLong = maybeLong,
       valueString = maybeStr,
       valueDouble = maybeDouble,
+      registeredBy = sub.baseEvent.registeredBy,
+      registeredDate = sub.baseEvent.registeredDate,
       extension = ext
     )
   }
@@ -149,11 +182,7 @@ object DtoConverters {
         }
       }
       Control(
-        baseEvent = MusitEventBase(
-          id = dto.id,
-          note = dto.note,
-          partOf = dto.partOf
-        ),
+        baseEvent = baseFromDto(dto),
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
         parts = p
       )
@@ -176,7 +205,7 @@ object DtoConverters {
 
     // scalastyle:off method.length
     def controlSubEventFromDto(dto: BaseEventDto): ControlSubEvent = {
-      val base = MusitEventBase(dto.id, dto.note, dto.partOf)
+      val base = baseFromDto(dto)
       val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
       val ok = dto.valueLong
@@ -287,11 +316,7 @@ object DtoConverters {
         }
       }
       Observation(
-        baseEvent = MusitEventBase(
-          id = dto.id,
-          note = dto.note,
-          partOf = dto.partOf
-        ),
+        baseEvent = baseFromDto(dto),
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
         parts = p
       )
@@ -365,11 +390,7 @@ object DtoConverters {
      */
     // scalastyle:off cyclomatic.complexity
     def obsSubEventFromBasicDto(dto: BaseEventDto): ObservationSubEvent = {
-      val base = MusitEventBase(
-        id = dto.id,
-        note = dto.note,
-        partOf = dto.partOf
-      )
+      val base = baseFromDto(dto)
       val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
 
@@ -412,11 +433,7 @@ object DtoConverters {
      * database table.
      */
     def obsSubEventFromExtendedDto(dto: ExtendedDto): ObservationSubEvent = {
-      val base = MusitEventBase(
-        id = dto.id,
-        note = dto.note,
-        partOf = dto.partOf
-      )
+      val base = baseFromDto(dto)
       val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
 
@@ -424,37 +441,22 @@ object DtoConverters {
         case ObsPestType =>
           val tmpDto = dto.extension.asInstanceOf[ObservationPestDto]
           val lc = tmpDto.lifeCycles.map(LifeCyleConverters.lifecycleFromDto)
-
-          ObservationPest(
-            baseEvent = base,
-            eventType = evtType,
-            identification = dto.valueString,
-            lifecycles = lc
-          )
+          ObservationPest(base, evtType, dto.valueString, lc)
 
         case ObsHumidityType =>
           val tmpDt = dto.extension.asInstanceOf[ObservationFromToDto]
-          ObservationRelativeHumidity(
-            baseEvent = base,
-            eventType = evtType,
-            range = FromToDouble(tmpDt.from, tmpDt.to)
-          )
+          val fromTo = FromToDouble(tmpDt.from, tmpDt.to)
+          ObservationRelativeHumidity(base, evtType, fromTo)
 
         case ObsHypoxicAirType =>
           val tmpDt = dto.extension.asInstanceOf[ObservationFromToDto]
-          ObservationHypoxicAir(
-            baseEvent = base,
-            eventType = evtType,
-            range = FromToDouble(tmpDt.from, tmpDt.to)
-          )
+          val fromTo = FromToDouble(tmpDt.from, tmpDt.to)
+          ObservationHypoxicAir(base, evtType, fromTo)
 
         case ObsTemperatureType =>
           val tmpDt = dto.extension.asInstanceOf[ObservationFromToDto]
-          ObservationTemperature(
-            baseEvent = base,
-            eventType = evtType,
-            range = FromToDouble(tmpDt.from, tmpDt.to)
-          )
+          val fromTo = FromToDouble(tmpDt.from, tmpDt.to)
+          ObservationTemperature(base, evtType, fromTo)
 
         case unhandled =>
           // TODO: Complete me
@@ -498,11 +500,7 @@ object DtoConverters {
       val hypoxic = toInterval(envReqDto.hypoxicAir, envReqDto.hypoxicInterval)
 
       EnvRequirement(
-        baseEvent = MusitEventBase(
-          id = dto.id,
-          note = dto.note,
-          partOf = dto.partOf
-        ),
+        baseEvent = baseFromDto(dto),
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
         temperature = temp,
         airHumidity = humidity,
@@ -511,6 +509,36 @@ object DtoConverters {
         light = envReqDto.light
       )
     }
+  }
+
+  object MoveConverters {
+
+    private def moveToDto[A <: Move](move: A): BaseEventDto = {
+      toBaseDto(
+        sub = move,
+        relPlaces = Seq(move.to)
+      )
+    }
+
+    private def moveFromDto[A <: Move](
+      dto: BaseEventDto
+    )(init: (MusitEventBase, EventType, PlaceRole) => A): A = {
+      val base = baseFromDto(dto)
+      val eventType = EventType.fromEventTypeId(dto.eventTypeId)
+      val placeRole = EventRolePlace.toPlaceRole(dto.relatedPlaces.head)
+      init(base, eventType, placeRole)
+    }
+
+    def moveObjectToDto(mo: MoveObject): BaseEventDto = moveToDto(mo)
+
+    def moveNodeToDto(mo: MoveNode): BaseEventDto = moveToDto(mo)
+
+    def moveObjectFromDto(dto: BaseEventDto): MoveObject =
+      moveFromDto(dto)((base, eventType, pr) => MoveObject(base, eventType, pr))
+
+    def moveNodeFromDto(dto: BaseEventDto): MoveNode =
+      moveFromDto(dto)((base, eventType, pr) => MoveNode(base, eventType, pr))
+
   }
 
 }

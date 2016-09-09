@@ -34,6 +34,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.dbio.SequenceAction
 
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 /*
   General Note:
@@ -49,7 +50,11 @@ class EventDao @Inject() (
     val eventRelationDao: EventRelationDao,
     val obsFromToDao: ObservationFromToDao,
     val obsPestDao: ObservationPestDao,
-    val envReqDao: EnvRequirementDao
+    val envReqDao: EnvRequirementDao,
+    val evtActorsDao: EventActorsDao,
+    val evtObjectsDao: EventObjectsDao,
+    val evtPlacesDao: EventPlacesDao,
+    val evtPlacesAsObjDao: EventPlacesAsObjectsDao
 ) extends SharedEventTables with ColumnTypeMappers {
 
   import driver.api._
@@ -59,9 +64,7 @@ class EventDao @Inject() (
   private val eventBaseTable = TableQuery[EventBaseTable]
 
   /**
-   *
-   * @param eventBaseDto
-   * @return
+   * TODO: Document me!!!
    */
   private def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] = {
     eventBaseTable returning eventBaseTable.map(_.id) += eventBaseDto
@@ -93,6 +96,38 @@ class EventDao @Inject() (
     }
   }
 
+  private[this] def insertRelatedType[A: ClassTag](
+    eventId: Long,
+    relType: Seq[A]
+  )(insert: (Long, Seq[A]) => DBIO[Option[Int]]): DBIO[Option[Int]] = {
+    if (relType.nonEmpty) insert(eventId, relType)
+    else DBIO.successful[Option[Int]](None)
+  }
+
+  private[this] def insertRelatedActors(
+    eventId: Long,
+    actors: Seq[EventRoleActor]
+  ): DBIO[Option[Int]] =
+    insertRelatedType(eventId, actors)(evtActorsDao.insertActors)
+
+  private[this] def insertRelatedObjects(
+    eventId: Long,
+    objects: Seq[EventRoleObject]
+  ): DBIO[Option[Int]] =
+    insertRelatedType(eventId, objects)(evtObjectsDao.insertObjects)
+
+  private[this] def insertRelatedPlaces(
+    eventId: Long,
+    places: Seq[EventRolePlace]
+  ): DBIO[Option[Int]] =
+    insertRelatedType(eventId, places)(evtPlacesDao.insertPlaces)
+
+  private[this] def insertRelatedObjectsAsPlaces(
+    eventId: Long,
+    objPlaces: Seq[EventRoleObject]
+  ): DBIO[Option[Int]] =
+    insertRelatedType(eventId, objPlaces)(evtPlacesAsObjDao.insertObjects)
+
   /**
    * Creates an action to insert the event and potentially all related
    * sub-events. PartialEventLink is used if the event is inserted as a
@@ -114,13 +149,28 @@ class EventDao @Inject() (
 
     val insertWithChildren =
       for {
+        // Execute the insert of the base event
         theEventId <- insertBase
+        // Insert the children
         _ <- insertChildrenAction(theEventId, event.relatedSubEvents)
+        // Insert the event relations
         _ <- {
           partialRelation.filterNot(_ => isPartsRelation).map { pel =>
             eventRelationDao.insertRelationAction(pel.toFullLink(theEventId))
           }.getOrElse(DBIO.successful[Int](0))
         }
+        // Insert any related actor relations
+        _ <- insertRelatedActors(theEventId, event.relatedActors)
+        // Insert any related objects relations
+        _ <- {
+          if (MoveObjectType.id == event.eventTypeId) {
+            insertRelatedObjects(theEventId, event.relatedObjects)
+          } else {
+            insertRelatedObjectsAsPlaces(theEventId, event.relatedObjects)
+          }
+        }
+        // Insert any related place relations
+        _ <- insertRelatedPlaces(theEventId, event.relatedPlaces)
       } yield theEventId
 
     insertWithChildren.transactionally
@@ -144,7 +194,7 @@ class EventDao @Inject() (
           subEvent,
           Some(PartialEventRelation(parentEventId, relatedEvents.relation))
         )
-      } //Todo, also handle other relations than parts
+      } // TODO: also handle other relations than parts
       SequenceAction(relActions.toIndexedSeq)
     }
 
@@ -156,7 +206,34 @@ class EventDao @Inject() (
    */
   def getBaseEvent(id: Long): Future[Option[BaseEventDto]] = {
     val action = eventBaseTable.filter(_.id === id).result.headOption
-    db.run(action)
+    val futureBaseEvent = db.run(action)
+
+    for {
+      maybeBase <- futureBaseEvent
+      actors <- evtActorsDao.getRelatedActors(id)
+      objects <- {
+        maybeBase.map { dto =>
+          // Only cases where the event is a MoveObject event is the
+          // related object in the evtObjectsDao
+          if (MoveObjectType.id == dto.eventTypeId) {
+            evtObjectsDao.getRelatedObjects(id)
+          } else {
+            evtPlacesAsObjDao.getRelatedObjects(id)
+          }
+        }.getOrElse {
+          Future.successful(Seq.empty)
+        }
+      }
+      places <- evtPlacesDao.getRelatedPlaces(id)
+    } yield {
+      maybeBase.map {
+        _.copy(
+          relatedActors = actors,
+          relatedObjects = objects,
+          relatedPlaces = places
+        )
+      }
+    }
   }
 
   /**
@@ -236,9 +313,8 @@ class EventDao @Inject() (
           mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
         }.toMusitFuture
 
-      case MoveEventType =>
-        // TODO: Implement Move support
-        ???
+      case MoveObjectType | MoveNodeType =>
+        MusitFuture.successful(baseEventDto)
 
       case _ =>
         val futureSubEvents =
@@ -252,9 +328,7 @@ class EventDao @Inject() (
         futureSubEvents.musitFutureFlatMap { subEvents =>
           initCompleteDto(baseEventDto, subEvents)
         }
-
     }
-
   }
 
   /**

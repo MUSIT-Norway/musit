@@ -20,11 +20,12 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import no.uio.musit.microservice.storagefacility.domain.Interval
-import no.uio.musit.microservice.storagefacility.domain.event.EventType
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, ObjectRole, PlaceRole }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters, ExtendedDto }
+import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
+import no.uio.musit.microservice.storagefacility.domain.event.move._
 import no.uio.musit.microservice.storagefacility.testhelpers.EventGenerators
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.concurrent.ScalaFutures
@@ -75,6 +76,7 @@ class EventDaoSpec extends PlaySpec
         val futureRes = eventDao.insertEvent(ctrlAsDto)
 
         whenReady(futureRes) { eventId =>
+          eventId mustBe a[java.lang.Long]
           eventId mustBe 1L
         }
       }
@@ -91,6 +93,8 @@ class EventDaoSpec extends PlaySpec
 
               c.eventType mustBe ctrl.eventType
               c.baseEvent.note mustBe ctrl.baseEvent.note
+              c.baseEvent.registeredBy mustBe Some(registeredByName)
+              c.baseEvent.registeredDate must not be None
               c.parts must not be None
 
             // TODO: Inspect all the parts
@@ -101,6 +105,9 @@ class EventDaoSpec extends PlaySpec
 
         }
       }
+    }
+
+    "processing environment requirements" should {
 
       val envReq = EnvRequirement(
         baseEvent = createBase("This is the base note"),
@@ -118,6 +125,7 @@ class EventDaoSpec extends PlaySpec
         val futureRes = eventDao.insertEvent(erDto)
 
         whenReady(futureRes) { eventId =>
+          eventId mustBe a[java.lang.Long]
           eventId mustBe 9L
         }
       }
@@ -134,6 +142,8 @@ class EventDaoSpec extends PlaySpec
 
               er.eventType mustBe envReq.eventType
               er.baseEvent.note mustBe envReq.baseEvent.note
+              er.baseEvent.registeredBy mustBe Some(registeredByName)
+              er.baseEvent.registeredDate must not be None
               er.light mustBe envReq.light
               er.temperature mustBe envReq.temperature
               er.hypoxicAir mustBe envReq.hypoxicAir
@@ -143,6 +153,62 @@ class EventDaoSpec extends PlaySpec
             case _ =>
               fail("Expected dto to be of type ExtendedDto")
           }
+        }
+      }
+
+    }
+
+    "processing Move events" should {
+
+      "succeed when moving an object" in {
+        //        val moveObj = MoveObject(
+        //          baseEvent = createBase("This is a note on moving an object"),
+        //          eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        //          to = PlaceRole(1, 1)
+        //        )
+        //        val dto = DtoConverters.MoveConverters.moveObjectToDto(moveObj)
+        //        val futureRes = eventDao.insertEvent(dto)
+        //
+        //        whenReady(futureRes) { eventId =>
+        //          println(eventId)
+        //          eventId mustBe a[java.lang.Long]
+        //        }
+
+        pending
+      }
+
+      "succeed when moving a storage node" in {
+        val moveNode = MoveNode(
+          baseEvent = createBase("This is a note on moving a Node"),
+          eventType = EventType.fromEventTypeId(MoveNodeType.id),
+          to = PlaceRole(1, 1)
+        )
+
+        val dto = DtoConverters.MoveConverters.moveNodeToDto(moveNode)
+        val futureRes = eventDao.insertEvent(dto)
+
+        whenReady(futureRes) { eventId =>
+          println(eventId)
+          eventId mustBe a[java.lang.Long]
+        }
+      }
+
+      "return the move node event" in {
+        val futureRes = eventDao.getEvent(10L, recursive = false)
+
+        whenReady(futureRes) { res =>
+          res.isLeft must not be true
+
+          val baseRes = res.right.get
+
+          val baseRoleActor = EventRoleActor.toActorRole(baseRes.relatedActors.head)
+          val baseRolePlace = EventRolePlace.toPlaceRole(baseRes.relatedPlaces.head)
+          val baseRoleObject = EventRoleObject.toObjectRole(baseRes.relatedObjects.head)
+
+          baseRes.eventTypeId mustBe MoveNodeType.id
+          baseRoleActor mustBe defaultActorRole
+          baseRolePlace mustBe PlaceRole(1, 1)
+          baseRoleObject mustBe ObjectRole(1, 1)
         }
       }
 

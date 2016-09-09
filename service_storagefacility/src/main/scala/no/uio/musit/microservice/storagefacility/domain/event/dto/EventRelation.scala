@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
+import no.uio.musit.microservice.storagefacility.domain.event.{ ActorRole, ObjectRole, PlaceRole }
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 
@@ -93,4 +94,41 @@ object EventRelations {
     getByName(name).toMusitResult(
       ErrorHelper.badRequest(s"Unable to find relation with name : $name")
     )
+}
+
+/*
+    Below are types describing the relations between an event and other
+    domain concepts in the system.
+ */
+
+case class EventRoleActor(eventId: Option[Long], roleId: Int, actorId: Int)
+
+object EventRoleActor {
+  def toEventRoleActor(actRole: ActorRole, eventId: Option[Long] = None) =
+    EventRoleActor(eventId, actRole.roleId, actRole.actorId)
+
+  def toActorRole(eventRoleActor: EventRoleActor) =
+    ActorRole(eventRoleActor.roleId, eventRoleActor.actorId)
+}
+
+case class EventRoleObject(eventId: Option[Long], roleId: Int, objectId: Long)
+
+object EventRoleObject {
+
+  def toEventRoleObject(objRole: ObjectRole, eventId: Option[Long] = None) =
+    EventRoleObject(eventId, objRole.roleId, objRole.objectId)
+
+  def toObjectRole(eventRoleObject: EventRoleObject) =
+    ObjectRole(eventRoleObject.roleId, eventRoleObject.objectId)
+}
+
+case class EventRolePlace(eventId: Option[Long], roleId: Int, placeId: Int)
+
+object EventRolePlace {
+
+  def toEventRolePlace(placeRole: PlaceRole, eventId: Option[Long] = None) =
+    EventRolePlace(eventId, placeRole.roleId, placeRole.placeId)
+
+  def toPlaceRole(eventRolePlace: EventRolePlace) =
+    PlaceRole(eventRolePlace.roleId, eventRolePlace.placeId)
 }

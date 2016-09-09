@@ -19,6 +19,8 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
+import java.sql.{ Date => JSqlDate, Timestamp => JSqlTimestamp }
+
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 
 // TODO: Change id and partOf to EventId
@@ -26,6 +28,10 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 sealed trait Dto {
   val id: Option[Long]
   val eventTypeId: EventTypeId
+  val eventDate: JSqlDate
+  val relatedActors: Seq[EventRoleActor]
+  val relatedObjects: Seq[EventRoleObject]
+  val relatedPlaces: Seq[EventRolePlace]
   val note: Option[String]
   val relatedSubEvents: Seq[RelatedEvents]
   val partOf: Option[Long]
@@ -39,6 +45,8 @@ sealed trait Dto {
   val valueLong: Option[Long]
   val valueString: Option[String]
   val valueDouble: Option[Double]
+  val registeredBy: Option[String]
+  val registeredDate: Option[JSqlTimestamp]
 }
 
 /**
@@ -47,12 +55,18 @@ sealed trait Dto {
 case class BaseEventDto(
   id: Option[Long],
   eventTypeId: EventTypeId,
+  eventDate: JSqlDate,
+  relatedActors: Seq[EventRoleActor],
+  relatedObjects: Seq[EventRoleObject],
+  relatedPlaces: Seq[EventRolePlace],
   note: Option[String],
   relatedSubEvents: Seq[RelatedEvents],
   partOf: Option[Long],
   valueLong: Option[Long] = None,
   valueString: Option[String] = None,
-  valueDouble: Option[Double] = None
+  valueDouble: Option[Double] = None,
+  registeredBy: Option[String],
+  registeredDate: Option[JSqlTimestamp]
 ) extends Dto
 
 sealed trait DtoExtension
@@ -64,12 +78,18 @@ sealed trait DtoExtension
 case class ExtendedDto(
     id: Option[Long],
     eventTypeId: EventTypeId,
+    eventDate: JSqlDate,
+    relatedActors: Seq[EventRoleActor],
+    relatedObjects: Seq[EventRoleObject],
+    relatedPlaces: Seq[EventRolePlace],
     note: Option[String],
     relatedSubEvents: Seq[RelatedEvents],
     partOf: Option[Long],
     valueLong: Option[Long] = None,
     valueString: Option[String] = None,
     valueDouble: Option[Double] = None,
+    registeredBy: Option[String],
+    registeredDate: Option[JSqlTimestamp],
     extension: DtoExtension
 ) extends Dto {
 
@@ -77,12 +97,18 @@ case class ExtendedDto(
     BaseEventDto(
       id = id,
       eventTypeId = eventTypeId,
+      eventDate = eventDate,
+      relatedActors = relatedActors,
+      relatedObjects = relatedObjects,
+      relatedPlaces = relatedPlaces,
       note = note,
       relatedSubEvents = relatedSubEvents,
       partOf = partOf,
       valueLong = valueLong,
       valueString = valueString,
-      valueDouble = valueDouble
+      valueDouble = valueDouble,
+      registeredBy = registeredBy,
+      registeredDate = registeredDate
     )
   }
 
@@ -94,12 +120,18 @@ object ExtendedDto {
     ExtendedDto(
       id = bed.id,
       eventTypeId = bed.eventTypeId,
+      eventDate = bed.eventDate,
+      relatedActors = bed.relatedActors,
+      relatedObjects = bed.relatedObjects,
+      relatedPlaces = bed.relatedPlaces,
       note = bed.note,
       relatedSubEvents = bed.relatedSubEvents,
       partOf = bed.partOf,
       valueLong = bed.valueLong,
       valueDouble = bed.valueDouble,
       valueString = bed.valueString,
+      registeredBy = bed.registeredBy,
+      registeredDate = bed.registeredDate,
       extension = ext
     )
   }

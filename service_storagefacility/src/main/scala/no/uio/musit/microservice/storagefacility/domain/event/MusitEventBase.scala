@@ -19,21 +19,35 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
-import play.api.libs.functional.syntax._
+import org.joda.time.DateTime
 import play.api.libs.json._
 
 // TODO: Change id and partOf to EventId
 
+// TODO: Should probably rename to something more related to storage facility.
 case class MusitEventBase(
   id: Option[Long],
+  doneBy: Option[ActorRole],
+  doneDate: DateTime,
   note: Option[String],
-  partOf: Option[Long]
+  partOf: Option[Long],
+  // TODO: Consider placing affectedThing property directly on the specific types.
+  affectedThing: Option[ObjectRole],
+  registeredBy: Option[String], // This should be UserId,
+  registeredDate: Option[DateTime]
 )
 
 object MusitEventBase {
-  implicit val format: Format[MusitEventBase] = (
-    (__ \ "id").formatNullable[Long] and
-    (__ \ "note").formatNullable[String] and
-    (__ \ "partOf").formatNullable[Long]
-  )(MusitEventBase.apply, unlift(MusitEventBase.unapply))
+  //  implicit val format: Format[MusitEventBase] = (
+  //    (__ \ "id").formatNullable[Long] and
+  //    (__ \ "eventDate").formatNullable[DateTime] and
+  //    (__ \ "note").formatNullable[String] and
+  //    (__ \ "partOf").formatNullable[Long] and
+  //    (__ \ "relatedActors").format[Seq[ActorRole]] and
+  //    (__ \ "relatedObjects").format[Seq[ObjectRole]] and
+  //    (__ \ "relatedPlaces").format[Seq[PlaceRole]] and
+  //    (__ \ "registeredBy").formatNullable[String] and
+  //    (__ \ "registeredDate").formatNullable[DateTime]
+  //  )(MusitEventBase.apply, unlift(MusitEventBase.unapply))
+  implicit val format: Format[MusitEventBase] = Json.format[MusitEventBase]
 }

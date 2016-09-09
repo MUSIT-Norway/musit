@@ -22,27 +22,26 @@ package no.uio.musit.microservice.storagefacility.testhelpers
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.observation.{ ObservationAlcohol, ObservationCleaning, ObservationPest, ObservationTemperature }
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEventBase }
+import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
+import org.joda.time.DateTime
 
 trait EventGenerators {
 
+  val registeredByName = "Darth Vader"
+  val defaultActorRole = ActorRole(1, 12)
+
   def createBase(str: String): MusitEventBase =
-    MusitEventBase(None, Some(str), None)
-
-  def ctrlSubWithObs(
-    tpe: CtrlSubEventType,
-    ok: Boolean = false
-  ): ControlSubEvent = {
-
-    tpe match {
-      case CtrlAlcoholType => createAlcoholControl(ok)
-      case CtrlCleaningType => createCleaningControl(ok)
-      case CtrlPestType => createPestControl(ok)
-      case CtrlTemperatureType => createTemperatureControl(ok)
-      case _ => ???
-    }
-  }
+    MusitEventBase(
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      note = Some(str),
+      partOf = None,
+      registeredBy = Some(registeredByName),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorRole),
+      affectedThing = Some(ObjectRole(1, 1))
+    )
 
   def createTemperatureControl(ok: Boolean = false): ControlTemperature = {
     ControlTemperature(

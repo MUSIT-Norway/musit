@@ -19,6 +19,8 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
+import java.sql.{ Date => JSqlDate, Timestamp => JSqlTimestamp }
+
 import no.uio.musit.microservice.storagefacility.dao.{ ColumnTypeMappers, SchemaName }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, EventRelation, ObservationFromToDto }
@@ -29,7 +31,7 @@ import scala.concurrent.Future
 
 object EventRelationTypes {
 
-  // FIXME: Really struggling to see why the below types are necessary.
+  // TODO: Really struggling to see why the below types are necessary.
 
   /**
    * TODO: What am I and what is my purpose?
@@ -95,55 +97,69 @@ private[dao] trait SharedEventTables extends BaseEventDao
     def * = (
       id.?,
       eventTypeId,
+      eventDate,
       eventNote,
       partOf,
       valueLong,
       valueString,
-      valueDouble
+      valueDouble,
+      registeredBy,
+      registeredDate
     ) <> (create.tupled, destroy)
-
     // scalastyle:on method.name
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
-
+    val eventDate = column[JSqlDate]("EVENT_DATE")
     val eventNote = column[Option[String]]("NOTE")
-
     val partOf = column[Option[Long]]("PART_OF")
     val valueLong = column[Option[Long]]("VALUE_LONG")
     val valueString = column[Option[String]]("VALUE_STRING")
     val valueDouble = column[Option[Double]]("VALUE_FLOAT")
+    val registeredBy = column[Option[String]]("REGISTERED_BY")
+    val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
 
     def create = (
       id: Option[Long],
       eventTypeId: EventTypeId,
+      eventDate: JSqlDate,
       note: Option[String],
       partOf: Option[Long],
       valueLong: Option[Long],
       valueString: Option[String],
-      valueDouble: Option[Double]
+      valueDouble: Option[Double],
+      registeredBy: Option[String],
+      registeredDate: Option[JSqlTimestamp]
     ) =>
       BaseEventDto(
         id = id,
         eventTypeId = eventTypeId,
+        eventDate = eventDate,
+        relatedActors = Seq.empty,
+        relatedObjects = Seq.empty,
+        relatedPlaces = Seq.empty,
         note = note,
         relatedSubEvents = Seq.empty,
         partOf = partOf,
         valueLong = valueLong,
         valueString = valueString,
-        valueDouble = valueDouble
+        valueDouble = valueDouble,
+        registeredBy = registeredBy,
+        registeredDate = registeredDate
       )
 
     def destroy(event: BaseEventDto) =
       Some((
         event.id,
         event.eventTypeId,
+        event.eventDate,
         event.note,
         event.partOf,
         event.valueLong,
         event.valueString,
-        event.valueDouble
+        event.valueDouble,
+        event.registeredBy,
+        event.registeredDate
       ))
   }
 
@@ -151,7 +167,7 @@ private[dao] trait SharedEventTables extends BaseEventDao
       val tag: Tag
   ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
 
-    def * = (id, from, to) <> (create.tupled, destroy)
+    def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Option[Long]]("ID", O.PrimaryKey)
 
