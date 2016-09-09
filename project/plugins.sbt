@@ -16,47 +16,26 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
+// Sets the SBT log level
 logLevel := Level.Warn
 
 resolvers ++= DefaultOptions.resolvers(snapshot = true)
 resolvers += Resolver.typesafeRepo("releases")
 resolvers += Resolver.sonatypeRepo("releases")
 
-addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
+ // The Play plugin
+ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.6")
 
+// Formatting and style checking
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.8.0")
 
-// The Play plugin
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.4")
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.2.0")
 
-//Idea plugin
-addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.5.2")
-
-// Setup sbteclipse
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
-
-// web plugins
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.6")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.3")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.7")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.1.0")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.1.0")
-
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.10")
-
-// scoverage Plugin
+// Code Coverage plugins
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.3.5")
-
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.0")
 
-// sbt-web plugin for gzip compressing web assets
-addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0")
-
-// Packaging
-addSbtPlugin("com.typesafe.sbt" %% "sbt-native-packager" % "1.0.4")
+// Native packaging plugin
+addSbtPlugin("com.typesafe.sbt" %% "sbt-native-packager" % "1.1.1")
