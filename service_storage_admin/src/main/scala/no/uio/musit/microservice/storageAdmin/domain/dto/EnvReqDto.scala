@@ -15,3 +15,18 @@ case class EnvReqDto(
   cleaning: Option[String],
   note: Option[String]
 )
+
+object EnvReqDto {
+  def createBlank = EnvReqDto(
+    id = None,
+    temperature =  None,
+    temperatureTolerance =  None,
+    hypoxicAir =  None,
+    hypoxicAirTolerance =  None,
+    relativeHumidity =  None,
+    relativeHumidityTolerance =  None,
+    lightingCond =  None,
+    cleaning = None,
+    note =  None
+  )
+}

@@ -35,6 +35,8 @@ class Observation(baseProps: BaseEventDto) extends Event(baseProps) {
 }
 
 object ObservationService extends SingleTableNotUsingCustomFields {
+  //override def storeObjectsInPlaceRelationTable = true // place is viewed as object in this event.
+
   def createEventInMemory(baseEventProps: BaseEventDto): Event = {
     new Observation(baseEventProps)
   }

@@ -689,4 +689,69 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     }
 
 
+
+    "update storage unit with envReq" in {
+      val makeMyJSon =
+        """{"type":"StorageUnit","name":"Ukjent storage unit",
+          |
+          |  "environmentRequirement": {
+          |     "temperature": 20.4,
+          |     "temperatureTolerance": 4,
+          |     "hypoxicAir": 40,
+          |     "hypoxicAirTolerance": 4,
+          |     "lightingCondition": "Mørkt",
+          |     "relativeHumidity": 71,
+          |     "relativeHumidityTolerance": 4,
+          |     "cleaning": "Veldig sort",
+          |     "comments": "Dårlig miljø"
+          |   }
+          |}""".
+          stripMargin
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[StorageUnit]
+      response.status mustBe 201 //Successfully created the room
+
+      storageUnit.name mustBe "Ukjent storage unit"
+      storageUnit.id.isDefined mustBe true
+      val id = storageUnit.id.get
+
+
+      val updateJson =
+        """{"type":"StorageUnit","name":"Nytt navn",
+          |
+          |  "environmentRequirement": {
+          |     "temperature": 21,
+          |     "hypoxicAir": 40,
+          |     "hypoxicAirTolerance": 4,
+          |     "lightingCondition": "Mørkt",
+          |     "relativeHumidity": 71,
+          |     "relativeHumidityTolerance": 4,
+          |     "cleaning": "Veldig sort",
+          |     "comments": "Dårlig miljø"
+          |   }
+          |}""".
+          stripMargin
+
+
+      val responsUpdate = updateStorageUnit(id, updateJson) |> waitFutureValue
+      val stUnit = Json.parse(responsUpdate.body).validate[Storage].get.asInstanceOf[StorageUnit]
+
+      stUnit.name mustBe "Nytt navn"
+
+      val optEnvReq = stUnit.environmentRequirement
+      assert(optEnvReq.isDefined)
+
+      val envReq = optEnvReq.get
+      envReq.temperature mustBe Some(21)
+      envReq.temperatureTolerance mustBe None
+      envReq.hypoxicAir mustBe Some(40)
+      envReq.hypoxicAirTolerance mustBe Some(4)
+      envReq.lightingCondition mustBe Some("Mørkt")
+      envReq.relativeHumidity mustBe Some(71)
+      envReq.relativeHumidityTolerance mustBe Some(4)
+      envReq.cleaning mustBe Some("Veldig sort")
+      envReq.comments mustBe Some("Dårlig miljø")
+    }
+
+
   }}

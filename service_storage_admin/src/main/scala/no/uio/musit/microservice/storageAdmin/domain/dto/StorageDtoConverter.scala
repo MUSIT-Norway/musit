@@ -149,8 +149,11 @@ trait StorageDtoConverter {
     )
   }
 
-  private def fromEnvReqDto(optEnvReqDto: Option[EnvReqDto]) = {
-    optEnvReqDto.map { envReqDto =>
+  private def fromEnvReqDto(optEnvReqDto: Option[EnvReqDto]): Option[EnvironmentRequirement] = {
+    optEnvReqDto.map(fromEnvReqDto)
+  }
+
+  def fromEnvReqDto(envReqDto: EnvReqDto): EnvironmentRequirement  = {
       EnvironmentRequirement(
         temperature = envReqDto.temperature,
         temperatureTolerance = envReqDto.temperatureTolerance,
@@ -162,8 +165,8 @@ trait StorageDtoConverter {
         cleaning = envReqDto.cleaning,
         comments = envReqDto.note
       )
-    }
   }
+
 
   private def envReqToDto(storageNode: Storage) = {
     storageNode.environmentRequirement.map {
