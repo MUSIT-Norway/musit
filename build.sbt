@@ -121,7 +121,7 @@ lazy val service_actor = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(packageName in Docker := "musit_service_actor"))
-  )  dependsOn(common, common_test % "it,test")
+  )  dependsOn(common, security, common_test % "it,test")
 
 lazy val service_geo_location = (
   PlayProject("service_geo_location")

@@ -33,6 +33,7 @@ object ErrorHelper {
   def notFound(text: String, devMessage: String = "") = MusitError(Status.NOT_FOUND, text, devMessage)
   def conflict(text: String, devMessage: String = "") = MusitError(Status.CONFLICT, text, devMessage)
   def notImplemented(text: String, devMessage: String = "") = MusitError(Status.NOT_IMPLEMENTED, text, devMessage)
+  def forbidden(text: String, devMessage: String = "") = MusitError(Status.FORBIDDEN, text, devMessage)
 
   def futureNotImplemented(text: String, devMessage: String = "") = Future.successful(Left(notImplemented(text, devMessage)))
 }
