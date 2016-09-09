@@ -42,27 +42,22 @@ class StorageUnitDao @Inject() (
 
   def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
     val optSelf = getStorageUnitOnlyById(id)
-    optSelf.flatMap { optStorageNode =>
-      optStorageNode match {
-        case None => Future.successful(Seq.empty)
-        case Some(self: StorageNodeDTO) =>
-          val optParentId = self.isPartOf
-          optParentId match {
-            case None => Future.successful(Seq(self))
-            case Some(parentId) =>
-              val futOptParent = getStorageUnitOnlyById(parentId)
-              futOptParent.flatMap { optParent =>
-                optParent match {
-                  case None => Future.successful(Seq(self))
-                  case Some(parent) =>
-                    val futParentPath = getPath(parent.id.get)
-                    futParentPath.map { parentPath =>
-                      parentPath :+ self
-                    }
+    optSelf.flatMap {
+      case None => Future.successful(Seq.empty)
+      case Some(self) =>
+        self.isPartOf match {
+          case None => Future.successful(Seq(self))
+          case Some(parentId) =>
+            val futOptParent = getStorageUnitOnlyById(parentId)
+            futOptParent.flatMap {
+              case None => Future.successful(Seq(self))
+              case Some(parent) =>
+                val futParentPath = getPath(parent.id.get)
+                futParentPath.map { parentPath =>
+                  parentPath :+ self
                 }
-              }
-          }
-      }
+            }
+        }
     }
   }
 
