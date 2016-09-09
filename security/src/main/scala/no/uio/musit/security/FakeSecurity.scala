@@ -31,10 +31,11 @@ import no.uio.musit.microservices.common.extensions.PlayExtensions._
  */
 
 class FakeSecurityInMemoryInfoProvider(userId: String) extends ConnectionInfoProvider {
-  val userInfo = Future(FakeSecurityUsersAndGroups.findUser(userId).getOrFail(s"Unable to find user with Id: $userId"))
+  // FakeSecurityUsersAndGroups init reads a config file, so this may take some time, so we do a blocking call (Future.successful) instead of an async call Future(),
+  // as the latter may get a timeout (due to reading the config file)
 
-  def getUserInfo = userInfo
-  def getUserGroups = Future(FakeSecurityUsersAndGroups.groupsForUserId(userId))
+  def getUserInfo = Future.successful(FakeSecurityUsersAndGroups.findUser(userId).getOrFail(s"Unable to find user with Id: $userId"))
+  def getUserGroups = Future.successful(FakeSecurityUsersAndGroups.groupsForUserId(userId))
   def accessToken = FakeSecurity.fakeAccessTokenPrefix + userId
 }
 

@@ -25,7 +25,7 @@
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
 import no.uio.musit.security.{Groups, SecurityConnection}
-import no.uio.musit.security.dataporten.Dataporten
+import no.uio.musit.security.Dataporten
 import org.scalatest.Ignore
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
@@ -34,7 +34,7 @@ import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val expiredToken = "59197195-bf27-4ab1-bf57-b460ed85edab"
   // TODO: Dynamic token, find a way to have a permanent test token with Dataporten
-  val token = "180458fd-e236-4053-b91c-6b5d1c708d73"
+  val token = "fe6f7e0a-735b-4a0a-a565-ce33e55c5bc1"
 
   val timeout = PlayTestDefaults.timeout
 
@@ -49,7 +49,8 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   "getUserInfo should return something" in {
     runTestWhenReady(token) { sec =>
       val userName = sec.userName
-      assert(userName == "Jarle Stabell")
+      userName mustBe "Jarle Stabell"
+      sec.userEmail mustBe Some("jarle.stabell@usit.uio.no")
       assert(userName.length > 0)
     }
   }

@@ -36,8 +36,9 @@ CREATE TABLE MUSARK_ACTOR.PERSON (
   TITLE VARCHAR(255),
   ROLE VARCHAR(255),
   TEL VARCHAR(20),
-  EMAiL VARCHAR(255),
+  EMAIL VARCHAR(255),
   WEB VARCHAR(255),
+  DATAPORTEN_ID varchar2(50),
   PRIMARY KEY (ID)
 );
 
@@ -66,7 +67,7 @@ ALTER TABLE MUSARK_ACTOR.ORGANIZATION_ADDRESS ADD FOREIGN KEY (ORGANIZATION_ID) 
  
 insert into MUSIT_MAPPING.VIEW_ACTOR (actorname) values ('And, Arne1');
 insert into MUSIT_MAPPING.VIEW_ACTOR (actorname) values ('Kanin, Kalle1');
-insert into MUSARK_ACTOR.PERSON (FN, TITLE, ROLE, TEL, EMAIL, WEB) values ('Klaus Myrseth', 'Løsnings arkitekt', 'System arkitekt', '93297177', 'klaus.myrseth@usit.uio.no', 'vg.no');
+insert into MUSARK_ACTOR.PERSON (FN, TITLE, ROLE, TEL, EMAIL, WEB, DATAPORTEN_ID) values ('Klaus Myrseth', 'Løsnings arkitekt', 'System arkitekt', '93297177', 'klaus.myrseth@usit.uio.no', 'vg.no', '12345678-adb2-4b49-bce3-320ddfe6c90f');
 insert into MUSARK_ACTOR.ORGANIZATION (ID, FN, NICKNAME, TEL, WEB) values (1, 'Kulturhistorisk museum - Universitetet i Oslo', 'KHM', '22 85 19 00', 'www.khm.uio.no');
 insert into MUSARK_ACTOR.ORGANIZATION_ADDRESS (ORGANIZATION_ID, TYPE, STREET_ADDRESS, LOCALITY, POSTAL_CODE, COUNTRY_NAME, LATITUDE, LONGITUDE) values (1, 'WORK', 'Fredriks gate 2', 'OSLO', '0255', 'NORWAY', 0.0, 0.0);
 
