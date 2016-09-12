@@ -13,7 +13,7 @@ class ObjectAggregationDao @Inject() (
 
   def getOjects(nodeId: Long): Future[Seq[ObjectAggregation]] = {
     Future.successful(Seq(
-      ObjectAggregation(ObjectId(1), "Test", NodeId(1))
+      ObjectAggregation(ObjectId(1), "øks", "C666", Some("1a"), NodeId(1))
     ))
   }
 
