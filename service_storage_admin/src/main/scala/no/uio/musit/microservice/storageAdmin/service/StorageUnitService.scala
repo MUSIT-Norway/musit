@@ -64,9 +64,22 @@ class StorageUnitService @Inject() (
         Misc.filterSuccesses(res)
     }
 
+  def getPath(id: Long): Future[Seq[StorageNodeCommonProperties]] = {
+
+    storageUnitDao.getPath(id).map(_.map(__ => this.dtoToStorageNodeCommonProperties(__)))
+    //    storageUnitDao.getPath(id).map(_.map(stNodeDto: StorageNodeDTO => fromDto(stNodeDto)))
+
+  }
+
   /*
     private def getBuildingById(id: Long) =
       buildingService.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
+
+  private def getStorageUnitOnly(id: Long) =
+    storageUnitDao.getStorageUnitOnlyById(id).toMusitFuture(storageUnitDao.storageUnitNotFoundError(id))
+
+  private def getBuildingById(id: Long) =
+    buildingService.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
 
     private def getRoomById(id: Long) =
       roomService.getRoomById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageRoom with id: $id"))

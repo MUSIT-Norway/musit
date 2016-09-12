@@ -25,5 +25,6 @@ export default {
   gatewayHost: process.env.APIHOST || 'localhost',
   gatewayPort: process.env.APIPORT || 3030,
   dataportenClientID: process.env.CLIENT_ID || '78bc59c0-023e-4a33-b5d2-321b865b68b2',
-  dataportenClientSecret: process.env.CLIENT_SECRET,
+  dataportenClientSecret: process.env.CLIENT_SECRET || '57a5a228-dbd6-4ea3-8c31-7595cb18de9c',
+  jwtSecret: process.env.JWT_SECRET || 'K456thizI33ReallySecr#t127'
 };

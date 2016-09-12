@@ -36,7 +36,7 @@ trait StorageDtoConverter {
       heightTo = storage.heightTo,
       groupRead = storage.groupRead,
       groupWrite = storage.groupWrite,
-      latestMoveId = None, //TODO?
+      latestMoveId = None, //TODO?StorageNodeCommonProperties
       latestEnvReqId = None, //TODO?
       links = storage.links,
       isDeleted = false, //Todo: Is this correct, can we assume this?
@@ -185,4 +185,18 @@ trait StorageDtoConverter {
     }
   }
 
+  def dtoToStorageNodeCommonProperties(storageNodeDto: StorageNodeDTO): StorageNodeCommonProperties = {
+    StorageNodeCommonProperties(
+      id = storageNodeDto.id,
+      name = storageNodeDto.name,
+      area = storageNodeDto.area,
+      areaTo = storageNodeDto.areaTo,
+      height = storageNodeDto.height,
+      heightTo = storageNodeDto.heightTo,
+      isPartOf = storageNodeDto.isPartOf,
+      groupRead = storageNodeDto.groupRead,
+      groupWrite = storageNodeDto.groupWrite,
+      storageType = storageNodeDto.storageType.toString
+    )
+  }
 }

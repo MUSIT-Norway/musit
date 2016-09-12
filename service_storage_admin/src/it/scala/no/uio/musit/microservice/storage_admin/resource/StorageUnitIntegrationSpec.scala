@@ -38,6 +38,8 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
 
   def getAll = wsUrl(s"/v1/storageunit").get |> waitFutureValue
 
+  def getPath(id: Long) = wsUrl(s"/v1/storageunit/$id/path").get |> waitFutureValue
+
   def getStorageUnit(id: Long) = wsUrl(s"/v1/storageunit/$id").get
 
   def getRoomAsObject(id: Long): Future[Room] = {
@@ -751,6 +753,24 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       envReq.relativeHumidityTolerance mustBe Some(4)
       envReq.cleaning mustBe Some("Veldig sort")
       envReq.comments mustBe Some("Bra miljø")
+
+
+
+
+      //Also check that getPath returns something. This ought to be a separate test, but we are lazy and retrieves an
+      //already inserted storageUnit
+
+      val pathRes = getPath(id)
+      pathRes.status mustBe 200
+
+      pathRes.body must include("Nytt navn")
+      pathRes.body must include(id.toString)
+      pathRes.body must include("StorageUnit")
+
+
+
+
+
     }
 
 

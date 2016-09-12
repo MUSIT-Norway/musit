@@ -4,7 +4,7 @@ import julienrf.json.derived
 import no.uio.musit.microservice.storageAdmin.domain.dto._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{ Json, OFormat, __ }
+import play.api.libs.json._
 
 sealed trait Storage {
   val id: Option[Long]
@@ -98,4 +98,25 @@ object Storage {
 
   def linkText(id: Option[Long]) =
     Some(Seq(LinkService.self(s"/v1/${id.get}")))
+}
+
+/**
+ * Not a proper "subtype" of Storage, just some common fields shared by all types of storage nodes.
+ * Mainly used for json-writing, for writing out info where we do not need the full nodes.
+ */
+case class StorageNodeCommonProperties(
+  id: Option[Long],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  storageType: String
+)
+
+object StorageNodeCommonProperties {
+  implicit val format = Json.format[StorageNodeCommonProperties]
 }
