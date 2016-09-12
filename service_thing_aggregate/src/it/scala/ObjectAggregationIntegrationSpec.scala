@@ -26,7 +26,7 @@ class ObjectAggregationIntegrationSpec extends PlaySpec with OneServerPerSuite w
       val response = wsUrl(s"/node/$nodeId/objects").get().futureValue(Timeout(30 seconds))
       val objects = Json.parse(response.body).validate[Seq[ObjectAggregation]].get
       objects.length mustBe 1
-      val obj = objects(0)
+      val obj = objects.head
       obj.id mustBe ObjectId(1)
       obj.name mustBe "Test"
       obj.nodeId mustBe NodeId(1)
