@@ -19,18 +19,19 @@
 
 package no.uio.musit.microservice.storagefacility.resource
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.storagefacility.domain.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.service.ControlService
 import play.api.Logger
-import play.api.libs.json.{ JsError, JsSuccess, Json }
+import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc._
 
 import scala.concurrent.Future
 
 @Singleton
-class EventResource @Inject() (
-    val controlService: ControlService
+class EventResource @Inject()(
+  val controlService: ControlService
 ) extends Controller {
 
   val logger = Logger(classOf[EventResource])
@@ -40,24 +41,16 @@ class EventResource @Inject() (
   def addControl(nodeId: Int) = Action.async(parse.json) { implicit request =>
     request.body.validate[Control] match {
       case JsSuccess(ctrl, jsPath) =>
-        controlService.add(ctrl, dummyUser).flatMap {
-          case Right(eventId) =>
-            controlService.fetch(eventId).map {
-              ???
-            }
-            ???
-          case Left(error) =>
-            logger.error(
-              s"An error occured when trying to add a Control. " + error.message
-            )
-            Future.successful(
-              InternalServerError(Json.obj("message" -> error.message))
-            )
+        controlService.add(ctrl, dummyUser).map {
+          case MusitSuccess(addedCtrl) =>
+            Ok(Json.toJson(addedCtrl))
+
+          case error: MusitError[_] =>
+            InternalServerError(Json.obj("message" -> error.message))
         }
       case JsError(errors) =>
-        ???
+        Future.successful(BadRequest(JsError.toJson(errors)))
     }
-    ???
   }
 
   def listControls(nodeId: Int) = Action.async(parse.json) { implicit request =>

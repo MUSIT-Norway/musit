@@ -24,12 +24,15 @@ import no.uio.musit.microservice.storagefacility.dao.event.EventDao
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, DtoConverters}
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
 class ControlService @Inject() (val eventDao: EventDao) {
+
+  val logger = Logger(classOf[ControlService])
 
   /**
    *
@@ -37,9 +40,22 @@ class ControlService @Inject() (val eventDao: EventDao) {
   def add(
     ctrl: Control,
     registeredBy: String
-  ): Future[Long] = {
+  ): Future[MusitResult[Control]] = {
     val dto = DtoConverters.CtrlConverters.controlToDto(ctrl)
-    eventDao.insertEvent(dto)
+    eventDao.insertEvent(dto).flatMap { eventId =>
+      eventDao.getEvent(eventId).map { res =>
+        res.flatMap(_.map { dto =>
+          val bdto = dto.asInstanceOf[BaseEventDto]
+          MusitSuccess(DtoConverters.CtrlConverters.controlFromDto(bdto))
+        }.getOrElse {
+          logger.error(
+            s"An unexpected error occured when trying to fetch a" +
+            s"control event that was added with eventId $eventId"
+          )
+          MusitInternalError("Could not locate the control that was added")
+        })
+      }
+    }
   }
 
   /**
