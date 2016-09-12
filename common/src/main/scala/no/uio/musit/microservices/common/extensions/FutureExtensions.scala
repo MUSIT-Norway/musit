@@ -32,8 +32,8 @@ import scala.concurrent.Future
 
 object FutureExtensions {
 
-  type MusitResult[T] = Either[MusitError, T]
-  type MusitFuture[T] = Future[Either[MusitError, T]]
+  type MusitResult[+T] = Either[MusitError, T]
+  type MusitFuture[+T] = Future[Either[MusitError, T]]
 
   implicit class FutureOptionExtensions[T](val fut: Future[Option[T]]) extends AnyVal {
     def foldInnerOption[S](ifNone: => S, ifSome: T => S): Future[S] = fut.map(optValue => optValue.map(ifSome).getOrElse(ifNone))
