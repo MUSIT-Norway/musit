@@ -38,6 +38,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
 
   def getStorageUnit(id: Long) = wsUrl(s"/v1/storageunit/$id").get
 
+
   def getRoomAsObject(id: Long): Future[Room] = {
     for {
       resp <- getStorageUnit(id)
@@ -59,6 +60,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       stUnit = Json.parse(resp.body).validate[Storage].get.asInstanceOf[StorageUnit]
     } yield stUnit
   }
+
 
   val veryLongUnitName =
     """
@@ -338,6 +340,37 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val json ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": 1}"""
       val response = createStorageUnit(json) |> waitFutureValue
       response.status mustBe 400
+    }
+
+    "getChildren should return correct type" in {
+
+      val makeMyJSonBase ="""{"type":"Building","name":"KHM0", "links":[]}"""
+      val responseBase = createStorageUnit(makeMyJSonBase) |> waitFutureValue
+      val storageUnitBase = Json.parse(responseBase.body).validate[Storage].get.asInstanceOf[Building]
+      val byggIdBase = storageUnitBase.id.get
+      storageUnitBase.name mustBe "KHM0"
+
+      val makeMyJSonChild1 = s"""{"type":"Building", "isPartOf": $byggIdBase, "name":"KHM1", "links":[]}"""
+      val responseChild1 = createStorageUnit(makeMyJSonChild1) |> waitFutureValue
+      val storageUnitChild1 = Json.parse(responseChild1.body).validate[Storage].get.asInstanceOf[Building]
+      storageUnitChild1.id mustBe Some(byggIdBase+1)
+      storageUnitChild1.name mustBe "KHM1"
+
+
+      val makeMyJSonChild2 = s"""{"type":"Room", "isPartOf": $byggIdBase, "name":"R1", "links":[]}"""
+      val responseChild2 = createStorageUnit(makeMyJSonChild2) |> waitFutureValue
+      val storageUnitChild2 = Json.parse(responseChild2.body).validate[Storage].get.asInstanceOf[Room]
+      storageUnitChild2.id mustBe Some(byggIdBase+2)
+      storageUnitChild2.name mustBe "R1"
+
+      val responseChildren = wsUrl(s"/v1/storageunit/$byggIdBase/children").get() |> waitFutureValue
+      responseChildren.status mustBe 200
+      val storageUnits = Json.parse(responseChildren.body).validate[Seq[Storage]].get
+      storageUnits.length mustBe 2
+      val su1 = storageUnits.apply(0)
+      val su2 = storageUnits.apply(1)
+
+
     }
   }
 }

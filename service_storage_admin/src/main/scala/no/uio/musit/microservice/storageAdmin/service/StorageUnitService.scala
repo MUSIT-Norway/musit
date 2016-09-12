@@ -20,13 +20,14 @@ package no.uio.musit.microservice.storageAdmin.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageNodeDTO }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageNodeDTO, StorageType }
 import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
 import no.uio.musit.microservices.common.utils.{ ErrorHelper, ServiceHelper }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Json
 
 import scala.concurrent.Future
 import scala.util.Left
@@ -53,8 +54,24 @@ class StorageUnitService @Inject() (
     }
   }
 
-  def getChildren(id: Long): Future[Seq[Storage]] =
-    storageUnitDao.getChildren(id).map(_.map(Storage.fromDTO))
+  def getChildren(id: Long): Future[Seq[Storage]] = {
+    storageUnitDao.getChildren(id).flatMap(list => {
+      Future.sequence(list.map(unit => {
+        unit.storageType match {
+          case StorageType.StorageUnit =>
+            Future.successful(Storage.fromDTO(unit))
+          case StorageType.Building =>
+            buildingService.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
+              Storage.getBuilding(unit, building)))
+          case StorageType.Room =>
+            roomService.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
+              Storage.getRoom(unit, room)))
+        }
+      }))
+    })
+  }
+
+  //    storageUnitDao.getChildren(id).map(_.map(Storage.fromDTO))
 
   def getPath(id: Long): Future[Seq[Storage]] =
     storageUnitDao.getPath(id).map(_.map(Storage.fromDTO))
