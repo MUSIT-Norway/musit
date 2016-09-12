@@ -59,7 +59,8 @@ lazy val root = project in file(".") settings noPublish aggregate(
   common,
   security,
   service_core,
-  service_musit_thing,
+  service_thing,
+  service_thing_aggregate,
   service_actor,
   service_geo_location,
   service_time,
@@ -103,15 +104,26 @@ lazy val service_core = (
 // Add other services here
 
 
-lazy val service_musit_thing = (
-  PlayProject("service_musit_thing")
+lazy val service_thing = (
+  PlayProject("service_thing")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(
-    packageName in Docker := "musit_service_musit_thing"
+    packageName in Docker := "musit_service_thing"
   ))
   )  dependsOn(common, common_test % "it,test")
+
+lazy val service_thing_aggregate = (
+  PlayProject("service_thing_aggregate")
+    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings(scoverageSettings: _*)
+    settings(baseDockerSettings ++ Seq(
+    packageName in Docker := "musit_service_thing_aggregate"
+  ))
+  )  dependsOn(common, common_test % "it,test")
+
 
 lazy val service_actor = (
   PlayProject("service_actor")
