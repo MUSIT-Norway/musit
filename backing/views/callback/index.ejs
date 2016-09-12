@@ -6,11 +6,7 @@
         Loading ...
         <script>
             document.addEventListener("DOMContentLoaded", function(event) {
-                localStorage.setItem('musitAccessToken', "<%= user.accessToken %>");
-                localStorage.setItem('musitUserId', "<%= user.userId %>");
-                localStorage.setItem('musitUserName', "<%= user.name %>");
-                localStorage.setItem('musitUserAvatar', "<%= user.photos[0] %>");
-                localStorage.setItem('musitUserEmail', "<%= user.emails[0] %>");
+                localStorage.setItem('jwtToken', "<%= token %>");
                 window.close();
             });
         </script>
