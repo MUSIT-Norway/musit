@@ -107,8 +107,10 @@ class StorageUnitDao @Inject() (
       val nodeInDatabase = optNodeInDatabase.getOrFail(s"Unable to find storage node with id: $id")
       val newStorageNodeDto = toDto(storage)
       require(nodeInDatabase.id == Some(id))
-      val combinedNodeDto = newStorageNodeDto.storageNode.copy(latestMoveId = nodeInDatabase.latestMoveId,
-                                        latestEnvReqId = nodeInDatabase.latestEnvReqId,id = nodeInDatabase.id)
+      val combinedNodeDto = newStorageNodeDto.storageNode.copy(
+        latestMoveId = nodeInDatabase.latestMoveId,
+        latestEnvReqId = nodeInDatabase.latestEnvReqId, id = nodeInDatabase.id
+      )
       val envReqAction = DBIO.successful[Option[EnvReqDto]](None) //TEMP!
       assert(newStorageNodeDto.envReqDto.isDefined == storage.environmentRequirement.isDefined)
 
@@ -130,9 +132,9 @@ class StorageUnitDao @Inject() (
               val futOptOldEnvReqDto = envReqDao.getById(latestEnvReqId)
               DBIO.from(futOptOldEnvReqDto).flatMap { optOldEnvReqDto =>
                 val oldEnvReqDto = optOldEnvReqDto.getOrFail(s"Unable to find existing EnvReq with id: $latestEnvReqId")
-                val oldEndReqDomain = fromEnvReqDto(oldEnvReqDto)
+                val oldEnvReqDomain = fromEnvReqDto(oldEnvReqDto)
                 val newEnvReqDomain = storage.environmentRequirement.getOrFail("should have an envReq here!")
-                if (oldEndReqDomain == newEnvReqDomain) {
+                if (oldEnvReqDomain == newEnvReqDomain) {
                   //We do the equality check on the domain class, because we
                   // don't want to compare against reqistered date and other potential "hidden" fields in the dto class.
                   updateStorageNodeAction(id, combinedNodeDto)

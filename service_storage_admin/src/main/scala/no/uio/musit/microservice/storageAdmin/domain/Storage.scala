@@ -88,6 +88,8 @@ case class EnvironmentRequirement(
 
 object EnvironmentRequirement {
   implicit val format = Json.format[EnvironmentRequirement]
+
+  val empty = EnvironmentRequirement(None, None, None, None, None, None, None, None, None)
 }
 
 object Storage {
