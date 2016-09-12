@@ -6,6 +6,7 @@
 GET     /v1/storageunit/root                   no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.listRootNode
 GET     /v1/storageunit/:id                    no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.getById(id:Long)
 GET     /v1/storageunit/:id/children           no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.getChildren(id:Long)
+GET     /v1/storageunit/:id/path               no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.getPath(id:Long)
 POST    /v1/storageunit/validate               no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.validateChildren
 GET     /v1/storageunit                        no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.listAll
 POST    /v1/storageunit                        no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.postRoot

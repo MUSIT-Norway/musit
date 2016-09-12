@@ -54,6 +54,9 @@ class StorageUnitService @Inject() (
   def getChildren(id: Long): Future[Seq[Storage]] =
     storageUnitDao.getChildren(id).map(_.map(Storage.fromDTO))
 
+  def getPath(id: Long): Future[Seq[Storage]] =
+    storageUnitDao.getPath(id).map(_.map(Storage.fromDTO))
+
   def getById(id: Long): MusitFuture[Storage] = {
     val musitFutureStorageUnit = getStorageUnitOnly(id)
     musitFutureStorageUnit.musitFutureFlatMap { storageUnit =>

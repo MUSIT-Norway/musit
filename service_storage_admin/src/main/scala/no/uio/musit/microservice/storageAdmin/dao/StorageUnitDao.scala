@@ -1,13 +1,15 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageNodeDTO }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageNodeDTO, StorageType }
 import no.uio.musit.microservice.storageAdmin.domain.Storage
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
+import slick.jdbc.SQLActionBuilder
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
@@ -36,6 +38,27 @@ class StorageUnitDao @Inject() (
   def getChildren(id: Long): Future[Seq[StorageNodeDTO]] = {
     val action = StorageUnitTable.filter(st => st.isPartOf === id && st.isDeleted === false).result
     db.run(action)
+  }
+
+  def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
+    val optSelf = getStorageUnitOnlyById(id)
+    optSelf.flatMap {
+      case None => Future.successful(Seq.empty)
+      case Some(self) =>
+        self.isPartOf match {
+          case None => Future.successful(Seq(self))
+          case Some(parentId) =>
+            val futOptParent = getStorageUnitOnlyById(parentId)
+            futOptParent.flatMap {
+              case None => Future.successful(Seq(self))
+              case Some(parent) =>
+                val futParentPath = getPath(parent.id.get)
+                futParentPath.map { parentPath =>
+                  parentPath :+ self
+                }
+            }
+        }
+    }
   }
 
   def getStorageType(id: Long): MusitFuture[StorageType] = {
