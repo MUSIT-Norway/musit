@@ -56,6 +56,10 @@ class StorageUnitResource @Inject() (
     storageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
   }
 
+  def getPath(id: Long) = Action.async {
+    storageUnitService.getPath(id).map(__ => Ok(Json.toJson(__)))
+  }
+
   def getById(id: Long) = Action.async {
     ResourceHelper.getRoot(storageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
   }
