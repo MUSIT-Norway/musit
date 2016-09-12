@@ -32,8 +32,6 @@ case class StorageUnit(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  //latestMoveId: Option[Long],
-  //  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement]
 ) extends Storage
@@ -48,8 +46,6 @@ case class Room(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  //  latestMoveId: Option[Long],
-  //  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement],
   securityAssessment: SecurityAssessment,
@@ -67,8 +63,21 @@ case class Building(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  //  latestMoveId: Option[Long],4
-  //  latestEnvReqId: Option[Long],
+  links: Option[Seq[Link]],
+  environmentRequirement: Option[EnvironmentRequirement],
+  address: Option[String]
+) extends Storage
+
+case class Organisation(
+  id: Option[Long],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
   links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement],
   address: Option[String]

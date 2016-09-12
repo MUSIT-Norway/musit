@@ -56,6 +56,13 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     } yield room
   }
 
+  def getOrganisationAsObject(id: Long): Future[Organisation] = {
+    for {
+      resp <- getStorageUnit(id)
+      room = Json.parse(resp.body).validate[Storage].get.asInstanceOf[Organisation]
+    } yield room
+  }
+
 
   def getStorageUnitAsObject(id: Long): Future[StorageUnit] = {
     for {
@@ -404,7 +411,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           |
           |}""".stripMargin
       val response = createStorageUnit(json) |> waitFutureValue
-      println("deleted storageUnit " + response.body)
       response.status mustBe 201 //Successfully created the room
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[StorageUnit]
 
@@ -412,11 +418,11 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val id = storageUnit.id.get
 
       val responsDel = deleteStorageUnit(id) |> waitFutureValue
-      println("deleted storageUnit " + responsDel.body)
       responsDel.status mustBe 200
       //Successfully deleted
 
       val updateJson =
+
 
         s"""{"type":"StorageUnit","id": $id, "name":"NyUkjentUnit",
            |
@@ -426,7 +432,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
             | "environmentAssessment": {}
             |}""".stripMargin
       val updateResponse = updateStorageUnit(id, updateJson) |> waitFutureValue
-      println("deleted storageUnit " + updateResponse.body)
       updateResponse.status mustBe 404 //Should not be able to update a deleted object
     }
 
@@ -441,7 +446,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           | "environmentAssessment": {}
           |}""".stripMargin
       val response = createStorageUnit(json) |> waitFutureValue
-      println("deleted room " + response.body)
       response.status mustBe 201 //Successfully created the room
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
 
@@ -449,7 +453,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val id = storageUnit.id.get
 
       val responsDel = deleteStorageUnit(id) |> waitFutureValue
-      println("deleted room " + responsDel.body)
       responsDel.status mustBe 200 //Successfully deleted
 
       val updateJson =
@@ -461,7 +464,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           | "environmentAssessment": {}
           |}""".stripMargin
       val updateResponse = updateStorageUnit(id, updateJson) |> waitFutureValue
-      println("deleted room " + updateResponse.body)
       updateResponse.status mustBe 404 //Should not be able to update a deleted object
     }
 
@@ -475,7 +477,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           | "environmentAssessment": {}
           |}""".stripMargin
       val response = createStorageUnit(json) |> waitFutureValue
-      println("deleted building " + response.body)
       response.status mustBe 201 //Successfully created the room
       val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
 
@@ -483,7 +484,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val id = storageUnit.id.get
 
       val responsDel = deleteStorageUnit(id) |> waitFutureValue
-      println("deleted building " + responsDel.body)
       responsDel.status mustBe 200 //Successfully deleted
 
       val updateJson =
@@ -495,11 +495,8 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           |
           |}""".stripMargin
       val updateResponse = updateStorageUnit(id, updateJson) |> waitFutureValue
-      println("deleted building " + updateResponse.body)
       updateResponse.status mustBe 404 //Should not be able to update a deleted object
     }
-
-
 
 
     "update should fail (with Conflict=409) if inconsistent storage types" in {
@@ -543,14 +540,60 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       response.status mustBe 400
     }
 
+    "postCreate a organisation" in {
+      val makeMyJSon ="""{"id":-1, "type":"Organisation","name":"KHM", "links":[]}"""
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Organisation]
+      storageUnit.name mustBe "KHM"
+
+    }
+
+    "update storageOrganisation" in {
+      val myJSon ="""{"type":"Organisation","name":"Organisasjon0", "address": "vet ikke"}"""
+      val future = createStorageUnit(myJSon)
+      val response = future |> waitFutureValue
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Organisation]
+      storageUnit.address mustBe Some("vet ikke")
+      val id = storageUnit.id.get
+      storageUnit.name mustBe "Organisasjon0"
+      val udateJson = s"""{"type":"Organisation","id": $id, "name":"NyOrganisasjon", "address": "OrdentligAdresse"}"""
+      val res = (for {
+        res <- updateStorageUnit(id, udateJson)
+        room <- getOrganisationAsObject(id)
+      } yield (room, res)) |> waitFutureValue
+      res._1.name mustBe "NyOrganisasjon"
+      res._1.address mustBe Some("OrdentligAdresse")
+    }
+    "not be able to update a deleted organisation" in {
+
+      val json ="""{"type":"Organisation","name":"UkjentOrganisasjon"}"""
+      val response = createStorageUnit(json) |> waitFutureValue
+      response.status mustBe 201 //Successfully created the room
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Organisation]
+
+      storageUnit.id.isDefined mustBe true
+      val id = storageUnit.id.get
+
+      val responsDel = deleteStorageUnit(id) |> waitFutureValue
+      responsDel.status mustBe 200 //Successfully deleted
+
+      val updateJson = """{"type":"Organisation","name":"NyOrganisasjon", "address": "OrdentligAdresse"}"""
+      val updateResponse = updateStorageUnit(id, updateJson) |> waitFutureValue
+      updateResponse.status mustBe 404 //Should not be able to update a deleted object
+    }
+
+
 
     "get all nodes should return different kinds of nodes and their specific properties" in {
       val response = getAll
       response.status mustBe 200
       response.body must include("perimeterSecurity")
 
-      response.body must include("address")
-      response.body must include(
+      response
+
+        .body must include("address")
+      response.body must
+        include(
         "UkjentRom2")
 
     }
@@ -575,25 +618,38 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
             |   }
             |}""".
             stripMargin
-        val response = createStorageUnit(makeMyJSon) |> waitFutureValue
-        val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
-        response.status mustBe 201 //Successfully created the room
+        val response
+        = createStorageUnit(makeMyJSon) |> waitFutureValue
+
+          val storageUnit = Json.parse(response.body).
+            validate[Storage].get.
+            asInstanceOf[Room]
+        response.status mustBe 201
+          //Successfully created the room
 
         storageUnit.id.isDefined mustBe true
-        val id = storageUnit.id.get
-          //Just to know which is the current id, the next is supposed to fail....
-        val responsGet = getStorageUnit(id) |>
-          waitFutureValue
-       val room = Json.parse(responsGet.body).validate[Storage].get.asInstanceOf[Room]
+          val id = storageUnit.id.get
 
-        val optEnvReq = room.environmentRequirement
+          //Just to know which is the current id, the next is supposed to fail....
+        val responsGet =
+        getStorageUnit(id) |> waitFutureValue
+       val room = Json.
+         parse(responsGet.body).validate[Storage
+         ].get.asInstanceOf[Room]
+
+        val
+        optEnvReq = room.environmentRequirement
           assert(optEnvReq.isDefined)
 
-        val envReq = optEnvReq.get
-        envReq.temperature mustBe Some(20.4)
-        envReq.temperatureTolerance mustBe Some(4)
+        val
+        envReq = optEnvReq.get
+        envReq.
+          temperature mustBe Some(20.4)
+        envReq.
+          temperatureTolerance mustBe Some(4)
           envReq.hypoxicAir mustBe Some(40)
-          envReq.hypoxicAirTolerance mustBe Some(4)
+          envReq.
+            hypoxicAirTolerance mustBe Some(4)
           envReq.lightingCondition mustBe Some("Mørkt")
           envReq.relativeHumidity mustBe Some(71)
           envReq.relativeHumidityTolerance mustBe Some(4)
@@ -626,8 +682,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get
       //Just to know which is the current id, the next is supposed to fail....
-      val responsGet = getStorageUnit(id) |>
-        waitFutureValue
+      val responsGet = getStorageUnit(id) |> waitFutureValue
       val building = Json.parse(responsGet.body).validate[Storage].get.asInstanceOf[Building]
 
       val optEnvReq = building.environmentRequirement
@@ -755,8 +810,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       envReq.comments mustBe Some("Bra miljø")
 
 
-
-
       //Also check that getPath returns something. This ought to be a separate test, but we are lazy and retrieves an
       //already inserted storageUnit
 
@@ -766,12 +819,6 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       pathRes.body must include("Nytt navn")
       pathRes.body must include(id.toString)
       pathRes.body must include("StorageUnit")
-
-
-
-
-
     }
-
-
-  }}
+  }
+}

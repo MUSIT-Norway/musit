@@ -10,6 +10,9 @@ trait StorageDtoConverter {
         storageUnitFromDto(stu)
       case building: CompleteBuildingDto =>
         buildingFromDto(building)
+      case organisation: CompleteOrganisationDto =>
+        organisationFromDto(organisation)
+
       case room: CompleteRoomDto =>
         roomFromDto(room)
     }
@@ -20,6 +23,8 @@ trait StorageDtoConverter {
         storageUnitToDto(stu)
       case building: Building =>
         buildingToDto(building)
+      case organisation: Organisation =>
+        organisationToDto(organisation)
       case room: Room =>
         roomToDto(room)
     }
@@ -51,6 +56,11 @@ trait StorageDtoConverter {
   def buildingToDto(building: Building): CompleteBuildingDto = {
     val buildingPart = BuildingDTO(building.id, building.address)
     CompleteBuildingDto(storageNodeToDto(building), buildingPart, envReqToDto(building))
+  }
+
+  def organisationToDto(organisation: Organisation): CompleteOrganisationDto = {
+    val organisationPart = OrganisationDTO(organisation.id, organisation.address)
+    CompleteOrganisationDto(storageNodeToDto(organisation), organisationPart, envReqToDto(organisation))
   }
 
   def roomToDto(room: Room): CompleteRoomDto = {
@@ -127,6 +137,27 @@ trait StorageDtoConverter {
       links = nodePart.links,
       environmentRequirement = fromEnvReqDto(building.envReqDto),
       address = buildingPart.address
+    )
+  }
+
+  def organisationFromDto(organisation: CompleteOrganisationDto) = {
+    val nodePart = organisation.storageNode
+    val organisationPart = organisation.organisationDto
+    Organisation(
+      id = nodePart.id,
+      name = nodePart.name,
+      area = nodePart.area,
+      areaTo = nodePart.areaTo,
+      height = nodePart.height,
+      heightTo = nodePart.heightTo,
+      isPartOf = nodePart.isPartOf,
+      groupRead = nodePart.groupRead,
+      groupWrite = nodePart.groupWrite,
+      //      latestMoveId = nodePart.latestMoveId,
+      //      latestEnvReqId = nodePart.latestEnvReqId,
+      links = nodePart.links,
+      environmentRequirement = fromEnvReqDto(organisation.envReqDto),
+      address = organisationPart.address
     )
   }
 

@@ -22,6 +22,8 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
 import no.uio.musit.microservice.storageAdmin.domain.dto.{ CompleteStorageUnitDto, StorageDtoConverter, StorageNodeDTO, StorageType }
 import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, _ }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageType, StorageNodeDTO }
+import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, Organisation, _ }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
@@ -35,6 +37,7 @@ class StorageUnitService @Inject() (
     storageUnitDao: StorageUnitDao,
     roomService: RoomService,
     buildingService: BuildingService,
+    organisationService: OrganisationService,
     storageDao: StorageDao
 
 ) extends Object with StorageDtoConverter {
@@ -51,6 +54,7 @@ class StorageUnitService @Inject() (
       case su: StorageUnit => createStorageUnit(su)
       case room: Room => roomService.create(room)
       case building: Building => buildingService.create(building)
+      case organisation: Organisation => organisationService.create(organisation)
     }
   }
 
@@ -118,6 +122,8 @@ class StorageUnitService @Inject() (
           buildingService.updateBuildingByID(id, building).toMusitFuture
         case room: Room =>
           roomService.updateRoomByID(id, room).toMusitFuture
+        case organisation: Organisation =>
+          organisationService.updateOrganisationByID(id, organisation).map(Right(_))
       }
     }
 

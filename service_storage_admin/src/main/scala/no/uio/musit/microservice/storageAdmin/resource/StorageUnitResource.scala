@@ -23,6 +23,8 @@ import no.uio.musit.microservice.storageAdmin.dao.StorageDao
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.{ CompleteBuildingDto, CompleteStorageUnitDto, StorageDtoConverter, StorageType }
 import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageType
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService, OrganisationService }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.ResourceHelper
@@ -37,8 +39,8 @@ class StorageUnitResource @Inject() (
     storageUnitService: StorageUnitService,
     buildingService: BuildingService,
     roomService: RoomService,
+    organisationService: OrganisationService,
     storageDao: StorageDao
-
 ) extends Controller with StorageDtoConverter {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>

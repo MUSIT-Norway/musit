@@ -21,6 +21,11 @@ case class BuildingDTO(
   address: Option[String]
 ) extends StorageDTO
 
+case class OrganisationDTO(
+  id: Option[Long],
+  address: Option[String]
+) extends StorageDTO
+
 case class RoomDTO(
   id: Option[Long],
   perimeterSecurity: Option[Boolean],
@@ -57,6 +62,7 @@ sealed trait CompleteStorageNodeDto {
 }
 
 case class CompleteBuildingDto(storageNode: StorageNodeDTO, buildingDto: BuildingDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
+case class CompleteOrganisationDto(storageNode: StorageNodeDTO, organisationDto: OrganisationDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
 case class CompleteRoomDto(storageNode: StorageNodeDTO, roomDto: RoomDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
 case class CompleteStorageUnitDto(storageNode: StorageNodeDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
 

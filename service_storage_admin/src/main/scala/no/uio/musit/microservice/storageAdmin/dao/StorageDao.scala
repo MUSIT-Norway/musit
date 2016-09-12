@@ -13,6 +13,7 @@ class StorageDao @Inject() (
     storageUnitDao: StorageUnitDao,
     roomDao: RoomDao,
     buildingDao: BuildingDao,
+    organisationDao: OrganisationDao,
     envReqDao: EnvReqDao
 ) extends Object with StorageDtoConverter {
 
@@ -21,6 +22,9 @@ class StorageDao @Inject() (
 
   private def getBuildingById(id: Long): MusitFuture[BuildingDTO] =
     buildingDao.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
+
+  private def getOrganisationById(id: Long): MusitFuture[OrganisationDTO] =
+    organisationDao.getOrganisationById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageOrganisation with id: $id"))
 
   private def getRoomById(id: Long): MusitFuture[RoomDTO] =
     roomDao.getRoomById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageRoom with id: $id"))
@@ -41,6 +45,7 @@ class StorageDao @Inject() (
       storageNode.storageType match {
         case StorageType.StorageUnit => MusitFuture.successful(fromDto(CompleteStorageUnitDto(storageNode, optEnvReqDto)))
         case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding => fromDto(CompleteBuildingDto(storageNode, storageBuilding, optEnvReqDto)))
+        case StorageType.Organisation => getOrganisationById(id).musitFutureMap(storageOrganisation => fromDto(CompleteOrganisationDto(storageNode, storageOrganisation, optEnvReqDto)))
         case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom => fromDto(CompleteRoomDto(storageNode, storageRoom, optEnvReqDto)))
       }
     }
