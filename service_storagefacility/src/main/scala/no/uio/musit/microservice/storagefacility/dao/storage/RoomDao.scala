@@ -20,12 +20,12 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
-import no.uio.musit.microservice.storagefacility.domain.storage.{ Room, Storage, StorageNodeId }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.domain.storage.dto._
+import no.uio.musit.microservice.storagefacility.domain.storage.{ Room, StorageNodeId }
+import play.api.Logger
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
@@ -33,71 +33,106 @@ import scala.concurrent.Future
 class RoomDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
     val storageUnitDao: StorageUnitDao
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends SharedStorageTables {
 
   import driver.api._
 
+  val logger = Logger(classOf[RoomDao])
+
   private val roomTable = TableQuery[RoomTable]
 
-  def getRoomById(id: StorageNodeId): Future[Option[Room]] = {
-    val action = roomTable.filter(_.id === id).result.headOption
-    db.run(action)
+  /**
+   * TODO: Document me!!!
+   */
+  def getById(id: StorageNodeId): Future[Option[Room]] = {
+    val action = for {
+      maybeUnitDto <- storageUnitDao.getByIdAction(id)
+      maybeRoomDto <- roomTable.filter(_.id === id).result.headOption
+    } yield {
+      maybeUnitDto.flatMap(u =>
+        maybeRoomDto.map(r => ExtendedStorageNode(u, r)))
+    }
+    db.run(action).map(_.map { unitRoomTuple =>
+      StorageNodeDto.toRoom(unitRoomTuple)
+    })
   }
 
-  private def updateRoomOnlyAction(id: StorageNodeId, storageRoom: Room): DBIO[Int] = {
-    roomTable.filter(_.id === id).update(storageRoom)
+  private[dao] def updateAction(id: StorageNodeId, room: RoomDto): DBIO[Int] = {
+    roomTable.filter(_.id === id).update(room)
   }
 
-  def updateRoom(id: Long, room: Room) = {
+  /**
+   * TODO: Document me!!!
+   */
+  def update(id: Long, room: Room): Future[Option[Room]] = {
+    // FIXME: Update comments
+    //If we don't have the storage unit or it is marked as deleted, or we find
+    // more than 1 rows to update, onlyAcceptOneUpdatedRecord will make this
+    // DBIO/Future fail with an appropriate MusitException.
+    val roomDto = StorageNodeDto.fromRoom(room)
+    val action = for {
+      unitsUpdated <- storageUnitDao.updateAction(id, roomDto.storageUnitDto)
+      roomsUpdated <- updateAction(id, roomDto.extension.copy(id = Some(id)))
+    } yield roomsUpdated
 
-    //If we don't have the storage unit or it is marked as deleted, or we find more than 1 rows to update, onlyAcceptOneUpdatedRecord
-    // will make this DBIO/Future fail with an appropriate MusitException.
-    // (Which later gets recovered in ServiceHelper.daoUpdate)
-    val updateStorageUnitOnlyAction = storageUnitDao.updateStorageUnitAction(id, Storage.toDTO(room))
+    db.run(action.transactionally).flatMap {
+      case res: Int if res > 1 || res < 0 =>
+        logger.warn("Wrong amount of rows updated")
+        Future.successful(None)
 
-    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ => updateRoomOnlyAction(id, room.copy(id = Some(id))) }
-
-    db.run(combinedAction.transactionally)
+      case res: Int =>
+        getById(id)
+    }
   }
 
-  private def insertRoomOnlyAction(storageRoom: Room): DBIO[Int] = {
-    assert(storageRoom.id.isDefined) //if failed then it's our bug
-    val stRoom = storageRoom.copy(links = Storage.linkText(storageRoom.id))
-    val insertQuery = roomTable
-    val action = insertQuery += stRoom
-    action
+  protected[dao] def insertAction(roomDto: RoomDto): DBIO[RoomDto] = {
+    roomTable returning roomTable
+      .map(_.id) into ((room, id) => room.copy(id = id)) += roomDto
   }
 
-  def insertRoom(storageUnit: StorageUnitDto, storageRoom: Room): Future[Storage] = {
+  /**
+   * TODO: Document me!!!
+   */
+  def insert(room: Room): Future[Room] = {
+    val extendedDto = StorageNodeDto.fromRoom(room)
     val action = (for {
-      storageUnit <- storageUnitDao.insertAction(storageUnit)
-      n <- insertRoomOnlyAction(storageRoom.copy(id = storageUnit.id))
-    } yield Storage.getRoom(storageUnit, storageRoom)).transactionally
+      storageUnit <- storageUnitDao.insertAction(extendedDto.storageUnitDto)
+      inserted <- insertAction(extendedDto.extension.copy(id = storageUnit.id))
+    } yield {
+      val extNode = ExtendedStorageNode(storageUnit, inserted)
+      StorageNodeDto.toRoom(extNode)
+    }).transactionally
+
     db.run(action)
   }
 
-  private class RoomTable(tag: Tag) extends Table[Room](tag, Some("MUSARK_STORAGE"), "ROOM") {
+  private class RoomTable(
+      val tag: Tag
+  ) extends Table[RoomDto](tag, SchemaName, "ROOM") {
+    // scalastyle:off method.name
+    def * = (
+      id,
+      sikringSkallsikring,
+      sikringTyverisikring,
+      sikringBrannsikring,
+      sikringVannskaderisiko,
+      sikringRutineOgBeredskap,
+      bevarLuftfuktOgTemp,
+      bevarLysforhold,
+      bevarPrevantKons
+    ) <> (create.tupled, destroy)
 
-    def * = (id, sikringSkallsikring, sikringTyverisikring, sikringBrannsikring, sikringVannskaderisiko, // scalastyle:ignore
-      sikringRutineOgBeredskap, bevarLuftfuktOgTemp, bevarLysforhold, bevarPrevantKons) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
-    def id = column[Option[StorageNodeId]]("STORAGE_UNIT_ID", O.PrimaryKey)
-
-    def sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
-
-    def sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING")
-
-    def sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING")
-
-    def sikringVannskaderisiko = column[Option[Boolean]]("SIKRING_VANNSKADERISIKO")
-
-    def sikringRutineOgBeredskap = column[Option[Boolean]]("SIKRING_RUTINE_OG_BEREDSKAP")
-
-    def bevarLuftfuktOgTemp = column[Option[Boolean]]("BEVAR_LUFTFUKT_OG_TEMP")
-
-    def bevarLysforhold = column[Option[Boolean]]("BEVAR_LYSFORHOLD")
-
-    def bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
+    val id = column[Option[StorageNodeId]]("STORAGE_UNIT_ID", O.PrimaryKey)
+    val sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
+    val sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING")
+    val sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING")
+    val sikringVannskaderisiko = column[Option[Boolean]]("SIKRING_VANNSKADERISIKO")
+    val sikringRutineOgBeredskap = column[Option[Boolean]]("SIKRING_RUTINE_OG_BEREDSKAP")
+    val bevarLuftfuktOgTemp = column[Option[Boolean]]("BEVAR_LUFTFUKT_OG_TEMP")
+    val bevarLysforhold = column[Option[Boolean]]("BEVAR_LYSFORHOLD")
+    val bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
 
     def create = (
       id: Option[StorageNodeId],
@@ -110,17 +145,8 @@ class RoomDao @Inject() (
       bevarLysforhold: Option[Boolean],
       bevarPrevantKons: Option[Boolean]
     ) =>
-      Room(
+      RoomDto(
         id = id,
-        name = null,
-        area = None,
-        areaTo = None,
-        isPartOf = None,
-        height = None,
-        heightTo = None,
-        groupRead = None,
-        groupWrite = None,
-        links = None,
         sikringSkallsikring = sikringSkallsikring,
         sikringTyverisikring = sikringTyverisikring,
         sikringBrannsikring = sikringBrannsikring,
@@ -131,8 +157,8 @@ class RoomDao @Inject() (
         bevarPrevantKons = bevarPrevantKons
       )
 
-    def destroy(room: Room) =
-      Some(
+    def destroy(room: RoomDto) =
+      Some((
         room.id,
         room.sikringSkallsikring,
         room.sikringTyverisikring,
@@ -142,7 +168,7 @@ class RoomDao @Inject() (
         room.bevarLuftfuktOgTemp,
         room.bevarLysforhold,
         room.bevarPrevantKons
-      )
+      ))
   }
 
 }

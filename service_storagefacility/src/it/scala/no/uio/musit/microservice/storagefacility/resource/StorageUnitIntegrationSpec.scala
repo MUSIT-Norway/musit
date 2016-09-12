@@ -42,14 +42,14 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
   def getRoomAsObject(id: Long): Future[Room] = {
     for {
       resp <- getStorageUnit(id)
-      room = Json.parse(resp.body).validate[Storage].get.asInstanceOf[Room]
+      room = Json.parse(resp.body).validate[StorageNode].get.asInstanceOf[Room]
     } yield room
   }
 
   def getBuildingAsObject(id: Long): Future[Building] = {
     for {
       resp <- getStorageUnit(id)
-      room = Json.parse(resp.body).validate[Storage].get.asInstanceOf[Building]
+      room = Json.parse(resp.body).validate[StorageNode].get.asInstanceOf[Building]
     } yield room
   }
 
@@ -57,7 +57,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
   def getStorageUnitAsObject(id: Long): Future[StorageUnit] = {
     for {
       resp <- getStorageUnit(id)
-      stUnit = Json.parse(resp.body).validate[Storage].get.asInstanceOf[StorageUnit]
+      stUnit = Json.parse(resp.body).validate[StorageNode].get.asInstanceOf[StorageUnit]
     } yield stUnit
   }
 
@@ -82,7 +82,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     "postCreate some IDs" in {
       val makeMyJSon ="""{"type":"Room","name":"UkjentRom", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Room]
       storageUnit.id mustBe Some(1)
       storageUnit.storageType mustBe StorageType.Room
       storageUnit.name mustBe "UkjentRom"
@@ -93,7 +93,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     "postCreate a building" in {
       val makeMyJSon ="""{"id":-1, "type":"Building","name":"KHM", "links":[]}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Building]
       storageUnit.id mustBe Some(2)
       storageUnit.storageType mustBe StorageType.Building
       storageUnit.name mustBe "KHM"
@@ -102,7 +102,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
 
     "get by id" in {
       val response = getStorageUnit(1) |> waitFutureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get
       storageUnit.id mustBe Some(1)
     }
     "negative get by id" in {
@@ -113,7 +113,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
 
     "get all nodes" in {
       val response = wsUrl("/v1/storageunit").get() |> waitFutureValue
-      val storageUnits = Json.parse(response.body).validate[Seq[Storage]].get
+      val storageUnits = Json.parse(response.body).validate[Seq[StorageNode]].get
       storageUnits.length mustBe 2
 
     }
@@ -121,7 +121,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     "update storageUnit" in {
       val myJSon ="""{"type":"StorageUnit","name":"hylle2","areaTo":125}"""
       val response = createStorageUnit(myJSon) |> waitFutureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get
       storageUnit.name mustBe "hylle2"
 
       storageUnit.id.isDefined mustBe true
@@ -137,7 +137,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val antUpdated = updateStorageUnit(id, storageJson.toString()) |> waitFutureValue
       assert(antUpdated.status == 200)
       val updatedObjectResponse = getStorageUnit(id) |> waitFutureValue
-      val updatedObject = Json.parse(updatedObjectResponse.body).validate[Storage].get
+      val updatedObject = Json.parse(updatedObjectResponse.body).validate[StorageNode].get
 
       updatedObject.name mustBe "hylle3"
       updatedObject.areaTo mustBe Some(130)
@@ -147,7 +147,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val myJSon ="""{"type":"Room","name":"Rom1", "sikringSkallsikring": false}"""
       val future = createStorageUnit(myJSon)
       val response = future.futureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Room]
       storageUnit.sikringSkallsikring mustBe Some(false)
 
       storageUnit.id.isDefined mustBe true
@@ -178,7 +178,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val myJSon ="""{"type":"Building","name":"Bygning0", "address": "vet ikke"}"""
       val future = createStorageUnit(myJSon)
       val response = future |> waitFutureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Building]
       storageUnit.address mustBe Some("vet ikke")
       val id = storageUnit.id.get
       storageUnit.name mustBe "Bygning0"
@@ -213,7 +213,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     "create room transaction should not create a storageUnit in the database if the room doesn't get created. (Transaction failure)" in {
       val makeMyJSon ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Room]
 
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get //Just to know which is the current id, the next is supposed to fail....
@@ -234,7 +234,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
     "create and delete room" in {
       val makeMyJSon ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""
       val response = createStorageUnit(makeMyJSon) |> waitFutureValue
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Room]
       response.status mustBe 201 //Successfully created the room
 
       storageUnit.id.isDefined mustBe true
@@ -262,7 +262,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(json) |> waitFutureValue
       println("deleted storageUnit " + response.body)
       response.status mustBe 201 //Successfully created the room
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[StorageUnit]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[StorageUnit]
 
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get
@@ -283,7 +283,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(json) |> waitFutureValue
       println("deleted room " + response.body)
       response.status mustBe 201 //Successfully created the room
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Room]
 
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get
@@ -304,7 +304,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(json) |> waitFutureValue
       println("deleted building " + response.body)
       response.status mustBe 201 //Successfully created the room
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Building]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Building]
 
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get
@@ -327,7 +327,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       val response = createStorageUnit(json) |> waitFutureValue
       response.status mustBe 201 //Created
 
-      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+      val storageUnit = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Room]
 
       storageUnit.id.isDefined mustBe true
       val id = storageUnit.id.get

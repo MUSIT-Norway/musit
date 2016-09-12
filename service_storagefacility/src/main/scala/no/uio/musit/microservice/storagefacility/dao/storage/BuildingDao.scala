@@ -20,12 +20,13 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
-import no.uio.musit.microservice.storagefacility.domain.storage.{ Building, Storage, StorageNodeId }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.domain.MusitResults.{ MusitResult, MusitSuccess }
+import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ BuildingDto, ExtendedStorageNode, StorageNodeDto }
+import play.api.Logger
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
@@ -36,68 +37,94 @@ import scala.concurrent.Future
 class BuildingDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
     val storageUnitDao: StorageUnitDao
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends SharedStorageTables {
 
   import driver.api._
+
+  val logger = Logger(classOf[BuildingDao])
 
   private val buildingTable = TableQuery[BuildingTable]
 
   /**
    * TODO: Document me!!!
    */
-  def getBuildingById(id: StorageNodeId): Future[Option[Building]] = {
-    val action = buildingTable.filter(_.id === id).result.headOption
-    db.run(action)
-  }
-
-  /**
-   * TODO: Document me!!!
-   */
-  def updateBuildingOnlyAction(id: StorageNodeId, storageBuilding: Building): DBIO[Int] = {
-    buildingTable.filter(_.id === id).update(storageBuilding)
-  }
-
-  /**
-   * TODO: Document me!!!
-   */
-  def updateBuilding(id: StorageNodeId, building: Building) = {
-    val updateStorageUnitOnlyAction = storageUnitDao.updateStorageUnitAction(id, Storage.toDTO(building))
-    val combinedAction = updateStorageUnitOnlyAction.flatMap { _ =>
-      updateBuildingOnlyAction(id, building.copy(id = Some(id)))
+  def getById(id: StorageNodeId): Future[Option[Building]] = {
+    val action = for {
+      maybeUnitDto <- storageUnitDao.getByIdAction(id)
+      maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
+    } yield {
+      // Map the results into an ExtendedStorageNode type
+      maybeUnitDto.flatMap(u =>
+        maybeBuildingDto.map(b => ExtendedStorageNode(u, b)))
     }
-    db.run(combinedAction.transactionally)
+    // Execute the query
+    db.run(action).map(_.map { unitBuildingTuple =>
+      StorageNodeDto.toBuilding(unitBuildingTuple)
+    })
   }
 
-  private def insertBuildingOnlyAction(storageBuilding: Building): DBIO[Int] = {
-    val stBuilding = storageBuilding.copy(links = Storage.linkText(storageBuilding.id))
-    val insertQuery = buildingTable
-    val action = insertQuery += stBuilding
-    action
+  private[dao] def updateAction(id: StorageNodeId, building: BuildingDto): DBIO[Int] = {
+    buildingTable.filter(_.id === id).update(building)
   }
 
   /**
    * TODO: Document me!!!
    */
-  def insertBuilding(storageUnit: StorageUnitDto, storageBuilding: Building): Future[Storage] = {
-    val action = (for {
-      storageUnit <- storageUnitDao.insertAction(storageUnit)
-      n <- insertBuildingOnlyAction(storageBuilding.copy(id = storageUnit.id))
-    } yield Storage.getBuilding(storageUnit, storageBuilding)).transactionally
+  def update(id: StorageNodeId, building: Building): Future[Option[Building]] = {
+    val extendedBuildingDto = StorageNodeDto.fromBuilding(building)
+    val action = for {
+      unitsUpdated <- storageUnitDao.updateAction(id, extendedBuildingDto.storageUnitDto)
+      buildingsUpdated <- updateAction(id, extendedBuildingDto.extension.copy(id = Some(id)))
+    } yield buildingsUpdated
 
-    db.run(action)
+    db.run(action.transactionally).flatMap {
+      case res: Int if res > 1 || res < 0 =>
+        logger.warn("Wrong amount of rows updated")
+        Future.successful(None)
+
+      case res: Int =>
+        getById(id)
+    }
   }
 
-  private class BuildingTable(tag: Tag) extends Table[Building](tag, Some("MUSARK_STORAGE"), "BUILDING") {
+  private[dao] def insertAction(buildingDto: BuildingDto): DBIO[BuildingDto] = {
+    buildingTable returning buildingTable
+      .map(_.id) into ((building, id) => building.copy(id = id)) += buildingDto
+  }
+
+  /**
+   * TODO: Document me!!!
+   */
+  def insert(building: Building): Future[Building] = {
+    val extendedDto = StorageNodeDto.fromBuilding(building)
+    val action = for {
+      storageUnit <- storageUnitDao.insertAction(extendedDto.storageUnitDto)
+      inserted <- insertAction(extendedDto.extension.copy(id = storageUnit.id))
+    } yield {
+      val extNode = ExtendedStorageNode(storageUnit, inserted)
+      StorageNodeDto.toBuilding(extNode)
+    }
+
+    db.run(action.transactionally)
+  }
+
+  private class BuildingTable(
+      val tag: Tag
+  ) extends Table[BuildingDto](tag, SchemaName, "BUILDING") {
+
     def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
 
-    def id = column[Option[StorageNodeId]]("STORAGE_UNIT_ID", O.PrimaryKey)
-
-    def address = column[Option[String]]("POSTAL_ADDRESS")
+    val id = column[Option[StorageNodeId]]("STORAGE_UNIT_ID", O.PrimaryKey)
+    val address = column[Option[String]]("POSTAL_ADDRESS")
 
     def create = (id: Option[StorageNodeId], address: Option[String]) =>
-      Building(id, null, None, None, None, None, None, None, None, None, address)
+      BuildingDto(
+        id = id,
+        address = address
+      )
 
-    def destroy(building: Building) = Some(building.id, building.address)
+    def destroy(building: BuildingDto) =
+      Some((building.id, building.address))
   }
 
 }

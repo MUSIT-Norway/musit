@@ -20,40 +20,53 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
-import no.uio.musit.microservice.storagefacility.domain.storage.{ Storage, StorageNodeId, StorageType }
-import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
-import slick.driver.JdbcProfile
+import no.uio.musit.microservice.storagefacility.domain.MusitResults._
+import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ StorageNodeDto, StorageUnitDto }
+import play.api.Logger
+import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
 /**
  * TODO: Document me!!!
  */
+
+// TODO: Change public API methods to use MusitResult[A]
 @Singleton
 class StorageUnitDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends SharedStorageTables {
 
   import driver.api._
 
+  val logger = Logger(classOf[StorageUnitDao])
+
   private val storageUnitTable = TableQuery[StorageUnitTable]
 
-  def unknownStorageUnitMsg(id: StorageNodeId) =
-    s"Unknown storageUnit with id: ${id.underlying}"
-
-  def storageUnitNotFoundError(id: StorageNodeId): MusitError =
-    ErrorHelper.notFound(unknownStorageUnitMsg(id))
+  protected[dao] def getByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
+    storageUnitTable.filter { st =>
+      st.id === id && st.isDeleted === false
+    }.result.headOption
+  }
 
   /**
    * TODO: Document me!!!
    */
-  def getStorageUnitOnlyById(id: StorageNodeId): Future[Option[StorageUnitDto]] =
-    db.run(storageUnitTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
+  def getById(id: StorageNodeId): Future[Option[StorageUnit]] = {
+    val query = getByIdAction(id)
+    db.run(query).map { dto =>
+      dto.map(unitDto => StorageNodeDto.toStorageUnit(unitDto))
+    }
+  }
+
+  // FIXME: I do not like this method.
+  // It leaves the type checking and DTO conversion to the service layer.
+  def getNodeById(id: StorageNodeId): Future[Option[StorageUnitDto]] = {
+    val query = getByIdAction(id)
+    db.run(query)
+  }
 
   /**
    * TODO: Document me!!!
@@ -66,123 +79,85 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getStorageType(id: StorageNodeId): MusitFuture[StorageType] = {
-    db.run(storageUnitTable.filter(_.id === id).map(_.storageType).result.headOption)
-      .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
+  def getStorageType(id: StorageNodeId): Future[MusitResult[Option[StorageType]]] = {
+    db.run(
+      storageUnitTable.filter(_.id === id).map(_.storageType).result.headOption
+    ).map { maybeStorageType =>
+      MusitSuccess(maybeStorageType)
+    }
+  }
+
+  /**
+   * TODO: Document me!!!
+   * TODO: This seems like a very dangerous method doing a table scan.
+   */
+  def all(): Future[Seq[StorageUnitDto]] = {
+    db.run(storageUnitTable.filter(_.isDeleted === false).result)
   }
 
   /**
    * TODO: Document me!!!
    */
-  def all(): Future[Seq[StorageUnitDto]] =
-    db.run(storageUnitTable.filter(st => st.isDeleted === false).result)
+  def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
+    val dto = StorageNodeDto.fromStorageUnit(storageUnit)
+    db.run(insertAction(dto)).map(StorageNodeDto.toStorageUnit)
+  }
 
-  /**
-   * TODO: Document me!!!
-   */
-  def insert(storageUnit: StorageUnitDto): Future[StorageUnitDto] =
-    db.run(insertAction(storageUnit))
-
-  /**
-   * TODO: Document me!!!
-   */
-  def insertAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
-    storageUnitTable returning storageUnitTable.map(_.id) into
-      ((storageUnit, id) =>
-        storageUnit.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
-      storageUnit
+  protected[dao] def insertAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
+    storageUnitTable returning storageUnitTable.map(_.id) into (
+      (su, id) =>
+        su.copy(
+          id = Some(id)
+        //          , links = Storage.linkText(Some(id))
+        )
+    ) += storageUnit
   }
 
   /**
    * TODO: Document me!!!
    */
-  def updateStorageUnitAction(id: StorageNodeId, storageUnit: StorageUnitDto): DBIO[Int] = {
-    storageUnitTable.filter(st => st.id === id && st.isDeleted === false).update(storageUnit)
+  protected[dao] def updateAction(
+    id: StorageNodeId,
+    storageUnit: StorageUnitDto
+  ): DBIO[Int] = {
+    storageUnitTable.filter { su =>
+      su.id === id && su.isDeleted === false
+    }.update(storageUnit)
   }
 
   /**
    * TODO: Document me!!!
    */
-  def updateStorageUnit(id: StorageNodeId, storageUnit: StorageUnitDto): Future[Int] = {
-    db.run(updateStorageUnitAction(id, storageUnit))
+  def update(
+    id: StorageNodeId,
+    storageUnit: StorageUnitDto
+  ): Future[Option[StorageUnit]] = {
+    db.run(updateAction(id, storageUnit)).flatMap {
+      case res: Int if res > 1 || res < 0 =>
+        logger.warn("Wrong amount of rows updated")
+        Future.successful(None)
+
+      case res: Int =>
+        getById(id)
+    }
   }
 
   /**
    * TODO: Document me!!!
    */
-  def deleteStorageUnit(id: StorageNodeId): Future[Int] = {
-    db.run((for {
-      storageUnit <- storageUnitTable if storageUnit.id === id && storageUnit.isDeleted === false
-    } yield storageUnit.isDeleted).update(true))
-  }
-
-  private class StorageUnitTable(tag: Tag) extends Table[StorageUnitDto](tag, Some("MUSARK_STORAGE"), "STORAGE_UNIT") {
-    def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val id = column[StorageNodeId]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
-
-    val storageType = column[StorageType]("STORAGE_TYPE")
-
-    val storageUnitName = column[String]("STORAGE_UNIT_NAME")
-
-    val area = column[Option[Long]]("AREA")
-
-    val areaTo = column[Option[Long]]("AREA_TO")
-
-    val isPartOf = column[Option[StorageNodeId]]("IS_PART_OF")
-
-    val height = column[Option[Long]]("HEIGHT")
-
-    val heightTo = column[Option[Long]]("HEIGHT_TO")
-
-    val groupRead = column[Option[String]]("GROUP_READ")
-
-    val groupWrite = column[Option[String]]("GROUP_WRITE")
-
-    val isDeleted = column[Boolean]("IS_DELETED")
-
-    def create = (
-      id: Option[StorageNodeId],
-      storageType: StorageType,
-      storageUnitName: String,
-      area: Option[Long],
-      areaTo: Option[Long],
-      isPartOf: Option[StorageNodeId],
-      height: Option[Long],
-      heightTo: Option[Long],
-      groupRead: Option[String],
-      groupWrite: Option[String],
-      isDeleted: Boolean
-    ) =>
-      StorageUnitDto(
-        id,
-        storageUnitName,
-        area,
-        areaTo,
-        isPartOf,
-        height,
-        heightTo,
-        groupRead,
-        groupWrite,
-        Storage.linkText(id),
-        Option(isDeleted),
-        storageType
-      )
-
-    def destroy(unit: StorageUnitDto) =
-      Some(
-        unit.id,
-        unit.`type`,
-        unit.name,
-        unit.area,
-        unit.areaTo,
-        unit.isPartOf,
-        unit.height,
-        unit.heightTo,
-        unit.groupRead,
-        unit.groupWrite,
-        unit.isDeleted.getOrElse(false)
-      )
+  def markAsDeleted(id: StorageNodeId): Future[MusitResult[Int]] = {
+    db.run(
+      (for {
+        su <- storageUnitTable if su.id === id && su.isDeleted === false
+      } yield su.isDeleted).update(true)
+    ).map { res =>
+        if (res == 0) MusitSuccess(res)
+        else MusitValidationError(
+          message = "Unexpected result marking storagenode as deleted",
+          expected = 0,
+          actual = res
+        )
+      }
   }
 
 }

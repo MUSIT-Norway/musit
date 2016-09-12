@@ -166,7 +166,7 @@ lazy val service_storagefacility = (
   settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_storagefacility"
   ))
-) dependsOn(common, common_test % "it,test")
+)
 
 
 lazy val service_event = (

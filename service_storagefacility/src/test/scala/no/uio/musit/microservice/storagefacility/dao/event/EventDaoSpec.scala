@@ -20,16 +20,15 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import no.uio.musit.microservice.storagefacility.domain.Interval
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, ObjectRole, PlaceRole }
+import no.uio.musit.microservice.storagefacility.domain.event.{EventType, ObjectRole, PlaceRole}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.move._
-import no.uio.musit.microservice.storagefacility.testhelpers.EventGenerators
-import no.uio.musit.microservices.common.PlayTestDefaults
+import no.uio.musit.microservice.storagefacility.testhelpers.{EventGenerators, TestConfigs}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
@@ -46,7 +45,7 @@ class EventDaoSpec extends PlaySpec
   // We need to build up and configure a FakeApplication to get
   // an EventDao with all of the necessary dependencies injected.
   implicit override lazy val app = new GuiceApplicationBuilder()
-    .configure(PlayTestDefaults.inMemoryDatabaseConfig())
+    .configure(TestConfigs.inMemoryDatabaseConfig())
     .build()
 
   // This is where we fetch the EventDao singleton from the fake application.

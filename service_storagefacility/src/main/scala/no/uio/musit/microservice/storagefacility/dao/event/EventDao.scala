@@ -23,11 +23,10 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
+import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
-import no.uio.musit.microservices.common.utils.ErrorHelper
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -291,30 +290,32 @@ class EventDao @Inject() (
   private def initCompleteDto(
     baseEventDto: BaseEventDto,
     relatedSubEvents: Seq[RelatedEvents]
-  ): MusitFuture[Dto] = {
+  ): Future[MusitResult[Option[Dto]]] = {
     val related = relatedSubEvents.map { subs =>
       val futureSubEvents = Future.traverse(subs.events)(re => enrichDto(re))
       futureSubEvents.map(se => subs.copy(events = se))
     }
 
-    Future.sequence(related).map[Dto] { rel =>
-      baseEventDto.copy(relatedSubEvents = rel)
-    }.toMusitFuture
+    Future.sequence(related).map { rel =>
+      MusitSuccess(Option(baseEventDto.copy(relatedSubEvents = rel)))
+    }
   }
 
   private def getFullEvent(
     baseEventDto: BaseEventDto,
     recursive: Boolean
-  ): MusitFuture[Dto] = {
+  ): Future[MusitResult[Option[Dto]]] = {
 
     EventTypeRegistry.unsafeFromId(baseEventDto.eventTypeId) match {
       case EnvRequirementEventType =>
-        envReqDao.getEnvRequirement(baseEventDto.id.get).map[Dto] { mer =>
-          mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
-        }.toMusitFuture
+        envReqDao.getEnvRequirement(baseEventDto.id.get).map { mer =>
+          MusitSuccess(Option(
+            mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
+          ))
+        }
 
       case MoveObjectType | MoveNodeType =>
-        MusitFuture.successful(baseEventDto)
+        Future.successful(MusitSuccess(Option(baseEventDto)))
 
       case _ =>
         val futureSubEvents =
@@ -322,10 +323,10 @@ class EventDao @Inject() (
             // ID can never be None or null in this context, so it's safe to .get
             getSubEvents(baseEventDto.id.get, recursive)
           } else {
-            MusitFuture.successful(Seq.empty[RelatedEvents])
+            Future.successful(Seq.empty[RelatedEvents])
           }
 
-        futureSubEvents.musitFutureFlatMap { subEvents =>
+        futureSubEvents.flatMap { subEvents =>
           initCompleteDto(baseEventDto, subEvents)
         }
     }
@@ -339,14 +340,13 @@ class EventDao @Inject() (
    *                  defaults to true.
    * @return The Dto containing the event data.
    */
-  def getEvent(id: Long, recursive: Boolean = true): MusitFuture[Dto] = {
-
-    val maybeBaseEventDto = getBaseEvent(id).toMusitFuture {
-      ErrorHelper.badRequest(s"Event with id: $id not found")
-    }
-
-    maybeBaseEventDto.musitFutureFlatMap { baseEventDto =>
-      getFullEvent(baseEventDto, recursive)
+  def getEvent(id: Long, recursive: Boolean = true): Future[MusitResult[Option[Dto]]] = {
+    getBaseEvent(id).flatMap { maybeDto =>
+      maybeDto.map { baseEventDto =>
+        getFullEvent(baseEventDto, recursive)
+      }.getOrElse {
+        Future.successful(MusitSuccess[Option[Dto]](None))
+      }
     }
   }
 
@@ -362,12 +362,18 @@ class EventDao @Inject() (
    * TODO: Document me!
    */
   private def getEventsFromDtos(
-    eventDtos: MusitFuture[Seq[BaseEventDto]],
+    eventDtos: Future[Seq[BaseEventDto]],
     recursive: Boolean
-  ): MusitFuture[Seq[Dto]] = {
-    eventDtos.musitFutureFlatMap { subEventDtos =>
-      MusitFuture.traverse(subEventDtos) { subEventDto =>
+  ): Future[Seq[Dto]] = {
+    eventDtos.flatMap { subEventDtos =>
+      Future.traverse(subEventDtos) { subEventDto =>
         getFullEvent(subEventDto, recursive)
+      }.map { results =>
+        // We remove the failed futures and return only the successful ones.
+        // NOTE: We're discarding useful information about failure here.
+        results.filter(_.isSuccess).map { success =>
+          success.asInstanceOf[MusitSuccess[Dto]].arg
+        }
       }
     }
   }
@@ -378,10 +384,10 @@ class EventDao @Inject() (
   private def getPartEvents(
     parentId: Long,
     recursive: Boolean
-  ): MusitFuture[RelatedEvents] = {
-    val futureSubEventDtos = getSubEventDtos(parentId).toMusitFuture
+  ): Future[RelatedEvents] = {
+    val futureSubEventDtos = getSubEventDtos(parentId)
     //Create a parts-relation of the these subEvents
-    getEventsFromDtos(futureSubEventDtos, recursive).musitFutureMap { events =>
+    getEventsFromDtos(futureSubEventDtos, recursive).map { events =>
       RelatedEvents(EventRelations.relation_parts, events)
     }
   }
@@ -390,30 +396,31 @@ class EventDao @Inject() (
   private def getOtherRelatedEvents(
     parentId: Long,
     recursive: Boolean
-  ): MusitFuture[Seq[RelatedEvents]] = {
+  ): Future[Seq[RelatedEvents]] = {
 
-    def transform(group: Seq[(Int, BaseEventDto)]): MusitFuture[Seq[Dto]] = {
-      val groupedEvents = group.map(_._2).map(dto => getFullEvent(dto, recursive))
+    def transform(group: Seq[(Int, BaseEventDto)]): Future[Seq[Dto]] = {
+      val grpdEvents = group.map(_._2).map(dto => getFullEvent(dto, recursive))
       //Collapse the inner musitresults...
-      MusitFuture.traverse[MusitFuture[Dto], Dto](groupedEvents)(identity)
+      Future.traverse(grpdEvents)(identity).map { results =>
+        // NOTE: We're discarding useful information about failure here.
+        results.filter(_.isSuccess).map(_.asInstanceOf[MusitSuccess[Dto]].arg)
+      }
     }
 
-    val futureRelatedDtos = eventRelationDao.getRelatedEvents(parentId).toMusitFuture
+    val futureRelatedDtos = eventRelationDao.getRelatedEvents(parentId)
 
-    futureRelatedDtos.musitFutureFlatMap { relatedDtos =>
+    futureRelatedDtos.flatMap { relatedDtos =>
       val groups = relatedDtos.groupBy(_._1).map {
         case (relationId, related) =>
           (relationId, transform(related))
       }.toSeq
 
-      val result = MusitFuture.traverse(groups) {
+      Future.traverse(groups) {
         case (relId, futureEvents) =>
-          futureEvents.musitFutureMap { events =>
-            // FIXME: Unsafe operation
-            RelatedEvents(EventRelations.getByIdOrFail(relId), events)
+          futureEvents.map { events =>
+            RelatedEvents(EventRelations.unsafeGetById(relId), events)
           }
       }
-      result
     }
   }
 
@@ -426,13 +433,13 @@ class EventDao @Inject() (
   def getSubEvents(
     parentId: Long,
     recursive: Boolean
-  ): MusitFuture[Seq[RelatedEvents]] = {
+  ): Future[Seq[RelatedEvents]] = {
     val futurePartsEvents = getPartEvents(parentId, recursive)
     val futureOtherRelatedEvents = getOtherRelatedEvents(parentId, recursive)
 
     //Now we simply need to join the parts-events and the other related events
-    futurePartsEvents.musitFutureFlatMap { partEvents =>
-      futureOtherRelatedEvents.musitFutureMap { extraRelatedEvents =>
+    futurePartsEvents.flatMap { partEvents =>
+      futureOtherRelatedEvents.map { extraRelatedEvents =>
         if (partEvents.events.isEmpty) extraRelatedEvents
         else partEvents +: extraRelatedEvents
       }

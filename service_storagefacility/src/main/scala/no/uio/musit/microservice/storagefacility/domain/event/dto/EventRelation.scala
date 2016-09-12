@@ -20,8 +20,6 @@
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
 import no.uio.musit.microservice.storagefacility.domain.event.{ ActorRole, ObjectRole, PlaceRole }
-import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.utils.ErrorHelper
 
 /**
  * Created by jstabel on 7/6/16.
@@ -40,7 +38,7 @@ case class EventRelation(
 
   def getNormalizedDirection =
     if (isNormalized) this
-    else EventRelations.getByNameOrFail(inverseName)
+    else EventRelations.unsafeGetByName(inverseName)
 }
 
 /**
@@ -74,26 +72,19 @@ object EventRelations {
   // This one is hardcoded some places in the system, because it is treated in a
   // special way (not stored in the event-relation-table, but in the base
   // event-table directly
-  val relation_parts = getByNameOrFail("parts")
+  val relation_parts = unsafeGetByName("parts")
 
   // Shouldn't be used in the main framework, but perhaps used by tests and
   // some other logic
-  val relation_motivates = getByNameOrFail("motivates")
+  val relation_motivates = unsafeGetByName("motivates")
 
   def getByName(name: String) = relationByName.get(name.toLowerCase)
 
-  def getById(id: Int) = relationById.get(id)
+  def getById(id: Int): Option[EventRelation] = relationById.get(id)
 
-  def getByIdOrFail(id: Int) =
-    getById(id).getOrFail(s"Unable to find relation with id: $id")
+  def unsafeGetById(id: Int): EventRelation = getById(id).get
 
-  def getByNameOrFail(name: String) =
-    getByName(name).getOrFail(s"Unable to find relation with name : $name")
-
-  def getMusitResultByName(name: String) =
-    getByName(name).toMusitResult(
-      ErrorHelper.badRequest(s"Unable to find relation with name : $name")
-    )
+  def unsafeGetByName(name: String): EventRelation = getByName(name).get
 }
 
 /*

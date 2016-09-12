@@ -19,25 +19,27 @@
 
 package no.uio.musit.microservice.storagefacility.service
 
+import com.google.inject.Inject
+import no.uio.musit.microservice.storagefacility.dao.event.EventDao
+import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservices.common.domain.MusitError
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-class ControlService {
+class ControlService @Inject() (val eventDao: EventDao) {
 
   /**
    *
-   * @param ctrl
-   * @param registeredBy
-   * @return
    */
-  def addControl(
+  def add(
     ctrl: Control,
     registeredBy: String
-  ): Future[Either[MusitError, EventId]] = {
-    ???
+  ): Future[Long] = {
+    val dto = DtoConverters.CtrlConverters.controlToDto(ctrl)
+    eventDao.insertEvent(dto)
   }
 
   /**
@@ -45,17 +47,20 @@ class ControlService {
    * @param id
    * @return
    */
-  def getControlWithSubEvents(id: EventId): Future[Either[MusitError, Control]] = {
-    ???
-  }
+  def fetch(id: EventId): Future[MusitResult[Option[Control]]] = {
+    eventDao.getEvent(id.underlying).map { result =>
+      result.flatMap(_.map {
+        case base: BaseEventDto =>
+          MusitSuccess(
+            Option(DtoConverters.CtrlConverters.controlFromDto(base))
+          )
 
-  /**
-   *
-   * @param id
-   * @return
-   */
-  def getControl(id: EventId): Future[Either[MusitError, Control]] = {
-    ???
+        case _ =>
+          MusitInternalError(
+            "Unexpected DTO type. Expected BaseEventDto with event type Control"
+          )
+      }.getOrElse(MusitSuccess[Option[Control]](None)))
+    }
   }
 
 }

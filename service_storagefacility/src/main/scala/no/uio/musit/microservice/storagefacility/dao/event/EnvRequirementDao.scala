@@ -75,7 +75,7 @@ class EnvRequirementDao @Inject() (
       )
 
     def destroy(envReq: EnvRequirementDto) =
-      Some(
+      Some((
         envReq.id,
         envReq.temperature,
         envReq.tempInterval,
@@ -85,7 +85,7 @@ class EnvRequirementDao @Inject() (
         envReq.hypoxicInterval,
         envReq.cleaning,
         envReq.light
-      )
+      ))
   }
 
 }
