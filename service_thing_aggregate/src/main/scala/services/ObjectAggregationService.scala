@@ -2,7 +2,7 @@ package services
 
 import com.google.inject.Inject
 import dao.ObjectAggregationDao
-import models.{ MuseumId, ObjectAggregation, ObjectId }
+import models.ObjectAggregation
 
 import scala.concurrent.Future
 
@@ -10,8 +10,8 @@ class ObjectAggregationService @Inject() (
     dao: ObjectAggregationDao
 ) {
 
-  def getObjects(museumId: Long): Future[Seq[ObjectAggregation]] = {
-    dao.getOjects(museumId)
+  def getObjects(nodeId: Long): Future[Seq[ObjectAggregation]] = {
+    dao.getOjects(nodeId)
   }
 
 }

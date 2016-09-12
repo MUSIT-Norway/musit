@@ -1,1 +1,1 @@
-GET     /museum/:museumId/objects       controllers.ObjectAggregationController.getObjects(museumId: Long)
+GET        /node/:nodeId/objects        controllers.ObjectAggregationController.getObjects(nodeId: Long)
