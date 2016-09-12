@@ -44,9 +44,12 @@ class StorageDao @Inject() (
 
       storageNode.storageType match {
         case StorageType.StorageUnit => MusitFuture.successful(fromDto(CompleteStorageUnitDto(storageNode, optEnvReqDto)))
-        case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding => fromDto(CompleteBuildingDto(storageNode, storageBuilding, optEnvReqDto)))
-        case StorageType.Organisation => getOrganisationById(id).musitFutureMap(storageOrganisation => fromDto(CompleteOrganisationDto(storageNode, storageOrganisation, optEnvReqDto)))
-        case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom => fromDto(CompleteRoomDto(storageNode, storageRoom, optEnvReqDto)))
+        case StorageType.Building => getBuildingById(id).musitFutureMap(storageBuilding =>
+          fromDto(CompleteBuildingDto(storageNode, storageBuilding, optEnvReqDto)))
+        case StorageType.Organisation => getOrganisationById(id).musitFutureMap(storageOrganisation =>
+          fromDto(CompleteOrganisationDto(storageNode, storageOrganisation, optEnvReqDto)))
+        case StorageType.Room => getRoomById(id).musitFutureMap(storageRoom =>
+          fromDto(CompleteRoomDto(storageNode, storageRoom, optEnvReqDto)))
       }
     }
   }
