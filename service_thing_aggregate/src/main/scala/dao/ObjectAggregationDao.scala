@@ -1,0 +1,5 @@
+package dao
+
+class ObjectAggregationDao {
+
+}
