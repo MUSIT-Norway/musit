@@ -17,4 +17,6 @@ class ObjectAggregationDao @Inject() (
     ))
   }
 
+
+  /* sql: select */
 }
