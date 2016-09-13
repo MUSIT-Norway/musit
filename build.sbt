@@ -159,6 +159,7 @@ lazy val service_storage_admin = (
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(libraryDependencies ++= Seq(
       PlayJson.derivedCodecs,
+
       Enumeratum.enumeratum,
       Enumeratum.enumeratumPlayJson,
       Enumeratum.enumeratumPlay

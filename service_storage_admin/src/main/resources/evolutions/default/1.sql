@@ -25,8 +25,8 @@ CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 CREATE TABLE MUSARK_STORAGE.STORAGE_NODE(
  storage_node_id   BIGINT NOT NULL  AUTO_INCREMENT,
  storage_node_name VARCHAR(512),
- area              INTEGER,
- area_to           INTEGER,
+ area              FLOAT,
+ area_to           FLOAT,
  is_storage_unit   VARCHAR(1) DEFAULT '1',
  is_part_of        INTEGER,
  height            INTEGER,
@@ -42,14 +42,15 @@ primary key (storage_node_id)
 
 CREATE TABLE MUSARK_STORAGE.ROOM(
  storage_node_id             BIGINT not null,
- sikring_skallsikring        integer,
- sikring_tyverisikring       integer,
- sikring_brannsikring        integer,
- sikring_vannskaderisiko     integer,
- sikring_rutine_og_beredskap integer,
- bevar_luftfukt_og_temp      integer,
- bevar_lysforhold            integer,
- bevar_prevant_kons          integer,
+ perimeter_security        integer,-- not null default 0,
+ theft_protection       integer,-- not null default 1,
+ fire_protection        integer,-- not null default 0,
+ water_damage_assessment     integer,-- not null default 0,
+ routines_and_contingency_plan integer,-- not null default 0,
+ RELATIVE_HUMIDITY           integer,-- not null default 0,
+ TEMPERATURE_ASSESSMENT      integer,-- not null default 0,
+ lighting_condition            integer,-- not null default 0,
+ preventive_conservation          integer,-- not null default 0,
  PRIMARY KEY (storage_node_id),
  FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
  );
@@ -76,6 +77,24 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK(
  PRIMARY KEY (link_id),
  FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
+
+CREATE TABLE MUSARK_STORAGE.E_ENVIRONMENT_REQUIREMENT
+(
+ id             BIGINT(20) NOT NULL AUTO_INCREMENT,
+ temperature      NUMBER,
+ TEMPERATURE_TOLERANCE    NUMBER,
+ RELATIVE_HUMIDITY     NUMBER,
+ REL_HUM_TOLERANCE NUMBER,
+ hypoxic_air      NUMBER,
+ HYP_AIR_TOLERANCE NUMBER,
+ cleaning         VARCHAR2(250),
+ LIGHTING_COND            VARCHAR2(250),
+ NOTE VARCHAR2(4000),
+ --STORAGE_NODE_ID BIGINT NOT NULL,
+  PRIMARY KEY (ID)
+  --FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
+);
+
 
 # --- !Downs
 
