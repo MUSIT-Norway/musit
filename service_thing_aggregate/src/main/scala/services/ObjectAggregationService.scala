@@ -11,7 +11,7 @@ class ObjectAggregationService @Inject() (
 ) {
 
   def getObjects(nodeId: Long): Future[Seq[ObjectAggregation]] = {
-    dao.getOjects(nodeId)
+    dao.getObjects(nodeId)
   }
 
 }
