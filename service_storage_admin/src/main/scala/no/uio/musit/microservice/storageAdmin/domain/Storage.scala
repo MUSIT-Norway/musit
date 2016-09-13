@@ -75,6 +75,22 @@ case class Building(
   address: Option[String]
 ) extends Storage
 
+case class Organisation(
+  id: Option[Long],
+  name: String,
+  area: Option[Long],
+  areaTo: Option[Long],
+  isPartOf: Option[Long],
+  height: Option[Long],
+  heightTo: Option[Long],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
+  links: Option[Seq[Link]],
+  address: Option[String]
+) extends Storage
+
 object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
@@ -135,6 +151,22 @@ object Storage {
           bevarLysforhold = room.bevarLysforhold,
           bevarPrevantKons = room.bevarPrevantKons
         )
+      case organisation: OrganisationDTO =>
+        Organisation(
+          id = organisation.id,
+          name = organisation.name,
+          area = organisation.area,
+          areaTo = organisation.areaTo,
+          height = organisation.height,
+          heightTo = organisation.heightTo,
+          isPartOf = organisation.isPartOf,
+          groupRead = organisation.groupRead,
+          groupWrite = organisation.groupWrite,
+          latestMoveId = organisation.latestMoveId,
+          latestEnvReqId = organisation.latestEnvReqId,
+          links = organisation.links,
+          address = organisation.address
+        )
     }
 
   def getBuilding(unit: StorageDTO, building: Building): Building = {
@@ -177,6 +209,23 @@ object Storage {
       bevarLuftfuktOgTemp = room.bevarLuftfuktOgTemp,
       bevarLysforhold = room.bevarLysforhold,
       bevarPrevantKons = room.bevarPrevantKons
+    )
+  }
+  def getOrganisation(unit: StorageDTO, organisation: Organisation): Organisation = {
+    Organisation(
+      id = unit.id,
+      name = unit.name,
+      area = unit.area,
+      areaTo = unit.areaTo,
+      height = unit.height,
+      heightTo = unit.heightTo,
+      isPartOf = unit.isPartOf,
+      groupRead = unit.groupRead,
+      groupWrite = unit.groupWrite,
+      latestMoveId = unit.latestMoveId,
+      latestEnvReqId = unit.latestEnvReqId,
+      links = unit.links,
+      address = organisation.address
     )
   }
 

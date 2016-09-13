@@ -23,12 +23,16 @@ import httpProxy from 'http-proxy';
 import http from 'http';
 import Passport from 'passport';
 import { Strategy as DataportenStrategy } from 'passport-dataporten';
+import jwt from 'jsonwebtoken';
+
 const Log = require('log');
 const logger = new Log('info');
 const gatewayUrl = `http://${config.gatewayHost}:${config.gatewayPort}/api`;
 const app = new Express();
 const server = new http.Server(app);
 const proxy = httpProxy.createProxyServer();
+const jwtSecret = config.jwtSecret;
+
 app.set('view engine', 'ejs');
 app.use(compression());
 
@@ -60,7 +64,14 @@ proxy.on('error', (error, req, res) => {
 
 app.use('/musit', Passport.authenticate('dataporten', { failWithError: true }),
   (req, res) => {
-    res.render('callback/index', { user: req.user });
+    const token = jwt.sign({
+      accessToken: req.user.accessToken,
+      name: req.user.name,
+      email: req.user.emails[0],
+      userId: req.user.userId,
+      avatarUrl: req.user.photos[0]
+    }, jwtSecret);
+    res.render('callback/index', { token });
   },
   (err, req, res) => {
     res.redirect('/?error=meh');
