@@ -24,7 +24,7 @@ import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, EventTypeRegistry, MusitEvent }
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, EventTypeId, EventTypeRegistry, MusitEvent }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
@@ -219,8 +219,18 @@ class EventDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getBaseEvent(id: Long): Future[Option[BaseEventDto]] = {
-    val action = eventBaseTable.filter(_.id === id).result.headOption
+  def getBaseEvent(
+    id: Long,
+    eventTypeId: Option[EventTypeId] = None
+  ): Future[Option[BaseEventDto]] = {
+
+    val action = {
+      eventTypeId.map { etid =>
+        eventBaseTable.filter(_.eventTypeId === etid).filter(_.id === id)
+      }.getOrElse {
+        eventBaseTable.filter(_.id === id)
+      }.result.headOption
+    }
     val futureBaseEvent = db.run(action)
 
     for {
@@ -356,7 +366,11 @@ class EventDao @Inject() (
    *                  defaults to true.
    * @return The Dto containing the event data.
    */
-  def getEvent(id: Long, recursive: Boolean = true): Future[MusitResult[Option[Dto]]] = {
+  def getEvent(
+    id: Long,
+    recursive: Boolean = true,
+    eventTypeId: Option[EventTypeId] = None
+  ): Future[MusitResult[Option[Dto]]] = {
     getBaseEvent(id).flatMap { maybeDto =>
       maybeDto.map { base =>
         logger.debug(s"Found base event $base. Going to fetch full event")
@@ -492,11 +506,14 @@ class EventDao @Inject() (
     val futureEventIds = evtPlacesAsObjDao.getEventsForObjects(nodeId.toInt).map { objs =>
       objs.map(_.eventId).filter(_.isDefined).map(_.get)
     }
-
     // Iterate the list of IDs and fetch the related event.
     futureEventIds.flatMap { ids =>
-      val evts = Future.traverse(ids)(id => getEvent(id))
-      evts.map { results =>
+      Future.traverse(ids) { eventId =>
+        getEvent(
+          id = eventId,
+          eventTypeId = Some(eventType.id)
+        )
+      }.map { results =>
         results.filter(_.isSuccess).map {
           case MusitSuccess(maybeSuccess) =>
             maybeSuccess

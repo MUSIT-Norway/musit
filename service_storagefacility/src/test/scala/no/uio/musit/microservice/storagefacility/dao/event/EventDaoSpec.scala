@@ -19,19 +19,23 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
+import no.uio.musit.microservice.storagefacility.dao.storage.BuildingDao
 import no.uio.musit.microservice.storagefacility.domain.Interval
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.move._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, ObjectRole, PlaceRole }
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, EventTypeRegistry, ObjectRole, PlaceRole }
+import no.uio.musit.microservice.storagefacility.domain.storage.{ Building, StorageNodeId }
 import no.uio.musit.microservice.storagefacility.testhelpers.TestConfigs.WaitLonger
-import no.uio.musit.microservice.storagefacility.testhelpers.{ EventGenerators, TestConfigs }
+import no.uio.musit.microservice.storagefacility.testhelpers.{ EventGenerators, NodeGenerators, TestConfigs }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+
+import scala.concurrent.Future
 
 /**
  * Test specs for the EventDao.
@@ -42,7 +46,8 @@ class EventDaoSpec extends PlaySpec
     with OneAppPerSuite
     with ScalaFutures
     with WaitLonger
-    with EventGenerators {
+    with EventGenerators
+    with NodeGenerators {
 
   // We need to build up and configure a FakeApplication to get
   // an EventDao with all of the necessary dependencies injected.
@@ -56,25 +61,40 @@ class EventDaoSpec extends PlaySpec
     instance(app)
   }
 
+  val buildingDao: BuildingDao = {
+    val instance = Application.instanceCache[BuildingDao]
+    instance(app)
+  }
+
+  def createBuilding: Future[Building] = {
+    buildingDao.insert(defaultBuilding)
+  }
+
+  def createControl(
+    storageNodeId: Option[StorageNodeId] = None
+  ): Future[Long] = {
+    val ctrl = Control(
+      baseEvent = createBase("This is a base note", storageNodeId),
+      eventType = EventType.fromEventTypeId(ControlEventType.id),
+      parts = Some(Seq(
+        createTemperatureControl(),
+        createAlcoholControl(),
+        createCleaningControl(ok = true),
+        createPestControl()
+      ))
+    )
+
+    val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
+    eventDao.insertEvent(ctrlAsDto)
+  }
+
   "The EventDao" when {
 
     "processing controls with sub-controls and observations" should {
 
-      val ctrl = Control(
-        baseEvent = createBase("This is a base note"),
-        eventType = EventType.fromEventTypeId(ControlEventType.id),
-        parts = Some(Seq(
-          createTemperatureControl(),
-          createAlcoholControl(),
-          createCleaningControl(ok = true),
-          createPestControl()
-        ))
-      )
-
       "succeed when inserting a Control" in {
-        val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
-
-        val futureRes = eventDao.insertEvent(ctrlAsDto)
+        val building = createBuilding.futureValue
+        val futureRes = createControl(building.id)
 
         whenReady(futureRes) { eventId =>
           eventId mustBe a[java.lang.Long]
@@ -83,12 +103,11 @@ class EventDaoSpec extends PlaySpec
       }
 
       "return the Control associated with the provided Id" in {
-        val futureRes = eventDao.getEvent(1L)
+        val building = createBuilding.futureValue
+        val ctrlId = createControl(building.id).futureValue
+        val futureRes = eventDao.getEvent(ctrlId)
 
         whenReady(futureRes) { res =>
-
-          println(res)
-
           res.isFailure must not be true
           res.get.isEmpty must not be true
 
@@ -96,8 +115,8 @@ class EventDaoSpec extends PlaySpec
             case base: BaseEventDto =>
               val c = DtoConverters.CtrlConverters.controlFromDto(base)
 
-              c.eventType mustBe ctrl.eventType
-              c.baseEvent.note mustBe ctrl.baseEvent.note
+              c.eventType mustBe EventType.fromEventTypeId(ControlEventType.id)
+              c.baseEvent.note mustBe Some("This is a base note")
               c.baseEvent.registeredBy mustBe Some(registeredByName)
               c.baseEvent.registeredDate must not be None
               c.parts must not be None
@@ -126,17 +145,16 @@ class EventDaoSpec extends PlaySpec
 
       "succeed when inserting an Environment Requirement" in {
         val erDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
-
         val futureRes = eventDao.insertEvent(erDto)
 
         whenReady(futureRes) { eventId =>
           eventId mustBe a[java.lang.Long]
-          eventId mustBe 9L
+          eventId mustBe 17L
         }
       }
 
       "return the Environment Requirement event with the provided ID" in {
-        val futureRes = eventDao.getEvent(9L)
+        val futureRes = eventDao.getEvent(17L)
 
         whenReady(futureRes) { res =>
           res.isFailure must not be true
@@ -195,11 +213,12 @@ class EventDaoSpec extends PlaySpec
 
         whenReady(futureRes) { eventId =>
           eventId mustBe a[java.lang.Long]
+          eventId mustBe 18L
         }
       }
 
       "return the move node event" in {
-        val futureRes = eventDao.getEvent(10L, recursive = false)
+        val futureRes = eventDao.getEvent(18L, recursive = false)
 
         whenReady(futureRes) { res =>
           res.isFailure must not be true
@@ -220,6 +239,32 @@ class EventDaoSpec extends PlaySpec
           baseRolePlace mustBe PlaceRole(1, 1)
           baseRoleObject mustBe ObjectRole(1, 1)
         }
+      }
+
+    }
+
+    "fetching events for a node" should {
+
+      "return all control events" in {
+        val building = createBuilding.futureValue
+        val ctrlId1 = createControl(building.id).futureValue
+        val ctrlId2 = createControl(building.id).futureValue
+        val ctrlId3 = createControl(building.id).futureValue
+
+        val futureControls = eventDao.getEventsForNode(
+          building.id.get,
+          EventTypeRegistry.ControlEventType,
+          "storageunit-location"
+        )
+
+        whenReady(futureControls) { controls =>
+          controls must not be empty
+          controls.size mustBe 3
+        }
+      }
+
+      "return all observation events" in {
+        pending
       }
 
     }

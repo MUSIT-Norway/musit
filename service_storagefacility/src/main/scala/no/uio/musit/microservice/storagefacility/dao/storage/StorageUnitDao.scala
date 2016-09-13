@@ -97,11 +97,7 @@ class StorageUnitDao @Inject() (
 
   protected[dao] def insertAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
     storageUnitTable returning storageUnitTable.map(_.id) into (
-      (su, id) =>
-        su.copy(
-          id = Some(id)
-        //          , links = Storage.linkText(Some(id))
-        )
+      (su, id) => su.copy(id = Some(id))
     ) += storageUnit
   }
 

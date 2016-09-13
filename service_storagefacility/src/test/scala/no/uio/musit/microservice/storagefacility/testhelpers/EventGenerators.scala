@@ -31,7 +31,7 @@ trait EventGenerators {
   val registeredByName = "Darth Vader"
   val defaultActorRole = ActorRole(1, 12)
 
-  def createBase(str: String): MusitEventBase =
+  def createBase(str: String, affected: Option[Long] = Some(1)): MusitEventBase =
     MusitEventBase(
       id = None,
       doneDate = DateTime.now.minusDays(1),
@@ -40,7 +40,7 @@ trait EventGenerators {
       registeredBy = Some(registeredByName),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorRole),
-      affectedThing = Some(ObjectRole(1, 1))
+      affectedThing = affected.map(a => ObjectRole(1, a))
     )
 
   def createTemperatureControl(ok: Boolean = false): ControlTemperature = {

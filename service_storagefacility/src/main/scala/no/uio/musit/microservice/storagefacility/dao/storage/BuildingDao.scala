@@ -87,9 +87,8 @@ class BuildingDao @Inject() (
     }
   }
 
-  private[dao] def insertAction(buildingDto: BuildingDto): DBIO[BuildingDto] = {
-    buildingTable returning buildingTable
-      .map(_.id) into ((building, id) => building.copy(id = id)) += buildingDto
+  private[dao] def insertAction(buildingDto: BuildingDto): DBIO[Int] = {
+    buildingTable += buildingDto
   }
 
   /**
@@ -97,15 +96,16 @@ class BuildingDao @Inject() (
    */
   def insert(building: Building): Future[Building] = {
     val extendedDto = StorageNodeDto.fromBuilding(building)
-    val action = for {
+    val query = for {
       storageUnit <- storageUnitDao.insertAction(extendedDto.storageUnitDto)
-      inserted <- insertAction(extendedDto.extension.copy(id = storageUnit.id))
+      extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
+      n <- insertAction(extWithId)
     } yield {
-      val extNode = ExtendedStorageNode(storageUnit, inserted)
+      val extNode = ExtendedStorageNode(storageUnit, extWithId)
       StorageNodeDto.toBuilding(extNode)
     }
 
-    db.run(action.transactionally)
+    db.run(query.transactionally)
   }
 
   private class BuildingTable(

@@ -85,9 +85,8 @@ class RoomDao @Inject() (
     }
   }
 
-  protected[dao] def insertAction(roomDto: RoomDto): DBIO[RoomDto] = {
-    roomTable returning roomTable
-      .map(_.id) into ((room, id) => room.copy(id = id)) += roomDto
+  protected[dao] def insertAction(roomDto: RoomDto): DBIO[Int] = {
+    roomTable += roomDto
   }
 
   /**
@@ -97,9 +96,10 @@ class RoomDao @Inject() (
     val extendedDto = StorageNodeDto.fromRoom(room)
     val action = (for {
       storageUnit <- storageUnitDao.insertAction(extendedDto.storageUnitDto)
-      inserted <- insertAction(extendedDto.extension.copy(id = storageUnit.id))
+      extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
+      inserted <- insertAction(extWithId)
     } yield {
-      val extNode = ExtendedStorageNode(storageUnit, inserted)
+      val extNode = ExtendedStorageNode(storageUnit, extWithId)
       StorageNodeDto.toRoom(extNode)
     }).transactionally
 
