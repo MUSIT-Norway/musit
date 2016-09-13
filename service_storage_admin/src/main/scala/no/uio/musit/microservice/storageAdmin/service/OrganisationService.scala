@@ -8,8 +8,8 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
 
 class OrganisationService @Inject() (organisationDao: OrganisationDao) {
-  def create(storageUnit: StorageNodeDTO, storageOrganisation: Organisation): MusitFuture[Storage] =
-    ServiceHelper.daoInsert(organisationDao.insertOrganisation(storageUnit, storageOrganisation))
+  def create(storageOrganisation: Organisation): MusitFuture[Storage] =
+    organisationDao.insertOrganisation(storageOrganisation).toMusitFuture
 
   def updateOrganisationByID(id: Long, organisation: Organisation) =
     organisationDao.updateOrganisation(id, organisation)
@@ -17,3 +17,4 @@ class OrganisationService @Inject() (organisationDao: OrganisationDao) {
   def getOrganisationById(id: Long) =
     organisationDao.getOrganisationById(id)
 }
+
