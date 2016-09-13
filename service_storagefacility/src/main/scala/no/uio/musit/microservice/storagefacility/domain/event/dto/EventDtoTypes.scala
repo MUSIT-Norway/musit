@@ -35,13 +35,6 @@ sealed trait Dto {
   val note: Option[String]
   val relatedSubEvents: Seq[RelatedEvents]
   val partOf: Option[Long]
-  /*
-     TODO: Additional attributes should be handled in a uniform way.
-     Being consistent in how additional attributes are handled, allows for
-     cleaner and more reusable code. It will also put less strain on the
-     cognitive load for a developer, because all data of similar characteristics
-     are treated the same way (pattern).
-   */
   val valueLong: Option[Long]
   val valueString: Option[String]
   val valueDouble: Option[Double]
@@ -143,12 +136,12 @@ object ExtendedDto {
  */
 case class EnvRequirementDto(
   id: Option[Long],
-  temperature: Option[Int],
-  tempInterval: Option[Int],
-  airHumidity: Option[Int],
-  airHumInterval: Option[Int],
-  hypoxicAir: Option[Int],
-  hypoxicInterval: Option[Int],
+  temperature: Option[Double],
+  tempInterval: Option[Double],
+  airHumidity: Option[Double],
+  airHumInterval: Option[Double],
+  hypoxicAir: Option[Double],
+  hypoxicInterval: Option[Double],
   cleaning: Option[String],
   light: Option[String]
 ) extends DtoExtension

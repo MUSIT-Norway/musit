@@ -19,41 +19,84 @@
 
 package no.uio.musit.microservice.storagefacility.resource
 
-import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.MusitResults.{MusitError, MusitSuccess}
+import com.google.inject.{ Inject, Singleton }
+import no.uio.musit.microservice.storagefacility.domain.MusitResults.{ MusitError, MusitSuccess }
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.service.ControlService
 import play.api.Logger
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.{ JsError, JsSuccess, Json }
 import play.api.mvc._
 
 import scala.concurrent.Future
 
 @Singleton
-class EventResource @Inject()(
-  val controlService: ControlService
+class EventResource @Inject() (
+    val controlService: ControlService
 ) extends Controller {
 
   val logger = Logger(classOf[EventResource])
 
   val dummyUser = "Darth Vader"
 
-  def addControl(nodeId: Int) = Action.async(parse.json) { implicit request =>
+  /**
+   * Controller endpoint for adding a new Control for a storage node with
+   * the given nodeId.
+   */
+  def addControl(nodeId: Long) = Action.async(parse.json) { implicit request =>
     request.body.validate[Control] match {
       case JsSuccess(ctrl, jsPath) =>
         controlService.add(ctrl, dummyUser).map {
           case MusitSuccess(addedCtrl) =>
             Ok(Json.toJson(addedCtrl))
 
-          case error: MusitError[_] =>
-            InternalServerError(Json.obj("message" -> error.message))
+          case err: MusitError[_] =>
+            InternalServerError(Json.obj("message" -> err.message))
         }
       case JsError(errors) =>
         Future.successful(BadRequest(JsError.toJson(errors)))
     }
   }
 
-  def listControls(nodeId: Int) = Action.async(parse.json) { implicit request =>
+  /**
+   * Fetch a Control with the given eventId for a storage node where the id is
+   * equal to the provided nodeId.
+   */
+  def getControl(
+    nodeId: Long,
+    eventId: Long
+  ) = Action.async(parse.json) { implicit request =>
+    controlService.findBy(eventId).map {
+      case MusitSuccess(maybeControl) =>
+        maybeControl.map { ctrl =>
+          Ok(Json.toJson(ctrl))
+        }.getOrElse {
+          NotFound
+        }
+
+      case err: MusitError[_] =>
+        InternalServerError(Json.obj("message" -> err.message))
+    }
+  }
+
+  /**
+   * Lists all Controls for the given nodeId
+   */
+  def listControls(
+    nodeId: Long
+  ) = Action.async(parse.json) { implicit request =>
+    // TODO: Implement controlService that fetches all controls for a nodeId
+    controlService.listFor(nodeId)
+    ???
+  }
+
+  /**
+   * Returns a mixed list of controls and observations for a storage node with
+   * the given nodeId.
+   */
+  def listEventsForNode(
+    nodeId: Long
+  ) = Action.async(parse.json) { implicit request =>
     ???
   }
 }

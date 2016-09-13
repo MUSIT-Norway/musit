@@ -152,13 +152,6 @@ class StorageNodeService @Inject() (
   }
 
   /**
-   * TODO: Document me!
-   *
-   * TODO: Dangerous service!!!!
-   */
-  def all: Future[Seq[StorageUnitDto]] = storageUnitDao.all()
-
-  /**
    * TODO: Document me! + id: Long should be id: StorageNodeId
    */
   def verifyStorageTypeMatchesDatabase(

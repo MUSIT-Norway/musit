@@ -78,26 +78,6 @@ final class StorageUnitResource @Inject() (
     }
   }
 
-  def listAll = Action.async { implicit request =>
-    //    storageUnitService.all.flatMap(list => {
-    //      Future.sequence {
-    //        list.map(unit => {
-    //          unit.storageType match {
-    //            case StorageType.StorageUnit =>
-    //              Future.successful(StorageNode.fromDto(unit))
-    //            case StorageType.Building =>
-    //              buildingService.getById(unit.id.get).map(_.fold(StorageNode.fromDto(unit))(building =>
-    //                StorageNode.getBuilding(unit, building)))
-    //            case StorageType.Room =>
-    //              roomService.getById(unit.id.get).map(_.fold(StorageNode.fromDto(unit))(room =>
-    //                StorageNode.getRoom(unit, room)))
-    //          }
-    //        })
-    //      }.map(__ => Ok(Json.toJson(__)))
-    //    })
-    Future.successful(NotImplemented)
-  }
-
   def update(id: Long) = Action.async(parse.json) { implicit request =>
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>

@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.Inject
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EnvRequirementDto
 import play.api.db.slick.DatabaseConfigProvider
@@ -14,6 +14,7 @@ import scala.concurrent.Future
 /**
  * TODO: Document me!
  */
+@Singleton
 class EnvRequirementDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends BaseEventDao {
@@ -42,23 +43,23 @@ class EnvRequirementDao @Inject() (
 
     val id = column[Option[Long]]("ID", O.PrimaryKey)
 
-    val temp = column[Option[Int]]("TEMPERATURE")
-    val temp_interval = column[Option[Int]]("TEMP_INTERVAL")
-    val air_humidity = column[Option[Int]]("AIR_HUMIDITY")
-    val air_hum_interval = column[Option[Int]]("AIR_HUM_INTERVAL")
-    val hypoxic_air = column[Option[Int]]("HYPOXIC_AIR")
-    val hyp_air_interval = column[Option[Int]]("HYP_AIR_INTERVAL")
+    val temp = column[Option[Double]]("TEMPERATURE")
+    val temp_interval = column[Option[Double]]("TEMP_INTERVAL")
+    val air_humidity = column[Option[Double]]("AIR_HUMIDITY")
+    val air_hum_interval = column[Option[Double]]("AIR_HUM_INTERVAL")
+    val hypoxic_air = column[Option[Double]]("HYPOXIC_AIR")
+    val hyp_air_interval = column[Option[Double]]("HYP_AIR_INTERVAL")
     val cleaning = column[Option[String]]("CLEANING")
     val light = column[Option[String]]("LIGHT")
 
     def create = (
       id: Option[Long],
-      temp: Option[Int],
-      tempInterval: Option[Int],
-      airHumidity: Option[Int],
-      airHumInterval: Option[Int],
-      hypoxicAir: Option[Int],
-      hypAirInterval: Option[Int],
+      temp: Option[Double],
+      tempInterval: Option[Double],
+      airHumidity: Option[Double],
+      airHumInterval: Option[Double],
+      hypoxicAir: Option[Double],
+      hypAirInterval: Option[Double],
       cleaning: Option[String],
       light: Option[String]
     ) =>

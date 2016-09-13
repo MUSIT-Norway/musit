@@ -20,15 +20,16 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import no.uio.musit.microservice.storagefacility.domain.Interval
-import no.uio.musit.microservice.storagefacility.domain.event.{EventType, ObjectRole, PlaceRole}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.move._
-import no.uio.musit.microservice.storagefacility.testhelpers.{EventGenerators, TestConfigs}
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, ObjectRole, PlaceRole }
+import no.uio.musit.microservice.storagefacility.testhelpers.TestConfigs.WaitLonger
+import no.uio.musit.microservice.storagefacility.testhelpers.{ EventGenerators, TestConfigs }
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
@@ -40,6 +41,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 class EventDaoSpec extends PlaySpec
     with OneAppPerSuite
     with ScalaFutures
+    with WaitLonger
     with EventGenerators {
 
   // We need to build up and configure a FakeApplication to get
@@ -84,9 +86,13 @@ class EventDaoSpec extends PlaySpec
         val futureRes = eventDao.getEvent(1L)
 
         whenReady(futureRes) { res =>
-          res.isLeft must not be true
 
-          res.right.get match {
+          println(res)
+
+          res.isFailure must not be true
+          res.get.isEmpty must not be true
+
+          res.get.get match {
             case base: BaseEventDto =>
               val c = DtoConverters.CtrlConverters.controlFromDto(base)
 
@@ -133,9 +139,10 @@ class EventDaoSpec extends PlaySpec
         val futureRes = eventDao.getEvent(9L)
 
         whenReady(futureRes) { res =>
-          res.isLeft must not be true
+          res.isFailure must not be true
+          res.get.isEmpty must not be true
 
-          res.right.get match {
+          res.get.get match {
             case ext: ExtendedDto =>
               val er = DtoConverters.EnvReqConverters.envReqFromDto(ext)
 
@@ -187,7 +194,6 @@ class EventDaoSpec extends PlaySpec
         val futureRes = eventDao.insertEvent(dto)
 
         whenReady(futureRes) { eventId =>
-          println(eventId)
           eventId mustBe a[java.lang.Long]
         }
       }
@@ -196,9 +202,14 @@ class EventDaoSpec extends PlaySpec
         val futureRes = eventDao.getEvent(10L, recursive = false)
 
         whenReady(futureRes) { res =>
-          res.isLeft must not be true
+          res.isFailure must not be true
+          res.get.isEmpty must not be true
 
-          val baseRes = res.right.get
+          val theDto = res.get.get
+
+          theDto mustBe a[BaseEventDto]
+
+          val baseRes: BaseEventDto = theDto.asInstanceOf[BaseEventDto]
 
           val baseRoleActor = EventRoleActor.toActorRole(baseRes.relatedActors.head)
           val baseRolePlace = EventRolePlace.toPlaceRole(baseRes.relatedPlaces.head)

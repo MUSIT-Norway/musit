@@ -24,7 +24,8 @@ import no.uio.musit.microservice.storagefacility.dao.event.EventDao
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, DtoConverters}
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -50,7 +51,7 @@ class ControlService @Inject() (val eventDao: EventDao) {
         }.getOrElse {
           logger.error(
             s"An unexpected error occured when trying to fetch a" +
-            s"control event that was added with eventId $eventId"
+              s"control event that was added with eventId $eventId"
           )
           MusitInternalError("Could not locate the control that was added")
         })
@@ -63,7 +64,7 @@ class ControlService @Inject() (val eventDao: EventDao) {
    * @param id
    * @return
    */
-  def fetch(id: EventId): Future[MusitResult[Option[Control]]] = {
+  def findBy(id: EventId): Future[MusitResult[Option[Control]]] = {
     eventDao.getEvent(id.underlying).map { result =>
       result.flatMap(_.map {
         case base: BaseEventDto =>
@@ -77,6 +78,10 @@ class ControlService @Inject() (val eventDao: EventDao) {
           )
       }.getOrElse(MusitSuccess[Option[Control]](None)))
     }
+  }
+
+  def listFor(nodeId: StorageNodeId) = {
+    ???
   }
 
 }

@@ -19,8 +19,32 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
+import play.api.libs.json._
+
 case class EventId(underlying: Long) extends AnyVal
 
 object EventId {
+
+  implicit val reads: Reads[EventId] = __.read[Long].map(EventId.apply)
+
+  implicit val writes: Writes[EventId] = Writes { eid =>
+    JsNumber(eid.underlying)
+  }
+
+  // ==========================================================================
+  // Some useful implicit converters for dealing with mapping to/from other
+  // data types.
+  // ==========================================================================
+  implicit def longToEventId(l: Long): EventId = EventId(l)
+
+  implicit def eventIdToLong(eid: EventId): Long = eid.underlying
+
+  implicit def optLongToEventId(ml: Option[Long]): Option[EventId] = {
+    ml.map(longToEventId)
+  }
+
+  implicit def optEventIdToLong(msnid: Option[EventId]): Option[Long] = {
+    msnid.map(eventIdToLong)
+  }
 
 }

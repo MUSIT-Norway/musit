@@ -20,13 +20,14 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.Inject
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, EventTypeRegistry, MusitEvent }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -36,14 +37,25 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 /*
-  General Note:
+  TODO:
     The code here is a very big source for potential bugs. There's a lot of
-    unnecessary complexity due to its generic nature.
+    unnecessary complexity due to its generic nature. Refactoring is a must!
+
+    It should ideally be split into DAOs that handle each type in full:
+    - one for Control
+    - one for Observation
+    - one for EnvRequirement
+    - etc...
+
+    This partitioning would have been easy to spot if the impl had followed  a
+    top-down approach. Where the first "implementation" of the persistence layer
+    would've had to be a "repository" trait for each of the main types.
  */
 
 /**
  * TODO: Document me!!!
  */
+@Singleton
 class EventDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
     val eventRelationDao: EventRelationDao,
@@ -63,7 +75,11 @@ class EventDao @Inject() (
   private val eventBaseTable = TableQuery[EventBaseTable]
 
   /**
-   * TODO: Document me!!!
+   * Assembles an action for inserting the base denominator of an event into the
+   * base event table.
+   *
+   * @param eventBaseDto The BaseEventDto to insert
+   * @return DBIO[Long]
    */
   private def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] = {
     eventBaseTable returning eventBaseTable.map(_.id) += eventBaseDto
@@ -309,7 +325,7 @@ class EventDao @Inject() (
     EventTypeRegistry.unsafeFromId(baseEventDto.eventTypeId) match {
       case EnvRequirementEventType =>
         envReqDao.getEnvRequirement(baseEventDto.id.get).map { mer =>
-          MusitSuccess(Option(
+          MusitSuccess[Option[Dto]](Option(
             mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
           ))
         }
@@ -342,9 +358,11 @@ class EventDao @Inject() (
    */
   def getEvent(id: Long, recursive: Boolean = true): Future[MusitResult[Option[Dto]]] = {
     getBaseEvent(id).flatMap { maybeDto =>
-      maybeDto.map { baseEventDto =>
-        getFullEvent(baseEventDto, recursive)
+      maybeDto.map { base =>
+        logger.debug(s"Found base event $base. Going to fetch full event")
+        getFullEvent(base, recursive)
       }.getOrElse {
+        logger.debug(s"No event data found for id $id.")
         Future.successful(MusitSuccess[Option[Dto]](None))
       }
     }
@@ -371,9 +389,14 @@ class EventDao @Inject() (
       }.map { results =>
         // We remove the failed futures and return only the successful ones.
         // NOTE: We're discarding useful information about failure here.
-        results.filter(_.isSuccess).map { success =>
-          success.asInstanceOf[MusitSuccess[Dto]].arg
-        }
+        results.filter(_.isSuccess).map {
+          case MusitSuccess(maybeSuccess) =>
+            maybeSuccess
+
+          case notPossible =>
+            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+
+        }.filter(_.isDefined).map(_.get)
       }
     }
   }
@@ -403,7 +426,14 @@ class EventDao @Inject() (
       //Collapse the inner musitresults...
       Future.traverse(grpdEvents)(identity).map { results =>
         // NOTE: We're discarding useful information about failure here.
-        results.filter(_.isSuccess).map(_.asInstanceOf[MusitSuccess[Dto]].arg)
+        results.filter(_.isSuccess).map {
+          case MusitSuccess(maybeSuccess) =>
+            maybeSuccess
+
+          case notPossible =>
+            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+
+        }.filter(_.isDefined).map(_.get)
       }
     }
 
@@ -442,6 +472,39 @@ class EventDao @Inject() (
       futureOtherRelatedEvents.map { extraRelatedEvents =>
         if (partEvents.events.isEmpty) extraRelatedEvents
         else partEvents +: extraRelatedEvents
+      }
+    }
+  }
+
+  // TODO: Should probably use a Limit type to support paging.
+  /**
+   * This method is quite sub-optimally implemented. It will first trigger a
+   * query against the "EVENT_ROLE_PLACE_AS_OBJECT" to get all the relevant
+   * eventIds. Then it will iterate that list and fire queries to fetch each
+   * eventId individually. This could be quite costly in the long run.
+   */
+  def getEventsForNode(
+    nodeId: StorageNodeId,
+    eventType: TopLevelEvent,
+    relation: String
+  ): Future[Seq[Dto]] = {
+    // First fetch the eventIds from the place as object relation table.
+    val futureEventIds = evtPlacesAsObjDao.getEventsForObjects(nodeId.toInt).map { objs =>
+      objs.map(_.eventId).filter(_.isDefined).map(_.get)
+    }
+
+    // Iterate the list of IDs and fetch the related event.
+    futureEventIds.flatMap { ids =>
+      val evts = Future.traverse(ids)(id => getEvent(id))
+      evts.map { results =>
+        results.filter(_.isSuccess).map {
+          case MusitSuccess(maybeSuccess) =>
+            maybeSuccess
+
+          case notPossible =>
+            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+
+        }.filter(_.isDefined).map(_.get)
       }
     }
   }

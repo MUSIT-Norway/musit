@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.Inject
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EventRoleActor
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
@@ -27,6 +27,7 @@ import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
+@Singleton
 class EventActorsDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends HasDatabaseConfigProvider[JdbcProfile] {

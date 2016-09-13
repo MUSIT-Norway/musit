@@ -24,10 +24,18 @@ import org.scalatest.concurrent.PatienceConfiguration
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.time.{ Millis, Seconds, Span }
 
 object TestConfigs {
 
-  val timeout = PatienceConfiguration.Timeout(5 seconds)
+  trait WaitLonger {
+    implicit val defaultPatience = PatienceConfig(
+      timeout = Span(5, Seconds),
+      interval = Span(500, Millis)
+    )
+  }
+
+  val timeout = PatienceConfiguration.Timeout(15 seconds)
 
   def inMemoryDatabaseConfig(evolve: String = "enabled"): Map[String, Any] = Map.apply(
     "slick.dbs.default.driver" -> "slick.driver.H2Driver$",

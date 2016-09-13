@@ -25,9 +25,9 @@ import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, Musit
 case class EnvRequirement(
   baseEvent: MusitEventBase,
   eventType: EventType,
-  temperature: Option[Interval[Int]],
-  airHumidity: Option[Interval[Int]],
-  hypoxicAir: Option[Interval[Int]],
+  temperature: Option[Interval[Double]],
+  airHumidity: Option[Interval[Double]],
+  hypoxicAir: Option[Interval[Double]],
   cleaning: Option[String],
   light: Option[String]
 ) extends MusitEvent

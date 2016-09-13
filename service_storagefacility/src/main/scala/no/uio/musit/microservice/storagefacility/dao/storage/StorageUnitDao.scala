@@ -89,14 +89,6 @@ class StorageUnitDao @Inject() (
 
   /**
    * TODO: Document me!!!
-   * TODO: This seems like a very dangerous method doing a table scan.
-   */
-  def all(): Future[Seq[StorageUnitDto]] = {
-    db.run(storageUnitTable.filter(_.isDeleted === false).result)
-  }
-
-  /**
-   * TODO: Document me!!!
    */
   def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
     val dto = StorageNodeDto.fromStorageUnit(storageUnit)
