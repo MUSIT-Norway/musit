@@ -110,9 +110,9 @@ lazy val service_thing = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(
-    packageName in Docker := "musit_service_thing"
-  ))
-  )  dependsOn(common, common_test % "it,test")
+      packageName in Docker := "musit_service_thing"
+    ))
+  ) dependsOn(common, common_test % "it,test")
 
 lazy val service_thing_aggregate = (
   PlayProject("service_thing_aggregate")
@@ -120,10 +120,9 @@ lazy val service_thing_aggregate = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(
-    packageName in Docker := "musit_service_thing_aggregate"
-  ))
+      packageName in Docker := "musit_service_thing_aggregate"
+    ))
   )
-
 
 lazy val service_actor = (
   PlayProject("service_actor")
