@@ -49,7 +49,7 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "return a Person if the Id is valid" in {
-        val expected = Person(Some(1), "And, Arne1", links = Some(Seq(LinkService.self("/v1/person/1"))))
+        val expected = Person(Some(1), "And, Arne1", dataportenId = Some("12345678-adb2-4b49-bce3-320ddfe6c90f"), links = Some(Seq(LinkService.self("/v1/person/1"))))
         val res = actorDao.getPersonLegacyById(1).futureValue
 
         res mustBe Some(expected)
