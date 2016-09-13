@@ -144,7 +144,6 @@ class ActorDao @Inject() (
     def * = (id, fn, dataportenId) <> (create.tupled, destroy)
   }
 
-
   private class OrganizationTable(tag: Tag) extends Table[Organization](tag, Some("MUSARK_ACTOR"), "ORGANIZATION") {
     val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
     val fn = column[String]("FN")
