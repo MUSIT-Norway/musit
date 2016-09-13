@@ -2,14 +2,12 @@ package no.uio.musit.microservice.actor.resource
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservice.actor.service.{ PersonService, UserService }
+import no.uio.musit.microservice.actor.service.UserService
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ResourceHelper
 import no.uio.musit.security.Security
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, Controller }
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
-import no.uio.musit.microservices.common.utils.ResourceHelper
-import no.uio.musit.microservices.common.utils.ResourceHelper._
+import play.api.mvc.{Action, AnyContent, Controller}
 
 /**
  * Created by jarle on 13.09.16.

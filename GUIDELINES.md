@@ -65,13 +65,6 @@ Example route definition for an actor service:
 GET     /v1/person                                 no.uio.musit.microservice.actor.resource.LegacyPersonResource.list(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
 GET     /v1/person/:id                             no.uio.musit.microservice.actor.resource.LegacyPersonResource.getById(id:Long)
 
-## Person routes, the new actor TODO: Use new endpoints when database is migrated.
-# GET     /v1/person                                 no.uio.musit.microservice.actor.resource.PersonResource.listRoot(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
-# POST    /v1/person                                 no.uio.musit.microservice.actor.resource.PersonResource.postRoot
-# PUT     /v1/person/:id                             no.uio.musit.microservice.actor.resource.PersonResource.updateRoot(id:Long)
-# GET     /v1/person/:id                             no.uio.musit.microservice.actor.resource.PersonResource.getRoot(id:Long)
-# DELETE  /v1/person/:id                             no.uio.musit.microservice.actor.resource.PersonResource.deleteRoot(id:Long)
-
 ## Organization routes, the new actor
 GET     /v1/organization                           no.uio.musit.microservice.actor.resource.OrganizationResource.listRoot(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
 POST    /v1/organization                           no.uio.musit.microservice.actor.resource.OrganizationResource.postRoot

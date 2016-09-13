@@ -68,7 +68,7 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
         val newPerson = Person(Some(2), "Herr Larmerud", dataportenId = Some(uid),
           links = Some(Seq(LinkService.self("/v1/person/2"))))
 
-        val personId = actorDao.insertPerson(newPerson).futureValue.id.get
+        val personId = actorDao.insertPersonLegacy(newPerson).futureValue.id.get
 
         val res = actorDao.getPersonByDataportenId(uid).futureValue
         res.isDefined mustBe true
@@ -76,7 +76,7 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
         person.fn mustBe "Herr Larmerud"
         person.dataportenId mustBe Some(uid)
         person.id mustBe Some(personId)
-        actorDao.deletePerson(personId)
+        //We don't have a way to delete legacyPersons, may want to delete the newly insterted actor in the future: actorDao.deletePerson(personId)
       }
 
       "Don't find actor with unknown dataportenId" in {

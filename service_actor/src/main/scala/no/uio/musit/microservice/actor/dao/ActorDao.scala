@@ -37,13 +37,11 @@ class ActorDao @Inject() (
   import driver.api._
 
   private val ActorTable = TableQuery[ActorTable]
-  private val PersonTable = TableQuery[PersonTable]
   private val OrganizationTable = TableQuery[OrganizationTable]
   private val OrganizationAddressTable = TableQuery[OrganizationAddressTable]
 
   /* FINDERS */
   def allPersonsLegacy(): Future[Seq[Person]] = db.run(ActorTable.result)
-  def allPersons(): Future[Seq[Person]] = db.run(PersonTable.result)
   def allOrganizations(): Future[Seq[Organization]] = db.run(OrganizationTable.result)
   def allAddressesForOrganization(id: Long): Future[Seq[OrganizationAddress]] = db.run(OrganizationAddressTable.filter(_.organizationId === id).result)
 
@@ -53,14 +51,6 @@ class ActorDao @Inject() (
 
   def getPersonLegacyByName(searchString: String): Future[Seq[Person]] = {
     db.run(ActorTable.filter(_.fn like s"%$searchString%").result)
-  }
-
-  def getPersonById(id: Long): Future[Option[Person]] = {
-    db.run(PersonTable.filter(_.id === id).result.headOption)
-  }
-
-  def getPersonByName(searchString: String): Future[Seq[Person]] = {
-    db.run(PersonTable.filter(_.fn like s"%$searchString%").result)
   }
 
   def getPersonByDataportenId(dataportenId: String): Future[Option[Person]] = {
@@ -102,18 +92,6 @@ class ActorDao @Inject() (
     db.run(action)
   }
 
-  def insertPerson(person: Person): Future[Person] = {
-    val insertQuery = PersonTable returning PersonTable.map(_.id) into ((person, id) =>
-      person.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/person/$id")))))
-    val action = insertQuery += person
-
-    db.run(action)
-  }
-
-  def updatePerson(person: Person): Future[Int] = {
-    db.run(PersonTable.filter(_.id === person.id).update(person))
-  }
-
   def insertOrganization(organization: Organization): Future[Organization] = {
     val insertQuery = OrganizationTable returning OrganizationTable.map(_.id) into ((organization, id) =>
       organization.copy(id = id, links =
@@ -140,9 +118,6 @@ class ActorDao @Inject() (
   }
 
   /* DELETES */
-  def deletePerson(id: Long): Future[Int] = {
-    db.run(PersonTable.filter(_.id === id).delete)
-  }
   def deleteOrganization(id: Long): Future[Int] = {
     db.run(OrganizationTable.filter(_.id === id).delete)
   }
@@ -169,23 +144,6 @@ class ActorDao @Inject() (
     def * = (id, fn, dataportenId) <> (create.tupled, destroy)
   }
 
-  private class PersonTable(tag: Tag) extends Table[Person](tag, Some("MUSARK_ACTOR"), "PERSON") {
-    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
-    val fn = column[String]("FN")
-    val title = column[Option[String]]("TITLE")
-    val role = column[Option[String]]("ROLE")
-    val tel = column[Option[String]]("TEL")
-    val web = column[Option[String]]("WEB")
-    val email = column[Option[String]]("EMAIL")
-
-    val create = (id: Option[Long], fn: String, title: Option[String], role: Option[String], tel: Option[String], web: Option[String],
-      email: Option[String]) =>
-      Person(id, fn, title, role, tel, web, email, None, Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}"))))
-    val destroy = (person: Person) => Some(person.id, person.fn, person.title, person.role, person.tel,
-      person.web, person.email)
-
-    def * = (id, fn, title, role, tel, web, email) <> (create.tupled, destroy)
-  }
 
   private class OrganizationTable(tag: Tag) extends Table[Organization](tag, Some("MUSARK_ACTOR"), "ORGANIZATION") {
     val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
