@@ -1,0 +1,3 @@
+<included>
+    <logger name="dao" level="DEBUG" />
+</included>

@@ -28,7 +28,7 @@ class ObjectAggregationIntegrationSpec extends PlaySpec with OneServerPerSuite w
       objects.length mustBe 1
       val obj = objects.head
       obj.id mustBe ObjectId(1)
-      obj.name mustBe "Test"
+      obj.displayName mustBe "øks"
       obj.nodeId mustBe NodeId(1)
     }
   }
