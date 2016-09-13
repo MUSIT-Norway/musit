@@ -72,11 +72,4 @@ class PersonResource @Inject() (personService: PersonService) extends Controller
   def deleteRoot(id: Long): Action[AnyContent] = Action.async { request =>
     personService.remove(id).map { noDeleted => Ok(Json.toJson(noDeleted)) }
   }
-
-  def getCurrentUserAsActor: Action[AnyContent] = Action.async { request =>
-    val futPerson = Security.create(request).musitFutureFlatMap { securityConnection =>
-      personService.getCurrentUserAsActor(securityConnection)
-    }
-    ResourceHelper.getRoot(futPerson, (p: Person) => Json.toJson(p))
-  }
 }

@@ -64,7 +64,7 @@ class ActorDao @Inject() (
   }
 
   def getPersonByDataportenId(dataportenId: String): Future[Option[Person]] = {
-    db.run(PersonTable.filter(_.dataportenId === dataportenId).result.headOption)
+    db.run(ActorTable.filter(_.dataportenId === dataportenId).result.headOption)
   }
 
   def dataportenUserToPerson(securityConnection: SecurityConnection): Person = {
@@ -74,7 +74,7 @@ class ActorDao @Inject() (
   def insertActorWithDataportenUserInfo(securityConnection: SecurityConnection): MusitFuture[Person] = {
     val person = dataportenUserToPerson(securityConnection)
     ActorAuth.verifyCanInsertActor(securityConnection, person).toMusitFuture.musitFutureFlatMap { _ =>
-      insertPerson(person).toMusitFuture
+      insertPersonLegacy(person).toMusitFuture
     }
   }
 
@@ -155,11 +155,18 @@ class ActorDao @Inject() (
   private class ActorTable(tag: Tag) extends Table[Person](tag, Some("MUSIT_MAPPING"), "VIEW_ACTOR") {
     val id = column[Option[Long]]("NY_ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
     val fn = column[String]("ACTORNAME")
+    val dataportenId = column[Option[String]]("DATAPORTEN_ID")
 
-    val create = (id: Option[Long], fn: String) => Person(id, fn, links = Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}"))))
-    val destroy = (actor: Person) => Some(actor.id, actor.fn)
+    val create = (id: Option[Long], fn: String, dataportenId: Option[String]) =>
+      Person(
+        id,
+        fn,
+        dataportenId = dataportenId,
+        links = Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}")))
+      )
+    val destroy = (actor: Person) => Some(actor.id, actor.fn, actor.dataportenId)
 
-    def * = (id, fn) <> (create.tupled, destroy)
+    def * = (id, fn, dataportenId) <> (create.tupled, destroy)
   }
 
   private class PersonTable(tag: Tag) extends Table[Person](tag, Some("MUSARK_ACTOR"), "PERSON") {
@@ -170,15 +177,14 @@ class ActorDao @Inject() (
     val tel = column[Option[String]]("TEL")
     val web = column[Option[String]]("WEB")
     val email = column[Option[String]]("EMAIL")
-    val dataportenId = column[Option[String]]("DATAPORTEN_ID")
 
     val create = (id: Option[Long], fn: String, title: Option[String], role: Option[String], tel: Option[String], web: Option[String],
-      email: Option[String], dataportenId: Option[String]) =>
-      Person(id, fn, title, role, tel, web, email, dataportenId, Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}"))))
+      email: Option[String]) =>
+      Person(id, fn, title, role, tel, web, email, None, Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}"))))
     val destroy = (person: Person) => Some(person.id, person.fn, person.title, person.role, person.tel,
-      person.web, person.email, person.dataportenId)
+      person.web, person.email)
 
-    def * = (id, fn, title, role, tel, web, email, dataportenId) <> (create.tupled, destroy)
+    def * = (id, fn, title, role, tel, web, email) <> (create.tupled, destroy)
   }
 
   private class OrganizationTable(tag: Tag) extends Table[Organization](tag, Some("MUSARK_ACTOR"), "ORGANIZATION") {

@@ -63,12 +63,4 @@ class PersonService @Inject() (val actorDao: ActorDao) {
     actorDao.deletePerson(id)
   }
 
-  //Gets an actor representing the current user. If it doesn't exist one in the database, it creates one.
-  def getCurrentUserAsActor(securityConnection: SecurityConnection): MusitFuture[Person] = {
-    val futureActor = actorDao.getPersonByDataportenId(securityConnection.userId)
-    futureActor.flatMap {
-      case Some(person) => MusitFuture.successful(person)
-      case None => actorDao.insertActorWithDataportenUserInfo(securityConnection)
-    }
-  }
 }
