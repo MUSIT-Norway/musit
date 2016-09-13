@@ -24,6 +24,7 @@ class ObjectAggregationIntegrationSpec extends PlaySpec with OneServerPerSuite w
     "get by nodeId that exists" in {
       val nodeId = 3
       val response = wsUrl(s"/node/$nodeId/objects").get().futureValue(Timeout(30 seconds))
+      println(response.body)
       val objects = Json.parse(response.body).validate[Seq[ObjectAggregation]].get
       val obj = objects.head
       obj.id mustBe ObjectId(1)
