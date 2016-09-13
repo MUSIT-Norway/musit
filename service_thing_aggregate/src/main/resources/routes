@@ -1,1 +1,1 @@
-GET        /node/:nodeId/objects        controllers.ObjectAggregationController.getObjects(nodeId: Long)
+GET        /node/:nodeId/objects        controllers.ObjectAggregationController.getObjectsIfNodeExists(nodeId: Long)

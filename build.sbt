@@ -122,7 +122,7 @@ lazy val service_thing_aggregate = (
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_thing_aggregate"
   ))
-  )  dependsOn(common, common_test % "it,test")
+  )
 
 
 lazy val service_actor = (

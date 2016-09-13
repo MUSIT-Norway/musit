@@ -91,6 +91,16 @@ object MusitResults {
   }
 
   /**
+   * Use this when something is not found.
+   */
+  case class MusitNotFound[+A](
+      message: String,
+      expected: A
+  ) extends MusitError[A] {
+    override val isSuccess: Boolean = false
+  }
+
+  /**
    * Use this when dealing with unexpected internal errors.
    */
   case class MusitInternalError[+A](message: String) extends MusitError[A] {
