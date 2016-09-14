@@ -21,6 +21,13 @@
     "protocol": "http://"
   },
   {
+    "name": "thingaggregate",
+    "scalaName": "MusitThingAggregateResource",
+    "host": "localhost",
+    "port": "7070",
+    "protocol": "http://"
+  },
+  {
     "name": "time",
     "scalaName": "TimeResource",
     "host": "localhost",
