@@ -10,9 +10,10 @@
 
     <logger name="ch.qos.logback" level="ERROR"/>
     <logger name="logger" level="ERROR"/>
-    <logger name="slick.jdbc" level="DEBUG"/>
+    <logger name="slick.jdbc" level="WARN"/>
+    <logger name="no.uio.musit.microservice.storagefacility" level="DEBUG" />
 
-    <root level="INFO">
+    <root level="ERROR">
         <appender-ref ref="STDOUT"/>
     </root>
 

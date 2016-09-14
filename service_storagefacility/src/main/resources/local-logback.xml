@@ -1,6 +1,0 @@
-<included>
-  <!--<define name="applicationName" value="StorageFacility"/>-->
-
-  <logger name="no.uio.musit.microservice.storagefacility" level="DEBUG" />
-</included>
-

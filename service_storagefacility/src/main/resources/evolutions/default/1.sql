@@ -54,14 +54,14 @@ CREATE TABLE MUSARK_STORAGE.ROOM (
   bevar_lysforhold INTEGER,
   bevar_prevant_kons INTEGER,
   PRIMARY KEY (STORAGE_UNIT_ID),
-  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
+  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.BUILDING (
-  storage_unit_id INTEGER NOT NULL,
+  storage_unit_id BIGINT NOT NULL,
   postal_address VARCHAR(512),
-  PRIMARY KEY (STORAGE_UNIT_ID),
-  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
+  PRIMARY KEY (storage_unit_id),
+  FOREIGN KEY (storage_unit_id) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK (
@@ -277,5 +277,12 @@ VALUES (1, 'DoneWith', 'The object who was done something with in a spesific eve
 
 INSERT INTO MUSARK_STORAGE.PLACE_ROLE (ID, NAME, DESCRIPTION)
 VALUES (1, 'DoneWith', 'The storagenode who was done something with in a spesific event');
+--
+--
+-- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) VALUES (1,'KASSE 5',45,45,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) VALUES (2,'KASSE 6',1,4,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) VALUES (3,'KASSE 7',3,4,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) VALUES (7,'KASSE 12',3,4,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,area,storage_type) VALUES (9,'KASSE 12',4,'storageunit');
 
 # --- !Downs

@@ -74,3 +74,10 @@ services:
         image: musit_service_time:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+    storagefacility:
+        image: musit_service_storagefacility:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - EVOLUTION_ENABLED=true
+        links:
+          - db
