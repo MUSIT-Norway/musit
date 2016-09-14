@@ -2,74 +2,51 @@ package no.uio.musit.microservice.storageAdmin.domain.dto
 
 import no.uio.musit.microservices.common.linking.domain.Link
 
+/* We have three types of storage nodes:
+
+Room
+Building
+StorageUnit
+
+The common properties are stored in the StorageNode table. StorageUnit has no extra properties, so no explicit table for StorageUnit.
+
+ */
+
 sealed trait StorageDTO {
   val id: Option[Long]
-  val name: String
-  val area: Option[Long]
-  val areaTo: Option[Long]
-  val isPartOf: Option[Long]
-  val height: Option[Long]
-  val heightTo: Option[Long]
-  val groupRead: Option[String]
-  val groupWrite: Option[String]
-  val latestMoveId: Option[Long]
-  val latestEnvReqId: Option[Long]
-  val links: Option[Seq[Link]]
-  val isDeleted: Boolean
-  val storageType: StorageType
 }
 
 case class BuildingDTO(
   id: Option[Long],
-  name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
-  isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  latestMoveId: Option[Long],
-  latestEnvReqId: Option[Long],
-  links: Option[Seq[Link]],
-  isDeleted: Boolean,
-  storageType: StorageType,
+  address: Option[String]
+) extends StorageDTO
+
+case class OrganisationDTO(
+  id: Option[Long],
   address: Option[String]
 ) extends StorageDTO
 
 case class RoomDTO(
   id: Option[Long],
-  name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
-  isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  latestMoveId: Option[Long],
-  latestEnvReqId: Option[Long],
-  links: Option[Seq[Link]],
-  isDeleted: Boolean,
-  storageType: StorageType,
-  sikringSkallsikring: Option[Boolean],
-  sikringTyverisikring: Option[Boolean],
-  sikringBrannsikring: Option[Boolean],
-  sikringVannskaderisiko: Option[Boolean],
-  sikringRutineOgBeredskap: Option[Boolean],
-  bevarLuftfuktOgTemp: Option[Boolean],
-  bevarLysforhold: Option[Boolean],
-  bevarPrevantKons: Option[Boolean]
+  perimeterSecurity: Option[Boolean],
+  theftProtection: Option[Boolean],
+  fireProtection: Option[Boolean],
+  waterDamageAssessment: Option[Boolean],
+  routinesAndContingencyPlan: Option[Boolean],
+  relativeHumidity: Option[Boolean],
+  temperatureAssessment: Option[Boolean],
+  lightingCondition: Option[Boolean],
+  preventiveConservation: Option[Boolean]
 ) extends StorageDTO
 
 case class StorageNodeDTO(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
@@ -78,3 +55,14 @@ case class StorageNodeDTO(
   isDeleted: Boolean,
   storageType: StorageType
 ) extends StorageDTO
+
+sealed trait CompleteStorageNodeDto {
+  val storageNode: StorageNodeDTO
+  val envReqDto: Option[EnvReqDto]
+}
+
+case class CompleteBuildingDto(storageNode: StorageNodeDTO, buildingDto: BuildingDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
+case class CompleteOrganisationDto(storageNode: StorageNodeDTO, organisationDto: OrganisationDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
+case class CompleteRoomDto(storageNode: StorageNodeDTO, roomDto: RoomDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
+case class CompleteStorageUnitDto(storageNode: StorageNodeDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
+

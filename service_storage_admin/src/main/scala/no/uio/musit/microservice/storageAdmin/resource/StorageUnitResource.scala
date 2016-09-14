@@ -19,12 +19,13 @@
 package no.uio.musit.microservice.storageAdmin.resource
 
 import com.google.inject.Inject
+import no.uio.musit.microservice.storageAdmin.dao.StorageDao
 import no.uio.musit.microservice.storageAdmin.domain._
-import no.uio.musit.microservice.storageAdmin.domain.dto.StorageType
-import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService, StorageUnitService }
+import no.uio.musit.microservice.storageAdmin.domain.dto.StorageDtoConverter
+import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, OrganisationService, RoomService, StorageUnitService }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservices.common.utils.ResourceHelper
+import no.uio.musit.microservices.common.utils.{ Misc, ResourceHelper }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -34,8 +35,10 @@ import scala.concurrent.Future
 class StorageUnitResource @Inject() (
     storageUnitService: StorageUnitService,
     buildingService: BuildingService,
-    roomService: RoomService
-) extends Controller {
+    roomService: RoomService,
+    organisationService: OrganisationService,
+    storageDao: StorageDao
+) extends Controller with StorageDtoConverter {
 
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
@@ -56,43 +59,36 @@ class StorageUnitResource @Inject() (
     storageUnitService.getChildren(id).map(__ => Ok(Json.toJson(__)))
   }
 
+  def getPath(id: Long) = Action.async {
+    storageUnitService.getPath(id).map(__ => Ok(Json.toJson(__)))
+  }
+
   def getById(id: Long) = Action.async {
     ResourceHelper.getRoot(storageUnitService.getById, id, (triple: Storage) => Json.toJson(triple))
   }
 
   def listAll = Action.async {
-    storageUnitService.all.flatMap(list => {
-      Future.sequence(list.map(unit => {
-        unit.storageType match {
-          case StorageType.StorageUnit =>
-            Future.successful(Storage.fromDTO(unit))
-          case StorageType.Building =>
-            buildingService.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
-              Storage.getBuilding(unit, building)))
-          case StorageType.Room =>
-            roomService.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
-              Storage.getRoom(unit, room)))
+    val nodes = storageUnitService.all.map {
+      list =>
+        list.map {
+          dtoNode => storageDao.getByNode(dtoNode)
         }
-      })).map(__ => Ok(Json.toJson(__)))
-    })
+    }
+    val res = nodes.flatMap(list => Misc.filterSuccesses(list))
+    res.map(x => Ok(Json.toJson(x)))
   }
 
   def listRootNode = Action.async {
     def readGroup = "foo" // TODO: Replace with actual groups when security is added!!!
-    storageUnitService.rootNodes(readGroup).flatMap(list => {
-      Future.sequence(list.map(unit => {
-        unit.storageType match {
-          case StorageType.StorageUnit =>
-            Future.successful(Storage.fromDTO(unit))
-          case StorageType.Building =>
-            buildingService.getBuildingById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(building =>
-              Storage.getBuilding(unit, building)))
-          case StorageType.Room =>
-            roomService.getRoomById(unit.id.get).map(_.fold(Storage.fromDTO(unit))(room =>
-              Storage.getRoom(unit, room)))
+
+    val nodes = storageUnitService.rootNodes(readGroup).map {
+      list =>
+        list.map {
+          dtoNode => storageDao.getByNode(dtoNode)
         }
-      })).map(__ => Ok(Json.toJson(__)))
-    })
+    }
+    val res = nodes.flatMap(list => Misc.filterSuccesses(list))
+    res.map(x => Ok(Json.toJson(x)))
   }
 
   def updateRoot(id: Long) = Action.async(BodyParsers.parse.json) {

@@ -1,4 +1,5 @@
 /*
+/*
  * MUSIT is a museum database to archive natural and cultural history data.
  * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
  *
@@ -49,3 +50,4 @@ class LinkDaoTest extends PlaySpec with OneAppPerSuite with ScalaFutures {
   }
 
 }
+*/

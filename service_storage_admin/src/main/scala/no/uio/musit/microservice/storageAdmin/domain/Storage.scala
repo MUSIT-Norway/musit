@@ -4,200 +4,128 @@ import julienrf.json.derived
 import no.uio.musit.microservice.storageAdmin.domain.dto._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{ OFormat, __ }
+import play.api.libs.json._
 
 sealed trait Storage {
   val id: Option[Long]
   val name: String
-  val area: Option[Long]
-  val areaTo: Option[Long]
+  val area: Option[Double]
+  val areaTo: Option[Double]
   val isPartOf: Option[Long]
-  val height: Option[Long]
-  val heightTo: Option[Long]
+  val height: Option[Double]
+  val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
-  val latestMoveId: Option[Long]
-  val latestEnvReqId: Option[Long]
+  //val latestMoveId: Option[Long]
+  //  val latestEnvReqId: Option[Long]
   val links: Option[Seq[Link]]
+  val environmentRequirement: Option[EnvironmentRequirement]
 }
 
 case class StorageUnit(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  latestMoveId: Option[Long],
-  latestEnvReqId: Option[Long],
-  links: Option[Seq[Link]]
+  links: Option[Seq[Link]],
+  environmentRequirement: Option[EnvironmentRequirement]
 ) extends Storage
 
 case class Room(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  latestMoveId: Option[Long],
-  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
-  sikringSkallsikring: Option[Boolean],
-  sikringTyverisikring: Option[Boolean],
-  sikringBrannsikring: Option[Boolean],
-  sikringVannskaderisiko: Option[Boolean],
-  sikringRutineOgBeredskap: Option[Boolean],
-  bevarLuftfuktOgTemp: Option[Boolean],
-  bevarLysforhold: Option[Boolean],
-  bevarPrevantKons: Option[Boolean]
+  environmentRequirement: Option[EnvironmentRequirement],
+  securityAssessment: SecurityAssessment,
+  environmentAssessment: EnvironmentAssessment
+
 ) extends Storage
 
 case class Building(
   id: Option[Long],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[Long],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  latestMoveId: Option[Long],
-  latestEnvReqId: Option[Long],
   links: Option[Seq[Link]],
+  environmentRequirement: Option[EnvironmentRequirement],
   address: Option[String]
 ) extends Storage
+
+case class Organisation(
+  id: Option[Long],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  links: Option[Seq[Link]],
+  environmentRequirement: Option[EnvironmentRequirement],
+  address: Option[String]
+) extends Storage
+
+case class EnvironmentRequirement(
+  temperature: Option[Double],
+  temperatureTolerance: Option[Double],
+  hypoxicAir: Option[Double],
+  hypoxicAirTolerance: Option[Double],
+  relativeHumidity: Option[Double],
+  relativeHumidityTolerance: Option[Double],
+  cleaning: Option[String],
+  lightingCondition: Option[String],
+  comments: Option[String]
+)
+
+object EnvironmentRequirement {
+  implicit val format = Json.format[EnvironmentRequirement]
+
+  val empty = EnvironmentRequirement(None, None, None, None, None, None, None, None, None)
+}
 
 object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
 
-  def fromDTO[T <: StorageDTO](dto: T) =
-    dto match {
-      case stu: StorageNodeDTO =>
-        StorageUnit(
-          id = stu.id,
-          name = stu.name,
-          area = stu.area,
-          areaTo = stu.areaTo,
-          height = stu.height,
-          heightTo = stu.heightTo,
-          isPartOf = stu.isPartOf,
-          groupRead = stu.groupRead,
-          groupWrite = stu.groupWrite,
-          latestMoveId = stu.latestMoveId,
-          latestEnvReqId = stu.latestEnvReqId,
-          links = stu.links
-        )
-      case building: BuildingDTO =>
-        Building(
-          id = building.id,
-          name = building.name,
-          area = building.area,
-          areaTo = building.areaTo,
-          height = building.height,
-          heightTo = building.heightTo,
-          isPartOf = building.isPartOf,
-          groupRead = building.groupRead,
-          groupWrite = building.groupWrite,
-          latestMoveId = building.latestMoveId,
-          latestEnvReqId = building.latestEnvReqId,
-          links = building.links,
-          address = building.address
-        )
-      case room: RoomDTO =>
-        Room(
-          id = room.id,
-          name = room.name,
-          area = room.area,
-          areaTo = room.areaTo,
-          height = room.height,
-          heightTo = room.heightTo,
-          isPartOf = room.isPartOf,
-          groupRead = room.groupRead,
-          groupWrite = room.groupWrite,
-          latestMoveId = room.latestMoveId,
-          latestEnvReqId = room.latestEnvReqId,
-          links = room.links,
-          sikringSkallsikring = room.sikringSkallsikring,
-          sikringBrannsikring = room.sikringBrannsikring,
-          sikringTyverisikring = room.sikringTyverisikring,
-          sikringVannskaderisiko = room.sikringVannskaderisiko,
-          sikringRutineOgBeredskap = room.sikringRutineOgBeredskap,
-          bevarLuftfuktOgTemp = room.bevarLuftfuktOgTemp,
-          bevarLysforhold = room.bevarLysforhold,
-          bevarPrevantKons = room.bevarPrevantKons
-        )
-    }
-
-  def getBuilding(unit: StorageDTO, building: Building): Building = {
-    Building(
-      id = unit.id,
-      name = unit.name,
-      area = unit.area,
-      areaTo = unit.areaTo,
-      height = unit.height,
-      heightTo = unit.heightTo,
-      isPartOf = unit.isPartOf,
-      groupRead = unit.groupRead,
-      groupWrite = unit.groupWrite,
-      latestMoveId = unit.latestMoveId,
-      latestEnvReqId = unit.latestEnvReqId,
-      links = unit.links,
-      address = building.address
-    )
-  }
-
-  def getRoom(unit: StorageDTO, room: Room): Room = {
-    Room(
-      id = unit.id,
-      name = unit.name,
-      area = unit.area,
-      areaTo = unit.areaTo,
-      height = unit.height,
-      heightTo = unit.heightTo,
-      isPartOf = unit.isPartOf,
-      groupRead = unit.groupRead,
-      groupWrite = unit.groupWrite,
-      latestMoveId = unit.latestMoveId,
-      latestEnvReqId = unit.latestEnvReqId,
-      links = unit.links,
-      sikringSkallsikring = room.sikringSkallsikring,
-      sikringBrannsikring = room.sikringBrannsikring,
-      sikringTyverisikring = room.sikringTyverisikring,
-      sikringVannskaderisiko = room.sikringVannskaderisiko,
-      sikringRutineOgBeredskap = room.sikringRutineOgBeredskap,
-      bevarLuftfuktOgTemp = room.bevarLuftfuktOgTemp,
-      bevarLysforhold = room.bevarLysforhold,
-      bevarPrevantKons = room.bevarPrevantKons
-    )
-  }
-
-  def toDTO[T <: Storage](stu: T) =
-    StorageNodeDTO(
-      id = stu.id,
-      name = stu.name,
-      area = stu.area,
-      areaTo = stu.areaTo,
-      isPartOf = stu.isPartOf,
-      height = stu.height,
-      heightTo = stu.heightTo,
-      groupRead = stu.groupRead,
-      groupWrite = stu.groupWrite,
-      latestMoveId = stu.latestMoveId,
-      latestEnvReqId = stu.latestEnvReqId,
-      links = stu.links,
-      isDeleted = false,
-      storageType = StorageType.fromStorage(stu)
-    )
-
   def linkText(id: Option[Long]) =
     Some(Seq(LinkService.self(s"/v1/${id.get}")))
+}
+
+/**
+ * Not a proper "subtype" of Storage, just some common fields shared by all types of storage nodes.
+ * Mainly used for json-writing, for writing out info where we do not need the full nodes.
+ */
+case class StorageNodeCommonProperties(
+  id: Option[Long],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  storageType: String
+)
+
+object StorageNodeCommonProperties {
+  implicit val format = Json.format[StorageNodeCommonProperties]
 }
