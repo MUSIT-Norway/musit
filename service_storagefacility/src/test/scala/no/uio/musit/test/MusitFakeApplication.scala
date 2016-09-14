@@ -17,37 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.testhelpers
+package no.uio.musit.test
 
-import org.scalatest.TestData
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, OneAppPerTest, PlaySpec }
-import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
-trait MusitSpec extends PlaySpec with ScalaFutures
+trait MusitFakeApplication {
 
-trait MusitSpecWithApp extends MusitSpec {
-
-  def musitApp = new GuiceApplicationBuilder()
+  def createApplication = new GuiceApplicationBuilder()
     .configure(TestConfigs.inMemoryDatabaseConfig())
     .build()
 
-  // NOTE: This is mutable because of the usage in specs that require a new
-  // application per test.
-  var musitFakeApp = musitApp
-
 }
-
-trait MusitSpecWithAppPerTest extends MusitSpecWithApp with OneAppPerTest {
-  implicit override def newAppForTest(testData: TestData): Application = {
-    musitFakeApp = musitApp
-    musitFakeApp
-  }
-
-}
-
-trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with OneAppPerSuite {
-  implicit override lazy val app = musitFakeApp
-}
-

@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.testhelpers
 
 import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, RoomDao, StorageUnitDao }
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
 
 import scala.concurrent.ExecutionContext.Implicits.global

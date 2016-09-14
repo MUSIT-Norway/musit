@@ -23,68 +23,69 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ControlEventType
-import no.uio.musit.microservice.storagefacility.domain.event.control.Control
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationEventType
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
+import no.uio.musit.microservice.storagefacility.domain.event.observation.Observation
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-class ControlService @Inject() (val eventDao: EventDao) {
+class ObservationService @Inject() (val eventDao: EventDao) {
 
-  val logger = Logger(classOf[ControlService])
+  val logger = Logger(classOf[ObservationService])
 
   /**
-   *
+   * TODO: Document me!
    */
-  def add(ctrl: Control, registeredBy: String): Future[MusitResult[Control]] = {
-    val dto = DtoConverters.CtrlConverters.controlToDto(ctrl)
+  def add(obs: Observation, registeredBy: String): Future[MusitResult[Observation]] = {
+    val dto = DtoConverters.ObsConverters.observationToDto(obs)
     eventDao.insertEvent(dto).flatMap { eventId =>
       eventDao.getEvent(eventId).map { res =>
         res.flatMap(_.map { dto =>
-          // We know we have a BaseEventDto representing a Control.
+          // We know we have a BaseEventDto representing an Observation.
           val bdto = dto.asInstanceOf[BaseEventDto]
-          MusitSuccess(DtoConverters.CtrlConverters.controlFromDto(bdto))
+          MusitSuccess(DtoConverters.ObsConverters.observationFromDto(bdto))
         }.getOrElse {
           logger.error(
-            s"An unexpected error occured when trying to fetch a " +
-              s"control event that was added with eventId $eventId"
+            s"An unexpected error occured when trying to fetch an " +
+              s"observation event that was added with eventId $eventId"
           )
-          MusitInternalError("Could not locate the control that was added")
+          MusitInternalError("Could not locate the observation that was added")
         })
       }
     }
   }
 
   /**
-   *
-   * @param id
-   * @return
+   * TODO: Document me!
    */
-  def findBy(id: EventId): Future[MusitResult[Option[Control]]] = {
+  def findBy(id: EventId): Future[MusitResult[Option[Observation]]] = {
     eventDao.getEvent(id.underlying).map { result =>
       result.flatMap(_.map {
         case base: BaseEventDto =>
           MusitSuccess(
-            Option(DtoConverters.CtrlConverters.controlFromDto(base))
+            Option(DtoConverters.ObsConverters.observationFromDto(base))
           )
 
         case _ =>
           MusitInternalError(
-            "Unexpected DTO type. Expected BaseEventDto with event type Control"
+            "Unexpected DTO type. Expected BaseEventDto with event type Observation"
           )
       }.getOrElse(MusitSuccess(None)))
     }
   }
 
-  def listFor(nodeId: StorageNodeId): Future[MusitResult[Seq[Control]]] = {
-    eventDao.getEventsForNode(nodeId, ControlEventType).map { dtos =>
+  /**
+   * TODO: Document me!
+   */
+  def listFor(nodeId: StorageNodeId): Future[MusitResult[Seq[Observation]]] = {
+    eventDao.getEventsForNode(nodeId, ObservationEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>
-        // We know we have a BaseEventDto representing a Control.
+        // We know we have a BaseEventDto representing an Observation.
         val base = dto.asInstanceOf[BaseEventDto]
-        DtoConverters.CtrlConverters.controlFromDto(base)
+        DtoConverters.ObsConverters.observationFromDto(base)
       })
     }
   }

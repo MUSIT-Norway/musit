@@ -24,8 +24,9 @@ import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move._
 import no.uio.musit.microservice.storagefacility.testhelpers._
-import org.scalatest.time.{ Millis, Seconds, Span }
+import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors._
+import org.scalatest.time.{ Millis, Seconds, Span }
 
 /**
  * Test specs for the EventDao.
@@ -41,6 +42,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
     interval = Span(50, Millis)
   )
 
+  // This is mutable to allow keeping track of the last inserted eventId.
   private var latestEventId: Long = _
 
   "The EventDao" when {
