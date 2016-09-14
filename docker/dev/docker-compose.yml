@@ -34,6 +34,13 @@ services:
         image: musit_service_musit_thing:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+    thingaggregate:
+        image: musit_service_thing_aggregate:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - EVOLUTION_ENABLED=true
+        links:
+          - db
     core:
         image: musit_service_core:0.1-SNAPSHOT
         environment:
