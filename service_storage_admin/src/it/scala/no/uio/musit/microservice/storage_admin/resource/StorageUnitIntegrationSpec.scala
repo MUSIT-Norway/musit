@@ -42,6 +42,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
 
   def getStorageUnit(id: Long) = wsUrl(s"/v1/storageunit/$id").get
 
+
   def getRoomAsObject(id: Long): Future[Room] = {
     for {
       resp <- getStorageUnit(id)
@@ -70,6 +71,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       stUnit = Json.parse(resp.body).validate[Storage].get.asInstanceOf[StorageUnit]
     } yield stUnit
   }
+
 
   val veryLongUnitName =
     """
@@ -538,6 +540,71 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
                   |}""".stripMargin
       val response = createStorageUnit(json) |> waitFutureValue
       response.status mustBe 400
+    }
+
+    "getChildren should return correct type" in {
+
+      val makeMyJSonBase ="""{"type":"Building","name":"KHM0", "links":[]}"""
+      val responseBase = createStorageUnit(makeMyJSonBase) |> waitFutureValue
+      val storageUnitBase = Json.parse(responseBase.body).validate[Storage].get.asInstanceOf[Building]
+      val byggIdBase = storageUnitBase.id.get
+      storageUnitBase.name mustBe "KHM0"
+
+      val makeMyJSonChild1 = s"""{"type":"Building", "isPartOf": $byggIdBase, "name":"KHM1", "links":[]}"""
+      val responseChild1 = createStorageUnit(makeMyJSonChild1) |> waitFutureValue
+      val storageUnitChild1 = Json.parse(responseChild1.body).validate[Storage].get.asInstanceOf[Building]
+      storageUnitChild1.id mustBe Some(byggIdBase+1)
+      storageUnitChild1.name mustBe "KHM1"
+
+
+      val makeMyJSonChild2 =
+        s"""{
+            |          	"type": "Room",
+            |           "isPartOf": $byggIdBase,
+            |          	"name": "Trygve Lies rom 2",
+            |          	"area": 100,
+            |          	"areaTo": 120.25,
+            |          	"height": 2.12,
+            |          	"heightTo": 2.40,
+            |          	"environmentRequirement": {
+            |          		"temperature": 20.4,
+            |          		"temperatureTolerance": 4,
+            |          		"hypoxicAir": 40,
+            |          		"hypoxicAirTolerance": 4,
+            |          		"lightingCondition": "Mørkt",
+            |          		"relativeHumidity": 71,
+            |          		"relativeHumidityTolerance": 4,
+            |          		"cleaning": "Veldig sort",
+            |          		"comments": "Dårlig miljø"
+            |          	},
+            |          	"securityAssessment": {
+            |          		"perimeter": true,
+            |          		"theftProtection": true,
+            |          		"fireProtection": false,
+            |          		"waterDamage": false,
+            |          	"routinesAndContingencyPlan": true
+            |          	},
+            |          	"environmentAssessment": {
+            |          		"relativeHumidity": true,
+            |          		"temperatureAssessment": true,
+            |          		"lightingCondition": false,
+            |          		"preventiveConservation": true
+            |          	}
+            |          }""".stripMargin
+      val responseChild2 = createStorageUnit(makeMyJSonChild2) |> waitFutureValue
+      val storageUnitChild2 = Json.parse(responseChild2.body).validate[Storage].get.asInstanceOf[Room]
+      storageUnitChild2.id mustBe Some(byggIdBase+2)
+      storageUnitChild2.name mustBe "Trygve Lies rom 2"
+
+      val responseChildren = wsUrl(s"/v1/storageunit/$byggIdBase/children").get() |> waitFutureValue
+      responseChildren.status mustBe 200
+      val storageUnits = Json.parse(responseChildren.body).validate[Seq[Storage]].get
+      storageUnits.length mustBe 2
+      val su1 = storageUnits(0).asInstanceOf[Building]
+      val su2 = storageUnits(1).asInstanceOf[Room]
+
+
+
     }
 
     "postCreate a organisation" in {
