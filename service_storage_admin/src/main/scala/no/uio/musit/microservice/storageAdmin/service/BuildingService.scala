@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storageAdmin.service
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storageAdmin.dao.{BuildingDao, EnvReqDao}
+import no.uio.musit.microservice.storageAdmin.dao.{ BuildingDao, EnvReqDao }
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageDtoConverter
-import no.uio.musit.microservice.storageAdmin.domain.{Building, Storage}
+import no.uio.musit.microservice.storageAdmin.domain.{ Building, Storage }
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 
 class BuildingService @Inject() (
