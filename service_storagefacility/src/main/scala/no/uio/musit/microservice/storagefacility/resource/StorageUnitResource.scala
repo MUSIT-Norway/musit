@@ -28,10 +28,16 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
+/**
+ * TODO: Document me!
+ */
 final class StorageUnitResource @Inject() (
     storageUnitService: StorageNodeService
 ) extends Controller {
 
+  /**
+   * TODO: Document me!
+   */
   def add = Action.async(BodyParsers.parse.json) { request =>
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
@@ -48,21 +54,16 @@ final class StorageUnitResource @Inject() (
     }
   }
 
-  def validateChildren(id: Long) = Action.async(parse.json) { request =>
-    //    request.body.validate[Seq[Link]].asEither match {
-    //      case Right(list) if list.nonEmpty =>
-    //        // FIXME For the actual implementation see MUSARK-120
-    //        Future.successful(Ok(Json.toJson(list.forall(!_.href.isEmpty))))
-    //      case Left(error) =>
-    //        Future.successful(BadRequest(error.mkString))
-    //    }
-    Future.successful(NotImplemented)
-  }
-
+  /**
+   * TODO: Document me!
+   */
   def getChildren(id: Long) = Action.async { implicit request =>
     storageUnitService.getChildren(id).map(nodes => Ok(Json.toJson(nodes)))
   }
 
+  /**
+   * TODO: Document me!
+   */
   def getById(id: Long) = Action.async { implicit request =>
     storageUnitService.getNodeById(id).map {
       case MusitSuccess(maybeNode) =>
@@ -78,6 +79,9 @@ final class StorageUnitResource @Inject() (
     }
   }
 
+  /**
+   * TODO: Document me!
+   */
   def update(id: Long) = Action.async(parse.json) { implicit request =>
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
@@ -107,9 +111,23 @@ final class StorageUnitResource @Inject() (
 
   }
 
+  /**
+   * TODO: Document me!
+   */
   def delete(id: Long) = Action.async {
-    //    ResourceHelper.deleteRoot(storageUnitService.deleteStorageTriple, id)
-    Future.successful(NotImplemented)
+    storageUnitService.deleteNode(id).map {
+      case MusitSuccess(numDeleted) =>
+        if (numDeleted == 0) {
+          NotFound(Json.obj(
+            "message" -> s"Could not find storage node with id: $id"
+          ))
+        } else {
+          Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
+        }
+
+      case err: MusitError[_] =>
+        InternalServerError(Json.obj("message" -> err.message))
+    }
   }
 
 }

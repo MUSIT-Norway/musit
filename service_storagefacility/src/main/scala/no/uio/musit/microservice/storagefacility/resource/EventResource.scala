@@ -120,7 +120,6 @@ class EventResource @Inject() (
    * Lists all Controls for the given nodeId
    */
   def listControls(nodeId: Long) = Action.async { implicit request =>
-    // TODO: Implement controlService that fetches all controls for a nodeId
     controlService.listFor(nodeId).map {
       case MusitSuccess(controls) =>
         Ok(Json.toJson(controls))
@@ -149,6 +148,7 @@ class EventResource @Inject() (
    */
   def listEventsForNode(nodeId: Long) = Action.async { implicit request =>
     for {
+      //
       ctrlRes <- controlService.listFor(nodeId)
       obsRes <- observationService.listFor(nodeId)
     } yield {
