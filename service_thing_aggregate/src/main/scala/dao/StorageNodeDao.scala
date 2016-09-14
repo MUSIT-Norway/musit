@@ -18,8 +18,8 @@ class StorageNodeDao @Inject() (
     db.run(
       sql"""
          select count(*)
-         from MUSARK_STORAGE.STORAGE_NODE
-         WHERE storage_node_id = $nodeId
+         from "MUSARK_STORAGE"."STORAGE_NODE"
+         WHERE "STORAGE_NODE_ID" = $nodeId
       """.as[Long].head.map(res => MusitSuccess(res == 1))
     ).recover {
         case e: Exception => MusitDbError(s"Error occurred while checking for node existence for nodeId $nodeId", Some(e))
