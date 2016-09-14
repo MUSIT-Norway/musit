@@ -22,9 +22,7 @@ package no.uio.musit.microservice.storagefacility.resource
 import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.domain.MusitResults.{ MusitError, MusitSuccess }
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEventFormats._
 import no.uio.musit.microservice.storagefacility.domain.event.observation.Observation
-import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEventFormats._
 import no.uio.musit.microservice.storagefacility.service.{ ControlService, ObservationService }
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
