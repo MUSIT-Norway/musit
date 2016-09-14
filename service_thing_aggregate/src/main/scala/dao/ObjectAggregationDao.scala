@@ -21,9 +21,9 @@ class ObjectAggregationDao @Inject() (
       ObjectAggregation(ObjectId(r.nextLong), MuseumIdentifier.fromSqlString(r.nextString), r.nextStringOption))
     db.run(
       sql"""
-         select id, displayId, displayName
-         from MUSARK_STORAGE.LOCAL_OBJECT, MUSIT_MAPPING.VIEW_MUSITTHING
-         WHERE current_location_id = $nodeId and object_id = id;
+         select "ID", "DISPLAYID", "DISPLAYNAME"
+         from "MUSARK_EVENT"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
+         WHERE "CURRENT_LOCATION_ID" = $nodeId and "OBJECT_ID" = "ID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving objects", Some(e))

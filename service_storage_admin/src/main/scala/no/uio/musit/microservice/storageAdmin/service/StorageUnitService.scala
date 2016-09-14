@@ -56,7 +56,7 @@ class StorageUnitService @Inject() (
     }
   }
 
-  def getChildren(id: Long): Future[Seq[Storage]] =
+  def getChildren(id: Long): Future[Seq[Storage]] = {
     storageUnitDao.getChildren(id).flatMap {
       list =>
         val res = list.map {
@@ -65,6 +65,7 @@ class StorageUnitService @Inject() (
         }
         Misc.filterSuccesses(res)
     }
+  }
 
   def getPath(id: Long): Future[Seq[StorageNodeCommonProperties]] = {
     storageUnitDao.getPath(id).map(_.map(__ => this.dtoToStorageNodeCommonProperties(__)))
