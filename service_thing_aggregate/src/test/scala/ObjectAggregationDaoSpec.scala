@@ -7,9 +7,8 @@ import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.{ Application, Logger }
 import testHelpers.TestConfigs
-import testHelpers.TestConfigs.WaitLonger
 
-class ObjectAggregationDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures with WaitLonger {
+class ObjectAggregationDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),

@@ -10,12 +10,9 @@ import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import testHelpers.TestConfigs
-import testHelpers.TestConfigs.WaitLonger
-
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class ObjectAggregationIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures with WaitLonger {
+class ObjectAggregationIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -29,8 +26,7 @@ class ObjectAggregationIntegrationSpec extends PlaySpec with OneServerPerSuite w
   "ObjectAggregation integration" must {
     "get by nodeId that exists" in {
       val nodeId = 3
-      val response = wsUrl(s"/node/$nodeId/objects").get().futureValue(Timeout(30 seconds))
-      println(response.body)
+      val response = wsUrl(s"/node/$nodeId/objects").get().futureValue
       val objects = Json.parse(response.body).validate[Seq[ObjectAggregation]].get
       val obj = objects.head
       obj.id mustBe ObjectId(1)
@@ -39,7 +35,7 @@ class ObjectAggregationIntegrationSpec extends PlaySpec with OneServerPerSuite w
     }
     "get by nodeId that does not exist" in {
       val nodeId = 99999
-      val response = wsUrl(s"/node/$nodeId/objects").get().futureValue(Timeout(30 seconds))
+      val response = wsUrl(s"/node/$nodeId/objects").get().futureValue
       response.status mustBe 404
       response.body mustBe s"Did not find node with nodeId $nodeId"
     }
