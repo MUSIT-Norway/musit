@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.control
 
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ControlSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEventBase }
 import play.api.libs.functional.syntax._
@@ -49,7 +49,7 @@ object ControlSubEventFormats {
     // scalastyle:off cyclomatic.complexity method.length
     override def reads(json: JsValue): JsResult[ControlSubEvent] = {
       val tpeStr = (json \ "eventType").as[EventType]
-      val entry = typedWithNameOption[CtrlSubEventType](tpeStr.name)
+      val entry = withNameInsensitiveOption(tpeStr.name)
 
       entry.map {
         case CtrlAlcoholType => ctrlAlcoholFormat.reads(json)

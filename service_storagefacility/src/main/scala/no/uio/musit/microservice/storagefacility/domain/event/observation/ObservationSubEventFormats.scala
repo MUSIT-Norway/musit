@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEventBase }
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
 import play.api.libs.functional.syntax._
@@ -53,7 +53,7 @@ object ObservationSubEventFormats {
     // scalastyle:off cyclomatic.complexity method.length
     override def reads(json: JsValue): JsResult[ObservationSubEvent] = {
       val tpeStr = (json \ "eventType").as[EventType]
-      val entry = typedWithNameOption[ObsSubEventType](tpeStr.name)
+      val entry = withNameInsensitiveOption(tpeStr.name)
 
       entry.map {
         case ObsAlcoholType => obsAlcoholFormat.reads(json)

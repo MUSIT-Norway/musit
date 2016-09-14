@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationEventType
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
 import no.uio.musit.microservice.storagefacility.domain.event.observation.Observation
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId

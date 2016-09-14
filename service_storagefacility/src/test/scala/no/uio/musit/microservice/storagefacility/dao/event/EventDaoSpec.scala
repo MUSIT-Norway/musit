@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ ControlEventType, MoveNodeType, ObservationEventType }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._

@@ -24,9 +24,11 @@ import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, EventTypeId, EventTypeRegistry, MusitEvent }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents.{ ObsHumidityType, ObsHypoxicAirType, ObsPestType, ObsTemperatureType }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ EnvRequirementEventType, MoveNodeType, MoveObjectType }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventTypeId, EventTypeRegistry }
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -271,6 +273,7 @@ class EventDao @Inject() (
       case e: ExtendedDto => e.baseEventDto
     }
 
+    // TODO: Change to use safe operations for each event type
     val tpe = EventTypeRegistry.unsafeSubFromId[SubEventType](base.eventTypeId)
 
     tpe match {

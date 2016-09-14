@@ -68,7 +68,7 @@ final class StorageUnitResource @Inject() (
       case MusitSuccess(maybeNode) =>
         maybeNode.map(node => Ok(Json.toJson(maybeNode))).getOrElse(NotFound)
 
-      case musitError =>
+      case musitError: MusitError[_] =>
         musitError match {
           case MusitValidationError(message, exp, act) =>
             BadRequest(Json.obj("message" -> message))

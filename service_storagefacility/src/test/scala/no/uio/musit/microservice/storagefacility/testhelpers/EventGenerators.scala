@@ -20,6 +20,9 @@
 package no.uio.musit.microservice.storagefacility.testhelpers
 
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ControlSubEvents.{ CtrlAlcoholType, CtrlCleaningType, CtrlPestType, CtrlTemperatureType }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents.{ ObsAlcoholType, ObsCleaningType, ObsPestType, ObsTemperatureType }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ ControlEventType, EnvRequirementEventType, ObservationEventType }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.control._

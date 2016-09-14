@@ -206,7 +206,7 @@ object DtoConverters {
     // scalastyle:off method.length
     def controlSubEventFromDto(dto: BaseEventDto): ControlSubEvent = {
       val base = baseFromDto(dto)
-      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
+      val registeredEvent = ControlSubEvents.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
       val ok = dto.valueLong
       val motivates = {
@@ -217,7 +217,7 @@ object DtoConverters {
       }
 
       registeredEvent match {
-        case CtrlAlcoholType =>
+        case ControlSubEvents.CtrlAlcoholType =>
           ControlAlcohol(
             baseEvent = base,
             eventType = evtType,
@@ -225,7 +225,7 @@ object DtoConverters {
             motivates = motivates.map(_.asInstanceOf[ObservationAlcohol])
           )
 
-        case CtrlCleaningType =>
+        case ControlSubEvents.CtrlCleaningType =>
           ControlCleaning(
             baseEvent = base,
             eventType = evtType,
@@ -233,7 +233,7 @@ object DtoConverters {
             motivates = motivates.map(_.asInstanceOf[ObservationCleaning])
           )
 
-        case CtrlGasType =>
+        case ControlSubEvents.CtrlGasType =>
           ControlGas(
             baseEvent = base,
             eventType = evtType,
@@ -241,7 +241,7 @@ object DtoConverters {
             motivates = motivates.map(_.asInstanceOf[ObservationGas])
           )
 
-        case CtrlHypoxicAirType =>
+        case ControlSubEvents.CtrlHypoxicAirType =>
           ControlHypoxicAir(
             baseEvent = base,
             eventType = evtType,
@@ -249,7 +249,7 @@ object DtoConverters {
             motivates = motivates.map(_.asInstanceOf[ObservationHypoxicAir])
           )
 
-        case CtrlLightingType =>
+        case ControlSubEvents.CtrlLightingType =>
           ControlLightingCondition(
             baseEvent = base,
             eventType = evtType,
@@ -257,7 +257,7 @@ object DtoConverters {
             motivates = motivates.map(_.asInstanceOf[ObservationLightingCondition])
           )
 
-        case CtrlMoldType =>
+        case ControlSubEvents.CtrlMoldType =>
           ControlMold(
             baseEvent = base,
             eventType = evtType,
@@ -265,7 +265,7 @@ object DtoConverters {
             motivates = motivates.map(_.asInstanceOf[ObservationMold])
           )
 
-        case CtrlPestType =>
+        case ControlSubEvents.CtrlPestType =>
           ControlPest(
             baseEvent = base,
             eventType = evtType,
@@ -273,7 +273,7 @@ object DtoConverters {
             motivates = motivates.map(_.asInstanceOf[ObservationPest])
           )
 
-        case CtrlHumidityType =>
+        case ControlSubEvents.CtrlHumidityType =>
           ControlRelativeHumidity(
             baseEvent = base,
             eventType = evtType,
@@ -281,7 +281,7 @@ object DtoConverters {
             motivates = motivates.map(_.asInstanceOf[ObservationRelativeHumidity])
           )
 
-        case CtrlTemperatureType =>
+        case ControlSubEvents.CtrlTemperatureType =>
           ControlTemperature(
             baseEvent = base,
             eventType = evtType,
@@ -356,6 +356,9 @@ object DtoConverters {
         case obs: ObservationWaterDamageAssessment =>
           toBaseDtoNoChildren(obs, maybeStr = obs.waterDamageAssessment)
 
+        case obs: ObservationPerimeterSecurity =>
+          toBaseDtoNoChildren(obs, maybeStr = obs.perimeterSecurity)
+
         case obs: ObservationPest =>
           toExtendedDto(
             sub = obs,
@@ -374,95 +377,70 @@ object DtoConverters {
       }
     } // scalastyle:on cyclomatic.complexity method.length
 
-    def observationSubEventFromDto(dto: Dto): ObservationSubEvent = {
-      dto match {
-        case eventDto: BaseEventDto =>
-          obsSubEventFromBasicDto(eventDto)
-
-        case extended: ExtendedDto =>
-          obsSubEventFromExtendedDto(extended)
-      }
-    }
-
     /**
      * Specifically handles dto mapping for observations that does not have
      * custom properties in a separate table in the DB.
      */
-    // scalastyle:off cyclomatic.complexity
-    def obsSubEventFromBasicDto(dto: BaseEventDto): ObservationSubEvent = {
+    // scalastyle:off cyclomatic.complexity method.length
+    def observationSubEventFromDto(dto: Dto): ObservationSubEvent = {
       val base = baseFromDto(dto)
-      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
+      val registeredEvent = ObservationSubEvents.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)
 
       registeredEvent match {
-        case ObsAlcoholType =>
+        case ObservationSubEvents.ObsAlcoholType =>
           ObservationAlcohol(base, evtType, dto.valueString, dto.valueDouble)
 
-        case ObsCleaningType =>
+        case ObservationSubEvents.ObsCleaningType =>
           ObservationCleaning(base, evtType, dto.valueString)
 
-        case ObsFireType =>
+        case ObservationSubEvents.ObsFireType =>
           ObservationFireProtection(base, evtType, dto.valueString)
 
-        case ObsGasType =>
+        case ObservationSubEvents.ObsGasType =>
           ObservationGas(base, evtType, dto.valueString)
 
-        case ObsLightingType =>
+        case ObservationSubEvents.ObsLightingType =>
           ObservationLightingCondition(base, evtType, dto.valueString)
 
-        case ObsMoldType =>
+        case ObservationSubEvents.ObsMoldType =>
           ObservationMold(base, evtType, dto.valueString)
 
-        case ObsPerimeterType =>
+        case ObservationSubEvents.ObsPerimeterType =>
           ObservationPerimeterSecurity(base, evtType, dto.valueString)
 
-        case ObsTheftType =>
+        case ObservationSubEvents.ObsTheftType =>
           ObservationTheftProtection(base, evtType, dto.valueString)
 
-        case ObsWaterDamageType =>
+        case ObservationSubEvents.ObsWaterDamageType =>
           ObservationWaterDamageAssessment(base, evtType, dto.valueString)
 
-        case unhandled =>
-          // TODO: Complete me
-          ???
-      }
-    } // scalastyle:on cyclomatic.complexity
-
-    /**
-     * Specific handling for observations that have properties in more than one
-     * database table.
-     */
-    def obsSubEventFromExtendedDto(dto: ExtendedDto): ObservationSubEvent = {
-      val base = baseFromDto(dto)
-      val registeredEvent = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
-      val evtType = EventType(registeredEvent.entryName)
-
-      registeredEvent match {
-        case ObsPestType =>
-          val tmpDto = dto.extension.asInstanceOf[ObservationPestDto]
+        case ObservationSubEvents.ObsPestType =>
+          val extDto = dto.asInstanceOf[ExtendedDto]
+          val tmpDto = extDto.extension.asInstanceOf[ObservationPestDto]
           val lc = tmpDto.lifeCycles.map(LifeCyleConverters.lifecycleFromDto)
           ObservationPest(base, evtType, dto.valueString, lc)
 
-        case ObsHumidityType =>
-          val tmpDt = dto.extension.asInstanceOf[ObservationFromToDto]
-          val fromTo = FromToDouble(tmpDt.from, tmpDt.to)
+        case ObservationSubEvents.ObsHumidityType =>
+          val extDto = dto.asInstanceOf[ExtendedDto]
+          val tmpDto = extDto.extension.asInstanceOf[ObservationFromToDto]
+          val fromTo = FromToDouble(tmpDto.from, tmpDto.to)
           ObservationRelativeHumidity(base, evtType, fromTo)
 
-        case ObsHypoxicAirType =>
-          val tmpDt = dto.extension.asInstanceOf[ObservationFromToDto]
-          val fromTo = FromToDouble(tmpDt.from, tmpDt.to)
+        case ObservationSubEvents.ObsHypoxicAirType =>
+          val extDto = dto.asInstanceOf[ExtendedDto]
+          val tmpDto = extDto.extension.asInstanceOf[ObservationFromToDto]
+          val fromTo = FromToDouble(tmpDto.from, tmpDto.to)
           ObservationHypoxicAir(base, evtType, fromTo)
 
-        case ObsTemperatureType =>
-          val tmpDt = dto.extension.asInstanceOf[ObservationFromToDto]
-          val fromTo = FromToDouble(tmpDt.from, tmpDt.to)
+        case ObservationSubEvents.ObsTemperatureType =>
+          val extDto = dto.asInstanceOf[ExtendedDto]
+          val tmpDto = extDto.extension.asInstanceOf[ObservationFromToDto]
+          val fromTo = FromToDouble(tmpDto.from, tmpDto.to)
           ObservationTemperature(base, evtType, fromTo)
 
-        case unhandled =>
-          // TODO: Complete me
-          ???
       }
-    }
+    } // scalastyle:on cyclomatic.complexity method.length
 
   }
 
@@ -511,6 +489,9 @@ object DtoConverters {
     }
   }
 
+  /**
+   * Converters for Move events
+   */
   object MoveConverters {
 
     private def moveToDto[A <: Move](move: A): BaseEventDto = {
@@ -531,14 +512,13 @@ object DtoConverters {
 
     def moveObjectToDto(mo: MoveObject): BaseEventDto = moveToDto(mo)
 
-    def moveNodeToDto(mo: MoveNode): BaseEventDto = moveToDto(mo)
-
     def moveObjectFromDto(dto: BaseEventDto): MoveObject =
       moveFromDto(dto)((base, eventType, pr) => MoveObject(base, eventType, pr))
 
+    def moveNodeToDto(mo: MoveNode): BaseEventDto = moveToDto(mo)
+
     def moveNodeFromDto(dto: BaseEventDto): MoveNode =
       moveFromDto(dto)((base, eventType, pr) => MoveNode(base, eventType, pr))
-
   }
 
 }
