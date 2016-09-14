@@ -25,6 +25,8 @@ import sbt._
 
 object CommonSettings {
 
+  lazy val IntegrationTest = config("it") extend(Test)
+
   val projectSettings = Seq(
     organization := "no.uio.musit",
     scalaVersion := Dependencies.scala,
