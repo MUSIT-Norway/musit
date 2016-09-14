@@ -1,6 +1,7 @@
 import dao.StorageNodeDao
 import models.MusitResults.MusitSuccess
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -8,6 +9,11 @@ import testHelpers.TestConfigs
 import testHelpers.TestConfigs.WaitLonger
 
 class StorageNodeDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures with WaitLonger {
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   implicit override lazy val app = new GuiceApplicationBuilder()
     .configure(TestConfigs.inMemoryDatabaseConfig())

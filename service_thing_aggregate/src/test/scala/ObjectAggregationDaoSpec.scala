@@ -2,6 +2,7 @@ import dao.ObjectAggregationDao
 import models.MusitResults.MusitSuccess
 import models.{ MuseumIdentifier, ObjectId }
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.{ Application, Logger }
@@ -9,6 +10,11 @@ import testHelpers.TestConfigs
 import testHelpers.TestConfigs.WaitLonger
 
 class ObjectAggregationDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures with WaitLonger {
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   implicit override lazy val app = new GuiceApplicationBuilder()
     .configure(TestConfigs.inMemoryDatabaseConfig())
