@@ -25,7 +25,7 @@ import sbt._
 
 object CommonSettings {
 
-  lazy val IntegrationTest = config("it") extend(Test)
+  lazy val integrationTest = config("it") extend(Test)
 
   val projectSettings = Seq(
     organization := "no.uio.musit",
@@ -60,7 +60,7 @@ object CommonSettings {
     Project(name, file(name))
       .settings(projectSettings: _*)
       .settings(Defaults.itSettings: _*)
-      .configs(IntegrationTest)
+      .configs(integrationTest)
 
   def PlayProject(name: String): Project =
     BaseProject(name)
@@ -71,6 +71,6 @@ object CommonSettings {
       )
       .disablePlugins(PlayLayoutPlugin)
       .settings(Defaults.itSettings: _*)
-      .configs(IntegrationTest)
+      .configs(integrationTest)
 
 }
