@@ -19,17 +19,71 @@
 
 package no.uio.musit.microservice.storagefacility.testhelpers
 
+import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, RoomDao, StorageUnitDao }
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import play.api.Application
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 
 trait NodeGenerators {
+  self: MusitSpecWithApp =>
 
-  val defaultBuilding = {
+  def buildingDao: BuildingDao = {
+    val instance = Application.instanceCache[BuildingDao]
+    instance(musitFakeApp)
+  }
+
+  def roomDao: RoomDao = {
+    val instance = Application.instanceCache[RoomDao]
+    instance(musitFakeApp)
+  }
+
+  def storageUnitDao: StorageUnitDao = {
+    val instance = Application.instanceCache[StorageUnitDao]
+    instance(musitFakeApp)
+  }
+
+  // Some default nodes
+  lazy val defaultBuilding: Building = {
+    Await.result(buildingDao.insert(createBuilding()), 5 seconds)
+  }
+
+  lazy val defaultRoom: Room = {
+    Await.result(roomDao.insert(createRoom()), 5 seconds)
+  }
+
+  lazy val defaultStorageUnit: StorageUnit = {
+    Await.result(storageUnitDao.insert(createStorageUnit()), 5 seconds)
+  }
+
+  def addBuilding(b: Building) = buildingDao.insert(b)
+
+  def addRoom(r: Room) = roomDao.insert(r)
+
+  def addStorageUnit(su: StorageUnit) = storageUnitDao.insert(su)
+
+  def addNode(nodes: StorageNode*): Seq[StorageNodeId] = {
+    val eventuallyInserted = Future.sequence {
+      nodes.map {
+        case su: StorageUnit => addStorageUnit(su)
+        case r: Room => addRoom(r)
+        case b: Building => addBuilding(b)
+      }
+    }.map { inserted =>
+      inserted.map(_.id.get)
+    }
+    Await.result(eventuallyInserted, 10 seconds)
+  }
+
+  def createBuilding(partOf: Option[StorageNodeId] = None): Building = {
     Building(
       id = None,
       name = "FooBarBuilding",
       area = Some(200),
       areaTo = Some(250),
-      isPartOf = None,
+      isPartOf = partOf,
       height = Some(5),
       heightTo = Some(8),
       groupRead = None,
@@ -38,13 +92,35 @@ trait NodeGenerators {
     )
   }
 
-  val defaultStorageUnit = {
+  def createRoom(partOf: Option[StorageNodeId] = None): Room = {
+    Room(
+      id = None,
+      name = "FooRoom",
+      area = Some(50),
+      areaTo = Some(55),
+      height = Some(2),
+      heightTo = Some(3),
+      isPartOf = partOf,
+      groupRead = None,
+      groupWrite = None,
+      sikringSkallsikring = Some(true),
+      sikringTyverisikring = Some(true),
+      sikringBrannsikring = Some(true),
+      sikringVannskaderisiko = Some(false),
+      sikringRutineOgBeredskap = Some(false),
+      bevarLuftfuktOgTemp = Some(true),
+      bevarLysforhold = Some(true),
+      bevarPrevantKons = Some(false)
+    )
+  }
+
+  def createStorageUnit(partOf: Option[StorageNodeId] = None): StorageUnit = {
     StorageUnit(
       id = None,
       name = "FooUnit",
-      area = Some(20),
-      areaTo = Some(20),
-      isPartOf = None,
+      area = Some(1),
+      areaTo = Some(2),
+      isPartOf = partOf,
       height = Some(2),
       heightTo = Some(2),
       groupRead = None,

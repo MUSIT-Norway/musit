@@ -19,17 +19,43 @@
 
 package no.uio.musit.microservice.storagefacility.testhelpers
 
+import no.uio.musit.microservice.storagefacility.dao.event.EventDao
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
-import no.uio.musit.microservice.storagefacility.domain.event.control._
-import no.uio.musit.microservice.storagefacility.domain.event.observation.{ ObservationAlcohol, ObservationCleaning, ObservationPest, ObservationTemperature }
 import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
+import no.uio.musit.microservice.storagefacility.domain.event.control._
+import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
+import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
+import no.uio.musit.microservice.storagefacility.domain.event.observation._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval, LifeCycle }
 import org.joda.time.DateTime
+import play.api.Application
 
 trait EventGenerators {
+  self: MusitSpecWithApp =>
+
+  def eventDao: EventDao = {
+    val instance = Application.instanceCache[EventDao]
+    instance(musitFakeApp)
+  }
 
   val registeredByName = "Darth Vader"
   val defaultActorRole = ActorRole(1, 12)
+
+  def addControl(ctrl: Control) = {
+    val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
+    eventDao.insertEvent(ctrlAsDto)
+  }
+
+  def addObservation(obs: Observation) = {
+    val obsAsDto = DtoConverters.ObsConverters.observationToDto(obs)
+    eventDao.insertEvent(obsAsDto)
+  }
+
+  def addEnvRequirement(envReq: EnvRequirement) = {
+    val erAsDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
+    eventDao.insertEvent(erAsDto)
+  }
 
   def createBase(str: String, affected: Option[Long] = Some(1)): MusitEventBase =
     MusitEventBase(
@@ -42,6 +68,42 @@ trait EventGenerators {
       doneBy = Some(defaultActorRole),
       affectedThing = affected.map(a => ObjectRole(1, a))
     )
+
+  def createControl(storageNodeId: Option[StorageNodeId] = None) = {
+    Control(
+      baseEvent = createBase("This is a control note", storageNodeId),
+      eventType = EventType.fromEventTypeId(ControlEventType.id),
+      parts = Some(Seq(
+        createTemperatureControl(),
+        createAlcoholControl(),
+        createCleaningControl(ok = true),
+        createPestControl()
+      ))
+    )
+  }
+
+  def createObservation(storageNodeId: Option[StorageNodeId] = None) = {
+    Observation(
+      baseEvent = createBase("This is an observation note", storageNodeId),
+      eventType = EventType.fromEventTypeId(ObservationEventType.id),
+      parts = Some(Seq(
+        createCleaningObservation,
+        createTemperatureObservation
+      ))
+    )
+  }
+
+  def createEnvRequirement(storageNodeId: Option[StorageNodeId] = None) = {
+    EnvRequirement(
+      baseEvent = createBase("This is the base note", storageNodeId),
+      eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
+      temperature = Some(Interval(20, Some(5))),
+      airHumidity = Some(Interval(60, Some(10))),
+      hypoxicAir = Some(Interval(0, Some(15))),
+      cleaning = Some("keep it clean, dude"),
+      light = Some("dim")
+    )
+  }
 
   def createTemperatureControl(ok: Boolean = false): ControlTemperature = {
     ControlTemperature(

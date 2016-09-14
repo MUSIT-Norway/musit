@@ -19,18 +19,35 @@
 
 package no.uio.musit.microservice.storagefacility.testhelpers
 
-object TestConfigs {
+import org.scalatest.TestData
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.{ OneAppPerSuite, OneAppPerTest, PlaySpec }
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 
-  def inMemoryDatabaseConfig(evolve: String = "enabled"): Map[String, Any] = Map.apply(
-    "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
-    "slick.dbs.default.connectionTimeout" -> "20000",
-    "slick.dbs.default.loginTimeout" -> "20000",
-    "slick.dbs.default.socketTimeout" -> "20000",
-    "slick.dbs.default.db.driver" -> "org.h2.Driver",
-    "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
-    "slick.dbs.default.db.url" -> "jdbc:h2:mem:play-test;DB_CLOSE_DELAY=-1",
-    "slick.dbs.default.leakDetectionThreshold" -> "5000",
-    "evolutionplugin" -> evolve
-  )
+trait MusitSpec extends PlaySpec with ScalaFutures
+
+trait MusitSpecWithApp extends MusitSpec {
+
+  def musitApp = new GuiceApplicationBuilder()
+    .configure(TestConfigs.inMemoryDatabaseConfig())
+    .build()
+
+  // NOTE: This is mutable because of the usage in specs that require a new
+  // application per test.
+  var musitFakeApp = musitApp
 
 }
+
+trait MusitSpecWithAppPerTest extends MusitSpecWithApp with OneAppPerTest {
+  implicit override def newAppForTest(testData: TestData): Application = {
+    musitFakeApp = musitApp
+    musitFakeApp
+  }
+
+}
+
+trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with OneAppPerSuite {
+  implicit override lazy val app = musitFakeApp
+}
+

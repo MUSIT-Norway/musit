@@ -19,164 +19,137 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import no.uio.musit.microservice.storagefacility.dao.storage.BuildingDao
-import no.uio.musit.microservice.storagefacility.domain.Interval
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
-import no.uio.musit.microservice.storagefacility.domain.event.control._
+import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
-import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.move._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, EventTypeRegistry, ObjectRole, PlaceRole }
-import no.uio.musit.microservice.storagefacility.domain.storage.{ Building, StorageNodeId }
-import no.uio.musit.microservice.storagefacility.testhelpers.TestConfigs.WaitLonger
-import no.uio.musit.microservice.storagefacility.testhelpers.{ EventGenerators, NodeGenerators, TestConfigs }
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-
-import scala.concurrent.Future
+import no.uio.musit.microservice.storagefacility.testhelpers._
+import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.Inspectors._
 
 /**
  * Test specs for the EventDao.
  *
  * TODO: Add a lot more test cases!!!
  */
-class EventDaoSpec extends PlaySpec
-    with OneAppPerSuite
-    with ScalaFutures
-    with WaitLonger
+class EventDaoSpec extends MusitSpecWithAppPerSuite
     with EventGenerators
     with NodeGenerators {
 
-  // We need to build up and configure a FakeApplication to get
-  // an EventDao with all of the necessary dependencies injected.
-  implicit override lazy val app = new GuiceApplicationBuilder()
-    .configure(TestConfigs.inMemoryDatabaseConfig())
-    .build()
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
-  // This is where we fetch the EventDao singleton from the fake application.
-  val eventDao: EventDao = {
-    val instance = Application.instanceCache[EventDao]
-    instance(app)
-  }
-
-  val buildingDao: BuildingDao = {
-    val instance = Application.instanceCache[BuildingDao]
-    instance(app)
-  }
-
-  def createBuilding: Future[Building] = {
-    buildingDao.insert(defaultBuilding)
-  }
-
-  def createControl(
-    storageNodeId: Option[StorageNodeId] = None
-  ): Future[Long] = {
-    val ctrl = Control(
-      baseEvent = createBase("This is a base note", storageNodeId),
-      eventType = EventType.fromEventTypeId(ControlEventType.id),
-      parts = Some(Seq(
-        createTemperatureControl(),
-        createAlcoholControl(),
-        createCleaningControl(ok = true),
-        createPestControl()
-      ))
-    )
-
-    val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
-    eventDao.insertEvent(ctrlAsDto)
-  }
+  private var latestEventId: Long = _
 
   "The EventDao" when {
 
     "processing controls with sub-controls and observations" should {
-
       "succeed when inserting a Control" in {
-        val building = createBuilding.futureValue
-        val futureRes = createControl(building.id)
+        val ctrl = createControl(defaultBuilding.id)
+        latestEventId = addControl(ctrl).futureValue
 
-        whenReady(futureRes) { eventId =>
-          eventId mustBe a[java.lang.Long]
-          eventId mustBe 1L
-        }
+        latestEventId mustBe a[java.lang.Long]
+        latestEventId mustBe 1L
       }
 
       "return the Control associated with the provided Id" in {
-        val building = createBuilding.futureValue
-        val ctrlId = createControl(building.id).futureValue
-        val futureRes = eventDao.getEvent(ctrlId)
+        val ctrl = createControl(defaultBuilding.id)
+        val ctrlId = addControl(ctrl).futureValue
+        val res = eventDao.getEvent(latestEventId).futureValue
 
-        whenReady(futureRes) { res =>
-          res.isFailure must not be true
-          res.get.isEmpty must not be true
+        res.isFailure must not be true
+        res.get.isEmpty must not be true
 
-          res.get.get match {
-            case base: BaseEventDto =>
-              val c = DtoConverters.CtrlConverters.controlFromDto(base)
+        res.get.get match {
+          case base: BaseEventDto =>
+            val c = DtoConverters.CtrlConverters.controlFromDto(base)
 
-              c.eventType mustBe EventType.fromEventTypeId(ControlEventType.id)
-              c.baseEvent.note mustBe Some("This is a base note")
-              c.baseEvent.registeredBy mustBe Some(registeredByName)
-              c.baseEvent.registeredDate must not be None
-              c.parts must not be None
+            c.eventType mustBe EventType.fromEventTypeId(ControlEventType.id)
+            c.baseEvent.note mustBe ctrl.baseEvent.note
+            c.baseEvent.registeredBy mustBe Some(registeredByName)
+            c.baseEvent.registeredDate must not be None
+            c.parts must not be None
 
-            // TODO: Inspect all the parts
+          // TODO: Inspect all the parts
 
-            case _ =>
-              fail("Expected dto to be of type BaseEventDto")
-          }
+          case _ =>
+            fail("Expected dto to be of type BaseEventDto")
+        }
+      }
 
+    }
+
+    "processing observations" should {
+      "succeed when inserting an observation" in {
+        val obs = createObservation(defaultBuilding.id)
+        val eventId = addObservation(obs).futureValue
+
+        latestEventId = eventId
+
+        eventId mustBe a[java.lang.Long]
+      }
+
+      "return the Observation associated with the provided Id" in {
+        val obs = createObservation(defaultBuilding.id)
+        val obsId = addObservation(obs).futureValue
+        val res = eventDao.getEvent(latestEventId).futureValue
+
+        res.isFailure must not be true
+        res.get.isEmpty must not be true
+
+        res.get.get match {
+          case base: BaseEventDto =>
+            val o = DtoConverters.ObsConverters.observationFromDto(base)
+
+            o.eventType mustBe EventType.fromEventTypeId(ObservationEventType.id)
+            o.baseEvent.note mustBe obs.baseEvent.note
+            o.baseEvent.registeredBy mustBe Some(registeredByName)
+            o.baseEvent.registeredDate must not be None
+            o.parts must not be None
+
+          case _ =>
+            fail("Expected dto to be of type BaseEventDto")
         }
       }
     }
 
     "processing environment requirements" should {
 
-      val envReq = EnvRequirement(
-        baseEvent = createBase("This is the base note"),
-        eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
-        temperature = Some(Interval(20, Some(5))),
-        airHumidity = Some(Interval(60, Some(10))),
-        hypoxicAir = Some(Interval(0, Some(15))),
-        cleaning = Some("keep it clean, dude"),
-        light = Some("dim")
-      )
+      val envReq = createEnvRequirement(defaultBuilding.id)
 
       "succeed when inserting an Environment Requirement" in {
         val erDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
-        val futureRes = eventDao.insertEvent(erDto)
+        val eventId = eventDao.insertEvent(erDto).futureValue
 
-        whenReady(futureRes) { eventId =>
-          eventId mustBe a[java.lang.Long]
-          eventId mustBe 17L
-        }
+        latestEventId = eventId
+
+        eventId mustBe a[java.lang.Long]
       }
 
       "return the Environment Requirement event with the provided ID" in {
-        val futureRes = eventDao.getEvent(17L)
+        val res = eventDao.getEvent(latestEventId).futureValue
 
-        whenReady(futureRes) { res =>
-          res.isFailure must not be true
-          res.get.isEmpty must not be true
+        res.isFailure must not be true
+        res.get.isEmpty must not be true
 
-          res.get.get match {
-            case ext: ExtendedDto =>
-              val er = DtoConverters.EnvReqConverters.envReqFromDto(ext)
+        res.get.get match {
+          case ext: ExtendedDto =>
+            val er = DtoConverters.EnvReqConverters.envReqFromDto(ext)
 
-              er.eventType mustBe envReq.eventType
-              er.baseEvent.note mustBe envReq.baseEvent.note
-              er.baseEvent.registeredBy mustBe Some(registeredByName)
-              er.baseEvent.registeredDate must not be None
-              er.light mustBe envReq.light
-              er.temperature mustBe envReq.temperature
-              er.hypoxicAir mustBe envReq.hypoxicAir
-              er.airHumidity mustBe envReq.airHumidity
-              er.cleaning mustBe envReq.cleaning
+            er.eventType mustBe envReq.eventType
+            er.baseEvent.note mustBe envReq.baseEvent.note
+            er.baseEvent.registeredBy mustBe Some(registeredByName)
+            er.baseEvent.registeredDate must not be None
+            er.light mustBe envReq.light
+            er.temperature mustBe envReq.temperature
+            er.hypoxicAir mustBe envReq.hypoxicAir
+            er.airHumidity mustBe envReq.airHumidity
+            er.cleaning mustBe envReq.cleaning
 
-            case _ =>
-              fail("Expected dto to be of type ExtendedDto")
-          }
+          case _ =>
+            fail("Expected dto to be of type ExtendedDto")
         }
       }
 
@@ -191,12 +164,11 @@ class EventDaoSpec extends PlaySpec
         //          to = PlaceRole(1, 1)
         //        )
         //        val dto = DtoConverters.MoveConverters.moveObjectToDto(moveObj)
-        //        val futureRes = eventDao.insertEvent(dto)
+        //        val eventId = eventDao.insertEvent(dto).futureValue
         //
-        //        whenReady(futureRes) { eventId =>
-        //          println(eventId)
-        //          eventId mustBe a[java.lang.Long]
-        //        }
+        //        latestEventId = eventId
+        //
+        //        eventId mustBe a[java.lang.Long]
 
         pending
       }
@@ -209,62 +181,80 @@ class EventDaoSpec extends PlaySpec
         )
 
         val dto = DtoConverters.MoveConverters.moveNodeToDto(moveNode)
-        val futureRes = eventDao.insertEvent(dto)
+        val eventId = eventDao.insertEvent(dto).futureValue
 
-        whenReady(futureRes) { eventId =>
-          eventId mustBe a[java.lang.Long]
-          eventId mustBe 18L
-        }
+        latestEventId = eventId
+
+        eventId mustBe a[java.lang.Long]
+
       }
 
       "return the move node event" in {
-        val futureRes = eventDao.getEvent(18L, recursive = false)
+        val res = eventDao.getEvent(latestEventId, recursive = false).futureValue
 
-        whenReady(futureRes) { res =>
-          res.isFailure must not be true
-          res.get.isEmpty must not be true
+        res.isFailure must not be true
+        res.get.isEmpty must not be true
 
-          val theDto = res.get.get
+        val theDto = res.get.get
+        theDto mustBe a[BaseEventDto]
 
-          theDto mustBe a[BaseEventDto]
+        val baseRes: BaseEventDto = theDto.asInstanceOf[BaseEventDto]
 
-          val baseRes: BaseEventDto = theDto.asInstanceOf[BaseEventDto]
+        val baseRoleActor = EventRoleActor.toActorRole(baseRes.relatedActors.head)
+        val baseRolePlace = EventRolePlace.toPlaceRole(baseRes.relatedPlaces.head)
+        val baseRoleObject = EventRoleObject.toObjectRole(baseRes.relatedObjects.head)
 
-          val baseRoleActor = EventRoleActor.toActorRole(baseRes.relatedActors.head)
-          val baseRolePlace = EventRolePlace.toPlaceRole(baseRes.relatedPlaces.head)
-          val baseRoleObject = EventRoleObject.toObjectRole(baseRes.relatedObjects.head)
-
-          baseRes.eventTypeId mustBe MoveNodeType.id
-          baseRoleActor mustBe defaultActorRole
-          baseRolePlace mustBe PlaceRole(1, 1)
-          baseRoleObject mustBe ObjectRole(1, 1)
-        }
+        baseRes.eventTypeId mustBe MoveNodeType.id
+        baseRoleActor mustBe defaultActorRole
+        baseRolePlace mustBe PlaceRole(1, 1)
+        baseRoleObject mustBe ObjectRole(1, 1)
       }
 
     }
 
     "fetching events for a node" should {
-
       "return all control events" in {
-        val building = createBuilding.futureValue
-        val ctrlId1 = createControl(building.id).futureValue
-        val ctrlId2 = createControl(building.id).futureValue
-        val ctrlId3 = createControl(building.id).futureValue
+        val ctrl1 = createControl(defaultBuilding.id)
+        val ctrl2 = createControl(defaultBuilding.id)
+        val ctrl3 = createControl(defaultBuilding.id)
 
-        val futureControls = eventDao.getEventsForNode(
-          building.id.get,
-          EventTypeRegistry.ControlEventType,
-          "storageunit-location"
-        )
+        val ctrlId1 = addControl(ctrl1).futureValue
+        val ctrlId2 = addControl(ctrl2).futureValue
+        val ctrlId3 = addControl(ctrl3).futureValue
 
-        whenReady(futureControls) { controls =>
-          controls must not be empty
-          controls.size mustBe 3
+        val controls = eventDao.getEventsForNode(
+          defaultBuilding.id.get,
+          ControlEventType
+        ).futureValue
+
+        controls must not be empty
+        controls.size mustBe 5
+
+        forAll(controls) { c =>
+          c.eventTypeId mustBe ControlEventType.id
+          c.relatedObjects.head.objectId mustBe defaultBuilding.id.get.underlying
         }
       }
 
       "return all observation events" in {
-        pending
+        val obs1 = createObservation(defaultRoom.id)
+        val obs2 = createObservation(defaultRoom.id)
+
+        val obsId1 = addObservation(obs1).futureValue
+        val obsId2 = addObservation(obs2).futureValue
+
+        val observations = eventDao.getEventsForNode(
+          defaultRoom.id.get,
+          ObservationEventType
+        ).futureValue
+
+        observations must not be empty
+        observations.size mustBe 2
+
+        forAll(observations) { o =>
+          o.eventTypeId mustBe ObservationEventType.id
+          o.relatedObjects.head.objectId mustBe defaultRoom.id.get.underlying
+        }
       }
 
     }

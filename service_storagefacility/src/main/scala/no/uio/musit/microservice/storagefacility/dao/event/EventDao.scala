@@ -371,7 +371,7 @@ class EventDao @Inject() (
     recursive: Boolean = true,
     eventTypeId: Option[EventTypeId] = None
   ): Future[MusitResult[Option[Dto]]] = {
-    getBaseEvent(id).flatMap { maybeDto =>
+    getBaseEvent(id, eventTypeId).flatMap { maybeDto =>
       maybeDto.map { base =>
         logger.debug(s"Found base event $base. Going to fetch full event")
         getFullEvent(base, recursive)
@@ -499,8 +499,7 @@ class EventDao @Inject() (
    */
   def getEventsForNode(
     nodeId: StorageNodeId,
-    eventType: TopLevelEvent,
-    relation: String
+    eventType: TopLevelEvent
   ): Future[Seq[Dto]] = {
     // First fetch the eventIds from the place as object relation table.
     val futureEventIds = evtPlacesAsObjDao.getEventsForObjects(nodeId.toInt).map { objs =>
