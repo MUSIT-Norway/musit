@@ -48,7 +48,7 @@ class ObjectAggregationDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFu
                 third.displayName mustBe Some("Sommerfugl")
             }
           case _ =>
-            Logger.error("Blah")
+            Logger.error("something went wrong")
             fail("This went TOTALLY off the road")
         }
       }
