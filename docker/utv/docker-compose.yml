@@ -33,11 +33,11 @@ services:
     thing:
         image: musit_service_musit_thing:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
@@ -49,11 +49,11 @@ services:
     core:
         image: musit_service_core:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
     storageadmin:
         image: musit_service_storage_admin:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
@@ -65,7 +65,7 @@ services:
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
@@ -77,11 +77,11 @@ services:
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
     event:
         image: musit_service_event:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
@@ -93,4 +93,4 @@ services:
     time:
         image: musit_service_time:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
