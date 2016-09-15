@@ -44,16 +44,16 @@
       "accessToken": "fake-token-zab-xy-EspenUleberg"
     },
     {
-      "userId": "HeiniEmiliaRämä",
+      "userId": "HeiniEmilia",
       "name": "Heini Emilia Rämä",
       "groups": ["EtnoLes", "FotoLes"],
-      "accessToken": "fake-token-zab-xy-HeiniEmiliaRämä"
+      "accessToken": "fake-token-zab-xy-HeiniEmilia"
     },
     {
-      "userId": "KarstenHårsaker",
+      "userId": "Karsten",
       "name": "Karsten Hårsaker",
       "groups": ["EtnoLes", "FotoLes"],
-      "accessToken": "fake-token-zab-xy-KarstenHårsaker"
+      "accessToken": "fake-token-zab-xy-Karsten"
     },
     {
       "userId": "MarielleBergh",
