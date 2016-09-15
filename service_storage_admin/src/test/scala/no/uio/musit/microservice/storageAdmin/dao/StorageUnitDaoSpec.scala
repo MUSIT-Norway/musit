@@ -19,15 +19,17 @@
 
 package no.uio.musit.microservice.storageAdmin.dao
 
-import no.uio.musit.microservice.storageAdmin.domain.{ EnvironmentAssessment, EnvironmentRequirement, Room, SecurityAssessment }
+import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto._
 import no.uio.musit.microservices.common.PlayTestDefaults
-import org.scalatest.concurrent.{ PatienceConfiguration, ScalaFutures }
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+
 import scala.concurrent.duration._
 import org.scalatest.Matchers._
+import _root_.no.uio.musit.microservice.storageAdmin.service.StatsService
 
 class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures with StorageDtoConverter {
 
@@ -45,8 +47,18 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
     instance(app)
   }
 
+  val buildingDao: BuildingDao = {
+    val instance = Application.instanceCache[BuildingDao]
+    instance(app)
+  }
+
   val storageDao: StorageDao = {
     val instance = Application.instanceCache[StorageDao]
+    instance(app)
+  }
+
+  val statsService: StatsService = {
+    val instance = Application.instanceCache[StatsService]
     instance(app)
   }
 
@@ -121,12 +133,35 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
     securityAssessment = SecurityAssessment.empty.copy(theftProtection = Some(true))
   )
 
+
+  private def insertRoom(roomDto: CompleteRoomDto, parentNode: Option[Long] = None): CompleteRoomDto = {
+    val room = roomDao.insertRoom(roomDto).futureValue(timeout)
+
+    parentNode.foreach { parentNodeId =>
+      storageUnitDao.setPartOf(room.id.get, parentNodeId).futureValue mustBe 1
+    }
+    room
+  }
+
+  //private def insertRoom(room: Room, parentNode: Option[Long] = None): CompleteRoomDto = insertRoom(roomToDto(room), parentNode)
+
+  private def insertBuilding(buildingDto: CompleteBuildingDto, parentNode: Option[Long] = None): CompleteBuildingDto = {
+    val building = buildingDao.insertBuilding(buildingDto).futureValue(timeout)
+
+    parentNode.foreach { parentNodeId =>
+      storageUnitDao.setPartOf(building.id.get, parentNodeId).futureValue mustBe 1
+    }
+    building
+  }
+
+  private def insertBuilding(building: Building): CompleteBuildingDto = insertBuilding(buildingToDto(building))
+
   "update storage unit with envReq " must {
     "without any change in envReq" in {
 
       val testRoom = mkTestRoom
       val roomDto = roomToDto(testRoom)
-      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
+      val insertedRoomDto = insertRoom(roomDto) //.asInstanceOf[Room]
       insertedRoomDto.storageNode.id.isDefined mustBe true
       insertedRoomDto.roomDto.theftProtection mustBe Some(true)
 
@@ -150,7 +185,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val testRoom = mkTestRoom
       val roomDto = roomToDto(testRoom)
-      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
+      val insertedRoomDto = insertRoom(roomDto) //.asInstanceOf[Room]
       insertedRoomDto.storageNode.id.isDefined mustBe true
       insertedRoomDto.roomDto.theftProtection mustBe Some(true)
 
@@ -177,7 +212,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val testRoom = mkTestRoomWithNoEnvReq
       val roomDto = roomToDto(testRoom)
-      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
+      val insertedRoomDto = insertRoom(roomDto) //.asInstanceOf[Room]
       insertedRoomDto.storageNode.id.isDefined mustBe true
       insertedRoomDto.roomDto.theftProtection mustBe Some(true)
 
@@ -203,7 +238,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val testRoom = mkTestRoom
       val roomDto = roomToDto(testRoom)
-      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
+      val insertedRoomDto = insertRoom(roomDto) //.asInstanceOf[Room]
       insertedRoomDto.storageNode.id.isDefined mustBe true
       insertedRoomDto.roomDto.theftProtection mustBe Some(true)
 
@@ -233,7 +268,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val testRoom = mkTestRoomWithNoEnvReq
       val roomDto = roomToDto(testRoom)
-      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
+      val insertedRoomDto = insertRoom(roomDto) //.asInstanceOf[Room]
       insertedRoomDto.storageNode.id.isDefined mustBe true
       insertedRoomDto.roomDto.theftProtection mustBe Some(true)
 
@@ -267,5 +302,25 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
     }
 
+  }
+
+
+
+  "Statistics test " must {
+    "without any change in envReq" in {
+
+
+      val room1 = insertRoom(roomToDto(emptyRoom("MittRom")))
+      val room2 = insertRoom(roomToDto(emptyRoom("MittUnderRom")), room1.id)
+
+      statsService.subNodeCount(room1.id.get).futureValue mustBe Right(1)
+
+      statsService.subNodeCount(room2.id.get).futureValue mustBe Right(0)
+
+      val unknownId = 9999999
+      val unknownRes = statsService.subNodeCount(9999999).futureValue
+      unknownRes mustBe Left(storageUnitDao.storageUnitNotFoundError(unknownId))
+
+    }
   }
 }

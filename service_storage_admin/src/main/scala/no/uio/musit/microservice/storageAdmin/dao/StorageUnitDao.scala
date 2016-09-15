@@ -40,9 +40,29 @@ class StorageUnitDao @Inject() (
   def getStorageNodeOnlyById(id: Long): Future[Option[StorageNodeDTO]] =
     db.run(StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
+
+  /*A query returning *all* non deleted child nodes, ignoring access rights. */
+  private def getAllNonDeletedChildrenQuery(id: Long) = {
+    StorageNodeTable.filter(st => st.isPartOf === id && st.isDeleted === false)
+  }
+
+  /*A query returning non deleted child nodes, will probably take access rights in account in the future*/
+  private def getChildrenQuery(id: Long) = {
+    StorageNodeTable.filter(st => st.isPartOf === id && st.isDeleted === false)
+  }
+
   def getChildren(id: Long): Future[Seq[StorageNodeDTO]] = {
-    val action = StorageNodeTable.filter(st => st.isPartOf === id && st.isDeleted === false).result
-    db.run(action)
+    db.run(getChildrenQuery(id).result)
+  }
+
+  /** All child ids, irrespective of access rights to the children*/
+  def getAllChildIds(id: Long): Future[Seq[Long]] = {
+    db.run(getAllNonDeletedChildrenQuery(id).map(_.id).result)
+  }
+
+  /** Count of *all* children of this node, irrespective of access rights to the children */
+  def getAllChildCount(id: Long): Future[Int] = {
+    db.run((getAllNonDeletedChildrenQuery(id).length).result)
   }
 
   def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
@@ -69,6 +89,14 @@ class StorageUnitDao @Inject() (
   def getStorageType(id: Long): MusitFuture[StorageType] = {
     db.run(StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).map(_.storageType).result.headOption)
       .foldInnerOption(Left(storageUnitNotFoundError(id)), Right(_))
+  }
+
+  def storageNodeExists(id: Long): Future[Boolean] = {
+    db.run(StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).map(_.id).result.headOption).map(_.isDefined)
+  }
+
+  def verifyStorageNodeExists(id: Long): MusitFuture[Boolean] = {
+    storageNodeExists(id).map(b => if (b) Right(true) else Left(storageUnitNotFoundError(id)))
   }
 
   def all(): Future[Seq[StorageNodeDTO]] =

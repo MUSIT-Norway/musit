@@ -59,6 +59,8 @@ case class StorageNodeDTO(
 sealed trait CompleteStorageNodeDto {
   val storageNode: StorageNodeDTO
   val envReqDto: Option[EnvReqDto]
+
+  def id = storageNode.id
 }
 
 case class CompleteBuildingDto(storageNode: StorageNodeDTO, buildingDto: BuildingDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto

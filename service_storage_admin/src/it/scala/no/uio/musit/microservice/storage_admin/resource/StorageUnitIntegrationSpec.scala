@@ -129,7 +129,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           		"comments": "Dårlig miljø"
           	},
           	"securityAssessment": {
-          		"perimeter": true,
+          		"perimeterSecurity": true,
           		"theftProtection": true,
           		"fireProtection": false,
           		"waterDamage": false,
