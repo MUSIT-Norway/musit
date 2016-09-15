@@ -2,6 +2,21 @@ CREATE SCHEMA "MUSARK_EVENT";
 CREATE SCHEMA "MUSARK_STORAGE";
 CREATE SCHEMA "MUSIT_MAPPING";
 
+CREATE SEQUENCE "URI_LINKS_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE TABLE "URI_LINKS" (
+    "ID" bigint DEFAULT nextval('"URI_LINKS_seq"'::regclass) NOT NULL,
+    "LOCAL_TABLE_ID" bigint NOT NULL,
+    "REL" varchar(255) NOT NULL,
+    "HREF" varchar(2000) NOT NULL,
+    PRIMARY KEY ("ID")
+);
+
 SET search_path = "MUSARK_EVENT", pg_catalog;
 
 CREATE TABLE "ACTOR_ROLE" (
@@ -21,7 +36,7 @@ CREATE TABLE "EVENT" (
     "ID" bigint DEFAULT nextval('"EVENT_seq"'::regclass) NOT NULL,
     "EVENT_TYPE_ID" integer NOT NULL,
     "NOTE" character varying(4000),
-    "EVENT_DATE" timestamp(0) without time zone,
+    "EVENT_DATE" timestamp(0) without time zone, -- TODO correct?
     "REGISTERED_BY" character varying(100),
     "REGISTERED_DATE" timestamp without time zone,
     "VALUE_LONG" text,
@@ -81,7 +96,7 @@ CREATE TABLE "E_ENVIRONMENT_REQUIREMENT" (
 CREATE TABLE "LOCAL_OBJECT" (
     "OBJECT_ID" bigint NOT NULL,
     "LATEST_MOVE_ID" bigint,
-    "CURRENT_LOCATION_ID" integer
+    "CURRENT_LOCATION_ID" bigint
 );
 
 CREATE TABLE "OBJECT_ROLE" (
@@ -120,12 +135,12 @@ CREATE SEQUENCE "STORAGE_UNIT_seq"
 CREATE TABLE "STORAGE_NODE" (
     "STORAGE_NODE_ID" bigint DEFAULT nextval('"STORAGE_UNIT_seq"'::regclass) NOT NULL,
     "STORAGE_NODE_NAME" character varying(512),
-    "AREA" integer,
-    "AREA_TO" integer,
+    "AREA" double precision,
+    "AREA_TO" double precision,
     "IS_STORAGE_UNIT" character varying(1) DEFAULT '1'::character varying,
     "IS_PART_OF" integer,
-    "HEIGHT" integer,
-    "HEIGHT_TO" integer,
+    "HEIGHT" double precision,
+    "HEIGHT_TO" double precision,
     "IS_DELETED" boolean DEFAULT false,
     "STORAGE_TYPE" character varying(100) DEFAULT 'StorageUnit'::character varying,
     "GROUP_READ" character varying(4000),
@@ -135,12 +150,12 @@ CREATE TABLE "STORAGE_NODE" (
 );
 
 CREATE TABLE "BUILDING" (
-    "STORAGE_NODE_ID" integer NOT NULL,
+    "STORAGE_NODE_ID" bigint NOT NULL,
     "POSTAL_ADDRESS" character varying(512)
 );
 
 CREATE TABLE "ROOM"(
- "STORAGE_NODE_ID"             BIGINT NOT NULL,
+ "STORAGE_NODE_ID"             bigint NOT NULL,
  "PERIMETER_SECURITY"        boolean,-- NOT NULL DEFAULT 0,
  "THEFT_PROTECTION"       boolean,-- NOT NULL DEFAULT 1,
  "FIRE_PROTECTION"        boolean,-- NOT NULL DEFAULT 0,
@@ -162,21 +177,20 @@ CREATE TABLE "STORAGE_UNIT_LINK" (
 );
 
 CREATE TABLE "ORGANISATION"(
- "STORAGE_NODE_ID" INTEGER not null ,
+ "STORAGE_NODE_ID" bigint not null,
  "POSTAL_ADDRESS"  VARCHAR(512),
 PRIMARY KEY ("STORAGE_NODE_ID"),
 FOREIGN KEY ("STORAGE_NODE_ID") REFERENCES "STORAGE_NODE"("STORAGE_NODE_ID")
 );
 
-CREATE TABLE "E_ENVIRONMENT_REQUIREMENT"
-(
+CREATE TABLE "E_ENVIRONMENT_REQUIREMENT" (
  "ID"             BIGINT DEFAULT nextval('"STORAGE_UNIT_seq"'::regclass) NOT NULL,
- "TEMPERATURE"      INTEGER,
- "TEMPERATURE_TOLERANCE"    INTEGER,
- "RELATIVE_HUMIDITY"     INTEGER,
- "REL_HUM_TOLERANCE" INTEGER,
- "HYPOXIC_AIR"      INTEGER,
- "HYP_AIR_TOLERANCE" INTEGER,
+ "TEMPERATURE"      double precision,
+ "TEMPERATURE_TOLERANCE"    double precision,
+ "RELATIVE_HUMIDITY"     double precision,
+ "REL_HUM_TOLERANCE" double precision,
+ "HYPOXIC_AIR"      double precision,
+ "HYP_AIR_TOLERANCE" double precision,
  "CLEANING"         VARCHAR(250),
  "LIGHTING_COND"            VARCHAR(250),
  "NOTE" VARCHAR(4000),
