@@ -124,7 +124,7 @@ class RoomDao @Inject() (
 
     // scalastyle:on method.name
 
-    val id = column[Option[StorageNodeId]]("STORAGE_UNIT_ID", O.PrimaryKey)
+    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
     val sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
     val sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING")
     val sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING")

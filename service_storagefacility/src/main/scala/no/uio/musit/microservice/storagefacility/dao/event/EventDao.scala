@@ -90,7 +90,7 @@ class EventDao @Inject() (
   /**
    * Helper to build up the correct insert action depending on Dto type.
    */
-  private def buildInsertAction(event: Dto, parentId: Option[Long]): DBIO[Long] = {
+  private def buildInsertAction(event: EventDto, parentId: Option[Long]): DBIO[Long] = {
     event match {
       case simple: BaseEventDto =>
         insertBaseAction(simple.copy(partOf = parentId))
@@ -152,7 +152,7 @@ class EventDao @Inject() (
    * the partialEventLink.
    */
   private[this] def insertEventAction(
-    event: Dto,
+    event: EventDto,
     partialRelation: Option[PartialEventRelation]
   ): DBIO[Long] = {
 
@@ -196,7 +196,7 @@ class EventDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insertEvent(event: Dto): Future[Long] = {
+  def insertEvent(event: EventDto): Future[Long] = {
     val action = insertEventAction(event, None)
     db.run(action)
   }
@@ -266,7 +266,7 @@ class EventDao @Inject() (
   /**
    * TODO: Document me!
    */
-  private def enrichDto(dto: Dto): Future[Dto] = {
+  private def enrichDto(dto: EventDto): Future[EventDto] = {
 
     val base: BaseEventDto = dto match {
       case b: BaseEventDto => b
@@ -319,7 +319,7 @@ class EventDao @Inject() (
   private def initCompleteDto(
     baseEventDto: BaseEventDto,
     relatedSubEvents: Seq[RelatedEvents]
-  ): Future[MusitResult[Option[Dto]]] = {
+  ): Future[MusitResult[Option[EventDto]]] = {
     val related = relatedSubEvents.map { subs =>
       val futureSubEvents = Future.traverse(subs.events)(re => enrichDto(re))
       futureSubEvents.map(se => subs.copy(events = se))
@@ -333,12 +333,12 @@ class EventDao @Inject() (
   private def getFullEvent(
     baseEventDto: BaseEventDto,
     recursive: Boolean
-  ): Future[MusitResult[Option[Dto]]] = {
+  ): Future[MusitResult[Option[EventDto]]] = {
 
     EventTypeRegistry.unsafeFromId(baseEventDto.eventTypeId) match {
       case EnvRequirementEventType =>
         envReqDao.getEnvRequirement(baseEventDto.id.get).map { mer =>
-          MusitSuccess[Option[Dto]](Option(
+          MusitSuccess[Option[EventDto]](Option(
             mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
           ))
         }
@@ -373,14 +373,14 @@ class EventDao @Inject() (
     id: Long,
     recursive: Boolean = true,
     eventTypeId: Option[EventTypeId] = None
-  ): Future[MusitResult[Option[Dto]]] = {
+  ): Future[MusitResult[Option[EventDto]]] = {
     getBaseEvent(id, eventTypeId).flatMap { maybeDto =>
       maybeDto.map { base =>
         logger.debug(s"Found base event $base. Going to fetch full event")
         getFullEvent(base, recursive)
       }.getOrElse {
         logger.debug(s"No event data found for id $id.")
-        Future.successful(MusitSuccess[Option[Dto]](None))
+        Future.successful(MusitSuccess[Option[EventDto]](None))
       }
     }
   }
@@ -399,7 +399,7 @@ class EventDao @Inject() (
   private def getEventsFromDtos(
     eventDtos: Future[Seq[BaseEventDto]],
     recursive: Boolean
-  ): Future[Seq[Dto]] = {
+  ): Future[Seq[EventDto]] = {
     eventDtos.flatMap { subEventDtos =>
       Future.traverse(subEventDtos) { subEventDto =>
         getFullEvent(subEventDto, recursive)
@@ -438,7 +438,7 @@ class EventDao @Inject() (
     recursive: Boolean
   ): Future[Seq[RelatedEvents]] = {
 
-    def transform(group: Seq[(Int, BaseEventDto)]): Future[Seq[Dto]] = {
+    def transform(group: Seq[(Int, BaseEventDto)]): Future[Seq[EventDto]] = {
       val grpdEvents = group.map(_._2).map(dto => getFullEvent(dto, recursive))
       //Collapse the inner musitresults...
       Future.traverse(grpdEvents)(identity).map { results =>
@@ -503,7 +503,7 @@ class EventDao @Inject() (
   def getEventsForNode(
     nodeId: StorageNodeId,
     eventType: TopLevelEvent
-  ): Future[Seq[Dto]] = {
+  ): Future[Seq[EventDto]] = {
     // First fetch the eventIds from the place as object relation table.
     val futureEventIds = evtPlacesAsObjDao.getEventsForObjects(nodeId.toInt).map { objs =>
       objs.map(_.eventId).filter(_.isDefined).map(_.get)

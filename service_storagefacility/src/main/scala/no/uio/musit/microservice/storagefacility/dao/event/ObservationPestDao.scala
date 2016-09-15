@@ -28,7 +28,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-
 @Singleton
 class ObservationPestDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
@@ -65,18 +64,18 @@ class ObservationPestDao @Inject() (
   private class LifeCycleTable(
       val tag: Tag
   ) extends Table[LifecycleDto](tag, SchemaName, "OBSERVATION_PEST_LIFECYCLE") {
-    def * = (eventId, stage, number) <> (create.tupled, destroy)
+    def * = (eventId, stage, quantity) <> (create.tupled, destroy)
 
     val eventId = column[Option[Long]]("EVENT_ID")
     val stage = column[Option[String]]("STAGE")
-    val number = column[Option[Int]]("NUM")
+    val quantity = column[Option[Int]]("QUANTITY")
 
     def create =
-      (eventId: Option[Long], stage: Option[String], number: Option[Int]) =>
-        LifecycleDto(eventId, stage, number)
+      (eventId: Option[Long], stage: Option[String], quantity: Option[Int]) =>
+        LifecycleDto(eventId, stage, quantity)
 
     def destroy(lifeCycle: LifecycleDto) =
-      Some((lifeCycle.eventId, lifeCycle.stage, lifeCycle.number))
+      Some((lifeCycle.eventId, lifeCycle.stage, lifeCycle.quantity))
   }
 
 }

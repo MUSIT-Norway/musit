@@ -74,6 +74,7 @@ final class StorageUnitResource @Inject() (
         musitError match {
           case MusitValidationError(message, exp, act) =>
             BadRequest(Json.obj("message" -> message))
+
           case internal: MusitError[_] =>
             InternalServerError(Json.obj("message" -> internal.message))
         }
@@ -105,6 +106,7 @@ final class StorageUnitResource @Inject() (
             )
           }
         }
+
       case JsError(error) =>
         Future.successful(
           BadRequest(JsError.toJson(error))

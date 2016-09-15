@@ -25,7 +25,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 
 // TODO: Change id and partOf to EventId
 
-sealed trait Dto {
+sealed trait EventDto {
   val id: Option[Long]
   val eventTypeId: EventTypeId
   val eventDate: JSqlDate
@@ -60,7 +60,7 @@ case class BaseEventDto(
   valueDouble: Option[Double] = None,
   registeredBy: Option[String],
   registeredDate: Option[JSqlTimestamp]
-) extends Dto
+) extends EventDto
 
 sealed trait DtoExtension
 
@@ -84,7 +84,7 @@ case class ExtendedDto(
     registeredBy: Option[String],
     registeredDate: Option[JSqlTimestamp],
     extension: DtoExtension
-) extends Dto {
+) extends EventDto {
 
   def baseEventDto: BaseEventDto = {
     BaseEventDto(
@@ -171,6 +171,6 @@ case class ObservationPestDto(
 case class LifecycleDto(
   eventId: Option[Long],
   stage: Option[String],
-  number: Option[Int]
+  quantity: Option[Int]
 )
 

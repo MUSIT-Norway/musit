@@ -43,7 +43,7 @@ class StorageUnitDao @Inject() (
 
   val logger = Logger(classOf[StorageUnitDao])
 
-  private val storageUnitTable = TableQuery[StorageUnitTable]
+  private val storageUnitTable = TableQuery[StorageNodeTable]
 
   protected[dao] def getByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
     storageUnitTable.filter { st =>

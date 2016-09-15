@@ -173,11 +173,11 @@ trait EventGenerators {
       lifecycles = Seq(
         LifeCycle(
           stage = Some("mature colony"),
-          number = Some(100)
+          quantity = Some(100)
         ),
         LifeCycle(
           stage = Some("new colony"),
-          number = Some(4)
+          quantity = Some(4)
         )
       )
     )

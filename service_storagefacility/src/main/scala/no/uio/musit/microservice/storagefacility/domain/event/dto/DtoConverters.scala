@@ -49,7 +49,7 @@ object DtoConverters {
     tolerance: Option[A]
   ): Option[Interval[A]] = base.map(b => Interval[A](b, tolerance))
 
-  private[this] def baseFromDto(dto: Dto): MusitEventBase = {
+  private[this] def baseFromDto(dto: EventDto): MusitEventBase = {
     MusitEventBase(
       id = dto.id,
       doneDate = dto.eventDate,
@@ -146,14 +146,14 @@ object DtoConverters {
       LifecycleDto(
         eventId = None,
         stage = lc.stage,
-        number = lc.number
+        quantity = lc.quantity
       )
     }
 
     def lifecycleFromDto(lcd: LifecycleDto): LifeCycle = {
       LifeCycle(
         stage = lcd.stage,
-        number = lcd.number
+        quantity = lcd.quantity
       )
     }
   }
@@ -188,7 +188,7 @@ object DtoConverters {
       )
     }
 
-    def controlSubEventToDto(subCtrl: ControlSubEvent): Dto = {
+    def controlSubEventToDto(subCtrl: ControlSubEvent): EventDto = {
       val relations = subCtrl.motivates.map { ose =>
         Seq(
           RelatedEvents(
@@ -297,7 +297,7 @@ object DtoConverters {
    */
   object ObsConverters {
 
-    def observationToDto(obs: Observation): Dto = {
+    def observationToDto(obs: Observation): EventDto = {
       val relEvt = Seq(
         RelatedEvents(
           relation = EventRelations.PartsOfRelation,
@@ -323,7 +323,7 @@ object DtoConverters {
     }
 
     // scalastyle:off cyclomatic.complexity method.length
-    def observationSubEventToDto(subObs: ObservationSubEvent): Dto = {
+    def observationSubEventToDto(subObs: ObservationSubEvent): EventDto = {
       subObs match {
         case obs: ObservationFromTo =>
           toExtendedDto(
@@ -382,7 +382,7 @@ object DtoConverters {
      * custom properties in a separate table in the DB.
      */
     // scalastyle:off cyclomatic.complexity method.length
-    def observationSubEventFromDto(dto: Dto): ObservationSubEvent = {
+    def observationSubEventFromDto(dto: EventDto): ObservationSubEvent = {
       val base = baseFromDto(dto)
       val registeredEvent = ObservationSubEvents.unsafeFromId(dto.eventTypeId)
       val evtType = EventType(registeredEvent.entryName)

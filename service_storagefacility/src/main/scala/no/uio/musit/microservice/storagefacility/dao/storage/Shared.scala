@@ -32,9 +32,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   import driver.api._
 
-  class StorageUnitTable(
+  class StorageNodeTable(
       val tag: Tag
-  ) extends Table[StorageUnitDto](tag, SchemaName, "STORAGE_UNIT") {
+  ) extends Table[StorageUnitDto](tag, SchemaName, "STORAGE_NODE") {
     // scalastyle:off method.name
     def * = (
       id.?,
@@ -52,9 +52,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
     // scalastyle:on method.name
 
-    val id = column[StorageNodeId]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
     val storageType = column[StorageType]("STORAGE_TYPE")
-    val storageUnitName = column[String]("STORAGE_UNIT_NAME")
+    val storageUnitName = column[String]("STORAGE_NODE_NAME")
     val area = column[Option[Double]]("AREA")
     val areaTo = column[Option[Double]]("AREA_TO")
     val isPartOf = column[Option[StorageNodeId]]("IS_PART_OF")
@@ -67,7 +67,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     def create = (
       id: Option[StorageNodeId],
       storageType: StorageType,
-      storageUnitName: String,
+      storageNodeName: String,
       area: Option[Double],
       areaTo: Option[Double],
       isPartOf: Option[StorageNodeId],
@@ -79,7 +79,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     ) =>
       StorageUnitDto(
         id = id,
-        name = storageUnitName,
+        name = storageNodeName,
         area = area,
         areaTo = areaTo,
         isPartOf = isPartOf,

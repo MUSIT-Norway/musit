@@ -26,9 +26,9 @@ CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 -- Tables for storage nodes
 -- ===========================================================================
 
-CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT (
-  storage_unit_id NUMBER(20) NOT NULL GENERATED ALWAYS AS IDENTITY,
-  storage_unit_name VARCHAR(512),
+CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
+  storage_node_id NUMBER(20) NOT NULL GENERATED ALWAYS AS IDENTITY,
+  storage_node_name VARCHAR(512),
   area NUMBER,
   area_to NUMBER,
   is_storage_unit VARCHAR(1) DEFAULT '1',
@@ -39,11 +39,11 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT (
   storage_type VARCHAR(100) DEFAULT 'StorageUnit',
   group_read VARCHAR(4000),
   group_write VARCHAR(4000),
-  PRIMARY KEY (storage_unit_id)
+  PRIMARY KEY (storage_node_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.ROOM (
-  storage_unit_id NUMBER(20) NOT NULL,
+  storage_node_id NUMBER(20) NOT NULL,
   sikring_skallsikring INTEGER,
   sikring_tyverisikring INTEGER,
   sikring_brannsikring INTEGER,
@@ -52,24 +52,31 @@ CREATE TABLE MUSARK_STORAGE.ROOM (
   bevar_luftfukt_og_temp INTEGER,
   bevar_lysforhold INTEGER,
   bevar_prevant_kons INTEGER,
-  PRIMARY KEY (storage_unit_id),
-  FOREIGN KEY (storage_unit_id) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
+  PRIMARY KEY (storage_node_id),
+  FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.BUILDING (
-  storage_unit_id NUMBER(20) NOT NULL,
+  storage_node_id NUMBER(20) NOT NULL,
   postal_address VARCHAR(512),
-  PRIMARY KEY (storage_unit_id),
-  FOREIGN KEY (storage_unit_id) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
+  PRIMARY KEY (storage_node_id),
+  FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
+);
+
+CREATE TABLE MUSARK_STORAGE.ORGANISATION(
+  storage_node_id INTEGER not null ,
+  postal_address  VARCHAR(512),
+  PRIMARY KEY (storage_node_id),
+  FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK (
   link_id NUMBER(20) NOT NULL,
-  storage_unit_id NUMBER(20) NOT NULL,
+  storage_node_id NUMBER(20) NOT NULL,
   link VARCHAR(255) NOT NULL,
   relation VARCHAR(100) NOT NULL,
   PRIMARY KEY (link_id),
-  FOREIGN KEY (storage_unit_id) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
+  FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
 -- ===========================================================================
@@ -87,18 +94,18 @@ CREATE TABLE MUSARK_STORAGE.EVENT_TYPE (
 CREATE TABLE MUSARK_STORAGE.EVENT (
   id NUMBER(20) NOT NULL GENERATED ALWAYS AS IDENTITY,
   event_type_id INTEGER NOT NULL, -- Move to separate table if we want to allow multiple instantiations
-  note VARCHAR2(4000),
+  note VARCHAR2(500),
 
   event_date DATE NOT NULL, -- When the event happened
 
   registered_by VARCHAR2(100) NOT NULL,
   registered_date TIMESTAMP NOT NULL, -- When the event was received by the system
 
-  value_long LONG, -- Custom value, events can choose to store some event-specific value here.
-  value_string CLOB, -- Custom value, events can choose to store some event-specific value here.
+  value_long NUMBER(20), -- Custom value, events can choose to store some event-specific value here. NOTE: 20 is probably waaaaaay to much.
+  value_string VARCHAR2(250), -- Custom value, events can choose to store some event-specific value here.
   value_float FLOAT, -- Custom value, events can choose to store some event-specific value here.
 
-  part_of LONG,
+  part_of NUMBER(20),
   PRIMARY KEY (id),
   FOREIGN KEY (event_type_id) REFERENCES MUSARK_STORAGE.EVENT_TYPE(id),
   FOREIGN KEY (part_of) REFERENCES MUSARK_STORAGE.EVENT(id)
@@ -221,7 +228,7 @@ CREATE TABLE MUSARK_STORAGE.E_ENVIRONMENT_REQUIREMENT (
 CREATE TABLE MUSARK_STORAGE.OBSERVATION_PEST_LIFECYCLE (
   event_id NUMBER(20) NOT NULL,
   stage VARCHAR2(250),
-  num INTEGER, -- number is a keyword in Oracle and should be quoted
+  quantity INTEGER,
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id)
 );
 
@@ -278,10 +285,10 @@ INSERT INTO MUSARK_STORAGE.PLACE_ROLE (id, name, description)
 VALUES (1, 'DoneWith', 'The storagenode who was done something with in a spesific event');
 
 
--- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) VALUES (1,'KASSE 5',45,45,'storageunit');
--- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) VALUES (2,'KASSE 6',1,4,'storageunit');
--- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) VALUES (3,'KASSE 7',3,4,'storageunit');
--- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,height,area,storage_type) VALUES (7,'KASSE 12',3,4,'storageunit');
--- INSERT INTO MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id,storage_unit_name,area,storage_type) VALUES (9,'KASSE 12',4,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,height,area,storage_type) VALUES (1,'KASSE 5',45,45,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,height,area,storage_type) VALUES (2,'KASSE 6',1,4,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,height,area,storage_type) VALUES (3,'KASSE 7',3,4,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,height,area,storage_type) VALUES (7,'KASSE 12',3,4,'storageunit');
+-- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,area,storage_type) VALUES (9,'KASSE 12',4,'storageunit');
 
 # --- !Downs

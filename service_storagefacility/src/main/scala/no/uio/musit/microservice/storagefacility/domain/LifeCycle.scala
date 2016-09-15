@@ -21,7 +21,7 @@ package no.uio.musit.microservice.storagefacility.domain
 
 import play.api.libs.json.Json
 
-case class LifeCycle(stage: Option[String], number: Option[Int])
+case class LifeCycle(stage: Option[String], quantity: Option[Int])
 
 object LifeCycle {
   implicit val format = Json.format[LifeCycle]

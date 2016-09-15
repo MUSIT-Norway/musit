@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.testhelpers
 
-import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, RoomDao, StorageUnitDao }
+import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
@@ -33,6 +33,11 @@ trait NodeGenerators {
 
   def buildingDao: BuildingDao = {
     val instance = Application.instanceCache[BuildingDao]
+    instance(musitFakeApp)
+  }
+
+  def organisationDao: OrganisationDao = {
+    val instance = Application.instanceCache[OrganisationDao]
     instance(musitFakeApp)
   }
 
@@ -61,6 +66,8 @@ trait NodeGenerators {
 
   def addBuilding(b: Building) = buildingDao.insert(b)
 
+  def addOrganisation(o: Organisation) = organisationDao.insert(o)
+
   def addRoom(r: Room) = roomDao.insert(r)
 
   def addStorageUnit(su: StorageUnit) = storageUnitDao.insert(su)
@@ -71,6 +78,7 @@ trait NodeGenerators {
         case su: StorageUnit => addStorageUnit(su)
         case r: Room => addRoom(r)
         case b: Building => addBuilding(b)
+        case o: Organisation => addOrganisation(o)
       }
     }.map { inserted =>
       inserted.map(_.id.get)

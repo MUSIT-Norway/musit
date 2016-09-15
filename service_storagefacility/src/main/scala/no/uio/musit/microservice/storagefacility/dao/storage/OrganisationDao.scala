@@ -113,7 +113,7 @@ class OrganisationDao @Inject() (
 
     def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Option[StorageNodeId]]("STORAGE_UNIT_ID", O.PrimaryKey)
+    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
     val address = column[Option[String]]("POSTAL_ADDRESS")
 
     def create = (id: Option[StorageNodeId], address: Option[String]) =>
