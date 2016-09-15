@@ -1,4 +1,3 @@
--- noinspection SqlDialectInspectionForFile
 #
 #  MUSIT is a museum database to archive natural and cultural history data.
 #  Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
@@ -28,15 +27,15 @@ CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 -- ===========================================================================
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT (
-  storage_unit_id BIGINT NOT NULL AUTO_INCREMENT,
+  storage_unit_id NUMBER(20) NOT NULL GENERATED ALWAYS AS IDENTITY,
   storage_unit_name VARCHAR(512),
-  area INTEGER,
-  area_to INTEGER,
+  area NUMBER,
+  area_to NUMBER,
   is_storage_unit VARCHAR(1) DEFAULT '1',
-  is_part_of INTEGER,
-  height INTEGER,
-  height_to INTEGER,
-  is_deleted INTEGER NOT NULL DEFAULT 0,
+  is_part_of NUMBER(20),
+  height NUMBER,
+  height_to NUMBER,
+  is_deleted INTEGER DEFAULT 0 NOT NULL,
   storage_type VARCHAR(100) DEFAULT 'StorageUnit',
   group_read VARCHAR(4000),
   group_write VARCHAR(4000),
@@ -44,7 +43,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT (
 );
 
 CREATE TABLE MUSARK_STORAGE.ROOM (
-  storage_unit_id BIGINT NOT NULL,
+  storage_unit_id NUMBER(20) NOT NULL,
   sikring_skallsikring INTEGER,
   sikring_tyverisikring INTEGER,
   sikring_brannsikring INTEGER,
@@ -53,24 +52,24 @@ CREATE TABLE MUSARK_STORAGE.ROOM (
   bevar_luftfukt_og_temp INTEGER,
   bevar_lysforhold INTEGER,
   bevar_prevant_kons INTEGER,
-  PRIMARY KEY (STORAGE_UNIT_ID),
-  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
+  PRIMARY KEY (storage_unit_id),
+  FOREIGN KEY (storage_unit_id) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.BUILDING (
-  storage_unit_id BIGINT NOT NULL,
+  storage_unit_id NUMBER(20) NOT NULL,
   postal_address VARCHAR(512),
   PRIMARY KEY (storage_unit_id),
   FOREIGN KEY (storage_unit_id) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK (
-  link_id BIGINT NOT NULL,
-  storage_unit_id BIGINT NOT NULL,
+  link_id NUMBER(20) NOT NULL,
+  storage_unit_id NUMBER(20) NOT NULL,
   link VARCHAR(255) NOT NULL,
   relation VARCHAR(100) NOT NULL,
   PRIMARY KEY (link_id),
-  FOREIGN KEY (STORAGE_UNIT_ID) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(STORAGE_UNIT_ID)
+  FOREIGN KEY (storage_unit_id) REFERENCES MUSARK_STORAGE.STORAGE_UNIT(storage_unit_id)
 );
 
 -- ===========================================================================
@@ -78,99 +77,99 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK (
 -- ===========================================================================
 
 CREATE TABLE MUSARK_STORAGE.EVENT_TYPE (
-  ID INTEGER NOT NULL ,
-  Name VARCHAR(100) NOT NULL,
-  Description VARCHAR(255),
+  id INTEGER NOT NULL ,
+  name VARCHAR(100) NOT NULL,
+  description VARCHAR(255),
   PRIMARY KEY (ID)
 );
 
 -- The main table for storing events in the StorageFacility service.
 CREATE TABLE MUSARK_STORAGE.EVENT (
-  ID BIGINT(20) NOT NULL AUTO_INCREMENT,
-  EVENT_TYPE_ID INTEGER NOT NULL, -- Move to separate table if we want to allow multiple instantiations
-  NOTE VARCHAR2(4000),
+  id NUMBER(20) NOT NULL GENERATED ALWAYS AS IDENTITY,
+  event_type_id INTEGER NOT NULL, -- Move to separate table if we want to allow multiple instantiations
+  note VARCHAR2(4000),
 
-  EVENT_DATE DATE NOT NULL, -- When the event happened
+  event_date DATE NOT NULL, -- When the event happened
 
-  REGISTERED_BY VARCHAR2(100) NOT NULL,
-  REGISTERED_DATE TIMESTAMP NOT NULL, -- When the event was received by the system
+  registered_by VARCHAR2(100) NOT NULL,
+  registered_date TIMESTAMP NOT NULL, -- When the event was received by the system
 
-  VALUE_LONG LONG, -- Custom value, events can choose to store some event-specific value here.
-  VALUE_String CLOB, -- Custom value, events can choose to store some event-specific value here.
-  VALUE_FLOAT FLOAT, -- Custom value, events can choose to store some event-specific value here.
+  value_long LONG, -- Custom value, events can choose to store some event-specific value here.
+  value_string CLOB, -- Custom value, events can choose to store some event-specific value here.
+  value_float FLOAT, -- Custom value, events can choose to store some event-specific value here.
 
-  PART_OF LONG,
-  PRIMARY KEY (ID),
-  FOREIGN KEY (EVENT_TYPE_ID) REFERENCES MUSARK_STORAGE.EVENT_TYPE(ID),
-  FOREIGN KEY (PART_OF) REFERENCES MUSARK_STORAGE.EVENT(ID)
+  part_of LONG,
+  PRIMARY KEY (id),
+  FOREIGN KEY (event_type_id) REFERENCES MUSARK_STORAGE.EVENT_TYPE(id),
+  FOREIGN KEY (part_of) REFERENCES MUSARK_STORAGE.EVENT(id)
 );
 
 -- ???
 CREATE TABLE MUSARK_STORAGE.EVENT_RELATION_EVENT (
-  FROM_EVENT_ID BIGINT(20) NOT NULL,
-  RELATION_ID INTEGER NOT NULL,
-  TO_EVENT_ID BIGINT(20) NOT NULL,
-  FOREIGN KEY (FROM_EVENT_ID) REFERENCES MUSARK_STORAGE.EVENT(ID),
-  FOREIGN KEY (TO_EVENT_ID) REFERENCES MUSARK_STORAGE.EVENT(ID)
+  from_event_id NUMBER(20) NOT NULL,
+  relation_id INTEGER NOT NULL,
+  to_event_id NUMBER(20) NOT NULL,
+  FOREIGN KEY (from_event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
+  FOREIGN KEY (to_event_id) REFERENCES MUSARK_STORAGE.EVENT(id)
 );
 
 CREATE TABLE MUSARK_STORAGE.ACTOR_ROLE (
-  ID INTEGER NOT NULL,
-  NAME VARCHAR2(200) NOT NULL,
-  DESCRIPTION VARCHAR2(200),
+  id INTEGER NOT NULL,
+  name VARCHAR2(200) NOT NULL,
+  description VARCHAR2(200),
   PRIMARY KEY (ID)
 );
 
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_ACTOR (
-  EVENT_ID BIGINT(20) NOT NULL,
-  ROLE_ID INTEGER NOT NULL,
-  ACTOR_ID INTEGER NOT NULL, -- reference by Id to the ActorService
-  PRIMARY KEY (EVENT_ID, ROLE_ID, ACTOR_ID),
-  FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_STORAGE.EVENT(ID),
-  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_STORAGE.ACTOR_ROLE(ID)
+  event_id NUMBER(20) NOT NULL,
+  role_id INTEGER NOT NULL,
+  actor_id INTEGER NOT NULL, -- reference by Id to the ActorService
+  PRIMARY KEY (event_id, role_id, actor_id),
+  FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ACTOR_ROLE(id)
 );
 
 CREATE TABLE MUSARK_STORAGE.OBJECT_ROLE (
-  ID INTEGER NOT NULL,
-  NAME VARCHAR2(200) NOT NULL,
-  DESCRIPTION VARCHAR2(200),
-  PRIMARY KEY (ID)
+  id INTEGER NOT NULL,
+  name VARCHAR2(200) NOT NULL,
+  description VARCHAR2(200),
+  PRIMARY KEY (id)
 );
 
 CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
-  object_id BIGINT(20) NOT NULL,
-  latest_move_id BIGINT(20) ,
-  current_location_id INTEGER, -- maybe for later use
-  FOREIGN KEY (latest_move_id) REFERENCES MUSARK_STORAGE.EVENT(ID)
+  object_id NUMBER(20) NOT NULL,
+  latest_move_id NUMBER(20) ,
+  current_location_id NUMBER(20), -- maybe for later use
+  FOREIGN KEY (latest_move_id) REFERENCES MUSARK_STORAGE.EVENT(id)
   --FOREIGN KEY (current_location_id) REFERENCES MUSARK_STORAGE.storageAdminNodehvatever(ID)
 );
 
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_OBJECT (
-  EVENT_ID BIGINT(20) NOT NULL,
-  ROLE_ID INTEGER NOT NULL,
-  OBJECT_ID INTEGER NOT NULL,
-  PRIMARY KEY (EVENT_ID, ROLE_ID, OBJECT_ID),
-  FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_STORAGE.EVENT(ID),
-  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_STORAGE.OBJECT_ROLE(ID),
-  FOREIGN KEY (OBJECT_ID) REFERENCES MUSARK_STORAGE.LOCAL_OBJECT(OBJECT_ID)
+  event_id NUMBER(20) NOT NULL,
+  role_id INTEGER NOT NULL,
+  object_id NUMBER(20) NOT NULL,
+  PRIMARY KEY (event_id, role_id, object_id),
+  FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.OBJECT_ROLE(id),
+  FOREIGN KEY (object_id) REFERENCES MUSARK_STORAGE.LOCAL_OBJECT(object_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.PLACE_ROLE (
-  ID INTEGER NOT NULL,
-  NAME VARCHAR2(200) NOT NULL,
-  DESCRIPTION VARCHAR2(200),
-  PRIMARY KEY (ID)
+  id INTEGER NOT NULL,
+  name VARCHAR2(200) NOT NULL,
+  description VARCHAR2(200),
+  PRIMARY KEY (id)
 );
 
 -- This is the generic event-to-place relation, the place of where an event
 -- happened, the place of where something was moved to etc.
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_PLACE (
-  EVENT_ID BIGINT(20) NOT NULL,
-  ROLE_ID INTEGER NOT NULL,
-  PLACE_ID  INTEGER NOT NULL,
-  PRIMARY KEY (EVENT_ID, ROLE_ID, PLACE_ID),
-  FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_STORAGE.EVENT(ID),
-  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_STORAGE.PLACE_ROLE(ID)--,
+  event_id NUMBER(20) NOT NULL,
+  role_id INTEGER NOT NULL,
+  place_id  NUMBER(20) NOT NULL,
+  PRIMARY KEY (event_id, role_id, place_id),
+  FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.PLACE_ROLE(id)--,
   --FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_STORAGE.PLACE(PLACE_ID)
 );
 
@@ -179,12 +178,12 @@ CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_PLACE (
 -- have used the EVENT_ROLE_OBJECT, but then we would loose foreign keys and
 -- would have needed to tag which is which.
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_PLACE_AS_OBJECT (
-  EVENT_ID BIGINT(20) NOT NULL,
-  ROLE_ID INTEGER NOT NULL,
-  PLACE_ID  INTEGER NOT NULL,
-  PRIMARY KEY (EVENT_ID, ROLE_ID, PLACE_ID),
-  FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_STORAGE.EVENT(ID),
-  FOREIGN KEY (ROLE_ID) REFERENCES MUSARK_STORAGE.OBJECT_ROLE(ID)--,
+  event_id NUMBER(20) NOT NULL,
+  role_id INTEGER NOT NULL,
+  place_id  NUMBER(20) NOT NULL,
+  PRIMARY KEY (event_id, role_id, place_id),
+  FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.OBJECT_ROLE(id)--,
   --FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_STORAGE.PLACE(PLACE_ID)
 );
 
@@ -195,16 +194,16 @@ CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_PLACE_AS_OBJECT (
 
 -- Contains data for Events that have a FROM -> TO structure.
 CREATE TABLE MUSARK_STORAGE.OBSERVATION_FROM_TO (
-  ID BIGINT(20) NOT NULL,
-  VALUE_FROM NUMBER,
-  VALUE_TO NUMBER,
-  PRIMARY KEY (ID),
-  FOREIGN KEY (ID) REFERENCES MUSARK_STORAGE.EVENT(ID)
+  id NUMBER(20) NOT NULL,
+  value_from NUMBER,
+  value_to NUMBER,
+  PRIMARY KEY (id),
+  FOREIGN KEY (id) REFERENCES MUSARK_STORAGE.EVENT(id)
 );
 
 -- Contains extra data for storing environment requirement.
 CREATE TABLE MUSARK_STORAGE.E_ENVIRONMENT_REQUIREMENT (
-  id BIGINT(20) NOT NULL,
+  id NUMBER(20) NOT NULL,
   temperature NUMBER,
   temp_interval NUMBER,
   air_humidity NUMBER,
@@ -213,69 +212,69 @@ CREATE TABLE MUSARK_STORAGE.E_ENVIRONMENT_REQUIREMENT (
   hyp_air_interval NUMBER,
   cleaning VARCHAR2(250),
   light VARCHAR2(250),
-  PRIMARY KEY (ID),
-  FOREIGN KEY (ID) REFERENCES MUSARK_STORAGE.EVENT(ID)
+  PRIMARY KEY (id),
+  FOREIGN KEY (id) REFERENCES MUSARK_STORAGE.EVENT(id)
 );
 
 -- Contains extra data for storing info about a pest lifecycle. It is used by
 -- the ObservationPest event which can have many of these.
 CREATE TABLE MUSARK_STORAGE.OBSERVATION_PEST_LIFECYCLE (
-  event_id BIGINT(20) NOT NULL,
+  event_id NUMBER(20) NOT NULL,
   stage VARCHAR2(250),
-  number INTEGER,
-  FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(ID)
+  num INTEGER, -- number is a keyword in Oracle and should be quoted
+  FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id)
 );
 
 -- NOTE: This table is currently not used.
 CREATE TABLE MUSARK_STORAGE.URI_LINKS (
-  ID bigint(20) NOT NULL AUTO_INCREMENT,
-  LOCAL_TABLE_ID BIGINT(20) NOT NULL,
-  REL VARCHAR(255) NOT NULL,
-  HREF VARCHAR(2000) NOT NULL,
-  PRIMARY KEY (ID)
+  id NUMBER(20) NOT NULL GENERATED ALWAYS AS IDENTITY,
+  local_table_id NUMBER(20) NOT NULL,
+  rel VARCHAR(255) NOT NULL,
+  href VARCHAR(2000) NOT NULL,
+  PRIMARY KEY (id)
 );
 
 -- ===========================================================================
 -- Inserting dummy data
 -- ===========================================================================
 
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (1, 'MoveObject');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (2, 'MovePlace');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (3, 'EnvRequirement');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (4, 'Control');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (5, 'Observation');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (1, 'MoveObject');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (2, 'MovePlace');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (3, 'EnvRequirement');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (4, 'Control');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (5, 'Observation');
 
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (6, 'ControlAlcohol');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (7, 'ControlCleaning');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (8, 'ControlGas');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (9, 'ControlHypoxicAir');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (10, 'ControlLightingCondition');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (11, 'ControlMold');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (12, 'ControlPest');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (13, 'ControlRelativeHumidity');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (14, 'ControlTemperature');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (6, 'ControlAlcohol');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (7, 'ControlCleaning');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (8, 'ControlGas');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (9, 'ControlHypoxicAir');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (10, 'ControlLightingCondition');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (11, 'ControlMold');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (12, 'ControlPest');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (13, 'ControlRelativeHumidity');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (14, 'ControlTemperature');
 
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (15, 'ObservationAlcohol');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (16, 'ObservationCleaning');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (17, 'ObservationFireProtection');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (18, 'ObservationGas');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (19, 'ObservationHypoxicAir');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (20, 'ObservationLightingCondition');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (21, 'ObservationMold');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (22, 'ObservationPerimeterSecurity');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (23, 'ObservationRelativeHumidity');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (24, 'ObservationPest');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (25, 'ObservationTemperature');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (26, 'ObservationTheftProtection');
-INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,Name) VALUES (27, 'ObservationWaterDamageAssessment');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (15, 'ObservationAlcohol');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (16, 'ObservationCleaning');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (17, 'ObservationFireProtection');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (18, 'ObservationGas');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (19, 'ObservationHypoxicAir');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (20, 'ObservationLightingCondition');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (21, 'ObservationMold');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (22, 'ObservationPerimeterSecurity');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (23, 'ObservationRelativeHumidity');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (24, 'ObservationPest');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (25, 'ObservationTemperature');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (26, 'ObservationTheftProtection');
+INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (27, 'ObservationWaterDamageAssessment');
 
-INSERT INTO MUSARK_STORAGE.ACTOR_ROLE (ID, NAME, DESCRIPTION)
+INSERT INTO MUSARK_STORAGE.ACTOR_ROLE (id, name, description)
 VALUES (1, 'DoneBy', 'The actor who has executed/done the event');
 
-INSERT INTO MUSARK_STORAGE.OBJECT_ROLE (ID, NAME, DESCRIPTION)
+INSERT INTO MUSARK_STORAGE.OBJECT_ROLE (id, name, description)
 VALUES (1, 'DoneWith', 'The object who was done something with in a spesific event');
 
-INSERT INTO MUSARK_STORAGE.PLACE_ROLE (ID, NAME, DESCRIPTION)
+INSERT INTO MUSARK_STORAGE.PLACE_ROLE (id, name, description)
 VALUES (1, 'DoneWith', 'The storagenode who was done something with in a spesific event');
 
 

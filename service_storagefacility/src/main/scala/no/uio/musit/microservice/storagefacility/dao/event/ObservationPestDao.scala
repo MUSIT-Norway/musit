@@ -28,9 +28,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-/**
- * Created by jstabel on 7/8/16.
- */
+
 @Singleton
 class ObservationPestDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
@@ -71,7 +69,7 @@ class ObservationPestDao @Inject() (
 
     val eventId = column[Option[Long]]("EVENT_ID")
     val stage = column[Option[String]]("STAGE")
-    val number = column[Option[Int]]("NUMBER")
+    val number = column[Option[Int]]("NUM")
 
     def create =
       (eventId: Option[Long], stage: Option[String], number: Option[Int]) =>

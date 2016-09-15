@@ -19,10 +19,10 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, RoomDao, StorageUnitDao }
+import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ StorageNodeDto, StorageUnitDto }
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -32,9 +32,10 @@ import scala.concurrent.Future
  * TODO: Document me!!!
  */
 class StorageNodeService @Inject() (
-    storageUnitDao: StorageUnitDao,
-    roomDao: RoomDao,
-    buildingDao: BuildingDao
+    val storageUnitDao: StorageUnitDao,
+    val roomDao: RoomDao,
+    val buildingDao: BuildingDao,
+    val organisationDao: OrganisationDao
 ) {
 
   val logger = Logger(classOf[StorageNodeService])
@@ -61,7 +62,14 @@ class StorageNodeService @Inject() (
   }
 
   /**
-   * TODO: Document me! + id: Long should be id: StorageNodeId
+   * TODO: Document me!!!
+   */
+  def addOrganisation(organisation: Organisation): Future[Organisation] = {
+    organisationDao.insert(organisation)
+  }
+
+  /**
+   * TODO: Document me!
    */
   def updateStorageUnit(
     id: StorageNodeId,
@@ -73,20 +81,30 @@ class StorageNodeService @Inject() (
   }
 
   /**
-   * TODO: Document me!!! + id: Long should be id: StorageNodeId
+   * TODO: Document me!!!
    */
   def updateRoom(id: StorageNodeId, room: Room): Future[MusitResult[Option[Room]]] = {
     roomDao.update(id, room).map(MusitSuccess.apply)
   }
 
   /**
-   * TODO: Document me!!! + id: Long should be id: StorageNodeId
+   * TODO: Document me!!!
    */
   def updateBuilding(
     id: StorageNodeId,
     building: Building
   ): Future[MusitResult[Option[Building]]] = {
     buildingDao.update(id, building).map(MusitSuccess.apply)
+  }
+
+  /**
+   * TODO: Document me!!!
+   */
+  def updateOrganisation(
+    id: StorageNodeId,
+    organisation: Organisation
+  ): Future[MusitResult[Option[Organisation]]] = {
+    organisationDao.update(id, organisation).map(MusitSuccess.apply)
   }
 
   /**
@@ -98,21 +116,28 @@ class StorageNodeService @Inject() (
     storageUnitDao.getById(id).map(maybeRes => MusitSuccess(maybeRes))
 
   /**
-   * TODO: Document me!!! + id: Long should be id: StorageNodeId
+   * TODO: Document me!!!
    */
   def getRoomById(id: StorageNodeId): Future[MusitResult[Option[Room]]] = {
     roomDao.getById(id).map(MusitSuccess.apply)
   }
 
   /**
-   * TODO: Document me!!! + id: Long should be id: StorageNodeId
+   * TODO: Document me!!!
    */
   def getBuildingById(id: StorageNodeId): Future[MusitResult[Option[Building]]] = {
     buildingDao.getById(id).map(MusitSuccess.apply)
   }
 
   /**
-   * TODO: Document me! + id: Long should be id: StorageNodeId
+   * TODO: Document me!!!
+   */
+  def getOrganisationById(id: StorageNodeId): Future[MusitResult[Option[Organisation]]] = {
+    organisationDao.getById(id).map(MusitSuccess.apply)
+  }
+
+  /**
+   * TODO: Document me!
    */
   def getNodeById(
     id: StorageNodeId
@@ -131,6 +156,9 @@ class StorageNodeService @Inject() (
           case StorageType.Room =>
             getRoomById(id)
 
+          case StorageType.Organisation =>
+            getOrganisationById(id)
+
         }
       }.getOrElse(Future.successful(MusitSuccess[Option[StorageNode]](None)))
     }
@@ -138,21 +166,21 @@ class StorageNodeService @Inject() (
   }
 
   /**
-   * TODO: Document me! + id: Long should be id: StorageNodeId
+   * TODO: Document me!
    */
   def getChildren(id: StorageNodeId): Future[Seq[StorageNode]] = {
     storageUnitDao.getChildren(id).map(_.map(StorageNodeDto.toStorageNode))
   }
 
   /**
-   * TODO: Document me! + id: Long should be id: StorageNodeId
+   * TODO: Document me!
    */
   def getStorageType(id: StorageNodeId): Future[MusitResult[Option[StorageType]]] = {
     storageUnitDao.getStorageType(id)
   }
 
   /**
-   * TODO: Document me! + id: Long should be id: StorageNodeId
+   * TODO: Document me!
    */
   def verifyStorageTypeMatchesDatabase(
     id: StorageNodeId,

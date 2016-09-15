@@ -32,4 +32,6 @@ object StorageType extends Enum[StorageType] with PlayJsonEnum[StorageType] {
 
   case object Building extends StorageType
 
+  case object Organisation extends StorageType
+
 }

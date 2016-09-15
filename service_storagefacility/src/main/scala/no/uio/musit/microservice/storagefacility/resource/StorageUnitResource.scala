@@ -45,6 +45,7 @@ final class StorageUnitResource @Inject() (
           case su: StorageUnit => storageUnitService.addStorageUnit(su)
           case b: Building => storageUnitService.addBuilding(b)
           case r: Room => storageUnitService.addRoom(r)
+          case o: Organisation => storageUnitService.addOrganisation(o)
         }
         futureNode.map(node => Created(Json.toJson(node)))
 
@@ -89,6 +90,7 @@ final class StorageUnitResource @Inject() (
           case su: StorageUnit => storageUnitService.updateStorageUnit(id, su)
           case b: Building => storageUnitService.updateBuilding(id, b)
           case r: Room => storageUnitService.updateRoom(id, r)
+          case o: Organisation => storageUnitService.updateOrganisation(id, o)
         }
 
         futureRes.map { musitRes =>

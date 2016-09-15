@@ -2,8 +2,6 @@ package no.uio.musit.microservice.storagefacility.domain.storage.dto
 
 import no.uio.musit.microservice.storagefacility.domain.storage._
 
-//import no.uio.musit.microservices.common.linking.domain.Link
-
 sealed trait StorageNodeDto
 
 sealed trait SpecializedStorageNode
@@ -11,14 +9,13 @@ sealed trait SpecializedStorageNode
 case class StorageUnitDto(
   id: Option[StorageNodeId],
   name: String,
-  area: Option[Long],
-  areaTo: Option[Long],
+  area: Option[Double],
+  areaTo: Option[Double],
   isPartOf: Option[StorageNodeId],
-  height: Option[Long],
-  heightTo: Option[Long],
+  height: Option[Double],
+  heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  //  links: Option[Seq[Link]],
   isDeleted: Option[Boolean],
   storageType: StorageType
 ) extends StorageNodeDto
@@ -29,6 +26,11 @@ case class ExtendedStorageNode[T <: SpecializedStorageNode](
 ) extends StorageNodeDto
 
 case class BuildingDto(
+  id: Option[StorageNodeId],
+  address: Option[String]
+) extends SpecializedStorageNode
+
+case class OrganisationDto(
   id: Option[StorageNodeId],
   address: Option[String]
 ) extends SpecializedStorageNode
@@ -66,6 +68,11 @@ object StorageNodeDto {
             toRoom(
               ExtendedStorageNode[RoomDto](ext.storageUnitDto, roomExt)
             )
+
+          case orgExt: OrganisationDto =>
+            toOrganisation(
+              ExtendedStorageNode[OrganisationDto](ext.storageUnitDto, orgExt)
+            )
         }
     }
 
@@ -87,7 +94,6 @@ object StorageNodeDto {
       isPartOf = su.isPartOf,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite
-    //          links = stu.links
     )
 
   def toBuilding(ext: ExtendedStorageNode[BuildingDto]): Building = {
@@ -101,7 +107,21 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      //          links = ex.storageUnitDto.links,
+      address = ext.extension.address
+    )
+  }
+
+  def toOrganisation(ext: ExtendedStorageNode[OrganisationDto]): Organisation = {
+    Organisation(
+      id = ext.extension.id,
+      name = ext.storageUnitDto.name,
+      area = ext.storageUnitDto.area,
+      areaTo = ext.storageUnitDto.areaTo,
+      height = ext.storageUnitDto.height,
+      heightTo = ext.storageUnitDto.heightTo,
+      isPartOf = ext.storageUnitDto.isPartOf,
+      groupRead = ext.storageUnitDto.groupRead,
+      groupWrite = ext.storageUnitDto.groupWrite,
       address = ext.extension.address
     )
   }
@@ -117,7 +137,6 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      //          links = su.links,
       sikringSkallsikring = ext.extension.sikringSkallsikring,
       sikringBrannsikring = ext.extension.sikringBrannsikring,
       sikringTyverisikring = ext.extension.sikringTyverisikring,
@@ -162,6 +181,27 @@ object StorageNodeDto {
       extension = BuildingDto(
         id = b.id,
         address = b.address
+      )
+    )
+
+  def fromOrganisation(o: Organisation): ExtendedStorageNode[OrganisationDto] =
+    ExtendedStorageNode(
+      storageUnitDto = StorageUnitDto(
+        id = o.id,
+        name = o.name,
+        area = o.area,
+        areaTo = o.areaTo,
+        isPartOf = o.isPartOf,
+        height = o.height,
+        heightTo = o.heightTo,
+        groupRead = o.groupRead,
+        groupWrite = o.groupWrite,
+        isDeleted = Some(false),
+        storageType = o.storageType
+      ),
+      extension = OrganisationDto(
+        id = o.id,
+        address = o.address
       )
     )
 

@@ -55,11 +55,11 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val id = column[StorageNodeId]("STORAGE_UNIT_ID", O.PrimaryKey, O.AutoInc)
     val storageType = column[StorageType]("STORAGE_TYPE")
     val storageUnitName = column[String]("STORAGE_UNIT_NAME")
-    val area = column[Option[Long]]("AREA")
-    val areaTo = column[Option[Long]]("AREA_TO")
+    val area = column[Option[Double]]("AREA")
+    val areaTo = column[Option[Double]]("AREA_TO")
     val isPartOf = column[Option[StorageNodeId]]("IS_PART_OF")
-    val height = column[Option[Long]]("HEIGHT")
-    val heightTo = column[Option[Long]]("HEIGHT_TO")
+    val height = column[Option[Double]]("HEIGHT")
+    val heightTo = column[Option[Double]]("HEIGHT_TO")
     val groupRead = column[Option[String]]("GROUP_READ")
     val groupWrite = column[Option[String]]("GROUP_WRITE")
     val isDeleted = column[Boolean]("IS_DELETED")
@@ -68,11 +68,11 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       id: Option[StorageNodeId],
       storageType: StorageType,
       storageUnitName: String,
-      area: Option[Long],
-      areaTo: Option[Long],
+      area: Option[Double],
+      areaTo: Option[Double],
       isPartOf: Option[StorageNodeId],
-      height: Option[Long],
-      heightTo: Option[Long],
+      height: Option[Double],
+      heightTo: Option[Double],
       groupRead: Option[String],
       groupWrite: Option[String],
       isDeleted: Boolean

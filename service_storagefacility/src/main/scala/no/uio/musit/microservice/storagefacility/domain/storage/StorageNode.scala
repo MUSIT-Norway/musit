@@ -27,28 +27,26 @@ import play.api.libs.json.{ OFormat, __ }
 sealed trait StorageNode {
   val id: Option[StorageNodeId]
   val name: String
-  val area: Option[Long]
-  val areaTo: Option[Long]
+  val area: Option[Double]
+  val areaTo: Option[Double]
   val isPartOf: Option[StorageNodeId]
-  val height: Option[Long]
-  val heightTo: Option[Long]
+  val height: Option[Double]
+  val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
-  //  val links: Option[Seq[Link]]
   val storageType: StorageType
 }
 
 case class StorageUnit(
     id: Option[StorageNodeId],
     name: String,
-    area: Option[Long],
-    areaTo: Option[Long],
+    area: Option[Double],
+    areaTo: Option[Double],
     isPartOf: Option[StorageNodeId],
-    height: Option[Long],
-    heightTo: Option[Long],
+    height: Option[Double],
+    heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String]
-//    links: Option[Seq[Link]]
 ) extends StorageNode {
   val storageType = StorageType.StorageUnit
 }
@@ -58,14 +56,13 @@ object StorageUnit
 case class Room(
     id: Option[StorageNodeId],
     name: String,
-    area: Option[Long],
-    areaTo: Option[Long],
+    area: Option[Double],
+    areaTo: Option[Double],
     isPartOf: Option[StorageNodeId],
-    height: Option[Long],
-    heightTo: Option[Long],
+    height: Option[Double],
+    heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
-    //    links: Option[Seq[Link]],
     sikringSkallsikring: Option[Boolean],
     sikringTyverisikring: Option[Boolean],
     sikringBrannsikring: Option[Boolean],
@@ -81,22 +78,35 @@ case class Room(
 case class Building(
     id: Option[StorageNodeId],
     name: String,
-    area: Option[Long],
-    areaTo: Option[Long],
+    area: Option[Double],
+    areaTo: Option[Double],
     isPartOf: Option[StorageNodeId],
-    height: Option[Long],
-    heightTo: Option[Long],
+    height: Option[Double],
+    heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
-    //    links: Option[Seq[Link]],
     address: Option[String]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.Building
 }
 
+case class Organisation(
+    id: Option[StorageNodeId],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    isPartOf: Option[StorageNodeId],
+    height: Option[Double],
+    heightTo: Option[Double],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    address: Option[String]
+) extends StorageNode {
+  val storageType: StorageType = StorageType.Organisation
+}
+
 object StorageNode {
 
-  implicit lazy val format: OFormat[StorageNode] = derived.flat.oformat((__ \ "type").format[String])
-  //  def linkText(id: Option[Long]) =
-  //    Some(Seq(LinkService.self(s"/v1/${id.get}")))
+  implicit lazy val format: OFormat[StorageNode] =
+    derived.flat.oformat((__ \ "type").format[String])
 }

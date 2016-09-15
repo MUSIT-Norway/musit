@@ -3,20 +3,20 @@
 # ~~~~
 
 # StorageNode endpoints
-GET           /v1/storagenodes/:nodeId                          no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getById(nodeId: Long)
-GET           /v1/storagenodes/:nodeId/children                 no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getChildren(nodeId: Long)
-POST          /v1/storagenodes                                  no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.add
-PUT           /v1/storagenodes/:nodeId                          no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.update(nodeId: Long)
-DELETE        /v1/storagenodes/:nodeId                          no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.delete(nodeId: Long)
+GET           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getById(nodeId: Long)
+GET           /v1/storagenodes/:nodeId/children                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getChildren(nodeId: Long)
+POST          /v1/storagenodes                                      no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.add
+PUT           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.update(nodeId: Long)
+DELETE        /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.delete(nodeId: Long)
 
 # Controls
-POST          /v1/storagenodes/:nodeId/controls                 no.uio.musit.microservice.storagefacility.resource.EventResource.addControl(nodeId: Long)
-GET           /v1/storagenodes/:nodeId/controls                 no.uio.musit.microservice.storagefacility.resource.EventResource.listControls(nodeId: Long)
-GET           /v1/storagenodes/:nodeId/controls/:eventId        no.uio.musit.microservice.storagefacility.resource.EventResource.getControl(nodeId: Long, eventId: Long)
+POST          /v1/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.addControl(nodeId: Long)
+GET           /v1/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.listControls(nodeId: Long)
+GET           /v1/storagenodes/:nodeId/controls/:eventId            no.uio.musit.microservice.storagefacility.resource.EventResource.getControl(nodeId: Long, eventId: Long)
 
 # Observations
-#POST          /v1/storagenode/:nodeId/observations    no.uio.musit.microservice.storagefacility.resource.EventResource.addObservation(nodeId: Long)
-#GET           /v1/storagenodes/:nodeId/observations:/eventId    no.uio.musit.microservice.storagefacility.resource.EventResource.getObservation(nodeId: Long, eventId: Long)
+POST          /v1/storagenode/:nodeId/observations                  no.uio.musit.microservice.storagefacility.resource.EventResource.addObservation(nodeId: Long)
+GET           /v1/storagenodes/:nodeId/observations/:eventId        no.uio.musit.microservice.storagefacility.resource.EventResource.getObservation(nodeId: Long, eventId: Long)
 
 # General endpoints
 # GET         /v1/storagenodes/:nodeId/events         no.uio.musit.microservice.storagefacility.resource.EventResource.listEventsForNode(nodeId: Long)
