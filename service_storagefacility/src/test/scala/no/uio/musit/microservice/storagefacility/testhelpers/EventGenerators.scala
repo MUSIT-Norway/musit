@@ -20,10 +20,9 @@
 package no.uio.musit.microservice.storagefacility.testhelpers
 
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ControlSubEvents.{ CtrlAlcoholType, CtrlCleaningType, CtrlPestType, CtrlTemperatureType }
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents.{ ObsAlcoholType, ObsCleaningType, ObsPestType, ObsTemperatureType }
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ ControlEventType, EnvRequirementEventType, ObservationEventType }
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ControlSubEvents._
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents._
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
@@ -33,15 +32,11 @@ import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval, LifeCycle }
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
-import play.api.Application
 
 trait EventGenerators {
   self: MusitSpecWithApp =>
 
-  def eventDao: EventDao = {
-    val instance = Application.instanceCache[EventDao]
-    instance(musitFakeApp)
-  }
+  def eventDao: EventDao = fromInstanceCache[EventDao]
 
   val registeredByName = "Darth Vader"
   val defaultActorRole = ActorRole(1, 12)

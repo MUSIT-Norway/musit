@@ -1,28 +1,38 @@
-import dao.ObjectAggregationDao
-import models.MusitResults.MusitSuccess
-import models.{ MuseumIdentifier, ObjectId }
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.{ Application, Logger }
-import testHelpers.TestConfigs
+/*
+ * MUSIT is a museum database to archive natural and cultural history data.
+ * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License,
+ * or any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-class ObjectAggregationDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
+package dao
+
+import models.MusitResults.MusitSuccess
+import models.{MuseumIdentifier, ObjectId}
+import no.uio.musit.test.MusitSpecWithAppPerSuite
+import org.scalatest.time.{Millis, Seconds, Span}
+import play.api.Logger
+
+class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
 
-  implicit override lazy val app = new GuiceApplicationBuilder()
-    .configure(TestConfigs.inMemoryDatabaseConfig())
-    .build()
-
-  val dao: ObjectAggregationDao = {
-    val instance = Application.instanceCache[ObjectAggregationDao]
-    instance(app)
-  }
+  val dao: ObjectAggregationDao = fromInstanceCache[ObjectAggregationDao]
 
   "Interacting with the ObjectAggregationDao" when {
 

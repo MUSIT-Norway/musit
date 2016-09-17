@@ -87,7 +87,6 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         heightTo = heightTo,
         groupRead = groupRead,
         groupWrite = groupWrite,
-        //        links = Storage.linkText(id),
         isDeleted = Option(isDeleted),
         storageType = storageType
       )

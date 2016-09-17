@@ -20,9 +20,9 @@
 package no.uio.musit.microservice.storagefacility.domain.storage
 
 import julienrf.json.derived
-//import no.uio.musit.microservices.common.linking.LinkService
-//import no.uio.musit.microservices.common.linking.domain.Link
-import play.api.libs.json.{ OFormat, __ }
+import play.api.libs.json.{ OWrites, Reads, __ }
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
 
 sealed trait StorageNode {
   val id: Option[StorageNodeId]
@@ -48,7 +48,7 @@ case class StorageUnit(
     groupRead: Option[String],
     groupWrite: Option[String]
 ) extends StorageNode {
-  val storageType = StorageType.StorageUnit
+  val storageType = StorageType.StorageUnitType
 }
 
 object StorageUnit
@@ -72,7 +72,7 @@ case class Room(
     bevarLysforhold: Option[Boolean],
     bevarPrevantKons: Option[Boolean]
 ) extends StorageNode {
-  val storageType: StorageType = StorageType.Room
+  val storageType: StorageType = StorageType.RoomType
 }
 
 case class Building(
@@ -87,7 +87,7 @@ case class Building(
     groupWrite: Option[String],
     address: Option[String]
 ) extends StorageNode {
-  val storageType: StorageType = StorageType.Building
+  val storageType: StorageType = StorageType.BuildingType
 }
 
 case class Organisation(
@@ -102,11 +102,34 @@ case class Organisation(
     groupWrite: Option[String],
     address: Option[String]
 ) extends StorageNode {
-  val storageType: StorageType = StorageType.Organisation
+  val storageType: StorageType = StorageType.OrganisationType
 }
 
 object StorageNode {
 
-  implicit lazy val format: OFormat[StorageNode] =
-    derived.flat.oformat((__ \ "type").format[String])
+  /*
+    ============================================================================
+    ¡¡¡¡¡IMPORTANT!!!!!:
+    ============================================================================
+    There's a significant caveat with using the derived JSON codec. And it is
+    that refactoring the name of _any_ of the types in the ADT will change the
+    API of any services that use them. In other words; it is a non-backwards
+    compatible change. Because the _value_ of the "type" attribute needs to be
+    constant for each type.
+    ============================================================================
+   */
+
+  private[this] val constrainedNameRead: Reads[String] =
+    (__ \ "name").read[String](maxLength[String](500))
+
+  private[this] val constrainedAddressRead: Reads[Option[String]] =
+    (__ \ "address").readNullable(maxLength[String](500))
+
+  implicit lazy val writes: OWrites[StorageNode] =
+    derived.flat.owrites[StorageNode]((__ \ "type").write[String])
+
+  implicit lazy val reads: Reads[StorageNode] = {
+    constrainedNameRead andKeep constrainedAddressRead andKeep
+      derived.flat.reads[StorageNode]((__ \ "type").read[String])
+  }
 }

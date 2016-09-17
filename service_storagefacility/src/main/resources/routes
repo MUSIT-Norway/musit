@@ -3,11 +3,11 @@
 # ~~~~
 
 # StorageNode endpoints
-GET           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getById(nodeId: Long)
-GET           /v1/storagenodes/:nodeId/children                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getChildren(nodeId: Long)
 POST          /v1/storagenodes                                      no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.add
+GET           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getById(nodeId: Long)
 PUT           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.update(nodeId: Long)
 DELETE        /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.delete(nodeId: Long)
+GET           /v1/storagenodes/:nodeId/children                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getChildren(nodeId: Long)
 
 # Controls
 POST          /v1/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.addControl(nodeId: Long)

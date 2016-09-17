@@ -28,6 +28,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 /**
  * TODO: Document me!!!
@@ -118,15 +119,28 @@ class StorageUnitDao @Inject() (
    */
   def update(
     id: StorageNodeId,
-    storageUnit: StorageUnitDto
+    storageUnit: StorageUnit
   ): Future[Option[StorageUnit]] = {
-    db.run(updateAction(id, storageUnit)).flatMap {
-      case res: Int if res > 1 || res < 0 =>
-        logger.warn("Wrong amount of rows updated")
-        Future.successful(None)
+    val dto = StorageNodeDto.fromStorageUnit(storageUnit)
+    db.run(updateAction(id, dto)).flatMap {
+      case res: Int if res == 1 =>
+        getById(id)
 
       case res: Int =>
-        getById(id)
+        logger.warn(s"Wrong amount of rows ($res) updated")
+        Future.successful(None)
+    }
+  }
+
+  def nodeExists(id: StorageNodeId): Future[MusitResult[Boolean]] = {
+    val query = storageUnitTable.filter { su =>
+      su.id === id && su.isDeleted === false
+    }.exists.result
+
+    db.run(query).map(found => MusitSuccess(found)).recover {
+      case NonFatal(ex) =>
+        logger.error("Non fatal exception when checking for node existance", ex)
+        MusitDbError("Checking if node exists caused an exception", Option(ex))
     }
   }
 
@@ -134,18 +148,18 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def markAsDeleted(id: StorageNodeId): Future[MusitResult[Int]] = {
-    db.run(
-      (for {
-        su <- storageUnitTable if su.id === id && su.isDeleted === false
-      } yield su.isDeleted).update(true)
-    ).map { res =>
-        if (res == 0) MusitSuccess(res)
-        else MusitValidationError(
-          message = "Unexpected result marking storagenode as deleted",
-          expected = 0,
-          actual = res
-        )
-      }
+    val query = storageUnitTable.filter { su =>
+      su.id === id && su.isDeleted === false
+    }.map(_.isDeleted).update(true)
+
+    db.run(query).map { res =>
+      if (res == 1) MusitSuccess(res)
+      else MusitValidationError(
+        message = "Unexpected result marking storage node as deleted",
+        expected = 1,
+        actual = res
+      )
+    }
   }
 
 }

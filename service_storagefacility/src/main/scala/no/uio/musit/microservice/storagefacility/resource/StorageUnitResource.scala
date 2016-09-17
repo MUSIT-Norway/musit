@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.domain.MusitResults.{ MusitError, MusitResult, MusitSuccess, MusitValidationError }
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -34,6 +35,8 @@ import scala.concurrent.Future
 final class StorageUnitResource @Inject() (
     storageUnitService: StorageNodeService
 ) extends Controller {
+
+  val logger = Logger(classOf[StorageUnitResource])
 
   /**
    * TODO: Document me!
@@ -98,6 +101,7 @@ final class StorageUnitResource @Inject() (
           musitRes.map {
             case Some(updated) => Ok(Json.toJson(updated))
             case None => NotFound
+
           }.getOrElse {
             InternalServerError(
               Json.obj(
@@ -130,6 +134,8 @@ final class StorageUnitResource @Inject() (
         }
 
       case err: MusitError[_] =>
+        logger.error("An unexpected error occured when trying to delete a node " +
+          s"with ID $id. Message was: ${err.message}")
         InternalServerError(Json.obj("message" -> err.message))
     }
   }

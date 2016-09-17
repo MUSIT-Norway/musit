@@ -21,17 +21,45 @@ package no.uio.musit.microservice.storagefacility.domain.storage
 
 import enumeratum.{ Enum, EnumEntry, PlayJsonEnum }
 
-sealed trait StorageType extends EnumEntry
+sealed trait StorageType extends EnumEntry {
 
+  /**
+   * To ensure that it is _safe_ to refactor the Enum entries, we specify a
+   * property that will specify the name of a specific implementation.
+   * This value will then be used to override the `entryName` attribute.
+   *
+   * We are still relying on stringly based typing to disambiguate the different
+   * storage types, but we can be a bit more confident the stability of the
+   * entryName value.
+   */
+  protected val storageTypeName: String
+
+  // This is lazily initialised to avoid being assigned the dreaded "null"
+  override lazy val entryName: String = storageTypeName
+}
+
+/**
+ * ¡IMPORTANT! Changing the name of the Enum entries will alter the service API!
+ *
+ * Do not change without notifying and consolidating with API consumers!
+ */
 object StorageType extends Enum[StorageType] with PlayJsonEnum[StorageType] {
   val values = findValues
 
-  case object StorageUnit extends StorageType
+  case object StorageUnitType extends StorageType {
+    override val storageTypeName: String = "StorageUnit"
+  }
 
-  case object Room extends StorageType
+  case object RoomType extends StorageType {
+    override val storageTypeName: String = "Room"
+  }
 
-  case object Building extends StorageType
+  case object BuildingType extends StorageType {
+    override val storageTypeName: String = "Building"
+  }
 
-  case object Organisation extends StorageType
+  case object OrganisationType extends StorageType {
+    override val storageTypeName: String = "Organization"
+  }
 
 }

@@ -31,6 +31,11 @@ trait MusitSpecWithApp extends MusitSpec with MusitFakeApplication {
   // application per test.
   var musitFakeApp = createApplication
 
+  def fromInstanceCache[T](implicit manifest: Manifest[T]): T = {
+    val instance = Application.instanceCache[T]
+    instance(musitFakeApp)
+  }
+
 }
 
 trait MusitSpecWithAppPerTest extends MusitSpecWithApp with OneAppPerTest {

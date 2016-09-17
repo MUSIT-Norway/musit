@@ -75,9 +75,7 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     storageUnit: StorageUnit
   ): Future[MusitResult[Option[StorageUnit]]] = {
-    storageUnitDao.update(
-      id, StorageNodeDto.fromStorageUnit(storageUnit)
-    ).map(MusitSuccess.apply)
+    storageUnitDao.update(id, storageUnit).map(MusitSuccess.apply)
   }
 
   /**
@@ -145,18 +143,18 @@ class StorageNodeService @Inject() (
     storageUnitDao.getNodeById(id).flatMap { maybeNode =>
       maybeNode.map { node =>
         node.storageType match {
-          case StorageType.StorageUnit =>
+          case StorageType.StorageUnitType =>
             Future.successful {
               MusitSuccess(Option(StorageNodeDto.toStorageUnit(node)))
             }
 
-          case StorageType.Building =>
+          case StorageType.BuildingType =>
             getBuildingById(id)
 
-          case StorageType.Room =>
+          case StorageType.RoomType =>
             getRoomById(id)
 
-          case StorageType.Organisation =>
+          case StorageType.OrganisationType =>
             getOrganisationById(id)
 
         }
@@ -230,6 +228,10 @@ class StorageNodeService @Inject() (
    * TODO: Document me! + id: Long should be id: StorageNodeId
    */
   def deleteNode(id: StorageNodeId): Future[MusitResult[Int]] = {
-    storageUnitDao.markAsDeleted(id)
+    storageUnitDao.nodeExists(id).flatMap {
+      case MusitSuccess(exists) =>
+        if (exists) storageUnitDao.markAsDeleted(id)
+        else Future.successful(MusitSuccess(0))
+    }
   }
 }

@@ -86,6 +86,17 @@ lazy val common_test = (
     settings(scoverageSettings: _*)
   )
 
+lazy val musit_test = (
+  BaseProject("musit-test")
+    settings noPublish
+    settings(
+      libraryDependencies ++= Seq[ModuleID](
+        scalatestSpec,
+        scalatestplusSpec
+      ) ++ playDependencies
+    )
+  )
+
 lazy val security = (
   BaseProject("security")
     settings noPublish
@@ -124,7 +135,7 @@ lazy val service_thing_aggregate = (
     settings(baseDockerSettings ++ Seq(
       packageName in Docker := "musit_service_thing_aggregate"
     ))
-  )
+  ) dependsOn(musit_test % "it,test")
 
 lazy val service_actor = (
   PlayProject("service_actor")
@@ -178,7 +189,7 @@ lazy val service_storagefacility = (
   settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_storagefacility"
   ))
-)
+) dependsOn(musit_test % "it,test")
 
 
 lazy val service_event = (
