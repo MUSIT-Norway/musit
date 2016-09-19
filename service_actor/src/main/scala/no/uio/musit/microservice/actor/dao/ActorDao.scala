@@ -53,6 +53,10 @@ class ActorDao @Inject() (
     db.run(ActorTable.filter(_.fn like s"%$searchString%").result)
   }
 
+  def getPersonLegacyByNameCaseInsensitive(searchString: String): Future[Seq[Person]] = {
+    db.run(ActorTable.filter(_.fn.toUpperCase like s"%${searchString.toUpperCase}%").result)
+  }
+
   def getPersonByDataportenId(dataportenId: String): Future[Option[Person]] = {
     db.run(ActorTable.filter(_.dataportenId === dataportenId).result.headOption)
   }
