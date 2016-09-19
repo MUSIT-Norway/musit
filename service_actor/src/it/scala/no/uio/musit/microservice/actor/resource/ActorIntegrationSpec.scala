@@ -7,7 +7,7 @@ import no.uio.musit.security.FakeSecurity
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSRequest
 import no.uio.musit.microservices.common.extensions.PlayExtensions.WSRequestImp
 
@@ -169,6 +169,35 @@ class ActorIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFut
         val persons = Json.parse(response.body).validate[Seq[Person]].get
         persons.length mustBe 1
         persons.head.fn mustBe "And, Arne1"
+      }
+    }
+    "get root" in {
+      val future = wsUrl("/v1/person").get()
+      whenReady(future, timeout) { response =>
+        val persons = Json.parse(response.body).validate[Seq[Person]].get
+        persons.length mustBe 2
+      }
+    }
+    "get person details" in {
+      val reqBody: JsValue = Json.parse("[1,2]")
+      val future = wsUrl("/v1/person/details").post(reqBody)
+      whenReady(future, timeout) { response =>
+        val persons = Json.parse(response.body).validate[Seq[Person]].get
+        persons.length mustBe 2
+        val person1 = persons(0)
+        person1.fn mustBe "And, Arne1"
+        val person2 = persons(1)
+        person2.fn mustBe "Kanin, Kalle1"
+      }
+    }
+    "get person details with extra ids" in {
+      val reqBody: JsValue = Json.parse("[1234567,2,9999]")
+      val future = wsUrl("/v1/person/details").post(reqBody)
+      whenReady(future, timeout) { response =>
+        val persons = Json.parse(response.body).validate[Seq[Person]].get
+        persons.length mustBe 1
+        val person0 = persons(0)
+        person0.fn mustBe "Kanin, Kalle1"
       }
     }
   }
