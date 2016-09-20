@@ -45,13 +45,16 @@ class StatsService @Inject()(
     }
   }
 
-  /** same as  recursiveMuseumObjectCount, but no verification that nodeId is an existing node */
+  /** same as  recursiveMuseumObjectCount, but no verification that nodeId is an existing node, we assume
+    *  that has already been done */
   private def directRecursiveMuseumObjectCount(nodeId: Long): Future[Int] = {
+    storageNodeDao.getRecursiveChildCount(nodeId)
+    /*#OLD
     for {
       countAtNode <- directMuseumObjectCount(nodeId)
       childIds <- storageNodeDao.getAllChildIds(nodeId)
       childCounts <- Future.sequence(childIds.map(childId => directRecursiveMuseumObjectCount(childId)))
-    } yield (countAtNode + childCounts.sum)
+    } yield (countAtNode + childCounts.sum) */
   }
 
   /** Same as subNodeCount, but no verification that nodeId is an existing node */

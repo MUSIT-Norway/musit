@@ -1,14 +1,13 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.domain.{ Building, Storage, StorageUnit }
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageNodeDTO, StorageType }
-import no.uio.musit.microservice.storageAdmin.domain.Storage
+import no.uio.musit.microservice.storageAdmin.domain.{Building, NodePath, Storage, StorageUnit}
+import no.uio.musit.microservice.storageAdmin.domain.dto.{StorageNodeDTO, StorageType}
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.jdbc.SQLActionBuilder
@@ -29,6 +28,12 @@ class StorageUnitDao @Inject() (
     storageType => storageType.toString,
     string => StorageType.fromString(string)
   )
+
+  implicit lazy val nodePathMapper =
+    MappedColumnType.base[NodePath, String](
+      nodePath => nodePath.serialize,
+      str => NodePath(str)
+    )
 
   private val StorageNodeTable = TableQuery[StorageNodeTable]
 
@@ -65,7 +70,27 @@ class StorageUnitDao @Inject() (
     db.run((getAllNonDeletedChildrenQuery(id).length).result)
   }
 
-  def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
+  /** Count of *all* children of this node and of all children of its subnodes, irrespective of access rights to the children.
+    * We assume the node exists */
+  def getRecursiveChildCount(nodeId: Long): Future[Int] = {
+    val futOptNode = this.getStorageNodeOnlyById(nodeId)
+    futOptNode.flatMap{
+      case Some(node) => getRecursiveChildCount(node)
+      case None => assert(false); Future.successful(0)
+    }
+  }
+
+  def getRecursiveChildCount(node: StorageNodeDTO): Future[Int] = {
+    val nodeFilter = node.parentPath.descendantsFilter
+    db.run(sql"""
+            SELECT count(*) FROM
+            MUSARK_STORAGE.STORAGE_NODE n, MUSARK_STORAGE.LOCAL_OBJECT o
+            WHERE n.PARENT_PATH LIKE $nodeFilter and o.current_location_id = n.ID""".as[Int].head)
+  }
+
+
+
+    def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
     val optSelf = getStorageNodeOnlyById(id)
     optSelf.flatMap {
       case None => Future.successful(Seq.empty)
@@ -212,7 +237,7 @@ class StorageUnitDao @Inject() (
   }
 
   private class StorageNodeTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
-    def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, height, heightTo, groupRead, groupWrite, latestMoveId, latestEnvReqId,
+    def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, parentPath, height, heightTo, groupRead, groupWrite, latestMoveId, latestEnvReqId,
       isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
@@ -226,6 +251,8 @@ class StorageUnitDao @Inject() (
     val areaTo = column[Option[Double]]("AREA_TO")
 
     val isPartOf = column[Option[Long]]("IS_PART_OF")
+
+    val parentPath = column[NodePath]("PARENT_PATH")
 
     val height = column[Option[Double]]("HEIGHT")
 
@@ -248,6 +275,7 @@ class StorageUnitDao @Inject() (
       area: Option[Double],
       areaTo: Option[Double],
       isPartOf: Option[Long],
+      parentPath: NodePath,
       height: Option[Double],
       heightTo: Option[Double],
       groupRead: Option[String],
@@ -257,20 +285,21 @@ class StorageUnitDao @Inject() (
       isDeleted: Boolean
     ) =>
       StorageNodeDTO(
-        id,
-        storageUnitName,
-        area,
-        areaTo,
-        isPartOf,
-        height,
-        heightTo,
-        groupRead,
-        groupWrite,
-        latestMoveId,
-        latestEnvReqId,
-        Storage.linkText(id),
-        isDeleted,
-        storageType
+        id = id,
+        name = storageUnitName,
+        area = area,
+        areaTo = areaTo,
+        height = height,
+        heightTo = heightTo,
+        isPartOf = isPartOf,
+        parentPath = parentPath,
+        groupRead = groupRead,
+        groupWrite = groupWrite,
+        latestMoveId = latestMoveId,
+        latestEnvReqId = latestEnvReqId,
+        links = Storage.linkText(id),
+        isDeleted = isDeleted,
+        storageType = storageType
       )
 
     def destroy(unit: StorageNodeDTO) =
@@ -281,6 +310,7 @@ class StorageUnitDao @Inject() (
         unit.area,
         unit.areaTo,
         unit.isPartOf,
+        unit.parentPath,
         unit.height,
         unit.heightTo,
         unit.groupRead,

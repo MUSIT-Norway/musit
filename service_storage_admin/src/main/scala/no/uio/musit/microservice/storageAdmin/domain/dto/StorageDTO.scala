@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain.dto
 
+import no.uio.musit.microservice.storageAdmin.domain.NodePath
 import no.uio.musit.microservices.common.linking.domain.Link
 
 /* We have three types of storage nodes:
@@ -11,6 +12,7 @@ StorageUnit
 The common properties are stored in the StorageNode table. StorageUnit has no extra properties, so no explicit table for StorageUnit.
 
  */
+
 
 sealed trait StorageDTO {
   val id: Option[Long]
@@ -39,14 +41,16 @@ case class RoomDTO(
   preventiveConservation: Option[Boolean]
 ) extends StorageDTO
 
+
 case class StorageNodeDTO(
   id: Option[Long],
   name: String,
   area: Option[Double],
   areaTo: Option[Double],
-  isPartOf: Option[Long],
   height: Option[Double],
   heightTo: Option[Double],
+  isPartOf: Option[Long],
+  parentPath: NodePath,
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],

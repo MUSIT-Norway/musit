@@ -71,9 +71,9 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
         val oldSize = storageUnitDao.all().futureValue.size
         val storageNode = storageUnitDao.insertStorageUnit(CompleteStorageUnitDto(StorageNodeDTO(None, "C2",
-          None, None, None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
+          None, None, None, None, None, parentPath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
         storageUnitDao.insertStorageUnit(CompleteStorageUnitDto(StorageNodeDTO(None, "C2",
-          None, None, None, None, None, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
+          None, None, None, None, None, parentPath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
         val result = storageUnitDao.all().futureValue
         result.size mustBe (2 + oldSize)
         storageUnitDao.setPartOf(1, 2).futureValue mustBe 1

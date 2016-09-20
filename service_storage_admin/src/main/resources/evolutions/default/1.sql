@@ -27,10 +27,11 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE(
  storage_node_name VARCHAR(512),
  area              FLOAT,
  area_to           FLOAT,
- is_storage_unit   VARCHAR(1) DEFAULT '1',
+ height            FLOAT,
+ height_to         FLOAT,
+ is_storage_unit   VARCHAR(1) DEFAULT '1', -- TODO: Remove, because it is redundant due to storage_type?
  is_part_of        INTEGER,
- height            INTEGER,
- height_to         INTEGER,
+ parent_path       VARCHAR(1000) not null, -- Comma separated list of ids of the ancestors for this node. Leftmost is the root node. "," for root nodes.
  is_deleted        integer not null default 0,
  storage_type      varchar(100) default 'storageunit',
  group_read        varchar(4000),
