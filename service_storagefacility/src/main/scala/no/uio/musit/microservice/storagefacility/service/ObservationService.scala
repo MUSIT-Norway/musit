@@ -24,7 +24,8 @@ import no.uio.musit.microservice.storagefacility.dao.event.EventDao
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.ObsConverters
+import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import no.uio.musit.microservice.storagefacility.domain.event.observation.Observation
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
@@ -39,14 +40,14 @@ class ObservationService @Inject() (val eventDao: EventDao) {
   /**
    * TODO: Document me!
    */
-  def add(obs: Observation, registeredBy: String): Future[MusitResult[Observation]] = {
-    val dto = DtoConverters.ObsConverters.observationToDto(obs)
+  def add(obs: Observation)(implicit currUsr: String): Future[MusitResult[Observation]] = {
+    val dto = ObsConverters.observationToDto(obs)
     eventDao.insertEvent(dto).flatMap { eventId =>
       eventDao.getEvent(eventId).map { res =>
         res.flatMap(_.map { dto =>
           // We know we have a BaseEventDto representing an Observation.
           val bdto = dto.asInstanceOf[BaseEventDto]
-          MusitSuccess(DtoConverters.ObsConverters.observationFromDto(bdto))
+          MusitSuccess(ObsConverters.observationFromDto(bdto))
         }.getOrElse {
           logger.error(
             s"An unexpected error occured when trying to fetch an " +
@@ -66,7 +67,7 @@ class ObservationService @Inject() (val eventDao: EventDao) {
       result.flatMap(_.map {
         case base: BaseEventDto =>
           MusitSuccess(
-            Option(DtoConverters.ObsConverters.observationFromDto(base))
+            Option(ObsConverters.observationFromDto(base))
           )
 
         case _ =>
@@ -85,7 +86,7 @@ class ObservationService @Inject() (val eventDao: EventDao) {
       MusitSuccess(dtos.map { dto =>
         // We know we have a BaseEventDto representing an Observation.
         val base = dto.asInstanceOf[BaseEventDto]
-        DtoConverters.ObsConverters.observationFromDto(base)
+        ObsConverters.observationFromDto(base)
       })
     }
   }

@@ -38,17 +38,29 @@ final class StorageUnitResource @Inject() (
 
   val logger = Logger(classOf[StorageUnitResource])
 
+  // TODO: Use user from an enriched request type in a proper SecureAction
+  import no.uio.musit.microservice.storagefacility.DummyData.DummyUser
+
   /**
    * TODO: Document me!
    */
   def add = Action.async(BodyParsers.parse.json) { request =>
+    // TODO: Extract current user information from enriched request.
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
         val futureNode = node match {
-          case su: StorageUnit => storageUnitService.addStorageUnit(su)
-          case b: Building => storageUnitService.addBuilding(b)
-          case r: Room => storageUnitService.addRoom(r)
-          case o: Organisation => storageUnitService.addOrganisation(o)
+          case su: StorageUnit =>
+            storageUnitService.addStorageUnit(su)
+
+          case b: Building =>
+            storageUnitService.addBuilding(b)
+
+          case r: Room =>
+            storageUnitService.addRoom(r)
+
+          case o: Organisation =>
+            storageUnitService.addOrganisation(o)
+
         }
         futureNode.map(node => Created(Json.toJson(node)))
 
@@ -61,7 +73,7 @@ final class StorageUnitResource @Inject() (
   /**
    * TODO: Document me!
    */
-  def getChildren(id: Long) = Action.async { implicit request =>
+  def children(id: Long) = Action.async { implicit request =>
     storageUnitService.getChildren(id).map(nodes => Ok(Json.toJson(nodes)))
   }
 
@@ -88,6 +100,7 @@ final class StorageUnitResource @Inject() (
    * TODO: Document me!
    */
   def update(id: Long) = Action.async(parse.json) { implicit request =>
+    // TODO: Extract current user information from enriched request.
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
         val futureRes: Future[MusitResult[Option[StorageNode]]] = node match {
@@ -122,7 +135,8 @@ final class StorageUnitResource @Inject() (
   /**
    * TODO: Document me!
    */
-  def delete(id: Long) = Action.async {
+  def delete(id: Long) = Action.async { implicit request =>
+    // TODO: Extract current user information from enriched request.
     storageUnitService.deleteNode(id).map {
       case MusitSuccess(numDeleted) =>
         if (numDeleted == 0) {

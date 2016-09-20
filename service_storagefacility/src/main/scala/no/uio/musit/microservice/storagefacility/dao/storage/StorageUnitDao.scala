@@ -44,19 +44,11 @@ class StorageUnitDao @Inject() (
 
   val logger = Logger(classOf[StorageUnitDao])
 
-  private val storageUnitTable = TableQuery[StorageNodeTable]
-
-  protected[dao] def getByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
-    storageUnitTable.filter { st =>
-      st.id === id && st.isDeleted === false
-    }.result.headOption
-  }
-
   /**
    * TODO: Document me!!!
    */
   def getById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getByIdAction(id)
+    val query = getNodeByIdAction(id)
     db.run(query).map { dto =>
       dto.map(unitDto => StorageNodeDto.toStorageUnit(unitDto))
     }
@@ -65,7 +57,7 @@ class StorageUnitDao @Inject() (
   // FIXME: I do not like this method.
   // It leaves the type checking and DTO conversion to the service layer.
   def getNodeById(id: StorageNodeId): Future[Option[StorageUnitDto]] = {
-    val query = getByIdAction(id)
+    val query = getNodeByIdAction(id)
     db.run(query)
   }
 
@@ -73,7 +65,7 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def getChildren(id: StorageNodeId): Future[Seq[StorageUnitDto]] = {
-    val action = storageUnitTable.filter(_.isPartOf === id).result
+    val action = storageNodeTable.filter(_.isPartOf === id).result
     db.run(action)
   }
 
@@ -82,7 +74,7 @@ class StorageUnitDao @Inject() (
    */
   def getStorageType(id: StorageNodeId): Future[MusitResult[Option[StorageType]]] = {
     db.run(
-      storageUnitTable.filter(_.id === id).map(_.storageType).result.headOption
+      storageNodeTable.filter(_.id === id).map(_.storageType).result.headOption
     ).map { maybeStorageType =>
       MusitSuccess(maybeStorageType)
     }
@@ -93,25 +85,7 @@ class StorageUnitDao @Inject() (
    */
   def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
     val dto = StorageNodeDto.fromStorageUnit(storageUnit)
-    db.run(insertAction(dto)).map(StorageNodeDto.toStorageUnit)
-  }
-
-  protected[dao] def insertAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
-    storageUnitTable returning storageUnitTable.map(_.id) into (
-      (su, id) => su.copy(id = Some(id))
-    ) += storageUnit
-  }
-
-  /**
-   * TODO: Document me!!!
-   */
-  protected[dao] def updateAction(
-    id: StorageNodeId,
-    storageUnit: StorageUnitDto
-  ): DBIO[Int] = {
-    storageUnitTable.filter { su =>
-      su.id === id && su.isDeleted === false
-    }.update(storageUnit)
+    db.run(insertNodeAction(dto)).map(StorageNodeDto.toStorageUnit)
   }
 
   /**
@@ -122,7 +96,7 @@ class StorageUnitDao @Inject() (
     storageUnit: StorageUnit
   ): Future[Option[StorageUnit]] = {
     val dto = StorageNodeDto.fromStorageUnit(storageUnit)
-    db.run(updateAction(id, dto)).flatMap {
+    db.run(updateNodeAction(id, dto)).flatMap {
       case res: Int if res == 1 =>
         getById(id)
 
@@ -133,7 +107,7 @@ class StorageUnitDao @Inject() (
   }
 
   def nodeExists(id: StorageNodeId): Future[MusitResult[Boolean]] = {
-    val query = storageUnitTable.filter { su =>
+    val query = storageNodeTable.filter { su =>
       su.id === id && su.isDeleted === false
     }.exists.result
 
@@ -148,7 +122,7 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def markAsDeleted(id: StorageNodeId): Future[MusitResult[Int]] = {
-    val query = storageUnitTable.filter { su =>
+    val query = storageNodeTable.filter { su =>
       su.id === id && su.isDeleted === false
     }.map(_.isDeleted).update(true)
 

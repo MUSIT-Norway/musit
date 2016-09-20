@@ -30,14 +30,14 @@ object StorageNodeJsonGenerator {
     Json.parse(
       s"""{
           |  "type" : "Organisation",
-          |  "area" : 2000.5,
           |  "name" : "$name",
+          |  "area" : 2000.5,
           |  "areaTo" : 2100,
-          |  "groupRead" : "foo",
           |  "height" : 3,
           |  "heightTo" : 3.5,
-          |  "address" : "$defaultAddress",
-          |  "groupWrite" : "bar"
+          |  "groupRead" : "foo",
+          |  "groupWrite" : "bar",
+          |  "address" : "$defaultAddress"
           |}
      """.stripMargin
     )
@@ -47,14 +47,31 @@ object StorageNodeJsonGenerator {
     Json.parse(
       s"""{
           |  "type" : "StorageUnit",
-          |  "area" : 0.5,
           |  "name" : "$name",
+          |  "area" : 0.5,
           |  "areaTo" : 0.5,
-          |  "groupRead" : "foo",
           |  "height" : 0.5,
-          |  "isPartOf" : ${partOf.underlying},
           |  "heightTo" : 0.6,
-          |  "groupWrite" : "bar"
+          |  "isPartOf" : ${partOf.underlying},
+          |  "groupRead" : "foo",
+          |  "groupWrite" : "bar",
+          |  "environmentRequirement" : {
+          |    "temperature" : {
+          |      "base" : 20,
+          |      "tolerance" : 25
+          |    },
+          |    "relativeHumidity" : {
+          |      "base" : 60.7,
+          |      "tolerance" : 70
+          |    },
+          |    "hypoxicAir" : {
+          |      "base" : 12,
+          |      "tolerance" : 20
+          |    },
+          |    "cleaning" : "Keep it clean!",
+          |    "lightingCondition" : "Dempet belysning",
+          |    "comments" : "Kommentar for environment requirement."
+          |  }
           |}
        """.stripMargin
     )
@@ -64,22 +81,44 @@ object StorageNodeJsonGenerator {
     Json.parse(
       s"""{
           |  "type" : "Room",
-          |  "sikringRutineOgBeredskap" : false,
-          |  "area" : 20.6,
           |  "name" : "$name",
-          |  "areaTo" : 21,
-          |  "sikringBrannsikring" : true,
-          |  "bevarLuftfuktOgTemp" : true,
-          |  "groupRead" : "foo",
-          |  "sikringTyverisikring" : true,
-          |  "height" : 2.5,
-          |  "bevarLysforhold" : false,
-          |  "sikringSkallsikring" : false,
-          |  "isPartOf" : ${partOf.underlying},
+          |  "area" : 20.5,
+          |  "areaTo" : 21.0,
+          |  "height" : 2,
           |  "heightTo" : 2.6,
-          |  "sikringVannskaderisiko" : true,
-          |  "bevarPrevantKons" : true,
-          |  "groupWrite" : "bar"
+          |  "isPartOf" : ${partOf.underlying},
+          |  "groupRead" : "foo",
+          |  "groupWrite" : "bar",
+          |  "securityAssessment" : {
+          |    "perimeter" : true,
+          |    "theftProtection" : true,
+          |    "fireProtection" : true,
+          |    "waterDamage" : false,
+          |    "routinesAndContingencyPlan" : false
+          |  },
+          |  "environmentAssessment" : {
+          |    "relativeHumidity" : true,
+          |    "temperature" : true,
+          |    "lightingCondition" : true,
+          |    "preventiveConservation" : false
+          |  },
+          |  "environmentRequirement" : {
+          |    "temperature" : {
+          |      "base" : 20,
+          |      "tolerance" : 25
+          |    },
+          |    "relativeHumidity" : {
+          |      "base" : 60.7,
+          |      "tolerance" : 70
+          |    },
+          |    "hypoxicAir" : {
+          |      "base" : 12,
+          |      "tolerance" : 20
+          |    },
+          |    "cleaning" : "Keep it clean!",
+          |    "lightingCondition" : "Dempet belysning",
+          |    "comments" : "Kommentar for environment requirement."
+          |  }
           |}
        """.stripMargin
     )
@@ -89,15 +128,32 @@ object StorageNodeJsonGenerator {
     Json.parse(
       s"""{
           |  "type" : "Building",
-          |  "area" : 200.5,
           |  "name" : "$name",
-          |  "areaTo" : 210,
-          |  "groupRead" : "foo",
-          |  "height" : 3,
-          |  "isPartOf" : ${partOf.underlying},
+          |  "area" : 200,
+          |  "areaTo" : 210.0,
+          |  "height" : 3.1,
           |  "heightTo" : 3.5,
-          |  "address" : "$defaultAddress",
-          |  "groupWrite" : "bar"
+          |  "isPartOf" : ${partOf.underlying},
+          |  "groupRead" : "foo",
+          |  "groupWrite" : "bar",
+          |  "environmentRequirement" : {
+          |    "temperature" : {
+          |      "base" : 20,
+          |      "tolerance" : 25
+          |    },
+          |    "relativeHumidity" : {
+          |      "base" : 60.7,
+          |      "tolerance" : 70
+          |    },
+          |    "hypoxicAir" : {
+          |      "base" : 12,
+          |      "tolerance" : 20
+          |    },
+          |    "cleaning" : "Keep it clean!",
+          |    "lightingCondition" : "Dempet belysning",
+          |    "comments" : "Kommentar for environment requirement."
+          |  },
+          |  "address" : "$defaultAddress"
           |}
        """.stripMargin
     )

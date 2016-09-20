@@ -17,19 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.microservice.storagefacility
 
-import org.joda.time.{ DateTime, DateTimeZone }
+object DummyData {
 
-package object datetime {
+  implicit val DummyUser = "Darth Vader"
 
-  /**
-   * We should always be explicit about the timezone we work with. Otherwise,
-   * we risk ending up using the underlying OS timezone settings, which may
-   * vary depending on where the application is running.
-   */
-  val DefaultTimezone = DateTimeZone.UTC
-
-  def dateTimeNow = DateTime.now(DefaultTimezone)
+  val DummyUserId = 123
 
 }

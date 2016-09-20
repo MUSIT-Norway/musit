@@ -31,8 +31,7 @@ import scala.concurrent.Future
 
 @Singleton
 class RoomDao @Inject() (
-    val dbConfigProvider: DatabaseConfigProvider,
-    val storageUnitDao: StorageUnitDao
+    val dbConfigProvider: DatabaseConfigProvider
 ) extends SharedStorageTables {
 
   import driver.api._
@@ -41,12 +40,20 @@ class RoomDao @Inject() (
 
   private val roomTable = TableQuery[RoomTable]
 
+  private def updateAction(id: StorageNodeId, room: RoomDto): DBIO[Int] = {
+    roomTable.filter(_.id === id).update(room)
+  }
+
+  private def insertAction(roomDto: RoomDto): DBIO[Int] = {
+    roomTable += roomDto
+  }
+
   /**
    * TODO: Document me!!!
    */
   def getById(id: StorageNodeId): Future[Option[Room]] = {
     val action = for {
-      maybeUnitDto <- storageUnitDao.getByIdAction(id)
+      maybeUnitDto <- getNodeByIdAction(id)
       maybeRoomDto <- roomTable.filter(_.id === id).result.headOption
     } yield {
       maybeUnitDto.flatMap(u =>
@@ -57,36 +64,28 @@ class RoomDao @Inject() (
     })
   }
 
-  private[dao] def updateAction(id: StorageNodeId, room: RoomDto): DBIO[Int] = {
-    roomTable.filter(_.id === id).update(room)
-  }
-
   /**
    * TODO: Document me!!!
    */
-  def update(id: Long, room: Room): Future[Option[Room]] = {
+  def update(id: StorageNodeId, room: Room): Future[Option[Room]] = {
     // FIXME: Update comments
     //If we don't have the storage unit or it is marked as deleted, or we find
     // more than 1 rows to update, onlyAcceptOneUpdatedRecord will make this
     // DBIO/Future fail with an appropriate MusitException.
     val roomDto = StorageNodeDto.fromRoom(room)
     val action = for {
-      unitsUpdated <- storageUnitDao.updateAction(id, roomDto.storageUnitDto)
+      unitsUpdated <- updateNodeAction(id, roomDto.storageUnitDto)
       roomsUpdated <- updateAction(id, roomDto.extension.copy(id = Some(id)))
     } yield roomsUpdated
 
     db.run(action.transactionally).flatMap {
-      case res: Int if res > 1 || res < 0 =>
-        logger.warn("Wrong amount of rows updated")
-        Future.successful(None)
+      case res: Int if res == 1 =>
+        getById(id)
 
       case res: Int =>
-        getById(id)
+        logger.warn(s"Wrong amount of rows ($res) updated")
+        Future.successful(None)
     }
-  }
-
-  protected[dao] def insertAction(roomDto: RoomDto): DBIO[Int] = {
-    roomTable += roomDto
   }
 
   /**
@@ -95,7 +94,7 @@ class RoomDao @Inject() (
   def insert(room: Room): Future[Room] = {
     val extendedDto = StorageNodeDto.fromRoom(room)
     val action = (for {
-      storageUnit <- storageUnitDao.insertAction(extendedDto.storageUnitDto)
+      storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
       inserted <- insertAction(extWithId)
     } yield {
@@ -112,62 +111,67 @@ class RoomDao @Inject() (
     // scalastyle:off method.name
     def * = (
       id,
-      sikringSkallsikring,
-      sikringTyverisikring,
-      sikringBrannsikring,
-      sikringVannskaderisiko,
-      sikringRutineOgBeredskap,
-      bevarLuftfuktOgTemp,
-      bevarLysforhold,
-      bevarPrevantKons
+      perimeterSecurity,
+      theftProtection,
+      fireProtection,
+      waterDamage,
+      routinesAndContingency,
+      relativeHumidity,
+      temperatureAssessment,
+      lighting,
+      preventiveConservation
     ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
 
     val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
-    val sikringSkallsikring = column[Option[Boolean]]("SIKRING_SKALLSIKRING")
-    val sikringTyverisikring = column[Option[Boolean]]("SIKRING_TYVERISIKRING")
-    val sikringBrannsikring = column[Option[Boolean]]("SIKRING_BRANNSIKRING")
-    val sikringVannskaderisiko = column[Option[Boolean]]("SIKRING_VANNSKADERISIKO")
-    val sikringRutineOgBeredskap = column[Option[Boolean]]("SIKRING_RUTINE_OG_BEREDSKAP")
-    val bevarLuftfuktOgTemp = column[Option[Boolean]]("BEVAR_LUFTFUKT_OG_TEMP")
-    val bevarLysforhold = column[Option[Boolean]]("BEVAR_LYSFORHOLD")
-    val bevarPrevantKons = column[Option[Boolean]]("BEVAR_PREVANT_KONS")
+    val perimeterSecurity = column[Option[Boolean]]("PERIMETER_SECURITY")
+    val theftProtection = column[Option[Boolean]]("THEFT_PROTECTION")
+    val fireProtection = column[Option[Boolean]]("FIRE_PROTECTION")
+    val waterDamage = column[Option[Boolean]]("WATER_DAMAGE_ASSESSMENT")
+    val routinesAndContingency = column[Option[Boolean]]("ROUTINES_AND_CONTINGENCY_PLAN")
+    val relativeHumidity = column[Option[Boolean]]("RELATIVE_HUMIDITY")
+    val temperatureAssessment = column[Option[Boolean]]("TEMPERATURE_ASSESSMENT")
+    val lighting = column[Option[Boolean]]("LIGHTING_CONDITION")
+    val preventiveConservation = column[Option[Boolean]]("PREVENTIVE_CONSERVATION")
 
     def create = (
       id: Option[StorageNodeId],
-      sikringSkallsikring: Option[Boolean],
-      sikringTyverisikring: Option[Boolean],
-      sikringBrannsikring: Option[Boolean],
-      sikringVannskaderisiko: Option[Boolean],
-      sikringRutineOgBeredskap: Option[Boolean],
-      bevarLuftfuktOgTemp: Option[Boolean],
-      bevarLysforhold: Option[Boolean],
-      bevarPrevantKons: Option[Boolean]
+      perimeterSecurity: Option[Boolean],
+      theftProtection: Option[Boolean],
+      fireProtection: Option[Boolean],
+      waterDamage: Option[Boolean],
+      routinesAndContingency: Option[Boolean],
+      relativeHumidity: Option[Boolean],
+      temperature: Option[Boolean],
+      lighting: Option[Boolean],
+      preventiveConservation: Option[Boolean]
     ) =>
       RoomDto(
         id = id,
-        sikringSkallsikring = sikringSkallsikring,
-        sikringTyverisikring = sikringTyverisikring,
-        sikringBrannsikring = sikringBrannsikring,
-        sikringVannskaderisiko = sikringVannskaderisiko,
-        sikringRutineOgBeredskap = sikringRutineOgBeredskap,
-        bevarLuftfuktOgTemp = bevarLuftfuktOgTemp,
-        bevarLysforhold = bevarLysforhold,
-        bevarPrevantKons = bevarPrevantKons
+        perimeterSecurity = perimeterSecurity,
+        theftProtection = theftProtection,
+        fireProtection = fireProtection,
+        waterDamageAssessment = waterDamage,
+        routinesAndContingencyPlan = routinesAndContingency,
+        relativeHumidity = relativeHumidity,
+        temperatureAssessment = temperature,
+        lightingCondition = lighting,
+        preventiveConservation = preventiveConservation
       )
 
     def destroy(room: RoomDto) =
       Some((
         room.id,
-        room.sikringSkallsikring,
-        room.sikringTyverisikring,
-        room.sikringBrannsikring,
-        room.sikringVannskaderisiko,
-        room.sikringRutineOgBeredskap,
-        room.bevarLuftfuktOgTemp,
-        room.bevarLysforhold,
-        room.bevarPrevantKons
+        room.perimeterSecurity,
+        room.theftProtection,
+        room.fireProtection,
+        room.waterDamageAssessment,
+        room.routinesAndContingencyPlan,
+        room.relativeHumidity,
+        room.temperatureAssessment,
+        room.lightingCondition,
+        room.preventiveConservation
       ))
   }
 

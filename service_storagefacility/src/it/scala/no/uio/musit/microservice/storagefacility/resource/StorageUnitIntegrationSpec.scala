@@ -227,14 +227,12 @@ class StorageUnitIntegrationSpec extends PlaySpec
         su.areaTo mustBe Some(.5)
         su.heightTo mustBe Some(.6)
 
-        val updateFields = Json.obj(
-          "name" -> "My Shelf2b",
-          "areaTo" -> JsNumber(.8),
-          "heightTo" -> JsNumber(.8)
-        )
-
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ updateFields
+          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+            "name" -> "My Shelf2b",
+            "areaTo" -> JsNumber(.8),
+            "heightTo" -> JsNumber(.8)
+          )
         }
 
         val updRes = putStorageNode(su.id.get, updatedJson).futureValue
@@ -259,13 +257,11 @@ class StorageUnitIntegrationSpec extends PlaySpec
         room.areaTo mustBe Some(21.0)
         room.heightTo mustBe Some(2.6)
 
-        val updateFields = Json.obj(
-          "name" -> "My Room2b",
-          "bevarLysforhold" -> true
-        )
-
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ updateFields
+          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+            "name" -> "My Room2b",
+            "lightingCondition" -> true
+          )
         }
 
         val updRes = putStorageNode(room.id.get, updatedJson).futureValue
@@ -275,7 +271,7 @@ class StorageUnitIntegrationSpec extends PlaySpec
         )
 
         updated mustBe a[Room]
-        updated.bevarLysforhold mustBe Some(true)
+        updated.environmentAssessment.lightingCondition mustBe Some(true)
       }
 
       "successfully update a building" in {
@@ -289,12 +285,10 @@ class StorageUnitIntegrationSpec extends PlaySpec
         building.areaTo mustBe Some(210.0)
         building.heightTo mustBe Some(3.5)
 
-        val updateFields = Json.obj(
-          "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge"
-        )
-
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ updateFields
+          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+            "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge"
+          )
         }
 
         val updRes = putStorageNode(building.id.get, updatedJson).futureValue
@@ -318,12 +312,10 @@ class StorageUnitIntegrationSpec extends PlaySpec
         organisation.areaTo mustBe Some(2100)
         organisation.heightTo mustBe Some(3.5)
 
-        val updateFields = Json.obj(
-          "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge"
-        )
-
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ updateFields
+          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+            "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge"
+          )
         }
 
         val updRes = putStorageNode(organisation.id.get, updatedJson).futureValue
@@ -369,72 +361,41 @@ class StorageUnitIntegrationSpec extends PlaySpec
         rmRes.status mustBe Status.NOT_FOUND
       }
 
-      //
-      //      "return a HTTP 404 when trying to delete a node that doesn't exist" in {
-      //        val responsDel = deleteStorageUnit(12345678).futureValue
-      //        responsDel.status mustBe 404
-      //      }
-      //
-      //      "fail when trying to update a deleted storage unit" in {
-      //        val json ="""{"type":"StorageUnit","name":"UkjentUnit"}"""
-      //        val response = postStorageNode(json).futureValue
-      //        println("deleted storageNode " + response.body)
-      //        response.status mustBe 201 //Successfully created the room
-      //        val storageNode = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[StorageUnit]
-      //
-      //        storageNode.id.isDefined mustBe true
-      //        val id = storageNode.id.get
-      //
-      //        val responsDel = deleteStorageUnit(id).futureValue
-      //        println("deleted storageNode " + responsDel.body)
-      //        responsDel.status mustBe 200 //Successfully deleted
-      //
-      //        val updateJson = s"""{"type":"StorageUnit","id": $id, "name":"NyUkjentUnit"}"""
-      //        val updateResponse = putStorageNode(id, updateJson).futureValue
-      //        println("deleted storageNode " + updateResponse.body)
-      //        updateResponse.status mustBe 404 //Should not be able to update a deleted object
-      //      }
-      //
-      //      "fail when trying to update a deleted room" in {
-      //        val json ="""{"type":"Room","name":"UkjentRom"}"""
-      //        val response = postStorageNode(json).futureValue
-      //        println("deleted room " + response.body)
-      //        response.status mustBe 201 //Successfully created the room
-      //        val storageNode = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Room]
-      //
-      //        storageNode.id.isDefined mustBe true
-      //        val id = storageNode.id.get
-      //
-      //        val responsDel = deleteStorageUnit(id).futureValue
-      //        println("deleted room " + responsDel.body)
-      //        responsDel.status mustBe 200 //Successfully deleted
-      //
-      //        val updateJson = """{"type":"Room","name":"NyttRom", "sikringSkallsikring": true}"""
-      //        val updateResponse = putStorageNode(id, updateJson).futureValue
-      //        println("deleted room " + updateResponse.body)
-      //        updateResponse.status mustBe 404 //Should not be able to update a deleted object
-      //      }
-      //
-      //      "fail when trying to update a deleted building" in {
-      //        val json ="""{"type":"Building","name":"UkjentBygning"}"""
-      //        val response = postStorageNode(json).futureValue
-      //        println("deleted building " + response.body)
-      //        response.status mustBe 201 //Successfully created the building
-      //        val storageNode = Json.parse(response.body).validate[StorageNode].get.asInstanceOf[Building]
-      //
-      //        storageNode.id.isDefined mustBe true
-      //        val id = storageNode.id.get
-      //
-      //        val responsDel = deleteStorageUnit(id).futureValue
-      //        println("deleted building " + responsDel.body)
-      //        responsDel.status mustBe 200 //Successfully deleted
-      //
-      //        val updateJson = """{"type":"Building","name":"NyBygning", "address": "OrdentligAdresse"}"""
-      //        val updateResponse = putStorageNode(id, updateJson).futureValue
-      //        println("deleted building " + updateResponse.body)
-      //        updateResponse.status mustBe 404 //Should not be able to update a deleted object
-      //      }
-      //
+      "respond with 404 when updating a node that is deleted" in {
+        val json = {
+          storageUnitJson("Remove me", StorageNodeId(3)).as[JsObject] ++ Json.obj(
+            "id" -> 9,
+            "name" -> "Hakuna Matata"
+          )
+        }
+
+        val failedUpdate = putStorageNode(StorageNodeId(9), json).futureValue
+        failedUpdate.status mustBe Status.NOT_FOUND
+      }
+
+      "update should fail if type doesn't match" in {
+        val json = buildingJson("My Building10", StorageNodeId(1))
+        val response = postStorageNode(json).futureValue
+        response.status mustBe Status.CREATED
+        val building = verifyNode[Building](
+          response, BuildingType, "My Building10", 10, Some(1)
+        )
+        building mustBe a[Building]
+        building.areaTo mustBe Some(210.0)
+        building.heightTo mustBe Some(3.5)
+
+        val updatedJson = {
+          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+            "type" -> "Organisation"
+          )
+        }
+
+        println(Json.prettyPrint(updatedJson))
+
+        val updRes = putStorageNode(building.id.get, updatedJson).futureValue
+        updRes.status mustBe Status.BAD_REQUEST
+      }
+
       //      // FIXME: Should fail with 400 BadRequest...409 is if you try to add something with the same name.
       //      "update should fail (with Conflict=409) if inconsistent storage types" in {
       //        val json ="""{"type":"Room","name":"UkjentRom2", "sikringSkallsikring": true}"""

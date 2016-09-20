@@ -39,19 +39,22 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   storage_type VARCHAR(100) DEFAULT 'StorageUnit',
   group_read VARCHAR(4000),
   group_write VARCHAR(4000),
+--   latest_move_id NUMBER(20),
+--   latest_envreq_id NUMBER(20),
   PRIMARY KEY (storage_node_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.ROOM (
   storage_node_id NUMBER(20) NOT NULL,
-  sikring_skallsikring INTEGER,
-  sikring_tyverisikring INTEGER,
-  sikring_brannsikring INTEGER,
-  sikring_vannskaderisiko INTEGER,
-  sikring_rutine_og_beredskap INTEGER,
-  bevar_luftfukt_og_temp INTEGER,
-  bevar_lysforhold INTEGER,
-  bevar_prevant_kons INTEGER,
+  perimeter_security INTEGER, -- DEFAULT 0 NOT NULL,
+  theft_protection INTEGER, -- DEFAULT 1 NOT NULL,
+  fire_protection INTEGER, -- DEFAULT 0 NOT NULL,
+  water_damage_assessment INTEGER, -- DEFAULT 0 NOT NULL,
+  routines_and_contingency_plan INTEGER, -- DEFAULT 0 NOT NULL,
+  relative_humidity INTEGER, -- DEFAULT 0 NOT NULL,
+  temperature_assessment INTEGER, -- DEFAULT 0 NOT NULL,
+  lighting_condition INTEGER, -- DEFAULT 0 NOT NULL,
+  preventive_conservation INTEGER, -- DEFAULT 0 NOT NULL,
   PRIMARY KEY (storage_node_id),
   FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
@@ -83,10 +86,16 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_UNIT_LINK (
 -- Event specific tables.
 -- ===========================================================================
 
+CREATE TABLE MUSARK_STORAGE.ROLE (
+  id INTEGER NOT NULL,
+  name VARCHAR2(100) NOT NULL,
+  type VARCHAR2(100),
+  PRIMARY KEY (id)
+);
+
 CREATE TABLE MUSARK_STORAGE.EVENT_TYPE (
   id INTEGER NOT NULL ,
   name VARCHAR(100) NOT NULL,
-  description VARCHAR(255),
   PRIMARY KEY (ID)
 );
 
@@ -96,7 +105,7 @@ CREATE TABLE MUSARK_STORAGE.EVENT (
   event_type_id INTEGER NOT NULL, -- Move to separate table if we want to allow multiple instantiations
   note VARCHAR2(500),
 
-  event_date DATE NOT NULL, -- When the event happened
+  event_date DATE NOT NULL, -- When the event happened. Should be nullable.
 
   registered_by VARCHAR2(100) NOT NULL,
   registered_date TIMESTAMP NOT NULL, -- When the event was received by the system
@@ -105,7 +114,7 @@ CREATE TABLE MUSARK_STORAGE.EVENT (
   value_string VARCHAR2(250), -- Custom value, events can choose to store some event-specific value here.
   value_float FLOAT, -- Custom value, events can choose to store some event-specific value here.
 
-  part_of NUMBER(20),
+  part_of NUMBER(20), -- 1 to 1 with a top-level event
   PRIMARY KEY (id),
   FOREIGN KEY (event_type_id) REFERENCES MUSARK_STORAGE.EVENT_TYPE(id),
   FOREIGN KEY (part_of) REFERENCES MUSARK_STORAGE.EVENT(id)
@@ -120,29 +129,6 @@ CREATE TABLE MUSARK_STORAGE.EVENT_RELATION_EVENT (
   FOREIGN KEY (to_event_id) REFERENCES MUSARK_STORAGE.EVENT(id)
 );
 
-CREATE TABLE MUSARK_STORAGE.ACTOR_ROLE (
-  id INTEGER NOT NULL,
-  name VARCHAR2(200) NOT NULL,
-  description VARCHAR2(200),
-  PRIMARY KEY (ID)
-);
-
-CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_ACTOR (
-  event_id NUMBER(20) NOT NULL,
-  role_id INTEGER NOT NULL,
-  actor_id INTEGER NOT NULL, -- reference by Id to the ActorService
-  PRIMARY KEY (event_id, role_id, actor_id),
-  FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
-  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ACTOR_ROLE(id)
-);
-
-CREATE TABLE MUSARK_STORAGE.OBJECT_ROLE (
-  id INTEGER NOT NULL,
-  name VARCHAR2(200) NOT NULL,
-  description VARCHAR2(200),
-  PRIMARY KEY (id)
-);
-
 CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
   object_id NUMBER(20) NOT NULL,
   latest_move_id NUMBER(20) ,
@@ -151,21 +137,23 @@ CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
   --FOREIGN KEY (current_location_id) REFERENCES MUSARK_STORAGE.storageAdminNodehvatever(ID)
 );
 
+CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_ACTOR (
+  event_id NUMBER(20) NOT NULL,
+  role_id INTEGER NOT NULL,
+  actor_id INTEGER NOT NULL, -- reference by Id to the ActorService
+  PRIMARY KEY (event_id, role_id, actor_id),
+  FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE(id)
+);
+
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_OBJECT (
   event_id NUMBER(20) NOT NULL,
   role_id INTEGER NOT NULL,
   object_id NUMBER(20) NOT NULL,
   PRIMARY KEY (event_id, role_id, object_id),
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
-  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.OBJECT_ROLE(id),
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE(id),
   FOREIGN KEY (object_id) REFERENCES MUSARK_STORAGE.LOCAL_OBJECT(object_id)
-);
-
-CREATE TABLE MUSARK_STORAGE.PLACE_ROLE (
-  id INTEGER NOT NULL,
-  name VARCHAR2(200) NOT NULL,
-  description VARCHAR2(200),
-  PRIMARY KEY (id)
 );
 
 -- This is the generic event-to-place relation, the place of where an event
@@ -176,7 +164,7 @@ CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_PLACE (
   place_id  NUMBER(20) NOT NULL,
   PRIMARY KEY (event_id, role_id, place_id),
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
-  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.PLACE_ROLE(id)--,
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE(id)--,
   --FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_STORAGE.PLACE(PLACE_ID)
 );
 
@@ -190,7 +178,7 @@ CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_PLACE_AS_OBJECT (
   place_id  NUMBER(20) NOT NULL,
   PRIMARY KEY (event_id, role_id, place_id),
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
-  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.OBJECT_ROLE(id)--,
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE(id)--,
   --FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_STORAGE.PLACE(PLACE_ID)
 );
 
@@ -212,11 +200,11 @@ CREATE TABLE MUSARK_STORAGE.OBSERVATION_FROM_TO (
 CREATE TABLE MUSARK_STORAGE.E_ENVIRONMENT_REQUIREMENT (
   id NUMBER(20) NOT NULL,
   temperature NUMBER,
-  temp_interval NUMBER,
-  air_humidity NUMBER,
-  air_hum_interval NUMBER,
+  temp_tolerance NUMBER,
+  rel_humidity NUMBER,
+  rel_hum_tolerance NUMBER,
   hypoxic_air NUMBER,
-  hyp_air_interval NUMBER,
+  hyp_air_tolerance NUMBER,
   cleaning VARCHAR2(250),
   light VARCHAR2(250),
   PRIMARY KEY (id),
@@ -242,7 +230,7 @@ CREATE TABLE MUSARK_STORAGE.URI_LINKS (
 );
 
 -- ===========================================================================
--- Inserting dummy data
+-- Pre-populating necessary data
 -- ===========================================================================
 
 INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (1, 'MoveObject');
@@ -275,20 +263,17 @@ INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (25, 'ObservationTemperat
 INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (26, 'ObservationTheftProtection');
 INSERT INTO MUSARK_STORAGE.EVENT_TYPE (id,name) VALUES (27, 'ObservationWaterDamageAssessment');
 
-INSERT INTO MUSARK_STORAGE.ACTOR_ROLE (id, name, description)
-VALUES (1, 'DoneBy', 'The actor who has executed/done the event');
+INSERT INTO MUSARK_STORAGE.ROLE (id, name, type)
+VALUES (1, 'DoneWith', 'object');
 
-INSERT INTO MUSARK_STORAGE.OBJECT_ROLE (id, name, description)
-VALUES (1, 'DoneWith', 'The object who was done something with in a spesific event');
+INSERT INTO MUSARK_STORAGE.ROLE (id, name, type)
+VALUES (2, 'DoneBy', 'actor');
 
-INSERT INTO MUSARK_STORAGE.PLACE_ROLE (id, name, description)
-VALUES (1, 'DoneWith', 'The storagenode who was done something with in a spesific event');
+INSERT INTO MUSARK_STORAGE.ROLE (id, name, type)
+VALUES (3, 'toPlace', 'storageNode');
 
+INSERT INTO MUSARK_STORAGE.ROLE (id, name, type)
+VALUES (4, 'fromPlace', 'storageNode')
 
--- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,height,area,storage_type) VALUES (1,'KASSE 5',45,45,'storageunit');
--- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,height,area,storage_type) VALUES (2,'KASSE 6',1,4,'storageunit');
--- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,height,area,storage_type) VALUES (3,'KASSE 7',3,4,'storageunit');
--- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,height,area,storage_type) VALUES (7,'KASSE 12',3,4,'storageunit');
--- INSERT INTO MUSARK_STORAGE.STORAGE_NODE(storage_node_id,storage_node_name,area,storage_type) VALUES (9,'KASSE 12',4,'storageunit');
 
 # --- !Downs

@@ -19,8 +19,13 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
+import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
+import no.uio.musit.microservice.storagefacility.domain.datetime._
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
+import no.uio.musit.microservice.storagefacility.domain.event._
+import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
 import play.api.Logger
@@ -35,37 +40,119 @@ class StorageNodeService @Inject() (
     val storageUnitDao: StorageUnitDao,
     val roomDao: RoomDao,
     val buildingDao: BuildingDao,
-    val organisationDao: OrganisationDao
+    val organisationDao: OrganisationDao,
+    val envReqService: EnvironmentRequirementService
 ) {
 
   val logger = Logger(classOf[StorageNodeService])
 
+  private[service] def saveEnvReq(
+    nodeId: StorageNodeId,
+    envReq: EnvironmentRequirement
+  )(implicit currUsr: String) = {
+    val now = dateTimeNow
+
+    val er = EnvRequirement(
+      baseEvent = MusitEventBase(
+        id = None,
+        doneBy = Some(ActorRole(1, DummyData.DummyUserId)), // FIXME: DO NOT FORGET TO CHANGE THIS!!!
+        doneDate = now,
+        note = envReq.comments,
+        partOf = None,
+        affectedThing = Some(ObjectRole(
+          roleId = 1, // TODO: This should be inserted in DB on bootstrapping if not exists.
+          objectId = nodeId
+        )),
+        registeredBy = Some(currUsr),
+        registeredDate = Some(now)
+      ),
+      eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
+      temperature = envReq.temperature,
+      airHumidity = envReq.relativeHumidity,
+      hypoxicAir = envReq.hypoxicAir,
+      cleaning = envReq.cleaning,
+      light = envReq.lightingCondition
+    )
+    envReqService.add(er).map {
+      case MusitSuccess(success) =>
+        logger.debug("Successfully wrote environment requirement data " +
+          s"for node $nodeId")
+      case err: MusitError[_] =>
+        logger.error("Something went wrong while storing the environment " +
+          s"requirements for node $nodeId")
+    }
+  }
+
+  /**
+   * Helper function for storing a storage node. It will first try to persist
+   * the storage node. If successful it will persist the environment requirement
+   * event if and only if the event contains data.
+   *
+   * @param node    the StorageNode to persist
+   * @param persist a function that persists a StorageNode and returns a Future
+   *                value of the StorageNode enriched with the newly assigned ID.
+   * @param currUsr implicitly scoped current user.
+   * @tparam T the function will only work on any type T that is a sub-class of
+   *           StorageNode.
+   * @return The newly created StorageNode enriched with the assigned ID.
+   */
+  private def addStorageNode[T <: StorageNode](node: T)(
+    persist: T => Future[T]
+  )(implicit currUsr: String): Future[T] = {
+    persist(node).map { sn =>
+      for {
+        nodeId <- sn.id
+        envReq <- sn.environmentRequirement
+      } yield {
+        logger.info(s"Saving new environment requirement data for node $nodeId")
+        saveEnvReq(nodeId, envReq)
+      }
+      sn
+    }
+  }
+
+  private def updateStorageNode[T <: StorageNode](id: StorageNodeId, node: T)(
+    persist: (StorageNodeId, T) => Future[Option[T]]
+  )(implicit currUsr: String): Future[MusitResult[Option[T]]] = {
+    persist(id, node).map { maybeUpdated =>
+      for {
+        updated <- maybeUpdated
+        nodeId <- updated.id
+        envReq <- node.environmentRequirement
+      } yield {
+        logger.info(s"Saving updated environment requirement data for node $nodeId")
+        saveEnvReq(nodeId, envReq)
+      }
+      maybeUpdated
+    }.map(MusitSuccess.apply)
+  }
+
   /**
    * TODO: Document me!
    */
-  def addStorageUnit(storageUnit: StorageUnit): Future[StorageUnit] = {
-    storageUnitDao.insert(storageUnit)
+  def addStorageUnit(storageUnit: StorageUnit)(implicit currUsr: String): Future[StorageUnit] = {
+    addStorageNode(storageUnit)(storageUnitDao.insert)
   }
 
   /**
    * TODO: Document me!!!
    */
-  def addRoom(storageRoom: Room): Future[Room] = {
-    roomDao.insert(storageRoom)
+  def addRoom(storageRoom: Room)(implicit currUsr: String): Future[Room] = {
+    addStorageNode(storageRoom)(roomDao.insert)
   }
 
   /**
    * TODO: Document me!!!
    */
-  def addBuilding(building: Building): Future[Building] = {
-    buildingDao.insert(building)
+  def addBuilding(building: Building)(implicit currUsr: String): Future[Building] = {
+    addStorageNode(building)(buildingDao.insert)
   }
 
   /**
    * TODO: Document me!!!
    */
-  def addOrganisation(organisation: Organisation): Future[Organisation] = {
-    organisationDao.insert(organisation)
+  def addOrganisation(organisation: Organisation)(implicit currUsr: String): Future[Organisation] = {
+    addStorageNode(organisation)(organisationDao.insert)
   }
 
   /**
@@ -74,15 +161,18 @@ class StorageNodeService @Inject() (
   def updateStorageUnit(
     id: StorageNodeId,
     storageUnit: StorageUnit
-  ): Future[MusitResult[Option[StorageUnit]]] = {
-    storageUnitDao.update(id, storageUnit).map(MusitSuccess.apply)
+  )(implicit currUsr: String): Future[MusitResult[Option[StorageUnit]]] = {
+    updateStorageNode(id, storageUnit)(storageUnitDao.update)
   }
 
   /**
    * TODO: Document me!!!
    */
-  def updateRoom(id: StorageNodeId, room: Room): Future[MusitResult[Option[Room]]] = {
-    roomDao.update(id, room).map(MusitSuccess.apply)
+  def updateRoom(
+    id: StorageNodeId,
+    room: Room
+  )(implicit currUsr: String): Future[MusitResult[Option[Room]]] = {
+    updateStorageNode(id, room)(roomDao.update)
   }
 
   /**
@@ -91,8 +181,8 @@ class StorageNodeService @Inject() (
   def updateBuilding(
     id: StorageNodeId,
     building: Building
-  ): Future[MusitResult[Option[Building]]] = {
-    buildingDao.update(id, building).map(MusitSuccess.apply)
+  )(implicit currUsr: String): Future[MusitResult[Option[Building]]] = {
+    updateStorageNode(id, building)(buildingDao.update)
   }
 
   /**
@@ -101,8 +191,8 @@ class StorageNodeService @Inject() (
   def updateOrganisation(
     id: StorageNodeId,
     organisation: Organisation
-  ): Future[MusitResult[Option[Organisation]]] = {
-    organisationDao.update(id, organisation).map(MusitSuccess.apply)
+  )(implicit currUsr: String): Future[MusitResult[Option[Organisation]]] = {
+    updateStorageNode(id, organisation)(organisationDao.update)
   }
 
   /**
@@ -201,11 +291,8 @@ class StorageNodeService @Inject() (
     }
   }
 
-  //  /**
-  //   * TODO: Document me! + id: Long should be id: StorageNodeId
-  //   */
   //  def updateStorageTripleById(
-  //    id: Long,
+  //    id: StorageNodeId,
   //    triple: StorageNode
   //  ): Future[MusitResult[Int]] = {
   //    val sid = StorageNodeId(id)
@@ -225,13 +312,16 @@ class StorageNodeService @Inject() (
   //  }
 
   /**
-   * TODO: Document me! + id: Long should be id: StorageNodeId
+   * TODO: Document me!
    */
-  def deleteNode(id: StorageNodeId): Future[MusitResult[Int]] = {
+  def deleteNode(id: StorageNodeId)(implicit currUsr: String): Future[MusitResult[Int]] = {
     storageUnitDao.nodeExists(id).flatMap {
       case MusitSuccess(exists) =>
         if (exists) storageUnitDao.markAsDeleted(id)
         else Future.successful(MusitSuccess(0))
+
+      case error =>
+        Future.successful(error.asInstanceOf[MusitError[Int]])
     }
   }
 }

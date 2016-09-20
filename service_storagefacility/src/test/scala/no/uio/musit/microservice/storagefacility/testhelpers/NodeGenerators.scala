@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.testhelpers
 
 import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
+import no.uio.musit.microservice.storagefacility.domain.Interval
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
@@ -28,7 +29,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 
-trait NodeGenerators {
+trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>
 
   def buildingDao: BuildingDao = {
@@ -85,6 +86,19 @@ trait NodeGenerators {
     }
     Await.result(eventuallyInserted, 10 seconds)
   }
+}
+
+trait NodeTypeInitializers {
+
+  def initEnvironmentRequirement: EnvironmentRequirement =
+    EnvironmentRequirement(
+      temperature = Some(Interval[Double](20.0, Some(25.0))),
+      relativeHumidity = Some(Interval[Double](60.7, Some(70.0))),
+      hypoxicAir = Some(Interval[Double](12.0, Some(20))),
+      cleaning = Some("Keep it clean!"),
+      lightingCondition = Some("Dempet belysning"),
+      comments = Some("Kommentar for environment requirement.")
+    )
 
   def createBuilding(partOf: Option[StorageNodeId] = None): Building = {
     Building(
@@ -97,6 +111,7 @@ trait NodeGenerators {
       heightTo = Some(8),
       groupRead = None,
       groupWrite = None,
+      environmentRequirement = Some(initEnvironmentRequirement),
       address = Some("FooBar Gate 8, 111 Oslo, Norge")
     )
   }
@@ -112,14 +127,20 @@ trait NodeGenerators {
       isPartOf = partOf,
       groupRead = None,
       groupWrite = None,
-      sikringSkallsikring = Some(true),
-      sikringTyverisikring = Some(true),
-      sikringBrannsikring = Some(true),
-      sikringVannskaderisiko = Some(false),
-      sikringRutineOgBeredskap = Some(false),
-      bevarLuftfuktOgTemp = Some(true),
-      bevarLysforhold = Some(true),
-      bevarPrevantKons = Some(false)
+      environmentRequirement = Some(initEnvironmentRequirement),
+      securityAssessment = SecurityAssessment(
+        perimeter = Some(true),
+        theftProtection = Some(true),
+        fireProtection = Some(true),
+        waterDamage = Some(false),
+        routinesAndContingencyPlan = Some(false)
+      ),
+      environmentAssessment = EnvironmentAssessment(
+        relativeHumidity = Some(true),
+        lightingCondition = Some(true),
+        temperature = Some(true),
+        preventiveConservation = Some(false)
+      )
     )
   }
 
@@ -133,7 +154,8 @@ trait NodeGenerators {
       height = Some(2),
       heightTo = Some(2),
       groupRead = None,
-      groupWrite = None
+      groupWrite = None,
+      environmentRequirement = Some(initEnvironmentRequirement)
     )
   }
 

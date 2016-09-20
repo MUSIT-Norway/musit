@@ -30,6 +30,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     interval = Span(50, Millis)
   )
 
+  implicit val DummyUser = "Bevel Lemelisk"
+
   val service: StorageNodeService = fromInstanceCache[StorageNodeService]
 
   "successfully update a storage unit and fetch as StorageNode" in {

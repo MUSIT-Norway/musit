@@ -17,19 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.microservice.storagefacility.domain.storage
 
-import org.joda.time.{ DateTime, DateTimeZone }
+import play.api.libs.json.{ Format, Json }
 
-package object datetime {
+case class EnvironmentAssessment(
+  relativeHumidity: Option[Boolean],
+  temperature: Option[Boolean],
+  lightingCondition: Option[Boolean],
+  preventiveConservation: Option[Boolean]
+)
 
-  /**
-   * We should always be explicit about the timezone we work with. Otherwise,
-   * we risk ending up using the underlying OS timezone settings, which may
-   * vary depending on where the application is running.
-   */
-  val DefaultTimezone = DateTimeZone.UTC
+object EnvironmentAssessment {
 
-  def dateTimeNow = DateTime.now(DefaultTimezone)
+  lazy val empty = EnvironmentAssessment(None, None, None, None)
 
+  implicit val format: Format[EnvironmentAssessment] =
+    Json.format[EnvironmentAssessment]
 }

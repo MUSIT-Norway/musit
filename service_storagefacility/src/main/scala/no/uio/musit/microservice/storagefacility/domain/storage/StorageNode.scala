@@ -20,9 +20,9 @@
 package no.uio.musit.microservice.storagefacility.domain.storage
 
 import julienrf.json.derived
-import play.api.libs.json.{ OWrites, Reads, __ }
-import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json.{ OWrites, Reads, __ }
 
 sealed trait StorageNode {
   val id: Option[StorageNodeId]
@@ -34,6 +34,7 @@ sealed trait StorageNode {
   val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
+  val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
 }
 
@@ -46,12 +47,11 @@ case class StorageUnit(
     height: Option[Double],
     heightTo: Option[Double],
     groupRead: Option[String],
-    groupWrite: Option[String]
+    groupWrite: Option[String],
+    environmentRequirement: Option[EnvironmentRequirement]
 ) extends StorageNode {
   val storageType = StorageType.StorageUnitType
 }
-
-object StorageUnit
 
 case class Room(
     id: Option[StorageNodeId],
@@ -63,14 +63,9 @@ case class Room(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
-    sikringSkallsikring: Option[Boolean],
-    sikringTyverisikring: Option[Boolean],
-    sikringBrannsikring: Option[Boolean],
-    sikringVannskaderisiko: Option[Boolean],
-    sikringRutineOgBeredskap: Option[Boolean],
-    bevarLuftfuktOgTemp: Option[Boolean],
-    bevarLysforhold: Option[Boolean],
-    bevarPrevantKons: Option[Boolean]
+    environmentRequirement: Option[EnvironmentRequirement],
+    securityAssessment: SecurityAssessment,
+    environmentAssessment: EnvironmentAssessment
 ) extends StorageNode {
   val storageType: StorageType = StorageType.RoomType
 }
@@ -85,6 +80,7 @@ case class Building(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
+    environmentRequirement: Option[EnvironmentRequirement],
     address: Option[String]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.BuildingType
@@ -100,6 +96,7 @@ case class Organisation(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
+    environmentRequirement: Option[EnvironmentRequirement],
     address: Option[String]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.OrganisationType
@@ -117,7 +114,7 @@ object StorageNode {
     compatible change. Because the _value_ of the "type" attribute needs to be
     constant for each type.
     ============================================================================
-   */
+  */
 
   private[this] val constrainedNameRead: Reads[String] =
     (__ \ "name").read[String](maxLength[String](500))
@@ -125,11 +122,11 @@ object StorageNode {
   private[this] val constrainedAddressRead: Reads[Option[String]] =
     (__ \ "address").readNullable(maxLength[String](500))
 
-  implicit lazy val writes: OWrites[StorageNode] =
-    derived.flat.owrites[StorageNode]((__ \ "type").write[String])
-
   implicit lazy val reads: Reads[StorageNode] = {
     constrainedNameRead andKeep constrainedAddressRead andKeep
       derived.flat.reads[StorageNode]((__ \ "type").read[String])
   }
+
+  implicit lazy val writes: OWrites[StorageNode] =
+    derived.flat.owrites[StorageNode]((__ \ "type").write[String])
 }

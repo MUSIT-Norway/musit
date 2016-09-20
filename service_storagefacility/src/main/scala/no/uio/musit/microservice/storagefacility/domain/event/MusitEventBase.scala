@@ -31,8 +31,13 @@ case class MusitEventBase(
   doneDate: DateTime,
   note: Option[String],
   partOf: Option[Long],
-  // TODO: Consider placing affectedThing property directly on the specific types.
+  // TODO: Move affectedThing property to the specific types.
   affectedThing: Option[ObjectRole],
+  /*
+    TODO: The following 2 fields are not really Optional. And is not something
+    the clients of the API will send in. Highlighting the difference between
+    internal/external representation (API vs Domain).
+   */
   registeredBy: Option[String], // This should be UserId,
   registeredDate: Option[DateTime]
 )

@@ -17,19 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.microservice.storagefacility.domain.storage
 
-import org.joda.time.{ DateTime, DateTimeZone }
+import play.api.libs.json.{ Format, Json }
 
-package object datetime {
+case class SecurityAssessment(
+  perimeter: Option[Boolean],
+  theftProtection: Option[Boolean],
+  fireProtection: Option[Boolean],
+  waterDamage: Option[Boolean],
+  routinesAndContingencyPlan: Option[Boolean]
+)
 
-  /**
-   * We should always be explicit about the timezone we work with. Otherwise,
-   * we risk ending up using the underlying OS timezone settings, which may
-   * vary depending on where the application is running.
-   */
-  val DefaultTimezone = DateTimeZone.UTC
+object SecurityAssessment {
 
-  def dateTimeNow = DateTime.now(DefaultTimezone)
+  lazy val empty = SecurityAssessment(None, None, None, None, None)
 
+  implicit val format: Format[SecurityAssessment] =
+    Json.format[SecurityAssessment]
 }

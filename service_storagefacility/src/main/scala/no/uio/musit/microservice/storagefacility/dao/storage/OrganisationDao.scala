@@ -34,8 +34,7 @@ import scala.concurrent.Future
  */
 @Singleton
 class OrganisationDao @Inject() (
-    val dbConfigProvider: DatabaseConfigProvider,
-    val storageUnitDao: StorageUnitDao
+    val dbConfigProvider: DatabaseConfigProvider
 ) extends SharedStorageTables {
 
   import driver.api._
@@ -44,12 +43,22 @@ class OrganisationDao @Inject() (
 
   private val organisationTable = TableQuery[OrganisationTable]
 
+  private def updateAction(id: StorageNodeId, org: OrganisationDto): DBIO[Int] = {
+    organisationTable.filter { ot =>
+      ot.id === id
+    }.update(org)
+  }
+
+  private def insertAction(organisationDto: OrganisationDto): DBIO[Int] = {
+    organisationTable += organisationDto
+  }
+
   /**
    * TODO: Document me!!!
    */
   def getById(id: StorageNodeId): Future[Option[Organisation]] = {
     val action = for {
-      maybeUnitDto <- storageUnitDao.getByIdAction(id)
+      maybeUnitDto <- getNodeByIdAction(id)
       maybeOrgDto <- organisationTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
@@ -62,32 +71,24 @@ class OrganisationDao @Inject() (
     })
   }
 
-  private[dao] def updateAction(id: StorageNodeId, org: OrganisationDto): DBIO[Int] = {
-    organisationTable.filter(_.id === id).update(org)
-  }
-
   /**
    * TODO: Document me!!!
    */
   def update(id: StorageNodeId, organisation: Organisation): Future[Option[Organisation]] = {
     val extendedOrgDto = StorageNodeDto.fromOrganisation(organisation)
     val action = for {
-      unitsUpdated <- storageUnitDao.updateAction(id, extendedOrgDto.storageUnitDto)
+      unitsUpdated <- updateNodeAction(id, extendedOrgDto.storageUnitDto)
       orgsUpdated <- updateAction(id, extendedOrgDto.extension.copy(id = Some(id)))
     } yield orgsUpdated
 
     db.run(action.transactionally).flatMap {
-      case res: Int if res > 1 || res < 0 =>
-        logger.warn("Wrong amount of rows updated")
-        Future.successful(None)
+      case res: Int if res == 1 =>
+        getById(id)
 
       case res: Int =>
-        getById(id)
+        logger.warn(s"Wrong amount of rows ($res) updated")
+        Future.successful(None)
     }
-  }
-
-  private[dao] def insertAction(organisationDto: OrganisationDto): DBIO[Int] = {
-    organisationTable += organisationDto
   }
 
   /**
@@ -96,7 +97,7 @@ class OrganisationDao @Inject() (
   def insert(organisation: Organisation): Future[Organisation] = {
     val extendedDto = StorageNodeDto.fromOrganisation(organisation)
     val query = for {
-      storageUnit <- storageUnitDao.insertAction(extendedDto.storageUnitDto)
+      storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
       n <- insertAction(extWithId)
     } yield {

@@ -25,7 +25,8 @@ import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
+import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.CtrlConverters
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -39,14 +40,14 @@ class ControlService @Inject() (val eventDao: EventDao) {
   /**
    *
    */
-  def add(ctrl: Control, registeredBy: String): Future[MusitResult[Control]] = {
-    val dto = DtoConverters.CtrlConverters.controlToDto(ctrl)
+  def add(ctrl: Control)(implicit currUsr: String): Future[MusitResult[Control]] = {
+    val dto = CtrlConverters.controlToDto(ctrl)
     eventDao.insertEvent(dto).flatMap { eventId =>
       eventDao.getEvent(eventId).map { res =>
         res.flatMap(_.map { dto =>
           // We know we have a BaseEventDto representing a Control.
           val bdto = dto.asInstanceOf[BaseEventDto]
-          MusitSuccess(DtoConverters.CtrlConverters.controlFromDto(bdto))
+          MusitSuccess(CtrlConverters.controlFromDto(bdto))
         }.getOrElse {
           logger.error(
             s"An unexpected error occured when trying to fetch a " +
@@ -68,7 +69,7 @@ class ControlService @Inject() (val eventDao: EventDao) {
       result.flatMap(_.map {
         case base: BaseEventDto =>
           MusitSuccess(
-            Option(DtoConverters.CtrlConverters.controlFromDto(base))
+            Option(CtrlConverters.controlFromDto(base))
           )
 
         case _ =>
@@ -84,7 +85,7 @@ class ControlService @Inject() (val eventDao: EventDao) {
       MusitSuccess(dtos.map { dto =>
         // We know we have a BaseEventDto representing a Control.
         val base = dto.asInstanceOf[BaseEventDto]
-        DtoConverters.CtrlConverters.controlFromDto(base)
+        CtrlConverters.controlFromDto(base)
       })
     }
   }

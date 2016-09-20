@@ -19,14 +19,22 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
+import no.uio.musit.microservice.storagefacility.domain.Interval
+import play.api.libs.json.{ Format, Json }
+
 case class EnvironmentRequirement(
-  temperature: Option[Double],
-  temperatureTolerance: Option[Double],
-  hypoxicAir: Option[Double],
-  hypoxicAirTolerance: Option[Double],
-  relativeHumidity: Option[Double],
-  relativeHumidityTolerance: Option[Double],
+  temperature: Option[Interval[Double]],
+  relativeHumidity: Option[Interval[Double]],
+  hypoxicAir: Option[Interval[Double]],
   cleaning: Option[String],
   lightingCondition: Option[String],
   comments: Option[String]
 )
+
+object EnvironmentRequirement {
+
+  lazy val empty = EnvironmentRequirement(None, None, None, None, None, None)
+
+  implicit val format: Format[EnvironmentRequirement] =
+    Json.format[EnvironmentRequirement]
+}

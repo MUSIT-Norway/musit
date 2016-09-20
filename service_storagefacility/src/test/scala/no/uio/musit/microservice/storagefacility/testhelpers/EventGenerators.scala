@@ -33,13 +33,10 @@ import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
 
-trait EventGenerators {
+trait EventGenerators extends EventTypeInitializers {
   self: MusitSpecWithApp =>
 
   def eventDao: EventDao = fromInstanceCache[EventDao]
-
-  val registeredByName = "Darth Vader"
-  val defaultActorRole = ActorRole(1, 12)
 
   def addControl(ctrl: Control) = {
     val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
@@ -55,6 +52,12 @@ trait EventGenerators {
     val erAsDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
     eventDao.insertEvent(erAsDto)
   }
+}
+
+trait EventTypeInitializers {
+
+  val registeredByName = "Darth Vader"
+  val defaultActorRole = ActorRole(1, 12)
 
   def createBase(str: String, affected: Option[Long] = Some(1)): MusitEventBase =
     MusitEventBase(

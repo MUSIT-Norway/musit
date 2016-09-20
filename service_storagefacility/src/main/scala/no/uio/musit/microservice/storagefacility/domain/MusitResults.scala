@@ -53,10 +53,8 @@ object MusitResults {
 
     override def flatMap[B](f: A => MusitResult[B]): MusitResult[B] = f(arg)
 
-    override def flatten[B](
-      implicit
-      ev: A <:< MusitResult[B]
-    ): MusitResult[B] = arg
+    override def flatten[B](implicit ev: A <:< MusitResult[B]): MusitResult[B] =
+      arg
   }
 
   sealed trait MusitError[+A] extends MusitResult[A] {

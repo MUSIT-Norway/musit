@@ -32,6 +32,33 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   import driver.api._
 
+  protected val storageNodeTable = TableQuery[StorageNodeTable]
+
+  protected[dao] def getNodeByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
+    storageNodeTable.filter { st =>
+      st.id === id && st.isDeleted === false
+    }.result.headOption
+  }
+
+  protected[dao] def insertNodeAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
+    storageNodeTable returning storageNodeTable.map(_.id) into ((su, id) =>
+      su.copy(id = Some(id))) += storageUnit
+  }
+
+  /**
+   * TODO: Document me!!!
+   */
+  protected[dao] def updateNodeAction(
+    id: StorageNodeId,
+    storageUnit: StorageUnitDto
+  ): DBIO[Int] = {
+    storageNodeTable.filter { su =>
+      su.id === id &&
+        su.isDeleted === false &&
+        su.storageType === storageUnit.storageType
+    }.update(storageUnit)
+  }
+
   class StorageNodeTable(
       val tag: Tag
   ) extends Table[StorageUnitDto](tag, SchemaName, "STORAGE_NODE") {

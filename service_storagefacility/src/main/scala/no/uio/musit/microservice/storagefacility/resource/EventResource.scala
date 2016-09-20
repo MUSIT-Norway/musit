@@ -40,16 +40,17 @@ class EventResource @Inject() (
   val logger = Logger(classOf[EventResource])
 
   // TODO: Use user from an enriched request type in a proper SecureAction
-  val dummyUser = "Darth Vader"
+  import no.uio.musit.microservice.storagefacility.DummyData.DummyUser
 
   /**
    * Controller endpoint for adding a new Control for a storage node with
    * the given nodeId.
    */
   def addControl(nodeId: Long) = Action.async(parse.json) { implicit request =>
+    // TODO: Extract current user information from enriched request.
     request.body.validate[Control] match {
       case JsSuccess(ctrl, jsPath) =>
-        controlService.add(ctrl, dummyUser).map {
+        controlService.add(ctrl).map {
           case MusitSuccess(addedCtrl) =>
             Ok(Json.toJson(addedCtrl))
 
@@ -66,9 +67,10 @@ class EventResource @Inject() (
    * the given nodeId.
    */
   def addObservation(nodeId: Long) = Action.async(parse.json) { implicit request =>
+    // TODO: Extract current user information from enriched request.
     request.body.validate[Observation] match {
       case JsSuccess(obs, jsPath) =>
-        observationService.add(obs, dummyUser).map {
+        observationService.add(obs).map {
           case MusitSuccess(addedObs) =>
             Ok(Json.toJson(addedObs))
 

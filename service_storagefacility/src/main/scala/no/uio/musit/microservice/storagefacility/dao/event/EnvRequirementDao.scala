@@ -39,38 +39,38 @@ class EnvRequirementDao @Inject() (
       tag: Tag
   ) extends Table[EnvRequirementDto](tag, SchemaName, "E_ENVIRONMENT_REQUIREMENT") {
 
-    def * = (id, temp, temp_interval, air_humidity, air_hum_interval, hypoxic_air, hyp_air_interval, cleaning, light) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id, temp, tempTolerance, relativeHumidity, relativeHumidityTolerance, hypoxicAir, hypoxicAirTolerance, cleaning, light) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Option[Long]]("ID", O.PrimaryKey)
 
     val temp = column[Option[Double]]("TEMPERATURE")
-    val temp_interval = column[Option[Double]]("TEMP_INTERVAL")
-    val air_humidity = column[Option[Double]]("AIR_HUMIDITY")
-    val air_hum_interval = column[Option[Double]]("AIR_HUM_INTERVAL")
-    val hypoxic_air = column[Option[Double]]("HYPOXIC_AIR")
-    val hyp_air_interval = column[Option[Double]]("HYP_AIR_INTERVAL")
+    val tempTolerance = column[Option[Double]]("TEMP_TOLERANCE")
+    val relativeHumidity = column[Option[Double]]("REL_HUMIDITY")
+    val relativeHumidityTolerance = column[Option[Double]]("REL_HUM_TOLERANCE")
+    val hypoxicAir = column[Option[Double]]("HYPOXIC_AIR")
+    val hypoxicAirTolerance = column[Option[Double]]("HYP_AIR_TOLERANCE")
     val cleaning = column[Option[String]]("CLEANING")
     val light = column[Option[String]]("LIGHT")
 
     def create = (
       id: Option[Long],
       temp: Option[Double],
-      tempInterval: Option[Double],
-      airHumidity: Option[Double],
-      airHumInterval: Option[Double],
+      tempTolerance: Option[Double],
+      relHumidity: Option[Double],
+      relHumidityTolerance: Option[Double],
       hypoxicAir: Option[Double],
-      hypAirInterval: Option[Double],
+      hypoxicAirTolerance: Option[Double],
       cleaning: Option[String],
       light: Option[String]
     ) =>
       EnvRequirementDto(
         id = id,
         temperature = temp,
-        tempInterval = tempInterval,
-        airHumidity = airHumidity,
-        airHumInterval = airHumInterval,
+        tempInterval = tempTolerance,
+        airHumidity = relHumidity,
+        airHumInterval = relHumidityTolerance,
         hypoxicAir = hypoxicAir,
-        hypoxicInterval = hypAirInterval,
+        hypoxicInterval = hypoxicAirTolerance,
         cleaning = cleaning,
         light = light
       )

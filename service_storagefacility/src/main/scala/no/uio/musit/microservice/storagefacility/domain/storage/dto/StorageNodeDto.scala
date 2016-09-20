@@ -37,14 +37,15 @@ case class OrganisationDto(
 
 case class RoomDto(
   id: Option[StorageNodeId],
-  sikringSkallsikring: Option[Boolean],
-  sikringTyverisikring: Option[Boolean],
-  sikringBrannsikring: Option[Boolean],
-  sikringVannskaderisiko: Option[Boolean],
-  sikringRutineOgBeredskap: Option[Boolean],
-  bevarLuftfuktOgTemp: Option[Boolean],
-  bevarLysforhold: Option[Boolean],
-  bevarPrevantKons: Option[Boolean]
+  perimeterSecurity: Option[Boolean],
+  theftProtection: Option[Boolean],
+  fireProtection: Option[Boolean],
+  waterDamageAssessment: Option[Boolean],
+  routinesAndContingencyPlan: Option[Boolean],
+  relativeHumidity: Option[Boolean],
+  temperatureAssessment: Option[Boolean],
+  lightingCondition: Option[Boolean],
+  preventiveConservation: Option[Boolean]
 ) extends SpecializedStorageNode
 
 object StorageNodeDto {
@@ -93,7 +94,8 @@ object StorageNodeDto {
       heightTo = su.heightTo,
       isPartOf = su.isPartOf,
       groupRead = su.groupRead,
-      groupWrite = su.groupWrite
+      groupWrite = su.groupWrite,
+      environmentRequirement = None // EnvRequirement is handled elsewhere
     )
 
   def toBuilding(ext: ExtendedStorageNode[BuildingDto]): Building = {
@@ -107,6 +109,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
+      environmentRequirement = None, // EnvRequirement is handled elsewhere
       address = ext.extension.address
     )
   }
@@ -122,6 +125,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
+      environmentRequirement = None, // EnvRequirement is handled elsewhere
       address = ext.extension.address
     )
   }
@@ -137,14 +141,20 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      sikringSkallsikring = ext.extension.sikringSkallsikring,
-      sikringBrannsikring = ext.extension.sikringBrannsikring,
-      sikringTyverisikring = ext.extension.sikringTyverisikring,
-      sikringVannskaderisiko = ext.extension.sikringVannskaderisiko,
-      sikringRutineOgBeredskap = ext.extension.sikringRutineOgBeredskap,
-      bevarLuftfuktOgTemp = ext.extension.bevarLuftfuktOgTemp,
-      bevarLysforhold = ext.extension.bevarLysforhold,
-      bevarPrevantKons = ext.extension.bevarPrevantKons
+      environmentRequirement = None, // EnvRequirement is handled elsewhere
+      securityAssessment = SecurityAssessment(
+        perimeter = ext.extension.perimeterSecurity,
+        theftProtection = ext.extension.theftProtection,
+        fireProtection = ext.extension.fireProtection,
+        waterDamage = ext.extension.waterDamageAssessment,
+        routinesAndContingencyPlan = ext.extension.routinesAndContingencyPlan
+      ),
+      environmentAssessment = EnvironmentAssessment(
+        relativeHumidity = ext.extension.relativeHumidity,
+        temperature = ext.extension.temperatureAssessment,
+        lightingCondition = ext.extension.lightingCondition,
+        preventiveConservation = ext.extension.preventiveConservation
+      )
     )
   }
 
@@ -222,14 +232,15 @@ object StorageNodeDto {
       ),
       extension = RoomDto(
         id = r.id,
-        sikringSkallsikring = r.sikringSkallsikring,
-        sikringTyverisikring = r.sikringTyverisikring,
-        sikringBrannsikring = r.sikringBrannsikring,
-        sikringVannskaderisiko = r.sikringVannskaderisiko,
-        sikringRutineOgBeredskap = r.sikringRutineOgBeredskap,
-        bevarLuftfuktOgTemp = r.bevarLuftfuktOgTemp,
-        bevarLysforhold = r.bevarLysforhold,
-        bevarPrevantKons = r.bevarPrevantKons
+        perimeterSecurity = r.securityAssessment.perimeter,
+        theftProtection = r.securityAssessment.theftProtection,
+        fireProtection = r.securityAssessment.fireProtection,
+        waterDamageAssessment = r.securityAssessment.waterDamage,
+        routinesAndContingencyPlan = r.securityAssessment.routinesAndContingencyPlan,
+        relativeHumidity = r.environmentAssessment.relativeHumidity,
+        temperatureAssessment = r.environmentAssessment.temperature,
+        lightingCondition = r.environmentAssessment.lightingCondition,
+        preventiveConservation = r.environmentAssessment.preventiveConservation
       )
     )
 }
