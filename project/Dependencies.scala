@@ -51,7 +51,14 @@ object Dependencies {
     val enumeratumPlay = "com.beachape" %% "enumeratum-play" % "1.4.4"
   }
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.1.7"
+  object Logging {
+    val logbackVersion = "1.1.7"
+    val slf4jVersion = "1.7.21"
+    val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
+    val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
+
+    val loggingDeps = slf4j ++ Seq(logback)
+  }
 
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
   val h2database = "com.h2database" % "h2" % "1.4.192"
@@ -78,9 +85,8 @@ object Dependencies {
   val playDependencies: Seq[ModuleID] = Seq(
     PlayFrameWork.cache,
     PlayFrameWork.ws,
-    PlayFrameWork.json,
-    logback
-  )
+    PlayFrameWork.json
+  ) ++ Logging.loggingDeps
 
   val testablePlayDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     scalatest,
