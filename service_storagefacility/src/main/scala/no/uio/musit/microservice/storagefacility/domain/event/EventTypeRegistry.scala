@@ -86,6 +86,9 @@ object EventTypeRegistry {
 
     def unsafeFromId(id: EventTypeId): TopLevelEvent = fromId(id).get
 
+    /**
+     * This event type describes an event that moves an object from A to B.
+     */
     case object MoveObjectType extends TopLevelEvent(EventTypeId(1), "MoveObject")
 
     case object MoveNodeType extends TopLevelEvent(EventTypeId(2), "MovePlace")

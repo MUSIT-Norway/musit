@@ -22,12 +22,13 @@ package no.uio.musit.microservice.storagefacility.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.{ EnvRequirementDao, EventDao }
 import no.uio.musit.microservice.storagefacility.domain.MusitResults.{ MusitInternalError, MusitResult, MusitSuccess }
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
-import no.uio.musit.microservice.storagefacility.domain.event.dto.ExtendedDto
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventId, EventType }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventDto, ExtendedDto }
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.EnvReqConverters
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
+import no.uio.musit.microservice.storagefacility.domain.storage.{ EnvironmentRequirement, StorageNodeId }
 import play.api.Logger
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
@@ -39,7 +40,12 @@ class EnvironmentRequirementService @Inject() (
 
   val logger = Logger(classOf[EnvironmentRequirementService])
 
+  private val unexpectedType = MusitInternalError(
+    "Unexpected DTO type. Expected ExtendedDto with event type EnvRequirement"
+  )
+
   def add(envReq: EnvRequirement)(implicit currUsr: String): Future[MusitResult[EnvRequirement]] = {
+    // TODO: Need to check if the previous envreq is the same as this one.
     val dto = EnvReqConverters.envReqToDto(envReq)
     eventDao.insertEvent(dto).flatMap { eventId =>
       eventDao.getEvent(eventId).map { res =>
@@ -60,18 +66,30 @@ class EnvironmentRequirementService @Inject() (
 
   def findBy(id: EventId): Future[MusitResult[Option[EnvRequirement]]] = {
     eventDao.getEvent(id.underlying).map { result =>
-      result.flatMap(_.map {
-        case ext: ExtendedDto =>
-          MusitSuccess(
-            Option(EnvReqConverters.envReqFromDto(ext))
-          )
-
-        case _ =>
-          MusitInternalError(
-            "Unexpected DTO type. Expected ExtendedDto with event type EnvRequirement"
-          )
-      }.getOrElse(MusitSuccess(None)))
+      convertResult(result)
     }
+  }
+
+  def findLatestForNodeId(
+    nodeId: StorageNodeId
+  ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
+    eventDao.latestByNodeId(nodeId, EnvRequirementEventType.id).map { result =>
+      convertResult(result).map { maybeEvt =>
+        maybeEvt.map(EnvRequirement.fromEnvRequirementEvent)
+      }
+    }
+  }
+
+  private def convertResult(result: MusitResult[Option[EventDto]]) = {
+    result.flatMap(_.map {
+      case ext: ExtendedDto =>
+        MusitSuccess(
+          Option(EnvReqConverters.envReqFromDto(ext))
+        )
+
+      case _ =>
+        unexpectedType
+    }.getOrElse(MusitSuccess(None)))
   }
 
 }

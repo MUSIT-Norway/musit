@@ -158,9 +158,12 @@ object StorageNodeDto {
     )
   }
 
-  def fromStorageUnit(su: StorageUnit): StorageUnitDto =
+  def fromStorageUnit(
+    su: StorageUnit,
+    id: Option[StorageNodeId] = None
+  ): StorageUnitDto =
     StorageUnitDto(
-      id = su.id,
+      id = id.orElse(su.id),
       name = su.name,
       area = su.area,
       areaTo = su.areaTo,
@@ -173,10 +176,13 @@ object StorageNodeDto {
       storageType = su.storageType
     )
 
-  def fromBuilding(b: Building): ExtendedStorageNode[BuildingDto] =
+  def fromBuilding(
+    b: Building,
+    id: Option[StorageNodeId] = None
+  ): ExtendedStorageNode[BuildingDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
-        id = b.id,
+        id = id.orElse(b.id),
         name = b.name,
         area = b.area,
         areaTo = b.areaTo,
@@ -189,15 +195,18 @@ object StorageNodeDto {
         storageType = b.storageType
       ),
       extension = BuildingDto(
-        id = b.id,
+        id = id.orElse(b.id),
         address = b.address
       )
     )
 
-  def fromOrganisation(o: Organisation): ExtendedStorageNode[OrganisationDto] =
+  def fromOrganisation(
+    o: Organisation,
+    id: Option[StorageNodeId] = None
+  ): ExtendedStorageNode[OrganisationDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
-        id = o.id,
+        id = id.orElse(o.id),
         name = o.name,
         area = o.area,
         areaTo = o.areaTo,
@@ -210,15 +219,18 @@ object StorageNodeDto {
         storageType = o.storageType
       ),
       extension = OrganisationDto(
-        id = o.id,
+        id = id.orElse(o.id),
         address = o.address
       )
     )
 
-  def fromRoom(r: Room): ExtendedStorageNode[RoomDto] =
+  def fromRoom(
+    r: Room,
+    id: Option[StorageNodeId] = None
+  ): ExtendedStorageNode[RoomDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
-        id = r.id,
+        id = id.orElse(r.id),
         name = r.name,
         area = r.area,
         areaTo = r.areaTo,
@@ -231,7 +243,7 @@ object StorageNodeDto {
         storageType = r.storageType
       ),
       extension = RoomDto(
-        id = r.id,
+        id = id.orElse(r.id),
         perimeterSecurity = r.securityAssessment.perimeter,
         theftProtection = r.securityAssessment.theftProtection,
         fireProtection = r.securityAssessment.fireProtection,

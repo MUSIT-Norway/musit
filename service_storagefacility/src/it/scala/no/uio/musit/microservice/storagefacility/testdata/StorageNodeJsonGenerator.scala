@@ -26,6 +26,27 @@ object StorageNodeJsonGenerator {
 
   val defaultAddress = "Foo gate 13, 1111 Bar, Norge"
 
+  def envReqJson(cleaning: String = "Keep it clean!") = {
+    s"""{
+        |  "temperature" : {
+        |    "base" : 20,
+        |    "tolerance" : 25
+        |  },
+        |  "relativeHumidity" : {
+        |    "base" : 60.7,
+        |    "tolerance" : 70
+        |  },
+        |  "hypoxicAir" : {
+        |    "base" : 12,
+        |    "tolerance" : 20
+        |  },
+        |  "cleaning" : "$cleaning",
+        |  "lightingCondition" : "Dempet belysning",
+        |  "comment" : "Kommentar for environment requirement."
+        |}
+    """.stripMargin
+  }
+
   def organisationJson(name: String): JsValue = {
     Json.parse(
       s"""{
@@ -55,23 +76,7 @@ object StorageNodeJsonGenerator {
           |  "isPartOf" : ${partOf.underlying},
           |  "groupRead" : "foo",
           |  "groupWrite" : "bar",
-          |  "environmentRequirement" : {
-          |    "temperature" : {
-          |      "base" : 20,
-          |      "tolerance" : 25
-          |    },
-          |    "relativeHumidity" : {
-          |      "base" : 60.7,
-          |      "tolerance" : 70
-          |    },
-          |    "hypoxicAir" : {
-          |      "base" : 12,
-          |      "tolerance" : 20
-          |    },
-          |    "cleaning" : "Keep it clean!",
-          |    "lightingCondition" : "Dempet belysning",
-          |    "comments" : "Kommentar for environment requirement."
-          |  }
+          |  "environmentRequirement" : ${envReqJson()}
           |}
        """.stripMargin
     )
@@ -102,23 +107,7 @@ object StorageNodeJsonGenerator {
           |    "lightingCondition" : true,
           |    "preventiveConservation" : false
           |  },
-          |  "environmentRequirement" : {
-          |    "temperature" : {
-          |      "base" : 20,
-          |      "tolerance" : 25
-          |    },
-          |    "relativeHumidity" : {
-          |      "base" : 60.7,
-          |      "tolerance" : 70
-          |    },
-          |    "hypoxicAir" : {
-          |      "base" : 12,
-          |      "tolerance" : 20
-          |    },
-          |    "cleaning" : "Keep it clean!",
-          |    "lightingCondition" : "Dempet belysning",
-          |    "comments" : "Kommentar for environment requirement."
-          |  }
+          |  "environmentRequirement" : ${envReqJson()}
           |}
        """.stripMargin
     )
@@ -136,23 +125,7 @@ object StorageNodeJsonGenerator {
           |  "isPartOf" : ${partOf.underlying},
           |  "groupRead" : "foo",
           |  "groupWrite" : "bar",
-          |  "environmentRequirement" : {
-          |    "temperature" : {
-          |      "base" : 20,
-          |      "tolerance" : 25
-          |    },
-          |    "relativeHumidity" : {
-          |      "base" : 60.7,
-          |      "tolerance" : 70
-          |    },
-          |    "hypoxicAir" : {
-          |      "base" : 12,
-          |      "tolerance" : 20
-          |    },
-          |    "cleaning" : "Keep it clean!",
-          |    "lightingCondition" : "Dempet belysning",
-          |    "comments" : "Kommentar for environment requirement."
-          |  },
+          |  "environmentRequirement" : ${envReqJson()},
           |  "address" : "$defaultAddress"
           |}
        """.stripMargin

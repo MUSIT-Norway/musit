@@ -72,10 +72,10 @@ class RoomDao @Inject() (
     //If we don't have the storage unit or it is marked as deleted, or we find
     // more than 1 rows to update, onlyAcceptOneUpdatedRecord will make this
     // DBIO/Future fail with an appropriate MusitException.
-    val roomDto = StorageNodeDto.fromRoom(room)
+    val roomDto = StorageNodeDto.fromRoom(room, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, roomDto.storageUnitDto)
-      roomsUpdated <- updateAction(id, roomDto.extension.copy(id = Some(id)))
+      roomsUpdated <- updateAction(id, roomDto.extension)
     } yield roomsUpdated
 
     db.run(action.transactionally).flatMap {

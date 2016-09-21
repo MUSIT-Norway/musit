@@ -90,15 +90,26 @@ trait NodeGenerators extends NodeTypeInitializers {
 
 trait NodeTypeInitializers {
 
-  def initEnvironmentRequirement: EnvironmentRequirement =
+  def initEnvironmentRequirement(
+    temp: Option[Interval[Double]] = Some(Interval[Double](20.0, Some(25.0))),
+    humid: Option[Interval[Double]] = Some(Interval[Double](60.7, Some(70.0))),
+    hypoxic: Option[Interval[Double]] = Some(Interval[Double](12.0, Some(20))),
+    cleaning: Option[String] = Some("Keep it clean!"),
+    lighting: Option[String] = Some("Dempet belysning"),
+    comment: Option[String] = Some("Kommentar for environment requirement.")
+  ): EnvironmentRequirement = {
     EnvironmentRequirement(
-      temperature = Some(Interval[Double](20.0, Some(25.0))),
-      relativeHumidity = Some(Interval[Double](60.7, Some(70.0))),
-      hypoxicAir = Some(Interval[Double](12.0, Some(20))),
-      cleaning = Some("Keep it clean!"),
-      lightingCondition = Some("Dempet belysning"),
-      comments = Some("Kommentar for environment requirement.")
+      temperature = temp,
+      relativeHumidity = humid,
+      hypoxicAir = hypoxic,
+      cleaning = cleaning,
+      lightingCondition = lighting,
+      comment = comment
     )
+  }
+
+  val defaultEnvironmentRequirement: EnvironmentRequirement =
+    initEnvironmentRequirement()
 
   def createBuilding(partOf: Option[StorageNodeId] = None): Building = {
     Building(
@@ -111,7 +122,7 @@ trait NodeTypeInitializers {
       heightTo = Some(8),
       groupRead = None,
       groupWrite = None,
-      environmentRequirement = Some(initEnvironmentRequirement),
+      environmentRequirement = Some(defaultEnvironmentRequirement),
       address = Some("FooBar Gate 8, 111 Oslo, Norge")
     )
   }
@@ -127,7 +138,7 @@ trait NodeTypeInitializers {
       isPartOf = partOf,
       groupRead = None,
       groupWrite = None,
-      environmentRequirement = Some(initEnvironmentRequirement),
+      environmentRequirement = Some(defaultEnvironmentRequirement),
       securityAssessment = SecurityAssessment(
         perimeter = Some(true),
         theftProtection = Some(true),
@@ -155,7 +166,7 @@ trait NodeTypeInitializers {
       heightTo = Some(2),
       groupRead = None,
       groupWrite = None,
-      environmentRequirement = Some(initEnvironmentRequirement)
+      environmentRequirement = Some(defaultEnvironmentRequirement)
     )
   }
 

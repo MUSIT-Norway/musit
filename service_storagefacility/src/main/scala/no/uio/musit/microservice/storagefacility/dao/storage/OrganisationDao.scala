@@ -75,10 +75,10 @@ class OrganisationDao @Inject() (
    * TODO: Document me!!!
    */
   def update(id: StorageNodeId, organisation: Organisation): Future[Option[Organisation]] = {
-    val extendedOrgDto = StorageNodeDto.fromOrganisation(organisation)
+    val extendedOrgDto = StorageNodeDto.fromOrganisation(organisation, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, extendedOrgDto.storageUnitDto)
-      orgsUpdated <- updateAction(id, extendedOrgDto.extension.copy(id = Some(id)))
+      orgsUpdated <- updateAction(id, extendedOrgDto.extension)
     } yield orgsUpdated
 
     db.run(action.transactionally).flatMap {

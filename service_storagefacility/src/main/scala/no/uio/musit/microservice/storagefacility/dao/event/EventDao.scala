@@ -24,7 +24,7 @@ import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
 import no.uio.musit.microservice.storagefacility.domain.MusitResults._
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents.{ ObsHumidityType, ObsHypoxicAirType, ObsPestType, ObsTemperatureType }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ EnvRequirementEventType, MoveNodeType, MoveObjectType }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
@@ -338,7 +338,7 @@ class EventDao @Inject() (
     EventTypeRegistry.unsafeFromId(baseEventDto.eventTypeId) match {
       case EnvRequirementEventType =>
         envReqDao.getEnvRequirement(baseEventDto.id.get).map { mer =>
-          MusitSuccess[Option[EventDto]](Option(
+          MusitSuccess(Option(
             mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
           ))
         }
@@ -380,8 +380,36 @@ class EventDao @Inject() (
         getFullEvent(base, recursive)
       }.getOrElse {
         logger.debug(s"No event data found for id $id.")
-        Future.successful(MusitSuccess[Option[EventDto]](None))
+        Future.successful(MusitSuccess(None))
       }
+    }
+  }
+
+  /**
+   * Get the latest event for a given nodeId.
+   *
+   * @param id
+   * @param eventTypeId
+   */
+  def latestByNodeId(
+    id: StorageNodeId,
+    eventTypeId: EventTypeId
+  ): Future[MusitResult[Option[EventDto]]] = {
+    for {
+      maybeErp <- evtPlacesAsObjDao.latestForNode(id)
+      evt <- {
+        logger.debug(s"Latest event relation for node $id is $maybeErp")
+        maybeErp.map { erp =>
+          getEvent(
+            // We can use Option.get here because it must have a value.
+            id = erp.eventId.get,
+            eventTypeId = Some(eventTypeId)
+          )
+        }.getOrElse(Future.successful(MusitSuccess(None)))
+      }
+    } yield {
+      logger.debug(s"Returning result $evt")
+      evt
     }
   }
 
@@ -432,7 +460,9 @@ class EventDao @Inject() (
     }
   }
 
-  //The "other" relations, those stored in the event_relation_event table
+  /**
+   * The "other" relations, those stored in the event_relation_event table
+   */
   private def getOtherRelatedEvents(
     parentId: Long,
     recursive: Boolean
@@ -505,7 +535,7 @@ class EventDao @Inject() (
     eventType: TopLevelEvent
   ): Future[Seq[EventDto]] = {
     // First fetch the eventIds from the place as object relation table.
-    val futureEventIds = evtPlacesAsObjDao.getEventsForObjects(nodeId.toInt).map { objs =>
+    val futureEventIds = evtPlacesAsObjDao.getEventsForObjects(nodeId).map { objs =>
       objs.map(_.eventId).filter(_.isDefined).map(_.get)
     }
     // Iterate the list of IDs and fetch the related event.

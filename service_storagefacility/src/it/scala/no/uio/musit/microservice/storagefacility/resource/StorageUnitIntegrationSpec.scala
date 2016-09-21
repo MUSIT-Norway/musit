@@ -23,7 +23,8 @@ class StorageUnitIntegrationSpec extends PlaySpec
   override lazy val port: Int = 19002
 
   implicit override lazy val app = new GuiceApplicationBuilder()
-    .configure(TestConfigs.inMemoryDatabaseConfig()).build()
+    .configure(TestConfigs.inMemoryDatabaseConfig())
+    .build()
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -199,6 +200,7 @@ class StorageUnitIntegrationSpec extends PlaySpec
           response, RoomType, "My Room1", 3, Some(2)
         )
         room mustBe a[Room]
+        room.environmentRequirement must not be None
       }
 
       "successfully get a storage unit" in {
@@ -209,6 +211,7 @@ class StorageUnitIntegrationSpec extends PlaySpec
           response, StorageUnitType, "My Shelf1", 4, Some(3)
         )
         su mustBe a[StorageUnit]
+        su.environmentRequirement must not be None
       }
 
       "not find a storage node with an invalid Id" in {
@@ -228,7 +231,7 @@ class StorageUnitIntegrationSpec extends PlaySpec
         su.heightTo mustBe Some(.6)
 
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
             "name" -> "My Shelf2b",
             "areaTo" -> JsNumber(.8),
             "heightTo" -> JsNumber(.8)
@@ -258,7 +261,7 @@ class StorageUnitIntegrationSpec extends PlaySpec
         room.heightTo mustBe Some(2.6)
 
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
             "name" -> "My Room2b",
             "lightingCondition" -> true
           )
@@ -274,7 +277,7 @@ class StorageUnitIntegrationSpec extends PlaySpec
         updated.environmentAssessment.lightingCondition mustBe Some(true)
       }
 
-      "successfully update a building" in {
+      "successfully update a building with environment requirements" in {
         val json = buildingJson("My Building2", StorageNodeId(1))
         val response = postStorageNode(json).futureValue
         response.status mustBe Status.CREATED
@@ -286,8 +289,9 @@ class StorageUnitIntegrationSpec extends PlaySpec
         building.heightTo mustBe Some(3.5)
 
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
-            "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge"
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
+            "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge",
+            "environmentRequirement" -> Json.parse(envReqJson("Filthy"))
           )
         }
 
@@ -299,6 +303,8 @@ class StorageUnitIntegrationSpec extends PlaySpec
 
         updated mustBe a[Building]
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
+        updated.environmentRequirement.isEmpty must not be true
+        updated.environmentRequirement.get.cleaning mustBe Some("Filthy")
       }
 
       "successfully update an organisation" in {
@@ -313,7 +319,7 @@ class StorageUnitIntegrationSpec extends PlaySpec
         organisation.heightTo mustBe Some(3.5)
 
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
             "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge"
           )
         }
@@ -385,7 +391,7 @@ class StorageUnitIntegrationSpec extends PlaySpec
         building.heightTo mustBe Some(3.5)
 
         val updatedJson = {
-          Json.parse(response.body).asInstanceOf[JsObject] ++ Json.obj(
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
             "type" -> "Organisation"
           )
         }

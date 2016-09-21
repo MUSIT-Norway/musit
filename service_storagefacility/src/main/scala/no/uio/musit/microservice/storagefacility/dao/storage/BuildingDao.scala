@@ -28,6 +28,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 /**
  * TODO: Document me!!!
@@ -73,10 +74,10 @@ class BuildingDao @Inject() (
    * TODO: Document me!!!
    */
   def update(id: StorageNodeId, building: Building): Future[Option[Building]] = {
-    val extendedBuildingDto = StorageNodeDto.fromBuilding(building)
+    val extendedBuildingDto = StorageNodeDto.fromBuilding(building, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, extendedBuildingDto.storageUnitDto)
-      buildingsUpdated <- updateAction(id, extendedBuildingDto.extension.copy(id = Some(id)))
+      buildingsUpdated <- updateAction(id, extendedBuildingDto.extension)
     } yield buildingsUpdated
 
     db.run(action.transactionally).flatMap {
@@ -86,6 +87,11 @@ class BuildingDao @Inject() (
       case res: Int =>
         logger.warn("Wrong amount of rows updated")
         Future.successful(None)
+    }.recover {
+      case NonFatal(ex) =>
+        logger.debug(s"Using $id, building has ID ${building.id}")
+        logger.error(s"There was an error updating building $id", ex)
+        None
     }
   }
 
@@ -110,9 +116,9 @@ class BuildingDao @Inject() (
       val tag: Tag
   ) extends Table[BuildingDto](tag, SchemaName, "BUILDING") {
 
-    def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (id.?, address) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
+    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey)
     val address = column[Option[String]]("POSTAL_ADDRESS")
 
     def create = (id: Option[StorageNodeId], address: Option[String]) =>

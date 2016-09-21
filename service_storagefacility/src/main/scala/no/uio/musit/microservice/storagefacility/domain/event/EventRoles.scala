@@ -33,7 +33,7 @@ object ObjectRole {
   implicit val format: Format[ObjectRole] = Json.format[ObjectRole]
 }
 
-case class PlaceRole(roleId: Int, placeId: Int)
+case class PlaceRole(roleId: Int, placeId: Long)
 
 object PlaceRole {
   implicit val format: Format[PlaceRole] = Json.format[PlaceRole]

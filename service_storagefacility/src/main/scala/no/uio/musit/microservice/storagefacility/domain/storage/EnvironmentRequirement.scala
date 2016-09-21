@@ -28,7 +28,7 @@ case class EnvironmentRequirement(
   hypoxicAir: Option[Interval[Double]],
   cleaning: Option[String],
   lightingCondition: Option[String],
-  comments: Option[String]
+  comment: Option[String]
 )
 
 object EnvironmentRequirement {

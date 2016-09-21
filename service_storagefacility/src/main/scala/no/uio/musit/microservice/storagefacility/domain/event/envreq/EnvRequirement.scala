@@ -19,8 +19,12 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.envreq
 
+import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.domain.Interval
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEvent, MusitEventBase }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
+import no.uio.musit.microservice.storagefacility.domain.event._
+import no.uio.musit.microservice.storagefacility.domain.storage.{ EnvironmentRequirement, StorageNodeId }
+import org.joda.time.DateTime
 
 case class EnvRequirement(
   baseEvent: MusitEventBase,
@@ -31,3 +35,57 @@ case class EnvRequirement(
   cleaning: Option[String],
   light: Option[String]
 ) extends MusitEvent
+
+object EnvRequirement {
+
+  /**
+   * Convert an EnvironmentRequirement type into an EnvRequirement event.
+   *
+   * @param affectedNodeId The StorageNodeId the event applies to
+   * @param now The current timestamp.
+   * @param er EnvironmentRequirement to convert
+   * @param currUsr The currently logged in user.
+   * @return an EnvRequirement instance
+   */
+  def toEnvRequirementEvent(
+    affectedNodeId: StorageNodeId,
+    now: DateTime,
+    er: EnvironmentRequirement
+  )(implicit currUsr: String): EnvRequirement = {
+    EnvRequirement(
+      baseEvent = MusitEventBase(
+        id = None,
+        // FIXME: DO NOT FORGET TO CHANGE THIS!!!
+        doneBy = Some(ActorRole(1, DummyData.DummyUserId)),
+        doneDate = now,
+        note = er.comment,
+        partOf = None,
+        affectedThing = Some(ObjectRole(
+          // TODO: ObjectRole should be added to DB on appp bootstrapping.
+          roleId = 1,
+          objectId = affectedNodeId
+        )),
+        registeredBy = Some(currUsr),
+        registeredDate = Some(now)
+      ),
+      eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
+      temperature = er.temperature,
+      airHumidity = er.relativeHumidity,
+      hypoxicAir = er.hypoxicAir,
+      cleaning = er.cleaning,
+      light = er.lightingCondition
+    )
+  }
+
+  def fromEnvRequirementEvent(er: EnvRequirement): EnvironmentRequirement = {
+    EnvironmentRequirement(
+      temperature = er.temperature,
+      relativeHumidity = er.airHumidity,
+      hypoxicAir = er.hypoxicAir,
+      cleaning = er.cleaning,
+      lightingCondition = er.light,
+      comment = er.baseEvent.note
+    )
+  }
+
+}

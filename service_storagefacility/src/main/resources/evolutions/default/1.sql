@@ -67,7 +67,7 @@ CREATE TABLE MUSARK_STORAGE.BUILDING (
 );
 
 CREATE TABLE MUSARK_STORAGE.ORGANISATION(
-  storage_node_id INTEGER not null ,
+  storage_node_id NUMBER(20) not null ,
   postal_address  VARCHAR(512),
   PRIMARY KEY (storage_node_id),
   FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)

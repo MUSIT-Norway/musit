@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.service
 
+import no.uio.musit.microservice.storagefacility.domain.Interval
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{ Millis, Seconds, Span }
@@ -33,6 +34,38 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   implicit val DummyUser = "Bevel Lemelisk"
 
   val service: StorageNodeService = fromInstanceCache[StorageNodeService]
+
+  "successfully create a new room node with environment requirements" in {
+    // Setup new room data, without the partOf relation, which is not
+    // interesting in this particular test.
+    val room = createRoom(None)
+    val inserted = service.addRoom(room).futureValue
+
+    inserted.id must not be None
+    inserted.environmentRequirement must not be None
+    inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
+  }
+
+  "successfully update a building with new environment requirements" in {
+    val building = createBuilding(None)
+    val inserted = service.addBuilding(building).futureValue
+    inserted.id must not be None
+    inserted.environmentRequirement must not be None
+    inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
+
+    val someEnvReq = Some(initEnvironmentRequirement(
+      hypoxic = Some(Interval[Double](44.4, Some(55.5)))
+    ))
+    val ub = building.copy(environmentRequirement = someEnvReq)
+
+    val res = service.updateBuilding(inserted.id.get, ub).futureValue
+    res.isSuccess mustBe true
+    res.get must not be None
+
+    val updated = res.get.get
+    updated.id mustBe inserted.id
+    updated.environmentRequirement mustBe someEnvReq
+  }
 
   "successfully update a storage unit and fetch as StorageNode" in {
     val su = createStorageUnit()

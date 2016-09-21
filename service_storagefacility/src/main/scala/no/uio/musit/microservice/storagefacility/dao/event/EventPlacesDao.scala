@@ -20,8 +20,9 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.dao.{ ColumnTypeMappers, SchemaName }
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EventRolePlace
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
@@ -30,7 +31,7 @@ import scala.concurrent.Future
 @Singleton
 class EventPlacesDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
@@ -57,9 +58,9 @@ class EventPlacesDao @Inject() (
 
     val eventId = column[Long]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
-    val placeId = column[Int]("PLACE_ID")
+    val placeId = column[StorageNodeId]("PLACE_ID")
 
-    def create = (eventId: Option[Long], roleId: Int, placeId: Int) =>
+    def create = (eventId: Option[Long], roleId: Int, placeId: StorageNodeId) =>
       EventRolePlace(
         eventId = eventId,
         roleId = roleId,

@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
 import no.uio.musit.microservice.storagefacility.domain.event.{ ActorRole, ObjectRole, PlaceRole }
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 
 /**
  * Created by jstabel on 7/6/16.
@@ -113,7 +114,7 @@ object EventRoleObject {
     ObjectRole(eventRoleObject.roleId, eventRoleObject.objectId)
 }
 
-case class EventRolePlace(eventId: Option[Long], roleId: Int, placeId: Int)
+case class EventRolePlace(eventId: Option[Long], roleId: Int, placeId: StorageNodeId)
 
 object EventRolePlace {
 
