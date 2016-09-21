@@ -12,27 +12,21 @@ export MILJO=dev
 
 STARTDIR=$(pwd)
 
+echo "MUSARK: docker-compose stop ." && docker-compose stop > /dev/null
+echo "MUSARK: docker-compose rm ." && docker-compose rm -f > /dev/null
+
 cd ../..
 if [ ! -L ./frontend ]; then
        	ln -s ../musit-frontend frontend
 fi
 
-LOCAL=$(git rev-parse @)
-REMOTE=$(git rev-parse @{u})
-BASE=$(git merge-base @ @{u})
-if [ $LOCAL = $REMOTE ]; then
-    echo "Up-to-date"
-elif [ $LOCAL = $BASE ]; then
-    echo "Need to pull"
-    git pull
-    sbt clean docker:publishLocal
-else
-    echo "Everything is ok"
-fi
+echo "MUSARK: git pull backend ." && git pull > /dev/null
+echo "MUSARK: sbt clean docker:publishLocal ." && sbt clean docker:publishLocal > /dev/null
 
 cd frontend
-git pull
+echo "MUSARK: git pull frontend ." && git pull > /dev/null
 
 cd ${STARTDIR}
 
-docker-compose up -d --build --remove-orphans
+echo "MUSARK: docker-compose build ." && docker-compose build --no-cache > /dev/null
+echo "MUSARK: docker-compose up ." && docker-compose up -d --force-recreate --remove-orphans > /dev/null
