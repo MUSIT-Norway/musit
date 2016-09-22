@@ -25,6 +25,8 @@ import org.scalatest.time.{ Millis, Seconds, Span }
 
 class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
+  override val dbName: String = "storage-unit-dao-db"
+
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)

@@ -19,13 +19,15 @@
 
 package dao
 
-import models.MusitResults.MusitSuccess
-import models.{MuseumIdentifier, ObjectId}
+import no.uio.musit.service.MusitResults.MusitSuccess
+import models.{ MuseumIdentifier, ObjectId }
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.time.{ Millis, Seconds, Span }
 import play.api.Logger
 
 class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
+
+  override val dbName: String = "obj-agr-dao-spec"
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),

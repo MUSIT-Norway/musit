@@ -27,14 +27,27 @@ import no.uio.musit.microservice.storagefacility.domain.storage.{ EnvironmentReq
 import org.joda.time.DateTime
 
 case class EnvRequirement(
-  baseEvent: MusitEventBase,
-  eventType: EventType,
-  temperature: Option[Interval[Double]],
-  airHumidity: Option[Interval[Double]],
-  hypoxicAir: Option[Interval[Double]],
-  cleaning: Option[String],
-  light: Option[String]
-) extends MusitEvent
+    baseEvent: MusitEventBase,
+    eventType: EventType,
+    temperature: Option[Interval[Double]],
+    airHumidity: Option[Interval[Double]],
+    hypoxicAir: Option[Interval[Double]],
+    cleaning: Option[String],
+    light: Option[String]
+) extends MusitEvent {
+
+  def similar(er: EnvRequirement): Boolean = {
+    // Compare the basic similarities of the environment requirements
+    baseEvent.affectedThing == er.baseEvent.affectedThing &&
+      temperature == er.temperature &&
+      airHumidity == er.airHumidity &&
+      hypoxicAir == er.hypoxicAir &&
+      cleaning == er.cleaning &&
+      light == er.light &&
+      baseEvent.note == er.baseEvent.note
+  }
+
+}
 
 object EnvRequirement {
 

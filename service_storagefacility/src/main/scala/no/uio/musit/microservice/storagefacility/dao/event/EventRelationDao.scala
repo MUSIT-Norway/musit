@@ -29,10 +29,6 @@ import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
 
-/**
- * Created by jstabel on 7/6/16.
- */
-
 @Singleton
 class EventRelationDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider

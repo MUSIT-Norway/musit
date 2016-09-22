@@ -137,11 +137,11 @@ object ExtendedDto {
 case class EnvRequirementDto(
   id: Option[Long],
   temperature: Option[Double],
-  tempInterval: Option[Double],
+  tempTolerance: Option[Int],
   airHumidity: Option[Double],
-  airHumInterval: Option[Double],
+  airHumTolerance: Option[Int],
   hypoxicAir: Option[Double],
-  hypoxicInterval: Option[Double],
+  hypoxicTolerance: Option[Int],
   cleaning: Option[String],
   light: Option[String]
 ) extends DtoExtension

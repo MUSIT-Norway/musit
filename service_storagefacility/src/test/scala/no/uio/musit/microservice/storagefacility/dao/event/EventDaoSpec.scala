@@ -37,6 +37,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
     with EventGenerators
     with NodeGenerators {
 
+  override val dbName: String = "event-dao-db"
+
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)

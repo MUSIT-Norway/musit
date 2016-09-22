@@ -26,6 +26,8 @@ import org.scalatest.time.{ Millis, Seconds, Span }
 
 class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
+  override val dbName: String = "storage-node-service-db"
+
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
@@ -54,7 +56,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
 
     val someEnvReq = Some(initEnvironmentRequirement(
-      hypoxic = Some(Interval[Double](44.4, Some(55.5)))
+      hypoxic = Some(Interval[Double](44.4, Some(55)))
     ))
     val ub = building.copy(environmentRequirement = someEnvReq)
 

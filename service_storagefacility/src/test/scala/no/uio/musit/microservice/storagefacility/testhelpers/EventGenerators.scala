@@ -100,7 +100,7 @@ trait EventTypeInitializers {
       baseEvent = createBase("This is the base note", storageNodeId),
       eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
       temperature = Some(Interval(20, Some(5))),
-      airHumidity = Some(Interval(60, Some(10))),
+      airHumidity = Some(Interval(60.0, Some(10))),
       hypoxicAir = Some(Interval(0, Some(15))),
       cleaning = Some("keep it clean, dude"),
       light = Some("dim")

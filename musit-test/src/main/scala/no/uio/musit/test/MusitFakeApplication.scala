@@ -21,10 +21,11 @@ package no.uio.musit.test
 
 import play.api.inject.guice.GuiceApplicationBuilder
 
-trait MusitFakeApplication {
+trait MusitFakeApplication extends TestConfigs {
 
-  def createApplication = new GuiceApplicationBuilder()
-    .configure(TestConfigs.inMemoryDatabaseConfig())
-    .build()
+  def createApplication(dbName: String = "musit-test") =
+    new GuiceApplicationBuilder()
+      .configure(slickWithInMemoryH2(dbName))
+      .build()
 
 }

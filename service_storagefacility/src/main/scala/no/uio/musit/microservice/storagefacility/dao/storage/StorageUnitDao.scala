@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.domain.MusitResults._
+import no.uio.musit.service.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ StorageNodeDto, StorageUnitDto }
 import play.api.Logger

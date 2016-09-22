@@ -44,33 +44,33 @@ class EnvRequirementDao @Inject() (
     val id = column[Option[Long]]("ID", O.PrimaryKey)
 
     val temp = column[Option[Double]]("TEMPERATURE")
-    val tempTolerance = column[Option[Double]]("TEMP_TOLERANCE")
+    val tempTolerance = column[Option[Int]]("TEMP_TOLERANCE")
     val relativeHumidity = column[Option[Double]]("REL_HUMIDITY")
-    val relativeHumidityTolerance = column[Option[Double]]("REL_HUM_TOLERANCE")
+    val relativeHumidityTolerance = column[Option[Int]]("REL_HUM_TOLERANCE")
     val hypoxicAir = column[Option[Double]]("HYPOXIC_AIR")
-    val hypoxicAirTolerance = column[Option[Double]]("HYP_AIR_TOLERANCE")
+    val hypoxicAirTolerance = column[Option[Int]]("HYP_AIR_TOLERANCE")
     val cleaning = column[Option[String]]("CLEANING")
     val light = column[Option[String]]("LIGHT")
 
     def create = (
       id: Option[Long],
       temp: Option[Double],
-      tempTolerance: Option[Double],
+      tempTolerance: Option[Int],
       relHumidity: Option[Double],
-      relHumidityTolerance: Option[Double],
+      relHumidityTolerance: Option[Int],
       hypoxicAir: Option[Double],
-      hypoxicAirTolerance: Option[Double],
+      hypoxicAirTolerance: Option[Int],
       cleaning: Option[String],
       light: Option[String]
     ) =>
       EnvRequirementDto(
         id = id,
         temperature = temp,
-        tempInterval = tempTolerance,
+        tempTolerance = tempTolerance,
         airHumidity = relHumidity,
-        airHumInterval = relHumidityTolerance,
+        airHumTolerance = relHumidityTolerance,
         hypoxicAir = hypoxicAir,
-        hypoxicInterval = hypoxicAirTolerance,
+        hypoxicTolerance = hypoxicAirTolerance,
         cleaning = cleaning,
         light = light
       )
@@ -79,11 +79,11 @@ class EnvRequirementDao @Inject() (
       Some((
         envReq.id,
         envReq.temperature,
-        envReq.tempInterval,
+        envReq.tempTolerance,
         envReq.airHumidity,
-        envReq.airHumInterval,
+        envReq.airHumTolerance,
         envReq.hypoxicAir,
-        envReq.hypoxicInterval,
+        envReq.hypoxicTolerance,
         envReq.cleaning,
         envReq.light
       ))

@@ -19,9 +19,9 @@
 package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.domain.MusitResults.{ MusitError, MusitResult, MusitSuccess, MusitValidationError }
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
+import no.uio.musit.service.MusitResults.{ MusitError, MusitResult, MusitSuccess, MusitValidationError }
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -85,12 +85,12 @@ final class StorageUnitResource @Inject() (
       case MusitSuccess(maybeNode) =>
         maybeNode.map(node => Ok(Json.toJson(maybeNode))).getOrElse(NotFound)
 
-      case musitError: MusitError[_] =>
+      case musitError: MusitError =>
         musitError match {
           case MusitValidationError(message, exp, act) =>
             BadRequest(Json.obj("message" -> message))
 
-          case internal: MusitError[_] =>
+          case internal: MusitError =>
             InternalServerError(Json.obj("message" -> internal.message))
         }
     }
@@ -147,7 +147,7 @@ final class StorageUnitResource @Inject() (
           Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
         }
 
-      case err: MusitError[_] =>
+      case err: MusitError =>
         logger.error("An unexpected error occured when trying to delete a node " +
           s"with ID $id. Message was: ${err.message}")
         InternalServerError(Json.obj("message" -> err.message))

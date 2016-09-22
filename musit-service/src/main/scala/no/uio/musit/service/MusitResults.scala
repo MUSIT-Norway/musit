@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.service
 
 object MusitResults {
 
@@ -29,11 +29,22 @@ object MusitResults {
 
     def get: A
 
-    def map[B](f: A => B): MusitResult[B]
+    def map[B](f: A => B): MusitResult[B] = this match {
+      case MusitSuccess(success) => MusitSuccess(f(success))
+      case err: MusitError => err
+    }
 
-    def flatMap[B](f: A => MusitResult[B]): MusitResult[B]
+    def flatMap[B](f: A => MusitResult[B]): MusitResult[B] = this match {
+      case MusitSuccess(success) => f(success)
+      case err: MusitError => err
+    }
 
-    def flatten[B](implicit ev: A <:< MusitResult[B]): MusitResult[B]
+    def flatten[B](implicit ev: A <:< MusitResult[B]): MusitResult[B] = {
+      this match {
+        case MusitSuccess(success) => success
+        case err: MusitError => err
+      }
+    }
 
     final def getOrElse[B >: A](default: => B): B = {
       if (isFailure) default else this.get
@@ -44,33 +55,17 @@ object MusitResults {
   /**
    * Use this to as return type when operations is successful
    */
-  case class MusitSuccess[+A](arg: A) extends MusitResult[A] {
+  case class MusitSuccess[+A](value: A) extends MusitResult[A] {
     override val isSuccess: Boolean = true
 
-    override def get: A = arg
-
-    override def map[B](f: A => B): MusitResult[B] = MusitSuccess[B](f(arg))
-
-    override def flatMap[B](f: A => MusitResult[B]): MusitResult[B] = f(arg)
-
-    override def flatten[B](implicit ev: A <:< MusitResult[B]): MusitResult[B] =
-      arg
+    override def get: A = value
   }
 
-  sealed trait MusitError[+A] extends MusitResult[A] {
+  sealed trait MusitError extends MusitResult[Nothing] {
     val message: String
 
-    override def get: A =
+    override def get: Nothing =
       throw new NoSuchElementException("MusitResult.get on MusitError") // scalastyle:ignore
-
-    override def map[B](f: A => B): MusitResult[B] =
-      this.asInstanceOf[MusitError[B]]
-
-    override def flatMap[B](f: A => MusitResult[B]): MusitResult[B] =
-      this.asInstanceOf[MusitError[B]]
-
-    override def flatten[B](implicit ev: A <:< MusitResult[B]): MusitResult[B] =
-      this.asInstanceOf[MusitError[B]]
   }
 
   // ========================================================================
@@ -78,30 +73,40 @@ object MusitResults {
   // ========================================================================
 
   /**
+   * A special result case to represent a status where there was no argument.
+   * It's really a success state, but it handles better in the code if treated
+   * here as a MusitError type.
+   */
+  case object MusitEmpty extends MusitError {
+    override val message: String = "empty"
+    override val isSuccess: Boolean = true
+  }
+
+  /**
    * Use this when validation of fields and conditions are not met.
    */
-  case class MusitValidationError[+A](
+  case class MusitValidationError(
       message: String,
-      expected: A,
-      actual: A
-  ) extends MusitError[A] {
+      expected: Any,
+      actual: Any
+  ) extends MusitError {
     override val isSuccess: Boolean = false
   }
 
   /**
    * Use this when dealing with unexpected internal errors.
    */
-  case class MusitInternalError[+A](message: String) extends MusitError[A] {
+  case class MusitInternalError(message: String) extends MusitError {
     override val isSuccess: Boolean = false
   }
 
   /**
    * Use this error type when handling Exceptions from the DB driver.
    */
-  case class MusitDbError[+A](
+  case class MusitDbError(
       message: String,
       ex: Option[Throwable] = None
-  ) extends MusitError[A] {
+  ) extends MusitError {
     override val isSuccess: Boolean = false
   }
 

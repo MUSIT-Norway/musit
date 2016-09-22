@@ -22,7 +22,7 @@ package no.uio.musit.microservice.storagefacility.domain
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class Interval[T](base: T, tolerance: Option[T])
+case class Interval[T](base: T, tolerance: Option[Int])
 
 object Interval {
   /*
@@ -46,11 +46,11 @@ object Interval {
 
   implicit val longFormat: Format[Interval[Long]] = (
     (__ \ "base").format[Long] and
-    (__ \ "tolerance").formatNullable[Long]
+    (__ \ "tolerance").formatNullable[Int]
   )((b, t) => Interval(b, t), i => (i.base, i.tolerance))
 
   implicit val doubleFormat: Format[Interval[Double]] = (
     (__ \ "base").format[Double] and
-    (__ \ "tolerance").formatNullable[Double]
+    (__ \ "tolerance").formatNullable[Int]
   )((b, t) => Interval(b, t), i => (i.base, i.tolerance))
 }

@@ -21,17 +21,18 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.{ EnvRequirementDao, EventDao }
-import no.uio.musit.microservice.storagefacility.domain.MusitResults.{ MusitInternalError, MusitResult, MusitSuccess }
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventId, EventType }
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventDto, ExtendedDto }
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.EnvReqConverters
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventDto, ExtendedDto }
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.storage.{ EnvironmentRequirement, StorageNodeId }
+import no.uio.musit.service.MusitResults.{ MusitEmpty, MusitInternalError, MusitResult, MusitSuccess }
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 class EnvironmentRequirementService @Inject() (
     val eventDao: EventDao,
@@ -44,28 +45,67 @@ class EnvironmentRequirementService @Inject() (
     "Unexpected DTO type. Expected ExtendedDto with event type EnvRequirement"
   )
 
+  private def compareWithLatest(envReq: EnvRequirement): Future[Option[EnvRequirement]] = {
+    envReq.baseEvent.affectedThing.map { or =>
+      val snid: StorageNodeId = or.objectId
+      latestForNodeId(snid).map(_.map { mer =>
+        if (mer.exists(_.similar(envReq))) mer
+        else None
+      }.getOrElse(None)).recover {
+        // If the attempt to fetch the last environment requirement event for
+        // the specific nodeId failed, we're going to write a new event
+        case NonFatal(ex) => None
+      }
+    }.getOrElse {
+      /*
+        FIXME: Since environmentRequirement is an Optional argument on the
+        StorageNode types, we _have_ to assume they are not modified if they
+        are not passed in. Meaning we do _not_ add a new event for it.
+        This should be revisited. See TODO in StorageNode.
+       */
+      Future.successful(None)
+    }
+  }
+
   def add(envReq: EnvRequirement)(implicit currUsr: String): Future[MusitResult[EnvRequirement]] = {
     // TODO: Need to check if the previous envreq is the same as this one.
     val dto = EnvReqConverters.envReqToDto(envReq)
-    eventDao.insertEvent(dto).flatMap { eventId =>
-      eventDao.getEvent(eventId).map { res =>
-        res.flatMap(_.map { dto =>
-          // We know we have an ExtendedDto representing an EnvRequirement
-          val extDto = dto.asInstanceOf[ExtendedDto]
-          MusitSuccess(EnvReqConverters.envReqFromDto(extDto))
-        }.getOrElse {
-          logger.error(
-            s"Unexpected error when trying to fetch an environment" +
-              s" requirement event that was added with eventId $eventId"
-          )
-          MusitInternalError("Could not locate the EnvRequirement that was added")
-        })
+
+    compareWithLatest(envReq).flatMap { sameEr =>
+      sameEr.map { er =>
+        logger.debug("Did not add new EnvRequirement event because it was " +
+          "similar as the previous entry")
+        Future.successful(MusitSuccess(er))
+      }.getOrElse {
+        eventDao.insertEvent(dto).flatMap { eventId =>
+          eventDao.getEvent(eventId).map { res =>
+            res.flatMap(_.map { dto =>
+              // We know we have an ExtendedDto representing an EnvRequirement
+              val extDto = dto.asInstanceOf[ExtendedDto]
+              MusitSuccess(EnvReqConverters.envReqFromDto(extDto))
+            }.getOrElse {
+              logger.error(
+                s"Unexpected error when trying to fetch an environment" +
+                  s" requirement event that was added with eventId $eventId"
+              )
+              MusitInternalError("Could not locate the EnvRequirement that was added")
+            })
+          }
+        }
       }
     }
   }
 
   def findBy(id: EventId): Future[MusitResult[Option[EnvRequirement]]] = {
     eventDao.getEvent(id.underlying).map { result =>
+      convertResult(result)
+    }
+  }
+
+  private def latestForNodeId(
+    nodeId: StorageNodeId
+  ): Future[MusitResult[Option[EnvRequirement]]] = {
+    eventDao.latestByNodeId(nodeId, EnvRequirementEventType.id).map { result =>
       convertResult(result)
     }
   }

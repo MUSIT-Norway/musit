@@ -91,8 +91,8 @@ trait NodeGenerators extends NodeTypeInitializers {
 trait NodeTypeInitializers {
 
   def initEnvironmentRequirement(
-    temp: Option[Interval[Double]] = Some(Interval[Double](20.0, Some(25.0))),
-    humid: Option[Interval[Double]] = Some(Interval[Double](60.7, Some(70.0))),
+    temp: Option[Interval[Double]] = Some(Interval[Double](20.0, Some(25))),
+    humid: Option[Interval[Double]] = Some(Interval[Double](60.7, Some(70))),
     hypoxic: Option[Interval[Double]] = Some(Interval[Double](12.0, Some(20))),
     cleaning: Option[String] = Some("Keep it clean!"),
     lighting: Option[String] = Some("Dempet belysning"),

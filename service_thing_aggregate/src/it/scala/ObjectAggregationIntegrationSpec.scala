@@ -11,7 +11,9 @@ import play.api.libs.json._
 
 import scala.language.postfixOps
 
-class ObjectAggregationIntegrationSpec extends MusitSpec with OneServerPerSuite {
+class ObjectAggregationIntegrationSpec extends MusitSpec
+  with OneServerPerSuite
+  with TestConfigs {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -20,7 +22,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpec with OneServerPerSuite 
 
   implicit override lazy val app = {
     new GuiceApplicationBuilder()
-      .configure(TestConfigs.inMemoryDatabaseConfig())
+      .configure(slickWithInMemoryH2(dbName = "obj-agr-it-spec"))
       .build()
   }
 

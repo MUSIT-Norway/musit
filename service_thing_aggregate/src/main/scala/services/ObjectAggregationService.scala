@@ -2,7 +2,7 @@ package services
 
 import com.google.inject.Inject
 import dao.{ ObjectAggregationDao, StorageNodeDao }
-import models.MusitResults.MusitResult
+import no.uio.musit.service.MusitResults.MusitResult
 import models.ObjectAggregation
 
 import scala.concurrent.Future

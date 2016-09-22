@@ -20,10 +20,10 @@
 package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.domain.MusitResults.{ MusitError, MusitSuccess }
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.domain.event.observation.Observation
 import no.uio.musit.microservice.storagefacility.service.{ ControlService, ObservationService }
+import no.uio.musit.service.MusitResults.{ MusitError, MusitSuccess }
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{ JsError, JsNull, JsSuccess, Json }
@@ -54,7 +54,7 @@ class EventResource @Inject() (
           case MusitSuccess(addedCtrl) =>
             Ok(Json.toJson(addedCtrl))
 
-          case err: MusitError[_] =>
+          case err: MusitError =>
             InternalServerError(Json.obj("message" -> err.message))
         }
       case JsError(errors) =>
@@ -74,7 +74,7 @@ class EventResource @Inject() (
           case MusitSuccess(addedObs) =>
             Ok(Json.toJson(addedObs))
 
-          case err: MusitError[_] =>
+          case err: MusitError =>
             InternalServerError(Json.obj("message" -> err.message))
         }
       case JsError(errors) =>
@@ -95,7 +95,7 @@ class EventResource @Inject() (
           NotFound
         }
 
-      case err: MusitError[_] =>
+      case err: MusitError =>
         InternalServerError(Json.obj("message" -> err.message))
     }
   }
@@ -113,7 +113,7 @@ class EventResource @Inject() (
           NotFound
         }
 
-      case err: MusitError[_] =>
+      case err: MusitError =>
         InternalServerError(Json.obj("message" -> err.message))
     }
   }
@@ -126,7 +126,7 @@ class EventResource @Inject() (
       case MusitSuccess(controls) =>
         Ok(Json.toJson(controls))
 
-      case err: MusitError[_] =>
+      case err: MusitError =>
         InternalServerError(Json.obj("message" -> err.message))
     }
   }
@@ -139,7 +139,7 @@ class EventResource @Inject() (
       case MusitSuccess(observations) =>
         Ok(Json.toJson(observations))
 
-      case err: MusitError[_] =>
+      case err: MusitError =>
         InternalServerError(Json.obj("message" -> err.message))
     }
   }
@@ -170,7 +170,7 @@ class EventResource @Inject() (
           }
           Ok(Json.arr(jsObjects))
 
-        case err: MusitError[_] =>
+        case err: MusitError =>
           InternalServerError(Json.obj("message" -> err.message))
       }
 

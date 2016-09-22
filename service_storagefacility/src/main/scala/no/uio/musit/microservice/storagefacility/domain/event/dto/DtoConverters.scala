@@ -46,7 +46,7 @@ object DtoConverters {
    */
   def toInterval[A](
     base: Option[A],
-    tolerance: Option[A]
+    tolerance: Option[Int]
   ): Option[Interval[A]] = base.map(b => Interval[A](b, tolerance))
 
   private[this] def baseFromDto(dto: EventDto): MusitEventBase = {
@@ -453,11 +453,11 @@ object DtoConverters {
       EnvRequirementDto(
         id = envReq.baseEvent.id,
         temperature = envReq.temperature.map(_.base),
-        tempInterval = envReq.temperature.flatMap(_.tolerance),
+        tempTolerance = envReq.temperature.flatMap(_.tolerance),
         airHumidity = envReq.airHumidity.map(_.base),
-        airHumInterval = envReq.airHumidity.flatMap(_.tolerance),
+        airHumTolerance = envReq.airHumidity.flatMap(_.tolerance),
         hypoxicAir = envReq.hypoxicAir.map(_.base),
-        hypoxicInterval = envReq.hypoxicAir.flatMap(_.tolerance),
+        hypoxicTolerance = envReq.hypoxicAir.flatMap(_.tolerance),
         cleaning = envReq.cleaning,
         light = envReq.light
       )
@@ -473,9 +473,9 @@ object DtoConverters {
     def envReqFromDto(dto: ExtendedDto): EnvRequirement = {
       val envReqDto = dto.extension.asInstanceOf[EnvRequirementDto]
 
-      val temp = toInterval(envReqDto.temperature, envReqDto.tempInterval)
-      val humidity = toInterval(envReqDto.airHumidity, envReqDto.airHumInterval)
-      val hypoxic = toInterval(envReqDto.hypoxicAir, envReqDto.hypoxicInterval)
+      val temp = toInterval(envReqDto.temperature, envReqDto.tempTolerance)
+      val humidity = toInterval(envReqDto.airHumidity, envReqDto.airHumTolerance)
+      val hypoxic = toInterval(envReqDto.hypoxicAir, envReqDto.hypoxicTolerance)
 
       EnvRequirement(
         baseEvent = baseFromDto(dto),

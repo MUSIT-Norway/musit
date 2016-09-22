@@ -19,16 +19,19 @@
 
 package no.uio.musit.test
 
-object TestConfigs {
+trait TestConfigs {
 
-  def inMemoryDatabaseConfig(evolve: String = "enabled"): Map[String, Any] = Map.apply(
+  def slickWithInMemoryH2(
+    dbName: String,
+    evolve: String = "enabled"
+  ): Map[String, Any] = Map.apply(
     "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
     "slick.dbs.default.connectionTimeout" -> "20000",
     "slick.dbs.default.loginTimeout" -> "20000",
     "slick.dbs.default.socketTimeout" -> "20000",
     "slick.dbs.default.db.driver" -> "org.h2.Driver",
     "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
-    "slick.dbs.default.db.url" -> "jdbc:h2:mem:play-test;MODE=Oracle;DB_CLOSE_DELAY=-1",
+    "slick.dbs.default.db.url" -> s"jdbc:h2:mem:$dbName;MODE=Oracle",
     "slick.dbs.default.leakDetectionThreshold" -> "5000",
     "evolutionplugin" -> evolve
   )

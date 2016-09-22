@@ -34,6 +34,11 @@ sealed trait StorageNode {
   val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
+  /*
+    TODO: Should this attribute be defined as required? We have logic that tries
+    to determine if a new EnvRequirement event should be created or not. That is
+    directly depending on what value this has.
+   */
   val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
 }

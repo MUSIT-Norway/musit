@@ -21,13 +21,13 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
-import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.CtrlConverters
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 

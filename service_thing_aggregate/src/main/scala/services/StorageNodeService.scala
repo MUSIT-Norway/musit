@@ -2,7 +2,7 @@ package services
 
 import com.google.inject.Inject
 import dao.StorageNodeDao
-import models.MusitResults.MusitResult
+import no.uio.musit.service.MusitResults.MusitResult
 
 import scala.concurrent.Future
 

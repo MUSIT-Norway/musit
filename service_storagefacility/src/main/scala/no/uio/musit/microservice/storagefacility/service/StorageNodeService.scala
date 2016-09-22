@@ -20,11 +20,11 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
-import no.uio.musit.microservice.storagefacility.domain.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
+import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -56,7 +56,8 @@ class StorageNodeService @Inject() (
         logger.debug("Successfully wrote environment requirement data " +
           s"for node $nodeId")
         Some(EnvRequirement.fromEnvRequirementEvent(er))
-      case err: MusitError[_] =>
+
+      case err: MusitError =>
         logger.error("Something went wrong while storing the environment " +
           s"requirements for node $nodeId")
         None
@@ -369,7 +370,7 @@ class StorageNodeService @Inject() (
         )
         false
 
-      case err: MusitError[_] =>
+      case err: MusitError =>
         false
     }
   }
@@ -403,8 +404,8 @@ class StorageNodeService @Inject() (
         if (exists) storageUnitDao.markAsDeleted(id)
         else Future.successful(MusitSuccess(0))
 
-      case error =>
-        Future.successful(error.asInstanceOf[MusitError[Int]])
+      case error: MusitError =>
+        Future.successful(error)
     }
   }
 }

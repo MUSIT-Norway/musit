@@ -27,9 +27,10 @@ import play.api.Application
 trait MusitSpec extends PlaySpec with ScalaFutures
 
 trait MusitSpecWithApp extends MusitSpec with MusitFakeApplication {
+  val dbName: String
   // NOTE: This is mutable because of the usage in specs that require a new
   // application per test.
-  var musitFakeApp = createApplication
+  var musitFakeApp = createApplication(dbName)
 
   def fromInstanceCache[T](implicit manifest: Manifest[T]): T = {
     val instance = Application.instanceCache[T]
@@ -40,7 +41,7 @@ trait MusitSpecWithApp extends MusitSpec with MusitFakeApplication {
 
 trait MusitSpecWithAppPerTest extends MusitSpecWithApp with OneAppPerTest {
   implicit override def newAppForTest(testData: TestData): Application = {
-    musitFakeApp = createApplication
+    musitFakeApp = createApplication(dbName)
     musitFakeApp
   }
 
@@ -50,3 +51,4 @@ trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with OneAppPerSuite {
   implicit override lazy val app = musitFakeApp
 }
 
+// TODO: Add traits for fake server per app and suite.
