@@ -42,7 +42,7 @@ class LegacyPersonService @Inject() (val actorDao: ActorDao) {
 
   def find(search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
-    actorDao.getPersonLegacyByName(searchString)
+    actorDao.getPersonLegacyByNameCaseInsensitive(searchString)
   }
 
   def create(person: Person): Future[Person] = {
