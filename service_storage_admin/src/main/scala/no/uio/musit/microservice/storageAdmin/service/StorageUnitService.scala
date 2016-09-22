@@ -74,6 +74,10 @@ class StorageUnitService @Inject() (
     storageDao.getById(id)
   }
 
+  def getStorageNodeDtoById(id: Long): MusitFuture[StorageNodeDTO] = {
+    storageDao.getStorageNodeOnly(id)
+  }
+
   def verifyStorageNodeExists(id: Long): MusitFuture[Boolean] = storageUnitDao.verifyStorageNodeExists(id)
 
   def getStorageType(id: Long): MusitFuture[StorageType] =

@@ -13,7 +13,6 @@ The common properties are stored in the StorageNode table. StorageUnit has no ex
 
  */
 
-
 sealed trait StorageDTO {
   val id: Option[Long]
 }
@@ -41,24 +40,25 @@ case class RoomDTO(
   preventiveConservation: Option[Boolean]
 ) extends StorageDTO
 
-
 case class StorageNodeDTO(
-  id: Option[Long],
-  name: String,
-  area: Option[Double],
-  areaTo: Option[Double],
-  height: Option[Double],
-  heightTo: Option[Double],
-  isPartOf: Option[Long],
-  parentPath: NodePath,
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  latestMoveId: Option[Long],
-  latestEnvReqId: Option[Long],
-  links: Option[Seq[Link]],
-  isDeleted: Boolean,
-  storageType: StorageType
-) extends StorageDTO
+    id: Option[Long],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    height: Option[Double],
+    heightTo: Option[Double],
+    isPartOf: Option[Long],
+    nodePath: NodePath,
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    latestMoveId: Option[Long],
+    latestEnvReqId: Option[Long],
+    links: Option[Seq[Link]],
+    isDeleted: Boolean,
+    storageType: StorageType
+) extends StorageDTO {
+  def nodePathWithSelf = nodePath.appendChild(id.get)
+}
 
 sealed trait CompleteStorageNodeDto {
   val storageNode: StorageNodeDTO

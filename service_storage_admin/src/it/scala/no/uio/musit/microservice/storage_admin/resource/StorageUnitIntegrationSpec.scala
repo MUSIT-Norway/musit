@@ -40,6 +40,8 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
 
   def getPath(id: Long) = wsUrl(s"/v1/storageunit/$id/path").get |> waitFutureValue
 
+  def getStats(id: Long) = wsUrl(s"/v1/storageunit/$id/stats").get |> waitFutureValue
+
   def getStorageUnit(id: Long) = wsUrl(s"/v1/storageunit/$id").get
 
   def getRoomAsObject(id: Long): Future[Room] = {
@@ -819,6 +821,30 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       pathRes.body must include("Nytt navn")
       pathRes.body must include(id.toString)
       pathRes.body must include("StorageUnit")
+    }
+
+    "test Stats" in {
+      val makeMyJSon =
+        """{"type":"Room","name":"UkjentRom",
+        "securityAssessment": {
+          "perimeterSecurity": true
+        },
+        "environmentAssessment": {}
+
+        }""".stripMargin
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
+      response.status mustBe 201
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+
+      val statsResponse = getStats(storageUnit.id.get)
+      statsResponse.status mustBe 200
+      val stats = Json.parse(statsResponse.body).validate[Stats].get
+
+      //TODO: We don't have any mechanism from the client yet at the moment to build up structure (needs MoveEvent etc)
+      // to get some non-trivial stats
+      stats.nodes mustBe 0
+      stats.objects mustBe 0
+      stats.totalObjects mustBe 0
     }
   }
 }

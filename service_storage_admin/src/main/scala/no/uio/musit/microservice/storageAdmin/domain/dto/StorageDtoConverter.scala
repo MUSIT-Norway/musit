@@ -37,7 +37,7 @@ trait StorageDtoConverter {
       area = storage.area,
       areaTo = storage.areaTo,
       isPartOf = storage.isPartOf,
-      parentPath = NodePath.empty, //TODO (if in Domain class, we need to copy this here)
+      nodePath = NodePath.empty, //TODO (if in Domain class, we need to copy this here)
       height = storage.height,
       heightTo = storage.heightTo,
       groupRead = storage.groupRead,

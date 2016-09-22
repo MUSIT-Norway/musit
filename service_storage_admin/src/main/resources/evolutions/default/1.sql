@@ -31,7 +31,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE(
  height_to         FLOAT,
  is_storage_unit   VARCHAR(1) DEFAULT '1', -- TODO: Remove, because it is redundant due to storage_type?
  is_part_of        INTEGER,
- parent_path       VARCHAR(1000) not null, -- Comma separated list of ids of the ancestors for this node. Leftmost is the root node. "," for root nodes.
+ node_path       VARCHAR(1000) not null, -- Comma separated list of ids of the ancestors for this node. Leftmost is the root node. "," for root nodes.
  is_deleted        integer not null default 0,
  storage_type      varchar(100) default 'storageunit',
  group_read        varchar(4000),
@@ -97,14 +97,12 @@ CREATE TABLE MUSARK_STORAGE.E_ENVIRONMENT_REQUIREMENT
 );
 
 --Copied from Event (will be in the merged microservice). Included here to be able to get some tests to run.
---CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT
---(
- --object_id         BIGINT(20) NOT NULL,
- --latest_move_id      BIGINT(20) ,
- --current_location_id  integer, -- maybe for later use
---   FOREIGN KEY (latest_move_id) REFERENCES MUSARK_EVENT.EVENT(ID)
-   --FOREIGN KEY (current_location_id) REFERENCES MUSARK_EVENT.storageAdminNodehvatever(ID)
---);
+CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT
+(
+object_id         BIGINT(20) NOT NULL,
+ latest_move_id      BIGINT(20) ,
+ current_location_id  integer
+);
 
 # --- !Downs
 
