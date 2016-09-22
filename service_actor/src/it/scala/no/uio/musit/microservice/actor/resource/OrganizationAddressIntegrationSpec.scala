@@ -15,7 +15,7 @@ class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite
 
   val timeout = PlayTestDefaults.timeout
 
-  override lazy val port: Int = 19007
+  override lazy val port: Int = 19008
 
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 

@@ -25,25 +25,4 @@ class ActorIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFut
   }
 
 
-
-
-
-  "Actor and dataporten integration" must {
-
-    "get 401 when not providing token" in {
-      val future = wsUrl("/v1/dataporten/currentUser").get()
-      whenReady(future, timeout) { response =>
-        response.status mustBe 401
-      }
-    }
-
-    "get actor with matching dataportenId" in {
-      val future = withFakeUser(wsUrl("/v1/dataporten/currentUser"), "jarle").get()
-      whenReady(future, timeout) { response =>
-        response.status mustBe 200
-        val person = Json.parse(response.body).validate[Person].get
-        person.fn mustBe "Jarle Stabell"
-      }
-    }
-  }
 }
