@@ -96,6 +96,15 @@ CREATE TABLE MUSARK_STORAGE.E_ENVIRONMENT_REQUIREMENT
   --FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
+--Copied from Event (will be in the merged microservice). Included here to be able to get some tests to run.
+--CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT
+--(
+ --object_id         BIGINT(20) NOT NULL,
+ --latest_move_id      BIGINT(20) ,
+ --current_location_id  integer, -- maybe for later use
+--   FOREIGN KEY (latest_move_id) REFERENCES MUSARK_EVENT.EVENT(ID)
+   --FOREIGN KEY (current_location_id) REFERENCES MUSARK_EVENT.storageAdminNodehvatever(ID)
+--);
 
 # --- !Downs
 

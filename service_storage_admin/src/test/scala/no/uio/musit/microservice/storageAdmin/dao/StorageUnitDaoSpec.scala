@@ -323,4 +323,58 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
     }
   }
+
+  "NodePath test" must {
+    "work" in {
+      val myPath = NodePath()
+      myPath.serialize mustBe ","
+
+      val path1 = myPath.appendChild(1)
+      path1.serialize mustBe ",1,"
+
+      val path2 = path1.appendChild(2)
+      path2.serialize mustBe ",1,2,"
+
+      path2.parent.serialize mustBe ",1,"
+      path2.parent.parent.serialize mustBe ","
+
+      intercept[Exception] {
+        path2.parent.parent.parent
+
+      }
+
+      val thrown = intercept[Exception] {
+        myPath.parent
+      }
+
+      intercept[Exception] {
+        NodePath("1,2")
+      }
+
+      intercept[Exception] {
+        NodePath("1,2,")
+      }
+
+      intercept[Exception] {
+        NodePath(",1,2")
+      }
+
+      val thrX = intercept[Exception] {
+        NodePath(",x,")
+      }
+
+      thrX.getMessage must include("x")
+
+
+
+    }
+
+
+
+  }
+
+
+
+
+
 }
