@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ ControlEventType, MoveNodeType, ObservationEventType }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ ControlEventType, MoveNodeType, MoveObjectType, ObservationEventType }
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move._
@@ -162,19 +162,17 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
     "processing Move events" should {
 
       "succeed when moving an object" in {
-        //        val moveObj = MoveObject(
-        //          baseEvent = createBase("This is a note on moving an object"),
-        //          eventType = EventType.fromEventTypeId(MoveObjectType.id),
-        //          to = PlaceRole(1, 1)
-        //        )
-        //        val dto = DtoConverters.MoveConverters.moveObjectToDto(moveObj)
-        //        val eventId = eventDao.insertEvent(dto).futureValue
-        //
-        //        latestEventId = eventId
-        //
-        //        eventId mustBe a[java.lang.Long]
+        val moveObj = MoveObject(
+          baseEvent = createBase("This is a note on moving an object"),
+          eventType = EventType.fromEventTypeId(MoveObjectType.id),
+          to = PlaceRole(1, 1)
+        )
+        val dto = DtoConverters.MoveConverters.moveObjectToDto(moveObj)
+        val eventId = eventDao.insertEvent(dto).futureValue
 
-        pending
+        latestEventId = eventId
+
+        eventId mustBe a[java.lang.Long]
       }
 
       "succeed when moving a storage node" in {

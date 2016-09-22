@@ -67,7 +67,8 @@ class EventDao @Inject() (
     val evtActorsDao: EventActorsDao,
     val evtObjectsDao: EventObjectsDao,
     val evtPlacesDao: EventPlacesDao,
-    val evtPlacesAsObjDao: EventPlacesAsObjectsDao
+    val evtPlacesAsObjDao: EventPlacesAsObjectsDao,
+    val localObjectDao: LocalObjectDao
 ) extends SharedEventTables with ColumnTypeMappers {
 
   import driver.api._
@@ -181,7 +182,9 @@ class EventDao @Inject() (
         // Insert any related objects relations
         _ <- {
           if (MoveObjectType.id == event.eventTypeId) {
-            insertRelatedObjects(theEventId, event.relatedObjects)
+            localObjectDao.cacheLatestMove(theEventId, event).andThen(
+              insertRelatedObjects(theEventId, event.relatedObjects)
+            )
           } else {
             insertRelatedObjectsAsPlaces(theEventId, event.relatedObjects)
           }

@@ -131,10 +131,11 @@ CREATE TABLE MUSARK_STORAGE.EVENT_RELATION_EVENT (
 
 CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
   object_id NUMBER(20) NOT NULL,
-  latest_move_id NUMBER(20) ,
-  current_location_id NUMBER(20), -- maybe for later use
-  FOREIGN KEY (latest_move_id) REFERENCES MUSARK_STORAGE.EVENT(id)
-  --FOREIGN KEY (current_location_id) REFERENCES MUSARK_STORAGE.storageAdminNodehvatever(ID)
+  latest_move_id NUMBER(20) NOT NULL,
+  current_location_id NUMBER(20) NOT NULL,
+  PRIMARY KEY (object_id),
+  FOREIGN KEY (latest_move_id) REFERENCES MUSARK_STORAGE.EVENT(id),
+  FOREIGN KEY (current_location_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_ACTOR (
@@ -164,8 +165,8 @@ CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_PLACE (
   place_id  NUMBER(20) NOT NULL,
   PRIMARY KEY (event_id, role_id, place_id),
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
-  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE(id)--,
-  --FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_STORAGE.PLACE(PLACE_ID)
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE(id),
+  FOREIGN KEY (place_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
 -- For some event types, the "objects" really are places. Read it as
@@ -178,8 +179,8 @@ CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_PLACE_AS_OBJECT (
   place_id  NUMBER(20) NOT NULL,
   PRIMARY KEY (event_id, role_id, place_id),
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT(id),
-  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE(id)--,
-  --FOREIGN KEY (PLACE_ID) REFERENCES MUSARK_STORAGE.PLACE(PLACE_ID)
+  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE(id),
+  FOREIGN KEY (place_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE(storage_node_id)
 );
 
 -- ===========================================================================
