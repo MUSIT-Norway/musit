@@ -1,13 +1,13 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.domain.{Building, NodePath, Storage, StorageUnit}
-import no.uio.musit.microservice.storageAdmin.domain.dto.{StorageNodeDTO, StorageType}
+import no.uio.musit.microservice.storageAdmin.domain.{ Building, NodePath, Storage, StorageUnit }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageNodeDTO, StorageType }
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.jdbc.SQLActionBuilder
@@ -35,7 +35,7 @@ class StorageUnitDao @Inject() (
       str => NodePath(str)
     )
 
-  private val StorageNodeTable = TableQuery[StorageNodeTable]
+  val StorageNodeTable = TableQuery[StorageNodeTable]
 
   def unknownStorageUnitMsg(id: Long) = s"Unknown storageUnit with id: $id"
 
@@ -45,13 +45,7 @@ class StorageUnitDao @Inject() (
   def getStorageNodeOnlyById(id: Long): Future[Option[StorageNodeDTO]] =
     db.run(StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
 
-
-  /*A query returning *all* non deleted child nodes, ignoring access rights. */
-  private def getAllNonDeletedChildrenQuery(id: Long) = {
-    StorageNodeTable.filter(st => st.isPartOf === id && st.isDeleted === false)
-  }
-
-  /*A query returning non deleted child nodes, will probably take access rights in account in the future*/
+  /*A query returning non deleted child nodes, will probably take access rights into account in the future*/
   private def getChildrenQuery(id: Long) = {
     StorageNodeTable.filter(st => st.isPartOf === id && st.isDeleted === false)
   }
@@ -60,37 +54,7 @@ class StorageUnitDao @Inject() (
     db.run(getChildrenQuery(id).result)
   }
 
-  /** All child ids, irrespective of access rights to the children*/
-  def getAllChildIds(id: Long): Future[Seq[Long]] = {
-    db.run(getAllNonDeletedChildrenQuery(id).map(_.id).result)
-  }
-
-  /** Count of *all* children of this node, irrespective of access rights to the children */
-  def getAllChildCount(id: Long): Future[Int] = {
-    db.run((getAllNonDeletedChildrenQuery(id).length).result)
-  }
-
-  /** Count of *all* children of this node and of all children of its subnodes, irrespective of access rights to the children.
-    * We assume the node exists */
-  def getRecursiveChildCount(nodeId: Long): Future[Int] = {
-    val futOptNode = this.getStorageNodeOnlyById(nodeId)
-    futOptNode.flatMap{
-      case Some(node) => getRecursiveChildCount(node)
-      case None => assert(false); Future.successful(0)
-    }
-  }
-
-  def getRecursiveChildCount(node: StorageNodeDTO): Future[Int] = {
-    val nodeFilter = node.parentPath.descendantsFilter
-    db.run(sql"""
-            SELECT count(*) FROM
-            MUSARK_STORAGE.STORAGE_NODE n, MUSARK_STORAGE.LOCAL_OBJECT o
-            WHERE n.PARENT_PATH LIKE $nodeFilter and o.current_location_id = n.ID""".as[Int].head)
-  }
-
-
-
-    def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
+  def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
     val optSelf = getStorageNodeOnlyById(id)
     optSelf.flatMap {
       case None => Future.successful(Seq.empty)
@@ -130,8 +94,16 @@ class StorageUnitDao @Inject() (
   def rootNodes(readGroup: String): Future[Seq[StorageNodeDTO]] =
     db.run(StorageNodeTable.filter(st => st.isDeleted === false && st.isPartOf.isEmpty && st.groupRead === readGroup).result)
 
-  def setPartOf(id: Long, partOf: Long): Future[Int] =
-    db.run(StorageNodeTable.filter(_.id === id).map(_.isPartOf).update(Some(partOf)))
+  def getNodePath(nodeId: Long) = getStorageNodeOnlyById(nodeId).map(_.map(_.nodePath))
+
+  def setPartOf(nodeId: Long, parentNodeId: Long): Future[Int] = {
+    val futOptParentPathOfParent = getNodePath(parentNodeId)
+    futOptParentPathOfParent.flatMap { optParentPathOfParent =>
+
+      val parentPathOfSelf = optParentPathOfParent.getOrElse(NodePath.empty).appendChild(nodeId)
+      db.run(StorageNodeTable.filter(_.id === nodeId).map(x => (x.isPartOf, x.nodePath)).update(Some(parentNodeId), parentPathOfSelf))
+    }
+  }
 
   def insert(storageUnit: StorageUnit): Future[StorageNodeDTO] =
     insert(storageUnitToDto(storageUnit))
@@ -236,8 +208,8 @@ class StorageUnitDao @Inject() (
     } yield storageUnit.isDeleted).update(true))
   }
 
-  private class StorageNodeTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
-    def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, parentPath, height, heightTo, groupRead, groupWrite, latestMoveId, latestEnvReqId,
+  class StorageNodeTable(tag: Tag) extends Table[StorageNodeDTO](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
+    def * = (id.?, storageType, storageUnitName, area, areaTo, isPartOf, nodePath, height, heightTo, groupRead, groupWrite, latestMoveId, latestEnvReqId,
       isDeleted) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
@@ -252,7 +224,7 @@ class StorageUnitDao @Inject() (
 
     val isPartOf = column[Option[Long]]("IS_PART_OF")
 
-    val parentPath = column[NodePath]("PARENT_PATH")
+    val nodePath = column[NodePath]("NODE_PATH")
 
     val height = column[Option[Double]]("HEIGHT")
 
@@ -292,7 +264,7 @@ class StorageUnitDao @Inject() (
         height = height,
         heightTo = heightTo,
         isPartOf = isPartOf,
-        parentPath = parentPath,
+        nodePath = parentPath,
         groupRead = groupRead,
         groupWrite = groupWrite,
         latestMoveId = latestMoveId,
@@ -310,7 +282,7 @@ class StorageUnitDao @Inject() (
         unit.area,
         unit.areaTo,
         unit.isPartOf,
-        unit.parentPath,
+        unit.nodePath,
         unit.height,
         unit.heightTo,
         unit.groupRead,

@@ -4,8 +4,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 
-import scala.util.{Failure, Success, Try}
-
+import scala.util.{ Failure, Success, Try }
 
 object Utils {
   def getExceptionMessageFromTry[T](myTry: Try[T]): Option[String] = {
@@ -20,7 +19,6 @@ case class NodePath(path: String = ",") /*extends AnyVal*/ {
 
   val validationResult = NodePath.verifyValidFormat(path)
   require(validationResult.isSuccess, s"Invalid node path string $path. Error: ${Utils.getExceptionMessageFromTry(validationResult).getOrElse("WTF?")}")
-
 
   def parent: NodePath = {
     val stripped = path.stripSuffix(",")
@@ -39,7 +37,6 @@ case class NodePath(path: String = ",") /*extends AnyVal*/ {
   def descendantsFilter = serialize + '%' //Assumes Oracle?
 }
 
-
 object NodePath {
 
   //  implicit val reads: Reads[NodePath] = __.read[String](NodePath.apply)
@@ -50,8 +47,7 @@ object NodePath {
     Try {
       if (!(path.startsWith(",") && path.endsWith(","))) {
         throw new Exception("A valid node path must start and end with a comma")
-      }
-      else {
+      } else {
         val split = path.trim.split(",").toList
         if (split.nonEmpty) {
           split.tail.foreach(s => s.toLong)

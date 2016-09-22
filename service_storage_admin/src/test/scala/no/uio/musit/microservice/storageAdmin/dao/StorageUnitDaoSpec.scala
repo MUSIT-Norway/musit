@@ -19,17 +19,17 @@
 
 package no.uio.musit.microservice.storageAdmin.dao
 
+import _root_.no.uio.musit.microservice.storageAdmin.service.StatsService
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto._
 import no.uio.musit.microservices.common.PlayTestDefaults
+import org.scalatest.Matchers._
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.duration._
-import org.scalatest.Matchers._
-import _root_.no.uio.musit.microservice.storageAdmin.service.StatsService
 
 class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures with StorageDtoConverter {
 
@@ -62,6 +62,11 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
     instance(app)
   }
 
+  val statsDao: StatsDao = {
+    val instance = Application.instanceCache[StatsDao]
+    instance(app)
+  }
+
   val timeout = PatienceConfiguration.Timeout(5 seconds)
 
   "Interacting with the StorageUnitDao" when {
@@ -71,9 +76,9 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
         val oldSize = storageUnitDao.all().futureValue.size
         val storageNode = storageUnitDao.insertStorageUnit(CompleteStorageUnitDto(StorageNodeDTO(None, "C2",
-          None, None, None, None, None, parentPath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
+          None, None, None, None, None, nodePath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
         storageUnitDao.insertStorageUnit(CompleteStorageUnitDto(StorageNodeDTO(None, "C2",
-          None, None, None, None, None, parentPath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
+          None, None, None, None, None, nodePath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
         val result = storageUnitDao.all().futureValue
         result.size mustBe (2 + oldSize)
         storageUnitDao.setPartOf(1, 2).futureValue mustBe 1
@@ -133,12 +138,14 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
     securityAssessment = SecurityAssessment.empty.copy(theftProtection = Some(true))
   )
 
-
   private def insertRoom(roomDto: CompleteRoomDto, parentNode: Option[Long] = None): CompleteRoomDto = {
     val room = roomDao.insertRoom(roomDto).futureValue(timeout)
 
     parentNode.foreach { parentNodeId =>
       storageUnitDao.setPartOf(room.id.get, parentNodeId).futureValue mustBe 1
+
+      storageUnitDao.getNodePath(room.id.get)
+
     }
     room
   }
@@ -299,21 +306,17 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
       val newSize = storageUnitDao.all().futureValue.size
 
       newSize mustBe oldSize + 1
-
     }
-
   }
 
-
-
   "Statistics test " must {
-    "without any change in envReq" in {
+    "" in {
+      val room1 = insertRoom(roomToDto(emptyRoom("MittRom00")))
+      val room2 = insertRoom(roomToDto(emptyRoom("MittUnderRom01")), room1.id)
+      val room3 = insertRoom(roomToDto(emptyRoom("MittUnderRom10")), room1.id)
+      val room4 = insertRoom(roomToDto(emptyRoom("MittUnderRom20")), room3.id)
 
-
-      val room1 = insertRoom(roomToDto(emptyRoom("MittRom")))
-      val room2 = insertRoom(roomToDto(emptyRoom("MittUnderRom")), room1.id)
-
-      statsService.subNodeCount(room1.id.get).futureValue mustBe Right(1)
+      statsService.subNodeCount(room1.id.get).futureValue mustBe Right(2)
 
       statsService.subNodeCount(room2.id.get).futureValue mustBe Right(0)
 
@@ -321,6 +324,28 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
       val unknownRes = statsService.subNodeCount(9999999).futureValue
       unknownRes mustBe Left(storageUnitDao.storageUnitNotFoundError(unknownId))
 
+      val object1Id = 1
+      val object2Id = 2
+      val object3Id = 3
+      statsDao.testonlyInsertMuseumObjectAtNode(object1Id, room3.id.get).futureValue
+      statsDao.testonlyInsertMuseumObjectAtNode(object2Id, room3.id.get).futureValue
+      statsDao.testonlyInsertMuseumObjectAtNode(object1Id, room1.id.get).futureValue
+      statsDao.testonlyInsertMuseumObjectAtNode(object3Id, room4.id.get).futureValue
+
+      statsService.museumObjectCount(room1.id.get).futureValue mustBe Right(1)
+      statsService.museumObjectCount(room2.id.get).futureValue mustBe Right(0)
+      statsService.museumObjectCount(room3.id.get).futureValue mustBe Right(2)
+      statsService.museumObjectCount(room4.id.get).futureValue mustBe Right(1)
+
+      statsService.totalMuseumObjectCount(room1.id.get).futureValue mustBe Right(4)
+      statsService.totalMuseumObjectCount(room2.id.get).futureValue mustBe Right(0)
+      statsService.totalMuseumObjectCount(room3.id.get).futureValue mustBe Right(3)
+      statsService.totalMuseumObjectCount(room4.id.get).futureValue mustBe Right(1)
+
+      val stats = statsService.getStats(room1.id.get).futureValue.right.get
+      stats.totalObjects mustBe 4
+      stats.objects mustBe 1
+      stats.nodes mustBe 2
     }
   }
 
@@ -343,7 +368,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       }
 
-      val thrown = intercept[Exception] {
+      val thr = intercept[Exception] {
         myPath.parent
       }
 
@@ -364,17 +389,6 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
       }
 
       thrX.getMessage must include("x")
-
-
-
     }
-
-
-
   }
-
-
-
-
-
 }

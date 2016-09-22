@@ -20,12 +20,12 @@ package no.uio.musit.microservice.storageAdmin.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao._
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageDtoConverter, StorageNodeDTO, StorageType }
-import no.uio.musit.microservice.storageAdmin.domain.{ Building, Organisation, Room, _ }
+import no.uio.musit.microservice.storageAdmin.domain.dto.{StorageDtoConverter, StorageNodeDTO, StorageType}
+import no.uio.musit.microservice.storageAdmin.domain.{Building, Organisation, Room, _}
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, Misc }
+import no.uio.musit.microservices.common.utils.{ErrorHelper, Misc}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
@@ -72,6 +72,10 @@ class StorageUnitService @Inject() (
 
   def getById(id: Long): MusitFuture[Storage] = {
     storageDao.getById(id)
+  }
+
+  def getStorageNodeDtoById(id: Long): MusitFuture[StorageNodeDTO] = {
+    storageDao.getStorageNodeOnly(id)
   }
 
   def verifyStorageNodeExists(id: Long): MusitFuture[Boolean] = storageUnitDao.verifyStorageNodeExists(id)
