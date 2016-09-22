@@ -55,25 +55,26 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
   }
 
   "OrganizationIntegration " must {
-    "get by id" in {
+    "successfully get Organization by id" in {
       val org = getOrganization(1).futureValue
       org.id mustBe Some(1)
     }
-    "negative get by id" in {
-      val future = wsUrl("/v1/organization/9999").get()
-      whenReady(future, timeout) { response =>
-        val error = Json.parse(response.body).validate[MusitError].get
-        error.message mustBe "Did not find object with id: 9999"
-      }
+
+    "not find Organization with invalid id " in {
+      val response = getOrganizationRsp(9999).futureValue
+      response.status mustBe Status.NOT_FOUND
     }
-    "get root" in {
+
+
+    "successfully get root" in {
       val future = wsUrl("/v1/organization").get()
-      whenReady(future, timeout) { response =>
-        val orgs = Json.parse(response.body).validate[Seq[Organization]].get
-        orgs.length mustBe 1
-      }
+      val response = future.futureValue
+      val orgs = Json.parse(response.body).validate[Seq[Organization]].get
+      orgs.seq.head.id.get mustBe 1
+      assert(orgs.length >= 1)
     }
-    "search on organization" in {
+
+    "successfully search for organization" in {
       val future = wsUrl("/v1/organization?search=[KHM]").get()
       whenReady(future, timeout) { response =>
         val orgs = Json.parse(response.body).validate[Seq[Organization]].get
@@ -88,7 +89,6 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       response.status mustBe Status.CREATED
 
       val org = Json.parse(response.body).validate[Organization].get
-      org.id mustBe Some(2)
       org.fn mustBe "Foo Bar"
       org.nickname mustBe "FB"
       org.tel mustBe "12345678"
@@ -96,38 +96,38 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
     }
 
     "successfully update organization" in {
-      val reqBody1 = organisationJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
-      val response1 = postOrganization(reqBody1).futureValue
-      response1.status mustBe Status.CREATED
-      val org1 = Json.parse(response1.body).validate[Organization].get
+      val crJson = organisationJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
+      val crResponse = postOrganization(crJson).futureValue
+      crResponse.status mustBe Status.CREATED
+      val crOrg = Json.parse(crResponse.body).validate[Organization].get
 
-      val reqBody = organisationJson(Some(org1.id.get),"Foo Barcode 123", "FB 123", "12345123", "http://www.foo123.bar")
-      val response = putOrganization(org1.id.get, reqBody).futureValue
+      val updJson = organisationJson(Some(crOrg .id.get),"Foo Barcode 123", "FB 123", "12345123", "http://www.foo123.bar")
+      val response = putOrganization(crOrg .id.get, updJson).futureValue
       response.status mustBe Status.OK
 
-      val org = getOrganization(org1.id.get).futureValue
+      val updOrg = getOrganization(crOrg.id.get).futureValue
       val message = Json.parse(response.body).validate[MusitStatusMessage].get
       message.message mustBe "Record was updated!"
 
-      val updatedOrgJson = Json.toJson(org).as[JsObject]
+      val updOrgJson = Json.toJson(updOrg).as[JsObject]
+      
+      updJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet).size mustBe 0
+      assert(crJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet).size > 0)
 
-      reqBody.as[JsObject].fieldSet.diff(updatedOrgJson.fieldSet).size mustBe 0
-      assert(reqBody1.as[JsObject].fieldSet.diff(updatedOrgJson.fieldSet).size > 0)
-
-      org.id mustBe Some(org1.id.get)
-      org.fn mustBe "Foo Barcode 123"
-      org.nickname mustBe "FB 123"
-      org.tel mustBe "12345123"
-      org.web mustBe "http://www.foo123.bar"
+      updOrg.id mustBe Some(crOrg .id.get)
+      updOrg.fn mustBe "Foo Barcode 123"
+      updOrg.nickname mustBe "FB 123"
+      updOrg.tel mustBe "12345123"
+      updOrg.web mustBe "http://www.foo123.bar"
 
     }
 
-    "delete organization" in {
-      val reqBody1 = organisationJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com")
-      val response1 = postOrganization(reqBody1).futureValue
-      response1.status mustBe Status.CREATED
-      val created = Json.parse(response1.body).validate[Organization].get
-      val createdOrgId = created.id.get
+    "successfully delete organization" in {
+      val crJson = organisationJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com")
+      val crResponse = postOrganization(crJson).futureValue
+      crResponse.status mustBe Status.CREATED
+      val createdOrg = Json.parse(crResponse.body).validate[Organization].get
+      val createdOrgId = createdOrg.id.get
 
       val response = deleteOrganization(createdOrgId).futureValue
       response.status mustBe Status.OK
