@@ -31,7 +31,7 @@ trait TestConfigs {
     "slick.dbs.default.socketTimeout" -> "20000",
     "slick.dbs.default.db.driver" -> "org.h2.Driver",
     "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
-    "slick.dbs.default.db.url" -> s"jdbc:h2:mem:$dbName;MODE=Oracle",
+    "slick.dbs.default.db.url" -> s"jdbc:h2:mem:$dbName;MODE=Oracle;DB_CLOSE_DELAY=-1",
     "slick.dbs.default.leakDetectionThreshold" -> "5000",
     "evolutionplugin" -> evolve
   )
