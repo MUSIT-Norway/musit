@@ -1,7 +1,7 @@
 package controllers
 
 import com.google.inject.Inject
-import models.MusitResults._
+import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -22,7 +22,7 @@ class ObjectAggregationController @Inject() (
       case MusitDbError(msg, ex) =>
         Logger.error(msg, ex.orNull)
         Future.successful(InternalServerError(msg))
-      case r: MusitError[_] => Future.successful(InternalServerError(r.message))
+      case r: MusitError => Future.successful(InternalServerError(r.message))
     }
   }
 
@@ -33,7 +33,7 @@ class ObjectAggregationController @Inject() (
       case MusitDbError(msg, ex) =>
         Logger.error(msg, ex.orNull)
         InternalServerError(msg)
-      case r: MusitError[_] =>
+      case r: MusitError =>
         InternalServerError(r.message)
     }
   }

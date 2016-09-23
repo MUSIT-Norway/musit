@@ -112,7 +112,6 @@ class StorageUnitService @Inject() (
 
   def deleteStorageTriple(id: Long): MusitFuture[Int] =
     storageUnitDao.deleteStorageNode(id).toMusitFuture
-
   def setPartOf(id: Long, partOf: Long): Future[Either[MusitError, Boolean]] =
     storageUnitDao.setPartOf(id, partOf).map {
       case 1 => Right(true)

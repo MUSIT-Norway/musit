@@ -25,14 +25,13 @@ import sbt._
 
 object CommonSettings {
 
-  lazy val integrationTest = config("it") extend(Test)
-
   val projectSettings = Seq(
     organization := "no.uio.musit",
     scalaVersion := Dependencies.scala,
     resolvers ++= Dependencies.resolvers,
     fork in Test := false,
     parallelExecution in Test := false,
+    logBuffered in Test := false,
     scalacOptions := Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-feature", // Emit warning and location for usages of features that should be imported explicitly.
@@ -56,11 +55,12 @@ object CommonSettings {
     )
   )
 
+  // scalastyle:off
   def BaseProject(name: String): Project =
     Project(name, file(name))
       .settings(projectSettings: _*)
       .settings(Defaults.itSettings: _*)
-      .configs(integrationTest)
+      .configs(IntegrationTest)
 
   def PlayProject(name: String): Project =
     BaseProject(name)
@@ -71,6 +71,6 @@ object CommonSettings {
       )
       .disablePlugins(PlayLayoutPlugin)
       .settings(Defaults.itSettings: _*)
-      .configs(integrationTest)
+      .configs(IntegrationTest)
 
 }
