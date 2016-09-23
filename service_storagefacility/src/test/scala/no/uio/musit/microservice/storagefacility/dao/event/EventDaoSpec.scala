@@ -24,14 +24,14 @@ import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move._
 import no.uio.musit.microservice.storagefacility.testhelpers._
-import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.{ MusitSpecWithAppPerSuite, MusitSpecWithAppPerTest }
 import org.scalatest.Inspectors._
 import org.scalatest.time.{ Millis, Seconds, Span }
 
 /**
  * Test specs for the EventDao.
  */
-class EventDaoSpec extends MusitSpecWithAppPerSuite
+class EventDaoSpec extends MusitSpecWithAppPerTest
     with EventGenerators
     with NodeGenerators {
 

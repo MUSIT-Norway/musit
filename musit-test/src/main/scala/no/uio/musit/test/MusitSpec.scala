@@ -21,7 +21,7 @@ package no.uio.musit.test
 
 import org.scalatest.TestData
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, OneAppPerTest, PlaySpec }
+import org.scalatestplus.play._
 import play.api.Application
 
 trait MusitSpec extends PlaySpec with ScalaFutures
@@ -51,4 +51,19 @@ trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with OneAppPerSuite {
   implicit override lazy val app = musitFakeApp
 }
 
-// TODO: Add traits for fake server per app and suite.
+trait MusitSpecWithServer extends MusitSpecWithApp with Network
+
+trait MusitSpecWithServerPerTest extends MusitSpecWithServer with OneServerPerTest {
+  override lazy val port: Int = generatePort
+
+  implicit override def newAppForTest(testData: TestData): Application = {
+    musitFakeApp = createApplication(dbName)
+    musitFakeApp
+  }
+}
+
+trait MusitSpecWithServerPerSuite extends MusitSpecWithServer with OneServerPerSuite {
+  override lazy val port: Int = generatePort
+
+  implicit override lazy val app = musitFakeApp
+}
