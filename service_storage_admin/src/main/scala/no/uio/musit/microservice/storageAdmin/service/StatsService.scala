@@ -19,9 +19,10 @@ class StatsService @Inject() (
 ) extends Object {
 
   /**
-   * Note that all methods here are counting total number of objects/nodes, irrespective of what the user actually
+   * Note that all methods here are counting all objects/nodes in a given node, irrespective of what the user actually
    * has access rights to see! (Most likely the user which requests this statistics will have access rights to
-   * all nodes in the relevant subtree
+   * all nodes in the relevant subtree, but that is not guaranteed.)
+   * This is per spec. (Else the stats would lie). The check for whether a node is empty or not also need this behaviour.
    */
 
   /**
@@ -69,7 +70,7 @@ class StatsService @Inject() (
 
   /** Same as subNodeCount, but no verification that nodeId is an existing node */
   private def subNodeCount_NodeVerified(nodeId: Long): Future[Int] = {
-    statsDao.getDirectChildrenCount(nodeId)
+    statsDao.getChildrenCount(nodeId)
   }
 
   /** Same as subNodeCount, but no verification that nodeId is an existing node */

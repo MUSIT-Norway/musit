@@ -18,7 +18,4 @@ class StatsResource @Inject() (
   def getStats(nodeId: Long) = Action.async {
     ResourceHelper.getRoot(statsService.getStats(nodeId), (n: Stats) => Json.toJson(n))
   }
-  def getStats(nodeId: Long) = Action.async {
-    ResourceHelper.getRoot(statsService.getStats(nodeId), (n: Stats) => Json.toJson(n))
-  }
 }

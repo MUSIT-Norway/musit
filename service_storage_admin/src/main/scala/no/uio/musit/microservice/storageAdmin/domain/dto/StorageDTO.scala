@@ -41,21 +41,21 @@ case class RoomDTO(
 ) extends StorageDTO
 
 case class StorageNodeDTO(
-    id: Option[Long],
-    name: String,
-    area: Option[Double],
-    areaTo: Option[Double],
-    height: Option[Double],
-    heightTo: Option[Double],
-    isPartOf: Option[Long],
-    nodePath: NodePath,
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    latestMoveId: Option[Long],
-    latestEnvReqId: Option[Long],
-    links: Option[Seq[Link]],
-    isDeleted: Boolean,
-    storageType: StorageType
+  id: Option[Long],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  height: Option[Double],
+  heightTo: Option[Double],
+  isPartOf: Option[Long],
+  nodePath: NodePath,
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  latestMoveId: Option[Long],
+  latestEnvReqId: Option[Long],
+  links: Option[Seq[Link]],
+  isDeleted: Boolean,
+  storageType: StorageType
 ) extends StorageDTO
 
 sealed trait CompleteStorageNodeDto {

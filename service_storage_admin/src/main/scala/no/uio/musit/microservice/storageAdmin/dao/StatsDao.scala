@@ -1,8 +1,8 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageNodeDTO
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
@@ -20,9 +20,8 @@ class StatsDao @Inject() (
     storageNodeDao.StorageNodeTable.filter(st => st.isPartOf === id && st.isDeleted === false)
   }
 
-
   /** Count of *all* children of this node, irrespective of access rights to the children */
-  def getDirectChildrenCount(id: Long): Future[Int] = {
+  def getChildrenCount(id: Long): Future[Int] = {
     db.run((getAllNonDeletedChildrenQuery(id).length).result)
   }
 
