@@ -65,7 +65,6 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       response.status mustBe Status.NOT_FOUND
     }
 
-
     "successfully get root" in {
       val future = wsUrl("/v1/organization").get()
       val response = future.futureValue
@@ -119,7 +118,6 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       updOrg.nickname mustBe "FB 123"
       updOrg.tel mustBe "12345123"
       updOrg.web mustBe "http://www.foo123.bar"
-
     }
 
     "successfully delete organization" in {
@@ -135,7 +133,5 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       msm.message mustBe "Deleted 1 record(s)."
     }
   }
-
-
 
 }
