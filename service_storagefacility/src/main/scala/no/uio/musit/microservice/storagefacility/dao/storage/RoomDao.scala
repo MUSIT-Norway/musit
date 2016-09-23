@@ -53,7 +53,7 @@ class RoomDao @Inject() (
    */
   def getById(id: StorageNodeId): Future[Option[Room]] = {
     val action = for {
-      maybeUnitDto <- getNodeByIdAction(id)
+      maybeUnitDto <- getUnitByIdAction(id)
       maybeRoomDto <- roomTable.filter(_.id === id).result.headOption
     } yield {
       maybeUnitDto.flatMap(u =>
@@ -68,10 +68,6 @@ class RoomDao @Inject() (
    * TODO: Document me!!!
    */
   def update(id: StorageNodeId, room: Room): Future[Option[Room]] = {
-    // FIXME: Update comments
-    //If we don't have the storage unit or it is marked as deleted, or we find
-    // more than 1 rows to update, onlyAcceptOneUpdatedRecord will make this
-    // DBIO/Future fail with an appropriate MusitException.
     val roomDto = StorageNodeDto.fromRoom(room, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, roomDto.storageUnitDto)

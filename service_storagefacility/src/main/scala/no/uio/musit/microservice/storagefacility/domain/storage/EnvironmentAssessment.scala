@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.domain.storage
 
 import play.api.libs.json.{ Format, Json }
 
+// FIXME Fields are required according to requirements
 case class EnvironmentAssessment(
   relativeHumidity: Option[Boolean],
   temperature: Option[Boolean],

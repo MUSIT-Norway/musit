@@ -19,21 +19,21 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEvent, MusitEventBase, Parts }
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEvent, BaseEvent, Parts }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{ Format, _ }
 
 import ObservationSubEventFormats.ObservationSubEventFormat
 
 case class Observation(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   parts: Option[Seq[ObservationSubEvent]] = None
 ) extends MusitEvent with Parts[ObservationSubEvent]
 
 object Observation {
   implicit val format: Format[Observation] = (
-    __.format[MusitEventBase] and
+    __.format[BaseEvent] and
     (__ \ "eventType").format[EventType] and
     (__ \ "parts").formatNullable[Seq[ObservationSubEvent]]
   )(Observation.apply, unlift(Observation.unapply))

@@ -57,7 +57,7 @@ class BuildingDao @Inject() (
    */
   def getById(id: StorageNodeId): Future[Option[Building]] = {
     val action = for {
-      maybeUnitDto <- getNodeByIdAction(id)
+      maybeUnitDto <- getUnitByIdAction(id)
       maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type

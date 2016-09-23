@@ -58,7 +58,7 @@ class OrganisationDao @Inject() (
    */
   def getById(id: StorageNodeId): Future[Option[Organisation]] = {
     val action = for {
-      maybeUnitDto <- getNodeByIdAction(id)
+      maybeUnitDto <- getUnitByIdAction(id)
       maybeOrgDto <- organisationTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type

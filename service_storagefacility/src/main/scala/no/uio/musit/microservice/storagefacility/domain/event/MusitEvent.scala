@@ -24,7 +24,7 @@ package no.uio.musit.microservice.storagefacility.domain.event
  * shared attributes they all contain.
  */
 trait MusitEvent {
-  val baseEvent: MusitEventBase
+  val baseEvent: BaseEvent
   val eventType: EventType
 }
 

@@ -159,10 +159,10 @@ class EventDao @Inject() (
 
     // We want partOfParent to be Some(parentId) if event has a parent and that
     // parent is in the parts-relation to us.
-    // TODO: The following two lines of code are very confusing, what is it supposed to do?
-    val isPartsRelation = partialRelation.exists(_.relation == EventRelations.relation_parts)
+    val isPartsRelation = partialRelation.exists { per =>
+      per.relation == EventRelations.PartsOfRelation
+    }
     val partOfParent = partialRelation.filter(_ => isPartsRelation).map(_.idFrom)
-
     val insertBase = buildInsertAction(event, partOfParent)
 
     val insertWithChildren =
@@ -214,7 +214,7 @@ class EventDao @Inject() (
           subEvent,
           Some(PartialEventRelation(parentEventId, relatedEvents.relation))
         )
-      } // TODO: also handle other relations than parts
+      }
       SequenceAction(relActions.toIndexedSeq)
     }
 
@@ -305,7 +305,6 @@ class EventDao @Inject() (
               maybePest.map { pest =>
                 ExtendedDto(base, pest)
               }.getOrElse {
-                // FIXME: MusitError must be changed
                 logger.warn("Could not find ObservationPest data using BaseEvent data")
                 base
               }
@@ -318,7 +317,6 @@ class EventDao @Inject() (
     }
   }
 
-  // FIXME: All of this code would be unnecessary with stronger typing of DTO's
   private def initCompleteDto(
     baseEventDto: BaseEventDto,
     relatedSubEvents: Seq[RelatedEvents]
@@ -459,7 +457,7 @@ class EventDao @Inject() (
     val futureSubEventDtos = getSubEventDtos(parentId)
     //Create a parts-relation of the these subEvents
     getEventsFromDtos(futureSubEventDtos, recursive).map { events =>
-      RelatedEvents(EventRelations.relation_parts, events)
+      RelatedEvents(EventRelations.PartsOfRelation, events)
     }
   }
 
@@ -526,7 +524,6 @@ class EventDao @Inject() (
     }
   }
 
-  // TODO: Should probably use a Limit type to support paging.
   /**
    * This method is quite sub-optimally implemented. It will first trigger a
    * query against the "EVENT_ROLE_PLACE_AS_OBJECT" to get all the relevant

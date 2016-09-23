@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEventBase, MusitSubEvent }
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, BaseEvent, MusitSubEvent }
 
 // TODO: Document me!!!
 sealed trait ObservationSubEvent extends MusitSubEvent
@@ -31,80 +31,80 @@ sealed trait ObservationFromTo extends ObservationSubEvent {
 }
 
 case class ObservationRelativeHumidity(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   range: FromToDouble
 ) extends ObservationFromTo
 
 case class ObservationTemperature(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   range: FromToDouble
 ) extends ObservationFromTo
 
 case class ObservationHypoxicAir(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   range: FromToDouble
 ) extends ObservationFromTo
 
 case class ObservationLightingCondition(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   lightingCondition: Option[String]
 ) extends ObservationSubEvent
 
 case class ObservationCleaning(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   cleaning: Option[String]
 ) extends ObservationSubEvent
 
 case class ObservationGas(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   gas: Option[String]
 ) extends ObservationSubEvent
 
 case class ObservationMold(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   mold: Option[String]
 ) extends ObservationSubEvent
 
 case class ObservationTheftProtection(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   theftProtection: Option[String]
 ) extends ObservationSubEvent
 
 case class ObservationFireProtection(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   fireProtection: Option[String]
 ) extends ObservationSubEvent
 
 case class ObservationPerimeterSecurity(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   perimeterSecurity: Option[String]
 ) extends ObservationSubEvent
 
 case class ObservationWaterDamageAssessment(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   waterDamageAssessment: Option[String]
 ) extends ObservationSubEvent
 
 case class ObservationPest(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   identification: Option[String],
   lifecycles: Seq[LifeCycle]
 ) extends ObservationSubEvent
 
 case class ObservationAlcohol(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   condition: Option[String],
   volume: Option[Double]

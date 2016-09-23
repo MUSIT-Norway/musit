@@ -22,29 +22,27 @@ package no.uio.musit.microservice.storagefacility.domain.event.move
 import no.uio.musit.microservice.storagefacility.domain.event._
 import play.api.libs.json.{ Format, Json }
 
-sealed trait Move extends MusitEvent {
-  val baseEvent: MusitEventBase
+sealed trait MoveEvent extends MusitEvent {
+  val baseEvent: BaseEvent
   val eventType: EventType
   val to: PlaceRole
 }
 
-// FIXME: Might need implicit formatters for the Move trait that resolves to specific types.
-
 case class MoveObject(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   to: PlaceRole
-) extends Move
+) extends MoveEvent
 
 object MoveObject {
   implicit val format: Format[MoveObject] = Json.format[MoveObject]
 }
 
 case class MoveNode(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   to: PlaceRole
-) extends Move
+) extends MoveEvent
 
 object MoveNode {
   implicit val format: Format[MoveNode] = Json.format[MoveNode]

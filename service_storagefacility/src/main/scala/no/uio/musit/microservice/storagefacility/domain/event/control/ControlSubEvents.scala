@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.domain.event.control
 
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, Motivates, MusitEventBase, MusitSubEvent }
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, Motivates, BaseEvent, MusitSubEvent }
 
 // TODO: Document me!!!
 sealed trait ControlSubEvent extends MusitSubEvent with Motivates[ObservationSubEvent] {
@@ -30,63 +30,63 @@ sealed trait ControlSubEvent extends MusitSubEvent with Motivates[ObservationSub
 object ControlSubEvent
 
 case class ControlAlcohol(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationAlcohol]
 ) extends ControlSubEvent
 
 case class ControlCleaning(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationCleaning]
 ) extends ControlSubEvent
 
 case class ControlGas(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationGas]
 ) extends ControlSubEvent
 
 case class ControlHypoxicAir(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationHypoxicAir]
 ) extends ControlSubEvent
 
 case class ControlLightingCondition(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationLightingCondition]
 ) extends ControlSubEvent
 
 case class ControlMold(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationMold]
 ) extends ControlSubEvent
 
 case class ControlPest(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationPest]
 ) extends ControlSubEvent
 
 case class ControlRelativeHumidity(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationRelativeHumidity]
 ) extends ControlSubEvent
 
 case class ControlTemperature(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   ok: Boolean,
   motivates: Option[ObservationTemperature]

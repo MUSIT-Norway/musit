@@ -25,14 +25,14 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class Control(
-  baseEvent: MusitEventBase,
+  baseEvent: BaseEvent,
   eventType: EventType,
   parts: Option[Seq[ControlSubEvent]] = None
 ) extends MusitEvent with Parts[ControlSubEvent]
 
 object Control {
   implicit val format: Format[Control] = (
-    __.format[MusitEventBase] and
+    __.format[BaseEvent] and
     (__ \ "eventType").format[EventType] and
     (__ \ "parts").formatNullable[Seq[ControlSubEvent]]
   )(Control.apply, unlift(Control.unapply))

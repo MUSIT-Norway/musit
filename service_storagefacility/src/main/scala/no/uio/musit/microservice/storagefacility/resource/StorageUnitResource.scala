@@ -33,7 +33,7 @@ import scala.concurrent.Future
  * TODO: Document me!
  */
 final class StorageUnitResource @Inject() (
-    storageUnitService: StorageNodeService
+    service: StorageNodeService
 ) extends Controller {
 
   val logger = Logger(classOf[StorageUnitResource])
@@ -44,27 +44,42 @@ final class StorageUnitResource @Inject() (
   /**
    * TODO: Document me!
    */
-  def add = Action.async(BodyParsers.parse.json) { request =>
+  def add = Action.async(parse.json) { request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
-        val futureNode = node match {
+        node match {
           case su: StorageUnit =>
-            storageUnitService.addStorageUnit(su)
+            logger.debug(s"Adding a new StorageUnit ${su.name}")
+            service.addStorageUnit(su).map { n =>
+              Created(Json.toJson[StorageNode](n))
+            }
 
           case b: Building =>
-            storageUnitService.addBuilding(b)
+            logger.debug(s"Adding a new Building ${b.name}")
+            service.addBuilding(b).map { n =>
+              Created(Json.toJson[StorageNode](n))
+            }
 
           case r: Room =>
-            storageUnitService.addRoom(r)
+            logger.debug(s"Adding a new Room ${r.name}")
+            service.addRoom(r).map { n =>
+              Created(Json.toJson[StorageNode](n))
+            }
 
           case o: Organisation =>
-            storageUnitService.addOrganisation(o)
+            logger.debug(s"Adding a new Organisation ${o.name}")
+            service.addOrganisation(o).map { n =>
+              Created(Json.toJson[StorageNode](n))
+            }
 
+          case r: Root =>
+            val message = "Wrong service for adding a root node."
+            Future.successful(BadRequest(Json.obj("message" -> message)))
         }
-        futureNode.map(node => Created(Json.toJson(node)))
 
       case err: JsError =>
+        logger.error(s"Received an invalid JSON")
         Future.successful(BadRequest(JsError.toJson(err)))
 
     }
@@ -73,17 +88,34 @@ final class StorageUnitResource @Inject() (
   /**
    * TODO: Document me!
    */
+  def addRoot = Action.async { implicit request =>
+    service.addRoot(Root()).map(node => Created(Json.toJson(node)))
+  }
+
+  /**
+   * TODO: Document me!
+   */
+  def root = Action.async { implicit request =>
+    service.rootNodes.map(roots => Ok(Json.toJson(roots)))
+  }
+
+  /**
+   * TODO: Document me!
+   */
   def children(id: Long) = Action.async { implicit request =>
-    storageUnitService.getChildren(id).map(nodes => Ok(Json.toJson(nodes)))
+    service.getChildren(id).map(nodes => Ok(Json.toJson(nodes)))
   }
 
   /**
    * TODO: Document me!
    */
   def getById(id: Long) = Action.async { implicit request =>
-    storageUnitService.getNodeById(id).map {
+    service.getNodeById(id).map {
       case MusitSuccess(maybeNode) =>
-        maybeNode.map(node => Ok(Json.toJson(maybeNode))).getOrElse(NotFound)
+        maybeNode.map { node =>
+          logger.debug(s"RETURNING NODE $node")
+          Ok(Json.toJson[StorageNode](node))
+        }.getOrElse(NotFound)
 
       case musitError: MusitError =>
         musitError match {
@@ -104,10 +136,11 @@ final class StorageUnitResource @Inject() (
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
         val futureRes: Future[MusitResult[Option[StorageNode]]] = node match {
-          case su: StorageUnit => storageUnitService.updateStorageUnit(id, su)
-          case b: Building => storageUnitService.updateBuilding(id, b)
-          case r: Room => storageUnitService.updateRoom(id, r)
-          case o: Organisation => storageUnitService.updateOrganisation(id, o)
+          case su: StorageUnit => service.updateStorageUnit(id, su)
+          case b: Building => service.updateBuilding(id, b)
+          case r: Room => service.updateRoom(id, r)
+          case o: Organisation => service.updateOrganisation(id, o)
+          case r: Root => Future.successful(MusitSuccess(None))
         }
 
         futureRes.map { musitRes =>
@@ -137,7 +170,7 @@ final class StorageUnitResource @Inject() (
    */
   def delete(id: Long) = Action.async { implicit request =>
     // TODO: Extract current user information from enriched request.
-    storageUnitService.deleteNode(id).map {
+    service.deleteNode(id).map {
       case MusitSuccess(numDeleted) =>
         if (numDeleted == 0) {
           NotFound(Json.obj(

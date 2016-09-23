@@ -27,7 +27,7 @@ import no.uio.musit.microservice.storagefacility.domain.storage.{ EnvironmentReq
 import org.joda.time.DateTime
 
 case class EnvRequirement(
-    baseEvent: MusitEventBase,
+    baseEvent: BaseEvent,
     eventType: EventType,
     temperature: Option[Interval[Double]],
     airHumidity: Option[Interval[Double]],
@@ -66,7 +66,7 @@ object EnvRequirement {
     er: EnvironmentRequirement
   )(implicit currUsr: String): EnvRequirement = {
     EnvRequirement(
-      baseEvent = MusitEventBase(
+      baseEvent = BaseEvent(
         id = None,
         // FIXME: DO NOT FORGET TO CHANGE THIS!!!
         doneBy = Some(ActorRole(1, DummyData.DummyUserId)),
@@ -74,7 +74,8 @@ object EnvRequirement {
         note = er.comment,
         partOf = None,
         affectedThing = Some(ObjectRole(
-          // TODO: ObjectRole should be added to DB on appp bootstrapping.
+          // FIXME: ObjectRole should needs to pre-exist in the DB.
+          // Should probably add to the DB on app bootstrap if non-existant.
           roleId = 1,
           objectId = affectedNodeId
         )),

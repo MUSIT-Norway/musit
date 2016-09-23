@@ -20,9 +20,9 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.service.MusitResults._
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ StorageNodeDto, StorageUnitDto }
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
+import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -48,25 +48,41 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def getById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getNodeByIdAction(id)
+    val query = getUnitByIdAction(id)
     db.run(query).map { dto =>
       dto.map(unitDto => StorageNodeDto.toStorageUnit(unitDto))
     }
   }
 
-  // FIXME: I do not like this method.
-  // It leaves the type checking and DTO conversion to the service layer.
-  def getNodeById(id: StorageNodeId): Future[Option[StorageUnitDto]] = {
-    val query = getNodeByIdAction(id)
-    db.run(query)
+  /**
+   * TODO: Document me!!!
+   */
+  def getNodeById(id: StorageNodeId): Future[Option[StorageUnit]] = {
+    val query = getUnitByIdAction(id)
+    db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
+  }
+
+  /**
+   * Find all nodes that are of type Root.
+   *
+   * @return a Future collection of Root nodes.
+   */
+  def findRootNodes: Future[Seq[Root]] = {
+    val query = storageNodeTable.filter { root =>
+      root.isDeleted === false &&
+        root.isPartOf.isEmpty &&
+        root.storageType === rootNodeType
+    }.result
+
+    db.run(query).map(_.map(n => Root(n.id)))
   }
 
   /**
    * TODO: Document me!!!
    */
-  def getChildren(id: StorageNodeId): Future[Seq[StorageUnitDto]] = {
-    val action = storageNodeTable.filter(_.isPartOf === id).result
-    db.run(action)
+  def getChildren(id: StorageNodeId): Future[Seq[StorageNode]] = {
+    val query = storageNodeTable.filter(_.isPartOf === id).result
+    db.run(query).map(_.map(StorageNodeDto.toStorageNode))
   }
 
   /**
@@ -86,6 +102,15 @@ class StorageUnitDao @Inject() (
   def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
     val dto = StorageNodeDto.fromStorageUnit(storageUnit)
     db.run(insertNodeAction(dto)).map(StorageNodeDto.toStorageUnit)
+  }
+
+  def insertRoot(root: Root): Future[Root] = {
+    logger.debug("Inserting root node...")
+    val dto = StorageNodeDto.fromRoot(root).asStorageUnit
+    db.run(insertNodeAction(dto)).map { sudto =>
+      logger.debug(s"Inserted root node with ID ${sudto.id}")
+      Root(sudto.id)
+    }
   }
 
   /**

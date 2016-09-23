@@ -24,7 +24,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{ Move, MoveNode, MoveObject }
+import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval, LifeCycle }
 
@@ -49,8 +49,8 @@ object DtoConverters {
     tolerance: Option[Int]
   ): Option[Interval[A]] = base.map(b => Interval[A](b, tolerance))
 
-  private[this] def baseFromDto(dto: EventDto): MusitEventBase = {
-    MusitEventBase(
+  private[this] def baseFromDto(dto: EventDto): BaseEvent = {
+    BaseEvent(
       id = dto.id,
       doneDate = dto.eventDate,
       doneBy = dto.relatedActors.map(EventRoleActor.toActorRole).headOption,
@@ -494,16 +494,16 @@ object DtoConverters {
    */
   object MoveConverters {
 
-    private def moveToDto[A <: Move](move: A): BaseEventDto = {
+    private def moveToDto[A <: MoveEvent](move: A): BaseEventDto = {
       toBaseDto(
         sub = move,
         relPlaces = Seq(move.to)
       )
     }
 
-    private def moveFromDto[A <: Move](
+    private def moveFromDto[A <: MoveEvent](
       dto: BaseEventDto
-    )(init: (MusitEventBase, EventType, PlaceRole) => A): A = {
+    )(init: (BaseEvent, EventType, PlaceRole) => A): A = {
       val base = baseFromDto(dto)
       val eventType = EventType.fromEventTypeId(dto.eventTypeId)
       val placeRole = EventRolePlace.toPlaceRole(dto.relatedPlaces.head)

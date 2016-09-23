@@ -30,8 +30,6 @@ import org.scalatest.time.{ Millis, Seconds, Span }
 
 /**
  * Test specs for the EventDao.
- *
- * TODO: Add a lot more test cases!!!
  */
 class EventDaoSpec extends MusitSpecWithAppPerSuite
     with EventGenerators
@@ -175,6 +173,26 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         eventId mustBe a[java.lang.Long]
       }
 
+      "return the move object event" in {
+        val res = eventDao.getEvent(latestEventId, recursive = false).futureValue
+        res.isFailure must not be true
+        res.get.isEmpty must not be true
+
+        val theDto = res.get.get
+        theDto mustBe a[BaseEventDto]
+
+        val br = theDto.asInstanceOf[BaseEventDto]
+
+        val baseRoleActor = EventRoleActor.toActorRole(br.relatedActors.head)
+        val baseRolePlace = EventRolePlace.toPlaceRole(br.relatedPlaces.head)
+        val baseRoleObj = EventRoleObject.toObjectRole(br.relatedObjects.head)
+
+        br.eventTypeId mustBe MoveObjectType.id
+        baseRoleActor mustBe defaultActorRole
+        baseRolePlace mustBe PlaceRole(1, 1)
+        baseRoleObj mustBe ObjectRole(1, 1)
+      }
+
       "succeed when moving a storage node" in {
         val moveNode = MoveNode(
           baseEvent = createBase("This is a note on moving a Node"),
@@ -193,23 +211,22 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
       "return the move node event" in {
         val res = eventDao.getEvent(latestEventId, recursive = false).futureValue
-
         res.isFailure must not be true
         res.get.isEmpty must not be true
 
         val theDto = res.get.get
         theDto mustBe a[BaseEventDto]
 
-        val baseRes: BaseEventDto = theDto.asInstanceOf[BaseEventDto]
+        val br = theDto.asInstanceOf[BaseEventDto]
 
-        val baseRoleActor = EventRoleActor.toActorRole(baseRes.relatedActors.head)
-        val baseRolePlace = EventRolePlace.toPlaceRole(baseRes.relatedPlaces.head)
-        val baseRoleObject = EventRoleObject.toObjectRole(baseRes.relatedObjects.head)
+        val baseRoleActor = EventRoleActor.toActorRole(br.relatedActors.head)
+        val baseRolePlace = EventRolePlace.toPlaceRole(br.relatedPlaces.head)
+        val baseRoleObj = EventRoleObject.toObjectRole(br.relatedObjects.head)
 
-        baseRes.eventTypeId mustBe MoveNodeType.id
+        br.eventTypeId mustBe MoveNodeType.id
         baseRoleActor mustBe defaultActorRole
         baseRolePlace mustBe PlaceRole(1, 1)
-        baseRoleObject mustBe ObjectRole(1, 1)
+        baseRoleObj mustBe ObjectRole(1, 1)
       }
 
     }

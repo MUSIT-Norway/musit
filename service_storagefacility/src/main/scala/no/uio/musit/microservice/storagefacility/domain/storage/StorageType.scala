@@ -46,6 +46,10 @@ sealed trait StorageType extends EnumEntry {
 object StorageType extends Enum[StorageType] with PlayJsonEnum[StorageType] {
   val values = findValues
 
+  case object RootType extends StorageType {
+    override val storageTypeName: String = "Root"
+  }
+
   case object StorageUnitType extends StorageType {
     override val storageTypeName: String = "StorageUnit"
   }

@@ -8,10 +8,6 @@ import play.api.db.slick.DatabaseConfigProvider
 import scala.concurrent.Future
 
 /**
- * Created by ellenjo on 6/30/16.
- */
-
-/**
  * TODO: Document me!
  */
 @Singleton

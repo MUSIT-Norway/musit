@@ -163,10 +163,7 @@ case class ObservationPestDto(
 ) extends DtoExtension
 
 /**
- * Note: The eventId is only used during writing to the database. It is set to
- * None when reading from the database.
- *
- * FIXME: The comment above is no longer valid. Id should be set for all DTO's.
+ * Dto to handle pest life-cycles for an ObservationPestDto
  */
 case class LifecycleDto(
   eventId: Option[Long],

@@ -32,11 +32,13 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   import driver.api._
 
+  protected val rootNodeType: StorageType = StorageType.RootType
+
   protected val storageNodeTable = TableQuery[StorageNodeTable]
 
-  protected[dao] def getNodeByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
+  protected[dao] def getUnitByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { st =>
-      st.id === id && st.isDeleted === false
+      st.id === id && st.isDeleted === false && st.storageType =!= rootNodeType
     }.result.headOption
   }
 

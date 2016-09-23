@@ -43,6 +43,21 @@ sealed trait StorageNode {
   val storageType: StorageType
 }
 
+case class Root(
+    id: Option[StorageNodeId] = None,
+    name: String = "root-node",
+    environmentRequirement: Option[EnvironmentRequirement] = None
+) extends StorageNode {
+  val area: Option[Double] = None
+  val areaTo: Option[Double] = None
+  val isPartOf: Option[StorageNodeId] = None
+  val height: Option[Double] = None
+  val heightTo: Option[Double] = None
+  val groupRead: Option[String] = None
+  val groupWrite: Option[String] = None
+  val storageType: StorageType = StorageType.RootType
+}
+
 case class StorageUnit(
     id: Option[StorageNodeId],
     name: String,
@@ -55,7 +70,7 @@ case class StorageUnit(
     groupWrite: Option[String],
     environmentRequirement: Option[EnvironmentRequirement]
 ) extends StorageNode {
-  val storageType = StorageType.StorageUnitType
+  val storageType: StorageType = StorageType.StorageUnitType
 }
 
 case class Room(

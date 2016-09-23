@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEventBase }
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, BaseEvent }
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -82,80 +82,80 @@ object ObservationSubEventFormats {
   object SubTypeImplicits {
 
     implicit val obsTemperatureFormat: Format[ObservationTemperature] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       __.format[FromToDouble]
     )(ObservationTemperature.apply, unlift(ObservationTemperature.unapply))
 
     implicit val obsHypoxicAirFormat: Format[ObservationHypoxicAir] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       __.format[FromToDouble]
     )(ObservationHypoxicAir.apply, unlift(ObservationHypoxicAir.unapply))
 
     implicit val obsRelHumidityFormat: Format[ObservationRelativeHumidity] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       __.format[FromToDouble]
     )(ObservationRelativeHumidity.apply, unlift(ObservationRelativeHumidity.unapply))
 
     implicit val obsLightingFormat: Format[ObservationLightingCondition] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "lightingCondition").formatNullable[String]
     )(ObservationLightingCondition.apply, unlift(ObservationLightingCondition.unapply))
 
     implicit val obsCleaningFormat: Format[ObservationCleaning] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "cleaning").formatNullable[String]
     )(ObservationCleaning.apply, unlift(ObservationCleaning.unapply))
 
     implicit val obsGasFormat: Format[ObservationGas] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "gas").formatNullable[String]
     )(ObservationGas.apply, unlift(ObservationGas.unapply))
 
     implicit val obsMoldFormat: Format[ObservationMold] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "mold").formatNullable[String]
     )(ObservationMold.apply, unlift(ObservationMold.unapply))
 
     implicit val obsTheftFormat: Format[ObservationTheftProtection] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "theftProtection").formatNullable[String]
     )(ObservationTheftProtection.apply, unlift(ObservationTheftProtection.unapply))
 
     implicit val obsFireFormat: Format[ObservationFireProtection] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "fireProtection").formatNullable[String]
     )(ObservationFireProtection.apply, unlift(ObservationFireProtection.unapply))
 
     implicit val obsPerimeterFormat: Format[ObservationPerimeterSecurity] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "perimeterSecurity").formatNullable[String]
     )(ObservationPerimeterSecurity.apply, unlift(ObservationPerimeterSecurity.unapply))
 
     implicit val obsWaterFormat: Format[ObservationWaterDamageAssessment] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "waterDamageAssessment").formatNullable[String]
     )(ObservationWaterDamageAssessment.apply, unlift(ObservationWaterDamageAssessment.unapply))
 
     implicit val obsPestFormat: Format[ObservationPest] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "identification").formatNullable[String] and
       (__ \ "lifecycles").format[Seq[LifeCycle]]
     )(ObservationPest.apply, unlift(ObservationPest.unapply))
 
     implicit val obsAlcoholFormat: Format[ObservationAlcohol] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "condition").formatNullable[String] and
       (__ \ "volume").formatNullable[Double]

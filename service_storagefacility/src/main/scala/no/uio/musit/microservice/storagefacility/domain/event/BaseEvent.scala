@@ -24,35 +24,25 @@ import play.api.libs.json._
 
 // TODO: Change id and partOf to EventId
 
-// TODO: Should probably rename to something more related to storage facility.
-case class MusitEventBase(
+case class BaseEvent(
   id: Option[Long],
   doneBy: Option[ActorRole],
   doneDate: DateTime,
   note: Option[String],
   partOf: Option[Long],
-  // TODO: Move affectedThing property to the specific types.
+  // TODO: Move affectedThing property to the specific types?!?!?
   affectedThing: Option[ObjectRole],
   /*
     TODO: The following 2 fields are not really Optional. And is not something
-    the clients of the API will send in. Highlighting the difference between
-    internal/external representation (API vs Domain).
+    the clients of the API will send in.
+    This highlights the difference between internal/external representation
+    (API vs Domain). And shows the need to have a separate layer of API models
+    that represent the in/out messages.
    */
   registeredBy: Option[String], // This should be UserId,
   registeredDate: Option[DateTime]
 )
 
-object MusitEventBase {
-  //  implicit val format: Format[MusitEventBase] = (
-  //    (__ \ "id").formatNullable[Long] and
-  //    (__ \ "eventDate").formatNullable[DateTime] and
-  //    (__ \ "note").formatNullable[String] and
-  //    (__ \ "partOf").formatNullable[Long] and
-  //    (__ \ "relatedActors").format[Seq[ActorRole]] and
-  //    (__ \ "relatedObjects").format[Seq[ObjectRole]] and
-  //    (__ \ "relatedPlaces").format[Seq[PlaceRole]] and
-  //    (__ \ "registeredBy").formatNullable[String] and
-  //    (__ \ "registeredDate").formatNullable[DateTime]
-  //  )(MusitEventBase.apply, unlift(MusitEventBase.unapply))
-  implicit val format: Format[MusitEventBase] = Json.format[MusitEventBase]
+object BaseEvent {
+  implicit val format: Format[BaseEvent] = Json.format[BaseEvent]
 }

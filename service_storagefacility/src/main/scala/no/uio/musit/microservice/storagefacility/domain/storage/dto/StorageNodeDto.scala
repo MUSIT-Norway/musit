@@ -25,6 +25,32 @@ case class ExtendedStorageNode[T <: SpecializedStorageNode](
   extension: T
 ) extends StorageNodeDto
 
+case class RootDto(
+    id: Option[StorageNodeId],
+    name: String,
+    storageType: StorageType
+) extends StorageNodeDto {
+
+  /**
+   * Hack to convert into a StorageUnitDto for DB inserts
+   */
+  def asStorageUnit: StorageUnitDto =
+    StorageUnitDto(
+      id = id,
+      name = name,
+      area = None,
+      areaTo = None,
+      isPartOf = None,
+      height = None,
+      heightTo = None,
+      groupRead = None,
+      groupWrite = None,
+      isDeleted = None,
+      storageType = storageType
+    )
+
+}
+
 case class BuildingDto(
   id: Option[StorageNodeId],
   address: Option[String]
@@ -52,6 +78,9 @@ object StorageNodeDto {
 
   def toStorageNode[T <: StorageNodeDto](dto: T) =
     dto match {
+      case root: RootDto =>
+        toRoot(root)
+
       case stu: StorageUnitDto =>
         toStorageUnit(stu)
 
@@ -79,10 +108,16 @@ object StorageNodeDto {
 
   def fromStorageNode[T <: StorageNode](stu: T): StorageNodeDto =
     stu match {
+      case root: Root => fromRoot(root)
       case su: StorageUnit => fromStorageUnit(su)
       case b: Building => fromBuilding(b)
       case r: Room => fromRoom(r)
     }
+
+  def toRoot(r: RootDto): Root =
+    Root(
+      id = r.id
+    )
 
   def toStorageUnit(su: StorageUnitDto): StorageUnit =
     StorageUnit(
@@ -157,6 +192,13 @@ object StorageNodeDto {
       )
     )
   }
+
+  def fromRoot(r: Root): RootDto =
+    RootDto(
+      id = r.id,
+      name = r.name,
+      storageType = r.storageType
+    )
 
   def fromStorageUnit(
     su: StorageUnit,

@@ -65,6 +65,8 @@ trait NodeGenerators extends NodeTypeInitializers {
     Await.result(storageUnitDao.insert(createStorageUnit()), 5 seconds)
   }
 
+  def addRoot(r: Root) = storageUnitDao.insertRoot(r)
+
   def addBuilding(b: Building) = buildingDao.insert(b)
 
   def addOrganisation(o: Organisation) = organisationDao.insert(o)
@@ -80,6 +82,7 @@ trait NodeGenerators extends NodeTypeInitializers {
         case r: Room => addRoom(r)
         case b: Building => addBuilding(b)
         case o: Organisation => addOrganisation(o)
+        case r: Root => addRoot(r)
       }
     }.map { inserted =>
       inserted.map(_.id.get)

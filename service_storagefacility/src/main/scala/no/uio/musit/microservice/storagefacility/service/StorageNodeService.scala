@@ -23,7 +23,6 @@ import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, Orga
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -63,6 +62,8 @@ class StorageNodeService @Inject() (
         None
     }
   }
+
+  def addRoot(root: Root): Future[Root] = storageUnitDao.insertRoot(root)
 
   /**
    * TODO: Document me!
@@ -243,7 +244,14 @@ class StorageNodeService @Inject() (
   def getStorageUnitById(
     id: StorageNodeId
   ): Future[MusitResult[Option[StorageUnit]]] = {
-    storageUnitDao.getById(id).map(MusitSuccess.apply)
+    for {
+      unitRes <- storageUnitDao.getById(id).map(MusitSuccess.apply)
+      maybeEnvReq <- getEnvReq(id)
+    } yield {
+      unitRes.map { maybeUnit =>
+        maybeUnit.map(_.copy(environmentRequirement = maybeEnvReq))
+      }
+    }
   }
 
   /**
@@ -309,39 +317,31 @@ class StorageNodeService @Inject() (
   def getNodeById(
     id: StorageNodeId
   ): Future[MusitResult[Option[StorageNode]]] = {
-    storageUnitDao.getNodeById(id).flatMap { maybeNode =>
-      maybeNode.map { node =>
-        node.storageType match {
-          case StorageType.StorageUnitType =>
-            for {
-              unit <- Future.successful(StorageNodeDto.toStorageUnit(node))
-              maybeEnvReq <- getEnvReq(id)
-            } yield {
-              MusitSuccess(
-                Option(unit.copy(environmentRequirement = maybeEnvReq))
-              )
-            }
-
-          case StorageType.BuildingType =>
-            getBuildingById(id)
-
-          case StorageType.RoomType =>
-            getRoomById(id)
-
-          case StorageType.OrganisationType =>
-            getOrganisationById(id)
-
+    storageUnitDao.getStorageType(id).flatMap { res =>
+      res.map { maybeType =>
+        maybeType.map {
+          case StorageType.RootType => Future.successful(MusitSuccess(None))
+          case StorageType.OrganisationType => getOrganisationById(id)
+          case StorageType.BuildingType => getBuildingById(id)
+          case StorageType.RoomType => getRoomById(id)
+          case StorageType.StorageUnitType => getStorageUnitById(id)
+        }.getOrElse {
+          Future.successful(MusitSuccess(None))
         }
       }.getOrElse(Future.successful(MusitSuccess[Option[StorageNode]](None)))
     }
-
   }
 
   /**
    * TODO: Document me!
    */
+  def rootNodes: Future[Seq[StorageNode]] = storageUnitDao.findRootNodes
+
+  /**
+   * TODO: Document me!
+   */
   def getChildren(id: StorageNodeId): Future[Seq[StorageNode]] = {
-    storageUnitDao.getChildren(id).map(_.map(StorageNodeDto.toStorageNode))
+    storageUnitDao.getChildren(id)
   }
 
   /**

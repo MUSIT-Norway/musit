@@ -59,8 +59,8 @@ trait EventTypeInitializers {
   val registeredByName = "Darth Vader"
   val defaultActorRole = ActorRole(1, 12)
 
-  def createBase(str: String, affected: Option[Long] = Some(1)): MusitEventBase =
-    MusitEventBase(
+  def createBase(str: String, affected: Option[Long] = Some(1)): BaseEvent =
+    BaseEvent(
       id = None,
       doneDate = DateTime.now.minusDays(1),
       note = Some(str),

@@ -23,10 +23,6 @@ import no.uio.musit.microservice.storagefacility.domain.event.{ ActorRole, Objec
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 
 /**
- * Created by jstabel on 7/6/16.
- */
-
-/**
  * isNormalizedDirection is whether this direction is the same which the links
  * go in the event_relation_event table (from -> to).
  */
@@ -37,9 +33,11 @@ case class EventRelation(
     isNormalized: Boolean = true
 ) {
 
+  def inverted = EventRelation(id, inverseName, name, !isNormalized)
+
   def getNormalizedDirection =
     if (isNormalized) this
-    else EventRelations.unsafeGetByName(inverseName)
+    else inverted
 }
 
 /**
@@ -51,47 +49,29 @@ case class EventRelation(
  */
 object EventRelations {
 
+  // The following two constants are used in the base event table to describe
+  // relationship between events and sub-events.
   val PartsOfRelation = EventRelation(1, "parts", "part_of")
   val MotivatesRelation = EventRelation(2, "motivates", "motivated_by")
 
-  private val relations = Seq(PartsOfRelation, MotivatesRelation)
+  private val relations = Map(
+    PartsOfRelation.id -> PartsOfRelation,
+    MotivatesRelation.id -> MotivatesRelation
+  )
 
-  private val bothSidesRelations =
-    relations ++ relations.map { rel =>
-      EventRelation(rel.id, rel.inverseName, rel.name, !rel.isNormalized)
-    }
+  /**
+   * Note that this one is deliberately one-sided, we only want to find the one
+   * in the "proper" direction when searching by id. Else we need separate ids
+   * for the reverse relations
+   */
+  def unsafeGetById(id: Int): EventRelation = relations(id)
 
-  private val relationByName: Map[String, EventRelation] =
-    bothSidesRelations.map(rel => rel.name.toLowerCase -> rel).toMap
-
-  // Note that this one is deliberately one-sided, we only want to find the one
-  // in the "proper" direction when searching by id. Else we need separate ids
-  // for the reverse relations
-  private val relationById: Map[Int, EventRelation] =
-    relations.map(rel => rel.id -> rel).toMap
-
-  // This one is hardcoded some places in the system, because it is treated in a
-  // special way (not stored in the event-relation-table, but in the base
-  // event-table directly
-  val relation_parts = unsafeGetByName("parts")
-
-  // Shouldn't be used in the main framework, but perhaps used by tests and
-  // some other logic
-  val relation_motivates = unsafeGetByName("motivates")
-
-  def getByName(name: String) = relationByName.get(name.toLowerCase)
-
-  def getById(id: Int): Option[EventRelation] = relationById.get(id)
-
-  def unsafeGetById(id: Int): EventRelation = getById(id).get
-
-  def unsafeGetByName(name: String): EventRelation = getByName(name).get
 }
 
-/*
-    Below are types describing the relations between an event and other
-    domain concepts in the system.
- */
+// =============================================================================
+// Below are types describing the relations between an event and other domain
+// concepts in the system.
+// =============================================================================
 
 case class EventRoleActor(eventId: Option[Long], roleId: Int, actorId: Int)
 

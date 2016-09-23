@@ -29,9 +29,10 @@ import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
+/**
+ * TODO: What am I for?
+ */
 object EventRelationTypes {
-
-  // TODO: Really struggling to see why the below types are necessary.
 
   /**
    * TODO: What am I and what is my purpose?

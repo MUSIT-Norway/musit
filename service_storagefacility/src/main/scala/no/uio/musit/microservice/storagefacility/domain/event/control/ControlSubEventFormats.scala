@@ -21,7 +21,7 @@ package no.uio.musit.microservice.storagefacility.domain.event.control
 
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ControlSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEventBase }
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, BaseEvent }
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
@@ -76,10 +76,10 @@ object ControlSubEventFormats {
     import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEventFormats.SubTypeImplicits._
 
     private[this] def baseFormats[A <: ControlSubEvent, B <: ObservationSubEvent](
-      apply: (MusitEventBase, EventType, Boolean, Option[B]) => A,
-      unapply: A => (MusitEventBase, EventType, Boolean, Option[B])
+      apply: (BaseEvent, EventType, Boolean, Option[B]) => A,
+      unapply: A => (BaseEvent, EventType, Boolean, Option[B])
     )(implicit bformat: Format[B]): Format[A] = (
-      __.format[MusitEventBase] and
+      __.format[BaseEvent] and
       (__ \ "eventType").format[EventType] and
       (__ \ "ok").format[Boolean] and
       (__ \ "motivates").formatNullable[B]

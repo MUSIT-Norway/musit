@@ -27,7 +27,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventDto, ExtendedDto }
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.storage.{ EnvironmentRequirement, StorageNodeId }
-import no.uio.musit.service.MusitResults.{ MusitEmpty, MusitInternalError, MusitResult, MusitSuccess }
+import no.uio.musit.service.MusitResults.{ MusitInternalError, MusitResult, MusitSuccess }
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -45,6 +45,17 @@ class EnvironmentRequirementService @Inject() (
     "Unexpected DTO type. Expected ExtendedDto with event type EnvRequirement"
   )
 
+  /**
+   * Helper method that will fetch the latest environment requirement event for
+   * the StorageNodeId found in the affectedThing property of the event.
+   * The passed in envReq is then compared against the last registered event.
+   *
+   * If the 2 compared events are similar, the last registered event is returned.
+   * Otherwise a None value is returned.
+   *
+   * @param envReq The environment requirement to compare
+   * @return A Future containing an Option of the EnvRequirement that was found.
+   */
   private def compareWithLatest(envReq: EnvRequirement): Future[Option[EnvRequirement]] = {
     envReq.baseEvent.affectedThing.map { or =>
       val snid: StorageNodeId = or.objectId
@@ -67,8 +78,10 @@ class EnvironmentRequirementService @Inject() (
     }
   }
 
+  /**
+   * TODO: Document me!!!!
+   */
   def add(envReq: EnvRequirement)(implicit currUsr: String): Future[MusitResult[EnvRequirement]] = {
-    // TODO: Need to check if the previous envreq is the same as this one.
     val dto = EnvReqConverters.envReqToDto(envReq)
 
     compareWithLatest(envReq).flatMap { sameEr =>
@@ -96,12 +109,22 @@ class EnvironmentRequirementService @Inject() (
     }
   }
 
+  /**
+   * TODO: Document me!!!!
+   */
   def findBy(id: EventId): Future[MusitResult[Option[EnvRequirement]]] = {
     eventDao.getEvent(id.underlying).map { result =>
       convertResult(result)
     }
   }
 
+  /**
+   * Helper to locate the last registered environment requirement event for the
+   * given StorageNodeId.
+   *
+   * @param nodeId StorageNodeId to use when looking for the latest event.
+   * @return {{{Future[MusitResult[Option[EnvRequirement]]]}}}
+   */
   private def latestForNodeId(
     nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvRequirement]]] = {
@@ -110,6 +133,13 @@ class EnvironmentRequirementService @Inject() (
     }
   }
 
+  /**
+   * Same {{{latestForNodeId}}}, except that this method will do additional
+   * mapping from EnvRequirement => EnvironmentRequirement.
+   *
+   * @param nodeId StorageNodeId to use when looking for the latest event.
+   * @return {{{Future[MusitResult[Option[EnvironmentRequirement]]]}}}
+   */
   def findLatestForNodeId(
     nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvironmentRequirement]]] = {

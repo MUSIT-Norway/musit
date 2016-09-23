@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
+import no.uio.musit.microservice.storagefacility.domain.storage.{ Root, StorageType }
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{ Millis, Seconds, Span }
@@ -32,40 +33,23 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     interval = Span(50, Millis)
   )
 
-  //  def mkTestEnvReq = EnvironmentRequirement(
-  //    temperature = Some(10),
-  //    temperatureTolerance = Some(1),
-  //    hypoxicAir = Some(5),
-  //    hypoxicAirTolerance = Some(0.5),
-  //    relativeHumidity = Some(10),
-  //    relativeHumidityTolerance = Some(0.1),
-  //    cleaning = Some("cleaning"),
-  //    lightingCondition = Some("lighting condition"),
-  //    comments = Some("comments")
-  //  )
-
-  //  def mkChangedEnvReq = EnvironmentRequirement(
-  //    temperature = Some(11),
-  //    temperatureTolerance = Some(12),
-  //    hypoxicAir = Some(5),
-  //    hypoxicAirTolerance = Some(0.7),
-  //    relativeHumidity = Some(199),
-  //    relativeHumidityTolerance = Some(0.9),
-  //    cleaning = Some("cleaning - not good"),
-  //    lightingCondition = Some("lighting condition - too dark"),
-  //    comments = Some("comments - any comments")
-  //  )
-
-  //  def mkTestRoom = emptyRoom("test room").copy(
-  //    environmentRequirement = Some(mkTestEnvReq),
-  //    securityAssessment = SecurityAssessment.empty.copy(theftProtection = Some(true))
-  //  )
-
-  //  def mkTestRoomWithNoEnvReq = emptyRoom("test room").copy(
-  //    securityAssessment = SecurityAssessment.empty.copy(theftProtection = Some(true))
-  //  )
-
   "StorageUnitDao" should {
+
+    "succeed when inserting several root nodes" in {
+      val ins1 = storageUnitDao.insertRoot(Root()).futureValue
+      val ins2 = storageUnitDao.insertRoot(Root()).futureValue
+      val ins3 = storageUnitDao.insertRoot(Root()).futureValue
+
+      ins1.id.isEmpty must not be true
+      ins1.storageType mustBe StorageType.RootType
+
+      ins2.id.isEmpty must not be true
+      ins2.storageType mustBe StorageType.RootType
+
+      ins3.id.isEmpty must not be true
+      ins3.storageType mustBe StorageType.RootType
+    }
+
     "succeed when inserting a new storage unit" in {
       val inserted = storageUnitDao.insert(createStorageUnit()).futureValue
       inserted.id must not be None
@@ -104,6 +88,12 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       again must not be None
       again.get.name mustBe "UggaBugga"
       again.get.areaTo mustBe Some(4.0)
+    }
+
+    "successfully list root nodes" in {
+      val nodes = storageUnitDao.findRootNodes.futureValue
+      nodes.size mustBe 3
+      nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
   }
 
