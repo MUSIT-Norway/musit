@@ -163,6 +163,14 @@ class ActorIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFut
         persons.head.fn mustBe "And, Arne1"
       }
     }
+    "search on person case insensitive" in {
+      val future = wsUrl("/v1/person?search=[and]").get()
+      whenReady(future, timeout) { response =>
+        val persons = Json.parse(response.body).validate[Seq[Person]].get
+        persons.length mustBe 1
+        persons.head.fn mustBe "And, Arne1"
+      }
+    }
   }
 
 

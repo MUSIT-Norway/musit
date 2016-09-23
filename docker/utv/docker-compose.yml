@@ -30,20 +30,32 @@ services:
           - POSTGRES_PASSWORD=postgres
           - POSTGRES_DB=postgres
         volumes:
-          - ../../postgres-storage:/var/lib/postgresql/data/
+          - ../../../postgres-storage:/var/lib/postgresql/data/
     thing:
         image: musit_service_thing:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - APPLICATION_SECRET
+    thingaggregate:
+        image: musit_service_thing_aggregate:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
     core:
         image: musit_service_core:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - APPLICATION_SECRET
     storageadmin:
         image: musit_service_storage_admin:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET
-          - EVOLUTION_ENABLED=false
+          - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
           - SLICK_DB_URL
@@ -55,7 +67,7 @@ services:
         image: musit_service_actor:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET
-          - EVOLUTION_ENABLED=false
+          - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
           - SLICK_DB_URL
@@ -66,12 +78,12 @@ services:
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
         environment:
-          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
+          - APPLICATION_SECRET
     event:
         image: musit_service_event:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET
-          - EVOLUTION_ENABLED=false
+          - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
           - SLICK_DB_URL

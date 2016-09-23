@@ -1,3 +1,5 @@
+package testHelpers
+
 /*
  * MUSIT is a museum database to archive natural and cultural history data.
  * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
@@ -17,36 +19,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.actor.service
-
-import com.google.inject.Inject
-import no.uio.musit.microservice.actor.dao.ActorDao
-import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservices.common.domain.MusitSearch
+import org.scalatest.concurrent.PatienceConfiguration
+import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.time.{ Millis, Seconds, Span }
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
-class LegacyPersonService @Inject() (val actorDao: ActorDao) {
+object TestConfigs {
 
-  def all: Future[Seq[Person]] = {
-    actorDao.allPersonsLegacy()
-  }
-
-  def find(id: Long): Future[Option[Person]] = {
-    actorDao.getPersonLegacyById(id)
-  }
-
-  def findDetails(ids: Set[Long]): Future[Seq[Person]] = {
-    actorDao.getPersonDetailsByIds(ids)
-  }
-
-  def find(search: MusitSearch): Future[Seq[Person]] = {
-    val searchString = search.searchStrings.reduce(_ + " " + _)
-    actorDao.getPersonLegacyByNameCaseInsensitive(searchString)
-  }
-
-  def create(person: Person): Future[Person] = {
-    actorDao.insertPersonLegacy(person)
-  }
+  def inMemoryDatabaseConfig(evolve: String = "enabled"): Map[String, Any] = Map.apply(
+    "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
+    "slick.dbs.default.connectionTimeout" -> "20000",
+    "slick.dbs.default.loginTimeout" -> "20000",
+    "slick.dbs.default.socketTimeout" -> "20000",
+    "slick.dbs.default.db.driver" -> "org.h2.Driver",
+    "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
+    "slick.dbs.default.db.url" -> "jdbc:h2:mem:play-test",
+    "slick.dbs.default.leakDetectionThreshold" -> "5000",
+    "evolutionplugin" -> evolve
+  )
 
 }

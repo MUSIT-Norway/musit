@@ -1,0 +1,4 @@
+<included>
+    <logger name="dao" level="DEBUG"/>
+    <logger name="slick.jdbc" level="DEBUG"/>
+</included>
