@@ -30,7 +30,7 @@
       "command": "node ./scripts/api.js",
       "env": {
         "NODE_ENV": "development",
-        "PORT": 8080,
+        "PORT": 80,
         "APIPORT": 3030
       }
     },
