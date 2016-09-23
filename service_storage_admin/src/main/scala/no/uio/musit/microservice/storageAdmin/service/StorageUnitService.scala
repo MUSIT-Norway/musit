@@ -36,13 +36,17 @@ class StorageUnitService @Inject() (
     roomService: RoomService,
     buildingService: BuildingService,
     organisationService: OrganisationService,
-    storageDao: StorageDao
-
+    storageDao: StorageDao,
+    statsService: StatsService
 ) extends Object with StorageDtoConverter {
 
-  private def storageUnitTypeMismatch(id: Long, expected: StorageType, inDatabase: StorageType): MusitError =
-    ErrorHelper.conflict(s"StorageUnit with id: $id was expected to have storage type: $expected, " +
+  private def storageUnitTypeMismatch(nodeId: Long, expected: StorageType, inDatabase: StorageType): MusitError =
+    ErrorHelper.conflict(s"StorageUnit with id: $nodeId was expected to have storage type: $expected, " +
       s"but had the type: $inDatabase in the database.")
+
+  //This one is public because we want to check it in tests.
+  def cannotDeleteNonEmptyNode(nodeId: Long): MusitError =
+    ErrorHelper.methodNotAllowed(s"Not possible to delete non-empty storage nodes. (NodeId: $nodeId)")
 
   def createStorageUnit(storageUnit: StorageUnit): MusitFuture[StorageUnit] =
     storageUnitDao.insertStorageUnit(storageUnit).toMusitFuture // musitFutureMap(stNodeDto=> fromDto(stNodeDto))
@@ -75,7 +79,7 @@ class StorageUnitService @Inject() (
   }
 
   def getStorageNodeDtoById(id: Long): MusitFuture[StorageNodeDTO] = {
-    storageDao.getStorageNodeOnly(id)
+    storageDao.getStorageNodeDtoById(id)
   }
 
   def verifyStorageNodeExists(id: Long): MusitFuture[Boolean] = storageUnitDao.verifyStorageNodeExists(id)
@@ -115,8 +119,15 @@ class StorageUnitService @Inject() (
       }
     }
 
-  def deleteStorageTriple(id: Long): MusitFuture[Int] =
-    storageUnitDao.deleteStorageNode(id).toMusitFuture
+  def deleteStorageTriple(id: Long): MusitFuture[Int] = {
+    statsService.nodeIsEmpty(id).musitFutureFlatMap { isEmpty =>
+      if (isEmpty) {
+        storageUnitDao.deleteStorageNode(id).toMusitFuture
+      } else {
+        MusitFuture.fromError(cannotDeleteNonEmptyNode(id))
+      }
+    }
+  }
 
   def setPartOf(id: Long, partOf: Long): Future[Either[MusitError, Boolean]] =
     storageUnitDao.setPartOf(id, partOf).map {

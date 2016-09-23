@@ -19,13 +19,13 @@
 
 package no.uio.musit.microservice.storageAdmin.dao
 
-import _root_.no.uio.musit.microservice.storageAdmin.service.StatsService
+import _root_.no.uio.musit.microservice.storageAdmin.service.{ StatsService, StorageUnitService }
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto._
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.Matchers._
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatest.concurrent.{ PatienceConfiguration, ScalaFutures }
+import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
@@ -56,6 +56,10 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
     val instance = Application.instanceCache[StorageDao]
     instance(app)
   }
+  val storageUnitService: StorageUnitService = {
+    val instance = Application.instanceCache[StorageUnitService]
+    instance(app)
+  }
 
   val statsService: StatsService = {
     val instance = Application.instanceCache[StatsService]
@@ -83,7 +87,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
         result.size mustBe (2 + oldSize)
         storageUnitDao.setPartOf(1, 2).futureValue mustBe 1
         import scala.concurrent.ExecutionContext.Implicits.global
-        storageUnitDao.getStorageNodeOnlyById(1).map(_.get.isPartOf).futureValue mustBe Some(2)
+        storageUnitDao.getStorageNodeDtoById(1).map(_.get.isPartOf).futureValue mustBe Some(2)
       }
     }
   }
@@ -178,7 +182,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val firstLatestEnvReqId = insertedRoomDto.storageNode.latestEnvReqId
 
-      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase.latestEnvReqId mustBe firstLatestEnvReqId
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
@@ -202,14 +206,14 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomToUpdate = testRoom.copy(name = "Room666", environmentRequirement = Some(mkChangedEnvReq))
 
-      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase.latestEnvReqId mustBe firstLatestEnvReqId
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
       val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
 
-      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
 
       val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
@@ -229,13 +233,13 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomToUpdate = testRoom.copy(name = "Room777", environmentRequirement = Some(mkChangedEnvReq))
 
-      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
       val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
 
-      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
 
       val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
@@ -255,13 +259,13 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomToUpdate = testRoom.copy(name = "Room888", environmentRequirement = None)
 
-      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
       val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
 
-      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
 
       val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
@@ -285,13 +289,13 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomToUpdate = testRoom.copy(name = "Room888", environmentRequirement = None)
 
-      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
       val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
 
-      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
+      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase2.latestEnvReqId mustBe firstLatestEnvReqId
 
       val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
@@ -310,7 +314,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
   }
 
   "Statistics test " must {
-    "" in {
+    "stats and delete tests" in {
       val room1 = insertRoom(roomToDto(emptyRoom("MittRom00")))
       val room2 = insertRoom(roomToDto(emptyRoom("MittUnderRom01")), room1.id)
       val room3 = insertRoom(roomToDto(emptyRoom("MittUnderRom10")), room1.id)
@@ -342,10 +346,27 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
       statsService.totalMuseumObjectCount(room3.id.get).futureValue mustBe Right(3)
       statsService.totalMuseumObjectCount(room4.id.get).futureValue mustBe Right(1)
 
+      statsService.nodeIsEmpty(room1.id.get).futureValue mustBe Right(false)
+      statsService.nodeIsEmpty(room2.id.get).futureValue mustBe Right(true)
+      statsService.nodeIsEmpty(room3.id.get).futureValue mustBe Right(false)
+      statsService.nodeIsEmpty(room4.id.get).futureValue mustBe Right(false)
+
       val stats = statsService.getStats(room1.id.get).futureValue.right.get
       stats.totalObjects mustBe 4
       stats.objects mustBe 1
       stats.nodes mustBe 2
+
+      //Now check that we cannot delete non-empty nodes...
+
+      def mkNotFoundMusitResult(nodeId: Long) = Left(storageUnitService.cannotDeleteNonEmptyNode(nodeId))
+
+      storageUnitService.deleteStorageTriple(room1.id.get).futureValue mustBe mkNotFoundMusitResult(room1.id.get)
+      storageUnitService.deleteStorageTriple(room2.id.get).futureValue mustBe Right(1) //Deleted one row
+      storageUnitService.deleteStorageTriple(room3.id.get).futureValue mustBe mkNotFoundMusitResult(room3.id.get)
+      storageUnitService.deleteStorageTriple(room4.id.get).futureValue mustBe mkNotFoundMusitResult(room4.id.get)
+
+      val nonExistingNodeId: Long = 9999912345678L
+      storageUnitService.deleteStorageTriple(nonExistingNodeId).futureValue mustBe Left(storageUnitDao.storageUnitNotFoundError(nonExistingNodeId))
     }
   }
 

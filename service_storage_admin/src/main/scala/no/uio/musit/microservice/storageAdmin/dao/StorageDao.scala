@@ -18,8 +18,8 @@ class StorageDao @Inject() (
     envReqDao: EnvReqDao
 ) extends Object with StorageDtoConverter {
 
-  def getStorageNodeOnly(id: Long) =
-    storageUnitDao.getStorageNodeOnlyById(id).toMusitFuture(storageUnitDao.storageUnitNotFoundError(id))
+  def getStorageNodeDtoById(id: Long) =
+    storageUnitDao.getStorageNodeDtoByIdAsMusitFuture(id)
 
   private def getBuildingById(id: Long): MusitFuture[BuildingDTO] =
     buildingDao.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
@@ -56,7 +56,7 @@ class StorageDao @Inject() (
   }
 
   def getById(id: Long): MusitFuture[Storage] = {
-    val musitFutureStorageNode = getStorageNodeOnly(id)
+    val musitFutureStorageNode = getStorageNodeDtoById(id)
     musitFutureStorageNode.musitFutureFlatMap { storageNode =>
       getByNode(storageNode)
     }

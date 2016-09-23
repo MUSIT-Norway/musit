@@ -42,8 +42,11 @@ class StorageUnitDao @Inject() (
   def storageUnitNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(unknownStorageUnitMsg(id))
 
-  def getStorageNodeOnlyById(id: Long): Future[Option[StorageNodeDTO]] =
+  def getStorageNodeDtoById(id: Long): Future[Option[StorageNodeDTO]] =
     db.run(StorageNodeTable.filter(st => st.id === id && st.isDeleted === false).result.headOption)
+
+  def getStorageNodeDtoByIdAsMusitFuture(id: Long): MusitFuture[StorageNodeDTO] =
+    getStorageNodeDtoById(id).toMusitFuture(storageUnitNotFoundError(id))
 
   /*A query returning non deleted child nodes, will probably take access rights into account in the future*/
   private def getChildrenQuery(id: Long) = {
@@ -55,14 +58,14 @@ class StorageUnitDao @Inject() (
   }
 
   def getPath(id: Long): Future[Seq[StorageNodeDTO]] = {
-    val optSelf = getStorageNodeOnlyById(id)
+    val optSelf = getStorageNodeDtoById(id)
     optSelf.flatMap {
       case None => Future.successful(Seq.empty)
       case Some(self) =>
         self.isPartOf match {
           case None => Future.successful(Seq(self))
           case Some(parentId) =>
-            val futOptParent = getStorageNodeOnlyById(parentId)
+            val futOptParent = getStorageNodeDtoById(parentId)
             futOptParent.flatMap {
               case None => Future.successful(Seq(self))
               case Some(parent) =>
@@ -94,7 +97,7 @@ class StorageUnitDao @Inject() (
   def rootNodes(readGroup: String): Future[Seq[StorageNodeDTO]] =
     db.run(StorageNodeTable.filter(st => st.isDeleted === false && st.isPartOf.isEmpty && st.groupRead === readGroup).result)
 
-  def getNodePath(nodeId: Long) = getStorageNodeOnlyById(nodeId).map(_.map(_.nodePath))
+  def getNodePath(nodeId: Long) = getStorageNodeDtoById(nodeId).map(_.map(_.nodePath))
 
   def setPartOf(nodeId: Long, parentNodeId: Long): Future[Int] = {
     val futOptParentPathOfParent = getNodePath(parentNodeId)
@@ -152,7 +155,7 @@ class StorageUnitDao @Inject() (
         n <- updateStorageNodeAction(id, nodePart) //update storageNode, med sine data og siste envHid
       } yield n).transactionally
     }
-    DBIO.from(getStorageNodeOnlyById(id)).flatMap { optNodeInDatabase =>
+    DBIO.from(getStorageNodeDtoById(id)).flatMap { optNodeInDatabase =>
       val nodeInDatabase = optNodeInDatabase.getOrFail(s"Unable to find storage node with id: $id")
       val newStorageNodeDto = toDto(storage)
       require(nodeInDatabase.id == Some(id))
