@@ -11,8 +11,6 @@ import scala.language.postfixOps
 
 class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-  override val dbName = "obj-agr-it-spec"
-
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
