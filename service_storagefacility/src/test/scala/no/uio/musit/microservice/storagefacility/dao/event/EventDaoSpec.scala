@@ -24,18 +24,16 @@ import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move._
 import no.uio.musit.microservice.storagefacility.testhelpers._
-import no.uio.musit.test.{ MusitSpecWithAppPerSuite, MusitSpecWithAppPerTest }
+import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors._
 import org.scalatest.time.{ Millis, Seconds, Span }
 
 /**
  * Test specs for the EventDao.
  */
-class EventDaoSpec extends MusitSpecWithAppPerTest
+class EventDaoSpec extends MusitSpecWithAppPerSuite
     with EventGenerators
     with NodeGenerators {
-
-  override val dbName: String = "event-dao-db"
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),

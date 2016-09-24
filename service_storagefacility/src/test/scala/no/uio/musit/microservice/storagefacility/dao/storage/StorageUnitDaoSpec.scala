@@ -21,12 +21,10 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.domain.storage.{ Root, StorageType }
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
-import no.uio.musit.test.MusitSpecWithAppPerTest
+import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{ Millis, Seconds, Span }
 
-class StorageUnitDaoSpec extends MusitSpecWithAppPerTest with NodeGenerators {
-
-  override val dbName: String = "storage-unit-dao-db"
+class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
