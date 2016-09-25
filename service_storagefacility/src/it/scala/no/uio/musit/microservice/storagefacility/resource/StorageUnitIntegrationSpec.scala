@@ -270,12 +270,12 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         val json = organisationJson("My Organisation2")
         val response = wsUrl(ListStorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
-        val org = verifyNode[Organisation](
+        val organisation = verifyNode[Organisation](
           response, OrganisationType, "My Organisation2", 12
         )
-        org mustBe an[Organisation]
-        org.areaTo mustBe Some(2100)
-        org.heightTo mustBe Some(3.5)
+        organisation mustBe an[Organisation]
+        organisation.areaTo mustBe Some(2100)
+        organisation.heightTo mustBe Some(3.5)
 
         val updatedJson = {
           Json.parse(response.body).as[JsObject] ++ Json.obj(
@@ -283,10 +283,10 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           )
         }
 
-        val updRes = wsUrl(StorageNodeUrl(org.id.get)).put(updatedJson).futureValue
+        val updRes = wsUrl(StorageNodeUrl(organisation.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.OK
         val updated = verifyNode[Organisation](
-          updRes, OrganisationType, "My Organisation2", org.id.get
+          updRes, OrganisationType, "My Organisation2", organisation.id.get
         )
 
         updated mustBe an[Organisation]

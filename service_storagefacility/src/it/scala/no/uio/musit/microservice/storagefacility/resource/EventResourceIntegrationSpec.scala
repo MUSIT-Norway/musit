@@ -19,7 +19,6 @@
 
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.microservice.storagefacility.test.BaseUri
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
