@@ -24,7 +24,17 @@ package object test {
   val BaseUri = "/v1/storagenodes"
   val ListStorageNodesUrl = BaseUri
   val RootNodeUrl = s"$BaseUri/root"
-  val StorageNodeUrl = (id: Long) => s"$BaseUri/$id"
+  val StorageNodeUrl = (node: Long) => s"$BaseUri/$node"
+  val NodeChildrenUrl = (node: Long) => s"${StorageNodeUrl(node)}/children"
+
+  val ControlsUrl = (node: Long) => s"${StorageNodeUrl(node)}/controls"
+  val ControlUrl = (node: Long, evt: Long) => s"${ControlsUrl(node)}/$evt"
+  val ObservationsUrl = (node: Long) => s"${StorageNodeUrl(node)}/observations"
+  val ObservationUrl = (node: Long, evt: Long) => s"${ObservationsUrl(node)}/$evt"
+
+  val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"
+
+
 
   val VeryLongString =
     """12345678901234567890123456789012345678901234567890
