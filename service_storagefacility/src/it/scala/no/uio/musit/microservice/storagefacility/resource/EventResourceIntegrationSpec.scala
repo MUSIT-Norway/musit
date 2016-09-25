@@ -19,18 +19,16 @@
 
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.test.MusitSpecWithServerPerTest
+import no.uio.musit.microservice.storagefacility.test.BaseUri
+import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
-class EventResourceIntegrationSpec extends MusitSpecWithServerPerTest {
-
-  override val dbName: String = "event-it-spec-db"
+class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
-
 
   "The storage facility event service" should {
     "successfully register a new control" in {
@@ -57,7 +55,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerTest {
       pending
     }
 
-    "list all controls and observations for a node" in {
+    "list all controls and observations for a node, ordered by doneDate" in {
       pending
     }
 

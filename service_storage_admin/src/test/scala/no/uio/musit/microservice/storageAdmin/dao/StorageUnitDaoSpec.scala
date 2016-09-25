@@ -20,12 +20,12 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.domain.{EnvironmentAssessment, EnvironmentRequirement, Room, SecurityAssessment}
+import no.uio.musit.microservice.storageAdmin.domain.{ EnvironmentAssessment, EnvironmentRequirement, Room, SecurityAssessment }
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
