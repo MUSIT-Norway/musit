@@ -19,18 +19,22 @@
 
 package no.uio.musit.test
 
-import org.scalatest.TestData
+import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, OneAppPerTest, PlaySpec }
+import org.scalatestplus.play._
 import play.api.Application
 
+/**
+ * Base trait to use
+ */
 trait MusitSpec extends PlaySpec with ScalaFutures
 
+/**
+ * Mixin this trait if all you need is a fake Play application.
+ */
 trait MusitSpecWithApp extends MusitSpec with MusitFakeApplication {
-  val dbName: String
-  // NOTE: This is mutable because of the usage in specs that require a new
-  // application per test.
-  var musitFakeApp = createApplication(dbName)
+  // ¡¡¡NOTE: Do not make this immutable!!!
+  var musitFakeApp = createApplication()
 
   def fromInstanceCache[T](implicit manifest: Manifest[T]): T = {
     val instance = Application.instanceCache[T]
@@ -39,16 +43,55 @@ trait MusitSpecWithApp extends MusitSpec with MusitFakeApplication {
 
 }
 
+/**
+ * Mixin this trait if you need a fresh fake Play application per test in a
+ * *Spec.scala file.
+ */
 trait MusitSpecWithAppPerTest extends MusitSpecWithApp with OneAppPerTest {
   implicit override def newAppForTest(testData: TestData): Application = {
-    musitFakeApp = createApplication(dbName)
+    musitFakeApp = createApplication()
     musitFakeApp
   }
 
 }
 
+/**
+ * Mixin this trait if you need a fresh fake Play application for all tests in a
+ * *Spec.scala file. This is also the one to use if you
+ * bundle tests into a bigger Suite involving more than 1 file.
+ */
 trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with OneAppPerSuite {
   implicit override lazy val app = musitFakeApp
 }
 
-// TODO: Add traits for fake server per app and suite.
+/**
+ * For integration testing you will need to mixin a running server with a fake
+ * application. Use this trait to have 1 server start/stop per test in a
+ * *Spec.scala file.
+ */
+trait MusitSpecWithServerPerTest extends MusitSpecWithApp
+    with Network
+    with OneServerPerTest {
+
+  override lazy val port: Int = generatePort
+
+  implicit override def newAppForTest(testData: TestData): Application = {
+    musitFakeApp = createApplication()
+    musitFakeApp
+  }
+}
+
+/**
+ * For integration testing you will need to mixin a running server with a fake
+ * application. Use this trait to have 1 server start/stop per  *Spec.scala
+ * file. This is also to be used when bundling specs in a bigger Suite of tests.
+ */
+trait MusitSpecWithServerPerSuite extends MusitSpecWithApp
+    with Network
+    with OneServerPerSuite {
+
+  override lazy val port: Int = generatePort
+
+  implicit override lazy val app = musitFakeApp
+
+}

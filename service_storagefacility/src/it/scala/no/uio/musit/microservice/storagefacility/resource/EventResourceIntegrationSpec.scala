@@ -17,39 +17,47 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package dao
+package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.service.MusitResults.MusitSuccess
-import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{ Millis, Seconds, Span }
+import no.uio.musit.test.MusitSpecWithServerPerSuite
+import org.scalatest.time.{Millis, Seconds, Span}
 
-class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
+class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
 
-  val dao: StorageNodeDao = fromInstanceCache[StorageNodeDao]
-
-  "Interacting with the StorageNodeDao" when {
-
-    "getting objects for a nodeId that does not exist" should {
-      "return false" in {
-        dao.nodeExists(9999).futureValue match {
-          case MusitSuccess(false) =>
-          case _ => fail("it should not exist")
-        }
-      }
+  "The storage facility event service" should {
+    "successfully register a new control" in {
+      pending
     }
 
-    "getting objects for a nodeId that exists" should {
-      "return true" in {
-        dao.nodeExists(3).futureValue match {
-          case MusitSuccess(true) =>
-          case _ => fail("it should exist")
-        }
-      }
+    "get a specific control for a node" in {
+      pending
     }
+
+    "successfully register another control" in {
+      pending
+    }
+
+    "successfully register a new observation" in {
+      pending
+    }
+
+    "get a specific observation for a node" in {
+      pending
+    }
+
+    "successfully register another observation" in {
+      pending
+    }
+
+    "list all controls and observations for a node, ordered by doneDate" in {
+      pending
+    }
+
   }
+
 }

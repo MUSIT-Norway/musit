@@ -19,22 +19,26 @@
 
 package no.uio.musit.test
 
-import scala.util.Random
+import java.io.IOException
+import java.net.{ ServerSocket => JServerSocket }
 
-trait TestConfigs {
+import play.api.test.Helpers
 
-  def slickWithInMemoryH2(
-    evolve: String = "enabled"
-  ): Map[String, Any] = Map.apply(
-    "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
-    "slick.dbs.default.connectionTimeout" -> "20000",
-    "slick.dbs.default.loginTimeout" -> "20000",
-    "slick.dbs.default.socketTimeout" -> "20000",
-    "slick.dbs.default.db.driver" -> "org.h2.Driver",
-    "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
-    "slick.dbs.default.db.url" -> s"jdbc:h2:mem:musit-test${Random.nextInt()};MODE=Oracle;DB_CLOSE_DELAY=-1",
-    "slick.dbs.default.leakDetectionThreshold" -> "5000",
-    "evolutionplugin" -> evolve
-  )
+import scala.util.{ Random, Try }
+
+trait Network {
+
+  def generatePort: Int = {
+    Try {
+      val portnum = Helpers.testServerPort + Random.nextInt(500)
+      val socket = new JServerSocket(portnum)
+      socket.close()
+      portnum
+    }.recover {
+      // In case we try opening the same port twice.
+      case ioe: IOException => generatePort
+
+    }.getOrElse(Helpers.testServerPort)
+  }
 
 }

@@ -21,12 +21,10 @@ package no.uio.musit.microservice.storagefacility.service
 
 import no.uio.musit.microservice.storagefacility.domain.Interval
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
-import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.{ MusitSpecWithAppPerSuite, MusitSpecWithAppPerTest }
 import org.scalatest.time.{ Millis, Seconds, Span }
 
 class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
-
-  override val dbName: String = "storage-node-service-db"
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),

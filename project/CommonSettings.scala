@@ -30,8 +30,11 @@ object CommonSettings {
     scalaVersion := Dependencies.scala,
     resolvers ++= Dependencies.resolvers,
     fork in Test := false,
+    fork in IntegrationTest := true,
     parallelExecution in Test := false,
+    parallelExecution in IntegrationTest := false,
     logBuffered in Test := false,
+    logBuffered in IntegrationTest := false,
     scalacOptions := Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-feature", // Emit warning and location for usages of features that should be imported explicitly.
@@ -51,7 +54,7 @@ object CommonSettings {
       "-language:postfixOps",
       "-target:jvm-1.8",
       "-encoding", "UTF-8",
-      "-Xmax-classfile-name", "100" // This will limit the classname generation to 240 characters.
+      "-Xmax-classfile-name", "100" // This will limit the classname generation to 100 characters.
     )
   )
 
