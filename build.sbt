@@ -29,6 +29,7 @@ import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt._
 import scalariform.formatter.preferences._
 
+
 scalariformSettings
 
 ScalariformKeys.preferences := ScalariformKeys.preferences.value
@@ -56,6 +57,8 @@ val noPublish = Seq(
 
 lazy val root = project in file(".") settings noPublish aggregate(
   common_test,
+  musit_test,
+  musit_service,
   common,
   security,
   service_core,
@@ -65,7 +68,8 @@ lazy val root = project in file(".") settings noPublish aggregate(
   service_geo_location,
   service_time,
   service_storage_admin,
-  service_event
+  service_event,
+  service_storagefacility
 )
 
 // Base projects used as dependencies
@@ -83,6 +87,28 @@ lazy val common_test = (
     settings(libraryDependencies ++= playWithPersistenceDependencies ++ Seq[ModuleID](scalatestSpec))
     settings(scoverageSettings: _*)
   )
+
+lazy val musit_test = (
+  BaseProject("musit-test")
+    settings noPublish
+    settings(
+      libraryDependencies ++= Seq[ModuleID](
+        scalatestSpec,
+        scalatestplusSpec
+      ) ++ playDependencies
+    )
+  )
+
+lazy val musit_service = (
+  BaseProject("musit-service")
+    settings noPublish
+    settings(
+      libraryDependencies ++= Seq[ModuleID](
+        scalatest,
+        PlayFrameWork.json
+      )
+    )
+)
 
 lazy val security = (
   BaseProject("security")
@@ -122,7 +148,7 @@ lazy val service_thing_aggregate = (
     settings(baseDockerSettings ++ Seq(
       packageName in Docker := "musit_service_thing_aggregate"
     ))
-  )
+  ) dependsOn(musit_service, musit_test % "it,test")
 
 lazy val service_actor = (
   PlayProject("service_actor")
@@ -156,19 +182,27 @@ lazy val service_time = (
 lazy val service_storage_admin = (
   PlayProject("service_storage_admin")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(libraryDependencies ++= Seq(
-      PlayJson.derivedCodecs,
+    settings(libraryDependencies ++= enumeratumDependencies)
+    settings(libraryDependencies += playJsDerivedCodecs)
 
-      Enumeratum.enumeratum,
-      Enumeratum.enumeratumPlayJson,
-      Enumeratum.enumeratumPlay
-    ))
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(
       packageName in Docker := "musit_service_storage_admin"
     ))
   )  dependsOn(common, common_test % "it,test")
+
+lazy val service_storagefacility = (
+  PlayProject("service_storagefacility")
+  settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+  settings(libraryDependencies ++= enumeratumDependencies)
+  settings(libraryDependencies += playJsDerivedCodecs)
+  settings(routesGenerator := InjectedRoutesGenerator)
+  settings(scoverageSettings: _*)
+  settings(baseDockerSettings ++ Seq(
+    packageName in Docker := "musit_service_storagefacility"
+  ))
+) dependsOn(musit_service, musit_test % "it,test")
 
 
 lazy val service_event = (

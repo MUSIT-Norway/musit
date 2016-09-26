@@ -103,7 +103,7 @@
     <check level="warning" class="org.scalastyle.scalariform.IfBraceChecker" enabled="true">
         <parameters>
             <parameter name="singleLineAllowed"><![CDATA[true]]></parameter>
-            <parameter name="doubleLineAllowed"><![CDATA[false]]></parameter>
+            <parameter name="doubleLineAllowed"><![CDATA[true]]></parameter>
         </parameters>
     </check>
     <check level="warning" class="org.scalastyle.scalariform.MethodLengthChecker" enabled="true">

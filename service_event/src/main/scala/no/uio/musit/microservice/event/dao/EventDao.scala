@@ -290,9 +290,11 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val eventsWithCorrectType = EventBaseTable.filter(evt => evt.eventTypeID === eventType)
     val linksWithCorrectRelationAndId = LinkTable.filter(link => link.rel === relation && link.href === objectUri)
 
+    // Here we are arbitrarily selecting the event table to project the id from,
+    // could just as well returned the localTableId from the linksTable
     val query = for {
       (eventBaseTable, _) <- eventsWithCorrectType join linksWithCorrectRelationAndId on (_.id === _.localTableId)
-    } yield (eventBaseTable.id) //Here we are arbitrarily selecting the event table to project the id from, could just as well returned the localTableId from the linksTable
+    } yield (eventBaseTable.id)
 
     db.run(query.result)
   }
