@@ -22,12 +22,12 @@ package no.uio.musit.microservice.storageAdmin.dao
 import _root_.no.uio.musit.microservice.storageAdmin.service.{ StatsService, StorageUnitService }
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.domain.{EnvironmentAssessment, EnvironmentRequirement, Room, SecurityAssessment}
+import no.uio.musit.microservice.storageAdmin.domain.{ EnvironmentAssessment, EnvironmentRequirement, Room, SecurityAssessment }
 import no.uio.musit.microservices.common.PlayTestDefaults
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.{ PatienceConfiguration, ScalaFutures }
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
@@ -151,7 +151,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
   )
 
   private def insertRoom(roomDto: CompleteRoomDto, parentNode: Option[Long] = None): CompleteRoomDto = {
-    val room = roomDao.insertRoom(roomDto).futureValue(timeout)
+    val room = roomDao.insertRoom(roomDto).futureValue
 
     parentNode.foreach { parentNodeId =>
       storageUnitDao.setPartOf(room.id.get, parentNodeId).futureValue mustBe 1
@@ -165,7 +165,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
   //private def insertRoom(room: Room, parentNode: Option[Long] = None): CompleteRoomDto = insertRoom(roomToDto(room), parentNode)
 
   private def insertBuilding(buildingDto: CompleteBuildingDto, parentNode: Option[Long] = None): CompleteBuildingDto = {
-    val building = buildingDao.insertBuilding(buildingDto).futureValue(timeout)
+    val building = buildingDao.insertBuilding(buildingDto).futureValue
 
     parentNode.foreach { parentNodeId =>
       storageUnitDao.setPartOf(building.id.get, parentNodeId).futureValue mustBe 1
