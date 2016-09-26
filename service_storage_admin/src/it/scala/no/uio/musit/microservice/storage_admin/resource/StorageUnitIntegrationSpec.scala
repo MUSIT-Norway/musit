@@ -7,6 +7,7 @@ import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsNumber, JsObject, JsString, Json}
@@ -19,7 +20,15 @@ import scala.concurrent.Future
  */
 class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
   override lazy val port: Int = 19002
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
+
+  implicit override lazy val app = new GuiceApplicationBuilder()
+    .configure(PlayTestDefaults.inMemoryDatabaseConfig())
+    .build()
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
 
   val unknownStorageUnitMsg = (id: Long) => s"Unknown storageUnit with id: $id"

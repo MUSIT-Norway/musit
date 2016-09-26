@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
+import no.uio.musit.formatters.WithDateTimeFormatters
 import org.joda.time.DateTime
 import play.api.libs.json._
 
@@ -43,6 +44,6 @@ case class BaseEvent(
   registeredDate: Option[DateTime]
 )
 
-object BaseEvent {
+object BaseEvent extends WithDateTimeFormatters {
   implicit val format: Format[BaseEvent] = Json.format[BaseEvent]
 }

@@ -17,8 +17,10 @@ GET           /v1/storagenodes/:nodeId/controls                     no.uio.musit
 GET           /v1/storagenodes/:nodeId/controls/:eventId            no.uio.musit.microservice.storagefacility.resource.EventResource.getControl(nodeId: Long, eventId: Long)
 
 # Observations
-POST          /v1/storagenode/:nodeId/observations                  no.uio.musit.microservice.storagefacility.resource.EventResource.addObservation(nodeId: Long)
+POST          /v1/storagenodes/:nodeId/observations                 no.uio.musit.microservice.storagefacility.resource.EventResource.addObservation(nodeId: Long)
+GET           /v1/storagenodes/:nodeId/observations                 no.uio.musit.microservice.storagefacility.resource.EventResource.listObservations(nodeId: Long)
 GET           /v1/storagenodes/:nodeId/observations/:eventId        no.uio.musit.microservice.storagefacility.resource.EventResource.getObservation(nodeId: Long, eventId: Long)
 
 # General endpoints
-# GET         /v1/storagenodes/:nodeId/events         no.uio.musit.microservice.storagefacility.resource.EventResource.listEventsForNode(nodeId: Long)
+### TODO: Find better name for endpoint
+GET           /v1/storagenodes/:nodeId/events                       no.uio.musit.microservice.storagefacility.resource.EventResource.listEventsForNode(nodeId: Long)

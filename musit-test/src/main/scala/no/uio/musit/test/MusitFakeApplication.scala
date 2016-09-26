@@ -23,9 +23,9 @@ import play.api.inject.guice.GuiceApplicationBuilder
 
 trait MusitFakeApplication extends TestConfigs {
 
-  def createApplication(dbName: String = "musit-test") =
+  def createApplication() =
     new GuiceApplicationBuilder()
-      .configure(slickWithInMemoryH2(dbName))
+      .configure(slickWithInMemoryH2())
       .build()
 
 }

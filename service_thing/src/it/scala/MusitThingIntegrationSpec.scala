@@ -3,25 +3,30 @@
  */
 
 import no.uio.musit.microservices.common.PlayTestDefaults
-import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class MusitThingIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
-  val timeout = PlayTestDefaults.timeout
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
-
   override lazy val port: Int = 19003
+
+  implicit override lazy val app = new GuiceApplicationBuilder()
+    .configure(PlayTestDefaults.inMemoryDatabaseConfig())
+    .build()
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   "MusitThing integration" must {
     "get by id" in {
-      val response = wsUrl("/v1/1").get().futureValue(Timeout(30 seconds))
+      val response = wsUrl("/v1/1").get().futureValue
       val json = Json.parse(response.body)
       json \ "id" mustBe JsDefined(JsNumber(1))
       val displayId = json \ "displayid"
@@ -31,13 +36,13 @@ class MusitThingIntegrationSpec extends PlaySpec with OneServerPerSuite with Sca
     }
 
     "fail adding with lalala json" in {
-      val response = wsUrl("/v1").post(JsString("Lalalal")).futureValue(Timeout(30 seconds))
+      val response = wsUrl("/v1").post(JsString("Lalalal")).futureValue
       val json = Json.parse(response.body)
       json \ "message" mustBe JsDefined(JsString("Input is not valid: \"Lalalal\""))
     }
 
     "fail adding with loko json" in {
-      val response = wsUrl("/v1").post(Json.toJson(Map("test" -> "loko"))).futureValue(Timeout(30 seconds))
+      val response = wsUrl("/v1").post(Json.toJson(Map("test" -> "loko"))).futureValue
       val json = Json.parse(response.body)
       json \ "message" mustBe JsDefined(JsString("Input is not valid: {\"test\":\"loko\"}"))
     }
@@ -48,7 +53,7 @@ class MusitThingIntegrationSpec extends PlaySpec with OneServerPerSuite with Sca
           "displayid" -> "loko",
           "displayname" -> "displayname2"
         ))
-      ).futureValue(Timeout(30 seconds))
+      ).futureValue
       val json = Json.parse(response.body)
       val id = json \ "id"
       id mustBe JsDefined(JsNumber(3))

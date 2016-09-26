@@ -104,7 +104,8 @@ lazy val musit_service = (
     settings noPublish
     settings(
       libraryDependencies ++= Seq[ModuleID](
-        scalatestSpec
+        scalatest,
+        PlayFrameWork.json
       )
     )
 )
