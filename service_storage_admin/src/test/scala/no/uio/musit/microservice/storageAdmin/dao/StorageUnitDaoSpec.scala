@@ -22,7 +22,12 @@ package no.uio.musit.microservice.storageAdmin.dao
 import _root_.no.uio.musit.microservice.storageAdmin.service.{ StatsService, StorageUnitService }
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto._
+import no.uio.musit.microservice.storageAdmin.domain.{EnvironmentAssessment, EnvironmentRequirement, Room, SecurityAssessment}
 import no.uio.musit.microservices.common.PlayTestDefaults
+import org.scalatest.Matchers._
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.{ PatienceConfiguration, ScalaFutures }
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
@@ -32,6 +37,11 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import scala.concurrent.duration._
 
 class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures with StorageDtoConverter {
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   implicit override lazy val app = new GuiceApplicationBuilder()
     .configure(PlayTestDefaults.inMemoryDatabaseConfig())
@@ -71,8 +81,6 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
     instance(app)
   }
 
-  val timeout = PatienceConfiguration.Timeout(5 seconds)
-
   "Interacting with the StorageUnitDao" when {
 
     "setting isPartOf for a StorageUnit" should {
@@ -80,9 +88,9 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
         val oldSize = storageUnitDao.all().futureValue.size
         val storageNode = storageUnitDao.insertStorageUnit(CompleteStorageUnitDto(StorageNodeDTO(None, "C2",
-          None, None, None, None, None, nodePath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
+          None, None, None, None, None, nodePath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue
         storageUnitDao.insertStorageUnit(CompleteStorageUnitDto(StorageNodeDTO(None, "C2",
-          None, None, None, None, None, nodePath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue(timeout)
+          None, None, None, None, None, nodePath = NodePath.empty, None, None, None, None, None, isDeleted = false, StorageType.StorageUnit), None)).futureValue
         val result = storageUnitDao.all().futureValue
         result.size mustBe (2 + oldSize)
         storageUnitDao.setPartOf(1, 2).futureValue mustBe 1
@@ -187,7 +195,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
-      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
+      val res = roomDao.updateRoom(id, roomToUpdate).futureValue
 
       val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
       roomInDatabase.environmentRequirement mustBe roomToUpdate.environmentRequirement
@@ -211,7 +219,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
-      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
+      val res = roomDao.updateRoom(id, roomToUpdate).futureValue
 
       val roomNodeInDatabase2 = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
@@ -237,7 +245,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
-      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
+      val res = roomDao.updateRoom(id, roomToUpdate).futureValue
 
       val roomNodeInDatabase2 = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
@@ -263,7 +271,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
-      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
+      val res = roomDao.updateRoom(id, roomToUpdate).futureValue
 
       val roomNodeInDatabase2 = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
@@ -293,7 +301,7 @@ class StorageUnitDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures 
 
       val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
 
-      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
+      val res = roomDao.updateRoom(id, roomToUpdate).futureValue
 
       val roomNodeInDatabase2 = storageUnitDao.getStorageNodeDtoById(id).futureValue.get
       roomNodeInDatabase2.latestEnvReqId mustBe firstLatestEnvReqId

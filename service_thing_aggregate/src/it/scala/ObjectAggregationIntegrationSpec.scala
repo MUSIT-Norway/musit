@@ -1,25 +1,30 @@
 /**
-  * Created by ellenjo on 4/15/16.
-  */
+ * Created by ellenjo on 4/15/16.
+ */
 
 import models.{MuseumIdentifier, ObjectAggregation, ObjectId}
-import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.concurrent.ScalaFutures
+import no.uio.musit.test.{MusitSpec, TestConfigs}
 import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.play.OneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
-import testHelpers.TestConfigs
+
 import scala.language.postfixOps
 
-class ObjectAggregationIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
+class ObjectAggregationIntegrationSpec extends MusitSpec
+  with OneServerPerSuite
+  with TestConfigs {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
 
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(TestConfigs.inMemoryDatabaseConfig()).build()
+  implicit override lazy val app = {
+    new GuiceApplicationBuilder()
+      .configure(slickWithInMemoryH2(dbName = "obj-agr-it-spec"))
+      .build()
+  }
 
   override lazy val port: Int = 19010
 
