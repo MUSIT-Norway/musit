@@ -32,13 +32,30 @@ case class Person(id: Option[Long], fn: String, title: Option[String] = None, ro
 /**
  * Domain Organization
  */
-case class Organization(id: Option[Long], fn: String, nickname: String, tel: String, web: String, links: Option[Seq[Link]]) extends BaseMusitDomain
+case class Organization(
+  id: Option[Long],
+  fn: String,
+  nickname: String,
+  tel: String,
+  web: String,
+  links: Option[Seq[Link]]
+) extends BaseMusitDomain
 
 /**
  * Address specialized for Organization
  */
-case class OrganizationAddress(id: Option[Long], organizationId: Option[Long], addressType: String, streetAddress: String, locality: String,
-  postalCode: String, countryName: String, latitude: Double, longitude: Double, links: Option[Seq[Link]]) extends BaseAddress
+case class OrganizationAddress(
+  id: Option[Long],
+  organizationId: Option[Long],
+  addressType: String,
+  streetAddress: String,
+  locality: String,
+  postalCode: String,
+  countryName: String,
+  latitude: Double,
+  longitude: Double,
+  links: Option[Seq[Link]]
+) extends BaseAddress
 
 object Person {
   val tupled = (Person.apply _).tupled

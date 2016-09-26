@@ -94,6 +94,13 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       org.web mustBe "http://www.foo.bar"
     }
 
+    "not create organization with illegal input" in {
+      val reqBody = organisationIllegalJson
+      val response = postOrganization(reqBody).futureValue
+      response.status mustBe Status.BAD_REQUEST
+    }
+
+
     "successfully update organization" in {
       val crJson = organisationJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
       val crResponse = postOrganization(crJson).futureValue
@@ -119,6 +126,24 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       updOrg.tel mustBe "12345123"
       updOrg.web mustBe "http://www.foo123.bar"
     }
+
+    "not update organization with illegal input" in {
+      val crJson = organisationJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
+      val crResponse = postOrganization(crJson).futureValue
+      crResponse.status mustBe Status.CREATED
+      val crOrg = Json.parse(crResponse.body).validate[Organization].get
+
+      val updJson = organisationIllegalJson
+      val response = putOrganization(crOrg.id.get, updJson).futureValue
+      response.status mustBe Status.BAD_REQUEST
+    }
+
+    "not update organization with illegal id" in {
+      val updJson = organisationIllegalJson.as[JsObject] + ("id" -> Json.toJson(999999))
+      val response = putOrganization(999999, updJson).futureValue
+      response.status mustBe Status.BAD_REQUEST
+    }
+
 
     "successfully delete organization" in {
       val crJson = organisationJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com")

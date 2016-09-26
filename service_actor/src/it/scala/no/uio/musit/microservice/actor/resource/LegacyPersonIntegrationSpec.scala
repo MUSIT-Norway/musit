@@ -7,6 +7,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
+import play.api.http.Status
 
 /**
   * Created by sveigl on 20.09.16.
@@ -80,6 +81,12 @@ class LegacyPersonIntegrationSpec extends PlaySpec with OneServerPerSuite with S
         person0.fn mustBe "Kanin, Kalle1"
       }
     }
+    "not get person details with illegal json" in {
+      val reqBody: JsValue = Json.parse("[12,9999999999999999999999999999999999999999999999999999]")
+      val future = wsUrl("/v1/person/details").post(reqBody)
+      whenReady(future, timeout) { response =>
+        response.status mustBe Status.BAD_REQUEST
+      }
+    }
   }
-
 }
