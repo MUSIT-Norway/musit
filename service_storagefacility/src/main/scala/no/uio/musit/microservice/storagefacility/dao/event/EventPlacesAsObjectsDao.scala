@@ -23,6 +23,7 @@ import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.{ ColumnTypeMappers, SchemaName }
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventRoleObject, EventRolePlace }
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import play.api.Logger
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
@@ -33,6 +34,8 @@ import scala.concurrent.Future
 class EventPlacesAsObjectsDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+
+  val logger = Logger(classOf[EventPlacesAsObjectsDao])
 
   import driver.api._
 
@@ -51,15 +54,17 @@ class EventPlacesAsObjectsDao @Inject() (
   def getRelatedObjects(eventId: Long): Future[Seq[EventRoleObject]] = {
     val query = eventPlacesAsObjectsTable.filter(_.eventId === eventId)
     db.run(query.result).map { places =>
+      logger.debug(s"Found ${places.size} places")
       places.map { place =>
         EventRoleObject(place.eventId, place.roleId, place.placeId)
       }
     }
   }
 
-  def getEventsForObjects(nodeId: StorageNodeId): Future[Seq[EventRoleObject]] = {
+  def getEventsForNode(nodeId: StorageNodeId): Future[Seq[EventRoleObject]] = {
     val query = eventPlacesAsObjectsTable.filter(_.placeId === nodeId)
     db.run(query.result).map { places =>
+      logger.debug(s"Found ${places.size} places")
       places.map { place =>
         EventRoleObject(place.eventId, place.roleId, place.placeId)
       }
