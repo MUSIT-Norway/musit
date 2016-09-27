@@ -27,7 +27,7 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFutu
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 import play.api.mvc.Request
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
@@ -78,7 +78,7 @@ trait SecurityState {
   def hasNoneOfGroups(groups: Seq[String]): Boolean
 }
 
-trait SecurityConnection {
+trait AuthenticatedUser {
   def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T]
 
   def state: SecurityState
@@ -115,7 +115,7 @@ class SecurityStateImp(_userInfo: UserInfo, userGroups: Seq[String]) extends Sec
   def hasNoneOfGroups(groups: Seq[String]) = userGroups.hasNoneOf(groups)
 }
 
-class SecurityConnectionImp(_infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroups: Seq[String]) extends SecurityConnection {
+class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroups: Seq[String]) extends AuthenticatedUser {
   val state = new SecurityStateImp(userInfo, userGroups)
 
   override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
@@ -143,25 +143,29 @@ class SecurityConnectionImp(_infoProvider: ConnectionInfoProvider, userInfo: Use
 }
 
 object Security {
+
+  val noTokenInRequestMsg = "No token in request"
+
   ///The default way to create a security connection from an access token
-  def create(token: String): Future[SecurityConnection] = {
+  def create(token: String): Future[AuthenticatedUser] = {
     if (FakeSecurity.isFakeAccessToken(token))
       FakeSecurity.createInMemoryFromFakeAccessToken(token, false) //Caching off because no speedup by caching the in-memory stuff!
     else
       Dataporten.createSecurityConnection(token, true)
   }
 
+
   ///The default way to create a security connection from a Htpp request (containing a bearer token)
 
-  def create[T](request: Request[T]): Future[Either[MusitError, SecurityConnection]] = {
+  def create[T](request: Request[T]): Future[Either[MusitError, AuthenticatedUser]] = {
     request.getBearerToken match {
       case Some(token) => Security.create(token).toMusitFuture
-      case None => MusitFuture.fromError(MusitError(401, "No token in request"))
+      case None => MusitFuture.fromError(MusitError(401, noTokenInRequestMsg))
     }
   }
 
   //internal stuff, move to another object?
-  def createSecurityConnectionFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[SecurityConnection] = {
+  def createSecurityConnectionFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[AuthenticatedUser] = {
     val _infoProvider = if (useCache) new CachedConnectionInfoProvider(infoProvider) else infoProvider
 
     val userInfoF = _infoProvider.getUserInfo
@@ -170,6 +174,6 @@ object Security {
     for {
       userInfo <- userInfoF
       userGroupIds <- userGroupIdsF
-    } yield new SecurityConnectionImp(_infoProvider, userInfo, userGroupIds)
+    } yield new AuthenticatedUserImp(_infoProvider, userInfo, userGroupIds)
   }
 }

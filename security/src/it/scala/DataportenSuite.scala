@@ -24,7 +24,7 @@
 
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
-import no.uio.musit.security.{Groups, SecurityConnection}
+import no.uio.musit.security.{Groups, AuthenticatedUser}
 import no.uio.musit.security.Dataporten
 import org.scalatest.Ignore
 import org.scalatest.concurrent.ScalaFutures
@@ -38,7 +38,7 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
 
   val timeout = PlayTestDefaults.timeout
 
-  def runTestWhenReady(token: String) (block: SecurityConnection=>Unit): Unit = {
+  def runTestWhenReady(token: String) (block: AuthenticatedUser=>Unit): Unit = {
       whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}
 
 

@@ -31,7 +31,7 @@ import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
 import no.uio.musit.microservices.common.linking.dao.LinkDao.LinkTable
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import no.uio.musit.security.SecurityConnection
+import no.uio.musit.security.AuthenticatedUser
 import org.joda.time.DateTime
 import play.api.Play
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
@@ -57,7 +57,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     LinkService.local(Some(id), "self", s"/v1/$id")
 
   /*Creates an action to insert the event and potentially all related subevents. PartialEventLink is used if the event is inserted as a subElement of a parent element. The id of the parent element is then in the partialEventLink.*/
-  def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean, securityConnection: SecurityConnection): DBIO[Long] = {
+  def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean, securityConnection: AuthenticatedUser): DBIO[Long] = {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
     val parentId = partialEventLink.map(_.idFrom)
@@ -138,12 +138,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     action
   }
 
-  def insertEvent(event: Event, recursive: Boolean, securityConnection: SecurityConnection): Future[Long] = {
+  def insertEvent(event: Event, recursive: Boolean, securityConnection: AuthenticatedUser): Future[Long] = {
     val action = insertEventAction(event, None, recursive, securityConnection)
     db.run(action)
   }
 
-  def insertChildrenAction(parentEventId: Long, parentEvent: Event, securityConnection: SecurityConnection) = {
+  def insertChildrenAction(parentEventId: Long, parentEvent: Event, securityConnection: AuthenticatedUser) = {
 
     def insertRelatedEvents(relatedEvents: RelatedEvents) = {
       val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true, securityConnection))

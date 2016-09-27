@@ -23,7 +23,7 @@ import no.uio.musit.microservice.actor.domain.{ ActorAuth, Organization, Organiz
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.security.SecurityConnection
+import no.uio.musit.security.AuthenticatedUser
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.driver.JdbcProfile
 
@@ -61,11 +61,11 @@ class ActorDao @Inject() (
     db.run(ActorTable.filter(_.dataportenId === dataportenId).result.headOption)
   }
 
-  def dataportenUserToPerson(securityConnection: SecurityConnection): Person = {
+  def dataportenUserToPerson(securityConnection: AuthenticatedUser): Person = {
     Person(None, securityConnection.userName, None, None, None, None, securityConnection.userEmail, Some(securityConnection.userId), None)
   }
 
-  def insertActorWithDataportenUserInfo(securityConnection: SecurityConnection): MusitFuture[Person] = {
+  def insertActorWithDataportenUserInfo(securityConnection: AuthenticatedUser): MusitFuture[Person] = {
     val person = dataportenUserToPerson(securityConnection)
     ActorAuth.verifyCanInsertActor(securityConnection, person).toMusitFuture.musitFutureFlatMap { _ =>
       insertPersonLegacy(person).toMusitFuture

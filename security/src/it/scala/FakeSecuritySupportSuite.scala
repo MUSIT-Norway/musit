@@ -45,11 +45,11 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPer
 
   val timeout = PatienceConfiguration.Timeout(1 seconds)
 
-  def runTestWhenReadyHardcoded(block: SecurityConnection => Unit): Unit = {
+  def runTestWhenReadyHardcoded(block: AuthenticatedUser => Unit): Unit = {
     whenReady(FakeSecurity.createHardcoded("Kalle Kanin", groups, false), timeout) { sec => block(sec) }
   }
 
-  def runTestWhenReadyInMemory(userName: String)(block: SecurityConnection => Unit): Unit = {
+  def runTestWhenReadyInMemory(userName: String)(block: AuthenticatedUser => Unit): Unit = {
     whenReady(FakeSecurity.createInMemory(userName, true), timeout) { sec => block(sec) }
   }
 

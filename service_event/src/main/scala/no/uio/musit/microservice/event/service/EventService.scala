@@ -27,18 +27,18 @@ import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.security.SecurityConnection
+import no.uio.musit.security.AuthenticatedUser
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object EventService {
   def eventNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(s"Unknown event with id: $id")
 
-  def insertAndGetNewEvent(event: Event, recursive: Boolean, securityConnection: SecurityConnection): MusitFuture[Event] =
+  def insertAndGetNewEvent(event: Event, recursive: Boolean, securityConnection: AuthenticatedUser): MusitFuture[Event] =
     insertEvent(event, securityConnection).musitFutureFlatMap(newId => getEvent(newId, recursive))
 
-  def insertEvent(event: Event, securityConnection: SecurityConnection): MusitFuture[Long] =
-    EventDao.insertEvent(event, true, securityConnection: SecurityConnection).toMusitFuture
+  def insertEvent(event: Event, securityConnection: AuthenticatedUser): MusitFuture[Long] =
+    EventDao.insertEvent(event, true, securityConnection: AuthenticatedUser).toMusitFuture
 
   def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] =
     EventDao.getEvent(id, recursive)
