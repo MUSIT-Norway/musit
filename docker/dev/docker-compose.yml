@@ -42,16 +42,9 @@ services:
         ports:
           - "7076:7070"
 
-    time:
-        image: musit_service_time:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
-        ports:
-          - "7077:7070"
-
     storagefacility:
         image: musit_service_storagefacility:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
         ports:
-          - "7078:7070"
+          - "7077:7070"

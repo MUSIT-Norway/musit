@@ -79,7 +79,3 @@ services:
           - SLICK_DB_PASSWORD
         links:
           - db
-    time:
-        image: musit_service_time:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET

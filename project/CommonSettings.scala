@@ -19,9 +19,14 @@
 
 import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.packager.docker.DockerPlugin
+import scalariform.formatter.preferences._
+import com.typesafe.sbt.SbtScalariform
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import play.sbt.{Play, PlayLayoutPlugin}
 import sbt.Keys._
 import sbt._
+
+import scalariform.formatter.preferences.{FormatXml, SpacesAroundMultiImports}
 
 object CommonSettings {
 
@@ -63,17 +68,20 @@ object CommonSettings {
     Project(name, file(name))
       .settings(projectSettings: _*)
       .settings(Defaults.itSettings: _*)
+      .settings(SbtScalariform.scalariformSettingsWithIt ++ Seq(
+        ScalariformKeys.preferences := ScalariformKeys.preferences.value
+          .setPreference(FormatXml, false)
+          .setPreference(SpacesAroundMultiImports, false)
+      ))
       .configs(IntegrationTest)
 
   def PlayProject(name: String): Project =
     BaseProject(name)
+      .disablePlugins(PlayLayoutPlugin)
       .enablePlugins(
         Play,
         SbtNativePackager,
         DockerPlugin
       )
-      .disablePlugins(PlayLayoutPlugin)
-      .settings(Defaults.itSettings: _*)
-      .configs(IntegrationTest)
 
 }
