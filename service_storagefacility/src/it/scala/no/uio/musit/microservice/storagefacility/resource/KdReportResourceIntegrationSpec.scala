@@ -13,22 +13,22 @@ import play.api.libs.ws.WSResponse
 
 
 /**
-  * Created by ellenjo on 27.09.16.
-  */
+ * Created by ellenjo on 27.09.16.
+ */
 class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-    implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-      timeout = Span(15, Seconds),
-      interval = Span(50, Millis)
-    )
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   def verifyNode[T <: StorageNode](
-                                    response: WSResponse,
-                                    expStorageType: StorageType,
-                                    expName: String,
-                                    expId: Long,
-                                    expPartOf: Option[Long] = None
-                                  )(implicit manifest: Manifest[T]): T = {
+    response: WSResponse,
+    expStorageType: StorageType,
+    expName: String,
+    expId: Long,
+    expPartOf: Option[Long] = None
+  )(implicit manifest: Manifest[T]): T = {
     val storageNode = parseAndVerifyResponse[T](response)
     storageNode.id mustBe Some(StorageNodeId(expId))
     storageNode.storageType mustBe expStorageType
@@ -52,7 +52,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "successfully get kDReport for rooms" in {
         val json = roomJson("EllensPersonalRoom", None)
-        val response = wsUrl(ListStorageNodesUrl).post(json).futureValue
+        val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val room = verifyNode[Room](
@@ -62,8 +62,8 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         room.areaTo mustBe Some(21)
         room.heightTo mustBe Some(2.6)
 
-          val json1 = roomJson("EllensWorkOutRoom", None)
-        val response1 = wsUrl(ListStorageNodesUrl).post(json1).futureValue
+        val json1 = roomJson("EllensWorkOutRoom", None)
+        val response1 = wsUrl(StorageNodesUrl).post(json1).futureValue
         response1.status mustBe Status.CREATED
 
         val report = wsUrl(KdReportUrl).get.futureValue

@@ -7,8 +7,6 @@ import no.uio.musit.service.MusitResults.{ MusitError, MusitSuccess }
 import play.api.libs.json.Json
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-
-
 class KdReportResource @Inject() (val kdReportService: KdReportService) extends Controller {
 
   def getReportByMuseum = Action.async { implicit request =>

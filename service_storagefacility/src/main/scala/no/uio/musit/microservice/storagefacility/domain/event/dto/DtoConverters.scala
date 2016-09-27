@@ -494,7 +494,7 @@ object DtoConverters {
    */
   object MoveConverters {
 
-    private def moveToDto[A <: MoveEvent](move: A): BaseEventDto = {
+    def moveToDto[A <: MoveEvent](move: A): BaseEventDto = {
       toBaseDto(
         sub = move,
         relPlaces = Seq(move.to)

@@ -19,7 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.move
 
+import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
+import no.uio.musit.microservice.storagefacility.domain.Move
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ MoveNodeType, MoveObjectType }
 import no.uio.musit.microservice.storagefacility.domain.event._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.libs.json.{ Format, Json }
 
 sealed trait MoveEvent extends MusitEvent {
@@ -36,6 +40,35 @@ case class MoveObject(
 
 object MoveObject {
   implicit val format: Format[MoveObject] = Json.format[MoveObject]
+
+  def fromCommand(user: String, cmd: Move[Long]): Seq[MoveObject] = {
+    cmd.items.map { objectId =>
+      val now = dateTimeNow
+      MoveObject(
+        baseEvent = BaseEvent(
+          id = None,
+          doneBy = Some(ActorRole(
+            roleId = 1,
+            actorId = cmd.doneBy
+          )),
+          doneDate = now,
+          note = None,
+          partOf = None,
+          affectedThing = Some(ObjectRole(
+            roleId = 1,
+            objectId = objectId
+          )),
+          registeredBy = Some(user),
+          registeredDate = Some(now)
+        ),
+        eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        to = PlaceRole(
+          roleId = 1,
+          placeId = cmd.destination
+        )
+      )
+    }
+  }
 }
 
 case class MoveNode(
@@ -46,4 +79,33 @@ case class MoveNode(
 
 object MoveNode {
   implicit val format: Format[MoveNode] = Json.format[MoveNode]
+
+  def fromCommand(user: String, cmd: Move[StorageNodeId]): Seq[MoveNode] = {
+    cmd.items.map { nodeId =>
+      val now = dateTimeNow
+      MoveNode(
+        baseEvent = BaseEvent(
+          id = None,
+          doneBy = Some(ActorRole(
+            roleId = 1,
+            actorId = cmd.doneBy
+          )),
+          doneDate = now,
+          note = None,
+          partOf = None,
+          affectedThing = Some(ObjectRole(
+            roleId = 1,
+            objectId = nodeId
+          )),
+          registeredBy = Some(user),
+          registeredDate = Some(now)
+        ),
+        eventType = EventType.fromEventTypeId(MoveNodeType.id),
+        to = PlaceRole(
+          roleId = 1,
+          placeId = cmd.destination
+        )
+      )
+    }
+  }
 }
