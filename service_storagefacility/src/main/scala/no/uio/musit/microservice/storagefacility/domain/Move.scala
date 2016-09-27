@@ -17,26 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event.control
+package no.uio.musit.microservice.storagefacility.domain
 
-import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEventFormats.ControlSubEventsFormat
-import play.api.libs.functional.syntax._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
-// TODO: Make SUB events as a direct part of the Control event.
+case class Move[A](
+  doneBy: Int,
+  destination: StorageNodeId,
+  items: Seq[A]
+)
 
-case class Control(
-  baseEvent: BaseEvent,
-  eventType: EventType,
-  parts: Option[Seq[ControlSubEvent]] = None
-) extends MusitEvent with Parts[ControlSubEvent]
+object Move {
 
-object Control {
-  implicit val format: Format[Control] = (
-    __.format[BaseEvent] and
-    (__ \ "eventType").format[EventType] and
-    (__ \ "parts").formatNullable[Seq[ControlSubEvent]]
-  )(Control.apply, unlift(Control.unapply))
+  implicit val storageNodeIdFormat: Format[Move[StorageNodeId]] = (
+    (__ \ "doneBy").format[Int] and
+    (__ \ "destination").format[StorageNodeId] and
+    (__ \ "items").format[Seq[StorageNodeId]]
+  )((db, snid, items) => Move(db, snid, items), m => (m.doneBy, m.destination, m.items))
+
+  implicit val objectIdFormat: Format[Move[Long]] = (
+    (__ \ "doneBy").format[Int] and
+    (__ \ "destination").format[StorageNodeId] and
+    (__ \ "items").format[Seq[Long]]
+  )((db, snid, items) => Move(db, snid, items), m => (m.doneBy, m.destination, m.items))
 
 }

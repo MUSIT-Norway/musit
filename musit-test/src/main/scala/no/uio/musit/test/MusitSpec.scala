@@ -23,6 +23,7 @@ import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play._
 import play.api.Application
+import play.api.test.TestServer
 
 /**
  * Base trait to use
@@ -88,10 +89,45 @@ trait MusitSpecWithServerPerTest extends MusitSpecWithApp
  */
 trait MusitSpecWithServerPerSuite extends MusitSpecWithApp
     with Network
-    with OneServerPerSuite {
+    with SuiteMixin
+    with ServerProvider { this: Suite =>
 
   override lazy val port: Int = generatePort
 
   implicit override lazy val app = musitFakeApp
+
+  def beforeTests(): Unit = ()
+
+  def afterTests(): Unit = ()
+
+  /**
+   * Overriding the default run method in OneServerPerSuite to be able to pre-
+   * load test data for the test-scenario.
+   */
+  override def run(testName: Option[String], args: Args): Status = {
+    val testServer = TestServer(port, app)
+    testServer.start()
+
+    beforeTests()
+
+    try {
+      val newConfigMap = args.configMap +
+        ("org.scalatestplus.play.app" -> app) +
+        ("org.scalatestplus.play.port" -> port)
+
+      val newArgs = args.copy(configMap = newConfigMap)
+      val status = super.run(testName, newArgs)
+      status.whenCompleted { _ =>
+        afterTests()
+        testServer.stop()
+      }
+      status
+    } catch { // In case the suite aborts, ensure the server is stopped
+      case ex: Throwable =>
+        afterTests()
+        testServer.stop()
+        throw ex // scalastyle:ignore
+    }
+  }
 
 }

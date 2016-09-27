@@ -103,7 +103,6 @@ class StorageUnitResource @Inject() (
         case Left(error) =>
           Future.successful(Status(400)(Json.toJson(MusitError(message = error.mkString))))
       }
-
   }
 
   def deleteRoot(id: Long) = Action.async {
