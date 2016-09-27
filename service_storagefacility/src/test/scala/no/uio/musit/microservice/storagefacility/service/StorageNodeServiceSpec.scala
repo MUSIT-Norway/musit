@@ -20,10 +20,8 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import no.uio.musit.microservice.storagefacility.domain.Interval
-import no.uio.musit.microservice.storagefacility.domain.report.KdReport
-import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentAssessment, Room, SecurityAssessment}
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
-import no.uio.musit.test.{MusitSpecWithAppPerSuite, MusitSpecWithAppPerTest}
+import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
 class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
@@ -94,27 +92,4 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     again.get.get.areaTo mustBe Some(4.0)
   }
 
-  val reportService: KdReportService = fromInstanceCache[KdReportService]
-
-  "successfully get a report on storageNode Room" in {
-    val room = createRoomWithDifferentArea(1,true,true,true,false,false)
-    val inserted = service.addRoom(room).futureValue
-
-    inserted.id must not be None
-    val report = reportService.getReport.futureValue
-    report.isSuccess mustBe true
-    val reportRes = report.get
-    val c = createRoomWithDifferentArea(7,true,false,false,false,true)
-    service.addRoom(c).futureValue
-    val report1 = reportService.getReport.futureValue
-    report1.isSuccess mustBe true
-    val report1Res = report1.get
-    val c1 = createRoomWithDifferentArea(50,false,true,false,true,true)
-    service.addRoom(c1).futureValue
-    val report2 = reportService.getReport.futureValue
-    report2.isSuccess mustBe true
-    val report2Res = report2.get
-    val reportfasit = KdReport(58,8,51,1,50,57)
-    report2Res mustBe reportfasit
-    }
 }

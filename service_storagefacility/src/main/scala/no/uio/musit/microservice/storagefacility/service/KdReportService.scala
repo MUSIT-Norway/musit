@@ -9,15 +9,15 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
-  * Created by ellenjo on 26.09.16.
-  */
-class KdReportService @Inject()(val kdReportDao: KdReportDao) {
-  def getReport : Future[MusitResult[KdReport]] = {
+ * Created by ellenjo on 26.09.16.
+ */
+class KdReportService @Inject() (val kdReportDao: KdReportDao) {
+  def getReport: Future[MusitResult[KdReport]] = {
     val futTotArea = kdReportDao.getReportTotalArea
     val futAreaPerimeterSecurity = kdReportDao.getAreaPerimeterSecurity
     val futAreaTheftProtection = kdReportDao.getAreaTheftProtection
     val futAreaFireProtection = kdReportDao.getAreaFireProtectiony
-    val futAreaWaterDamageAssessment =  kdReportDao.getAreaWaterDamageAssessment
+    val futAreaWaterDamageAssessment = kdReportDao.getAreaWaterDamageAssessment
     val futAreaRoutinesAndContingencyPlan = kdReportDao.getAreaRoutinesAndContingencyPlan
     for {
       mrTotArea <- futTotArea
@@ -26,22 +26,21 @@ class KdReportService @Inject()(val kdReportDao: KdReportDao) {
       mrAreaFireProtection <- futAreaFireProtection
       mrAreaWaterDamageAssessment <- futAreaWaterDamageAssessment
       mrAreaRoutinesAndContingencyPlan <- futAreaRoutinesAndContingencyPlan
-    } yield
-      for {
-        totArea <- mrTotArea
-        areaPerimeterSecurity <- mrAreaPerimeterSecurity
-        areaTheftProtection <- mrAreaTheftProtection
-        areaFireProtection <- mrAreaFireProtection
-        areaWaterDamageAssessment <- mrAreaWaterDamageAssessment
-        areaRoutinesAndContingencyPlan <- mrAreaRoutinesAndContingencyPlan
-    } yield
-        KdReport(
-          totalArea = totArea,
-          perimeterSecurity = areaPerimeterSecurity,
-          theftProtection = areaTheftProtection,
-          fireProtection = areaFireProtection,
-          waterDamageAssessment = areaWaterDamageAssessment,
-          routinesAndContingencyPlan = areaRoutinesAndContingencyPlan)
-    }
+    } yield for {
+      totArea <- mrTotArea
+      areaPerimeterSecurity <- mrAreaPerimeterSecurity
+      areaTheftProtection <- mrAreaTheftProtection
+      areaFireProtection <- mrAreaFireProtection
+      areaWaterDamageAssessment <- mrAreaWaterDamageAssessment
+      areaRoutinesAndContingencyPlan <- mrAreaRoutinesAndContingencyPlan
+    } yield KdReport(
+      totalArea = totArea,
+      perimeterSecurity = areaPerimeterSecurity,
+      theftProtection = areaTheftProtection,
+      fireProtection = areaFireProtection,
+      waterDamageAssessment = areaWaterDamageAssessment,
+      routinesAndContingencyPlan = areaRoutinesAndContingencyPlan
+    )
+  }
 
 }

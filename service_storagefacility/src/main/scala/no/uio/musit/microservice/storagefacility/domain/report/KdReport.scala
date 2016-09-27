@@ -1,19 +1,22 @@
 package no.uio.musit.microservice.storagefacility.domain.report
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{ Format, Json }
 
 /**
-  * Created by ellenjo on 26.09.16.
-  */
-  case class KdReport(totalArea:Int,
-                    perimeterSecurity: Int,
-                    theftProtection: Int,
-                    fireProtection: Int,
-                    waterDamageAssessment : Int,
-                    routinesAndContingencyPlan: Int)
+ * Created by ellenjo on 26.09.16.
+ */
+case class KdReport(
+  totalArea: Double,
+  perimeterSecurity: Double,
+  theftProtection: Double,
+  fireProtection: Double,
+  waterDamageAssessment: Double,
+  routinesAndContingencyPlan: Double
+)
 
 object KdReport {
 
   implicit val format: Format[KdReport] =
-    Json.format[KdReport]}
+    Json.format[KdReport]
+}
 

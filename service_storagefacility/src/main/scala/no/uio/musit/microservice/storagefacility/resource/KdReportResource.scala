@@ -1,19 +1,15 @@
 package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{ Action, Controller }
 import no.uio.musit.microservice.storagefacility.service.KdReportService
-import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.service.MusitResults.{ MusitError, MusitSuccess }
 import play.api.libs.json.Json
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 
 
-/**
-  * Created by ellenjo on 26.09.16.
-  */
-
-class KdReportResource @Inject() (val kdReportService: KdReportService)extends Controller {
+class KdReportResource @Inject() (val kdReportService: KdReportService) extends Controller {
 
   def getReportByMuseum = Action.async { implicit request =>
     kdReportService.getReport.map {
@@ -22,6 +18,6 @@ class KdReportResource @Inject() (val kdReportService: KdReportService)extends C
       case err: MusitError =>
         InternalServerError(Json.obj("message" -> err.message))
     }
-}
+  }
 
 }
