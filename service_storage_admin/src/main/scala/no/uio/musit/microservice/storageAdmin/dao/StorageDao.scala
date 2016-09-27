@@ -1,11 +1,12 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storageAdmin.domain.Storage
+import no.uio.musit.microservice.storageAdmin.domain.{ NodePath, Storage }
 import no.uio.musit.microservice.storageAdmin.domain.dto._
 import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService }
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.utils.ErrorHelper
+
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -17,8 +18,8 @@ class StorageDao @Inject() (
     envReqDao: EnvReqDao
 ) extends Object with StorageDtoConverter {
 
-  private def getStorageNodeOnly(id: Long) =
-    storageUnitDao.getStorageNodeOnlyById(id).toMusitFuture(storageUnitDao.storageUnitNotFoundError(id))
+  def getStorageNodeDtoById(id: Long) =
+    storageUnitDao.getStorageNodeDtoByIdAsMusitFuture(id)
 
   private def getBuildingById(id: Long): MusitFuture[BuildingDTO] =
     buildingDao.getBuildingById(id).toMusitFuture(ErrorHelper.notFound(s"Unknown storageBuilding with id: $id"))
@@ -55,7 +56,7 @@ class StorageDao @Inject() (
   }
 
   def getById(id: Long): MusitFuture[Storage] = {
-    val musitFutureStorageNode = getStorageNodeOnly(id)
+    val musitFutureStorageNode = getStorageNodeDtoById(id)
     musitFutureStorageNode.musitFutureFlatMap { storageNode =>
       getByNode(storageNode)
     }
