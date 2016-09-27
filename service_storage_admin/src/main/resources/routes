@@ -12,3 +12,4 @@ GET     /v1/storageunit                        no.uio.musit.microservice.storage
 POST    /v1/storageunit                        no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.postRoot
 PUT     /v1/storageunit/:id                    no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.updateRoot(id:Long)
 DELETE  /v1/storageunit/:id                    no.uio.musit.microservice.storageAdmin.resource.StorageUnitResource.deleteRoot(id:Long)
+GET     /v1/storageunit/:id/stats              no.uio.musit.microservice.storageAdmin.resource.StatsResource.getStats(id:Long)
