@@ -51,9 +51,8 @@ class OrganizationService @Inject() (val actorDao: ActorDao) {
 
   def update(organization: Organization): Future[Either[MusitError, MusitStatusMessage]] = {
     actorDao.updateOrganization(organization).map {
-      case 0 => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
       case 1 => Right(MusitStatusMessage("Record was updated!"))
-      case _ => Left(MusitError(Status.BAD_REQUEST, "Update updated several records!"))
+      case _ => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
     }
   }
 
