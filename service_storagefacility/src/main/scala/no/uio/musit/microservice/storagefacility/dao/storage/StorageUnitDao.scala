@@ -138,7 +138,7 @@ class StorageUnitDao @Inject() (
 
     db.run(query).map(found => MusitSuccess(found)).recover {
       case NonFatal(ex) =>
-        logger.error("Non fatal exception when checking for node existance", ex)
+        logger.error("Non fatal exception when checking for node existence", ex)
         MusitDbError("Checking if node exists caused an exception", Option(ex))
     }
   }
@@ -154,7 +154,26 @@ class StorageUnitDao @Inject() (
     db.run(query).map { res =>
       if (res == 1) MusitSuccess(res)
       else MusitValidationError(
-        message = "Unexpected result marking storage node as deleted",
+        message = s"Unexpected result marking storage node $id as deleted",
+        expected = 1,
+        actual = res
+      )
+    }
+  }
+
+  def updatePartOf(
+    id: StorageNodeId,
+    partOf: Option[StorageNodeId]
+  ): Future[MusitResult[Int]] = {
+    val filter = storageNodeTable.filter(n =>
+      n.id === id && n.isDeleted === false)
+    val q = for { n <- filter } yield n.isPartOf
+    val query = q.update(partOf)
+
+    db.run(query).map { res =>
+      if (res == 1) MusitSuccess(res)
+      else MusitValidationError(
+        message = s"Unexpected result updating partOf for storage node $id",
         expected = 1,
         actual = res
       )
