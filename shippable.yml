@@ -31,6 +31,6 @@ build:
 
   ci:
     - sbt clean scalastyle coverage
-    - sbt test
-    - sbt it:test
+    - sbt -mem 2048 test
+    - sbt -mem 2048 it:test
     - sbt coverageReport coverageAggregate codacyCoverage
