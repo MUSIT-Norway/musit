@@ -11,7 +11,7 @@ env:
 
 integrations:
   notifications:
-    - integrationName: MUSIT-slack
+    - integrationName: "MUSIT - Slack"
       type: slack
       recipients:
         - "#travis-builds"
