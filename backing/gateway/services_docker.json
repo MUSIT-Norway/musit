@@ -54,5 +54,12 @@
     "host": "event",
     "port": "7070",
     "protocol": "http://"
+  },
+  {
+    "name": "storagefacility",
+    "scalaName": "Facility",
+    "host": "storagefacility",
+    "port": "7070",
+    "protocol": "http://"
   }
 ]
