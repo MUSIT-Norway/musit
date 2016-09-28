@@ -80,9 +80,13 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getChildren(id: StorageNodeId): Future[Seq[StorageNode]] = {
+  def getChildren(id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
     val query = storageNodeTable.filter(_.isPartOf === id).result
-    db.run(query).map(_.map(StorageNodeDto.toStorageNode))
+    db.run(query).map { dtos =>
+      dtos.map { dto =>
+        StorageNodeDto.toGenericStorageNode(dto)
+      }
+    }
   }
 
   /**

@@ -71,12 +71,12 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully create an organisation node" in {
-        val json = organisationJson("My Org1")
+        val json = organisationJson("My Org1", Some(StorageNodeId(1)))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val organisation = verifyNode[Organisation](
-          response, OrganisationType, "My Org1", 5
+          response, OrganisationType, "My Org1", 5, Some(1)
         )
         organisation mustBe an[Organisation]
       }
@@ -135,7 +135,7 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         response.status mustBe Status.OK
 
         val organisation = verifyNode[Organisation](
-          response, OrganisationType, "My Org1", 5
+          response, OrganisationType, "My Org1", 5, Some(1)
         )
         organisation mustBe an[Organisation]
       }
@@ -266,11 +266,11 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully update an organisation" in {
-        val json = organisationJson("My Organisation2")
+        val json = organisationJson("My Organisation2", Some(StorageNodeId(1)))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
         val organisation = verifyNode[Organisation](
-          response, OrganisationType, "My Organisation2", 12
+          response, OrganisationType, "My Organisation2", 12, Some(1)
         )
         organisation mustBe an[Organisation]
         organisation.areaTo mustBe Some(2100)
@@ -285,7 +285,7 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         val updRes = wsUrl(StorageNodeUrl(organisation.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.OK
         val updated = verifyNode[Organisation](
-          updRes, OrganisationType, "My Organisation2", organisation.id.get
+          updRes, OrganisationType, "My Organisation2", organisation.id.get, organisation.isPartOf
         )
 
         updated mustBe an[Organisation]
@@ -297,6 +297,13 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val failedUpdate = wsUrl(StorageNodeUrl(999)).put(json).futureValue
         failedUpdate.status mustBe Status.NOT_FOUND
+      }
+
+      "list all children for a node with correct storage types" in {
+        val res = wsUrl(NodeChildrenUrl(1)).get().futureValue
+
+        res.status mustBe Status.OK
+        println(Json.prettyPrint(res.json))
       }
 
       "successfully delete a storage node" in {

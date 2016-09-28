@@ -24,7 +24,6 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
       }
   }
 
-
   def getAreaPerimeterSecurity: Future[MusitResult[Double]] = {
     db.run(
       sql"""
