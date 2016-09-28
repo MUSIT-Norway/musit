@@ -535,11 +535,13 @@ class EventDao @Inject() (
     eventType: TopLevelEvent
   ): Future[Seq[EventDto]] = {
     // First fetch the eventIds from the place as object relation table.
-    val futureEventIds = evtPlacesAsObjDao.getEventsForObjects(nodeId).map { objs =>
+    val futureEventIds = evtPlacesAsObjDao.getEventsForNode(nodeId).map { objs =>
+      logger.debug(s"Found ${objs.size} events for $nodeId")
       objs.map(_.eventId).filter(_.isDefined).map(_.get)
     }
     // Iterate the list of IDs and fetch the related event.
     futureEventIds.flatMap { ids =>
+      logger.debug(s"Going to look for events with eventIds ${ids.mkString(", ")}")
       Future.traverse(ids) { eventId =>
         getEvent(
           id = eventId,

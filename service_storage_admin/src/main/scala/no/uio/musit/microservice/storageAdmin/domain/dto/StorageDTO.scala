@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain.dto
 
+import no.uio.musit.microservice.storageAdmin.domain.NodePath
 import no.uio.musit.microservices.common.linking.domain.Link
 
 /* We have three types of storage nodes:
@@ -44,9 +45,10 @@ case class StorageNodeDTO(
   name: String,
   area: Option[Double],
   areaTo: Option[Double],
-  isPartOf: Option[Long],
   height: Option[Double],
   heightTo: Option[Double],
+  isPartOf: Option[Long],
+  nodePath: NodePath,
   groupRead: Option[String],
   groupWrite: Option[String],
   latestMoveId: Option[Long],
@@ -59,6 +61,8 @@ case class StorageNodeDTO(
 sealed trait CompleteStorageNodeDto {
   val storageNode: StorageNodeDTO
   val envReqDto: Option[EnvReqDto]
+
+  def id = storageNode.id
 }
 
 case class CompleteBuildingDto(storageNode: StorageNodeDTO, buildingDto: BuildingDTO, envReqDto: Option[EnvReqDto]) extends CompleteStorageNodeDto
