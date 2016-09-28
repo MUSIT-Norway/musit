@@ -20,11 +20,9 @@
 import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.SbtNativePackager.autoImport._
 import com.typesafe.sbt.packager.docker.DockerPlugin
-
-import scalariform.formatter.preferences._
+import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
 import play.sbt.{Play, PlayLayoutPlugin}
 import sbt.Keys._
 import sbt._
