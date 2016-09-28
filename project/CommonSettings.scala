@@ -18,13 +18,17 @@
  */
 
 import com.typesafe.sbt.SbtNativePackager
+import com.typesafe.sbt.SbtNativePackager.autoImport._
 import com.typesafe.sbt.packager.docker.DockerPlugin
+
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
 import play.sbt.{Play, PlayLayoutPlugin}
 import sbt.Keys._
 import sbt._
+import scoverage.ScoverageKeys._
 
 import scalariform.formatter.preferences.{FormatXml, SpacesAroundMultiImports}
 
@@ -60,7 +64,11 @@ object CommonSettings {
       "-target:jvm-1.8",
       "-encoding", "UTF-8",
       "-Xmax-classfile-name", "100" // This will limit the classname generation to 100 characters.
-    )
+    ),
+    coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router",
+    coverageExcludedFiles := "",
+    coverageMinimum := 80,
+    coverageFailOnMinimum := false
   )
 
   // scalastyle:off
@@ -83,5 +91,11 @@ object CommonSettings {
         SbtNativePackager,
         DockerPlugin
       )
+      .settings(Seq(
+        maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
+        packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
+        packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",
+        dockerExposedPorts in Docker := Seq(8080)
+      ))
 
 }

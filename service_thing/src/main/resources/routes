@@ -1,8 +1,0 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
-# Setup endpoints
-GET     /v1                         no.uio.musit.microservice.musitThing.resource.MusitThingResource_V1.list
-GET     /v1/:id                     no.uio.musit.microservice.musitThing.resource.MusitThingResource_V1.getById(id:Long)
-POST    /v1                         no.uio.musit.microservice.musitThing.resource.MusitThingResource_V1.add
