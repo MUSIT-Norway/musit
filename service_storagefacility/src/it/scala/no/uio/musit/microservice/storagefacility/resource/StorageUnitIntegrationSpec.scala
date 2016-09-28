@@ -93,7 +93,7 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully create a room node" in {
-        val json = roomJson("My Room1", StorageNodeId(6))
+        val json = roomJson("My Room1", Some(StorageNodeId(6)))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
 
@@ -208,7 +208,7 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully update a room" in {
-        val json = roomJson("My Room2", StorageNodeId(6))
+        val json = roomJson("My Room2", Some(StorageNodeId(6)))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
         val room = verifyNode[Room](

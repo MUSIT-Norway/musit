@@ -173,4 +173,27 @@ trait NodeTypeInitializers {
     )
   }
 
+  def createRoomWithDifferentArea(
+    areaTo: Double,
+    perimeter: Boolean = false,
+    theftProtection: Boolean = false,
+    fireProtection: Boolean = false,
+    waterDamage: Boolean = false,
+    routinesAndContingencyPlan: Boolean = false
+  ): Room = {
+    createRoom().copy(
+      id = None,
+      name = "MyPrivateRoom",
+      areaTo = Some(areaTo),
+      environmentRequirement = Some(defaultEnvironmentRequirement),
+      securityAssessment = SecurityAssessment(
+        perimeter = Some(perimeter),
+        theftProtection = Some(theftProtection),
+        fireProtection = Some(fireProtection),
+        waterDamage = Some(waterDamage),
+        routinesAndContingencyPlan = Some(routinesAndContingencyPlan)
+      )
+    )
+  }
+
 }
