@@ -24,11 +24,6 @@ build:
     pull: true
     options: "-e HOME=/root"
 
-  cache:
-    cache_dir_list:
-      - $HOME/.ivy2/cache/
-      - $HOME/.sbt/boot/
-
   ci:
     - sbt clean scalastyle coverage
     - sbt -mem 2048 test
