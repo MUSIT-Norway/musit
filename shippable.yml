@@ -29,10 +29,6 @@ build:
       - $HOME/.ivy2/cache/
       - $HOME/.sbt/boot/
 
-  pre_ci:
-    - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
-    - find $HOME/.sbt -name "*.lock" -delete
-
   ci:
     - sbt clean scalastyle coverage
     - sbt test
