@@ -12,9 +12,9 @@ env:
 integrations:
   notifications:
     - integrationName: MUSIT-slack
-        type: slack
-        recipients:
-          - "#travis-builds"
+      type: slack
+      recipients:
+        - "#travis-builds"
 
 build:
   pre_ci_boot:
