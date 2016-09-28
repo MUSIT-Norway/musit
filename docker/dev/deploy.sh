@@ -7,7 +7,7 @@ echo "MUSARK: docker-compose rm ." && docker-compose rm -f > /dev/null
 
 cd ../..
 
-#echo "MUSARK: sbt clean docker:publishLocal ." && sbt clean docker:publishLocal > /dev/null
+echo "MUSARK: sbt clean docker:publishLocal ." && sbt clean docker:publishLocal > /dev/null
 
 cd ${STARTDIR}
 
