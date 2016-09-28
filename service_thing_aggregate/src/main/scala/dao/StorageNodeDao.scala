@@ -20,7 +20,7 @@ class StorageNodeDao @Inject() (
       sql"""
         SELECT COUNT(*)
         FROM musark_storage.storage_node
-        WHERE museum = $mid and storage_node_id = $nodeId
+        WHERE museum_id = $mid and storage_node_id = $nodeId
       """.as[Long].head.map(res => MusitSuccess(res == 1))
     ).recover {
         case NonFatal(e) =>

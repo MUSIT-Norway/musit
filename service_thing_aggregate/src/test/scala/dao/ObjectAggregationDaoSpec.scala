@@ -38,7 +38,7 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId that exists" should {
       "return a list of objects" in {
-        val mr = dao.getObjects(3)
+        val mr = dao.getObjects(2,3)
         val fut = mr.futureValue
         fut match {
           case MusitSuccess(result) =>
@@ -65,7 +65,7 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId that does not exist" should {
       "return a an empty vector" in {
-        val mr = dao.getObjects(999999)
+        val mr = dao.getObjects(1, 999999)
         val fut = mr.futureValue
         fut match {
           case MusitSuccess(result) =>

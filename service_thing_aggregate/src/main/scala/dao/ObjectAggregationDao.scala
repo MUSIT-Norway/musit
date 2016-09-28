@@ -22,8 +22,8 @@ class ObjectAggregationDao @Inject() (
     db.run(
       sql"""
          SELECT id, displayid, displayname
-         FROM  musark_storage.local_object, musark_mapping.view_musitthing
-         WHERE museumId = ${mid.underlying} and current_location_id = $nodeId
+         FROM  musark_storage.local_object, musit_mapping.view_musitthing
+         WHERE museum_Id = ${mid.underlying} and current_location_id = $nodeId
          AND object_id = Id
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     ).recover {

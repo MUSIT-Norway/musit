@@ -19,7 +19,8 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
   "ObjectAggregation integration" must {
     "get by nodeId that exists" in {
       val nodeId = 3
-      val response = wsUrl(s"/node/$nodeId/objects").get().futureValue
+      val mid = 2
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects").get().futureValue
       val objects = Json.parse(response.body).validate[Seq[ObjectAggregation]].get
       val obj = objects.head
       obj.id mustBe ObjectId(1)
@@ -28,9 +29,17 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
     "get by nodeId that does not exist" in {
       val nodeId = 99999
-      val response = wsUrl(s"/node/$nodeId/objects").get().futureValue
+      val mid = 2
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects").get().futureValue
       response.status mustBe 404
-      response.body mustBe s"Did not find node with nodeId $nodeId"
+      response.body must endWith (s"$nodeId")
+    }
+    "get by nodeId with wrong museum" in {
+      val nodeId = 99999
+      val mid = 555
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects").get().futureValue
+      response.status mustBe 400
+      response.body must include (s"$mid")
     }
   }
 }
