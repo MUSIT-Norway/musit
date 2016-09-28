@@ -17,12 +17,12 @@ integrations:
         - "#travis-builds"
 
 build:
-#  pre_ci_boot:
-#    # Using a docker image with latest scala and SBT pre-installed.
-#    image_name: kpmeen/docker-scala-sbt
-#    image_tag: latest
-#    pull: true
-#    options: "-e HOME=/root"
+  pre_ci_boot:
+    # Using a docker image with latest scala and SBT pre-installed.
+    image_name: kpmeen/docker-scala-sbt
+    image_tag: latest
+    pull: true
+    options: "-e HOME=/root"
 
   ci:
     - sbt clean scalastyle
