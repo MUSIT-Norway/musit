@@ -18,6 +18,7 @@ integrations:
 
 build:
   pre_ci_boot:
+    # Using a docker image with latest scala and SBT pre-installed.
     image_name: kpmeen/docker-scala-sbt
     image_tag: latest
     pull: true
