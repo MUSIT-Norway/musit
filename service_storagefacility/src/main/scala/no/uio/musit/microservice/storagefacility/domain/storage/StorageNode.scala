@@ -43,6 +43,20 @@ sealed trait StorageNode {
   val storageType: StorageType
 }
 
+case class GenericStorageNode(
+  id: Option[StorageNodeId],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[StorageNodeId],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  environmentRequirement: Option[EnvironmentRequirement],
+  storageType: StorageType
+) extends StorageNode
+
 case class Root(
     id: Option[StorageNodeId] = None,
     name: String = "root-node",
