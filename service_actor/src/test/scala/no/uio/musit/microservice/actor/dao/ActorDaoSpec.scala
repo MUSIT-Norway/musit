@@ -27,6 +27,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import org.scalatest.words._
 
 class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
@@ -112,12 +113,17 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
         val orgUpd = Organization(Some(3), "Museet i Bar", "B", "99344321", "www.bar.no", None)
 
-        val numUpd = actorDao.updateOrganization(orgUpd).futureValue
+        val resInt = actorDao.updateOrganization(orgUpd).futureValue
         val res = actorDao.getOrganizationById(3).futureValue
         res.get.fn mustBe "Museet i Bar"
         res.get.nickname mustBe "B"
         res.get.tel mustBe "99344321"
         res.get.web mustBe "www.bar.no"
+      }
+
+      "not update organization with invalid id" in {
+        val orgUpd = Organization(Some(999991), "Museet i Bar99", "B", "99344321", "www.bar.no", None)
+        actorDao.updateOrganization(orgUpd).futureValue mustBe 0
       }
 
       "succeed when deleting organization" in {
@@ -156,8 +162,8 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
         val orgUpd = Organization(Some(3), "Museet i Bar", "B", "99344321", "www.bar.no", None)
         val orgAddrUpd = OrganizationAddress(Some(3), Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
 
-        val numUpd = actorDao.updateOrganizationAddress(orgAddrUpd).futureValue
-        numUpd mustBe 1
+        val resInt = actorDao.updateOrganizationAddress(orgAddrUpd).futureValue
+        resInt mustBe 1
         val res = actorDao.getOrganizationAddressById(3).futureValue
         res.get.id mustBe Some(3)
         res.get.organizationId mustBe Some(2)
@@ -168,6 +174,24 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
         res.get.countryName mustBe "Norway3"
         res.get.latitude mustBe 60.11
         res.get.longitude mustBe 11.60
+      }
+
+      "not update organization address with invalid id" in {
+        val orgAddrUpd = OrganizationAddress(Some(9999992), Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
+        actorDao.updateOrganizationAddress(orgAddrUpd).futureValue mustBe 0
+      }
+
+      "not update organization address with missing id" in {
+        val orgAddrUpd = OrganizationAddress(None, Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
+        actorDao.updateOrganizationAddress(orgAddrUpd).futureValue mustBe 0
+      }
+
+      "not update organization address with invalid organization id" in {
+        val orgAddrUpd = OrganizationAddress(Some(3), Some(9999993), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
+        val ex = intercept[Exception] {
+          val futVal = actorDao.updateOrganizationAddress(orgAddrUpd).futureValue
+          futVal mustBe 0
+        }
       }
 
       "succeed when deleting organization address" in {
