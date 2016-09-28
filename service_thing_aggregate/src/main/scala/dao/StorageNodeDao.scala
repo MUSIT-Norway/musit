@@ -15,12 +15,12 @@ class StorageNodeDao @Inject() (
 
   import driver.api._
 
-  def nodeExists(nodeId: Long): Future[MusitResult[Boolean]] = {
+  def nodeExists(mid: Int, nodeId: Long): Future[MusitResult[Boolean]] = {
     db.run(
       sql"""
-         select count(*)
-         from "MUSARK_STORAGE"."STORAGE_NODE"
-         WHERE "STORAGE_NODE_ID" = $nodeId
+        SELECT COUNT(*)
+        FROM musark_storage.storage_node
+        WHERE museum = $mid and storage_node_id = $nodeId
       """.as[Long].head.map(res => MusitSuccess(res == 1))
     ).recover {
         case NonFatal(e) =>

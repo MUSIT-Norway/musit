@@ -15,10 +15,10 @@ class ObjectAggregationController @Inject() (
     storageNodeService: StorageNodeService
 ) extends Controller {
 
-  def getObjects(nodeId: Long) = Action.async { request =>
-    storageNodeService.nodeExists(nodeId).flatMap {
-      case MusitSuccess(true) => getObjectsByNodeId(nodeId)
-      case MusitSuccess(false) => Future.successful(NotFound(s"Did not find node with nodeId $nodeId"))
+  def getObjects(mid: Int, nodeId: Long) = Action.async { request =>
+    storageNodeService.nodeExists(mid, nodeId).flatMap {
+      case MusitSuccess(true) => getObjectsByNodeId(mid, nodeId)
+      case MusitSuccess(false) => Future.successful(NotFound(s"Did not find node in museum $mid with nodeId $nodeId"))
       case MusitDbError(msg, ex) =>
         Logger.error(msg, ex.orNull)
         Future.successful(InternalServerError(msg))
@@ -26,8 +26,8 @@ class ObjectAggregationController @Inject() (
     }
   }
 
-  private def getObjectsByNodeId(nodeId: Long): Future[Result] = {
-    service.getObjects(nodeId).map {
+  private def getObjectsByNodeId(mid: Int, nodeId: Long): Future[Result] = {
+    service.getObjects(mid, nodeId).map {
       case MusitSuccess(objects) =>
         Ok(Json.toJson(objects))
       case MusitDbError(msg, ex) =>

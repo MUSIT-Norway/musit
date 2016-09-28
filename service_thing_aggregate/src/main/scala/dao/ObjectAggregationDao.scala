@@ -16,14 +16,15 @@ class ObjectAggregationDao @Inject() (
 
   import driver.api._
 
-  def getObjects(nodeId: Long): Future[MusitResult[Seq[ObjectAggregation]]] = {
+  def getObjects(mid: Int, nodeId: Long): Future[MusitResult[Seq[ObjectAggregation]]] = {
     implicit val getObject = GetResult(r =>
       ObjectAggregation(ObjectId(r.nextLong), MuseumIdentifier.fromSqlString(r.nextString), r.nextStringOption))
     db.run(
       sql"""
-         select "ID", "DISPLAYID", "DISPLAYNAME"
-         from "MUSARK_EVENT"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
-         WHERE "CURRENT_LOCATION_ID" = $nodeId and "OBJECT_ID" = "ID";
+         SELECT id, displayid, displayname
+         FROM  musark_storage.local_object, musark_mapping.view_musitthing
+         WHERE museumId = $mid and current_location_id = $nodeId
+         AND object_id = Id
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving objects", Some(e))
