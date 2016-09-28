@@ -27,7 +27,8 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import org.scalatest.words._
+import org.scalatest.Matchers._
+import org.scalatest.exceptions.TestFailedException
 
 class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
@@ -188,9 +189,9 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
       "not update organization address with invalid organization id" in {
         val orgAddrUpd = OrganizationAddress(Some(3), Some(9999993), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
-        val ex = intercept[Exception] {
-          val futVal = actorDao.updateOrganizationAddress(orgAddrUpd).futureValue
-          futVal mustBe 0
+        whenReady(actorDao.updateOrganizationAddress(orgAddrUpd).failed) { e =>
+          e shouldBe a[org.h2.jdbc.JdbcSQLException]
+          e.getMessage should startWith("Referential integrity")
         }
       }
 
