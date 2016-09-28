@@ -11,8 +11,10 @@ env:
 
 integrations:
   notifications:
-    slack:
-      secure: op4kSPKB7TaVWt5gGrLHTOWyovvljTXjKu/Otp7SeE2wpxZlNCLeD/33/7mMEf/YA0OSU2CiLrg0cONycXThxrf4rWil1vYJdzxSM2+3Y5T2OU8V5JtZB9kk0CUVCUy9p+1N1+j+kiJOMFc5usDRBwXYWmz0qiLBFSET33qhadnF0ZzFAaY9ol8BL/uJXfqr/8L1IMZWwzgTcjlrcsMJPfStV8MMKhbzaoeLfA14eAEiqmZ/P6mE9yD2LWwxpZ223/e/YkTg7LMYy4gK9qrAReXaJaWYD68khZe2jDz/eDAf8smaCojCDFuYjEKmasuJdvw/pWRBaQjU4jvlBw2Z/OmOu2kfsZ8qUy1qq/k3MMF9qO6uedqeDGBJMW98VNDX/WTm1wOmxFol+oObtQAHB5oSX3CUq8Ro7RJRsM2cJHscL7KiUekAJDlo0P38KQbH2Qqspdb4ALC/v9o2oZVULVQACEdEfA+qT8RXk570hT8qbfrWq/MyKjiktZtRcm1BTzsOGWlK6iyY+Rzc8YjaSy0ybcQA8tu95bN3QDUmAVfoEfSCT+x6HJguucvPMugNpLbWRzQJqCCGuIbalHrTA2nk0xlyUJQVtTaIYaz1GjrfSyR+l0HBOCuY+8AjQRNvoeL1aOM4Le41fExmCkYkTpdzZ0kOoWZhQmAI1TNT5ik=
+    - integrationName: MUSIT-slack
+        type: slack
+        recipients:
+          - "#travis-builds"
 
 build:
   pre_ci_boot:
@@ -35,4 +37,3 @@ build:
     - sbt test
     - sbt it:test
     - sbt coverageReport coverageAggregate codacyCoverage
-    
