@@ -21,10 +21,12 @@ package no.uio.musit.microservice.storagefacility
 
 package object test {
 
-  val BaseUri = "/v1/storagenodes"
-  val ListStorageNodesUrl = BaseUri
-  val RootNodeUrl = s"$BaseUri/root"
-  val StorageNodeUrl = (node: Long) => s"$BaseUri/$node"
+  val BaseUrl = "/v1/storagenodes"
+  val StorageNodesUrl = BaseUrl
+  val RootNodeUrl = s"$BaseUrl/root"
+  val StorageNodeUrl = (node: Long) => s"$BaseUrl/$node"
+  val MoveStorageNodeUrl = s"$StorageNodesUrl/moveNode"
+  val MoveObjectUrl = s"$StorageNodesUrl/moveObject"
   val NodeChildrenUrl = (node: Long) => s"${StorageNodeUrl(node)}/children"
 
   val ControlsUrl = (node: Long) => s"${StorageNodeUrl(node)}/controls"
@@ -33,7 +35,7 @@ package object test {
   val ObservationUrl = (node: Long, evt: Long) => s"${ObservationsUrl(node)}/$evt"
 
   val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"
-  val KdReportUrl = s"$BaseUri/report"
+  val KdReportUrl = s"$BaseUrl/report"
 
 
 

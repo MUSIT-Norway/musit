@@ -49,6 +49,8 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
 
   def getPath(id: Long) = wsUrl(s"/v1/storageunit/$id/path").get |> waitFutureValue
 
+  def getStats(id: Long) = wsUrl(s"/v1/storageunit/$id/stats").get |> waitFutureValue
+
   def getStorageUnit(id: Long) = wsUrl(s"/v1/storageunit/$id").get
 
 
@@ -140,7 +142,7 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
           		"comments": "Dårlig miljø"
           	},
           	"securityAssessment": {
-          		"perimeter": true,
+          		"perimeterSecurity": true,
           		"theftProtection": true,
           		"fireProtection": false,
           		"waterDamage": false,
@@ -895,6 +897,49 @@ class StorageUnitIntegrationSpec extends PlaySpec with OneServerPerSuite with Sc
       pathRes.body must include("Nytt navn")
       pathRes.body must include(id.toString)
       pathRes.body must include("StorageUnit")
+    }
+
+    "test Stats" in {
+      val makeMyJSon =
+        """{"type":"Room","name":"UkjentRom",
+        "securityAssessment": {
+          "perimeterSecurity": true
+        },
+        "environmentAssessment": {}
+        }"""
+      val response = createStorageUnit(makeMyJSon) |> waitFutureValue
+      response.status mustBe 201
+      val storageUnit = Json.parse(response.body).validate[Storage].get.asInstanceOf[Room]
+
+
+      val subNodeJson =
+        s"""{"type":"StorageUnit","name":"UkjentBoks",
+           "isPartOf":${storageUnit.id.get}
+        }"""
+
+      val response2 = createStorageUnit(subNodeJson) |> waitFutureValue
+      response2.status mustBe 201
+      val storageUnit2 = Json.parse(response2.body).validate[Storage].get.asInstanceOf[StorageUnit]
+
+
+
+      val statsResponse = getStats(storageUnit.id.get)
+      statsResponse.status mustBe 200
+      val stats = Json.parse(statsResponse.body).validate[Stats].get
+
+      //TODO: We don't have any mechanism from the REST API yet to build up object structure in this test,
+      // so rather boring numbers here...
+
+      stats.nodes mustBe 1
+      stats.objects mustBe 0
+      stats.totalObjects mustBe 0
+
+      val stats2Response = getStats(storageUnit2.id.get)
+      statsResponse.status mustBe 200
+      val stats2 = Json.parse(stats2Response.body).validate[Stats].get
+      stats2.nodes mustBe 0
+      stats2.objects mustBe 0
+      stats2.totalObjects mustBe 0
     }
   }
 }

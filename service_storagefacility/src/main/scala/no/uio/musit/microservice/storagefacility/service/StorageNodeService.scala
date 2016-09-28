@@ -19,9 +19,12 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
+import no.uio.musit.microservice.storagefacility.dao.event.{ EventDao, LocalObjectDao }
 import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
 import no.uio.musit.microservice.storagefacility.domain.datetime._
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
+import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -38,7 +41,9 @@ class StorageNodeService @Inject() (
     val roomDao: RoomDao,
     val buildingDao: BuildingDao,
     val organisationDao: OrganisationDao,
-    val envReqService: EnvironmentRequirementService
+    val envReqService: EnvironmentRequirementService,
+    val eventDao: EventDao,
+    val localObjectDao: LocalObjectDao
 ) {
 
   val logger = Logger(classOf[StorageNodeService])
@@ -406,6 +411,47 @@ class StorageNodeService @Inject() (
 
       case error: MusitError =>
         Future.successful(error)
+    }
+  }
+
+  /**
+   * Helper to encapsulate shared logic between the public move methods.
+   */
+  private def move(id: Long, dto: BaseEventDto)(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
+    eventDao.insertEvent(dto).flatMap(eventId => f(eventId)).recover {
+      case NonFatal(ex) =>
+        val msg = s"An exception occured trying to move $id"
+        logger.error(msg, ex)
+        MusitInternalError(msg)
+    }
+  }
+
+  /**
+   * TODO: Document me!
+   */
+  def moveNode(
+    id: StorageNodeId,
+    event: MoveNode
+  )(implicit currUsr: String): Future[MusitResult[Long]] = {
+    val dto = DtoConverters.MoveConverters.moveNodeToDto(event)
+    move(id, dto) { eventId =>
+      storageUnitDao.updatePartOf(id, Some(event.to.placeId)).map { updRes =>
+        logger.debug(s"Update partOf result $updRes")
+        MusitSuccess(eventId)
+      }
+    }
+  }
+
+  /**
+   * TODO: Document me!
+   */
+  def moveObject(
+    objectId: Long,
+    event: MoveObject
+  )(implicit currUsr: String): Future[MusitResult[Long]] = {
+    val dto = DtoConverters.MoveConverters.moveObjectToDto(event)
+    move(objectId, dto) { eventId =>
+      Future.successful(MusitSuccess(eventId))
     }
   }
 }

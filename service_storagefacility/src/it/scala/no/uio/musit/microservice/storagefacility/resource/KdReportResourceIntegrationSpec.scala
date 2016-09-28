@@ -14,10 +14,10 @@ import play.api.libs.ws.WSResponse
 
 class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-    implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-      timeout = Span(15, Seconds),
-      interval = Span(50, Millis)
-    )
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   def verifyNode[T <: StorageNode](
     response: WSResponse,
@@ -49,7 +49,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "successfully get kDReport for rooms" in {
         val json = roomJson("EllensPersonalRoom", None)
-        val response = wsUrl(ListStorageNodesUrl).post(json).futureValue
+        val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val room = verifyNode[Room](
@@ -60,7 +60,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         room.heightTo mustBe Some(2.6)
 
         val json1 = roomJson("EllensWorkOutRoom", None)
-        val response1 = wsUrl(ListStorageNodesUrl).post(json1).futureValue
+        val response1 = wsUrl(StorageNodesUrl).post(json1).futureValue
         response1.status mustBe Status.CREATED
 
         val report = wsUrl(KdReportUrl).get.futureValue
