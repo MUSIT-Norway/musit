@@ -5,7 +5,6 @@ import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{ Millis, Seconds, Span }
 
-
 class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
