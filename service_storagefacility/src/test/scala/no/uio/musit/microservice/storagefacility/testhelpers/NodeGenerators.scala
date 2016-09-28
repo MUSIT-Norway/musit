@@ -181,16 +181,10 @@ trait NodeTypeInitializers {
     waterDamage: Boolean = false,
     routinesAndContingencyPlan: Boolean = false
   ): Room = {
-    Room(
+    createRoom().copy(
       id = None,
       name = "MyPrivateRoom",
-      area = Some(50),
       areaTo = Some(areaTo),
-      height = Some(2),
-      heightTo = Some(3),
-      isPartOf = None,
-      groupRead = None,
-      groupWrite = None,
       environmentRequirement = Some(defaultEnvironmentRequirement),
       securityAssessment = SecurityAssessment(
         perimeter = Some(perimeter),
@@ -198,12 +192,6 @@ trait NodeTypeInitializers {
         fireProtection = Some(fireProtection),
         waterDamage = Some(waterDamage),
         routinesAndContingencyPlan = Some(routinesAndContingencyPlan)
-      ),
-      environmentAssessment = EnvironmentAssessment(
-        relativeHumidity = Some(true),
-        lightingCondition = Some(true),
-        temperature = Some(true),
-        preventiveConservation = Some(false)
       )
     )
   }

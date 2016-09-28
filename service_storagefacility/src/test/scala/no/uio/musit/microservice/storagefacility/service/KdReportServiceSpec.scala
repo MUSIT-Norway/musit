@@ -5,9 +5,6 @@ import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{ Millis, Seconds, Span }
 
-/**
- * Created by ellenjo on 27.09.16.
- */
 
 class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
