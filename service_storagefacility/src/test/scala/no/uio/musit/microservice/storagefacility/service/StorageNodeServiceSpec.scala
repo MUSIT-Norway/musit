@@ -21,7 +21,7 @@ package no.uio.musit.microservice.storagefacility.service
 
 import no.uio.musit.microservice.storagefacility.domain.Interval
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
-import no.uio.musit.test.{ MusitSpecWithAppPerSuite, MusitSpecWithAppPerTest }
+import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{ Millis, Seconds, Span }
 
 class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
