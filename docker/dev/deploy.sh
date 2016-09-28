@@ -1,5 +1,15 @@
 #!/bin/bash
 
+export EVOLUTION_ENABLED=false
+
+export SLICK_DRIVER=slick.driver.PostgresDriver$
+export SLICK_DB_DRIVER=org.postgresql.Driver
+export SLICK_DB_URL=jdbc:postgresql://db/postgres
+export SLICK_DB_USER=postgres
+export SLICK_DB_PASSWORD=postgres
+
+export MILJO=dev
+
 STARTDIR=$(pwd)
 
 echo "MUSARK: docker-compose stop ." && docker-compose stop > /dev/null
