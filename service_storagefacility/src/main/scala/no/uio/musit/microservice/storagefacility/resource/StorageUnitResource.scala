@@ -106,7 +106,7 @@ final class StorageUnitResource @Inject() (
    */
   def children(id: Long) = Action.async { implicit request =>
     service.getChildren(id).map { nodes =>
-      Ok(Json.toJson(nodes))
+      Ok(Json.toJson[Seq[GenericStorageNode]](nodes))
     }
   }
 

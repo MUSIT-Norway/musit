@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
+import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
@@ -41,6 +42,12 @@ class ObservationService @Inject() (val eventDao: EventDao) {
    * TODO: Document me!
    */
   def add(obs: Observation)(implicit currUsr: String): Future[MusitResult[Observation]] = {
+    val c = obs.copy(
+      baseEvent = obs.baseEvent.copy(
+        registeredBy = Some(currUsr),
+        registeredDate = Some(dateTimeNow)
+      )
+    )
     val dto = ObsConverters.observationToDto(obs)
     eventDao.insertEvent(dto).flatMap { eventId =>
       eventDao.getEvent(eventId).map { res =>

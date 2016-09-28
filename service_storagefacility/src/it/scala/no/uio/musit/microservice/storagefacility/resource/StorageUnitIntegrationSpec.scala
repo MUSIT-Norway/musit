@@ -303,7 +303,10 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         val res = wsUrl(NodeChildrenUrl(1)).get().futureValue
 
         res.status mustBe Status.OK
-        println(Json.prettyPrint(res.json))
+        res.json.as[JsArray].value.foreach { jsv =>
+          (jsv \ "type").as[String] mustBe "Organisation"
+        }
+
       }
 
       "successfully delete a storage node" in {
@@ -368,9 +371,6 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         (moveRes.json \ "moved").as[JsArray].value.head.as[Long] mustBe moveMeId
 
         val movedNodeRes = wsUrl(StorageNodeUrl(moveMeId)).get().futureValue
-
-        println(Json.prettyPrint(movedNodeRes.json))
-
         val moved = verifyNode[StorageUnit](
           movedNodeRes, StorageUnitType, "Move me", moveMeId, Some(9)
         )

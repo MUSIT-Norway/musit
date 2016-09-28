@@ -77,12 +77,16 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   def addNode(nodes: StorageNode*): Seq[StorageNodeId] = {
     val eventuallyInserted = Future.sequence {
-      nodes.map {
+      nodes.filterNot(_.isInstanceOf[GenericStorageNode]).map {
         case su: StorageUnit => addStorageUnit(su)
         case r: Room => addRoom(r)
         case b: Building => addBuilding(b)
         case o: Organisation => addOrganisation(o)
         case r: Root => addRoot(r)
+        case notCorrect =>
+          throw new IllegalArgumentException( // scalastyle:ignore
+            s"${notCorrect.getClass} is not supported"
+          )
       }
     }.map { inserted =>
       inserted.map(_.id.get)

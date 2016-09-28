@@ -27,6 +27,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirem
 import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval, LifeCycle }
+import org.joda.time.DateTime
 
 object DtoConverters {
 
@@ -68,6 +69,8 @@ object DtoConverters {
    */
   private[this] def toBaseDto[T <: MusitEvent](
     sub: T,
+    regBy: Option[String],
+    regDate: Option[DateTime],
     maybeStr: Option[String] = None,
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None,
@@ -89,8 +92,8 @@ object DtoConverters {
       valueLong = maybeLong,
       valueString = maybeStr,
       valueDouble = maybeDouble,
-      registeredBy = sub.baseEvent.registeredBy,
-      registeredDate = sub.baseEvent.registeredDate
+      registeredBy = regBy,
+      registeredDate = regDate
     )
   }
 
@@ -101,15 +104,19 @@ object DtoConverters {
    */
   private[this] def toBaseDtoNoChildren[T <: MusitEvent](
     sub: T,
+    regBy: Option[String],
+    regDate: Option[DateTime],
     maybeStr: Option[String] = None,
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None
   ): BaseEventDto = {
-    toBaseDto(sub, maybeStr, maybeLong, maybeDouble)
+    toBaseDto(sub, regBy, regDate, maybeStr, maybeLong, maybeDouble)
   }
 
   private[this] def toExtendedDto[A <: MusitEvent, B <: DtoExtension](
     sub: A,
+    regBy: Option[String],
+    regDate: Option[DateTime],
     maybeStr: Option[String] = None,
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None,
@@ -131,8 +138,8 @@ object DtoConverters {
       valueLong = maybeLong,
       valueString = maybeStr,
       valueDouble = maybeDouble,
-      registeredBy = sub.baseEvent.registeredBy,
-      registeredDate = sub.baseEvent.registeredDate,
+      registeredBy = regBy,
+      registeredDate = regDate,
       extension = ext
     )
   }
@@ -164,15 +171,24 @@ object DtoConverters {
   object CtrlConverters {
 
     def controlToDto(ctrl: Control): BaseEventDto = {
+      val regBy = ctrl.baseEvent.registeredBy
+      val regDate = ctrl.baseEvent.registeredDate
       val relEvt = Seq(
         RelatedEvents(
           relation = EventRelations.PartsOfRelation,
           events = ctrl.parts.map { c =>
-            c.map(controlSubEventToDto)
+            c.map { cse =>
+              controlSubEventToDto(cse, regBy, regDate)
+            }
           }.getOrElse(Seq.empty)
         )
       )
-      toBaseDto(sub = ctrl, relEvents = relEvt)
+      toBaseDto(
+        sub = ctrl,
+        regBy = regBy,
+        regDate = regDate,
+        relEvents = relEvt
+      )
     }
 
     def controlFromDto(dto: BaseEventDto): Control = {
@@ -188,19 +204,29 @@ object DtoConverters {
       )
     }
 
-    def controlSubEventToDto(subCtrl: ControlSubEvent): EventDto = {
+    def controlSubEventToDto(
+      subCtrl: ControlSubEvent,
+      regBy: Option[String],
+      regDate: Option[DateTime]
+    ): EventDto = {
       val relations = subCtrl.motivates.map { ose =>
         Seq(
           RelatedEvents(
             relation = EventRelations.MotivatesRelation,
             events = subCtrl.motivates.map { m =>
-              Seq(ObsConverters.observationSubEventToDto(m))
+              Seq(ObsConverters.observationSubEventToDto(m, regBy, regDate))
             }.getOrElse(Seq.empty)
           )
         )
       }.getOrElse(Seq.empty)
 
-      toBaseDto(subCtrl, maybeLong = subCtrl.ok, relEvents = relations)
+      toBaseDto(
+        sub = subCtrl,
+        regBy = regBy,
+        regDate = regDate,
+        maybeLong = subCtrl.ok,
+        relEvents = relations
+      )
     }
 
     // scalastyle:off method.length
@@ -298,15 +324,22 @@ object DtoConverters {
   object ObsConverters {
 
     def observationToDto(obs: Observation): EventDto = {
+      val regBy = obs.baseEvent.registeredBy
+      val regDate = obs.baseEvent.registeredDate
       val relEvt = Seq(
         RelatedEvents(
           relation = EventRelations.PartsOfRelation,
           events = obs.parts.map { o =>
-            o.map(ose => observationSubEventToDto(ose))
+            o.map(ose => observationSubEventToDto(ose, regBy, regDate))
           }.getOrElse(Seq.empty)
         )
       )
-      toBaseDto(sub = obs, relEvents = relEvt)
+      toBaseDto(
+        sub = obs,
+        regBy = regBy,
+        regDate = regDate,
+        relEvents = relEvt
+      )
     }
 
     def observationFromDto(dto: BaseEventDto): Observation = {
@@ -323,11 +356,17 @@ object DtoConverters {
     }
 
     // scalastyle:off cyclomatic.complexity method.length
-    def observationSubEventToDto(subObs: ObservationSubEvent): EventDto = {
+    def observationSubEventToDto(
+      subObs: ObservationSubEvent,
+      regBy: Option[String],
+      regDate: Option[DateTime]
+    ): EventDto = {
       subObs match {
         case obs: ObservationFromTo =>
           toExtendedDto(
             sub = obs,
+            regBy = regBy,
+            regDate = regDate,
             ext = ObservationFromToDto(
               id = None,
               from = obs.range.from,
@@ -336,32 +375,74 @@ object DtoConverters {
           )
 
         case obs: ObservationLightingCondition =>
-          toBaseDtoNoChildren(obs, maybeStr = obs.lightingCondition)
+          toBaseDtoNoChildren(
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
+            maybeStr = obs.lightingCondition
+          )
 
         case obs: ObservationCleaning =>
-          toBaseDtoNoChildren(obs, maybeStr = obs.cleaning)
+          toBaseDtoNoChildren(
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
+            maybeStr = obs.cleaning
+          )
 
         case obs: ObservationGas =>
-          toBaseDtoNoChildren(obs, maybeStr = obs.gas)
+          toBaseDtoNoChildren(
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
+            maybeStr = obs.gas
+          )
 
         case obs: ObservationMold =>
-          toBaseDtoNoChildren(obs, maybeStr = obs.mold)
+          toBaseDtoNoChildren(
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
+            maybeStr = obs.mold
+          )
 
         case obs: ObservationTheftProtection =>
-          toBaseDtoNoChildren(obs, maybeStr = obs.theftProtection)
+          toBaseDtoNoChildren(
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
+            maybeStr = obs.theftProtection
+          )
 
         case obs: ObservationFireProtection =>
-          toBaseDtoNoChildren(obs, maybeStr = obs.fireProtection)
+          toBaseDtoNoChildren(
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
+            maybeStr = obs.fireProtection
+          )
 
         case obs: ObservationWaterDamageAssessment =>
-          toBaseDtoNoChildren(obs, maybeStr = obs.waterDamageAssessment)
+          toBaseDtoNoChildren(
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
+            maybeStr = obs.waterDamageAssessment
+          )
 
         case obs: ObservationPerimeterSecurity =>
-          toBaseDtoNoChildren(obs, maybeStr = obs.perimeterSecurity)
+          toBaseDtoNoChildren(
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
+            maybeStr = obs.perimeterSecurity
+          )
 
         case obs: ObservationPest =>
           toExtendedDto(
             sub = obs,
+            regBy = regBy,
+            regDate = regDate,
             maybeStr = obs.identification,
             ext = ObservationPestDto(
               lifeCycles = obs.lifecycles.map(LifeCyleConverters.lifecycleToDto)
@@ -370,7 +451,9 @@ object DtoConverters {
 
         case obs: ObservationAlcohol =>
           toBaseDtoNoChildren(
-            obs,
+            sub = obs,
+            regBy = regBy,
+            regDate = regDate,
             maybeStr = obs.condition,
             maybeDouble = obs.volume
           )
@@ -466,6 +549,8 @@ object DtoConverters {
     def envReqToDto(envReq: EnvRequirement): ExtendedDto = {
       toExtendedDto(
         sub = envReq,
+        regBy = envReq.baseEvent.registeredBy,
+        regDate = envReq.baseEvent.registeredDate,
         ext = toEnvReqDto(envReq)
       )
     }
@@ -497,6 +582,8 @@ object DtoConverters {
     def moveToDto[A <: MoveEvent](move: A): BaseEventDto = {
       toBaseDto(
         sub = move,
+        regBy = move.baseEvent.registeredBy,
+        regDate = move.baseEvent.registeredDate,
         relPlaces = Seq(move.to)
       )
     }

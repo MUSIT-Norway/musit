@@ -28,8 +28,6 @@ object EventJsonGenerator {
         |  "actorId" : 12
         |},
         |"note" : "This is a $eventType note",
-        |"registeredBy" : "Darth Vader",
-        |"registeredDate" : "2016-09-${regDay}T09:17:46+02:00",
         |"eventType" : "$eventType",
         |"affectedThing" : {
         |  "roleId" : 1,
