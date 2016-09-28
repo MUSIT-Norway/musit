@@ -22,7 +22,7 @@ package no.uio.musit.microservice.storagefacility.domain.storage
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import play.api.libs.json.{ OWrites, Reads, __ }
+import play.api.libs.json._
 
 sealed trait StorageNode {
   val id: Option[StorageNodeId]
@@ -41,6 +41,36 @@ sealed trait StorageNode {
    */
   val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
+}
+
+case class GenericStorageNode(
+  id: Option[StorageNodeId],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[StorageNodeId],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  environmentRequirement: Option[EnvironmentRequirement],
+  storageType: StorageType
+) extends StorageNode
+
+object GenericStorageNode {
+  implicit val format: Format[GenericStorageNode] = (
+    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String] and
+    (__ \ "area").formatNullable[Double] and
+    (__ \ "areaTo").formatNullable[Double] and
+    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "height").formatNullable[Double] and
+    (__ \ "heightTo").formatNullable[Double] and
+    (__ \ "groupRead").formatNullable[String] and
+    (__ \ "groupWrite").formatNullable[String] and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "type").format[StorageType]
+  )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
 }
 
 case class Root(

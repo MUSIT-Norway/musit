@@ -43,7 +43,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       // Initialise some storage units...
       wsUrl(StorageNodesUrl).post(organisationJson("Foo")).futureValue
       wsUrl(StorageNodesUrl).post(buildingJson("Bar", StorageNodeId(1))).futureValue
-      println("Done populating")
+      println("Done populating") // scalastyle:ignore
     }.recover {
       case t: Throwable =>
         println("Error occured when loading data") // scalastyle:ignore

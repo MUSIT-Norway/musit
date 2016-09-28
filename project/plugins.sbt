@@ -25,7 +25,7 @@ resolvers += Resolver.typesafeRepo("releases")
 resolvers += Resolver.sonatypeRepo("releases")
 
  // The Play plugin
- addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.6")
+ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.8")
 
 // Formatting and style checking
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")

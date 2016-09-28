@@ -23,6 +23,18 @@ services:
           context: "../../backing"
         ports:
           - "3030:3030"
+    thingaggregate:
+        image: musit_service_thing_aggregate:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
     db:
         image: postgres
         environment:
@@ -31,7 +43,6 @@ services:
           - POSTGRES_DB=postgres
         volumes:
           - ../../postgres-storage:/var/lib/postgresql/data/
-
     core:
         image: musit_service_core:0.1-SNAPSHOT
         environment:
@@ -66,6 +77,18 @@ services:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
     event:
         image: musit_service_event:0.1-SNAPSHOT
+        environment:
+          - APPLICATION_SECRET
+          - EVOLUTION_ENABLED=false
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
+    storagefacility:
+        image: musit_service_storagefacility:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET
           - EVOLUTION_ENABLED=false

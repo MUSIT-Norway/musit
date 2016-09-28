@@ -345,7 +345,7 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!
    */
-  def getChildren(id: StorageNodeId): Future[Seq[StorageNode]] = {
+  def getChildren(id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
     storageUnitDao.getChildren(id)
   }
 

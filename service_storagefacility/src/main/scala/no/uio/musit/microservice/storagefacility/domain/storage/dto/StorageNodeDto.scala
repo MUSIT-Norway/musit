@@ -114,6 +114,21 @@ object StorageNodeDto {
       case r: Room => fromRoom(r)
     }
 
+  def toGenericStorageNode(su: StorageUnitDto): GenericStorageNode =
+    GenericStorageNode(
+      id = su.id,
+      name = su.name,
+      area = su.area,
+      areaTo = su.areaTo,
+      height = su.height,
+      heightTo = su.heightTo,
+      isPartOf = su.isPartOf,
+      groupRead = su.groupRead,
+      groupWrite = su.groupWrite,
+      environmentRequirement = None, // EnvRequirement is handled elsewhere
+      storageType = su.storageType
+    )
+
   def toRoot(r: RootDto): Root =
     Root(
       id = r.id
