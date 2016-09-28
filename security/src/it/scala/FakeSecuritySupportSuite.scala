@@ -105,12 +105,15 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPer
         Logger.debug("in-memory test")
       }
     }
+    "in-memory test ny fake bruker" in {
+            runTestWhenReadyInMemory("LineArildSjo") { sec =>
+                assert(!sec.hasGroup("tullballgroup"))
+              }
+          }
+
     "Should fail to user unknown user" in {
       val fut = FakeSecurity.createInMemory("ukjentbruker", true)
       ScalaFutures.whenReady(fut.failed) { e => e mustBe a[Exception] }
     }
-
-
   }
-
 }

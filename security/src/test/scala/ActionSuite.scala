@@ -1,6 +1,6 @@
 /**
-  * Created by jarle on 27.09.16.
-  */
+ * Created by jarle on 27.09.16.
+ */
 /*
  *   MUSIT is a cooperation between the university museums of Norway.
  *   Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
@@ -36,6 +36,7 @@ import play.api.test.Helpers._
 import play.mvc.Http.{Request, Status}
 import play.api.mvc.Results._
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
+import no.uio.musit.security.SecurityGroups.{KhmSfRead, Read, Write}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -48,13 +49,13 @@ object LocalUtils {
 
 class MusitSecureActionSpec extends PlaySpec with OneAppPerSuite {
 
-import LocalUtils._
+  import LocalUtils._
 
   implicit lazy val materializer: Materializer = app.materializer
 
   "A MusitSecureAction" should {
     "fail with UNAUTHORIZED if missing access token" in {
-      val action: EssentialAction = MusitSecureAction { request =>
+      val action: EssentialAction = MusitSecureAction() { request =>
         val value = (request.body.asJson.get \ "field").as[String]
         assert(false) //Should never get here
         Ok(value)
@@ -72,7 +73,7 @@ import LocalUtils._
 
       val fakeUserName = "Fake Musit Test User"
 
-      val action: EssentialAction = MusitSecureAction { request =>
+      val action: EssentialAction = MusitSecureAction() { request =>
         request.user.userName mustBe fakeUserName
         Ok(s"hello: ${request.user.userName}")
       }
@@ -83,6 +84,22 @@ import LocalUtils._
 
       status(result) mustEqual Status.OK
       contentAsString(result) must include(fakeUserName)
+    }
+
+    "Fail if user has access token but not the required permissions" in {
+
+      val fakeUserName = "Fake Musit Test User"
+
+      val action: EssentialAction = MusitSecureAction(Read, Write) { request =>
+        request.user.userName mustBe fakeUserName
+        Ok(s"hello: ${request.user.userName}")
+      }
+
+      val request = FakeRequest(POST, "/").withJsonBody(Json.parse("""{ "field": "value" }""")).withFakeUser
+
+      val result = call(action, request)
+
+      status(result) mustEqual Status.FORBIDDEN
     }
   }
 }

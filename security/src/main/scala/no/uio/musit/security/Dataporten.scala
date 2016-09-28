@@ -32,9 +32,9 @@ object Dataporten {
     (JsPath \ "description").readNullable[String]
   )(createGroupInfo _)
 
-  def createSecurityConnection(accessToken: String, useCache: Boolean = true) = {
+  def createAuthenticatedUser(accessToken: String, useCache: Boolean = true) = {
     val infoProvider = new DataportenUserInfoProvider(accessToken)
-    Security.createSecurityConnectionFromInfoProvider(infoProvider, useCache)
+    SecurityUtils.createAuthenticatedUserFromInfoProvider(infoProvider, useCache)
   }
 
   class DataportenUserInfoProvider(_accessToken: String) extends ConnectionInfoProvider {

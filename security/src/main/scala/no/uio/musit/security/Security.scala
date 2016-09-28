@@ -25,9 +25,10 @@ package no.uio.musit.security
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
+import no.uio.musit.security.SecurityGroups.Permission
 import play.api.mvc.Request
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
@@ -39,7 +40,6 @@ case class UserInfo(id: String, name: String, email: Option[String] = None)
 
 case class GroupInfo(groupType: String, id: String, displayName: String, description: Option[String])
 
-//type TokenToUserIdProvider =  (String) => String
 
 /**
  * Represents what a "connection" is expected to know of the current user
@@ -55,76 +55,62 @@ trait ConnectionInfoProvider {
   def accessToken: String
 }
 
-/*Not used, at least yet
-trait GroupInfoProvider {
-  def getGroupInfo(groupid: String): Future[Option[GroupInfo]]
-}
-
-trait UserInfoProvider {
-  def getUserInfo(userid: String): Future[Option[UserInfo]]
-  def getUserGroups(userid: String): Future[Option[Seq[String]]]
-}
-
-//TODO? def getGroupInfo(groupid: String) : Future[Option[GroupInfo]]
-*/
-
-trait SecurityState {
-  def userInfo: UserInfo
-
-  def hasGroup(group: String): Boolean
-
-  def hasAllGroups(groups: Seq[String]): Boolean
-
-  def hasNoneOfGroups(groups: Seq[String]): Boolean
-}
-
 trait AuthenticatedUser {
   def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T]
 
-  def state: SecurityState
+  def userName: String
 
-  def userName: String = state.userInfo.name
+  def userId: String
 
-  def userId: String = state.userInfo.id
+  def userEmail: Option[String]
 
-  def userEmail: Option[String] = state.userInfo.email
+  def hasGroup(groupid: String): Boolean
 
-  def hasGroup(groupid: String): Boolean = state.hasGroup(groupid)
+  def hasAllGroups(groupIds: Seq[String]): Boolean
 
-  def hasAllGroups(groupIds: Seq[String]): Boolean = state.hasAllGroups(groupIds)
+  def hasNoneOfGroups(groupIds: Seq[String]): Boolean
 
-  def hasNoneOfGroups(groupIds: Seq[String]): Boolean = state.hasNoneOfGroups(groupIds)
+  def hasAllPermissions(permissions: Seq[Permission]): Boolean
 
   def groupIds: Seq[String] //We could provide a default implementation as infoProvider.getUserGroupIds, but then we would have to return a Future.
   //Since all current implementations caches in the groupsIds at startup, we have a direct access here.
 
+}
+
+trait FakeAuthenticatedUser extends AuthenticatedUser {
   ///The infoProvider providing the info to this connection. Accessing this is probably only relevant for testing/debugging
   def infoProvider: ConnectionInfoProvider
 }
 
-class SecurityStateImp(_userInfo: UserInfo, userGroups: Seq[String]) extends SecurityState {
+class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, _userInfo: UserInfo, _userGroups: Seq[String]) extends AuthenticatedUser {
 
   import no.uio.musit.microservices.common.extensions.SeqExtensions._
 
-  override def userInfo: UserInfo = _userInfo
+  val allGroups = _userGroups.map(SecurityGroups.fromGroupId).filterNot(_.isEmpty).map(_.get)
 
-  def hasGroup(group: String) = userGroups.contains(group)
+  val allPermissions = allGroups.flatMap(group => group.permissions)
 
-  def hasAllGroups(groups: Seq[String]) = userGroups.hasAllOf(groups)
+  def userName: String = _userInfo.name
 
-  def hasNoneOfGroups(groups: Seq[String]) = userGroups.hasNoneOf(groups)
-}
+  def userId: String = _userInfo.id
 
-class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroups: Seq[String]) extends AuthenticatedUser {
-  val state = new SecurityStateImp(userInfo, userGroups)
+  def userEmail: Option[String] = _userInfo.email
 
-  override def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
-    if (state.hasAllGroups(requiredGroups) && state.hasNoneOfGroups(deniedGroups)) {
+  def hasAllPermissions(permissions: Seq[Permission]): Boolean = allPermissions.hasAllOf(permissions)
+
+  def hasGroup(group: String) = _userGroups.contains(group)
+
+  def hasAllGroups(groups: Seq[String]) = _userGroups.hasAllOf(groups)
+
+  def hasNoneOfGroups(groups: Seq[String]) = _userGroups.hasNoneOf(groups)
+
+  def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
+    if (hasAllGroups(requiredGroups) && hasNoneOfGroups(deniedGroups)) {
       Success(body)
     } else {
 
-      val missingGroups = requiredGroups.filter((g => !(state.hasGroup(g))))
-      val disallowedGroups = deniedGroups.filter(g => (state.hasGroup(g)))
+      val missingGroups = requiredGroups.filter((g => !(hasGroup(g))))
+      val disallowedGroups = deniedGroups.filter(g => (hasGroup(g)))
 
       assert(missingGroups.length > 0 || disallowedGroups.length > 0)
 
@@ -137,9 +123,7 @@ class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, userInfo: User
     }
   }
 
-  override def groupIds = userGroups
-
-  def infoProvider: ConnectionInfoProvider = _infoProvider
+  def groupIds = _userGroups
 }
 
 object Security {
@@ -151,9 +135,8 @@ object Security {
     if (FakeSecurity.isFakeAccessToken(token))
       FakeSecurity.createInMemoryFromFakeAccessToken(token, false) //Caching off because no speedup by caching the in-memory stuff!
     else
-      Dataporten.createSecurityConnection(token, true)
+      Dataporten.createAuthenticatedUser(token, true)
   }
-
 
   ///The default way to create a security connection from a Htpp request (containing a bearer token)
 
@@ -163,17 +146,31 @@ object Security {
       case None => MusitFuture.fromError(MusitError(401, noTokenInRequestMsg))
     }
   }
-
-  //internal stuff, move to another object?
-  def createSecurityConnectionFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[AuthenticatedUser] = {
-    val _infoProvider = if (useCache) new CachedConnectionInfoProvider(infoProvider) else infoProvider
-
-    val userInfoF = _infoProvider.getUserInfo
-    val userGroupIdsF = _infoProvider.getUserGroupIds
-
-    for {
-      userInfo <- userInfoF
-      userGroupIds <- userGroupIdsF
-    } yield new AuthenticatedUserImp(_infoProvider, userInfo, userGroupIds)
-  }
 }
+
+  object SecurityUtils {
+    def internalCreateAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean,
+           factory: (ConnectionInfoProvider, UserInfo, Seq[String]) => AuthenticatedUser): Future[AuthenticatedUser] = {
+      val _infoProvider = if (useCache) new CachedConnectionInfoProvider(infoProvider) else infoProvider
+
+      val userInfoF = _infoProvider.getUserInfo
+      val userGroupIdsF = _infoProvider.getUserGroupIds
+
+      for {
+        userInfo <- userInfoF
+        userGroupIds <- userGroupIdsF
+      } yield factory(_infoProvider, userInfo, userGroupIds)
+    }
+
+    def createAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[AuthenticatedUser] = {
+      def authUserFactory(infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroupIds: Seq[String]) =
+        new AuthenticatedUserImp(infoProvider, userInfo, userGroupIds)
+
+      internalCreateAuthenticatedUserFromInfoProvider(infoProvider, useCache, authUserFactory)
+    }
+  }
+
+
+
+
+

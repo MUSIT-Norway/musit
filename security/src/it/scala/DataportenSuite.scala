@@ -39,11 +39,11 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
   val timeout = PlayTestDefaults.timeout
 
   def runTestWhenReady(token: String) (block: AuthenticatedUser=>Unit): Unit = {
-      whenReady(Dataporten.createSecurityConnection(token), timeout) { sec => block(sec)}}
+      whenReady(Dataporten.createAuthenticatedUser(token), timeout) { sec => block(sec)}}
 
 
   def runTestWhenReadyWithTokenAndException(token: String, block: Throwable => Unit): Unit = {
-    whenReady(Dataporten.createSecurityConnection(token).failed, timeout) { ex => block(ex) }
+    whenReady(Dataporten.createAuthenticatedUser(token).failed, timeout) { ex => block(ex) }
   }
 
   "getUserInfo should return something" in {
