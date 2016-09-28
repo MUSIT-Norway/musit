@@ -25,7 +25,6 @@ build:
 #    options: "-e HOME=/root"
 
   ci:
-    - sbt clean scalastyle coverage
-    - sbt -mem 2048 test
-    - sbt -mem 2048 it:test
-    - sbt coverageReport coverageAggregate codacyCoverage
+    - sbt clean scalastyle
+    - sbt -mem 2048 coverage test it:test coverageReport
+    - sbt coverageAggregate codacyCoverage
