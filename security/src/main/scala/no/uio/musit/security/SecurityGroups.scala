@@ -29,22 +29,30 @@ object SecurityGroups {
   sealed trait SecurityGroup {
     val groupId: String
     val permissions: Seq[Permission]
+    val museums: Seq[Museum]
+
+    def permissionsRelativeToMuseum(museum: Museum) = {
+      if (museums.contains(museum)) permissions else Seq.empty
+    }
   }
 
   case object KhmSfRead extends SecurityGroup {
 
-    val groupId = "todo1" //TODO:
+    val groupId = "KhmSfRead" //TODO:
     val permissions = Seq(Read)
+    val museums = Seq(Khm)
   }
 
   case object KhmSfWrite extends SecurityGroup {
-    val groupId = "todo2" //TODO:
+    val groupId = "KhmSfWrite" //TODO:
     val permissions = Seq(Read, Write)
+    val museums = Seq(Khm)
   }
 
   case object KhmSfAdmin extends SecurityGroup {
-    val groupId = "todo3" //TODO:
+    val groupId = "KhmSfAdmin" //TODO:
     val permissions = Seq(Read, Write, Admin)
+    val museums = Seq(Khm)
   }
 
   def fromGroupId(groupId: String): Option[SecurityGroup] = {

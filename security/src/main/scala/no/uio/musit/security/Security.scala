@@ -40,7 +40,6 @@ case class UserInfo(id: String, name: String, email: Option[String] = None)
 
 case class GroupInfo(groupType: String, id: String, displayName: String, description: Option[String])
 
-
 /**
  * Represents what a "connection" is expected to know of the current user
  *
@@ -70,7 +69,8 @@ trait AuthenticatedUser {
 
   def hasNoneOfGroups(groupIds: Seq[String]): Boolean
 
-  def hasAllPermissions(permissions: Seq[Permission]): Boolean
+  //:TODO Probably move museum to the constructor of this type instead of a parameter here.
+  def hasAllPermissions(museum: Museum, permissions: Seq[Permission]): Boolean
 
   def groupIds: Seq[String] //We could provide a default implementation as infoProvider.getUserGroupIds, but then we would have to return a Future.
   //Since all current implementations caches in the groupsIds at startup, we have a direct access here.
@@ -90,13 +90,20 @@ class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, _userInfo: Use
 
   val allPermissions = allGroups.flatMap(group => group.permissions)
 
+  //Future: If we later move museum into the constructor, we can precalculate this instead of doing it on the fly
+  private def permissionsRelativeToMuseum(museum: Museum) = {
+    allGroups.flatMap(g => g.permissionsRelativeToMuseum(museum))
+  }
+
   def userName: String = _userInfo.name
 
   def userId: String = _userInfo.id
 
   def userEmail: Option[String] = _userInfo.email
 
-  def hasAllPermissions(permissions: Seq[Permission]): Boolean = allPermissions.hasAllOf(permissions)
+  def hasAllPermissions(museum: Museum, permissions: Seq[Permission]): Boolean = {
+    permissionsRelativeToMuseum(museum).hasAllOf(permissions)
+  }
 
   def hasGroup(group: String) = _userGroups.contains(group)
 
@@ -148,29 +155,25 @@ object Security {
   }
 }
 
-  object SecurityUtils {
-    def internalCreateAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean,
-           factory: (ConnectionInfoProvider, UserInfo, Seq[String]) => AuthenticatedUser): Future[AuthenticatedUser] = {
-      val _infoProvider = if (useCache) new CachedConnectionInfoProvider(infoProvider) else infoProvider
+object SecurityUtils {
+  def internalCreateAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean,
+    factory: (ConnectionInfoProvider, UserInfo, Seq[String]) => AuthenticatedUser): Future[AuthenticatedUser] = {
+    val _infoProvider = if (useCache) new CachedConnectionInfoProvider(infoProvider) else infoProvider
 
-      val userInfoF = _infoProvider.getUserInfo
-      val userGroupIdsF = _infoProvider.getUserGroupIds
+    val userInfoF = _infoProvider.getUserInfo
+    val userGroupIdsF = _infoProvider.getUserGroupIds
 
-      for {
-        userInfo <- userInfoF
-        userGroupIds <- userGroupIdsF
-      } yield factory(_infoProvider, userInfo, userGroupIds)
-    }
-
-    def createAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[AuthenticatedUser] = {
-      def authUserFactory(infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroupIds: Seq[String]) =
-        new AuthenticatedUserImp(infoProvider, userInfo, userGroupIds)
-
-      internalCreateAuthenticatedUserFromInfoProvider(infoProvider, useCache, authUserFactory)
-    }
+    for {
+      userInfo <- userInfoF
+      userGroupIds <- userGroupIdsF
+    } yield factory(_infoProvider, userInfo, userGroupIds)
   }
 
+  def createAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[AuthenticatedUser] = {
+    def authUserFactory(infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroupIds: Seq[String]) =
+      new AuthenticatedUserImp(infoProvider, userInfo, userGroupIds)
 
-
-
+    internalCreateAuthenticatedUserFromInfoProvider(infoProvider, useCache, authUserFactory)
+  }
+}
 

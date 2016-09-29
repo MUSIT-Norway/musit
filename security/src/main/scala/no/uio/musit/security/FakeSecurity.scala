@@ -30,9 +30,7 @@ import no.uio.musit.microservices.common.extensions.PlayExtensions._
  * Created by jstabel on 4/15/16.
  */
 
-
-class FakeAuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, _userInfo: UserInfo, _userGroups: Seq[String]) extends
-  AuthenticatedUserImp(_infoProvider,  _userInfo, _userGroups) with FakeAuthenticatedUser {
+class FakeAuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, _userInfo: UserInfo, _userGroups: Seq[String]) extends AuthenticatedUserImp(_infoProvider, _userInfo, _userGroups) with FakeAuthenticatedUser {
   def infoProvider: ConnectionInfoProvider = _infoProvider
 }
 
@@ -77,8 +75,6 @@ object FakeSecurity {
     } else
       Future.failed(PlayExtensions.newAuthFailed("Not a valid f access token."))
   }
-
-
 
   def createFakeAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[FakeAuthenticatedUser] = {
     def authUserFactory(infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroupIds: Seq[String]) =
