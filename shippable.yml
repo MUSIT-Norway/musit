@@ -16,6 +16,10 @@ integrations:
       recipients:
         - "#travis-builds"
 
+branches:
+  only:
+    - master
+
 build:
   pre_ci_boot:
     # Using a docker image with latest scala and SBT pre-installed.
