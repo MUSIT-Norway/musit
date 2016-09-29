@@ -34,13 +34,27 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       response.status mustBe 404
       response.body must endWith (s"$nodeId")
     }
-    "get by nodeId with wrong museum" in {
+    "get by nodeId where nodeId is None " in {
+      val nodeId = None
+      val mid = 2
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects").get().futureValue
+      response.status mustBe 400
+      response.body must include (s"Cannot parse parameter nodeId as Long: For input string")
+    }
+    "get by nodeId with wrong museum and wrong nodeId" in {
       val nodeId = 99999
       val mid = 555
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects").get().futureValue
       response.status mustBe 400
       response.body must include (s"$mid")
     }
+    "get by nodeId with no museumId and nodeId that exists" in {
+      val nodeId = 3
+      val mid = None
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects").get().futureValue
+    response.status mustBe 400
+    response.body must include (s"Cannot parse parameter mid as Int: For input string")
+  }
   }
 }
 

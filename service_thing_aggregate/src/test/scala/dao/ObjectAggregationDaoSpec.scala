@@ -36,7 +36,7 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
   "Interacting with the ObjectAggregationDao" when {
 
-    "getting objects for a nodeId that exists" should {
+    "getting objects for a nodeId that exists within a museum" should {
       "return a list of objects" in {
         val mr = dao.getObjects(2,3)
         val fut = mr.futureValue
@@ -63,9 +63,20 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
       }
     }
 
-    "getting objects for a nodeId that does not exist" should {
+    "get objects for a nodeId that does not exist, museum exists" should {
       "return a an empty vector" in {
         val mr = dao.getObjects(1, 999999)
+        val fut = mr.futureValue
+        fut match {
+          case MusitSuccess(result) =>
+            result.length mustBe 0
+          case _ => fail("Should fail")
+        }
+      }
+    }
+    "get objects for a museum that does not exist, nodeId exists" should {
+      "return a an empty vector" in {
+        val mr = dao.getObjects(55, 2)
         val fut = mr.futureValue
         fut match {
           case MusitSuccess(result) =>
