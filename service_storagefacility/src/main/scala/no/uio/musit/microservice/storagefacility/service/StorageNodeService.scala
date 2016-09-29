@@ -420,6 +420,10 @@ class StorageNodeService @Inject() (
 
   /**
    * TODO: Document me!
+   *
+   * returns Some(-1) if the node has children and cannot be removed.
+   * returns Some(1) when the node was successfully marked as removed.
+   * returns None if the node isn't found.
    */
   def deleteNode(id: StorageNodeId)(implicit currUsr: String): Future[MusitResult[Option[Int]]] = {
     getNodeById(id).flatMap {
