@@ -81,7 +81,9 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def getChildren(id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
-    val query = storageNodeTable.filter(_.isPartOf === id).result
+    val query = storageNodeTable.filter { node =>
+      node.isPartOf === id && node.isDeleted === false
+    }.result
     db.run(query).map { dtos =>
       dtos.map { dto =>
         StorageNodeDto.toGenericStorageNode(dto)
@@ -94,7 +96,9 @@ class StorageUnitDao @Inject() (
    */
   def getStorageType(id: StorageNodeId): Future[MusitResult[Option[StorageType]]] = {
     db.run(
-      storageNodeTable.filter(_.id === id).map(_.storageType).result.headOption
+      storageNodeTable.filter { node =>
+        node.id === id && node.isDeleted === false
+      }.map(_.storageType).result.headOption
     ).map { maybeStorageType =>
       MusitSuccess(maybeStorageType)
     }
