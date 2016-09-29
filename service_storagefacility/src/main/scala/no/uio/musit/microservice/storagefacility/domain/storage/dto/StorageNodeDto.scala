@@ -32,7 +32,7 @@ case class RootDto(
     name: String,
     storageType: StorageType
 ) extends StorageNodeDto {
-  val path = NodePath.empty
+  val path = NodePath.root
 
   /**
    * Hack to convert into a StorageUnitDto for DB inserts
@@ -129,7 +129,7 @@ object StorageNodeDto {
       isPartOf = su.isPartOf,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
-      path = su.path,
+      path = Option(su.path),
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       storageType = su.storageType
     )
@@ -150,7 +150,7 @@ object StorageNodeDto {
       isPartOf = su.isPartOf,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
-      path = su.path,
+      path = Option(su.path),
       environmentRequirement = None // EnvRequirement is handled elsewhere
     )
 
@@ -165,7 +165,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      path = ext.storageUnitDto.path,
+      path = Option(ext.storageUnitDto.path),
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       address = ext.extension.address
     )
@@ -182,7 +182,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      path = ext.storageUnitDto.path,
+      path = Option(ext.storageUnitDto.path),
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       address = ext.extension.address
     )
@@ -199,7 +199,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      path = ext.storageUnitDto.path,
+      path = Option(ext.storageUnitDto.path),
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       securityAssessment = SecurityAssessment(
         perimeter = ext.extension.perimeterSecurity,
@@ -238,7 +238,7 @@ object StorageNodeDto {
       heightTo = su.heightTo,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
-      path = su.path,
+      path = su.path.getOrElse(NodePath.root),
       isDeleted = Some(false),
       storageType = su.storageType
     )
@@ -258,7 +258,7 @@ object StorageNodeDto {
         heightTo = b.heightTo,
         groupRead = b.groupRead,
         groupWrite = b.groupWrite,
-        path = b.path,
+        path = b.path.getOrElse(NodePath.root),
         isDeleted = Some(false),
         storageType = b.storageType
       ),
@@ -283,7 +283,7 @@ object StorageNodeDto {
         heightTo = o.heightTo,
         groupRead = o.groupRead,
         groupWrite = o.groupWrite,
-        path = o.path,
+        path = o.path.getOrElse(NodePath.root),
         isDeleted = Some(false),
         storageType = o.storageType
       ),
@@ -308,7 +308,7 @@ object StorageNodeDto {
         heightTo = r.heightTo,
         groupRead = r.groupRead,
         groupWrite = r.groupWrite,
-        path = r.path,
+        path = r.path.getOrElse(NodePath.root),
         isDeleted = Some(false),
         storageType = r.storageType
       ),

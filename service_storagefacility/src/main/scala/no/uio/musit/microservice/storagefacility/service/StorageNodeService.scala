@@ -19,13 +19,13 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.dao.event.{EventDao, LocalObjectDao}
+import no.uio.musit.microservice.storagefacility.dao.event.{ EventDao, LocalObjectDao }
 import no.uio.musit.microservice.storagefacility.dao.storage._
 import no.uio.musit.microservice.storagefacility.domain.NodeStats
 import no.uio.musit.microservice.storagefacility.domain.datetime._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, DtoConverters}
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
+import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -402,17 +402,19 @@ class StorageNodeService @Inject() (
   def nodeStats(nodeId: StorageNodeId): Future[MusitResult[Option[NodeStats]]] = {
     getNodeById(nodeId).flatMap {
       case MusitSuccess(maybeNode) =>
-        maybeNode.map { node =>
-          val eventuallyTotal = statsDao.totalObjectCount(node)
-          val eventuallyDirect = statsDao.directObjectCount(nodeId)
-          val eventuallyNodeCount = statsDao.childCount(nodeId)
+        maybeNode.flatMap { node =>
+          node.path.map { nodePath =>
+            val eventuallyTotal = statsDao.totalObjectCount(nodePath)
+            val eventuallyDirect = statsDao.directObjectCount(nodeId)
+            val eventuallyNodeCount = statsDao.childCount(nodeId)
 
-          for {
-            total <- eventuallyTotal
-            direct <- eventuallyDirect
-            nodeCount <- eventuallyNodeCount
-          } yield {
-            MusitSuccess(Some(NodeStats(nodeCount, direct, total)))
+            for {
+              total <- eventuallyTotal
+              direct <- eventuallyDirect
+              nodeCount <- eventuallyNodeCount
+            } yield {
+              MusitSuccess(Some(NodeStats(nodeCount, direct, total)))
+            }
           }
         }.getOrElse {
           Future.successful(MusitSuccess(None))

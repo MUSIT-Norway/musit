@@ -97,8 +97,8 @@ class StorageUnitDao @Inject() (
   def getStorageType(id: StorageNodeId): Future[MusitResult[Option[StorageType]]] = {
     db.run(
       storageNodeTable.filter { node =>
-        node.id === id && node.isDeleted === false
-      }.map(_.storageType).result.headOption
+      node.id === id && node.isDeleted === false
+    }.map(_.storageType).result.headOption
     ).map { maybeStorageType =>
       MusitSuccess(maybeStorageType)
     }

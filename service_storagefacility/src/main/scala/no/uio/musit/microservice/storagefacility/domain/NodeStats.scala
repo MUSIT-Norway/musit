@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{ Format, Json }
 
 case class NodeStats(numNodes: Int, numObjects: Int, totalObjects: Int)
 

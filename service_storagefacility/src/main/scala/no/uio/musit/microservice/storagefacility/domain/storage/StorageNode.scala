@@ -35,7 +35,7 @@ sealed trait StorageNode {
   val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
-  val path: NodePath
+  val path: Option[NodePath]
   /*
     TODO: Should this attribute be defined as required? We have logic that tries
     to determine if a new EnvRequirement event should be created or not. That is
@@ -43,38 +43,6 @@ sealed trait StorageNode {
    */
   val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
-}
-
-case class GenericStorageNode(
-  id: Option[StorageNodeId],
-  name: String,
-  area: Option[Double],
-  areaTo: Option[Double],
-  isPartOf: Option[StorageNodeId],
-  height: Option[Double],
-  heightTo: Option[Double],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  path: NodePath,
-  environmentRequirement: Option[EnvironmentRequirement],
-  storageType: StorageType
-) extends StorageNode
-
-object GenericStorageNode {
-  implicit val format: Format[GenericStorageNode] = (
-    (__ \ "id").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String] and
-    (__ \ "area").formatNullable[Double] and
-    (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeId] and
-    (__ \ "height").formatNullable[Double] and
-    (__ \ "heightTo").formatNullable[Double] and
-    (__ \ "groupRead").formatNullable[String] and
-    (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").format[NodePath] and
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "type").format[StorageType]
-  )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
 }
 
 case class Root(
@@ -89,7 +57,7 @@ case class Root(
   val heightTo: Option[Double] = None
   val groupRead: Option[String] = None
   val groupWrite: Option[String] = None
-  val path: NodePath = NodePath.empty
+  val path: Option[NodePath] = Some(NodePath.root)
   val storageType: StorageType = StorageType.RootType
 }
 
@@ -103,7 +71,7 @@ case class StorageUnit(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
-    path: NodePath,
+    path: Option[NodePath],
     environmentRequirement: Option[EnvironmentRequirement]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.StorageUnitType
@@ -119,7 +87,7 @@ case class Room(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
-    path: NodePath,
+    path: Option[NodePath],
     environmentRequirement: Option[EnvironmentRequirement],
     securityAssessment: SecurityAssessment,
     environmentAssessment: EnvironmentAssessment
@@ -137,7 +105,7 @@ case class Building(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
-    path: NodePath,
+    path: Option[NodePath],
     environmentRequirement: Option[EnvironmentRequirement],
     address: Option[String]
 ) extends StorageNode {
@@ -154,7 +122,7 @@ case class Organisation(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
-    path: NodePath,
+    path: Option[NodePath],
     environmentRequirement: Option[EnvironmentRequirement],
     address: Option[String]
 ) extends StorageNode {
@@ -188,4 +156,39 @@ object StorageNode {
 
   implicit lazy val writes: OWrites[StorageNode] =
     derived.flat.owrites[StorageNode]((__ \ "type").write[String])
+}
+
+/**
+ * Used to represent the common denominator for all storage nodes.
+ */
+case class GenericStorageNode(
+  id: Option[StorageNodeId],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[StorageNodeId],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  path: Option[NodePath],
+  environmentRequirement: Option[EnvironmentRequirement],
+  storageType: StorageType
+) extends StorageNode
+
+object GenericStorageNode {
+  implicit val format: Format[GenericStorageNode] = (
+    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String] and
+    (__ \ "area").formatNullable[Double] and
+    (__ \ "areaTo").formatNullable[Double] and
+    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "height").formatNullable[Double] and
+    (__ \ "heightTo").formatNullable[Double] and
+    (__ \ "groupRead").formatNullable[String] and
+    (__ \ "groupWrite").formatNullable[String] and
+    (__ \ "path").formatNullable[NodePath] and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "type").format[StorageType]
+  )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
 }

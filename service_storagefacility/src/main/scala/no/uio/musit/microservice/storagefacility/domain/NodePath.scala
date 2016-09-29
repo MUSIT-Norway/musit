@@ -21,9 +21,9 @@ package no.uio.musit.microservice.storagefacility.domain
 
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
-
-import scala.util.Try
 
 /**
  * Trait defining the shape of a NodePath
@@ -84,25 +84,28 @@ object NodePath {
    */
   def apply(path: String): NodePath = {
     val p1 = if (!path.startsWith(",")) s",$path" else path
-    val p2 = if (!p1.endsWith(",")) s"$path," else path
+    val p2 = if (!p1.endsWith(",")) s"$p1," else p1
 
     if (path.contains(",,"))
       throw new IllegalArgumentException(
         s"Requirement failed: Path $path contained empty path element ',,'"
       )
 
-    Try {
-      p2.trim
-        .stripPrefix(",")
-        .stripSuffix(",")
-        .split(",")
-        .foreach(s => s.toLong)
-    }.recover {
-      case nfex: NumberFormatException =>
-        logger.error(s"Path $path contained illegal value.")
-        throw new IllegalArgumentException(
-          s"Requirement failed: Path $path contained non-numeric element."
-        )
+    if (path != root.path) {
+      // Consciously using regular try catch here!
+      try {
+        p2.trim
+          .stripPrefix(",")
+          .stripSuffix(",")
+          .split(",")
+          .foreach(s => s.toLong)
+      } catch {
+        case nfex: NumberFormatException =>
+          logger.error(s"Path $path contained illegal value.")
+          throw new IllegalArgumentException(
+            s"Requirement failed: Path $path contained non-numeric element."
+          )
+      }
     }
 
     NodePathImpl(p2)
@@ -111,10 +114,11 @@ object NodePath {
   /**
    * Useful function to initialize an empty NodePath.
    */
-  val empty: NodePath = NodePathImpl(",")
+  val root: NodePath = NodePathImpl(",")
 
   // JSON picklers for the NodePath type.
   implicit val reads: Reads[NodePath] = __.read[String].map(NodePath.apply)
+
   implicit val writes: Writes[NodePath] = Writes { nodePath =>
     JsString(nodePath.path)
   }

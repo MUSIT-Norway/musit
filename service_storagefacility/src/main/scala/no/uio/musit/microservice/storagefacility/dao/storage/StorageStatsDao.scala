@@ -19,15 +19,16 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
-import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNode, StorageNodeId}
+import com.google.inject.{ Inject, Singleton }
+import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.storage.{ StorageNode, StorageNodeId }
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
 
 @Singleton
 class StorageStatsDao @Inject() (
-  val dbConfigProvider: DatabaseConfigProvider
+    val dbConfigProvider: DatabaseConfigProvider
 ) extends SharedStorageTables {
 
   import driver.api._
@@ -43,19 +44,20 @@ class StorageStatsDao @Inject() (
   /**
    * The total number of museum objects at node or any of its child nodes.
    *
-   * @param node StorageNode to count total object count for.
+   * @param path NodePath to count total object count for.
    * @return Future[Int] with total number of objects under the provided node
    *         and all its child nodes.
    */
-  def totalObjectCount(node: StorageNode): Future[Int] = {
-    val nodeFilter = s"${node.path}%"
+  def totalObjectCount(path: NodePath): Future[Int] = {
+    val nodeFilter = s"${path.path}%"
     db.run(
       sql"""
         select count(*)
         from "MUSARK_STORAGE"."STORAGE_NODE" n, "MUSARK_STORAGE"."LOCAL_OBJECT" o
-        where n.node_path like ${nodeFilter}
-        and o.current_location_id = n.storage_node_id
-      """.as[Int].head)
+        where n."NODE_PATH" like ${nodeFilter}
+        and o."CURRENT_LOCATION_ID" = n."STORAGE_NODE_ID"
+      """.as[Int].head
+    )
   }
 
   /**
@@ -71,8 +73,9 @@ class StorageStatsDao @Inject() (
       sql"""
         select count(*)
         from "MUSARK_STORAGE"."LOCAL_OBJECT" o
-        where o.current_location_id = ${nodeId}
-      """.as[Int].head)
+        where o."CURRENT_LOCATION_ID" = ${nodeId.underlying}
+      """.as[Int].head
+    )
   }
 
 }

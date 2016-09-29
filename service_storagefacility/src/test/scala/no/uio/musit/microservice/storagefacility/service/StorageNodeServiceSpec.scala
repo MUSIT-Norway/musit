@@ -92,4 +92,34 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     again.get.get.areaTo mustBe Some(4.0)
   }
 
+  "successfully mark a node as deleted" in {
+    val su = createStorageUnit()
+    val inserted = service.addStorageUnit(su).futureValue
+    inserted.id must not be None
+
+    val deleted = service.deleteNode(inserted.id.get).futureValue
+    deleted.isSuccess mustBe true
+
+    val notAvailable = service.getNodeById(inserted.id.get).futureValue
+    notAvailable.isSuccess mustBe true
+    notAvailable.get mustBe None
+  }
+
+  "not remove a node that has children" in {
+    val su1 = createStorageUnit()
+    val inserted1 = service.addStorageUnit(su1).futureValue
+    inserted1.id must not be None
+
+    val su2 = createStorageUnit(partOf = inserted1.id)
+    val inserted2 = service.addStorageUnit(su2).futureValue
+    inserted2.id must not be None
+
+    val notDeleted = service.deleteNode(inserted1.id.get).futureValue
+    notDeleted.isSuccess mustBe true
+    notDeleted.get must not be None
+    notDeleted.get.get mustBe -1
+  }
+
+  // TODO: MORE TESTING!!!!!
+
 }

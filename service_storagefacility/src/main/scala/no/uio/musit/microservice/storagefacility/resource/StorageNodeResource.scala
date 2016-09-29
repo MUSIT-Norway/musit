@@ -20,10 +20,10 @@ package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.domain.Move
-import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
+import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
-import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess, MusitValidationError}
+import no.uio.musit.service.MusitResults.{ MusitError, MusitResult, MusitSuccess, MusitValidationError }
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -81,8 +81,9 @@ final class StorageNodeResource @Inject() (
         }
 
       case err: JsError =>
-        logger.error(s"Received an invalid JSON")
-        Future.successful(BadRequest(JsError.toJson(err)))
+        val jserr = JsError.toJson(err)
+        logger.error(s"Received an invalid JSON:\n${Json.prettyPrint(jserr)}")
+        Future.successful(BadRequest(jserr))
 
     }
   }
