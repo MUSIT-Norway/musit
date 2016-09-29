@@ -21,12 +21,12 @@ package no.uio.musit.microservice.storagefacility.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.{ EventDao, LocalObjectDao }
 import no.uio.musit.microservice.storagefacility.dao.storage._
-import no.uio.musit.microservice.storagefacility.domain.NodeStats
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
+import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveNode, MoveObject }
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.microservice.storagefacility.domain.{ NodePath, NodeStats }
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -70,83 +70,133 @@ class StorageNodeService @Inject() (
     }
   }
 
-  def addRoot(root: Root): Future[Root] = storageUnitDao.insertRoot(root)
+  def addRoot(root: Root): Future[Root] = {
+    storageUnitDao.insertRoot(root).flatMap { r =>
+      val id = r.id.get
+      val path = r.path.getOrElse(NodePath.empty).appendChild(id)
+      storageUnitDao.updateRootPath(id, path).map { mr =>
+        logger.debug(s"Updated root path and go back $mr")
+        mr.getOrElse(r)
+      }
+    }
+  }
+
+  /**
+   * Find the NodePath for the given storageNodeId.
+   */
+  private[service] def findPath(
+    id: Option[StorageNodeId]
+  ): Future[Option[NodePath]] = {
+    id.map(storageUnitDao.getPathById).getOrElse {
+      Future.successful(None)
+    }
+  }
+
+  // A couple of type aliases to reduce the length of some function args.
+  type NodeInsertIO[A] = A => Future[A]
+  type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
+  type NodeUpdateIO[A] = (StorageNodeId, A, NodePath) => Future[A]
+
+  /**
+   * Helper function that wraps the process of inserting a new StorageNode.
+   *
+   * @param node
+   * @param insert
+   * @param setEnvReq
+   * @param updateWithPath
+   * @param currUsr
+   * @tparam T
+   * @return
+   */
+  private def addNode[T <: StorageNode](
+    node: T,
+    insert: NodeInsertIO[T],
+    setEnvReq: SetEnvReq[T],
+    updateWithPath: NodeUpdateIO[T]
+  )(implicit currUsr: String): Future[T] = {
+    for {
+      maybePath <- findPath(node.isPartOf)
+      // Call te insert function to persist the node.
+      addedNode <- insert(node).flatMap { added =>
+        logger.debug(s"${node.getClass.getSimpleName} was added with id ${added.id}")
+        val maybeWithEnvReq = for {
+          nodeId <- added.id
+          envReq <- node.environmentRequirement
+        } yield {
+          logger.debug(s"Saving new environment requirement data " +
+            s"for ${node.getClass.getSimpleName} with id $nodeId")
+          saveEnvReq(nodeId, envReq).map { maybeEnvReq =>
+            setEnvReq(added, maybeEnvReq)
+          }
+        }
+        maybeWithEnvReq.getOrElse(Future.successful(added))
+      }
+      withPath <- {
+        // We can get on the ID here because we know it's present. Otherwise the for
+        // comprehension would've been aborted already with a failed Future.
+        val id = addedNode.id.get
+        logger.debug(s"Updating node $id with correct path")
+        updateWithPath(
+          id,
+          addedNode,
+          maybePath.getOrElse(NodePath.empty).appendChild(id)
+        )
+      }
+    } yield withPath
+  }
 
   /**
    * TODO: Document me!
    */
-  def addStorageUnit(storageUnit: StorageUnit)(implicit currUsr: String): Future[StorageUnit] = {
-    storageUnitDao.insert(storageUnit).flatMap { sn =>
-      val maybeWithEnvReq =
-        for {
-          nodeId <- sn.id
-          envReq <- storageUnit.environmentRequirement
-        } yield {
-          logger.debug(s"Saving new environment requirement data for unit $nodeId")
-          saveEnvReq(nodeId, envReq).map { maybeEnvReq =>
-            sn.copy(environmentRequirement = maybeEnvReq)
-          }
-        }
-      maybeWithEnvReq.getOrElse(Future.successful(sn))
-    }
+  def addStorageUnit(
+    storageUnit: StorageUnit
+  )(implicit currUsr: String): Future[StorageUnit] = {
+    addNode[StorageUnit](
+      node = storageUnit,
+      insert = storageUnitDao.insert,
+      setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
+      updateWithPath = (id, created, path) =>
+      storageUnitDao.updatePath(id, path).map(_.getOrElse(created))
+    )
   }
 
   /**
    * TODO: Document me!!!
    */
-  def addRoom(storageRoom: Room)(implicit currUsr: String): Future[Room] = {
-    roomDao.insert(storageRoom).flatMap { addedRoom =>
-      logger.debug(s"Room was added with id ${addedRoom.id}")
-      val maybeWithEnvReq =
-        for {
-          nodeId <- addedRoom.id
-          envReq <- storageRoom.environmentRequirement
-        } yield {
-          logger.debug(s"Saving new environment requirement data for room $nodeId")
-          saveEnvReq(nodeId, envReq).map { maybeEnvReq =>
-            addedRoom.copy(environmentRequirement = maybeEnvReq)
-          }
-        }
-      maybeWithEnvReq.getOrElse(Future.successful(addedRoom))
-    }
+  def addRoom(room: Room)(implicit currUsr: String): Future[Room] = {
+    addNode[Room](
+      node = room,
+      insert = roomDao.insert,
+      setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
+      updateWithPath = (id, created, path) =>
+      roomDao.updatePath(id, path).map(_.getOrElse(created))
+    )
   }
 
   /**
    * TODO: Document me!!!
    */
   def addBuilding(building: Building)(implicit currUsr: String): Future[Building] = {
-    buildingDao.insert(building).flatMap { addedBuilding =>
-      val maybeWithEnvReq =
-        for {
-          nodeId <- addedBuilding.id
-          envReq <- building.environmentRequirement
-        } yield {
-          logger.debug(s"Saving new environment requirement data for building $nodeId")
-          saveEnvReq(nodeId, envReq).map { maybeEnvReq =>
-            addedBuilding.copy(environmentRequirement = maybeEnvReq)
-          }
-        }
-      maybeWithEnvReq.getOrElse(Future.successful(addedBuilding))
-    }
+    addNode[Building](
+      node = building,
+      insert = buildingDao.insert,
+      setEnvReq = (node, maybeEnvReq) => node.copy(environmentRequirement = maybeEnvReq),
+      updateWithPath = (id, created, path) =>
+      buildingDao.updatePath(id, path).map(_.getOrElse(created))
+    )
   }
 
   /**
    * TODO: Document me!!!
    */
   def addOrganisation(organisation: Organisation)(implicit currUsr: String): Future[Organisation] = {
-    organisationDao.insert(organisation).flatMap { addedOrgNode =>
-      val maybeWithEnvReq =
-        for {
-          nodeId <- addedOrgNode.id
-          envReq <- organisation.environmentRequirement
-        } yield {
-          logger.debug(s"Saving new environment requirement data for organisation node $nodeId")
-          saveEnvReq(nodeId, envReq).map { maybeEnvReq =>
-            addedOrgNode.copy(environmentRequirement = maybeEnvReq)
-          }
-        }
-      maybeWithEnvReq.getOrElse(Future.successful(addedOrgNode))
-    }
+    addNode[Organisation](
+      node = organisation,
+      insert = organisationDao.insert,
+      setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
+      updateWithPath = (id, created, path) =>
+      organisationDao.updatePath(id, path).map(_.getOrElse(created))
+    )
   }
 
   /**
@@ -462,7 +512,10 @@ class StorageNodeService @Inject() (
   /**
    * Helper to encapsulate shared logic between the public move methods.
    */
-  private def move(id: Long, dto: BaseEventDto)(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
+  private def move(
+    id: Long,
+    dto: BaseEventDto
+  )(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
     eventDao.insertEvent(dto).flatMap(eventId => f(eventId)).recover {
       case NonFatal(ex) =>
         val msg = s"An exception occured trying to move $id"
@@ -478,8 +531,12 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     event: MoveNode
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
+    /*
+      TODO: Enrich the move event with original textual path names and ID paths.
+     */
     val dto = DtoConverters.MoveConverters.moveNodeToDto(event)
     move(id, dto) { eventId =>
+      // TODO: Also update the path for current node and all children!
       storageUnitDao.updatePartOf(id, Some(event.to.placeId)).map { updRes =>
         logger.debug(s"Update partOf result $updRes")
         MusitSuccess(eventId)

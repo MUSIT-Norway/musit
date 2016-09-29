@@ -22,7 +22,6 @@ package no.uio.musit.microservice.storagefacility.domain
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
 import play.api.libs.json.Reads._
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 /**
@@ -35,7 +34,9 @@ trait NodePath {
   def path: String
 
   /**
-   * Function that returns the parent path for the current NodePath
+   * Function that returns the parent path for the current NodePath. If the
+   * current path matches NodePath.empty, the function will return the same
+   * result back.
    */
   def parent: NodePath
 
@@ -59,9 +60,13 @@ object NodePath {
    * @param path String with the format that represents a path
    */
   private case class NodePathImpl(path: String) extends NodePath {
+
     override def parent: NodePath = {
-      val stripped = path.stripSuffix(",")
-      NodePath(stripped.substring(0, stripped.lastIndexOf(",") + 1))
+      if (NodePath.empty.path == path) NodePath.empty
+      else {
+        val stripped = path.stripSuffix(",")
+        NodePath(stripped.substring(0, stripped.lastIndexOf(",") + 1))
+      }
     }
 
     override def appendChild(childId: StorageNodeId): NodePath =
@@ -91,7 +96,7 @@ object NodePath {
         s"Requirement failed: Path $path contained empty path element ',,'"
       )
 
-    if (path != root.path) {
+    if (path != empty.path) {
       // Consciously using regular try catch here!
       try {
         p2.trim
@@ -114,7 +119,7 @@ object NodePath {
   /**
    * Useful function to initialize an empty NodePath.
    */
-  val root: NodePath = NodePathImpl(",")
+  val empty: NodePath = NodePathImpl(",")
 
   // JSON picklers for the NodePath type.
   implicit val reads: Reads[NodePath] = __.read[String].map(NodePath.apply)

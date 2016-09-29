@@ -48,7 +48,8 @@ sealed trait StorageNode {
 case class Root(
     id: Option[StorageNodeId] = None,
     name: String = "root-node",
-    environmentRequirement: Option[EnvironmentRequirement] = None
+    environmentRequirement: Option[EnvironmentRequirement] = None,
+    path: Option[NodePath] = Some(NodePath.empty)
 ) extends StorageNode {
   val area: Option[Double] = None
   val areaTo: Option[Double] = None
@@ -57,7 +58,6 @@ case class Root(
   val heightTo: Option[Double] = None
   val groupRead: Option[String] = None
   val groupWrite: Option[String] = None
-  val path: Option[NodePath] = Some(NodePath.root)
   val storageType: StorageType = StorageType.RootType
 }
 
@@ -140,6 +140,11 @@ object StorageNode {
     API of any services that use them. In other words; it is a non-backwards
     compatible change. Because the _value_ of the "type" attribute needs to be
     constant for each type.
+
+    FIXME: The derived codecs JSON formatters have horrible error messages.
+    We should probably change the formatters to use plain reads/writes with
+    manual disambiguation as shown here:
+    http://scalytica.net/#posts/2015-03-29/playframework-reads-writes-of-parent-child-class-structure
     ============================================================================
   */
 

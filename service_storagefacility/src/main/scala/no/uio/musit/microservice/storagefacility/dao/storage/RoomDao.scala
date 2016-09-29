@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.dto._
 import no.uio.musit.microservice.storagefacility.domain.storage.{ Room, StorageNodeId }
 import play.api.Logger
@@ -75,6 +76,23 @@ class RoomDao @Inject() (
     } yield roomsUpdated
 
     db.run(action.transactionally).flatMap {
+      case res: Int if res == 1 =>
+        getById(id)
+
+      case res: Int =>
+        logger.warn(s"Wrong amount of rows ($res) updated")
+        Future.successful(None)
+    }
+  }
+
+  /**
+   * Updates the path for the given StoragNodeId
+   * @param id the StorageNodeId to update
+   * @param path the NodePath to set
+   * @return the updated Room
+   */
+  def updatePath(id: StorageNodeId, path: NodePath): Future[Option[Room]] = {
+    db.run(updatePathAction(id, path)).flatMap {
       case res: Int if res == 1 =>
         getById(id)
 

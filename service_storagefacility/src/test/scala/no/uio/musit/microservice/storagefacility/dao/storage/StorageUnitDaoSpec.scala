@@ -39,7 +39,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         val ins = storageUnitDao.insertRoot(Root()).futureValue
         ins.id.isEmpty must not be true
         ins.storageType mustBe StorageType.RootType
-        ins.path mustBe Some(NodePath.root)
+        ins.path mustBe Some(NodePath.empty)
       }
     }
 
@@ -79,7 +79,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       updRes.get.name mustBe "UggaBugga"
       updRes.get.areaTo mustBe Some(4.0)
 
-      val again = storageUnitDao.getNodeById(inserted.id.get).futureValue
+      val again = storageUnitDao.getById(inserted.id.get).futureValue
       again must not be None
       again.get.name mustBe "UggaBugga"
       again.get.areaTo mustBe Some(4.0)

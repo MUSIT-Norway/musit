@@ -37,38 +37,71 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   protected val storageNodeTable = TableQuery[StorageNodeTable]
 
-  private[dao] def getUnitByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
-    storageNodeTable.filter { st =>
-      st.id === id && st.isDeleted === false && st.storageType =!= rootNodeType
+  /**
+   * TODO: Document me!!!
+   */
+  protected[storage] def getUnitByIdAction(
+    id: StorageNodeId
+  ): DBIO[Option[StorageUnitDto]] = {
+    storageNodeTable.filter { sn =>
+      sn.id === id && sn.isDeleted === false && sn.storageType =!= rootNodeType
     }.result.headOption
   }
 
-  private[dao] def insertNodeAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
-    storageNodeTable returning storageNodeTable.map(_.id) into ((su, id) =>
-      su.copy(id = Some(id))) += storageUnit
+  protected[storage] def getPathByIdAction(
+    id: StorageNodeId
+  ): DBIO[Option[NodePath]] = {
+    storageNodeTable.filter { sn =>
+      sn.id === id && sn.isDeleted === false
+    }.map(_.path).result.headOption
   }
 
-  private[dao] def countChildren(id: StorageNodeId): DBIO[Int] = {
-    storageNodeTable.filter { st =>
-      st.isPartOf === id && st.isDeleted === false
+  protected[storage] def updatePathAction(
+    id: StorageNodeId,
+    path: NodePath
+  ): DBIO[Int] = {
+    storageNodeTable.filter { sn =>
+      sn.id === id && sn.isDeleted === false
+    }.map(_.path).update(path)
+  }
+
+  /**
+   * TODO: Document me!!!
+   */
+  protected[storage] def insertNodeAction(
+    storageUnit: StorageUnitDto
+  ): DBIO[StorageUnitDto] = {
+    storageNodeTable returning storageNodeTable.map(_.id) into ((sn, id) =>
+      sn.copy(id = Some(id))) += storageUnit
+  }
+
+  /**
+   * TODO: Document me!!!
+   */
+  protected[storage] def countChildren(id: StorageNodeId): DBIO[Int] = {
+    storageNodeTable.filter { sn =>
+      sn.isPartOf === id && sn.isDeleted === false
     }.length.result
   }
 
   /**
    * TODO: Document me!!!
    */
-  protected[dao] def updateNodeAction(
+  protected[storage] def updateNodeAction(
     id: StorageNodeId,
     storageUnit: StorageUnitDto
   ): DBIO[Int] = {
-    storageNodeTable.filter { su =>
-      su.id === id &&
-        su.isDeleted === false &&
-        su.storageType === storageUnit.storageType
+    storageNodeTable.filter { sn =>
+      sn.id === id &&
+        sn.isDeleted === false &&
+        sn.storageType === storageUnit.storageType
     }.update(storageUnit)
   }
 
-  class StorageNodeTable(
+  /**
+   * TODO: Document me!!!
+   */
+  private[storage] class StorageNodeTable(
       val tag: Tag
   ) extends Table[StorageUnitDto](tag, SchemaName, "STORAGE_NODE") {
     // scalastyle:off method.name

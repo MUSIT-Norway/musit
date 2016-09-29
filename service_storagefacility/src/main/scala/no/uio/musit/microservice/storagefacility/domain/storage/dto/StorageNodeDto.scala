@@ -30,9 +30,9 @@ case class ExtendedStorageNode[T <: SpecializedStorageNode](
 case class RootDto(
     id: Option[StorageNodeId],
     name: String,
-    storageType: StorageType
+    storageType: StorageType,
+    path: NodePath = NodePath.empty
 ) extends StorageNodeDto {
-  val path = NodePath.root
 
   /**
    * Hack to convert into a StorageUnitDto for DB inserts
@@ -238,7 +238,7 @@ object StorageNodeDto {
       heightTo = su.heightTo,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
-      path = su.path.getOrElse(NodePath.root),
+      path = su.path.getOrElse(NodePath.empty),
       isDeleted = Some(false),
       storageType = su.storageType
     )
@@ -258,7 +258,7 @@ object StorageNodeDto {
         heightTo = b.heightTo,
         groupRead = b.groupRead,
         groupWrite = b.groupWrite,
-        path = b.path.getOrElse(NodePath.root),
+        path = b.path.getOrElse(NodePath.empty),
         isDeleted = Some(false),
         storageType = b.storageType
       ),
@@ -283,7 +283,7 @@ object StorageNodeDto {
         heightTo = o.heightTo,
         groupRead = o.groupRead,
         groupWrite = o.groupWrite,
-        path = o.path.getOrElse(NodePath.root),
+        path = o.path.getOrElse(NodePath.empty),
         isDeleted = Some(false),
         storageType = o.storageType
       ),
@@ -308,7 +308,7 @@ object StorageNodeDto {
         heightTo = r.heightTo,
         groupRead = r.groupRead,
         groupWrite = r.groupWrite,
-        path = r.path.getOrElse(NodePath.root),
+        path = r.path.getOrElse(NodePath.empty),
         isDeleted = Some(false),
         storageType = r.storageType
       ),

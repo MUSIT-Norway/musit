@@ -80,12 +80,12 @@ object EventRelationTypes {
 /**
  * TODO: What am I?
  */
-private[dao] trait BaseEventDao extends HasDatabaseConfigProvider[JdbcProfile]
+private[event] trait BaseEventDao extends HasDatabaseConfigProvider[JdbcProfile]
 
 /**
  * Tables definitions that are required across DAO implementations.
  */
-private[dao] trait SharedEventTables extends BaseEventDao
+private[event] trait SharedEventTables extends BaseEventDao
     with ColumnTypeMappers {
 
   import driver.api._

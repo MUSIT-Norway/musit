@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storagefacility.resource
 
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
@@ -58,11 +59,13 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           val addedNodes = Seq.newBuilder[Root]
           for (i <- 1 to numNodes) {
             val res = wsUrl(RootNodeUrl).post(JsNull).futureValue
-            val root1 = parseAndVerifyResponse[Root](res)
-            root1 mustBe a[Root]
-            root1.id.isEmpty must not be true
-            root1.storageType mustBe StorageType.RootType
-            addedNodes += root1
+            val root = parseAndVerifyResponse[Root](res)
+            root mustBe a[Root]
+            root.id.isEmpty must not be true
+            root.id.get mustBe StorageNodeId(i.toLong)
+            root.storageType mustBe StorageType.RootType
+            root.path mustBe Some(NodePath(s",$i,"))
+            addedNodes += root
           }
           addedNodes.result()
         }
@@ -79,6 +82,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, OrganisationType, "My Org1", 5, Some(1)
         )
         organisation mustBe an[Organisation]
+        organisation.path must not be None
+        organisation.path.get mustBe NodePath(",1,5,")
       }
 
       "successfully create a building node" in {
@@ -90,6 +95,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, BuildingType, "My Building1", 6, Some(5)
         )
         building mustBe a[Building]
+        building.path must not be None
+        building.path.get mustBe NodePath(",1,5,6,")
       }
 
       "successfully create a room node" in {
@@ -101,6 +108,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, RoomType, "My Room1", 7, Some(6)
         )
         room mustBe a[Room]
+        room.path must not be None
+        room.path.get mustBe NodePath(",1,5,6,7,")
       }
 
       "successfully create a storage unit node" in {
@@ -112,6 +121,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, StorageUnitType, "My Shelf1", 8, Some(7)
         )
         su mustBe a[StorageUnit]
+        su.path must not be None
+        su.path.get mustBe NodePath(",1,5,6,7,8,")
       }
 
       "not allow creating a storage node with a name over 500 chars" in {
@@ -185,8 +196,11 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, StorageUnitType, "My Shelf2", 9, Some(7)
         )
         su mustBe a[StorageUnit]
+        su.path must not be None
+        su.path.get mustBe NodePath(",1,5,6,7,9,")
         su.areaTo mustBe Some(.5)
         su.heightTo mustBe Some(.6)
+
 
         val updatedJson = {
           Json.parse(response.body).as[JsObject] ++ Json.obj(
@@ -203,6 +217,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[StorageUnit]
+        updated.path must not be None
+        updated.path.get mustBe NodePath(",1,5,6,7,9,")
         updated.areaTo mustBe Some(.8)
         updated.heightTo mustBe Some(.8)
       }
@@ -215,6 +231,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, RoomType, "My Room2", 10, Some(6)
         )
         room mustBe a[Room]
+        room.path must not be None
+        room.path.get mustBe NodePath(",1,5,6,10,")
         room.areaTo mustBe Some(21.0)
         room.heightTo mustBe Some(2.6)
 
@@ -232,6 +250,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[Room]
+        updated.path must not be None
+        updated.path.get mustBe NodePath(",1,5,6,10,")
         updated.environmentAssessment.lightingCondition mustBe Some(true)
       }
 
@@ -243,6 +263,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, BuildingType, "My Building2", 11, Some(5)
         )
         building mustBe a[Building]
+        building.path must not be None
+        building.path.get mustBe NodePath(",1,5,11,")
         building.areaTo mustBe Some(210.0)
         building.heightTo mustBe Some(3.5)
 
@@ -260,6 +282,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[Building]
+        updated.path must not be None
+        updated.path.get mustBe NodePath(",1,5,11,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
         updated.environmentRequirement.isEmpty must not be true
         updated.environmentRequirement.get.cleaning mustBe Some("Filthy")
@@ -273,6 +297,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, OrganisationType, "My Organisation2", 12, Some(1)
         )
         organisation mustBe an[Organisation]
+        organisation.path must not be None
+        organisation.path.get mustBe NodePath(",1,12,")
         organisation.areaTo mustBe Some(2100)
         organisation.heightTo mustBe Some(3.5)
 
@@ -289,6 +315,8 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe an[Organisation]
+        updated.path must not be None
+        updated.path.get mustBe NodePath(",1,12,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
       }
 
