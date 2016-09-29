@@ -19,12 +19,13 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.dao.event.{ EventDao, LocalObjectDao }
-import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
+import no.uio.musit.microservice.storagefacility.dao.event.{EventDao, LocalObjectDao}
+import no.uio.musit.microservice.storagefacility.dao.storage._
+import no.uio.musit.microservice.storagefacility.domain.NodeStats
 import no.uio.musit.microservice.storagefacility.domain.datetime._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, DtoConverters}
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -43,7 +44,8 @@ class StorageNodeService @Inject() (
     val organisationDao: OrganisationDao,
     val envReqService: EnvironmentRequirementService,
     val eventDao: EventDao,
-    val localObjectDao: LocalObjectDao
+    val localObjectDao: LocalObjectDao,
+    val statsDao: StorageStatsDao
 ) {
 
   val logger = Logger(classOf[StorageNodeService])
@@ -380,34 +382,54 @@ class StorageNodeService @Inject() (
     }
   }
 
-  //  def updateStorageTripleById(
-  //    id: StorageNodeId,
-  //    triple: StorageNode
-  //  ): Future[MusitResult[Int]] = {
-  //    val sid = StorageNodeId(id)
-  //    verifyStorageTypeMatchesDatabase(sid, triple.storageType).flatMap {
-  //      case Right(true) =>
-  //        triple match {
-  //          case st: StorageUnit =>
-  //            updateStorageUnitById(sid, st).map(Right(_))
-  //          case building: Building =>
-  //            buildingService.updateBuilding(sid, building).map(Right(_))
-  //          case room: Room =>
-  //            roomService.update(sid, room).map(Right(_))
-  //        }
-  //      case Left(error) =>
-  //        Future.successful(Left(error))
-  //    }
-  //  }
+  def nodeStats(nodeId: StorageNodeId): Future[MusitResult[Option[NodeStats]]] = {
+    getNodeById(nodeId).flatMap {
+      case MusitSuccess(maybeNode) =>
+        maybeNode.map { node =>
+          val eventuallyTotal = statsDao.totalObjectCount(node)
+          val eventuallyDirect = statsDao.directObjectCount(nodeId)
+          val eventuallyNodeCount = statsDao.childCount(nodeId)
+
+          for {
+            total <- eventuallyTotal
+            direct <- eventuallyDirect
+            nodeCount <- eventuallyNodeCount
+          } yield {
+            MusitSuccess(Some(NodeStats(nodeCount, direct, total)))
+          }
+        }.getOrElse {
+          Future.successful(MusitSuccess(None))
+        }
+
+      case err: MusitError =>
+        Future.successful(err)
+    }
+  }
+
+  private def isEmpty(node: StorageNode): Future[Boolean] = {
+    node.id.map { nodeId =>
+      val eventuallyTotal = statsDao.directObjectCount(nodeId)
+      val eventuallyNode = statsDao.childCount(nodeId)
+
+      for {
+        total <- eventuallyTotal
+        nodeCount <- eventuallyNode
+      } yield (total + nodeCount) == 0
+    }.getOrElse(Future.successful(false))
+  }
 
   /**
    * TODO: Document me!
    */
-  def deleteNode(id: StorageNodeId)(implicit currUsr: String): Future[MusitResult[Int]] = {
-    storageUnitDao.nodeExists(id).flatMap {
-      case MusitSuccess(exists) =>
-        if (exists) storageUnitDao.markAsDeleted(id)
-        else Future.successful(MusitSuccess(0))
+  def deleteNode(id: StorageNodeId)(implicit currUsr: String): Future[MusitResult[Option[Int]]] = {
+    getNodeById(id).flatMap {
+      case MusitSuccess(maybeNode) =>
+        maybeNode.map { node =>
+          isEmpty(node).flatMap { empty =>
+            if (empty) storageUnitDao.markAsDeleted(id).map(_.map(Some.apply))
+            else Future.successful(MusitSuccess(Some(-1)))
+          }
+        }.getOrElse(Future.successful(MusitSuccess(None)))
 
       case error: MusitError =>
         Future.successful(error)

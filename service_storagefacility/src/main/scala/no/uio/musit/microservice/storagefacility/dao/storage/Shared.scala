@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.dao._
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.{ StorageNodeId, StorageType }
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
 import play.api.db.slick.HasDatabaseConfigProvider
@@ -36,15 +37,21 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   protected val storageNodeTable = TableQuery[StorageNodeTable]
 
-  protected[dao] def getUnitByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
+  private[dao] def getUnitByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { st =>
       st.id === id && st.isDeleted === false && st.storageType =!= rootNodeType
     }.result.headOption
   }
 
-  protected[dao] def insertNodeAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
+  private[dao] def insertNodeAction(storageUnit: StorageUnitDto): DBIO[StorageUnitDto] = {
     storageNodeTable returning storageNodeTable.map(_.id) into ((su, id) =>
       su.copy(id = Some(id))) += storageUnit
+  }
+
+  private[dao] def countChildren(id: StorageNodeId): DBIO[Int] = {
+    storageNodeTable.filter { st =>
+      st.isPartOf === id && st.isDeleted === false
+    }.length.result
   }
 
   /**
@@ -76,7 +83,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       heightTo,
       groupRead,
       groupWrite,
-      isDeleted
+      isDeleted,
+      path
     ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
@@ -92,6 +100,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val groupRead = column[Option[String]]("GROUP_READ")
     val groupWrite = column[Option[String]]("GROUP_WRITE")
     val isDeleted = column[Boolean]("IS_DELETED")
+    val path = column[NodePath]("NODE_PATH")
 
     def create = (
       id: Option[StorageNodeId],
@@ -104,7 +113,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       heightTo: Option[Double],
       groupRead: Option[String],
       groupWrite: Option[String],
-      isDeleted: Boolean
+      isDeleted: Boolean,
+      nodePath: NodePath
     ) =>
       StorageUnitDto(
         id = id,
@@ -116,6 +126,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         heightTo = heightTo,
         groupRead = groupRead,
         groupWrite = groupWrite,
+        path = nodePath,
         isDeleted = Option(isDeleted),
         storageType = storageType
       )
@@ -132,7 +143,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
-        unit.isDeleted.getOrElse(false)
+        unit.isDeleted.getOrElse(false),
+        unit.path
       ))
   }
 

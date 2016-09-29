@@ -20,10 +20,10 @@ package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.domain.Move
-import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
-import no.uio.musit.service.MusitResults.{ MusitError, MusitResult, MusitSuccess, MusitValidationError }
+import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess, MusitValidationError}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -34,11 +34,11 @@ import scala.concurrent.Future
 /**
  * TODO: Document me!
  */
-final class StorageUnitResource @Inject() (
+final class StorageNodeResource @Inject() (
     service: StorageNodeService
 ) extends Controller {
 
-  val logger = Logger(classOf[StorageUnitResource])
+  val logger = Logger(classOf[StorageNodeResource])
 
   // TODO: Use user from an enriched request type in a proper SecureAction
   import no.uio.musit.microservice.storagefacility.DummyData.DummyUser
@@ -173,13 +173,17 @@ final class StorageUnitResource @Inject() (
   def delete(id: Long) = Action.async { implicit request =>
     // TODO: Extract current user information from enriched request.
     service.deleteNode(id).map {
-      case MusitSuccess(numDeleted) =>
-        if (numDeleted == 0) {
+      case MusitSuccess(maybeDeleted) =>
+        maybeDeleted.map { numDeleted =>
+          if (numDeleted == -1) {
+            BadRequest(Json.obj("message" -> s"Node $id is not empty"))
+          } else {
+            Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
+          }
+        }.getOrElse {
           NotFound(Json.obj(
             "message" -> s"Could not find storage node with id: $id"
           ))
-        } else {
-          Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
         }
 
       case err: MusitError =>
@@ -219,6 +223,7 @@ final class StorageUnitResource @Inject() (
     }
   }
 
+  // TODO: Check if moving to self...should be illegal!
   def moveNode = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[Move[StorageNodeId]] match {
@@ -242,6 +247,22 @@ final class StorageUnitResource @Inject() (
       case JsError(error) =>
         logger.warn(s"Error parsing JSON:\n ${Json.prettyPrint(JsError.toJson(error))}")
         Future.successful(BadRequest(JsError.toJson(error)))
+    }
+  }
+
+  def stats(nodeId: Long) = Action.async { implicit request =>
+    service.nodeStats(nodeId).map {
+      case MusitSuccess(maybeStats) =>
+        maybeStats.map { stats =>
+          Ok(Json.toJson(stats))
+        }.getOrElse {
+          NotFound(Json.obj("message" -> s"Could not find nodeId $nodeId"))
+        }
+
+      case err: MusitError =>
+        logger.error("An unexpected error occured when trying to read " +
+          s"node stats for $nodeId. Message was: ${err.message}")
+        InternalServerError(Json.obj("message" -> err.message))
     }
   }
 
