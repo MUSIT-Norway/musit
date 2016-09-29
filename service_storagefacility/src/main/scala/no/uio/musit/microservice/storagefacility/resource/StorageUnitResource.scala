@@ -75,8 +75,8 @@ final class StorageUnitResource @Inject() (
               Created(Json.toJson[StorageNode](n))
             }
 
-          case r: Root =>
-            val message = "Wrong service for adding a root node."
+          case bad =>
+            val message = s"Wrong service for adding a ${bad.storageType}."
             Future.successful(BadRequest(Json.obj("message" -> message)))
         }
 
@@ -105,7 +105,9 @@ final class StorageUnitResource @Inject() (
    * TODO: Document me!
    */
   def children(id: Long) = Action.async { implicit request =>
-    service.getChildren(id).map(nodes => Ok(Json.toJson(nodes)))
+    service.getChildren(id).map { nodes =>
+      Ok(Json.toJson[Seq[GenericStorageNode]](nodes))
+    }
   }
 
   /**
@@ -142,7 +144,7 @@ final class StorageUnitResource @Inject() (
           case b: Building => service.updateBuilding(id, b)
           case r: Room => service.updateRoom(id, r)
           case o: Organisation => service.updateOrganisation(id, o)
-          case r: Root => Future.successful(MusitSuccess(None))
+          case notCorrect => Future.successful(MusitSuccess(None))
         }
 
         futureRes.map { musitRes =>

@@ -63,7 +63,7 @@ object StorageType extends Enum[StorageType] with PlayJsonEnum[StorageType] {
   }
 
   case object OrganisationType extends StorageType {
-    override val storageTypeName: String = "Organization"
+    override val storageTypeName: String = "Organisation"
   }
 
 }
