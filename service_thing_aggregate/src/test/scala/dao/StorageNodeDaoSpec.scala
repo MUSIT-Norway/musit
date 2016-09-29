@@ -36,7 +36,7 @@ class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId that does not exist within a spesific museum" should {
       "return false" in {
-        dao.nodeExists(2,9999).futureValue match {
+        dao.nodeExists(2, 9999).futureValue match {
           case MusitSuccess(false) =>
           case _ => fail("it should not exist")
         }
@@ -45,7 +45,7 @@ class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId that exists in a spesific museum" should {
       "return true" in {
-        dao.nodeExists(2,3).futureValue match {
+        dao.nodeExists(2, 3).futureValue match {
           case MusitSuccess(true) =>
           case _ => fail("it should exist")
         }
@@ -54,7 +54,7 @@ class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId with wrong museum" should {
       "return true" in {
-        dao.nodeExists(55,3).futureValue match {
+        dao.nodeExists(55, 3).futureValue match {
           case MusitSuccess(false) =>
           case _ => fail("it should not exist")
         }

@@ -38,7 +38,7 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId that exists within a museum" should {
       "return a list of objects" in {
-        val mr = dao.getObjects(2,3)
+        val mr = dao.getObjects(2, 3)
         val fut = mr.futureValue
         fut match {
           case MusitSuccess(result) =>

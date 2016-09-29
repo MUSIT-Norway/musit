@@ -54,7 +54,14 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects").get().futureValue
     response.status mustBe 400
     response.body must include (s"Cannot parse parameter mid as Int: For input string")
-  }
+    }
+    "get by nodeId with no museum as String and nodeId that exists" in {
+      val nodeId = 3
+      val mid = "blæBlæBlæ"
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects").get().futureValue
+      response.status mustBe 400
+      response.body must include (s"Cannot parse parameter mid as Int: For input string")
+    }
   }
 }
 
