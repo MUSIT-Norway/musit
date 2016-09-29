@@ -56,7 +56,8 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
                 third.identifier mustBe MuseumIdentifier("C666", Some("38"))
                 third.displayName mustBe Some("Sommerfugl")
             }
-          case _ =>
+          case other =>
+            println(other)
             Logger.error("something went wrong")
             fail("This went TOTALLY off the road")
         }
