@@ -67,8 +67,10 @@ object DtoConverters {
    * Helper function to generate a base Dto that is shared across all event
    * types.
    */
+  // scalastyle:off parameter.number
   private[this] def toBaseDto[T <: MusitEvent](
     sub: T,
+    affectedThing: Option[ObjectRole],
     regBy: Option[String],
     regDate: Option[DateTime],
     maybeStr: Option[String] = None,
@@ -84,7 +86,7 @@ object DtoConverters {
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
       relatedActors = sub.baseEvent.doneBy.map(ar => EventRoleActor.toEventRoleActor(ar)).toSeq,
-      relatedObjects = sub.baseEvent.affectedThing.map(or => EventRoleObject.toEventRoleObject(or)).toSeq,
+      relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or)).toSeq,
       relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr)),
       note = sub.baseEvent.note,
       relatedSubEvents = relEvents,
@@ -96,6 +98,7 @@ object DtoConverters {
       registeredDate = regDate
     )
   }
+  // scalastyle:on parameter.number
 
   /**
    * Helper function to generate a base Dto that is shared across all event
@@ -104,17 +107,20 @@ object DtoConverters {
    */
   private[this] def toBaseDtoNoChildren[T <: MusitEvent](
     sub: T,
+    affectedThing: Option[ObjectRole],
     regBy: Option[String],
     regDate: Option[DateTime],
     maybeStr: Option[String] = None,
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None
   ): BaseEventDto = {
-    toBaseDto(sub, regBy, regDate, maybeStr, maybeLong, maybeDouble)
+    toBaseDto(sub, affectedThing, regBy, regDate, maybeStr, maybeLong, maybeDouble)
   }
 
+  // scalastyle:off parameter.number
   private[this] def toExtendedDto[A <: MusitEvent, B <: DtoExtension](
     sub: A,
+    affectedThing: Option[ObjectRole],
     regBy: Option[String],
     regDate: Option[DateTime],
     maybeStr: Option[String] = None,
@@ -130,7 +136,7 @@ object DtoConverters {
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
       relatedActors = sub.baseEvent.doneBy.map(ar => EventRoleActor.toEventRoleActor(ar)).toSeq,
-      relatedObjects = sub.baseEvent.affectedThing.map(or => EventRoleObject.toEventRoleObject(or)).toSeq,
+      relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or)).toSeq,
       relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr)),
       note = sub.baseEvent.note,
       relatedSubEvents = Seq.empty[RelatedEvents],
@@ -143,6 +149,7 @@ object DtoConverters {
       extension = ext
     )
   }
+  // scalastyle:on parameter.number
 
   /**
    * Converters for the LifeCycle set of types.
@@ -173,18 +180,20 @@ object DtoConverters {
     def controlToDto(ctrl: Control): BaseEventDto = {
       val regBy = ctrl.baseEvent.registeredBy
       val regDate = ctrl.baseEvent.registeredDate
+      val affectedThing = ctrl.baseEvent.affectedThing
       val relEvt = Seq(
         RelatedEvents(
           relation = EventRelations.PartsOfRelation,
           events = ctrl.parts.map { c =>
             c.map { cse =>
-              controlSubEventToDto(cse, regBy, regDate)
+              controlSubEventToDto(cse, affectedThing, regBy, regDate)
             }
           }.getOrElse(Seq.empty)
         )
       )
       toBaseDto(
         sub = ctrl,
+        affectedThing = affectedThing,
         regBy = regBy,
         regDate = regDate,
         relEvents = relEvt
@@ -206,6 +215,7 @@ object DtoConverters {
 
     def controlSubEventToDto(
       subCtrl: ControlSubEvent,
+      affectedThing: Option[ObjectRole],
       regBy: Option[String],
       regDate: Option[DateTime]
     ): EventDto = {
@@ -214,7 +224,7 @@ object DtoConverters {
           RelatedEvents(
             relation = EventRelations.MotivatesRelation,
             events = subCtrl.motivates.map { m =>
-              Seq(ObsConverters.observationSubEventToDto(m, regBy, regDate))
+              Seq(ObsConverters.observationSubEventToDto(m, affectedThing, regBy, regDate))
             }.getOrElse(Seq.empty)
           )
         )
@@ -222,6 +232,7 @@ object DtoConverters {
 
       toBaseDto(
         sub = subCtrl,
+        affectedThing = affectedThing,
         regBy = regBy,
         regDate = regDate,
         maybeLong = subCtrl.ok,
@@ -326,16 +337,18 @@ object DtoConverters {
     def observationToDto(obs: Observation): EventDto = {
       val regBy = obs.baseEvent.registeredBy
       val regDate = obs.baseEvent.registeredDate
+      val affectedThing = obs.baseEvent.affectedThing
       val relEvt = Seq(
         RelatedEvents(
           relation = EventRelations.PartsOfRelation,
           events = obs.parts.map { o =>
-            o.map(ose => observationSubEventToDto(ose, regBy, regDate))
+            o.map(ose => observationSubEventToDto(ose, affectedThing, regBy, regDate))
           }.getOrElse(Seq.empty)
         )
       )
       toBaseDto(
         sub = obs,
+        affectedThing = affectedThing,
         regBy = regBy,
         regDate = regDate,
         relEvents = relEvt
@@ -358,6 +371,7 @@ object DtoConverters {
     // scalastyle:off cyclomatic.complexity method.length
     def observationSubEventToDto(
       subObs: ObservationSubEvent,
+      affectedThing: Option[ObjectRole],
       regBy: Option[String],
       regDate: Option[DateTime]
     ): EventDto = {
@@ -365,6 +379,7 @@ object DtoConverters {
         case obs: ObservationFromTo =>
           toExtendedDto(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             ext = ObservationFromToDto(
@@ -377,6 +392,7 @@ object DtoConverters {
         case obs: ObservationLightingCondition =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.lightingCondition
@@ -385,6 +401,7 @@ object DtoConverters {
         case obs: ObservationCleaning =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.cleaning
@@ -393,6 +410,7 @@ object DtoConverters {
         case obs: ObservationGas =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.gas
@@ -401,6 +419,7 @@ object DtoConverters {
         case obs: ObservationMold =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.mold
@@ -409,6 +428,7 @@ object DtoConverters {
         case obs: ObservationTheftProtection =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.theftProtection
@@ -417,6 +437,7 @@ object DtoConverters {
         case obs: ObservationFireProtection =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.fireProtection
@@ -425,6 +446,7 @@ object DtoConverters {
         case obs: ObservationWaterDamageAssessment =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.waterDamageAssessment
@@ -433,6 +455,7 @@ object DtoConverters {
         case obs: ObservationPerimeterSecurity =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.perimeterSecurity
@@ -441,6 +464,7 @@ object DtoConverters {
         case obs: ObservationPest =>
           toExtendedDto(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.identification,
@@ -452,6 +476,7 @@ object DtoConverters {
         case obs: ObservationAlcohol =>
           toBaseDtoNoChildren(
             sub = obs,
+            affectedThing = affectedThing,
             regBy = regBy,
             regDate = regDate,
             maybeStr = obs.condition,
@@ -549,6 +574,7 @@ object DtoConverters {
     def envReqToDto(envReq: EnvRequirement): ExtendedDto = {
       toExtendedDto(
         sub = envReq,
+        affectedThing = envReq.baseEvent.affectedThing,
         regBy = envReq.baseEvent.registeredBy,
         regDate = envReq.baseEvent.registeredDate,
         ext = toEnvReqDto(envReq)
@@ -582,6 +608,7 @@ object DtoConverters {
     def moveToDto[A <: MoveEvent](move: A): BaseEventDto = {
       toBaseDto(
         sub = move,
+        affectedThing = move.baseEvent.affectedThing,
         regBy = move.baseEvent.registeredBy,
         regDate = move.baseEvent.registeredDate,
         relPlaces = Seq(move.to)
