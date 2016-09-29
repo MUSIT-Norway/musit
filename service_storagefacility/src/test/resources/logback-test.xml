@@ -31,7 +31,7 @@
     <logger name="slick.jdbc" level="WARN"/>
     <logger name="no.uio.musit.microservice.storagefacility" level="DEBUG" />
 
-    <root level="DEBUG">
+    <root level="ERROR">
         <appender-ref ref="STDOUT"/>
     </root>
 

@@ -52,7 +52,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   "The storage facility event service" should {
     "successfully register a new control" in {
-      val json = Json.parse(EventJsonGenerator.controlJson(2, 20))
+      val json = Json.parse(EventJsonGenerator.controlJson(20))
       val res = wsUrl(ControlsUrl(2)).post(json).futureValue
 
       res.status mustBe Status.CREATED
@@ -76,35 +76,45 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully register another control" in {
-      val json = Json.parse(EventJsonGenerator.controlJson(2, 22))
+      val json = Json.parse(EventJsonGenerator.controlJson(22))
       val res = wsUrl(ControlsUrl(2)).post(json).futureValue
 
       res.status mustBe Status.CREATED
-      val maybeCtrlId = (res.json \ "id").asOpt[Long]
-
-      maybeCtrlId must not be None
+      (res.json \ "id").asOpt[Long] must not be None
     }
 
     "successfully register a new observation" in {
-      pending
+      val json = Json.parse(EventJsonGenerator.observationJson(22))
+      val res = wsUrl(ObservationsUrl(2)).post(json).futureValue
+
+      res.status mustBe Status.CREATED
+      val obsId = (res.json \ "id").asOpt[Long]
+      obsId must not be None
     }
 
     "get a specific observation for a node" in {
-      pending
+
     }
 
     "successfully register another observation" in {
-      pending
+      val json = Json.parse(EventJsonGenerator.observationJson(22))
+      val res = wsUrl(ObservationsUrl(2)).post(json).futureValue
+
+      res.status mustBe Status.CREATED
+      val obsId = (res.json \ "id").asOpt[Long]
+      obsId must not be None
     }
 
     "list all controls and observations for a node, ordered by doneDate" in {
       // TODO: Update this test once observations are created in above tests
       val res = wsUrl(CtrlObsForNodeUrl(2)).get().futureValue
-      res.status mustBe Status.OK
 
-      res.json.as[JsArray].value.size mustBe 2
+      res.status mustBe Status.OK
+      res.json.as[JsArray].value.size mustBe 4
       // TODO: Verify ordering.
     }
+
+//    "list all controls for a node"
 
   }
 
