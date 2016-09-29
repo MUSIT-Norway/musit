@@ -1,6 +1,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.Inject
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.service.MusitResults.{ MusitDbError, MusitResult, MusitSuccess }
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -12,24 +13,26 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
 
   import driver.api._
 
-  def getReportTotalArea: Future[MusitResult[Double]] = {
+  def getReportTotalArea(mid: MuseumId): Future[MusitResult[Double]] = {
     db.run(
       sql"""
         SELECT SUM(area_to)
         FROM musark_storage.storage_node
-        WHERE storage_type = 'Room'
+        WHERE museum_id = ${mid.underlying}
+        AND storage_type = 'Room'
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving objects", Some(e))
       }
   }
 
-  def getAreaPerimeterSecurity: Future[MusitResult[Double]] = {
+  def getAreaPerimeterSecurity(mid: MuseumId): Future[MusitResult[Double]] = {
     db.run(
       sql"""
         SELECT SUM(area_to)
         FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
+        WHERE s.museum_id = ${mid.underlying}
+        AND s.storage_node_id = r.storage_node_id
         AND r.perimeter_security = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
@@ -37,12 +40,13 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
       }
   }
 
-  def getAreaTheftProtection: Future[MusitResult[Double]] = {
+  def getAreaTheftProtection(mid: MuseumId): Future[MusitResult[Double]] = {
     db.run(
       sql"""
         SELECT SUM(area_to)
         FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
+        WHERE s.museum_id = ${mid.underlying}
+        AND s.storage_node_id = r.storage_node_id
         AND r.theft_protection = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
@@ -50,12 +54,13 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
       }
   }
 
-  def getAreaFireProtectiony: Future[MusitResult[Double]] = {
+  def getAreaFireProtectiony(mid: MuseumId): Future[MusitResult[Double]] = {
     db.run(
       sql"""
         SELECT SUM(area_to)
         FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
+        WHERE s.museum_id = ${mid.underlying}
+        AND s.storage_node_id = r.storage_node_id
         AND r.fire_protection = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
@@ -63,12 +68,13 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
       }
   }
 
-  def getAreaWaterDamageAssessment: Future[MusitResult[Double]] = {
+  def getAreaWaterDamageAssessment(mid: MuseumId): Future[MusitResult[Double]] = {
     db.run(
       sql"""
         SELECT SUM(area_to)
         FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
+        WHERE s.museum_id = ${mid.underlying}
+        AND s.storage_node_id = r.storage_node_id
         AND r.water_damage_assessment = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
@@ -76,12 +82,13 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
       }
   }
 
-  def getAreaRoutinesAndContingencyPlan: Future[MusitResult[Double]] = {
+  def getAreaRoutinesAndContingencyPlan(mid: MuseumId): Future[MusitResult[Double]] = {
     db.run(
       sql"""
         SELECT SUM(area_to)
         FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE  s.storage_node_id = r.storage_node_id
+        WHERE s.museum_id = ${mid.underlying}
+        AND s.storage_node_id = r.storage_node_id
         AND r.routines_and_contingency_plan = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {

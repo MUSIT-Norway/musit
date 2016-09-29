@@ -19,7 +19,7 @@
 package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.domain.Move
+import no.uio.musit.microservice.storagefacility.domain.{ Move, Museum }
 import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
@@ -44,61 +44,72 @@ final class StorageUnitResource @Inject() (
   import no.uio.musit.microservice.storagefacility.DummyData.DummyUser
 
   /**
-   * TODO: Document me!
-   */
-  def add = Action.async(parse.json) { request =>
+    * TODO: Document me!
+    */
+  def add(mid: Int) = Action.async(parse.json) { request =>
     // TODO: Extract current user information from enriched request.
-    request.body.validate[StorageNode] match {
-      case JsSuccess(node, _) =>
-        node match {
-          case su: StorageUnit =>
-            logger.debug(s"Adding a new StorageUnit ${su.name}")
-            service.addStorageUnit(su).map { n =>
-              Created(Json.toJson[StorageNode](n))
-            }
+    Museum.fromMuseumId(mid).map { museumId =>
+      request.body.validate[StorageNode] match {
+        case JsSuccess(node, _) =>
+          node match {
+            case su: StorageUnit =>
+              logger.debug(s"Adding a new StorageUnit ${su.name}")
+              service.addStorageUnit(mid, su).map { n =>
+                Created(Json.toJson[StorageNode](n))
+              }
 
-          case b: Building =>
-            logger.debug(s"Adding a new Building ${b.name}")
-            service.addBuilding(b).map { n =>
-              Created(Json.toJson[StorageNode](n))
-            }
+            case b: Building =>
+              logger.debug(s"Adding a new Building ${b.name}")
+              service.addBuilding(mid, b).map { n =>
+                Created(Json.toJson[StorageNode](n))
+              }
 
-          case r: Room =>
-            logger.debug(s"Adding a new Room ${r.name}")
-            service.addRoom(r).map { n =>
-              Created(Json.toJson[StorageNode](n))
-            }
+            case r: Room =>
+              logger.debug(s"Adding a new Room ${r.name}")
+              service.addRoom(mid, r).map { n =>
+                Created(Json.toJson[StorageNode](n))
+              }
 
-          case o: Organisation =>
-            logger.debug(s"Adding a new Organisation ${o.name}")
-            service.addOrganisation(o).map { n =>
-              Created(Json.toJson[StorageNode](n))
-            }
+            case o: Organisation =>
+              logger.debug(s"Adding a new Organisation ${o.name}")
+              service.addOrganisation(mid, o).map { n =>
+                Created(Json.toJson[StorageNode](n))
+              }
 
-          case bad =>
-            val message = s"Wrong service for adding a ${bad.storageType}."
-            Future.successful(BadRequest(Json.obj("message" -> message)))
-        }
+            case bad =>
+              val message = s"Wrong service for adding a ${bad.storageType}."
+              Future.successful(BadRequest(Json.obj("message" -> message)))
+          }
 
-      case err: JsError =>
-        logger.error(s"Received an invalid JSON")
-        Future.successful(BadRequest(JsError.toJson(err)))
-
+        case err: JsError =>
+          logger.error(s"Received an invalid JSON")
+          Future.successful(BadRequest(JsError.toJson(err)))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
   }
 
   /**
-   * TODO: Document me!
-   */
-  def addRoot = Action.async { implicit request =>
-    service.addRoot(Root()).map(node => Created(Json.toJson(node)))
+    * TODO: Document me!
+    */
+  def addRoot(mid: Int) = Action.async { implicit request =>
+    Museum.fromMuseumId(mid).map { museumId =>
+      service.addRoot(mid, Root()).map(node => Created(Json.toJson(node)))
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
+    }
   }
 
   /**
-   * TODO: Document me!
-   */
-  def root = Action.async { implicit request =>
-    service.rootNodes.map(roots => Ok(Json.toJson(roots)))
+    * TODO: Document me!
+    */
+  def root(mid: Int) = Action.async { implicit request =>
+    Museum.fromMuseumId(mid).map { museumId =>
+      service.rootNodes(mid).map(roots => Ok(Json.toJson(roots)))
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
+    }
   }
 
   /**
@@ -135,36 +146,38 @@ final class StorageUnitResource @Inject() (
   /**
    * TODO: Document me!
    */
-  def update(id: Long) = Action.async(parse.json) { implicit request =>
+  def update(mid: Int, id: Long) = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
-    request.body.validate[StorageNode] match {
-      case JsSuccess(node, _) =>
-        val futureRes: Future[MusitResult[Option[StorageNode]]] = node match {
-          case su: StorageUnit => service.updateStorageUnit(id, su)
-          case b: Building => service.updateBuilding(id, b)
-          case r: Room => service.updateRoom(id, r)
-          case o: Organisation => service.updateOrganisation(id, o)
-          case notCorrect => Future.successful(MusitSuccess(None))
-        }
-
-        futureRes.map { musitRes =>
-          musitRes.map {
-            case Some(updated) => Ok(Json.toJson(updated))
-            case None => NotFound
-
-          }.getOrElse {
-            InternalServerError(
-              Json.obj(
-                "message" -> s"An unexpected error occured while trying to update StorageNode with ID $id"
-              )
-            )
+    Museum.fromMuseumId(mid).map { museumId =>
+      request.body.validate[StorageNode] match {
+        case JsSuccess(node, _) =>
+          val futureRes: Future[MusitResult[Option[StorageNode]]] = node match {
+            case su: StorageUnit => service.updateStorageUnit(mid, id, su)
+            case b: Building => service.updateBuilding(mid, id, b)
+            case r: Room => service.updateRoom(mid, id, r)
+            case o: Organisation => service.updateOrganisation(mid, id, o)
+            case notCorrect => Future.successful(MusitSuccess(None))
           }
-        }
 
-      case JsError(error) =>
-        Future.successful(BadRequest(JsError.toJson(error)))
+          futureRes.map { musitRes =>
+            musitRes.map {
+              case Some(updated) => Ok(Json.toJson(updated))
+              case None => NotFound
+
+            }.getOrElse {
+              InternalServerError(
+                Json.obj(
+                  "message" -> s"An unexpected error occured while trying to update StorageNode with ID $id"
+                )
+              )
+            }
+          }
+        case JsError(error) =>
+          Future.successful(BadRequest(JsError.toJson(error)))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
-
   }
 
   /**

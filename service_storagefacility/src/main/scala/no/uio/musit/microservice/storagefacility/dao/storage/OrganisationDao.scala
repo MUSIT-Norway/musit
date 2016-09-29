@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ ExtendedStorageNode, OrganisationDto, StorageNodeDto }
 import play.api.Logger
@@ -74,8 +75,8 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, organisation: Organisation): Future[Option[Organisation]] = {
-    val extendedOrgDto = StorageNodeDto.fromOrganisation(organisation, Some(id))
+  def update(mid: MuseumId, id: StorageNodeId, organisation: Organisation): Future[Option[Organisation]] = {
+    val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, extendedOrgDto.storageUnitDto)
       orgsUpdated <- updateAction(id, extendedOrgDto.extension)
@@ -94,8 +95,8 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(organisation: Organisation): Future[Organisation] = {
-    val extendedDto = StorageNodeDto.fromOrganisation(organisation)
+  def insert(mid: MuseumId, organisation: Organisation): Future[Organisation] = {
+    val extendedDto = StorageNodeDto.fromOrganisation(mid, organisation)
     val query = for {
       storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))

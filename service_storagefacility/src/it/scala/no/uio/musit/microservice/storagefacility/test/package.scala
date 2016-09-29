@@ -35,7 +35,7 @@ package object test {
   val ObservationUrl = (node: Long, evt: Long) => s"${ObservationsUrl(node)}/$evt"
 
   val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"
-  val KdReportUrl = s"$BaseUrl/report"
+  val KdReportUrl = (mid: Int) => s"$BaseUrl/museum/$mid/report"
 
 
 

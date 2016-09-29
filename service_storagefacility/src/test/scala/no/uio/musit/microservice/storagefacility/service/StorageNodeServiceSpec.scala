@@ -38,8 +38,9 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "successfully create a new room node with environment requirements" in {
     // Setup new room data, without the partOf relation, which is not
     // interesting in this particular test.
+    val mid = 5
     val room = createRoom(None)
-    val inserted = service.addRoom(room).futureValue
+    val inserted = service.addRoom(mid, room).futureValue
 
     inserted.id must not be None
     inserted.environmentRequirement must not be None
@@ -47,8 +48,9 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   }
 
   "successfully update a building with new environment requirements" in {
+    val mid = 5
     val building = createBuilding(None)
-    val inserted = service.addBuilding(building).futureValue
+    val inserted = service.addBuilding(mid, building).futureValue
     inserted.id must not be None
     inserted.environmentRequirement must not be None
     inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
@@ -58,7 +60,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     ))
     val ub = building.copy(environmentRequirement = someEnvReq)
 
-    val res = service.updateBuilding(inserted.id.get, ub).futureValue
+    val res = service.updateBuilding(mid, inserted.id.get, ub).futureValue
     res.isSuccess mustBe true
     res.get must not be None
 
@@ -68,8 +70,9 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   }
 
   "successfully update a storage unit and fetch as StorageNode" in {
+    val mid = 5
     val su = createStorageUnit()
-    val inserted = service.addStorageUnit(su).futureValue
+    val inserted = service.addStorageUnit(mid, su).futureValue
     inserted.id must not be None
 
     val res = storageUnitDao.getById(inserted.id.get).futureValue
@@ -79,7 +82,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
     val upd = res.get.copy(name = "UggaBugga", areaTo = Some(4.0))
 
-    val updRes = service.updateStorageUnit(res.get.id.get, upd).futureValue
+    val updRes = service.updateStorageUnit(mid, res.get.id.get, upd).futureValue
     updRes.isSuccess mustBe true
     updRes.get must not be None
     updRes.get.get.name mustBe "UggaBugga"

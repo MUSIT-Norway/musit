@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storagefacility.domain.storage.dto
 
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage._
 
 sealed trait StorageNodeDto
@@ -8,6 +9,7 @@ sealed trait SpecializedStorageNode
 
 case class StorageUnitDto(
   id: Option[StorageNodeId],
+  storageType: StorageType,
   name: String,
   area: Option[Double],
   areaTo: Option[Double],
@@ -17,7 +19,7 @@ case class StorageUnitDto(
   groupRead: Option[String],
   groupWrite: Option[String],
   isDeleted: Option[Boolean],
-  storageType: StorageType
+  museumId: MuseumId
 ) extends StorageNodeDto
 
 case class ExtendedStorageNode[T <: SpecializedStorageNode](
@@ -28,13 +30,14 @@ case class ExtendedStorageNode[T <: SpecializedStorageNode](
 case class RootDto(
     id: Option[StorageNodeId],
     name: String,
-    storageType: StorageType
+    storageType: StorageType,
+    museumId: MuseumId
 ) extends StorageNodeDto {
 
   /**
    * Hack to convert into a StorageUnitDto for DB inserts
    */
-  def asStorageUnit: StorageUnitDto =
+  def asStorageUnit(mid: MuseumId): StorageUnitDto =
     StorageUnitDto(
       id = id,
       name = name,
@@ -46,7 +49,8 @@ case class RootDto(
       groupRead = None,
       groupWrite = None,
       isDeleted = None,
-      storageType = storageType
+      storageType = storageType,
+      museumId = mid
     )
 
 }
@@ -106,12 +110,12 @@ object StorageNodeDto {
         }
     }
 
-  def fromStorageNode[T <: StorageNode](stu: T): StorageNodeDto =
+  def fromStorageNode[T <: StorageNode](mid: MuseumId, stu: T): StorageNodeDto =
     stu match {
-      case root: Root => fromRoot(root)
-      case su: StorageUnit => fromStorageUnit(su)
-      case b: Building => fromBuilding(b)
-      case r: Room => fromRoom(r)
+      case root: Root => fromRoot(mid, root)
+      case su: StorageUnit => fromStorageUnit(mid, su)
+      case b: Building => fromBuilding(mid, b)
+      case r: Room => fromRoom(mid, r)
     }
 
   def toGenericStorageNode(su: StorageUnitDto): GenericStorageNode =
@@ -208,14 +212,16 @@ object StorageNodeDto {
     )
   }
 
-  def fromRoot(r: Root): RootDto =
+  def fromRoot(mid: MuseumId, r: Root): RootDto =
     RootDto(
       id = r.id,
       name = r.name,
-      storageType = r.storageType
+      storageType = r.storageType,
+      museumId = mid.underlying
     )
 
   def fromStorageUnit(
+    mid: MuseumId,
     su: StorageUnit,
     id: Option[StorageNodeId] = None
   ): StorageUnitDto =
@@ -230,10 +236,12 @@ object StorageNodeDto {
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
       isDeleted = Some(false),
-      storageType = su.storageType
+      storageType = su.storageType,
+      museumId = mid.underlying
     )
 
   def fromBuilding(
+    mid: MuseumId,
     b: Building,
     id: Option[StorageNodeId] = None
   ): ExtendedStorageNode[BuildingDto] =
@@ -249,7 +257,8 @@ object StorageNodeDto {
         groupRead = b.groupRead,
         groupWrite = b.groupWrite,
         isDeleted = Some(false),
-        storageType = b.storageType
+        storageType = b.storageType,
+        museumId = mid.underlying
       ),
       extension = BuildingDto(
         id = id.orElse(b.id),
@@ -258,6 +267,7 @@ object StorageNodeDto {
     )
 
   def fromOrganisation(
+    mid: MuseumId,
     o: Organisation,
     id: Option[StorageNodeId] = None
   ): ExtendedStorageNode[OrganisationDto] =
@@ -273,7 +283,8 @@ object StorageNodeDto {
         groupRead = o.groupRead,
         groupWrite = o.groupWrite,
         isDeleted = Some(false),
-        storageType = o.storageType
+        storageType = o.storageType,
+        museumId = mid.underlying
       ),
       extension = OrganisationDto(
         id = id.orElse(o.id),
@@ -282,6 +293,7 @@ object StorageNodeDto {
     )
 
   def fromRoom(
+    mid: MuseumId,
     r: Room,
     id: Option[StorageNodeId] = None
   ): ExtendedStorageNode[RoomDto] =
@@ -297,7 +309,8 @@ object StorageNodeDto {
         groupRead = r.groupRead,
         groupWrite = r.groupWrite,
         isDeleted = Some(false),
-        storageType = r.storageType
+        storageType = r.storageType,
+        museumId = mid.underlying
       ),
       extension = RoomDto(
         id = id.orElse(r.id),

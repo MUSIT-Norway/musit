@@ -63,7 +63,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val response1 = wsUrl(StorageNodesUrl).post(json1).futureValue
         response1.status mustBe Status.CREATED
 
-        val report = wsUrl(KdReportUrl).get.futureValue
+        val report = wsUrl(KdReportUrl(2)).get.futureValue
 
         println(Json.prettyPrint(report.json))
 

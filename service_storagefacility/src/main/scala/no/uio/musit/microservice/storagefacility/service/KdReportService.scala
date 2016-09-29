@@ -2,6 +2,7 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.storage.KdReportDao
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.report.KdReport
 import no.uio.musit.service.MusitResults.MusitResult
 
@@ -12,13 +13,13 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
  * Created by ellenjo on 26.09.16.
  */
 class KdReportService @Inject() (val kdReportDao: KdReportDao) {
-  def getReport: Future[MusitResult[KdReport]] = {
-    val futTotArea = kdReportDao.getReportTotalArea
-    val futAreaPerimeterSecurity = kdReportDao.getAreaPerimeterSecurity
-    val futAreaTheftProtection = kdReportDao.getAreaTheftProtection
-    val futAreaFireProtection = kdReportDao.getAreaFireProtectiony
-    val futAreaWaterDamageAssessment = kdReportDao.getAreaWaterDamageAssessment
-    val futAreaRoutinesAndContingencyPlan = kdReportDao.getAreaRoutinesAndContingencyPlan
+  def getReport(mid: MuseumId): Future[MusitResult[KdReport]] = {
+    val futTotArea = kdReportDao.getReportTotalArea(mid)
+    val futAreaPerimeterSecurity = kdReportDao.getAreaPerimeterSecurity(mid)
+    val futAreaTheftProtection = kdReportDao.getAreaTheftProtection(mid)
+    val futAreaFireProtection = kdReportDao.getAreaFireProtectiony(mid)
+    val futAreaWaterDamageAssessment = kdReportDao.getAreaWaterDamageAssessment(mid)
+    val futAreaRoutinesAndContingencyPlan = kdReportDao.getAreaRoutinesAndContingencyPlan(mid)
     for {
       mrTotArea <- futTotArea
       mrAreaPerimeterSecurity <- futAreaPerimeterSecurity

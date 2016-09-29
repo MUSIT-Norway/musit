@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.dao._
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.{ StorageNodeId, StorageType }
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
 import play.api.db.slick.HasDatabaseConfigProvider
@@ -64,7 +65,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   class StorageNodeTable(
       val tag: Tag
   ) extends Table[StorageUnitDto](tag, SchemaName, "STORAGE_NODE") {
-    // scalastyle:off method.name
+    // scalastyle:off method.name      id.?,
+
     def * = (
       id.?,
       storageType,
@@ -76,7 +78,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       heightTo,
       groupRead,
       groupWrite,
-      isDeleted
+      isDeleted,
+      museumId
     ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
@@ -92,6 +95,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val groupRead = column[Option[String]]("GROUP_READ")
     val groupWrite = column[Option[String]]("GROUP_WRITE")
     val isDeleted = column[Boolean]("IS_DELETED")
+    val museumId = column[MuseumId]("MUSEUM_ID")
 
     def create = (
       id: Option[StorageNodeId],
@@ -104,10 +108,12 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       heightTo: Option[Double],
       groupRead: Option[String],
       groupWrite: Option[String],
-      isDeleted: Boolean
+      isDeleted: Boolean,
+      museumId: MuseumId
     ) =>
       StorageUnitDto(
         id = id,
+        storageType = storageType,
         name = storageNodeName,
         area = area,
         areaTo = areaTo,
@@ -117,7 +123,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         groupRead = groupRead,
         groupWrite = groupWrite,
         isDeleted = Option(isDeleted),
-        storageType = storageType
+        museumId = museumId
       )
 
     def destroy(unit: StorageUnitDto) =
@@ -132,7 +138,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
-        unit.isDeleted.getOrElse(false)
+        unit.isDeleted.getOrElse(false),
+        unit.museumId
       ))
   }
 

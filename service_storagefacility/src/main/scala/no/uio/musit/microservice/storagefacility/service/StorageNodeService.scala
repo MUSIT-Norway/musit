@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.{ EventDao, LocalObjectDao }
 import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
@@ -68,13 +69,13 @@ class StorageNodeService @Inject() (
     }
   }
 
-  def addRoot(root: Root): Future[Root] = storageUnitDao.insertRoot(root)
+  def addRoot(mid: MuseumId, root: Root): Future[Root] = storageUnitDao.insertRoot(mid, root)
 
   /**
    * TODO: Document me!
    */
-  def addStorageUnit(storageUnit: StorageUnit)(implicit currUsr: String): Future[StorageUnit] = {
-    storageUnitDao.insert(storageUnit).flatMap { sn =>
+  def addStorageUnit(mid: MuseumId, storageUnit: StorageUnit)(implicit currUsr: String): Future[StorageUnit] = {
+    storageUnitDao.insert(mid, storageUnit).flatMap { sn =>
       val maybeWithEnvReq =
         for {
           nodeId <- sn.id
@@ -92,8 +93,8 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def addRoom(storageRoom: Room)(implicit currUsr: String): Future[Room] = {
-    roomDao.insert(storageRoom).flatMap { addedRoom =>
+  def addRoom(mid: MuseumId, storageRoom: Room)(implicit currUsr: String): Future[Room] = {
+    roomDao.insert(mid, storageRoom).flatMap { addedRoom =>
       logger.debug(s"Room was added with id ${addedRoom.id}")
       val maybeWithEnvReq =
         for {
@@ -112,8 +113,8 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def addBuilding(building: Building)(implicit currUsr: String): Future[Building] = {
-    buildingDao.insert(building).flatMap { addedBuilding =>
+  def addBuilding(mid: MuseumId, building: Building)(implicit currUsr: String): Future[Building] = {
+    buildingDao.insert(mid, building).flatMap { addedBuilding =>
       val maybeWithEnvReq =
         for {
           nodeId <- addedBuilding.id
@@ -131,8 +132,8 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def addOrganisation(organisation: Organisation)(implicit currUsr: String): Future[Organisation] = {
-    organisationDao.insert(organisation).flatMap { addedOrgNode =>
+  def addOrganisation(mid: MuseumId, organisation: Organisation)(implicit currUsr: String): Future[Organisation] = {
+    organisationDao.insert(mid, organisation).flatMap { addedOrgNode =>
       val maybeWithEnvReq =
         for {
           nodeId <- addedOrgNode.id
@@ -151,10 +152,11 @@ class StorageNodeService @Inject() (
    * TODO: Document me!
    */
   def updateStorageUnit(
+    mid: MuseumId,
     id: StorageNodeId,
     storageUnit: StorageUnit
   )(implicit currUsr: String): Future[MusitResult[Option[StorageUnit]]] = {
-    storageUnitDao.update(id, storageUnit).flatMap { maybeUnit =>
+    storageUnitDao.update(mid, id, storageUnit).flatMap { maybeUnit =>
       logger.debug(s"Successfully updated storage unit $id")
       val maybeWithEnvReq = for {
         su <- maybeUnit
@@ -175,10 +177,11 @@ class StorageNodeService @Inject() (
    * TODO: Document me!!!
    */
   def updateRoom(
+    mid: MuseumId,
     id: StorageNodeId,
     room: Room
   )(implicit currUsr: String): Future[MusitResult[Option[Room]]] = {
-    roomDao.update(id, room).flatMap { maybeRoom =>
+    roomDao.update(mid, id, room).flatMap { maybeRoom =>
       logger.debug(s"Successfully updated storage room $id")
       val maybeWithEnvReq = for {
         r <- maybeRoom
@@ -199,10 +202,11 @@ class StorageNodeService @Inject() (
    * TODO: Document me!!!
    */
   def updateBuilding(
+    mid: MuseumId,
     id: StorageNodeId,
     building: Building
   )(implicit currUsr: String): Future[MusitResult[Option[Building]]] = {
-    buildingDao.update(id, building).flatMap { maybeBuilding =>
+    buildingDao.update(mid, id, building).flatMap { maybeBuilding =>
       logger.debug(s"Successfully updated storage building $id")
       val maybeWithEnvReq = for {
         b <- maybeBuilding
@@ -223,10 +227,11 @@ class StorageNodeService @Inject() (
    * TODO: Document me!!!
    */
   def updateOrganisation(
+    mid: MuseumId,
     id: StorageNodeId,
     organisation: Organisation
   )(implicit currUsr: String): Future[MusitResult[Option[Organisation]]] = {
-    organisationDao.update(id, organisation).flatMap { maybeOrg =>
+    organisationDao.update(mid, id, organisation).flatMap { maybeOrg =>
       logger.debug(s"Successfully updated storage building $id")
       val maybeWithEnvReq = for {
         org <- maybeOrg
@@ -340,7 +345,7 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!
    */
-  def rootNodes: Future[Seq[StorageNode]] = storageUnitDao.findRootNodes
+  def rootNodes(mid: Int): Future[Seq[StorageNode]] = storageUnitDao.findRootNodes(mid)
 
   /**
    * TODO: Document me!

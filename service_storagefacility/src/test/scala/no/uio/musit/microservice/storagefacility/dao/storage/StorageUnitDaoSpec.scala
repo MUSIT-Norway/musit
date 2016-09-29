@@ -34,9 +34,10 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   "StorageUnitDao" should {
 
     "succeed when inserting several root nodes" in {
-      val ins1 = storageUnitDao.insertRoot(Root()).futureValue
-      val ins2 = storageUnitDao.insertRoot(Root()).futureValue
-      val ins3 = storageUnitDao.insertRoot(Root()).futureValue
+      val mid = 3
+      val ins1 = storageUnitDao.insertRoot(mid, Root()).futureValue
+      val ins2 = storageUnitDao.insertRoot(mid, Root()).futureValue
+      val ins3 = storageUnitDao.insertRoot(mid, Root()).futureValue
 
       ins1.id.isEmpty must not be true
       ins1.storageType mustBe StorageType.RootType
@@ -49,13 +50,15 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "succeed when inserting a new storage unit" in {
-      val inserted = storageUnitDao.insert(createStorageUnit()).futureValue
+      val mid = 2
+      val inserted = storageUnitDao.insert(mid, createStorageUnit()).futureValue
       inserted.id must not be None
     }
 
     "successfully fetch a storage unit" in {
+      val mid = 5
       val su = createStorageUnit()
-      val inserted = storageUnitDao.insert(su).futureValue
+      val inserted = storageUnitDao.insert(mid, su).futureValue
       inserted.id must not be None
 
       val res = storageUnitDao.getById(inserted.id.get).futureValue
@@ -66,8 +69,9 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "successfully update a storage unit and fetch as StorageNode" in {
+      val mid = 5
       val su = createStorageUnit()
-      val inserted = storageUnitDao.insert(su).futureValue
+      val inserted = storageUnitDao.insert(mid, su).futureValue
       inserted.id must not be None
 
       val res = storageUnitDao.getById(inserted.id.get).futureValue
@@ -77,7 +81,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
       val upd = res.get.copy(name = "UggaBugga", areaTo = Some(4.0))
 
-      val updRes = storageUnitDao.update(res.get.id.get, upd).futureValue
+      val updRes = storageUnitDao.update(mid, res.get.id.get, upd).futureValue
       updRes must not be None
       updRes.get.name mustBe "UggaBugga"
       updRes.get.areaTo mustBe Some(4.0)
@@ -89,7 +93,8 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "successfully list root nodes" in {
-      val nodes = storageUnitDao.findRootNodes.futureValue
+      val mid = 5
+      val nodes = storageUnitDao.findRootNodes(mid).futureValue
       nodes.size mustBe 3
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }

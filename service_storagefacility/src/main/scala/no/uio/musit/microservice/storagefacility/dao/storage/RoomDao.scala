@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.dto._
 import no.uio.musit.microservice.storagefacility.domain.storage.{ Room, StorageNodeId }
 import play.api.Logger
@@ -67,8 +68,8 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, room: Room): Future[Option[Room]] = {
-    val roomDto = StorageNodeDto.fromRoom(room, Some(id))
+  def update(mid: MuseumId, id: StorageNodeId, room: Room): Future[Option[Room]] = {
+    val roomDto = StorageNodeDto.fromRoom(mid, room, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, roomDto.storageUnitDto)
       roomsUpdated <- updateAction(id, roomDto.extension)
@@ -87,8 +88,8 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(room: Room): Future[Room] = {
-    val extendedDto = StorageNodeDto.fromRoom(room)
+  def insert(mid: MuseumId, room: Room): Future[Room] = {
+    val extendedDto = StorageNodeDto.fromRoom(mid, room)
     val action = (for {
       storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))

@@ -3,14 +3,14 @@
 # ~~~~
 
 # StorageNode endpoints
-POST          /v1/storagenodes                                      no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.add
-POST          /v1/storagenodes/root                                 no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.addRoot
-GET           /v1/storagenodes/root                                 no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.root
-GET           /v1/storagenodes/report                               no.uio.musit.microservice.storagefacility.resource.KdReportResource.getReportByMuseum
+POST          /v1/museum/:mid/storagenodes                          no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.add(mid: Int)
+POST          /v1/storagenodes/museum/:mid/root                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.addRoot(mid: Int)
+GET           /v1/storagenodes/museum/:mid/root                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.root(mid: Int)
+GET           /v1/storagenodes/museum/:mid/report                   no.uio.musit.microservice.storagefacility.resource.KdReportResource.getReportByMuseum(mid: Int)
 PUT           /v1/storagenodes/moveNode                             no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.moveNode
 PUT           /v1/storagenodes/moveObject                           no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.moveObject
 GET           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getById(nodeId: Long)
-PUT           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.update(nodeId: Long)
+PUT           /v1/storagenodes/museum/:mid/:nodeId                  no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.update(mid: Int, nodeId: Long)
 DELETE        /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.delete(nodeId: Long)
 GET           /v1/storagenodes/:nodeId/children                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.children(nodeId: Long)
 

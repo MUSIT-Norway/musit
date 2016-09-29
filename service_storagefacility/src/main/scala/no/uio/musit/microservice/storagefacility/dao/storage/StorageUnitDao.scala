@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
 import no.uio.musit.service.MusitResults._
@@ -67,9 +68,10 @@ class StorageUnitDao @Inject() (
    *
    * @return a Future collection of Root nodes.
    */
-  def findRootNodes: Future[Seq[Root]] = {
+  def findRootNodes(mid: MuseumId): Future[Seq[Root]] = {
     val query = storageNodeTable.filter { root =>
-      root.isDeleted === false &&
+      root.museumId === mid &&
+        root.isDeleted === false &&
         root.isPartOf.isEmpty &&
         root.storageType === rootNodeType
     }.result
@@ -103,14 +105,14 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
-    val dto = StorageNodeDto.fromStorageUnit(storageUnit)
+  def insert(mid: MuseumId, storageUnit: StorageUnit): Future[StorageUnit] = {
+    val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
     db.run(insertNodeAction(dto)).map(StorageNodeDto.toStorageUnit)
   }
 
-  def insertRoot(root: Root): Future[Root] = {
+  def insertRoot(mid: MuseumId, root: Root): Future[Root] = {
     logger.debug("Inserting root node...")
-    val dto = StorageNodeDto.fromRoot(root).asStorageUnit
+    val dto = StorageNodeDto.fromRoot(mid, root).asStorageUnit(mid)
     db.run(insertNodeAction(dto)).map { sudto =>
       logger.debug(s"Inserted root node with ID ${sudto.id}")
       Root(sudto.id)
@@ -121,10 +123,11 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def update(
+    mid: MuseumId,
     id: StorageNodeId,
     storageUnit: StorageUnit
   ): Future[Option[StorageUnit]] = {
-    val dto = StorageNodeDto.fromStorageUnit(storageUnit)
+    val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
     db.run(updateNodeAction(id, dto)).flatMap {
       case res: Int if res == 1 =>
         getById(id)

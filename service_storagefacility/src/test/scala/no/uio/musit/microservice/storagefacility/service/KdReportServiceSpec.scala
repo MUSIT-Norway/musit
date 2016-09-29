@@ -16,21 +16,22 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   val reportService: KdReportService = fromInstanceCache[KdReportService]
 
   "successfully get a report on storageNode Room" in {
+    val mid = 5
     val room = createRoomWithDifferentArea(1, perimeter = true, theftProtection = true, fireProtection = true)
-    val inserted = service.addRoom(room)("dummyUser").futureValue
-
+    val inserted = service.addRoom(mid, room)("dummyUser").futureValue
+    val museumId = 2
     inserted.id must not be None
-    val report = reportService.getReport.futureValue
+    val report = reportService.getReport(museumId).futureValue
     report.isSuccess mustBe true
     val reportRes = report.get
     val c = createRoomWithDifferentArea(7.5, perimeter = true, routinesAndContingencyPlan = true)
-    service.addRoom(c)("dummyUser").futureValue
-    val report1 = reportService.getReport.futureValue
+    service.addRoom(mid, c)("dummyUser").futureValue
+    val report1 = reportService.getReport(museumId).futureValue
     report1.isSuccess mustBe true
     val report1Res = report1.get
     val c1 = createRoomWithDifferentArea(50.3, theftProtection = true, waterDamage = true, routinesAndContingencyPlan = true)
-    service.addRoom(c1)("dummyUser").futureValue
-    val report2 = reportService.getReport.futureValue
+    service.addRoom(mid, c1)("dummyUser").futureValue
+    val report2 = reportService.getReport(museumId).futureValue
     report2.isSuccess mustBe true
     val report2Res = report2.get
 

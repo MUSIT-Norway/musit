@@ -39,6 +39,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   storage_type VARCHAR(100) DEFAULT 'StorageUnit',
   group_read VARCHAR(4000),
   group_write VARCHAR(4000),
+  museum_id INTEGER NOT NULL,
 --   latest_move_id NUMBER(20),
 --   latest_envreq_id NUMBER(20),
   PRIMARY KEY (storage_node_id)

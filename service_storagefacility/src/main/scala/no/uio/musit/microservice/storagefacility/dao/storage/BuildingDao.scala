@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{ Inject, Singleton }
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ BuildingDto, ExtendedStorageNode, StorageNodeDto }
 import play.api.Logger
@@ -73,8 +74,8 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, building: Building): Future[Option[Building]] = {
-    val extendedBuildingDto = StorageNodeDto.fromBuilding(building, Some(id))
+  def update(mid: MuseumId, id: StorageNodeId, building: Building): Future[Option[Building]] = {
+    val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, extendedBuildingDto.storageUnitDto)
       buildingsUpdated <- updateAction(id, extendedBuildingDto.extension)
@@ -98,8 +99,8 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(building: Building): Future[Building] = {
-    val extendedDto = StorageNodeDto.fromBuilding(building)
+  def insert(mid: MuseumId, building: Building): Future[Building] = {
+    val extendedDto = StorageNodeDto.fromBuilding(mid, building)
     val query = for {
       storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
