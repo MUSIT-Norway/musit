@@ -326,16 +326,33 @@ class StorageNodeService @Inject() (
   ): Future[MusitResult[Option[StorageNode]]] = {
     storageUnitDao.getStorageType(id).flatMap { res =>
       res.map { maybeType =>
+        logger.debug(s"Disambiguating StorageType $maybeType")
+
         maybeType.map {
-          case StorageType.RootType => Future.successful(MusitSuccess(None))
-          case StorageType.OrganisationType => getOrganisationById(id)
-          case StorageType.BuildingType => getBuildingById(id)
-          case StorageType.RoomType => getRoomById(id)
-          case StorageType.StorageUnitType => getStorageUnitById(id)
+          case StorageType.RootType =>
+            logger.warn(s"Trying to read root node $id in getNodeById.")
+            Future.successful(MusitSuccess(None))
+
+          case StorageType.OrganisationType =>
+            getOrganisationById(id)
+
+          case StorageType.BuildingType =>
+            getBuildingById(id)
+
+          case StorageType.RoomType =>
+            getRoomById(id)
+
+          case StorageType.StorageUnitType =>
+            getStorageUnitById(id)
+
         }.getOrElse {
+          logger.warn(s"Could not resolve StorageType $maybeType")
           Future.successful(MusitSuccess(None))
         }
-      }.getOrElse(Future.successful(MusitSuccess[Option[StorageNode]](None)))
+      }.getOrElse {
+        logger.debug(s"Node $id not found")
+        Future.successful(MusitSuccess(None))
+      }
     }
   }
 
