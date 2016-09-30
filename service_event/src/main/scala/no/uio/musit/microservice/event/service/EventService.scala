@@ -34,11 +34,11 @@ object EventService {
   def eventNotFoundError(id: Long): MusitError =
     ErrorHelper.notFound(s"Unknown event with id: $id")
 
-  def insertAndGetNewEvent(event: Event, recursive: Boolean, securityConnection: AuthenticatedUser): MusitFuture[Event] =
-    insertEvent(event, securityConnection).musitFutureFlatMap(newId => getEvent(newId, recursive))
+  def insertAndGetNewEvent(event: Event, recursive: Boolean, user: AuthenticatedUser): MusitFuture[Event] =
+    insertEvent(event, user).musitFutureFlatMap(newId => getEvent(newId, recursive))
 
-  def insertEvent(event: Event, securityConnection: AuthenticatedUser): MusitFuture[Long] =
-    EventDao.insertEvent(event, true, securityConnection: AuthenticatedUser).toMusitFuture
+  def insertEvent(event: Event, user: AuthenticatedUser): MusitFuture[Long] =
+    EventDao.insertEvent(event, true, user: AuthenticatedUser).toMusitFuture
 
   def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] =
     EventDao.getEvent(id, recursive)

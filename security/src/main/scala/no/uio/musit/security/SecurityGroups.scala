@@ -60,6 +60,7 @@ object SecurityGroups {
       case KhmSfRead.groupId => Some(KhmSfRead)
       case KhmSfWrite.groupId => Some(KhmSfWrite)
       case KhmSfAdmin.groupId => Some(KhmSfAdmin)
+      case "FotoLes" | "EtnoLes" => None //Just to get less "Unknown groupId" log entries, these two will be removed.
       case unknownGroupId =>
         logger.info(s"Unknown groupId: $unknownGroupId")
         None

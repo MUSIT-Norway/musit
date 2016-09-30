@@ -57,7 +57,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     LinkService.local(Some(id), "self", s"/v1/$id")
 
   /*Creates an action to insert the event and potentially all related subevents. PartialEventLink is used if the event is inserted as a subElement of a parent element. The id of the parent element is then in the partialEventLink.*/
-  def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean, securityConnection: AuthenticatedUser): DBIO[Long] = {
+  def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean, user: AuthenticatedUser): DBIO[Long] = {
     def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
     val parentId = partialEventLink.map(_.idFrom)
@@ -68,7 +68,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     val partOfParent = partialEventLink.filter(_ => isPartsRelation).map(_.idFrom)
 
-    val _registeredBy = securityConnection.userName
+    val _registeredBy = user.userName
 
     val _registeredDate = new java.sql.Timestamp(DateTime.now().getMillis)
 
@@ -88,7 +88,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     if (recursive && event.hasSubEvents) {
       action = (for {
         newEventId <- action
-        numInserted <- insertChildrenAction(newEventId, event, securityConnection)
+        numInserted <- insertChildrenAction(newEventId, event, user)
       } yield newEventId).transactionally
 
     }
@@ -138,15 +138,15 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     action
   }
 
-  def insertEvent(event: Event, recursive: Boolean, securityConnection: AuthenticatedUser): Future[Long] = {
-    val action = insertEventAction(event, None, recursive, securityConnection)
+  def insertEvent(event: Event, recursive: Boolean, user: AuthenticatedUser): Future[Long] = {
+    val action = insertEventAction(event, None, recursive, user)
     db.run(action)
   }
 
-  def insertChildrenAction(parentEventId: Long, parentEvent: Event, securityConnection: AuthenticatedUser) = {
+  def insertChildrenAction(parentEventId: Long, parentEvent: Event, user: AuthenticatedUser) = {
 
     def insertRelatedEvents(relatedEvents: RelatedEvents) = {
-      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true, securityConnection))
+      val actions = relatedEvents.events.map(subEvent => insertEventAction(subEvent, Some(PartialEventLink(parentEventId, relatedEvents.relation)), true, user))
       new SequenceAction(actions.toIndexedSeq)
     }
 

@@ -61,13 +61,13 @@ class ActorDao @Inject() (
     db.run(ActorTable.filter(_.dataportenId === dataportenId).result.headOption)
   }
 
-  def dataportenUserToPerson(securityConnection: AuthenticatedUser): Person = {
-    Person(None, securityConnection.userName, None, None, None, None, securityConnection.userEmail, Some(securityConnection.userId), None)
+  def dataportenUserToPerson(user: AuthenticatedUser): Person = {
+    Person(None, user.userName, None, None, None, None, user.userEmail, Some(user.userId), None)
   }
 
-  def insertActorWithDataportenUserInfo(securityConnection: AuthenticatedUser): MusitFuture[Person] = {
-    val person = dataportenUserToPerson(securityConnection)
-    ActorAuth.verifyCanInsertActor(securityConnection, person).toMusitFuture.musitFutureFlatMap { _ =>
+  def insertActorWithDataportenUserInfo(user: AuthenticatedUser): MusitFuture[Person] = {
+    val person = dataportenUserToPerson(user)
+    ActorAuth.verifyCanInsertActor(user, person).toMusitFuture.musitFutureFlatMap { _ =>
       insertPersonLegacy(person).toMusitFuture
     }
   }
