@@ -14,7 +14,7 @@ services:
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
-          - "7072:7070"
+          - "7070:7070"
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
           - EVOLUTION_ENABLED
@@ -31,7 +31,7 @@ services:
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
-          - "7073:7070"
+          - "7071:7070"
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
           - EVOLUTION_ENABLED
@@ -48,7 +48,7 @@ services:
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
-          - "7074:7070"
+          - "7072:7070"
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
           - EVOLUTION_ENABLED
@@ -65,7 +65,7 @@ services:
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
-          - "7075:7070"
+          - "7073:7070"
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
           - EVOLUTION_ENABLED
@@ -82,18 +82,7 @@ services:
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
-          - "7076:7070"
-        environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
-
+          - "7074:7070"
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
           - EVOLUTION_ENABLED
@@ -110,7 +99,7 @@ services:
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
         ports:
-          - "7077:7070"
+          - "7075:7070"
         environment:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
           - EVOLUTION_ENABLED
