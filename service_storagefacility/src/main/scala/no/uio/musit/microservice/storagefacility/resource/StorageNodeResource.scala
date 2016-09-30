@@ -34,11 +34,11 @@ import scala.concurrent.Future
 /**
  * TODO: Document me!
  */
-final class StorageUnitResource @Inject() (
+final class StorageNodeResource @Inject() (
     service: StorageNodeService
 ) extends Controller {
 
-  val logger = Logger(classOf[StorageUnitResource])
+  val logger = Logger(classOf[StorageNodeResource])
 
   // TODO: Use user from an enriched request type in a proper SecureAction
   import no.uio.musit.microservice.storagefacility.DummyData.DummyUser
@@ -81,8 +81,9 @@ final class StorageUnitResource @Inject() (
         }
 
       case err: JsError =>
-        logger.error(s"Received an invalid JSON")
-        Future.successful(BadRequest(JsError.toJson(err)))
+        val jserr = JsError.toJson(err)
+        logger.error(s"Received an invalid JSON:\n${Json.prettyPrint(jserr)}")
+        Future.successful(BadRequest(jserr))
 
     }
   }
@@ -116,10 +117,7 @@ final class StorageUnitResource @Inject() (
   def getById(id: Long) = Action.async { implicit request =>
     service.getNodeById(id).map {
       case MusitSuccess(maybeNode) =>
-        maybeNode.map { node =>
-          logger.debug(s"RETURNING NODE $node")
-          Ok(Json.toJson[StorageNode](node))
-        }.getOrElse(NotFound)
+        maybeNode.map(n => Ok(Json.toJson[StorageNode](n))).getOrElse(NotFound)
 
       case musitError: MusitError =>
         musitError match {
@@ -173,13 +171,17 @@ final class StorageUnitResource @Inject() (
   def delete(id: Long) = Action.async { implicit request =>
     // TODO: Extract current user information from enriched request.
     service.deleteNode(id).map {
-      case MusitSuccess(numDeleted) =>
-        if (numDeleted == 0) {
+      case MusitSuccess(maybeDeleted) =>
+        maybeDeleted.map { numDeleted =>
+          if (numDeleted == -1) {
+            BadRequest(Json.obj("message" -> s"Node $id is not empty"))
+          } else {
+            Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
+          }
+        }.getOrElse {
           NotFound(Json.obj(
             "message" -> s"Could not find storage node with id: $id"
           ))
-        } else {
-          Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
         }
 
       case err: MusitError =>
@@ -205,20 +207,23 @@ final class StorageUnitResource @Inject() (
       }
     }.map { mru =>
       val success = mru.filter(_._2.isSuccess).map(_._1)
-      val error = mru.filter(_._2.isFailure).map(_._1)
+      val failed = mru.filter(_._2.isFailure).map(_._1)
 
       if (success.isEmpty) {
         BadRequest(Json.obj("message" -> "Nothing was moved"))
       } else {
+        logger.debug(s"Moved: ${success.mkString("[", ", ", "]")}, " +
+          s"failed: ${failed.mkString("[", ", ", "]")}")
         Ok(Json.obj(
           "moved" -> success,
-          "failed" -> error
+          "failed" -> failed
         ))
       }
 
     }
   }
 
+  // TODO: Check if moving to self...should be illegal!
   def moveNode = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[Move[StorageNodeId]] match {
@@ -242,6 +247,22 @@ final class StorageUnitResource @Inject() (
       case JsError(error) =>
         logger.warn(s"Error parsing JSON:\n ${Json.prettyPrint(JsError.toJson(error))}")
         Future.successful(BadRequest(JsError.toJson(error)))
+    }
+  }
+
+  def stats(nodeId: Long) = Action.async { implicit request =>
+    service.nodeStats(nodeId).map {
+      case MusitSuccess(maybeStats) =>
+        maybeStats.map { stats =>
+          Ok(Json.toJson(stats))
+        }.getOrElse {
+          NotFound(Json.obj("message" -> s"Could not find nodeId $nodeId"))
+        }
+
+      case err: MusitError =>
+        logger.error("An unexpected error occured when trying to read " +
+          s"node stats for $nodeId. Message was: ${err.message}")
+        InternalServerError(Json.obj("message" -> err.message))
     }
   }
 

@@ -1,5 +1,23 @@
 version: "2"
 services:
+    db:
+        build: database/
+        environment:
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=postgres
+          - POSTGRES_DB=postgres
+        volumes:
+          - ../../../postgres-storage:/var/lib/postgresql/data/
+        environment:
+          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
 
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
@@ -7,6 +25,16 @@ services:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
           - "7072:7070"
+        environment:
+          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
 
     storageadmin:
         image: musit_service_storage_admin:0.1-SNAPSHOT
@@ -14,6 +42,16 @@ services:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
           - "7073:7070"
+        environment:
+          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
 
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
@@ -21,6 +59,16 @@ services:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
           - "7074:7070"
+        environment:
+          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
 
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
@@ -28,6 +76,16 @@ services:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
           - "7075:7070"
+        environment:
+          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
 
     event:
         image: musit_service_event:0.1-SNAPSHOT
@@ -35,10 +93,40 @@ services:
           - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
           - "7076:7070"
+        environment:
+          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
 
+        environment:
+          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
     storagefacility:
         image: musit_service_storagefacility:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
         ports:
           - "7077:7070"
+        environment:
+          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db

@@ -35,6 +35,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   is_part_of NUMBER(20),
   height NUMBER,
   height_to NUMBER,
+  node_path  VARCHAR(1000) not null,
   is_deleted INTEGER DEFAULT 0 NOT NULL,
   storage_type VARCHAR(100) DEFAULT 'StorageUnit',
   group_read VARCHAR(4000),

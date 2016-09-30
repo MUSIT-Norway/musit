@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.{ Root, StorageType }
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -34,23 +35,19 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   "StorageUnitDao" should {
 
     "succeed when inserting several root nodes" in {
-      val ins1 = storageUnitDao.insertRoot(Root()).futureValue
-      val ins2 = storageUnitDao.insertRoot(Root()).futureValue
-      val ins3 = storageUnitDao.insertRoot(Root()).futureValue
-
-      ins1.id.isEmpty must not be true
-      ins1.storageType mustBe StorageType.RootType
-
-      ins2.id.isEmpty must not be true
-      ins2.storageType mustBe StorageType.RootType
-
-      ins3.id.isEmpty must not be true
-      ins3.storageType mustBe StorageType.RootType
+      for (i <- 1 to 3) {
+        val ins = storageUnitDao.insertRoot(Root()).futureValue
+        ins.id.isEmpty must not be true
+        ins.storageType mustBe StorageType.RootType
+        ins.path mustBe Some(NodePath.empty)
+      }
     }
 
     "succeed when inserting a new storage unit" in {
-      val inserted = storageUnitDao.insert(createStorageUnit()).futureValue
+      val path = Some(NodePath(",1,2,3,4,"))
+      val inserted = storageUnitDao.insert(createStorageUnit(path = path)).futureValue
       inserted.id must not be None
+      inserted.path mustBe path
     }
 
     "successfully fetch a storage unit" in {
@@ -82,7 +79,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       updRes.get.name mustBe "UggaBugga"
       updRes.get.areaTo mustBe Some(4.0)
 
-      val again = storageUnitDao.getNodeById(inserted.id.get).futureValue
+      val again = storageUnitDao.getById(inserted.id.get).futureValue
       again must not be None
       again.get.name mustBe "UggaBugga"
       again.get.areaTo mustBe Some(4.0)
@@ -93,153 +90,19 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       nodes.size mustBe 3
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
+
+    "successfully mark a node as deleted" in {
+      val su = createStorageUnit()
+      val inserted = storageUnitDao.insert(su).futureValue
+      inserted.id must not be None
+
+      val deleted = storageUnitDao.markAsDeleted(inserted.id.get).futureValue
+      deleted.isSuccess mustBe true
+      deleted.get mustBe 1
+
+      val res = storageUnitDao.getById(inserted.id.get).futureValue
+      res mustBe None
+    }
   }
 
-  //  "update storage unit with envReq " must {
-  //    "without any change in envReq" in {
-  //
-  //      val testRoom = mkTestRoom
-  //      val roomDto = roomToDto(testRoom)
-  //      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
-  //      insertedRoomDto.storageNode.id.isDefined mustBe true
-  //      insertedRoomDto.roomDto.theftProtection mustBe Some(true)
-  //
-  //      val id = insertedRoomDto.storageNode.id.get
-  //
-  //      val roomToUpdate = testRoom.copy(name = "Room12345")
-  //
-  //      val firstLatestEnvReqId = insertedRoomDto.storageNode.latestEnvReqId
-  //
-  //      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //      roomNodeInDatabase.latestEnvReqId mustBe firstLatestEnvReqId
-  //
-  //      val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //
-  //      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
-  //
-  //      val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //      roomInDatabase.environmentRequirement mustBe roomToUpdate.environmentRequirement
-  //    }
-  //    "with change in envReq, new envReq" in {
-  //
-  //      val testRoom = mkTestRoom
-  //      val roomDto = roomToDto(testRoom)
-  //      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
-  //      insertedRoomDto.storageNode.id.isDefined mustBe true
-  //      insertedRoomDto.roomDto.theftProtection mustBe Some(true)
-  //
-  //      val id = insertedRoomDto.storageNode.id.get
-  //
-  //      val firstLatestEnvReqId = insertedRoomDto.storageNode.latestEnvReqId
-  //
-  //      val roomToUpdate = testRoom.copy(name = "Room666", environmentRequirement = Some(mkChangedEnvReq))
-  //
-  //      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //      roomNodeInDatabase.latestEnvReqId mustBe firstLatestEnvReqId
-  //
-  //      val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //
-  //      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
-  //
-  //      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //      roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
-  //
-  //      val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //      roomInDatabase.environmentRequirement mustBe roomToUpdate.environmentRequirement
-  //    }
-  //    "with new envReq, empty envReq in existing node" in {
-  //
-  //      val testRoom = mkTestRoomWithNoEnvReq
-  //      val roomDto = roomToDto(testRoom)
-  //      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
-  //      insertedRoomDto.storageNode.id.isDefined mustBe true
-  //      insertedRoomDto.roomDto.theftProtection mustBe Some(true)
-  //
-  //      val id = insertedRoomDto.storageNode.id.get
-  //
-  //      val firstLatestEnvReqId = insertedRoomDto.storageNode.latestEnvReqId
-  //
-  //      val roomToUpdate = testRoom.copy(name = "Room777", environmentRequirement = Some(mkChangedEnvReq))
-  //
-  //      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //
-  //      val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //
-  //      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
-  //
-  //      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //      roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
-  //
-  //      val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //      roomInDatabase.environmentRequirement mustBe roomToUpdate.environmentRequirement
-  //    }
-  //    "with new empty envReq, existing envReq in node" in {
-  //
-  //      val testRoom = mkTestRoom
-  //      val roomDto = roomToDto(testRoom)
-  //      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
-  //      insertedRoomDto.storageNode.id.isDefined mustBe true
-  //      insertedRoomDto.roomDto.theftProtection mustBe Some(true)
-  //
-  //      val id = insertedRoomDto.storageNode.id.get
-  //
-  //      val firstLatestEnvReqId = insertedRoomDto.storageNode.latestEnvReqId
-  //
-  //      val roomToUpdate = testRoom.copy(name = "Room888", environmentRequirement = None)
-  //
-  //      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //
-  //      val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //
-  //      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
-  //
-  //      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //      roomNodeInDatabase2.latestEnvReqId should not be firstLatestEnvReqId
-  //
-  //      val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //      roomInDatabase.environmentRequirement should not be roomToUpdate.environmentRequirement
-  //
-  //      roomInDatabase.environmentRequirement mustBe Some(EnvironmentRequirement.empty)
-  //    }
-  //    "with new empty envReq, and empty envReq in node" in {
-  //
-  //      val oldSize = storageUnitDao.all().futureValue.size
-  //
-  //      val testRoom = mkTestRoomWithNoEnvReq
-  //      val roomDto = roomToDto(testRoom)
-  //      val insertedRoomDto = roomDao.insertRoom(roomDto).futureValue(timeout) //.asInstanceOf[Room]
-  //      insertedRoomDto.storageNode.id.isDefined mustBe true
-  //      insertedRoomDto.roomDto.theftProtection mustBe Some(true)
-  //
-  //      val id = insertedRoomDto.storageNode.id.get
-  //
-  //      val firstLatestEnvReqId = insertedRoomDto.storageNode.latestEnvReqId
-  //
-  //      val roomToUpdate = testRoom.copy(name = "Room888", environmentRequirement = None)
-  //
-  //      val roomNodeInDatabase = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //
-  //      val roomInDatabaseBeforeUpdate = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //
-  //      val res = roomDao.updateRoom(id, roomToUpdate).futureValue(timeout)
-  //
-  //      val roomNodeInDatabase2 = storageUnitDao.getStorageNodeOnlyById(id).futureValue.get
-  //      roomNodeInDatabase2.latestEnvReqId mustBe firstLatestEnvReqId
-  //
-  //      val roomInDatabase = storageDao.getById(id).futureValue.right.get.asInstanceOf[Room]
-  //      roomInDatabase.environmentRequirement mustBe roomToUpdate.environmentRequirement
-  //
-  //      firstLatestEnvReqId mustBe None
-  //      roomNodeInDatabase2.latestEnvReqId mustBe None
-  //
-  //      roomInDatabase.environmentRequirement mustBe None
-  //      roomToUpdate.environmentRequirement mustBe None
-  //
-  //      val newSize = storageUnitDao.all().futureValue.size
-  //
-  //      newSize mustBe oldSize + 1
-  //
-  //    }
-  //
-  //  }
 }
