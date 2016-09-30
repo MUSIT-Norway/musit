@@ -19,9 +19,9 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, MusitEvent, BaseEvent, Parts }
+import no.uio.musit.microservice.storagefacility.domain.event.{EventType, MusitEvent, BaseEvent, Parts}
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{ Format, _ }
+import play.api.libs.json.{Format, _}
 
 import ObservationSubEventFormats.ObservationSubEventFormat
 

@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto

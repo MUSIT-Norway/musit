@@ -22,10 +22,10 @@ import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao.StorageDao
 import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageDtoConverter
-import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, OrganisationService, RoomService, StorageUnitService }
+import no.uio.musit.microservice.storageAdmin.service.{BuildingService, OrganisationService, RoomService, StorageUnitService}
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.linking.domain.Link
-import no.uio.musit.microservices.common.utils.{ Misc, ResourceHelper }
+import no.uio.musit.microservices.common.utils.{Misc, ResourceHelper}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._

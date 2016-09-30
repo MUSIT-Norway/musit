@@ -19,10 +19,10 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EventRoleObject
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future

@@ -21,7 +21,7 @@ package dao
 
 import no.uio.musit.service.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.time.{Millis, Seconds, Span}
 
 class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
 

@@ -20,16 +20,16 @@
 
 package no.uio.musit.microservice.event.service
 
-import java.sql.{ Date, Timestamp }
+import java.sql.{Date, Timestamp}
 import java.time.LocalDateTime
 
-import no.uio.musit.microservice.event.domain.{ EventRelations, _ }
+import no.uio.musit.microservice.event.domain.{EventRelations, _}
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
 import play.api.libs.json._
 
 /**

@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
-import java.sql.{ Date => JSqlDate, Timestamp => JSqlTimestamp }
+import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 

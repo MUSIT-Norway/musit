@@ -1,6 +1,5 @@
 package no.uio.musit.microservice.storagefacility.resource
 
-
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
@@ -10,7 +9,6 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-
 
 class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
@@ -25,7 +23,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     expName: String,
     expId: Long,
     expPartOf: Option[Long] = None
-    )(implicit manifest: Manifest[T]): T = {
+  )(implicit manifest: Manifest[T]): T = {
     val storageNode = parseAndVerifyResponse[T](response)
     storageNode.id mustBe Some(StorageNodeId(expId))
     storageNode.storageType mustBe expStorageType
@@ -42,7 +40,6 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     parsed.isSuccess mustBe true
     parsed.get.asInstanceOf[T]
   }
-
 
   "Running the storage facility service" when {
     "interacting with the StorageUnitResource endpoints" should {

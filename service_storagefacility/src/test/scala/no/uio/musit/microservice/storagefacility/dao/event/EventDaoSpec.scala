@@ -19,14 +19,14 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ ControlEventType, MoveNodeType, MoveObjectType, ObservationEventType }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ControlEventType, MoveNodeType, MoveObjectType, ObservationEventType}
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move._
 import no.uio.musit.microservice.storagefacility.testhelpers._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors._
-import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.time.{Millis, Seconds, Span}
 
 /**
  * Test specs for the EventDao.

@@ -114,7 +114,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       // TODO: Verify ordering.
     }
 
-//    "list all controls for a node"
+    //    "list all controls for a node"
 
   }
 

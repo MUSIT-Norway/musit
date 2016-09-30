@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.event.dto.ObservationFromToDto
 import play.api.Logger

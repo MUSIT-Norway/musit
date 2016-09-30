@@ -20,12 +20,12 @@
 
 package no.uio.musit.microservices.common.extensions
 
-import play.api.{ Application, Logger }
+import play.api.{Application, Logger}
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 //import play.api.Play.current
 import play.api.cache.Cache
