@@ -56,9 +56,9 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(id: StorageNodeId): Future[Option[Building]] = {
+  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[Building]] = {
     val action = for {
-      maybeUnitDto <- getUnitByIdAction(id)
+      maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
@@ -83,7 +83,7 @@ class BuildingDao @Inject() (
 
     db.run(action.transactionally).flatMap {
       case res: Int if res == 1 =>
-        getById(id)
+        getById(mid, id)
 
       case res: Int =>
         logger.warn("Wrong amount of rows updated")

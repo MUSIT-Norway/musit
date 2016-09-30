@@ -44,8 +44,8 @@ final class StorageUnitResource @Inject() (
   import no.uio.musit.microservice.storagefacility.DummyData.DummyUser
 
   /**
-    * TODO: Document me!
-    */
+   * TODO: Document me!
+   */
   def add(mid: Int) = Action.async(parse.json) { request =>
     // TODO: Extract current user information from enriched request.
     Museum.fromMuseumId(mid).map { museumId =>
@@ -91,8 +91,8 @@ final class StorageUnitResource @Inject() (
   }
 
   /**
-    * TODO: Document me!
-    */
+   * TODO: Document me!
+   */
   def addRoot(mid: Int) = Action.async { implicit request =>
     Museum.fromMuseumId(mid).map { museumId =>
       service.addRoot(mid, Root()).map(node => Created(Json.toJson(node)))
@@ -102,8 +102,8 @@ final class StorageUnitResource @Inject() (
   }
 
   /**
-    * TODO: Document me!
-    */
+   * TODO: Document me!
+   */
   def root(mid: Int) = Action.async { implicit request =>
     Museum.fromMuseumId(mid).map { museumId =>
       service.rootNodes(mid).map(roots => Ok(Json.toJson(roots)))
@@ -115,31 +115,39 @@ final class StorageUnitResource @Inject() (
   /**
    * TODO: Document me!
    */
-  def children(id: Long) = Action.async { implicit request =>
-    service.getChildren(id).map { nodes =>
-      Ok(Json.toJson[Seq[GenericStorageNode]](nodes))
+  def children(mid: Int, id: Long) = Action.async { implicit request =>
+    Museum.fromMuseumId(mid).map { museumId =>
+      service.getChildren(mid, id).map { nodes =>
+        Ok(Json.toJson[Seq[GenericStorageNode]](nodes))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
   }
 
   /**
    * TODO: Document me!
    */
-  def getById(id: Long) = Action.async { implicit request =>
-    service.getNodeById(id).map {
-      case MusitSuccess(maybeNode) =>
-        maybeNode.map { node =>
-          logger.debug(s"RETURNING NODE $node")
-          Ok(Json.toJson[StorageNode](node))
-        }.getOrElse(NotFound)
+  def getById(mid: Int, id: Long) = Action.async { implicit request =>
+    Museum.fromMuseumId(mid).map { museumId =>
+      service.getNodeById(mid, id).map {
+        case MusitSuccess(maybeNode) =>
+          maybeNode.map { node =>
+            logger.debug(s"RETURNING NODE $node")
+            Ok(Json.toJson[StorageNode](node))
+          }.getOrElse(NotFound)
 
-      case musitError: MusitError =>
-        musitError match {
-          case MusitValidationError(message, exp, act) =>
-            BadRequest(Json.obj("message" -> message))
+        case musitError: MusitError =>
+          musitError match {
+            case MusitValidationError(message, exp, act) =>
+              BadRequest(Json.obj("message" -> message))
 
-          case internal: MusitError =>
-            InternalServerError(Json.obj("message" -> internal.message))
-        }
+            case internal: MusitError =>
+              InternalServerError(Json.obj("message" -> internal.message))
+          }
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
   }
 
@@ -183,22 +191,26 @@ final class StorageUnitResource @Inject() (
   /**
    * TODO: Document me!
    */
-  def delete(id: Long) = Action.async { implicit request =>
+  def delete(mid: Int, id: Long) = Action.async { implicit request =>
     // TODO: Extract current user information from enriched request.
-    service.deleteNode(id).map {
-      case MusitSuccess(numDeleted) =>
-        if (numDeleted == 0) {
-          NotFound(Json.obj(
-            "message" -> s"Could not find storage node with id: $id"
-          ))
-        } else {
-          Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
-        }
+    Museum.fromMuseumId(mid).map { museumId =>
+      service.deleteNode(mid, id).map {
+        case MusitSuccess(numDeleted) =>
+          if (numDeleted == 0) {
+            NotFound(Json.obj(
+              "message" -> s"Could not find storage node with id: $id"
+            ))
+          } else {
+            Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
+          }
 
-      case err: MusitError =>
-        logger.error("An unexpected error occured when trying to delete a node " +
-          s"with ID $id. Message was: ${err.message}")
-        InternalServerError(Json.obj("message" -> err.message))
+        case err: MusitError =>
+          logger.error("An unexpected error occured when trying to delete a node " +
+            s"with ID $id. Message was: ${err.message}")
+          InternalServerError(Json.obj("message" -> err.message))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
   }
 

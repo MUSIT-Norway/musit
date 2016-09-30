@@ -19,15 +19,15 @@
 
 package no.uio.musit.microservice.storagefacility.testhelpers
 
-import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
-import no.uio.musit.microservice.storagefacility.domain.{Interval, MuseumId}
+import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
+import no.uio.musit.microservice.storagefacility.domain.{ Interval, MuseumId }
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 
 trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>
@@ -52,22 +52,20 @@ trait NodeGenerators extends NodeTypeInitializers {
     instance(musitFakeApp)
   }
 
-
   // Some default nodes
   lazy val defaultBuilding: Building = {
-    Await.result(buildingDao.insert(mid, createBuilding()), 5 seconds)
+    Await.result(buildingDao.insert(2, createBuilding()), 5 seconds)
   }
 
   lazy val defaultRoom: Room = {
-    Await.result(roomDao.insert(mid, createRoom()), 5 seconds)
+    Await.result(roomDao.insert(2, createRoom()), 5 seconds)
   }
 
   lazy val defaultStorageUnit: StorageUnit = {
-    Await.result(storageUnitDao.insert(mid, createStorageUnit()), 5 seconds)
+    Await.result(storageUnitDao.insert(2, createStorageUnit()), 5 seconds)
   }
 
-
-  def addRoot(r: Root) = storageUnitDao.insertRoot(mid, r)
+  /* def addRoot(r: Root) = storageUnitDao.insertRoot(mid, r)
 
   def addBuilding(b: Building) = buildingDao.insert(mid, b)
 
@@ -94,7 +92,7 @@ trait NodeGenerators extends NodeTypeInitializers {
       inserted.map(_.id.get)
     }
     Await.result(eventuallyInserted, 10 seconds)
-  }
+  }*/
 }
 
 trait NodeTypeInitializers {

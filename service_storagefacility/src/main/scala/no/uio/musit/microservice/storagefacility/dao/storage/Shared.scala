@@ -37,9 +37,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   protected val storageNodeTable = TableQuery[StorageNodeTable]
 
-  protected[dao] def getUnitByIdAction(id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
+  protected[dao] def getUnitByIdAction(mid: MuseumId, id: StorageNodeId): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { st =>
-      st.id === id && st.isDeleted === false && st.storageType =!= rootNodeType
+      st.museumId === mid && st.id === id && st.isDeleted === false && st.storageType =!= rootNodeType
     }.result.headOption
   }
 

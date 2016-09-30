@@ -75,7 +75,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val inserted = service.addStorageUnit(mid, su).futureValue
     inserted.id must not be None
 
-    val res = storageUnitDao.getById(inserted.id.get).futureValue
+    val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
     res must not be None
     res.get.storageType mustBe su.storageType
     res.get.name mustBe su.name
@@ -88,7 +88,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     updRes.get.get.name mustBe "UggaBugga"
     updRes.get.get.areaTo mustBe Some(4.0)
 
-    val again = service.getNodeById(inserted.id.get).futureValue
+    val again = service.getNodeById(mid, inserted.id.get).futureValue
     again.isSuccess mustBe true
     again.get must not be None
     again.get.get.name mustBe "UggaBugga"

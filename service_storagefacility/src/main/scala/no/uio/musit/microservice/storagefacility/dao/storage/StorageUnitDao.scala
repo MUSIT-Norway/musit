@@ -48,8 +48,8 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getUnitByIdAction(id)
+  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[StorageUnit]] = {
+    val query = getUnitByIdAction(mid, id)
     db.run(query).map { dto =>
       dto.map(unitDto => StorageNodeDto.toStorageUnit(unitDto))
     }
@@ -58,8 +58,8 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getNodeById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getUnitByIdAction(id)
+  def getNodeById(mid: MuseumId, id: StorageNodeId): Future[Option[StorageUnit]] = {
+    val query = getUnitByIdAction(mid, id)
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
   }
 
@@ -82,8 +82,8 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getChildren(id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
-    val query = storageNodeTable.filter(_.isPartOf === id).result
+  def getChildren(mid: MuseumId, id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
+    val query = storageNodeTable.filter(st => st.isPartOf === id && st.museumId === mid).result
     db.run(query).map { dtos =>
       dtos.map { dto =>
         StorageNodeDto.toGenericStorageNode(dto)
@@ -130,7 +130,7 @@ class StorageUnitDao @Inject() (
     val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
     db.run(updateNodeAction(id, dto)).flatMap {
       case res: Int if res == 1 =>
-        getById(id)
+        getById(mid, id)
 
       case res: Int =>
         logger.warn(s"Wrong amount of rows ($res) updated")
@@ -153,9 +153,9 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def markAsDeleted(id: StorageNodeId): Future[MusitResult[Int]] = {
+  def markAsDeleted(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Int]] = {
     val query = storageNodeTable.filter { su =>
-      su.id === id && su.isDeleted === false
+      su.id === id && su.isDeleted === false && su.museumId === mid
     }.map(_.isDeleted).update(true)
 
     db.run(query).map { res =>

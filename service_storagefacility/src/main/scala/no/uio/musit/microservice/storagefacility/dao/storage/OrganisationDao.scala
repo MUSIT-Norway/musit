@@ -57,9 +57,9 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(id: StorageNodeId): Future[Option[Organisation]] = {
+  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[Organisation]] = {
     val action = for {
-      maybeUnitDto <- getUnitByIdAction(id)
+      maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeOrgDto <- organisationTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
@@ -84,7 +84,7 @@ class OrganisationDao @Inject() (
 
     db.run(action.transactionally).flatMap {
       case res: Int if res == 1 =>
-        getById(id)
+        getById(mid, id)
 
       case res: Int =>
         logger.warn(s"Wrong amount of rows ($res) updated")

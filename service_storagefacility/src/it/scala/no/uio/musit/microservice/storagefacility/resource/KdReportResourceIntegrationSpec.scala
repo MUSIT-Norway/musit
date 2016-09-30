@@ -48,8 +48,9 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     "interacting with the StorageUnitResource endpoints" should {
 
       "successfully get kDReport for rooms" in {
+        val mid = 2
         val json = roomJson("EllensPersonalRoom", None)
-        val response = wsUrl(StorageNodesUrl).post(json).futureValue
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val room = verifyNode[Room](
@@ -60,7 +61,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         room.heightTo mustBe Some(2.6)
 
         val json1 = roomJson("EllensWorkOutRoom", None)
-        val response1 = wsUrl(StorageNodesUrl).post(json1).futureValue
+        val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
         response1.status mustBe Status.CREATED
 
         val report = wsUrl(KdReportUrl(2)).get.futureValue

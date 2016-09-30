@@ -252,10 +252,11 @@ class StorageNodeService @Inject() (
    * TODO: Document me!
    */
   def getStorageUnitById(
+    mid: MuseumId,
     id: StorageNodeId
   ): Future[MusitResult[Option[StorageUnit]]] = {
     for {
-      unitRes <- storageUnitDao.getById(id).map(MusitSuccess.apply)
+      unitRes <- storageUnitDao.getById(mid, id).map(MusitSuccess.apply)
       maybeEnvReq <- getEnvReq(id)
     } yield {
       unitRes.map { maybeUnit =>
@@ -267,9 +268,9 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getRoomById(id: StorageNodeId): Future[MusitResult[Option[Room]]] = {
+  def getRoomById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Room]]] = {
     for {
-      roomRes <- roomDao.getById(id).map(MusitSuccess.apply)
+      roomRes <- roomDao.getById(mid, id).map(MusitSuccess.apply)
       maybeEnvReq <- getEnvReq(id)
     } yield {
       roomRes.map { maybeRoom =>
@@ -281,9 +282,9 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getBuildingById(id: StorageNodeId): Future[MusitResult[Option[Building]]] = {
+  def getBuildingById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Building]]] = {
     for {
-      buildingRes <- buildingDao.getById(id).map(MusitSuccess.apply)
+      buildingRes <- buildingDao.getById(mid, id).map(MusitSuccess.apply)
       maybeEnvReq <- getEnvReq(id)
     } yield {
       buildingRes.map { maybeBuilding =>
@@ -296,9 +297,9 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getOrganisationById(id: StorageNodeId): Future[MusitResult[Option[Organisation]]] = {
+  def getOrganisationById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Organisation]]] = {
     for {
-      orgRes <- organisationDao.getById(id).map(MusitSuccess.apply)
+      orgRes <- organisationDao.getById(mid, id).map(MusitSuccess.apply)
       maybeEnvReq <- getEnvReq(id)
     } yield {
       orgRes.map { maybeOrg =>
@@ -325,16 +326,17 @@ class StorageNodeService @Inject() (
    * TODO: Document me!
    */
   def getNodeById(
+    mid: MuseumId,
     id: StorageNodeId
   ): Future[MusitResult[Option[StorageNode]]] = {
     storageUnitDao.getStorageType(id).flatMap { res =>
       res.map { maybeType =>
         maybeType.map {
           case StorageType.RootType => Future.successful(MusitSuccess(None))
-          case StorageType.OrganisationType => getOrganisationById(id)
-          case StorageType.BuildingType => getBuildingById(id)
-          case StorageType.RoomType => getRoomById(id)
-          case StorageType.StorageUnitType => getStorageUnitById(id)
+          case StorageType.OrganisationType => getOrganisationById(mid, id)
+          case StorageType.BuildingType => getBuildingById(mid, id)
+          case StorageType.RoomType => getRoomById(mid, id)
+          case StorageType.StorageUnitType => getStorageUnitById(mid, id)
         }.getOrElse {
           Future.successful(MusitSuccess(None))
         }
@@ -350,8 +352,8 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!
    */
-  def getChildren(id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
-    storageUnitDao.getChildren(id)
+  def getChildren(mid: MuseumId, id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
+    storageUnitDao.getChildren(mid, id)
   }
 
   /**
@@ -408,10 +410,10 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!
    */
-  def deleteNode(id: StorageNodeId)(implicit currUsr: String): Future[MusitResult[Int]] = {
+  def deleteNode(mid: MuseumId, id: StorageNodeId)(implicit currUsr: String): Future[MusitResult[Int]] = {
     storageUnitDao.nodeExists(id).flatMap {
       case MusitSuccess(exists) =>
-        if (exists) storageUnitDao.markAsDeleted(id)
+        if (exists) storageUnitDao.markAsDeleted(mid, id)
         else Future.successful(MusitSuccess(0))
 
       case error: MusitError =>

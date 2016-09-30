@@ -52,9 +52,9 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(id: StorageNodeId): Future[Option[Room]] = {
+  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[Room]] = {
     val action = for {
-      maybeUnitDto <- getUnitByIdAction(id)
+      maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeRoomDto <- roomTable.filter(_.id === id).result.headOption
     } yield {
       maybeUnitDto.flatMap(u =>
@@ -77,7 +77,7 @@ class RoomDao @Inject() (
 
     db.run(action.transactionally).flatMap {
       case res: Int if res == 1 =>
-        getById(id)
+        getById(mid, id)
 
       case res: Int =>
         logger.warn(s"Wrong amount of rows ($res) updated")

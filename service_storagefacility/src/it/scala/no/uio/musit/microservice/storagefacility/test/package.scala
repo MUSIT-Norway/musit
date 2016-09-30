@@ -22,19 +22,20 @@ package no.uio.musit.microservice.storagefacility
 package object test {
 
   val BaseUrl = "/v1/storagenodes"
-  val StorageNodesUrl = BaseUrl
-  val RootNodeUrl = s"$BaseUrl/root"
-  val StorageNodeUrl = (node: Long) => s"$BaseUrl/$node"
+  val StorageNodesUrl = (mid: Int) => s"$BaseUrl/museum/$mid"
+  val RootNodeUrl = (mid: Int) => s"$BaseUrl/museum/$mid/root"
+  val StorageNodeUrl = (mid: Int, node: Long) => s"$BaseUrl/museum/$mid/node/$node"
+
   val MoveStorageNodeUrl = s"$StorageNodesUrl/moveNode"
   val MoveObjectUrl = s"$StorageNodesUrl/moveObject"
-  val NodeChildrenUrl = (node: Long) => s"${StorageNodeUrl(node)}/children"
+  val NodeChildrenUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/children"
 
-  val ControlsUrl = (node: Long) => s"${StorageNodeUrl(node)}/controls"
+  /*val ControlsUrl = (node: Long) => s"${StorageNodeUrl(node)}/controls"
   val ControlUrl = (node: Long, evt: Long) => s"${ControlsUrl(node)}/$evt"
   val ObservationsUrl = (node: Long) => s"${StorageNodeUrl(node)}/observations"
   val ObservationUrl = (node: Long, evt: Long) => s"${ObservationsUrl(node)}/$evt"
 
-  val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"
+  val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"*/
   val KdReportUrl = (mid: Int) => s"$BaseUrl/museum/$mid/report"
 
 

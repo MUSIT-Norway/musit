@@ -34,7 +34,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   "StorageUnitDao" should {
 
     "succeed when inserting several root nodes" in {
-      val mid = 3
+      val mid = 2
       val ins1 = storageUnitDao.insertRoot(mid, Root()).futureValue
       val ins2 = storageUnitDao.insertRoot(mid, Root()).futureValue
       val ins3 = storageUnitDao.insertRoot(mid, Root()).futureValue
@@ -61,7 +61,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val inserted = storageUnitDao.insert(mid, su).futureValue
       inserted.id must not be None
 
-      val res = storageUnitDao.getById(inserted.id.get).futureValue
+      val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
       res must not be None
 
       res.get.storageType mustBe su.storageType
@@ -74,7 +74,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val inserted = storageUnitDao.insert(mid, su).futureValue
       inserted.id must not be None
 
-      val res = storageUnitDao.getById(inserted.id.get).futureValue
+      val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
       res must not be None
       res.get.storageType mustBe su.storageType
       res.get.name mustBe su.name
@@ -86,16 +86,29 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       updRes.get.name mustBe "UggaBugga"
       updRes.get.areaTo mustBe Some(4.0)
 
-      val again = storageUnitDao.getNodeById(inserted.id.get).futureValue
+      val again = storageUnitDao.getNodeById(mid, inserted.id.get).futureValue
       again must not be None
       again.get.name mustBe "UggaBugga"
       again.get.areaTo mustBe Some(4.0)
     }
 
     "successfully list root nodes" in {
-      val mid = 5
+      val mid = 2
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
       nodes.size mustBe 3
+      nodes.foreach(_.storageType mustBe StorageType.RootType)
+    }
+
+    "UnSuccessfully list root nodes with wrong museum" in {
+      val mid = 5
+      val nodes = storageUnitDao.findRootNodes(mid).futureValue
+      nodes.size mustBe 0
+      nodes.foreach(_.storageType mustBe StorageType.RootType)
+    }
+    "UnSuccessfully list root nodes with museum that do not exists" in {
+      val mid = 55
+      val nodes = storageUnitDao.findRootNodes(mid).futureValue
+      nodes.size mustBe 0
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
   }
