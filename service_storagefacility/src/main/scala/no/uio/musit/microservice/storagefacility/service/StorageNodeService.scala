@@ -468,9 +468,9 @@ class StorageNodeService @Inject() (
       case MusitSuccess(maybeNode) =>
         maybeNode.flatMap { node =>
           node.path.map { nodePath =>
-            val eventuallyTotal = statsDao.totalObjectCount(nodePath)
+            val eventuallyTotal = Future.successful(0) // statsDao.totalObjectCount(nodePath)
             val eventuallyDirect = statsDao.directObjectCount(nodeId)
-            val eventuallyNodeCount = Future.successful(0) // statsDao.childCount(nodeId)
+            val eventuallyNodeCount = statsDao.childCount(nodeId)
 
             for {
               total <- eventuallyTotal
