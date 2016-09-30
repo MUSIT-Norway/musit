@@ -25,16 +25,6 @@ name := """musit"""
 
 version := "0.1"
 
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-import sbt._
-import scalariform.formatter.preferences._
-
-
-scalariformSettings
-
-ScalariformKeys.preferences := ScalariformKeys.preferences.value
-  .setPreference(FormatXml, false)
-  .setPreference(SpacesAroundMultiImports, false)
 
 val baseDockerSettings = Seq(
   maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
@@ -66,7 +56,6 @@ lazy val root = project in file(".") settings noPublish aggregate(
   service_thing_aggregate,
   service_actor,
   service_geo_location,
-  service_time,
   service_storage_admin,
   service_event,
   service_storagefacility
@@ -165,17 +154,6 @@ lazy val service_geo_location = (
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_geo_location"
-  ))
-  )  dependsOn(common, common_test % "it,test")
-
-
-lazy val service_time = (
-  PlayProject("service_time")
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(baseDockerSettings ++ Seq(
-    packageName in Docker := "musit_service_time"
   ))
   )  dependsOn(common, common_test % "it,test")
 

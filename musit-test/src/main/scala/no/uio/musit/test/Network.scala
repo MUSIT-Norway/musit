@@ -20,11 +20,11 @@
 package no.uio.musit.test
 
 import java.io.IOException
-import java.net.{ ServerSocket => JServerSocket }
+import java.net.{ServerSocket => JServerSocket}
 
 import play.api.test.Helpers
 
-import scala.util.{ Random, Try }
+import scala.util.{Random, Try}
 
 trait Network {
 

@@ -20,7 +20,7 @@
 package no.uio.musit.formatters
 
 import org.joda.time.DateTime
-import play.api.libs.json.{ Format, Reads, Writes }
+import play.api.libs.json.{Format, Reads, Writes}
 
 /**
  * Converters helping to converting DateTime to/from UTC/ISO formatted dates.
