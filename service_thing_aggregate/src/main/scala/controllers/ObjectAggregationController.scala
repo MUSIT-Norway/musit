@@ -6,7 +6,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc._
-import services.{ ObjectAggregationService, StorageNodeService }
+import services.{ObjectAggregationService, StorageNodeService}
 
 import scala.concurrent.Future
 

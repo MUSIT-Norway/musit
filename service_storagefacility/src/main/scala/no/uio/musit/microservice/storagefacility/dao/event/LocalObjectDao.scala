@@ -21,8 +21,8 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventDto, LocalObject }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventDto, LocalObject}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
 class LocalObjectDao @Inject() (

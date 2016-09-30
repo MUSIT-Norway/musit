@@ -2,7 +2,6 @@
  * Created by ellenjo on 4/15/16.
  */
 
-
 import no.uio.musit.microservice.geoLocation.domain.GeoNorwayAddress
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.ScalaFutures

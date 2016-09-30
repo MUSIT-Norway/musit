@@ -19,15 +19,15 @@
 
 package no.uio.musit.microservice.storagefacility.testhelpers
 
-import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
-import no.uio.musit.microservice.storagefacility.domain.{ Interval, NodePath }
+import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
+import no.uio.musit.microservice.storagefacility.domain.{Interval, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 
 trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>

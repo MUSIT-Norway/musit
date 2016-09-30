@@ -3,7 +3,7 @@ package no.uio.musit.microservice.event.dao
 import no.uio.musit.microservice.event.domain.LocalObject
 import no.uio.musit.microservice.event.service.MoveObject
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.dbio.FutureAction
 import slick.driver.JdbcProfile
 

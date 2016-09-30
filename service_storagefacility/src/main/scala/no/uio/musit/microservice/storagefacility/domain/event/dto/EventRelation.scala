@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
-import no.uio.musit.microservice.storagefacility.domain.event.{ ActorRole, EventTypeId, ObjectRole, PlaceRole }
+import no.uio.musit.microservice.storagefacility.domain.event.{ActorRole, EventTypeId, ObjectRole, PlaceRole}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 
 /**

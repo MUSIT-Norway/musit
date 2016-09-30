@@ -1,7 +1,7 @@
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitException, MusitStatusMessage }
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
+import no.uio.musit.microservices.common.domain.{MusitError, MusitException, MusitStatusMessage}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, MusitResult}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._

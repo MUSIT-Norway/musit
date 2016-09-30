@@ -20,8 +20,8 @@
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, BaseEvent }
-import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
+import no.uio.musit.microservice.storagefacility.domain.event.{EventType, BaseEvent}
+import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, LifeCycle}
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 

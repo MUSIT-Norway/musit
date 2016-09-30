@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.datetime
 
-import java.sql.{ Date => JSqlDate, Timestamp => JSqlTimestamp }
+import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
 import org.joda.time.DateTime
 

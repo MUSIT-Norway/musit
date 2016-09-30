@@ -21,19 +21,19 @@
 package no.uio.musit.microservice.event.resource
 import java.sql.Date
 
-import no.uio.musit.microservice.event.domain.{ Event, EventType }
+import no.uio.musit.microservice.event.domain.{Event, EventType}
 import no.uio.musit.microservice.event.service.JsonEventHelpers.JsonEventWriter
-import no.uio.musit.microservice.event.service.{ EventService, JsonEventHelpers }
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.microservice.event.service.{EventService, JsonEventHelpers}
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.utils.Misc._
-import no.uio.musit.microservices.common.utils.{ ErrorHelper, ResourceHelper }
+import no.uio.musit.microservices.common.utils.{ErrorHelper, ResourceHelper}
 import no.uio.musit.security.Security
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
-import play.api.mvc.{ Action, BodyParsers, Controller, Request }
+import play.api.mvc.{Action, BodyParsers, Controller, Request}
 
 import scala.concurrent.Future
 

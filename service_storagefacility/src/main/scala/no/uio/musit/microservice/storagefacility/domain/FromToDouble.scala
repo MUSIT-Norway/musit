@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.domain
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{ Format, _ }
+import play.api.libs.json.{Format, _}
 
 case class FromToDouble(from: Option[Double], to: Option[Double])
 

@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 
 case class ActorRole(roleId: Int, actorId: Int)
 

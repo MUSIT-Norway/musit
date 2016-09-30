@@ -4,10 +4,10 @@ import java.net.URLEncoder
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.{ LayoutBase, UnsynchronizedAppenderBase }
+import ch.qos.logback.core.{LayoutBase, UnsynchronizedAppenderBase}
 import play.Logger
 import play.api.Play.current
-import play.api.libs.json.{ JsNumber, JsObject, JsString }
+import play.api.libs.json.{JsNumber, JsObject, JsString}
 import play.api.libs.ws._
 
 object SlackDefaults {
