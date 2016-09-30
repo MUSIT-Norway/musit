@@ -63,7 +63,7 @@ object CommonSettings {
       "-encoding", "UTF-8",
       "-Xmax-classfile-name", "100" // This will limit the classname generation to 100 characters.
     ),
-    coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router",
+    coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router;no.uio.musit.test",
     coverageExcludedFiles := "",
     coverageMinimum := 80,
     coverageFailOnMinimum := false
