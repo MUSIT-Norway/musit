@@ -456,7 +456,7 @@ class StorageNodeService @Inject() (
           node.path.map { nodePath =>
             val eventuallyTotal = statsDao.totalObjectCount(nodePath)
             val eventuallyDirect = statsDao.directObjectCount(nodeId)
-            val eventuallyNodeCount = statsDao.childCount(nodeId)
+            val eventuallyNodeCount = Future.successful(0) // statsDao.childCount(nodeId)
 
             for {
               total <- eventuallyTotal
