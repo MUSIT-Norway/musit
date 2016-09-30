@@ -21,7 +21,7 @@ package no.uio.musit.microservice.storagefacility.resource
 
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, StorageNodeId}
 import no.uio.musit.microservice.storagefacility.test.{EventJsonGenerator, StorageNodeJsonGenerator, _}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -51,6 +51,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   }
 
   "The storage facility event service" should {
+
     "successfully register a new control" in {
       val json = Json.parse(EventJsonGenerator.controlJson(20))
       val res = wsUrl(ControlsUrl(2)).post(json).futureValue
@@ -116,6 +117,47 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     //    "list all controls for a node"
 
+  }
+
+  "return the last environment requirement event for the node" in {
+    val nodeJson = StorageNodeJsonGenerator.roomJson("test")
+    val res = wsUrl(StorageNodesUrl).post(nodeJson).futureValue
+
+    res.status mustBe Status.CREATED
+    val maybeNodeId = (res.json \ "id").asOpt[Long]
+
+    maybeNodeId must not be None
+
+    maybeNodeId.foreach(nodeId => {
+      val jsonControl = Json.parse(EventJsonGenerator.controlJson(20))
+      val resCtrl = wsUrl(ControlsUrl(nodeId)).post(jsonControl).futureValue
+
+      resCtrl.status mustBe Status.CREATED
+
+      val resNode = wsUrl(StorageNodeUrl(nodeId)).get().futureValue
+
+      val maybeEnvData = (resNode.json \ "environmentRequirement").asOpt[EnvironmentRequirement]
+
+      maybeEnvData must not be None
+
+      maybeEnvData.foreach(envData => {
+        envData.temperature must not be None
+        envData.temperature.foreach(temp => {
+          temp.base mustBe 20
+          temp.tolerance mustBe Some(25)
+        })
+        envData.relativeHumidity must not be None
+        envData.relativeHumidity.foreach(relhum => {
+          relhum.base mustBe 60.7
+          relhum.tolerance mustBe Some(70)
+        })
+        envData.hypoxicAir must not be None
+        envData.hypoxicAir.foreach(hypoxicAir => {
+          hypoxicAir.base mustBe 12
+          hypoxicAir.tolerance mustBe Some(20)
+        })
+      })
+    })
   }
 
 }
