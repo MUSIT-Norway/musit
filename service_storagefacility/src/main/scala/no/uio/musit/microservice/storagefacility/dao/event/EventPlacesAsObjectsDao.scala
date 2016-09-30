@@ -19,12 +19,12 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.dao.{ ColumnTypeMappers, SchemaName }
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventRoleObject, EventRolePlace }
+import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventRoleObject, EventRolePlace}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 

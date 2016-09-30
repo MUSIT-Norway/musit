@@ -19,14 +19,14 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.dao.event.{ EventDao, LocalObjectDao }
+import no.uio.musit.microservice.storagefacility.dao.event.{EventDao, LocalObjectDao}
 import no.uio.musit.microservice.storagefacility.dao.storage._
 import no.uio.musit.microservice.storagefacility.domain.datetime._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, DtoConverters }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, DtoConverters}
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveNode, MoveObject }
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.{ NodePath, NodeStats }
+import no.uio.musit.microservice.storagefacility.domain.{NodePath, NodeStats}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

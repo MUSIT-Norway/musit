@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain
 
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 
 case class SecurityAssessment(
   perimeterSecurity: Option[Boolean],

@@ -21,10 +21,10 @@ package no.uio.musit.microservice.storagefacility.domain.event.move
 
 import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
 import no.uio.musit.microservice.storagefacility.domain.Move
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ MoveNodeType, MoveObjectType }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 
 sealed trait MoveEvent extends MusitEvent {
   val baseEvent: BaseEvent

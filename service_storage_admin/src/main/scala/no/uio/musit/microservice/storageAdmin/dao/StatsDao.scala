@@ -1,8 +1,8 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageNodeDTO
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future

@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto

@@ -24,9 +24,9 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
-import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval, LifeCycle }
+import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, Interval, LifeCycle}
 import org.joda.time.DateTime
 
 object DtoConverters {

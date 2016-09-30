@@ -4,7 +4,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 object Utils {
   def getExceptionMessageFromTry[T](myTry: Try[T]): Option[String] = {

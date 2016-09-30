@@ -20,12 +20,12 @@
 
 package no.uio.musit.microservice.event.domain
 
-import java.sql.{ Date, Timestamp }
+import java.sql.{Date, Timestamp}
 
 import no.uio.musit.microservice.event.service.CustomFieldsHandler
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.domain.Link
-import org.joda.time.{ DateTimeZone, Instant }
+import org.joda.time.{DateTimeZone, Instant}
 import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json._
 

@@ -19,8 +19,8 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
-import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, LifeCycle }
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, BaseEvent, MusitSubEvent }
+import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, LifeCycle}
+import no.uio.musit.microservice.storagefacility.domain.event.{EventType, BaseEvent, MusitSubEvent}
 
 // TODO: Document me!!!
 sealed trait ObservationSubEvent extends MusitSubEvent

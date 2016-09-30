@@ -1,10 +1,10 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storageAdmin.domain.{ NodePath, Storage }
+import no.uio.musit.microservice.storageAdmin.domain.{NodePath, Storage}
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.service.{ BuildingService, RoomService }
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservice.storageAdmin.service.{BuildingService, RoomService}
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.utils.ErrorHelper
 
 import scala.concurrent.Future

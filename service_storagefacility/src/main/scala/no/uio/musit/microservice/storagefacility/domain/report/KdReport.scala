@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storagefacility.domain.report
 
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 
 case class KdReport(
   totalArea: Double,

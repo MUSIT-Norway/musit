@@ -21,9 +21,9 @@
 package no.uio.musit.microservices.common.extensions
 
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Logger
-import play.api.libs.ws.{ WS, WSRequest }
+import play.api.libs.ws.{WS, WSRequest}
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 
 /**

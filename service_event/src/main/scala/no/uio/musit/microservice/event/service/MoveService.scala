@@ -1,7 +1,7 @@
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.dao.{ MoveObjectDao, MovePlaceDao }
-import no.uio.musit.microservice.event.domain.{ BaseEventDto, Event }
+import no.uio.musit.microservice.event.dao.{MoveObjectDao, MovePlaceDao}
+import no.uio.musit.microservice.event.domain.{BaseEventDto, Event}
 import slick.dbio.DBIO
 
 class MoveObject(baseProps: BaseEventDto) extends Event(baseProps) {

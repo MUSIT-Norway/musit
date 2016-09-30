@@ -22,7 +22,7 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Application
 
 class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {

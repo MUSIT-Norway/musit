@@ -1,10 +1,10 @@
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{ Dto, EnvRequirementDto }
+import no.uio.musit.microservice.event.domain.{Dto, EnvRequirementDto}
 import no.uio.musit.microservice.event.service.EnvRequirement
 import no.uio.musit.microservices.common.domain.MusitInternalErrorException
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import play.api.libs.json.Json
 import slick.driver.JdbcProfile
 
