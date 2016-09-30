@@ -117,10 +117,7 @@ final class StorageNodeResource @Inject() (
   def getById(id: Long) = Action.async { implicit request =>
     service.getNodeById(id).map {
       case MusitSuccess(maybeNode) =>
-        maybeNode.map { node =>
-          logger.debug(s"RETURNING NODE $node")
-          Ok(Json.toJson[StorageNode](node))
-        }.getOrElse(NotFound)
+        maybeNode.map(n => Ok(Json.toJson[StorageNode](n))).getOrElse(NotFound)
 
       case musitError: MusitError =>
         musitError match {
@@ -210,14 +207,16 @@ final class StorageNodeResource @Inject() (
       }
     }.map { mru =>
       val success = mru.filter(_._2.isSuccess).map(_._1)
-      val error = mru.filter(_._2.isFailure).map(_._1)
+      val failed = mru.filter(_._2.isFailure).map(_._1)
 
       if (success.isEmpty) {
         BadRequest(Json.obj("message" -> "Nothing was moved"))
       } else {
+        logger.debug(s"Moved: ${success.mkString("[", ", ", "]")}, " +
+          s"failed: ${failed.mkString("[", ", ", "]")}")
         Ok(Json.obj(
           "moved" -> success,
-          "failed" -> error
+          "failed" -> failed
         ))
       }
 

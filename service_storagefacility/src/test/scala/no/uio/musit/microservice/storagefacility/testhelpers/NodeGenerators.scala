@@ -119,12 +119,13 @@ trait NodeTypeInitializers {
     initEnvironmentRequirement()
 
   def createBuilding(
+    name: String = "FooBarBuilding",
     partOf: Option[StorageNodeId] = None,
     path: Option[NodePath] = None
   ): Building = {
     Building(
       id = None,
-      name = "FooBarBuilding",
+      name = name,
       area = Some(200),
       areaTo = Some(250),
       isPartOf = partOf,
@@ -139,12 +140,13 @@ trait NodeTypeInitializers {
   }
 
   def createRoom(
+    name: String = "FooRoom",
     partOf: Option[StorageNodeId] = None,
     path: Option[NodePath] = None
   ): Room = {
     Room(
       id = None,
-      name = "FooRoom",
+      name = name,
       area = Some(50),
       areaTo = Some(55),
       height = Some(2),
@@ -171,6 +173,7 @@ trait NodeTypeInitializers {
   }
 
   def createStorageUnit(
+    name: String = "FooUnit",
     partOf: Option[StorageNodeId] = None,
     path: Option[NodePath] = None
   ): StorageUnit = {

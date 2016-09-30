@@ -35,7 +35,9 @@ sealed trait StorageNode {
   val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
-  val path: Option[NodePath]
+  val path: Option[NodePath] // TODO: I think path should be required. But that doesn't make sense on creation :-/
+  // TODO: Need to provide a readable path, might possibly be part of NodePath?
+  // val readablePath: Option[String]
   /*
     TODO: Should this attribute be defined as required? We have logic that tries
     to determine if a new EnvRequirement event should be created or not. That is

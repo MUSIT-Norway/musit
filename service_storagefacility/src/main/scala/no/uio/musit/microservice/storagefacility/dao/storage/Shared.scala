@@ -21,8 +21,9 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.domain.NodePath
-import no.uio.musit.microservice.storagefacility.domain.storage.{ StorageNodeId, StorageType }
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
+import no.uio.musit.microservice.storagefacility.domain.storage.{ StorageNodeId, StorageType }
+import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
@@ -30,6 +31,8 @@ private[dao] trait BaseStorageDao extends HasDatabaseConfigProvider[JdbcProfile]
 
 private[dao] trait SharedStorageTables extends BaseStorageDao
     with ColumnTypeMappers {
+
+  private val logger = Logger(classOf[SharedStorageTables])
 
   import driver.api._
 
@@ -39,12 +42,22 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   /**
    * TODO: Document me!!!
+   *
+   * Only returns non-root nodes
    */
   protected[storage] def getUnitByIdAction(
     id: StorageNodeId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
       sn.id === id && sn.isDeleted === false && sn.storageType =!= rootNodeType
+    }.result.headOption
+  }
+
+  protected[storage] def getAllByIdAction(
+    id: StorageNodeId
+  ): DBIO[Option[StorageUnitDto]] = {
+    storageNodeTable.filter { sn =>
+      sn.id === id && sn.isDeleted === false
     }.result.headOption
   }
 
@@ -63,6 +76,24 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     storageNodeTable.filter { sn =>
       sn.id === id && sn.isDeleted === false
     }.map(_.path).update(path)
+  }
+
+  protected[storage] def updatePaths(
+    oldParent: NodePath,
+    newParent: NodePath
+  ): DBIO[Int] = {
+    val pathFilter = s"${oldParent.path}%"
+    val op = oldParent.path
+    val np = newParent.path
+
+    logger.debug(s"Using old path: $op and new path: $np")
+    logger.debug(s"performing update with LIKE: $pathFilter")
+
+    sql"""
+         UPDATE "MUSARK_STORAGE"."STORAGE_NODE" n
+         SET n."NODE_PATH" = replace(n."NODE_PATH", ${op}, ${np})
+         WHERE n."NODE_PATH" LIKE ${pathFilter}
+       """.asUpdate.transactionally
   }
 
   /**

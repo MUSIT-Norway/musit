@@ -46,10 +46,33 @@ class StorageUnitDao @Inject() (
   val logger = Logger(classOf[StorageUnitDao])
 
   /**
+   * Check to see if the node with the provided StorageNodeId exists or not.
+   *
+   * @param id
+   * @return
+   */
+  def exists(id: StorageNodeId): Future[MusitResult[Boolean]] = {
+    val query = storageNodeTable.filter { su =>
+      su.id === id && su.isDeleted === false
+    }.exists.result
+
+    db.run(query).map(found => MusitSuccess(found)).recover {
+      case NonFatal(ex) =>
+        logger.error("Non fatal exception when checking for node existence", ex)
+        MusitDbError("Checking if node exists caused an exception", Option(ex))
+    }
+  }
+
+  /**
    * TODO: Document me!!!
    */
   def getById(id: StorageNodeId): Future[Option[StorageUnit]] = {
     val query = getUnitByIdAction(id)
+    db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
+  }
+
+  def getAllById(id: StorageNodeId): Future[Option[StorageUnit]] = {
+    val query = getAllByIdAction(id)
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
   }
 
@@ -138,33 +161,42 @@ class StorageUnitDao @Inject() (
   }
 
   /**
-   * Applies one update for each of tupled StorageNodeId and NodePath varargs
+   * Updates the path for all nodes that starts with the "oldPath".
    *
-   * @param tuple A vararg tuple of StorageNodeId and NodePath
-   * @return a Seq of int indicating how many entries were updated per tuple.
+   * @param id the StorageNodeId to update
+   * @param path the NodePath to set
+   * @return MusitResult[Unit]
    */
-  def updatePaths(tuple: (StorageNodeId, NodePath)*): Future[Seq[Int]] = {
-    val actions = DBIO.sequence(tuple.map(t => updatePathAction(t._1, t._2)))
-    db.run(actions).map { res =>
-      logger.debug(s"Updated $res paths")
-      res
+  def setPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+    db.run(updatePathAction(id, path)).map {
+      case res: Int if res == 1 => MusitSuccess(())
+
+      case res: Int =>
+        val msg = s"Wrong amount of rows ($res) updated"
+        logger.warn(msg)
+        MusitInternalError(msg)
     }
   }
 
-  /**
-   * Updates the path for the given StoragNodeId
-   * @param id the StorageNodeId to update
-   * @param path the NodePath to set
-   * @return the updated StorageUnit
-   */
-  def updatePath(id: StorageNodeId, path: NodePath): Future[Option[StorageUnit]] = {
-    db.run(updatePathAction(id, path)).flatMap {
-      case res: Int if res == 1 =>
-        getById(id)
+  def updatePathForSubTree(
+    id: StorageNodeId,
+    oldPath: NodePath,
+    newPath: NodePath
+  ): Future[MusitResult[Int]] = {
+    db.run(updatePaths(oldPath, newPath)).map {
+      case res: Int if res != 0 =>
+        logger.debug(s"Successfully updated path for $res nodes")
+        MusitSuccess(res)
+      case _ =>
+        val msg = s"Did not update any paths starting with $oldPath"
+        logger.error(msg)
+        MusitInternalError(msg)
 
-      case res: Int =>
-        logger.warn(s"Wrong amount of rows ($res) updated")
-        Future.successful(None)
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"Unexpected error when updating path for $id"
+        logger.error(msg, ex)
+        MusitDbError(msg)
     }
   }
 

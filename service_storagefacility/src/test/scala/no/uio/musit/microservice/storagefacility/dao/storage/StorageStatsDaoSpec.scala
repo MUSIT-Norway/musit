@@ -49,7 +49,7 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val childPath = basePath.map(_.appendChild(inserted.id.get))
 
       for (i <- 1 to 10) {
-        val n = storageUnitDao.insert(createStorageUnit(inserted.id, childPath)).futureValue
+        val n = storageUnitDao.insert(createStorageUnit(partOf = inserted.id, path = childPath)).futureValue
         n.id must not be None
         n.path mustBe childPath
       }

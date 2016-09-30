@@ -21,7 +21,11 @@ package no.uio.musit.microservice.storagefacility.domain
 
 import play.api.libs.json.{ Format, Json }
 
-case class NodeStats(numNodes: Int, numObjects: Int, totalObjects: Int)
+case class NodeStats(
+  numNodes: Int = 0,
+  numObjects: Int = 0,
+  totalObjects: Int = 0
+)
 
 object NodeStats {
   implicit val format: Format[NodeStats] = Json.format[NodeStats]

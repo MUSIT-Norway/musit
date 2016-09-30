@@ -24,6 +24,7 @@ import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ BuildingDto, ExtendedStorageNode, StorageNodeDto }
+import no.uio.musit.service.MusitResults.{ MusitInternalError, MusitResult, MusitSuccess }
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -100,16 +101,16 @@ class BuildingDao @Inject() (
    * Updates the path for the given StoragNodeId
    * @param id the StorageNodeId to update
    * @param path the NodePath to set
-   * @return the updated Building
+   * @return MusitResult[Unit]
    */
-  def updatePath(id: StorageNodeId, path: NodePath): Future[Option[Building]] = {
-    db.run(updatePathAction(id, path)).flatMap {
-      case res: Int if res == 1 =>
-        getById(id)
+  def setPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+    db.run(updatePathAction(id, path)).map {
+      case res: Int if res == 1 => MusitSuccess(())
 
       case res: Int =>
-        logger.warn(s"Wrong amount of rows ($res) updated")
-        Future.successful(None)
+        val msg = s"Wrong amount of rows ($res) updated"
+        logger.warn(msg)
+        MusitInternalError(msg)
     }
   }
 
