@@ -24,6 +24,8 @@ import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSub
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
+// TODO: Make SUB events as a direct part of the Control event.
+
 case class Control(
   baseEvent: BaseEvent,
   eventType: EventType,

@@ -20,9 +20,10 @@
 package no.uio.musit.microservice.storagefacility.domain.storage
 
 import julienrf.json.derived
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import play.api.libs.json.{ OWrites, Reads, __ }
+import play.api.libs.json._
 
 sealed trait StorageNode {
   val id: Option[StorageNodeId]
@@ -34,6 +35,9 @@ sealed trait StorageNode {
   val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
+  val path: Option[NodePath] // TODO: I think path should be required. But that doesn't make sense on creation :-/
+  // TODO: Need to provide a readable path, might possibly be part of NodePath?
+  // val readablePath: Option[String]
   /*
     TODO: Should this attribute be defined as required? We have logic that tries
     to determine if a new EnvRequirement event should be created or not. That is
@@ -46,7 +50,8 @@ sealed trait StorageNode {
 case class Root(
     id: Option[StorageNodeId] = None,
     name: String = "root-node",
-    environmentRequirement: Option[EnvironmentRequirement] = None
+    environmentRequirement: Option[EnvironmentRequirement] = None,
+    path: Option[NodePath] = Some(NodePath.empty)
 ) extends StorageNode {
   val area: Option[Double] = None
   val areaTo: Option[Double] = None
@@ -68,6 +73,7 @@ case class StorageUnit(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
+    path: Option[NodePath],
     environmentRequirement: Option[EnvironmentRequirement]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.StorageUnitType
@@ -83,6 +89,7 @@ case class Room(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
+    path: Option[NodePath],
     environmentRequirement: Option[EnvironmentRequirement],
     securityAssessment: SecurityAssessment,
     environmentAssessment: EnvironmentAssessment
@@ -100,6 +107,7 @@ case class Building(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
+    path: Option[NodePath],
     environmentRequirement: Option[EnvironmentRequirement],
     address: Option[String]
 ) extends StorageNode {
@@ -116,6 +124,7 @@ case class Organisation(
     heightTo: Option[Double],
     groupRead: Option[String],
     groupWrite: Option[String],
+    path: Option[NodePath],
     environmentRequirement: Option[EnvironmentRequirement],
     address: Option[String]
 ) extends StorageNode {
@@ -133,6 +142,11 @@ object StorageNode {
     API of any services that use them. In other words; it is a non-backwards
     compatible change. Because the _value_ of the "type" attribute needs to be
     constant for each type.
+
+    FIXME: The derived codecs JSON formatters have horrible error messages.
+    We should probably change the formatters to use plain reads/writes with
+    manual disambiguation as shown here:
+    http://scalytica.net/#posts/2015-03-29/playframework-reads-writes-of-parent-child-class-structure
     ============================================================================
   */
 
@@ -149,4 +163,39 @@ object StorageNode {
 
   implicit lazy val writes: OWrites[StorageNode] =
     derived.flat.owrites[StorageNode]((__ \ "type").write[String])
+}
+
+/**
+ * Used to represent the common denominator for all storage nodes.
+ */
+case class GenericStorageNode(
+  id: Option[StorageNodeId],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[StorageNodeId],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  path: Option[NodePath],
+  environmentRequirement: Option[EnvironmentRequirement],
+  storageType: StorageType
+) extends StorageNode
+
+object GenericStorageNode {
+  implicit val format: Format[GenericStorageNode] = (
+    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String] and
+    (__ \ "area").formatNullable[Double] and
+    (__ \ "areaTo").formatNullable[Double] and
+    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "height").formatNullable[Double] and
+    (__ \ "heightTo").formatNullable[Double] and
+    (__ \ "groupRead").formatNullable[String] and
+    (__ \ "groupWrite").formatNullable[String] and
+    (__ \ "path").formatNullable[NodePath] and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "type").format[StorageType]
+  )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
 }

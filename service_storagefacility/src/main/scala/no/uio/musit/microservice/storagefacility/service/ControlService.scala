@@ -21,12 +21,13 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
+import no.uio.musit.microservice.storagefacility.domain.event.{ EventId, ObjectRole }
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.CtrlConverters
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -40,8 +41,21 @@ class ControlService @Inject() (val eventDao: EventDao) {
   /**
    *
    */
-  def add(ctrl: Control)(implicit currUsr: String): Future[MusitResult[Control]] = {
-    val dto = CtrlConverters.controlToDto(ctrl)
+  def add(
+    nodeId: Long,
+    ctrl: Control
+  )(implicit currUsr: String): Future[MusitResult[Control]] = {
+    val c = ctrl.copy(
+      baseEvent = ctrl.baseEvent.copy(
+        affectedThing = Some(ObjectRole(
+          roleId = 1,
+          objectId = nodeId
+        )),
+        registeredBy = Some(currUsr),
+        registeredDate = Some(dateTimeNow)
+      )
+    )
+    val dto = CtrlConverters.controlToDto(c)
     eventDao.insertEvent(dto).flatMap { eventId =>
       eventDao.getEvent(eventId).map { res =>
         res.flatMap(_.map { dto =>

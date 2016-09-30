@@ -19,8 +19,16 @@
 
 package no.uio.musit.microservice.storagefacility.resource
 
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
+import no.uio.musit.microservice.storagefacility.domain.event.control.Control
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.test.{EventJsonGenerator, StorageNodeJsonGenerator, _}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
+import play.api.http.Status
+import play.api.libs.json.{JsArray, Json}
+
+import scala.util.Try
 
 class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
@@ -29,34 +37,84 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     interval = Span(50, Millis)
   )
 
+  override def beforeTests(): Unit = {
+    Try {
+      import StorageNodeJsonGenerator._
+      // Initialise some storage units...
+      wsUrl(StorageNodesUrl).post(organisationJson("Foo")).futureValue
+      wsUrl(StorageNodesUrl).post(buildingJson("Bar", StorageNodeId(1))).futureValue
+      println("Done populating") // scalastyle:ignore
+    }.recover {
+      case t: Throwable =>
+        println("Error occured when loading data") // scalastyle:ignore
+    }
+  }
+
   "The storage facility event service" should {
     "successfully register a new control" in {
-      pending
+      val json = Json.parse(EventJsonGenerator.controlJson(20))
+      val res = wsUrl(ControlsUrl(2)).post(json).futureValue
+
+      res.status mustBe Status.CREATED
+      val maybeCtrlId = (res.json \ "id").asOpt[Long]
+
+      maybeCtrlId must not be None
     }
 
     "get a specific control for a node" in {
-      pending
+      val ctrlId = 2
+      val res = wsUrl(s"${ControlsUrl(2)}/$ctrlId").get().futureValue
+
+      res.status mustBe Status.OK
+
+      val ctrlRes = res.json.validate[Control]
+      ctrlRes.isSuccess mustBe true
+
+      val ctrl = ctrlRes.get
+
+      ctrl.eventType.registeredEventId mustBe ControlEventType.id
     }
 
     "successfully register another control" in {
-      pending
+      val json = Json.parse(EventJsonGenerator.controlJson(22))
+      val res = wsUrl(ControlsUrl(2)).post(json).futureValue
+
+      res.status mustBe Status.CREATED
+      (res.json \ "id").asOpt[Long] must not be None
     }
 
     "successfully register a new observation" in {
-      pending
+      val json = Json.parse(EventJsonGenerator.observationJson(22))
+      val res = wsUrl(ObservationsUrl(2)).post(json).futureValue
+
+      res.status mustBe Status.CREATED
+      val obsId = (res.json \ "id").asOpt[Long]
+      obsId must not be None
     }
 
     "get a specific observation for a node" in {
-      pending
+
     }
 
     "successfully register another observation" in {
-      pending
+      val json = Json.parse(EventJsonGenerator.observationJson(22))
+      val res = wsUrl(ObservationsUrl(2)).post(json).futureValue
+
+      res.status mustBe Status.CREATED
+      val obsId = (res.json \ "id").asOpt[Long]
+      obsId must not be None
     }
 
     "list all controls and observations for a node, ordered by doneDate" in {
-      pending
+      // TODO: Update this test once observations are created in above tests
+      val res = wsUrl(CtrlObsForNodeUrl(2)).get().futureValue
+
+      res.status mustBe Status.OK
+      res.json.as[JsArray].value.size mustBe 4
+      // TODO: Verify ordering.
     }
+
+//    "list all controls for a node"
 
   }
 

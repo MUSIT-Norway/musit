@@ -26,7 +26,7 @@ import no.uio.musit.microservice.storagefacility.service.{ ControlService, Obser
 import no.uio.musit.service.MusitResults.{ MusitError, MusitSuccess }
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{ JsError, JsNull, JsSuccess, Json }
+import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -50,9 +50,9 @@ class EventResource @Inject() (
     // TODO: Extract current user information from enriched request.
     request.body.validate[Control] match {
       case JsSuccess(ctrl, jsPath) =>
-        controlService.add(ctrl).map {
+        controlService.add(nodeId, ctrl).map {
           case MusitSuccess(addedCtrl) =>
-            Ok(Json.toJson(addedCtrl))
+            Created(Json.toJson(addedCtrl))
 
           case err: MusitError =>
             InternalServerError(Json.obj("message" -> err.message))
@@ -70,9 +70,9 @@ class EventResource @Inject() (
     // TODO: Extract current user information from enriched request.
     request.body.validate[Observation] match {
       case JsSuccess(obs, jsPath) =>
-        observationService.add(obs).map {
+        observationService.add(nodeId, obs).map {
           case MusitSuccess(addedObs) =>
-            Ok(Json.toJson(addedObs))
+            Created(Json.toJson(addedObs))
 
           case err: MusitError =>
             InternalServerError(Json.obj("message" -> err.message))
@@ -149,10 +149,11 @@ class EventResource @Inject() (
    * the given nodeId.
    */
   def listEventsForNode(nodeId: Long) = Action.async { implicit request =>
+    val eventuallyCtrls = controlService.listFor(nodeId)
+    val eventyallyObs = observationService.listFor(nodeId)
     for {
-      //
-      ctrlRes <- controlService.listFor(nodeId)
-      obsRes <- observationService.listFor(nodeId)
+      ctrlRes <- eventuallyCtrls
+      obsRes <- eventyallyObs
     } yield {
       val sortedRes = for {
         controls <- ctrlRes
@@ -168,7 +169,8 @@ class EventResource @Inject() (
             case obs: Observation => Json.toJson(obs)
             case _ => JsNull
           }
-          Ok(Json.arr(jsObjects))
+          logger.debug(s"Going to return sorted JSON:\n${Json.prettyPrint(JsArray(jsObjects))}")
+          Ok(JsArray(jsObjects))
 
         case err: MusitError =>
           InternalServerError(Json.obj("message" -> err.message))

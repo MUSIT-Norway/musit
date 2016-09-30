@@ -47,7 +47,8 @@ object StorageNodeJsonGenerator {
     """.stripMargin
   }
 
-  def organisationJson(name: String): JsValue = {
+  def organisationJson(name: String, partOf: Option[StorageNodeId] = None): JsValue = {
+    val pof = partOf.map(p => s""""isPartOf" : ${p.underlying},""")
     Json.parse(
       s"""{
           |  "type" : "Organisation",
@@ -56,6 +57,7 @@ object StorageNodeJsonGenerator {
           |  "areaTo" : 2100,
           |  "height" : 3,
           |  "heightTo" : 3.5,
+          |  ${pof.getOrElse("")}
           |  "groupRead" : "foo",
           |  "groupWrite" : "bar",
           |  "address" : "$defaultAddress"
@@ -82,16 +84,17 @@ object StorageNodeJsonGenerator {
     )
   }
 
-  def roomJson(name: String, partOf: StorageNodeId): JsValue = {
+  def roomJson(name: String, partOf: Option[StorageNodeId] = None): JsValue = {
+    val pof = partOf.map(p => s""""isPartOf" : ${p.underlying},""")
     Json.parse(
       s"""{
           |  "type" : "Room",
           |  "name" : "$name",
           |  "area" : 20.5,
-          |  "areaTo" : 21.0,
+          |  "areaTo" : 21,
           |  "height" : 2,
           |  "heightTo" : 2.6,
-          |  "isPartOf" : ${partOf.underlying},
+          |  ${pof.getOrElse("")}
           |  "groupRead" : "foo",
           |  "groupWrite" : "bar",
           |  "securityAssessment" : {
