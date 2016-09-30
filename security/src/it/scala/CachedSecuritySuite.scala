@@ -64,7 +64,7 @@ class CachedSecuritySuite extends PlaySpec with ScalaFutures with OneAppPerSuite
         val userInfoMustBe = Some(UserInfo("Jarle", "Jarle"))
         assert(userInfo == userInfoMustBe)
 
-        val groupIds = cacheReader.accessTokenToGroupIds(accessToken)
+        val groupIds = cacheReader.accessTokenToGroups(accessToken).map(_.map(_.id))
         assert(groupIds == Some(groups))
 
       }

@@ -31,13 +31,13 @@ import scala.concurrent.duration._
  * Created by jstabel on 4/27/16.
  */
 
-///Only used for testing, for direct read access to some of the cached info
+///Only used for testing, for direct read access to some of the cached info, to check whether the cache contains want we belive it contains
 trait SecurityCacheReader {
   def accessTokenToUserIdFromCache(accessToken: String): Option[String]
 
   def accessTokenToUserInfoFromCache(accessToken: String): Option[UserInfo]
 
-  def accessTokenToGroupIds(accessToken: String): Option[Seq[String]]
+  def accessTokenToGroups(accessToken: String): Option[Seq[GroupInfo]]
 }
 
 /*
@@ -45,9 +45,8 @@ trait SecurityCacheReader {
 * accessToken => userId
 * userId => UserInfo
 * userId => Groups
-* userId => GroupIds
 *
-* This way, the UserInfo, Groups and GroupIds caching doesn't get irrelevant when the same user connects with a new token.
+* This way, the UserInfo and Groups caching doesn't get irrelevant when the same user connects with a new token.
  * However, it may perhaps make sense to not remember the cached items longer than the given connection (this may help debugging and when giving users new group permissions etc
   * (just log out and restart instead of us having to push a button to clear the/some cache). This would also simplify the code in this class a bit.
 * *
@@ -63,8 +62,6 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
   def userIdToUserInfoKey(userId: String) = s"$securityPrefix.UserIdToUserInfo.$userId"
 
   def userIdToGroupsKey(userId: String) = s"$securityPrefix.UserIdToUserGroups.$userId"
-
-  def userIdToGroupIdsKey(userId: String) = s"$securityPrefix.UserIdToUserGroupIds.$userId"
 
   def getAndMaybeCacheUserId: Future[String] = {
     MusitCache.getAs[String](accessTokenToUserIdKey) match {
@@ -100,8 +97,6 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
           userId <- getAndMaybeCacheUserId
           userInfo <- userIdToUserInfo(userId, { _ => infoProviderToCache.getUserInfo })
         } yield userInfo
-
-
         */
   }
 
@@ -116,17 +111,6 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
     } yield userGroups
   }
 
-  def userIdToGroupIds(userId: String, provider: String => Future[Seq[String]]): Future[Seq[String]] = {
-    MusitCache.getOrElseFuture(userIdToGroupIdsKey(userId), defExpiry)(provider(userId))
-  }
-
-  override def getUserGroupIds: Future[Seq[String]] = {
-    for {
-      userId <- getAndMaybeCacheUserId
-      userGroupsId <- userIdToGroupIds(userId, { _ => infoProviderToCache.getUserGroupIds })
-    } yield userGroupsId
-  }
-
   ///Api for testing, implementing the SecurityCacheReader trait
   def accessTokenToUserIdFromCache(accessToken: String): Option[String] = MusitCache.getAs[String](accessTokenToUserIdKey)
 
@@ -139,12 +123,11 @@ class CachedConnectionInfoProvider(infoProviderToCache: ConnectionInfoProvider) 
   }
 
   ///Api for testing, implementing the SecurityCacheReader trait
-  def accessTokenToGroupIds(accessToken: String): Option[Seq[String]] = {
+  def accessTokenToGroups(accessToken: String): Option[Seq[GroupInfo]] = {
     for {
       userId <- this.getUserIdFromCache
-      groupIds <- MusitCache.getAs[Seq[String]](userIdToGroupIdsKey(userId))
-    } yield groupIds
+      groups <- MusitCache.getAs[Seq[GroupInfo]](userIdToGroupsKey(userId))
+    } yield groups
   }
-
 }
 

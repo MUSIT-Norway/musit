@@ -24,6 +24,7 @@ import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.security.FakeSecurity
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -38,6 +39,11 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     val instance = Application.instanceCache[ActorDao]
     instance(app)
   }
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   "Actor dao" when {
 

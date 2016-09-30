@@ -49,8 +49,6 @@ trait ConnectionInfoProvider {
 
   def getUserGroups: Future[Seq[GroupInfo]]
 
-  def getUserGroupIds: Future[Seq[String]] = getUserGroups.map(groupInfos => groupInfos.map(groupInfo => groupInfo.id))
-
   def accessToken: String
 }
 
@@ -72,21 +70,26 @@ trait AuthenticatedUser {
   //:TODO Probably move museum to the constructor of this type instead of a parameter here.
   def hasAllPermissions(museum: Museum, permissions: Seq[Permission]): Boolean
 
-  def groupIds: Seq[String] //We could provide a default implementation as infoProvider.getUserGroupIds, but then we would have to return a Future.
-  //Since all current implementations caches in the groupsIds at startup, we have a direct access here.
-
+  def groupIds: Seq[String]
+  def groups: Seq[GroupInfo]
 }
 
 trait FakeAuthenticatedUser extends AuthenticatedUser {
-  ///The infoProvider providing the info to this connection. Accessing this is probably only relevant for testing/debugging
+  ///Accessing this is probably only relevant for testing/debugging
   def infoProvider: ConnectionInfoProvider
 }
 
-class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, _userInfo: UserInfo, _userGroups: Seq[String]) extends AuthenticatedUser {
+case class UserAndGroupInfo(userInfo: UserInfo, groups: Seq[GroupInfo])
+
+class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, userAndGroupInfo: UserAndGroupInfo) extends AuthenticatedUser {
 
   import no.uio.musit.microservices.common.extensions.SeqExtensions._
 
-  val allGroups = _userGroups.map(SecurityGroups.fromGroupId).filterNot(_.isEmpty).map(_.get)
+  val userInfo = userAndGroupInfo.userInfo
+  val userGroups = userAndGroupInfo.groups
+  val userGroupIds = userGroups.map(_.id)
+
+  val allGroups = userGroupIds.map(SecurityGroups.fromGroupId).filterNot(_.isEmpty).map(_.get)
 
   val allPermissions = allGroups.flatMap(group => group.permissions)
 
@@ -95,21 +98,21 @@ class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, _userInfo: Use
     allGroups.flatMap(g => g.permissionsRelativeToMuseum(museum))
   }
 
-  def userName: String = _userInfo.name
+  def userName: String = userInfo.name
 
-  def userId: String = _userInfo.id
+  def userId: String = userInfo.id
 
-  def userEmail: Option[String] = _userInfo.email
+  def userEmail: Option[String] = userInfo.email
 
   def hasAllPermissions(museum: Museum, permissions: Seq[Permission]): Boolean = {
     permissionsRelativeToMuseum(museum).hasAllOf(permissions)
   }
 
-  def hasGroup(group: String) = _userGroups.contains(group)
+  def hasGroup(groupId: String) = userGroupIds.contains(groupId)
 
-  def hasAllGroups(groups: Seq[String]) = _userGroups.hasAllOf(groups)
+  def hasAllGroups(groupIds: Seq[String]) = userGroupIds.hasAllOf(groupIds)
 
-  def hasNoneOfGroups(groups: Seq[String]) = _userGroups.hasNoneOf(groups)
+  def hasNoneOfGroups(groupIds: Seq[String]) = userGroupIds.hasNoneOf(groupIds)
 
   def authorize[T](requiredGroups: Seq[String], deniedGroups: Seq[String] = Seq.empty)(body: => T): Try[T] = {
     if (hasAllGroups(requiredGroups) && hasNoneOfGroups(deniedGroups)) {
@@ -124,13 +127,14 @@ class AuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, _userInfo: Use
       val missingGroupsText = Some(s"Missing groups: ${missingGroups.mkString(",")}.").filter(_ => !missingGroups.isEmpty)
       val shouldNotHaveGroupsText = Some(s"Having disallowed groups: ${disallowedGroups.mkString(",")}.").filter(_ => !disallowedGroups.isEmpty)
 
-      val msg = s"Unauthorized! ${missingGroupsText.map(_ + " ").getOrElse("")}${shouldNotHaveGroupsText.getOrElse()}"
+      val msg = s"""Unauthorized! ${missingGroupsText.map(_ + " ").getOrElse("")}${shouldNotHaveGroupsText.getOrElse("")}"""
 
       Failure(new Exception(msg))
     }
   }
 
-  def groupIds = _userGroups
+  def groups = userGroups
+  def groupIds = userGroupIds
 }
 
 object Security {
@@ -139,10 +143,11 @@ object Security {
 
   ///The default way to create a security connection from an access token
   def create(token: String): Future[AuthenticatedUser] = {
-    if (FakeSecurity.isFakeAccessToken(token))
+    if (FakeSecurity.isFakeAccessToken(token)) {
       FakeSecurity.createInMemoryFromFakeAccessToken(token, false) //Caching off because no speedup by caching the in-memory stuff!
-    else
+    } else {
       Dataporten.createAuthenticatedUser(token, true)
+    }
   }
 
   ///The default way to create a security connection from a Htpp request (containing a bearer token)
@@ -157,21 +162,21 @@ object Security {
 
 object SecurityUtils {
   def internalCreateAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean,
-    factory: (ConnectionInfoProvider, UserInfo, Seq[String]) => AuthenticatedUser): Future[AuthenticatedUser] = {
+    factory: (ConnectionInfoProvider, UserAndGroupInfo) => AuthenticatedUser): Future[AuthenticatedUser] = {
     val _infoProvider = if (useCache) new CachedConnectionInfoProvider(infoProvider) else infoProvider
 
     val userInfoF = _infoProvider.getUserInfo
-    val userGroupIdsF = _infoProvider.getUserGroupIds
+    val userGroupsF = _infoProvider.getUserGroups
 
     for {
       userInfo <- userInfoF
-      userGroupIds <- userGroupIdsF
-    } yield factory(_infoProvider, userInfo, userGroupIds)
+      userGroups <- userGroupsF
+    } yield factory(_infoProvider, UserAndGroupInfo(userInfo, userGroups))
   }
 
   def createAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[AuthenticatedUser] = {
-    def authUserFactory(infoProvider: ConnectionInfoProvider, userInfo: UserInfo, userGroupIds: Seq[String]) =
-      new AuthenticatedUserImp(infoProvider, userInfo, userGroupIds)
+    def authUserFactory(infoProvider: ConnectionInfoProvider, userAndGroupInfo: UserAndGroupInfo) =
+      new AuthenticatedUserImp(infoProvider, userAndGroupInfo)
 
     internalCreateAuthenticatedUserFromInfoProvider(infoProvider, useCache, authUserFactory)
   }
