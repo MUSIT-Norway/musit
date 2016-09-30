@@ -397,7 +397,7 @@ class EventDao @Inject() (
     eventTypeId: EventTypeId
   ): Future[MusitResult[Option[EventDto]]] = {
     for {
-      maybeErp <- evtPlacesAsObjDao.latestForNode(id)
+      maybeErp <- evtPlacesAsObjDao.latestForNode(id) // FIXME: This will not fetch the correct event if another event is on top
       evt <- {
         logger.debug(s"Latest event relation for node $id is $maybeErp")
         maybeErp.map { erp =>

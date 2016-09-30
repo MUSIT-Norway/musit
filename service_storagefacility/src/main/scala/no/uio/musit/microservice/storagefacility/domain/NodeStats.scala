@@ -17,24 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.test
+package no.uio.musit.microservice.storagefacility.domain
 
-import scala.util.Random
+import play.api.libs.json.{ Format, Json }
 
-trait TestConfigs {
+case class NodeStats(
+  numNodes: Int = 0,
+  numObjects: Int = 0,
+  totalObjects: Int = 0
+)
 
-  def slickWithInMemoryH2(
-    evolve: String = "enabled"
-  ): Map[String, Any] = Map(
-    "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
-    "slick.dbs.default.connectionTimeout" -> "20000",
-    "slick.dbs.default.loginTimeout" -> "20000",
-    "slick.dbs.default.socketTimeout" -> "20000",
-    "slick.dbs.default.db.driver" -> "org.h2.Driver",
-    "slick.dbs.default.connectionTestQuery" -> "SELECT 1",
-    "slick.dbs.default.db.url" -> s"jdbc:h2:mem:musit-test${Random.nextInt()};MODE=Oracle;DB_CLOSE_DELAY=-1",
-    "slick.dbs.default.leakDetectionThreshold" -> "5000",
-    "evolutionplugin" -> evolve
-  )
-
+object NodeStats {
+  implicit val format: Format[NodeStats] = Json.format[NodeStats]
 }

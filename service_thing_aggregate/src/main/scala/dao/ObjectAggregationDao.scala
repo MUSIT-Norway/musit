@@ -22,7 +22,7 @@ class ObjectAggregationDao @Inject() (
     db.run(
       sql"""
          select "ID", "DISPLAYID", "DISPLAYNAME"
-         from "MUSARK_EVENT"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
+         from "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
          WHERE "CURRENT_LOCATION_ID" = $nodeId and "OBJECT_ID" = "ID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     ).recover {
