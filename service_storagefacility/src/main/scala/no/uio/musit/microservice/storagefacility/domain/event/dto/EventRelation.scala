@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
-import no.uio.musit.microservice.storagefacility.domain.event.{ActorRole, ObjectRole, PlaceRole}
+import no.uio.musit.microservice.storagefacility.domain.event.{ActorRole, EventTypeId, ObjectRole, PlaceRole}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 
 /**
@@ -83,23 +83,23 @@ object EventRoleActor {
     ActorRole(eventRoleActor.roleId, eventRoleActor.actorId)
 }
 
-case class EventRoleObject(eventId: Option[Long], roleId: Int, objectId: Long)
+case class EventRoleObject(eventId: Option[Long], roleId: Int, objectId: Long, eventTypeId: EventTypeId)
 
 object EventRoleObject {
 
-  def toEventRoleObject(objRole: ObjectRole, eventId: Option[Long] = None) =
-    EventRoleObject(eventId, objRole.roleId, objRole.objectId)
+  def toEventRoleObject(objRole: ObjectRole, eventTypeId: EventTypeId, eventId: Option[Long] = None) =
+    EventRoleObject(eventId, objRole.roleId, objRole.objectId, eventTypeId)
 
   def toObjectRole(eventRoleObject: EventRoleObject) =
     ObjectRole(eventRoleObject.roleId, eventRoleObject.objectId)
 }
 
-case class EventRolePlace(eventId: Option[Long], roleId: Int, placeId: StorageNodeId)
+case class EventRolePlace(eventId: Option[Long], roleId: Int, placeId: StorageNodeId, eventTypeId: EventTypeId)
 
 object EventRolePlace {
 
-  def toEventRolePlace(placeRole: PlaceRole, eventId: Option[Long] = None) =
-    EventRolePlace(eventId, placeRole.roleId, placeRole.placeId)
+  def toEventRolePlace(placeRole: PlaceRole, eventTypeId: EventTypeId, eventId: Option[Long] = None) =
+    EventRolePlace(eventId, placeRole.roleId, placeRole.placeId, eventTypeId)
 
   def toPlaceRole(eventRolePlace: EventRolePlace) =
     PlaceRole(eventRolePlace.roleId, eventRolePlace.placeId)
