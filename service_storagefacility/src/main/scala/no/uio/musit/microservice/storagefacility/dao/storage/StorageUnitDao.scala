@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.{NodePath, NamedPathElement}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
 import no.uio.musit.service.MusitResults._
@@ -71,6 +71,9 @@ class StorageUnitDao @Inject() (
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
   }
 
+  /**
+   * TODO: Document me!!!
+   */
   def getAllById(id: StorageNodeId): Future[Option[StorageUnit]] = {
     val query = getAllByIdAction(id)
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
@@ -91,6 +94,12 @@ class StorageUnitDao @Inject() (
     db.run(query).map(_.map(n => Root(n.id)))
   }
 
+  /**
+   * find the Root node with the given StorageNodeId.
+   *
+   * @param id StorageNodeId for the Root node.
+   * @return An Option that contains the Root node if it was found.
+   */
   def findRootNode(id: StorageNodeId): Future[Option[Root]] = {
     val query = storageNodeTable.filter { root =>
       root.id === id &&
@@ -148,7 +157,14 @@ class StorageUnitDao @Inject() (
     }
   }
 
-  def updateRootPath(id: StorageNodeId, path: NodePath): Future[Option[Root]] = {
+  /**
+   * Set the path for the Root with the given StorageNodeId.
+   *
+   * @param id StorageNodeId of the Root node.
+   * @param path NodePath to set
+   * @return An Option containing the updated Root node.
+   */
+  def setRootPath(id: StorageNodeId, path: NodePath): Future[Option[Root]] = {
     logger.debug(s"Updating path to $path for root node $id")
     db.run(updatePathAction(id, path)).flatMap {
       case res: Int if res == 1 =>
@@ -178,6 +194,14 @@ class StorageUnitDao @Inject() (
     }
   }
 
+  /**
+   * Updates all paths for the subtree of the given StorageNodeId
+   *
+   * @param id StorageNodeId
+   * @param oldPath NodePath representing the old path
+   * @param newPath NodePath representing the new path
+   * @return The number of paths updated.
+   */
   def updatePathForSubTree(
     id: StorageNodeId,
     oldPath: NodePath,
@@ -266,6 +290,17 @@ class StorageUnitDao @Inject() (
         actual = res
       )
     }
+  }
+
+  /**
+   * Given the provided NodePath, fetch all the associated names for each of
+   * the ID's in the path.
+   *
+   * @param nodePath NodePath to find names for
+   * @return A Seq[NamedPathElement]
+   */
+  def namesForPath(nodePath: NodePath): Future[Seq[NamedPathElement]] = {
+    db.run(namesForPathAction(nodePath))
   }
 
 }

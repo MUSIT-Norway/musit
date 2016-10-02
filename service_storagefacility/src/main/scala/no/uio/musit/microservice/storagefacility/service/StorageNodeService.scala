@@ -74,7 +74,7 @@ class StorageNodeService @Inject() (
     unitDao.insertRoot(root).flatMap { r =>
       val id = r.id.get
       val path = r.path.getOrElse(NodePath.empty).appendChild(id)
-      unitDao.updateRootPath(id, path).map { mr =>
+      unitDao.setRootPath(id, path).map { mr =>
         logger.debug(s"Updated root path and go back $mr")
         mr.getOrElse(r)
       }

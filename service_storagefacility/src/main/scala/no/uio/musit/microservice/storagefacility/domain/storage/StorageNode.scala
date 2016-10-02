@@ -25,6 +25,15 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
+/**
+ * Represents the base attributes of a StorageNode in the system.
+ *
+ * TODO: Path should be required on read. But not necessary upon creation
+ *
+ * TODO: Should the environmentRequirement attribute be defined as required?
+ * We have logic that tries to determine if a new EnvRequirement event
+ * should be created or not. That is directly depending on its value.
+ */
 sealed trait StorageNode {
   val id: Option[StorageNodeId]
   val name: String
@@ -35,18 +44,17 @@ sealed trait StorageNode {
   val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
-  val path: Option[NodePath] // TODO: I think path should be required. But that doesn't make sense on creation :-/
+  val path: Option[NodePath]
   // TODO: Need to provide a readable path, might possibly be part of NodePath?
   // val readablePath: Option[String]
-  /*
-    TODO: Should this attribute be defined as required? We have logic that tries
-    to determine if a new EnvRequirement event should be created or not. That is
-    directly depending on what value this has.
-   */
   val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
 }
 
+/**
+ * A Root node is at the top of the storage node hierarchy. Each museum should
+ * have _at least_ one root node.
+ */
 case class Root(
     id: Option[StorageNodeId] = None,
     name: String = "root-node",
@@ -63,6 +71,15 @@ case class Root(
   val storageType: StorageType = StorageType.RootType
 }
 
+//object Root extends StorageNodeFieldFormatters {
+//  val reads: Reads[Root] =
+//    (idRead and constrainedNameRead and envReqRead and pathRead)(Root.apply _)
+//}
+
+/**
+ * A StorageUnit is the smallest type of storage node. It typically represents
+ * a shelf, box, etc...
+ */
 case class StorageUnit(
     id: Option[StorageNodeId],
     name: String,
@@ -79,6 +96,9 @@ case class StorageUnit(
   val storageType: StorageType = StorageType.StorageUnitType
 }
 
+/**
+ * Represents a Room.
+ */
 case class Room(
     id: Option[StorageNodeId],
     name: String,
@@ -97,6 +117,9 @@ case class Room(
   val storageType: StorageType = StorageType.RoomType
 }
 
+/**
+ * Represents a Building.
+ */
 case class Building(
     id: Option[StorageNodeId],
     name: String,
@@ -114,6 +137,9 @@ case class Building(
   val storageType: StorageType = StorageType.BuildingType
 }
 
+/**
+ * Represents an Organisation. Both internal and external.
+ */
 case class Organisation(
     id: Option[StorageNodeId],
     name: String,
@@ -131,7 +157,26 @@ case class Organisation(
   val storageType: StorageType = StorageType.OrganisationType
 }
 
-object StorageNode {
+trait StorageNodeFieldFormatters {
+
+  protected val idRead: Reads[Option[StorageNodeId]] =
+    (__ \ "id").readNullable[StorageNodeId]
+
+  protected val constrainedNameRead: Reads[String] =
+    (__ \ "name").read[String](maxLength[String](500))
+
+  protected val envReqRead: Reads[Option[EnvironmentRequirement]] =
+    (__ \ "environmentRequirement").readNullable[EnvironmentRequirement]
+
+  protected val pathRead: Reads[Option[NodePath]] =
+    (__ \ "path").readNullable[NodePath].map(_.orElse(Some(NodePath.empty)))
+
+  protected val constrainedAddressRead: Reads[Option[String]] =
+    (__ \ "address").readNullable[String](maxLength[String](500))
+
+}
+
+object StorageNode extends StorageNodeFieldFormatters {
 
   /*
     ============================================================================
@@ -149,12 +194,6 @@ object StorageNode {
     http://scalytica.net/#posts/2015-03-29/playframework-reads-writes-of-parent-child-class-structure
     ============================================================================
   */
-
-  private[this] val constrainedNameRead: Reads[String] =
-    (__ \ "name").read[String](maxLength[String](500))
-
-  private[this] val constrainedAddressRead: Reads[Option[String]] =
-    (__ \ "address").readNullable(maxLength[String](500))
 
   implicit lazy val reads: Reads[StorageNode] = {
     constrainedNameRead andKeep constrainedAddressRead andKeep
@@ -186,7 +225,7 @@ case class GenericStorageNode(
 object GenericStorageNode {
   implicit val format: Format[GenericStorageNode] = (
     (__ \ "id").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String] and
+    (__ \ "name").format[String](maxLength[String](500)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
     (__ \ "isPartOf").formatNullable[StorageNodeId] and

@@ -20,11 +20,12 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.dao._
-import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
 private[dao] trait BaseStorageDao extends HasDatabaseConfigProvider[JdbcProfile]
@@ -97,6 +98,21 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   }
 
   /**
+   * Action for fetching the names for each StorageNodeId in the provided
+   * NodePath attribute.
+   *
+   * @param nodePath NodePath to get names for
+   * @return A {{{DBIO[Seq[NamedPathElement]]}}}
+   */
+  protected[storage] def namesForPathAction(
+    nodePath: NodePath
+  ): DBIO[Seq[NamedPathElement]] = {
+    storageNodeTable.filter { sn =>
+      sn.id inSetBind nodePath.asIdSeq
+    }.map(s => (s.id, s.name)).result.map(_.map(t => NamedPathElement(t._1, t._2)))
+  }
+
+  /**
    * TODO: Document me!!!
    */
   protected[storage] def insertNodeAction(
@@ -139,7 +155,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     def * = (
       id.?,
       storageType,
-      storageUnitName,
+      name,
       area,
       areaTo,
       isPartOf,
@@ -155,7 +171,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
     val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
     val storageType = column[StorageType]("STORAGE_TYPE")
-    val storageUnitName = column[String]("STORAGE_NODE_NAME")
+    val name = column[String]("STORAGE_NODE_NAME")
     val area = column[Option[Double]]("AREA")
     val areaTo = column[Option[Double]]("AREA_TO")
     val isPartOf = column[Option[StorageNodeId]]("IS_PART_OF")

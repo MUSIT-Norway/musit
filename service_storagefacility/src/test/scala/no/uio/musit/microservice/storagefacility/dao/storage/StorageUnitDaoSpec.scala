@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.domain.NodePath
-import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageType}
+import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageNodeId, StorageType}
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -102,6 +102,37 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
       val res = storageUnitDao.getById(inserted.id.get).futureValue
       res mustBe None
+    }
+
+    "successfully fetch the named path elements for a storage node" in {
+      val path1 = NodePath(",1,8,")
+      val su1 = createStorageUnit(
+        partOf = Some(StorageNodeId(1)),
+        path = Some(path1)
+      ).copy(name = "node1")
+      val ins1 = storageUnitDao.insert(su1).futureValue
+      ins1.id mustBe Some(StorageNodeId(8))
+      ins1.path mustBe Some(path1)
+
+      val path2 = path1.appendChild(StorageNodeId(9))
+      val su2 = createStorageUnit(
+        partOf = ins1.id,
+        path = Some(path2)
+      ).copy(name = "node2")
+      val ins2 = storageUnitDao.insert(su2).futureValue
+      ins2.id mustBe Some(StorageNodeId(9))
+      ins2.path mustBe Some(path2)
+
+      val res = storageUnitDao.namesForPath(path2).futureValue
+      res must not be empty
+      res.size mustBe 3
+      res.head.nodeId mustBe StorageNodeId(1)
+      res.head.name mustBe "root-node"
+      res.tail.head.nodeId mustBe StorageNodeId(8)
+      res.tail.head.name mustBe "node1"
+      res.last.nodeId mustBe StorageNodeId(9)
+      res.last.name mustBe "node2"
+
     }
   }
 
