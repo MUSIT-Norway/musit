@@ -1,11 +1,11 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
-import no.uio.musit.microservice.storageAdmin.domain.{ EnvironmentRequirement, Storage }
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ EnvReqDto, StorageDtoConverter }
+import no.uio.musit.microservice.storageAdmin.domain.{EnvironmentRequirement, Storage}
+import no.uio.musit.microservice.storageAdmin.domain.dto.{EnvReqDto, StorageDtoConverter}
 
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

@@ -18,13 +18,13 @@
  */
 package no.uio.musit.microservice.actor.dao
 
-import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.actor.domain.{ ActorAuth, Organization, OrganizationAddress, Person }
+import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.actor.domain.{ActorAuth, Organization, OrganizationAddress, Person}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.security.SecurityConnection
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future

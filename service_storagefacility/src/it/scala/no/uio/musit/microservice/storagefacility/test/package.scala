@@ -37,8 +37,6 @@ package object test {
   val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"
   val KdReportUrl = s"$BaseUrl/report"
 
-
-
   val VeryLongString =
     """12345678901234567890123456789012345678901234567890
       |12345678901234567890123456789012345678901234567890

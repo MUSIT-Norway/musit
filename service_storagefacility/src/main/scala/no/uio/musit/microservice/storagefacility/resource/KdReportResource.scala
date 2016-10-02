@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
-import play.api.mvc.{ Action, Controller }
+import play.api.mvc.{Action, Controller}
 import no.uio.musit.microservice.storagefacility.service.KdReportService
-import no.uio.musit.service.MusitResults.{ MusitError, MusitSuccess }
+import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.libs.json.Json
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 

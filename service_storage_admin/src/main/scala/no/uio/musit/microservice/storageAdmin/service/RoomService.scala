@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storageAdmin.service
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storageAdmin.dao.{ EnvReqDao, RoomDao }
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageDtoConverter, StorageNodeDTO }
-import no.uio.musit.microservice.storageAdmin.domain.{ Room, Storage }
+import no.uio.musit.microservice.storageAdmin.dao.{EnvReqDao, RoomDao}
+import no.uio.musit.microservice.storageAdmin.domain.dto.{StorageDtoConverter, StorageNodeDTO}
+import no.uio.musit.microservice.storageAdmin.domain.{Room, Storage}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
 

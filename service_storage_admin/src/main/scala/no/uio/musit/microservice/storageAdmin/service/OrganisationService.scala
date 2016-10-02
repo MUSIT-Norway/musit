@@ -3,7 +3,7 @@ package no.uio.musit.microservice.storageAdmin.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.storageAdmin.dao.OrganisationDao
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageNodeDTO
-import no.uio.musit.microservice.storageAdmin.domain.{ Organisation, Storage }
+import no.uio.musit.microservice.storageAdmin.domain.{Organisation, Storage}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
 

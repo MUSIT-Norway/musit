@@ -20,14 +20,14 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ EnvRequirementEventType, MoveNodeType, MoveObjectType }
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{EnvRequirementEventType, MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventTypeId, EventTypeRegistry }
+import no.uio.musit.microservice.storagefacility.domain.event.{EventTypeId, EventTypeRegistry}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -397,7 +397,7 @@ class EventDao @Inject() (
     eventTypeId: EventTypeId
   ): Future[MusitResult[Option[EventDto]]] = {
     for {
-      maybeErp <- evtPlacesAsObjDao.latestForNode(id) // FIXME: This will not fetch the correct event if another event is on top
+      maybeErp <- evtPlacesAsObjDao.latestForNode(id, eventTypeId)
       evt <- {
         logger.debug(s"Latest event relation for node $id is $maybeErp")
         maybeErp.map { erp =>

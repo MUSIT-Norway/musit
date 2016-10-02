@@ -24,9 +24,9 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{ MoveEvent, MoveNode, MoveObject }
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
-import no.uio.musit.microservice.storagefacility.domain.{ FromToDouble, Interval, LifeCycle }
+import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, Interval, LifeCycle}
 import org.joda.time.DateTime
 
 object DtoConverters {
@@ -86,8 +86,8 @@ object DtoConverters {
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
       relatedActors = sub.baseEvent.doneBy.map(ar => EventRoleActor.toEventRoleActor(ar)).toSeq,
-      relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or)).toSeq,
-      relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr)),
+      relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or, sub.eventType.registeredEventId)).toSeq,
+      relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr, sub.eventType.registeredEventId)),
       note = sub.baseEvent.note,
       relatedSubEvents = relEvents,
       partOf = sub.baseEvent.partOf,
@@ -136,8 +136,8 @@ object DtoConverters {
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
       relatedActors = sub.baseEvent.doneBy.map(ar => EventRoleActor.toEventRoleActor(ar)).toSeq,
-      relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or)).toSeq,
-      relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr)),
+      relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or, sub.eventType.registeredEventId)).toSeq,
+      relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr, sub.eventType.registeredEventId)),
       note = sub.baseEvent.note,
       relatedSubEvents = Seq.empty[RelatedEvents],
       partOf = sub.baseEvent.partOf,

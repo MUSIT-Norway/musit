@@ -21,7 +21,7 @@ package no.uio.musit.microservice.actor.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Organization
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch, MusitStatusMessage }
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch, MusitStatusMessage}
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 

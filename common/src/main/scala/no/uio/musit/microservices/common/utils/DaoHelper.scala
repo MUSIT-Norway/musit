@@ -20,7 +20,7 @@
 
 package no.uio.musit.microservices.common.utils
 
-import no.uio.musit.microservices.common.domain.{ MusitNotFoundException, MusitTooManyRecordsUpdatedException }
+import no.uio.musit.microservices.common.domain.{MusitNotFoundException, MusitTooManyRecordsUpdatedException}
 import slick.dbio.DBIO
 
 import scala.concurrent.Future

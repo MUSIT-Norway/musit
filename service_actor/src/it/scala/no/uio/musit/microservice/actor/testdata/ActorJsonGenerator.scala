@@ -3,10 +3,10 @@ package no.uio.musit.microservice.actor.testdata
 import play.api.libs.json.{JsValue, Json}
 
 /**
-  * Created by sveigl on 20.09.16.
-  */
+ * Created by sveigl on 20.09.16.
+ */
 object ActorJsonGenerator {
-  def organisationJson(id: Option[Long], name:String, nickname: String, tel: String, web: String):JsValue = {
+  def organisationJson(id: Option[Long], name: String, nickname: String, tel: String, web: String): JsValue = {
     Json.parse(
       s"""{
           |  "id" : ${id.getOrElse(null)},
@@ -18,7 +18,7 @@ object ActorJsonGenerator {
       """.stripMargin
     )
   }
-  def organisationIllegalJson:JsValue = {
+  def organisationIllegalJson: JsValue = {
     Json.parse(
       s"""{
           |  "web" : "zzzz"

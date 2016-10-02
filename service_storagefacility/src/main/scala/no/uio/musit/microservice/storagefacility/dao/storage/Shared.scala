@@ -22,7 +22,7 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
-import no.uio.musit.microservice.storagefacility.domain.storage.{ StorageNodeId, StorageType }
+import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile

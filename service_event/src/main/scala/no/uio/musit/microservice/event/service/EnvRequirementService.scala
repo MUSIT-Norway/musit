@@ -2,7 +2,7 @@ package no.uio.musit.microservice.event.service
 
 import no.uio.musit.microservice.event.dao.EnvRequirementDao
 import no.uio.musit.microservice.event.domain._
-import play.api.libs.json.{ JsObject, JsResult, Json }
+import play.api.libs.json.{JsObject, JsResult, Json}
 import slick.dbio.DBIO
 
 import scala.concurrent.Future

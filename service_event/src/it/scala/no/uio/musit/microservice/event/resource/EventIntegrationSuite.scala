@@ -37,11 +37,10 @@ import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.libs.ws.{WS, WSRequest}
 
 /**
-  * Created by jstabel on 6/10/16.
-  */
+ * Created by jstabel on 6/10/16.
+ */
 
 object WSRequestFakeHelper {
-
 
   implicit class WSRequestImp2(val wsr: WSRequest) extends AnyVal {
     def withFakeUser = wsr.withBearerToken("fake-token-zab-xy-musitTestUser")
@@ -52,10 +51,8 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   import WSRequestFakeHelper._
 
   val timeout = PlayTestDefaults.timeout
-  override lazy val port: Int = 8080
+  override lazy val port: Int = 19012
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
-
-
 
   def createEvent(json: String) = {
     WS.url(s"http://localhost:$port/v1/event").withFakeUser.postJsonString(json) |> waitFutureValue
@@ -77,10 +74,9 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     WS.url(s"http://localhost:$port/v1/node/$nodeId/observations").get |> waitFutureValue
   }
 
-  def getControlsAndObservationsForNode(nodeId:Int) = {
+  def getControlsAndObservationsForNode(nodeId: Int) = {
     WS.url(s"http://localhost:$port/v1/node/$nodeId/controlsAndObservations").get |> waitFutureValue
   }
-
 
   def getEvent(id: Long) = {
     WS.url(s"http://localhost:$port/v1/event/$id").get |> waitFutureValue
@@ -97,15 +93,11 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   }
 */
 
-
-
   "EventIntegrationSuite " must {
-
 
     "getObjectUriViaRelation test" in {
       EventRelations.getObjectUriViaRelation(532, "storageunit-location") mustBe Some("storageunit/532")
     }
-
 
     "postWithWrongEvent" in {
       val json =
@@ -139,8 +131,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     }
   }
 
-
-
   "post controlTemperature with ok = true" in {
     val json =
       """
@@ -160,7 +150,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     println(s"Get: ${responseGet.body}")
 
   }
-
 
   "post controlTemperature with ok = false" in {
     val json =
@@ -191,8 +180,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response.status mustBe 400
   }
 
-
-
   "post and get envRequirement" in {
     val json =
       """
@@ -212,7 +199,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
     val myEnvReqEvent = validateEvent[EnvRequirement](response.json)
     myEnvReqEvent.temperature mustBe Some(20)
-
 
     val responseGet = getEvent(myEnvReqEvent.id.get)
     responseGet.status mustBe 200
@@ -238,13 +224,10 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     myEnvReqEvent.airHumidity mustBe Some(-20)
     myEnvReqEvent.envReqDto.cleaning mustBe Some("Ikke særlig rent")
 
-
     val responseGet = getEvent(myEnvReqEvent.id.get)
     responseGet.status mustBe 200
     println(s"Get: ${responseGet.body}")
   }
-
-
 
   "post and get ObservationTemperature" in {
     val json =
@@ -262,12 +245,10 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     myEvent.from mustBe Some(-20)
     myEvent.to mustBe Some(5)
 
-
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
     println(s"Get: ${responseGet.body}")
   }
-
 
   "post and get complex Observation" in {
     val json =
@@ -302,7 +283,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     firstObsTempEvent.from mustBe Some(-30)
     firstObsTempEvent.to mustBe Some(25)
 
-
     val response = createEvent(json)
     println(s"Create: ${response.body}")
     response.status mustBe 201
@@ -313,11 +293,9 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     firstObsEvent.from mustBe Some(-30)
     firstObsEvent.to mustBe Some(25)
 
-
     val humEvent = myEvent.subObservations(2).asInstanceOf[ObservationRelativeHumidity]
     humEvent.from mustBe Some(1)
     humEvent.to mustBe Some(2)
-
 
     val airEvent = myEvent.subObservations(3).asInstanceOf[ObservationHypoxicAir]
     airEvent.from mustBe Some(0.1)
@@ -327,8 +305,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     responseGet.status mustBe 200
     println(s"Get: ${responseGet.body}")
   }
-
-
 
   "post wrong subEvents-relation should result in 400" in {
     val json =
@@ -374,7 +350,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
   }]
   }
   """
-
 
   "post composite control" in {
     val response = createControlEvent(storageUnitId, postCompositeControlJson)
@@ -436,7 +411,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
   }
 
-
   "post and get ObservationLightingCondition" in {
     val json =
       """
@@ -449,7 +423,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response.status mustBe 201
     val myEvent = validateEvent[ObservationLightingCondition](response.json)
     myEvent.lightingCondition mustBe Some("merkelige forhold")
-
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
@@ -470,7 +443,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val myEvent = validateEvent[ObservationCleaning](response.json)
     myEvent.cleaning mustBe Some("merkelige renhold")
 
-
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
     val myEventGet = validateEvent[ObservationCleaning](responseGet.json)
@@ -489,7 +461,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response.status mustBe 201
     val myEvent = validateEvent[ObservationGas](response.json)
     myEvent.gas mustBe Some("merkelig gass")
-
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
@@ -510,7 +481,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val myEvent = validateEvent[ObservationMold](response.json)
     myEvent.mold mustBe Some("merkelig mugg")
 
-
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
     val myEventGet = validateEvent[ObservationMold](responseGet.json)
@@ -529,7 +499,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response.status mustBe 201
     val myEvent = validateEvent[ObservationTheftProtection](response.json)
     myEvent.theftProtection mustBe Some("merkelig tyveriSikring")
-
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
@@ -550,7 +519,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val myEvent = validateEvent[ObservationFireProtection](response.json)
     myEvent.fireProtection mustBe Some("merkelig brannSikring")
 
-
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
     val myEventGet = validateEvent[ObservationFireProtection](responseGet.json)
@@ -570,7 +538,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val myEvent = validateEvent[ObservationPerimeterSecurity](response.json)
     myEvent.perimeterSecurity mustBe Some("merkelig skallSikring")
 
-
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
     val myEventGet = validateEvent[ObservationPerimeterSecurity](responseGet.json)
@@ -589,7 +556,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response.status mustBe 201
     val myEvent = validateEvent[ObservationWaterDamageAssessment](response.json)
     myEvent.waterDamageAssessment mustBe Some("merkelig vannskadeRisiko")
-
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
@@ -627,7 +593,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val myEvent = validateEvent[ObservationPest](response.json)
     myEvent.identification mustBe Some("skadedyr i veggene")
 
-
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
     val myEventGet = validateEvent[ObservationPest](responseGet.json)
@@ -659,7 +624,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     response.status mustBe 201
     val myEvent = validateEvent[ObservationAlcohol](response.json)
 
-
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
     val myEventGet = validateEvent[ObservationAlcohol](responseGet.json)
@@ -680,7 +644,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createEvent(json)
     response.status mustBe 201
     val myEvent = validateEvent[ObservationAlcohol](response.json)
-
 
     val responseGet = getEvent(myEvent.id.get)
     responseGet.status mustBe 200
@@ -748,7 +711,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     myEvent.ok mustBe true
   }
 
-
   "post ControlGas" in {
     val json =
       """ {
@@ -764,7 +726,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     myEvent.ok mustBe false
   }
 
-
   "post ControlMold" in {
     val json =
       """ {
@@ -779,7 +740,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val myEvent = validateEvent[ControlMold](response.json)
     myEvent.ok mustBe true
   }
-
 
   "post ControlPest" in {
     val json =
@@ -823,22 +783,18 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createControlEvent(storageUnitId, postCompositeControlJson)
     response.status mustBe 201
 
-    val controlEvent =  validateEvent[Control](response.json)
+    val controlEvent = validateEvent[Control](response.json)
 
     val response2 = getControlsForNode(storageUnitId)
     //#OLD val url=s"http://localhost:$port/v1/events?search=[eventType=control, rel=storageunit-location, id=$storageUnitId]"
 
-
     val arrayLength = response2.json match {
       case arr: JsArray => arr.value.length
     }
-    assert(arrayLength>=1)
-
+    assert(arrayLength >= 1)
 
     response2.status mustBe 200
   }
-
-
 
   "check that we can post and get doneDate and doneBy" in {
     val json =
@@ -902,7 +858,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     println(s"Create: ${response.body}")
     response.status mustBe 201
 
-
   }
 
   "post explicit observation on node" in {
@@ -926,7 +881,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     val response = createObservationEvent(storageNodeId, json)
     println(s"Create: ${response.body}")
     response.status mustBe 201
-
 
   }
   "get explicit controls on node" in {
@@ -958,7 +912,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
 
     val response3 = getControlsForNode(storageNodeId)
     response3.status mustBe 200
-
 
   }
 
@@ -996,7 +949,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     }
     arrayLength mustBe 3
 
-
     val response5 = getObservationsForNode(5252525)
     response5.status mustBe 200
 
@@ -1006,8 +958,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
     arrayLength2 mustBe 1
 
   }
-
-
 
   "post MoveObject" in {
 
@@ -1044,7 +994,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "note": "Dette er et viktig notat for move place!"
    }"""
 
-
     val response = createEvent(json)
     response.status mustBe 201
     val movePlace = validateEvent[MovePlace](response.json)
@@ -1070,7 +1019,6 @@ class EventIntegrationSuite extends PlaySpec with OneServerPerSuite with ScalaFu
    "temperature": 333,
    "note": "nye miljøkrav hehe...!"
    }"""
-
 
     val response = createEvent(json)
     response.status mustBe 201

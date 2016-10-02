@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain.dto
 
-import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, Storage, StorageUnit, Organisation }
+import no.uio.musit.microservice.storageAdmin.domain.{Building, Room, Storage, StorageUnit, Organisation}
 
 sealed trait StorageType
 
