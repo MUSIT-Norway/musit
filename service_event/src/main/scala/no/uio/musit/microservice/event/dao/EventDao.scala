@@ -20,12 +20,12 @@
 
 package no.uio.musit.microservice.event.dao
 
-import java.sql.{ Date, Timestamp }
+import java.sql.{Date, Timestamp}
 
 import no.uio.musit.microservice.event.dao.EventLinkDao.PartialEventLink
-import no.uio.musit.microservice.event.domain.{ RelatedEvents, _ }
+import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
 import no.uio.musit.microservice.event.service._
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.microservices.common.linking.dao.LinkDao
@@ -34,7 +34,7 @@ import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.security.AuthenticatedUser
 import org.joda.time.DateTime
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.dbio.SequenceAction
 import slick.driver.JdbcProfile
 

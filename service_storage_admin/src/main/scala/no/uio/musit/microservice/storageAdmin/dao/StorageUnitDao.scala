@@ -1,13 +1,13 @@
 package no.uio.musit.microservice.storageAdmin.dao
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservice.storageAdmin.domain.{ Building, NodePath, Storage, StorageUnit }
-import no.uio.musit.microservice.storageAdmin.domain.dto.{ StorageNodeDTO, StorageType }
+import no.uio.musit.microservice.storageAdmin.domain.{Building, NodePath, Storage, StorageUnit}
+import no.uio.musit.microservice.storageAdmin.domain.dto.{StorageNodeDTO, StorageType}
 import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ErrorHelper
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.jdbc.SQLActionBuilder

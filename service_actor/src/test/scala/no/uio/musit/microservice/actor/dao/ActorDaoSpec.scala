@@ -19,13 +19,13 @@
 
 package no.uio.musit.microservice.actor.dao
 
-import no.uio.musit.microservice.actor.domain.{ Organization, OrganizationAddress, Person }
+import no.uio.musit.microservice.actor.domain.{Organization, OrganizationAddress, Person}
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.security.FakeSecurity
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import org.scalatest.Matchers._

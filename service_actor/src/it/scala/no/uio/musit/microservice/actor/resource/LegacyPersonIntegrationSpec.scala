@@ -10,8 +10,8 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.http.Status
 
 /**
-  * Created by sveigl on 20.09.16.
-  */
+ * Created by sveigl on 20.09.16.
+ */
 class LegacyPersonIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
@@ -19,7 +19,6 @@ class LegacyPersonIntegrationSpec extends PlaySpec with OneServerPerSuite with S
   override lazy val port: Int = 19007
 
   implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
-
 
   "LegacyPersonIntegration " must {
     "get by id" in {

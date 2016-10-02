@@ -19,8 +19,8 @@
  */
 
 /**
-  * Created by jstabel on 3/31/16.
-  */
+ * Created by jstabel on 3/31/16.
+ */
 
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.microservices.common.extensions.PlayExtensions.{MusitAuthFailed, MusitBadRequest}
@@ -40,7 +40,7 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
 
   def runTestWhenReady(token: String) (block: AuthenticatedUser=>Unit): Unit = {
       whenReady(Dataporten.createAuthenticatedUser(token), timeout) { sec => block(sec)}}
-
+  }
 
   def runTestWhenReadyWithTokenAndException(token: String, block: Throwable => Unit): Unit = {
     whenReady(Dataporten.createAuthenticatedUser(token).failed, timeout) { ex => block(ex) }
@@ -60,7 +60,6 @@ class DataportenSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
       assert(sec.authorize(Seq(Groups.DS)) {}.isSuccess)
     }
   }
-
 
   "Authorize for DS and MusitKonservatorLes" in {
     runTestWhenReady(token) { sec =>

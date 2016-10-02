@@ -135,5 +135,4 @@ object StorageNodeJsonGenerator {
     )
   }
 
-
 }

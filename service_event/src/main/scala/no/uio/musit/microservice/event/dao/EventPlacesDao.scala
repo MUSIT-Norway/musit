@@ -23,9 +23,9 @@ package no.uio.musit.microservice.event.dao
  *
  */
 
-import no.uio.musit.microservice.event.domain.{ EventRolePlace, PlaceWithRole }
+import no.uio.musit.microservice.event.domain.{EventRolePlace, PlaceWithRole}
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global

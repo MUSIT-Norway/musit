@@ -20,8 +20,8 @@
 
 package no.uio.musit.microservice.event.service
 
-import no.uio.musit.microservice.event.domain.{ BaseEventDto, Event, EventType }
-import no.uio.musit.microservice.event.service.Validators.{ DoubleValidator, IntegerValidator, StringValidator }
+import no.uio.musit.microservice.event.domain.{BaseEventDto, Event, EventType}
+import no.uio.musit.microservice.event.service.Validators.{DoubleValidator, IntegerValidator, StringValidator}
 import play.api.libs.json._
 
 /**

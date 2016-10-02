@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.domain.storage
 
 import no.uio.musit.microservice.storagefacility.domain.Interval
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 
 case class EnvironmentRequirement(
   temperature: Option[Interval[Double]],

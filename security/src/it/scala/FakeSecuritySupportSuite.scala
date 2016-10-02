@@ -19,8 +19,8 @@
  */
 
 /**
-  * Created by jstabel on 4/4/16.
-  */
+ * Created by jstabel on 4/4/16.
+ */
 
 import no.uio.musit.security._
 import org.scalatest.Ignore
@@ -33,7 +33,6 @@ import scala.concurrent.duration._
 
 @Ignore
 class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPerSuite {
-
 
   val additionalConfiguration: Map[String, String] = Map.apply(
     ("slick.dbs.default.driver", "slick.driver.H2Driver$"),
@@ -53,9 +52,7 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPer
     whenReady(FakeSecurity.createInMemory(userName, true), timeout) { sec => block(sec) }
   }
 
-
   val groups = List("Admin", "EtnoSkriv", "EtnoLes")
-
 
   "running hardcoded fake-security tests" must {
 
@@ -68,15 +65,15 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPer
     }
 
     "should fail if has deniedGroups" in {
-      runTestWhenReadyHardcoded { sec => {
-        assert(sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
-          Logger.debug("Denne skal ikke synes!!!")
-        }.isFailure)
-      }
+      runTestWhenReadyHardcoded { sec =>
+        {
+          assert(sec.authorize(Seq("Admin"), Seq("EtnoLes")) {
+            Logger.debug("Denne skal ikke synes!!!")
+          }.isFailure)
+        }
       }
     }
   }
-
 
   "running semi-hardcoded (in-memory) fake-security tests" must {
     "should execute if has groups" in {
@@ -88,13 +85,13 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPer
       }
     }
 
-
     "should fail if has deniedGroups" in {
-      runTestWhenReadyInMemory("jarle") { sec => {
-        assert(sec.authorize(Seq(FakeSecurityUsersAndGroups.fotoLesGroupName), Seq(FakeSecurityUsersAndGroups.etnoLesGroupName)) {
-          Logger.debug("Denne skal ikke synes!!!")
-        }.isFailure)
-      }
+      runTestWhenReadyInMemory("jarle") { sec =>
+        {
+          assert(sec.authorize(Seq(FakeSecurityUsersAndGroups.fotoLesGroupName), Seq(FakeSecurityUsersAndGroups.etnoLesGroupName)) {
+            Logger.debug("Denne skal ikke synes!!!")
+          }.isFailure)
+        }
       }
     }
 

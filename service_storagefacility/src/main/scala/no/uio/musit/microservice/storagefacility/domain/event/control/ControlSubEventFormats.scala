@@ -21,7 +21,7 @@ package no.uio.musit.microservice.storagefacility.domain.event.control
 
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ControlSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventType, BaseEvent }
+import no.uio.musit.microservice.storagefacility.domain.event.{EventType, BaseEvent}
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
