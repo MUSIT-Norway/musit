@@ -72,8 +72,8 @@ class StorageStatsDao @Inject() (
     db.run(
       sql"""
         select count(*)
-        from "MUSARK_STORAGE"."LOCAL_OBJECT" o
-        where o."CURRENT_LOCATION_ID" = ${nodeId.underlying}
+        from "MUSARK_STORAGE"."LOCAL_OBJECT"
+        where "CURRENT_LOCATION_ID" = ${nodeId.underlying}
       """.as[Int].head
     )
   }

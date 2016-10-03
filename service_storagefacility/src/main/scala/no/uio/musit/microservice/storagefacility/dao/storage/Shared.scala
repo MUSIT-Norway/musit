@@ -90,9 +90,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     logger.debug(s"performing update with LIKE: $pathFilter")
 
     sql"""
-         UPDATE "MUSARK_STORAGE"."STORAGE_NODE" n
-         SET n."NODE_PATH" = replace(n."NODE_PATH", ${op}, ${np})
-         WHERE n."NODE_PATH" LIKE ${pathFilter}
+         UPDATE "MUSARK_STORAGE"."STORAGE_NODE"
+         SET "NODE_PATH" = replace("NODE_PATH", ${op}, ${np})
+         WHERE "NODE_PATH" LIKE ${pathFilter}
        """.asUpdate.transactionally
   }
 
