@@ -8,6 +8,7 @@ services:
         links:
             - backing
             - webpack
+
     webpack:
         build:
             context: "../../frontend"
@@ -18,11 +19,13 @@ services:
         environment:
           - PUBLIC_PORT=80
           - MILJO
+
     backing:
         build:
           context: "../../backing"
         ports:
           - "3030:3030"
+
     db:
         image: postgres
         environment:
@@ -31,10 +34,7 @@ services:
           - POSTGRES_DB=postgres
         volumes:
           - ../../../postgres-storage:/var/lib/postgresql/data/
-    thing:
-        image: musit_service_thing:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET
+
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
         environment:
@@ -47,10 +47,12 @@ services:
           - SLICK_DB_PASSWORD
         links:
           - db
+
     core:
         image: musit_service_core:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET
+
     storageadmin:
         image: musit_service_storage_admin:0.1-SNAPSHOT
         environment:
@@ -63,6 +65,7 @@ services:
           - SLICK_DB_PASSWORD
         links:
           - db
+
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
         environment:
@@ -75,10 +78,12 @@ services:
           - SLICK_DB_PASSWORD
         links:
           - db
+
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET
+
     event:
         image: musit_service_event:0.1-SNAPSHOT
         environment:
@@ -91,7 +96,16 @@ services:
           - SLICK_DB_PASSWORD
         links:
           - db
-    time:
-        image: musit_service_time:0.1-SNAPSHOT
+
+    storagefacility:
+        image: musit_service_storagefacility:0.1-SNAPSHOT
         environment:
           - APPLICATION_SECRET
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db

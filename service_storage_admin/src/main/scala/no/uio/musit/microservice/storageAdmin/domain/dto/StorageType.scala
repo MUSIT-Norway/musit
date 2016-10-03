@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain.dto
 
-import no.uio.musit.microservice.storageAdmin.domain.{ Building, Room, Storage, StorageUnit, Organisation }
+import no.uio.musit.microservice.storageAdmin.domain.{Building, Room, Storage, StorageUnit, Organisation}
 
 sealed trait StorageType
 
@@ -18,6 +18,7 @@ object StorageType {
     case "Room" => StorageType.Room
     case "StorageUnit" => StorageType.StorageUnit
     case "Organisation" => StorageType.Organisation
+    case "Root" => StorageType.Organisation
   }
 
   def fromStorage[T <: Storage](st: T): StorageType = st match {

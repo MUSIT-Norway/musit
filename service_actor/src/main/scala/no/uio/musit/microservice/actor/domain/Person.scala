@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.actor.domain
 
-import no.uio.musit.microservices.common.domain.{ BaseAddress, BaseMusitDomain }
+import no.uio.musit.microservices.common.domain.{BaseAddress, BaseMusitDomain}
 import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 

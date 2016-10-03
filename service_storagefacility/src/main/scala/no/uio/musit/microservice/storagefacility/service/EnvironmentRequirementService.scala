@@ -20,14 +20,14 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.dao.event.{ EnvRequirementDao, EventDao }
+import no.uio.musit.microservice.storagefacility.dao.event.{EnvRequirementDao, EventDao}
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.EnvReqConverters
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ EventDto, ExtendedDto }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventDto, ExtendedDto}
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.storage.{ EnvironmentRequirement, StorageNodeId }
-import no.uio.musit.service.MusitResults.{ MusitInternalError, MusitResult, MusitSuccess }
+import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, StorageNodeId}
+import no.uio.musit.service.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 

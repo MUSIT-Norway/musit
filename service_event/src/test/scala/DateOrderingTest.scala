@@ -1,7 +1,7 @@
 /**
  * Created by jarle on 23.08.16.
  */
-import java.sql.{ Date, Timestamp }
+import java.sql.{Date, Timestamp}
 
 import no.uio.musit.microservice.event.domain.EventOrderingUtils
 import no.uio.musit.microservice.event.domain.EventOrderingUtils._

@@ -19,11 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.resource
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.domain.event.observation.Observation
-import no.uio.musit.microservice.storagefacility.service.{ ControlService, ObservationService }
-import no.uio.musit.service.MusitResults.{ MusitError, MusitSuccess }
+import no.uio.musit.microservice.storagefacility.service.{ControlService, ObservationService}
+import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -50,7 +50,7 @@ class EventResource @Inject() (
     // TODO: Extract current user information from enriched request.
     request.body.validate[Control] match {
       case JsSuccess(ctrl, jsPath) =>
-        controlService.add(ctrl).map {
+        controlService.add(nodeId, ctrl).map {
           case MusitSuccess(addedCtrl) =>
             Created(Json.toJson(addedCtrl))
 
@@ -70,7 +70,7 @@ class EventResource @Inject() (
     // TODO: Extract current user information from enriched request.
     request.body.validate[Observation] match {
       case JsSuccess(obs, jsPath) =>
-        observationService.add(obs).map {
+        observationService.add(nodeId, obs).map {
           case MusitSuccess(addedObs) =>
             Created(Json.toJson(addedObs))
 
@@ -149,9 +149,11 @@ class EventResource @Inject() (
    * the given nodeId.
    */
   def listEventsForNode(nodeId: Long) = Action.async { implicit request =>
+    val eventuallyCtrls = controlService.listFor(nodeId)
+    val eventyallyObs = observationService.listFor(nodeId)
     for {
-      ctrlRes <- controlService.listFor(nodeId)
-      obsRes <- observationService.listFor(nodeId)
+      ctrlRes <- eventuallyCtrls
+      obsRes <- eventyallyObs
     } yield {
       val sortedRes = for {
         controls <- ctrlRes

@@ -11,8 +11,8 @@ import play.api.libs.ws.WSRequest
 import no.uio.musit.microservices.common.extensions.PlayExtensions.WSRequestImp
 
 /**
-  * Created by sveigl on 21.09.16.
-  */
+ * Created by sveigl on 21.09.16.
+ */
 class UserIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   val timeout = PlayTestDefaults.timeout
@@ -24,7 +24,6 @@ class UserIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutu
   def withFakeUser(wsr: WSRequest, username: String) = {
     wsr.withBearerToken(FakeSecurity.fakeAccessTokenPrefix + username)
   }
-
 
   "Actor and dataporten integration" must {
 
@@ -44,6 +43,5 @@ class UserIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutu
       }
     }
   }
-
 
 }

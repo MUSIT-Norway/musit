@@ -21,7 +21,8 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
+import no.uio.musit.microservice.storagefacility.domain.datetime._
+import no.uio.musit.microservice.storagefacility.domain.event.{EventId, ObjectRole}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.ObsConverters
@@ -40,8 +41,21 @@ class ObservationService @Inject() (val eventDao: EventDao) {
   /**
    * TODO: Document me!
    */
-  def add(obs: Observation)(implicit currUsr: String): Future[MusitResult[Observation]] = {
-    val dto = ObsConverters.observationToDto(obs)
+  def add(
+    nodeId: Long,
+    obs: Observation
+  )(implicit currUsr: String): Future[MusitResult[Observation]] = {
+    val o = obs.copy(
+      baseEvent = obs.baseEvent.copy(
+        affectedThing = Some(ObjectRole(
+          roleId = 1,
+          objectId = nodeId
+        )),
+        registeredBy = Some(currUsr),
+        registeredDate = Some(dateTimeNow)
+      )
+    )
+    val dto = ObsConverters.observationToDto(o)
     eventDao.insertEvent(dto).flatMap { eventId =>
       eventDao.getEvent(eventId).map { res =>
         res.flatMap(_.map { dto =>

@@ -15,8 +15,8 @@ import play.api.libs.ws.WSResponse
 import scala.concurrent.Future
 
 /**
-  * Created by sveigl on 20.09.16.
-  */
+ * Created by sveigl on 20.09.16.
+ */
 class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -109,6 +109,5 @@ class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite
       msm.message mustBe "Deleted 1 record(s)."
     }
   }
-
 
 }

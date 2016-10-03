@@ -19,10 +19,12 @@
 
 package no.uio.musit.microservice.storagefacility.service
 
-import no.uio.musit.microservice.storagefacility.domain.Interval
+import no.uio.musit.microservice.storagefacility.domain.event.move.MoveNode
+import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageNodeId}
+import no.uio.musit.microservice.storagefacility.domain.{Interval, Move}
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.time.{Millis, Seconds, Span}
 
 class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
@@ -38,16 +40,22 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "successfully create a new room node with environment requirements" in {
     // Setup new room data, without the partOf relation, which is not
     // interesting in this particular test.
-    val room = createRoom(None)
+    val room = createRoom()
     val inserted = service.addRoom(room).futureValue
-
     inserted.id must not be None
     inserted.environmentRequirement must not be None
     inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
+
+    val res = service.getRoomById(inserted.id.get).futureValue
+    res.isSuccess mustBe true
+    res.get must not be None
+    res.get.get.id must not be None
+    res.get.get.environmentRequirement must not be None
+    res.get.get.environmentRequirement.get mustBe defaultEnvironmentRequirement
   }
 
   "successfully update a building with new environment requirements" in {
-    val building = createBuilding(None)
+    val building = createBuilding()
     val inserted = service.addBuilding(building).futureValue
     inserted.id must not be None
     inserted.environmentRequirement must not be None
@@ -91,5 +99,92 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     again.get.get.name mustBe "UggaBugga"
     again.get.get.areaTo mustBe Some(4.0)
   }
+
+  "successfully mark a node as deleted" in {
+    val su = createStorageUnit()
+    val inserted = service.addStorageUnit(su).futureValue
+    inserted.id must not be None
+
+    val deleted = service.deleteNode(inserted.id.get).futureValue
+    deleted.isSuccess mustBe true
+
+    val notAvailable = service.getNodeById(inserted.id.get).futureValue
+    notAvailable.isSuccess mustBe true
+    notAvailable.get mustBe None
+  }
+
+  "not remove a node that has children" in {
+    val su1 = createStorageUnit()
+    val inserted1 = service.addStorageUnit(su1).futureValue
+    inserted1.id must not be None
+
+    val su2 = createStorageUnit(partOf = inserted1.id)
+    val inserted2 = service.addStorageUnit(su2).futureValue
+    inserted2.id must not be None
+
+    val notDeleted = service.deleteNode(inserted1.id.get).futureValue
+    notDeleted.isSuccess mustBe true
+    notDeleted.get must not be None
+    notDeleted.get.get mustBe -1
+  }
+
+  "successfully move a node and all its children" in {
+    val root1 = service.addRoot(Root()).futureValue
+    root1.id must not be None
+
+    val b1 = createBuilding(name = "Building1", partOf = root1.id)
+    val building1 = service.addBuilding(b1).futureValue
+    building1.id must not be None
+
+    val b2 = createBuilding(name = "Building2", partOf = root1.id)
+    val building2 = service.addBuilding(b2).futureValue
+    building2.id must not be None
+
+    val su1 = createStorageUnit(name = "Unit1", partOf = building1.id)
+    val unit1 = service.addStorageUnit(su1).futureValue
+    unit1.id must not be None
+
+    val su2 = createStorageUnit(name = "Unit2", partOf = unit1.id)
+    val unit2 = service.addStorageUnit(su2).futureValue
+    unit2.id must not be None
+
+    val su3 = createStorageUnit(name = "Unit3", partOf = unit1.id)
+    val unit3 = service.addStorageUnit(su3).futureValue
+    unit3.id must not be None
+
+    val su4 = createStorageUnit(name = "Unit4", partOf = unit3.id)
+    val unit4 = service.addStorageUnit(su4).futureValue
+    unit4.id must not be None
+
+    val children = service.getChildren(unit1.id.get).futureValue
+    val childIds = children.map(_.id)
+    val grandChildIds = childIds.flatMap { id =>
+      service.getChildren(id.get).futureValue.map(_.id)
+    }
+
+    val mostChildren = childIds ++ grandChildIds
+
+    val move = Move[StorageNodeId](
+      doneBy = 123,
+      destination = building2.id.get,
+      items = Seq(unit1.id.get)
+    )
+
+    val event = MoveNode.fromCommand("foobar", move).head
+
+    val m = service.moveNode(unit1.id.get, event).futureValue
+    m.isSuccess mustBe true
+
+    mostChildren.map { id =>
+      service.getNodeById(id.get).futureValue.map { n =>
+        n must not be None
+        n.get.path must not be None
+        n.get.path.get.path must startWith(building2.path.get.path)
+      }
+    }
+
+  }
+
+  // TODO: MORE TESTING!!!!!
 
 }

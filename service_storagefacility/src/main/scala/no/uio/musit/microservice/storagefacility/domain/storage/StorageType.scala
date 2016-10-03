@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
-import enumeratum.{ Enum, EnumEntry, PlayJsonEnum }
+import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
 
 sealed trait StorageType extends EnumEntry {
 
@@ -63,7 +63,7 @@ object StorageType extends Enum[StorageType] with PlayJsonEnum[StorageType] {
   }
 
   case object OrganisationType extends StorageType {
-    override val storageTypeName: String = "Organization"
+    override val storageTypeName: String = "Organisation"
   }
 
 }

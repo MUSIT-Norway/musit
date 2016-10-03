@@ -21,7 +21,7 @@ package no.uio.musit.microservice.storagefacility.resource
 
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, StorageNodeId}
 import no.uio.musit.microservice.storagefacility.test.{EventJsonGenerator, StorageNodeJsonGenerator, _}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -43,7 +43,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       // Initialise some storage units...
       wsUrl(StorageNodesUrl).post(organisationJson("Foo")).futureValue
       wsUrl(StorageNodesUrl).post(buildingJson("Bar", StorageNodeId(1))).futureValue
-      println("Done populating")
+      println("Done populating") // scalastyle:ignore
     }.recover {
       case t: Throwable =>
         println("Error occured when loading data") // scalastyle:ignore
@@ -51,8 +51,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   }
 
   "The storage facility event service" should {
+
     "successfully register a new control" in {
-      val json = Json.parse(EventJsonGenerator.controlJson(2, 20))
+      val json = Json.parse(EventJsonGenerator.controlJson(20))
       val res = wsUrl(ControlsUrl(2)).post(json).futureValue
 
       res.status mustBe Status.CREATED
@@ -76,36 +77,87 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully register another control" in {
-      val json = Json.parse(EventJsonGenerator.controlJson(2, 22))
+      val json = Json.parse(EventJsonGenerator.controlJson(22))
       val res = wsUrl(ControlsUrl(2)).post(json).futureValue
 
       res.status mustBe Status.CREATED
-      val maybeCtrlId = (res.json \ "id").asOpt[Long]
-
-      maybeCtrlId must not be None
+      (res.json \ "id").asOpt[Long] must not be None
     }
 
     "successfully register a new observation" in {
-      pending
+      val json = Json.parse(EventJsonGenerator.observationJson(22))
+      val res = wsUrl(ObservationsUrl(2)).post(json).futureValue
+
+      res.status mustBe Status.CREATED
+      val obsId = (res.json \ "id").asOpt[Long]
+      obsId must not be None
     }
 
     "get a specific observation for a node" in {
-      pending
+
     }
 
     "successfully register another observation" in {
-      pending
+      val json = Json.parse(EventJsonGenerator.observationJson(22))
+      val res = wsUrl(ObservationsUrl(2)).post(json).futureValue
+
+      res.status mustBe Status.CREATED
+      val obsId = (res.json \ "id").asOpt[Long]
+      obsId must not be None
     }
 
     "list all controls and observations for a node, ordered by doneDate" in {
       // TODO: Update this test once observations are created in above tests
       val res = wsUrl(CtrlObsForNodeUrl(2)).get().futureValue
-      res.status mustBe Status.OK
 
-      res.json.as[JsArray].value.size mustBe 2
+      res.status mustBe Status.OK
+      res.json.as[JsArray].value.size mustBe 4
       // TODO: Verify ordering.
     }
 
+    //    "list all controls for a node"
+
+  }
+
+  "return the last environment requirement event for the node" in {
+    val nodeJson = StorageNodeJsonGenerator.roomJson("test")
+    val res = wsUrl(StorageNodesUrl).post(nodeJson).futureValue
+
+    res.status mustBe Status.CREATED
+    val maybeNodeId = (res.json \ "id").asOpt[Long]
+
+    maybeNodeId must not be None
+
+    maybeNodeId.foreach(nodeId => {
+      val jsonControl = Json.parse(EventJsonGenerator.controlJson(20))
+      val resCtrl = wsUrl(ControlsUrl(nodeId)).post(jsonControl).futureValue
+
+      resCtrl.status mustBe Status.CREATED
+
+      val resNode = wsUrl(StorageNodeUrl(nodeId)).get().futureValue
+
+      val maybeEnvData = (resNode.json \ "environmentRequirement").asOpt[EnvironmentRequirement]
+
+      maybeEnvData must not be None
+
+      maybeEnvData.foreach(envData => {
+        envData.temperature must not be None
+        envData.temperature.foreach(temp => {
+          temp.base mustBe 20
+          temp.tolerance mustBe Some(25)
+        })
+        envData.relativeHumidity must not be None
+        envData.relativeHumidity.foreach(relhum => {
+          relhum.base mustBe 60.7
+          relhum.tolerance mustBe Some(70)
+        })
+        envData.hypoxicAir must not be None
+        envData.hypoxicAir.foreach(hypoxicAir => {
+          hypoxicAir.base mustBe 12
+          hypoxicAir.tolerance mustBe Some(20)
+        })
+      })
+    })
   }
 
 }

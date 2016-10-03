@@ -19,15 +19,15 @@
 
 package no.uio.musit.microservice.storagefacility.testhelpers
 
-import no.uio.musit.microservice.storagefacility.dao.storage.{ BuildingDao, OrganisationDao, RoomDao, StorageUnitDao }
-import no.uio.musit.microservice.storagefacility.domain.Interval
+import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
+import no.uio.musit.microservice.storagefacility.domain.{Interval, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 
 trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>
@@ -77,12 +77,16 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   def addNode(nodes: StorageNode*): Seq[StorageNodeId] = {
     val eventuallyInserted = Future.sequence {
-      nodes.map {
+      nodes.filterNot(_.isInstanceOf[GenericStorageNode]).map {
         case su: StorageUnit => addStorageUnit(su)
         case r: Room => addRoom(r)
         case b: Building => addBuilding(b)
         case o: Organisation => addOrganisation(o)
         case r: Root => addRoot(r)
+        case notCorrect =>
+          throw new IllegalArgumentException( // scalastyle:ignore
+            s"${notCorrect.getClass} is not supported"
+          )
       }
     }.map { inserted =>
       inserted.map(_.id.get)
@@ -114,10 +118,14 @@ trait NodeTypeInitializers {
   val defaultEnvironmentRequirement: EnvironmentRequirement =
     initEnvironmentRequirement()
 
-  def createBuilding(partOf: Option[StorageNodeId] = None): Building = {
+  def createBuilding(
+    name: String = "FooBarBuilding",
+    partOf: Option[StorageNodeId] = None,
+    path: Option[NodePath] = None
+  ): Building = {
     Building(
       id = None,
-      name = "FooBarBuilding",
+      name = name,
       area = Some(200),
       areaTo = Some(250),
       isPartOf = partOf,
@@ -125,15 +133,20 @@ trait NodeTypeInitializers {
       heightTo = Some(8),
       groupRead = None,
       groupWrite = None,
+      path = path,
       environmentRequirement = Some(defaultEnvironmentRequirement),
       address = Some("FooBar Gate 8, 111 Oslo, Norge")
     )
   }
 
-  def createRoom(partOf: Option[StorageNodeId] = None): Room = {
+  def createRoom(
+    name: String = "FooRoom",
+    partOf: Option[StorageNodeId] = None,
+    path: Option[NodePath] = None
+  ): Room = {
     Room(
       id = None,
-      name = "FooRoom",
+      name = name,
       area = Some(50),
       areaTo = Some(55),
       height = Some(2),
@@ -141,6 +154,7 @@ trait NodeTypeInitializers {
       isPartOf = partOf,
       groupRead = None,
       groupWrite = None,
+      path = path,
       environmentRequirement = Some(defaultEnvironmentRequirement),
       securityAssessment = SecurityAssessment(
         perimeter = Some(true),
@@ -158,7 +172,11 @@ trait NodeTypeInitializers {
     )
   }
 
-  def createStorageUnit(partOf: Option[StorageNodeId] = None): StorageUnit = {
+  def createStorageUnit(
+    name: String = "FooUnit",
+    partOf: Option[StorageNodeId] = None,
+    path: Option[NodePath] = None
+  ): StorageUnit = {
     StorageUnit(
       id = None,
       name = "FooUnit",
@@ -169,6 +187,7 @@ trait NodeTypeInitializers {
       heightTo = Some(2),
       groupRead = None,
       groupWrite = None,
+      path = path,
       environmentRequirement = Some(defaultEnvironmentRequirement)
     )
   }

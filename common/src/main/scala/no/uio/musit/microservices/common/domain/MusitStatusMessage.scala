@@ -18,7 +18,7 @@
  */
 package no.uio.musit.microservices.common.domain
 
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 
 case class MusitStatusMessage(message: String)
 

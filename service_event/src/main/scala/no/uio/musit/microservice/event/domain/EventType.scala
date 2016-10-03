@@ -2,7 +2,7 @@ package no.uio.musit.microservice.event.domain
 
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import play.api.libs.json.{ Json, Writes }
+import play.api.libs.json.{Json, Writes}
 import no.uio.musit.microservices.common.domain.MusitError
 
 object EventType {

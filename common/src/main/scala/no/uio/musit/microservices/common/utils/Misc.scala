@@ -1,7 +1,7 @@
 package no.uio.musit.microservices.common.utils
 
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, MusitResult }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, MusitResult}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

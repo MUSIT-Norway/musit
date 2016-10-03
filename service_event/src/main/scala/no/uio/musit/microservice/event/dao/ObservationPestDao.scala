@@ -20,10 +20,10 @@
 
 package no.uio.musit.microservice.event.dao
 
-import no.uio.musit.microservice.event.domain.{ LifeCycleDto, ObservationPestDto, ObservationPestDto$ }
+import no.uio.musit.microservice.event.domain.{LifeCycleDto, ObservationPestDto, ObservationPestDto$}
 import no.uio.musit.microservices.common.utils.DaoHelper
 import play.api.Play
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global

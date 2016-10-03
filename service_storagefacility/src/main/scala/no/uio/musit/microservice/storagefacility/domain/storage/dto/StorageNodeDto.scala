@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storagefacility.domain.storage.dto
 
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
 
 sealed trait StorageNodeDto
@@ -16,6 +17,7 @@ case class StorageUnitDto(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
+  path: NodePath,
   isDeleted: Option[Boolean],
   storageType: StorageType
 ) extends StorageNodeDto
@@ -28,7 +30,8 @@ case class ExtendedStorageNode[T <: SpecializedStorageNode](
 case class RootDto(
     id: Option[StorageNodeId],
     name: String,
-    storageType: StorageType
+    storageType: StorageType,
+    path: NodePath = NodePath.empty
 ) extends StorageNodeDto {
 
   /**
@@ -45,6 +48,7 @@ case class RootDto(
       heightTo = None,
       groupRead = None,
       groupWrite = None,
+      path = path,
       isDeleted = None,
       storageType = storageType
     )
@@ -114,6 +118,22 @@ object StorageNodeDto {
       case r: Room => fromRoom(r)
     }
 
+  def toGenericStorageNode(su: StorageUnitDto): GenericStorageNode =
+    GenericStorageNode(
+      id = su.id,
+      name = su.name,
+      area = su.area,
+      areaTo = su.areaTo,
+      height = su.height,
+      heightTo = su.heightTo,
+      isPartOf = su.isPartOf,
+      groupRead = su.groupRead,
+      groupWrite = su.groupWrite,
+      path = Option(su.path),
+      environmentRequirement = None, // EnvRequirement is handled elsewhere
+      storageType = su.storageType
+    )
+
   def toRoot(r: RootDto): Root =
     Root(
       id = r.id
@@ -130,6 +150,7 @@ object StorageNodeDto {
       isPartOf = su.isPartOf,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
+      path = Option(su.path),
       environmentRequirement = None // EnvRequirement is handled elsewhere
     )
 
@@ -144,6 +165,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
+      path = Option(ext.storageUnitDto.path),
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       address = ext.extension.address
     )
@@ -160,6 +182,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
+      path = Option(ext.storageUnitDto.path),
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       address = ext.extension.address
     )
@@ -176,6 +199,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
+      path = Option(ext.storageUnitDto.path),
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       securityAssessment = SecurityAssessment(
         perimeter = ext.extension.perimeterSecurity,
@@ -214,6 +238,7 @@ object StorageNodeDto {
       heightTo = su.heightTo,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
+      path = su.path.getOrElse(NodePath.empty),
       isDeleted = Some(false),
       storageType = su.storageType
     )
@@ -233,6 +258,7 @@ object StorageNodeDto {
         heightTo = b.heightTo,
         groupRead = b.groupRead,
         groupWrite = b.groupWrite,
+        path = b.path.getOrElse(NodePath.empty),
         isDeleted = Some(false),
         storageType = b.storageType
       ),
@@ -257,6 +283,7 @@ object StorageNodeDto {
         heightTo = o.heightTo,
         groupRead = o.groupRead,
         groupWrite = o.groupWrite,
+        path = o.path.getOrElse(NodePath.empty),
         isDeleted = Some(false),
         storageType = o.storageType
       ),
@@ -281,6 +308,7 @@ object StorageNodeDto {
         heightTo = r.heightTo,
         groupRead = r.groupRead,
         groupWrite = r.groupWrite,
+        path = r.path.getOrElse(NodePath.empty),
         isDeleted = Some(false),
         storageType = r.storageType
       ),

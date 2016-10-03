@@ -1,9 +1,9 @@
 package dao
 
 import com.google.inject.Inject
-import no.uio.musit.service.MusitResults.{ MusitDbError, MusitResult, MusitSuccess }
-import models.{ MuseumIdentifier, ObjectAggregation, ObjectId }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import models.{MuseumIdentifier, ObjectAggregation, ObjectId}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 import slick.jdbc.GetResult
@@ -22,7 +22,7 @@ class ObjectAggregationDao @Inject() (
     db.run(
       sql"""
          select "ID", "DISPLAYID", "DISPLAYNAME"
-         from "MUSARK_EVENT"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
+         from "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
          WHERE "CURRENT_LOCATION_ID" = $nodeId and "OBJECT_ID" = "ID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     ).recover {
