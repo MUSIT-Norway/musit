@@ -373,7 +373,7 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         val failedUpdate = wsUrl(StorageNodeUrl(mid, 13)).put(json).futureValue
         failedUpdate.status mustBe Status.NOT_FOUND
       }
-/*
+
 
       "successfully move a single node" in {
         val mid = 2
@@ -497,7 +497,7 @@ class StorageUnitIntegrationSpec extends MusitSpecWithServerPerSuite {
         // is no node in the DB matching the ID with the wrong type
         pending
       }
-      */
+
 
       "respond with 404(should be 403 ??) when trying to get an organisation with wrong museum" in {
         val mid = 5
