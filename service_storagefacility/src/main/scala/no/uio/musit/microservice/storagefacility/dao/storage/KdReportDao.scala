@@ -2,8 +2,8 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.domain.MuseumId
-import no.uio.musit.service.MusitResults.{ MusitDbError, MusitResult, MusitSuccess }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 

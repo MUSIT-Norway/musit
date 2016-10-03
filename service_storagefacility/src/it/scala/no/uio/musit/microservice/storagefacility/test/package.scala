@@ -21,10 +21,19 @@ package no.uio.musit.microservice.storagefacility
 
 package object test {
 
-  val BaseUrl = "/v1/storagenodes"
+  /*val BaseUrl = "/v1/storagenodes"
   val StorageNodesUrl = (mid: Int) => s"$BaseUrl/museum/$mid"
   val RootNodeUrl = (mid: Int) => s"$BaseUrl/museum/$mid/root"
   val StorageNodeUrl = (mid: Int, node: Long) => s"$BaseUrl/museum/$mid/node/$node"
+
+  val MoveStorageNodeUrl = s"$StorageNodesUrl/moveNode"
+  val MoveObjectUrl = s"$StorageNodesUrl/moveObject"
+  val NodeChildrenUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/children"*/
+
+  val BaseUrl = "/v1/museum"
+  val StorageNodesUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes"
+  val RootNodeUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/root"
+  val StorageNodeUrl = (mid: Int, node: Long) => s"$BaseUrl/$mid/storagenodes/$node"
 
   val MoveStorageNodeUrl = s"$StorageNodesUrl/moveNode"
   val MoveObjectUrl = s"$StorageNodesUrl/moveObject"
@@ -36,9 +45,7 @@ package object test {
   val ObservationUrl = (node: Long, evt: Long) => s"${ObservationsUrl(node)}/$evt"
 
   val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"*/
-  val KdReportUrl = (mid: Int) => s"$BaseUrl/museum/$mid/report"
-
-
+  val KdReportUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/report"
 
   val VeryLongString =
     """12345678901234567890123456789012345678901234567890

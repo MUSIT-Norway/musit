@@ -4,7 +4,7 @@ Norwegian university museums IT organization (MUSIT); cultural history and natur
 Code status for master branch:
 * [![Run Status](https://api.shippable.com/projects/5756ccf92a8192902e22c72c/badge?branch=master)](https://app.shippable.com/projects/5756ccf92a8192902e22c72c)
 * [![Codacy Badge](https://api.codacy.com/project/badge/Grade/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/musit-project/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Grade)
-* [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/musit-project/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Coverage)
+* [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/musit-project/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Coverage)  (NOTE: due to a bug in scoverage, the test coverage is not reported correctly)
 
 Status badges is retrieved directly from the services monitoring the code.
 

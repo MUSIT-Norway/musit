@@ -3,16 +3,17 @@
 # ~~~~
 
 # StorageNode endpoints
-POST          /v1/storagenodes/museum/:mid                          no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.add(mid: Int)
-POST          /v1/storagenodes/museum/:mid/root                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.addRoot(mid: Int)
-GET           /v1/storagenodes/museum/:mid/root                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.root(mid: Int)
-GET           /v1/storagenodes/museum/:mid/report                   no.uio.musit.microservice.storagefacility.resource.KdReportResource.getReportByMuseum(mid: Int)
-PUT           /v1/storagenodes/moveNode                             no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.moveNode
-PUT           /v1/storagenodes/moveObject                           no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.moveObject
-GET           /v1/storagenodes/museum/:mid/node/:nodeId             no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getById(mid: Int, nodeId: Long)
-PUT           /v1/storagenodes/museum/:mid/node/:nodeId             no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.update(mid: Int, nodeId: Long)
-DELETE        /v1/storagenodes/museum/:mid/node/:nodeId             no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.delete(mid: Int, nodeId: Long)
-GET           /v1/storagenodes/museum/:mid/node/:nodeId/children    no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.children(mid: Int, nodeId: Long)
+POST          /v1/museum/:mid/storagenodes                          no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.add(mid: Int)
+POST          /v1/museum/:mid/storagenodes/root                     no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.addRoot(mid: Int)
+GET           /v1/museum/:mid/storagenodes/root                     no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.root(mid: Int)
+GET           /v1/museum/:mid/storagenodes/report                   no.uio.musit.microservice.storagefacility.resource.KdReportResource.getReportByMuseum(mid: Int)
+PUT           /v1/storagenodes/moveNode                             no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.moveNode
+PUT           /v1/storagenodes/moveObject                           no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.moveObject
+GET           /v1/museum/:mid/storagenodes/:nodeId                  no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.getById(mid: Int, nodeId: Long)
+PUT           /v1/museum/:mid/storagenodes/:nodeId                  no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.update(mid: Int, nodeId: Long)
+DELETE        /v1/museum/:mid/storagenodes/:nodeId                  no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.delete(mid: Int, nodeId: Long)
+GET           /v1/museum/:mid/storagenodes/:nodeId/children         no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.children(mid: Int, nodeId: Long)
+GET           /v1/museum/:mid/storagenodes/:nodeId/stats            no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.stats(mid: Int, nodeId: Long)
 
 # Controls
 POST          /v1/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.addControl(nodeId: Long)

@@ -21,7 +21,7 @@ package no.uio.musit.microservice.core.resource
 import no.uio.musit.security.Security
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, Controller }
+import play.api.mvc.{Action, Controller}
 
 class CoreResource extends Controller {
 

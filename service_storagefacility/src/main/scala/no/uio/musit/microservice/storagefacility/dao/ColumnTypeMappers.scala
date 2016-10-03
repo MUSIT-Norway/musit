@@ -20,8 +20,9 @@
 package no.uio.musit.microservice.storagefacility.dao
 
 import no.uio.musit.microservice.storagefacility.domain.MuseumId
-import no.uio.musit.microservice.storagefacility.domain.event.{ EventId, EventTypeId }
-import no.uio.musit.microservice.storagefacility.domain.storage.{ StorageNodeId, StorageType }
+import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
+import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
 import play.api.db.slick.HasDatabaseConfig
 import slick.driver.JdbcProfile
 
@@ -62,5 +63,11 @@ trait ColumnTypeMappers {
     MappedColumnType.base[MuseumId, Int](
       museumId => museumId.underlying,
       id => MuseumId(id)
+    )
+
+  implicit lazy val nodePathMapper: BaseColumnType[NodePath] =
+    MappedColumnType.base[NodePath, String](
+      nodePath => nodePath.path,
+      pathStr => NodePath(pathStr)
     )
 }

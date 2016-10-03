@@ -19,11 +19,13 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.MuseumId
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ BuildingDto, ExtendedStorageNode, StorageNodeDto }
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
+import no.uio.musit.service.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -93,6 +95,23 @@ class BuildingDao @Inject() (
         logger.debug(s"Using $id, building has ID ${building.id}")
         logger.error(s"There was an error updating building $id", ex)
         None
+    }
+  }
+
+  /**
+   * Updates the path for the given StoragNodeId
+   * @param id the StorageNodeId to update
+   * @param path the NodePath to set
+   * @return MusitResult[Unit]
+   */
+  def setPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+    db.run(updatePathAction(id, path)).map {
+      case res: Int if res == 1 => MusitSuccess(())
+
+      case res: Int =>
+        val msg = s"Wrong amount of rows ($res) updated"
+        logger.warn(msg)
+        MusitInternalError(msg)
     }
   }
 

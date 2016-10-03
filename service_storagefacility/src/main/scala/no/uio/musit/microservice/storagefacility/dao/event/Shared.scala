@@ -19,11 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import java.sql.{ Date => JSqlDate, Timestamp => JSqlTimestamp }
+import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
-import no.uio.musit.microservice.storagefacility.dao.{ ColumnTypeMappers, SchemaName }
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{ BaseEventDto, EventRelation, ObservationFromToDto }
+import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, EventRelation, ObservationFromToDto}
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
@@ -80,12 +80,12 @@ object EventRelationTypes {
 /**
  * TODO: What am I?
  */
-private[dao] trait BaseEventDao extends HasDatabaseConfigProvider[JdbcProfile]
+private[event] trait BaseEventDao extends HasDatabaseConfigProvider[JdbcProfile]
 
 /**
  * Tables definitions that are required across DAO implementations.
  */
-private[dao] trait SharedEventTables extends BaseEventDao
+private[event] trait SharedEventTables extends BaseEventDao
     with ColumnTypeMappers {
 
   import driver.api._

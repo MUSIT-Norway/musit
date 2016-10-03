@@ -21,7 +21,7 @@ package no.uio.musit.microservice.actor.resource
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservice.actor.service.LegacyPersonService
-import no.uio.musit.microservices.common.domain.{ MusitError, MusitSearch }
+import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._

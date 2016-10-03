@@ -25,7 +25,7 @@ trait TestConfigs {
 
   def slickWithInMemoryH2(
     evolve: String = "enabled"
-  ): Map[String, Any] = Map.apply(
+  ): Map[String, Any] = Map(
     "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
     "slick.dbs.default.connectionTimeout" -> "20000",
     "slick.dbs.default.loginTimeout" -> "20000",

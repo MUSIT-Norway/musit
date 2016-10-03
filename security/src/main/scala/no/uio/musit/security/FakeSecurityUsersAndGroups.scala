@@ -22,7 +22,7 @@ package no.uio.musit.security
 
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
 import play.api.Logger
-import play.api.libs.json.{ JsObject, Json }
+import play.api.libs.json.{JsObject, Json}
 
 import scala.collection.mutable.ListBuffer
 
