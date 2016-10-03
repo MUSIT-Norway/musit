@@ -95,7 +95,7 @@ final class StorageNodeResource @Inject() (
    * TODO: Document me!
    */
   def addRoot(mid: Int) = Action.async { implicit request =>
-    Museum.fromMuseumId(mid).map { museumId =>
+    Museum.fromMuseumId(mid).map { museum =>
       service.addRoot(mid, Root()).map(node => Created(Json.toJson(node)))
     }.getOrElse {
       Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
@@ -106,7 +106,7 @@ final class StorageNodeResource @Inject() (
    * TODO: Document me!
    */
   def root(mid: Int) = Action.async { implicit request =>
-    Museum.fromMuseumId(mid).map { museumId =>
+    Museum.fromMuseumId(mid).map { museum =>
       service.rootNodes(mid).map(roots => Ok(Json.toJson(roots)))
     }.getOrElse {
       Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
@@ -117,7 +117,7 @@ final class StorageNodeResource @Inject() (
    * TODO: Document me!
    */
   def children(mid: Int, id: Long) = Action.async { implicit request =>
-    Museum.fromMuseumId(mid).map { museumId =>
+    Museum.fromMuseumId(mid).map { museum =>
       service.getChildren(mid, id).map { nodes =>
         Ok(Json.toJson[Seq[GenericStorageNode]](nodes))
       }
@@ -130,7 +130,7 @@ final class StorageNodeResource @Inject() (
    * TODO: Document me!
    */
   def getById(mid: Int, id: Long) = Action.async { implicit request =>
-    Museum.fromMuseumId(mid).map { museumId =>
+    Museum.fromMuseumId(mid).map { museum =>
       service.getNodeById(mid, id).map {
         case MusitSuccess(maybeNode) =>
           maybeNode.map(n => Ok(Json.toJson[StorageNode](n))).getOrElse(NotFound)
@@ -154,7 +154,7 @@ final class StorageNodeResource @Inject() (
    */
   def update(mid: Int, id: Long) = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
-    Museum.fromMuseumId(mid).map { museumId =>
+    Museum.fromMuseumId(mid).map { museum =>
       request.body.validate[StorageNode] match {
         case JsSuccess(node, _) =>
           val futureRes: Future[MusitResult[Option[StorageNode]]] = node match {
@@ -191,7 +191,7 @@ final class StorageNodeResource @Inject() (
    */
   def delete(mid: Int, id: Long) = Action.async { implicit request =>
     // TODO: Extract current user information from enriched request.
-    Museum.fromMuseumId(mid).map { museumId =>
+    Museum.fromMuseumId(mid).map { museum =>
       service.deleteNode(mid, id).map {
         case MusitSuccess(maybeDeleted) =>
           maybeDeleted.map { numDeleted =>
@@ -249,45 +249,57 @@ final class StorageNodeResource @Inject() (
   }
 
   // TODO: Check if moving to self...should be illegal!
-  def moveNode = Action.async(parse.json) { implicit request =>
-    // TODO: Extract current user information from enriched request.
-    request.body.validate[Move[StorageNodeId]] match {
-      case JsSuccess(cmd, _) =>
-        val events = MoveNode.fromCommand(DummyUser, cmd)
-        move(events)((id, evt) => service.moveNode(id, evt))
+  def moveNode(mid: MuseumId) = Action.async(parse.json) { implicit request =>
+    Museum.fromMuseumId(mid).map { museum =>
+      // TODO: Extract current user information from enriched request.
+      request.body.validate[Move[StorageNodeId]] match {
+        case JsSuccess(cmd, _) =>
+          val events = MoveNode.fromCommand(DummyUser, cmd)
+          move(events)((id, evt) => service.moveNode(mid, id, evt))
 
-      case JsError(error) =>
-        logger.warn(s"Error parsing JSON:\n ${Json.prettyPrint(JsError.toJson(error))}")
-        Future.successful(BadRequest(JsError.toJson(error)))
+        case JsError(error) =>
+          logger.warn(s"Error parsing JSON:\n ${Json.prettyPrint(JsError.toJson(error))}")
+          Future.successful(BadRequest(JsError.toJson(error)))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
   }
 
-  def moveObject = Action.async(parse.json) { implicit request =>
+  def moveObject(mid: MuseumId) = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
-    request.body.validate[Move[Long]] match {
-      case JsSuccess(cmd, _) =>
-        val events = MoveObject.fromCommand(DummyUser, cmd)
-        move(events)(service.moveObject)
+    Museum.fromMuseumId(mid).map { museum =>
+      request.body.validate[Move[Long]] match {
+        case JsSuccess(cmd, _) =>
+          val events = MoveObject.fromCommand(DummyUser, cmd)
+          move(events)((id, evt) => service.moveObject(mid, id, evt))
 
-      case JsError(error) =>
-        logger.warn(s"Error parsing JSON:\n ${Json.prettyPrint(JsError.toJson(error))}")
-        Future.successful(BadRequest(JsError.toJson(error)))
+        case JsError(error) =>
+          logger.warn(s"Error parsing JSON:\n ${Json.prettyPrint(JsError.toJson(error))}")
+          Future.successful(BadRequest(JsError.toJson(error)))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
   }
 
   def stats(mid: MuseumId, nodeId: Long) = Action.async { implicit request =>
-    service.nodeStats(mid, nodeId).map {
-      case MusitSuccess(maybeStats) =>
-        maybeStats.map { stats =>
-          Ok(Json.toJson(stats))
-        }.getOrElse {
-          NotFound(Json.obj("message" -> s"Could not find nodeId $nodeId"))
-        }
+    Museum.fromMuseumId(mid).map { museum =>
+      service.nodeStats(mid, nodeId).map {
+        case MusitSuccess(maybeStats) =>
+          maybeStats.map { stats =>
+            Ok(Json.toJson(stats))
+          }.getOrElse {
+            NotFound(Json.obj("message" -> s"Could not find nodeId $nodeId"))
+          }
 
-      case err: MusitError =>
-        logger.error("An unexpected error occured when trying to read " +
-          s"node stats for $nodeId. Message was: ${err.message}")
-        InternalServerError(Json.obj("message" -> err.message))
+        case err: MusitError =>
+          logger.error("An unexpected error occured when trying to read " +
+            s"node stats for $nodeId. Message was: ${err.message}")
+          InternalServerError(Json.obj("message" -> err.message))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
   }
 

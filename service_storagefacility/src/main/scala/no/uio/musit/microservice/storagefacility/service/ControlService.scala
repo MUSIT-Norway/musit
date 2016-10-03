@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.{EventId, ObjectRole}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
@@ -42,6 +43,7 @@ class ControlService @Inject() (val eventDao: EventDao) {
    *
    */
   def add(
+    mid: MuseumId,
     nodeId: Long,
     ctrl: Control
   )(implicit currUsr: String): Future[MusitResult[Control]] = {
@@ -56,8 +58,8 @@ class ControlService @Inject() (val eventDao: EventDao) {
       )
     )
     val dto = CtrlConverters.controlToDto(c)
-    eventDao.insertEvent(dto).flatMap { eventId =>
-      eventDao.getEvent(eventId).map { res =>
+    eventDao.insertEvent(mid, dto).flatMap { eventId =>
+      eventDao.getEvent(mid, eventId).map { res =>
         res.flatMap(_.map { dto =>
           // We know we have a BaseEventDto representing a Control.
           val bdto = dto.asInstanceOf[BaseEventDto]
@@ -78,8 +80,8 @@ class ControlService @Inject() (val eventDao: EventDao) {
    * @param id
    * @return
    */
-  def findBy(id: EventId): Future[MusitResult[Option[Control]]] = {
-    eventDao.getEvent(id.underlying).map { result =>
+  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Control]]] = {
+    eventDao.getEvent(mid, id.underlying).map { result =>
       result.flatMap(_.map {
         case base: BaseEventDto =>
           MusitSuccess(
@@ -94,8 +96,8 @@ class ControlService @Inject() (val eventDao: EventDao) {
     }
   }
 
-  def listFor(nodeId: StorageNodeId): Future[MusitResult[Seq[Control]]] = {
-    eventDao.getEventsForNode(nodeId, ControlEventType).map { dtos =>
+  def listFor(mid: MuseumId, nodeId: StorageNodeId): Future[MusitResult[Seq[Control]]] = {
+    eventDao.getEventsForNode(mid, nodeId, ControlEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>
         // We know we have a BaseEventDto representing a Control.
         val base = dto.asInstanceOf[BaseEventDto]

@@ -51,7 +51,6 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     id: StorageNodeId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
-      sn.museumId === mid &&
         sn.id === id &&
         sn.isDeleted === false &&
         sn.storageType =!= rootNodeType

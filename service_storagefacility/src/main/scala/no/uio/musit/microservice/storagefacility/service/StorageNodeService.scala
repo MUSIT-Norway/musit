@@ -51,13 +51,14 @@ class StorageNodeService @Inject() (
   val logger = Logger(classOf[StorageNodeService])
 
   private[service] def saveEnvReq(
+    mid: MuseumId,
     nodeId: StorageNodeId,
     envReq: EnvironmentRequirement
   )(implicit currUsr: String): Future[Option[EnvironmentRequirement]] = {
     val now = dateTimeNow
     val er = EnvRequirement.toEnvRequirementEvent(nodeId, now, envReq)
 
-    envReqService.add(er).map {
+    envReqService.add(mid, er).map {
       case MusitSuccess(success) =>
         logger.debug("Successfully wrote environment requirement data " +
           s"for node $nodeId")
@@ -126,7 +127,7 @@ class StorageNodeService @Inject() (
         } yield {
           logger.debug(s"Saving new environment requirement data " +
             s"for ${node.getClass.getSimpleName} with id $nodeId")
-          saveEnvReq(nodeId, envReq).map { maybeEnvReq =>
+          saveEnvReq(mid, nodeId, envReq).map { maybeEnvReq =>
             setEnvReq(added, maybeEnvReq)
           }
         }
@@ -234,7 +235,7 @@ class StorageNodeService @Inject() (
         envReq <- storageUnit.environmentRequirement
       } yield {
         logger.debug(s"Saving new environment requirement data for unit node $id")
-        saveEnvReq(id, envReq).map { er =>
+        saveEnvReq(mid, id, envReq).map { er =>
           Some(su.copy(environmentRequirement = er))
         }
       }
@@ -259,7 +260,7 @@ class StorageNodeService @Inject() (
         envReq <- room.environmentRequirement
       } yield {
         logger.debug(s"Saving new environment requirement data for room node $id")
-        saveEnvReq(id, envReq).map { er =>
+        saveEnvReq(mid, id, envReq).map { er =>
           Some(r.copy(environmentRequirement = er))
         }
       }
@@ -284,7 +285,7 @@ class StorageNodeService @Inject() (
         envReq <- building.environmentRequirement
       } yield {
         logger.debug(s"Saving new environment requirement data for building node $id")
-        saveEnvReq(id, envReq).map { er =>
+        saveEnvReq(mid, id, envReq).map { er =>
           Some(b.copy(environmentRequirement = er))
         }
       }
@@ -309,7 +310,7 @@ class StorageNodeService @Inject() (
         envReq <- organisation.environmentRequirement
       } yield {
         logger.debug(s"Saving new environment requirement data for organisation node $id")
-        saveEnvReq(id, envReq).map { er =>
+        saveEnvReq(mid, id, envReq).map { er =>
           Some(org.copy(environmentRequirement = er))
         }
       }
@@ -328,7 +329,7 @@ class StorageNodeService @Inject() (
   ): Future[MusitResult[Option[StorageUnit]]] = {
     for {
       unitRes <- unitDao.getById(mid, id).map(MusitSuccess.apply)
-      maybeEnvReq <- getEnvReq(id)
+      maybeEnvReq <- getEnvReq(mid, id)
     } yield {
       unitRes.map { maybeUnit =>
         maybeUnit.map(_.copy(environmentRequirement = maybeEnvReq))
@@ -342,7 +343,7 @@ class StorageNodeService @Inject() (
   def getRoomById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Room]]] = {
     for {
       roomRes <- roomDao.getById(mid, id).map(MusitSuccess.apply)
-      maybeEnvReq <- getEnvReq(id)
+      maybeEnvReq <- getEnvReq(mid, id)
     } yield {
       roomRes.map { maybeRoom =>
         maybeRoom.map(_.copy(environmentRequirement = maybeEnvReq))
@@ -356,7 +357,7 @@ class StorageNodeService @Inject() (
   def getBuildingById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Building]]] = {
     for {
       buildingRes <- buildingDao.getById(mid, id).map(MusitSuccess.apply)
-      maybeEnvReq <- getEnvReq(id)
+      maybeEnvReq <- getEnvReq(mid, id)
     } yield {
       buildingRes.map { maybeBuilding =>
         maybeBuilding.map(_.copy(environmentRequirement = maybeEnvReq))
@@ -371,7 +372,7 @@ class StorageNodeService @Inject() (
   def getOrganisationById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Organisation]]] = {
     for {
       orgRes <- organisationDao.getById(mid, id).map(MusitSuccess.apply)
-      maybeEnvReq <- getEnvReq(id)
+      maybeEnvReq <- getEnvReq(mid, id)
     } yield {
       orgRes.map { maybeOrg =>
         maybeOrg.map(_.copy(environmentRequirement = maybeEnvReq))
@@ -379,8 +380,8 @@ class StorageNodeService @Inject() (
     }
   }
 
-  private def getEnvReq(id: StorageNodeId): Future[Option[EnvironmentRequirement]] = {
-    envReqService.findLatestForNodeId(id).map {
+  private def getEnvReq(mid: MuseumId, id: StorageNodeId): Future[Option[EnvironmentRequirement]] = {
+    envReqService.findLatestForNodeId(mid, id).map {
       case MusitSuccess(maybeEnvRequirement) => maybeEnvRequirement
       case _ => None
 
@@ -539,10 +540,11 @@ class StorageNodeService @Inject() (
    * Helper to encapsulate shared logic between the public move methods.
    */
   private def move(
+    mid: MuseumId,
     id: Long,
     dto: BaseEventDto
   )(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
-    eventDao.insertEvent(dto).flatMap(eventId => f(eventId)).recover {
+    eventDao.insertEvent(mid, dto).flatMap(eventId => f(eventId)).recover {
       case NonFatal(ex) =>
         val msg = s"An exception occured trying to move $id"
         logger.error(msg, ex)
@@ -554,6 +556,7 @@ class StorageNodeService @Inject() (
    * TODO: This is a mess...refactor me when time allows
    */
   def moveNode(
+    mid: MuseumId,
     id: StorageNodeId,
     event: MoveNode
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
@@ -562,7 +565,7 @@ class StorageNodeService @Inject() (
     def mv(fromPath: NodePath, toPath: NodePath): Future[MusitResult[Long]] = {
       unitDao.updatePathForSubTree(id, fromPath, toPath.appendChild(id)).flatMap {
         case MusitSuccess(numUpdated) =>
-          move(id, dto) { eventId =>
+          move(mid, id, dto) { eventId =>
             unitDao.updatePartOf(id, Some(event.to.placeId)).map { updRes =>
               logger.debug(s"Update partOf result $updRes")
               MusitSuccess(eventId)
@@ -599,11 +602,12 @@ class StorageNodeService @Inject() (
    * TODO: Document me!
    */
   def moveObject(
+    mid: MuseumId,
     objectId: Long,
     event: MoveObject
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
     val dto = DtoConverters.MoveConverters.moveObjectToDto(event)
-    move(objectId, dto) { eventId =>
+    move(mid, objectId, dto) { eventId =>
       Future.successful(MusitSuccess(eventId))
     }
   }

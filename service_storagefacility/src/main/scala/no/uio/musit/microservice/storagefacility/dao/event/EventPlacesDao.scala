@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EventRolePlace
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
@@ -46,7 +47,7 @@ class EventPlacesDao @Inject() (
     eventPlacesTable ++= relPlaces
   }
 
-  def getRelatedPlaces(eventId: Long): Future[Seq[EventRolePlace]] = {
+  def getRelatedPlaces(mid: MuseumId, eventId: Long): Future[Seq[EventRolePlace]] = {
     val query = eventPlacesTable.filter(evt => evt.eventId === eventId)
     db.run(query.result)
   }

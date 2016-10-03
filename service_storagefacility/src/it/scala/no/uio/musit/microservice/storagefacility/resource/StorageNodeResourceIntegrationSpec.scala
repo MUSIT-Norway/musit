@@ -398,7 +398,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         failedUpdate.status mustBe Status.NOT_FOUND
       }
 
-      /* "successfully move a single node" in {
+      "successfully move a single node" in {
         val mid = 2
         val json = storageUnitJson("Move me", StorageNodeId(7))
         val res = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
@@ -420,7 +420,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
              |}""".stripMargin
         )
 
-        val moveRes = wsUrl(MoveStorageNodeUrl).put(moveJson).futureValue
+        val moveRes = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
         moveRes.status mustBe Status.OK
 
         (moveRes.json \ "moved").as[JsArray].value.head.as[Long] mustBe moveMeId
@@ -460,7 +460,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
               |}""".stripMargin
         )
 
-        val move = wsUrl(MoveStorageNodeUrl).put(moveJson).futureValue
+        val move = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
         move.status mustBe Status.OK
 
         val movedRes1 = wsUrl(StorageNodeUrl(mid, id1)).get().futureValue
@@ -513,7 +513,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
               |}""".stripMargin
         )
 
-        val moveRes = wsUrl(MoveStorageNodeUrl).put(moveJson).futureValue
+        val moveRes = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
         moveRes.status mustBe Status.OK
         (moveRes.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain(5)
 
@@ -544,7 +544,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
               |}""".stripMargin
         )
 
-        val move = wsUrl(MoveObjectUrl).put(moveJson).futureValue
+        val move = wsUrl(MoveObjectUrl(mid)).put(moveJson).futureValue
 
         move.status mustBe Status.OK
 
@@ -575,7 +575,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         // a proper response in this case. I would argue that it is. Since there
         // is no node in the DB matching the ID with the wrong type
         pending
-      }*/
+      }
 
       "respond with 404(should be 403 ??) when trying to get an organisation with wrong museum" in {
         val mid = 5
@@ -592,6 +592,19 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         failedUpdate.status mustBe Status.BAD_REQUEST
       }
 
+      "Not list all children for a rootnode with museumId that not exist" in {
+        val mid = 55
+        val res = wsUrl(NodeChildrenUrl(mid, 1)).get().futureValue
+        res.status mustBe Status.BAD_REQUEST
+      }
+
+      "Not list all children for a rootnode with wrong museumId " in {
+        val mid = 3
+        val res = wsUrl(NodeChildrenUrl(mid, 1)).get().futureValue
+
+        res.status mustBe Status.OK
+        res.json.as[JsArray].value.size mustBe 0
+      }
     }
   }
 }

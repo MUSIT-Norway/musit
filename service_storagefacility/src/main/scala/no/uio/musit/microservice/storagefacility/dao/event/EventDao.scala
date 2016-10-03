@@ -23,6 +23,7 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{EnvRequirementEventType, MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
@@ -141,6 +142,7 @@ class EventDao @Inject() (
     insertRelatedType(eventId, places)(evtPlacesDao.insertPlaces)
 
   private[this] def insertRelatedObjectsAsPlaces(
+    mid: MuseumId,
     eventId: Long,
     objPlaces: Seq[EventRoleObject]
   ): DBIO[Option[Int]] =
@@ -153,6 +155,7 @@ class EventDao @Inject() (
    * the partialEventLink.
    */
   private[this] def insertEventAction(
+    mid: MuseumId,
     event: EventDto,
     partialRelation: Option[PartialEventRelation]
   ): DBIO[Long] = {
@@ -170,7 +173,7 @@ class EventDao @Inject() (
         // Execute the insert of the base event
         theEventId <- insertBase
         // Insert the children
-        _ <- insertChildrenAction(theEventId, event.relatedSubEvents)
+        _ <- insertChildrenAction(mid, theEventId, event.relatedSubEvents)
         // Insert the event relations
         _ <- {
           partialRelation.filterNot(_ => isPartsRelation).map { pel =>
@@ -182,11 +185,11 @@ class EventDao @Inject() (
         // Insert any related objects relations
         _ <- {
           if (MoveObjectType.id == event.eventTypeId) {
-            localObjectDao.cacheLatestMove(theEventId, event).andThen(
+            localObjectDao.cacheLatestMove(mid, theEventId, event).andThen(
               insertRelatedObjects(theEventId, event.relatedObjects)
             )
           } else {
-            insertRelatedObjectsAsPlaces(theEventId, event.relatedObjects)
+            insertRelatedObjectsAsPlaces(mid, theEventId, event.relatedObjects)
           }
         }
         // Insert any related place relations
@@ -199,18 +202,19 @@ class EventDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insertEvent(event: EventDto): Future[Long] = {
-    val action = insertEventAction(event, None)
+  def insertEvent(mid: MuseumId, event: EventDto): Future[Long] = {
+    val action = insertEventAction(mid, event, None)
     db.run(action)
   }
 
   /**
    * TODO: Document me!!!
    */
-  private def insertChildrenAction(parentEventId: Long, children: Seq[RelatedEvents]) = {
+  private def insertChildrenAction(mid: MuseumId, parentEventId: Long, children: Seq[RelatedEvents]) = {
     val actions = children.map { relatedEvents =>
       val relActions = relatedEvents.events.map { subEvent =>
         insertEventAction(
+          mid,
           subEvent,
           Some(PartialEventRelation(parentEventId, relatedEvents.relation))
         )
@@ -225,6 +229,7 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    */
   def getBaseEvent(
+    mid: MuseumId,
     id: Long,
     eventTypeId: Option[EventTypeId] = None
   ): Future[Option[BaseEventDto]] = {
@@ -248,13 +253,13 @@ class EventDao @Inject() (
           if (MoveObjectType.id == dto.eventTypeId) {
             evtObjectsDao.getRelatedObjects(id)
           } else {
-            evtPlacesAsObjDao.getRelatedObjects(id)
+            evtPlacesAsObjDao.getRelatedObjects(mid, id)
           }
         }.getOrElse {
           Future.successful(Seq.empty)
         }
       }
-      places <- evtPlacesDao.getRelatedPlaces(id)
+      places <- evtPlacesDao.getRelatedPlaces(mid, id)
     } yield {
       maybeBase.map {
         _.copy(
@@ -371,11 +376,12 @@ class EventDao @Inject() (
    * @return The Dto containing the event data.
    */
   def getEvent(
+    mid: MuseumId,
     id: Long,
     recursive: Boolean = true,
     eventTypeId: Option[EventTypeId] = None
   ): Future[MusitResult[Option[EventDto]]] = {
-    getBaseEvent(id, eventTypeId).flatMap { maybeDto =>
+    getBaseEvent(mid, id, eventTypeId).flatMap { maybeDto =>
       maybeDto.map { base =>
         logger.debug(s"Found base event $base. Going to fetch full event")
         getFullEvent(base, recursive)
@@ -393,15 +399,17 @@ class EventDao @Inject() (
    * @param eventTypeId
    */
   def latestByNodeId(
+    mid: MuseumId,
     id: StorageNodeId,
     eventTypeId: EventTypeId
   ): Future[MusitResult[Option[EventDto]]] = {
     for {
-      maybeErp <- evtPlacesAsObjDao.latestForNode(id, eventTypeId)
+      maybeErp <- evtPlacesAsObjDao.latestForNode(mid, id, eventTypeId)
       evt <- {
         logger.debug(s"Latest event relation for node $id is $maybeErp")
         maybeErp.map { erp =>
           getEvent(
+            mid,
             // We can use Option.get here because it must have a value.
             id = erp.eventId.get,
             eventTypeId = Some(eventTypeId)
@@ -531,11 +539,12 @@ class EventDao @Inject() (
    * eventId individually. This could be quite costly in the long run.
    */
   def getEventsForNode(
+    mid: MuseumId,
     nodeId: StorageNodeId,
     eventType: TopLevelEvent
   ): Future[Seq[EventDto]] = {
     // First fetch the eventIds from the place as object relation table.
-    val futureEventIds = evtPlacesAsObjDao.getEventsForNode(nodeId).map { objs =>
+    val futureEventIds = evtPlacesAsObjDao.getEventsForNode(mid, nodeId).map { objs =>
       logger.debug(s"Found ${objs.size} events for $nodeId")
       objs.map(_.eventId).filter(_.isDefined).map(_.get)
     }
@@ -544,6 +553,7 @@ class EventDao @Inject() (
       logger.debug(s"Going to look for events with eventIds ${ids.mkString(", ")}")
       Future.traverse(ids) { eventId =>
         getEvent(
+          mid,
           id = eventId,
           eventTypeId = Some(eventType.id)
         )

@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventRoleObject, EventRolePlace}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
@@ -52,7 +53,7 @@ class EventPlacesAsObjectsDao @Inject() (
     eventPlacesAsObjectsTable ++= relObjectsAsPlaces
   }
 
-  def getRelatedObjects(eventId: Long): Future[Seq[EventRoleObject]] = {
+  def getRelatedObjects(mid: MuseumId, eventId: Long): Future[Seq[EventRoleObject]] = {
     val query = eventPlacesAsObjectsTable.filter(_.eventId === eventId)
     db.run(query.result).map { places =>
       logger.debug(s"Found ${places.size} places")
@@ -62,7 +63,7 @@ class EventPlacesAsObjectsDao @Inject() (
     }
   }
 
-  def getEventsForNode(nodeId: StorageNodeId): Future[Seq[EventRoleObject]] = {
+  def getEventsForNode(mid: MuseumId, nodeId: StorageNodeId): Future[Seq[EventRoleObject]] = {
     val query = eventPlacesAsObjectsTable.filter(_.placeId === nodeId)
     db.run(query.result).map { places =>
       logger.debug(s"Found ${places.size} places")
@@ -72,7 +73,7 @@ class EventPlacesAsObjectsDao @Inject() (
     }
   }
 
-  def latestForNode(nodeId: StorageNodeId, eventTypeId: EventTypeId): Future[Option[EventRolePlace]] = {
+  def latestForNode(mid: MuseumId, nodeId: StorageNodeId, eventTypeId: EventTypeId): Future[Option[EventRolePlace]] = {
     val queryMax = eventPlacesAsObjectsTable.filter { erp =>
       erp.placeId === nodeId && erp.eventTypeId === eventTypeId
     }.map(_.eventId).max.result.flatMap {

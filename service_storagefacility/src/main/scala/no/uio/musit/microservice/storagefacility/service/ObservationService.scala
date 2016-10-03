@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.event.{EventId, ObjectRole}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
@@ -42,6 +43,7 @@ class ObservationService @Inject() (val eventDao: EventDao) {
    * TODO: Document me!
    */
   def add(
+    mid: MuseumId,
     nodeId: Long,
     obs: Observation
   )(implicit currUsr: String): Future[MusitResult[Observation]] = {
@@ -56,8 +58,8 @@ class ObservationService @Inject() (val eventDao: EventDao) {
       )
     )
     val dto = ObsConverters.observationToDto(o)
-    eventDao.insertEvent(dto).flatMap { eventId =>
-      eventDao.getEvent(eventId).map { res =>
+    eventDao.insertEvent(mid, dto).flatMap { eventId =>
+      eventDao.getEvent(mid, eventId).map { res =>
         res.flatMap(_.map { dto =>
           // We know we have a BaseEventDto representing an Observation.
           val bdto = dto.asInstanceOf[BaseEventDto]
@@ -76,8 +78,8 @@ class ObservationService @Inject() (val eventDao: EventDao) {
   /**
    * TODO: Document me!
    */
-  def findBy(id: EventId): Future[MusitResult[Option[Observation]]] = {
-    eventDao.getEvent(id.underlying).map { result =>
+  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Observation]]] = {
+    eventDao.getEvent(mid, id.underlying).map { result =>
       result.flatMap(_.map {
         case base: BaseEventDto =>
           MusitSuccess(
@@ -95,8 +97,8 @@ class ObservationService @Inject() (val eventDao: EventDao) {
   /**
    * TODO: Document me!
    */
-  def listFor(nodeId: StorageNodeId): Future[MusitResult[Seq[Observation]]] = {
-    eventDao.getEventsForNode(nodeId, ObservationEventType).map { dtos =>
+  def listFor(mid: MuseumId, nodeId: StorageNodeId): Future[MusitResult[Seq[Observation]]] = {
+    eventDao.getEventsForNode(mid, nodeId, ObservationEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>
         // We know we have a BaseEventDto representing an Observation.
         val base = dto.asInstanceOf[BaseEventDto]

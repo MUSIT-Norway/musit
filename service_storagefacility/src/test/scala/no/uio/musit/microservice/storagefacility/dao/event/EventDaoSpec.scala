@@ -47,17 +47,19 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
     "processing controls with sub-controls and observations" should {
       "succeed when inserting a Control" in {
+        val mid = 2
         val ctrl = createControl(defaultBuilding.id)
-        latestEventId = addControl(ctrl).futureValue
+        latestEventId = addControl(mid, ctrl).futureValue
 
         latestEventId mustBe a[java.lang.Long]
         latestEventId mustBe 1L
       }
 
       "return the Control associated with the provided Id" in {
+        val mid = 2
         val ctrl = createControl(defaultBuilding.id)
-        val ctrlId = addControl(ctrl).futureValue
-        val res = eventDao.getEvent(latestEventId).futureValue
+        val ctrlId = addControl(mid, ctrl).futureValue
+        val res = eventDao.getEvent(mid, latestEventId).futureValue
 
         res.isFailure must not be true
         res.get.isEmpty must not be true
@@ -83,8 +85,9 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
     "processing observations" should {
       "succeed when inserting an observation" in {
+        val mid = 2
         val obs = createObservation(defaultBuilding.id)
-        val eventId = addObservation(obs).futureValue
+        val eventId = addObservation(mid, obs).futureValue
 
         latestEventId = eventId
 
@@ -92,9 +95,10 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       }
 
       "return the Observation associated with the provided Id" in {
+        val mid = 2
         val obs = createObservation(defaultBuilding.id)
-        val obsId = addObservation(obs).futureValue
-        val res = eventDao.getEvent(latestEventId).futureValue
+        val obsId = addObservation(mid, obs).futureValue
+        val res = eventDao.getEvent(mid, latestEventId).futureValue
 
         res.isFailure must not be true
         res.get.isEmpty must not be true
@@ -120,8 +124,9 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       val envReq = createEnvRequirement(defaultBuilding.id)
 
       "succeed when inserting an Environment Requirement" in {
+        val mid = 2
         val erDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
-        val eventId = eventDao.insertEvent(erDto).futureValue
+        val eventId = eventDao.insertEvent(mid, erDto).futureValue
 
         latestEventId = eventId
 
@@ -129,7 +134,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       }
 
       "return the Environment Requirement event with the provided ID" in {
-        val res = eventDao.getEvent(latestEventId).futureValue
+        val mid = 2
+        val res = eventDao.getEvent(mid, latestEventId).futureValue
 
         res.isFailure must not be true
         res.get.isEmpty must not be true
@@ -158,13 +164,14 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
     "processing Move events" should {
 
       "succeed when moving an object" in {
+        val mid = 2
         val moveObj = MoveObject(
           baseEvent = createBase("This is a note on moving an object"),
           eventType = EventType.fromEventTypeId(MoveObjectType.id),
           to = PlaceRole(1, 1)
         )
         val dto = DtoConverters.MoveConverters.moveObjectToDto(moveObj)
-        val eventId = eventDao.insertEvent(dto).futureValue
+        val eventId = eventDao.insertEvent(mid, dto).futureValue
 
         latestEventId = eventId
 
@@ -172,7 +179,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       }
 
       "return the move object event" in {
-        val res = eventDao.getEvent(latestEventId, recursive = false).futureValue
+        val mid = 2
+        val res = eventDao.getEvent(mid, latestEventId, recursive = false).futureValue
         res.isFailure must not be true
         res.get.isEmpty must not be true
 
@@ -192,6 +200,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       }
 
       "succeed when moving a storage node" in {
+        val mid = 2
         val moveNode = MoveNode(
           baseEvent = createBase("This is a note on moving a Node"),
           eventType = EventType.fromEventTypeId(MoveNodeType.id),
@@ -199,7 +208,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         )
 
         val dto = DtoConverters.MoveConverters.moveNodeToDto(moveNode)
-        val eventId = eventDao.insertEvent(dto).futureValue
+        val eventId = eventDao.insertEvent(mid, dto).futureValue
 
         latestEventId = eventId
 
@@ -208,7 +217,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       }
 
       "return the move node event" in {
-        val res = eventDao.getEvent(latestEventId, recursive = false).futureValue
+        val mid = 2
+        val res = eventDao.getEvent(mid, latestEventId, recursive = false).futureValue
         res.isFailure must not be true
         res.get.isEmpty must not be true
 
@@ -231,15 +241,16 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
     "fetching events for a node" should {
       "return all control events" in {
+        val mid = 2
         val ctrl1 = createControl(defaultBuilding.id)
         val ctrl2 = createControl(defaultBuilding.id)
         val ctrl3 = createControl(defaultBuilding.id)
 
-        val ctrlId1 = addControl(ctrl1).futureValue
-        val ctrlId2 = addControl(ctrl2).futureValue
-        val ctrlId3 = addControl(ctrl3).futureValue
+        val ctrlId1 = addControl(mid, ctrl1).futureValue
+        val ctrlId2 = addControl(mid, ctrl2).futureValue
+        val ctrlId3 = addControl(mid, ctrl3).futureValue
 
-        val controls = eventDao.getEventsForNode(
+        val controls = eventDao.getEventsForNode(mid,
           defaultBuilding.id.get,
           ControlEventType
         ).futureValue
@@ -254,13 +265,14 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       }
 
       "return all observation events" in {
+        val mid = 2
         val obs1 = createObservation(defaultRoom.id)
         val obs2 = createObservation(defaultRoom.id)
 
-        val obsId1 = addObservation(obs1).futureValue
-        val obsId2 = addObservation(obs2).futureValue
+        val obsId1 = addObservation(mid, obs1).futureValue
+        val obsId2 = addObservation(mid, obs2).futureValue
 
-        val observations = eventDao.getEventsForNode(
+        val observations = eventDao.getEventsForNode(mid,
           defaultRoom.id.get,
           ObservationEventType
         ).futureValue
