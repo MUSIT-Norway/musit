@@ -1,9 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain
 
 import julienrf.json.derived
-import no.uio.musit.microservice.storageAdmin.domain.dto._
-import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 sealed trait Storage {
@@ -18,7 +15,6 @@ sealed trait Storage {
   val groupWrite: Option[String]
   //val latestMoveId: Option[Long]
   //  val latestEnvReqId: Option[Long]
-  val links: Option[Seq[Link]]
   val environmentRequirement: Option[EnvironmentRequirement]
 }
 
@@ -32,7 +28,6 @@ case class StorageUnit(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement]
 ) extends Storage
 
@@ -46,7 +41,6 @@ case class Room(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement],
   securityAssessment: SecurityAssessment,
   environmentAssessment: EnvironmentAssessment
@@ -63,7 +57,6 @@ case class Building(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement],
   address: Option[String]
 ) extends Storage
@@ -78,7 +71,6 @@ case class Organisation(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  links: Option[Seq[Link]],
   environmentRequirement: Option[EnvironmentRequirement],
   address: Option[String]
 ) extends Storage
@@ -104,9 +96,6 @@ object EnvironmentRequirement {
 object Storage {
 
   implicit lazy val format: OFormat[Storage] = derived.flat.oformat((__ \ "type").format[String])
-
-  def linkText(id: Option[Long]) =
-    Some(Seq(LinkService.self(s"/v1/${id.get}")))
 }
 
 /**

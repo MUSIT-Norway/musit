@@ -96,7 +96,7 @@ class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite
 
     "not update address with illegal json" in {
       val reqBody = Json.toJson(
-        OrganizationAddress(Some(2), Some(1), "TEST", "Foo street 3", "Bar place", "0001", "Norway", 0.0, 0.0, None)
+        OrganizationAddress(Some(2), Some(1), "TEST", "Foo street 3", "Bar place", "0001", "Norway", 0.0, 0.0)
       )
       val response = wsUrl("/v1/organization/1/address/2").put(reqBody).futureValue
       val status = Json.parse(response.body).validate[MusitStatusMessage].get

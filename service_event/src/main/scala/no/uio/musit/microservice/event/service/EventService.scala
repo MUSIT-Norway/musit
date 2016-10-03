@@ -43,6 +43,7 @@ object EventService {
   def getEvent(id: Long, recursive: Boolean): MusitFuture[Event] =
     EventDao.getEvent(id, recursive)
 
+  /*#OLD
   private def getEventIdsFor(eventType: EventType, relation: String, objectUri: String): MusitFuture[Seq[Long]] = {
     EventDao.getEventIds(eventType, relation, objectUri).toMusitFuture
   }
@@ -59,4 +60,5 @@ object EventService {
       objectUri => getEventsFor(eventType, relation, objectUri)
     }
   }
+  */
 }

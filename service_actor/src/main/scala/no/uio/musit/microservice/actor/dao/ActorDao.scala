@@ -22,7 +22,6 @@ import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.actor.domain.{ActorAuth, Organization, OrganizationAddress, Person}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
-import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.security.SecurityConnection
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
@@ -58,7 +57,7 @@ class ActorDao @Inject() (
   }
 
   def dataportenUserToPerson(securityConnection: SecurityConnection): Person = {
-    Person(None, securityConnection.userName, None, None, None, None, securityConnection.userEmail, Some(securityConnection.userId), None)
+    Person(None, securityConnection.userName, None, None, None, None, securityConnection.userEmail, Some(securityConnection.userId))
   }
 
   def insertActorWithDataportenUserInfo(securityConnection: SecurityConnection): MusitFuture[Person] = {
@@ -86,7 +85,7 @@ class ActorDao @Inject() (
 
   /* CREATES and UPDATES */
   def insertPersonLegacy(actor: Person): Future[Person] = {
-    val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}")))))
+    val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id))
     val action = insertQuery += actor
 
     db.run(action)
@@ -94,8 +93,7 @@ class ActorDao @Inject() (
 
   def insertOrganization(organization: Organization): Future[Organization] = {
     val insertQuery = OrganizationTable returning OrganizationTable.map(_.id) into ((organization, id) =>
-      organization.copy(id = id, links =
-        Some(Seq(LinkService.self(s"/v1/organization/${id.getOrElse("")}"), LinkService.local(None, "addresses", s"/v1/organization/${id.getOrElse("")}/address")))))
+      organization.copy(id = id))
     val action = insertQuery += organization
 
     db.run(action)
@@ -107,7 +105,7 @@ class ActorDao @Inject() (
 
   def insertOrganizationAddress(address: OrganizationAddress): Future[OrganizationAddress] = {
     val insertQuery = OrganizationAddressTable returning OrganizationAddressTable.map(_.id) into ((addr, id) =>
-      addr.copy(id = id, links = Some(Seq(LinkService.self(s"/v1/organization/${address.organizationId.getOrElse("")}/address/${id.getOrElse("")}")))))
+      addr.copy(id = id))
     val action = insertQuery += address
 
     db.run(action)
@@ -136,8 +134,7 @@ class ActorDao @Inject() (
       Person(
         id,
         fn,
-        dataportenId = dataportenId,
-        links = Some(Seq(LinkService.self(s"/v1/person/${id.getOrElse("")}")))
+        dataportenId = dataportenId
       )
     val destroy = (actor: Person) => Some(actor.id, actor.fn, actor.dataportenId)
 
@@ -152,13 +149,7 @@ class ActorDao @Inject() (
     val web = column[String]("WEB")
 
     val create = (id: Option[Long], fn: String, nickname: String, tel: String, web: String) =>
-      Organization(id, fn, nickname, tel, web,
-        Some(
-          Seq(
-            LinkService.self(s"/v1/organization/${id.getOrElse("")}"),
-            LinkService.local(None, "addresses", s"/v1/organization/${id.getOrElse("")}/address")
-          )
-        ))
+      Organization(id, fn, nickname, tel, web)
     val destroy = (org: Organization) => Some(org.id, org.fn, org.nickname, org.tel, org.web)
 
     def * = (id, fn, nickname, tel, web) <> (create.tupled, destroy)
@@ -178,7 +169,7 @@ class ActorDao @Inject() (
     val create = (id: Option[Long], organizationId: Option[Long], addressType: String, streetAddress: String, locality: String,
       postalCode: String, countryName: String, latitude: Double, longitude: Double) =>
       OrganizationAddress(id, organizationId, addressType, streetAddress, locality, postalCode, countryName,
-        latitude, longitude, Some(Seq(LinkService.self(s"/v1/organization/$organizationId/address/${id.getOrElse("")}"))))
+        latitude, longitude)
     val destroy = (addr: OrganizationAddress) =>
       Some(addr.id, addr.organizationId, addr.addressType, addr.streetAddress, addr.locality, addr.postalCode,
         addr.countryName, addr.latitude, addr.longitude)

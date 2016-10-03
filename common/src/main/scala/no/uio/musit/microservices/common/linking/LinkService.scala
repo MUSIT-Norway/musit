@@ -19,8 +19,8 @@
 package no.uio.musit.microservices.common.linking
 
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.linking.domain.Link
 
+/*
 object LinkService {
   val baseUrl = "http://localhost:7070"
 
@@ -46,3 +46,4 @@ object LinkService {
     }
   }
 }
+*/ 

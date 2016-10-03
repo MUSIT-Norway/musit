@@ -22,7 +22,7 @@ package no.uio.musit.microservices.common.linking.domain
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
-
+/*
 /* Domain classes */
 case class Link(id: Option[Long], localTableId: Option[Long], rel: String, href: String)
 
@@ -44,3 +44,4 @@ object Link {
     (JsPath \ "href").read[String](minLength[String](1))
   )(applyLink _)
 }
+*/ 

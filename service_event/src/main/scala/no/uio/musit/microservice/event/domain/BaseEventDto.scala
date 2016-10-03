@@ -24,7 +24,6 @@ import java.sql.{Date, Timestamp}
 
 import no.uio.musit.microservice.event.service.CustomFieldsHandler
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.linking.domain.Link
 import org.joda.time.{DateTimeZone, Instant}
 import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json._
@@ -53,7 +52,6 @@ object BaseEventDto {
 
       var jsObj = Json.obj(
         "id" -> baseEventDto.id,
-        "links" -> baseEventDto.links,
         "eventType" -> baseEventDto.eventType,
         "registeredBy" -> baseEventDto.registeredBy,
         "registeredDate" -> optTimeStampToIsoFormat(baseEventDto.registeredDate)
@@ -80,13 +78,6 @@ object BaseEventDto {
       baseEventDto.relatedPlaces.foreach { relatedPlace =>
         jsObj = jsObj + ("toPlace", JsNumber(relatedPlace.placeId))
         //TODO: Must handle all place roles!
-      }
-
-      baseEventDto.links match {
-        case Some(links) if (links.nonEmpty) =>
-          val linksAsJson = Json.toJson(links)
-          jsObj = jsObj + ("links", linksAsJson)
-        case _ => ()
       }
 
       CustomFieldsHandler.writeCustomFieldsToJsonIfAny(baseEventDto, jsObj)
@@ -123,7 +114,7 @@ case class LocalObject(objectId: Long, latestMoveId: Option[Long], currentLocati
 }
 
 //RegisteredBy and registeredDate are options even though they are required in the database, because they will be None in input-json
-case class BaseEventDto(id: Option[Long], links: Option[Seq[Link]], eventType: EventType, eventDate: Option[Date],
+case class BaseEventDto(id: Option[Long], eventType: EventType, eventDate: Option[Date],
     relatedActors: Seq[ActorWithRole], relatedObjects: Seq[ObjectWithRole], relatedPlaces: Seq[PlaceWithRole],
     note: Option[String],
     relatedSubEvents: Seq[RelatedEvents], partOf: Option[Long], valueLong: Option[Long],

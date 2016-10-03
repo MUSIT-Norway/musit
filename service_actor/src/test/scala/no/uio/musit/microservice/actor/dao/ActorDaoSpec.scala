@@ -21,7 +21,6 @@ package no.uio.musit.microservice.actor.dao
 
 import no.uio.musit.microservice.actor.domain.{Organization, OrganizationAddress, Person}
 import no.uio.musit.microservices.common.PlayTestDefaults
-import no.uio.musit.microservices.common.linking.LinkService
 import no.uio.musit.security.FakeSecurity
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
@@ -51,7 +50,7 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "return a Person if the Id is valid" in {
-        val expected = Person(Some(1), "And, Arne1", dataportenId = Some("12345678-adb2-4b49-bce3-320ddfe6c90f"), links = Some(Seq(LinkService.self("/v1/person/1"))))
+        val expected = Person(Some(1), "And, Arne1", dataportenId = Some("12345678-adb2-4b49-bce3-320ddfe6c90f"))
         val res = actorDao.getPersonLegacyById(1).futureValue
 
         res mustBe Some(expected)
@@ -77,7 +76,7 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "return a organization if the Id is valid" in {
-        val expected = Organization(Some(1), "Kulturhistorisk museum - Universitetet i Oslo", "KHM", "22 85 19 00", "www.khm.uio.no", None)
+        val expected = Organization(Some(1), "Kulturhistorisk museum - Universitetet i Oslo", "KHM", "22 85 19 00", "www.khm.uio.no")
         val res = actorDao.getOrganizationById(1).futureValue
         expected.id mustBe res.get.id
         expected.fn mustBe res.get.fn
@@ -100,19 +99,19 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     "modifying organization" should {
 
       "succeed when inserting organization" in {
-        val org = Organization(None, "Testmuseet i Bergen", "TM", "99887766", "www.tmib.no", None)
+        val org = Organization(None, "Testmuseet i Bergen", "TM", "99887766", "www.tmib.no")
         val res = actorDao.insertOrganization(org).futureValue
         res.fn mustBe "Testmuseet i Bergen"
         res.id mustBe Some(2)
       }
 
       "succeed when updating organization" in {
-        val org1 = Organization(None, "Museet i Foobar", "FB", "12344321", "www.foob.no", None)
+        val org1 = Organization(None, "Museet i Foobar", "FB", "12344321", "www.foob.no")
         val res1 = actorDao.insertOrganization(org1).futureValue
         res1.fn mustBe "Museet i Foobar"
         res1.id mustBe Some(3)
 
-        val orgUpd = Organization(Some(3), "Museet i Bar", "B", "99344321", "www.bar.no", None)
+        val orgUpd = Organization(Some(3), "Museet i Bar", "B", "99344321", "www.bar.no")
 
         val resInt = actorDao.updateOrganization(orgUpd).futureValue
         val res = actorDao.getOrganizationById(3).futureValue
@@ -123,7 +122,7 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "not update organization with invalid id" in {
-        val orgUpd = Organization(Some(999991), "Museet i Bar99", "B", "99344321", "www.bar.no", None)
+        val orgUpd = Organization(Some(999991), "Museet i Bar99", "B", "99344321", "www.bar.no")
         actorDao.updateOrganization(orgUpd).futureValue mustBe 0
       }
 
@@ -144,7 +143,7 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     "modifying organizationAddress" should {
 
       "succeed when inserting organizationAddress" in {
-        val orgAddr = OrganizationAddress(None, Some(2), "WORK", "Adressen", "Oslo", "0123", "Norway", 60.11, 11.60, None)
+        val orgAddr = OrganizationAddress(None, Some(2), "WORK", "Adressen", "Oslo", "0123", "Norway", 60.11, 11.60)
         val res = actorDao.insertOrganizationAddress(orgAddr).futureValue
         res.addressType mustBe "WORK"
         res.streetAddress mustBe "Adressen"
@@ -153,15 +152,15 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "succeed when updating organizationAddress" in {
-        val orgAddr1 = OrganizationAddress(None, Some(2), "WORK2", "Adressen2", "Bergen", "0122", "Norway2", 60.11, 11.60, None)
+        val orgAddr1 = OrganizationAddress(None, Some(2), "WORK2", "Adressen2", "Bergen", "0122", "Norway2", 60.11, 11.60)
         val res1 = actorDao.insertOrganizationAddress(orgAddr1).futureValue
         res1.addressType mustBe "WORK2"
         res1.streetAddress mustBe "Adressen2"
         res1.postalCode mustBe "0122"
         res1.id mustBe Some(3)
 
-        val orgUpd = Organization(Some(3), "Museet i Bar", "B", "99344321", "www.bar.no", None)
-        val orgAddrUpd = OrganizationAddress(Some(3), Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
+        val orgUpd = Organization(Some(3), "Museet i Bar", "B", "99344321", "www.bar.no")
+        val orgAddrUpd = OrganizationAddress(Some(3), Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60)
 
         val resInt = actorDao.updateOrganizationAddress(orgAddrUpd).futureValue
         resInt mustBe 1
@@ -178,17 +177,17 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "not update organization address with invalid id" in {
-        val orgAddrUpd = OrganizationAddress(Some(9999992), Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
+        val orgAddrUpd = OrganizationAddress(Some(9999992), Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60)
         actorDao.updateOrganizationAddress(orgAddrUpd).futureValue mustBe 0
       }
 
       "not update organization address with missing id" in {
-        val orgAddrUpd = OrganizationAddress(None, Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
+        val orgAddrUpd = OrganizationAddress(None, Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60)
         actorDao.updateOrganizationAddress(orgAddrUpd).futureValue mustBe 0
       }
 
       "not update organization address with invalid organization id" in {
-        val orgAddrUpd = OrganizationAddress(Some(3), Some(9999993), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60, None)
+        val orgAddrUpd = OrganizationAddress(Some(3), Some(9999993), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60)
         whenReady(actorDao.updateOrganizationAddress(orgAddrUpd).failed) { e =>
           e shouldBe a[org.h2.jdbc.JdbcSQLException]
           e.getMessage should startWith("Referential integrity")
@@ -238,8 +237,7 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     "dataporten integration" should {
       "return a Person if the dataportenId is valid" in {
         val uid = "a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f"
-        val newPerson = Person(Some(2), "Herr Larmerud", dataportenId = Some(uid),
-          links = Some(Seq(LinkService.self("/v1/person/2"))))
+        val newPerson = Person(Some(2), "Herr Larmerud", dataportenId = Some(uid))
 
         val personId = actorDao.insertPersonLegacy(newPerson).futureValue.id.get
 

@@ -3,7 +3,6 @@ package no.uio.musit.microservice.event.domain
 import java.sql.{Date, Timestamp}
 
 import no.uio.musit.microservice.event.service.{CustomFieldsSpec, CustomValuesInEventTable}
-import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 import slick.dbio.DBIO
 
@@ -20,7 +19,6 @@ class Event(val baseEventProps: BaseEventDto) {
   val relatedObjects = baseEventProps.relatedObjects
   val relatedPlaces = baseEventProps.relatedPlaces
   val note: Option[String] = baseEventProps.note
-  val links: Option[Seq[Link]] = baseEventProps.links
   val eventType = baseEventProps.eventType
 
   val relatedSubEvents = baseEventProps.relatedSubEvents

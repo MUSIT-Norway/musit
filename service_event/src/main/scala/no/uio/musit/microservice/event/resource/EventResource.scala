@@ -63,7 +63,7 @@ class EventResource extends Controller {
     val keyvalue = search.searchMap.get(keyname)
     keyvalue.toMusitResult(MusitError(message = s"Missing required key/fieldname: $keyname in search"))
   }
-
+  /*
   def getEvents(optSearch: Option[MusitSearch]) = Action.async { request =>
 
     val tempResult: MusitFuture[(EventType, String, Long)] = Future {
@@ -86,12 +86,7 @@ class EventResource extends Controller {
     }
     ResourceHelper.getRoot(futureEvents, eventsToJson)
   }
-
-  def getEventsFor(eventType: EventType, relation: String, id: Long) = {
-    EventService.getEventsFor(eventType, relation, id)
-
-  }
-
+*/
   def validateEventTypeIsMissingOrEqualTo(jsObject: JsObject, eventType: EventType): MusitResult[Boolean] = {
     val optEventTypeName = (jsObject \ "eventType").validateOpt[String]
     ResourceHelper.jsResultToMusitResult(optEventTypeName).flatMap {

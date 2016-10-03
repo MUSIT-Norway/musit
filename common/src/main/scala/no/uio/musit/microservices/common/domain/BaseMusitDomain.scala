@@ -19,12 +19,9 @@
 
 package no.uio.musit.microservices.common.domain
 
-import no.uio.musit.microservices.common.linking.domain.Link
-
 /**
  * Created by ellenjo on 4/8/16.
  */
 trait BaseMusitDomain {
   val id: Option[Long]
-  val links: Option[Seq[Link]]
 }

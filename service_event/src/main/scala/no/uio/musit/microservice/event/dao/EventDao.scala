@@ -27,9 +27,6 @@ import no.uio.musit.microservice.event.domain.{RelatedEvents, _}
 import no.uio.musit.microservice.event.service._
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.OptionExtensions._
-import no.uio.musit.microservices.common.linking.LinkService
-import no.uio.musit.microservices.common.linking.dao.LinkDao
-import no.uio.musit.microservices.common.linking.dao.LinkDao.LinkTable
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.security.SecurityConnection
 import org.joda.time.DateTime
@@ -48,17 +45,12 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
   private val EventBaseTable = TableQuery[EventBaseTable]
-  private val LinkTable = TableQuery[LinkTable]
 
   def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] =
     EventBaseTable returning EventBaseTable.map(_.id) += eventBaseDto
 
-  def selfLink(id: Long) =
-    LinkService.local(Some(id), "self", s"/v1/$id")
-
   /*Creates an action to insert the event and potentially all related subevents. PartialEventLink is used if the event is inserted as a subElement of a parent element. The id of the parent element is then in the partialEventLink.*/
   def insertEventAction(event: Event, partialEventLink: Option[PartialEventLink], recursive: Boolean, securityConnection: SecurityConnection): DBIO[Long] = {
-    def copyEventIdIntoLinks(eventBase: Event, newId: Long) = event.links.getOrElse(Seq.empty).map(l => l.copy(localTableId = Some(newId)))
 
     val parentId = partialEventLink.map(_.idFrom)
     //parentId.map(pid => println(s"parentID: $pid for event type: ${event.eventType.name}"))
@@ -74,8 +66,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     val insertBaseAndLinksAction = (for {
       newEventId <- insertBaseAction(event.baseEventProps.copy(partOf = partOfParent, registeredBy = Some(_registeredBy), registeredDate = Some(_registeredDate)))
-      _ <- LinkDao.insertLinksAction(copyEventIdIntoLinks(event, newEventId))
-      _ <- LinkDao.insertLinkAction(selfLink(newEventId))
     } yield newEventId).transactionally
 
     var action = event.eventType.maybeMultipleTables.fold(insertBaseAndLinksAction) {
@@ -168,9 +158,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     val action = EventBaseTable.filter(event => event.id === id).result.headOption
     val futOptBaseEvent = db.run(action)
 
-    //get the generic links
-    val futureLinks = LinkDao.findByLocalTableId(id)
-
     //get the related actors
     val futRelatedActors = EventActorsDao.getRelatedActors(id)
 
@@ -179,12 +166,11 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     for {
       optBaseEvent <- futOptBaseEvent
-      links <- futureLinks
       relatedActors <- futRelatedActors
       relatedObjects <- getRelatedObjects(optBaseEvent.get.eventType, id)
       relatedPlaces <- futRelatedPlaces
 
-    } yield (optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors, relatedObjects = relatedObjects, relatedPlaces = relatedPlaces, links = Some(links))))
+    } yield (optBaseEvent.map(baseEvent => baseEvent.copy(relatedActors = relatedActors, relatedObjects = relatedObjects, relatedPlaces = relatedPlaces)))
   }
 
   private def createEventInMemory(baseEventDto: BaseEventDto, relatedSubEvents: Seq[RelatedEvents]): MusitFuture[Event] = {
@@ -285,6 +271,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
     }
   }
 
+  /*#OLD
   /** Gets the id of the events having a specific eventType and having a specific relation to a specific "external" object (in the generic links table) */
   def getEventIds(eventType: EventType, relation: String, objectUri: String): Future[Seq[Long]] = {
     val eventsWithCorrectType = EventBaseTable.filter(evt => evt.eventTypeID === eventType)
@@ -298,6 +285,7 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
 
     db.run(query.result)
   }
+  */
 
   implicit lazy val libraryItemMapper = MappedColumnType.base[EventType, Int](
     eventType => eventType.id,
@@ -334,7 +322,6 @@ object EventDao extends HasDatabaseConfig[JdbcProfile] {
       registeredDate: Option[Timestamp]) =>
       BaseEventDto(
         id,
-        Some(Seq(selfLink(id.getOrFail("EventBaseTable internal error")))),
         eventType,
         eventDate,
         Seq.empty,
