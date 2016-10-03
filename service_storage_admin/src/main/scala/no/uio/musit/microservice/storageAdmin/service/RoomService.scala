@@ -6,6 +6,7 @@ import no.uio.musit.microservice.storageAdmin.domain.dto.{StorageDtoConverter, S
 import no.uio.musit.microservice.storageAdmin.domain.{Room, Storage}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class RoomService @Inject() (
     roomDao: RoomDao,

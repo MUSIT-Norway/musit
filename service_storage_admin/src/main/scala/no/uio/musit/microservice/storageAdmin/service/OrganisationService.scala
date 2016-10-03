@@ -6,6 +6,7 @@ import no.uio.musit.microservice.storageAdmin.domain.dto.StorageNodeDTO
 import no.uio.musit.microservice.storageAdmin.domain.{Organisation, Storage}
 import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.utils.ServiceHelper
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class OrganisationService @Inject() (organisationDao: OrganisationDao) {
   def create(storageOrganisation: Organisation): MusitFuture[Storage] =

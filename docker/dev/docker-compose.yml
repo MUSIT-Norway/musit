@@ -77,23 +77,6 @@ services:
         links:
           - db
 
-    event:
-        image: musit_service_event:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
-        ports:
-          - "7074:7070"
-        environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
-
     storagefacility:
         image: musit_service_storagefacility:0.1-SNAPSHOT
         environment:

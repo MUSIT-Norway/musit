@@ -28,13 +28,6 @@
     "protocol": "http://"
   },
   {
-    "name": "event",
-    "scalaName": "EventResource",
-    "host": "localhost",
-    "port": "7074",
-    "protocol": "http://"
-  },
-  {
     "name": "storagefacility",
     "scalaName": "Facility",
     "host": "localhost",

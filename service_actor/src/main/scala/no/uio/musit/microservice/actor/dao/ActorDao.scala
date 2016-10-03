@@ -25,6 +25,7 @@ import no.uio.musit.microservices.common.extensions.EitherExtensions._
 import no.uio.musit.security.SecurityConnection
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 

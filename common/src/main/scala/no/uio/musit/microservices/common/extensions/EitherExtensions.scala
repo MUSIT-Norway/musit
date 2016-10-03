@@ -24,6 +24,7 @@ import no.uio.musit.microservices.common.domain.MusitError
 import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, MusitResult}
 import play.api.http.Status
 
+import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
 // TODO: Move to another file (create MusitResult.scala), this is really MusitResult methods, not general Either methods. 
@@ -43,7 +44,7 @@ object EitherExtensions {
       }
     }
 
-    def toMusitFuture = MusitFuture.fromMusitResult(either)
+    def toMusitFuture(implicit ec: ExecutionContext) = MusitFuture.fromMusitResult(either)
 
   }
 
