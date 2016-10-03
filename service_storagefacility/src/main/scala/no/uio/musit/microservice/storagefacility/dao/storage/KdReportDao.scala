@@ -15,9 +15,9 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
   def getReportTotalArea: Future[MusitResult[Double]] = {
     db.run(
       sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node
-        WHERE storage_type = 'Room'
+        SELECT SUM("AREA_TO")
+        FROM "MUSARK_STORAGE"."STORAGE_NODE"
+        WHERE "STORAGE_TYPE" = 'Room'
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving objects", Some(e))
@@ -27,10 +27,10 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
   def getAreaPerimeterSecurity: Future[MusitResult[Double]] = {
     db.run(
       sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
-        AND r.perimeter_security = 1
+        SELECT SUM("AREA_TO")
+        FROM "MUSARK_STORAGE"."STORAGE_NODE", "MUSARK_STORAGE"."ROOM"
+        WHERE "STORAGE_NODE"."STORAGE_NODE_ID" = "ROOM"."STORAGE_NODE_ID"
+        AND "ROOM"."PERIMETER_SECURITY" = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving areaPerimeterSecurity", Some(e))
@@ -40,10 +40,10 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
   def getAreaTheftProtection: Future[MusitResult[Double]] = {
     db.run(
       sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
-        AND r.theft_protection = 1
+        SELECT SUM("AREA_TO")
+        FROM "MUSARK_STORAGE"."STORAGE_NODE", "MUSARK_STORAGE"."ROOM"
+        WHERE "STORAGE_NODE"."STORAGE_NODE_ID" = "ROOM"."STORAGE_NODE_ID"
+        AND "ROOM"."THEFT_PROTECTION" = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving AreaTheftProtection", Some(e))
@@ -53,10 +53,10 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
   def getAreaFireProtectiony: Future[MusitResult[Double]] = {
     db.run(
       sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
-        AND r.fire_protection = 1
+        SELECT SUM("AREA_TO")
+        FROM "MUSARK_STORAGE"."STORAGE_NODE", "MUSARK_STORAGE"."ROOM"
+        WHERE "STORAGE_NODE"."STORAGE_NODE_ID" = "ROOOM"."STORAGE_NODE_ID"
+        AND "ROOM"."FIRE_PROTECTION" = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving AreaFireProtection", Some(e))
@@ -66,10 +66,10 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
   def getAreaWaterDamageAssessment: Future[MusitResult[Double]] = {
     db.run(
       sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
-        AND r.water_damage_assessment = 1
+        SELECT SUM("AREA_TO")
+        FROM "MUSARK_STORAGE"."STORAGE_NODE", "MUSARK_STORAGE"."ROOM"
+        WHERE "STORAGE_NODE"."STORAGE_NODE_ID" = "ROOM"."STORAGE_NODE_ID"
+        AND "ROOM"."WATER_DAMAGE_ASSESSMENT" = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving areaWaterDamageAssessment", Some(e))
@@ -79,10 +79,10 @@ class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) exten
   def getAreaRoutinesAndContingencyPlan: Future[MusitResult[Double]] = {
     db.run(
       sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE  s.storage_node_id = r.storage_node_id
-        AND r.routines_and_contingency_plan = 1
+        SELECT SUM("AREA_TO")
+        FROM "MUSARK_STORAGE"."STORAGE_NODE", "MUSARK_STORAGE"."ROOM"
+        WHERE "STORAGE_NODE"."STORAGE_NODE_ID" = "ROOM"."STORAGE_NODE_ID"
+        AND "ROOM"."ROUTINES_AND_CONTINGENCY_PLAN" = 1
       """.as[Double].head.map(MusitSuccess.apply)
     ).recover {
         case e: Exception => MusitDbError("Error occurred while retrieving AreaRoutinesAndContingencyPlan", Some(e))
