@@ -20,9 +20,9 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.{NodePath, NamedPathElement}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -107,7 +107,7 @@ class StorageUnitDao @Inject() (
         root.storageType === rootNodeType
     }.result.headOption
 
-    db.run(query).map(_.map(n => Root(id = n.id, path = Option(n.path))))
+    db.run(query).map(_.map(n => Root(id = n.id, path = n.path)))
   }
 
   /**
@@ -160,7 +160,7 @@ class StorageUnitDao @Inject() (
   /**
    * Set the path for the Root with the given StorageNodeId.
    *
-   * @param id StorageNodeId of the Root node.
+   * @param id   StorageNodeId of the Root node.
    * @param path NodePath to set
    * @return An Option containing the updated Root node.
    */
@@ -179,7 +179,7 @@ class StorageUnitDao @Inject() (
   /**
    * Updates the path for all nodes that starts with the "oldPath".
    *
-   * @param id the StorageNodeId to update
+   * @param id   the StorageNodeId to update
    * @param path the NodePath to set
    * @return MusitResult[Unit]
    */
@@ -197,7 +197,7 @@ class StorageUnitDao @Inject() (
   /**
    * Updates all paths for the subtree of the given StorageNodeId
    *
-   * @param id StorageNodeId
+   * @param id      StorageNodeId
    * @param oldPath NodePath representing the old path
    * @param newPath NodePath representing the new path
    * @return The number of paths updated.

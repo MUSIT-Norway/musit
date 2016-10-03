@@ -9,7 +9,7 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
- * Created by ellenjo on 26.09.16.
+ * TODO: Document me!!!
  */
 class KdReportService @Inject() (val kdReportDao: KdReportDao) {
   def getReport: Future[MusitResult[KdReport]] = {

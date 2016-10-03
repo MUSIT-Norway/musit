@@ -39,12 +39,12 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         val ins = storageUnitDao.insertRoot(Root()).futureValue
         ins.id.isEmpty must not be true
         ins.storageType mustBe StorageType.RootType
-        ins.path mustBe Some(NodePath.empty)
+        ins.path mustBe NodePath.empty
       }
     }
 
     "succeed when inserting a new storage unit" in {
-      val path = Some(NodePath(",1,2,3,4,"))
+      val path = NodePath(",1,2,3,4,")
       val inserted = storageUnitDao.insert(createStorageUnit(path = path)).futureValue
       inserted.id must not be None
       inserted.path mustBe path
@@ -108,20 +108,20 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val path1 = NodePath(",1,8,")
       val su1 = createStorageUnit(
         partOf = Some(StorageNodeId(1)),
-        path = Some(path1)
+        path = path1
       ).copy(name = "node1")
       val ins1 = storageUnitDao.insert(su1).futureValue
       ins1.id mustBe Some(StorageNodeId(8))
-      ins1.path mustBe Some(path1)
+      ins1.path mustBe path1
 
       val path2 = path1.appendChild(StorageNodeId(9))
       val su2 = createStorageUnit(
         partOf = ins1.id,
-        path = Some(path2)
+        path = path2
       ).copy(name = "node2")
       val ins2 = storageUnitDao.insert(su2).futureValue
       ins2.id mustBe Some(StorageNodeId(9))
-      ins2.path mustBe Some(path2)
+      ins2.path mustBe path2
 
       val res = storageUnitDao.namesForPath(path2).futureValue
       res must not be empty

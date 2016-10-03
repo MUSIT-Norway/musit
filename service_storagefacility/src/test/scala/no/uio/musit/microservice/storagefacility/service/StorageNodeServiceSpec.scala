@@ -179,7 +179,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       service.getNodeById(id.get).futureValue.map { n =>
         n must not be None
         n.get.path must not be None
-        n.get.path.get.path must startWith(building2.path.get.path)
+        n.get.path.path must startWith(building2.path.path)
       }
     }
 

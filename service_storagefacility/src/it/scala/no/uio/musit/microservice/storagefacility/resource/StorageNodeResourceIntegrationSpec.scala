@@ -62,7 +62,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             root.id.isEmpty must not be true
             root.id.get mustBe StorageNodeId(i.toLong)
             root.storageType mustBe StorageType.RootType
-            root.path mustBe Some(NodePath(s",$i,"))
+            root.path mustBe NodePath(s",$i,")
             addedNodes += root
           }
           addedNodes.result()
@@ -80,8 +80,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, OrganisationType, "My Org1", 5, Some(1)
         )
         organisation mustBe an[Organisation]
-        organisation.path must not be None
-        organisation.path.get mustBe NodePath(",1,5,")
+        organisation.path mustBe NodePath(",1,5,")
       }
 
       "successfully create a building node" in {
@@ -93,8 +92,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, BuildingType, "My Building1", 6, Some(5)
         )
         building mustBe a[Building]
-        building.path must not be None
-        building.path.get mustBe NodePath(",1,5,6,")
+        building.path mustBe NodePath(",1,5,6,")
       }
 
       "successfully create a room node" in {
@@ -106,8 +104,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, RoomType, "My Room1", 7, Some(6)
         )
         room mustBe a[Room]
-        room.path must not be None
-        room.path.get mustBe NodePath(",1,5,6,7,")
+        room.path mustBe NodePath(",1,5,6,7,")
       }
 
       "successfully create a storage unit node" in {
@@ -119,8 +116,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, StorageUnitType, "My Shelf1", 8, Some(7)
         )
         su mustBe a[StorageUnit]
-        su.path must not be None
-        su.path.get mustBe NodePath(",1,5,6,7,8,")
+        su.path mustBe NodePath(",1,5,6,7,8,")
       }
 
       "not allow creating a storage node with a name over 500 chars" in {
@@ -194,8 +190,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, StorageUnitType, "My Shelf2", 9, Some(7)
         )
         su mustBe a[StorageUnit]
-        su.path must not be None
-        su.path.get mustBe NodePath(",1,5,6,7,9,")
+        su.path mustBe NodePath(",1,5,6,7,9,")
         su.areaTo mustBe Some(.5)
         su.heightTo mustBe Some(.6)
 
@@ -214,8 +209,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[StorageUnit]
-        updated.path must not be None
-        updated.path.get mustBe NodePath(",1,5,6,7,9,")
+        updated.path mustBe NodePath(",1,5,6,7,9,")
         updated.areaTo mustBe Some(.8)
         updated.heightTo mustBe Some(.8)
       }
@@ -228,8 +222,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, RoomType, "My Room2", 10, Some(6)
         )
         room mustBe a[Room]
-        room.path must not be None
-        room.path.get mustBe NodePath(",1,5,6,10,")
+        room.path mustBe NodePath(",1,5,6,10,")
         room.areaTo mustBe Some(21.0)
         room.heightTo mustBe Some(2.6)
 
@@ -247,8 +240,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[Room]
-        updated.path must not be None
-        updated.path.get mustBe NodePath(",1,5,6,10,")
+        updated.path mustBe NodePath(",1,5,6,10,")
         updated.environmentAssessment.lightingCondition mustBe Some(true)
       }
 
@@ -260,8 +252,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, BuildingType, "My Building2", 11, Some(5)
         )
         building mustBe a[Building]
-        building.path must not be None
-        building.path.get mustBe NodePath(",1,5,11,")
+        building.path mustBe NodePath(",1,5,11,")
         building.areaTo mustBe Some(210.0)
         building.heightTo mustBe Some(3.5)
 
@@ -279,8 +270,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[Building]
-        updated.path must not be None
-        updated.path.get mustBe NodePath(",1,5,11,")
+        updated.path mustBe NodePath(",1,5,11,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
         updated.environmentRequirement.isEmpty must not be true
         updated.environmentRequirement.get.cleaning mustBe Some("Filthy")
@@ -294,8 +284,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, OrganisationType, "My Organisation2", 12, Some(1)
         )
         organisation mustBe an[Organisation]
-        organisation.path must not be None
-        organisation.path.get mustBe NodePath(",1,12,")
+        organisation.path mustBe NodePath(",1,12,")
         organisation.areaTo mustBe Some(2100)
         organisation.heightTo mustBe Some(3.5)
 
@@ -312,8 +301,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe an[Organisation]
-        updated.path must not be None
-        updated.path.get mustBe NodePath(",1,12,")
+        updated.path mustBe NodePath(",1,12,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
       }
 
@@ -380,8 +368,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         created mustBe a[StorageUnit]
-        created.path must not be None
-        created.path.get mustBe NodePath(",1,5,6,7,14,")
+        created.path mustBe NodePath(",1,5,6,7,14,")
 
         val moveMeId = created.id.get.underlying
 
@@ -403,8 +390,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           movedNodeRes, StorageUnitType, "Move me", moveMeId, Some(9)
         )
         moved mustBe a[StorageUnit]
-        moved.path must not be None
-        moved.path.get mustBe NodePath(",1,5,6,7,9,14,")
+        moved.path mustBe NodePath(",1,5,6,7,9,14,")
 
       }
 
@@ -449,12 +435,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           movedRes3, StorageUnitType, "Move me3", id3, Some(9)
         )
 
-        n1.path must not be None
-        n2.path must not be None
-        n3.path must not be None
-        n1.path.get mustBe NodePath(s",1,5,6,7,9,$id1,")
-        n2.path.get mustBe NodePath(s",1,5,6,7,9,$id2,")
-        n3.path.get mustBe NodePath(s",1,5,6,7,9,$id3,")
+        n1.path mustBe NodePath(s",1,5,6,7,9,$id1,")
+        n2.path mustBe NodePath(s",1,5,6,7,9,$id2,")
+        n3.path mustBe NodePath(s",1,5,6,7,9,$id3,")
 
       }
 

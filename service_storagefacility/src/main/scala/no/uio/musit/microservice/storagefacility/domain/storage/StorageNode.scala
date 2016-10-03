@@ -19,16 +19,15 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
-import julienrf.json.derived
 import no.uio.musit.microservice.storagefacility.domain.NodePath
+import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
+import play.api.libs.json.Writes._
 import play.api.libs.json._
 
 /**
  * Represents the base attributes of a StorageNode in the system.
- *
- * TODO: Path should be required on read. But not necessary upon creation
  *
  * TODO: Should the environmentRequirement attribute be defined as required?
  * We have logic that tries to determine if a new EnvRequirement event
@@ -44,164 +43,66 @@ sealed trait StorageNode {
   val heightTo: Option[Double]
   val groupRead: Option[String]
   val groupWrite: Option[String]
-  val path: Option[NodePath]
+  val path: NodePath
   // TODO: Need to provide a readable path, might possibly be part of NodePath?
   // val readablePath: Option[String]
   val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
 }
 
-/**
- * A Root node is at the top of the storage node hierarchy. Each museum should
- * have _at least_ one root node.
- */
-case class Root(
-    id: Option[StorageNodeId] = None,
-    name: String = "root-node",
-    environmentRequirement: Option[EnvironmentRequirement] = None,
-    path: Option[NodePath] = Some(NodePath.empty)
-) extends StorageNode {
-  val area: Option[Double] = None
-  val areaTo: Option[Double] = None
-  val isPartOf: Option[StorageNodeId] = None
-  val height: Option[Double] = None
-  val heightTo: Option[Double] = None
-  val groupRead: Option[String] = None
-  val groupWrite: Option[String] = None
-  val storageType: StorageType = StorageType.RootType
-}
+object StorageNode {
 
-//object Root extends StorageNodeFieldFormatters {
-//  val reads: Reads[Root] =
-//    (idRead and constrainedNameRead and envReqRead and pathRead)(Root.apply _)
-//}
+  private val tpe = "type"
 
-/**
- * A StorageUnit is the smallest type of storage node. It typically represents
- * a shelf, box, etc...
- */
-case class StorageUnit(
-    id: Option[StorageNodeId],
-    name: String,
-    area: Option[Double],
-    areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
-    height: Option[Double],
-    heightTo: Option[Double],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    path: Option[NodePath],
-    environmentRequirement: Option[EnvironmentRequirement]
-) extends StorageNode {
-  val storageType: StorageType = StorageType.StorageUnitType
-}
+  implicit val reads: Reads[StorageNode] = Reads { jsv =>
+    (jsv \ tpe).as[String] match {
+      case StorageType.RootType.entryName =>
+        Root.formats.reads(jsv)
 
-/**
- * Represents a Room.
- */
-case class Room(
-    id: Option[StorageNodeId],
-    name: String,
-    area: Option[Double],
-    areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
-    height: Option[Double],
-    heightTo: Option[Double],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    path: Option[NodePath],
-    environmentRequirement: Option[EnvironmentRequirement],
-    securityAssessment: SecurityAssessment,
-    environmentAssessment: EnvironmentAssessment
-) extends StorageNode {
-  val storageType: StorageType = StorageType.RoomType
-}
+      case StorageType.OrganisationType.entryName =>
+        Organisation.formats.reads(jsv)
 
-/**
- * Represents a Building.
- */
-case class Building(
-    id: Option[StorageNodeId],
-    name: String,
-    area: Option[Double],
-    areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
-    height: Option[Double],
-    heightTo: Option[Double],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    path: Option[NodePath],
-    environmentRequirement: Option[EnvironmentRequirement],
-    address: Option[String]
-) extends StorageNode {
-  val storageType: StorageType = StorageType.BuildingType
-}
+      case StorageType.BuildingType.entryName =>
+        Building.formats.reads(jsv)
 
-/**
- * Represents an Organisation. Both internal and external.
- */
-case class Organisation(
-    id: Option[StorageNodeId],
-    name: String,
-    area: Option[Double],
-    areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
-    height: Option[Double],
-    heightTo: Option[Double],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    path: Option[NodePath],
-    environmentRequirement: Option[EnvironmentRequirement],
-    address: Option[String]
-) extends StorageNode {
-  val storageType: StorageType = StorageType.OrganisationType
-}
+      case StorageType.RoomType.entryName =>
+        Room.formats.reads(jsv)
 
-trait StorageNodeFieldFormatters {
+      case StorageType.StorageUnitType.entryName =>
+        StorageUnit.formats.reads(jsv)
 
-  protected val idRead: Reads[Option[StorageNodeId]] =
-    (__ \ "id").readNullable[StorageNodeId]
-
-  protected val constrainedNameRead: Reads[String] =
-    (__ \ "name").read[String](maxLength[String](500))
-
-  protected val envReqRead: Reads[Option[EnvironmentRequirement]] =
-    (__ \ "environmentRequirement").readNullable[EnvironmentRequirement]
-
-  protected val pathRead: Reads[Option[NodePath]] =
-    (__ \ "path").readNullable[NodePath].map(_.orElse(Some(NodePath.empty)))
-
-  protected val constrainedAddressRead: Reads[Option[String]] =
-    (__ \ "address").readNullable[String](maxLength[String](500))
-
-}
-
-object StorageNode extends StorageNodeFieldFormatters {
-
-  /*
-    ============================================================================
-    ¡¡¡¡¡IMPORTANT!!!!!:
-    ============================================================================
-    There's a significant caveat with using the derived JSON codec. And it is
-    that refactoring the name of _any_ of the types in the ADT will change the
-    API of any services that use them. In other words; it is a non-backwards
-    compatible change. Because the _value_ of the "type" attribute needs to be
-    constant for each type.
-
-    FIXME: The derived codecs JSON formatters have horrible error messages.
-    We should probably change the formatters to use plain reads/writes with
-    manual disambiguation as shown here:
-    http://scalytica.net/#posts/2015-03-29/playframework-reads-writes-of-parent-child-class-structure
-    ============================================================================
-  */
-
-  implicit lazy val reads: Reads[StorageNode] = {
-    constrainedNameRead andKeep constrainedAddressRead andKeep
-      derived.flat.reads[StorageNode]((__ \ "type").read[String])
+      case err =>
+        JsError(ValidationError("Invalid type for storage node", err))
+    }
   }
 
-  implicit lazy val writes: OWrites[StorageNode] =
-    derived.flat.owrites[StorageNode]((__ \ "type").write[String])
+  implicit val writes: Writes[StorageNode] = Writes {
+    case root: Root =>
+      Root.formats.writes(root).as[JsObject] ++
+        Json.obj(tpe -> root.storageType.entryName)
+
+    case org: Organisation =>
+      Organisation.formats.writes(org).as[JsObject] ++
+        Json.obj(tpe -> org.storageType.entryName)
+
+    case bld: Building =>
+      Building.formats.writes(bld).as[JsObject] ++
+        Json.obj(tpe -> bld.storageType.entryName)
+
+    case room: Room =>
+      Room.formats.writes(room).as[JsObject] ++
+        Json.obj(tpe -> room.storageType.entryName)
+
+    case unit: StorageUnit =>
+      StorageUnit.formats.writes(unit).as[JsObject] ++
+        Json.obj(tpe -> unit.storageType.entryName)
+
+    case other: GenericStorageNode =>
+      GenericStorageNode.formats.writes(other).as[JsObject] ++
+        Json.obj(tpe -> other.storageType.entryName)
+
+  }
+
 }
 
 /**
@@ -217,13 +118,14 @@ case class GenericStorageNode(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  path: Option[NodePath],
+  path: NodePath,
   environmentRequirement: Option[EnvironmentRequirement],
   storageType: StorageType
 ) extends StorageNode
 
 object GenericStorageNode {
-  implicit val format: Format[GenericStorageNode] = (
+
+  val formats: Format[GenericStorageNode] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxLength[String](500)) and
     (__ \ "area").formatNullable[Double] and
@@ -233,8 +135,197 @@ object GenericStorageNode {
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath] and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "type").format[StorageType]
   )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
+
+}
+
+/**
+ * A Root node is at the top of the storage node hierarchy. Each museum should
+ * have _at least_ one root node.
+ */
+case class Root(
+    id: Option[StorageNodeId] = None,
+    name: String = "root-node",
+    environmentRequirement: Option[EnvironmentRequirement] = None,
+    path: NodePath = NodePath.empty
+) extends StorageNode {
+  val area: Option[Double] = None
+  val areaTo: Option[Double] = None
+  val isPartOf: Option[StorageNodeId] = None
+  val height: Option[Double] = None
+  val heightTo: Option[Double] = None
+  val groupRead: Option[String] = None
+  val groupWrite: Option[String] = None
+  val storageType: StorageType = StorageType.RootType
+}
+
+object Root {
+
+  val formats: Format[Root] = (
+    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String](maxLength[String](500)) and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply)
+  )(Root.apply, unlift(Root.unapply))
+
+}
+
+/**
+ * A StorageUnit is the smallest type of storage node. It typically represents
+ * a shelf, box, etc...
+ */
+case class StorageUnit(
+    id: Option[StorageNodeId],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    isPartOf: Option[StorageNodeId],
+    height: Option[Double],
+    heightTo: Option[Double],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    path: NodePath,
+    environmentRequirement: Option[EnvironmentRequirement]
+) extends StorageNode {
+  val storageType: StorageType = StorageType.StorageUnitType
+}
+
+object StorageUnit {
+
+  val formats: Format[StorageUnit] = (
+    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String](maxLength[String](500)) and
+    (__ \ "area").formatNullable[Double] and
+    (__ \ "areaTo").formatNullable[Double] and
+    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "height").formatNullable[Double] and
+    (__ \ "heightTo").formatNullable[Double] and
+    (__ \ "groupRead").formatNullable[String] and
+    (__ \ "groupWrite").formatNullable[String] and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement]
+  )(StorageUnit.apply, unlift(StorageUnit.unapply))
+
+}
+
+/**
+ * Represents a Room.
+ */
+case class Room(
+    id: Option[StorageNodeId],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    isPartOf: Option[StorageNodeId],
+    height: Option[Double],
+    heightTo: Option[Double],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    path: NodePath,
+    environmentRequirement: Option[EnvironmentRequirement],
+    securityAssessment: SecurityAssessment,
+    environmentAssessment: EnvironmentAssessment
+) extends StorageNode {
+  val storageType: StorageType = StorageType.RoomType
+}
+
+object Room {
+
+  val formats: Format[Room] = (
+    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String](maxLength[String](500)) and
+    (__ \ "area").formatNullable[Double] and
+    (__ \ "areaTo").formatNullable[Double] and
+    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "height").formatNullable[Double] and
+    (__ \ "heightTo").formatNullable[Double] and
+    (__ \ "groupRead").formatNullable[String] and
+    (__ \ "groupWrite").formatNullable[String] and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "securityAssessment").format[SecurityAssessment] and
+    (__ \ "environmentAssessment").format[EnvironmentAssessment]
+  )(Room.apply, unlift(Room.unapply))
+
+}
+
+/**
+ * Represents a Building.
+ */
+case class Building(
+    id: Option[StorageNodeId],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    isPartOf: Option[StorageNodeId],
+    height: Option[Double],
+    heightTo: Option[Double],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    path: NodePath,
+    environmentRequirement: Option[EnvironmentRequirement],
+    address: Option[String]
+) extends StorageNode {
+  val storageType: StorageType = StorageType.BuildingType
+}
+
+object Building {
+
+  val formats: Format[Building] = (
+    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String](maxLength[String](500)) and
+    (__ \ "area").formatNullable[Double] and
+    (__ \ "areaTo").formatNullable[Double] and
+    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "height").formatNullable[Double] and
+    (__ \ "heightTo").formatNullable[Double] and
+    (__ \ "groupRead").formatNullable[String] and
+    (__ \ "groupWrite").formatNullable[String] and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "address").formatNullable[String](Format(maxLength[String](500), StringWrites))
+  )(Building.apply, unlift(Building.unapply))
+
+}
+
+/**
+ * Represents an Organisation. Both internal and external.
+ */
+case class Organisation(
+    id: Option[StorageNodeId],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    isPartOf: Option[StorageNodeId],
+    height: Option[Double],
+    heightTo: Option[Double],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    path: NodePath,
+    environmentRequirement: Option[EnvironmentRequirement],
+    address: Option[String]
+) extends StorageNode {
+  val storageType: StorageType = StorageType.OrganisationType
+}
+
+object Organisation {
+
+  val formats: Format[Organisation] = (
+    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String](maxLength[String](500)) and
+    (__ \ "area").formatNullable[Double] and
+    (__ \ "areaTo").formatNullable[Double] and
+    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "height").formatNullable[Double] and
+    (__ \ "heightTo").formatNullable[Double] and
+    (__ \ "groupRead").formatNullable[String] and
+    (__ \ "groupWrite").formatNullable[String] and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "address").formatNullable[String](Format(maxLength[String](500), StringWrites))
+  )(Organisation.apply, unlift(Organisation.unapply))
+
 }

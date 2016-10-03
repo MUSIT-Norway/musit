@@ -121,7 +121,7 @@ trait NodeTypeInitializers {
   def createBuilding(
     name: String = "FooBarBuilding",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): Building = {
     Building(
       id = None,
@@ -142,7 +142,7 @@ trait NodeTypeInitializers {
   def createRoom(
     name: String = "FooRoom",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): Room = {
     Room(
       id = None,
@@ -175,7 +175,7 @@ trait NodeTypeInitializers {
   def createStorageUnit(
     name: String = "FooUnit",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): StorageUnit = {
     StorageUnit(
       id = None,
