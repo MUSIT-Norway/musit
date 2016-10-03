@@ -149,7 +149,6 @@ lazy val serviceStoragefacility = (
   PlayProject("service_storagefacility")
   settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
   settings(libraryDependencies ++= enumeratumDependencies)
-  settings(libraryDependencies += playJsDerivedCodecs)
   settings(routesGenerator := InjectedRoutesGenerator)
   settings(scoverageSettings: _*)
   settings(baseDockerSettings ++ Seq(
