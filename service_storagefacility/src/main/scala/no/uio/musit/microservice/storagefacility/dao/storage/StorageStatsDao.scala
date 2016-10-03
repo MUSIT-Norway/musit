@@ -53,9 +53,9 @@ class StorageStatsDao @Inject() (
     db.run(
       sql"""
         select count(*)
-        from "MUSARK_STORAGE"."STORAGE_NODE" n, "MUSARK_STORAGE"."LOCAL_OBJECT" o
-        where n."NODE_PATH" like ${nodeFilter}
-        and o."CURRENT_LOCATION_ID" = n."STORAGE_NODE_ID"
+        from musark_storage.storage_node n, musark_storage.local_object o
+        where n.node_path like ${nodeFilter}
+        and o.current_location_id = n.storage_node_id
       """.as[Int].head
     )
   }
@@ -72,8 +72,8 @@ class StorageStatsDao @Inject() (
     db.run(
       sql"""
         select count(*)
-        from "MUSARK_STORAGE"."LOCAL_OBJECT" o
-        where o."CURRENT_LOCATION_ID" = ${nodeId.underlying}
+        from musark_storage.local_object o
+        where o.current_location_id = ${nodeId.underlying}
       """.as[Int].head
     )
   }
