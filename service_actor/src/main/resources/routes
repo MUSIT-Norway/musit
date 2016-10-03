@@ -7,12 +7,12 @@
 GET     /v1/dataporten/currentUser             no.uio.musit.microservice.actor.resource.UserResource.getCurrentUserAsActor
 
 ## Mapping routes, TODO: Remove these endpoints when database is migrated.
-eGET     /v1/person                                 no.uio.musit.microservice.actor.resource.LegacyPersonResource.list(mid: Int, search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
+GET     /v1/person                                 no.uio.musit.microservice.actor.resource.LegacyPersonResource.list(museumId: Int, search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
 POST    /v1/person/details                         no.uio.musit.microservice.actor.resource.LegacyPersonResource.getPersonDetails
 GET     /v1/person/:id                             no.uio.musit.microservice.actor.resource.LegacyPersonResource.getById(id:Long)
 
 ## Organization routes, the new actor
-GET     /v1/organization                           no.uio.musit.microservice.actor.resource.OrganizationResource.listRoot(search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
+GET     /v1/organization                           no.uio.musit.microservice.actor.resource.OrganizationResource.listRoot(museumId: Int, search: Option[no.uio.musit.microservices.common.domain.MusitSearch])
 POST    /v1/organization                           no.uio.musit.microservice.actor.resource.OrganizationResource.postRoot
 PUT     /v1/organization/:orgId                    no.uio.musit.microservice.actor.resource.OrganizationResource.updateRoot(orgId:Long)
 GET     /v1/organization/:orgId                    no.uio.musit.microservice.actor.resource.OrganizationResource.getRoot(orgId:Long)
