@@ -55,7 +55,6 @@ lazy val root = project in file(".") settings noPublish aggregate(
   serviceThingAggregate,
   serviceActor,
   serviceGeoLocation,
-  serviceStorageAdmin,
   serviceEvent,
   serviceStoragefacility
 )
@@ -144,20 +143,6 @@ lazy val serviceGeoLocation = (
     settings(baseDockerSettings ++ Seq(
     packageName in Docker := "musit_service_geo_location"
   ))
-  )  dependsOn(common, commonTest % "it,test")
-
-@deprecated("Use service_storagefacility.")
-lazy val serviceStorageAdmin = (
-  PlayProject("service_storage_admin")
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(libraryDependencies ++= enumeratumDependencies)
-    settings(libraryDependencies += playJsDerivedCodecs)
-
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(baseDockerSettings ++ Seq(
-      packageName in Docker := "musit_service_storage_admin"
-    ))
   )  dependsOn(common, commonTest % "it,test")
 
 lazy val serviceStoragefacility = (
