@@ -17,30 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservices.common.linking.domain
+package no.uio.musit.microservice.storagefacility.domain
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import play.api.libs.json.Reads._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import play.api.libs.json.{Format, Json}
 
-/* Domain classes */
-case class Link(id: Option[Long], localTableId: Option[Long], rel: String, href: String)
+/**
+ * A NodePath contains a comma separated String of StorageNodeId (or Long)
+ * values, each of these ID's can be represented as a NamedPathElement.
+ *
+ * @param nodeId StorageNodeId of the named path element
+ * @param name String containing the name value of the StorageNode.
+ */
+case class NamedPathElement(nodeId: StorageNodeId, name: String)
 
-/* Helper singletons */
-object Link {
-  def tupled = (Link.apply _).tupled
+object NamedPathElement {
 
-  implicit val linkWrites = new Writes[Link] {
-    override def writes(link: Link): JsValue = Json.obj(
-      "rel" -> link.rel,
-      "href" -> link.href
-    )
-  }
+  implicit val formats: Format[NamedPathElement] = Json.format[NamedPathElement]
 
-  def applyLink(rel: String, href: String): Link = Link(None, None, rel, href)
-
-  implicit val linkReads: Reads[Link] = (
-    (JsPath \ "rel").read[String](minLength[String](1)) and
-    (JsPath \ "href").read[String](minLength[String](1))
-  )(applyLink _)
 }

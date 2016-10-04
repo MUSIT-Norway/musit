@@ -54,15 +54,36 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   // Some default nodes
   lazy val defaultBuilding: Building = {
-    Await.result(buildingDao.insert(createBuilding()), 5 seconds)
+    Await.result({
+      for {
+        nodeId <- buildingDao.insert(createBuilding())
+        nodeRes <- buildingDao.getById(nodeId)
+      } yield {
+        nodeRes.get
+      }
+    }, 5 seconds)
   }
 
   lazy val defaultRoom: Room = {
-    Await.result(roomDao.insert(createRoom()), 5 seconds)
+    Await.result({
+      for {
+        nodeId <- roomDao.insert(createRoom())
+        nodeRes <- roomDao.getById(nodeId)
+      } yield {
+        nodeRes.get
+      }
+    }, 5 seconds)
   }
 
   lazy val defaultStorageUnit: StorageUnit = {
-    Await.result(storageUnitDao.insert(createStorageUnit()), 5 seconds)
+    Await.result({
+      for {
+        nodeId <- storageUnitDao.insert(createStorageUnit())
+        nodeRes <- storageUnitDao.getById(nodeId)
+      } yield {
+        nodeRes.get // It _has_ to be present...if this fails all else fails
+      }
+    }, 5 seconds)
   }
 
   def addRoot(r: Root) = storageUnitDao.insertRoot(r)
@@ -88,8 +109,6 @@ trait NodeGenerators extends NodeTypeInitializers {
             s"${notCorrect.getClass} is not supported"
           )
       }
-    }.map { inserted =>
-      inserted.map(_.id.get)
     }
     Await.result(eventuallyInserted, 10 seconds)
   }
@@ -121,7 +140,7 @@ trait NodeTypeInitializers {
   def createBuilding(
     name: String = "FooBarBuilding",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): Building = {
     Building(
       id = None,
@@ -142,7 +161,7 @@ trait NodeTypeInitializers {
   def createRoom(
     name: String = "FooRoom",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): Room = {
     Room(
       id = None,
@@ -175,7 +194,7 @@ trait NodeTypeInitializers {
   def createStorageUnit(
     name: String = "FooUnit",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): StorageUnit = {
     StorageUnit(
       id = None,

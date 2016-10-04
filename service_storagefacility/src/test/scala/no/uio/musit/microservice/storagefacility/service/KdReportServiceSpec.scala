@@ -17,22 +17,15 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
   "successfully get a report on storageNode Room" in {
     val room = createRoomWithDifferentArea(1, perimeter = true, theftProtection = true, fireProtection = true)
-    val inserted = service.addRoom(room)("dummyUser").futureValue
+    val c = createRoomWithDifferentArea(7.5, perimeter = true, routinesAndContingencyPlan = true)
+    val c1 = createRoomWithDifferentArea(50.3, theftProtection = true, waterDamage = true, routinesAndContingencyPlan = true)
+    service.addRoom(room)("dummyUser").futureValue
+    service.addRoom(c)("dummyUser").futureValue
+    service.addRoom(c1)("dummyUser").futureValue
 
-    inserted.id must not be None
     val report = reportService.getReport.futureValue
     report.isSuccess mustBe true
     val reportRes = report.get
-    val c = createRoomWithDifferentArea(7.5, perimeter = true, routinesAndContingencyPlan = true)
-    service.addRoom(c)("dummyUser").futureValue
-    val report1 = reportService.getReport.futureValue
-    report1.isSuccess mustBe true
-    val report1Res = report1.get
-    val c1 = createRoomWithDifferentArea(50.3, theftProtection = true, waterDamage = true, routinesAndContingencyPlan = true)
-    service.addRoom(c1)("dummyUser").futureValue
-    val report2 = reportService.getReport.futureValue
-    report2.isSuccess mustBe true
-    val report2Res = report2.get
 
     val reportfasit = KdReport(
       totalArea = 58.8,
@@ -42,6 +35,6 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       waterDamageAssessment = 50.3,
       routinesAndContingencyPlan = 57.8
     )
-    report2Res mustBe reportfasit
+    reportRes mustBe reportfasit
   }
 }

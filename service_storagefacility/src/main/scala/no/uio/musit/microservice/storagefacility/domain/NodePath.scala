@@ -38,14 +38,33 @@ trait NodePath {
    * current path matches NodePath.empty, the function will return the same
    * result back.
    */
-  def parent: NodePath
+  def parent: NodePath = {
+    if (NodePath.empty.path == path) NodePath.empty
+    else {
+      val stripped = path.stripSuffix(",")
+      NodePath(stripped.substring(0, stripped.lastIndexOf(",") + 1))
+    }
+  }
 
   /**
    * Appends a child element to the NodePath
    *
    * @param childId StorageNodeId of to append to the path.
    */
-  def appendChild(childId: StorageNodeId): NodePath
+  def appendChild(childId: StorageNodeId): NodePath = {
+    NodePath(s"$path${childId.underlying},")
+  }
+
+  /**
+   * Converts the path to a collection of StorageNodeIds
+   * @return Seq[StorageNodeId]
+   */
+  def asIdSeq: Seq[StorageNodeId] = {
+    path.stripPrefix(",")
+      .stripSuffix(",")
+      .split(",")
+      .map(s => StorageNodeId(s.toLong))
+  }
 }
 
 object NodePath {
@@ -59,19 +78,7 @@ object NodePath {
    *
    * @param path String with the format that represents a path
    */
-  private case class NodePathImpl(path: String) extends NodePath {
-
-    override def parent: NodePath = {
-      if (NodePath.empty.path == path) NodePath.empty
-      else {
-        val stripped = path.stripSuffix(",")
-        NodePath(stripped.substring(0, stripped.lastIndexOf(",") + 1))
-      }
-    }
-
-    override def appendChild(childId: StorageNodeId): NodePath =
-      NodePath(s"$path${childId.underlying},")
-  }
+  private case class NodePathImpl(path: String) extends NodePath
 
   // scalastyle:off
   /**

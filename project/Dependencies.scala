@@ -77,8 +77,6 @@ object Dependencies {
     )
   }
 
-  val playJsDerivedCodecs = "org.julienrf" %% "play-json-derived-codecs" % "3.3"
-
   // packager for RPM and Docker
   val dockerClient = "com.spotify" % "docker-client" % "3.2.1"
 
