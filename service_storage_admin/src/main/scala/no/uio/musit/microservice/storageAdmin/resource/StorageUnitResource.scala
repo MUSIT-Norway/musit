@@ -24,7 +24,6 @@ import no.uio.musit.microservice.storageAdmin.domain._
 import no.uio.musit.microservice.storageAdmin.domain.dto.StorageDtoConverter
 import no.uio.musit.microservice.storageAdmin.service.{BuildingService, OrganisationService, RoomService, StorageUnitService}
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.linking.domain.Link
 import no.uio.musit.microservices.common.utils.{Misc, ResourceHelper}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -43,16 +42,6 @@ class StorageUnitResource @Inject() (
   def postRoot: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val musitResultTriple = ResourceHelper.jsResultToMusitResult(request.body.validate[Storage])
     ResourceHelper.postRootWithMusitResult(storageUnitService.createStorageTriple, musitResultTriple, (triple: Storage) => Json.toJson(triple))
-  }
-
-  def validateChildren = Action.async(BodyParsers.parse.json) { request =>
-    request.body.validate[Seq[Link]].asEither match {
-      case Right(list) if list.nonEmpty =>
-        // FIXME For the actual implementation see MUSARK-120
-        Future.successful(Ok(Json.toJson(list.forall(!_.href.isEmpty))))
-      case Left(error) =>
-        Future.successful(BadRequest(error.mkString))
-    }
   }
 
   def getChildren(id: Long) = Action.async {

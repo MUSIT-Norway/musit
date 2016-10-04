@@ -1,7 +1,6 @@
 package no.uio.musit.microservice.storageAdmin.domain.dto
 
 import no.uio.musit.microservice.storageAdmin.domain.NodePath
-import no.uio.musit.microservices.common.linking.domain.Link
 
 /* We have three types of storage nodes:
 
@@ -53,7 +52,6 @@ case class StorageNodeDTO(
   groupWrite: Option[String],
   latestMoveId: Option[Long],
   latestEnvReqId: Option[Long],
-  links: Option[Seq[Link]],
   isDeleted: Boolean,
   storageType: StorageType
 ) extends StorageDTO

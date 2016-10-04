@@ -44,7 +44,6 @@ trait StorageDtoConverter {
       groupWrite = storage.groupWrite,
       latestMoveId = None, //TODO?StorageNodeCommonProperties
       latestEnvReqId = None, //TODO?
-      links = storage.links,
       isDeleted = false, //Todo: Is this correct, can we assume this?
       storageType = StorageType.fromStorage(storage)
     )
@@ -113,7 +112,6 @@ trait StorageDtoConverter {
       groupWrite = nodePart.groupWrite,
       //      latestMoveId = nodePart.latestMoveId,
       //      latestEnvReqId = nodePart.latestEnvReqId,
-      links = nodePart.links,
       environmentRequirement = fromEnvReqDto(room.envReqDto),
       securityAssessment = secAssessment,
       environmentAssessment = envAssessment
@@ -135,7 +133,6 @@ trait StorageDtoConverter {
       groupWrite = nodePart.groupWrite,
       //      latestMoveId = nodePart.latestMoveId,
       //      latestEnvReqId = nodePart.latestEnvReqId,
-      links = nodePart.links,
       environmentRequirement = fromEnvReqDto(building.envReqDto),
       address = buildingPart.address
     )
@@ -156,7 +153,6 @@ trait StorageDtoConverter {
       groupWrite = nodePart.groupWrite,
       //      latestMoveId = nodePart.latestMoveId,
       //      latestEnvReqId = nodePart.latestEnvReqId,
-      links = nodePart.links,
       environmentRequirement = fromEnvReqDto(organisation.envReqDto),
       address = organisationPart.address
     )
@@ -176,7 +172,6 @@ trait StorageDtoConverter {
       groupWrite = nodePart.groupWrite,
       //      latestMoveId = nodePart.latestMoveId,
       //      latestEnvReqId = nodePart.latestEnvReqId,
-      links = nodePart.links,
       environmentRequirement = fromEnvReqDto(completeStorageUnit.envReqDto)
     )
   }

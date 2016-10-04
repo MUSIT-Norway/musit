@@ -133,7 +133,7 @@ class StorageUnitDao @Inject() (
   def insertAction(storageNodePart: StorageNodeDTO): DBIO[StorageNodeDTO] = {
     StorageNodeTable returning StorageNodeTable.map(_.id) into
       ((storageNode, id) =>
-        storageNode.copy(id = Some(id), links = Storage.linkText(Some(id)))) +=
+        storageNode.copy(id = Some(id))) +=
       storageNodePart
   }
 
@@ -272,7 +272,6 @@ class StorageUnitDao @Inject() (
         groupWrite = groupWrite,
         latestMoveId = latestMoveId,
         latestEnvReqId = latestEnvReqId,
-        links = Storage.linkText(id),
         isDeleted = isDeleted,
         storageType = storageType
       )
