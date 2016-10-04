@@ -104,26 +104,30 @@ lazy val security = (
     settings noPublish
     settings(libraryDependencies ++= testablePlayDependencies)
     settings(scoverageSettings: _*)
-  )  dependsOn(common, commonTest % "it,test")
+  ) dependsOn(common, commonTest % "it,test")
 
 lazy val serviceCore = (
   PlayProject("service_core")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
-    settings(baseDockerSettings ++ Seq(
-    packageName in Docker := "musit_service_core"
-  ))
-  ) dependsOn(common, security, commonTest % "it,test")
+    settings(
+      baseDockerSettings ++ Seq(
+        packageName in Docker := "musit_service_core"
+      )
+    )
+  ) dependsOn(common, security, musitTest % "it,test")
 
 lazy val serviceThingAggregate = (
   PlayProject("service_thing_aggregate")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
-    settings(baseDockerSettings ++ Seq(
-      packageName in Docker := "musit_service_thing_aggregate"
-    ))
+    settings(
+      baseDockerSettings ++ Seq(
+        packageName in Docker := "musit_service_thing_aggregate"
+      )
+    )
   ) dependsOn(musitService, musitTest % "it,test")
 
 lazy val serviceActor = (
@@ -132,25 +136,29 @@ lazy val serviceActor = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(packageName in Docker := "musit_service_actor"))
-  )  dependsOn(common, security, commonTest % "it,test")
+  ) dependsOn(common, security, commonTest % "it,test")
 
 lazy val serviceGeoLocation = (
   PlayProject("service_geo_location")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
-    settings(baseDockerSettings ++ Seq(
-    packageName in Docker := "musit_service_geo_location"
-  ))
-  )  dependsOn(common, commonTest % "it,test")
+    settings(
+      baseDockerSettings ++ Seq(
+        packageName in Docker := "musit_service_geo_location"
+      )
+    )
+  ) dependsOn(musitService, musitTest % "it,test")
 
 lazy val serviceStoragefacility = (
   PlayProject("service_storagefacility")
-  settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-  settings(libraryDependencies ++= enumeratumDependencies)
-  settings(routesGenerator := InjectedRoutesGenerator)
-  settings(scoverageSettings: _*)
-  settings(baseDockerSettings ++ Seq(
-    packageName in Docker := "musit_service_storagefacility"
-  ))
-) dependsOn(musitService, musitTest % "it,test")
+    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(libraryDependencies ++= enumeratumDependencies)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings(scoverageSettings: _*)
+    settings(
+      baseDockerSettings ++ Seq(
+        packageName in Docker := "musit_service_storagefacility"
+      )
+    )
+  ) dependsOn(musitService, musitTest % "it,test")
