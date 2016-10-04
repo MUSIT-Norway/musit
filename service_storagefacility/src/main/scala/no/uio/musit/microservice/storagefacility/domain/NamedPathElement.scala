@@ -16,23 +16,23 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package no.uio.musit.microservice.geoLocation.resource
 
-import com.google.inject.Inject
-import no.uio.musit.microservice.geoLocation.service.GeoLocationService
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json._
-import play.api.mvc._
+package no.uio.musit.microservice.storagefacility.domain
 
-class GeoLocationResource_V1 @Inject() (
-    geoLocService: GeoLocationService
-) extends Controller {
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import play.api.libs.json.{Format, Json}
 
-  def searchExternal(search: Option[String]) = Action.async { request =>
-    val expression = search.getOrElse("")
-    geoLocService.searchGeoNorway(expression).map { location =>
-      Ok(Json.toJson(location))
-    }
-  }
+/**
+ * A NodePath contains a comma separated String of StorageNodeId (or Long)
+ * values, each of these ID's can be represented as a NamedPathElement.
+ *
+ * @param nodeId StorageNodeId of the named path element
+ * @param name String containing the name value of the StorageNode.
+ */
+case class NamedPathElement(nodeId: StorageNodeId, name: String)
+
+object NamedPathElement {
+
+  implicit val formats: Format[NamedPathElement] = Json.format[NamedPathElement]
+
 }
-
