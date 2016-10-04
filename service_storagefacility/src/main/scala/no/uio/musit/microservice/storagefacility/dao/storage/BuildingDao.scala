@@ -20,7 +20,6 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
@@ -43,8 +42,6 @@ class BuildingDao @Inject() (
   import driver.api._
 
   val logger = Logger(classOf[BuildingDao])
-
-  private val buildingTable = TableQuery[BuildingTable]
 
   private def updateAction(id: StorageNodeId, building: BuildingDto): DBIO[Int] = {
     buildingTable.filter(_.id === id).update(building)
@@ -131,25 +128,6 @@ class BuildingDao @Inject() (
     }
 
     db.run(query.transactionally)
-  }
-
-  private class BuildingTable(
-      val tag: Tag
-  ) extends Table[BuildingDto](tag, SchemaName, "BUILDING") {
-
-    def * = (id.?, address) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey)
-    val address = column[Option[String]]("POSTAL_ADDRESS")
-
-    def create = (id: Option[StorageNodeId], address: Option[String]) =>
-      BuildingDto(
-        id = id,
-        address = address
-      )
-
-    def destroy(building: BuildingDto) =
-      Some((building.id, building.address))
   }
 
 }

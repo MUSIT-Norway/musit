@@ -20,11 +20,10 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.dto._
 import no.uio.musit.microservice.storagefacility.domain.storage.{Room, StorageNodeId}
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -39,8 +38,6 @@ class RoomDao @Inject() (
   import driver.api._
 
   val logger = Logger(classOf[RoomDao])
-
-  private val roomTable = TableQuery[RoomTable]
 
   private def updateAction(id: StorageNodeId, room: RoomDto): DBIO[Int] = {
     roomTable.filter(_.id === id).update(room)
@@ -88,7 +85,8 @@ class RoomDao @Inject() (
 
   /**
    * Set the path for the given StoragNodeId
-   * @param id the StorageNodeId to update
+   *
+   * @param id   the StorageNodeId to update
    * @param path the NodePath to set
    * @return MusitResult[Unit]
    */
@@ -117,76 +115,6 @@ class RoomDao @Inject() (
     }).transactionally
 
     db.run(action)
-  }
-
-  private class RoomTable(
-      val tag: Tag
-  ) extends Table[RoomDto](tag, SchemaName, "ROOM") {
-    // scalastyle:off method.name
-    def * = (
-      id,
-      perimeterSecurity,
-      theftProtection,
-      fireProtection,
-      waterDamage,
-      routinesAndContingency,
-      relativeHumidity,
-      temperatureAssessment,
-      lighting,
-      preventiveConservation
-    ) <> (create.tupled, destroy)
-
-    // scalastyle:on method.name
-
-    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
-    val perimeterSecurity = column[Option[Boolean]]("PERIMETER_SECURITY")
-    val theftProtection = column[Option[Boolean]]("THEFT_PROTECTION")
-    val fireProtection = column[Option[Boolean]]("FIRE_PROTECTION")
-    val waterDamage = column[Option[Boolean]]("WATER_DAMAGE_ASSESSMENT")
-    val routinesAndContingency = column[Option[Boolean]]("ROUTINES_AND_CONTINGENCY_PLAN")
-    val relativeHumidity = column[Option[Boolean]]("RELATIVE_HUMIDITY")
-    val temperatureAssessment = column[Option[Boolean]]("TEMPERATURE_ASSESSMENT")
-    val lighting = column[Option[Boolean]]("LIGHTING_CONDITION")
-    val preventiveConservation = column[Option[Boolean]]("PREVENTIVE_CONSERVATION")
-
-    def create = (
-      id: Option[StorageNodeId],
-      perimeterSecurity: Option[Boolean],
-      theftProtection: Option[Boolean],
-      fireProtection: Option[Boolean],
-      waterDamage: Option[Boolean],
-      routinesAndContingency: Option[Boolean],
-      relativeHumidity: Option[Boolean],
-      temperature: Option[Boolean],
-      lighting: Option[Boolean],
-      preventiveConservation: Option[Boolean]
-    ) =>
-      RoomDto(
-        id = id,
-        perimeterSecurity = perimeterSecurity,
-        theftProtection = theftProtection,
-        fireProtection = fireProtection,
-        waterDamageAssessment = waterDamage,
-        routinesAndContingencyPlan = routinesAndContingency,
-        relativeHumidity = relativeHumidity,
-        temperatureAssessment = temperature,
-        lightingCondition = lighting,
-        preventiveConservation = preventiveConservation
-      )
-
-    def destroy(room: RoomDto) =
-      Some((
-        room.id,
-        room.perimeterSecurity,
-        room.theftProtection,
-        room.fireProtection,
-        room.waterDamageAssessment,
-        room.routinesAndContingencyPlan,
-        room.relativeHumidity,
-        room.temperatureAssessment,
-        room.lightingCondition,
-        room.preventiveConservation
-      ))
   }
 
 }
