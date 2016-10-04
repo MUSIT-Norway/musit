@@ -71,19 +71,6 @@ services:
         environment:
           - APPLICATION_SECRET
 
-    event:
-        image: musit_service_event:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
-
     storagefacility:
         image: musit_service_storagefacility:0.1-SNAPSHOT
         environment:

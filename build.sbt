@@ -55,7 +55,6 @@ lazy val root = project in file(".") settings noPublish aggregate(
   serviceThingAggregate,
   serviceActor,
   serviceGeoLocation,
-  serviceEvent,
   serviceStoragefacility
 )
 
@@ -155,14 +154,3 @@ lazy val serviceStoragefacility = (
     packageName in Docker := "musit_service_storagefacility"
   ))
 ) dependsOn(musitService, musitTest % "it,test")
-
-@deprecated("Use service_storagefacility.")
-lazy val serviceEvent = (
-  PlayProject("service_event")
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(baseDockerSettings ++ Seq(
-    packageName in Docker := "musit_service_event"
-  ))
-  )  dependsOn(common, security, commonTest % "it,test")

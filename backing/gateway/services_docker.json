@@ -18,12 +18,6 @@
     "protocol": "http://"
   },
   {
-    "name": "event",
-    "host": "event",
-    "port": "7070",
-    "protocol": "http://"
-  },
-  {
     "name": "storagefacility",
     "host": "storagefacility",
     "port": "7070",
