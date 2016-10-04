@@ -288,7 +288,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   }
   "Not update a storage unit and fetch as StorageNode with same data than before" in {
     val mid =  MuseumId(5)
-    val su = createStorageUnit()
+    /*val su = createStorageUnit()
     val inserted = service.addStorageUnit(mid, su).futureValue
     inserted.id must not be None
 
@@ -307,10 +307,65 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
     val again = service.getNodeById(mid, inserted.id.get).futureValue
     again.isSuccess mustBe true
-    again.get must not be None
+    again.get must not be None*/
     //again.get.get.name mustBe "UggaBugga"
     //again.get.get.areaTo mustBe Some(4.0)
   }
+  "UnSuccessfully update a building with new environment requirements and wrong MuseumID" in {
+    val mid = 5
+    val building = createBuilding()
+    val inserted = service.addBuilding(mid, building).futureValue
+    inserted.id must not be None
+    inserted.environmentRequirement must not be None
+    inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
+    inserted.address.get must include ("Foo")
+
+    val someEnvReq = Some(initEnvironmentRequirement(
+      hypoxic = Some(Interval[Double](44.4, Some(55)))
+    ))
+    val ub = building.copy(environmentRequirement = someEnvReq, address = Some("BortIStaurOgVeggAddress"))
+    val wrongMid = 4
+    val res = service.updateBuilding(wrongMid, inserted.id.get, ub).futureValue
+    res.isSuccess mustBe true
+    res.get mustBe None
+
+    val oldDataRes = service.getBuildingById(mid,inserted.id.get).futureValue
+    oldDataRes.get.get.address.get must include ("Foo")
+  }
+  "UnSuccessfully update a room with wrong or not existing MuseumID" in {
+    val mid = 5
+    val room = createRoom()
+    val inserted = service.addRoom(mid, room).futureValue
+    inserted.id must not be None
+    inserted.environmentAssessment.lightingCondition.get mustBe true
+    inserted.securityAssessment.waterDamage.get mustBe false
+    val secAss = inserted.securityAssessment.copy(waterDamage = Some(true))
+    val uptRoom = room.copy(securityAssessment = secAss)
+    val wrongMid = 4
+    val res = service.updateRoom(wrongMid, inserted.id.get, uptRoom).futureValue
+    res.isSuccess mustBe true
+    res.get mustBe None
+
+    val oldDataRes = service.getRoomById(mid,inserted.id.get).futureValue
+    oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
+  }
+  /*"successfully create a new room node with environment requirements" in {
+    // Setup new room data, without the partOf relation, which is not
+    // interesting in this particular test.
+    val mid = 5
+    val room = createRoom()
+    val inserted = service.addRoom(mid, room).futureValue
+    inserted.id must not be None
+    inserted.environmentRequirement must not be None
+    inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
+
+    val res = service.getRoomById(mid, inserted.id.get).futureValue
+    res.isSuccess mustBe true
+    res.get must not be None
+    res.get.get.id must not be None
+    res.get.get.environmentRequirement must not be None
+    res.get.get.environmentRequirement.get mustBe defaultEnvironmentRequirement
+  }*/
 
 
   // TODO: MORE TESTING!!!!!

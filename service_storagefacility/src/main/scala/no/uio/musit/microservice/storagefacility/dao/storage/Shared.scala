@@ -51,6 +51,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     id: StorageNodeId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
+        sn.museumId === mid &&
         sn.id === id &&
         sn.isDeleted === false &&
         sn.storageType =!= rootNodeType
@@ -58,9 +59,11 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   }
 
   protected[storage] def getAllByIdAction(
+    mid: MuseumId,
     id: StorageNodeId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
+      sn.museumId === mid &&
       sn.id === id && sn.isDeleted === false
     }.result.headOption
   }
@@ -123,10 +126,12 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    * TODO: Document me!!!
    */
   protected[storage] def updateNodeAction(
+    mid: MuseumId,
     id: StorageNodeId,
     storageUnit: StorageUnitDto
   ): DBIO[Int] = {
     storageNodeTable.filter { sn =>
+      sn.museumId === mid &&
       sn.id === id &&
         sn.isDeleted === false &&
         sn.storageType === storageUnit.storageType

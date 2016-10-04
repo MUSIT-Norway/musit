@@ -79,8 +79,8 @@ class BuildingDao @Inject() (
   def update(mid: MuseumId, id: StorageNodeId, building: Building): Future[Option[Building]] = {
     val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
     val action = for {
-      unitsUpdated <- updateNodeAction(id, extendedBuildingDto.storageUnitDto)
-      buildingsUpdated <- updateAction(id, extendedBuildingDto.extension)
+      unitsUpdated <- updateNodeAction(mid, id, extendedBuildingDto.storageUnitDto)
+      buildingsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedBuildingDto.extension) else DBIO.successful[Int](0)
     } yield buildingsUpdated
 
     db.run(action.transactionally).flatMap {

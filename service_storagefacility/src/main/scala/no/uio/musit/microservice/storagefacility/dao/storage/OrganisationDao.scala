@@ -31,6 +31,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 /**
  * TODO: Document me!!!
@@ -80,8 +81,8 @@ class OrganisationDao @Inject() (
   def update(mid: MuseumId, id: StorageNodeId, organisation: Organisation): Future[Option[Organisation]] = {
     val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
     val action = for {
-      unitsUpdated <- updateNodeAction(id, extendedOrgDto.storageUnitDto)
-      orgsUpdated <- updateAction(id, extendedOrgDto.extension)
+      unitsUpdated <- updateNodeAction(mid, id, extendedOrgDto.storageUnitDto)
+      orgsUpdated <-  if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension) else DBIO.successful[Int](0)
     } yield orgsUpdated
 
     db.run(action.transactionally).flatMap {
@@ -91,6 +92,11 @@ class OrganisationDao @Inject() (
       case res: Int =>
         logger.warn(s"Wrong amount of rows ($res) updated")
         Future.successful(None)
+    }.recover {
+      case NonFatal(ex) =>
+        logger.debug(s"Using $id, organisation has ID ${organisation.id}")
+        logger.error(s"There was an error updating organisation $id", ex)
+        None
     }
   }
 

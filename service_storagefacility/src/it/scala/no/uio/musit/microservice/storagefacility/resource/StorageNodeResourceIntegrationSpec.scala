@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
@@ -605,6 +605,501 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         res.status mustBe Status.OK
         res.json.as[JsArray].value.size mustBe 0
       }
+       "UnSuccessfully get an organisation node with MuseumId that not exists" in {
+        val mid = 2
+        val json = organisationJson("My Org1", Some(StorageNodeId(1)))
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
+        val newOrg = parseAndVerifyResponse[Organisation](response)
+
+        val organisation = verifyNode[Organisation](
+          response, OrganisationType, "My Org1", newOrg.id.get, Some(1)
+        )
+         organisation mustBe an[Organisation]
+         organisation.path must not be None
+         organisation.path.get mustBe NodePath(",1,18,")
+         val notExistsMid = 44
+         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newOrg.id.get)).get.futureValue
+         notExistsRes.status mustBe Status.BAD_REQUEST
+         val wrongMid = 4
+         val wrongRes = wsUrl(StorageNodeUrl(wrongMid, newOrg.id.get)).get.futureValue
+         wrongRes.status mustBe Status.NOT_FOUND
+         // have to fill in later when auth-object is implemented.
+      }
+
+      "UnSuccessfully get a building node with MuseumId that not exists" in {
+        val mid = 2
+        val json = buildingJson("My Building1", StorageNodeId(5))
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
+        val newBuilding = parseAndVerifyResponse[Building](response)
+        val building = verifyNode[Building](
+          response, BuildingType, "My Building1", newBuilding.id.get, Some(5)
+        )
+        building mustBe a[Building]
+        building.path must not be None
+        building.path.get mustBe NodePath(",2,5,19,")
+        val notExistsMid = 44
+        val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newBuilding.id.get)).get.futureValue
+        notExistsRes.status mustBe Status.BAD_REQUEST
+        val wrongMid = 4
+        val wrongRes = wsUrl(StorageNodeUrl(wrongMid, newBuilding.id.get)).get.futureValue
+        wrongRes.status mustBe Status.NOT_FOUND
+        // have to fill in later when auth-object is implemented.
+      }
+
+      "UnSuccessfully get a room node with MuseumId that not exists" in {
+        val mid = 2
+        val json = roomJson("My Room1", Some(StorageNodeId(6)))
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
+        val newRoom = parseAndVerifyResponse[Room](response)
+        val room = verifyNode[Room](
+          response, RoomType, "My Room1", newRoom.id.get, Some(6)
+        )
+        room mustBe a[Room]
+        room.path must not be None
+        room.path.get mustBe NodePath(",2,5,6,20,")
+        val notExistsMid = 44
+        val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newRoom.id.get)).get.futureValue
+        notExistsRes.status mustBe Status.BAD_REQUEST
+        val wrongMid = 4
+        val wrongRes = wsUrl(StorageNodeUrl(wrongMid, newRoom.id.get)).get.futureValue
+        wrongRes.status mustBe Status.NOT_FOUND
+        // have to fill in later when auth-object is implemented.
+      }
+
+      "UnSuccessfully get a storage unit node with MuseumId that not exists" in {
+        val mid = 2
+        val json = storageUnitJson("My Shelf1", StorageNodeId(7))
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
+        val newStorageNode = parseAndVerifyResponse[StorageUnit](response)
+        val su = verifyNode[StorageUnit](
+          response, StorageUnitType, "My Shelf1", newStorageNode.id.get, Some(7)
+        )
+        su mustBe a[StorageUnit]
+        su.path must not be None
+        su.path.get mustBe NodePath(",2,5,6,7,21,")
+        val notExistsMid = 44
+        val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newStorageNode.id.get)).get.futureValue
+        notExistsRes.status mustBe Status.BAD_REQUEST
+        val wrongMid = 4
+        val wrongRes = wsUrl(StorageNodeUrl(wrongMid, newStorageNode.id.get)).get.futureValue
+        wrongRes.status mustBe Status.NOT_FOUND
+        // have to fill in later when auth-object is implemented.
+      }
+
+      "UnSuccessfully update a storage unit with MuseumId that not exists or is not the right one" in {
+        val mid = 2
+        val json = storageUnitJson("My Shelf2", StorageNodeId(7))
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
+        val su = verifyNode[StorageUnit](
+          response, StorageUnitType, "My Shelf2", 22, Some(7)
+        )
+        su mustBe a[StorageUnit]
+        su.path must not be None
+        su.path.get mustBe NodePath(",2,5,6,7,22,")
+        su.areaTo mustBe Some(.5)
+        su.heightTo mustBe Some(.6)
+
+        val updatedJson = {
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
+            "name" -> "My Shelf2b",
+            "areaTo" -> JsNumber(.8),
+            "heightTo" -> JsNumber(.8)
+          )
+        }
+        val wrongMid = 4
+        val updRes = wsUrl(StorageNodeUrl(wrongMid, su.id.get)).put(updatedJson).futureValue
+        updRes.status mustBe Status.NOT_FOUND
+        val NotExistsMid = 55
+        val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, su.id.get)).put(updatedJson).futureValue
+        notExistsupdRes.status mustBe Status.BAD_REQUEST
+
+        val checkOldRes = wsUrl(StorageNodeUrl(mid, su.id.get)).get.futureValue
+        val oldDataRes = verifyNode[StorageUnit](
+          checkOldRes, StorageUnitType, "My Shelf2", su.id.get, Some(7)
+        )
+        oldDataRes mustBe a[StorageUnit]
+        oldDataRes.path must not be None
+        oldDataRes.path.get mustBe NodePath(",2,5,6,7,22,")
+        oldDataRes.areaTo mustBe Some(.5)
+        oldDataRes.heightTo mustBe Some(.6)
+      }
+
+      "UnSuccessfully update a room with MuseumId that not exists or is not the right one" in {
+        val mid = 2
+        val json = roomJson("My Room2", Some(StorageNodeId(6)))
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
+        val room = verifyNode[Room](
+          response, RoomType, "My Room2", 23, Some(6)
+        )
+        room mustBe a[Room]
+        room.path must not be None
+        room.path.get mustBe NodePath(",2,5,6,23,")
+        room.areaTo mustBe Some(21.0)
+        room.heightTo mustBe Some(2.6)
+
+        val updatedJson = {
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
+            "name" -> "My Room2b",
+            "lightingCondition" -> false,
+            "waterDamage" -> true
+          )
+        }
+        val wrongMid = 4
+        val updRes = wsUrl(StorageNodeUrl(wrongMid, room.id.get)).put(updatedJson).futureValue
+        updRes.status mustBe Status.NOT_FOUND
+        val NotExistsMid = 55
+        val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, room.id.get)).put(updatedJson).futureValue
+        notExistsupdRes.status mustBe Status.BAD_REQUEST
+
+        val checkOldRes = wsUrl(StorageNodeUrl(mid, room.id.get)).get.futureValue
+        val oldDataRes = verifyNode[Room](
+          checkOldRes, RoomType, "My Room2", room.id.get, Some(6)
+        )
+        oldDataRes mustBe a[Room]
+        oldDataRes.path must not be None
+        oldDataRes.path.get mustBe NodePath(",2,5,6,23,")
+        oldDataRes.environmentAssessment.lightingCondition mustBe Some(true)
+        oldDataRes.securityAssessment.waterDamage mustBe Some(false)
+      }
+
+      "UnSuccessfully update a building with environment requirements and MuseumId that not exists or is wrong" in {
+        val mid = 2
+        val json = buildingJson("My Building2", StorageNodeId(5))
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
+        val building = verifyNode[Building](
+          response, BuildingType, "My Building2", 24, Some(5)
+        )
+        building mustBe a[Building]
+        building.path must not be None
+        building.path.get mustBe NodePath(",2,5,24,")
+        building.areaTo mustBe Some(210.0)
+        building.heightTo mustBe Some(3.5)
+        building.address.get must include ("Foo gate 13")
+
+        val updatedJson = {
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
+            "address" -> "Fjære Åker Norge",
+            "environmentRequirement" -> Json.parse(envReqJson("Filthy"))
+          )
+        }
+        val wrongMid = 4
+        val updRes = wsUrl(StorageNodeUrl(wrongMid, building.id.get)).put(updatedJson).futureValue
+        updRes.status mustBe Status.NOT_FOUND
+        val NotExistsMid = 55
+        val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, building.id.get)).put(updatedJson).futureValue
+        notExistsupdRes.status mustBe Status.BAD_REQUEST
+
+        val checkOldRes = wsUrl(StorageNodeUrl(mid, building.id.get)).get.futureValue
+        val oldDataRes = verifyNode[Building](
+          checkOldRes, BuildingType, "My Building2", building.id.get, Some(5)
+        )
+        oldDataRes mustBe a[Building]
+        oldDataRes.path must not be None
+        oldDataRes.path.get mustBe NodePath(",2,5,24,")
+        oldDataRes.address.get must include ("Foo")
+        oldDataRes.environmentRequirement.isEmpty must not be true
+        oldDataRes.environmentRequirement.get.cleaning mustBe Some("Keep it clean!")
+      }
+
+        "UnSuccessfully update an organisation with MuseumId that not exists or is wrong" in {
+        val mid = 2
+        val json = organisationJson("My Organisation2", Some(StorageNodeId(1)))
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
+        val organisation = verifyNode[Organisation](
+          response, OrganisationType, "My Organisation2", 25, Some(1)
+        )
+        organisation mustBe an[Organisation]
+        organisation.path must not be None
+        organisation.path.get mustBe NodePath(",1,25,")
+        organisation.areaTo mustBe Some(2100)
+        organisation.heightTo mustBe Some(3.5)
+        organisation.address.get must include ("Foo gate 13")
+
+        val updatedJson = {
+          Json.parse(response.body).as[JsObject] ++ Json.obj(
+            "address" -> "Fjære xxxx Huttiheita, Norge"
+          )
+        }
+        val wrongMid = 4
+        val updRes = wsUrl(StorageNodeUrl(wrongMid, organisation.id.get)).put(updatedJson).futureValue
+        updRes.status mustBe Status.NOT_FOUND
+
+        val NotExistsMid = 55
+        val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, organisation.id.get)).put(updatedJson).futureValue
+        notExistsupdRes.status mustBe Status.BAD_REQUEST
+
+        val checkOldRes = wsUrl(StorageNodeUrl(mid, organisation.id.get)).get.futureValue
+        val oldDataRes = verifyNode[Organisation](
+        checkOldRes, OrganisationType, "My Organisation2", organisation.id.get, Some(1)
+          )
+        oldDataRes mustBe an[Organisation]
+        oldDataRes.path must not be None
+        oldDataRes.path.get mustBe NodePath(",1,25,")
+        oldDataRes.address.get must include ("Foo gate 13")
+      }
+
+      "respond with 404 when trying to update a node that doesn't exist and with wrong MuseumId" in {
+        val mid = 2
+        val json = storageUnitJson("Non existent", StorageNodeId(3))
+
+        val failedUpdate = wsUrl(StorageNodeUrl(mid, 999)).put(json).futureValue
+        failedUpdate.status mustBe Status.NOT_FOUND
+
+        val wrongMid = 55
+        val failedUpdate1 = wsUrl(StorageNodeUrl(wrongMid, 999)).put(json).futureValue
+        failedUpdate1.status mustBe Status.BAD_REQUEST
+      }
+
+      "Unsuccessfully list all children for a node with correct storage types but with wrong museumId" in {
+        val mid = 2
+        val res = wsUrl(NodeChildrenUrl(mid, 1)).get().futureValue
+        res.status mustBe Status.OK
+        res.json.as[JsArray].value.nonEmpty mustBe true
+        res.json.as[JsArray].value.foreach { jsv =>
+          (jsv \ "type").as[String] mustBe "Organisation"
+        }
+        val anotherMid = 6
+        val res1 = wsUrl(NodeChildrenUrl(anotherMid, 1)).get().futureValue
+        res1.status mustBe Status.OK
+        res1.json.as[JsArray].value.isEmpty mustBe true
+
+      }
+
+      "Unsuccessfully delete a storage node with wrong museumId " in {
+        val mid = 2
+        val json = storageUnitJson("Remove me", StorageNodeId(7))
+        val res = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        val created = verifyNode[StorageUnit](
+          res, StorageUnitType, "Remove me", 26, Some(7)
+        )
+
+        created mustBe a[StorageUnit]
+        val wrongMid = 4
+        val rmRes = wsUrl(StorageNodeUrl(wrongMid, created.id.get)).delete().futureValue
+        rmRes.status mustBe Status.NOT_FOUND
+
+        val stillThere = wsUrl(StorageNodeUrl(mid, created.id.get)).get().futureValue
+        stillThere.status mustBe Status.OK
+      }
+
+      "respond with 400 when deleting a node that doesn't exist and with museumId that not exists" in {
+        val notExistsMmid = 55
+        val rmRes = wsUrl(StorageNodeUrl(notExistsMmid, 9999)).delete().futureValue
+        rmRes.status mustBe Status.BAD_REQUEST
+      }
+
+      "respond with 404 when trying to delete a node that is already deleted with wrong MuseumId" in {
+        val mid = 2
+        val rmRes = wsUrl(StorageNodeUrl(mid,26)).delete().futureValue
+        rmRes.status mustBe Status.OK
+
+        val wrongMid = 4
+        val rmRes1 = wsUrl(StorageNodeUrl(wrongMid, 26)).delete().futureValue
+        rmRes1.status mustBe Status.NOT_FOUND
+      }
+
+      "respond with 404 when updating a node that is deleted and with wrong museumId" in {
+        val mid = 4
+        val json = {
+          storageUnitJson("Remove me", StorageNodeId(7)).as[JsObject] ++ Json.obj(
+            "id" -> 26,
+            "name" -> "Hakuna Matata"
+          )
+        }
+
+        val failedUpdate = wsUrl(StorageNodeUrl(mid, 26)).put(json).futureValue
+        failedUpdate.status mustBe Status.NOT_FOUND
+        val getDeleted = wsUrl(StorageNodeUrl(2, 26)).get().futureValue
+        getDeleted.status mustBe Status.NOT_FOUND
+      }
+
+      "successfully move a single node with wrong museumId" in {
+        val mid = 2
+        val json = storageUnitJson("Move me", StorageNodeId(7))
+        val res = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        val created = verifyNode[StorageUnit](
+          res, StorageUnitType, "Move me", 27, Some(7)
+        )
+
+        created mustBe a[StorageUnit]
+        created.path must not be None
+        created.path.get mustBe NodePath(",2,5,6,7,27,")
+
+        val moveMeId = created.id.get.underlying
+
+        val moveJson = Json.parse(
+          s"""{
+             |  "doneBy": 1,
+             |  "destination": 9,
+             |  "items": [${created.id.get.underlying}]
+             |}""".stripMargin
+        )
+        val wrongMid = 4
+        val moveRes = wsUrl(MoveStorageNodeUrl(wrongMid)).put(moveJson).futureValue
+
+        moveRes.status mustBe Status.BAD_REQUEST
+println(moveRes.json)
+        (moveRes.json \ "moved").as[JsArray].value.head.as[Long] mustBe moveMeId
+
+        val movedNodeRes = wsUrl(StorageNodeUrl(mid, moveMeId)).get().futureValue
+        val moved = verifyNode[StorageUnit](
+          movedNodeRes, StorageUnitType, "Move me", moveMeId, Some(7)
+        )
+        moved mustBe a[StorageUnit]
+        moved.path must not be None
+        moved.path.get mustBe NodePath(",2,5,6,7,27,")
+
+      }
+
+      /*"successfully move several nodes" in {
+        val mid = 2
+        val json1 = storageUnitJson("Move me1", StorageNodeId(7))
+        val res1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
+        val json2 = storageUnitJson("Move me2", StorageNodeId(7))
+        val res2 = wsUrl(StorageNodesUrl(mid)).post(json2).futureValue
+        val json3 = storageUnitJson("Move me3", StorageNodeId(7))
+        val res3 = wsUrl(StorageNodesUrl(mid)).post(json3).futureValue
+
+        res1.status mustBe Status.CREATED
+        res2.status mustBe Status.CREATED
+        res3.status mustBe Status.CREATED
+
+        val id1 = (res1.json \ "id").as[Long]
+        val id2 = (res2.json \ "id").as[Long]
+        val id3 = (res3.json \ "id").as[Long]
+
+        val moveJson = Json.parse(
+          s"""{
+              |  "doneBy": 1,
+              |  "destination": 9,
+              |  "items": [$id1, $id2, $id3]
+              |}""".stripMargin
+        )
+
+        val move = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
+        move.status mustBe Status.OK
+
+        val movedRes1 = wsUrl(StorageNodeUrl(mid, id1)).get().futureValue
+        val movedRes2 = wsUrl(StorageNodeUrl(mid, id2)).get().futureValue
+        val movedRes3 = wsUrl(StorageNodeUrl(mid, id3)).get().futureValue
+
+        val n1 = verifyNode[StorageUnit](
+          movedRes1, StorageUnitType, "Move me1", id1, Some(9)
+        )
+        val n2 = verifyNode[StorageUnit](
+          movedRes2, StorageUnitType, "Move me2", id2, Some(9)
+        )
+        val n3 = verifyNode[StorageUnit](
+          movedRes3, StorageUnitType, "Move me3", id3, Some(9)
+        )
+
+        n1.path must not be None
+        n2.path must not be None
+        n3.path must not be None
+        n1.path.get mustBe NodePath(s",1,5,6,7,9,$id1,")
+        n2.path.get mustBe NodePath(s",1,5,6,7,9,$id2,")
+        n3.path.get mustBe NodePath(s",1,5,6,7,9,$id3,")
+
+      }
+
+      "successfully move a node and all its children" in {
+        val mid = 2
+        // We know now that StorageNodeId 5 should have lots of children. Fetch!
+        val res1 = wsUrl(NodeChildrenUrl(mid, 5)).get().futureValue
+        res1.status mustBe Status.OK
+        val directChildIds = res1.json.as[JsArray].value.map { jsv =>
+          (jsv \ "id").as[Long]
+        }
+
+        val subChildrenIds = directChildIds.flatMap { id =>
+          val r = wsUrl(NodeChildrenUrl(mid, id)).get().futureValue
+          r.status mustBe Status.OK
+          r.json.as[JsArray].value.map { jsv =>
+            (jsv \ "id").as[Long]
+          }
+        }
+
+        val verifyIds = directChildIds ++ subChildrenIds
+
+        val moveJson = Json.parse(
+          s"""{
+              |  "doneBy": 1,
+              |  "destination": 2,
+              |  "items": [5]
+              |}""".stripMargin
+        )
+
+        val moveRes = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
+        moveRes.status mustBe Status.OK
+        (moveRes.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain(5)
+
+        val paths = verifyIds.map { id =>
+          val r = wsUrl(StorageNodeUrl(mid, id)).get().futureValue
+          r.status mustBe Status.OK
+          (
+            (r.json \ "id").as[Int],
+            (r.json \ "path").as[String],
+            (r.json \ "isPartOf").asOpt[Int]
+          )
+        }
+
+        println(s"Child paths are:\n${paths.mkString("\n")}")
+      }
+
+      "successfully move several objects" in {
+        val mid = 2
+        val id1 = 1234
+        val id2 = 5678
+        val id3 = 9876
+
+        val moveJson = Json.parse(
+          s"""{
+              |  "doneBy": 1,
+              |  "destination": 9,
+              |  "items": [$id1, $id2, $id3]
+              |}""".stripMargin
+        )
+
+        val move = wsUrl(MoveObjectUrl(mid)).put(moveJson).futureValue
+
+        move.status mustBe Status.OK
+
+        (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
+      }
+
+      "update should fail if type doesn't match" in {
+        //        val json = buildingJson("My Building10", StorageNodeId(1))
+        //        val response = postStorageNode(json).futureValue
+        //        response.status mustBe Status.CREATED
+        //        val building = verifyNode[Building](
+        //          response, BuildingType, "My Building10", 10, Some(1)
+        //        )
+        //        building mustBe a[Building]
+        //        building.areaTo mustBe Some(210.0)
+        //        building.heightTo mustBe Some(3.5)
+        //
+        //        val updatedJson = {
+        //          Json.parse(response.body).as[JsObject] ++ Json.obj(
+        //            "type" -> "Organisation"
+        //          )
+        //        }
+        //
+        //        val updRes = putStorageNode(building.id.get, updatedJson).futureValue
+        //        updRes.status mustBe Status.BAD_REQUEST
+        //
+        // TODO: This test is pending until it's been clarified if NotFound is
+        // a proper response in this case. I would argue that it is. Since there
+        // is no node in the DB matching the ID with the wrong type
+        pending
+      }*/
     }
   }
 }

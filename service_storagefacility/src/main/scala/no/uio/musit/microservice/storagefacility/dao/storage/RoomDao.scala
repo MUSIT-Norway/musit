@@ -31,6 +31,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 @Singleton
 class RoomDao @Inject() (
@@ -73,8 +74,8 @@ class RoomDao @Inject() (
   def update(mid: MuseumId, id: StorageNodeId, room: Room): Future[Option[Room]] = {
     val roomDto = StorageNodeDto.fromRoom(mid, room, Some(id))
     val action = for {
-      unitsUpdated <- updateNodeAction(id, roomDto.storageUnitDto)
-      roomsUpdated <- updateAction(id, roomDto.extension)
+      unitsUpdated <- updateNodeAction(mid, id, roomDto.storageUnitDto)
+      roomsUpdated <- if (unitsUpdated > 0) updateAction(id, roomDto.extension) else DBIO.successful[Int](0)
     } yield roomsUpdated
 
     db.run(action.transactionally).flatMap {
@@ -84,6 +85,11 @@ class RoomDao @Inject() (
       case res: Int =>
         logger.warn(s"Wrong amount of rows ($res) updated")
         Future.successful(None)
+    }.recover {
+      case NonFatal(ex) =>
+        logger.debug(s"Using $id, building has ID ${room.id}")
+        logger.error(s"There was an error updating room $id", ex)
+        None
     }
   }
 

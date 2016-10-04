@@ -576,8 +576,8 @@ class StorageNodeService @Inject() (
       }
     }
 
-    val eventuallyCurrent = unitDao.getAllById(id)
-    val eventuallyMaybeTo = unitDao.getAllById(event.to.placeId)
+    val eventuallyCurrent = unitDao.getAllById(mid, id)
+    val eventuallyMaybeTo = unitDao.getAllById(mid, event.to.placeId)
 
     val eventuallyExistance = for {
       maybeCurrent <- eventuallyCurrent
@@ -594,7 +594,8 @@ class StorageNodeService @Inject() (
               res
             }
           }
-        }.getOrElse(Future.successful(MusitSuccess(0)))
+        }.getOrElse(
+          Future.successful(MusitInternalError("")))
     }
   }
 

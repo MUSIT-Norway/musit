@@ -233,7 +233,7 @@ final class StorageNodeResource @Inject() (
     }.map { mru =>
       val success = mru.filter(_._2.isSuccess).map(_._1)
       val failed = mru.filter(_._2.isFailure).map(_._1)
-
+println(s"failed: $failed")
       if (success.isEmpty) {
         BadRequest(Json.obj("message" -> "Nothing was moved"))
       } else {

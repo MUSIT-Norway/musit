@@ -72,8 +72,8 @@ class StorageUnitDao @Inject() (
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
   }
 
-  def getAllById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getAllByIdAction(id)
+  def getAllById(mid: MuseumId, id: StorageNodeId): Future[Option[StorageUnit]] = {
+    val query = getAllByIdAction(mid, id)
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
   }
 
@@ -211,7 +211,7 @@ class StorageUnitDao @Inject() (
     storageUnit: StorageUnit
   ): Future[Option[StorageUnit]] = {
     val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
-    db.run(updateNodeAction(id, dto)).flatMap {
+    db.run(updateNodeAction(mid, id, dto)).flatMap {
       case res: Int if res == 1 =>
         getById(mid, id)
 
