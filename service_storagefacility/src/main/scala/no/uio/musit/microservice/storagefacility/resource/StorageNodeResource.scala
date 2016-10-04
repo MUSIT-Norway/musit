@@ -43,6 +43,22 @@ final class StorageNodeResource @Inject() (
   // TODO: Use user from an enriched request type in a proper SecureAction
   import no.uio.musit.microservice.storagefacility.DummyData.DummyUser
 
+  private def addResult[T <: StorageNode](
+    res: MusitResult[Option[T]]
+  ): Result = {
+    res match {
+      case MusitSuccess(maybeNode) =>
+        maybeNode.map { n =>
+          Created(Json.toJson[T](n))
+        }.getOrElse {
+          InternalServerError(Json.obj("message" -> "Could not node after insertion"))
+        }
+
+      case err: MusitError =>
+        InternalServerError(Json.obj("message" -> err.message))
+    }
+  }
+
   /**
    * TODO: Document me!
    */
@@ -53,27 +69,19 @@ final class StorageNodeResource @Inject() (
         node match {
           case su: StorageUnit =>
             logger.debug(s"Adding a new StorageUnit ${su.name}")
-            service.addStorageUnit(su).map { n =>
-              Created(Json.toJson[StorageNode](n))
-            }
+            service.addStorageUnit(su).map(addResult)
 
           case b: Building =>
             logger.debug(s"Adding a new Building ${b.name}")
-            service.addBuilding(b).map { n =>
-              Created(Json.toJson[StorageNode](n))
-            }
+            service.addBuilding(b).map(addResult)
 
           case r: Room =>
             logger.debug(s"Adding a new Room ${r.name}")
-            service.addRoom(r).map { n =>
-              Created(Json.toJson[StorageNode](n))
-            }
+            service.addRoom(r).map(addResult)
 
           case o: Organisation =>
             logger.debug(s"Adding a new Organisation ${o.name}")
-            service.addOrganisation(o).map { n =>
-              Created(Json.toJson[StorageNode](n))
-            }
+            service.addOrganisation(o).map(addResult)
 
           case bad =>
             val message = s"Wrong service for adding a ${bad.storageType}."
@@ -92,7 +100,7 @@ final class StorageNodeResource @Inject() (
    * TODO: Document me!
    */
   def addRoot = Action.async { implicit request =>
-    service.addRoot(Root()).map(node => Created(Json.toJson(node)))
+    service.addRoot().map(addResult)
   }
 
   /**

@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
@@ -164,6 +164,14 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         room mustBe a[Room]
         room.environmentRequirement must not be None
+        room.path mustBe NodePath(",1,5,6,7,")
+        room.pathNames must not be None
+        room.pathNames.value must contain allOf (
+          NamedPathElement(StorageNodeId(1), "root-node"),
+          NamedPathElement(StorageNodeId(5), "My Org1"),
+          NamedPathElement(StorageNodeId(6), "My Building1"),
+          NamedPathElement(StorageNodeId(7), "My Room1")
+        )
       }
 
       "successfully get a storage unit" in {
@@ -242,6 +250,13 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated mustBe a[Room]
         updated.path mustBe NodePath(",1,5,6,10,")
         updated.environmentAssessment.lightingCondition mustBe Some(true)
+        updated.pathNames must not be None
+        updated.pathNames.value must contain allOf (
+          NamedPathElement(StorageNodeId(1), "root-node"),
+          NamedPathElement(StorageNodeId(5), "My Org1"),
+          NamedPathElement(StorageNodeId(6), "My Building1"),
+          NamedPathElement(StorageNodeId(10), "My Room2b")
+        )
       }
 
       "successfully update a building with environment requirements" in {
@@ -480,8 +495,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             (r.json \ "isPartOf").asOpt[Int]
           )
         }
-
-        println(s"Child paths are:\n${paths.mkString("\n")}")
       }
 
       "successfully move several objects" in {

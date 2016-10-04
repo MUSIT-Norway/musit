@@ -52,10 +52,10 @@ class StorageStatsDao @Inject() (
     val nodeFilter = s"${path.path}%"
     db.run(
       sql"""
-        select count(*)
-        from musark_storage.storage_node n, musark_storage.local_object o
-        where n.node_path like ${nodeFilter}
-        and o.current_location_id = n.storage_node_id
+        SELECT COUNT(*)
+        FROM "MUSARK_STORAGE"."STORAGE_NODE", "MUSARK_STORAGE"."LOCAL_OBJECT"
+        WHERE "STORAGE_NODE".NODE_PATH LIKE ${nodeFilter}
+        AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = "STORAGE_NODE"."STORAGE_NODE_ID"
       """.as[Int].head
     )
   }
@@ -72,8 +72,8 @@ class StorageStatsDao @Inject() (
     db.run(
       sql"""
         select count(*)
-        from musark_storage.local_object o
-        where o.current_location_id = ${nodeId.underlying}
+        from "MUSARK_STORAGE"."LOCAL_OBJECT"
+        where "CURRENT_LOCATION_ID" = ${nodeId.underlying}
       """.as[Int].head
     )
   }

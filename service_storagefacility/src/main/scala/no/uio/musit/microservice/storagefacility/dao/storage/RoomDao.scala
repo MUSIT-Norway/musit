@@ -24,7 +24,7 @@ import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.dto._
 import no.uio.musit.microservice.storagefacility.domain.storage.{Room, StorageNodeId}
-import no.uio.musit.service.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -69,20 +69,20 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, room: Room): Future[Option[Room]] = {
+  def update(id: StorageNodeId, room: Room): Future[MusitResult[Option[Int]]] = {
     val roomDto = StorageNodeDto.fromRoom(room, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, roomDto.storageUnitDto)
       roomsUpdated <- updateAction(id, roomDto.extension)
     } yield roomsUpdated
 
-    db.run(action.transactionally).flatMap {
-      case res: Int if res == 1 =>
-        getById(id)
-
+    db.run(action.transactionally).map {
+      case res: Int if res == 1 => MusitSuccess(Some(res))
+      case res: Int if res == 0 => MusitSuccess(None)
       case res: Int =>
-        logger.warn(s"Wrong amount of rows ($res) updated")
-        Future.successful(None)
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 
@@ -97,24 +97,23 @@ class RoomDao @Inject() (
       case res: Int if res == 1 => MusitSuccess(())
 
       case res: Int =>
-        val msg = s"Wrong amount of rows ($res) updated"
+        val msg = wrongNumUpdatedRows(id, res)
         logger.warn(msg)
-        MusitInternalError(msg)
+        MusitDbError(msg)
     }
   }
 
   /**
    * TODO: Document me!!!
    */
-  def insert(room: Room): Future[Room] = {
+  def insert(room: Room): Future[StorageNodeId] = {
     val extendedDto = StorageNodeDto.fromRoom(room)
     val action = (for {
-      storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
-      extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
+      nodeId <- insertNodeAction(extendedDto.storageUnitDto)
+      extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
       inserted <- insertAction(extWithId)
     } yield {
-      val extNode = ExtendedStorageNode(storageUnit, extWithId)
-      StorageNodeDto.toRoom(extNode)
+      nodeId
     }).transactionally
 
     db.run(action)

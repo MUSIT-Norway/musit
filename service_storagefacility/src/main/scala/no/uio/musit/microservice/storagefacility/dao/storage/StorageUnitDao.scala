@@ -100,14 +100,16 @@ class StorageUnitDao @Inject() (
    * @param id StorageNodeId for the Root node.
    * @return An Option that contains the Root node if it was found.
    */
-  def findRootNode(id: StorageNodeId): Future[Option[Root]] = {
+  def findRootNode(id: StorageNodeId): Future[MusitResult[Option[Root]]] = {
     val query = storageNodeTable.filter { root =>
       root.id === id &&
         root.isDeleted === false &&
         root.storageType === rootNodeType
     }.result.headOption
 
-    db.run(query).map(_.map(n => Root(id = n.id, path = n.path)))
+    db.run(query).map { dto =>
+      MusitSuccess(dto.map(n => Root(id = n.id, path = n.path)))
+    }
   }
 
   /**
@@ -140,21 +142,18 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
+  def insert(storageUnit: StorageUnit): Future[StorageNodeId] = {
     val dto = StorageNodeDto.fromStorageUnit(storageUnit)
-    db.run(insertNodeAction(dto)).map(StorageNodeDto.toStorageUnit)
+    db.run(insertNodeAction(dto))
   }
 
   /**
    * TODO: Document me!!!
    */
-  def insertRoot(root: Root): Future[Root] = {
+  def insertRoot(root: Root): Future[StorageNodeId] = {
     logger.debug("Inserting root node...")
     val dto = StorageNodeDto.fromRoot(root).asStorageUnit
-    db.run(insertNodeAction(dto)).map { sudto =>
-      logger.debug(s"Inserted root node with ID ${sudto.id}")
-      Root(sudto.id)
-    }
+    db.run(insertNodeAction(dto))
   }
 
   /**
@@ -164,15 +163,16 @@ class StorageUnitDao @Inject() (
    * @param path NodePath to set
    * @return An Option containing the updated Root node.
    */
-  def setRootPath(id: StorageNodeId, path: NodePath): Future[Option[Root]] = {
+  def setRootPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
     logger.debug(s"Updating path to $path for root node $id")
-    db.run(updatePathAction(id, path)).flatMap {
+    db.run(updatePathAction(id, path)).map {
       case res: Int if res == 1 =>
-        findRootNode(id)
+        MusitSuccess(())
 
       case res: Int =>
-        logger.warn(s"Wrong amount of rows ($res) updated")
-        Future.successful(None)
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 
@@ -188,9 +188,9 @@ class StorageUnitDao @Inject() (
       case res: Int if res == 1 => MusitSuccess(())
 
       case res: Int =>
-        val msg = s"Wrong amount of rows ($res) updated"
+        val msg = wrongNumUpdatedRows(id, res)
         logger.warn(msg)
-        MusitInternalError(msg)
+        MusitDbError(msg)
     }
   }
 
@@ -218,7 +218,7 @@ class StorageUnitDao @Inject() (
 
     }.recover {
       case NonFatal(ex) =>
-        val msg = s"Unexpected error when updating path for $id"
+        val msg = s"Unexpected error when updating paths for unit $id sub-tree"
         logger.error(msg, ex)
         MusitDbError(msg)
     }
@@ -230,15 +230,15 @@ class StorageUnitDao @Inject() (
   def update(
     id: StorageNodeId,
     storageUnit: StorageUnit
-  ): Future[Option[StorageUnit]] = {
+  ): Future[MusitResult[Option[Int]]] = {
     val dto = StorageNodeDto.fromStorageUnit(storageUnit)
-    db.run(updateNodeAction(id, dto)).flatMap {
-      case res: Int if res == 1 =>
-        getById(id)
-
+    db.run(updateNodeAction(id, dto)).map {
+      case res: Int if res == 1 => MusitSuccess(Some(res))
+      case res: Int if res == 0 => MusitSuccess(None)
       case res: Int =>
-        logger.warn(s"Wrong amount of rows ($res) updated")
-        Future.successful(None)
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 
@@ -260,13 +260,14 @@ class StorageUnitDao @Inject() (
       su.id === id && su.isDeleted === false
     }.map(_.isDeleted).update(true)
 
-    db.run(query).map { res =>
-      if (res == 1) MusitSuccess(res)
-      else MusitValidationError(
-        message = s"Unexpected result marking storage node $id as deleted",
-        expected = 1,
-        actual = res
-      )
+    db.run(query).map {
+      case res: Int if res == 1 =>
+        MusitSuccess(res)
+
+      case res: Int =>
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 

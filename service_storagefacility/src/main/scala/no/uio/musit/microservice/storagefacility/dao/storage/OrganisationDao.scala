@@ -24,7 +24,7 @@ import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ExtendedStorageNode, OrganisationDto, StorageNodeDto}
-import no.uio.musit.service.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -76,20 +76,23 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, organisation: Organisation): Future[Option[Organisation]] = {
+  def update(
+    id: StorageNodeId,
+    organisation: Organisation
+  ): Future[MusitResult[Option[Int]]] = {
     val extendedOrgDto = StorageNodeDto.fromOrganisation(organisation, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, extendedOrgDto.storageUnitDto)
       orgsUpdated <- updateAction(id, extendedOrgDto.extension)
     } yield orgsUpdated
 
-    db.run(action.transactionally).flatMap {
-      case res: Int if res == 1 =>
-        getById(id)
-
+    db.run(action.transactionally).map {
+      case res: Int if res == 1 => MusitSuccess(Some(res))
+      case res: Int if res == 0 => MusitSuccess(None)
       case res: Int =>
-        logger.warn(s"Wrong amount of rows ($res) updated")
-        Future.successful(None)
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 
@@ -104,24 +107,23 @@ class OrganisationDao @Inject() (
       case res: Int if res == 1 => MusitSuccess(())
 
       case res: Int =>
-        val msg = s"Wrong amount of rows ($res) updated"
+        val msg = wrongNumUpdatedRows(id, res)
         logger.warn(msg)
-        MusitInternalError(msg)
+        MusitDbError(msg)
     }
   }
 
   /**
    * TODO: Document me!!!
    */
-  def insert(organisation: Organisation): Future[Organisation] = {
+  def insert(organisation: Organisation): Future[StorageNodeId] = {
     val extendedDto = StorageNodeDto.fromOrganisation(organisation)
     val query = for {
-      storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
-      extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
+      nodeId <- insertNodeAction(extendedDto.storageUnitDto)
+      extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
       n <- insertAction(extWithId)
     } yield {
-      val extNode = ExtendedStorageNode(storageUnit, extWithId)
-      StorageNodeDto.toOrganisation(extNode)
+      nodeId
     }
 
     db.run(query.transactionally)

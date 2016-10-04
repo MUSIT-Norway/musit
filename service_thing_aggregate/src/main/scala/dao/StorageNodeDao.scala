@@ -19,8 +19,8 @@ class StorageNodeDao @Inject() (
     db.run(
       sql"""
          select count(*)
-         from musark_storage.storage_node
-         where storage_node_id = $nodeId
+         from "MUSARK_STORAGE"."STORAGE_NODE"
+         where "STORAGE_NODE_ID" = $nodeId
       """.as[Long].head.map(res => MusitSuccess(res == 1))
     ).recover {
         case NonFatal(e) =>

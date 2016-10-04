@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -42,19 +43,20 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     "return the number of direct child nodes" in {
       val basePath = NodePath(",1,2,3,4,")
 
-      val inserted = storageUnitDao.insert(createStorageUnit(path = basePath)).futureValue
-      inserted.id must not be None
-      inserted.path mustBe basePath
+      val insId = storageUnitDao.insert(createStorageUnit(path = basePath)).futureValue
+      insId mustBe a[StorageNodeId]
 
-      val childPath = basePath.appendChild(inserted.id.get)
+      val childPath = basePath.appendChild(insId)
 
       for (i <- 1 to 10) {
-        val n = storageUnitDao.insert(createStorageUnit(partOf = inserted.id, path = childPath)).futureValue
-        n.id must not be None
-        n.path mustBe childPath
+        val nodeId = storageUnitDao.insert(createStorageUnit(
+          partOf = Some(insId),
+          path = childPath
+        )).futureValue
+        nodeId mustBe a[StorageNodeId]
       }
 
-      statsDao.childCount(inserted.id.get).futureValue mustBe 10
+      statsDao.childCount(insId).futureValue mustBe 10
     }
 
     "return the number of objects on a node" in {

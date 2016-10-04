@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
-import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -44,8 +44,7 @@ sealed trait StorageNode {
   val groupRead: Option[String]
   val groupWrite: Option[String]
   val path: NodePath
-  // TODO: Need to provide a readable path, might possibly be part of NodePath?
-  // val readablePath: Option[String]
+  val pathNames: Option[Seq[NamedPathElement]]
   val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
 }
@@ -106,22 +105,27 @@ object StorageNode {
 }
 
 /**
- * Used to represent the common denominator for all storage nodes.
+ * Used to represent the common denominator for all storage nodes. Typically
+ * used for services where a list of storage nodes need to be returned. A key
+ * difference to the other StorageNode types is the lack of a
+ * {{{Seq[NamedPathElement]}}}.
  */
 case class GenericStorageNode(
-  id: Option[StorageNodeId],
-  name: String,
-  area: Option[Double],
-  areaTo: Option[Double],
-  isPartOf: Option[StorageNodeId],
-  height: Option[Double],
-  heightTo: Option[Double],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  path: NodePath,
-  environmentRequirement: Option[EnvironmentRequirement],
-  storageType: StorageType
-) extends StorageNode
+    id: Option[StorageNodeId],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    isPartOf: Option[StorageNodeId],
+    height: Option[Double],
+    heightTo: Option[Double],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    path: NodePath,
+    environmentRequirement: Option[EnvironmentRequirement],
+    storageType: StorageType
+) extends StorageNode {
+  val pathNames: Option[Seq[NamedPathElement]] = None
+}
 
 object GenericStorageNode {
 
@@ -159,6 +163,7 @@ case class Root(
   val heightTo: Option[Double] = None
   val groupRead: Option[String] = None
   val groupWrite: Option[String] = None
+  val pathNames: Option[Seq[NamedPathElement]] = None
   val storageType: StorageType = StorageType.RootType
 }
 
@@ -188,7 +193,8 @@ case class StorageUnit(
     groupRead: Option[String],
     groupWrite: Option[String],
     path: NodePath,
-    environmentRequirement: Option[EnvironmentRequirement]
+    pathNames: Option[Seq[NamedPathElement]] = None,
+    environmentRequirement: Option[EnvironmentRequirement] = None
 ) extends StorageNode {
   val storageType: StorageType = StorageType.StorageUnitType
 }
@@ -206,6 +212,7 @@ object StorageUnit {
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement]
   )(StorageUnit.apply, unlift(StorageUnit.unapply))
 
@@ -225,7 +232,8 @@ case class Room(
     groupRead: Option[String],
     groupWrite: Option[String],
     path: NodePath,
-    environmentRequirement: Option[EnvironmentRequirement],
+    pathNames: Option[Seq[NamedPathElement]] = None,
+    environmentRequirement: Option[EnvironmentRequirement] = None,
     securityAssessment: SecurityAssessment,
     environmentAssessment: EnvironmentAssessment
 ) extends StorageNode {
@@ -245,6 +253,7 @@ object Room {
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "securityAssessment").format[SecurityAssessment] and
     (__ \ "environmentAssessment").format[EnvironmentAssessment]
@@ -266,7 +275,8 @@ case class Building(
     groupRead: Option[String],
     groupWrite: Option[String],
     path: NodePath,
-    environmentRequirement: Option[EnvironmentRequirement],
+    pathNames: Option[Seq[NamedPathElement]] = None,
+    environmentRequirement: Option[EnvironmentRequirement] = None,
     address: Option[String]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.BuildingType
@@ -285,6 +295,7 @@ object Building {
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "address").formatNullable[String](Format(maxLength[String](500), StringWrites))
   )(Building.apply, unlift(Building.unapply))
@@ -305,7 +316,8 @@ case class Organisation(
     groupRead: Option[String],
     groupWrite: Option[String],
     path: NodePath,
-    environmentRequirement: Option[EnvironmentRequirement],
+    pathNames: Option[Seq[NamedPathElement]] = None,
+    environmentRequirement: Option[EnvironmentRequirement] = None,
     address: Option[String]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.OrganisationType
@@ -324,6 +336,7 @@ object Organisation {
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "address").formatNullable[String](Format(maxLength[String](500), StringWrites))
   )(Organisation.apply, unlift(Organisation.unapply))

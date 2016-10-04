@@ -37,6 +37,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   import driver.api._
 
+  protected def wrongNumUpdatedRows(id: StorageNodeId, numRowsUpdated: Int) =
+    s"Wrong amount of rows ($numRowsUpdated) updated for node $id"
+
   protected val rootNodeType: StorageType = StorageType.RootType
 
   protected val storageNodeTable = TableQuery[StorageNodeTable]
@@ -91,9 +94,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     logger.debug(s"performing update with LIKE: $pathFilter")
 
     sql"""
-         UPDATE musark_storage.storage_node
-         SET node_path = replace(node_path, ${op}, ${np})
-         WHERE node_path LIKE ${pathFilter}
+         UPDATE "MUSARK_STORAGE"."STORAGE_NODE"
+         SET "NODE_PATH" = replace("NODE_PATH", ${op}, ${np})
+         WHERE "NODE_PATH" LIKE ${pathFilter}
        """.asUpdate.transactionally
   }
 
@@ -116,10 +119,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    * TODO: Document me!!!
    */
   protected[storage] def insertNodeAction(
-    storageUnit: StorageUnitDto
-  ): DBIO[StorageUnitDto] = {
-    storageNodeTable returning storageNodeTable.map(_.id) into ((sn, id) =>
-      sn.copy(id = Some(id))) += storageUnit
+    dto: StorageUnitDto
+  ): DBIO[StorageNodeId] = {
+    storageNodeTable returning storageNodeTable.map(_.id) += dto
   }
 
   /**
