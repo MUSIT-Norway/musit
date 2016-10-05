@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import no.uio.musit.microservice.storagefacility.domain.event.move.MoveNode
-import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageNodeId}
+import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageNodeId, StorageUnit}
 import no.uio.musit.microservice.storagefacility.domain.{Interval, Move, MuseumId}
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -40,7 +40,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "successfully create a new room node with environment requirements" in {
     // Setup new room data, without the partOf relation, which is not
     // interesting in this particular test.
-    val mid = 5
+    val mid = MuseumId(5)
     val room = createRoom()
     val inserted = service.addRoom(mid, room).futureValue
     inserted.id must not be None
@@ -56,7 +56,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   }
 
   "successfully update a building with new environment requirements" in {
-    val mid = 5
+    val mid = MuseumId(5)
     val building = createBuilding()
     val inserted = service.addBuilding(mid, building).futureValue
     inserted.id must not be None
@@ -78,7 +78,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   }
 
   "successfully update a storage unit and fetch as StorageNode" in {
-    val mid = 5
+    val mid = MuseumId(5)
     val su = createStorageUnit()
     val inserted = service.addStorageUnit(mid, su).futureValue
     inserted.id must not be None
@@ -188,10 +188,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
         n.get.path.get.path must startWith(building2.path.get.path)
       }
     }
-
   }
 
   "Not move a node and all its children with wrong museum" in {
+   /* TODO: This test is pending until it's been clarified if this scenario will occur
     val mid = MuseumId(5)
     val root1 = service.addRoot(mid, Root()).futureValue
     root1.id must not be None
@@ -212,18 +212,19 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val unit2 = service.addStorageUnit(mid, su2).futureValue
     unit2.id must not be None
 
+    val AnotherMid = MuseumId(3)
     val su3 = createStorageUnit(name = "Unit3", partOf = unit1.id)
-    val unit3 = service.addStorageUnit(mid, su3).futureValue
+    val unit3 = service.addStorageUnit(AnotherMid, su3).futureValue
     unit3.id must not be None
 
     val su4 = createStorageUnit(name = "Unit4", partOf = unit3.id)
     val unit4 = service.addStorageUnit(mid, su4).futureValue
     unit4.id must not be None
 
-    val children = service.getChildren(mid, unit1.id.get).futureValue
+    val children = service.getChildren(AnotherMid, unit1.id.get).futureValue
     val childIds = children.map(_.id)
     val grandChildIds = childIds.flatMap { id =>
-      service.getChildren(mid, id.get).futureValue.map(_.id)
+      service.getChildren(AnotherMid, id.get).futureValue.map(_.id)
     }
 
     val mostChildren = childIds ++ grandChildIds
@@ -236,48 +237,66 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
     val event = MoveNode.fromCommand("foobar", move).head
     val wrongMid = MuseumId(4)
-    val m = service.moveNode(wrongMid, unit1.id.get, event).futureValue
+    val m = service.moveNode(mid, unit1.id.get, event).futureValue
     m.isSuccess mustBe true
 
     mostChildren.map { id =>
-      service.getNodeById(wrongMid, id.get).futureValue.map { n =>
-        n mustBe None
+      service.getNodeById(AnotherMid, id.get).futureValue.map { n =>
+        n must not be None
+        println(s"nodenavn: ${n.get.name}")
+       // n.get.name must include ("Unit")
       }
-    }
+    }*/
+    pending
   }
   "not remove a node when childnode has another MuseumId" in {
     val mid = MuseumId(5)
     val su1 = createStorageUnit()
     val inserted1 = service.addStorageUnit(mid, su1).futureValue
     inserted1.id must not be None
-    val wrongMid = MuseumId(4)
+
+    val anotherMid = MuseumId(4)
     val su2 = createStorageUnit(partOf = inserted1.id)
-    val inserted2 = service.addStorageUnit(wrongMid, su2).futureValue
+    val inserted2 = service.addStorageUnit(anotherMid, su2).futureValue
     inserted2.id must not be None
-    val notDeleted = service.deleteNode(mid, inserted1.id.get).futureValue
-    notDeleted.isSuccess mustBe true
-    notDeleted.get must not be None
-    notDeleted.get.get mustBe -1
+
+    val maybeDeletedNode = service.deleteNode(mid, inserted1.id.get).futureValue
+    maybeDeletedNode.isSuccess mustBe true
+    maybeDeletedNode.get must not be None
+    maybeDeletedNode.get.get mustBe -1
+    val stillNotDeleted = service.getNodeById(mid, inserted1.id.get).futureValue
+    stillNotDeleted.get must not be None
+    stillNotDeleted.get.get.id mustBe inserted1.id
+
+
   }
-  "not remove a node with wrong museumId that has a child " in {
+  "UnSuccessfully remove a node with different museumId as input on delete than storagenode and it's child " in {
     val mid = MuseumId(5)
     val su1 = createStorageUnit()
     val inserted1 = service.addStorageUnit(mid, su1).futureValue
     inserted1.id must not be None
+
+
     val su2 = createStorageUnit(partOf = inserted1.id)
     val inserted2 = service.addStorageUnit(mid, su2).futureValue
     inserted2.id must not be None
-    val wrongMid = MuseumId(4)
-    val notDeleted = service.deleteNode(wrongMid, inserted1.id.get).futureValue
-    notDeleted.isSuccess mustBe true
-    notDeleted.get mustBe None
+
+    val anotherMid = MuseumId(4)
+    val maybeDeleted = service.deleteNode(anotherMid, inserted1.id.get).futureValue
+    maybeDeleted.isSuccess mustBe true
+    maybeDeleted.get mustBe None
+
+    val stillNotDeleted = service.getNodeById(mid, inserted1.id.get).futureValue
+    stillNotDeleted.get must not be None
+    stillNotDeleted.get.get.id mustBe inserted1.id
   }
 
-  "not mark a node as deleted when it has wrong museumId" in {
+  "UnSuccessfully mark a node as deleted when it has wrong museumId" in {
     val mid = MuseumId(5)
     val su = createStorageUnit()
     val inserted = service.addStorageUnit(mid, su).futureValue
     inserted.id must not be None
+
     val wrongMid = MuseumId(4)
     val deleted = service.deleteNode(wrongMid, inserted.id.get).futureValue
     deleted.isSuccess mustBe true
@@ -286,33 +305,36 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     StillAvailable.isSuccess mustBe true
     StillAvailable.get.get.id mustBe inserted.id
   }
-  "Not update a storage unit and fetch as StorageNode with same data than before" in {
+  "UnSuccessfully update a storage unit and fetch as StorageNode with same data than before" in {
     val mid =  MuseumId(5)
-    /*val su = createStorageUnit()
+    val su = createStorageUnit()
     val inserted = service.addStorageUnit(mid, su).futureValue
     inserted.id must not be None
 
-    val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
-    res must not be None
-    res.get.storageType mustBe su.storageType
-    res.get.name mustBe su.name
+    val res = service.getNodeById(mid, inserted.id.get).futureValue
+    val storageUnit = res.get.get.asInstanceOf[StorageUnit]
+    storageUnit must not be None
+    storageUnit.storageType mustBe su.storageType
+    storageUnit.name mustBe su.name
+    storageUnit.name must include ("FooUnit")
+    storageUnit.areaTo mustBe Some(2.0)
 
-    val upd = res.get.copy(name = "UggaBugga", areaTo = Some(4.0))
+    val upd = storageUnit.copy(name = "UggaBugga", areaTo = Some(4.0))
+
     val wrongMid = MuseumId(4)
-    val updRes = service.updateStorageUnit(wrongMid, res.get.id.get, upd).futureValue
+    val updRes = service.updateStorageUnit(wrongMid, storageUnit.id.get, upd).futureValue
     updRes.isSuccess mustBe true
-    updRes.get must not be None
-    updRes.get.get.name mustBe "UggaBugga"
-    updRes.get.get.areaTo mustBe Some(4.0)
+    updRes.get mustBe None
 
     val again = service.getNodeById(mid, inserted.id.get).futureValue
     again.isSuccess mustBe true
-    again.get must not be None*/
-    //again.get.get.name mustBe "UggaBugga"
-    //again.get.get.areaTo mustBe Some(4.0)
+    again.get must not be None
+    val getAgain = again.get.get
+    getAgain.name must include ("FooUnit")
+    getAgain.areaTo mustBe Some(2.0)
   }
   "UnSuccessfully update a building with new environment requirements and wrong MuseumID" in {
-    val mid = 5
+    val mid = MuseumId(5)
     val building = createBuilding()
     val inserted = service.addBuilding(mid, building).futureValue
     inserted.id must not be None
@@ -324,7 +346,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       hypoxic = Some(Interval[Double](44.4, Some(55)))
     ))
     val ub = building.copy(environmentRequirement = someEnvReq, address = Some("BortIStaurOgVeggAddress"))
-    val wrongMid = 4
+    val wrongMid = MuseumId(4)
     val res = service.updateBuilding(wrongMid, inserted.id.get, ub).futureValue
     res.isSuccess mustBe true
     res.get mustBe None
@@ -333,7 +355,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     oldDataRes.get.get.address.get must include ("Foo")
   }
   "UnSuccessfully update a room with wrong or not existing MuseumID" in {
-    val mid = 5
+    val mid = MuseumId(5)
     val room = createRoom()
     val inserted = service.addRoom(mid, room).futureValue
     inserted.id must not be None
@@ -341,7 +363,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     inserted.securityAssessment.waterDamage.get mustBe false
     val secAss = inserted.securityAssessment.copy(waterDamage = Some(true))
     val uptRoom = room.copy(securityAssessment = secAss)
-    val wrongMid = 4
+    val wrongMid = MuseumId(4)
     val res = service.updateRoom(wrongMid, inserted.id.get, uptRoom).futureValue
     res.isSuccess mustBe true
     res.get mustBe None

@@ -11,4 +11,5 @@ object MuseumId {
   }
 
   implicit def fromInt(id: Int): MuseumId = MuseumId(id)
+  implicit def toInt(museumid: MuseumId): Int = museumid.underlying
 }

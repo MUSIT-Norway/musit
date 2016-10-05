@@ -179,7 +179,7 @@ trait NodeTypeInitializers {
   ): StorageUnit = {
     StorageUnit(
       id = None,
-      name = "FooUnit",
+      name = name,
       area = Some(1),
       areaTo = Some(2),
       isPartOf = partOf,

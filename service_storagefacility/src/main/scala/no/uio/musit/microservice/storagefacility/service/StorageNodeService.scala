@@ -595,7 +595,8 @@ class StorageNodeService @Inject() (
             }
           }
         }.getOrElse(
-          Future.successful(MusitInternalError("")))
+          Future.successful(MusitValidationError("Could not find to or from node."))
+        )
     }
   }
 

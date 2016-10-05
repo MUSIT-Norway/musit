@@ -10,6 +10,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
+import no.uio.musit.microservice.storagefacility.dao._
 
 /**
  * TODO: These tests are still somewhat fragile in that some of them
@@ -68,15 +69,15 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           }
           addedNodes.result()
         }
-        val mid = 2
-        generateAndAddRootNode(mid, 2).size mustBe 2
-        val mid1 = 3
-        generateAndAddRootNode(mid1, 2).size mustBe 2
+        val mid = MuseumId(2)
+        generateAndAddRootNode(mid.underlying, 2).size mustBe 2
+        val mid1 = MuseumId(3)
+        generateAndAddRootNode(mid1.underlying, 2).size mustBe 2
 
       }
 
       "successfully create an organisation node" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = organisationJson("My Org1", Some(StorageNodeId(1)))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -91,7 +92,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully create a building node" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = buildingJson("My Building1", StorageNodeId(5))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -105,7 +106,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully create a room node" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = roomJson("My Room1", Some(StorageNodeId(6)))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -119,7 +120,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully create a storage unit node" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("My Shelf1", StorageNodeId(7))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -133,7 +134,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "not allow creating a storage node with a name over 500 chars" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson(VeryLongString, StorageNodeId(7))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
 
@@ -141,17 +142,17 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "not allow creating a building with an address over 500 chars" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val bjs = buildingJson("fail", StorageNodeId(3))
         val json = bjs.as[JsObject] ++ Json.obj("address" -> VeryLongString)
 
-        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        val response = wsUrl(StorageNodesUrl(mid.underlying)).post(json).futureValue
 
         response.status mustBe Status.BAD_REQUEST
       }
 
       "successfully get an organisation" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val response = wsUrl(StorageNodeUrl(mid, 5)).get().futureValue
         response.status mustBe Status.OK
 
@@ -162,7 +163,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully get a building" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val response = wsUrl(StorageNodeUrl(mid, 6)).get().futureValue
         response.status mustBe Status.OK
 
@@ -173,7 +174,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully get a room" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val response = wsUrl(StorageNodeUrl(mid, 7)).get().futureValue
         response.status mustBe Status.OK
 
@@ -185,7 +186,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully get a storage unit" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val response = wsUrl(StorageNodeUrl(mid, 8)).get().futureValue
         response.status mustBe Status.OK
 
@@ -197,13 +198,13 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "not find a storage node with an invalid Id" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val response = wsUrl(StorageNodeUrl(mid, 9999)).get().futureValue
         response.status mustBe Status.NOT_FOUND
       }
 
       "successfully update a storage unit" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("My Shelf2", StorageNodeId(7))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -238,7 +239,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully update a room" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = roomJson("My Room2", Some(StorageNodeId(6)))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -271,7 +272,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully update a building with environment requirements" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = buildingJson("My Building2", StorageNodeId(5))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -306,7 +307,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully update an organisation" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = organisationJson("My Organisation2", Some(StorageNodeId(1)))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -338,7 +339,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "respond with 404 when trying to update a node that doesn't exist" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("Non existent", StorageNodeId(3))
 
         val failedUpdate = wsUrl(StorageNodeUrl(mid, 999)).put(json).futureValue
@@ -346,7 +347,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "list all children for a node with correct storage types" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val res = wsUrl(NodeChildrenUrl(mid, 1)).get().futureValue
 
         res.status mustBe Status.OK
@@ -357,7 +358,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully delete a storage node" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("Remove me", StorageNodeId(7))
         val res = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         val created = verifyNode[StorageUnit](
@@ -374,19 +375,19 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "respond with 404 when deleting a node that doesn't exist" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val rmRes = wsUrl(StorageNodeUrl(mid, 9999)).delete().futureValue
         rmRes.status mustBe Status.NOT_FOUND
       }
 
       "respond with 404 when deleting a node that is already deleted" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val rmRes = wsUrl(StorageNodeUrl(mid, 13)).delete().futureValue
         rmRes.status mustBe Status.NOT_FOUND
       }
 
       "respond with 404 when updating a node that is deleted" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = {
           storageUnitJson("Remove me", StorageNodeId(7)).as[JsObject] ++ Json.obj(
             "id" -> 13,
@@ -399,7 +400,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully move a single node" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("Move me", StorageNodeId(7))
         val res = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         val created = verifyNode[StorageUnit](
@@ -436,7 +437,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully move several nodes" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json1 = storageUnitJson("Move me1", StorageNodeId(7))
         val res1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
         val json2 = storageUnitJson("Move me2", StorageNodeId(7))
@@ -487,7 +488,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully move a node and all its children" in {
-        val mid = 2
+        val mid = MuseumId(2)
         // We know now that StorageNodeId 5 should have lots of children. Fetch!
         val res1 = wsUrl(NodeChildrenUrl(mid, 5)).get().futureValue
         res1.status mustBe Status.OK
@@ -531,7 +532,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully move several objects" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val id1 = 1234
         val id2 = 5678
         val id3 = 9876
@@ -578,14 +579,14 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "respond with 404(should be 403 ??) when trying to get an organisation with wrong museum" in {
-        val mid = 5
+        val mid = MuseumId(5)
         val json = storageUnitJson("Non existent museum", StorageNodeId(5))
         val failedUpdate = wsUrl(StorageNodeUrl(mid, 5)).put(json).futureValue
         failedUpdate.status mustBe Status.NOT_FOUND
       }
 
       "respond with 400 when trying to get an building with a museum that not exist" in {
-        val mid = 55
+        val mid = MuseumId(55)
         val json = storageUnitJson("Non existent museum", StorageNodeId(6))
 
         val failedUpdate = wsUrl(StorageNodeUrl(mid, 6)).put(json).futureValue
@@ -593,20 +594,20 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "Not list all children for a rootnode with museumId that not exist" in {
-        val mid = 55
+        val mid = MuseumId(55)
         val res = wsUrl(NodeChildrenUrl(mid, 1)).get().futureValue
         res.status mustBe Status.BAD_REQUEST
       }
 
       "Not list all children for a rootnode with wrong museumId " in {
-        val mid = 3
+        val mid = MuseumId(3)
         val res = wsUrl(NodeChildrenUrl(mid, 1)).get().futureValue
 
         res.status mustBe Status.OK
         res.json.as[JsArray].value.size mustBe 0
       }
        "UnSuccessfully get an organisation node with MuseumId that not exists" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = organisationJson("My Org1", Some(StorageNodeId(1)))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -618,17 +619,17 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
          organisation mustBe an[Organisation]
          organisation.path must not be None
          organisation.path.get mustBe NodePath(",1,18,")
-         val notExistsMid = 44
+         val notExistsMid = MuseumId(44)
          val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newOrg.id.get)).get.futureValue
          notExistsRes.status mustBe Status.BAD_REQUEST
-         val wrongMid = 4
+         val wrongMid = MuseumId(4)
          val wrongRes = wsUrl(StorageNodeUrl(wrongMid, newOrg.id.get)).get.futureValue
          wrongRes.status mustBe Status.NOT_FOUND
          // have to fill in later when auth-object is implemented.
       }
 
       "UnSuccessfully get a building node with MuseumId that not exists" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = buildingJson("My Building1", StorageNodeId(5))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -639,17 +640,17 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         building mustBe a[Building]
         building.path must not be None
         building.path.get mustBe NodePath(",2,5,19,")
-        val notExistsMid = 44
+        val notExistsMid = MuseumId(44)
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newBuilding.id.get)).get.futureValue
         notExistsRes.status mustBe Status.BAD_REQUEST
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val wrongRes = wsUrl(StorageNodeUrl(wrongMid, newBuilding.id.get)).get.futureValue
         wrongRes.status mustBe Status.NOT_FOUND
         // have to fill in later when auth-object is implemented.
       }
 
       "UnSuccessfully get a room node with MuseumId that not exists" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = roomJson("My Room1", Some(StorageNodeId(6)))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -660,17 +661,17 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         room mustBe a[Room]
         room.path must not be None
         room.path.get mustBe NodePath(",2,5,6,20,")
-        val notExistsMid = 44
+        val notExistsMid = MuseumId(44)
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newRoom.id.get)).get.futureValue
         notExistsRes.status mustBe Status.BAD_REQUEST
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val wrongRes = wsUrl(StorageNodeUrl(wrongMid, newRoom.id.get)).get.futureValue
         wrongRes.status mustBe Status.NOT_FOUND
         // have to fill in later when auth-object is implemented.
       }
 
       "UnSuccessfully get a storage unit node with MuseumId that not exists" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("My Shelf1", StorageNodeId(7))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -681,17 +682,17 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         su mustBe a[StorageUnit]
         su.path must not be None
         su.path.get mustBe NodePath(",2,5,6,7,21,")
-        val notExistsMid = 44
+        val notExistsMid = MuseumId(44)
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newStorageNode.id.get)).get.futureValue
         notExistsRes.status mustBe Status.BAD_REQUEST
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val wrongRes = wsUrl(StorageNodeUrl(wrongMid, newStorageNode.id.get)).get.futureValue
         wrongRes.status mustBe Status.NOT_FOUND
         // have to fill in later when auth-object is implemented.
       }
 
       "UnSuccessfully update a storage unit with MuseumId that not exists or is not the right one" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("My Shelf2", StorageNodeId(7))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -711,10 +712,10 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             "heightTo" -> JsNumber(.8)
           )
         }
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val updRes = wsUrl(StorageNodeUrl(wrongMid, su.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.NOT_FOUND
-        val NotExistsMid = 55
+        val NotExistsMid = MuseumId(55)
         val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, su.id.get)).put(updatedJson).futureValue
         notExistsupdRes.status mustBe Status.BAD_REQUEST
 
@@ -730,7 +731,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "UnSuccessfully update a room with MuseumId that not exists or is not the right one" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = roomJson("My Room2", Some(StorageNodeId(6)))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -750,10 +751,10 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             "waterDamage" -> true
           )
         }
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val updRes = wsUrl(StorageNodeUrl(wrongMid, room.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.NOT_FOUND
-        val NotExistsMid = 55
+        val NotExistsMid = MuseumId(55)
         val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, room.id.get)).put(updatedJson).futureValue
         notExistsupdRes.status mustBe Status.BAD_REQUEST
 
@@ -769,7 +770,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "UnSuccessfully update a building with environment requirements and MuseumId that not exists or is wrong" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = buildingJson("My Building2", StorageNodeId(5))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -789,10 +790,10 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             "environmentRequirement" -> Json.parse(envReqJson("Filthy"))
           )
         }
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val updRes = wsUrl(StorageNodeUrl(wrongMid, building.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.NOT_FOUND
-        val NotExistsMid = 55
+        val NotExistsMid = MuseumId(55)
         val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, building.id.get)).put(updatedJson).futureValue
         notExistsupdRes.status mustBe Status.BAD_REQUEST
 
@@ -809,7 +810,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
         "UnSuccessfully update an organisation with MuseumId that not exists or is wrong" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = organisationJson("My Organisation2", Some(StorageNodeId(1)))
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
@@ -828,11 +829,11 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             "address" -> "Fjære xxxx Huttiheita, Norge"
           )
         }
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val updRes = wsUrl(StorageNodeUrl(wrongMid, organisation.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.NOT_FOUND
 
-        val NotExistsMid = 55
+        val NotExistsMid = MuseumId(55)
         val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, organisation.id.get)).put(updatedJson).futureValue
         notExistsupdRes.status mustBe Status.BAD_REQUEST
 
@@ -847,26 +848,26 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "respond with 404 when trying to update a node that doesn't exist and with wrong MuseumId" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("Non existent", StorageNodeId(3))
 
         val failedUpdate = wsUrl(StorageNodeUrl(mid, 999)).put(json).futureValue
         failedUpdate.status mustBe Status.NOT_FOUND
 
-        val wrongMid = 55
+        val wrongMid = MuseumId(55)
         val failedUpdate1 = wsUrl(StorageNodeUrl(wrongMid, 999)).put(json).futureValue
         failedUpdate1.status mustBe Status.BAD_REQUEST
       }
 
       "Unsuccessfully list all children for a node with correct storage types but with wrong museumId" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val res = wsUrl(NodeChildrenUrl(mid, 1)).get().futureValue
         res.status mustBe Status.OK
         res.json.as[JsArray].value.nonEmpty mustBe true
         res.json.as[JsArray].value.foreach { jsv =>
           (jsv \ "type").as[String] mustBe "Organisation"
         }
-        val anotherMid = 6
+        val anotherMid = MuseumId(6)
         val res1 = wsUrl(NodeChildrenUrl(anotherMid, 1)).get().futureValue
         res1.status mustBe Status.OK
         res1.json.as[JsArray].value.isEmpty mustBe true
@@ -874,7 +875,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "Unsuccessfully delete a storage node with wrong museumId " in {
-        val mid = 2
+        val mid = MuseumId(2)
         val json = storageUnitJson("Remove me", StorageNodeId(7))
         val res = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         val created = verifyNode[StorageUnit](
@@ -882,7 +883,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         created mustBe a[StorageUnit]
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val rmRes = wsUrl(StorageNodeUrl(wrongMid, created.id.get)).delete().futureValue
         rmRes.status mustBe Status.NOT_FOUND
 
@@ -891,23 +892,23 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "respond with 400 when deleting a node that doesn't exist and with museumId that not exists" in {
-        val notExistsMmid = 55
+        val notExistsMmid = MuseumId(55)
         val rmRes = wsUrl(StorageNodeUrl(notExistsMmid, 9999)).delete().futureValue
         rmRes.status mustBe Status.BAD_REQUEST
       }
 
       "respond with 404 when trying to delete a node that is already deleted with wrong MuseumId" in {
-        val mid = 2
+        val mid = MuseumId(2)
         val rmRes = wsUrl(StorageNodeUrl(mid,26)).delete().futureValue
         rmRes.status mustBe Status.OK
 
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val rmRes1 = wsUrl(StorageNodeUrl(wrongMid, 26)).delete().futureValue
         rmRes1.status mustBe Status.NOT_FOUND
       }
 
       "respond with 404 when updating a node that is deleted and with wrong museumId" in {
-        val mid = 4
+        val mid = MuseumId(4)
         val json = {
           storageUnitJson("Remove me", StorageNodeId(7)).as[JsObject] ++ Json.obj(
             "id" -> 26,
@@ -921,8 +922,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         getDeleted.status mustBe Status.NOT_FOUND
       }
 
-      "successfully move a single node with wrong museumId" in {
-        val mid = 2
+      "UnSuccessfully move a single node with wrong museumId" in {
+        val mid = MuseumId(2)
         val json = storageUnitJson("Move me", StorageNodeId(7))
         val res = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         val created = verifyNode[StorageUnit](
@@ -942,14 +943,15 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
              |  "items": [${created.id.get.underlying}]
              |}""".stripMargin
         )
-        val wrongMid = 4
+        val wrongMid = MuseumId(4)
         val moveRes = wsUrl(MoveStorageNodeUrl(wrongMid)).put(moveJson).futureValue
 
         moveRes.status mustBe Status.BAD_REQUEST
-println(moveRes.json)
-        (moveRes.json \ "moved").as[JsArray].value.head.as[Long] mustBe moveMeId
-
+        println(Json.prettyPrint(moveRes.json))
+       // (moveRes.json \ "failed").as[JsArray].value.head.as[Long] mustBe moveMeId
+        (moveRes.json).toString() must include ("Nothing was moved")
         val movedNodeRes = wsUrl(StorageNodeUrl(mid, moveMeId)).get().futureValue
+
         val moved = verifyNode[StorageUnit](
           movedNodeRes, StorageUnitType, "Move me", moveMeId, Some(7)
         )
@@ -958,15 +960,15 @@ println(moveRes.json)
         moved.path.get mustBe NodePath(",2,5,6,7,27,")
 
       }
-
-      /*"successfully move several nodes" in {
-        val mid = 2
+      "successfully and unsuccessfully move several nodes with different museumId" in {
+        val mid = MuseumId(2)
         val json1 = storageUnitJson("Move me1", StorageNodeId(7))
         val res1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
         val json2 = storageUnitJson("Move me2", StorageNodeId(7))
         val res2 = wsUrl(StorageNodesUrl(mid)).post(json2).futureValue
+        val anotherMid = MuseumId(4)
         val json3 = storageUnitJson("Move me3", StorageNodeId(7))
-        val res3 = wsUrl(StorageNodesUrl(mid)).post(json3).futureValue
+        val res3 = wsUrl(StorageNodesUrl(anotherMid)).post(json3).futureValue
 
         res1.status mustBe Status.CREATED
         res2.status mustBe Status.CREATED
@@ -987,9 +989,12 @@ println(moveRes.json)
         val move = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
         move.status mustBe Status.OK
 
+        println(Json.prettyPrint(move.json))
+       (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id1
+       (move.json \ "failed").as[JsArray].value.head.as[Long] mustBe id3
         val movedRes1 = wsUrl(StorageNodeUrl(mid, id1)).get().futureValue
         val movedRes2 = wsUrl(StorageNodeUrl(mid, id2)).get().futureValue
-        val movedRes3 = wsUrl(StorageNodeUrl(mid, id3)).get().futureValue
+        val movedRes3 = wsUrl(StorageNodeUrl(anotherMid, id3)).get().futureValue
 
         val n1 = verifyNode[StorageUnit](
           movedRes1, StorageUnitType, "Move me1", id1, Some(9)
@@ -998,63 +1003,19 @@ println(moveRes.json)
           movedRes2, StorageUnitType, "Move me2", id2, Some(9)
         )
         val n3 = verifyNode[StorageUnit](
-          movedRes3, StorageUnitType, "Move me3", id3, Some(9)
+          movedRes3, StorageUnitType, "Move me3", id3, Some(7)
         )
 
         n1.path must not be None
         n2.path must not be None
         n3.path must not be None
-        n1.path.get mustBe NodePath(s",1,5,6,7,9,$id1,")
-        n2.path.get mustBe NodePath(s",1,5,6,7,9,$id2,")
-        n3.path.get mustBe NodePath(s",1,5,6,7,9,$id3,")
+        n1.path.get mustBe NodePath(s",2,5,6,7,9,$id1,")
+        n2.path.get mustBe NodePath(s",2,5,6,7,9,$id2,")
+        n3.path.get mustBe NodePath(s",2,5,6,7,$id3,")
 
       }
-
-      "successfully move a node and all its children" in {
-        val mid = 2
-        // We know now that StorageNodeId 5 should have lots of children. Fetch!
-        val res1 = wsUrl(NodeChildrenUrl(mid, 5)).get().futureValue
-        res1.status mustBe Status.OK
-        val directChildIds = res1.json.as[JsArray].value.map { jsv =>
-          (jsv \ "id").as[Long]
-        }
-
-        val subChildrenIds = directChildIds.flatMap { id =>
-          val r = wsUrl(NodeChildrenUrl(mid, id)).get().futureValue
-          r.status mustBe Status.OK
-          r.json.as[JsArray].value.map { jsv =>
-            (jsv \ "id").as[Long]
-          }
-        }
-
-        val verifyIds = directChildIds ++ subChildrenIds
-
-        val moveJson = Json.parse(
-          s"""{
-              |  "doneBy": 1,
-              |  "destination": 2,
-              |  "items": [5]
-              |}""".stripMargin
-        )
-
-        val moveRes = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
-        moveRes.status mustBe Status.OK
-        (moveRes.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain(5)
-
-        val paths = verifyIds.map { id =>
-          val r = wsUrl(StorageNodeUrl(mid, id)).get().futureValue
-          r.status mustBe Status.OK
-          (
-            (r.json \ "id").as[Int],
-            (r.json \ "path").as[String],
-            (r.json \ "isPartOf").asOpt[Int]
-          )
-        }
-
-        println(s"Child paths are:\n${paths.mkString("\n")}")
-      }
-
-      "successfully move several objects" in {
+     /* "successfully and UnSuccesfully move several objects with different MuseumId " in {
+     TODO: This test is pending until we can insert object with different museumId
         val mid = 2
         val id1 = 1234
         val id2 = 5678
@@ -1071,11 +1032,12 @@ println(moveRes.json)
         val move = wsUrl(MoveObjectUrl(mid)).put(moveJson).futureValue
 
         move.status mustBe Status.OK
+        println(Json.prettyPrint(move.json))
 
         (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
-      }
+      }*/
 
-      "update should fail if type doesn't match" in {
+      /*"update should fail if type doesn't match" in {
         //        val json = buildingJson("My Building10", StorageNodeId(1))
         //        val response = postStorageNode(json).futureValue
         //        response.status mustBe Status.CREATED

@@ -82,7 +82,7 @@ class OrganisationDao @Inject() (
     val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(mid, id, extendedOrgDto.storageUnitDto)
-      orgsUpdated <-  if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension) else DBIO.successful[Int](0)
+      orgsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension) else DBIO.successful[Int](0)
     } yield orgsUpdated
 
     db.run(action.transactionally).flatMap {

@@ -243,8 +243,8 @@ class StorageUnitDao @Inject() (
       if (res == 1) MusitSuccess(res)
       else MusitValidationError(
         message = s"Unexpected result marking storage node $id as deleted",
-        expected = 1,
-        actual = res
+        expected = Some(1),
+        actual = Some(res)
       )
     }
   }
@@ -265,8 +265,8 @@ class StorageUnitDao @Inject() (
       if (res == 1) MusitSuccess(res)
       else MusitValidationError(
         message = s"Unexpected result updating partOf for storage node $id",
-        expected = 1,
-        actual = res
+        expected = Some(1),
+        actual = Some(res)
       )
     }
   }

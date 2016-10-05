@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
-import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.{Museum, MuseumId, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageType}
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -35,9 +35,16 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   "StorageUnitDao" should {
 
     "succeed when inserting several root nodes" in {
-      val mid = 2
+      val mid = MuseumId(2)
       for (i <- 1 to 3) {
         val ins = storageUnitDao.insertRoot(mid, Root()).futureValue
+        ins.id.isEmpty must not be true
+        ins.storageType mustBe StorageType.RootType
+        ins.path mustBe Some(NodePath.empty)
+      }
+      val anotherMid = MuseumId(4)
+      for (i <- 1 to 3) {
+        val ins = storageUnitDao.insertRoot(anotherMid, Root()).futureValue
         ins.id.isEmpty must not be true
         ins.storageType mustBe StorageType.RootType
         ins.path mustBe Some(NodePath.empty)
@@ -45,7 +52,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "succeed when inserting a new storage unit" in {
-      val mid = 2
+      val mid = MuseumId(2)
       val path = Some(NodePath(",1,2,3,4,"))
       val inserted = storageUnitDao.insert(mid, createStorageUnit(path = path)).futureValue
       inserted.id must not be None
@@ -53,7 +60,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "successfully fetch a storage unit" in {
-      val mid = 5
+      val mid = MuseumId(5)
       val su = createStorageUnit()
       val inserted = storageUnitDao.insert(mid, su).futureValue
       inserted.id must not be None
@@ -66,7 +73,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "successfully update a storage unit and fetch as StorageNode" in {
-      val mid = 5
+      val mid = MuseumId(5)
       val su = createStorageUnit()
       val inserted = storageUnitDao.insert(mid, su).futureValue
       inserted.id must not be None
@@ -90,27 +97,27 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "successfully list root nodes" in {
-      val mid = 2
+      val mid = MuseumId(2)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
       nodes.size mustBe 3
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
 
     "UnSuccessfully list root nodes with wrong museum" in {
-      val mid = 5
+      val mid = MuseumId(5)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
       nodes.size mustBe 0
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
     "UnSuccessfully list root nodes with museum that do not exists" in {
-      val mid = 55
+      val mid = MuseumId(55)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
       nodes.size mustBe 0
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
 
     "successfully mark a node as deleted" in {
-      val mid = 2
+      val mid = MuseumId(2)
       val su = createStorageUnit()
       val inserted = storageUnitDao.insert(mid, su).futureValue
       inserted.id must not be None
@@ -121,6 +128,58 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
       val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
       res mustBe None
+    }
+    "UnSuccessfully fetch a storage unit with wrong museumId" in {
+      val mid = MuseumId(5)
+      val su = createStorageUnit()
+      val inserted = storageUnitDao.insert(mid, su).futureValue
+      inserted.id must not be None
+
+      val wrongMid = MuseumId(4)
+      val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
+      res must not be None
+
+      res.get.storageType mustBe su.storageType
+      res.get.name mustBe su.name
+    }
+
+    "UnSuccessfully update a storage unit with wrong museumId and fetch as StorageNode" in {
+      val mid = MuseumId(5)
+      val su = createStorageUnit()
+      val inserted = storageUnitDao.insert(mid, su).futureValue
+      inserted.id must not be None
+
+      val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
+      res must not be None
+      res.get.storageType mustBe su.storageType
+      res.get.name must include ("FooUnit")
+      res.get.name mustBe su.name
+      res.get.areaTo mustBe Some(2.0)
+
+      val upd = res.get.copy(name = "UggaBugga", areaTo = Some(4.0))
+
+      val anotherMid = MuseumId(4)
+      val updRes = storageUnitDao.update(anotherMid, res.get.id.get, upd).futureValue
+      updRes mustBe None
+
+      val again = storageUnitDao.getById(mid, inserted.id.get).futureValue
+      again must not be None
+      again.get.name mustBe "FooUnit"
+      again.get.areaTo mustBe Some(2.0)
+    }
+
+    "Unsuccessfully mark a node as deleted with wrong museumId" in {
+      val mid = MuseumId(2)
+      val su = createStorageUnit()
+      val inserted = storageUnitDao.insert(mid, su).futureValue
+      inserted.id must not be None
+
+      val anotherMid = MuseumId(4)
+      val deleted = storageUnitDao.markAsDeleted(anotherMid, inserted.id.get).futureValue
+      deleted.isFailure mustBe true
+
+      val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
+      res.get.id mustBe Some(inserted.id.get)
     }
   }
 
