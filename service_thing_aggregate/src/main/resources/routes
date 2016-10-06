@@ -1,1 +1,2 @@
 GET        /node/:nodeId/objects        controllers.ObjectAggregationController.getObjects(nodeId: Long)
+GET        /museum/:mid/objects/search  controllers.ObjectSearchController.search(mid: Int, museumNo: String ?= "", subNo: String ?= "", term: String ?= "", page: Int ?=1, limit: Int ?=25)
