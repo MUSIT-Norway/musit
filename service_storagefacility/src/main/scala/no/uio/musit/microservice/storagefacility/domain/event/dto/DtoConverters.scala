@@ -615,7 +615,7 @@ object DtoConverters {
       )
     }
 
-    private def moveFromDto[A <: MoveEvent](
+    def moveFromDto[A <: MoveEvent](
       dto: BaseEventDto
     )(init: (BaseEvent, EventType, PlaceRole) => A): A = {
       val base = baseFromDto(dto)

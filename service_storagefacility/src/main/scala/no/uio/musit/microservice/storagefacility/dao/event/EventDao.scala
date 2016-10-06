@@ -60,14 +60,14 @@ import scala.reflect.ClassTag
 @Singleton
 class EventDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider,
-    val eventRelationDao: EventRelationDao,
+    val relationDao: EventRelationDao,
     val obsFromToDao: ObservationFromToDao,
     val obsPestDao: ObservationPestDao,
     val envReqDao: EnvRequirementDao,
-    val evtActorsDao: EventActorsDao,
-    val evtObjectsDao: EventObjectsDao,
-    val evtPlacesDao: EventPlacesDao,
-    val evtPlacesAsObjDao: EventPlacesAsObjectsDao,
+    val actorsDao: EventActorsDao,
+    val objectsDao: EventObjectsDao,
+    val placesDao: EventPlacesDao,
+    val placesAsObjDao: EventPlacesAsObjectsDao,
     val localObjectDao: LocalObjectDao
 ) extends SharedEventTables with ColumnTypeMappers {
 
@@ -126,25 +126,25 @@ class EventDao @Inject() (
     eventId: Long,
     actors: Seq[EventRoleActor]
   ): DBIO[Option[Int]] =
-    insertRelatedType(eventId, actors)(evtActorsDao.insertActors)
+    insertRelatedType(eventId, actors)(actorsDao.insertActors)
 
   private[this] def insertRelatedObjects(
     eventId: Long,
     objects: Seq[EventRoleObject]
   ): DBIO[Option[Int]] =
-    insertRelatedType(eventId, objects)(evtObjectsDao.insertObjects)
+    insertRelatedType(eventId, objects)(objectsDao.insertObjects)
 
   private[this] def insertRelatedPlaces(
     eventId: Long,
     places: Seq[EventRolePlace]
   ): DBIO[Option[Int]] =
-    insertRelatedType(eventId, places)(evtPlacesDao.insertPlaces)
+    insertRelatedType(eventId, places)(placesDao.insertPlaces)
 
   private[this] def insertRelatedObjectsAsPlaces(
     eventId: Long,
     objPlaces: Seq[EventRoleObject]
   ): DBIO[Option[Int]] =
-    insertRelatedType(eventId, objPlaces)(evtPlacesAsObjDao.insertObjects)
+    insertRelatedType(eventId, objPlaces)(placesAsObjDao.insertObjects)
 
   /**
    * Creates an action to insert the event and potentially all related
@@ -174,7 +174,7 @@ class EventDao @Inject() (
         // Insert the event relations
         _ <- {
           partialRelation.filterNot(_ => isPartsRelation).map { pel =>
-            eventRelationDao.insertRelationAction(pel.toFullLink(theEventId))
+            relationDao.insertRelationAction(pel.toFullLink(theEventId))
           }.getOrElse(DBIO.successful[Int](0))
         }
         // Insert any related actor relations
@@ -240,21 +240,21 @@ class EventDao @Inject() (
 
     for {
       maybeBase <- futureBaseEvent
-      actors <- evtActorsDao.getRelatedActors(id)
+      actors <- actorsDao.getRelatedActors(id)
       objects <- {
         maybeBase.map { dto =>
           // Only cases where the event is a MoveObject event is the
           // related object in the evtObjectsDao
           if (MoveObjectType.id == dto.eventTypeId) {
-            evtObjectsDao.getRelatedObjects(id)
+            objectsDao.getRelatedObjects(id)
           } else {
-            evtPlacesAsObjDao.getRelatedObjects(id)
+            placesAsObjDao.getRelatedObjects(id)
           }
         }.getOrElse {
           Future.successful(Seq.empty)
         }
       }
-      places <- evtPlacesDao.getRelatedPlaces(id)
+      places <- placesDao.getRelatedPlaces(id)
     } yield {
       maybeBase.map {
         _.copy(
@@ -397,13 +397,13 @@ class EventDao @Inject() (
     eventTypeId: EventTypeId
   ): Future[MusitResult[Option[EventDto]]] = {
     for {
-      maybeErp <- evtPlacesAsObjDao.latestForNode(id, eventTypeId)
+      maybeEventId <- placesAsObjDao.latestEventIdFor(id, eventTypeId)
       evt <- {
-        logger.debug(s"Latest event relation for node $id is $maybeErp")
-        maybeErp.map { erp =>
+        logger.debug(s"Latest eventId for node $id is $maybeEventId")
+        maybeEventId.map { erp =>
           getEvent(
             // We can use Option.get here because it must have a value.
-            id = erp.eventId.get,
+            id = maybeEventId.get,
             eventTypeId = Some(eventTypeId)
           )
         }.getOrElse(Future.successful(MusitSuccess(None)))
@@ -485,7 +485,7 @@ class EventDao @Inject() (
       }
     }
 
-    val futureRelatedDtos = eventRelationDao.getRelatedEvents(parentId)
+    val futureRelatedDtos = relationDao.getRelatedEvents(parentId)
 
     futureRelatedDtos.flatMap { relatedDtos =>
       val groups = relatedDtos.groupBy(_._1).map {
@@ -535,10 +535,7 @@ class EventDao @Inject() (
     eventType: TopLevelEvent
   ): Future[Seq[EventDto]] = {
     // First fetch the eventIds from the place as object relation table.
-    val futureEventIds = evtPlacesAsObjDao.getEventsForNode(nodeId).map { objs =>
-      logger.debug(s"Found ${objs.size} events for $nodeId")
-      objs.map(_.eventId).filter(_.isDefined).map(_.get)
-    }
+    val futureEventIds = placesAsObjDao.latestEventIdsFor(nodeId, eventType.id)
     // Iterate the list of IDs and fetch the related event.
     futureEventIds.flatMap { ids =>
       logger.debug(s"Going to look for events with eventIds ${ids.mkString(", ")}")
@@ -558,6 +555,20 @@ class EventDao @Inject() (
         }.filter(_.isDefined).map(_.get)
       }
     }
+  }
+
+  def getLocationHistory(nodeId: StorageNodeId, limit: Int) = {
+    val futureEventIds = placesAsObjDao.latestEventIdsFor(
+      nodeId = nodeId,
+      eventTypeId = MoveNodeType.id,
+      limit = Some(limit)
+    )
+
+    futureEventIds.flatMap { ids =>
+
+      ???
+    }
+
   }
 
 }

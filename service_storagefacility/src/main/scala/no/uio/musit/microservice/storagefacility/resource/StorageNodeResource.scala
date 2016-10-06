@@ -231,7 +231,11 @@ final class StorageNodeResource @Inject() (
     }
   }
 
-  // TODO: Check if moving to self...should be illegal!
+  /**
+   * TODO: Document me!
+   *
+   * TODO: Check if moving to self...should be illegal!
+   */
   def moveNode = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[Move[StorageNodeId]] match {
@@ -245,6 +249,9 @@ final class StorageNodeResource @Inject() (
     }
   }
 
+  /**
+   * TODO: Document me!
+   */
   def moveObject = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[Move[Long]] match {
@@ -258,6 +265,23 @@ final class StorageNodeResource @Inject() (
     }
   }
 
+  /**
+   * Endpoint for retrieving the {{{limit}}} number of past move events.
+   *
+   * @param nodeId StorageNodeId to get move history for.
+   * @param limit Int indicating the number of results to return.
+   * @return A JSON array with the {{{limi}}} number of move events.
+   */
+  def locations(nodeId: Long, limit: Int) = Action.async { implicit request =>
+    service.locationHistory(nodeId, limit).map {
+      case MusitSuccess(history) => Ok(Json.toJson(history))
+      case err: MusitError => InternalServerError(Json.obj("" -> err.message))
+    }
+  }
+
+  /**
+   * TODO: Document me!
+   */
   def stats(nodeId: Long) = Action.async { implicit request =>
     service.nodeStats(nodeId).map {
       case MusitSuccess(maybeStats) =>

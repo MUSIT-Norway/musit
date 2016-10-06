@@ -24,9 +24,9 @@ import no.uio.musit.microservice.storagefacility.dao.storage._
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, DtoConverters}
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath, NodeStats}
+import no.uio.musit.microservice.storagefacility.domain.{LocationHistory, NamedPathElement, NodePath, NodeStats}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -524,8 +524,10 @@ class StorageNodeService @Inject() (
    */
   private def move(
     id: Long,
-    dto: BaseEventDto
+    event: MoveEvent
   )(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
+    val dto = DtoConverters.MoveConverters.moveToDto(event)
+
     eventDao.insertEvent(dto).flatMap(eventId => f(eventId)).recover {
       case NonFatal(ex) =>
         val msg = s"An exception occured trying to move $id"
@@ -541,12 +543,11 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     event: MoveNode
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
-    val dto = DtoConverters.MoveConverters.moveNodeToDto(event)
 
     def mv(fromPath: NodePath, toPath: NodePath): Future[MusitResult[Long]] = {
       unitDao.updatePathForSubTree(id, fromPath, toPath.appendChild(id)).flatMap {
         case MusitSuccess(numUpdated) =>
-          move(id, dto) { eventId =>
+          move(id, event) { eventId =>
             unitDao.updatePartOf(id, Some(event.to.placeId)).map { updRes =>
               logger.debug(s"Update partOf result $updRes")
               MusitSuccess(eventId)
@@ -557,8 +558,8 @@ class StorageNodeService @Inject() (
       }
     }
 
-    val eventuallyCurrent = unitDao.getAllById(id)
-    val eventuallyMaybeTo = unitDao.getAllById(event.to.placeId)
+    val eventuallyCurrent = unitDao.getNodeById(id)
+    val eventuallyMaybeTo = unitDao.getNodeById(event.to.placeId)
 
     val eventuallyExistance = for {
       maybeCurrent <- eventuallyCurrent
@@ -566,7 +567,7 @@ class StorageNodeService @Inject() (
     } yield (maybeCurrent, maybeTo)
 
     eventuallyExistance.flatMap {
-      case (maybeCurrent: Option[StorageUnit], maybeTo: Option[StorageUnit]) =>
+      case (maybeCurrent: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
         maybeCurrent.flatMap { current =>
           maybeTo.map { to =>
             logger.debug(s"Going to move node $id from ${current.path} to ${to.path}")
@@ -586,9 +587,21 @@ class StorageNodeService @Inject() (
     objectId: Long,
     event: MoveObject
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
-    val dto = DtoConverters.MoveConverters.moveObjectToDto(event)
-    move(objectId, dto) { eventId =>
+    move(objectId, event) { eventId =>
       Future.successful(MusitSuccess(eventId))
     }
+  }
+
+  /**
+   * Returns the
+   *
+   * @param id
+   * @return
+   */
+  def locationHistory(
+    id: StorageNodeId,
+    limit: Int = 50
+  ): Future[MusitResult[Seq[LocationHistory]]] = {
+    ???
   }
 }
