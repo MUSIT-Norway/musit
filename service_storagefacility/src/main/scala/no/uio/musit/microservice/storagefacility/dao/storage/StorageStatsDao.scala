@@ -54,7 +54,7 @@ class StorageStatsDao @Inject() (
       sql"""
         SELECT COUNT(*)
         FROM "MUSARK_STORAGE"."STORAGE_NODE", "MUSARK_STORAGE"."LOCAL_OBJECT"
-        WHERE "STORAGE_NODE".NODE_PATH LIKE ${nodeFilter}
+        WHERE "STORAGE_NODE"."NODE_PATH" LIKE ${nodeFilter}
         AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = "STORAGE_NODE"."STORAGE_NODE_ID"
       """.as[Int].head
     )
