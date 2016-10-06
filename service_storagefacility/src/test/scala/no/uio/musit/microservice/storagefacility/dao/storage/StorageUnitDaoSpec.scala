@@ -36,7 +36,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   "StorageUnitDao" should {
 
     "succeed when inserting several root nodes" in {
-      for (i <- 1 to 3) {
+      for (i <- 7 to 9) {
         val insId = storageUnitDao.insertRoot(Root()).futureValue
         insId mustBe a[StorageNodeId]
         insId mustBe StorageNodeId(i.toLong)
@@ -86,7 +86,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
     "successfully list root nodes" in {
       val nodes = storageUnitDao.findRootNodes.futureValue
-      nodes.size mustBe 3
+      nodes.size mustBe 4
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
 
@@ -104,32 +104,32 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "successfully fetch the named path elements for a storage node" in {
-      val path1 = NodePath(",1,8,")
+      val path1 = NodePath(",7,14,")
       val su1 = createStorageUnit(
-        partOf = Some(StorageNodeId(1)),
+        partOf = Some(StorageNodeId(7)),
         path = path1
       ).copy(name = "node1")
       val insId1 = storageUnitDao.insert(su1).futureValue
       insId1 mustBe a[StorageNodeId]
-      insId1 mustBe StorageNodeId(8)
+      insId1 mustBe StorageNodeId(14)
 
-      val path2 = path1.appendChild(StorageNodeId(9))
+      val path2 = path1.appendChild(StorageNodeId(15))
       val su2 = createStorageUnit(
         partOf = Some(insId1),
         path = path2
       ).copy(name = "node2")
       val insId2 = storageUnitDao.insert(su2).futureValue
       insId2 mustBe a[StorageNodeId]
-      insId2 mustBe StorageNodeId(9)
+      insId2 mustBe StorageNodeId(15)
 
       val res = storageUnitDao.namesForPath(path2).futureValue
       res must not be empty
       res.size mustBe 3
-      res.head.nodeId mustBe StorageNodeId(1)
+      res.head.nodeId mustBe StorageNodeId(7)
       res.head.name mustBe "root-node"
-      res.tail.head.nodeId mustBe StorageNodeId(8)
+      res.tail.head.nodeId mustBe StorageNodeId(14)
       res.tail.head.name mustBe "node1"
-      res.last.nodeId mustBe StorageNodeId(9)
+      res.last.nodeId mustBe StorageNodeId(15)
       res.last.name mustBe "node2"
 
     }
