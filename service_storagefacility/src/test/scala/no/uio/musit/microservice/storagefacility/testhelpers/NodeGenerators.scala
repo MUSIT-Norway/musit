@@ -52,38 +52,44 @@ trait NodeGenerators extends NodeTypeInitializers {
     instance(musitFakeApp)
   }
 
-  // Some default nodes
-  lazy val defaultBuilding: Building = {
+  private def createAndFetchNode[A <: StorageNode](
+    node: A,
+    insert: A => Future[StorageNodeId],
+    get: StorageNodeId => Future[Option[A]]
+  ): A = {
     Await.result({
       for {
-        nodeId <- buildingDao.insert(createBuilding())
-        nodeRes <- buildingDao.getById(nodeId)
+        nodeId <- insert(node)
+        nodeRes <- get(nodeId)
       } yield {
         nodeRes.get
       }
     }, 5 seconds)
+  }
+
+  // Some default nodes
+  lazy val defaultBuilding: Building = {
+    createAndFetchNode(
+      node = createBuilding(),
+      insert = buildingDao.insert,
+      get = buildingDao.getById
+    )
   }
 
   lazy val defaultRoom: Room = {
-    Await.result({
-      for {
-        nodeId <- roomDao.insert(createRoom())
-        nodeRes <- roomDao.getById(nodeId)
-      } yield {
-        nodeRes.get
-      }
-    }, 5 seconds)
+    createAndFetchNode(
+      node = createRoom(),
+      insert = roomDao.insert,
+      get = roomDao.getById
+    )
   }
 
   lazy val defaultStorageUnit: StorageUnit = {
-    Await.result({
-      for {
-        nodeId <- storageUnitDao.insert(createStorageUnit())
-        nodeRes <- storageUnitDao.getById(nodeId)
-      } yield {
-        nodeRes.get // It _has_ to be present...if this fails all else fails
-      }
-    }, 5 seconds)
+    createAndFetchNode(
+      createStorageUnit(),
+      storageUnitDao.insert,
+      storageUnitDao.getById
+    )
   }
 
   def addRoot(r: Root) = storageUnitDao.insertRoot(r)

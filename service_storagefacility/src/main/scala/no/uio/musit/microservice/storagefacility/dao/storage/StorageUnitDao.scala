@@ -74,9 +74,9 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getAllById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getAllByIdAction(id)
-    db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
+  def getNodeById(id: StorageNodeId): Future[Option[GenericStorageNode]] = {
+    val query = getNodeByIdAction(id)
+    db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
   }
 
   /**

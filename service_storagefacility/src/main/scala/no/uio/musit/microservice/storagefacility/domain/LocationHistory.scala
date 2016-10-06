@@ -17,25 +17,36 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.formatters
+package no.uio.musit.microservice.storagefacility.domain
 
+import no.uio.musit.formatters.WithDateTimeFormatters
 import org.joda.time.DateTime
-import play.api.libs.json.{Format, Reads, Writes}
+import play.api.libs.json.{Json, Writes}
 
 /**
- * Converters helping to converting DateTime to/from UTC/ISO formatted dates.
+ *
  */
-trait WithDateTimeFormatters {
+case class LocationHistory(
+  registeredBy: String,
+  registeredDate: DateTime,
+  doneBy: Option[Int],
+  doneDate: DateTime,
+  from: FacilityLocation,
+  to: FacilityLocation
+)
 
-  val defaultDateTimePattern: String = "yyyy-MM-dd'T'HH:mm:ssZZ"
-  val readDateTimeMillisPattern: String = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
-
-  // Joda date formatter
-  implicit val dateTimeFormatter = Format[DateTime](
-    Reads.jodaDateReads(defaultDateTimePattern)
-      .orElse(Reads.jodaDateReads(readDateTimeMillisPattern)),
-    Writes.jodaDateWrites(defaultDateTimePattern)
-  )
+object LocationHistory extends WithDateTimeFormatters {
+  implicit val writes: Writes[LocationHistory] = Json.writes[LocationHistory]
 }
 
-object DateTimeFormatters extends WithDateTimeFormatters
+/**
+ *
+ */
+case class FacilityLocation(
+  path: NodePath,
+  pathNames: Seq[NamedPathElement]
+)
+
+object FacilityLocation {
+  implicit val writes: Writes[FacilityLocation] = Json.writes[FacilityLocation]
+}

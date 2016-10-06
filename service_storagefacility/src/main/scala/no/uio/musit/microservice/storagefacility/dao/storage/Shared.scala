@@ -63,7 +63,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     }.result.headOption
   }
 
-  protected[storage] def getAllByIdAction(
+  protected[storage] def getNodeByIdAction(
     id: StorageNodeId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>

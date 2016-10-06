@@ -21,12 +21,12 @@ package no.uio.musit.microservice.storagefacility.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.{EventDao, LocalObjectDao}
 import no.uio.musit.microservice.storagefacility.dao.storage._
+import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.microservice.storagefacility.domain.datetime._
-import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, DtoConverters}
+import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
-import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath, NodeStats}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -524,8 +524,10 @@ class StorageNodeService @Inject() (
    */
   private def move(
     id: Long,
-    dto: BaseEventDto
+    event: MoveEvent
   )(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
+    val dto = DtoConverters.MoveConverters.moveToDto(event)
+
     eventDao.insertEvent(dto).flatMap(eventId => f(eventId)).recover {
       case NonFatal(ex) =>
         val msg = s"An exception occured trying to move $id"
@@ -541,13 +543,16 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     event: MoveNode
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
-    val dto = DtoConverters.MoveConverters.moveNodeToDto(event)
 
-    def mv(fromPath: NodePath, toPath: NodePath): Future[MusitResult[Long]] = {
-      unitDao.updatePathForSubTree(id, fromPath, toPath.appendChild(id)).flatMap {
+    def mv(
+      e: MoveNode,
+      from: GenericStorageNode,
+      to: GenericStorageNode
+    ): Future[MusitResult[Long]] = {
+      unitDao.updatePathForSubTree(id, from.path, to.path.appendChild(id)).flatMap {
         case MusitSuccess(numUpdated) =>
-          move(id, dto) { eventId =>
-            unitDao.updatePartOf(id, Some(event.to.placeId)).map { updRes =>
+          move(id, e) { eventId =>
+            unitDao.updatePartOf(id, Some(e.to)).map { updRes =>
               logger.debug(s"Update partOf result $updRes")
               MusitSuccess(eventId)
             }
@@ -557,8 +562,8 @@ class StorageNodeService @Inject() (
       }
     }
 
-    val eventuallyCurrent = unitDao.getAllById(id)
-    val eventuallyMaybeTo = unitDao.getAllById(event.to.placeId)
+    val eventuallyCurrent = unitDao.getNodeById(id)
+    val eventuallyMaybeTo = unitDao.getNodeById(event.to)
 
     val eventuallyExistance = for {
       maybeCurrent <- eventuallyCurrent
@@ -566,11 +571,12 @@ class StorageNodeService @Inject() (
     } yield (maybeCurrent, maybeTo)
 
     eventuallyExistance.flatMap {
-      case (maybeCurrent: Option[StorageUnit], maybeTo: Option[StorageUnit]) =>
+      case (maybeCurrent: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
         maybeCurrent.flatMap { current =>
           maybeTo.map { to =>
+            val theEvent = event.copy(from = current.id)
             logger.debug(s"Going to move node $id from ${current.path} to ${to.path}")
-            mv(current.path, to.path).map { res =>
+            mv(theEvent, current, to).map { res =>
               logger.debug(s"Updated $res entries")
               res
             }
@@ -586,9 +592,63 @@ class StorageNodeService @Inject() (
     objectId: Long,
     event: MoveObject
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
-    val dto = DtoConverters.MoveConverters.moveObjectToDto(event)
-    move(objectId, dto) { eventId =>
+    move(objectId, event) { eventId =>
       Future.successful(MusitSuccess(eventId))
+    }
+  }
+
+  /**
+   * Returns the
+   *
+   * @param id
+   * @return
+   */
+  def locationHistory(
+    id: StorageNodeId,
+    limit: Option[Int]
+  ): Future[MusitResult[Seq[LocationHistory]]] = {
+
+    def findPathAndNames(id: StorageNodeId): Future[(NodePath, Seq[NamedPathElement])] = {
+      findPath(Some(id)).filter(_.isDefined).flatMap { maybePath =>
+        val p = maybePath.get
+        unitDao.namesForPath(p).map(names => (p, names))
+      }
+    }
+
+    val res = eventDao.getLocationHistory(id, limit).flatMap { events =>
+      Future.sequence {
+        events.map { e =>
+          val fromTuple = findPathAndNames(e.from.get)
+          val toTuple = findPathAndNames(e.to)
+
+          for {
+            from <- fromTuple
+            to <- toTuple
+          } yield {
+            LocationHistory(
+              registeredBy = e.baseEvent.registeredBy.getOrElse(""),
+              // registered date is required on event, so it must be there.
+              registeredDate = e.baseEvent.registeredDate.get,
+              doneBy = e.baseEvent.doneBy.map(_.actorId),
+              doneDate = e.baseEvent.doneDate,
+              from = FacilityLocation(
+                path = from._1,
+                pathNames = from._2
+              ),
+              to = FacilityLocation(
+                path = to._1,
+                pathNames = to._2
+              )
+            )
+          }
+        }
+      }
+    }
+    res.map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"Fetching of location history for node $id failed"
+        logger.error(msg)
+        MusitInternalError(msg)
     }
   }
 }
