@@ -55,9 +55,9 @@ object EnvRequirement {
    * Convert an EnvironmentRequirement type into an EnvRequirement event.
    *
    * @param affectedNodeId The StorageNodeId the event applies to
-   * @param now The current timestamp.
-   * @param er EnvironmentRequirement to convert
-   * @param currUsr The currently logged in user.
+   * @param now            The current timestamp.
+   * @param er             EnvironmentRequirement to convert
+   * @param currUsr        The currently logged in user.
    * @return an EnvRequirement instance
    */
   def toEnvRequirementEvent(

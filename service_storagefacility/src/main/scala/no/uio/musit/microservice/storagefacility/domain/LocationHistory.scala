@@ -27,9 +27,9 @@ import play.api.libs.json.{Json, Writes}
  *
  */
 case class LocationHistory(
-  registeredBy: Int,
+  registeredBy: String,
   registeredDate: DateTime,
-  doneBy: Option[String],
+  doneBy: Option[Int],
   doneDate: DateTime,
   from: FacilityLocation,
   to: FacilityLocation
@@ -44,7 +44,7 @@ object LocationHistory extends WithDateTimeFormatters {
  */
 case class FacilityLocation(
   path: NodePath,
-  pathNames: NamedPathElement
+  pathNames: Seq[NamedPathElement]
 )
 
 object FacilityLocation {

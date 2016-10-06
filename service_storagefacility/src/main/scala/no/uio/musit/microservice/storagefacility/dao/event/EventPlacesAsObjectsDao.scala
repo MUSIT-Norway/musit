@@ -79,11 +79,14 @@ class EventPlacesAsObjectsDao @Inject() (
     limit: Option[Int] = None
   ): Future[Seq[Long]] = {
     val q = placesAsObjectsTable.filter { erp =>
-      erp.placeId === nodeId &&
-        erp.eventTypeId === eventTypeId
-    }.map(_.eventId)
+      erp.placeId === nodeId && erp.eventTypeId === eventTypeId
+    }.sortBy(_.eventId.desc).map(_.eventId)
 
-    val query = limit.map(l => q.take(l)).getOrElse(q).result
+    val query = limit.map {
+      case l: Int if l > 0 => q.take(l)
+      case l: Int if l == -1 => q
+      case l: Int => q.take(50)
+    }.getOrElse(q).result
     db.run(query)
   }
 
@@ -97,7 +100,12 @@ class EventPlacesAsObjectsDao @Inject() (
     val placeId = column[StorageNodeId]("PLACE_ID")
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
 
-    def create = (eventId: Option[Long], roleId: Int, placeId: StorageNodeId, eventTypeId: EventTypeId) =>
+    def create = (
+      eventId: Option[Long],
+      roleId: Int,
+      placeId: StorageNodeId,
+      eventTypeId: EventTypeId
+    ) =>
       EventRolePlace(
         eventId = eventId,
         roleId = roleId,

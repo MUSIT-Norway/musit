@@ -273,7 +273,7 @@ final class StorageNodeResource @Inject() (
    * @return A JSON array with the {{{limi}}} number of move events.
    */
   def locations(nodeId: Long, limit: Int) = Action.async { implicit request =>
-    service.locationHistory(nodeId, limit).map {
+    service.locationHistory(nodeId, Option(limit)).map {
       case MusitSuccess(history) => Ok(Json.toJson(history))
       case err: MusitError => InternalServerError(Json.obj("" -> err.message))
     }

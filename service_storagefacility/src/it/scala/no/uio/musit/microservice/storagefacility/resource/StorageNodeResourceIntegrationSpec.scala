@@ -3,9 +3,11 @@ package no.uio.musit.microservice.storagefacility.resource
 import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
 import no.uio.musit.microservice.storagefacility.test._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
+import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json._
@@ -517,31 +519,26 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
       }
 
-      "update should fail if type doesn't match" in {
-        //        val json = buildingJson("My Building10", StorageNodeId(1))
-        //        val response = postStorageNode(json).futureValue
-        //        response.status mustBe Status.CREATED
-        //        val building = verifyNode[Building](
-        //          response, BuildingType, "My Building10", 10, Some(1)
-        //        )
-        //        building mustBe a[Building]
-        //        building.areaTo mustBe Some(210.0)
-        //        building.heightTo mustBe Some(3.5)
-        //
-        //        val updatedJson = {
-        //          Json.parse(response.body).as[JsObject] ++ Json.obj(
-        //            "type" -> "Organisation"
-        //          )
-        //        }
-        //
-        //        val updRes = putStorageNode(building.id.get, updatedJson).futureValue
-        //        updRes.status mustBe Status.BAD_REQUEST
-        //
-        // TODO: This test is pending until it's been clarified if NotFound is
-        // a proper response in this case. I would argue that it is. Since there
-        // is no node in the DB matching the ID with the wrong type
-        pending
+      "successfully fetch the location history for a given node" in {
+        val res = wsUrl(LocationHistoryUrl(5)).get().futureValue
+        res.status mustBe Status.OK
+        val resArr = res.json.as[JsArray].value
+        resArr must not be empty
+        val firstElem = resArr.head
+
+        val today = DateTime.now.withTimeAtStartOfDay()
+
+        (firstElem \ "doneDate").as[DateTime] mustBe today
+        (firstElem \ "doneBy").as[Int] mustBe 1
+        (firstElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
+        (firstElem \ "registeredBy").as[String] mustBe "Darth Vader"
+        (firstElem \ "from" \ "path").as[NodePath] mustBe NodePath(",2,5,")
+        (firstElem \ "from" \ "pathNames").as[JsArray].value must not be empty
+        (firstElem \ "to" \ "path").as[NodePath] mustBe NodePath(",2,")
+        (firstElem \ "to" \ "pathNames").as[JsArray].value must not be empty
+
       }
+
     }
   }
 }

@@ -26,7 +26,9 @@ import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.Pa
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{EnvRequirementEventType, MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
+import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.MoveConverters
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
+import no.uio.musit.microservice.storagefacility.domain.event.move.MoveNode
 import no.uio.musit.microservice.storagefacility.domain.event.{EventTypeId, EventTypeRegistry}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.service.MusitResults._
@@ -366,14 +368,15 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    *
    * @param id
+   * @param eventTypeId
    * @param recursive Boolean indicating if children should be returned,
    *                  defaults to true.
    * @return The Dto containing the event data.
    */
   def getEvent(
     id: Long,
-    recursive: Boolean = true,
-    eventTypeId: Option[EventTypeId] = None
+    eventTypeId: Option[EventTypeId] = None,
+    recursive: Boolean = true
   ): Future[MusitResult[Option[EventDto]]] = {
     getBaseEvent(id, eventTypeId).flatMap { maybeDto =>
       maybeDto.map { base =>
@@ -529,27 +532,28 @@ class EventDao @Inject() (
    * query against the "EVENT_ROLE_PLACE_AS_OBJECT" to get all the relevant
    * eventIds. Then it will iterate that list and fire queries to fetch each
    * eventId individually. This could be quite costly in the long run.
+   *
+   * The method encapsulates commonly used logic to fetch specific event types
+   * for a given StorageNodeId.
    */
-  def getEventsForNode(
+  private def eventsForNode[EType <: TopLevelEvent, Res](
     nodeId: StorageNodeId,
-    eventType: TopLevelEvent
-  ): Future[Seq[EventDto]] = {
-    // First fetch the eventIds from the place as object relation table.
-    val futureEventIds = placesAsObjDao.latestEventIdsFor(nodeId, eventType.id)
-    // Iterate the list of IDs and fetch the related event.
-    futureEventIds.flatMap { ids =>
-      logger.debug(s"Going to look for events with eventIds ${ids.mkString(", ")}")
-      Future.traverse(ids) { eventId =>
-        getEvent(
-          id = eventId,
-          eventTypeId = Some(eventType.id)
-        )
-      }.map { results =>
-        results.filter(_.isSuccess).map {
-          case MusitSuccess(maybeSuccess) =>
-            maybeSuccess
+    eventType: EType,
+    limit: Option[Int] = None
+  )(success: EventDto => Res): Future[Seq[Res]] = {
+    val futureEventIds = placesAsObjDao.latestEventIdsFor(
+      nodeId = nodeId,
+      eventTypeId = eventType.id,
+      limit = limit
+    )
 
-          case notPossible =>
+    futureEventIds.flatMap { ids =>
+      Future.traverse(ids)(eId => getEvent(eId, Some(eventType.id))).map { res =>
+        res.filter(_.isSuccess).map {
+          case MusitSuccess(maybeSuccess) =>
+            maybeSuccess.map(dto => success(dto))
+
+          case impossible =>
             throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
 
         }.filter(_.isDefined).map(_.get)
@@ -557,18 +561,32 @@ class EventDao @Inject() (
     }
   }
 
-  def getLocationHistory(nodeId: StorageNodeId, limit: Int) = {
-    val futureEventIds = placesAsObjDao.latestEventIdsFor(
-      nodeId = nodeId,
-      eventTypeId = MoveNodeType.id,
-      limit = Some(limit)
-    )
+  /**
+   * Fetch events of a given TopLevelEvent type for the given StorageNodeId
+   *
+   * @param id StorageNodeId to get events for
+   * @param eventType TopLevelEvent type to fetch
+   * @tparam A type argument specifying the type of TopLevelEvent to fetch
+   * @return A Future of a collection of EventDtos
+   */
+  def getEventsForNode[A <: TopLevelEvent](
+    id: StorageNodeId,
+    eventType: A
+  ): Future[Seq[EventDto]] = eventsForNode(id, eventType)(dto => dto)
 
-    futureEventIds.flatMap { ids =>
-
-      ???
-    }
-
+  /**
+   * Fetch the {{{limit}}} number of last MoveNode events for the given
+   * StorageNodeId.
+   *
+   * @param nodeId StorageNodeId to get move events for
+   * @param limit Int specifying the number of move events to get
+   * @return A Future of a collection of MoveNode events.
+   */
+  def getLocationHistory(
+    nodeId: StorageNodeId,
+    limit: Option[Int]
+  ): Future[Seq[MoveNode]] = eventsForNode(nodeId, MoveNodeType, limit) { dto =>
+    MoveConverters.moveNodeFromDto(dto.asInstanceOf[BaseEventDto])
   }
 
 }
