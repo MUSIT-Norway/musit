@@ -190,7 +190,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     }
   }
 
-  "Not move a node and all its children with wrong museum" in {
+  "UnSuccessfully move a node and all its children with wrong museum" in {
    /* TODO: This test is pending until it's been clarified if this scenario will occur
     val mid = MuseumId(5)
     val root1 = service.addRoot(mid, Root()).futureValue

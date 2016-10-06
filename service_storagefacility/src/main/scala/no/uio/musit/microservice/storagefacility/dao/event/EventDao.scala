@@ -203,6 +203,8 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    */
   def insertEvent(mid: MuseumId, event: EventDto): Future[Long] = {
+    //sjekk alle noder eller objekter i event.relatedObjects og event.relatedPlaces for å finne
+    //om alle som skal flyttes har samme museumID som den som kommer inn.
     val action = insertEventAction(mid, event, None)
     db.run(action)
   }

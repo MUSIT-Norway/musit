@@ -45,31 +45,38 @@ class StorageNodeService @Inject() (
     val envReqService: EnvironmentRequirementService,
     val eventDao: EventDao,
     val localObjectDao: LocalObjectDao,
-    val statsDao: StorageStatsDao
+    val statsDao: StorageStatsDao,
+    val storageNodeDao: StorageUnitDao
 ) {
 
   val logger = Logger(classOf[StorageNodeService])
 
   private[service] def saveEnvReq(
-    mid: MuseumId,
-    nodeId: StorageNodeId,
-    envReq: EnvironmentRequirement
-  )(implicit currUsr: String): Future[Option[EnvironmentRequirement]] = {
-    val now = dateTimeNow
-    val er = EnvRequirement.toEnvRequirementEvent(nodeId, now, envReq)
+                                   mid: MuseumId,
+                                   nodeId: StorageNodeId,
+                                   envReq: EnvironmentRequirement
+                                 )(implicit currUsr: String): Future[Option[EnvironmentRequirement]] = {
+    storageNodeDao.getById(mid, nodeId).flatMap {
+      mayBeNode => mayBeNode.fold(Future.successful( None: Option[EnvironmentRequirement]))
+      { _ =>
+        val now = dateTimeNow
+        val er = EnvRequirement.toEnvRequirementEvent(nodeId, now, envReq)
 
-    envReqService.add(mid, er).map {
-      case MusitSuccess(success) =>
-        logger.debug("Successfully wrote environment requirement data " +
-          s"for node $nodeId")
-        Some(EnvRequirement.fromEnvRequirementEvent(er))
+        envReqService.add(mid, er).map {
+          case MusitSuccess(success) =>
+            logger.debug("Successfully wrote environment requirement data " +
+              s"for node $nodeId")
+            Some(EnvRequirement.fromEnvRequirementEvent(er))
 
-      case err: MusitError =>
-        logger.error("Something went wrong while storing the environment " +
-          s"requirements for node $nodeId")
-        None
+          case err: MusitError =>
+            logger.error("Something went wrong while storing the environment " +
+              s"requirements for node $nodeId")
+            None
+        }
+      }
     }
   }
+
 
   def addRoot(mid: MuseumId, root: Root): Future[Root] = {
     unitDao.insertRoot(mid, root).flatMap { r =>
