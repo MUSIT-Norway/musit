@@ -20,8 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
-import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ExtendedStorageNode, OrganisationDto, StorageNodeDto}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
@@ -30,7 +29,6 @@ import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 /**
  * TODO: Document me!!!
@@ -80,7 +78,7 @@ class OrganisationDao @Inject() (
     id: StorageNodeId,
     organisation: Organisation
   ): Future[MusitResult[Option[Int]]] = {
-    val extendedOrgDto = StorageNodeDto.fromOrganisation(organisation, Some(id))
+    val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(mid, id, extendedOrgDto.storageUnitDto)
       orgsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension) else DBIO.successful[Int](0)
@@ -93,10 +91,6 @@ class OrganisationDao @Inject() (
         val msg = wrongNumUpdatedRows(id, res)
         logger.warn(msg)
         MusitDbError(msg)
-      case NonFatal(ex) =>
-        logger.debug(s"Using $id, organisation has ID ${organisation.id}")
-        logger.error(s"There was an error updating organisation $id", ex)
-        None
     }
   }
 

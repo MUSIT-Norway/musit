@@ -1,10 +1,6 @@
 package no.uio.musit.microservice.storagefacility.service
 
-import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
-import no.uio.musit.microservice.storagefacility.domain.event.move.MoveNode
-import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, Root, StorageNodeId, StorageUnit}
-import no.uio.musit.microservice.storagefacility.domain.{Interval, Move, MuseumId}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.testhelpers.{EventGenerators, NodeGenerators}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -26,8 +22,8 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators
   // This is mutable to allow keeping track of the last inserted eventId.
   private var latestEventId: Long = _
 
-  "With MuseumId, processing events" should {
-    "Unsuccessfully when inserting a Control with wrong museumId" in {
+  "Processing events" should {
+    "fail when inserting a Control with wrong museumId" in {
       val mid = MuseumId(2)
       val ctrl = createControl(defaultBuilding.id)
       val controlEvent = controlService.add(mid, defaultBuilding.id.get, ctrl).futureValue

@@ -12,8 +12,6 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-// FIXME: Remove DAO import.
-import no.uio.musit.microservice.storagefacility.dao._
 
 /**
  * TODO: These tests are still somewhat fragile in that some of them
@@ -57,9 +55,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "successfully create a few root nodes" in {
 
-        def generateAndAddRootNode(mid: Int, numNodes: Int): Seq[Root] = {
+        def genAndAddRootNode(mid: Int, numNodes: Int, from: Int = 1): Seq[Root] = {
           val addedNodes = Seq.newBuilder[Root]
-          for (i <- 1 to numNodes) {
+          for (i <- from until numNodes + from) {
             val res = wsUrl(RootNodeUrl(mid)).post(JsNull).futureValue
             val root = parseAndVerifyResponse[Root](res)
             root mustBe a[Root]
@@ -67,15 +65,14 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             root.id.get mustBe StorageNodeId(i.toLong)
             root.storageType mustBe StorageType.RootType
             val rootId = root.id.get
-            root.path mustBe Some(NodePath(s",${rootId.underlying},"))
+            root.path mustBe NodePath(s",${rootId.underlying},")
             addedNodes += root
           }
           addedNodes.result()
         }
-        val mid = MuseumId(2)
-        generateAndAddRootNode(mid.underlying, 2).size mustBe 2
-        val mid1 = MuseumId(3)
-        generateAndAddRootNode(mid1.underlying, 2).size mustBe 2
+
+        genAndAddRootNode(2, 2).size mustBe 2
+        genAndAddRootNode(3, 2, 3).size mustBe 2
 
       }
 
@@ -552,7 +549,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully fetch the location history for a given node" in {
-        val res = wsUrl(LocationHistoryUrl(5)).get().futureValue
+        val res = wsUrl(LocationHistoryUrl(2, 5)).get().futureValue
         res.status mustBe Status.OK
         val resArr = res.json.as[JsArray].value
         resArr must not be empty
@@ -610,8 +607,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, OrganisationType, "My Org1", newOrg.id.get, Some(1)
         )
         organisation mustBe an[Organisation]
-        organisation.path must not be None
-        organisation.path.get mustBe NodePath(",1,18,")
+        organisation.path mustBe NodePath(",1,18,")
         val notExistsMid = MuseumId(44)
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newOrg.id.get)).get.futureValue
         notExistsRes.status mustBe Status.BAD_REQUEST
@@ -631,8 +627,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, BuildingType, "My Building1", newBuilding.id.get, Some(5)
         )
         building mustBe a[Building]
-        building.path must not be None
-        building.path.get mustBe NodePath(",2,5,19,")
+        building.path mustBe NodePath(",2,5,19,")
         val notExistsMid = MuseumId(44)
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newBuilding.id.get)).get.futureValue
         notExistsRes.status mustBe Status.BAD_REQUEST
@@ -652,8 +647,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, RoomType, "My Room1", newRoom.id.get, Some(6)
         )
         room mustBe a[Room]
-        room.path must not be None
-        room.path.get mustBe NodePath(",2,5,6,20,")
+        room.path mustBe NodePath(",2,5,6,20,")
         val notExistsMid = MuseumId(44)
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newRoom.id.get)).get.futureValue
         notExistsRes.status mustBe Status.BAD_REQUEST
@@ -673,8 +667,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, StorageUnitType, "My Shelf1", newStorageNode.id.get, Some(7)
         )
         su mustBe a[StorageUnit]
-        su.path must not be None
-        su.path.get mustBe NodePath(",2,5,6,7,21,")
+        su.path mustBe NodePath(",2,5,6,7,21,")
         val notExistsMid = MuseumId(44)
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, newStorageNode.id.get)).get.futureValue
         notExistsRes.status mustBe Status.BAD_REQUEST
@@ -693,8 +686,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, StorageUnitType, "My Shelf2", 22, Some(7)
         )
         su mustBe a[StorageUnit]
-        su.path must not be None
-        su.path.get mustBe NodePath(",2,5,6,7,22,")
+        su.path mustBe NodePath(",2,5,6,7,22,")
         su.areaTo mustBe Some(.5)
         su.heightTo mustBe Some(.6)
 
@@ -717,8 +709,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           checkOldRes, StorageUnitType, "My Shelf2", su.id.get, Some(7)
         )
         oldDataRes mustBe a[StorageUnit]
-        oldDataRes.path must not be None
-        oldDataRes.path.get mustBe NodePath(",2,5,6,7,22,")
+        oldDataRes.path mustBe NodePath(",2,5,6,7,22,")
         oldDataRes.areaTo mustBe Some(.5)
         oldDataRes.heightTo mustBe Some(.6)
       }
@@ -732,8 +723,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, RoomType, "My Room2", 23, Some(6)
         )
         room mustBe a[Room]
-        room.path must not be None
-        room.path.get mustBe NodePath(",2,5,6,23,")
+        room.path mustBe NodePath(",2,5,6,23,")
         room.areaTo mustBe Some(21.0)
         room.heightTo mustBe Some(2.6)
 
@@ -756,8 +746,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           checkOldRes, RoomType, "My Room2", room.id.get, Some(6)
         )
         oldDataRes mustBe a[Room]
-        oldDataRes.path must not be None
-        oldDataRes.path.get mustBe NodePath(",2,5,6,23,")
+        oldDataRes.path mustBe NodePath(",2,5,6,23,")
         oldDataRes.environmentAssessment.lightingCondition mustBe Some(true)
         oldDataRes.securityAssessment.waterDamage mustBe Some(false)
       }
@@ -771,8 +760,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, BuildingType, "My Building2", 24, Some(5)
         )
         building mustBe a[Building]
-        building.path must not be None
-        building.path.get mustBe NodePath(",2,5,24,")
+        building.path mustBe NodePath(",2,5,24,")
         building.areaTo mustBe Some(210.0)
         building.heightTo mustBe Some(3.5)
         building.address.get must include("Foo gate 13")
@@ -795,8 +783,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           checkOldRes, BuildingType, "My Building2", building.id.get, Some(5)
         )
         oldDataRes mustBe a[Building]
-        oldDataRes.path must not be None
-        oldDataRes.path.get mustBe NodePath(",2,5,24,")
+        oldDataRes.path mustBe NodePath(",2,5,24,")
         oldDataRes.address.get must include("Foo")
         oldDataRes.environmentRequirement.isEmpty must not be true
         oldDataRes.environmentRequirement.get.cleaning mustBe Some("Keep it clean!")
@@ -811,8 +798,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, OrganisationType, "My Organisation2", 25, Some(1)
         )
         organisation mustBe an[Organisation]
-        organisation.path must not be None
-        organisation.path.get mustBe NodePath(",1,25,")
+        organisation.path mustBe NodePath(",1,25,")
         organisation.areaTo mustBe Some(2100)
         organisation.heightTo mustBe Some(3.5)
         organisation.address.get must include("Foo gate 13")
@@ -835,8 +821,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           checkOldRes, OrganisationType, "My Organisation2", organisation.id.get, Some(1)
         )
         oldDataRes mustBe an[Organisation]
-        oldDataRes.path must not be None
-        oldDataRes.path.get mustBe NodePath(",1,25,")
+        oldDataRes.path mustBe NodePath(",1,25,")
         oldDataRes.address.get must include("Foo gate 13")
       }
 
@@ -924,8 +909,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         created mustBe a[StorageUnit]
-        created.path must not be None
-        created.path.get mustBe NodePath(",2,5,6,7,27,")
+        created.path mustBe NodePath(",2,5,6,7,27,")
 
         val moveMeId = created.id.get.underlying
 
@@ -942,15 +926,14 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         moveRes.status mustBe Status.BAD_REQUEST
         println(Json.prettyPrint(moveRes.json))
         // (moveRes.json \ "failed").as[JsArray].value.head.as[Long] mustBe moveMeId
-        (moveRes.json).toString() must include("Nothing was moved")
+        moveRes.json.toString() must include("Nothing was moved")
         val movedNodeRes = wsUrl(StorageNodeUrl(mid, moveMeId)).get().futureValue
 
         val moved = verifyNode[StorageUnit](
           movedNodeRes, StorageUnitType, "Move me", moveMeId, Some(7)
         )
         moved mustBe a[StorageUnit]
-        moved.path must not be None
-        moved.path.get mustBe NodePath(",2,5,6,7,27,")
+        moved.path mustBe NodePath(",2,5,6,7,27,")
 
       }
       "successfully and unsuccessfully move several nodes with different museumId" in {
@@ -999,12 +982,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           movedRes3, StorageUnitType, "Move me3", id3, Some(7)
         )
 
-        n1.path must not be None
-        n2.path must not be None
-        n3.path must not be None
-        n1.path.get mustBe NodePath(s",2,5,6,7,9,$id1,")
-        n2.path.get mustBe NodePath(s",2,5,6,7,9,$id2,")
-        n3.path.get mustBe NodePath(s",2,5,6,7,$id3,")
+        n1.path mustBe NodePath(s",2,5,6,7,9,$id1,")
+        n2.path mustBe NodePath(s",2,5,6,7,9,$id2,")
+        n3.path mustBe NodePath(s",2,5,6,7,$id3,")
 
       }
       /* "successfully and UnSuccesfully move several objects with different MuseumId " in {

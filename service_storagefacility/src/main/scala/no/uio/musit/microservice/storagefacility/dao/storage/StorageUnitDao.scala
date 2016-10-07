@@ -76,7 +76,7 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def getNodeById(mid: MuseumId, id: StorageNodeId): Future[Option[GenericStorageNode]] = {
-    val query = getNodeByIdAction(id)
+    val query = getNodeByIdAction(mid, id)
     db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
   }
 
@@ -286,13 +286,14 @@ class StorageUnitDao @Inject() (
     val q = for { n <- filter } yield n.isPartOf
     val query = q.update(partOf)
 
-    db.run(query).map { res =>
-      if (res == 1) MusitSuccess(res)
-      else MusitValidationError(
-        message = s"Unexpected result updating partOf for storage node $id",
-        expected = 1,
-        actual = res
-      )
+    db.run(query).map {
+      case res: Int if res == 1 =>
+        MusitSuccess(res)
+
+      case res: Int =>
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 

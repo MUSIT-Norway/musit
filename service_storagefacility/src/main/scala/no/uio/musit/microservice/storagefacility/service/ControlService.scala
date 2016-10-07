@@ -37,7 +37,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 
 class ControlService @Inject() (
-  val eventDao: EventDao,
+    val eventDao: EventDao,
     val storageNodeService: StorageNodeService
 ) {
 

@@ -20,8 +20,8 @@
 package no.uio.musit.microservice.storagefacility.testhelpers
 
 import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
-import no.uio.musit.microservice.storagefacility.domain.{Interval, NodePath, MuseumId}
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.microservice.storagefacility.domain.{Interval, MuseumId, NodePath}
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
 
@@ -31,6 +31,8 @@ import scala.concurrent.{Await, Future}
 
 trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>
+
+  val defaultMuseumId = MuseumId(2)
 
   def buildingDao: BuildingDao = {
     val instance = Application.instanceCache[BuildingDao]
@@ -54,13 +56,13 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   private def createAndFetchNode[A <: StorageNode](
     node: A,
-    insert: A => Future[StorageNodeId],
+    insert: (MuseumId, A) => Future[StorageNodeId],
     get: (MuseumId, StorageNodeId) => Future[Option[A]]
   ): A = {
     Await.result({
       for {
-        nodeId <- insert(node)
-        nodeRes <- get(MuseumId(2), nodeId)
+        nodeId <- insert(defaultMuseumId, node)
+        nodeRes <- get(defaultMuseumId, nodeId)
       } yield {
         nodeRes.get
       }
@@ -70,7 +72,7 @@ trait NodeGenerators extends NodeTypeInitializers {
   // Some default nodes
   lazy val defaultBuilding: Building = {
     createAndFetchNode(
-      node = createBuilding(),
+      node = createBuilding(path = NodePath(",123,")),
       insert = buildingDao.insert,
       get = buildingDao.getById
     )
@@ -78,7 +80,7 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   lazy val defaultRoom: Room = {
     createAndFetchNode(
-      node = createRoom(),
+      node = createRoom(path = NodePath(",123,")),
       insert = roomDao.insert,
       get = roomDao.getById
     )
@@ -86,21 +88,21 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   lazy val defaultStorageUnit: StorageUnit = {
     createAndFetchNode(
-      createStorageUnit(),
+      createStorageUnit(path = NodePath(",123,")),
       storageUnitDao.insert,
       storageUnitDao.getById
     )
   }
 
-  def addRoot(r: Root) = storageUnitDao.insertRoot(mid, r)
+  def addRoot(r: Root) = storageUnitDao.insertRoot(defaultMuseumId, r)
 
-  def addBuilding(b: Building) = buildingDao.insert(mid, b)
+  def addBuilding(b: Building) = buildingDao.insert(defaultMuseumId, b)
 
-  def addOrganisation(o: Organisation) = organisationDao.insert(mid, o)
+  def addOrganisation(o: Organisation) = organisationDao.insert(defaultMuseumId, o)
 
-  def addRoom(r: Room) = roomDao.insert(mid, r)
+  def addRoom(r: Room) = roomDao.insert(defaultMuseumId, r)
 
-  def addStorageUnit(su: StorageUnit) = storageUnitDao.insert(mid, su)
+  def addStorageUnit(su: StorageUnit) = storageUnitDao.insert(defaultMuseumId, su)
 
   def addNode(nodes: StorageNode*): Seq[StorageNodeId] = {
     val eventuallyInserted = Future.sequence {

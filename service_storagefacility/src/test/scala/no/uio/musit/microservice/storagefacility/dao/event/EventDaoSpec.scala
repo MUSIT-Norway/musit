@@ -19,14 +19,13 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ControlEventType, MoveNodeType, MoveObjectType, ObservationEventType}
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.testhelpers._
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageUnit
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors._
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -248,19 +247,18 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
     "fetching events for a node" should {
       "return all control events" in {
-        val mid = MuseumId(2)
         val ctrl1 = createControl(defaultBuilding.id)
         val ctrl2 = createControl(defaultBuilding.id)
         val ctrl3 = createControl(defaultBuilding.id)
 
-        val ctrlId1 = addControl(mid, ctrl1).futureValue
-        val ctrlId2 = addControl(mid, ctrl2).futureValue
-        val ctrlId3 = addControl(mid, ctrl3).futureValue
+        val ctrlId1 = addControl(defaultMuseumId, ctrl1).futureValue
+        val ctrlId2 = addControl(defaultMuseumId, ctrl2).futureValue
+        val ctrlId3 = addControl(defaultMuseumId, ctrl3).futureValue
 
         val controls = eventDao.getEventsForNode(
-          mid,
-          defaultBuilding.id.get,
-          ControlEventType
+          mid = defaultMuseumId,
+          id = defaultBuilding.id.get,
+          eventType = ControlEventType
         ).futureValue
 
         controls must not be empty

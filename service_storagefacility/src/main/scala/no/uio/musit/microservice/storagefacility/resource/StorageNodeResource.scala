@@ -19,9 +19,9 @@
 package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.domain.{Move, Museum, MuseumId}
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.microservice.storagefacility.domain.{Move, Museum}
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
 import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess, MusitValidationError}
 import play.api.Logger
@@ -70,19 +70,19 @@ final class StorageNodeResource @Inject() (
           node match {
             case su: StorageUnit =>
               logger.debug(s"Adding a new StorageUnit ${su.name}")
-            service.addStorageUnit(mid, su).map(addResult)
+              service.addStorageUnit(mid, su).map(addResult)
 
             case b: Building =>
               logger.debug(s"Adding a new Building ${b.name}")
-            service.addBuilding(mid, b).map(addResult)
+              service.addBuilding(mid, b).map(addResult)
 
             case r: Room =>
               logger.debug(s"Adding a new Room ${r.name}")
-            service.addRoom(mid, r).map(addResult)
+              service.addRoom(mid, r).map(addResult)
 
             case o: Organisation =>
               logger.debug(s"Adding a new Organisation ${o.name}")
-            service.addOrganisation(mid, o).map(addResult)
+              service.addOrganisation(mid, o).map(addResult)
 
             case bad =>
               val message = s"Wrong service for adding a ${bad.storageType}."
@@ -261,7 +261,7 @@ final class StorageNodeResource @Inject() (
    *
    * TODO: Check if moving to self...should be illegal!
    */
-   def moveNode(mid: MuseumId) = Action.async(parse.json) { implicit request =>
+  def moveNode(mid: Int) = Action.async(parse.json) { implicit request =>
     Museum.fromMuseumId(mid).map { museum =>
       // TODO: Extract current user information from enriched request.
       request.body.validate[Move[StorageNodeId]] match {
@@ -281,7 +281,7 @@ final class StorageNodeResource @Inject() (
   /**
    * TODO: Document me!
    */
-   def moveObject(mid: MuseumId) = Action.async(parse.json) { implicit request =>
+  def moveObject(mid: Int) = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     Museum.fromMuseumId(mid).map { museum =>
       request.body.validate[Move[Long]] match {
@@ -301,12 +301,13 @@ final class StorageNodeResource @Inject() (
   /**
    * Endpoint for retrieving the {{{limit}}} number of past move events.
    *
+   * @param mid    : MuseumId
    * @param nodeId StorageNodeId to get move history for.
-   * @param limit Int indicating the number of results to return.
+   * @param limit  Int indicating the number of results to return.
    * @return A JSON array with the {{{limi}}} number of move events.
    */
-  def locations(nodeId: Long, limit: Int) = Action.async { implicit request =>
-    service.locationHistory(nodeId, Option(limit)).map {
+  def locations(mid: Int, nodeId: Long, limit: Int) = Action.async { implicit request =>
+    service.locationHistory(mid, nodeId, Option(limit)).map {
       case MusitSuccess(history) => Ok(Json.toJson(history))
       case err: MusitError => InternalServerError(Json.obj("" -> err.message))
     }
@@ -315,7 +316,7 @@ final class StorageNodeResource @Inject() (
   /**
    * TODO: Document me!
    */
-   def stats(mid: MuseumId, nodeId: Long) = Action.async { implicit request =>
+  def stats(mid: Int, nodeId: Long) = Action.async { implicit request =>
     Museum.fromMuseumId(mid).map { museum =>
       service.nodeStats(mid, nodeId).map {
         case MusitSuccess(maybeStats) =>

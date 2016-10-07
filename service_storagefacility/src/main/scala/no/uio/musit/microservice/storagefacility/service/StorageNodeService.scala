@@ -55,24 +55,23 @@ class StorageNodeService @Inject() (
     nodeId: StorageNodeId,
     envReq: EnvironmentRequirement
   )(implicit currUsr: String): Future[Option[EnvironmentRequirement]] = {
-    storageNodeDao.getById(mid, nodeId).flatMap {
-      mayBeNode =>
-        mayBeNode.fold(Future.successful[Option[EnvironmentRequirement]](None)) { _ =>
-          val now = dateTimeNow
-          val er = EnvRequirement.toEnvRequirementEvent(nodeId, now, envReq)
+    unitDao.getById(mid, nodeId).flatMap { mayBeNode =>
+      mayBeNode.map { _ =>
+        val now = dateTimeNow
+        val er = EnvRequirement.toEnvRequirementEvent(nodeId, now, envReq)
 
-          envReqService.add(mid, er).map {
-            case MusitSuccess(success) =>
-              logger.debug("Successfully wrote environment requirement data " +
-                s"for node $nodeId")
-              Some(EnvRequirement.fromEnvRequirementEvent(er))
+        envReqService.add(mid, er).map {
+          case MusitSuccess(success) =>
+            logger.debug("Successfully wrote environment requirement data " +
+              s"for node $nodeId")
+            Some(EnvRequirement.fromEnvRequirementEvent(er))
 
-            case err: MusitError =>
-              logger.error("Something went wrong while storing the environment " +
-                s"requirements for node $nodeId")
-              None
-          }
+          case err: MusitError =>
+            logger.error("Something went wrong while storing the environment " +
+              s"requirements for node $nodeId")
+            None
         }
+      }.getOrElse(Future.successful(None))
     }
   }
 
@@ -105,7 +104,7 @@ class StorageNodeService @Inject() (
   type NodeInsertIO[A] = (MuseumId, A) => Future[StorageNodeId]
   type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
   type NodeUpdateIO[A] = (StorageNodeId, NodePath) => Future[MusitResult[Unit]]
-  type GetNodeIO[A] = StorageNodeId => Future[MusitResult[Option[A]]]
+  type GetNodeIO[A] = (MuseumId, StorageNodeId) => Future[MusitResult[Option[A]]]
 
   /**
    * Helper function that wraps the process of inserting a new StorageNode.
@@ -132,7 +131,7 @@ class StorageNodeService @Inject() (
       nodeId <- insert(mid, node)
       pathUpdated <- updateWithPath(nodeId, maybePath.getOrElse(NodePath.empty).appendChild(nodeId))
       _ <- node.environmentRequirement.map(er => saveEnvReq(mid, nodeId, er)).getOrElse(Future.successful(None))
-      theNode <- getNode(nodeId)
+      theNode <- getNode(mid, nodeId)
     } yield {
       theNode
     }
@@ -214,7 +213,7 @@ class StorageNodeService @Inject() (
           for {
             _ <- storageUnit.environmentRequirement.map(er => saveEnvReq(mid, id, er))
               .getOrElse(Future.successful(None))
-            node <- getStorageUnitById(id)
+            node <- getStorageUnitById(mid, id)
           } yield {
             node
           }
@@ -239,7 +238,7 @@ class StorageNodeService @Inject() (
           for {
             _ <- room.environmentRequirement.map(er => saveEnvReq(mid, id, er))
               .getOrElse(Future.successful(None))
-            node <- getRoomById(id)
+            node <- getRoomById(mid, id)
           } yield {
             node
           }
@@ -264,7 +263,7 @@ class StorageNodeService @Inject() (
           for {
             _ <- building.environmentRequirement.map(er => saveEnvReq(mid, id, er))
               .getOrElse(Future.successful(None))
-            node <- getBuildingById(id)
+            node <- getBuildingById(mid, id)
           } yield {
             node
           }
@@ -289,7 +288,7 @@ class StorageNodeService @Inject() (
           for {
             _ <- organisation.environmentRequirement.map(er => saveEnvReq(mid, id, er))
               .getOrElse(Future.successful(None))
-            node <- getOrganisationById(id)
+            node <- getOrganisationById(mid, id)
           } yield {
             node
           }
@@ -630,6 +629,7 @@ class StorageNodeService @Inject() (
    * @return
    */
   def locationHistory(
+    mid: MuseumId,
     id: StorageNodeId,
     limit: Option[Int]
   ): Future[MusitResult[Seq[LocationHistory]]] = {
@@ -641,7 +641,7 @@ class StorageNodeService @Inject() (
       }
     }
 
-    val res = eventDao.getLocationHistory(id, limit).flatMap { events =>
+    val res = eventDao.getLocationHistory(mid, id, limit).flatMap { events =>
       Future.sequence {
         events.map { e =>
           val fromTuple = findPathAndNames(e.from.get)

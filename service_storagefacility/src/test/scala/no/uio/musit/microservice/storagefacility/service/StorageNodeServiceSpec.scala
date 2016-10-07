@@ -293,34 +293,47 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     }*/
     pending
   }
-  "not remove a node when childnode has another MuseumId" in {
+  "not remove a node when child node has another MuseumId" in {
     val mid = MuseumId(5)
     val su1 = createStorageUnit()
-    val inserted1 = service.addStorageUnit(mid, su1).futureValue
+    val ins1 = service.addStorageUnit(mid, su1).futureValue
+    ins1.isSuccess mustBe true
+    ins1.get must not be None
+    val inserted1 = ins1.get.get
     inserted1.id must not be None
 
     val anotherMid = MuseumId(4)
     val su2 = createStorageUnit(partOf = inserted1.id)
-    val inserted2 = service.addStorageUnit(anotherMid, su2).futureValue
+    val ins2 = service.addStorageUnit(anotherMid, su2).futureValue
+    ins2.isSuccess mustBe true
+    ins2.get must not be None
+    val inserted2 = ins2.get.get
     inserted2.id must not be None
 
     val maybeDeletedNode = service.deleteNode(mid, inserted1.id.get).futureValue
     maybeDeletedNode.isSuccess mustBe true
     maybeDeletedNode.get must not be None
     maybeDeletedNode.get.get mustBe -1
+
     val stillNotDeleted = service.getNodeById(mid, inserted1.id.get).futureValue
     stillNotDeleted.get must not be None
     stillNotDeleted.get.get.id mustBe inserted1.id
 
   }
-  "UnSuccessfully remove a node with different museumId as input on delete than storagenode and it's child " in {
+  "not remove a node with different museumId as input than the node and it's child" in {
     val mid = MuseumId(5)
     val su1 = createStorageUnit()
-    val inserted1 = service.addStorageUnit(mid, su1).futureValue
+    val ins1 = service.addStorageUnit(mid, su1).futureValue
+    ins1.isSuccess mustBe true
+    ins1.get must not be None
+    val inserted1 = ins1.get.get
     inserted1.id must not be None
 
     val su2 = createStorageUnit(partOf = inserted1.id)
-    val inserted2 = service.addStorageUnit(mid, su2).futureValue
+    val ins2 = service.addStorageUnit(mid, su2).futureValue
+    ins2.isSuccess mustBe true
+    ins2.get must not be None
+    val inserted2 = ins2.get.get
     inserted2.id must not be None
 
     val anotherMid = MuseumId(4)
@@ -336,7 +349,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "UnSuccessfully mark a node as deleted when it has wrong museumId" in {
     val mid = MuseumId(5)
     val su = createStorageUnit()
-    val inserted = service.addStorageUnit(mid, su).futureValue
+    val ins = service.addStorageUnit(mid, su).futureValue
+    ins.isSuccess mustBe true
+    ins.get must not be None
+    val inserted = ins.get.get
     inserted.id must not be None
 
     val wrongMid = MuseumId(4)
@@ -350,7 +366,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "UnSuccessfully update a storage unit and fetch as StorageNode with same data than before" in {
     val mid = MuseumId(5)
     val su = createStorageUnit()
-    val inserted = service.addStorageUnit(mid, su).futureValue
+    val ins = service.addStorageUnit(mid, su).futureValue
+    ins.isSuccess mustBe true
+    ins.get must not be None
+    val inserted = ins.get.get
     inserted.id must not be None
 
     val res = service.getNodeById(mid, inserted.id.get).futureValue
@@ -378,7 +397,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "UnSuccessfully update a building with new environment requirements and wrong MuseumID" in {
     val mid = MuseumId(5)
     val building = createBuilding()
-    val inserted = service.addBuilding(mid, building).futureValue
+    val ins = service.addBuilding(mid, building).futureValue
+    ins.isSuccess mustBe true
+    ins.get must not be None
+    val inserted = ins.get.get
     inserted.id must not be None
     inserted.environmentRequirement must not be None
     inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
@@ -399,7 +421,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "UnSuccessfully update a room with wrong or not existing MuseumID" in {
     val mid = MuseumId(5)
     val room = createRoom()
-    val inserted = service.addRoom(mid, room).futureValue
+    val ins = service.addRoom(mid, room).futureValue
+    ins.isSuccess mustBe true
+    ins.get must not be None
+    val inserted = ins.get.get
     inserted.id must not be None
     inserted.environmentAssessment.lightingCondition.get mustBe true
     inserted.securityAssessment.waterDamage.get mustBe false

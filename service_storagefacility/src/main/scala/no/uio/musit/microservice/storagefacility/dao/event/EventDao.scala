@@ -560,7 +560,7 @@ class EventDao @Inject() (
     )
 
     futureEventIds.flatMap { ids =>
-      Future.traverse(ids)(eId => getEvent(eId, Some(eventType.id))).map { res =>
+      Future.traverse(ids)(eId => getEvent(mid, eId, Some(eventType.id))).map { res =>
         res.filter(_.isSuccess).map {
           case MusitSuccess(maybeSuccess) =>
             maybeSuccess.map(dto => success(dto))
@@ -576,28 +576,32 @@ class EventDao @Inject() (
   /**
    * Fetch events of a given TopLevelEvent type for the given StorageNodeId
    *
+   * @param mid: MuseumId
    * @param id StorageNodeId to get events for
    * @param eventType TopLevelEvent type to fetch
    * @tparam A type argument specifying the type of TopLevelEvent to fetch
    * @return A Future of a collection of EventDtos
    */
   def getEventsForNode[A <: TopLevelEvent](
+    mid: MuseumId,
     id: StorageNodeId,
     eventType: A
-  ): Future[Seq[EventDto]] = eventsForNode(id, eventType)(dto => dto)
+  ): Future[Seq[EventDto]] = eventsForNode(mid, id, eventType)(dto => dto)
 
   /**
    * Fetch the {{{limit}}} number of last MoveNode events for the given
    * StorageNodeId.
    *
+   * @param mid: MuseumId
    * @param nodeId StorageNodeId to get move events for
    * @param limit Int specifying the number of move events to get
    * @return A Future of a collection of MoveNode events.
    */
   def getLocationHistory(
+    mid: MuseumId,
     nodeId: StorageNodeId,
     limit: Option[Int]
-  ): Future[Seq[MoveNode]] = eventsForNode(nodeId, MoveNodeType, limit) { dto =>
+  ): Future[Seq[MoveNode]] = eventsForNode(mid, nodeId, MoveNodeType, limit) { dto =>
     MoveConverters.moveNodeFromDto(dto.asInstanceOf[BaseEventDto])
   }
 
