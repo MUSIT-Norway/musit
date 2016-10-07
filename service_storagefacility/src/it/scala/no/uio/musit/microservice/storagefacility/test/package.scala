@@ -28,7 +28,7 @@ package object test {
   val MoveStorageNodeUrl = s"$StorageNodesUrl/moveNode"
   val MoveObjectUrl = s"$StorageNodesUrl/moveObject"
   val NodeChildrenUrl = (node: Long) => s"${StorageNodeUrl(node)}/children"
-  val LocationHistoryUrl = (node: Long) => s"${StorageNodeUrl(node)}/locations"
+  val ObjLocationHistoryUrl = (objectId: Long) => s"$StorageNodesUrl/objects/$objectId/locations"
 
   val ControlsUrl = (node: Long) => s"${StorageNodeUrl(node)}/controls"
   val ControlUrl = (node: Long, evt: Long) => s"${ControlsUrl(node)}/$evt"

@@ -57,7 +57,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         def generateAndAddRootNode(numNodes: Int): Seq[Root] = {
           val addedNodes = Seq.newBuilder[Root]
-          for (i <- 1 to numNodes) {
+          for (i <- 7 until numNodes + 7) {
             val res = wsUrl(RootNodeUrl).post(JsNull).futureValue
             val root = parseAndVerifyResponse[Root](res)
             root mustBe a[Root]
@@ -79,46 +79,46 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         response.status mustBe Status.CREATED
 
         val organisation = verifyNode[Organisation](
-          response, OrganisationType, "My Org1", 5, Some(1)
+          response, OrganisationType, "My Org1", 11, Some(1)
         )
         organisation mustBe an[Organisation]
-        organisation.path mustBe NodePath(",1,5,")
+        organisation.path mustBe NodePath(",1,11,")
       }
 
       "successfully create a building node" in {
-        val json = buildingJson("My Building1", StorageNodeId(5))
+        val json = buildingJson("My Building1", StorageNodeId(11))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val building = verifyNode[Building](
-          response, BuildingType, "My Building1", 6, Some(5)
+          response, BuildingType, "My Building1", 12, Some(11)
         )
         building mustBe a[Building]
-        building.path mustBe NodePath(",1,5,6,")
+        building.path mustBe NodePath(",1,11,12,")
       }
 
       "successfully create a room node" in {
-        val json = roomJson("My Room1", Some(StorageNodeId(6)))
+        val json = roomJson("My Room1", Some(StorageNodeId(12)))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val room = verifyNode[Room](
-          response, RoomType, "My Room1", 7, Some(6)
+          response, RoomType, "My Room1", 13, Some(12)
         )
         room mustBe a[Room]
-        room.path mustBe NodePath(",1,5,6,7,")
+        room.path mustBe NodePath(",1,11,12,13,")
       }
 
       "successfully create a storage unit node" in {
-        val json = storageUnitJson("My Shelf1", StorageNodeId(7))
+        val json = storageUnitJson("My Shelf1", StorageNodeId(13))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val su = verifyNode[StorageUnit](
-          response, StorageUnitType, "My Shelf1", 8, Some(7)
+          response, StorageUnitType, "My Shelf1", 14, Some(13)
         )
         su mustBe a[StorageUnit]
-        su.path mustBe NodePath(",1,5,6,7,8,")
+        su.path mustBe NodePath(",1,11,12,13,14,")
       }
 
       "not allow creating a storage node with a name over 500 chars" in {
@@ -138,50 +138,50 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully get an organisation" in {
-        val response = wsUrl(StorageNodeUrl(5)).get().futureValue
+        val response = wsUrl(StorageNodeUrl(11)).get().futureValue
         response.status mustBe Status.OK
 
         val organisation = verifyNode[Organisation](
-          response, OrganisationType, "My Org1", 5, Some(1)
+          response, OrganisationType, "My Org1", 11, Some(1)
         )
         organisation mustBe an[Organisation]
       }
 
       "successfully get a building" in {
-        val response = wsUrl(StorageNodeUrl(6)).get().futureValue
+        val response = wsUrl(StorageNodeUrl(12)).get().futureValue
         response.status mustBe Status.OK
 
         val building = verifyNode[Building](
-          response, BuildingType, "My Building1", 6, Some(5)
+          response, BuildingType, "My Building1", 12, Some(11)
         )
         building mustBe a[Building]
       }
 
       "successfully get a room" in {
-        val response = wsUrl(StorageNodeUrl(7)).get().futureValue
+        val response = wsUrl(StorageNodeUrl(13)).get().futureValue
         response.status mustBe Status.OK
 
         val room = verifyNode[Room](
-          response, RoomType, "My Room1", 7, Some(6)
+          response, RoomType, "My Room1", 13, Some(12)
         )
         room mustBe a[Room]
         room.environmentRequirement must not be None
-        room.path mustBe NodePath(",1,5,6,7,")
+        room.path mustBe NodePath(",1,11,12,13,")
         room.pathNames must not be None
         room.pathNames.value must contain allOf (
           NamedPathElement(StorageNodeId(1), "root-node"),
-          NamedPathElement(StorageNodeId(5), "My Org1"),
-          NamedPathElement(StorageNodeId(6), "My Building1"),
-          NamedPathElement(StorageNodeId(7), "My Room1")
+          NamedPathElement(StorageNodeId(11), "My Org1"),
+          NamedPathElement(StorageNodeId(12), "My Building1"),
+          NamedPathElement(StorageNodeId(13), "My Room1")
         )
       }
 
       "successfully get a storage unit" in {
-        val response = wsUrl(StorageNodeUrl(8)).get().futureValue
+        val response = wsUrl(StorageNodeUrl(14)).get().futureValue
         response.status mustBe Status.OK
 
         val su = verifyNode[StorageUnit](
-          response, StorageUnitType, "My Shelf1", 8, Some(7)
+          response, StorageUnitType, "My Shelf1", 14, Some(13)
         )
         su mustBe a[StorageUnit]
         su.environmentRequirement must not be None
@@ -193,14 +193,14 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully update a storage unit" in {
-        val json = storageUnitJson("My Shelf2", StorageNodeId(7))
+        val json = storageUnitJson("My Shelf2", StorageNodeId(13))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
         val su = verifyNode[StorageUnit](
-          response, StorageUnitType, "My Shelf2", 9, Some(7)
+          response, StorageUnitType, "My Shelf2", 15, Some(13)
         )
         su mustBe a[StorageUnit]
-        su.path mustBe NodePath(",1,5,6,7,9,")
+        su.path mustBe NodePath(",1,11,12,13,15,")
         su.areaTo mustBe Some(.5)
         su.heightTo mustBe Some(.6)
 
@@ -215,24 +215,25 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val updRes = wsUrl(StorageNodeUrl(su.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.OK
         val updated = verifyNode[StorageUnit](
-          updRes, StorageUnitType, "My Shelf2b", su.id.get, Some(7)
+          updRes, StorageUnitType, "My Shelf2b", su.id.get, Some(13)
         )
 
         updated mustBe a[StorageUnit]
-        updated.path mustBe NodePath(",1,5,6,7,9,")
+        updated.path mustBe NodePath(",1,11,12,13,15,")
         updated.areaTo mustBe Some(.8)
         updated.heightTo mustBe Some(.8)
       }
 
       "successfully update a room" in {
-        val json = roomJson("My Room2", Some(StorageNodeId(6)))
+        val json = roomJson("My Room2", Some(StorageNodeId(12)))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
+
         val room = verifyNode[Room](
-          response, RoomType, "My Room2", 10, Some(6)
+          response, RoomType, "My Room2", 16, Some(12)
         )
         room mustBe a[Room]
-        room.path mustBe NodePath(",1,5,6,10,")
+        room.path mustBe NodePath(",1,11,12,16,")
         room.areaTo mustBe Some(21.0)
         room.heightTo mustBe Some(2.6)
 
@@ -246,30 +247,30 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val updRes = wsUrl(StorageNodeUrl(room.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.OK
         val updated = verifyNode[Room](
-          updRes, RoomType, "My Room2b", room.id.get, Some(6)
+          updRes, RoomType, "My Room2b", room.id.get, Some(12)
         )
 
         updated mustBe a[Room]
-        updated.path mustBe NodePath(",1,5,6,10,")
+        updated.path mustBe NodePath(",1,11,12,16,")
         updated.environmentAssessment.lightingCondition mustBe Some(true)
         updated.pathNames must not be None
         updated.pathNames.value must contain allOf (
           NamedPathElement(StorageNodeId(1), "root-node"),
-          NamedPathElement(StorageNodeId(5), "My Org1"),
-          NamedPathElement(StorageNodeId(6), "My Building1"),
-          NamedPathElement(StorageNodeId(10), "My Room2b")
+          NamedPathElement(StorageNodeId(11), "My Org1"),
+          NamedPathElement(StorageNodeId(12), "My Building1"),
+          NamedPathElement(StorageNodeId(16), "My Room2b")
         )
       }
 
       "successfully update a building with environment requirements" in {
-        val json = buildingJson("My Building2", StorageNodeId(5))
+        val json = buildingJson("My Building2", StorageNodeId(11))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
         val building = verifyNode[Building](
-          response, BuildingType, "My Building2", 11, Some(5)
+          response, BuildingType, "My Building2", 17, Some(11)
         )
         building mustBe a[Building]
-        building.path mustBe NodePath(",1,5,11,")
+        building.path mustBe NodePath(",1,11,17,")
         building.areaTo mustBe Some(210.0)
         building.heightTo mustBe Some(3.5)
 
@@ -283,11 +284,11 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val updRes = wsUrl(StorageNodeUrl(building.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.OK
         val updated = verifyNode[Building](
-          updRes, BuildingType, "My Building2", building.id.get, Some(5)
+          updRes, BuildingType, "My Building2", building.id.get, Some(11)
         )
 
         updated mustBe a[Building]
-        updated.path mustBe NodePath(",1,5,11,")
+        updated.path mustBe NodePath(",1,11,17,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
         updated.environmentRequirement.isEmpty must not be true
         updated.environmentRequirement.get.cleaning mustBe Some("Filthy")
@@ -298,10 +299,10 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
         val organisation = verifyNode[Organisation](
-          response, OrganisationType, "My Organisation2", 12, Some(1)
+          response, OrganisationType, "My Organisation2", 18, Some(1)
         )
         organisation mustBe an[Organisation]
-        organisation.path mustBe NodePath(",1,12,")
+        organisation.path mustBe NodePath(",1,18,")
         organisation.areaTo mustBe Some(2100)
         organisation.heightTo mustBe Some(3.5)
 
@@ -318,7 +319,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe an[Organisation]
-        updated.path mustBe NodePath(",1,12,")
+        updated.path mustBe NodePath(",1,18,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
       }
 
@@ -340,10 +341,10 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully delete a storage node" in {
-        val json = storageUnitJson("Remove me", StorageNodeId(7))
+        val json = storageUnitJson("Remove me", StorageNodeId(13))
         val res = wsUrl(StorageNodesUrl).post(json).futureValue
         val created = verifyNode[StorageUnit](
-          res, StorageUnitType, "Remove me", 13, Some(7)
+          res, StorageUnitType, "Remove me", 19, Some(13)
         )
 
         created mustBe a[StorageUnit]
@@ -361,7 +362,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "respond with 404 when deleting a node that is already deleted" in {
-        val rmRes = wsUrl(StorageNodeUrl(13)).delete().futureValue
+        val rmRes = wsUrl(StorageNodeUrl(19)).delete().futureValue
         rmRes.status mustBe Status.NOT_FOUND
       }
 
@@ -378,21 +379,21 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully move a single node" in {
-        val json = storageUnitJson("Move me", StorageNodeId(7))
+        val json = storageUnitJson("Move me", StorageNodeId(13))
         val res = wsUrl(StorageNodesUrl).post(json).futureValue
         val created = verifyNode[StorageUnit](
-          res, StorageUnitType, "Move me", 14, Some(7)
+          res, StorageUnitType, "Move me", 20, Some(13)
         )
 
         created mustBe a[StorageUnit]
-        created.path mustBe NodePath(",1,5,6,7,14,")
+        created.path mustBe NodePath(",1,11,12,13,20,")
 
         val moveMeId = created.id.get.underlying
 
         val moveJson = Json.parse(
           s"""{
              |  "doneBy": 1,
-             |  "destination": 9,
+             |  "destination": 15,
              |  "items": [${created.id.get.underlying}]
              |}""".stripMargin
         )
@@ -404,19 +405,19 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val movedNodeRes = wsUrl(StorageNodeUrl(moveMeId)).get().futureValue
         val moved = verifyNode[StorageUnit](
-          movedNodeRes, StorageUnitType, "Move me", moveMeId, Some(9)
+          movedNodeRes, StorageUnitType, "Move me", moveMeId, Some(15)
         )
         moved mustBe a[StorageUnit]
-        moved.path mustBe NodePath(",1,5,6,7,9,14,")
+        moved.path mustBe NodePath(",1,11,12,13,15,20,")
 
       }
 
       "successfully move several nodes" in {
-        val json1 = storageUnitJson("Move me1", StorageNodeId(7))
+        val json1 = storageUnitJson("Move me1", StorageNodeId(13))
         val res1 = wsUrl(StorageNodesUrl).post(json1).futureValue
-        val json2 = storageUnitJson("Move me2", StorageNodeId(7))
+        val json2 = storageUnitJson("Move me2", StorageNodeId(13))
         val res2 = wsUrl(StorageNodesUrl).post(json2).futureValue
-        val json3 = storageUnitJson("Move me3", StorageNodeId(7))
+        val json3 = storageUnitJson("Move me3", StorageNodeId(13))
         val res3 = wsUrl(StorageNodesUrl).post(json3).futureValue
 
         res1.status mustBe Status.CREATED
@@ -430,7 +431,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveJson = Json.parse(
           s"""{
               |  "doneBy": 1,
-              |  "destination": 9,
+              |  "destination": 15,
               |  "items": [$id1, $id2, $id3]
               |}""".stripMargin
         )
@@ -443,24 +444,24 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val movedRes3 = wsUrl(StorageNodeUrl(id3)).get().futureValue
 
         val n1 = verifyNode[StorageUnit](
-          movedRes1, StorageUnitType, "Move me1", id1, Some(9)
+          movedRes1, StorageUnitType, "Move me1", id1, Some(15)
         )
         val n2 = verifyNode[StorageUnit](
-          movedRes2, StorageUnitType, "Move me2", id2, Some(9)
+          movedRes2, StorageUnitType, "Move me2", id2, Some(15)
         )
         val n3 = verifyNode[StorageUnit](
-          movedRes3, StorageUnitType, "Move me3", id3, Some(9)
+          movedRes3, StorageUnitType, "Move me3", id3, Some(15)
         )
 
-        n1.path mustBe NodePath(s",1,5,6,7,9,$id1,")
-        n2.path mustBe NodePath(s",1,5,6,7,9,$id2,")
-        n3.path mustBe NodePath(s",1,5,6,7,9,$id3,")
+        n1.path mustBe NodePath(s",1,11,12,13,15,$id1,")
+        n2.path mustBe NodePath(s",1,11,12,13,15,$id2,")
+        n3.path mustBe NodePath(s",1,11,12,13,15,$id3,")
 
       }
 
       "successfully move a node and all its children" in {
         // We know now that StorageNodeId 5 should have lots of children. Fetch!
-        val res1 = wsUrl(NodeChildrenUrl(5)).get().futureValue
+        val res1 = wsUrl(NodeChildrenUrl(11)).get().futureValue
         res1.status mustBe Status.OK
         val directChildIds = res1.json.as[JsArray].value.map { jsv =>
           (jsv \ "id").as[Long]
@@ -480,13 +481,13 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           s"""{
               |  "doneBy": 1,
               |  "destination": 2,
-              |  "items": [5]
+              |  "items": [11]
               |}""".stripMargin
         )
 
         val moveRes = wsUrl(MoveStorageNodeUrl).put(moveJson).futureValue
         moveRes.status mustBe Status.OK
-        (moveRes.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain(5)
+        (moveRes.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain(11)
 
         val paths = verifyIds.map { id =>
           val r = wsUrl(StorageNodeUrl(id)).get().futureValue
@@ -500,9 +501,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "successfully move several objects" in {
-        val id1 = 1234
-        val id2 = 5678
-        val id3 = 9876
+        val id1 = 1
+        val id2 = 2
+        val id3 = 3
 
         val moveJson = Json.parse(
           s"""{
@@ -519,8 +520,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
       }
 
-      "successfully fetch the location history for a given node" in {
-        val res = wsUrl(LocationHistoryUrl(5)).get().futureValue
+      "successfully fetch the location history for a given object" in {
+        val res = wsUrl(ObjLocationHistoryUrl(2)).get().futureValue
+
         res.status mustBe Status.OK
         val resArr = res.json.as[JsArray].value
         resArr must not be empty
@@ -532,9 +534,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (firstElem \ "doneBy").as[Int] mustBe 1
         (firstElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
         (firstElem \ "registeredBy").as[String] mustBe "Darth Vader"
-        (firstElem \ "from" \ "path").as[NodePath] mustBe NodePath(",2,5,")
-        (firstElem \ "from" \ "pathNames").as[JsArray].value must not be empty
-        (firstElem \ "to" \ "path").as[NodePath] mustBe NodePath(",2,")
+        (firstElem \ "from" \ "path").as[NodePath] mustBe NodePath(",")
+        (firstElem \ "from" \ "pathNames").as[JsArray].value mustBe empty
+        (firstElem \ "to" \ "path").as[NodePath] mustBe NodePath(",9,")
         (firstElem \ "to" \ "pathNames").as[JsArray].value must not be empty
 
       }

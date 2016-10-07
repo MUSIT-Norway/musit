@@ -37,6 +37,7 @@ import scala.util.control.NonFatal
 /**
  * TODO: Document me!!!
  */
+// scalastyle:off number.of.methods
 class StorageNodeService @Inject() (
     val unitDao: StorageUnitDao,
     val roomDao: RoomDao,
@@ -87,12 +88,8 @@ class StorageNodeService @Inject() (
   /**
    * Find the NodePath for the given storageNodeId.
    */
-  private[service] def findPath(
-    id: Option[StorageNodeId]
-  ): Future[Option[NodePath]] = {
-    id.map(unitDao.getPathById).getOrElse {
-      Future.successful(None)
-    }
+  private[service] def findPath(id: Option[StorageNodeId]): Future[Option[NodePath]] = {
+    id.map(unitDao.getPathById).getOrElse(Future.successful(None))
   }
 
   // A couple of type aliases to reduce the length of some function args.
@@ -598,28 +595,30 @@ class StorageNodeService @Inject() (
   }
 
   /**
+   * Helper method to find PathNames for a potentially present StorageNodeId.
+   *
+   * @param maybeId Option[StorageNodeId]
+   * @return Future[(NodePath, Seq[NamedPathElement])]
+   */
+  private def findPathAndNames(maybeId: Option[StorageNodeId]): Future[(NodePath, Seq[NamedPathElement])] = {
+    findPath(maybeId).flatMap { maybePath =>
+      maybePath.map(p => unitDao.namesForPath(p).map(names => (p, names)))
+        .getOrElse(Future.successful((NodePath.empty, Seq.empty)))
+    }
+  }
+
+  /**
    * Returns the
    *
-   * @param id
+   * @param oid the object ID to fetch history for
    * @return
    */
-  def locationHistory(
-    id: StorageNodeId,
-    limit: Option[Int]
-  ): Future[MusitResult[Seq[LocationHistory]]] = {
-
-    def findPathAndNames(id: StorageNodeId): Future[(NodePath, Seq[NamedPathElement])] = {
-      findPath(Some(id)).filter(_.isDefined).flatMap { maybePath =>
-        val p = maybePath.get
-        unitDao.namesForPath(p).map(names => (p, names))
-      }
-    }
-
-    val res = eventDao.getLocationHistory(id, limit).flatMap { events =>
+  def objectLocationHistory(oid: Long, limit: Option[Int]): Future[MusitResult[Seq[LocationHistory]]] = {
+    val res = eventDao.getObjectLocationHistory(oid, limit).flatMap { events =>
       Future.sequence {
         events.map { e =>
-          val fromTuple = findPathAndNames(e.from.get)
-          val toTuple = findPathAndNames(e.to)
+          val fromTuple = findPathAndNames(e.from)
+          val toTuple = findPathAndNames(Option(e.to))
 
           for {
             from <- fromTuple
@@ -646,9 +645,10 @@ class StorageNodeService @Inject() (
     }
     res.map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
-        val msg = s"Fetching of location history for node $id failed"
-        logger.error(msg)
+        val msg = s"Fetching of location history for object $oid failed"
+        logger.error(msg, ex)
         MusitInternalError(msg)
     }
   }
 }
+// scalastyle:on number.of.methods
