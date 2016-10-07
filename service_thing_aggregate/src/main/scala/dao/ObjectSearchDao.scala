@@ -7,6 +7,8 @@ import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSucces
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import services.FutureMusitResults
 
 import scala.concurrent.Future
 
@@ -31,8 +33,19 @@ class ObjectSearchDao @Inject() (
 
   private val musitThingTable = TableQuery[MusitThingTable]
 
+
+  def testInsert(museumId: Int, mthing: MusitThing): Future[Long] = {
+    val dto = MusitThingDto.fromDomain(museumId, mthing)
+
+    val action = musitThingTable returning musitThingTable.map(_.id) += dto
+    println(s"insert sql: ${action.statements}")
+    db.run(action) //.map(_.get)
+  }
+
   def classifyValue(rawValue: String): FieldValue = {
-    LiteralValue(rawValue) //Todo!
+    if(rawValue.isEmpty) EmptyValue() else {
+      LiteralValue(rawValue) //Todo!
+    }
   }
 
   def fieldValueToMusitResult(fieldValue: FieldValue): MusitResult[FieldValue] = {
@@ -49,7 +62,8 @@ class ObjectSearchDao @Inject() (
   type QMusitThingTable = Query[MusitThingTable, MusitThingTable#TableElementType, scala.Seq]
 
   def search(mid: Int, museumNo: String, subNo: String, term: String, page: Int, pageSize: Int): Future[MusitResult[Seq[MusitThing]]] = {
-    var query = musitThingTable.filter(_.id > 0) //Just to get correct type! TODO: How to get a Query from a TableQuery?
+    println("i dao")
+    var query = musitThingTable.filter(_.id > 0L) //Just to get correct type! TODO: How to get a Query from a TableQuery?
 
 
     def maybeAdd(value: FieldValue, filterEqual: String => QMusitThingTable, filterLike: String => QMusitThingTable) = {
@@ -70,14 +84,15 @@ class ObjectSearchDao @Inject() (
         termValue <- classifyValueAsMusitResult(term)
       } yield (museumNoValue, subNoValue, termValue)
 
-    triple.map {
+    val resultFutSeq = triple.map {
       case (musemNoValue, subNoValue, termValue) =>
         maybeAdd(musemNoValue, value => query.filter(_.museumNo === value), value => query.filter(_.museumNo like value))
         maybeAdd(subNoValue, value => query.filter(_.subNo === value), value => query.filter(_.subNo like value))
         maybeAdd(termValue, value => query.filter(_.term === value), value => query.filter(_.term like value))
 
         val offset = (page - 1) * pageSize
-        val action = query.drop(offset).take(pageSize).result
+        val action = query.result // .drop(offset).take(pageSize).result
+        println(s"SQL: ${action.statements}")
         val res = db.run(action)
           res.recover {
           case e: Exception =>
@@ -85,9 +100,9 @@ class ObjectSearchDao @Inject() (
             logger.error(msg, e)
             MusitDbError(msg, Some(e))
         }
-        res
-
+        res.map(_.map(MusitThingDto.toDomain(_)))
     }
+    FutureMusitResults.invertMF(resultFutSeq)
   }
 
 
@@ -98,16 +113,16 @@ class ObjectSearchDao @Inject() (
 
     //    case class MusitThingDto(museumId: Int, id: Long, museumNo: String, museumNoAsNumber: Option[Long], subNo: String, term: String)
 
-    def * = (museumId, id, museumNo, museumNoAsNumber, subNo, term) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (museumId, id.?, museumNo, museumNoAsNumber, subNo, term) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Long]("ID", O.PrimaryKey)
+    val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     val museumId = column[Int]("MUSEUMID")
     val museumNo = column[String]("MUSEUMNO")
-    val subNo = column[String]("SUBNO")
+    val subNo = column[Option[String]]("SUBNO")
     val term = column[String]("TERM")
     val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")
 
-    def create = (museumId: Int, id: Long, museumNo: String, museumNoAsNumber: Option[Long], subNo: String, term: String) =>
+    def create = (museumId: Int, id: Option[Long], museumNo: String, museumNoAsNumber: Option[Long], subNo: Option[String], term: String) =>
       MusitThingDto(
         museumId = museumId,
         id = id,

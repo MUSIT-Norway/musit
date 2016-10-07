@@ -32,3 +32,12 @@ insert into MUSIT_MAPPING.VIEW_MUSITTHING(id, displayId, displayName) values(3, 
 insert into MUSARK_STORAGE.LOCAL_OBJECT(object_id, latest_move_id, current_location_id) values(1, 23, 3);
 insert into MUSARK_STORAGE.LOCAL_OBJECT(object_id, latest_move_id, current_location_id) values(2, 23, 3);
 insert into MUSARK_STORAGE.LOCAL_OBJECT(object_id, latest_move_id, current_location_id) values(3, 23, 3);
+
+CREATE TABLE MUSIT_MAPPING.MUSITTHING (
+ id BIGINT(20) PRIMARY KEY AUTO_INCREMENT,
+ museumNo VARCHAR NOT NULL,
+ subNo VARCHAR,
+ term VARCHAR,
+ museumId INTEGER NOT NULL,
+ museumNoAsNumber BIGINT
+);

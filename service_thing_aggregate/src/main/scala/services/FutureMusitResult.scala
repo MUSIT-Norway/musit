@@ -18,15 +18,12 @@ object FutureMusitResults {
     }
     FutureMusitResult(res)
   }
-  def invertMF[A](mf: MusitResult[Future[A]]): Future[MusitResult[A]] = {
+
+  def invertMF[A](mf: MusitResult[Future[A]])(implicit ec: ExecutionContext): Future[MusitResult[A]] = {
     mf match {
-      case MusitSuccess(succ) =>
-      case err: MusitError =>
-
-
+      case MusitSuccess(succ) => succ.map(a=> MusitSuccess(a))
+      case err: MusitError => Future.successful(err)
     }
-
-
   }
 
 

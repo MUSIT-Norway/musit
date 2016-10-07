@@ -1,11 +1,16 @@
 package controllers
 
 import com.google.inject.Inject
+import models.MusitThing
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.mvc.{Action, Controller, Result}
 import services.{ObjectAggregationService, ObjectSearchService, StorageNodeService}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc._
+import play.api.mvc.Results
+
 import scala.concurrent.Future
 
 /**
@@ -14,10 +19,19 @@ import scala.concurrent.Future
 
 object Utils {
 
-  def musitResultToPlayResult[A](musitResult: MusitResult[A]): Result = {
-    ??? //TODO
-  }
+  def musitResultToPlayResult[A](musitResult: MusitResult[A], toJsonTransformer: A => JsValue): Result = {
+    musitResult match {
+      case MusitSuccess(res) =>
+        Results.Ok(toJsonTransformer(res))
 
+      case MusitDbError(msg, ex) =>
+        Logger.error(msg, ex.orNull)
+        Results.InternalServerError(msg)
+
+      case r: MusitError =>
+        Results.InternalServerError(r.message)
+    }
+  }
 }
 
 class ObjectSearchController @Inject() (
@@ -33,7 +47,9 @@ class ObjectSearchController @Inject() (
         Future.successful(BadRequest(s"limit (${limit} is too high.")) //TODO: Should we tell the limit?
       } else
 */
-      service.search(mid, museumNo, subNo, term, page, limitToUse).map(mr => Utils.musitResultToPlayResult(mr))
+      def toJson(ob: Seq[MusitThing]) = Json.toJson(ob)
+
+      service.search(mid, museumNo, subNo, term, page, limitToUse).map(mr => Utils.musitResultToPlayResult(mr, toJson))
     }
 
 }
