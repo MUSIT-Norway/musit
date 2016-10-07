@@ -20,11 +20,18 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Application
 
+/**
+ * ¡¡¡This spec relies on objects being inserted in the evolution script under
+ * {{{src/test/resources/evolutions/default/1.sql script.}}}.
+ * This is acheived by using relaxed constraints on primary and foreign key
+ * references in comparison to the proper schema!!!
+ */
 class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -42,39 +49,30 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   "StorageStatsDao" should {
 
     "return the number of direct child nodes" in {
-      val basePath = Some(NodePath(",1,2,3,4,"))
+      val basePath = NodePath(",1,2,3,4,")
 
-      val inserted = storageUnitDao.insert(museumId, createStorageUnit(path = basePath)).futureValue
-      inserted.id must not be None
-      inserted.path mustBe basePath
+      val insId = storageUnitDao.insert(museumId, createStorageUnit(path = basePath)).futureValue
+      insId mustBe a[StorageNodeId]
 
-      val childPath = basePath.map(_.appendChild(inserted.id.get))
+      val childPath = basePath.appendChild(insId)
 
       for (i <- 1 to 10) {
-        val n = storageUnitDao.insert(museumId, createStorageUnit(partOf = inserted.id, path = childPath)).futureValue
-        n.id must not be None
-        n.path mustBe childPath
+        val nodeId = storageUnitDao.insert(museumId,createStorageUnit(
+          partOf = Some(insId),
+          path = childPath
+        )).futureValue
+        nodeId mustBe a[StorageNodeId]
       }
 
-      statsDao.childCount(inserted.id.get).futureValue mustBe 10
+      statsDao.childCount(insId).futureValue mustBe 10
     }
 
     "return the number of objects on a node" in {
-      //      val basePath = NodePath(",1,2,3,4,")
-      //
-      //      val inserted = storageUnitDao.insert(createStorageUnit(path = basePath)).futureValue
-      //      inserted.id must not be None
-      //      inserted.path mustBe basePath
-      //
-      //      val childPath = basePath.appendChild(inserted.id.get)
-
-      // TODO: Implement me once move object has been modified to reflect path etc...
-      pending
+      statsDao.directObjectCount(StorageNodeId(5)).futureValue mustBe 5
     }
 
     "return the total number of objects i a node hierarchy" in {
-      // TODO: As above...
-      pending
+      statsDao.totalObjectCount(NodePath(",1,")).futureValue mustBe 13
     }
 
   }

@@ -20,14 +20,13 @@
 package no.uio.musit.microservice.actor.domain
 
 import no.uio.musit.microservices.common.domain.{BaseAddress, BaseMusitDomain}
-import no.uio.musit.microservices.common.linking.domain.Link
 import play.api.libs.json._
 
 /**
  * Domain Person
  */
 case class Person(id: Option[Long], fn: String, title: Option[String] = None, role: Option[String] = None, tel: Option[String] = None,
-  web: Option[String] = None, email: Option[String] = None, dataportenId: Option[String] = None, links: Option[Seq[Link]]) extends BaseMusitDomain
+  web: Option[String] = None, email: Option[String] = None, dataportenId: Option[String] = None) extends BaseMusitDomain
 
 /**
  * Domain Organization
@@ -37,8 +36,7 @@ case class Organization(
   fn: String,
   nickname: String,
   tel: String,
-  web: String,
-  links: Option[Seq[Link]]
+  web: String
 ) extends BaseMusitDomain
 
 /**
@@ -53,8 +51,7 @@ case class OrganizationAddress(
   postalCode: String,
   countryName: String,
   latitude: Double,
-  longitude: Double,
-  links: Option[Seq[Link]]
+  longitude: Double
 ) extends BaseAddress
 
 object Person {

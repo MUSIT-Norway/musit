@@ -1,15 +1,18 @@
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NamedPathElement, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
 import no.uio.musit.microservice.storagefacility.test._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
+import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
+// FIXME: Remove DAO import.
 import no.uio.musit.microservice.storagefacility.dao._
 
 /**
@@ -61,7 +64,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             val root = parseAndVerifyResponse[Root](res)
             root mustBe a[Root]
             root.id.isEmpty must not be true
-            //root.id.get mustBe StorageNodeId(i.toLong)
+            root.id.get mustBe StorageNodeId(i.toLong)
             root.storageType mustBe StorageType.RootType
             val rootId = root.id.get
             root.path mustBe Some(NodePath(s",${rootId.underlying},"))
@@ -87,8 +90,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, OrganisationType, "My Org1", newOrg.id.get, Some(1)
         )
         organisation mustBe an[Organisation]
-        organisation.path must not be None
-        organisation.path.get mustBe NodePath(",1,5,")
+        organisation.path mustBe NodePath(",1,5,")
       }
 
       "successfully create a building node" in {
@@ -101,8 +103,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, BuildingType, "My Building1", newBuilding.id.get, Some(5)
         )
         building mustBe a[Building]
-        building.path must not be None
-        building.path.get mustBe NodePath(",1,5,6,")
+        building.path mustBe NodePath(",1,5,6,")
       }
 
       "successfully create a room node" in {
@@ -115,8 +116,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, RoomType, "My Room1", newRoom.id.get, Some(6)
         )
         room mustBe a[Room]
-        room.path must not be None
-        room.path.get mustBe NodePath(",1,5,6,7,")
+        room.path mustBe NodePath(",1,5,6,7,")
       }
 
       "successfully create a storage unit node" in {
@@ -129,8 +129,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, StorageUnitType, "My Shelf1", newStorageNode.id.get, Some(7)
         )
         su mustBe a[StorageUnit]
-        su.path must not be None
-        su.path.get mustBe NodePath(",1,5,6,7,8,")
+        su.path mustBe NodePath(",1,5,6,7,8,")
       }
 
       "not allow creating a storage node with a name over 500 chars" in {
@@ -183,6 +182,14 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         room mustBe a[Room]
         room.environmentRequirement must not be None
+        room.path mustBe NodePath(",1,5,6,7,")
+        room.pathNames must not be None
+        room.pathNames.value must contain allOf (
+          NamedPathElement(StorageNodeId(1), "root-node"),
+          NamedPathElement(StorageNodeId(5), "My Org1"),
+          NamedPathElement(StorageNodeId(6), "My Building1"),
+          NamedPathElement(StorageNodeId(7), "My Room1")
+        )
       }
 
       "successfully get a storage unit" in {
@@ -212,8 +219,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, StorageUnitType, "My Shelf2", 9, Some(7)
         )
         su mustBe a[StorageUnit]
-        su.path must not be None
-        su.path.get mustBe NodePath(",1,5,6,7,9,")
+        su.path mustBe NodePath(",1,5,6,7,9,")
         su.areaTo mustBe Some(.5)
         su.heightTo mustBe Some(.6)
 
@@ -232,8 +238,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[StorageUnit]
-        updated.path must not be None
-        updated.path.get mustBe NodePath(",1,5,6,7,9,")
+        updated.path mustBe NodePath(",1,5,6,7,9,")
         updated.areaTo mustBe Some(.8)
         updated.heightTo mustBe Some(.8)
       }
@@ -247,8 +252,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, RoomType, "My Room2", 10, Some(6)
         )
         room mustBe a[Room]
-        room.path must not be None
-        room.path.get mustBe NodePath(",1,5,6,10,")
+        room.path mustBe NodePath(",1,5,6,10,")
         room.areaTo mustBe Some(21.0)
         room.heightTo mustBe Some(2.6)
 
@@ -266,9 +270,15 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[Room]
-        updated.path must not be None
-        updated.path.get mustBe NodePath(",1,5,6,10,")
+        updated.path mustBe NodePath(",1,5,6,10,")
         updated.environmentAssessment.lightingCondition mustBe Some(true)
+        updated.pathNames must not be None
+        updated.pathNames.value must contain allOf (
+          NamedPathElement(StorageNodeId(1), "root-node"),
+          NamedPathElement(StorageNodeId(5), "My Org1"),
+          NamedPathElement(StorageNodeId(6), "My Building1"),
+          NamedPathElement(StorageNodeId(10), "My Room2b")
+        )
       }
 
       "successfully update a building with environment requirements" in {
@@ -280,8 +290,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, BuildingType, "My Building2", 11, Some(5)
         )
         building mustBe a[Building]
-        building.path must not be None
-        building.path.get mustBe NodePath(",1,5,11,")
+        building.path mustBe NodePath(",1,5,11,")
         building.areaTo mustBe Some(210.0)
         building.heightTo mustBe Some(3.5)
 
@@ -299,8 +308,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe a[Building]
-        updated.path must not be None
-        updated.path.get mustBe NodePath(",1,5,11,")
+        updated.path mustBe NodePath(",1,5,11,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
         updated.environmentRequirement.isEmpty must not be true
         updated.environmentRequirement.get.cleaning mustBe Some("Filthy")
@@ -315,8 +323,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           response, OrganisationType, "My Organisation2", 12, Some(1)
         )
         organisation mustBe an[Organisation]
-        organisation.path must not be None
-        organisation.path.get mustBe NodePath(",1,12,")
+        organisation.path mustBe NodePath(",1,12,")
         organisation.areaTo mustBe Some(2100)
         organisation.heightTo mustBe Some(3.5)
 
@@ -333,8 +340,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         updated mustBe an[Organisation]
-        updated.path must not be None
-        updated.path.get mustBe NodePath(",1,12,")
+        updated.path mustBe NodePath(",1,12,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
       }
 
@@ -408,8 +414,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
 
         created mustBe a[StorageUnit]
-        created.path must not be None
-        created.path.get mustBe NodePath(",1,5,6,7,14,")
+        created.path mustBe NodePath(",1,5,6,7,14,")
 
         val moveMeId = created.id.get.underlying
 
@@ -431,8 +436,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           movedNodeRes, StorageUnitType, "Move me", moveMeId, Some(9)
         )
         moved mustBe a[StorageUnit]
-        moved.path must not be None
-        moved.path.get mustBe NodePath(",1,5,6,7,9,14,")
+        moved.path mustBe NodePath(",1,5,6,7,9,14,")
 
       }
 
@@ -478,12 +482,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           movedRes3, StorageUnitType, "Move me3", id3, Some(9)
         )
 
-        n1.path must not be None
-        n2.path must not be None
-        n3.path must not be None
-        n1.path.get mustBe NodePath(s",1,5,6,7,9,$id1,")
-        n2.path.get mustBe NodePath(s",1,5,6,7,9,$id2,")
-        n3.path.get mustBe NodePath(s",1,5,6,7,9,$id3,")
+        n1.path mustBe NodePath(s",1,5,6,7,9,$id1,")
+        n2.path mustBe NodePath(s",1,5,6,7,9,$id2,")
+        n3.path mustBe NodePath(s",1,5,6,7,9,$id3,")
 
       }
 
@@ -527,8 +528,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
             (r.json \ "isPartOf").asOpt[Int]
           )
         }
-
-        println(s"Child paths are:\n${paths.mkString("\n")}")
       }
 
       "successfully move several objects" in {
@@ -552,30 +551,24 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
       }
 
-      "update should fail if type doesn't match" in {
-        //        val json = buildingJson("My Building10", StorageNodeId(1))
-        //        val response = postStorageNode(json).futureValue
-        //        response.status mustBe Status.CREATED
-        //        val building = verifyNode[Building](
-        //          response, BuildingType, "My Building10", 10, Some(1)
-        //        )
-        //        building mustBe a[Building]
-        //        building.areaTo mustBe Some(210.0)
-        //        building.heightTo mustBe Some(3.5)
-        //
-        //        val updatedJson = {
-        //          Json.parse(response.body).as[JsObject] ++ Json.obj(
-        //            "type" -> "Organisation"
-        //          )
-        //        }
-        //
-        //        val updRes = putStorageNode(building.id.get, updatedJson).futureValue
-        //        updRes.status mustBe Status.BAD_REQUEST
-        //
-        // TODO: This test is pending until it's been clarified if NotFound is
-        // a proper response in this case. I would argue that it is. Since there
-        // is no node in the DB matching the ID with the wrong type
-        pending
+      "successfully fetch the location history for a given node" in {
+        val res = wsUrl(LocationHistoryUrl(5)).get().futureValue
+        res.status mustBe Status.OK
+        val resArr = res.json.as[JsArray].value
+        resArr must not be empty
+        val firstElem = resArr.head
+
+        val today = DateTime.now.withTimeAtStartOfDay()
+
+        (firstElem \ "doneDate").as[DateTime] mustBe today
+        (firstElem \ "doneBy").as[Int] mustBe 1
+        (firstElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
+        (firstElem \ "registeredBy").as[String] mustBe "Darth Vader"
+        (firstElem \ "from" \ "path").as[NodePath] mustBe NodePath(",2,5,")
+        (firstElem \ "from" \ "pathNames").as[JsArray].value must not be empty
+        (firstElem \ "to" \ "path").as[NodePath] mustBe NodePath(",2,")
+        (firstElem \ "to" \ "pathNames").as[JsArray].value must not be empty
+
       }
 
       "respond with 404(should be 403 ??) when trying to get an organisation with wrong museum" in {
@@ -1035,32 +1028,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         println(Json.prettyPrint(move.json))
 
         (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
-      }*/
-
-      /*"update should fail if type doesn't match" in {
-        //        val json = buildingJson("My Building10", StorageNodeId(1))
-        //        val response = postStorageNode(json).futureValue
-        //        response.status mustBe Status.CREATED
-        //        val building = verifyNode[Building](
-        //          response, BuildingType, "My Building10", 10, Some(1)
-        //        )
-        //        building mustBe a[Building]
-        //        building.areaTo mustBe Some(210.0)
-        //        building.heightTo mustBe Some(3.5)
-        //
-        //        val updatedJson = {
-        //          Json.parse(response.body).as[JsObject] ++ Json.obj(
-        //            "type" -> "Organisation"
-        //          )
-        //        }
-        //
-        //        val updRes = putStorageNode(building.id.get, updatedJson).futureValue
-        //        updRes.status mustBe Status.BAD_REQUEST
-        //
-        // TODO: This test is pending until it's been clarified if NotFound is
-        // a proper response in this case. I would argue that it is. Since there
-        // is no node in the DB matching the ID with the wrong type
-        pending
       }*/
     }
   }

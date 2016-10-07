@@ -42,7 +42,11 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     // interesting in this particular test.
     val mid = MuseumId(5)
     val room = createRoom()
-    val inserted = service.addRoom(mid, room).futureValue
+    val ins = service.addRoom(mid, room).futureValue
+    ins.isSuccess mustBe true
+    ins.get must not be None
+
+    val inserted = ins.get.get
     inserted.id must not be None
     inserted.environmentRequirement must not be None
     inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
@@ -58,7 +62,11 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "successfully update a building with new environment requirements" in {
     val mid = MuseumId(5)
     val building = createBuilding()
-    val inserted = service.addBuilding(mid, building).futureValue
+    val ins = service.addBuilding(mid, building).futureValue
+    ins.isSuccess mustBe true
+    ins.get must not be None
+
+    val inserted = ins.get.get
     inserted.id must not be None
     inserted.environmentRequirement must not be None
     inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
@@ -66,7 +74,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val someEnvReq = Some(initEnvironmentRequirement(
       hypoxic = Some(Interval[Double](44.4, Some(55)))
     ))
-    val ub = building.copy(environmentRequirement = someEnvReq)
+    val ub = inserted.copy(environmentRequirement = someEnvReq)
 
     val res = service.updateBuilding(mid, inserted.id.get, ub).futureValue
     res.isSuccess mustBe true
@@ -80,7 +88,11 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "successfully update a storage unit and fetch as StorageNode" in {
     val mid = MuseumId(5)
     val su = createStorageUnit()
-    val inserted = service.addStorageUnit(mid, su).futureValue
+    val ins = service.addStorageUnit(mid, su).futureValue
+    ins.isSuccess mustBe true
+    ins.get must not be None
+
+    val inserted = ins.get.get
     inserted.id must not be None
 
     val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
@@ -106,7 +118,11 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "successfully mark a node as deleted" in {
     val mid = MuseumId(5)
     val su = createStorageUnit()
-    val inserted = service.addStorageUnit(mid, su).futureValue
+    val ins = service.addStorageUnit(mid, su).futureValue
+    ins.isSuccess mustBe true
+    ins.get must not be None
+
+    val inserted = ins.get.get
     inserted.id must not be None
 
     val deleted = service.deleteNode(mid, inserted.id.get).futureValue
@@ -120,11 +136,19 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   "not remove a node that has children" in {
     val mid = MuseumId(5)
     val su1 = createStorageUnit()
-    val inserted1 = service.addStorageUnit(mid, su1).futureValue
+    val ins1 = service.addStorageUnit(mid, su1).futureValue
+    ins1.isSuccess mustBe true
+    ins1.get must not be None
+
+    val inserted1 = ins1.get.get
     inserted1.id must not be None
 
     val su2 = createStorageUnit(partOf = inserted1.id)
-    val inserted2 = service.addStorageUnit(mid, su2).futureValue
+    val ins2 = service.addStorageUnit(mid, su2).futureValue
+    ins2.isSuccess mustBe true
+    ins2.get must not be None
+
+    val inserted2 = ins2.get.get
     inserted2.id must not be None
 
     val notDeleted = service.deleteNode(mid, inserted1.id.get).futureValue
@@ -135,31 +159,51 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
   "successfully move a node and all its children" in {
     val mid = MuseumId(5)
-    val root1 = service.addRoot(mid, Root()).futureValue
+    val r1 = service.addRoot(mid).futureValue
+    r1.get must not be None
+    val root1 = r1.get.get
     root1.id must not be None
 
     val b1 = createBuilding(name = "Building1", partOf = root1.id)
-    val building1 = service.addBuilding(mid, b1).futureValue
+    val br1 = service.addBuilding(mid, b1).futureValue
+    br1.isSuccess mustBe true
+    br1.get must not be None
+    val building1 = br1.get.get
     building1.id must not be None
 
     val b2 = createBuilding(name = "Building2", partOf = root1.id)
-    val building2 = service.addBuilding(mid, b2).futureValue
+    val br2 = service.addBuilding(mid, b2).futureValue
+    br2.isSuccess mustBe true
+    br2.get must not be None
+    val building2 = br2.get.get
     building2.id must not be None
 
     val su1 = createStorageUnit(name = "Unit1", partOf = building1.id)
-    val unit1 = service.addStorageUnit(mid, su1).futureValue
+    val u1 = service.addStorageUnit(mid, su1).futureValue
+    u1.isSuccess mustBe true
+    u1.get must not be None
+    val unit1 = u1.get.get
     unit1.id must not be None
 
     val su2 = createStorageUnit(name = "Unit2", partOf = unit1.id)
-    val unit2 = service.addStorageUnit(mid, su2).futureValue
+    val u2 = service.addStorageUnit(mid, su2).futureValue
+    u2.isSuccess mustBe true
+    u2.get must not be None
+    val unit2 = u2.get.get
     unit2.id must not be None
 
     val su3 = createStorageUnit(name = "Unit3", partOf = unit1.id)
-    val unit3 = service.addStorageUnit(mid, su3).futureValue
+    val u3 = service.addStorageUnit(mid, su3).futureValue
+    u3.isSuccess mustBe true
+    u3.get must not be None
+    val unit3 = u3.get.get
     unit3.id must not be None
 
     val su4 = createStorageUnit(name = "Unit4", partOf = unit3.id)
-    val unit4 = service.addStorageUnit(mid, su4).futureValue
+    val u4 = service.addStorageUnit(mid, su4).futureValue
+    u4.isSuccess mustBe true
+    u4.get must not be None
+    val unit4 = u4.get.get
     unit4.id must not be None
 
     val children = service.getChildren(mid, unit1.id.get).futureValue
@@ -185,7 +229,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       service.getNodeById(mid, id.get).futureValue.map { n =>
         n must not be None
         n.get.path must not be None
-        n.get.path.get.path must startWith(building2.path.get.path)
+        n.get.path.path must startWith(building2.path.path)
       }
     }
   }

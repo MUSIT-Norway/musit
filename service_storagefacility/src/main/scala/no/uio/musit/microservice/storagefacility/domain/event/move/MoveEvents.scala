@@ -19,27 +19,27 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.move
 
-import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
 import no.uio.musit.microservice.storagefacility.domain.Move
+import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import play.api.libs.json.{Format, Json}
 
 sealed trait MoveEvent extends MusitEvent {
   val baseEvent: BaseEvent
   val eventType: EventType
-  val to: PlaceRole
+  val from: Option[StorageNodeId]
+  val to: StorageNodeId
 }
 
 case class MoveObject(
   baseEvent: BaseEvent,
   eventType: EventType,
-  to: PlaceRole
+  from: Option[StorageNodeId],
+  to: StorageNodeId
 ) extends MoveEvent
 
 object MoveObject {
-  implicit val format: Format[MoveObject] = Json.format[MoveObject]
 
   def fromCommand(user: String, cmd: Move[Long]): Seq[MoveObject] = {
     cmd.items.map { objectId =>
@@ -62,10 +62,8 @@ object MoveObject {
           registeredDate = Some(now)
         ),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
-        to = PlaceRole(
-          roleId = 1,
-          placeId = cmd.destination
-        )
+        from = None,
+        to = cmd.destination
       )
     }
   }
@@ -74,11 +72,11 @@ object MoveObject {
 case class MoveNode(
   baseEvent: BaseEvent,
   eventType: EventType,
-  to: PlaceRole
+  from: Option[StorageNodeId],
+  to: StorageNodeId
 ) extends MoveEvent
 
 object MoveNode {
-  implicit val format: Format[MoveNode] = Json.format[MoveNode]
 
   def fromCommand(user: String, cmd: Move[StorageNodeId]): Seq[MoveNode] = {
     cmd.items.map { nodeId =>
@@ -101,10 +99,8 @@ object MoveNode {
           registeredDate = Some(now)
         ),
         eventType = EventType.fromEventTypeId(MoveNodeType.id),
-        to = PlaceRole(
-          roleId = 1,
-          placeId = cmd.destination
-        )
+        from = None,
+        to = cmd.destination
       )
     }
   }

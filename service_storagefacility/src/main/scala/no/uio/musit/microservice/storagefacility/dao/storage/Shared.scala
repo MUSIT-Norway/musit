@@ -21,11 +21,12 @@ package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.domain.MuseumId
-import no.uio.musit.microservice.storagefacility.domain.NodePath
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageUnitDto
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
 private[dao] trait BaseStorageDao extends HasDatabaseConfigProvider[JdbcProfile]
@@ -37,9 +38,18 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   import driver.api._
 
+  protected def wrongNumUpdatedRows(id: StorageNodeId, numRowsUpdated: Int) =
+    s"Wrong amount of rows ($numRowsUpdated) updated for node $id"
+
   protected val rootNodeType: StorageType = StorageType.RootType
 
   protected val storageNodeTable = TableQuery[StorageNodeTable]
+
+  protected val organisationTable = TableQuery[OrganisationTable]
+
+  protected val buildingTable = TableQuery[BuildingTable]
+
+  protected val roomTable = TableQuery[RoomTable]
 
   /**
    * TODO: Document me!!!
@@ -58,7 +68,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     }.result.headOption
   }
 
-  protected[storage] def getAllByIdAction(
+  protected[storage] def getNodeByIdAction(
     mid: MuseumId,
     id: StorageNodeId
   ): DBIO[Option[StorageUnitDto]] = {
@@ -97,20 +107,34 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     logger.debug(s"performing update with LIKE: $pathFilter")
 
     sql"""
-         UPDATE "MUSARK_STORAGE"."STORAGE_NODE" n
-         SET n."NODE_PATH" = replace(n."NODE_PATH", ${op}, ${np})
-         WHERE n."NODE_PATH" LIKE ${pathFilter}
+         UPDATE "MUSARK_STORAGE"."STORAGE_NODE"
+         SET "NODE_PATH" = replace("NODE_PATH", ${op}, ${np})
+         WHERE "NODE_PATH" LIKE ${pathFilter}
        """.asUpdate.transactionally
+  }
+
+  /**
+   * Action for fetching the names for each StorageNodeId in the provided
+   * NodePath attribute.
+   *
+   * @param nodePath NodePath to get names for
+   * @return A {{{DBIO[Seq[NamedPathElement]]}}}
+   */
+  protected[storage] def namesForPathAction(
+    nodePath: NodePath
+  ): DBIO[Seq[NamedPathElement]] = {
+    storageNodeTable.filter { sn =>
+      sn.id inSetBind nodePath.asIdSeq
+    }.map(s => (s.id, s.name)).result.map(_.map(t => NamedPathElement(t._1, t._2)))
   }
 
   /**
    * TODO: Document me!!!
    */
   protected[storage] def insertNodeAction(
-    storageUnit: StorageUnitDto
-  ): DBIO[StorageUnitDto] = {
-    storageNodeTable returning storageNodeTable.map(_.id) into ((sn, id) =>
-      sn.copy(id = Some(id))) += storageUnit
+    dto: StorageUnitDto
+  ): DBIO[StorageNodeId] = {
+    storageNodeTable returning storageNodeTable.map(_.id) += dto
   }
 
   /**
@@ -148,7 +172,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     def * = (
       id.?,
       storageType,
-      storageUnitName,
+      name,
       area,
       areaTo,
       isPartOf,
@@ -165,7 +189,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
     val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
     val storageType = column[StorageType]("STORAGE_TYPE")
-    val storageUnitName = column[String]("STORAGE_NODE_NAME")
+    val name = column[String]("STORAGE_NODE_NAME")
     val area = column[Option[Double]]("AREA")
     val areaTo = column[Option[Double]]("AREA_TO")
     val isPartOf = column[Option[StorageNodeId]]("IS_PART_OF")
@@ -194,7 +218,6 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     ) =>
       StorageUnitDto(
         id = id,
-        storageType = storageType,
         name = storageNodeName,
         area = area,
         areaTo = areaTo,
@@ -205,7 +228,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         groupWrite = groupWrite,
         path = nodePath,
         isDeleted = Option(isDeleted),
-        museumId = museumId
+        museumId = museumId,
+        storageType = storageType
       )
 
     def destroy(unit: StorageUnitDto) =
@@ -224,6 +248,114 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         unit.museumId,
         unit.path
       ))
+  }
+
+  private[storage] class RoomTable(
+      val tag: Tag
+  ) extends Table[RoomDto](tag, SchemaName, "ROOM") {
+    // scalastyle:off method.name
+    def * = (
+      id,
+      perimeterSecurity,
+      theftProtection,
+      fireProtection,
+      waterDamage,
+      routinesAndContingency,
+      relativeHumidity,
+      temperatureAssessment,
+      lighting,
+      preventiveConservation
+    ) <> (create.tupled, destroy)
+
+    // scalastyle:on method.name
+
+    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
+    val perimeterSecurity = column[Option[Boolean]]("PERIMETER_SECURITY")
+    val theftProtection = column[Option[Boolean]]("THEFT_PROTECTION")
+    val fireProtection = column[Option[Boolean]]("FIRE_PROTECTION")
+    val waterDamage = column[Option[Boolean]]("WATER_DAMAGE_ASSESSMENT")
+    val routinesAndContingency = column[Option[Boolean]]("ROUTINES_AND_CONTINGENCY_PLAN")
+    val relativeHumidity = column[Option[Boolean]]("RELATIVE_HUMIDITY")
+    val temperatureAssessment = column[Option[Boolean]]("TEMPERATURE_ASSESSMENT")
+    val lighting = column[Option[Boolean]]("LIGHTING_CONDITION")
+    val preventiveConservation = column[Option[Boolean]]("PREVENTIVE_CONSERVATION")
+
+    def create = (
+      id: Option[StorageNodeId],
+      perimeterSecurity: Option[Boolean],
+      theftProtection: Option[Boolean],
+      fireProtection: Option[Boolean],
+      waterDamage: Option[Boolean],
+      routinesAndContingency: Option[Boolean],
+      relativeHumidity: Option[Boolean],
+      temperature: Option[Boolean],
+      lighting: Option[Boolean],
+      preventiveConservation: Option[Boolean]
+    ) =>
+      RoomDto(
+        id = id,
+        perimeterSecurity = perimeterSecurity,
+        theftProtection = theftProtection,
+        fireProtection = fireProtection,
+        waterDamageAssessment = waterDamage,
+        routinesAndContingencyPlan = routinesAndContingency,
+        relativeHumidity = relativeHumidity,
+        temperatureAssessment = temperature,
+        lightingCondition = lighting,
+        preventiveConservation = preventiveConservation
+      )
+
+    def destroy(room: RoomDto) =
+      Some((
+        room.id,
+        room.perimeterSecurity,
+        room.theftProtection,
+        room.fireProtection,
+        room.waterDamageAssessment,
+        room.routinesAndContingencyPlan,
+        room.relativeHumidity,
+        room.temperatureAssessment,
+        room.lightingCondition,
+        room.preventiveConservation
+      ))
+  }
+
+  private[storage] class BuildingTable(
+      val tag: Tag
+  ) extends Table[BuildingDto](tag, SchemaName, "BUILDING") {
+
+    def * = (id.?, address) <> (create.tupled, destroy) // scalastyle:ignore
+
+    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey)
+    val address = column[Option[String]]("POSTAL_ADDRESS")
+
+    def create = (id: Option[StorageNodeId], address: Option[String]) =>
+      BuildingDto(
+        id = id,
+        address = address
+      )
+
+    def destroy(building: BuildingDto) =
+      Some((building.id, building.address))
+  }
+
+  private[storage] class OrganisationTable(
+      val tag: Tag
+  ) extends Table[OrganisationDto](tag, SchemaName, "ORGANISATION") {
+
+    def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
+
+    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
+    val address = column[Option[String]]("POSTAL_ADDRESS")
+
+    def create = (id: Option[StorageNodeId], address: Option[String]) =>
+      OrganisationDto(
+        id = id,
+        address = address
+      )
+
+    def destroy(organisation: OrganisationDto) =
+      Some((organisation.id, organisation.address))
   }
 
 }

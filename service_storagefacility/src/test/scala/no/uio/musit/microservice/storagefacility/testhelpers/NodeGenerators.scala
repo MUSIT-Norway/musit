@@ -52,20 +52,47 @@ trait NodeGenerators extends NodeTypeInitializers {
     instance(musitFakeApp)
   }
 
+  private def createAndFetchNode[A <: StorageNode](
+    node: A,
+    insert: A => Future[StorageNodeId],
+    get: (MuseumId, StorageNodeId) => Future[Option[A]]
+  ): A = {
+    Await.result({
+      for {
+        nodeId <- insert(node)
+        nodeRes <- get(MuseumId(2), nodeId)
+      } yield {
+        nodeRes.get
+      }
+    }, 5 seconds)
+  }
+
   // Some default nodes
   lazy val defaultBuilding: Building = {
-    Await.result(buildingDao.insert(2, createBuilding()), 5 seconds)
+    createAndFetchNode(
+      node = createBuilding(),
+      insert = buildingDao.insert,
+      get = buildingDao.getById
+    )
   }
 
   lazy val defaultRoom: Room = {
-    Await.result(roomDao.insert(2, createRoom()), 5 seconds)
+    createAndFetchNode(
+      node = createRoom(),
+      insert = roomDao.insert,
+      get = roomDao.getById
+    )
   }
 
   lazy val defaultStorageUnit: StorageUnit = {
-    Await.result(storageUnitDao.insert(2, createStorageUnit()), 5 seconds)
+    createAndFetchNode(
+      createStorageUnit(),
+      storageUnitDao.insert,
+      storageUnitDao.getById
+    )
   }
 
-  /* def addRoot(r: Root) = storageUnitDao.insertRoot(mid, r)
+  def addRoot(r: Root) = storageUnitDao.insertRoot(mid, r)
 
   def addBuilding(b: Building) = buildingDao.insert(mid, b)
 
@@ -88,11 +115,9 @@ trait NodeGenerators extends NodeTypeInitializers {
             s"${notCorrect.getClass} is not supported"
           )
       }
-    }.map { inserted =>
-      inserted.map(_.id.get)
     }
     Await.result(eventuallyInserted, 10 seconds)
-  }*/
+  }
 }
 
 trait NodeTypeInitializers {
@@ -121,7 +146,7 @@ trait NodeTypeInitializers {
   def createBuilding(
     name: String = "FooBarBuilding",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): Building = {
     Building(
       id = None,
@@ -142,7 +167,7 @@ trait NodeTypeInitializers {
   def createRoom(
     name: String = "FooRoom",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): Room = {
     Room(
       id = None,
@@ -175,7 +200,7 @@ trait NodeTypeInitializers {
   def createStorageUnit(
     name: String = "FooUnit",
     partOf: Option[StorageNodeId] = None,
-    path: Option[NodePath] = None
+    path: NodePath = NodePath.empty
   ): StorageUnit = {
     StorageUnit(
       id = None,

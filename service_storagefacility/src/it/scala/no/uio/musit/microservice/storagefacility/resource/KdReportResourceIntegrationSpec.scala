@@ -63,8 +63,6 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val report = wsUrl(KdReportUrl(2)).get.futureValue
 
-        println(Json.prettyPrint(report.json))
-
         (report.json \ "totalArea").as[Int] mustBe 42
         (report.json \ "perimeterSecurity").as[Int] mustBe 42
         (report.json \ "theftProtection").as[Int] mustBe 42

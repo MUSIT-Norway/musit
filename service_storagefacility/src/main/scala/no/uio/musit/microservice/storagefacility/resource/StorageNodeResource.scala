@@ -43,6 +43,22 @@ final class StorageNodeResource @Inject() (
   // TODO: Use user from an enriched request type in a proper SecureAction
   import no.uio.musit.microservice.storagefacility.DummyData.DummyUser
 
+  private def addResult[T <: StorageNode](
+    res: MusitResult[Option[T]]
+  ): Result = {
+    res match {
+      case MusitSuccess(maybeNode) =>
+        maybeNode.map { n =>
+          Created(Json.toJson[T](n))
+        }.getOrElse {
+          InternalServerError(Json.obj("message" -> "Could not node after insertion"))
+        }
+
+      case err: MusitError =>
+        InternalServerError(Json.obj("message" -> err.message))
+    }
+  }
+
   /**
    * TODO: Document me!
    */
@@ -54,27 +70,19 @@ final class StorageNodeResource @Inject() (
           node match {
             case su: StorageUnit =>
               logger.debug(s"Adding a new StorageUnit ${su.name}")
-              service.addStorageUnit(mid, su).map { n =>
-                Created(Json.toJson[StorageNode](n))
-              }
+            service.addStorageUnit(mid, su).map(addResult)
 
             case b: Building =>
               logger.debug(s"Adding a new Building ${b.name}")
-              service.addBuilding(mid, b).map { n =>
-                Created(Json.toJson[StorageNode](n))
-              }
+            service.addBuilding(mid, b).map(addResult)
 
             case r: Room =>
               logger.debug(s"Adding a new Room ${r.name}")
-              service.addRoom(mid, r).map { n =>
-                Created(Json.toJson[StorageNode](n))
-              }
+            service.addRoom(mid, r).map(addResult)
 
             case o: Organisation =>
               logger.debug(s"Adding a new Organisation ${o.name}")
-              service.addOrganisation(mid, o).map { n =>
-                Created(Json.toJson[StorageNode](n))
-              }
+            service.addOrganisation(mid, o).map(addResult)
 
             case bad =>
               val message = s"Wrong service for adding a ${bad.storageType}."
@@ -96,7 +104,7 @@ final class StorageNodeResource @Inject() (
    */
   def addRoot(mid: Int) = Action.async { implicit request =>
     Museum.fromMuseumId(mid).map { museum =>
-      service.addRoot(mid, Root()).map(node => Created(Json.toJson(node)))
+      service.addRoot(mid).map(addResult)
     }.getOrElse {
       Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }
@@ -233,7 +241,7 @@ final class StorageNodeResource @Inject() (
     }.map { mru =>
       val success = mru.filter(_._2.isSuccess).map(_._1)
       val failed = mru.filter(_._2.isFailure).map(_._1)
-      println(s"failed: $failed")
+
       if (success.isEmpty) {
         BadRequest(Json.obj("message" -> "Nothing was moved"))
       } else {
@@ -248,8 +256,12 @@ final class StorageNodeResource @Inject() (
     }
   }
 
-  // TODO: Check if moving to self...should be illegal!
-  def moveNode(mid: MuseumId) = Action.async(parse.json) { implicit request =>
+  /**
+   * TODO: Document me!
+   *
+   * TODO: Check if moving to self...should be illegal!
+   */
+   def moveNode(mid: MuseumId) = Action.async(parse.json) { implicit request =>
     Museum.fromMuseumId(mid).map { museum =>
       // TODO: Extract current user information from enriched request.
       request.body.validate[Move[StorageNodeId]] match {
@@ -266,7 +278,10 @@ final class StorageNodeResource @Inject() (
     }
   }
 
-  def moveObject(mid: MuseumId) = Action.async(parse.json) { implicit request =>
+  /**
+   * TODO: Document me!
+   */
+   def moveObject(mid: MuseumId) = Action.async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     Museum.fromMuseumId(mid).map { museum =>
       request.body.validate[Move[Long]] match {
@@ -283,7 +298,24 @@ final class StorageNodeResource @Inject() (
     }
   }
 
-  def stats(mid: MuseumId, nodeId: Long) = Action.async { implicit request =>
+  /**
+   * Endpoint for retrieving the {{{limit}}} number of past move events.
+   *
+   * @param nodeId StorageNodeId to get move history for.
+   * @param limit Int indicating the number of results to return.
+   * @return A JSON array with the {{{limi}}} number of move events.
+   */
+  def locations(nodeId: Long, limit: Int) = Action.async { implicit request =>
+    service.locationHistory(nodeId, Option(limit)).map {
+      case MusitSuccess(history) => Ok(Json.toJson(history))
+      case err: MusitError => InternalServerError(Json.obj("" -> err.message))
+    }
+  }
+
+  /**
+   * TODO: Document me!
+   */
+   def stats(mid: MuseumId, nodeId: Long) = Action.async { implicit request =>
     Museum.fromMuseumId(mid).map { museum =>
       service.nodeStats(mid, nodeId).map {
         case MusitSuccess(maybeStats) =>
