@@ -50,13 +50,8 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val json = roomJson("EllensPersonalRoom", None)
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
-
-        val room = verifyNode[Room](
-          response, RoomType, "EllensPersonalRoom", 7, None
-        )
-        room mustBe a[Room]
-        room.areaTo mustBe Some(21)
-        room.heightTo mustBe Some(2.6)
+        (response.json \ "areaTo").as[Double] mustBe 21
+        (response.json \ "heightTo").as[Double] mustBe 2.6
 
         val json1 = roomJson("EllensWorkOutRoom", None)
         val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
@@ -87,7 +82,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val wrongMid = MuseumId(6)
         val wrongMuseum = wsUrl(KdReportUrl(wrongMid)).get.futureValue
         wrongMuseum.status mustBe Status.OK
-        (wrongMuseum.json  \ "totalArea").as[Int] mustBe 0
+        (wrongMuseum.json \ "totalArea").as[Int] mustBe 0
       }
 
     }

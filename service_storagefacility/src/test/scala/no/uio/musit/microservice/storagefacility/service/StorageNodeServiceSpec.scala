@@ -439,7 +439,6 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
   }
 
-
   // TODO: MORE TESTING!!!!!
 
 }
