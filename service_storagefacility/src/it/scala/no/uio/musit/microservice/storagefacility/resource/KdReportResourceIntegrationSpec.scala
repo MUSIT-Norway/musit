@@ -50,7 +50,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         response.status mustBe Status.CREATED
 
         val room = verifyNode[Room](
-          response, RoomType, "EllensPersonalRoom", 1, None
+          response, RoomType, "EllensPersonalRoom", 7, None
         )
         room mustBe a[Room]
         room.areaTo mustBe Some(21)

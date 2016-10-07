@@ -268,14 +268,14 @@ final class StorageNodeResource @Inject() (
   /**
    * Endpoint for retrieving the {{{limit}}} number of past move events.
    *
-   * @param nodeId StorageNodeId to get move history for.
+   * @param objectId the objectId to get move history for.
    * @param limit Int indicating the number of results to return.
    * @return A JSON array with the {{{limi}}} number of move events.
    */
-  def locations(nodeId: Long, limit: Int) = Action.async { implicit request =>
-    service.locationHistory(nodeId, Option(limit)).map {
+  def objectLocationHistory(objectId: Long, limit: Int) = Action.async { implicit request =>
+    service.objectLocationHistory(objectId, Option(limit)).map {
       case MusitSuccess(history) => Ok(Json.toJson(history))
-      case err: MusitError => InternalServerError(Json.obj("" -> err.message))
+      case err: MusitError => InternalServerError(Json.obj("message" -> err.message))
     }
   }
 

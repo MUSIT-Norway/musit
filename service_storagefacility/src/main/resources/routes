@@ -14,7 +14,7 @@ PUT           /v1/storagenodes/:nodeId                              no.uio.musit
 DELETE        /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.delete(nodeId: Long)
 GET           /v1/storagenodes/:nodeId/children                     no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.children(nodeId: Long)
 GET           /v1/storagenodes/:nodeId/stats                        no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.stats(nodeId: Long)
-GET           /v1/storagenodes/:nodeId/locations                    no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.locations(nodeId: Long, limit: Int ?= 50)
+GET           /v1/storagenodes/objects/:oid/locations               no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.objectLocationHistory(oid: Long, limit: Int ?= 50)
 
 # Controls
 POST          /v1/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.addControl(nodeId: Long)

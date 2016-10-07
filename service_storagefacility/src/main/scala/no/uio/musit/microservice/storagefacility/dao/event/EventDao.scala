@@ -28,7 +28,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.MoveConverters
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
-import no.uio.musit.microservice.storagefacility.domain.event.move.MoveNode
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.event.{EventTypeId, EventTypeRegistry}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.service.MusitResults._
@@ -541,7 +541,7 @@ class EventDao @Inject() (
     eventType: EType,
     limit: Option[Int] = None
   )(success: EventDto => Res): Future[Seq[Res]] = {
-    val futureEventIds = placesAsObjDao.latestEventIdsFor(
+    val futureEventIds = placesAsObjDao.latestEventIdsForNode(
       nodeId = nodeId,
       eventTypeId = eventType.id,
       limit = limit
@@ -575,18 +575,55 @@ class EventDao @Inject() (
   ): Future[Seq[EventDto]] = eventsForNode(id, eventType)(dto => dto)
 
   /**
-   * Fetch the {{{limit}}} number of last MoveNode events for the given
-   * StorageNodeId.
    *
-   * @param nodeId StorageNodeId to get move events for
+   * @param objectId
+   * @param eventType
+   * @param limit
+   * @param success
+   * @tparam EType
+   * @tparam Res
+   * @return
+   */
+  private def eventsForObject[EType <: TopLevelEvent, Res](
+    objectId: Long,
+    eventType: EType,
+    limit: Option[Int] = None
+  )(success: EventDto => Res): Future[Seq[Res]] = {
+    val futureEventIds = objectsDao.latestEventIdsForObject(
+      objectId = objectId,
+      eventTypeId = eventType.id,
+      limit = limit
+    )
+
+    futureEventIds.flatMap { ids =>
+      Future.traverse(ids)(eId => getEvent(eId, Some(eventType.id))).map { res =>
+        res.filter(_.isSuccess).map {
+          case MusitSuccess(maybeSuccess) =>
+            maybeSuccess.map(dto => success(dto))
+
+          case impossible =>
+            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+
+        }.filter(_.isDefined).map(_.get)
+      }
+    }
+  }
+
+  /**
+   * Fetch the {{{limit}}} number of last MoveObject events for the given
+   * object ID.
+   *
+   * @param objectId the object ID to get move events for
    * @param limit Int specifying the number of move events to get
    * @return A Future of a collection of MoveNode events.
    */
-  def getLocationHistory(
-    nodeId: StorageNodeId,
+  def getObjectLocationHistory(
+    objectId: Long,
     limit: Option[Int]
-  ): Future[Seq[MoveNode]] = eventsForNode(nodeId, MoveNodeType, limit) { dto =>
-    MoveConverters.moveNodeFromDto(dto.asInstanceOf[BaseEventDto])
+  ): Future[Seq[MoveObject]] = {
+    eventsForObject(objectId, MoveObjectType, limit) { dto =>
+      MoveConverters.moveObjectFromDto(dto.asInstanceOf[BaseEventDto])
+    }
   }
 
 }
