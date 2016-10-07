@@ -37,7 +37,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 
 class ControlService @Inject()(val eventDao: EventDao,
-                               val storageNodeDao: StorageUnitDao) {
+                               val storageNodeService: StorageNodeService) {
 
   val logger = Logger(classOf[ControlService])
 
@@ -49,37 +49,43 @@ class ControlService @Inject()(val eventDao: EventDao,
            nodeId: Long,
            ctrl: Control
          )(implicit currUsr: String): Future[MusitResult[Control]] = {
-    storageNodeDao.getById(mid, nodeId).flatMap{ mayBeNodeExists => {
-      mayBeNodeExists.fold(Future.successful{
-        MusitValidationError("Node not found."):MusitResult[Control]}){nodeExists => {
-        val c = ctrl.copy(
-          baseEvent = ctrl.baseEvent.copy(
-            affectedThing = Some(ObjectRole(
-              roleId = 1,
-              objectId = nodeId
-            )),
-            registeredBy = Some(currUsr),
-            registeredDate = Some(dateTimeNow)
-          )
-        )
-        val dto = CtrlConverters.controlToDto(c)
-        eventDao.insertEvent(mid, dto).flatMap { eventId =>
-          eventDao.getEvent(mid, eventId).map { res =>
-            res.flatMap(_.map { dto =>
-              // We know we have a BaseEventDto representing a Control.
-              val bdto = dto.asInstanceOf[BaseEventDto]
-              MusitSuccess(CtrlConverters.controlFromDto(bdto))
-            }.getOrElse {
-              logger.error(
-                s"An unexpected error occured when trying to fetch a " +
-                  s"control event that was added with eventId $eventId"
+    storageNodeService.getNodeById(mid, nodeId).flatMap {
+        case MusitSuccess(maybeNodeExists) =>
+          maybeNodeExists.map { nodeExists => {
+            val c = ctrl.copy(
+              baseEvent = ctrl.baseEvent.copy(
+                affectedThing = Some(ObjectRole(
+                  roleId = 1,
+                  objectId = nodeId
+                )),
+                registeredBy = Some(currUsr),
+                registeredDate = Some(dateTimeNow)
               )
-              MusitInternalError("Could not locate the control that was added")
-            })
+            )
+            val dto = CtrlConverters.controlToDto(c)
+            eventDao.insertEvent(mid, dto).flatMap { eventId =>
+              eventDao.getEvent(mid, eventId).map { res =>
+                res.flatMap(_.map { dto =>
+                  // We know we have a BaseEventDto representing a Control.
+                  val bdto = dto.asInstanceOf[BaseEventDto]
+                  MusitSuccess(CtrlConverters.controlFromDto(bdto))
+                }.getOrElse {
+                  logger.error(
+                    s"An unexpected error occured when trying to fetch a " +
+                      s"control event that was added with eventId $eventId"
+                  )
+                  MusitInternalError("Could not locate the control that was added")
+                })
+              }
+            }}
+          }.getOrElse {
+            Future.successful[MusitResult[Control]](MusitValidationError("Node not found."))
           }
-        }
-      }}
-    }}
+
+        case err: MusitError =>
+          ???
+
+    }
   }
 
 

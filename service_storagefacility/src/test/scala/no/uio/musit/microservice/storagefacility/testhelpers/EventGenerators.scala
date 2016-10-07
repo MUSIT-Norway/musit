@@ -30,6 +30,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirem
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, Interval, LifeCycle, MuseumId}
+import no.uio.musit.microservice.storagefacility.domain.storage
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
 

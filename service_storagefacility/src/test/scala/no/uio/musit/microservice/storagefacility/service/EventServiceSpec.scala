@@ -65,7 +65,7 @@ package no.uio.musit.microservice.storagefacility.service
         // TODO: problem solving this test on envReqEvent against museumID
        /* envReqEvent.get mustBe true
         envReqEvent.get. mustBe 9
-        println("inni observation")
+        println("inni envReq")
         latestEventId = obsEvent.get.baseEvent.id.get
         latestEventId mustBe 9L
 
