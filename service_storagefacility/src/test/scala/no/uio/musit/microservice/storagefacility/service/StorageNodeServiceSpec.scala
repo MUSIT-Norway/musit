@@ -438,23 +438,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val oldDataRes = service.getRoomById(mid, inserted.id.get).futureValue
     oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
   }
-  /*"successfully create a new room node with environment requirements" in {
-    // Setup new room data, without the partOf relation, which is not
-    // interesting in this particular test.
-    val mid = 5
-    val room = createRoom()
-    val inserted = service.addRoom(mid, room).futureValue
-    inserted.id must not be None
-    inserted.environmentRequirement must not be None
-    inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
 
-    val res = service.getRoomById(mid, inserted.id.get).futureValue
-    res.isSuccess mustBe true
-    res.get must not be None
-    res.get.get.id must not be None
-    res.get.get.environmentRequirement must not be None
-    res.get.get.environmentRequirement.get mustBe defaultEnvironmentRequirement
-  }*/
 
   // TODO: MORE TESTING!!!!!
 

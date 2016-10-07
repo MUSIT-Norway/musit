@@ -924,8 +924,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveRes = wsUrl(MoveStorageNodeUrl(wrongMid)).put(moveJson).futureValue
 
         moveRes.status mustBe Status.BAD_REQUEST
-        println(Json.prettyPrint(moveRes.json))
-        // (moveRes.json \ "failed").as[JsArray].value.head.as[Long] mustBe moveMeId
         moveRes.json.toString() must include("Nothing was moved")
         val movedNodeRes = wsUrl(StorageNodeUrl(mid, moveMeId)).get().futureValue
 
@@ -965,7 +963,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val move = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
         move.status mustBe Status.OK
 
-        println(Json.prettyPrint(move.json))
         (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id1
         (move.json \ "failed").as[JsArray].value.head.as[Long] mustBe id3
         val movedRes1 = wsUrl(StorageNodeUrl(mid, id1)).get().futureValue

@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storagefacility.resource
 
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
@@ -44,14 +45,14 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   "Running the storage facility service" when {
     "interacting with the StorageUnitResource endpoints" should {
 
-      "successfully get kDReport for rooms" in {
+      "successfully get kDReport for rooms with different museumId" in {
         val mid = 2
         val json = roomJson("EllensPersonalRoom", None)
         val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val room = verifyNode[Room](
-          response, RoomType, "EllensPersonalRoom", 1, None
+          response, RoomType, "EllensPersonalRoom", 7, None
         )
         room mustBe a[Room]
         room.areaTo mustBe Some(21)
@@ -61,7 +62,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
         response1.status mustBe Status.CREATED
 
-        val report = wsUrl(KdReportUrl(2)).get.futureValue
+        val report = wsUrl(KdReportUrl(mid)).get.futureValue
 
         (report.json \ "totalArea").as[Int] mustBe 42
         (report.json \ "perimeterSecurity").as[Int] mustBe 42
@@ -70,6 +71,23 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (report.json \ "waterDamageAssessment").as[Int] mustBe 0
         (report.json \ "routinesAndContingencyPlan").as[Int] mustBe 0
 
+        val anotherMid = MuseumId(4)
+        val json2 = roomJson("EllensLivingRoom", None)
+        val response2 = wsUrl(StorageNodesUrl(anotherMid)).post(json2).futureValue
+        response2.status mustBe Status.CREATED
+        val anotherMuseum = wsUrl(KdReportUrl(anotherMid)).get.futureValue
+        anotherMuseum.status mustBe Status.OK
+        (anotherMuseum.json \ "totalArea").as[Int] mustBe 21
+        (anotherMuseum.json \ "perimeterSecurity").as[Int] mustBe 21
+        (anotherMuseum.json \ "theftProtection").as[Int] mustBe 21
+        (anotherMuseum.json \ "fireProtection").as[Int] mustBe 21
+        (anotherMuseum.json \ "waterDamageAssessment").as[Int] mustBe 0
+        (anotherMuseum.json \ "routinesAndContingencyPlan").as[Int] mustBe 0
+
+        val wrongMid = MuseumId(6)
+        val wrongMuseum = wsUrl(KdReportUrl(wrongMid)).get.futureValue
+        wrongMuseum.status mustBe Status.OK
+        (wrongMuseum.json  \ "totalArea").as[Int] mustBe 0
       }
 
     }
