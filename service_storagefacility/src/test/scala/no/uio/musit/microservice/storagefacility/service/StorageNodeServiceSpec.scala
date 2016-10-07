@@ -191,7 +191,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   }
 
   "UnSuccessfully move a node and all its children with wrong museum" in {
-   /* TODO: This test is pending until it's been clarified if this scenario will occur
+    /* TODO: This test is pending until it's been clarified if this scenario will occur
     val mid = MuseumId(5)
     val root1 = service.addRoot(mid, Root()).futureValue
     root1.id must not be None
@@ -268,14 +268,12 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     stillNotDeleted.get must not be None
     stillNotDeleted.get.get.id mustBe inserted1.id
 
-
   }
   "UnSuccessfully remove a node with different museumId as input on delete than storagenode and it's child " in {
     val mid = MuseumId(5)
     val su1 = createStorageUnit()
     val inserted1 = service.addStorageUnit(mid, su1).futureValue
     inserted1.id must not be None
-
 
     val su2 = createStorageUnit(partOf = inserted1.id)
     val inserted2 = service.addStorageUnit(mid, su2).futureValue
@@ -306,7 +304,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     StillAvailable.get.get.id mustBe inserted.id
   }
   "UnSuccessfully update a storage unit and fetch as StorageNode with same data than before" in {
-    val mid =  MuseumId(5)
+    val mid = MuseumId(5)
     val su = createStorageUnit()
     val inserted = service.addStorageUnit(mid, su).futureValue
     inserted.id must not be None
@@ -316,7 +314,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     storageUnit must not be None
     storageUnit.storageType mustBe su.storageType
     storageUnit.name mustBe su.name
-    storageUnit.name must include ("FooUnit")
+    storageUnit.name must include("FooUnit")
     storageUnit.areaTo mustBe Some(2.0)
 
     val upd = storageUnit.copy(name = "UggaBugga", areaTo = Some(4.0))
@@ -330,7 +328,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     again.isSuccess mustBe true
     again.get must not be None
     val getAgain = again.get.get
-    getAgain.name must include ("FooUnit")
+    getAgain.name must include("FooUnit")
     getAgain.areaTo mustBe Some(2.0)
   }
   "UnSuccessfully update a building with new environment requirements and wrong MuseumID" in {
@@ -340,7 +338,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     inserted.id must not be None
     inserted.environmentRequirement must not be None
     inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
-    inserted.address.get must include ("Foo")
+    inserted.address.get must include("Foo")
 
     val someEnvReq = Some(initEnvironmentRequirement(
       hypoxic = Some(Interval[Double](44.4, Some(55)))
@@ -351,8 +349,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     res.isSuccess mustBe true
     res.get mustBe None
 
-    val oldDataRes = service.getBuildingById(mid,inserted.id.get).futureValue
-    oldDataRes.get.get.address.get must include ("Foo")
+    val oldDataRes = service.getBuildingById(mid, inserted.id.get).futureValue
+    oldDataRes.get.get.address.get must include("Foo")
   }
   "UnSuccessfully update a room with wrong or not existing MuseumID" in {
     val mid = MuseumId(5)
@@ -368,7 +366,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     res.isSuccess mustBe true
     res.get mustBe None
 
-    val oldDataRes = service.getRoomById(mid,inserted.id.get).futureValue
+    val oldDataRes = service.getRoomById(mid, inserted.id.get).futureValue
     oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
   }
   /*"successfully create a new room node with environment requirements" in {
@@ -388,7 +386,6 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     res.get.get.environmentRequirement must not be None
     res.get.get.environmentRequirement.get mustBe defaultEnvironmentRequirement
   }*/
-
 
   // TODO: MORE TESTING!!!!!
 

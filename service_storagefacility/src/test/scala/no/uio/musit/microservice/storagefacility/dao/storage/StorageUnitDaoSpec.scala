@@ -152,7 +152,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
       res must not be None
       res.get.storageType mustBe su.storageType
-      res.get.name must include ("FooUnit")
+      res.get.name must include("FooUnit")
       res.get.name mustBe su.name
       res.get.areaTo mustBe Some(2.0)
 

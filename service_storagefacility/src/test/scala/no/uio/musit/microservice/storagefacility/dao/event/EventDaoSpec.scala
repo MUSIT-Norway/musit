@@ -252,7 +252,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val ctrlId2 = addControl(mid, ctrl2).futureValue
         val ctrlId3 = addControl(mid, ctrl3).futureValue
 
-        val controls = eventDao.getEventsForNode(mid,
+        val controls = eventDao.getEventsForNode(
+          mid,
           defaultBuilding.id.get,
           ControlEventType
         ).futureValue
@@ -274,7 +275,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val obsId1 = addObservation(mid, obs1).futureValue
         val obsId2 = addObservation(mid, obs2).futureValue
 
-        val observations = eventDao.getEventsForNode(mid,
+        val observations = eventDao.getEventsForNode(
+          mid,
           defaultRoom.id.get,
           ObservationEventType
         ).futureValue
@@ -289,7 +291,6 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       }
 
     }
-
 
     "With MuseumId, processing controls with sub-controls and observations" should {
       "Unsuccessfully when inserting a Control" in {
@@ -306,7 +307,6 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         currentControlEventId mustBe 56L
 */
       }
-
 
       "Unsuccessfully return the Control associated with the provided Id with another MuseumId" in {
         // TODO: cant'do this test until eventdao.insert have implemented test against museumID
@@ -522,7 +522,6 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
     }
 
      */
-
 
       }
     }
