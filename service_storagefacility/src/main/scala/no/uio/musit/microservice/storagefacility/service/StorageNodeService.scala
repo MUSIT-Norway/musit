@@ -519,17 +519,35 @@ class StorageNodeService @Inject() (
   /**
    * Helper to encapsulate shared logic between the public move methods.
    */
-  private def move(
+  private def persistMoveEvent(
     id: Long,
     event: MoveEvent
   )(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
     val dto = DtoConverters.MoveConverters.moveToDto(event)
-
     eventDao.insertEvent(dto).flatMap(eventId => f(eventId)).recover {
       case NonFatal(ex) =>
         val msg = s"An exception occured trying to move $id"
         logger.error(msg, ex)
         MusitInternalError(msg)
+    }
+  }
+
+  private def move[E <: MoveEvent](
+    event: E,
+    eventuallyMaybeCurrent: Future[Option[GenericStorageNode]],
+    eventuallyMaybeTo: Future[Option[GenericStorageNode]]
+  )(
+    mv: (GenericStorageNode, GenericStorageNode) => Future[MusitResult[Long]]
+  ): Future[MusitResult[Long]] = {
+    val eventuallyExistence = for {
+      maybeCurrent <- eventuallyMaybeCurrent
+      maybeTo <- eventuallyMaybeTo
+    } yield (maybeCurrent, maybeTo)
+
+    eventuallyExistence.flatMap {
+      case (maybeCurrent: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
+        maybeCurrent.flatMap(current => maybeTo.map(to => mv(current, to)))
+          .getOrElse(Future.successful(MusitSuccess(0)))
     }
   }
 
@@ -540,16 +558,16 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     event: MoveNode
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
+    val eventuallyMaybeCurrent = unitDao.getNodeById(id)
+    val eventuallyMaybeTo = unitDao.getNodeById(event.to)
 
-    def mv(
-      e: MoveNode,
-      from: GenericStorageNode,
-      to: GenericStorageNode
-    ): Future[MusitResult[Long]] = {
-      unitDao.updatePathForSubTree(id, from.path, to.path.appendChild(id)).flatMap {
+    move(event, unitDao.getNodeById(id), unitDao.getNodeById(event.to)) { (curr, to) =>
+      val theEvent = event.copy(from = curr.id)
+      logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
+      unitDao.updatePathForSubTree(id, curr.path, to.path.appendChild(id)).flatMap {
         case MusitSuccess(numUpdated) =>
-          move(id, e) { eventId =>
-            unitDao.updatePartOf(id, Some(e.to)).map { updRes =>
+          persistMoveEvent(id, theEvent) { eventId =>
+            unitDao.updatePartOf(id, Some(event.to)).map { updRes =>
               logger.debug(s"Update partOf result $updRes")
               MusitSuccess(eventId)
             }
@@ -557,28 +575,6 @@ class StorageNodeService @Inject() (
 
         case err: MusitError => Future.successful(err)
       }
-    }
-
-    val eventuallyCurrent = unitDao.getNodeById(id)
-    val eventuallyMaybeTo = unitDao.getNodeById(event.to)
-
-    val eventuallyExistance = for {
-      maybeCurrent <- eventuallyCurrent
-      maybeTo <- eventuallyMaybeTo
-    } yield (maybeCurrent, maybeTo)
-
-    eventuallyExistance.flatMap {
-      case (maybeCurrent: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
-        maybeCurrent.flatMap { current =>
-          maybeTo.map { to =>
-            val theEvent = event.copy(from = current.id)
-            logger.debug(s"Going to move node $id from ${current.path} to ${to.path}")
-            mv(theEvent, current, to).map { res =>
-              logger.debug(s"Updated $res entries")
-              res
-            }
-          }
-        }.getOrElse(Future.successful(MusitSuccess(0)))
     }
   }
 
@@ -589,8 +585,17 @@ class StorageNodeService @Inject() (
     objectId: Long,
     event: MoveObject
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
-    move(objectId, event) { eventId =>
-      Future.successful(MusitSuccess(eventId))
+    val eventuallyMaybeCurrent = localObjectDao.currentLocation(objectId)
+      .flatMap { maybeId =>
+        maybeId.map(unitDao.getNodeById).getOrElse(Future.successful(None))
+      }
+
+    move(event, eventuallyMaybeCurrent, unitDao.getNodeById(event.to)) { (curr, to) =>
+      val theEvent = event.copy(from = curr.id)
+      logger.debug(s"Going to move object $objectId from ${curr.path} to ${to.path}")
+      persistMoveEvent(objectId, theEvent) { eventId =>
+        Future.successful(MusitSuccess(eventId))
+      }
     }
   }
 
@@ -651,4 +656,5 @@ class StorageNodeService @Inject() (
     }
   }
 }
+
 // scalastyle:on number.of.methods
