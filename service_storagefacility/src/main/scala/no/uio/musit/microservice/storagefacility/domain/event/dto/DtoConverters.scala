@@ -27,7 +27,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirem
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, Interval, LifeCycle}
+import no.uio.musit.microservice.storagefacility.domain._
 import org.joda.time.DateTime
 
 object DtoConverters {
@@ -51,19 +51,6 @@ object DtoConverters {
     tolerance: Option[Int]
   ): Option[Interval[A]] = base.map(b => Interval[A](b, tolerance))
 
-  private[this] def baseFromDto(dto: EventDto): BaseEvent = {
-    BaseEvent(
-      id = dto.id,
-      doneDate = dto.eventDate,
-      doneBy = dto.relatedActors.map(EventRoleActor.toActorRole).headOption,
-      affectedThing = dto.relatedObjects.map(EventRoleObject.toObjectRole).headOption,
-      note = dto.note,
-      partOf = dto.partOf,
-      registeredBy = dto.registeredBy,
-      registeredDate = dto.registeredDate
-    )
-  }
-
   /**
    * Helper function to generate a base Dto that is shared across all event
    * types.
@@ -78,20 +65,21 @@ object DtoConverters {
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None,
     relEvents: Seq[RelatedEvents] = Seq.empty,
-    relPlaces: Seq[PlaceRole] = Seq.empty
+    relPlaces: Seq[PlaceRole] = Seq.empty,
+    partOf: Option[MusitId] = None
   ): BaseEventDto = {
     BaseEventDto(
-      id = sub.baseEvent.id,
+      id = sub.id,
       eventTypeId = sub.eventType.registeredEventId,
-      eventDate = sub.baseEvent.doneDate,
+      eventDate = sub.doneDate,
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
-      relatedActors = sub.baseEvent.doneBy.map(ar => EventRoleActor.toEventRoleActor(ar)).toSeq,
+      relatedActors = sub.doneBy.map(ar => EventRoleActor.toEventRoleActor(ActorRole(1, ar.underlying))).toSeq,
       relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or, sub.eventType.registeredEventId)).toSeq,
       relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr, sub.eventType.registeredEventId)),
-      note = sub.baseEvent.note,
+      note = sub.note,
       relatedSubEvents = relEvents,
-      partOf = sub.baseEvent.partOf,
+      partOf = partOf.map(_.underlying),
       valueLong = maybeLong,
       valueString = maybeStr,
       valueDouble = maybeDouble,
@@ -128,20 +116,21 @@ object DtoConverters {
     maybeLong: Option[Long] = None,
     maybeDouble: Option[Double] = None,
     relPlaces: Seq[PlaceRole] = Seq.empty,
+    partOf: Option[MusitId] = None,
     ext: B
   ): ExtendedDto = {
     ExtendedDto(
-      id = sub.baseEvent.id,
+      id = sub.id,
       eventTypeId = sub.eventType.registeredEventId,
-      eventDate = sub.baseEvent.doneDate,
+      eventDate = sub.doneDate,
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
-      relatedActors = sub.baseEvent.doneBy.map(ar => EventRoleActor.toEventRoleActor(ar)).toSeq,
+      relatedActors = sub.doneBy.map(ar => EventRoleActor.toEventRoleActor(ActorRole(1, ar.underlying))).toSeq,
       relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or, sub.eventType.registeredEventId)).toSeq,
       relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr, sub.eventType.registeredEventId)),
-      note = sub.baseEvent.note,
+      note = sub.note,
       relatedSubEvents = Seq.empty[RelatedEvents],
-      partOf = sub.baseEvent.partOf,
+      partOf = partOf.map(_.underlying),
       valueLong = maybeLong,
       valueString = maybeStr,
       valueDouble = maybeDouble,
@@ -179,9 +168,9 @@ object DtoConverters {
   object CtrlConverters {
 
     def controlToDto(ctrl: Control): BaseEventDto = {
-      val regBy = ctrl.baseEvent.registeredBy
-      val regDate = ctrl.baseEvent.registeredDate
-      val affectedThing = ctrl.baseEvent.affectedThing
+      val regBy = ctrl.registeredBy
+      val regDate = ctrl.registeredDate
+      val affectedThing = ctrl.affectedThing
       val relEvt = Seq(
         RelatedEvents(
           relation = EventRelations.PartsOfRelation,
@@ -609,9 +598,9 @@ object DtoConverters {
     def moveToDto[A <: MoveEvent](move: A): BaseEventDto = {
       toBaseDto(
         sub = move,
-        affectedThing = move.baseEvent.affectedThing,
-        regBy = move.baseEvent.registeredBy,
-        regDate = move.baseEvent.registeredDate,
+        affectedThing = move.affectedThing.map(id => ObjectRole(1, id.underlying)),
+        regBy = move.registeredBy,
+        regDate = move.registeredDate,
         relPlaces = Seq(PlaceRole(1, move.to)),
         maybeLong = move.from
       )
@@ -619,25 +608,46 @@ object DtoConverters {
 
     def moveFromDto[A <: MoveEvent](
       dto: BaseEventDto
-    )(init: (BaseEvent, EventType, Option[StorageNodeId], StorageNodeId) => A): A = {
-      val base = baseFromDto(dto)
+    )(init: (EventType, Option[StorageNodeId], StorageNodeId) => A): A = {
       val eventType = EventType.fromEventTypeId(dto.eventTypeId)
       val from = dto.valueLong
       val to = dto.relatedPlaces.head.placeId
-      init(base, eventType, from, to)
+      init(eventType, from, to)
     }
 
     def moveObjectToDto(mo: MoveObject): BaseEventDto = moveToDto(mo)
 
     def moveObjectFromDto(dto: BaseEventDto): MoveObject =
-      moveFromDto(dto)((base, eventType, from, to) =>
-        MoveObject(base, eventType, from, to))
+      moveFromDto(dto)((eventType, from, to) =>
+        MoveObject(
+          id = dto.id,
+          doneDate = dto.eventDate,
+          doneBy = dto.relatedActors.map(e => ActorId(e.actorId)).headOption,
+          affectedThing = dto.relatedObjects.map(e => ObjectId(e.objectId)).headOption,
+          note = dto.note,
+          registeredBy = dto.registeredBy,
+          registeredDate = dto.registeredDate,
+          eventType = eventType,
+          from = from,
+          to = to
+        ))
 
     def moveNodeToDto(mo: MoveNode): BaseEventDto = moveToDto(mo)
 
     def moveNodeFromDto(dto: BaseEventDto): MoveNode =
-      moveFromDto(dto)((base, eventType, from, to) =>
-        MoveNode(base, eventType, from, to))
+      moveFromDto(dto)((eventType, from, to) =>
+        MoveNode(
+          id = dto.id,
+          doneDate = dto.eventDate,
+          doneBy = dto.relatedActors.map(e => ActorId(e.actorId)).headOption,
+          affectedThing = dto.relatedObjects.map(e => StorageNodeId(e.objectId)).headOption,
+          note = dto.note,
+          registeredBy = dto.registeredBy,
+          registeredDate = dto.registeredDate,
+          eventType = eventType,
+          from = from,
+          to = to
+        ))
   }
 
 }

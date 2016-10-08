@@ -19,34 +19,25 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, MusitId}
+import org.joda.time.DateTime
+
 /**
  * Top level representation of _all_ event types with definitions for the
  * shared attributes they all contain.
  */
 trait MusitEvent {
-  val baseEvent: BaseEvent
+  val id: Option[EventId]
+  val doneBy: Option[ActorId]
+  val doneDate: DateTime
+  val note: Option[String]
+  val affectedThing: Option[MusitId]
+  val registeredBy: Option[String]
+  val registeredDate: Option[DateTime]
   val eventType: EventType
 }
 
 /**
  * Helps to identify events that are only valid in a "sub-event" context.
  */
-trait MusitSubEvent extends MusitEvent
-
-/**
- * Specifies a "part of" relationship on an implementation of MusitEvent.
- *
- * @tparam A the type of MusitEvent to expect in the "part of" relationship
- */
-trait Parts[A <: MusitEvent] {
-  val parts: Option[Seq[A]]
-}
-
-/**
- * Specifies a "motivates" relationship on an implementation of MusitEvent.
- *
- * @tparam A the type of MusitEvent to expect in the "motivates" relationship.
- */
-trait Motivates[A <: MusitEvent] {
-  val motivates: Option[A]
-}
+trait MusitSubEvent

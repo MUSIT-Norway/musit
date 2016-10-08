@@ -19,21 +19,26 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.move
 
-import no.uio.musit.microservice.storagefacility.domain.Move
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, Move, ObjectId}
 import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import org.joda.time.DateTime
 
 sealed trait MoveEvent extends MusitEvent {
-  val baseEvent: BaseEvent
-  val eventType: EventType
   val from: Option[StorageNodeId]
   val to: StorageNodeId
 }
 
 case class MoveObject(
-  baseEvent: BaseEvent,
+  id: Option[EventId],
+  doneBy: Option[ActorId],
+  doneDate: DateTime,
+  note: Option[String],
+  affectedThing: Option[ObjectId],
+  registeredBy: Option[String],
+  registeredDate: Option[DateTime],
   eventType: EventType,
   from: Option[StorageNodeId],
   to: StorageNodeId
@@ -45,22 +50,13 @@ object MoveObject {
     cmd.items.map { objectId =>
       val now = dateTimeNow
       MoveObject(
-        baseEvent = BaseEvent(
-          id = None,
-          doneBy = Some(ActorRole(
-            roleId = 1,
-            actorId = cmd.doneBy
-          )),
-          doneDate = now,
-          note = None,
-          partOf = None,
-          affectedThing = Some(ObjectRole(
-            roleId = 1,
-            objectId = objectId
-          )),
-          registeredBy = Some(user),
-          registeredDate = Some(now)
-        ),
+        id = None,
+        doneBy = Some(cmd.doneBy),
+        doneDate = now,
+        note = None,
+        affectedThing = Some(objectId),
+        registeredBy = Some(user),
+        registeredDate = Some(now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = None,
         to = cmd.destination
@@ -70,7 +66,13 @@ object MoveObject {
 }
 
 case class MoveNode(
-  baseEvent: BaseEvent,
+  id: Option[EventId],
+  doneBy: Option[ActorId],
+  doneDate: DateTime,
+  note: Option[String],
+  affectedThing: Option[StorageNodeId],
+  registeredBy: Option[String],
+  registeredDate: Option[DateTime],
   eventType: EventType,
   from: Option[StorageNodeId],
   to: StorageNodeId
@@ -82,22 +84,13 @@ object MoveNode {
     cmd.items.map { nodeId =>
       val now = dateTimeNow
       MoveNode(
-        baseEvent = BaseEvent(
-          id = None,
-          doneBy = Some(ActorRole(
-            roleId = 1,
-            actorId = cmd.doneBy
-          )),
-          doneDate = now,
-          note = None,
-          partOf = None,
-          affectedThing = Some(ObjectRole(
-            roleId = 1,
-            objectId = nodeId
-          )),
-          registeredBy = Some(user),
-          registeredDate = Some(now)
-        ),
+        id = None,
+        doneBy = Some(cmd.doneBy),
+        doneDate = now,
+        note = None,
+        affectedThing = Some(nodeId),
+        registeredBy = Some(user),
+        registeredDate = Some(now),
         eventType = EventType.fromEventTypeId(MoveNodeType.id),
         from = None,
         to = cmd.destination

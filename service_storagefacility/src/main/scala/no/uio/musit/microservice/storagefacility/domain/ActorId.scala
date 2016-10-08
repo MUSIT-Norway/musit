@@ -17,24 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event
+package no.uio.musit.microservice.storagefacility.domain
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{JsNumber, Reads, Writes, _}
 
-case class ActorRole(roleId: Int, ActorId: Long)
+case class ActorId(underlying: Long) extends MusitId
 
-object ActorRole {
-  implicit val format: Format[ActorRole] = Json.format[ActorRole]
-}
+object ActorId {
 
-case class ObjectRole(roleId: Int, ObjectId: Long)
+  implicit val reads: Reads[ActorId] = __.read[Long].map(ActorId.apply)
 
-object ObjectRole {
-  implicit val format: Format[ObjectRole] = Json.format[ObjectRole]
-}
+  implicit val writes: Writes[ActorId] = Writes { aid =>
+    JsNumber(aid.underlying)
+  }
 
-case class PlaceRole(roleId: Int, ObjectId: Long)
+  implicit def longToActorId(l: Long): ActorId = ActorId(l)
 
-object PlaceRole {
-  implicit val format: Format[PlaceRole] = Json.format[PlaceRole]
+  implicit def actorIdToLong(aid: ActorId): Long = aid.underlying
+
+  implicit def optLongToActorId(ml: Option[Long]): Option[ActorId] = {
+    ml.map(longToActorId)
+  }
+
+  implicit def optActorIdToLong(maid: Option[ActorId]): Option[Long] = {
+    maid.map(actorIdToLong)
+  }
+
 }

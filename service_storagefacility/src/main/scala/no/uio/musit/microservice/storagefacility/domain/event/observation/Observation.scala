@@ -19,22 +19,32 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
-import no.uio.musit.microservice.storagefacility.domain.event.{EventType, MusitEvent, BaseEvent, Parts}
-import play.api.libs.functional.syntax._
+import no.uio.musit.microservice.storagefacility.domain.ActorId
+import no.uio.musit.microservice.storagefacility.domain.event._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import org.joda.time.DateTime
 import play.api.libs.json.{Format, _}
 
-import ObservationSubEventFormats.ObservationSubEventFormat
-
 case class Observation(
-  baseEvent: BaseEvent,
+  id: Option[EventId],
+  doneBy: Option[ActorId],
+  doneDate: DateTime,
+  note: Option[String],
+  affectedThing: Option[StorageNodeId],
+  registeredBy: Option[String],
+  registeredDate: Option[DateTime],
   eventType: EventType,
-  parts: Option[Seq[ObservationSubEvent]] = None
-) extends MusitEvent with Parts[ObservationSubEvent]
+  alcohol: Option[ObservationAlcohol],
+  cleaning: Option[ObservationCleaning],
+  gas: Option[ObservationGas],
+  hypoxicAir: Option[ObservationHypoxicAir],
+  lightingCondition: Option[ObservationLightingCondition],
+  mold: Option[ObservationMold],
+  pest: Option[ObservationPest],
+  relativeHumidity: Option[ObservationRelativeHumidity],
+  temperature: Option[ObservationTemperature]
+) extends MusitEvent
 
 object Observation {
-  implicit val format: Format[Observation] = (
-    __.format[BaseEvent] and
-    (__ \ "eventType").format[EventType] and
-    (__ \ "parts").formatNullable[Seq[ObservationSubEvent]]
-  )(Observation.apply, unlift(Observation.unapply))
+  implicit val format: Format[Observation] = Json.format[Observation]
 }

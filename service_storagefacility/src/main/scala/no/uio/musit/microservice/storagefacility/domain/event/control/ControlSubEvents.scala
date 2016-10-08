@@ -19,75 +19,102 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.control
 
+import no.uio.musit.microservice.storagefacility.domain.event.MusitSubEvent
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
-import no.uio.musit.microservice.storagefacility.domain.event.{EventType, Motivates, BaseEvent, MusitSubEvent}
+import play.api.libs.json.{Format, Json}
 
 // TODO: Document me!!!
-sealed trait ControlSubEvent extends MusitSubEvent with Motivates[ObservationSubEvent] {
+sealed trait ControlSubEvent[A <: ObservationSubEvent] extends MusitSubEvent {
   val ok: Boolean
+  val observation: Option[A]
 }
 
-object ControlSubEvent
-
 case class ControlAlcohol(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationAlcohol]
-) extends ControlSubEvent
+  observation: Option[ObservationAlcohol]
+) extends ControlSubEvent[ObservationAlcohol]
+
+object ControlAlcohol {
+  implicit val formats: Format[ControlAlcohol] =
+    Json.format[ControlAlcohol]
+}
 
 case class ControlCleaning(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationCleaning]
-) extends ControlSubEvent
+  observation: Option[ObservationCleaning]
+) extends ControlSubEvent[ObservationCleaning]
+
+object ControlCleaning {
+  implicit val formats: Format[ControlAlcohol] =
+    Json.format[ControlAlcohol]
+}
 
 case class ControlGas(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationGas]
-) extends ControlSubEvent
+  observation: Option[ObservationGas]
+) extends ControlSubEvent[ObservationGas]
+
+object ControlGas {
+  implicit val formats: Format[ControlGas] =
+    Json.format[ControlGas]
+}
 
 case class ControlHypoxicAir(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationHypoxicAir]
-) extends ControlSubEvent
+  observation: Option[ObservationHypoxicAir]
+) extends ControlSubEvent[ObservationHypoxicAir]
+
+object ControlHypoxicAir {
+  implicit val formats: Format[ControlHypoxicAir] =
+    Json.format[ControlHypoxicAir]
+}
 
 case class ControlLightingCondition(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationLightingCondition]
-) extends ControlSubEvent
+  observation: Option[ObservationLightingCondition]
+) extends ControlSubEvent[ObservationLightingCondition]
+
+object ControlLightingCondition {
+  implicit val formats: Format[ControlLightingCondition] =
+    Json.format[ControlLightingCondition]
+}
 
 case class ControlMold(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationMold]
-) extends ControlSubEvent
+  observation: Option[ObservationMold]
+) extends ControlSubEvent[ObservationMold]
+
+object ControlMold {
+  implicit val formats: Format[ControlMold] =
+    Json.format[ControlMold]
+}
 
 case class ControlPest(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationPest]
-) extends ControlSubEvent
+  observation: Option[ObservationPest]
+) extends ControlSubEvent[ObservationPest]
+
+object ControlPest {
+  implicit val formats: Format[ControlPest] =
+    Json.format[ControlPest]
+}
 
 case class ControlRelativeHumidity(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationRelativeHumidity]
-) extends ControlSubEvent
+  observation: Option[ObservationRelativeHumidity]
+) extends ControlSubEvent[ObservationRelativeHumidity]
+
+object ControlRelativeHumidity {
+  implicit val formats: Format[ControlRelativeHumidity] =
+    Json.format[ControlRelativeHumidity]
+}
 
 case class ControlTemperature(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   ok: Boolean,
-  motivates: Option[ObservationTemperature]
-) extends ControlSubEvent
+  observation: Option[ObservationTemperature]
+) extends ControlSubEvent[ObservationTemperature]
+
+object ControlTemperature {
+  implicit val formats: Format[ControlTemperature] =
+    Json.format[ControlTemperature]
+}

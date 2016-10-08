@@ -20,23 +20,35 @@
 package no.uio.musit.microservice.storagefacility.domain.event.control
 
 import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEventFormats.ControlSubEventsFormat
-import play.api.libs.functional.syntax._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, ObjectId}
+import org.joda.time.DateTime
 import play.api.libs.json._
 
-// TODO: Make SUB events as a direct part of the Control event.
-
+/**
+ * TODO: Document me
+ */
 case class Control(
-  baseEvent: BaseEvent,
+  id: Option[EventId],
+  doneBy: Option[ActorId],
+  doneDate: DateTime,
+  note: Option[String],
+  affectedThing: Option[StorageNodeId],
+  registeredBy: Option[String],
+  registeredDate: Option[DateTime],
   eventType: EventType,
-  parts: Option[Seq[ControlSubEvent]] = None
-) extends MusitEvent with Parts[ControlSubEvent]
+  alcohol: Option[ControlAlcohol],
+  cleaning: Option[ControlCleaning],
+  gas: Option[ControlGas],
+  hypoxicAir: Option[ControlHypoxicAir],
+  lightingCondition: Option[ControlLightingCondition],
+  mold: Option[ControlMold],
+  pest: Option[ControlPest],
+  relativeHumidity: Option[ControlRelativeHumidity],
+  temperature: Option[ControlTemperature]
+) extends MusitEvent
 
 object Control {
-  implicit val format: Format[Control] = (
-    __.format[BaseEvent] and
-    (__ \ "eventType").format[EventType] and
-    (__ \ "parts").formatNullable[Seq[ControlSubEvent]]
-  )(Control.apply, unlift(Control.unapply))
+  implicit val format: Format[Control] = Json.format[Control]
 
 }

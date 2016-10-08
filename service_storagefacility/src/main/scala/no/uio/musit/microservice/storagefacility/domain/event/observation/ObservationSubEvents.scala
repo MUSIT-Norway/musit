@@ -19,8 +19,9 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
+import no.uio.musit.microservice.storagefacility.domain.event.MusitSubEvent
 import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, LifeCycle}
-import no.uio.musit.microservice.storagefacility.domain.event.{EventType, BaseEvent, MusitSubEvent}
+import play.api.libs.json.{Format, Json}
 
 // TODO: Document me!!!
 sealed trait ObservationSubEvent extends MusitSubEvent
@@ -31,81 +32,120 @@ sealed trait ObservationFromTo extends ObservationSubEvent {
 }
 
 case class ObservationRelativeHumidity(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   range: FromToDouble
 ) extends ObservationFromTo
+
+object ObservationRelativeHumidity {
+  implicit val formats: Format[ObservationRelativeHumidity] =
+    Json.format[ObservationRelativeHumidity]
+}
 
 case class ObservationTemperature(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   range: FromToDouble
 ) extends ObservationFromTo
+
+object ObservationTemperature {
+  implicit val formats: Format[ObservationTemperature] =
+    Json.format[ObservationTemperature]
+}
 
 case class ObservationHypoxicAir(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   range: FromToDouble
 ) extends ObservationFromTo
 
+object ObservationHypoxicAir {
+  implicit val formats: Format[ObservationHypoxicAir] =
+    Json.format[ObservationHypoxicAir]
+}
+
 case class ObservationLightingCondition(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   lightingCondition: Option[String]
 ) extends ObservationSubEvent
 
+object ObservationLightingCondition {
+  implicit val formats: Format[ObservationLightingCondition] =
+    Json.format[ObservationLightingCondition]
+}
+
 case class ObservationCleaning(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   cleaning: Option[String]
 ) extends ObservationSubEvent
 
+object ObservationCleaning {
+  implicit val formats: Format[ObservationCleaning] =
+    Json.format[ObservationCleaning]
+}
+
 case class ObservationGas(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   gas: Option[String]
 ) extends ObservationSubEvent
 
+object ObservationGas {
+  implicit val formats: Format[ObservationGas] =
+    Json.format[ObservationGas]
+}
+
 case class ObservationMold(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   mold: Option[String]
 ) extends ObservationSubEvent
 
+object ObservationMold {
+  implicit val formats: Format[ObservationMold] =
+    Json.format[ObservationMold]
+}
+
 case class ObservationTheftProtection(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   theftProtection: Option[String]
 ) extends ObservationSubEvent
 
+object ObservationTheftProtection {
+  implicit val formats: Format[ObservationTheftProtection] =
+    Json.format[ObservationTheftProtection]
+}
+
 case class ObservationFireProtection(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   fireProtection: Option[String]
 ) extends ObservationSubEvent
 
+object ObservationFireProtection {
+  implicit val formats: Format[ObservationFireProtection] =
+    Json.format[ObservationFireProtection]
+}
+
 case class ObservationPerimeterSecurity(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   perimeterSecurity: Option[String]
 ) extends ObservationSubEvent
 
+object ObservationPerimeterSecurity {
+  implicit val formats: Format[ObservationPerimeterSecurity] =
+    Json.format[ObservationPerimeterSecurity]
+}
+
 case class ObservationWaterDamageAssessment(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   waterDamageAssessment: Option[String]
 ) extends ObservationSubEvent
 
+object ObservationWaterDamageAssessment {
+  implicit val formats: Format[ObservationWaterDamageAssessment] =
+    Json.format[ObservationWaterDamageAssessment]
+}
+
 case class ObservationPest(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   identification: Option[String],
   lifecycles: Seq[LifeCycle]
 ) extends ObservationSubEvent
 
+object ObservationPest {
+  implicit val formats: Format[ObservationPest] =
+    Json.format[ObservationPest]
+}
+
 case class ObservationAlcohol(
-  baseEvent: BaseEvent,
-  eventType: EventType,
   condition: Option[String],
   volume: Option[Double]
 ) extends ObservationSubEvent
+
+object ObservationAlcohol {
+  implicit val formats: Format[ObservationAlcohol] =
+    Json.format[ObservationAlcohol]
+}

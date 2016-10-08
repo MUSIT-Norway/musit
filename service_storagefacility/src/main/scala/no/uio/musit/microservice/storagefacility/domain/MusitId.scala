@@ -17,24 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event
+package no.uio.musit.microservice.storagefacility.domain
 
-import play.api.libs.json.{Format, Json}
-
-case class ActorRole(roleId: Int, ActorId: Long)
-
-object ActorRole {
-  implicit val format: Format[ActorRole] = Json.format[ActorRole]
-}
-
-case class ObjectRole(roleId: Int, ObjectId: Long)
-
-object ObjectRole {
-  implicit val format: Format[ObjectRole] = Json.format[ObjectRole]
-}
-
-case class PlaceRole(roleId: Int, ObjectId: Long)
-
-object PlaceRole {
-  implicit val format: Format[PlaceRole] = Json.format[PlaceRole]
+trait MusitId {
+  val underlying: Long
 }

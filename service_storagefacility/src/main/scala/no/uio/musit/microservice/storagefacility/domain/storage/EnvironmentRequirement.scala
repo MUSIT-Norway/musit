@@ -33,8 +33,7 @@ case class EnvironmentRequirement(
 
 object EnvironmentRequirement {
 
-  lazy val empty = EnvironmentRequirement(None, None, None, None, None, None)
-
   implicit val format: Format[EnvironmentRequirement] =
     Json.format[EnvironmentRequirement]
+
 }
