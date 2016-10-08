@@ -508,7 +508,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveJson = Json.parse(
           s"""{
               |  "doneBy": 1,
-              |  "destination": 9,
+              |  "destination": 5,
               |  "items": [$id1, $id2, $id3]
               |}""".stripMargin
         )
@@ -520,25 +520,51 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
       }
 
+      "successfully move a single object" in {
+        val id2 = 2
+
+        val moveJson = Json.parse(
+          s"""{
+              |  "doneBy": 1,
+              |  "destination": 3,
+              |  "items": [$id2]
+              |}""".stripMargin
+        )
+
+        val move = wsUrl(MoveObjectUrl).put(moveJson).futureValue
+        move.status mustBe Status.OK
+        (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
+      }
+
       "successfully fetch the location history for a given object" in {
         val res = wsUrl(ObjLocationHistoryUrl(2)).get().futureValue
 
         res.status mustBe Status.OK
         val resArr = res.json.as[JsArray].value
         resArr must not be empty
-        val firstElem = resArr.head
+        resArr.size mustBe 2
 
         val today = DateTime.now.withTimeAtStartOfDay()
 
+        val firstElem = resArr.head
         (firstElem \ "doneDate").as[DateTime] mustBe today
         (firstElem \ "doneBy").as[Int] mustBe 1
         (firstElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
         (firstElem \ "registeredBy").as[String] mustBe "Darth Vader"
-        (firstElem \ "from" \ "path").as[NodePath] mustBe NodePath(",")
-        (firstElem \ "from" \ "pathNames").as[JsArray].value mustBe empty
-        (firstElem \ "to" \ "path").as[NodePath] mustBe NodePath(",9,")
+        (firstElem \ "from" \ "path").as[NodePath] mustBe NodePath(",1,2,3,5,")
+        (firstElem \ "from" \ "pathNames").as[JsArray].value must not be empty
+        (firstElem \ "to" \ "path").as[NodePath] mustBe NodePath(",1,2,3,")
         (firstElem \ "to" \ "pathNames").as[JsArray].value must not be empty
 
+        val lastElem = resArr.last
+        (lastElem \ "doneDate").as[DateTime] mustBe today
+        (lastElem \ "doneBy").as[Int] mustBe 1
+        (lastElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
+        (lastElem \ "registeredBy").as[String] mustBe "Darth Vader"
+        (lastElem \ "from" \ "path").as[NodePath] mustBe NodePath(",1,2,3,4,")
+        (lastElem \ "from" \ "pathNames").as[JsArray].value must not be empty
+        (lastElem \ "to" \ "path").as[NodePath] mustBe NodePath(",1,2,3,5,")
+        (lastElem \ "to" \ "pathNames").as[JsArray].value must not be empty
       }
 
     }
