@@ -115,10 +115,6 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
             o.registeredBy mustBe Some(registeredByName)
             o.registeredDate must not be None
             o.alcohol mustBe obs.alcohol
-
-            println(s"Added: ${obs.cleaning}")
-            println(s"Returned: ${o.cleaning}")
-
             o.cleaning mustBe obs.cleaning
             o.gas mustBe obs.gas
             o.hypoxicAir mustBe obs.hypoxicAir

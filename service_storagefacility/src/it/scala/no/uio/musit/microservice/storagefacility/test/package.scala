@@ -38,6 +38,12 @@ package object test {
   val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"
   val KdReportUrl = s"$BaseUrl/report"
 
+  val HundredAndOneCharString =
+    """abcdefghijklmnopqrstuvwxyzæøåa
+      |abcdefghijklmnopqrstuvwxyzæøåa
+      |abcdefghijklmnopqrstuvwxyzæøåa
+      |abcdefghijk""".stripMargin.replaceAll("\n", "")
+
   val VeryLongString =
     """12345678901234567890123456789012345678901234567890
       |12345678901234567890123456789012345678901234567890
@@ -51,6 +57,6 @@ package object test {
       |12345678901234567890123456789012345678901234567890
       |12345678901234567890123456789012345678901234567890
       |12345678901234567890123456789012345678901234567890
-      | """.stripMargin.replace('\n', ' ')
+      |""".stripMargin.replaceAll("\n", " ")
 
 }

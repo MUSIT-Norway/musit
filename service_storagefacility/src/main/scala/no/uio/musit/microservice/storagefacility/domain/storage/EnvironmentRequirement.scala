@@ -20,7 +20,10 @@
 package no.uio.musit.microservice.storagefacility.domain.storage
 
 import no.uio.musit.microservice.storagefacility.domain.Interval
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json.Writes._
 
 case class EnvironmentRequirement(
   temperature: Option[Interval[Double]],
@@ -33,7 +36,15 @@ case class EnvironmentRequirement(
 
 object EnvironmentRequirement {
 
-  implicit val format: Format[EnvironmentRequirement] =
-    Json.format[EnvironmentRequirement]
+  def maxCharsFormat(max: Int) = Format(maxLength[String](max), StringWrites)
+
+  implicit val format: Format[EnvironmentRequirement] = (
+    (__ \ "temperature").formatNullable[Interval[Double]] and
+    (__ \ "relativeHumidity").formatNullable[Interval[Double]] and
+    (__ \ "hypoxicAir").formatNullable[Interval[Double]] and
+    (__ \ "cleaning").formatNullable[String](maxCharsFormat(100)) and
+    (__ \ "lightingCondition").formatNullable[String](maxCharsFormat(100)) and
+    (__ \ "comment").formatNullable[String](maxCharsFormat(250))
+  )(EnvironmentRequirement.apply, unlift(EnvironmentRequirement.unapply))
 
 }

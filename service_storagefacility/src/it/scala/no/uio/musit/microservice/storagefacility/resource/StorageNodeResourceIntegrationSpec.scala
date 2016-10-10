@@ -121,16 +121,16 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         su.path mustBe NodePath(",1,11,12,13,14,")
       }
 
-      "not allow creating a storage node with a name over 500 chars" in {
-        val json = storageUnitJson(VeryLongString, StorageNodeId(3))
+      "not allow creating a storage node with a name over 100 chars" in {
+        val json = storageUnitJson(HundredAndOneCharString, StorageNodeId(3))
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
 
         response.status mustBe Status.BAD_REQUEST
       }
 
-      "not allow creating a building with an address over 500 chars" in {
+      "not allow creating a building with an address over 100 chars" in {
         val bjs = buildingJson("fail", StorageNodeId(3))
-        val json = bjs.as[JsObject] ++ Json.obj("address" -> VeryLongString)
+        val json = bjs.as[JsObject] ++ Json.obj("address" -> HundredAndOneCharString)
 
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
 
