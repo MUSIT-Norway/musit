@@ -62,12 +62,12 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val report = wsUrl(KdReportUrl).get.futureValue
 
-        (report.json \ "totalArea").as[Int] mustBe 41
-        (report.json \ "perimeterSecurity").as[Int] mustBe 41
-        (report.json \ "theftProtection").as[Int] mustBe 41
-        (report.json \ "fireProtection").as[Int] mustBe 0
-        (report.json \ "waterDamageAssessment").as[Int] mustBe 41
-        (report.json \ "routinesAndContingencyPlan").as[Int] mustBe 41
+        (report.json \ "totalArea").as[Double] mustBe 41
+        (report.json \ "perimeterSecurity").as[Double] mustBe 41
+        (report.json \ "theftProtection").as[Double] mustBe 41
+        (report.json \ "fireProtection").as[Double] mustBe 0
+        (report.json \ "waterDamageAssessment").as[Double] mustBe 41
+        (report.json \ "routinesAndContingencyPlan").as[Double] mustBe 41
 
       }
       "fail when try to get KdReport from a deleted room" in {

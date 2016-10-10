@@ -297,9 +297,5 @@ final class StorageNodeResource @Inject() (
         InternalServerError(Json.obj("message" -> err.message))
     }
   }
-
-  def CurrentObjectLocation(mid: Int, oid: Long) = Action.async { implicit request =>
-    ???
-  }
 }
 
