@@ -37,4 +37,45 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     )
     reportRes mustBe reportfasit
   }
+
+  "fail wh get a report on storageNode Room" in {
+    val room = createRoomWithDifferentArea(1, perimeter = true, theftProtection = true, fireProtection = true)
+    val c = createRoomWithDifferentArea(7.5, perimeter = true, routinesAndContingencyPlan = true)
+    val c1 = createRoomWithDifferentArea(50.3, theftProtection = true, waterDamage = true, routinesAndContingencyPlan = true)
+    service.addRoom(room)("dummyUser").futureValue
+    val myRoom = service.addRoom(c)("dummyUser").futureValue
+    service.addRoom(c1)("dummyUser").futureValue
+
+    val report = reportService.getReport.futureValue
+    report.isSuccess mustBe true
+    val reportRes = report.get
+
+    val reportfasit = KdReport(
+      totalArea = 117.6,
+      perimeterSecurity = 17,
+      theftProtection = 102.6,
+      fireProtection = 2.0,
+      waterDamageAssessment = 100.6,
+      routinesAndContingencyPlan = 115.6
+    )
+    reportRes mustBe reportfasit
+
+    val cId = myRoom.get.get.id.get
+
+    val res = service.deleteNode(cId)("dummyUser").futureValue
+    res.isSuccess mustBe true
+    val reportAfterDelete = reportService.getReport.futureValue
+    reportAfterDelete.isSuccess mustBe true
+    val reportAfterDeleteRes = reportAfterDelete.get
+
+    val reportfasit1 = KdReport(
+      totalArea = 110.1,
+      perimeterSecurity = 9.5,
+      theftProtection = 102.6,
+      fireProtection = 2.0,
+      waterDamageAssessment = 100.6,
+      routinesAndContingencyPlan = 108.1
+    )
+    reportAfterDeleteRes mustBe reportfasit1
+  }
 }
