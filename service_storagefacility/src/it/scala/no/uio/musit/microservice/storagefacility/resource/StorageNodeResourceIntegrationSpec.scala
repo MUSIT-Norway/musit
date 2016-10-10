@@ -566,7 +566,29 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (lastElem \ "to" \ "path").as[NodePath] mustBe NodePath(",1,2,3,5,")
         (lastElem \ "to" \ "pathNames").as[JsArray].value must not be empty
       }
+      "successfully get currentLocation of a single object" in {
+        val id2 = 2
 
+        val moveJson = Json.parse(
+          s"""{
+              |  "doneBy": 1,
+              |  "destination": 3,
+              |  "items": [$id2]
+              |}""".stripMargin
+        )
+
+        val move = wsUrl(MoveObjectUrl).put(moveJson).futureValue
+        move.status mustBe Status.OK
+        (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
+        println(s"move ${StorageNodeUrl(2)}")
+        val url = ObjCurrentLocationUrl(2)
+        println(s"url $url")
+        val currentLocation = wsUrl(ObjCurrentLocationUrl(2)).get().futureValue
+        //println(currentLocation.json.toString())
+        currentLocation.status mustBe Status.OK
+        //println(currentLocation.json.toString)
+        //(currentLocation.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
+      }
     }
   }
 }

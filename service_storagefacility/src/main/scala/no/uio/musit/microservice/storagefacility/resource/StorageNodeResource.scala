@@ -269,7 +269,7 @@ final class StorageNodeResource @Inject() (
    * Endpoint for retrieving the {{{limit}}} number of past move events.
    *
    * @param objectId the objectId to get move history for.
-   * @param limit Int indicating the number of results to return.
+   * @param limit    Int indicating the number of results to return.
    * @return A JSON array with the {{{limi}}} number of move events.
    */
   def objectLocationHistory(objectId: Long, limit: Int) = Action.async { implicit request =>
@@ -294,6 +294,22 @@ final class StorageNodeResource @Inject() (
       case err: MusitError =>
         logger.error("An unexpected error occured when trying to read " +
           s"node stats for $nodeId. Message was: ${err.message}")
+        InternalServerError(Json.obj("message" -> err.message))
+    }
+  }
+
+  def currentObjectLocation(oid: Long) = Action.async { implicit request =>
+    service.getCurrentObjectLocation(oid).map {
+      case MusitSuccess(optCurrLoc) =>
+        optCurrLoc.map { CurrLoc =>
+          Ok(Json.toJson(CurrLoc))
+        }.getOrElse {
+          NotFound(Json.obj("message" -> s"Could not find objectId $oid"))
+        }
+
+      case err: MusitError =>
+        logger.error("An unexpected error occured when trying to read " +
+          s" currentLocation for object $oid. Message was: ${err.message}")
         InternalServerError(Json.obj("message" -> err.message))
     }
   }

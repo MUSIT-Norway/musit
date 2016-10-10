@@ -19,11 +19,13 @@
 
 package no.uio.musit.microservice.storagefacility.service
 
-import no.uio.musit.microservice.storagefacility.domain.event.move.MoveNode
+import no.uio.musit.microservice.storagefacility.domain.event.BaseEvent
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageNodeId}
 import no.uio.musit.microservice.storagefacility.domain.{Interval, Move}
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
 
 class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
@@ -227,6 +229,22 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
         n.get.path.path must startWith(building2.path.path)
       }
     }
+
+  }
+  "get currentLocation on a object" in {
+    val currLoc = service.getCurrentObjectLocation(2).futureValue
+    currLoc.isSuccess mustBe true
+    currLoc.get.get.id.get.underlying mustBe 4
+    currLoc.get.get.path.toString must include (currLoc.get.get.id.get.underlying.toString)
+
+    val moveObject = Move[Long](3,StorageNodeId(3) ,Seq(2))
+    val moveSeq = MoveObject.fromCommand("Dummy",moveObject)
+    service.moveObject(2,moveSeq.head).futureValue
+    val newCurrLoc = service.getCurrentObjectLocation(2).futureValue
+    newCurrLoc.isSuccess mustBe true
+    println(s"siste path:  ${newCurrLoc.get.get.path}")
+    newCurrLoc.get.get.id.get.underlying mustBe 3
+    newCurrLoc.get.get.path.toString must include (newCurrLoc.get.get.id.get.underlying.toString)
 
   }
 
