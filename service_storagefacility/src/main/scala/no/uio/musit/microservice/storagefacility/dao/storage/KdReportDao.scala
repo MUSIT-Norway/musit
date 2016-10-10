@@ -20,7 +20,7 @@ class KdReportDao @Inject() (
 
   def getReportTotalArea: Future[MusitResult[Double]] = {
 
-    val query = storageNodeTable.filter(_.storageType === roomType).map(_.areaTo)
+    val query = storageNodeTable.filter(sn => sn.storageType === roomType && sn.isDeleted === false).map(_.area)
 
     db.run(query.sum.result)
       .map(res => MusitSuccess(res.getOrElse(0.0)))
@@ -32,12 +32,11 @@ class KdReportDao @Inject() (
 
   def getAreaPerimeterSecurity: Future[MusitResult[Double]] = {
     val query = for {
-      sn <- storageNodeTable
+      sn <- storageNodeTable.filter(_.isDeleted === false)
       r <- roomTable.filter(r => sn.id === r.id && r.perimeterSecurity === true)
     } yield {
-      sn.areaTo
+      sn.area
     }
-
     db.run(query.sum.result)
       .map(res => MusitSuccess(res.getOrElse(0.0)))
       .recover {
@@ -48,12 +47,11 @@ class KdReportDao @Inject() (
 
   def getAreaTheftProtection: Future[MusitResult[Double]] = {
     val query = for {
-      sn <- storageNodeTable
+      sn <- storageNodeTable.filter(_.isDeleted === false)
       r <- roomTable.filter(r => sn.id === r.id && r.theftProtection === true)
     } yield {
-      sn.areaTo
+      sn.area
     }
-
     db.run(query.sum.result)
       .map(res => MusitSuccess(res.getOrElse(0.0)))
       .recover {
@@ -64,12 +62,11 @@ class KdReportDao @Inject() (
 
   def getAreaFireProtectiony: Future[MusitResult[Double]] = {
     val query = for {
-      sn <- storageNodeTable
+      sn <- storageNodeTable.filter(_.isDeleted === false)
       r <- roomTable.filter(r => sn.id === r.id && r.fireProtection === true)
     } yield {
-      sn.areaTo
+      sn.area
     }
-
     db.run(query.sum.result)
       .map(res => MusitSuccess(res.getOrElse(0.0)))
       .recover {
@@ -80,12 +77,11 @@ class KdReportDao @Inject() (
 
   def getAreaWaterDamageAssessment: Future[MusitResult[Double]] = {
     val query = for {
-      sn <- storageNodeTable
+      sn <- storageNodeTable.filter(_.isDeleted === false)
       r <- roomTable.filter(r => sn.id === r.id && r.waterDamage === true)
     } yield {
-      sn.areaTo
+      sn.area
     }
-
     db.run(query.sum.result)
       .map(res => MusitSuccess(res.getOrElse(0.0)))
       .recover {
@@ -96,12 +92,11 @@ class KdReportDao @Inject() (
 
   def getAreaRoutinesAndContingencyPlan: Future[MusitResult[Double]] = {
     val query = for {
-      sn <- storageNodeTable
+      sn <- storageNodeTable.filter(_.isDeleted === false)
       r <- roomTable.filter(r => sn.id === r.id && r.routinesAndContingency === true)
     } yield {
-      sn.areaTo
+      sn.area
     }
-
     db.run(query.sum.result)
       .map(res => MusitSuccess(res.getOrElse(0.0)))
       .recover {
