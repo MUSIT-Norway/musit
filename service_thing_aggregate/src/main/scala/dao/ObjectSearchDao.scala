@@ -9,6 +9,7 @@ import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import services.FutureMusitResults
+import slick.lifted.CanBeQueryCondition
 
 import scala.concurrent.Future
 
@@ -43,8 +44,19 @@ class ObjectSearchDao @Inject() (
   }
 
   def classifyValue(rawValue: String): FieldValue = {
-    if(rawValue.isEmpty) EmptyValue() else {
-      LiteralValue(rawValue) //Todo!
+    //Since we build up a Slick Query object, we don't need to verify that the rawValue is "safe",
+    // the database engine will validate the parameter value.
+
+    if(rawValue.contains('%')) {
+      InvalidValue("Illegal character in search value")
+    }
+    else if(rawValue.isEmpty) EmptyValue()
+    else if(rawValue.contains('*')) {
+      WildcardValue(rawValue.replace('*', '%'))
+    }
+    else
+    {
+      LiteralValue(rawValue)
     }
   }
 
@@ -61,21 +73,39 @@ class ObjectSearchDao @Inject() (
 
   type QMusitThingTable = Query[MusitThingTable, MusitThingTable#TableElementType, scala.Seq]
 
-  def search(mid: Int, museumNo: String, subNo: String, term: String, page: Int, pageSize: Int): Future[MusitResult[Seq[MusitThing]]] = {
-    println("i dao")
-    var query = musitThingTable.filter(_.id > 0L) //Just to get correct type! TODO: How to get a Query from a TableQuery?
+  private def maybeAddFilter[Q <: QMusitThingTable](q: Q, value: FieldValue, filterEqual: (Q,String) => Q, filterLike: (Q, String) => Q): Q = {
 
-
-    def maybeAdd(value: FieldValue, filterEqual: String => QMusitThingTable, filterLike: String => QMusitThingTable) = {
-
-      value match {
-        case EmptyValue() => query
-        case LiteralValue(v: String) => query = filterEqual(v)
-        case WildcardValue(v: String) => query = filterLike(v)
-        case InvalidValue(errorMessage: String) => assert(false, "internal error")
-
-      }
+    value match {
+      case EmptyValue() => q
+      case LiteralValue(v: String) => filterEqual(q, v)
+      case WildcardValue(v: String) => filterLike(q, v)
+      case InvalidValue(errorMessage: String) =>
+        assert(false, s"internal error, invalid value: $errorMessage"); q //Returning q is just to make the compiler happy
     }
+  }
+
+  private def maybeAddMuseumNoFilter(q: QMusitThingTable, value: FieldValue): QMusitThingTable= {
+    def isAllDigits(x: String) = x.forall(Character.isDigit)
+
+
+
+    value match {
+      case EmptyValue() => q
+      case LiteralValue(v: String) =>
+        if(isAllDigits(v)) {
+          q.filter(_.museumNoAsNumber===v.toLong)
+        }
+        else {
+          q.filter(_.museumNo.toUpperCase === v.toUpperCase)
+        }
+      case WildcardValue(v: String) => q.filter(_.museumNo.toUpperCase like v.toUpperCase)
+      case InvalidValue(errorMessage: String) =>
+        assert(false, s"internal error, invalid museumNo value: $errorMessage"); q //Returning q is just to make the compiler happy
+    }
+  }
+
+
+  def search(mid: Int, museumNo: String, subNo: String, term: String, page: Int, pageSize: Int): Future[MusitResult[Seq[MusitThing]]] = {
 
     val triple =
       for {
@@ -86,12 +116,19 @@ class ObjectSearchDao @Inject() (
 
     val resultFutSeq = triple.map {
       case (musemNoValue, subNoValue, termValue) =>
-        maybeAdd(musemNoValue, value => query.filter(_.museumNo === value), value => query.filter(_.museumNo like value))
-        maybeAdd(subNoValue, value => query.filter(_.subNo === value), value => query.filter(_.subNo like value))
-        maybeAdd(termValue, value => query.filter(_.term === value), value => query.filter(_.term like value))
+        val q1 = maybeAddMuseumNoFilter(musitThingTable, musemNoValue)
+
+        val q2 = maybeAddFilter[QMusitThingTable](q1, subNoValue, (q, value) => q.filter(_.subNo === value),
+                                                                        (q,value) => q.filter(_.subNo like value))
+
+        val q3 = maybeAddFilter[QMusitThingTable](q2, termValue, (q, value) => q.filter(_.term.toLowerCase === value.toLowerCase),
+                                                                      (q, value) => q.filter(_.term.toLowerCase like value.toLowerCase))
+
+        val query = q3
+        val sortedQuery = query.sortBy(mt=> (mt.museumNoAsNumber.asc, mt.subNoAsNumber.asc, mt.subNo.asc, mt.id.asc))
 
         val offset = (page - 1) * pageSize
-        val action = query.result // .drop(offset).take(pageSize).result
+        val action = sortedQuery.drop(offset).take(pageSize).result
         println(s"SQL: ${action.statements}")
         val res = db.run(action)
           res.recover {
@@ -111,9 +148,7 @@ class ObjectSearchDao @Inject() (
       val tag: Tag
   ) extends Table[MusitThingDto](tag, Some("MUSIT_MAPPING"), "MUSITTHING") {
 
-    //    case class MusitThingDto(museumId: Int, id: Long, museumNo: String, museumNoAsNumber: Option[Long], subNo: String, term: String)
-
-    def * = (museumId, id.?, museumNo, museumNoAsNumber, subNo, term) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (museumId, id.?, museumNo, museumNoAsNumber, subNo, subNoAsNumber, term) <> (create.tupled, destroy) // scalastyle:ignore
 
     val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     val museumId = column[Int]("MUSEUMID")
@@ -121,18 +156,21 @@ class ObjectSearchDao @Inject() (
     val subNo = column[Option[String]]("SUBNO")
     val term = column[String]("TERM")
     val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")
+    val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
 
-    def create = (museumId: Int, id: Option[Long], museumNo: String, museumNoAsNumber: Option[Long], subNo: Option[String], term: String) =>
+    def create = (museumId: Int, id: Option[Long], museumNo: String, museumNoAsNumber: Option[Long],
+                  subNo: Option[String], subNoAsNumber: Option[Long], term: String) =>
       MusitThingDto(
         museumId = museumId,
         id = id,
         museumNo = museumNo,
         museumNoAsNumber = museumNoAsNumber,
         subNo = subNo,
+        subNoAsNumber = subNoAsNumber,
         term = term
       )
 
     def destroy(thing: MusitThingDto) =
-      Some((thing.museumId, thing.id, thing.museumNo, thing.museumNoAsNumber, thing.subNo, thing.term))
+      Some((thing.museumId, thing.id, thing.museumNo, thing.museumNoAsNumber, thing.subNo, thing.subNoAsNumber, thing.term))
   }
 }

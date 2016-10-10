@@ -15,7 +15,8 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
  subNo VARCHAR,
  term VARCHAR NOT NULL,
  museumId INTEGER NOT NULL,
- museumNoAsNumber BIGINT
+ museumNoAsNumber BIGINT,
+ subNoAsNumber BIGINT
 );
 
 
