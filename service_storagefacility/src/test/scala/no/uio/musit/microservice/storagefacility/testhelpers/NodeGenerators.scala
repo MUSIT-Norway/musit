@@ -218,7 +218,7 @@ trait NodeTypeInitializers {
   }
 
   def createRoomWithDifferentArea(
-    areaTo: Double,
+    area: Double,
     perimeter: Boolean = false,
     theftProtection: Boolean = false,
     fireProtection: Boolean = false,
@@ -228,7 +228,7 @@ trait NodeTypeInitializers {
     createRoom().copy(
       id = None,
       name = "MyPrivateRoom",
-      areaTo = Some(areaTo),
+      area = Some(area),
       environmentRequirement = Some(defaultEnvironmentRequirement),
       securityAssessment = SecurityAssessment(
         perimeter = Some(perimeter),

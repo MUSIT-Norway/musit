@@ -298,5 +298,8 @@ final class StorageNodeResource @Inject() (
     }
   }
 
+  def CurrentObjectLocation(mid: Int, oid: Long) = Action.async { implicit request =>
+    ???
+  }
 }
 

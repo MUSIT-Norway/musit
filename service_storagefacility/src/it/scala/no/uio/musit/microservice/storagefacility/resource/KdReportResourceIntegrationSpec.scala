@@ -62,12 +62,12 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val report = wsUrl(KdReportUrl).get.futureValue
 
-        (report.json \ "totalArea").as[Int] mustBe 42
-        (report.json \ "perimeterSecurity").as[Int] mustBe 42
-        (report.json \ "theftProtection").as[Int] mustBe 42
-        (report.json \ "fireProtection").as[Int] mustBe 42
-        (report.json \ "waterDamageAssessment").as[Int] mustBe 0
-        (report.json \ "routinesAndContingencyPlan").as[Int] mustBe 0
+        (report.json \ "totalArea").as[Int] mustBe 41
+        (report.json \ "perimeterSecurity").as[Int] mustBe 41
+        (report.json \ "theftProtection").as[Int] mustBe 41
+        (report.json \ "fireProtection").as[Int] mustBe 0
+        (report.json \ "waterDamageAssessment").as[Int] mustBe 41
+        (report.json \ "routinesAndContingencyPlan").as[Int] mustBe 41
 
       }
       "fail when try to get KdReport from a deleted room" in {
@@ -75,13 +75,13 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val response = wsUrl(StorageNodesUrl).post(json).futureValue
         response.status mustBe Status.CREATED
 
-        val room = verifyNode[Room](
-          response, RoomType, "EllensPersonalRoom", 7, None
+        val room1 = verifyNode[Room](
+          response, RoomType, "EllensPersonalRoom", 9, None
         )
-        room mustBe a[Room]
-        room.area mustBe Some(20.5)
-        room.heightTo mustBe Some(2.6)
-        room.id.get.underlying mustBe 7
+        room1 mustBe a[Room]
+        room1.area mustBe Some(20.5)
+        room1.heightTo mustBe Some(2.6)
+        room1.id.get.underlying mustBe 9
 
         val json1 = roomJson("EllensWorkOutRoom", None)
         val response1 = wsUrl(StorageNodesUrl).post(json1).futureValue
@@ -89,23 +89,23 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl).get.futureValue
 
-        (reportAfterInsertsOfTwoRoom.json \ "totalArea").as[Double] mustBe 41
-        (reportAfterInsertsOfTwoRoom.json \ "perimeterSecurity").as[Double] mustBe 41
-        (reportAfterInsertsOfTwoRoom.json \ "theftProtection").as[Double] mustBe 41
+        (reportAfterInsertsOfTwoRoom.json \ "totalArea").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "perimeterSecurity").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "theftProtection").as[Double] mustBe 82
         (reportAfterInsertsOfTwoRoom.json \ "fireProtection").as[Double] mustBe 0
-        (reportAfterInsertsOfTwoRoom.json \ "waterDamageAssessment").as[Double] mustBe 41
-        (reportAfterInsertsOfTwoRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 41
+        (reportAfterInsertsOfTwoRoom.json \ "waterDamageAssessment").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
 
-        val roomId = room.id.get
+        val roomId = room1.id.get
         val deletedRoom = wsUrl(StorageNodeUrl(roomId)).delete().futureValue
         val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl).get.futureValue
 
-        (reportAfterDeleteOfOneRoom.json \ "totalArea").as[Double] mustBe 20.5
-        (reportAfterDeleteOfOneRoom.json \ "perimeterSecurity").as[Double] mustBe 20.5
-        (reportAfterDeleteOfOneRoom.json \ "theftProtection").as[Double] mustBe 20.5
+        (reportAfterDeleteOfOneRoom.json \ "totalArea").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "perimeterSecurity").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "theftProtection").as[Double] mustBe 61.5
         (reportAfterDeleteOfOneRoom.json \ "fireProtection").as[Double] mustBe 0
-        (reportAfterDeleteOfOneRoom.json \ "waterDamageAssessment").as[Double] mustBe 20.5
-        (reportAfterDeleteOfOneRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 20.5
+        (reportAfterDeleteOfOneRoom.json \ "waterDamageAssessment").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 61.5
       }
 
     }

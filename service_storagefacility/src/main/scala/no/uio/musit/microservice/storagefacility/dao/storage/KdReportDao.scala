@@ -82,7 +82,8 @@ class KdReportDao @Inject() (
     } yield {
       sn.area
     }
-    db.run(query.sum.result)
+    val action = query.sum.result
+    db.run(action)
       .map(res => MusitSuccess(res.getOrElse(0.0)))
       .recover {
         case NonFatal(e) =>
