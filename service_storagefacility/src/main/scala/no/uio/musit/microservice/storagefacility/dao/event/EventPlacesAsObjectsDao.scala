@@ -75,7 +75,7 @@ class EventPlacesAsObjectsDao @Inject() (
     db.run(queryMax)
   }
 
-  def latestEventIdsFor(
+  def latestEventIdsForNode(
     mid: MuseumId,
     nodeId: StorageNodeId,
     eventTypeId: EventTypeId,

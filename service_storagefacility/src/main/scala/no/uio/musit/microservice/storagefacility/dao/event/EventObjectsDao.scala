@@ -50,6 +50,23 @@ class EventObjectsDao @Inject() (
     db.run(query.result)
   }
 
+  def latestEventIdsForObject(
+    objectId: Long,
+    eventTypeId: EventTypeId,
+    limit: Option[Int] = None
+  ): Future[Seq[Long]] = {
+    val q = eventObjectsTable.filter { erp =>
+      erp.objectId === objectId && erp.eventTypeId === eventTypeId
+    }.sortBy(_.eventId.desc).map(_.eventId)
+
+    val query = limit.map {
+      case l: Int if l > 0 => q.take(l)
+      case l: Int if l == -1 => q
+      case l: Int => q.take(50)
+    }.getOrElse(q).result
+    db.run(query)
+  }
+
   private class EventObjectsTable(
       tag: Tag
   ) extends Table[EventRoleObject](tag, SchemaName, "EVENT_ROLE_OBJECT") {

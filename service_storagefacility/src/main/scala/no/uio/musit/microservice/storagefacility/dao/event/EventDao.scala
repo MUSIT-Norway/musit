@@ -29,7 +29,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.MoveConverters
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
-import no.uio.musit.microservice.storagefacility.domain.event.move.MoveNode
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.event.{EventTypeId, EventTypeRegistry}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.service.MusitResults._
@@ -205,8 +205,6 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    */
   def insertEvent(mid: MuseumId, event: EventDto): Future[Long] = {
-    //sjekk alle noder eller objekter i event.relatedObjects og event.relatedPlaces for å finne
-    //om alle som skal flyttes har samme museumID som den som kommer inn.
     val action = insertEventAction(mid, event, None)
     db.run(action)
   }
@@ -552,7 +550,7 @@ class EventDao @Inject() (
     eventType: EType,
     limit: Option[Int] = None
   )(success: EventDto => Res): Future[Seq[Res]] = {
-    val futureEventIds = placesAsObjDao.latestEventIdsFor(
+    val futureEventIds = placesAsObjDao.latestEventIdsForNode(
       mid,
       nodeId = nodeId,
       eventTypeId = eventType.id,
@@ -589,20 +587,58 @@ class EventDao @Inject() (
   ): Future[Seq[EventDto]] = eventsForNode(mid, id, eventType)(dto => dto)
 
   /**
-   * Fetch the {{{limit}}} number of last MoveNode events for the given
-   * StorageNodeId.
    *
-   * @param mid: MuseumId
-   * @param nodeId StorageNodeId to get move events for
+   * @param mid
+   * @param objectId
+   * @param eventType
+   * @param limit
+   * @param success
+   * @tparam EType
+   * @tparam Res
+   * @return
+   */
+  private def eventsForObject[EType <: TopLevelEvent, Res](
+    mid: MuseumId,
+    objectId: Long,
+    eventType: EType,
+    limit: Option[Int] = None
+  )(success: EventDto => Res): Future[Seq[Res]] = {
+    val futureEventIds = objectsDao.latestEventIdsForObject(
+      objectId = objectId,
+      eventTypeId = eventType.id,
+      limit = limit
+    )
+
+    futureEventIds.flatMap { ids =>
+      Future.traverse(ids)(eId => getEvent(mid, eId, Some(eventType.id))).map { res =>
+        res.filter(_.isSuccess).map {
+          case MusitSuccess(maybeSuccess) =>
+            maybeSuccess.map(dto => success(dto))
+
+          case impossible =>
+            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+
+        }.filter(_.isDefined).map(_.get)
+      }
+    }
+  }
+
+  /**
+   * Fetch the {{{limit}}} number of last MoveObject events for the given
+   * object ID.
+   *
+   * @param objectId the object ID to get move events for
    * @param limit Int specifying the number of move events to get
    * @return A Future of a collection of MoveNode events.
    */
-  def getLocationHistory(
+  def getObjectLocationHistory(
     mid: MuseumId,
-    nodeId: StorageNodeId,
+    objectId: Long,
     limit: Option[Int]
-  ): Future[Seq[MoveNode]] = eventsForNode(mid, nodeId, MoveNodeType, limit) { dto =>
-    MoveConverters.moveNodeFromDto(dto.asInstanceOf[BaseEventDto])
+  ): Future[Seq[MoveObject]] = {
+    eventsForObject(mid, objectId, MoveObjectType, limit) { dto =>
+      MoveConverters.moveObjectFromDto(dto.asInstanceOf[BaseEventDto])
+    }
   }
 
 }

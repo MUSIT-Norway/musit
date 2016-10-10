@@ -25,18 +25,16 @@ package object test {
   val StorageNodesUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes"
   val RootNodeUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/root"
   val StorageNodeUrl = (mid: Int, node: Long) => s"$BaseUrl/$mid/storagenodes/$node"
-  val LocationHistoryUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/locations"
-
   val MoveStorageNodeUrl = (mid: Int) => s"${StorageNodesUrl(mid)}/moveNode"
   val MoveObjectUrl = (mid: Int) => s"${StorageNodesUrl(mid)}/moveObject"
   val NodeChildrenUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/children"
+  val ObjLocationHistoryUrl = (mid: Int, objectId: Long) => s"${StorageNodesUrl(mid)}/objects/$objectId/locations"
 
   val ControlsUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/controls"
   val ControlUrl = (mid: Int, node: Long, evt: Long) => s"${ControlsUrl(mid, node)}/$evt"
   val ObservationsUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/observations"
   val ObservationUrl = (mid: Int, node: Long, evt: Long) => s"${ObservationsUrl(mid, node)}/$evt"
   val CtrlObsForNodeUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/events"
-
   val KdReportUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/report"
 
   val VeryLongString =

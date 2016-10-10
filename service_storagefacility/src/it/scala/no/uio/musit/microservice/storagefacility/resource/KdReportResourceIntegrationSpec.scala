@@ -1,6 +1,5 @@
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
@@ -53,36 +52,64 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (response.json \ "areaTo").as[Double] mustBe 21
         (response.json \ "heightTo").as[Double] mustBe 2.6
 
+        val room = verifyNode[Room](
+          response, RoomType, "EllensPersonalRoom", 7, None
+        )
+        room mustBe a[Room]
+        room.areaTo mustBe Some(21)
+        room.heightTo mustBe Some(2.6)
+
         val json1 = roomJson("EllensWorkOutRoom", None)
         val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
         response1.status mustBe Status.CREATED
 
         val report = wsUrl(KdReportUrl(mid)).get.futureValue
 
-        (report.json \ "totalArea").as[Int] mustBe 42
-        (report.json \ "perimeterSecurity").as[Int] mustBe 42
-        (report.json \ "theftProtection").as[Int] mustBe 42
-        (report.json \ "fireProtection").as[Int] mustBe 42
-        (report.json \ "waterDamageAssessment").as[Int] mustBe 0
-        (report.json \ "routinesAndContingencyPlan").as[Int] mustBe 0
+        (report.json \ "totalArea").as[Double] mustBe 41
+        (report.json \ "perimeterSecurity").as[Double] mustBe 41
+        (report.json \ "theftProtection").as[Double] mustBe 41
+        (report.json \ "fireProtection").as[Double] mustBe 0
+        (report.json \ "waterDamageAssessment").as[Double] mustBe 41
+        (report.json \ "routinesAndContingencyPlan").as[Double] mustBe 41
 
-        val anotherMid = MuseumId(4)
-        val json2 = roomJson("EllensLivingRoom", None)
-        val response2 = wsUrl(StorageNodesUrl(anotherMid)).post(json2).futureValue
-        response2.status mustBe Status.CREATED
-        val anotherMuseum = wsUrl(KdReportUrl(anotherMid)).get.futureValue
-        anotherMuseum.status mustBe Status.OK
-        (anotherMuseum.json \ "totalArea").as[Int] mustBe 21
-        (anotherMuseum.json \ "perimeterSecurity").as[Int] mustBe 21
-        (anotherMuseum.json \ "theftProtection").as[Int] mustBe 21
-        (anotherMuseum.json \ "fireProtection").as[Int] mustBe 21
-        (anotherMuseum.json \ "waterDamageAssessment").as[Int] mustBe 0
-        (anotherMuseum.json \ "routinesAndContingencyPlan").as[Int] mustBe 0
+      }
+      "fail when try to get KdReport from a deleted room" in {
+        val mid = 2
+        val json = roomJson("EllensPersonalRoom", None)
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
+        response.status mustBe Status.CREATED
 
-        val wrongMid = MuseumId(6)
-        val wrongMuseum = wsUrl(KdReportUrl(wrongMid)).get.futureValue
-        wrongMuseum.status mustBe Status.OK
-        (wrongMuseum.json \ "totalArea").as[Int] mustBe 0
+        val room1 = verifyNode[Room](
+          response, RoomType, "EllensPersonalRoom", 9, None
+        )
+        room1 mustBe a[Room]
+        room1.area mustBe Some(20.5)
+        room1.heightTo mustBe Some(2.6)
+        room1.id.get.underlying mustBe 9
+
+        val json1 = roomJson("EllensWorkOutRoom", None)
+        val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
+        response1.status mustBe Status.CREATED
+
+        val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl(mid)).get.futureValue
+
+        (reportAfterInsertsOfTwoRoom.json \ "totalArea").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "perimeterSecurity").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "theftProtection").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "fireProtection").as[Double] mustBe 0
+        (reportAfterInsertsOfTwoRoom.json \ "waterDamageAssessment").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
+
+        val roomId = room1.id.get
+        val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId)).delete().futureValue
+        val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl(mid)).get.futureValue
+
+        (reportAfterDeleteOfOneRoom.json \ "totalArea").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "perimeterSecurity").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "theftProtection").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "fireProtection").as[Double] mustBe 0
+        (reportAfterDeleteOfOneRoom.json \ "waterDamageAssessment").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 61.5
       }
 
     }

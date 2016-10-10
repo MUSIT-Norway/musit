@@ -37,6 +37,7 @@ import scala.util.control.NonFatal
 /**
  * TODO: Document me!!!
  */
+// scalastyle:off number.of.methods
 class StorageNodeService @Inject() (
     val unitDao: StorageUnitDao,
     val roomDao: RoomDao,
@@ -92,12 +93,8 @@ class StorageNodeService @Inject() (
   /**
    * Find the NodePath for the given storageNodeId.
    */
-  private[service] def findPath(
-    id: Option[StorageNodeId]
-  ): Future[Option[NodePath]] = {
-    id.map(unitDao.getPathById).getOrElse {
-      Future.successful(None)
-    }
+  private[service] def findPath(id: Option[StorageNodeId]): Future[Option[NodePath]] = {
+    id.map(unitDao.getPathById).getOrElse(Future.successful(None))
   }
 
   // A couple of type aliases to reduce the length of some function args.
@@ -157,7 +154,10 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def addRoom(mid: MuseumId, room: Room)(implicit currUsr: String): Future[MusitResult[Option[Room]]] = {
+  def addRoom(
+    mid: MuseumId,
+    room: Room
+  )(implicit currUsr: String): Future[MusitResult[Option[Room]]] = {
     addNode[Room](
       mid = mid,
       node = room,
@@ -171,7 +171,10 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def addBuilding(mid: MuseumId, building: Building)(implicit currUsr: String): Future[MusitResult[Option[Building]]] = {
+  def addBuilding(
+    mid: MuseumId,
+    building: Building
+  )(implicit currUsr: String): Future[MusitResult[Option[Building]]] = {
     addNode[Building](
       mid = mid,
       node = building,
@@ -351,7 +354,10 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getRoomById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Room]]] = {
+  def getRoomById(
+    mid: MuseumId,
+    id: StorageNodeId
+  ): Future[MusitResult[Option[Room]]] = {
     val eventuallyRoom = roomDao.getById(mid, id)
     nodeById(mid, id, eventuallyRoom) { (n, maybeReq, maybeNames) =>
       n.copy(
@@ -364,7 +370,10 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getBuildingById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Building]]] = {
+  def getBuildingById(
+    mid: MuseumId,
+    id: StorageNodeId
+  ): Future[MusitResult[Option[Building]]] = {
     val eventuallyBuilding = buildingDao.getById(mid, id)
     nodeById(mid, id, eventuallyBuilding) { (n, maybeReq, maybeNames) =>
       n.copy(
@@ -377,7 +386,10 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getOrganisationById(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Option[Organisation]]] = {
+  def getOrganisationById(
+    mid: MuseumId,
+    id: StorageNodeId
+  ): Future[MusitResult[Option[Organisation]]] = {
     val eventuallyOrg = orgDao.getById(mid, id)
     nodeById(mid, id, eventuallyOrg) { (n, maybeReq, maybeNames) =>
       n.copy(
@@ -387,7 +399,10 @@ class StorageNodeService @Inject() (
     }
   }
 
-  private def getEnvReq(mid: MuseumId, id: StorageNodeId): Future[Option[EnvironmentRequirement]] = {
+  private def getEnvReq(
+    mid: MuseumId,
+    id: StorageNodeId
+  ): Future[Option[EnvironmentRequirement]] = {
     envReqService.findLatestForNodeId(mid, id).map {
       case MusitSuccess(maybeEnvRequirement) => maybeEnvRequirement
       case _ => None
@@ -483,7 +498,10 @@ class StorageNodeService @Inject() (
     }
   }
 
-  def nodeStats(mid: MuseumId, nodeId: StorageNodeId): Future[MusitResult[Option[NodeStats]]] = {
+  def nodeStats(
+    mid: MuseumId,
+    nodeId: StorageNodeId
+  ): Future[MusitResult[Option[NodeStats]]] = {
     getNodeById(mid, nodeId).flatMap {
       case MusitSuccess(maybeNode) =>
         maybeNode.map { node =>
@@ -526,7 +544,10 @@ class StorageNodeService @Inject() (
    * returns Some(1) when the node was successfully marked as removed.
    * returns None if the node isn't found.
    */
-  def deleteNode(mid: MuseumId, id: StorageNodeId)(implicit currUsr: String): Future[MusitResult[Option[Int]]] = {
+  def deleteNode(
+    mid: MuseumId,
+    id: StorageNodeId
+  )(implicit currUsr: String): Future[MusitResult[Option[Int]]] = {
     unitDao.getById(mid, id).flatMap {
       case Some(node) =>
         isEmpty(node).flatMap { empty =>
@@ -542,18 +563,39 @@ class StorageNodeService @Inject() (
   /**
    * Helper to encapsulate shared logic between the public move methods.
    */
-  private def move(
+  private def persistMoveEvent(
     mid: MuseumId,
     id: Long,
     event: MoveEvent
   )(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
     val dto = DtoConverters.MoveConverters.moveToDto(event)
-
     eventDao.insertEvent(mid, dto).flatMap(eventId => f(eventId)).recover {
       case NonFatal(ex) =>
         val msg = s"An exception occured trying to move $id"
         logger.error(msg, ex)
         MusitInternalError(msg)
+    }
+  }
+
+  private def move[E <: MoveEvent](
+    event: E,
+    eventuallyMaybeCurrent: Future[Option[GenericStorageNode]],
+    eventuallyMaybeTo: Future[Option[GenericStorageNode]]
+  )(
+    mv: (GenericStorageNode, GenericStorageNode) => Future[MusitResult[Long]]
+  ): Future[MusitResult[Long]] = {
+    val eventuallyExistence = for {
+      maybeCurrent <- eventuallyMaybeCurrent
+      maybeTo <- eventuallyMaybeTo
+    } yield (maybeCurrent, maybeTo)
+
+    eventuallyExistence.flatMap {
+      case (maybeCurrent: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
+        maybeCurrent.flatMap { current =>
+          maybeTo.map(to => mv(current, to))
+        }.getOrElse {
+          Future.successful(MusitValidationError("Could not find to or from node."))
+        }
     }
   }
 
@@ -565,16 +607,14 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     event: MoveNode
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
-
-    def mv(
-      e: MoveNode,
-      from: GenericStorageNode,
-      to: GenericStorageNode
-    ): Future[MusitResult[Long]] = {
-      unitDao.updatePathForSubTree(id, from.path, to.path.appendChild(id)).flatMap {
+    logger.trace(s"moveNode method called with mid=$mid, id=$id, event=$event")
+    move(event, unitDao.getNodeById(mid, id), unitDao.getNodeById(mid, event.to)) { (curr, to) =>
+      val theEvent = event.copy(from = curr.id)
+      logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
+      unitDao.updatePathForSubTree(id, curr.path, to.path.appendChild(id)).flatMap {
         case MusitSuccess(numUpdated) =>
-          move(mid, id, e) { eventId =>
-            unitDao.updatePartOf(id, Some(e.to)).map { updRes =>
+          persistMoveEvent(mid, id, theEvent) { eventId =>
+            unitDao.updatePartOf(id, Some(event.to)).map { updRes =>
               logger.debug(s"Update partOf result $updRes")
               MusitSuccess(eventId)
             }
@@ -582,30 +622,6 @@ class StorageNodeService @Inject() (
 
         case err: MusitError => Future.successful(err)
       }
-    }
-
-    val eventuallyCurrent = unitDao.getNodeById(mid, id)
-    val eventuallyMaybeTo = unitDao.getNodeById(mid, event.to)
-
-    val eventuallyExistance = for {
-      maybeCurrent <- eventuallyCurrent
-      maybeTo <- eventuallyMaybeTo
-    } yield (maybeCurrent, maybeTo)
-
-    eventuallyExistance.flatMap {
-      case (maybeCurrent: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
-        maybeCurrent.flatMap { current =>
-          maybeTo.map { to =>
-            val theEvent = event.copy(from = current.id)
-            logger.debug(s"Going to move node $id from ${current.path} to ${to.path}")
-            mv(theEvent, current, to).map { res =>
-              logger.debug(s"Updated $res entries")
-              res
-            }
-          }
-        }.getOrElse(
-          Future.successful(MusitValidationError("Could not find to or from node."))
-        )
     }
   }
 
@@ -617,35 +633,49 @@ class StorageNodeService @Inject() (
     objectId: Long,
     event: MoveObject
   )(implicit currUsr: String): Future[MusitResult[Long]] = {
-    move(mid, objectId, event) { eventId =>
-      Future.successful(MusitSuccess(eventId))
+    val eventuallyMaybeCurrent = localObjectDao.currentLocation(objectId)
+      .flatMap { maybeId =>
+        maybeId.map(id => unitDao.getNodeById(mid, id)).getOrElse(Future.successful(None))
+      }
+
+    move(event, eventuallyMaybeCurrent, unitDao.getNodeById(mid, event.to)) { (curr, to) =>
+      val theEvent = event.copy(from = curr.id)
+      logger.debug(s"Going to move object $objectId from ${curr.path} to ${to.path}")
+      persistMoveEvent(mid, objectId, theEvent) { eventId =>
+        Future.successful(MusitSuccess(eventId))
+      }
+    }
+  }
+
+  /**
+   * Helper method to find PathNames for a potentially present StorageNodeId.
+   *
+   * @param maybeId Option[StorageNodeId]
+   * @return Future[(NodePath, Seq[NamedPathElement])]
+   */
+  private def findPathAndNames(maybeId: Option[StorageNodeId]): Future[(NodePath, Seq[NamedPathElement])] = {
+    findPath(maybeId).flatMap { maybePath =>
+      maybePath.map(p => unitDao.namesForPath(p).map(names => (p, names)))
+        .getOrElse(Future.successful((NodePath.empty, Seq.empty)))
     }
   }
 
   /**
    * Returns the
    *
-   * @param id
+   * @param oid the object ID to fetch history for
    * @return
    */
-  def locationHistory(
+  def objectLocationHistory(
     mid: MuseumId,
-    id: StorageNodeId,
+    oid: Long,
     limit: Option[Int]
   ): Future[MusitResult[Seq[LocationHistory]]] = {
-
-    def findPathAndNames(id: StorageNodeId): Future[(NodePath, Seq[NamedPathElement])] = {
-      findPath(Some(id)).filter(_.isDefined).flatMap { maybePath =>
-        val p = maybePath.get
-        unitDao.namesForPath(p).map(names => (p, names))
-      }
-    }
-
-    val res = eventDao.getLocationHistory(mid, id, limit).flatMap { events =>
+    val res = eventDao.getObjectLocationHistory(mid, oid, limit).flatMap { events =>
       Future.sequence {
         events.map { e =>
-          val fromTuple = findPathAndNames(e.from.get)
-          val toTuple = findPathAndNames(e.to)
+          val fromTuple = findPathAndNames(e.from)
+          val toTuple = findPathAndNames(Option(e.to))
 
           for {
             from <- fromTuple
@@ -672,9 +702,11 @@ class StorageNodeService @Inject() (
     }
     res.map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
-        val msg = s"Fetching of location history for node $id failed"
-        logger.error(msg)
+        val msg = s"Fetching of location history for object $oid failed"
+        logger.error(msg, ex)
         MusitInternalError(msg)
     }
   }
 }
+
+// scalastyle:on number.of.methods

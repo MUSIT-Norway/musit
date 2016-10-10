@@ -226,7 +226,7 @@ object StorageNodeDto {
       id = r.id,
       name = r.name,
       storageType = r.storageType,
-      museumId = mid.underlying
+      museumId = mid
     )
 
   def fromStorageUnit(
@@ -247,7 +247,7 @@ object StorageNodeDto {
       path = su.path,
       isDeleted = Some(false),
       storageType = su.storageType,
-      museumId = mid.underlying
+      museumId = mid
     )
 
   def fromBuilding(
@@ -269,7 +269,7 @@ object StorageNodeDto {
         path = b.path,
         isDeleted = Some(false),
         storageType = b.storageType,
-        museumId = mid.underlying
+        museumId = mid
       ),
       extension = BuildingDto(
         id = id.orElse(b.id),
@@ -296,7 +296,7 @@ object StorageNodeDto {
         path = o.path,
         isDeleted = Some(false),
         storageType = o.storageType,
-        museumId = mid.underlying
+        museumId = mid
       ),
       extension = OrganisationDto(
         id = id.orElse(o.id),
@@ -323,7 +323,7 @@ object StorageNodeDto {
         path = r.path,
         isDeleted = Some(false),
         storageType = r.storageType,
-        museumId = mid.underlying
+        museumId = mid
       ),
       extension = RoomDto(
         id = id.orElse(r.id),
