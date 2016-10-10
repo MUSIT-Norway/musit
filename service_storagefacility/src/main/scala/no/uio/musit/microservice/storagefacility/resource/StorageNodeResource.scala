@@ -297,6 +297,5 @@ final class StorageNodeResource @Inject() (
         InternalServerError(Json.obj("message" -> err.message))
     }
   }
-
 }
 
