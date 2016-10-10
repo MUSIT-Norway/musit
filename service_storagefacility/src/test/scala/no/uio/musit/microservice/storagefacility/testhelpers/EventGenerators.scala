@@ -64,7 +64,6 @@ trait EventTypeInitializers {
     Control(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      note = Some("This is a control note"),
       registeredBy = Some(registeredByName),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
@@ -81,7 +80,6 @@ trait EventTypeInitializers {
     Observation(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      note = Some("This is an observation note"),
       registeredBy = Some(registeredByName),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
@@ -167,7 +165,6 @@ trait EventTypeInitializers {
     MoveObject(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      note = Some("This is a move object note"),
       registeredBy = Some(registeredByName),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
@@ -186,7 +183,6 @@ trait EventTypeInitializers {
     MoveNode(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      note = Some("This is a move node note"),
       registeredBy = Some(registeredByName),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),

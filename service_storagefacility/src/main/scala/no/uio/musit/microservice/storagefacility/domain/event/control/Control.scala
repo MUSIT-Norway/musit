@@ -34,7 +34,6 @@ case class Control(
   id: Option[EventId],
   doneBy: Option[ActorId],
   doneDate: DateTime,
-  note: Option[String],
   affectedThing: Option[StorageNodeId],
   registeredBy: Option[String],
   registeredDate: Option[DateTime],

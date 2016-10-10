@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
+import no.uio.musit.formatters.StrictFormatters._
 import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
@@ -131,7 +132,7 @@ object GenericStorageNode {
 
   val formats: Format[GenericStorageNode] = (
     (__ \ "id").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxLength[String](100)) and
+    (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
     (__ \ "isPartOf").formatNullable[StorageNodeId] and
@@ -171,7 +172,7 @@ object Root {
 
   val formats: Format[Root] = (
     (__ \ "id").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxLength[String](100)) and
+    (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply)
   )(Root.apply, unlift(Root.unapply))
@@ -203,7 +204,7 @@ object StorageUnit {
 
   val formats: Format[StorageUnit] = (
     (__ \ "id").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxLength[String](100)) and
+    (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
     (__ \ "isPartOf").formatNullable[StorageNodeId] and
@@ -244,7 +245,7 @@ object Room {
 
   val formats: Format[Room] = (
     (__ \ "id").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxLength[String](100)) and
+    (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
     (__ \ "isPartOf").formatNullable[StorageNodeId] and
@@ -286,7 +287,7 @@ object Building {
 
   val formats: Format[Building] = (
     (__ \ "id").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxLength[String](100)) and
+    (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
     (__ \ "isPartOf").formatNullable[StorageNodeId] and
@@ -327,7 +328,7 @@ object Organisation {
 
   val formats: Format[Organisation] = (
     (__ \ "id").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxLength[String](100)) and
+    (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
     (__ \ "isPartOf").formatNullable[StorageNodeId] and

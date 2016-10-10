@@ -207,7 +207,7 @@ object DtoConverters {
       toBaseDto(
         base = ctrl,
         eventTypeId = ctrl.eventType.registeredEventId,
-        note = ctrl.note,
+        note = None,
         relEvents = relEvt
       )
     }
@@ -223,7 +223,6 @@ object DtoConverters {
         doneDate = dto.eventDate,
         doneBy = dto.relatedActors.map(e => ActorId(e.actorId.toLong)).headOption,
         affectedThing = dto.relatedObjects.map(e => StorageNodeId(e.objectId)).headOption,
-        note = dto.note,
         registeredBy = dto.registeredBy,
         registeredDate = dto.registeredDate,
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
@@ -334,7 +333,7 @@ object DtoConverters {
       )
       toBaseDto(
         base = obs,
-        note = obs.note,
+        note = None,
         eventTypeId = obs.eventType.registeredEventId,
         relEvents = relEvt
       )
@@ -352,7 +351,6 @@ object DtoConverters {
         doneDate = dto.eventDate,
         doneBy = dto.relatedActors.map(e => ActorId(e.actorId.toLong)).headOption,
         affectedThing = dto.relatedObjects.map(e => StorageNodeId(e.objectId)).headOption,
-        note = dto.note,
         registeredBy = dto.registeredBy,
         registeredDate = dto.registeredDate,
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
@@ -557,7 +555,7 @@ object DtoConverters {
     def moveToDto[A <: MoveEvent](move: A): BaseEventDto = {
       toBaseDto(
         base = move,
-        note = move.note,
+        note = None,
         eventTypeId = move.eventType.registeredEventId,
         relPlaces = Seq(PlaceRole(1, move.to)),
         maybeLong = move.from
@@ -582,7 +580,6 @@ object DtoConverters {
           doneDate = dto.eventDate,
           doneBy = dto.relatedActors.map(e => ActorId(e.actorId.toLong)).headOption,
           affectedThing = dto.relatedObjects.map(e => ObjectId(e.objectId)).headOption,
-          note = dto.note,
           registeredBy = dto.registeredBy,
           registeredDate = dto.registeredDate,
           eventType = eventType,
@@ -599,7 +596,6 @@ object DtoConverters {
           doneDate = dto.eventDate,
           doneBy = dto.relatedActors.map(e => ActorId(e.actorId.toLong)).headOption,
           affectedThing = dto.relatedObjects.map(e => StorageNodeId(e.objectId)).headOption,
-          note = dto.note,
           registeredBy = dto.registeredBy,
           registeredDate = dto.registeredDate,
           eventType = eventType,

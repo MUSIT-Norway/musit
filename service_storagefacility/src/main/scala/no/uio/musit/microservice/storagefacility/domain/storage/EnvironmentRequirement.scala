@@ -19,11 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
+import no.uio.musit.formatters.StrictFormatters._
 import no.uio.musit.microservice.storagefacility.domain.Interval
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import play.api.libs.json.Writes._
+import play.api.libs.json._
 
 case class EnvironmentRequirement(
   temperature: Option[Interval[Double]],
@@ -35,8 +35,6 @@ case class EnvironmentRequirement(
 )
 
 object EnvironmentRequirement {
-
-  def maxCharsFormat(max: Int) = Format(maxLength[String](max), StringWrites)
 
   implicit val format: Format[EnvironmentRequirement] = (
     (__ \ "temperature").formatNullable[Interval[Double]] and

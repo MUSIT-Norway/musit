@@ -19,9 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
+import no.uio.musit.formatters.StrictFormatters._
 import no.uio.musit.microservice.storagefacility.domain.event.MusitSubEvent
 import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, LifeCycle}
-import play.api.libs.json.{Format, Json}
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 object ObservationSubEvents {
 
@@ -41,8 +43,10 @@ object ObservationSubEvents {
   ) extends ObservationFromTo
 
   object ObservationRelativeHumidity {
-    implicit val formats: Format[ObservationRelativeHumidity] =
-      Json.format[ObservationRelativeHumidity]
+    implicit val formats: Format[ObservationRelativeHumidity] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "range").format[FromToDouble]
+    )(ObservationRelativeHumidity.apply, unlift(ObservationRelativeHumidity.unapply))
   }
 
   case class ObservationTemperature(
@@ -51,8 +55,10 @@ object ObservationSubEvents {
   ) extends ObservationFromTo
 
   object ObservationTemperature {
-    implicit val formats: Format[ObservationTemperature] =
-      Json.format[ObservationTemperature]
+    implicit val formats: Format[ObservationTemperature] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "range").format[FromToDouble]
+    )(ObservationTemperature.apply, unlift(ObservationTemperature.unapply))
   }
 
   case class ObservationHypoxicAir(
@@ -61,8 +67,10 @@ object ObservationSubEvents {
   ) extends ObservationFromTo
 
   object ObservationHypoxicAir {
-    implicit val formats: Format[ObservationHypoxicAir] =
-      Json.format[ObservationHypoxicAir]
+    implicit val formats: Format[ObservationHypoxicAir] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "range").format[FromToDouble]
+    )(ObservationHypoxicAir.apply, unlift(ObservationHypoxicAir.unapply))
   }
 
   case class ObservationLightingCondition(
@@ -71,8 +79,10 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationLightingCondition {
-    implicit val formats: Format[ObservationLightingCondition] =
-      Json.format[ObservationLightingCondition]
+    implicit val formats: Format[ObservationLightingCondition] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "lightingCondition").formatNullable[String](maxCharsFormat(250))
+    )(ObservationLightingCondition.apply, unlift(ObservationLightingCondition.unapply))
   }
 
   case class ObservationCleaning(
@@ -81,8 +91,10 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationCleaning {
-    implicit val formats: Format[ObservationCleaning] =
-      Json.format[ObservationCleaning]
+    implicit val formats: Format[ObservationCleaning] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "cleaning").formatNullable[String](maxCharsFormat(250))
+    )(ObservationCleaning.apply, unlift(ObservationCleaning.unapply))
   }
 
   case class ObservationGas(
@@ -91,8 +103,10 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationGas {
-    implicit val formats: Format[ObservationGas] =
-      Json.format[ObservationGas]
+    implicit val formats: Format[ObservationGas] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "gas").formatNullable[String](maxCharsFormat(250))
+    )(ObservationGas.apply, unlift(ObservationGas.unapply))
   }
 
   case class ObservationMold(
@@ -101,8 +115,10 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationMold {
-    implicit val formats: Format[ObservationMold] =
-      Json.format[ObservationMold]
+    implicit val formats: Format[ObservationMold] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "mold").formatNullable[String](maxCharsFormat(250))
+    )(ObservationMold.apply, unlift(ObservationMold.unapply))
   }
 
   case class ObservationTheftProtection(
@@ -111,8 +127,10 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationTheftProtection {
-    implicit val formats: Format[ObservationTheftProtection] =
-      Json.format[ObservationTheftProtection]
+    implicit val formats: Format[ObservationTheftProtection] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "theftProtection").formatNullable[String](maxCharsFormat(250))
+    )(ObservationTheftProtection.apply, unlift(ObservationTheftProtection.unapply))
   }
 
   case class ObservationFireProtection(
@@ -121,8 +139,10 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationFireProtection {
-    implicit val formats: Format[ObservationFireProtection] =
-      Json.format[ObservationFireProtection]
+    implicit val formats: Format[ObservationFireProtection] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "fireProtection").formatNullable[String](maxCharsFormat(250))
+    )(ObservationFireProtection.apply, unlift(ObservationFireProtection.unapply))
   }
 
   case class ObservationPerimeterSecurity(
@@ -131,8 +151,10 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationPerimeterSecurity {
-    implicit val formats: Format[ObservationPerimeterSecurity] =
-      Json.format[ObservationPerimeterSecurity]
+    implicit val formats: Format[ObservationPerimeterSecurity] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "perimeterSecurity").formatNullable[String](maxCharsFormat(250))
+    )(ObservationPerimeterSecurity.apply, unlift(ObservationPerimeterSecurity.unapply))
   }
 
   case class ObservationWaterDamageAssessment(
@@ -141,8 +163,10 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationWaterDamageAssessment {
-    implicit val formats: Format[ObservationWaterDamageAssessment] =
-      Json.format[ObservationWaterDamageAssessment]
+    implicit val formats: Format[ObservationWaterDamageAssessment] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "waterDamageAssessment").formatNullable[String](maxCharsFormat(250))
+    )(ObservationWaterDamageAssessment.apply, unlift(ObservationWaterDamageAssessment.unapply))
   }
 
   case class ObservationPest(
@@ -152,8 +176,11 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationPest {
-    implicit val formats: Format[ObservationPest] =
-      Json.format[ObservationPest]
+    implicit val formats: Format[ObservationPest] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "identification").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "lifecycles").format[Seq[LifeCycle]]
+    )(ObservationPest.apply, unlift(ObservationPest.unapply))
   }
 
   case class ObservationAlcohol(
@@ -163,8 +190,11 @@ object ObservationSubEvents {
   ) extends ObservationSubEvent
 
   object ObservationAlcohol {
-    implicit val formats: Format[ObservationAlcohol] =
-      Json.format[ObservationAlcohol]
+    implicit val formats: Format[ObservationAlcohol] = (
+      (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "condition").formatNullable[String](maxCharsFormat(250)) and
+      (__ \ "volume").formatNullable[Double]
+    )(ObservationAlcohol.apply, unlift(ObservationAlcohol.unapply))
   }
 
 }

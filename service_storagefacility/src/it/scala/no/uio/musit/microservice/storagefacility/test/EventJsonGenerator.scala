@@ -24,7 +24,6 @@ object EventJsonGenerator {
   def baseEventJson(eventType: String, regDay: Int) = {
     s""""doneDate" : "2016-09-${regDay}T09:17:46+02:00",
         |"doneBy" : 12,
-        |"note" : "This is a $eventType note",
         |"eventType" : "$eventType"""".stripMargin
   }
 

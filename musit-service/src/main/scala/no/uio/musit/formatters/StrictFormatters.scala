@@ -17,26 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event
+package no.uio.musit.formatters
 
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, MusitId}
-import org.joda.time.DateTime
+import play.api.libs.json.Format
+import play.api.libs.json.Reads._
+import play.api.libs.json.Writes._
 
-/**
- * Top level representation of _all_ event types with definitions for the
- * shared attributes they all contain.
- */
-trait MusitEvent {
-  val id: Option[EventId]
-  val doneBy: Option[ActorId]
-  val doneDate: DateTime
-  val affectedThing: Option[MusitId]
-  val registeredBy: Option[String]
-  val registeredDate: Option[DateTime]
-  val eventType: EventType
+object StrictFormatters {
+
+  def maxCharsFormat(max: Int) = Format(maxLength[String](max), StringWrites)
+
 }
-
-/**
- * Helps to identify events that are only valid in a "sub-event" context.
- */
-trait MusitSubEvent
