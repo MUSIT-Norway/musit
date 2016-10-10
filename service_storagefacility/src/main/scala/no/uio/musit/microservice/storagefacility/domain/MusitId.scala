@@ -19,6 +19,18 @@
 
 package no.uio.musit.microservice.storagefacility.domain
 
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+
 trait MusitId {
   val underlying: Long
+}
+
+object MusitId {
+
+  implicit def toStorageNodeId(m: MusitId): StorageNodeId = StorageNodeId(m.underlying)
+  implicit def toEventId(m: MusitId): EventId = EventId(m.underlying)
+  implicit def toObjectId(m: MusitId): ObjectId = ObjectId(m.underlying)
+  implicit def toActorId(m: MusitId): ActorId = ActorId(m.underlying)
+
 }

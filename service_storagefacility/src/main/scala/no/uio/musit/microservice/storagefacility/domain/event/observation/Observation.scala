@@ -19,8 +19,10 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.microservice.storagefacility.domain.ActorId
 import no.uio.musit.microservice.storagefacility.domain.event._
+import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, _}
@@ -34,17 +36,17 @@ case class Observation(
   registeredBy: Option[String],
   registeredDate: Option[DateTime],
   eventType: EventType,
-  alcohol: Option[ObservationAlcohol],
-  cleaning: Option[ObservationCleaning],
-  gas: Option[ObservationGas],
-  hypoxicAir: Option[ObservationHypoxicAir],
-  lightingCondition: Option[ObservationLightingCondition],
-  mold: Option[ObservationMold],
-  pest: Option[ObservationPest],
-  relativeHumidity: Option[ObservationRelativeHumidity],
-  temperature: Option[ObservationTemperature]
+  alcohol: Option[ObservationAlcohol] = None,
+  cleaning: Option[ObservationCleaning] = None,
+  gas: Option[ObservationGas] = None,
+  hypoxicAir: Option[ObservationHypoxicAir] = None,
+  lightingCondition: Option[ObservationLightingCondition] = None,
+  mold: Option[ObservationMold] = None,
+  pest: Option[ObservationPest] = None,
+  relativeHumidity: Option[ObservationRelativeHumidity] = None,
+  temperature: Option[ObservationTemperature] = None
 ) extends MusitEvent
 
-object Observation {
+object Observation extends WithDateTimeFormatters {
   implicit val format: Format[Observation] = Json.format[Observation]
 }

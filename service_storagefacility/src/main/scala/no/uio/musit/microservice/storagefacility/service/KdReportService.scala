@@ -12,35 +12,56 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
  * TODO: Document me!!!
  */
 class KdReportService @Inject() (val kdReportDao: KdReportDao) {
+
+  private def flatMapResult(
+    totalRes: MusitResult[Double],
+    perimeterRes: MusitResult[Double],
+    theftRes: MusitResult[Double],
+    fireRes: MusitResult[Double],
+    waterRes: MusitResult[Double],
+    contingencyRes: MusitResult[Double]
+  ): MusitResult[KdReport] = {
+    for {
+      total <- totalRes
+      perimeter <- perimeterRes
+      theft <- theftRes
+      fire <- fireRes
+      water <- waterRes
+      contingency <- contingencyRes
+    } yield KdReport(
+      totalArea = total,
+      perimeterSecurity = perimeter,
+      theftProtection = theft,
+      fireProtection = fire,
+      waterDamageAssessment = water,
+      routinesAndContingencyPlan = contingency
+    )
+  }
+
   def getReport: Future[MusitResult[KdReport]] = {
     val futTotArea = kdReportDao.getReportTotalArea
-    val futAreaPerimeterSecurity = kdReportDao.getAreaPerimeterSecurity
-    val futAreaTheftProtection = kdReportDao.getAreaTheftProtection
-    val futAreaFireProtection = kdReportDao.getAreaFireProtectiony
-    val futAreaWaterDamageAssessment = kdReportDao.getAreaWaterDamageAssessment
-    val futAreaRoutinesAndContingencyPlan = kdReportDao.getAreaRoutinesAndContingencyPlan
+    val futAreaPerimeter = kdReportDao.getAreaPerimeterSecurity
+    val futAreaTheft = kdReportDao.getAreaTheftProtection
+    val futAreaFire = kdReportDao.getAreaFireProtectiony
+    val futAreaWaterDamage = kdReportDao.getAreaWaterDamageAssessment
+    val futAreaContingency = kdReportDao.getAreaRoutinesAndContingencyPlan
     for {
-      mrTotArea <- futTotArea
-      mrAreaPerimeterSecurity <- futAreaPerimeterSecurity
-      mrAreaTheftProtection <- futAreaTheftProtection
-      mrAreaFireProtection <- futAreaFireProtection
-      mrAreaWaterDamageAssessment <- futAreaWaterDamageAssessment
-      mrAreaRoutinesAndContingencyPlan <- futAreaRoutinesAndContingencyPlan
-    } yield for {
-      totArea <- mrTotArea
-      areaPerimeterSecurity <- mrAreaPerimeterSecurity
-      areaTheftProtection <- mrAreaTheftProtection
-      areaFireProtection <- mrAreaFireProtection
-      areaWaterDamageAssessment <- mrAreaWaterDamageAssessment
-      areaRoutinesAndContingencyPlan <- mrAreaRoutinesAndContingencyPlan
-    } yield KdReport(
-      totalArea = totArea,
-      perimeterSecurity = areaPerimeterSecurity,
-      theftProtection = areaTheftProtection,
-      fireProtection = areaFireProtection,
-      waterDamageAssessment = areaWaterDamageAssessment,
-      routinesAndContingencyPlan = areaRoutinesAndContingencyPlan
-    )
+      areaRes <- futTotArea
+      perimeterRes <- futAreaPerimeter
+      theftRes <- futAreaTheft
+      fireRes <- futAreaFire
+      waterRes <- futAreaWaterDamage
+      contingencyRes <- futAreaContingency
+    } yield {
+      flatMapResult(
+        totalRes = areaRes,
+        perimeterRes = perimeterRes,
+        theftRes = theftRes,
+        fireRes = fireRes,
+        waterRes = waterRes,
+        contingencyRes = contingencyRes
+      )
+    }
   }
 
 }

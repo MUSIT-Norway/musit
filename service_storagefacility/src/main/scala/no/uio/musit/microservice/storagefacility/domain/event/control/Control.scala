@@ -19,9 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.control
 
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, ObjectId}
+import no.uio.musit.microservice.storagefacility.domain.ActorId
+import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEvents._
 import org.joda.time.DateTime
 import play.api.libs.json._
 
@@ -37,18 +39,18 @@ case class Control(
   registeredBy: Option[String],
   registeredDate: Option[DateTime],
   eventType: EventType,
-  alcohol: Option[ControlAlcohol],
-  cleaning: Option[ControlCleaning],
-  gas: Option[ControlGas],
-  hypoxicAir: Option[ControlHypoxicAir],
-  lightingCondition: Option[ControlLightingCondition],
-  mold: Option[ControlMold],
-  pest: Option[ControlPest],
-  relativeHumidity: Option[ControlRelativeHumidity],
-  temperature: Option[ControlTemperature]
+  alcohol: Option[ControlAlcohol] = None,
+  cleaning: Option[ControlCleaning] = None,
+  gas: Option[ControlGas] = None,
+  hypoxicAir: Option[ControlHypoxicAir] = None,
+  lightingCondition: Option[ControlLightingCondition] = None,
+  mold: Option[ControlMold] = None,
+  pest: Option[ControlPest] = None,
+  relativeHumidity: Option[ControlRelativeHumidity] = None,
+  temperature: Option[ControlTemperature] = None
 ) extends MusitEvent
 
-object Control {
+object Control extends WithDateTimeFormatters {
   implicit val format: Format[Control] = Json.format[Control]
 
 }

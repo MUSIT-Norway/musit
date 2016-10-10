@@ -21,12 +21,12 @@ package no.uio.musit.microservice.storagefacility.domain.event.dto
 
 import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
+import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
 
 // TODO: Change id and partOf to EventId
 
 sealed trait EventDto {
-  val id: Option[Long]
+  val id: Option[EventId]
   val eventTypeId: EventTypeId
   val eventDate: JSqlDate
   val relatedActors: Seq[EventRoleActor]
@@ -34,7 +34,7 @@ sealed trait EventDto {
   val relatedPlaces: Seq[EventRolePlace]
   val note: Option[String]
   val relatedSubEvents: Seq[RelatedEvents]
-  val partOf: Option[Long]
+  val partOf: Option[EventId]
   val valueLong: Option[Long]
   val valueString: Option[String]
   val valueDouble: Option[Double]
@@ -46,7 +46,7 @@ sealed trait EventDto {
  * The EventDto contains attributes that are common across _all_ event types.
  */
 case class BaseEventDto(
-  id: Option[Long],
+  id: Option[EventId],
   eventTypeId: EventTypeId,
   eventDate: JSqlDate,
   relatedActors: Seq[EventRoleActor],
@@ -54,7 +54,7 @@ case class BaseEventDto(
   relatedPlaces: Seq[EventRolePlace],
   note: Option[String],
   relatedSubEvents: Seq[RelatedEvents],
-  partOf: Option[Long],
+  partOf: Option[EventId],
   valueLong: Option[Long] = None,
   valueString: Option[String] = None,
   valueDouble: Option[Double] = None,
@@ -69,7 +69,7 @@ sealed trait DtoExtension
  * conversions between domain and to.
  */
 case class ExtendedDto(
-    id: Option[Long],
+    id: Option[EventId],
     eventTypeId: EventTypeId,
     eventDate: JSqlDate,
     relatedActors: Seq[EventRoleActor],
@@ -77,7 +77,7 @@ case class ExtendedDto(
     relatedPlaces: Seq[EventRolePlace],
     note: Option[String],
     relatedSubEvents: Seq[RelatedEvents],
-    partOf: Option[Long],
+    partOf: Option[EventId],
     valueLong: Option[Long] = None,
     valueString: Option[String] = None,
     valueDouble: Option[Double] = None,
@@ -135,7 +135,7 @@ object ExtendedDto {
  * Dto to handle environment requirements.
  */
 case class EnvRequirementDto(
-  id: Option[Long],
+  id: Option[EventId],
   temperature: Option[Double],
   tempTolerance: Option[Int],
   airHumidity: Option[Double],
@@ -150,7 +150,7 @@ case class EnvRequirementDto(
  * Dto that handles observation events with from and to attributes.
  */
 case class ObservationFromToDto(
-  id: Option[Long],
+  id: Option[EventId],
   from: Option[Double],
   to: Option[Double]
 ) extends DtoExtension
@@ -166,7 +166,7 @@ case class ObservationPestDto(
  * Dto to handle pest life-cycles for an ObservationPestDto
  */
 case class LifecycleDto(
-  eventId: Option[Long],
+  eventId: Option[EventId],
   stage: Option[String],
   quantity: Option[Int]
 )

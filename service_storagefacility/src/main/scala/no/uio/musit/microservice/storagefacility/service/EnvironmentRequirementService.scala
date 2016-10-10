@@ -57,8 +57,7 @@ class EnvironmentRequirementService @Inject() (
    * @return A Future containing an Option of the EnvRequirement that was found.
    */
   private def compareWithLatest(envReq: EnvRequirement): Future[Option[EnvRequirement]] = {
-    envReq.baseEvent.affectedThing.map { or =>
-      val snid: StorageNodeId = or.objectId
+    envReq.affectedThing.map { snid =>
       latestForNodeId(snid).map(_.map { mer =>
         if (mer.exists(_.similar(envReq))) mer
         else None

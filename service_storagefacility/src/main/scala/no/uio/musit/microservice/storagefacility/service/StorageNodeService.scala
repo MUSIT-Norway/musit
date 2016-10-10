@@ -23,6 +23,7 @@ import no.uio.musit.microservice.storagefacility.dao.event.{EventDao, LocalObjec
 import no.uio.musit.microservice.storagefacility.dao.storage._
 import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.microservice.storagefacility.domain.datetime._
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
@@ -146,7 +147,9 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def addRoom(room: Room)(implicit currUsr: String): Future[MusitResult[Option[Room]]] = {
+  def addRoom(
+    room: Room
+  )(implicit currUsr: String): Future[MusitResult[Option[Room]]] = {
     addNode[Room](
       node = room,
       insert = roomDao.insert,
@@ -159,7 +162,9 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def addBuilding(building: Building)(implicit currUsr: String): Future[MusitResult[Option[Building]]] = {
+  def addBuilding(
+    building: Building
+  )(implicit currUsr: String): Future[MusitResult[Option[Building]]] = {
     addNode[Building](
       node = building,
       insert = buildingDao.insert,
@@ -503,7 +508,9 @@ class StorageNodeService @Inject() (
    * returns Some(1) when the node was successfully marked as removed.
    * returns None if the node isn't found.
    */
-  def deleteNode(id: StorageNodeId)(implicit currUsr: String): Future[MusitResult[Option[Int]]] = {
+  def deleteNode(
+    id: StorageNodeId
+  )(implicit currUsr: String): Future[MusitResult[Option[Int]]] = {
     unitDao.getById(id).flatMap {
       case Some(node) =>
         isEmpty(node).flatMap { empty =>
@@ -519,10 +526,10 @@ class StorageNodeService @Inject() (
   /**
    * Helper to encapsulate shared logic between the public move methods.
    */
-  private def persistMoveEvent(
-    id: Long,
+  private def persistMoveEvent[ID <: MusitId](
+    id: ID,
     event: MoveEvent
-  )(f: Long => Future[MusitResult[Long]]): Future[MusitResult[Long]] = {
+  )(f: EventId => Future[MusitResult[EventId]]): Future[MusitResult[EventId]] = {
     val dto = DtoConverters.MoveConverters.moveToDto(event)
     eventDao.insertEvent(dto).flatMap(eventId => f(eventId)).recover {
       case NonFatal(ex) =>
@@ -537,8 +544,8 @@ class StorageNodeService @Inject() (
     eventuallyMaybeCurrent: Future[Option[GenericStorageNode]],
     eventuallyMaybeTo: Future[Option[GenericStorageNode]]
   )(
-    mv: (GenericStorageNode, GenericStorageNode) => Future[MusitResult[Long]]
-  ): Future[MusitResult[Long]] = {
+    mv: (GenericStorageNode, GenericStorageNode) => Future[MusitResult[EventId]]
+  ): Future[MusitResult[EventId]] = {
     val eventuallyExistence = for {
       maybeCurrent <- eventuallyMaybeCurrent
       maybeTo <- eventuallyMaybeTo
@@ -547,7 +554,7 @@ class StorageNodeService @Inject() (
     eventuallyExistence.flatMap {
       case (maybeCurrent: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
         maybeCurrent.flatMap(current => maybeTo.map(to => mv(current, to)))
-          .getOrElse(Future.successful(MusitSuccess(0)))
+          .getOrElse(Future.successful(MusitSuccess(EventId.empty)))
     }
   }
 
@@ -557,10 +564,7 @@ class StorageNodeService @Inject() (
   def moveNode(
     id: StorageNodeId,
     event: MoveNode
-  )(implicit currUsr: String): Future[MusitResult[Long]] = {
-    val eventuallyMaybeCurrent = unitDao.getNodeById(id)
-    val eventuallyMaybeTo = unitDao.getNodeById(event.to)
-
+  )(implicit currUsr: String): Future[MusitResult[EventId]] = {
     move(event, unitDao.getNodeById(id), unitDao.getNodeById(event.to)) { (curr, to) =>
       val theEvent = event.copy(from = curr.id)
       logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
@@ -582,9 +586,9 @@ class StorageNodeService @Inject() (
    * TODO: Document me!
    */
   def moveObject(
-    objectId: Long,
+    objectId: ObjectId,
     event: MoveObject
-  )(implicit currUsr: String): Future[MusitResult[Long]] = {
+  )(implicit currUsr: String): Future[MusitResult[EventId]] = {
     val eventuallyMaybeCurrent = localObjectDao.currentLocation(objectId)
       .flatMap { maybeId =>
         maybeId.map(unitDao.getNodeById).getOrElse(Future.successful(None))
@@ -605,7 +609,9 @@ class StorageNodeService @Inject() (
    * @param maybeId Option[StorageNodeId]
    * @return Future[(NodePath, Seq[NamedPathElement])]
    */
-  private def findPathAndNames(maybeId: Option[StorageNodeId]): Future[(NodePath, Seq[NamedPathElement])] = {
+  private def findPathAndNames(
+    maybeId: Option[StorageNodeId]
+  ): Future[(NodePath, Seq[NamedPathElement])] = {
     findPath(maybeId).flatMap { maybePath =>
       maybePath.map(p => unitDao.namesForPath(p).map(names => (p, names)))
         .getOrElse(Future.successful((NodePath.empty, Seq.empty)))
@@ -618,7 +624,10 @@ class StorageNodeService @Inject() (
    * @param oid the object ID to fetch history for
    * @return
    */
-  def objectLocationHistory(oid: Long, limit: Option[Int]): Future[MusitResult[Seq[LocationHistory]]] = {
+  def objectLocationHistory(
+    oid: ObjectId,
+    limit: Option[Int]
+  ): Future[MusitResult[Seq[LocationHistory]]] = {
     val res = eventDao.getObjectLocationHistory(oid, limit).flatMap { events =>
       Future.sequence {
         events.map { e =>
@@ -630,11 +639,11 @@ class StorageNodeService @Inject() (
             to <- toTuple
           } yield {
             LocationHistory(
-              registeredBy = e.baseEvent.registeredBy.getOrElse(""),
+              registeredBy = e.registeredBy.getOrElse(""),
               // registered date is required on event, so it must be there.
-              registeredDate = e.baseEvent.registeredDate.get,
-              doneBy = e.baseEvent.doneBy.map(_.actorId),
-              doneDate = e.baseEvent.doneDate,
+              registeredDate = e.registeredDate.get,
+              doneBy = e.doneBy,
+              doneDate = e.doneDate,
               from = FacilityLocation(
                 path = from._1,
                 pathNames = from._2

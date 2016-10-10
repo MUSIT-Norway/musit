@@ -20,101 +20,105 @@
 package no.uio.musit.microservice.storagefacility.domain.event.control
 
 import no.uio.musit.microservice.storagefacility.domain.event.MusitSubEvent
-import no.uio.musit.microservice.storagefacility.domain.event.observation._
+import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEvents._
 import play.api.libs.json.{Format, Json}
 
-// TODO: Document me!!!
-sealed trait ControlSubEvent[A <: ObservationSubEvent] extends MusitSubEvent {
-  val ok: Boolean
-  val observation: Option[A]
-}
+object ControlSubEvents {
 
-case class ControlAlcohol(
-  ok: Boolean,
-  observation: Option[ObservationAlcohol]
-) extends ControlSubEvent[ObservationAlcohol]
+  // TODO: Document me!!!
+  sealed trait ControlSubEvent extends MusitSubEvent {
+    val ok: Boolean
+    val observation: Option[ObservationSubEvent]
+  }
 
-object ControlAlcohol {
-  implicit val formats: Format[ControlAlcohol] =
-    Json.format[ControlAlcohol]
-}
+  case class ControlAlcohol(
+    ok: Boolean,
+    observation: Option[ObservationAlcohol]
+  ) extends ControlSubEvent
 
-case class ControlCleaning(
-  ok: Boolean,
-  observation: Option[ObservationCleaning]
-) extends ControlSubEvent[ObservationCleaning]
+  object ControlAlcohol {
+    implicit val formats: Format[ControlAlcohol] =
+      Json.format[ControlAlcohol]
+  }
 
-object ControlCleaning {
-  implicit val formats: Format[ControlAlcohol] =
-    Json.format[ControlAlcohol]
-}
+  case class ControlCleaning(
+    ok: Boolean,
+    observation: Option[ObservationCleaning]
+  ) extends ControlSubEvent
 
-case class ControlGas(
-  ok: Boolean,
-  observation: Option[ObservationGas]
-) extends ControlSubEvent[ObservationGas]
+  object ControlCleaning {
+    implicit val formats: Format[ControlCleaning] =
+      Json.format[ControlCleaning]
+  }
 
-object ControlGas {
-  implicit val formats: Format[ControlGas] =
-    Json.format[ControlGas]
-}
+  case class ControlGas(
+    ok: Boolean,
+    observation: Option[ObservationGas]
+  ) extends ControlSubEvent
 
-case class ControlHypoxicAir(
-  ok: Boolean,
-  observation: Option[ObservationHypoxicAir]
-) extends ControlSubEvent[ObservationHypoxicAir]
+  object ControlGas {
+    implicit val formats: Format[ControlGas] =
+      Json.format[ControlGas]
+  }
 
-object ControlHypoxicAir {
-  implicit val formats: Format[ControlHypoxicAir] =
-    Json.format[ControlHypoxicAir]
-}
+  case class ControlHypoxicAir(
+    ok: Boolean,
+    observation: Option[ObservationHypoxicAir]
+  ) extends ControlSubEvent
 
-case class ControlLightingCondition(
-  ok: Boolean,
-  observation: Option[ObservationLightingCondition]
-) extends ControlSubEvent[ObservationLightingCondition]
+  object ControlHypoxicAir {
+    implicit val formats: Format[ControlHypoxicAir] =
+      Json.format[ControlHypoxicAir]
+  }
 
-object ControlLightingCondition {
-  implicit val formats: Format[ControlLightingCondition] =
-    Json.format[ControlLightingCondition]
-}
+  case class ControlLightingCondition(
+    ok: Boolean,
+    observation: Option[ObservationLightingCondition]
+  ) extends ControlSubEvent
 
-case class ControlMold(
-  ok: Boolean,
-  observation: Option[ObservationMold]
-) extends ControlSubEvent[ObservationMold]
+  object ControlLightingCondition {
+    implicit val formats: Format[ControlLightingCondition] =
+      Json.format[ControlLightingCondition]
+  }
 
-object ControlMold {
-  implicit val formats: Format[ControlMold] =
-    Json.format[ControlMold]
-}
+  case class ControlMold(
+    ok: Boolean,
+    observation: Option[ObservationMold]
+  ) extends ControlSubEvent
 
-case class ControlPest(
-  ok: Boolean,
-  observation: Option[ObservationPest]
-) extends ControlSubEvent[ObservationPest]
+  object ControlMold {
+    implicit val formats: Format[ControlMold] =
+      Json.format[ControlMold]
+  }
 
-object ControlPest {
-  implicit val formats: Format[ControlPest] =
-    Json.format[ControlPest]
-}
+  case class ControlPest(
+    ok: Boolean,
+    observation: Option[ObservationPest]
+  ) extends ControlSubEvent
 
-case class ControlRelativeHumidity(
-  ok: Boolean,
-  observation: Option[ObservationRelativeHumidity]
-) extends ControlSubEvent[ObservationRelativeHumidity]
+  object ControlPest {
+    implicit val formats: Format[ControlPest] =
+      Json.format[ControlPest]
+  }
 
-object ControlRelativeHumidity {
-  implicit val formats: Format[ControlRelativeHumidity] =
-    Json.format[ControlRelativeHumidity]
-}
+  case class ControlRelativeHumidity(
+    ok: Boolean,
+    observation: Option[ObservationRelativeHumidity]
+  ) extends ControlSubEvent
 
-case class ControlTemperature(
-  ok: Boolean,
-  observation: Option[ObservationTemperature]
-) extends ControlSubEvent[ObservationTemperature]
+  object ControlRelativeHumidity {
+    implicit val formats: Format[ControlRelativeHumidity] =
+      Json.format[ControlRelativeHumidity]
+  }
 
-object ControlTemperature {
-  implicit val formats: Format[ControlTemperature] =
-    Json.format[ControlTemperature]
+  case class ControlTemperature(
+    ok: Boolean,
+    observation: Option[ObservationTemperature]
+  ) extends ControlSubEvent
+
+  object ControlTemperature {
+    implicit val formats: Format[ControlTemperature] =
+      Json.format[ControlTemperature]
+  }
+
 }

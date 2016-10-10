@@ -159,7 +159,7 @@ class EventResource @Inject() (
         controls <- ctrlRes
         observations <- obsRes
       } yield {
-        controls.union(observations).sortBy(_.baseEvent.doneDate.getMillis)
+        controls.union(observations).sortBy(_.doneDate.getMillis)
       }
 
       sortedRes match {

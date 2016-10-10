@@ -23,13 +23,14 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
+import no.uio.musit.microservice.storagefacility.domain.ObjectId
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObsSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{EnvRequirementEventType, MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.MoveConverters
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
-import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
-import no.uio.musit.microservice.storagefacility.domain.event.{EventTypeId, EventTypeRegistry}
+import no.uio.musit.microservice.storagefacility.domain.event.move.MoveObject
+import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId, EventTypeRegistry}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -86,14 +87,14 @@ class EventDao @Inject() (
    * @param eventBaseDto The BaseEventDto to insert
    * @return DBIO[Long]
    */
-  private def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[Long] = {
+  private def insertBaseAction(eventBaseDto: BaseEventDto): DBIO[EventId] = {
     eventBaseTable returning eventBaseTable.map(_.id) += eventBaseDto
   }
 
   /**
    * Helper to build up the correct insert action depending on Dto type.
    */
-  private def buildInsertAction(event: EventDto, parentId: Option[Long]): DBIO[Long] = {
+  private def buildInsertAction(event: EventDto, parentId: Option[EventId]): DBIO[EventId] = {
     event match {
       case simple: BaseEventDto =>
         insertBaseAction(simple.copy(partOf = parentId))
@@ -117,33 +118,33 @@ class EventDao @Inject() (
   }
 
   private[this] def insertRelatedType[A: ClassTag](
-    eventId: Long,
+    eventId: EventId,
     relType: Seq[A]
-  )(insert: (Long, Seq[A]) => DBIO[Option[Int]]): DBIO[Option[Int]] = {
+  )(insert: (EventId, Seq[A]) => DBIO[Option[Int]]): DBIO[Option[Int]] = {
     if (relType.nonEmpty) insert(eventId, relType)
     else DBIO.successful[Option[Int]](None)
   }
 
   private[this] def insertRelatedActors(
-    eventId: Long,
+    eventId: EventId,
     actors: Seq[EventRoleActor]
   ): DBIO[Option[Int]] =
     insertRelatedType(eventId, actors)(actorsDao.insertActors)
 
   private[this] def insertRelatedObjects(
-    eventId: Long,
+    eventId: EventId,
     objects: Seq[EventRoleObject]
   ): DBIO[Option[Int]] =
     insertRelatedType(eventId, objects)(objectsDao.insertObjects)
 
   private[this] def insertRelatedPlaces(
-    eventId: Long,
+    eventId: EventId,
     places: Seq[EventRolePlace]
   ): DBIO[Option[Int]] =
     insertRelatedType(eventId, places)(placesDao.insertPlaces)
 
   private[this] def insertRelatedObjectsAsPlaces(
-    eventId: Long,
+    eventId: EventId,
     objPlaces: Seq[EventRoleObject]
   ): DBIO[Option[Int]] =
     insertRelatedType(eventId, objPlaces)(placesAsObjDao.insertObjects)
@@ -157,7 +158,7 @@ class EventDao @Inject() (
   private[this] def insertEventAction(
     event: EventDto,
     partialRelation: Option[PartialEventRelation]
-  ): DBIO[Long] = {
+  ): DBIO[EventId] = {
 
     // We want partOfParent to be Some(parentId) if event has a parent and that
     // parent is in the parts-relation to us.
@@ -201,7 +202,7 @@ class EventDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insertEvent(event: EventDto): Future[Long] = {
+  def insertEvent(event: EventDto): Future[EventId] = {
     val action = insertEventAction(event, None)
     db.run(action)
   }
@@ -209,7 +210,7 @@ class EventDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  private def insertChildrenAction(parentEventId: Long, children: Seq[RelatedEvents]) = {
+  private def insertChildrenAction(parentEventId: EventId, children: Seq[RelatedEvents]) = {
     val actions = children.map { relatedEvents =>
       val relActions = relatedEvents.events.map { subEvent =>
         insertEventAction(
@@ -227,7 +228,7 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    */
   def getBaseEvent(
-    id: Long,
+    id: EventId,
     eventTypeId: Option[EventTypeId] = None
   ): Future[Option[BaseEventDto]] = {
 
@@ -374,7 +375,7 @@ class EventDao @Inject() (
    * @return The Dto containing the event data.
    */
   def getEvent(
-    id: Long,
+    id: EventId,
     eventTypeId: Option[EventTypeId] = None,
     recursive: Boolean = true
   ): Future[MusitResult[Option[EventDto]]] = {
@@ -420,7 +421,7 @@ class EventDao @Inject() (
   /**
    * Get the children (parts) for the event with the given parentId.
    */
-  private def getSubEventDtos(parentId: Long): Future[Seq[BaseEventDto]] = {
+  private def getSubEventDtos(parentId: EventId): Future[Seq[BaseEventDto]] = {
     val action = eventBaseTable.filter(_.partOf === parentId).result
     db.run(action)
   }
@@ -454,7 +455,7 @@ class EventDao @Inject() (
    * Fetch the parts/partOf relation
    */
   private def getPartEvents(
-    parentId: Long,
+    parentId: EventId,
     recursive: Boolean
   ): Future[RelatedEvents] = {
     val futureSubEventDtos = getSubEventDtos(parentId)
@@ -468,7 +469,7 @@ class EventDao @Inject() (
    * The "other" relations, those stored in the event_relation_event table
    */
   private def getOtherRelatedEvents(
-    parentId: Long,
+    parentId: EventId,
     recursive: Boolean
   ): Future[Seq[RelatedEvents]] = {
 
@@ -512,7 +513,7 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    */
   def getSubEvents(
-    parentId: Long,
+    parentId: EventId,
     recursive: Boolean
   ): Future[Seq[RelatedEvents]] = {
     val futurePartsEvents = getPartEvents(parentId, recursive)
@@ -564,7 +565,7 @@ class EventDao @Inject() (
   /**
    * Fetch events of a given TopLevelEvent type for the given StorageNodeId
    *
-   * @param id StorageNodeId to get events for
+   * @param id        StorageNodeId to get events for
    * @param eventType TopLevelEvent type to fetch
    * @tparam A type argument specifying the type of TopLevelEvent to fetch
    * @return A Future of a collection of EventDtos
@@ -585,7 +586,7 @@ class EventDao @Inject() (
    * @return
    */
   private def eventsForObject[EType <: TopLevelEvent, Res](
-    objectId: Long,
+    objectId: ObjectId,
     eventType: EType,
     limit: Option[Int] = None
   )(success: EventDto => Res): Future[Seq[Res]] = {
@@ -614,11 +615,11 @@ class EventDao @Inject() (
    * object ID.
    *
    * @param objectId the object ID to get move events for
-   * @param limit Int specifying the number of move events to get
+   * @param limit    Int specifying the number of move events to get
    * @return A Future of a collection of MoveNode events.
    */
   def getObjectLocationHistory(
-    objectId: Long,
+    objectId: ObjectId,
     limit: Option[Int]
   ): Future[Seq[MoveObject]] = {
     eventsForObject(objectId, MoveObjectType, limit) { dto =>

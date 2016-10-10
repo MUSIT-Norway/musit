@@ -20,7 +20,9 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.ActorId
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EventRoleActor
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
@@ -30,21 +32,21 @@ import scala.concurrent.Future
 @Singleton
 class EventActorsDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
   private val eventActorsTable = TableQuery[EventActorsTable]
 
   def insertActors(
-    eventId: Long,
+    eventId: EventId,
     relatedActors: Seq[EventRoleActor]
   ): DBIO[Option[Int]] = {
     val relActors = relatedActors.map(_.copy(eventId = Some(eventId)))
     eventActorsTable ++= relActors
   }
 
-  def getRelatedActors(eventId: Long): Future[Seq[EventRoleActor]] = {
+  def getRelatedActors(eventId: EventId): Future[Seq[EventRoleActor]] = {
     val query = eventActorsTable.filter(evt => evt.eventId === eventId)
     db.run(query.result)
   }
@@ -55,11 +57,11 @@ class EventActorsDao @Inject() (
 
     def * = (eventId.?, roleId, actorId) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val eventId = column[Long]("EVENT_ID")
+    val eventId = column[EventId]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
-    val actorId = column[Int]("ACTOR_ID")
+    val actorId = column[ActorId]("ACTOR_ID")
 
-    def create = (eventId: Option[Long], roleId: Int, actorId: Int) =>
+    def create = (eventId: Option[EventId], roleId: Int, actorId: ActorId) =>
       EventRoleActor(
         eventId = eventId,
         roleId = roleId,

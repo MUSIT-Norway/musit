@@ -21,7 +21,8 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{LifecycleDto, ObservationPestDto}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -31,7 +32,7 @@ import scala.concurrent.Future
 @Singleton
 class ObservationPestDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends BaseEventDao {
+) extends BaseEventDao with ColumnTypeMappers {
 
   import driver.api._
 
@@ -44,7 +45,7 @@ class ObservationPestDao @Inject() (
    * free to remove the need for the EventId in the dto, that would clean this
    * up a bit.
    */
-  def insertAction(parentId: Long, obsDto: ObservationPestDto): DBIO[Int] = {
+  def insertAction(parentId: EventId, obsDto: ObservationPestDto): DBIO[Int] = {
     // Need to enrich the lifecycles with the parentId
     val lifeCyclesWithEventId = obsDto.lifeCycles.map { lifeCycle =>
       lifeCycle.copy(eventId = Some(parentId))
@@ -54,7 +55,7 @@ class ObservationPestDao @Inject() (
     }
   }
 
-  def getObservation(eventId: Long): Future[Option[ObservationPestDto]] =
+  def getObservation(eventId: EventId): Future[Option[ObservationPestDto]] =
     db.run(lifeCycleTable.filter(lifeCycle => lifeCycle.eventId === eventId).result)
       .map {
         case Nil => None
@@ -66,12 +67,12 @@ class ObservationPestDao @Inject() (
   ) extends Table[LifecycleDto](tag, SchemaName, "OBSERVATION_PEST_LIFECYCLE") {
     def * = (eventId, stage, quantity) <> (create.tupled, destroy)
 
-    val eventId = column[Option[Long]]("EVENT_ID")
+    val eventId = column[Option[EventId]]("EVENT_ID")
     val stage = column[Option[String]]("STAGE")
     val quantity = column[Option[Int]]("QUANTITY")
 
     def create =
-      (eventId: Option[Long], stage: Option[String], quantity: Option[Int]) =>
+      (eventId: Option[EventId], stage: Option[String], quantity: Option[Int]) =>
         LifecycleDto(eventId, stage, quantity)
 
     def destroy(lifeCycle: LifecycleDto) =

@@ -19,7 +19,8 @@
 package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.domain.Move
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
+import no.uio.musit.microservice.storagefacility.domain.{Move, MusitId}
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
@@ -205,17 +206,17 @@ final class StorageNodeResource @Inject() (
    */
   private def move[A <: MoveEvent](
     events: Seq[A]
-  )(mv: (Long, A) => Future[MusitResult[Long]]): Future[Result] = {
+  )(mv: (MusitId, A) => Future[MusitResult[EventId]]): Future[Result] = {
     Future.sequence {
       events.map { e =>
         // We know the affected thing will have an ID since we populated it
         // from the Move command
-        val id = e.baseEvent.affectedThing.get.objectId
+        val id = e.affectedThing.get
         mv(id, e).map(res => (id, res))
       }
     }.map { mru =>
-      val success = mru.filter(_._2.isSuccess).map(_._1)
-      val failed = mru.filter(_._2.isFailure).map(_._1)
+      val success = mru.filter(_._2.isSuccess).map(_._1.underlying)
+      val failed = mru.filter(_._2.isFailure).map(_._1.underlying)
 
       if (success.isEmpty) {
         BadRequest(Json.obj("message" -> "Nothing was moved"))
@@ -257,7 +258,7 @@ final class StorageNodeResource @Inject() (
     request.body.validate[Move[Long]] match {
       case JsSuccess(cmd, _) =>
         val events = MoveObject.fromCommand(DummyUser, cmd)
-        move(events)(service.moveObject)
+        move(events)((id, evt) => service.moveObject(id, evt))
 
       case JsError(error) =>
         logger.warn(s"Error parsing JSON:\n ${Json.prettyPrint(JsError.toJson(error))}")

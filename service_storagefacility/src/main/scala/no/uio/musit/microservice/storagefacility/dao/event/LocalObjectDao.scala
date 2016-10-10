@@ -20,7 +20,9 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.ObjectId
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventDto, LocalObject}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -31,7 +33,7 @@ import scala.concurrent.Future
 
 class LocalObjectDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
@@ -40,7 +42,7 @@ class LocalObjectDao @Inject() (
   private def upsert(lo: LocalObject): DBIO[Int] =
     localObjectsTable.insertOrUpdate(lo)
 
-  def cacheLatestMove(eventId: Long, moveEvent: EventDto): DBIO[Int] = {
+  def cacheLatestMove(eventId: EventId, moveEvent: EventDto): DBIO[Int] = {
     val relObj = moveEvent.relatedObjects.headOption
     val relPlc = moveEvent.relatedPlaces.headOption
 
@@ -54,10 +56,10 @@ class LocalObjectDao @Inject() (
     )
   }
 
-  def currentLocation(objectId: Long): Future[Option[StorageNodeId]] = {
+  def currentLocation(objectId: ObjectId): Future[Option[StorageNodeId]] = {
     val query = localObjectsTable.filter { locObj =>
       locObj.objectId === objectId
-    }.map(_.currentLocationId).max.result.map(_.map(StorageNodeId.apply))
+    }.map(_.currentLocationId).max.result
 
     db.run(query)
   }
@@ -65,17 +67,19 @@ class LocalObjectDao @Inject() (
   private class LocalObjectsTable(
       tag: Tag
   ) extends Table[LocalObject](tag, SchemaName, "LOCAL_OBJECT") {
+    // scalastyle:off method.name
     def * = (
       objectId,
       latestMoveId,
       currentLocationId
     ) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
-    val objectId = column[Long]("OBJECT_ID", O.PrimaryKey)
-    val latestMoveId = column[Long]("LATEST_MOVE_ID")
-    val currentLocationId = column[Long]("CURRENT_LOCATION_ID")
+    val objectId = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
+    val latestMoveId = column[EventId]("LATEST_MOVE_ID")
+    val currentLocationId = column[StorageNodeId]("CURRENT_LOCATION_ID")
 
-    def create = (objectId: Long, latestMoveId: Long, currentLocationId: Long) =>
+    def create = (objectId: ObjectId, latestMoveId: EventId, currentLocationId: StorageNodeId) =>
       LocalObject(
         objectId,
         latestMoveId,

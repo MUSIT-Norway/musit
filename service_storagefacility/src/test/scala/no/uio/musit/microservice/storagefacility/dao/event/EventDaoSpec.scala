@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
+import no.uio.musit.microservice.storagefacility.domain.ObjectId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ControlEventType, MoveNodeType, MoveObjectType, ObservationEventType}
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
@@ -42,7 +43,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
   )
 
   // This is mutable to allow keeping track of the last inserted eventId.
-  private var latestEventId: Long = _
+  private var latestEventId: EventId = _
 
   "The EventDao" when {
 
@@ -51,8 +52,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val ctrl = createControl(defaultBuilding.id)
         latestEventId = addControl(ctrl).futureValue
 
-        latestEventId mustBe a[java.lang.Long]
-        latestEventId mustBe 1L
+        latestEventId mustBe an[EventId]
+        latestEventId mustBe EventId(1L)
       }
 
       "return the Control associated with the provided Id" in {
@@ -66,14 +67,19 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         res.get.get match {
           case base: BaseEventDto =>
             val c = DtoConverters.CtrlConverters.controlFromDto(base)
-
             c.eventType mustBe EventType.fromEventTypeId(ControlEventType.id)
-            c.baseEvent.note mustBe ctrl.baseEvent.note
-            c.baseEvent.registeredBy mustBe Some(registeredByName)
-            c.baseEvent.registeredDate must not be None
-            c.parts must not be None
-
-          // TODO: Inspect all the parts
+            c.note mustBe ctrl.note
+            c.registeredBy mustBe Some(registeredByName)
+            c.registeredDate must not be None
+            c.temperature mustBe ctrl.temperature
+            c.alcohol mustBe ctrl.alcohol
+            c.cleaning mustBe ctrl.cleaning
+            c.pest mustBe ctrl.pest
+            c.relativeHumidity mustBe ctrl.relativeHumidity
+            c.mold mustBe ctrl.mold
+            c.gas mustBe ctrl.gas
+            c.hypoxicAir mustBe ctrl.hypoxicAir
+            c.lightingCondition mustBe ctrl.lightingCondition
 
           case _ =>
             fail("Expected dto to be of type BaseEventDto")
@@ -89,7 +95,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         latestEventId = eventId
 
-        eventId mustBe a[java.lang.Long]
+        eventId mustBe an[EventId]
       }
 
       "return the Observation associated with the provided Id" in {
@@ -105,10 +111,22 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
             val o = DtoConverters.ObsConverters.observationFromDto(base)
 
             o.eventType mustBe EventType.fromEventTypeId(ObservationEventType.id)
-            o.baseEvent.note mustBe obs.baseEvent.note
-            o.baseEvent.registeredBy mustBe Some(registeredByName)
-            o.baseEvent.registeredDate must not be None
-            o.parts must not be None
+            o.note mustBe obs.note
+            o.registeredBy mustBe Some(registeredByName)
+            o.registeredDate must not be None
+            o.alcohol mustBe obs.alcohol
+
+            println(s"Added: ${obs.cleaning}")
+            println(s"Returned: ${o.cleaning}")
+
+            o.cleaning mustBe obs.cleaning
+            o.gas mustBe obs.gas
+            o.hypoxicAir mustBe obs.hypoxicAir
+            o.lightingCondition mustBe obs.lightingCondition
+            o.mold mustBe obs.mold
+            o.pest mustBe obs.pest
+            o.relativeHumidity mustBe o.relativeHumidity
+            o.temperature mustBe obs.temperature
 
           case _ =>
             fail("Expected dto to be of type BaseEventDto")
@@ -126,7 +144,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         latestEventId = eventId
 
-        eventId mustBe a[java.lang.Long]
+        eventId mustBe an[EventId]
       }
 
       "return the Environment Requirement event with the provided ID" in {
@@ -140,9 +158,9 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
             val er = DtoConverters.EnvReqConverters.envReqFromDto(ext)
 
             er.eventType mustBe envReq.eventType
-            er.baseEvent.note mustBe envReq.baseEvent.note
-            er.baseEvent.registeredBy mustBe Some(registeredByName)
-            er.baseEvent.registeredDate must not be None
+            er.note mustBe envReq.note
+            er.registeredBy mustBe Some(registeredByName)
+            er.registeredDate must not be None
             er.light mustBe envReq.light
             er.temperature mustBe envReq.temperature
             er.hypoxicAir mustBe envReq.hypoxicAir
@@ -159,9 +177,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
     "processing Move events" should {
 
       "succeed when moving an object" in {
-        val moveObj = MoveObject(
-          baseEvent = createBase("This is a note on moving an object"),
-          eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        val moveObj = createMoveObject(
           from = Some(StorageNodeId(1)),
           to = StorageNodeId(2)
         )
@@ -170,7 +186,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         latestEventId = eventId
 
-        eventId mustBe a[java.lang.Long]
+        eventId mustBe an[EventId]
       }
 
       "return the move object event" in {
@@ -188,16 +204,14 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val baseRoleObj = EventRoleObject.toObjectRole(br.relatedObjects.head)
 
         br.eventTypeId mustBe MoveObjectType.id
-        baseRoleActor mustBe defaultActorRole
-        baseRoleObj mustBe ObjectRole(1, 1)
-        baseRolePlace mustBe PlaceRole(1, 2)
+        baseRoleActor mustBe ActorRole(1, defaultActorId)
+        baseRoleObj mustBe ObjectRole(1, ObjectId(1))
+        baseRolePlace mustBe PlaceRole(1, StorageNodeId(2))
         br.valueLong mustBe Some(1L)
       }
 
       "succeed when moving a storage node" in {
-        val moveNode = MoveNode(
-          baseEvent = createBase("This is a note on moving a Node"),
-          eventType = EventType.fromEventTypeId(MoveNodeType.id),
+        val moveNode = createMoveNode(
           from = Some(StorageNodeId(1)),
           to = StorageNodeId(2)
         )
@@ -207,7 +221,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         latestEventId = eventId
 
-        eventId mustBe a[java.lang.Long]
+        eventId mustBe a[EventId]
 
       }
 
@@ -226,9 +240,9 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val baseRoleObj = EventRoleObject.toObjectRole(br.relatedObjects.head)
 
         br.eventTypeId mustBe MoveNodeType.id
-        baseRoleActor mustBe defaultActorRole
-        baseRolePlace mustBe PlaceRole(1, 2)
-        baseRoleObj mustBe ObjectRole(1, 1)
+        baseRoleActor mustBe ActorRole(1, defaultActorId)
+        baseRolePlace mustBe PlaceRole(1, StorageNodeId(2))
+        baseRoleObj mustBe ObjectRole(1, ObjectId(1))
         br.valueLong mustBe Some(1L)
       }
 
@@ -254,7 +268,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         forAll(controls) { c =>
           c.eventTypeId mustBe ControlEventType.id
-          c.relatedObjects.head.objectId mustBe defaultBuilding.id.get.underlying
+          c.relatedObjects.head.objectId.underlying mustBe defaultBuilding.id.get.underlying
         }
       }
 
@@ -275,7 +289,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         forAll(observations) { o =>
           o.eventTypeId mustBe ObservationEventType.id
-          o.relatedObjects.head.objectId mustBe defaultRoom.id.get.underlying
+          o.relatedObjects.head.objectId.underlying mustBe defaultRoom.id.get.underlying
         }
       }
 

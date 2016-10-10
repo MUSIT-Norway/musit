@@ -32,6 +32,8 @@ object EventId {
     JsNumber(eid.underlying)
   }
 
+  val empty: EventId = EventId(-1)
+
   implicit def longToEventId(l: Long): EventId = EventId(l)
 
   implicit def eventIdToLong(eid: EventId): Long = eid.underlying
