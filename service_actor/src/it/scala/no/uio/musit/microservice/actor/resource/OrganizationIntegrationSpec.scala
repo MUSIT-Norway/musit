@@ -64,7 +64,7 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
     }
 
     "successfully get root" in {
-      val future = wsUrl("/v1/organization").get()
+      val future = wsUrl("/v1/organization?museumId=0").get()
       val response = future.futureValue
       val orgs = Json.parse(response.body).validate[Seq[Organization]].get
       orgs.seq.head.id.get mustBe 1
@@ -72,7 +72,7 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
     }
 
     "successfully search for organization" in {
-      val future = wsUrl("/v1/organization?search=[KHM]").get()
+      val future = wsUrl("/v1/organization?museumId=0&search=[KHM]").get()
       whenReady(future) { response =>
         val orgs = Json.parse(response.body).validate[Seq[Organization]].get
         orgs.length mustBe 1
