@@ -1,23 +1,20 @@
 package no.uio.musit.microservice.actor.resource
 
 import no.uio.musit.microservice.actor.domain.Organization
+import no.uio.musit.microservice.actor.testdata.ActorJsonGenerator._
 import no.uio.musit.microservices.common.PlayTestDefaults
-import no.uio.musit.microservices.common.domain.{MusitError, MusitStatusMessage}
+import no.uio.musit.microservices.common.domain.MusitStatusMessage
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.http.Status
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, JsValue, Json}
-import no.uio.musit.microservice.actor.testdata.ActorJsonGenerator._
-import play.api.http.Status
 import play.api.libs.ws.WSResponse
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
- * Created by sveigl on 20.09.16.
- */
 class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -27,7 +24,10 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
 
   override lazy val port: Int = 19009
 
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
+  implicit override lazy val app =
+    new GuiceApplicationBuilder()
+      .configure(PlayTestDefaults.inMemoryDatabaseConfig())
+      .build()
 
   def postOrganization(json: JsValue): Future[WSResponse] = {
     wsUrl("/v1/organization").post(json)
@@ -68,16 +68,14 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       val response = future.futureValue
       val orgs = Json.parse(response.body).validate[Seq[Organization]].get
       orgs.seq.head.id.get mustBe 1
-      assert(orgs.length >= 1)
+      orgs must not be empty
     }
 
     "successfully search for organization" in {
-      val future = wsUrl("/v1/organization?search=[KHM]").get()
-      whenReady(future) { response =>
-        val orgs = Json.parse(response.body).validate[Seq[Organization]].get
-        orgs.length mustBe 1
-        orgs.head.fn mustBe "Kulturhistorisk museum - Universitetet i Oslo"
-      }
+      val response = wsUrl("/v1/organization?search=[KHM]").get().futureValue
+      val orgs = Json.parse(response.body).validate[Seq[Organization]].get
+      orgs.length mustBe 1
+      orgs.head.fn mustBe "Kulturhistorisk museum - Universitetet i Oslo"
     }
 
     "successfully create organization" in {
@@ -114,8 +112,8 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
 
       val updOrgJson = Json.toJson(updOrg).as[JsObject]
 
-      updJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet).size mustBe 0
-      assert(crJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet).size > 0)
+      updJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet) mustBe empty
+      crJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet) must not be empty
 
       updOrg.id mustBe Some(crOrg.id.get)
       updOrg.fn mustBe "Foo Barcode 123"

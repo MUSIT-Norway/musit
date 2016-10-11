@@ -5,9 +5,6 @@ import no.uio.musit.microservices.common.utils.Misc.MusitBool
 import no.uio.musit.microservices.common.utils.Misc.boolToMusitBool
 import no.uio.musit.security.AuthenticatedUser
 
-/**
- * Created by jarle on 31.08.16.
- */
 object ActorAuth {
 
   def canInsertActor(user: AuthenticatedUser, person: Person) = {

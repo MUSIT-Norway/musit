@@ -32,41 +32,44 @@ class OrganizationAddressResource @Inject() (
     val orgAdrService: OrganizationAddressService
 ) extends Controller {
 
-  def listRoot(organizationId: Long): Action[AnyContent] = Action.async { request =>
-    orgAdrService.all(organizationId).map(addr => {
-      Ok(Json.toJson(addr))
-    })
+  def listRoot(organizationId: Long) = Action.async { request =>
+    orgAdrService.all(organizationId).map(addr => Ok(Json.toJson(addr)))
   }
 
-  def getRoot(organizationId: Long, id: Long): Action[AnyContent] = Action.async { request =>
+  def getRoot(organizationId: Long, id: Long) = Action.async { request =>
     orgAdrService.find(id).map {
-      case Some(addr) => Ok(Json.toJson(addr))
-      case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
+      case Some(addr) =>
+        Ok(Json.toJson(addr))
+
+      case None =>
+        NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
     }
   }
 
-  def postRoot(organizationId: Long): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult: JsResult[OrganizationAddress] = request.body.validate[OrganizationAddress]
-    actorResult match {
+  def postRoot(organizationId: Long) = Action.async(BodyParsers.parse.json) { request =>
+    request.body.validate[OrganizationAddress] match {
       case s: JsSuccess[OrganizationAddress] =>
-        orgAdrService.create(s.get).map { newAddr => Created(Json.toJson(newAddr)) }
-      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
+        orgAdrService.create(s.get).map(newAddr => Created(Json.toJson(newAddr)))
+
+      case e: JsError =>
+        Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
     }
   }
 
-  def updateRoot(organizationId: Long, id: Long): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult: JsResult[OrganizationAddress] = request.body.validate[OrganizationAddress]
-    actorResult match {
+  def updateRoot(organizationId: Long, id: Long) = Action.async(BodyParsers.parse.json) { request =>
+    request.body.validate[OrganizationAddress] match {
       case s: JsSuccess[OrganizationAddress] =>
         orgAdrService.update(s.get).map {
           case Right(statusMessage) => Ok(Json.toJson(statusMessage))
           case Left(error) => Status(error.status)(Json.toJson(error))
         }
-      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
+
+      case e: JsError =>
+        Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
     }
   }
 
-  def deleteRoot(organizationId: Long, id: Long): Action[AnyContent] = Action.async { request =>
+  def deleteRoot(organizationId: Long, id: Long) = Action.async { request =>
     orgAdrService.remove(id).map { noDeleted =>
       Ok(Json.toJson(MusitStatusMessage(s"Deleted $noDeleted record(s).")))
     }

@@ -20,12 +20,12 @@ package no.uio.musit.microservice.actor.dao
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.actor.domain.{ActorAuth, Organization, OrganizationAddress, Person}
-import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.microservices.common.extensions.EitherExtensions._
+import no.uio.musit.microservices.common.extensions.FutureExtensions._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
@@ -42,8 +42,12 @@ class ActorDao @Inject() (
 
   /* FINDERS */
   def allPersonsLegacy(): Future[Seq[Person]] = db.run(ActorTable.result)
+
   def allOrganizations(): Future[Seq[Organization]] = db.run(OrganizationTable.result)
-  def allAddressesForOrganization(id: Long): Future[Seq[OrganizationAddress]] = db.run(OrganizationAddressTable.filter(_.organizationId === id).result)
+
+  def allAddressesForOrganization(id: Long): Future[Seq[OrganizationAddress]] = {
+    db.run(OrganizationAddressTable.filter(_.organizationId === id).result)
+  }
 
   def getPersonLegacyById(id: Long): Future[Option[Person]] = {
     db.run(ActorTable.filter(_.id === id).result.headOption)
@@ -58,7 +62,16 @@ class ActorDao @Inject() (
   }
 
   def dataportenUserToPerson(user: AuthenticatedUser): Person = {
-    Person(None, user.userName, None, None, None, None, user.userEmail, Some(user.userId), None)
+    Person(
+      id = None,
+      fn = user.userName,
+      title = None,
+      role = None,
+      tel = None,
+      web = None,
+      email = user.userEmail,
+      dataportenId = Some(user.userId)
+    )
   }
 
   def insertActorWithDataportenUserInfo(user: AuthenticatedUser): MusitFuture[Person] = {
@@ -73,7 +86,10 @@ class ActorDao @Inject() (
   }
 
   def getOrganizationByName(searchString: String): Future[Seq[Organization]] = {
-    db.run(OrganizationTable.filter(org => (org.fn like s"%$searchString%") || (org.nickname like s"%$searchString%")).result)
+    val query = OrganizationTable.filter { org =>
+      (org.fn like s"%$searchString%") || (org.nickname like s"%$searchString%")
+    }
+    db.run(query.result)
   }
 
   def getOrganizationAddressById(id: Long): Future[Option[OrganizationAddress]] = {
@@ -86,8 +102,8 @@ class ActorDao @Inject() (
 
   /* CREATES and UPDATES */
   def insertPersonLegacy(actor: Person): Future[Person] = {
-    val insertQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id))
-    val action = insertQuery += actor
+    val insQuery = ActorTable returning ActorTable.map(_.id) into ((actor, id) => actor.copy(id = id))
+    val action = insQuery += actor
 
     db.run(action)
   }
@@ -113,7 +129,8 @@ class ActorDao @Inject() (
   }
 
   def updateOrganizationAddress(organizationAddress: OrganizationAddress): Future[Int] = {
-    db.run(OrganizationAddressTable.filter(_.id === organizationAddress.id).update(organizationAddress))
+    db.run(OrganizationAddressTable.filter(_.id === organizationAddress.id)
+      .update(organizationAddress))
   }
 
   /* DELETES */
@@ -126,39 +143,61 @@ class ActorDao @Inject() (
   }
 
   /* TABLE DEF using fieldnames from w3c vcard standard */
-  private class ActorTable(tag: Tag) extends Table[Person](tag, Some("MUSIT_MAPPING"), "VIEW_ACTOR") {
-    val id = column[Option[Long]]("NY_ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
+  private class ActorTable(
+      tag: Tag
+  ) extends Table[Person](tag, Some("MUSIT_MAPPING"), "VIEW_ACTOR") {
+
+    val id = column[Option[Long]]("NY_ID", O.PrimaryKey, O.AutoInc)
     val fn = column[String]("ACTORNAME")
     val dataportenId = column[Option[String]]("DATAPORTEN_ID")
 
     val create = (id: Option[Long], fn: String, dataportenId: Option[String]) =>
       Person(
-        id,
-        fn,
+        id = id,
+        fn = fn,
         dataportenId = dataportenId
       )
-    val destroy = (actor: Person) => Some(actor.id, actor.fn, actor.dataportenId)
+    val destroy = (actor: Person) => Some((actor.id, actor.fn, actor.dataportenId))
 
+    // scalastyle:off method.name
     def * = (id, fn, dataportenId) <> (create.tupled, destroy)
+
+    // scalastyle:on method.name
   }
 
-  private class OrganizationTable(tag: Tag) extends Table[Organization](tag, Some("MUSARK_ACTOR"), "ORGANIZATION") {
-    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
+  private class OrganizationTable(
+      tag: Tag
+  ) extends Table[Organization](tag, Some("MUSARK_ACTOR"), "ORGANIZATION") {
+
+    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
     val fn = column[String]("FN")
     val nickname = column[String]("NICKNAME")
     val tel = column[String]("TEL")
     val web = column[String]("WEB")
 
-    val create = (id: Option[Long], fn: String, nickname: String, tel: String, web: String) =>
-      Organization(id, fn, nickname, tel, web)
-    val destroy = (org: Organization) => Some(org.id, org.fn, org.nickname, org.tel, org.web)
+    val create = (
+      id: Option[Long],
+      fn: String,
+      nickname: String,
+      tel: String,
+      web: String
+    ) => Organization(id, fn, nickname, tel, web)
 
+    val destroy = (org: Organization) =>
+      Some((org.id, org.fn, org.nickname, org.tel, org.web))
+
+    // scalastyle:off method.name
     def * = (id, fn, nickname, tel, web) <> (create.tupled, destroy)
+
+    // scalastyle:on method.name
   }
 
-  private class OrganizationAddressTable(tag: Tag) extends Table[OrganizationAddress](tag, Some("MUSARK_ACTOR"), "ORGANIZATION_ADDRESS") {
-    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc) // This is the primary key column
-    val organizationId = column[Option[Long]]("ORGANIZATION_ID") // This is the primary key column
+  private class OrganizationAddressTable(
+      tag: Tag
+  ) extends Table[OrganizationAddress](tag, Some("MUSARK_ACTOR"), "ORGANIZATION_ADDRESS") {
+
+    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
+    val organizationId = column[Option[Long]]("ORGANIZATION_ID")
     val addressType = column[String]("TYPE")
     val streetAddress = column[String]("STREET_ADDRESS")
     val locality = column[String]("LOCALITY")
@@ -167,15 +206,56 @@ class ActorDao @Inject() (
     val latitude = column[Double]("LATITUDE")
     val longitude = column[Double]("LONGITUDE")
 
-    val create = (id: Option[Long], organizationId: Option[Long], addressType: String, streetAddress: String, locality: String,
-      postalCode: String, countryName: String, latitude: Double, longitude: Double) =>
-      OrganizationAddress(id, organizationId, addressType, streetAddress, locality, postalCode, countryName,
-        latitude, longitude)
-    val destroy = (addr: OrganizationAddress) =>
-      Some(addr.id, addr.organizationId, addr.addressType, addr.streetAddress, addr.locality, addr.postalCode,
-        addr.countryName, addr.latitude, addr.longitude)
+    val create = (
+      id: Option[Long],
+      organizationId: Option[Long],
+      addressType: String,
+      streetAddress: String,
+      locality: String,
+      postalCode: String,
+      countryName: String,
+      latitude: Double,
+      longitude: Double
+    ) => OrganizationAddress(
+      id = id,
+      organizationId = organizationId,
+      addressType = addressType,
+      streetAddress = streetAddress,
+      locality = locality,
+      postalCode = postalCode,
+      countryName = countryName,
+      latitude = latitude,
+      longitude = longitude
+    )
 
-    def * = (id, organizationId, addressType, streetAddress, locality, postalCode, countryName, latitude, longitude) <> (create.tupled, destroy)
+    val destroy = (addr: OrganizationAddress) =>
+      Some((
+        addr.id,
+        addr.organizationId,
+        addr.addressType,
+        addr.streetAddress,
+        addr.locality,
+        addr.postalCode,
+        addr.countryName,
+        addr.latitude,
+        addr.longitude
+      ))
+
+    // scalastyle:off method.name
+    def * = (
+      id,
+      organizationId,
+      addressType,
+      streetAddress,
+      locality,
+      postalCode,
+      countryName,
+      latitude,
+      longitude
+    ) <> (create.tupled, destroy)
+
+    // scalastyle:on method.name
   }
+
 }
 

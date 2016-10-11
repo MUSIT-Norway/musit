@@ -1,9 +1,5 @@
 package no.uio.musit.microservice.actor.service
 
-/**
- * Created by jarle on 13.09.16.
- */
-
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
