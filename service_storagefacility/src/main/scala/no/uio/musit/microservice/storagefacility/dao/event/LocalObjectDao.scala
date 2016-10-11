@@ -22,8 +22,12 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventDto, LocalObject}
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
+
+import scala.concurrent.Future
 
 class LocalObjectDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
@@ -36,7 +40,7 @@ class LocalObjectDao @Inject() (
   private def upsert(lo: LocalObject): DBIO[Int] =
     localObjectsTable.insertOrUpdate(lo)
 
-  def cacheLatestMove(eventId: Long, moveEvent: EventDto) = {
+  def cacheLatestMove(eventId: Long, moveEvent: EventDto): DBIO[Int] = {
     val relObj = moveEvent.relatedObjects.headOption
     val relPlc = moveEvent.relatedPlaces.headOption
 
@@ -48,6 +52,14 @@ class LocalObjectDao @Inject() (
       throw new AssertionError("A MoveObject event requires both the " + // scalastyle:ignore
         "'affectedThing' and 'to' attributes set")
     )
+  }
+
+  def currentLocation(objectId: Long): Future[Option[StorageNodeId]] = {
+    val query = localObjectsTable.filter { locObj =>
+      locObj.objectId === objectId
+    }.map(_.currentLocationId).max.result.map(_.map(StorageNodeId.apply))
+
+    db.run(query)
   }
 
   private class LocalObjectsTable(

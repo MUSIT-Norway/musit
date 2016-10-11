@@ -1,42 +1,24 @@
 [
   {
     "name": "thingaggregate",
-    "scalaName": "MusitThingAggregateResource",
     "host": "localhost",
     "port": "7070",
     "protocol": "http://"
   },
   {
-    "name": "storageadmin",
-    "scalaName": "StorageUnitResource",
-    "host": "localhost",
-    "port": "7071",
-    "protocol": "http://"
-  },
-  {
     "name": "actor",
-    "scalaName": "ActorResource",
     "host": "localhost",
     "port": "7072",
     "protocol": "http://"
   },
   {
     "name": "geolocation",
-    "scalaName": "GeoLocationResource_V1",
     "host": "localhost",
     "port": "7073",
     "protocol": "http://"
   },
   {
-    "name": "event",
-    "scalaName": "EventResource",
-    "host": "localhost",
-    "port": "7074",
-    "protocol": "http://"
-  },
-  {
     "name": "storagefacility",
-    "scalaName": "Facility",
     "host": "localhost",
     "port": "7075",
     "protocol": "http://"

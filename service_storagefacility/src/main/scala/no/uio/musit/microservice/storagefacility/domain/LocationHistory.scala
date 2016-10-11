@@ -17,11 +17,36 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservices.common.domain
+package no.uio.musit.microservice.storagefacility.domain
+
+import no.uio.musit.formatters.WithDateTimeFormatters
+import org.joda.time.DateTime
+import play.api.libs.json.{Json, Writes}
 
 /**
- * Created by ellenjo on 4/8/16.
+ *
  */
-trait BaseMusitDomain {
-  val id: Option[Long]
+case class LocationHistory(
+  registeredBy: String,
+  registeredDate: DateTime,
+  doneBy: Option[Int],
+  doneDate: DateTime,
+  from: FacilityLocation,
+  to: FacilityLocation
+)
+
+object LocationHistory extends WithDateTimeFormatters {
+  implicit val writes: Writes[LocationHistory] = Json.writes[LocationHistory]
+}
+
+/**
+ *
+ */
+case class FacilityLocation(
+  path: NodePath,
+  pathNames: Seq[NamedPathElement]
+)
+
+object FacilityLocation {
+  implicit val writes: Writes[FacilityLocation] = Json.writes[FacilityLocation]
 }

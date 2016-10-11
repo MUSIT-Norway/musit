@@ -26,6 +26,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, Interval, LifeCycle}
 import org.joda.time.DateTime
 
@@ -611,28 +612,32 @@ object DtoConverters {
         affectedThing = move.baseEvent.affectedThing,
         regBy = move.baseEvent.registeredBy,
         regDate = move.baseEvent.registeredDate,
-        relPlaces = Seq(move.to)
+        relPlaces = Seq(PlaceRole(1, move.to)),
+        maybeLong = move.from
       )
     }
 
-    private def moveFromDto[A <: MoveEvent](
+    def moveFromDto[A <: MoveEvent](
       dto: BaseEventDto
-    )(init: (BaseEvent, EventType, PlaceRole) => A): A = {
+    )(init: (BaseEvent, EventType, Option[StorageNodeId], StorageNodeId) => A): A = {
       val base = baseFromDto(dto)
       val eventType = EventType.fromEventTypeId(dto.eventTypeId)
-      val placeRole = EventRolePlace.toPlaceRole(dto.relatedPlaces.head)
-      init(base, eventType, placeRole)
+      val from = dto.valueLong
+      val to = dto.relatedPlaces.head.placeId
+      init(base, eventType, from, to)
     }
 
     def moveObjectToDto(mo: MoveObject): BaseEventDto = moveToDto(mo)
 
     def moveObjectFromDto(dto: BaseEventDto): MoveObject =
-      moveFromDto(dto)((base, eventType, pr) => MoveObject(base, eventType, pr))
+      moveFromDto(dto)((base, eventType, from, to) =>
+        MoveObject(base, eventType, from, to))
 
     def moveNodeToDto(mo: MoveNode): BaseEventDto = moveToDto(mo)
 
     def moveNodeFromDto(dto: BaseEventDto): MoveNode =
-      moveFromDto(dto)((base, eventType, pr) => MoveNode(base, eventType, pr))
+      moveFromDto(dto)((base, eventType, from, to) =>
+        MoveNode(base, eventType, from, to))
   }
 
 }

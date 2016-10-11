@@ -34,9 +34,7 @@ class GeoLocationService @Inject() (config: Configuration, ws: WSClient) {
     val hitsPerResult = config.getInt("musit.geoLocation.geoNorway.hitsPerResult").getOrElse(10)
     val searchUrl = s"http://ws.geonorge.no/AdresseWS/adresse/sok?sokestreng=$expression&antPerSide=$hitsPerResult"
 
-    val responseFuture = ws.url(searchUrl).get
-
-    responseFuture.map { response =>
+    ws.url(searchUrl).get.map { response =>
       val json = Json.parse(response.body)
       val addresses = (json \ "adresser").as[List[Map[String, String]]]
       addresses.map(address => {

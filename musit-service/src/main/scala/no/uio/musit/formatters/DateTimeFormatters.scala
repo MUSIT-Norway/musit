@@ -27,21 +27,15 @@ import play.api.libs.json.{Format, Reads, Writes}
  */
 trait WithDateTimeFormatters {
 
-  val defaultReadDateTimePattern: String = "yyyy-MM-dd'T'HH:mm:ssZZ"
+  val defaultDateTimePattern: String = "yyyy-MM-dd'T'HH:mm:ssZZ"
   val readDateTimeMillisPattern: String = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
 
   // Joda date formatter
   implicit val dateTimeFormatter = Format[DateTime](
-    Reads.jodaDateReads(defaultReadDateTimePattern)
+    Reads.jodaDateReads(defaultDateTimePattern)
       .orElse(Reads.jodaDateReads(readDateTimeMillisPattern)),
-    Writes.jodaDateWrites(defaultReadDateTimePattern)
+    Writes.jodaDateWrites(defaultDateTimePattern)
   )
-
-  implicit def asDateTime(jud: java.util.Date): DateTime = new DateTime(jud)
-
-  implicit def asOptDateTime(maybeJud: Option[java.util.Date]): Option[DateTime] =
-    maybeJud.map(jud => asDateTime(jud))
-
 }
 
 object DateTimeFormatters extends WithDateTimeFormatters
