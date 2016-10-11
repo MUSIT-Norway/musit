@@ -5,7 +5,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.ws._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
  * Created by jstabel on 3/31/16.
@@ -32,9 +32,9 @@ object Dataporten {
     (JsPath \ "description").readNullable[String]
   )(createGroupInfo _)
 
-  def createSecurityConnection(accessToken: String, useCache: Boolean = true) = {
+  def createAuthenticatedUser(accessToken: String, useCache: Boolean = true) = {
     val infoProvider = new DataportenUserInfoProvider(accessToken)
-    Security.createSecurityConnectionFromInfoProvider(infoProvider, useCache)
+    SecurityUtils.createAuthenticatedUserFromInfoProvider(infoProvider, useCache)
   }
 
   class DataportenUserInfoProvider(_accessToken: String) extends ConnectionInfoProvider {

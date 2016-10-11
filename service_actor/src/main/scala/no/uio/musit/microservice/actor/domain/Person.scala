@@ -25,8 +25,16 @@ import play.api.libs.json._
 /**
  * Domain Person
  */
-case class Person(id: Option[Long], fn: String, title: Option[String] = None, role: Option[String] = None, tel: Option[String] = None,
-  web: Option[String] = None, email: Option[String] = None, dataportenId: Option[String] = None) extends BaseMusitDomain
+case class Person(
+  id: Option[Long],
+  fn: String,
+  title: Option[String] = None,
+  role: Option[String] = None,
+  tel: Option[String] = None,
+  web: Option[String] = None,
+  email: Option[String] = None,
+  dataportenId: Option[String] = None
+) extends BaseMusitDomain
 
 /**
  * Domain Organization

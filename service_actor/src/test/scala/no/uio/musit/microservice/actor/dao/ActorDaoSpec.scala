@@ -23,6 +23,7 @@ import no.uio.musit.microservice.actor.domain.{Organization, OrganizationAddress
 import no.uio.musit.microservices.common.PlayTestDefaults
 import no.uio.musit.security.FakeSecurity
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -40,6 +41,11 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     instance(app)
   }
 
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
+
   "Actor dao" when {
 
     "querying the person legacy methods" should {
@@ -51,28 +57,24 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
 
       "return a Person if the Id is valid" in {
         val expected = Person(Some(1), "And, Arne1", dataportenId = Some("12345678-adb2-4b49-bce3-320ddfe6c90f"))
-        val res = actorDao.getPersonLegacyById(1).futureValue
 
-        res mustBe Some(expected)
+        actorDao.getPersonLegacyById(1).futureValue mustBe Some(expected)
 
       }
 
       "return None if the Id is 0 (zero)" in {
-        val res = actorDao.getPersonLegacyById(0).futureValue
-        res mustBe None
+        actorDao.getPersonLegacyById(0).futureValue mustBe None
       }
 
       "return empty list if the search string is not found" in {
-        val res = actorDao.getPersonLegacyByName("Andlkjlkj").futureValue
-        res.isEmpty mustBe true
+        actorDao.getPersonLegacyByName("Andlkjlkj").futureValue.isEmpty mustBe true
       }
     }
 
     "querying the organization methods" should {
 
       "return None when Id is very large" in {
-        val res = actorDao.getOrganizationById(6386363673636335366L).futureValue
-        res mustBe None
+        actorDao.getOrganizationById(6386363673636335366L).futureValue mustBe None
       }
 
       "return a organization if the Id is valid" in {
@@ -86,13 +88,11 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "return None if the Id is 0 (zero)" in {
-        val res = actorDao.getOrganizationById(0).futureValue
-        res mustBe None
+        actorDao.getOrganizationById(0).futureValue mustBe None
       }
 
       "return empty list if the search string is not found" in {
-        val res = actorDao.getOrganizationByName("Andlkjlkj").futureValue
-        res.isEmpty mustBe true
+        actorDao.getOrganizationByName("Andlkjlkj").futureValue mustBe empty
       }
     }
 
@@ -127,15 +127,12 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "succeed when deleting organization" in {
-        val res1 = actorDao.deleteOrganization(3).futureValue
-        res1 mustBe 1
-        val res = actorDao.getOrganizationById(3).futureValue
-        res mustBe None
+        actorDao.deleteOrganization(3).futureValue mustBe 1
+        actorDao.getOrganizationById(3).futureValue mustBe None
       }
 
       "not be able to delete organization with invalid id" in {
-        val res2 = actorDao.deleteOrganization(999999).futureValue
-        res2 mustBe 0
+        actorDao.deleteOrganization(999999).futureValue mustBe 0
       }
 
     }
@@ -195,15 +192,12 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "succeed when deleting organization address" in {
-        val res1 = actorDao.deleteOrganizationAddress(3).futureValue
-        res1 mustBe 1
-        val res = actorDao.getOrganizationAddressById(3).futureValue
-        res mustBe None
+        actorDao.deleteOrganizationAddress(3).futureValue mustBe 1
+        actorDao.getOrganizationAddressById(3).futureValue mustBe None
       }
 
       "not be able to delete organization address with invalid id" in {
-        val res2 = actorDao.deleteOrganizationAddress(999999).futureValue
-        res2 mustBe 0
+        actorDao.deleteOrganizationAddress(999999).futureValue mustBe 0
       }
     }
     "querying person details" should {
@@ -220,17 +214,15 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     }
     "queriyng finders" should {
       "get all legacy persons" in {
-        val persons = actorDao.allPersonsLegacy().futureValue
-        persons.length mustBe 2
+        actorDao.allPersonsLegacy().futureValue.length mustBe 2
       }
       "get all organizations" in {
-        val orgs = actorDao.allOrganizations().futureValue
-        orgs.length mustBe 2
+        actorDao.allOrganizations().futureValue.length mustBe 2
       }
       "get all organization addresses" in {
         val orgAddrs = actorDao.allAddressesForOrganization(1).futureValue
         orgAddrs.length mustBe 1
-        orgAddrs(0).streetAddress mustBe "Fredriks gate 2"
+        orgAddrs.head.streetAddress mustBe "Fredriks gate 2"
       }
     }
 
@@ -247,18 +239,17 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
         person.fn mustBe "Herr Larmerud"
         person.dataportenId mustBe Some(uid)
         person.id mustBe Some(personId)
-        //We don't have a way to delete legacyPersons, may want to delete the newly insterted actor in the future: actorDao.deletePerson(personId)
+        //We don't have a way to delete legacyPersons, may want to delete the
+        //newly inserted actor in the future: actorDao.deletePerson(personId)
       }
 
       "Don't find actor with unknown dataportenId" in {
-        val res = actorDao.getPersonByDataportenId("tullballId").futureValue
-        res.isDefined mustBe false
+        actorDao.getPersonByDataportenId("tullballId").futureValue.isDefined mustBe false
       }
 
       "Don't find actor with unknown dataportenId based on security connection etc" in {
         val secConnection = FakeSecurity.createInMemoryFromFakeAccessToken("fake-token-zab-xy-jarle", false).futureValue
-        val res = actorDao.getPersonByDataportenId(secConnection.userId).futureValue
-        res.isDefined mustBe false
+        actorDao.getPersonByDataportenId(secConnection.userId).futureValue.isDefined mustBe false
 
         val person = actorDao.insertActorWithDataportenUserInfo(secConnection).futureValue
         person.isRight mustBe true

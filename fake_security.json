@@ -7,6 +7,14 @@
     {
       "name": "FotoLes",
       "description": "Lesetilgang til fotobasen"
+    },
+    {
+      "name": "KhmSfRead",
+      "description": "Lesetilgang til SF for KHM"
+    },
+    {
+      "name": "KhmSfWrite",
+      "description": "skrivetilgang til SF for KHM"
     }
   ],
   "users": [
@@ -30,6 +38,13 @@
       "emails": [ "foo@bar.bas" ],
       "groups": ["EtnoLes", "FotoLes"],
       "accessToken": "fake-token-zab-xy-musitTestUser"
+    },
+    {
+      "userId": "musitTestUserKhmRead",
+      "name": "Fake Musit Test User KHM Read",
+      "emails": [ "foo@bar.bas" ],
+      "groups": ["KhmSfRead", "EtnoLes", "FotoLes"],
+      "accessToken": "fake-token-zab-xy-musitTestUserKhmRead"
     },
     {
       "userId": "DawnWilliams",

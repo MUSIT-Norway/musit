@@ -3,14 +3,11 @@ package no.uio.musit.microservice.actor.domain
 import no.uio.musit.microservices.common.utils.ErrorHelper
 import no.uio.musit.microservices.common.utils.Misc.MusitBool
 import no.uio.musit.microservices.common.utils.Misc.boolToMusitBool
-import no.uio.musit.security.SecurityConnection
+import no.uio.musit.security.AuthenticatedUser
 
-/**
- * Created by jarle on 31.08.16.
- */
 object ActorAuth {
 
-  def canInsertActor(securityConnection: SecurityConnection, person: Person) = {
+  def canInsertActor(user: AuthenticatedUser, person: Person) = {
     true //Todo: !!!
   }
 
@@ -18,7 +15,7 @@ object ActorAuth {
     boolToMusitBool(condition(), ErrorHelper.forbidden("", devText))
   }
 
-  def verifyCanInsertActor(securityConnection: SecurityConnection, person: Person): MusitBool = {
-    genericVerify(() => canInsertActor(securityConnection, person), "Not allowed to insert actor")
+  def verifyCanInsertActor(user: AuthenticatedUser, person: Person): MusitBool = {
+    genericVerify(() => canInsertActor(user, person), "Not allowed to insert actor")
   }
 }

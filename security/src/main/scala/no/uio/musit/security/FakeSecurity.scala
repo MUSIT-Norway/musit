@@ -30,6 +30,10 @@ import no.uio.musit.microservices.common.extensions.PlayExtensions._
  * Created by jstabel on 4/15/16.
  */
 
+class FakeAuthenticatedUserImp(_infoProvider: ConnectionInfoProvider, userAndGroupInfo: UserAndGroupInfo) extends AuthenticatedUserImp(_infoProvider, userAndGroupInfo) with FakeAuthenticatedUser {
+  def infoProvider: ConnectionInfoProvider = _infoProvider
+}
+
 class FakeSecurityInMemoryInfoProvider(userId: String) extends ConnectionInfoProvider {
   // FakeSecurityUsersAndGroups init reads a config file, so this may take some time, so we do a blocking call (Future.successful) instead of an async call Future(),
   // as the latter may get a timeout (due to reading the config file)
@@ -53,13 +57,15 @@ object FakeSecurity {
   val fakeAccessTokenPrefix = "fake-token-zab-xy-" //Must match the fake_security.json file!
 
   def createHardcoded(userName: String, userGroupIds: Seq[String], useCache: Boolean) = {
-
-    Security.createSecurityConnectionFromInfoProvider(new FakeSecurityHardcodedInfoProvider(userName, userGroupIds), useCache)
+    val futProvider = Future { new FakeSecurityHardcodedInfoProvider(userName, userGroupIds) }
+    futProvider.flatMap(createFakeAuthenticatedUserFromInfoProvider(_, useCache))
   }
 
   def createInMemory(userId: String, useCache: Boolean) = {
-    Security.createSecurityConnectionFromInfoProvider(new FakeSecurityInMemoryInfoProvider(userId), useCache)
+    val futProvider = Future { new FakeSecurityInMemoryInfoProvider(userId) }
+    futProvider.flatMap(createFakeAuthenticatedUserFromInfoProvider(_, useCache))
   }
+
   def isFakeAccessToken(token: String) = token.startsWith(fakeAccessTokenPrefix)
 
   def createInMemoryFromFakeAccessToken(token: String, useCache: Boolean) = {
@@ -68,5 +74,12 @@ object FakeSecurity {
       createInMemory(userId, useCache)
     } else
       Future.failed(PlayExtensions.newAuthFailed("Not a valid f access token."))
+  }
+
+  def createFakeAuthenticatedUserFromInfoProvider(infoProvider: ConnectionInfoProvider, useCache: Boolean): Future[FakeAuthenticatedUser] = {
+    def authUserFactory(infoProvider: ConnectionInfoProvider, userAndGroupInfo: UserAndGroupInfo) =
+      new FakeAuthenticatedUserImp(infoProvider, userAndGroupInfo)
+
+    SecurityUtils.internalCreateAuthenticatedUserFromInfoProvider(infoProvider, useCache, authUserFactory).map(_.asInstanceOf[FakeAuthenticatedUser])
   }
 }

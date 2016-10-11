@@ -14,9 +14,6 @@ import play.api.libs.ws.WSResponse
 
 import scala.concurrent.Future
 
-/**
- * Created by sveigl on 20.09.16.
- */
 class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -26,7 +23,10 @@ class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite
 
   override lazy val port: Int = 19008
 
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
+  implicit override lazy val app =
+    new GuiceApplicationBuilder()
+      .configure(PlayTestDefaults.inMemoryDatabaseConfig())
+      .build()
 
   def postOrganizationAddress(orgId: Int, json: JsValue): Future[WSResponse] = {
     wsUrl(s"/v1/organization/$orgId/address").post(json)

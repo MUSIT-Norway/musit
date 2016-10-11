@@ -44,11 +44,11 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPer
 
   val timeout = PatienceConfiguration.Timeout(1 seconds)
 
-  def runTestWhenReadyHardcoded(block: SecurityConnection => Unit): Unit = {
+  def runTestWhenReadyHardcoded(block: AuthenticatedUser => Unit): Unit = {
     whenReady(FakeSecurity.createHardcoded("Kalle Kanin", groups, false), timeout) { sec => block(sec) }
   }
 
-  def runTestWhenReadyInMemory(userName: String)(block: SecurityConnection => Unit): Unit = {
+  def runTestWhenReadyInMemory(userName: String)(block: AuthenticatedUser => Unit): Unit = {
     whenReady(FakeSecurity.createInMemory(userName, true), timeout) { sec => block(sec) }
   }
 
@@ -102,11 +102,15 @@ class FakeSecuritySupportSuite extends PlaySpec with ScalaFutures with OneAppPer
         Logger.debug("in-memory test")
       }
     }
+    "in-memory test ny fake bruker" in {
+      runTestWhenReadyInMemory("LineArildSjo") { sec =>
+        assert(!sec.hasGroup("tullballgroup"))
+      }
+    }
+
     "Should fail to user unknown user" in {
       val fut = FakeSecurity.createInMemory("ukjentbruker", true)
       ScalaFutures.whenReady(fut.failed) { e => e mustBe a[Exception] }
     }
-
   }
-
 }
