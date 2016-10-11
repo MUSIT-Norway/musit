@@ -29,7 +29,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, Interval, LifeCycle}
+import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, Interval, LifeCycle, MuseumId}
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
 
@@ -38,19 +38,19 @@ trait EventGenerators extends EventTypeInitializers {
 
   def eventDao: EventDao = fromInstanceCache[EventDao]
 
-  def addControl(ctrl: Control) = {
+  def addControl(mid: MuseumId, ctrl: Control) = {
     val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
-    eventDao.insertEvent(ctrlAsDto)
+    eventDao.insertEvent(mid, ctrlAsDto)
   }
 
-  def addObservation(obs: Observation) = {
+  def addObservation(mid: MuseumId, obs: Observation) = {
     val obsAsDto = DtoConverters.ObsConverters.observationToDto(obs)
-    eventDao.insertEvent(obsAsDto)
+    eventDao.insertEvent(mid, obsAsDto)
   }
 
-  def addEnvRequirement(envReq: EnvRequirement) = {
+  def addEnvRequirement(mid: MuseumId, envReq: EnvRequirement) = {
     val erAsDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
-    eventDao.insertEvent(erAsDto)
+    eventDao.insertEvent(mid, erAsDto)
   }
 }
 

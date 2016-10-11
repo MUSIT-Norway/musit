@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.dao._
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
 import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
@@ -56,18 +57,24 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    * Only returns non-root nodes
    */
   protected[storage] def getUnitByIdAction(
+    mid: MuseumId,
     id: StorageNodeId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
-      sn.id === id && sn.isDeleted === false && sn.storageType =!= rootNodeType
+      sn.museumId === mid &&
+        sn.id === id &&
+        sn.isDeleted === false &&
+        sn.storageType =!= rootNodeType
     }.result.headOption
   }
 
   protected[storage] def getNodeByIdAction(
+    mid: MuseumId,
     id: StorageNodeId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
-      sn.id === id && sn.isDeleted === false
+      sn.museumId === mid &&
+        sn.id === id && sn.isDeleted === false
     }.result.headOption
   }
 
@@ -143,11 +150,13 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    * TODO: Document me!!!
    */
   protected[storage] def updateNodeAction(
+    mid: MuseumId,
     id: StorageNodeId,
     storageUnit: StorageUnitDto
   ): DBIO[Int] = {
     storageNodeTable.filter { sn =>
-      sn.id === id &&
+      sn.museumId === mid &&
+        sn.id === id &&
         sn.isDeleted === false &&
         sn.storageType === storageUnit.storageType
     }.update(storageUnit)
@@ -172,6 +181,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       groupRead,
       groupWrite,
       isDeleted,
+      museumId,
       path
     ) <> (create.tupled, destroy)
 
@@ -188,6 +198,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val groupRead = column[Option[String]]("GROUP_READ")
     val groupWrite = column[Option[String]]("GROUP_WRITE")
     val isDeleted = column[Boolean]("IS_DELETED")
+    val museumId = column[MuseumId]("MUSEUM_ID")
     val path = column[NodePath]("NODE_PATH")
 
     def create = (
@@ -202,6 +213,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       groupRead: Option[String],
       groupWrite: Option[String],
       isDeleted: Boolean,
+      museumId: MuseumId,
       nodePath: NodePath
     ) =>
       StorageUnitDto(
@@ -216,6 +228,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         groupWrite = groupWrite,
         path = nodePath,
         isDeleted = Option(isDeleted),
+        museumId = museumId,
         storageType = storageType
       )
 
@@ -232,6 +245,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         unit.groupRead,
         unit.groupWrite,
         unit.isDeleted.getOrElse(false),
+        unit.museumId,
         unit.path
       ))
   }

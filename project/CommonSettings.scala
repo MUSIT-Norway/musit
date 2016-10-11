@@ -37,7 +37,7 @@ object CommonSettings {
     scalaVersion := Dependencies.scala,
     resolvers ++= Dependencies.resolvers,
     fork in Test := false,
-    fork in IntegrationTest := true,
+    fork in IntegrationTest := false, //true,
     parallelExecution in Test := false,
     parallelExecution in IntegrationTest := false,
     logBuffered in Test := false,

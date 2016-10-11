@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.{EnvRequirementDao, EventDao}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.EnvReqConverters
@@ -56,10 +57,10 @@ class EnvironmentRequirementService @Inject() (
    * @param envReq The environment requirement to compare
    * @return A Future containing an Option of the EnvRequirement that was found.
    */
-  private def compareWithLatest(envReq: EnvRequirement): Future[Option[EnvRequirement]] = {
+  private def compareWithLatest(mid: MuseumId, envReq: EnvRequirement): Future[Option[EnvRequirement]] = {
     envReq.baseEvent.affectedThing.map { or =>
       val snid: StorageNodeId = or.objectId
-      latestForNodeId(snid).map(_.map { mer =>
+      latestForNodeId(mid, snid).map(_.map { mer =>
         if (mer.exists(_.similar(envReq))) mer
         else None
       }.getOrElse(None)).recover {
@@ -81,17 +82,17 @@ class EnvironmentRequirementService @Inject() (
   /**
    * TODO: Document me!!!!
    */
-  def add(envReq: EnvRequirement)(implicit currUsr: String): Future[MusitResult[EnvRequirement]] = {
+  def add(mid: MuseumId, envReq: EnvRequirement)(implicit currUsr: String): Future[MusitResult[EnvRequirement]] = {
     val dto = EnvReqConverters.envReqToDto(envReq)
 
-    compareWithLatest(envReq).flatMap { sameEr =>
+    compareWithLatest(mid, envReq).flatMap { sameEr =>
       sameEr.map { er =>
         logger.debug("Did not add new EnvRequirement event because it was " +
           "similar as the previous entry")
         Future.successful(MusitSuccess(er))
       }.getOrElse {
-        eventDao.insertEvent(dto).flatMap { eventId =>
-          eventDao.getEvent(eventId).map { res =>
+        eventDao.insertEvent(mid, dto).flatMap { eventId =>
+          eventDao.getEvent(mid, eventId).map { res =>
             res.flatMap(_.map { dto =>
               // We know we have an ExtendedDto representing an EnvRequirement
               val extDto = dto.asInstanceOf[ExtendedDto]
@@ -112,8 +113,8 @@ class EnvironmentRequirementService @Inject() (
   /**
    * TODO: Document me!!!!
    */
-  def findBy(id: EventId): Future[MusitResult[Option[EnvRequirement]]] = {
-    eventDao.getEvent(id.underlying).map { result =>
+  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[EnvRequirement]]] = {
+    eventDao.getEvent(mid, id.underlying).map { result =>
       convertResult(result)
     }
   }
@@ -126,9 +127,10 @@ class EnvironmentRequirementService @Inject() (
    * @return {{{Future[MusitResult[Option[EnvRequirement]]]}}}
    */
   private def latestForNodeId(
+    mid: MuseumId,
     nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvRequirement]]] = {
-    eventDao.latestByNodeId(nodeId, EnvRequirementEventType.id).map { result =>
+    eventDao.latestByNodeId(mid, nodeId, EnvRequirementEventType.id).map { result =>
       convertResult(result)
     }
   }
@@ -141,9 +143,10 @@ class EnvironmentRequirementService @Inject() (
    * @return {{{Future[MusitResult[Option[EnvironmentRequirement]]]}}}
    */
   def findLatestForNodeId(
+    mid: MuseumId,
     nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
-    eventDao.latestByNodeId(nodeId, EnvRequirementEventType.id).map { result =>
+    eventDao.latestByNodeId(mid, nodeId, EnvRequirementEventType.id).map { result =>
       convertResult(result).map { maybeEvt =>
         maybeEvt.map(EnvRequirement.fromEnvRequirementEvent)
       }
