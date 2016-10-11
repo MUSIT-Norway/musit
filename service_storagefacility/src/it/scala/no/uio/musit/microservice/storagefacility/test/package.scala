@@ -28,6 +28,7 @@ package object test {
   val MoveStorageNodeUrl = s"$StorageNodesUrl/moveNode"
   val MoveObjectUrl = s"$StorageNodesUrl/moveObject"
   val NodeChildrenUrl = (node: Long) => s"${StorageNodeUrl(node)}/children"
+  val ObjLocationHistoryUrl = (objectId: Long) => s"$StorageNodesUrl/objects/$objectId/locations"
 
   val ControlsUrl = (node: Long) => s"${StorageNodeUrl(node)}/controls"
   val ControlUrl = (node: Long, evt: Long) => s"${ControlsUrl(node)}/$evt"
@@ -36,8 +37,6 @@ package object test {
 
   val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"
   val KdReportUrl = s"$BaseUrl/report"
-
-
 
   val VeryLongString =
     """12345678901234567890123456789012345678901234567890

@@ -1,7 +1,7 @@
 package services
 
 import com.google.inject.Inject
-import dao.{ ObjectAggregationDao, StorageNodeDao }
+import dao.{ObjectAggregationDao, StorageNodeDao}
 import no.uio.musit.service.MusitResults.MusitResult
 import models.{ MuseumId, ObjectAggregation }
 

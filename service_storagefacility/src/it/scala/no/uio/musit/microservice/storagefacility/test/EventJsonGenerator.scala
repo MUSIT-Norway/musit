@@ -21,92 +21,100 @@ package no.uio.musit.microservice.storagefacility.test
 
 object EventJsonGenerator {
 
-  def baseEventJson(affectedThingId: Int, eventType: String, regDay: Int) = {
+  def baseEventJson(eventType: String, regDay: Int) = {
     s""""doneDate" : "2016-09-${regDay}T09:17:46+02:00",
         |"doneBy" : {
         |  "roleId" : 1,
         |  "actorId" : 12
         |},
         |"note" : "This is a $eventType note",
-        |"eventType" : "$eventType",
-        |"affectedThing" : {
-        |  "roleId" : 1,
-        |  "objectId" : $affectedThingId
-        |}""".stripMargin
+        |"eventType" : "$eventType"""".stripMargin
   }
 
-  def controlJson(affectedThingId: Int, regDay: Int) = {
+  def controlJson(regDay: Int) = {
     s"""{
-        |  ${baseEventJson(affectedThingId, "Control", regDay)},
+        |  ${baseEventJson("Control", regDay)},
         |  "parts" : [
-        |    ${ctrlSubFromToJson(affectedThingId, "ControlTemperature", regDay, ok = false)},
-        |    ${ctrlSubFromToJson(affectedThingId, "ControlAlcohol", regDay, ok = false)},
-        |    ${ctrlSubStringJson(affectedThingId, "ControlCleaning", regDay, ok = false)},
-        |    ${ctrlSubPestJson(affectedThingId, regDay, ok = false)}
+        |    ${ctrlSubFromToJson("ControlTemperature", regDay, ok = false)},
+        |    ${ctrlSubFromToJson("ControlAlcohol", regDay, ok = false)},
+        |    ${ctrlSubStringJson("ControlCleaning", regDay, ok = false)},
+        |    ${ctrlSubPestJson(regDay, ok = false)}
         |  ]
         |}""".stripMargin
   }
 
-  def motivates(affectedThingId: Int, etype: String, regDay: Int, ok: Boolean)(obsJson: (Int, String, Int) => String) = {
+  def observationJson(regDay: Int) = {
+    s"""{
+        |  ${baseEventJson("Observation", regDay)},
+        |  "parts" : [
+        |    ${obsFromToJson("ObservationTemperature", regDay)},
+        |    ${obsFromToJson("ObservationAlcohol", regDay)},
+        |    ${obsStringJson("ObservationCleaning", regDay)},
+        |    ${obsPestJson(regDay)}
+        |  ]
+        |}""".stripMargin
+  }
+
+  def motivates(etype: String, regDay: Int, ok: Boolean)(obsJson: (String, Int) => String) = {
     if (!ok) {
-      s""""motivates" : ${obsJson(affectedThingId, etype.replaceAll("Control", "Observation"), regDay)}"""
+      s""""motivates" : ${obsJson(etype.replaceAll("Control", "Observation"), regDay)}"""
     } else {
       ""
     }
   }
 
-  def ctrlSubStringJson(affectedThingId: Int, etype: String, regDay: Int, ok: Boolean = true) = {
-    val maybeMotivates = motivates(affectedThingId, etype, regDay, ok)(obsStringJson)
+  def ctrlSubStringJson(etype: String, regDay: Int, ok: Boolean = true) = {
+    val maybeMotivates = motivates(etype, regDay, ok)(obsStringJson)
     s"""{
-        |  ${baseEventJson(affectedThingId, etype, regDay)},
+        |  ${baseEventJson(etype, regDay)},
         |  "ok" : $ok,
         |  $maybeMotivates
         |}""".stripMargin
   }
 
-  def ctrlSubFromToJson(affectedThingId: Int, etype: String, regDay: Int, ok: Boolean = true) = {
-    val maybeMotivates = motivates(affectedThingId, etype, regDay, ok)(obsFromToJson)
+  def ctrlSubFromToJson(etype: String, regDay: Int, ok: Boolean = true) = {
+    val maybeMotivates = motivates(etype, regDay, ok)(obsFromToJson)
     s"""{
-        |  ${baseEventJson(affectedThingId, etype, regDay)},
+        |  ${baseEventJson(etype, regDay)},
         |  "ok" : $ok,
         |  $maybeMotivates
         |}""".stripMargin
   }
 
-  def ctrlSubPestJson(affectedThingId: Int, regDay: Int, ok: Boolean = true) = {
+  def ctrlSubPestJson(regDay: Int, ok: Boolean = true) = {
     val maybeMotivates = {
       if (!ok) {
-        s""""motivates" : ${obsPestJson(affectedThingId, regDay)}"""
+        s""""motivates" : ${obsPestJson(regDay)}"""
       } else {
         ""
       }
     }
     s"""{
-        |  ${baseEventJson(affectedThingId, "ControlPest", regDay)},
+        |  ${baseEventJson("ControlPest", regDay)},
         |  "ok" : $ok,
         |  $maybeMotivates
         |}""".stripMargin
   }
 
-  def obsStringJson(affectedThingId: Int, etype: String, regDay: Int) = {
+  def obsStringJson(etype: String, regDay: Int) = {
     val propName: String = etype.toLowerCase.stripPrefix("observation")
     s"""{
-        |  ${baseEventJson(affectedThingId, etype, regDay)},
+        |  ${baseEventJson(etype, regDay)},
         |  "$propName" : "The value for $propName is a String"
         |}""".stripMargin
   }
 
-  def obsFromToJson(affectedThingId: Int, etype: String, regDay: Int) = {
+  def obsFromToJson(etype: String, regDay: Int) = {
     s"""{
-        |  ${baseEventJson(affectedThingId, etype, regDay)},
+        |  ${baseEventJson(etype, regDay)},
         |  "from" : 12.32,
         |  "to" : 24.12
         |}""".stripMargin
   }
 
-  def obsPestJson(affectedThingId: Int, regDay: Int) = {
+  def obsPestJson(regDay: Int) = {
     s"""{
-        |  ${baseEventJson(affectedThingId, "ObservationPest", regDay)},
+        |  ${baseEventJson("ObservationPest", regDay)},
         |  "identification" : "termites",
         |  "lifecycles" : [ {
         |    "stage" : "mature colony",

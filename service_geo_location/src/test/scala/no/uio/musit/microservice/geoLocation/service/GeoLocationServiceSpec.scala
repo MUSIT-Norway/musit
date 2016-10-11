@@ -19,34 +19,40 @@
 
 package no.uio.musit.microservice.geoLocation.service
 
-import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.PlaySpec
+import no.uio.musit.test.MusitSpec
+import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.test.WsTestClient
-import play.api.{ Configuration, Environment }
+import play.api.{Configuration, Environment}
 
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class GeoLocationServiceSpec extends PlaySpec with ScalaFutures {
+class GeoLocationServiceSpec extends MusitSpec {
 
-  val timeout = Timeout(10 seconds)
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   val config = Configuration.load(Environment.simple())
 
-  "GeoLocationService rest integration" must {
+  "GeoLocationService" when {
 
-    "searchAddress" in {
-      WsTestClient.withClient { client =>
-        val service = new GeoLocationService(config, client)
+    "searching for addresses" should {
 
-        val response = service.searchGeoNorway("paal bergs vei 56, RYKKINN")
-        whenReady(response, timeout) { geoAddresses =>
-          geoAddresses must not be empty
+      "return a list of results that match the query" in {
+        WsTestClient.withClient { client =>
+          val service = new GeoLocationService(config, client)
+
+          val res = service.searchGeoNorway("paal bergs vei 56, RYKKINN").futureValue
+          res must not be empty
+          res.head.street mustBe "Paal Bergs vei"
+          res.head.streetNo mustBe "56"
+          res.head.place mustBe "RYKKINN"
+          res.head.zip mustBe "1348"
         }
       }
-    }
 
+    }
   }
 
 }

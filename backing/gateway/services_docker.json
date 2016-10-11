@@ -1,63 +1,24 @@
 [
   {
-    "name": "core",
-    "scalaName": "CoreResource",
-    "host": "core",
-    "port": "7070",
-    "protocol": "http://"
-  },
-  {
-    "name": "actor",
-    "scalaName": "ActorResource",
-    "host": "actor",
-    "port": "7070",
-    "protocol": "http://"
-  },
-  {
-    "name": "thing",
-    "scalaName": "MusitThingResource",
-    "host": "thing",
-    "port": "7070",
-    "protocol": "http://"
-  },
-  {
     "name": "thingaggregate",
-    "scalaName": "MusitThingAggregateResource",
     "host": "thingaggregate",
     "port": "7070",
     "protocol": "http://"
   },
   {
-    "name": "time",
-    "scalaName": "TimeResource",
-    "host": "time",
+    "name": "actor",
+    "host": "actor",
     "port": "7070",
     "protocol": "http://"
   },
   {
     "name": "geolocation",
-    "scalaName": "GeoLocationResource_V1",
     "host": "geolocation",
     "port": "7070",
     "protocol": "http://"
   },
   {
-    "name": "storageadmin",
-    "scalaName": "StorageUnitResource",
-    "host": "storageadmin",
-    "port": "7070",
-    "protocol": "http://"
-  },
-  {
-    "name": "event",
-    "scalaName": "EventResource",
-    "host": "event",
-    "port": "7070",
-    "protocol": "http://"
-  },
-  {
     "name": "storagefacility",
-    "scalaName": "Facility",
     "host": "storagefacility",
     "port": "7070",
     "protocol": "http://"

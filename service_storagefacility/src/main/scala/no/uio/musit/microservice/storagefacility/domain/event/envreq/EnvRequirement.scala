@@ -23,7 +23,7 @@ import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.domain.Interval
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.storage.{ EnvironmentRequirement, StorageNodeId }
+import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, StorageNodeId}
 import org.joda.time.DateTime
 
 case class EnvRequirement(
@@ -55,9 +55,9 @@ object EnvRequirement {
    * Convert an EnvironmentRequirement type into an EnvRequirement event.
    *
    * @param affectedNodeId The StorageNodeId the event applies to
-   * @param now The current timestamp.
-   * @param er EnvironmentRequirement to convert
-   * @param currUsr The currently logged in user.
+   * @param now            The current timestamp.
+   * @param er             EnvironmentRequirement to convert
+   * @param currUsr        The currently logged in user.
    * @return an EnvRequirement instance
    */
   def toEnvRequirementEvent(

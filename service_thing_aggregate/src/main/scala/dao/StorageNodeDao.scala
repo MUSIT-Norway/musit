@@ -1,8 +1,8 @@
 package dao
 
 import com.google.inject.Inject
-import no.uio.musit.service.MusitResults.{ MusitDbError, MusitResult, MusitSuccess }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
@@ -15,13 +15,13 @@ class StorageNodeDao @Inject() (
 
   import driver.api._
 
-  def nodeExists(mid: Int, nodeId: Long): Future[MusitResult[Boolean]] = {
+  def nodeExists(nodeId: Long): Future[MusitResult[Boolean]] = {
     db.run(
       sql"""
-        SELECT COUNT(*)
-        FROM musark_storage.storage_node
-        WHERE museum_id = $mid
-        AND storage_node_id = $nodeId
+         select count(*)
+         from "MUSARK_STORAGE"."STORAGE_NODE"
+         where "MUSEUM_ID" = $mid
+         and "STORAGE_NODE_ID" = $nodeId
       """.as[Long].head.map(res => MusitSuccess(res == 1))
     ).recover {
         case NonFatal(e) =>

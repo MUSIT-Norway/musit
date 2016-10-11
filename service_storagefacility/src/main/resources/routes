@@ -3,16 +3,18 @@
 # ~~~~
 
 # StorageNode endpoints
-POST          /v1/storagenodes                                      no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.add
-POST          /v1/storagenodes/root                                 no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.addRoot
-GET           /v1/storagenodes/root                                 no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.root
+POST          /v1/storagenodes                                      no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.add
+POST          /v1/storagenodes/root                                 no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.addRoot
+GET           /v1/storagenodes/root                                 no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.root
 GET           /v1/storagenodes/report                               no.uio.musit.microservice.storagefacility.resource.KdReportResource.getReportByMuseum
-PUT           /v1/storagenodes/moveNode                             no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.moveNode
-PUT           /v1/storagenodes/moveObject                           no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.moveObject
-GET           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.getById(nodeId: Long)
-PUT           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.update(nodeId: Long)
-DELETE        /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.delete(nodeId: Long)
-GET           /v1/storagenodes/:nodeId/children                     no.uio.musit.microservice.storagefacility.resource.StorageUnitResource.children(nodeId: Long)
+PUT           /v1/storagenodes/moveNode                             no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.moveNode
+PUT           /v1/storagenodes/moveObject                           no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.moveObject
+GET           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.getById(nodeId: Long)
+PUT           /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.update(nodeId: Long)
+DELETE        /v1/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.delete(nodeId: Long)
+GET           /v1/storagenodes/:nodeId/children                     no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.children(nodeId: Long)
+GET           /v1/storagenodes/:nodeId/stats                        no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.stats(nodeId: Long)
+GET           /v1/storagenodes/objects/:oid/locations               no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.objectLocationHistory(oid: Long, limit: Int ?= 50)
 
 # Controls
 POST          /v1/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.addControl(nodeId: Long)

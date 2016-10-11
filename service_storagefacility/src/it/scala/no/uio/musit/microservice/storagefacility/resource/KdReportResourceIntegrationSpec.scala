@@ -1,6 +1,5 @@
 package no.uio.musit.microservice.storagefacility.resource
 
-
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
@@ -10,7 +9,6 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-
 
 class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
@@ -25,7 +23,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     expName: String,
     expId: Long,
     expPartOf: Option[Long] = None
-    )(implicit manifest: Manifest[T]): T = {
+  )(implicit manifest: Manifest[T]): T = {
     val storageNode = parseAndVerifyResponse[T](response)
     storageNode.id mustBe Some(StorageNodeId(expId))
     storageNode.storageType mustBe expStorageType
@@ -43,7 +41,6 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     parsed.get.asInstanceOf[T]
   }
 
-
   "Running the storage facility service" when {
     "interacting with the StorageUnitResource endpoints" should {
 
@@ -53,7 +50,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         response.status mustBe Status.CREATED
 
         val room = verifyNode[Room](
-          response, RoomType, "EllensPersonalRoom", 1, None
+          response, RoomType, "EllensPersonalRoom", 7, None
         )
         room mustBe a[Room]
         room.areaTo mustBe Some(21)
@@ -65,15 +62,50 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val report = wsUrl(KdReportUrl).get.futureValue
 
-        println(Json.prettyPrint(report.json))
+        (report.json \ "totalArea").as[Double] mustBe 41
+        (report.json \ "perimeterSecurity").as[Double] mustBe 41
+        (report.json \ "theftProtection").as[Double] mustBe 41
+        (report.json \ "fireProtection").as[Double] mustBe 0
+        (report.json \ "waterDamageAssessment").as[Double] mustBe 41
+        (report.json \ "routinesAndContingencyPlan").as[Double] mustBe 41
 
-        (report.json \ "totalArea").as[Int] mustBe 42
-        (report.json \ "perimeterSecurity").as[Int] mustBe 42
-        (report.json \ "theftProtection").as[Int] mustBe 42
-        (report.json \ "fireProtection").as[Int] mustBe 42
-        (report.json \ "waterDamageAssessment").as[Int] mustBe 0
-        (report.json \ "routinesAndContingencyPlan").as[Int] mustBe 0
+      }
+      "fail when try to get KdReport from a deleted room" in {
+        val json = roomJson("EllensPersonalRoom", None)
+        val response = wsUrl(StorageNodesUrl).post(json).futureValue
+        response.status mustBe Status.CREATED
 
+        val room1 = verifyNode[Room](
+          response, RoomType, "EllensPersonalRoom", 9, None
+        )
+        room1 mustBe a[Room]
+        room1.area mustBe Some(20.5)
+        room1.heightTo mustBe Some(2.6)
+        room1.id.get.underlying mustBe 9
+
+        val json1 = roomJson("EllensWorkOutRoom", None)
+        val response1 = wsUrl(StorageNodesUrl).post(json1).futureValue
+        response1.status mustBe Status.CREATED
+
+        val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl).get.futureValue
+
+        (reportAfterInsertsOfTwoRoom.json \ "totalArea").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "perimeterSecurity").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "theftProtection").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "fireProtection").as[Double] mustBe 0
+        (reportAfterInsertsOfTwoRoom.json \ "waterDamageAssessment").as[Double] mustBe 82
+        (reportAfterInsertsOfTwoRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
+
+        val roomId = room1.id.get
+        val deletedRoom = wsUrl(StorageNodeUrl(roomId)).delete().futureValue
+        val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl).get.futureValue
+
+        (reportAfterDeleteOfOneRoom.json \ "totalArea").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "perimeterSecurity").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "theftProtection").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "fireProtection").as[Double] mustBe 0
+        (reportAfterDeleteOfOneRoom.json \ "waterDamageAssessment").as[Double] mustBe 61.5
+        (reportAfterDeleteOfOneRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 61.5
       }
 
     }

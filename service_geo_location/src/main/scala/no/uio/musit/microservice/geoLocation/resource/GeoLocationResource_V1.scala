@@ -24,7 +24,9 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 
-class GeoLocationResource_V1 @Inject() (geoLocService: GeoLocationService) extends Controller {
+class GeoLocationResource_V1 @Inject() (
+    geoLocService: GeoLocationService
+) extends Controller {
 
   def searchExternal(search: Option[String]) = Action.async { request =>
     val expression = search.getOrElse("")

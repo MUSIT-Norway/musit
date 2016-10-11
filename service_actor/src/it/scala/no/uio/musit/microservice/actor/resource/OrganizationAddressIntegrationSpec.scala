@@ -15,8 +15,8 @@ import play.api.libs.ws.WSResponse
 import scala.concurrent.Future
 
 /**
-  * Created by sveigl on 20.09.16.
-  */
+ * Created by sveigl on 20.09.16.
+ */
 class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -96,7 +96,7 @@ class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite
 
     "not update address with illegal json" in {
       val reqBody = Json.toJson(
-        OrganizationAddress(Some(2), Some(1), "TEST", "Foo street 3", "Bar place", "0001", "Norway", 0.0, 0.0, None)
+        OrganizationAddress(Some(2), Some(1), "TEST", "Foo street 3", "Bar place", "0001", "Norway", 0.0, 0.0)
       )
       val response = wsUrl("/v1/organization/1/address/2").put(reqBody).futureValue
       val status = Json.parse(response.body).validate[MusitStatusMessage].get
@@ -109,6 +109,5 @@ class OrganizationAddressIntegrationSpec extends PlaySpec with OneServerPerSuite
       msm.message mustBe "Deleted 1 record(s)."
     }
   }
-
 
 }

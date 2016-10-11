@@ -19,10 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
-import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EventRoleObject
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
@@ -30,7 +31,7 @@ import scala.concurrent.Future
 @Singleton
 class EventObjectsDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
@@ -49,28 +50,48 @@ class EventObjectsDao @Inject() (
     db.run(query.result)
   }
 
+  def latestEventIdsForObject(
+    objectId: Long,
+    eventTypeId: EventTypeId,
+    limit: Option[Int] = None
+  ): Future[Seq[Long]] = {
+    val q = eventObjectsTable.filter { erp =>
+      erp.objectId === objectId && erp.eventTypeId === eventTypeId
+    }.sortBy(_.eventId.desc).map(_.eventId)
+
+    val query = limit.map {
+      case l: Int if l > 0 => q.take(l)
+      case l: Int if l == -1 => q
+      case l: Int => q.take(50)
+    }.getOrElse(q).result
+    db.run(query)
+  }
+
   private class EventObjectsTable(
       tag: Tag
   ) extends Table[EventRoleObject](tag, SchemaName, "EVENT_ROLE_OBJECT") {
 
-    def * = (eventId.?, roleId, objectId) <> (create.tupled, destroy) // scalastyle:ignore
+    def * = (eventId.?, roleId, objectId, eventTypeId) <> (create.tupled, destroy) // scalastyle:ignore
 
     val eventId = column[Long]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
     val objectId = column[Long]("OBJECT_ID")
+    val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
 
-    def create = (eventId: Option[Long], roleId: Int, objectId: Long) =>
+    def create = (eventId: Option[Long], roleId: Int, objectId: Long, eventTypeId: EventTypeId) =>
       EventRoleObject(
         eventId = eventId,
         roleId = roleId,
-        objectId = objectId
+        objectId = objectId,
+        eventTypeId = eventTypeId
       )
 
     def destroy(eventRoleObject: EventRoleObject) =
       Some((
         eventRoleObject.eventId,
         eventRoleObject.roleId,
-        eventRoleObject.objectId
+        eventRoleObject.objectId,
+        eventRoleObject.eventTypeId
       ))
   }
 

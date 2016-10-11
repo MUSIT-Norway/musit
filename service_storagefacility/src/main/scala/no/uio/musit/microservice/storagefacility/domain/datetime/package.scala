@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain
 
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
 
 package object datetime {
 

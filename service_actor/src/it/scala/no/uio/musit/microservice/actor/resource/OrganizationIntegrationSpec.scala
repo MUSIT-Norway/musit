@@ -16,20 +16,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
-  * Created by sveigl on 20.09.16.
-  */
+ * Created by sveigl on 20.09.16.
+ */
 class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
-
-  val timeout = PlayTestDefaults.timeout
-
-  override lazy val port: Int = 19009
-
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
+
+  override lazy val port: Int = 19009
+
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   def postOrganization(json: JsValue): Future[WSResponse] = {
     wsUrl("/v1/organization").post(json)
@@ -39,7 +37,7 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
     wsUrl(s"/v1/organization/$id").put(json)
   }
 
-  def deleteOrganization(id: Long) :Future[WSResponse] = {
+  def deleteOrganization(id: Long): Future[WSResponse] = {
     wsUrl(s"/v1/organization/$id").delete
   }
 
@@ -75,7 +73,7 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
 
     "successfully search for organization" in {
       val future = wsUrl("/v1/organization?search=[KHM]").get()
-      whenReady(future, timeout) { response =>
+      whenReady(future) { response =>
         val orgs = Json.parse(response.body).validate[Seq[Organization]].get
         orgs.length mustBe 1
         orgs.head.fn mustBe "Kulturhistorisk museum - Universitetet i Oslo"
@@ -100,15 +98,14 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       response.status mustBe Status.BAD_REQUEST
     }
 
-
     "successfully update organization" in {
       val crJson = organisationJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
       val crResponse = postOrganization(crJson).futureValue
       crResponse.status mustBe Status.CREATED
       val crOrg = Json.parse(crResponse.body).validate[Organization].get
 
-      val updJson = organisationJson(Some(crOrg .id.get),"Foo Barcode 123", "FB 123", "12345123", "http://www.foo123.bar")
-      val response = putOrganization(crOrg .id.get, updJson).futureValue
+      val updJson = organisationJson(Some(crOrg.id.get), "Foo Barcode 123", "FB 123", "12345123", "http://www.foo123.bar")
+      val response = putOrganization(crOrg.id.get, updJson).futureValue
       response.status mustBe Status.OK
 
       val updOrg = getOrganization(crOrg.id.get).futureValue
@@ -116,11 +113,11 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       message.message mustBe "Record was updated!"
 
       val updOrgJson = Json.toJson(updOrg).as[JsObject]
-      
+
       updJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet).size mustBe 0
       assert(crJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet).size > 0)
 
-      updOrg.id mustBe Some(crOrg .id.get)
+      updOrg.id mustBe Some(crOrg.id.get)
       updOrg.fn mustBe "Foo Barcode 123"
       updOrg.nickname mustBe "FB 123"
       updOrg.tel mustBe "12345123"
@@ -143,7 +140,6 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       val response = putOrganization(999999, updJson).futureValue
       response.status mustBe Status.BAD_REQUEST
     }
-
 
     "successfully delete organization" in {
       val crJson = organisationJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com")

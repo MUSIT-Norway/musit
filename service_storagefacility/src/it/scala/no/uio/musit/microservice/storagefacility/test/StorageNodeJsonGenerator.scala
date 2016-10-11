@@ -100,9 +100,9 @@ object StorageNodeJsonGenerator {
           |  "securityAssessment" : {
           |    "perimeter" : true,
           |    "theftProtection" : true,
-          |    "fireProtection" : true,
-          |    "waterDamage" : false,
-          |    "routinesAndContingencyPlan" : false
+          |    "fireProtection" : false,
+          |    "waterDamage" : true,
+          |    "routinesAndContingencyPlan" : true
           |  },
           |  "environmentAssessment" : {
           |    "relativeHumidity" : true,
@@ -134,6 +134,5 @@ object StorageNodeJsonGenerator {
        """.stripMargin
     )
   }
-
 
 }

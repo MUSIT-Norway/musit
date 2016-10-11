@@ -19,9 +19,10 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -45,21 +46,37 @@ class StorageUnitDao @Inject() (
   val logger = Logger(classOf[StorageUnitDao])
 
   /**
-   * TODO: Document me!!!
+   * Check to see if the node with the provided StorageNodeId exists or not.
+   *
+   * @param id
+   * @return
    */
-  def getById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getUnitByIdAction(id)
-    db.run(query).map { dto =>
-      dto.map(unitDto => StorageNodeDto.toStorageUnit(unitDto))
+  def exists(id: StorageNodeId): Future[MusitResult[Boolean]] = {
+    val query = storageNodeTable.filter { su =>
+      su.id === id && su.isDeleted === false
+    }.exists.result
+
+    db.run(query).map(found => MusitSuccess(found)).recover {
+      case NonFatal(ex) =>
+        logger.error("Non fatal exception when checking for node existence", ex)
+        MusitDbError("Checking if node exists caused an exception", Option(ex))
     }
   }
 
   /**
    * TODO: Document me!!!
    */
-  def getNodeById(id: StorageNodeId): Future[Option[StorageUnit]] = {
+  def getById(id: StorageNodeId): Future[Option[StorageUnit]] = {
     val query = getUnitByIdAction(id)
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
+  }
+
+  /**
+   * TODO: Document me!!!
+   */
+  def getNodeById(id: StorageNodeId): Future[Option[GenericStorageNode]] = {
+    val query = getNodeByIdAction(id)
+    db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
   }
 
   /**
@@ -78,10 +95,30 @@ class StorageUnitDao @Inject() (
   }
 
   /**
+   * find the Root node with the given StorageNodeId.
+   *
+   * @param id StorageNodeId for the Root node.
+   * @return An Option that contains the Root node if it was found.
+   */
+  def findRootNode(id: StorageNodeId): Future[MusitResult[Option[Root]]] = {
+    val query = storageNodeTable.filter { root =>
+      root.id === id &&
+        root.isDeleted === false &&
+        root.storageType === rootNodeType
+    }.result.headOption
+
+    db.run(query).map { dto =>
+      MusitSuccess(dto.map(n => Root(id = n.id, path = n.path)))
+    }
+  }
+
+  /**
    * TODO: Document me!!!
    */
   def getChildren(id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
-    val query = storageNodeTable.filter(_.isPartOf === id).result
+    val query = storageNodeTable.filter { node =>
+      node.isPartOf === id && node.isDeleted === false
+    }.result
     db.run(query).map { dtos =>
       dtos.map { dto =>
         StorageNodeDto.toGenericStorageNode(dto)
@@ -94,7 +131,9 @@ class StorageUnitDao @Inject() (
    */
   def getStorageType(id: StorageNodeId): Future[MusitResult[Option[StorageType]]] = {
     db.run(
-      storageNodeTable.filter(_.id === id).map(_.storageType).result.headOption
+      storageNodeTable.filter { node =>
+      node.id === id && node.isDeleted === false
+    }.map(_.storageType).result.headOption
     ).map { maybeStorageType =>
       MusitSuccess(maybeStorageType)
     }
@@ -103,17 +142,85 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(storageUnit: StorageUnit): Future[StorageUnit] = {
+  def insert(storageUnit: StorageUnit): Future[StorageNodeId] = {
     val dto = StorageNodeDto.fromStorageUnit(storageUnit)
-    db.run(insertNodeAction(dto)).map(StorageNodeDto.toStorageUnit)
+    db.run(insertNodeAction(dto))
   }
 
-  def insertRoot(root: Root): Future[Root] = {
+  /**
+   * TODO: Document me!!!
+   */
+  def insertRoot(root: Root): Future[StorageNodeId] = {
     logger.debug("Inserting root node...")
     val dto = StorageNodeDto.fromRoot(root).asStorageUnit
-    db.run(insertNodeAction(dto)).map { sudto =>
-      logger.debug(s"Inserted root node with ID ${sudto.id}")
-      Root(sudto.id)
+    db.run(insertNodeAction(dto))
+  }
+
+  /**
+   * Set the path for the Root with the given StorageNodeId.
+   *
+   * @param id   StorageNodeId of the Root node.
+   * @param path NodePath to set
+   * @return An Option containing the updated Root node.
+   */
+  def setRootPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+    logger.debug(s"Updating path to $path for root node $id")
+    db.run(updatePathAction(id, path)).map {
+      case res: Int if res == 1 =>
+        MusitSuccess(())
+
+      case res: Int =>
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
+    }
+  }
+
+  /**
+   * Updates the path for all nodes that starts with the "oldPath".
+   *
+   * @param id   the StorageNodeId to update
+   * @param path the NodePath to set
+   * @return MusitResult[Unit]
+   */
+  def setPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+    db.run(updatePathAction(id, path)).map {
+      case res: Int if res == 1 => MusitSuccess(())
+
+      case res: Int =>
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
+    }
+  }
+
+  /**
+   * Updates all paths for the subtree of the given StorageNodeId
+   *
+   * @param id      StorageNodeId
+   * @param oldPath NodePath representing the old path
+   * @param newPath NodePath representing the new path
+   * @return The number of paths updated.
+   */
+  def updatePathForSubTree(
+    id: StorageNodeId,
+    oldPath: NodePath,
+    newPath: NodePath
+  ): Future[MusitResult[Int]] = {
+    db.run(updatePaths(oldPath, newPath)).map {
+      case res: Int if res != 0 =>
+        logger.debug(s"Successfully updated path for $res nodes")
+        MusitSuccess(res)
+      case _ =>
+        val msg = s"Did not update any paths starting with $oldPath"
+        logger.error(msg)
+        MusitInternalError(msg)
+
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"Unexpected error when updating paths for unit $id sub-tree"
+        logger.error(msg, ex)
+        MusitDbError(msg)
     }
   }
 
@@ -123,28 +230,26 @@ class StorageUnitDao @Inject() (
   def update(
     id: StorageNodeId,
     storageUnit: StorageUnit
-  ): Future[Option[StorageUnit]] = {
+  ): Future[MusitResult[Option[Int]]] = {
     val dto = StorageNodeDto.fromStorageUnit(storageUnit)
-    db.run(updateNodeAction(id, dto)).flatMap {
-      case res: Int if res == 1 =>
-        getById(id)
-
+    db.run(updateNodeAction(id, dto)).map {
+      case res: Int if res == 1 => MusitSuccess(Some(res))
+      case res: Int if res == 0 => MusitSuccess(None)
       case res: Int =>
-        logger.warn(s"Wrong amount of rows ($res) updated")
-        Future.successful(None)
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 
-  def nodeExists(id: StorageNodeId): Future[MusitResult[Boolean]] = {
-    val query = storageNodeTable.filter { su =>
-      su.id === id && su.isDeleted === false
-    }.exists.result
-
-    db.run(query).map(found => MusitSuccess(found)).recover {
-      case NonFatal(ex) =>
-        logger.error("Non fatal exception when checking for node existence", ex)
-        MusitDbError("Checking if node exists caused an exception", Option(ex))
-    }
+  /**
+   * Find and return the NodePath for the given StorageNodeId.
+   *
+   * @param id StorageNodeId to get the NodePath for
+   * @return NodePath
+   */
+  def getPathById(id: StorageNodeId): Future[Option[NodePath]] = {
+    db.run(getPathByIdAction(id))
   }
 
   /**
@@ -155,16 +260,20 @@ class StorageUnitDao @Inject() (
       su.id === id && su.isDeleted === false
     }.map(_.isDeleted).update(true)
 
-    db.run(query).map { res =>
-      if (res == 1) MusitSuccess(res)
-      else MusitValidationError(
-        message = s"Unexpected result marking storage node $id as deleted",
-        expected = 1,
-        actual = res
-      )
+    db.run(query).map {
+      case res: Int if res == 1 =>
+        MusitSuccess(res)
+
+      case res: Int =>
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 
+  /**
+   * TODO: Document me!!!
+   */
   def updatePartOf(
     id: StorageNodeId,
     partOf: Option[StorageNodeId]
@@ -182,6 +291,17 @@ class StorageUnitDao @Inject() (
         actual = res
       )
     }
+  }
+
+  /**
+   * Given the provided NodePath, fetch all the associated names for each of
+   * the ID's in the path.
+   *
+   * @param nodePath NodePath to find names for
+   * @return A Seq[NamedPathElement]
+   */
+  def namesForPath(nodePath: NodePath): Future[Seq[NamedPathElement]] = {
+    db.run(namesForPathAction(nodePath))
   }
 
 }

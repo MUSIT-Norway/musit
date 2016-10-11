@@ -1,91 +1,108 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.Inject
-import no.uio.musit.service.MusitResults.{ MusitDbError, MusitResult, MusitSuccess }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageType
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageType.RoomType
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
-class KdReportDao @Inject() (val dbConfigProvider: DatabaseConfigProvider) extends HasDatabaseConfigProvider[JdbcProfile] {
+class KdReportDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
+) extends SharedStorageTables {
 
   import driver.api._
 
+  private val roomType: StorageType = RoomType
+
   def getReportTotalArea: Future[MusitResult[Double]] = {
-    db.run(
-      sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node
-        WHERE storage_type = 'Room'
-      """.as[Double].head.map(MusitSuccess.apply)
-    ).recover {
-        case e: Exception => MusitDbError("Error occurred while retrieving objects", Some(e))
+
+    val query = storageNodeTable.filter(sn => sn.storageType === roomType && sn.isDeleted === false).map(_.area)
+
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover {
+        case NonFatal(e) =>
+          MusitDbError("Error occurred while retrieving objects", Some(e))
       }
   }
 
   def getAreaPerimeterSecurity: Future[MusitResult[Double]] = {
-    db.run(
-      sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
-        AND r.perimeter_security = 1
-      """.as[Double].head.map(MusitSuccess.apply)
-    ).recover {
-        case e: Exception => MusitDbError("Error occurred while retrieving areaPerimeterSecurity", Some(e))
+    val query = for {
+      sn <- storageNodeTable.filter(_.isDeleted === false)
+      r <- roomTable.filter(r => sn.id === r.id && r.perimeterSecurity === true)
+    } yield {
+      sn.area
+    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover {
+        case NonFatal(e) =>
+          MusitDbError("Error occurred while retrieving areaPerimeterSecurity", Some(e))
       }
   }
 
   def getAreaTheftProtection: Future[MusitResult[Double]] = {
-    db.run(
-      sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
-        AND r.theft_protection = 1
-      """.as[Double].head.map(MusitSuccess.apply)
-    ).recover {
-        case e: Exception => MusitDbError("Error occurred while retrieving AreaTheftProtection", Some(e))
+    val query = for {
+      sn <- storageNodeTable.filter(_.isDeleted === false)
+      r <- roomTable.filter(r => sn.id === r.id && r.theftProtection === true)
+    } yield {
+      sn.area
+    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover {
+        case NonFatal(e) =>
+          MusitDbError("Error occurred while retrieving AreaTheftProtection", Some(e))
       }
   }
 
   def getAreaFireProtectiony: Future[MusitResult[Double]] = {
-    db.run(
-      sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
-        AND r.fire_protection = 1
-      """.as[Double].head.map(MusitSuccess.apply)
-    ).recover {
-        case e: Exception => MusitDbError("Error occurred while retrieving AreaFireProtection", Some(e))
+    val query = for {
+      sn <- storageNodeTable.filter(_.isDeleted === false)
+      r <- roomTable.filter(r => sn.id === r.id && r.fireProtection === true)
+    } yield {
+      sn.area
+    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover {
+        case NonFatal(e) =>
+          MusitDbError("Error occurred while retrieving AreaFireProtection", Some(e))
       }
   }
 
   def getAreaWaterDamageAssessment: Future[MusitResult[Double]] = {
-    db.run(
-      sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE s.storage_node_id = r.storage_node_id
-        AND r.water_damage_assessment = 1
-      """.as[Double].head.map(MusitSuccess.apply)
-    ).recover {
-        case e: Exception => MusitDbError("Error occurred while retrieving areaWaterDamageAssessment", Some(e))
+    val query = for {
+      sn <- storageNodeTable.filter(_.isDeleted === false)
+      r <- roomTable.filter(r => sn.id === r.id && r.waterDamage === true)
+    } yield {
+      sn.area
+    }
+    val action = query.sum.result
+    db.run(action)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover {
+        case NonFatal(e) =>
+          MusitDbError("Error occurred while retrieving areaWaterDamageAssessment", Some(e))
       }
   }
 
   def getAreaRoutinesAndContingencyPlan: Future[MusitResult[Double]] = {
-    db.run(
-      sql"""
-        SELECT SUM(area_to)
-        FROM musark_storage.storage_node s, musark_storage.room r
-        WHERE  s.storage_node_id = r.storage_node_id
-        AND r.routines_and_contingency_plan = 1
-      """.as[Double].head.map(MusitSuccess.apply)
-    ).recover {
-        case e: Exception => MusitDbError("Error occurred while retrieving AreaRoutinesAndContingencyPlan", Some(e))
+    val query = for {
+      sn <- storageNodeTable.filter(_.isDeleted === false)
+      r <- roomTable.filter(r => sn.id === r.id && r.routinesAndContingency === true)
+    } yield {
+      sn.area
+    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover {
+        case NonFatal(e) =>
+          MusitDbError("Error occurred while retrieving AreaRoutinesAndContingencyPlan", Some(e))
       }
   }
 

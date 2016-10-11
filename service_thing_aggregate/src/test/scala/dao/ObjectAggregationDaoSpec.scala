@@ -20,9 +20,9 @@
 package dao
 
 import no.uio.musit.service.MusitResults.MusitSuccess
-import models.{ MuseumIdentifier, ObjectId }
+import models.{MuseumIdentifier, ObjectId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Logger
 
 class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
@@ -56,7 +56,8 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
                 third.identifier mustBe MuseumIdentifier("C666", Some("38"))
                 third.displayName mustBe Some("Sommerfugl")
             }
-          case _ =>
+          case other =>
+            println(other)
             Logger.error("something went wrong")
             fail("This went TOTALLY off the road")
         }

@@ -23,13 +23,13 @@
 package no.uio.musit.security
 
 import no.uio.musit.microservices.common.domain.MusitError
-import no.uio.musit.microservices.common.extensions.FutureExtensions.{ MusitFuture, _ }
+import no.uio.musit.microservices.common.extensions.FutureExtensions.{MusitFuture, _}
 import no.uio.musit.microservices.common.extensions.PlayExtensions._
 import play.api.mvc.Request
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 /**
  * Created by jstabel on 4/15/16.

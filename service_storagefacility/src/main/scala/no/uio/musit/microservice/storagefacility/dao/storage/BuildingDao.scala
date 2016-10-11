@@ -19,10 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
-import com.google.inject.{ Inject, Singleton }
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ BuildingDto, ExtendedStorageNode, StorageNodeDto }
+import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -41,8 +42,6 @@ class BuildingDao @Inject() (
   import driver.api._
 
   val logger = Logger(classOf[BuildingDao])
-
-  private val buildingTable = TableQuery[BuildingTable]
 
   private def updateAction(id: StorageNodeId, building: BuildingDto): DBIO[Int] = {
     buildingTable.filter(_.id === id).update(building)
@@ -73,62 +72,62 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, building: Building): Future[Option[Building]] = {
+  def update(id: StorageNodeId, building: Building): Future[MusitResult[Option[Int]]] = {
     val extendedBuildingDto = StorageNodeDto.fromBuilding(building, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, extendedBuildingDto.storageUnitDto)
       buildingsUpdated <- updateAction(id, extendedBuildingDto.extension)
     } yield buildingsUpdated
 
-    db.run(action.transactionally).flatMap {
-      case res: Int if res == 1 =>
-        getById(id)
-
+    db.run(action.transactionally).map {
+      case res: Int if res == 1 => MusitSuccess(Some(res))
+      case res: Int if res == 0 => MusitSuccess(None)
       case res: Int =>
-        logger.warn("Wrong amount of rows updated")
-        Future.successful(None)
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
+
     }.recover {
       case NonFatal(ex) =>
+        val msg = s"There was an error updating building $id"
         logger.debug(s"Using $id, building has ID ${building.id}")
-        logger.error(s"There was an error updating building $id", ex)
-        None
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  /**
+   * Updates the path for the given StoragNodeId
+   *
+   * @param id   the StorageNodeId to update
+   * @param path the NodePath to set
+   * @return MusitResult[Unit]
+   */
+  def setPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+    db.run(updatePathAction(id, path)).map {
+      case res: Int if res == 1 => MusitSuccess(())
+
+      case res: Int =>
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 
   /**
    * TODO: Document me!!!
    */
-  def insert(building: Building): Future[Building] = {
+  def insert(building: Building): Future[StorageNodeId] = {
     val extendedDto = StorageNodeDto.fromBuilding(building)
     val query = for {
-      storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
-      extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
+      nodeId <- insertNodeAction(extendedDto.storageUnitDto)
+      extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
       n <- insertAction(extWithId)
     } yield {
-      val extNode = ExtendedStorageNode(storageUnit, extWithId)
-      StorageNodeDto.toBuilding(extNode)
+      nodeId
     }
 
     db.run(query.transactionally)
-  }
-
-  private class BuildingTable(
-      val tag: Tag
-  ) extends Table[BuildingDto](tag, SchemaName, "BUILDING") {
-
-    def * = (id.?, address) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey)
-    val address = column[Option[String]]("POSTAL_ADDRESS")
-
-    def create = (id: Option[StorageNodeId], address: Option[String]) =>
-      BuildingDto(
-        id = id,
-        address = address
-      )
-
-    def destroy(building: BuildingDto) =
-      Some((building.id, building.address))
   }
 
 }
