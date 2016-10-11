@@ -20,16 +20,14 @@ import scala.concurrent.Future
  */
 class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
 
-  val timeout = PlayTestDefaults.timeout
-
-  override lazy val port: Int = 19009
-
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
-
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
+
+  override lazy val port: Int = 19009
+
+  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   def postOrganization(json: JsValue): Future[WSResponse] = {
     wsUrl("/v1/organization").post(json)
@@ -75,7 +73,7 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
 
     "successfully search for organization" in {
       val future = wsUrl("/v1/organization?museumId=0&search=[KHM]").get()
-      whenReady(future, timeout) { response =>
+      whenReady(future) { response =>
         val orgs = Json.parse(response.body).validate[Seq[Organization]].get
         orgs.length mustBe 1
         orgs.head.fn mustBe "Kulturhistorisk museum - Universitetet i Oslo"

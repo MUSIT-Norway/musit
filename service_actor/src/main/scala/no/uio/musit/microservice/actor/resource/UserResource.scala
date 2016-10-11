@@ -8,6 +8,7 @@ import no.uio.musit.microservices.common.utils.ResourceHelper
 import no.uio.musit.security.Security
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
  * Created by jarle on 13.09.16.

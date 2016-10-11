@@ -20,11 +20,10 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{ExtendedStorageNode, OrganisationDto, StorageNodeDto}
-import no.uio.musit.service.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -42,8 +41,6 @@ class OrganisationDao @Inject() (
   import driver.api._
 
   val logger = Logger(classOf[OrganisationDao])
-
-  private val organisationTable = TableQuery[OrganisationTable]
 
   private def updateAction(id: StorageNodeId, org: OrganisationDto): DBIO[Int] = {
     organisationTable.filter { ot =>
@@ -76,26 +73,30 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, organisation: Organisation): Future[Option[Organisation]] = {
+  def update(
+    id: StorageNodeId,
+    organisation: Organisation
+  ): Future[MusitResult[Option[Int]]] = {
     val extendedOrgDto = StorageNodeDto.fromOrganisation(organisation, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(id, extendedOrgDto.storageUnitDto)
       orgsUpdated <- updateAction(id, extendedOrgDto.extension)
     } yield orgsUpdated
 
-    db.run(action.transactionally).flatMap {
-      case res: Int if res == 1 =>
-        getById(id)
-
+    db.run(action.transactionally).map {
+      case res: Int if res == 1 => MusitSuccess(Some(res))
+      case res: Int if res == 0 => MusitSuccess(None)
       case res: Int =>
-        logger.warn(s"Wrong amount of rows ($res) updated")
-        Future.successful(None)
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 
   /**
    * Updates the path for the given StoragNodeId
-   * @param id the StorageNodeId to update
+   *
+   * @param id   the StorageNodeId to update
    * @param path the NodePath to set
    * @return MusitResult[Unit]
    */
@@ -104,46 +105,26 @@ class OrganisationDao @Inject() (
       case res: Int if res == 1 => MusitSuccess(())
 
       case res: Int =>
-        val msg = s"Wrong amount of rows ($res) updated"
+        val msg = wrongNumUpdatedRows(id, res)
         logger.warn(msg)
-        MusitInternalError(msg)
+        MusitDbError(msg)
     }
   }
 
   /**
    * TODO: Document me!!!
    */
-  def insert(organisation: Organisation): Future[Organisation] = {
+  def insert(organisation: Organisation): Future[StorageNodeId] = {
     val extendedDto = StorageNodeDto.fromOrganisation(organisation)
     val query = for {
-      storageUnit <- insertNodeAction(extendedDto.storageUnitDto)
-      extWithId <- DBIO.successful(extendedDto.extension.copy(id = storageUnit.id))
+      nodeId <- insertNodeAction(extendedDto.storageUnitDto)
+      extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
       n <- insertAction(extWithId)
     } yield {
-      val extNode = ExtendedStorageNode(storageUnit, extWithId)
-      StorageNodeDto.toOrganisation(extNode)
+      nodeId
     }
 
     db.run(query.transactionally)
-  }
-
-  private class OrganisationTable(
-      val tag: Tag
-  ) extends Table[OrganisationDto](tag, SchemaName, "ORGANISATION") {
-
-    def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
-    val address = column[Option[String]]("POSTAL_ADDRESS")
-
-    def create = (id: Option[StorageNodeId], address: Option[String]) =>
-      OrganisationDto(
-        id = id,
-        address = address
-      )
-
-    def destroy(organisation: OrganisationDto) =
-      Some((organisation.id, organisation.address))
   }
 
 }

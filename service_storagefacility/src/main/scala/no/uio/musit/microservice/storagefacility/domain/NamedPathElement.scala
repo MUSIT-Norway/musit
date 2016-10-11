@@ -17,11 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservices.common.domain
+package no.uio.musit.microservice.storagefacility.domain
+
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import play.api.libs.json.{Format, Json}
 
 /**
- * Created by ellenjo on 4/8/16.
+ * A NodePath contains a comma separated String of StorageNodeId (or Long)
+ * values, each of these ID's can be represented as a NamedPathElement.
+ *
+ * @param nodeId StorageNodeId of the named path element
+ * @param name String containing the name value of the StorageNode.
  */
-trait BaseMusitDomain {
-  val id: Option[Long]
+case class NamedPathElement(nodeId: StorageNodeId, name: String)
+
+object NamedPathElement {
+
+  implicit val formats: Format[NamedPathElement] = Json.format[NamedPathElement]
+
 }

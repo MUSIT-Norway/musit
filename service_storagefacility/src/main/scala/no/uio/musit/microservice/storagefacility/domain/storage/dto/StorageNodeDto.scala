@@ -129,7 +129,7 @@ object StorageNodeDto {
       isPartOf = su.isPartOf,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
-      path = Option(su.path),
+      path = su.path,
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       storageType = su.storageType
     )
@@ -150,7 +150,7 @@ object StorageNodeDto {
       isPartOf = su.isPartOf,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
-      path = Option(su.path),
+      path = su.path,
       environmentRequirement = None // EnvRequirement is handled elsewhere
     )
 
@@ -165,7 +165,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      path = Option(ext.storageUnitDto.path),
+      path = ext.storageUnitDto.path,
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       address = ext.extension.address
     )
@@ -182,7 +182,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      path = Option(ext.storageUnitDto.path),
+      path = ext.storageUnitDto.path,
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       address = ext.extension.address
     )
@@ -199,7 +199,7 @@ object StorageNodeDto {
       isPartOf = ext.storageUnitDto.isPartOf,
       groupRead = ext.storageUnitDto.groupRead,
       groupWrite = ext.storageUnitDto.groupWrite,
-      path = Option(ext.storageUnitDto.path),
+      path = ext.storageUnitDto.path,
       environmentRequirement = None, // EnvRequirement is handled elsewhere
       securityAssessment = SecurityAssessment(
         perimeter = ext.extension.perimeterSecurity,
@@ -238,7 +238,7 @@ object StorageNodeDto {
       heightTo = su.heightTo,
       groupRead = su.groupRead,
       groupWrite = su.groupWrite,
-      path = su.path.getOrElse(NodePath.empty),
+      path = su.path,
       isDeleted = Some(false),
       storageType = su.storageType
     )
@@ -258,7 +258,7 @@ object StorageNodeDto {
         heightTo = b.heightTo,
         groupRead = b.groupRead,
         groupWrite = b.groupWrite,
-        path = b.path.getOrElse(NodePath.empty),
+        path = b.path,
         isDeleted = Some(false),
         storageType = b.storageType
       ),
@@ -283,7 +283,7 @@ object StorageNodeDto {
         heightTo = o.heightTo,
         groupRead = o.groupRead,
         groupWrite = o.groupWrite,
-        path = o.path.getOrElse(NodePath.empty),
+        path = o.path,
         isDeleted = Some(false),
         storageType = o.storageType
       ),
@@ -308,7 +308,7 @@ object StorageNodeDto {
         heightTo = r.heightTo,
         groupRead = r.groupRead,
         groupWrite = r.groupWrite,
-        path = r.path.getOrElse(NodePath.empty),
+        path = r.path,
         isDeleted = Some(false),
         storageType = r.storageType
       ),

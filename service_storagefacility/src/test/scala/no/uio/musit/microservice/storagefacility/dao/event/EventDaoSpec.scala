@@ -23,6 +23,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.testhelpers._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors._
@@ -83,7 +84,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
     "processing observations" should {
       "succeed when inserting an observation" in {
-        val obs = createObservation(defaultBuilding.id)
+        val obs = createObservation(defaultStorageUnit.id)
         val eventId = addObservation(obs).futureValue
 
         latestEventId = eventId
@@ -92,7 +93,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       }
 
       "return the Observation associated with the provided Id" in {
-        val obs = createObservation(defaultBuilding.id)
+        val obs = createObservation(defaultStorageUnit.id)
         val obsId = addObservation(obs).futureValue
         val res = eventDao.getEvent(latestEventId).futureValue
 
@@ -161,7 +162,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val moveObj = MoveObject(
           baseEvent = createBase("This is a note on moving an object"),
           eventType = EventType.fromEventTypeId(MoveObjectType.id),
-          to = PlaceRole(1, 1)
+          from = Some(StorageNodeId(1)),
+          to = StorageNodeId(2)
         )
         val dto = DtoConverters.MoveConverters.moveObjectToDto(moveObj)
         val eventId = eventDao.insertEvent(dto).futureValue
@@ -187,15 +189,17 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         br.eventTypeId mustBe MoveObjectType.id
         baseRoleActor mustBe defaultActorRole
-        baseRolePlace mustBe PlaceRole(1, 1)
         baseRoleObj mustBe ObjectRole(1, 1)
+        baseRolePlace mustBe PlaceRole(1, 2)
+        br.valueLong mustBe Some(1L)
       }
 
       "succeed when moving a storage node" in {
         val moveNode = MoveNode(
           baseEvent = createBase("This is a note on moving a Node"),
           eventType = EventType.fromEventTypeId(MoveNodeType.id),
-          to = PlaceRole(1, 1)
+          from = Some(StorageNodeId(1)),
+          to = StorageNodeId(2)
         )
 
         val dto = DtoConverters.MoveConverters.moveNodeToDto(moveNode)
@@ -223,8 +227,9 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         br.eventTypeId mustBe MoveNodeType.id
         baseRoleActor mustBe defaultActorRole
-        baseRolePlace mustBe PlaceRole(1, 1)
+        baseRolePlace mustBe PlaceRole(1, 2)
         baseRoleObj mustBe ObjectRole(1, 1)
+        br.valueLong mustBe Some(1L)
       }
 
     }
