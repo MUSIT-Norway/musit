@@ -2,7 +2,7 @@ package dao
 
 import com.google.inject.Inject
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import models.{ MuseumId, MuseumIdentifier, ObjectAggregation, ObjectId }
+import models.{MuseumId, MuseumIdentifier, ObjectAggregation, ObjectId}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -24,8 +24,8 @@ class ObjectAggregationDao @Inject() (
       ObjectAggregation(ObjectId(r.nextLong), MuseumIdentifier.fromSqlString(r.nextString), r.nextStringOption))
     db.run(
       sql"""
-         select "VIEW_MUSITTHING"."ID", "VIEW_MUSITTHING"."DISPLAYID", "VIEW_MUSITTHING"."DISPLAYNAME"
-         from "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
+         SELECT "VIEW_MUSITTHING"."ID", "VIEW_MUSITTHING"."DISPLAYID", "VIEW_MUSITTHING"."DISPLAYNAME"
+         FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
          WHERE "LOCAL_OBJECT"."MUSEUM_ID" = ${mid.underlying}
          AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = $nodeId
          AND "LOCAL_OBJECT"."OBJECT_ID" = "ID";

@@ -6,7 +6,7 @@ case class MuseumIdentifier(museumNo: String, subNo: Option[String])
 
 object MuseumIdentifier {
   def fromSqlString(displayId: String): MuseumIdentifier =
-    displayId.split("/",2) match {
+    displayId.split("/", 2) match {
       case Array(museumNo, subNo) =>
         MuseumIdentifier(museumNo, Some(subNo))
       case Array(museumNo) =>
