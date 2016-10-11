@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storagefacility.service
 
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.report.KdReport
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -15,15 +16,17 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   val service: StorageNodeService = fromInstanceCache[StorageNodeService]
   val reportService: KdReportService = fromInstanceCache[KdReportService]
 
+  val mid = MuseumId(5)
+
   "successfully get a report on storageNode Room" in {
     val room = createRoomWithDifferentArea(1, perimeter = true, theftProtection = true, fireProtection = true)
     val c = createRoomWithDifferentArea(7.5, perimeter = true, routinesAndContingencyPlan = true)
     val c1 = createRoomWithDifferentArea(50.3, theftProtection = true, waterDamage = true, routinesAndContingencyPlan = true)
-    service.addRoom(room)("dummyUser").futureValue
-    service.addRoom(c)("dummyUser").futureValue
-    service.addRoom(c1)("dummyUser").futureValue
+    service.addRoom(mid, room)("dummyUser").futureValue
+    service.addRoom(mid, c)("dummyUser").futureValue
+    service.addRoom(mid, c1)("dummyUser").futureValue
 
-    val report = reportService.getReport.futureValue
+    val report = reportService.getReport(mid).futureValue
     report.isSuccess mustBe true
     val reportRes = report.get
 
@@ -38,15 +41,15 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     reportRes mustBe reportfasit
   }
 
-  "fail wh get a report on storageNode Room" in {
+  "fail when getting a report on storageNode Room" in {
     val room = createRoomWithDifferentArea(1, perimeter = true, theftProtection = true, fireProtection = true)
     val c = createRoomWithDifferentArea(7.5, perimeter = true, routinesAndContingencyPlan = true)
     val c1 = createRoomWithDifferentArea(50.3, theftProtection = true, waterDamage = true, routinesAndContingencyPlan = true)
-    service.addRoom(room)("dummyUser").futureValue
-    val myRoom = service.addRoom(c)("dummyUser").futureValue
-    service.addRoom(c1)("dummyUser").futureValue
+    service.addRoom(mid, room)("dummyUser").futureValue
+    val myRoom = service.addRoom(mid, c)("dummyUser").futureValue
+    service.addRoom(mid, c1)("dummyUser").futureValue
 
-    val report = reportService.getReport.futureValue
+    val report = reportService.getReport(mid).futureValue
     report.isSuccess mustBe true
     val reportRes = report.get
 
@@ -62,9 +65,9 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
     val cId = myRoom.get.get.id.get
 
-    val res = service.deleteNode(cId)("dummyUser").futureValue
+    val res = service.deleteNode(mid, cId)("dummyUser").futureValue
     res.isSuccess mustBe true
-    val reportAfterDelete = reportService.getReport.futureValue
+    val reportAfterDelete = reportService.getReport(mid).futureValue
     reportAfterDelete.isSuccess mustBe true
     val reportAfterDeleteRes = reportAfterDelete.get
 
