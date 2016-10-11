@@ -28,7 +28,7 @@ class MuseumIdentifierSpec extends PlaySpec {
         val sqlString = "CH3456/"
         val ident = MuseumIdentifier.fromSqlString(sqlString)
         ident.museumNo mustBe "CH3456"
-        ident.subNo mustBe None
+        ident.subNo mustBe Some("")
       }
       "should get MuseumIdentifier with only museumNo and no slash" in {
         val sqlString = "CH3456"
@@ -36,11 +36,17 @@ class MuseumIdentifierSpec extends PlaySpec {
         ident.museumNo mustBe "CH3456"
         ident.subNo mustBe None
       }
-      "should get MuseumIdentifier with museumNo and subNo" in {
-        val sqlString = "CH3456/AB34"
+      "should get MuseumIdentifier with museumNo with subNo and subSubNo" in {
+        val sqlString = "CH3456/33/AB34"
         val ident = MuseumIdentifier.fromSqlString(sqlString)
         ident.museumNo mustBe "CH3456"
-        ident.subNo mustBe Some("AB34")
+        ident.subNo mustBe Some("33/AB34")
+      }
+      "should get MuseumIdentifier with museumNo and subNo (with wrong subNo)" in {
+        val sqlString = "CH3456//AB34"
+        val ident = MuseumIdentifier.fromSqlString(sqlString)
+        ident.museumNo mustBe "CH3456"
+        ident.subNo mustBe Some("/AB34")
       }
     }
   }
