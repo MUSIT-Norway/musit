@@ -41,8 +41,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     Try {
       import StorageNodeJsonGenerator._
       // Initialise some storage units...
-      wsUrl(StorageNodesUrl).post(organisationJson("Foo")).futureValue
-      wsUrl(StorageNodesUrl).post(buildingJson("Bar", StorageNodeId(1))).futureValue
+      val mid = 2
+      wsUrl(StorageNodesUrl(mid)).post(organisationJson("Foo")).futureValue
+      wsUrl(StorageNodesUrl(mid)).post(buildingJson("Bar", StorageNodeId(1))).futureValue
       println("Done populating") // scalastyle:ignore
     }.recover {
       case t: Throwable =>
@@ -53,8 +54,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   "The storage facility event service" should {
 
     "successfully register a new control" in {
+      val mid = 2
       val json = Json.parse(EventJsonGenerator.controlJson(20))
-      val res = wsUrl(ControlsUrl(2)).post(json).futureValue
+      val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
 
       res.status mustBe Status.CREATED
       val maybeCtrlId = (res.json \ "id").asOpt[Long]
@@ -63,8 +65,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "get a specific control for a node" in {
+      val mid = 2
       val ctrlId = 2
-      val res = wsUrl(s"${ControlsUrl(2)}/$ctrlId").get().futureValue
+      val res = wsUrl(s"${ControlsUrl(mid, 2)}/$ctrlId").get().futureValue
 
       res.status mustBe Status.OK
 
@@ -77,16 +80,18 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully register another control" in {
+      val mid = 2
       val json = Json.parse(EventJsonGenerator.controlJson(22))
-      val res = wsUrl(ControlsUrl(2)).post(json).futureValue
+      val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
 
       res.status mustBe Status.CREATED
       (res.json \ "id").asOpt[Long] must not be None
     }
 
     "successfully register a new observation" in {
+      val mid = 2
       val json = Json.parse(EventJsonGenerator.observationJson(22))
-      val res = wsUrl(ObservationsUrl(2)).post(json).futureValue
+      val res = wsUrl(ObservationsUrl(mid, 2)).post(json).futureValue
 
       res.status mustBe Status.CREATED
       val obsId = (res.json \ "id").asOpt[Long]
@@ -98,8 +103,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully register another observation" in {
+      val mid = 2
       val json = Json.parse(EventJsonGenerator.observationJson(22))
-      val res = wsUrl(ObservationsUrl(2)).post(json).futureValue
+      val res = wsUrl(ObservationsUrl(mid, 2)).post(json).futureValue
 
       res.status mustBe Status.CREATED
       val obsId = (res.json \ "id").asOpt[Long]
@@ -108,7 +114,8 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "list all controls and observations for a node, ordered by doneDate" in {
       // TODO: Update this test once observations are created in above tests
-      val res = wsUrl(CtrlObsForNodeUrl(2)).get().futureValue
+      val mid = 2
+      val res = wsUrl(CtrlObsForNodeUrl(mid, 2)).get().futureValue
 
       res.status mustBe Status.OK
       res.json.as[JsArray].value.size mustBe 4
@@ -120,8 +127,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   }
 
   "return the last environment requirement event for the node" in {
+    val mid = 2
     val nodeJson = StorageNodeJsonGenerator.roomJson("test")
-    val res = wsUrl(StorageNodesUrl).post(nodeJson).futureValue
+    val res = wsUrl(StorageNodesUrl(mid)).post(nodeJson).futureValue
 
     res.status mustBe Status.CREATED
     val maybeNodeId = (res.json \ "id").asOpt[Long]
@@ -130,11 +138,11 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     maybeNodeId.foreach(nodeId => {
       val jsonControl = Json.parse(EventJsonGenerator.controlJson(20))
-      val resCtrl = wsUrl(ControlsUrl(nodeId)).post(jsonControl).futureValue
+      val resCtrl = wsUrl(ControlsUrl(mid, nodeId)).post(jsonControl).futureValue
 
       resCtrl.status mustBe Status.CREATED
 
-      val resNode = wsUrl(StorageNodeUrl(nodeId)).get().futureValue
+      val resNode = wsUrl(StorageNodeUrl(mid, nodeId)).get().futureValue
 
       val maybeEnvData = (resNode.json \ "environmentRequirement").asOpt[EnvironmentRequirement]
 

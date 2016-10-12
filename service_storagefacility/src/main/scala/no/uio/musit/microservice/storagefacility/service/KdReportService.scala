@@ -2,6 +2,7 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.storage.KdReportDao
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.report.KdReport
 import no.uio.musit.service.MusitResults.MusitResult
 
@@ -38,13 +39,13 @@ class KdReportService @Inject() (val kdReportDao: KdReportDao) {
     )
   }
 
-  def getReport: Future[MusitResult[KdReport]] = {
-    val futTotArea = kdReportDao.getReportTotalArea
-    val futAreaPerimeter = kdReportDao.getAreaPerimeterSecurity
-    val futAreaTheft = kdReportDao.getAreaTheftProtection
-    val futAreaFire = kdReportDao.getAreaFireProtectiony
-    val futAreaWaterDamage = kdReportDao.getAreaWaterDamageAssessment
-    val futAreaContingency = kdReportDao.getAreaRoutinesAndContingencyPlan
+  def getReport(mid: MuseumId): Future[MusitResult[KdReport]] = {
+    val futTotArea = kdReportDao.getReportTotalArea(mid)
+    val futAreaPerimeter = kdReportDao.getAreaPerimeterSecurity(mid)
+    val futAreaTheft = kdReportDao.getAreaTheftProtection(mid)
+    val futAreaFire = kdReportDao.getAreaFireProtectiony(mid)
+    val futAreaWaterDamage = kdReportDao.getAreaWaterDamageAssessment(mid)
+    val futAreaContingency = kdReportDao.getAreaRoutinesAndContingencyPlan(mid)
     for {
       areaRes <- futTotArea
       perimeterRes <- futAreaPerimeter

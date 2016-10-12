@@ -31,7 +31,7 @@ import scala.concurrent.Future
 // TODO: Activate new routes and delete old ones for Actor, and rename resource to LegacyPerson + redo the integration tests
 class LegacyPersonResource @Inject() (legacyPersonService: LegacyPersonService) extends Controller {
 
-  def list(search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
+  def list(museumId: Int, search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
     search match {
       case Some(criteria) => legacyPersonService.find(criteria).map(persons => Ok(Json.toJson(persons)))
       case None => legacyPersonService.all.map(persons => Ok(Json.toJson(persons)))

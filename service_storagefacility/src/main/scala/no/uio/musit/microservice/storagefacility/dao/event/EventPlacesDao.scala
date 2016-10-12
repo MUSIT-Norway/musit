@@ -21,8 +21,9 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
-import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EventRolePlace
+import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
@@ -46,7 +47,7 @@ class EventPlacesDao @Inject() (
     eventPlacesTable ++= relPlaces
   }
 
-  def getRelatedPlaces(eventId: EventId): Future[Seq[EventRolePlace]] = {
+  def getRelatedPlaces(mid: MuseumId, eventId: EventId): Future[Seq[EventRolePlace]] = {
     val query = eventPlacesTable.filter(evt => evt.eventId === eventId)
     db.run(query.result)
   }
@@ -62,7 +63,12 @@ class EventPlacesDao @Inject() (
     val placeId = column[StorageNodeId]("PLACE_ID")
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
 
-    def create = (eventId: Option[EventId], roleId: Int, placeId: StorageNodeId, eventTypeId: EventTypeId) =>
+    def create = (
+      eventId: Option[EventId],
+      roleId: Int,
+      placeId: StorageNodeId,
+      eventTypeId: EventTypeId
+    ) =>
       EventRolePlace(
         eventId = eventId,
         roleId = roleId,

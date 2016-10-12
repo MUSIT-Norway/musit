@@ -39,19 +39,19 @@ trait EventGenerators extends EventTypeInitializers {
 
   def eventDao: EventDao = fromInstanceCache[EventDao]
 
-  def addControl(ctrl: Control) = {
+  def addControl(mid: MuseumId, ctrl: Control) = {
     val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
-    eventDao.insertEvent(ctrlAsDto)
+    eventDao.insertEvent(mid, ctrlAsDto)
   }
 
-  def addObservation(obs: Observation) = {
+  def addObservation(mid: MuseumId, obs: Observation) = {
     val obsAsDto = DtoConverters.ObsConverters.observationToDto(obs)
-    eventDao.insertEvent(obsAsDto)
+    eventDao.insertEvent(mid, obsAsDto)
   }
 
-  def addEnvRequirement(envReq: EnvRequirement) = {
+  def addEnvRequirement(mid: MuseumId, envReq: EnvRequirement) = {
     val erAsDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
-    eventDao.insertEvent(erAsDto)
+    eventDao.insertEvent(mid, erAsDto)
   }
 }
 

@@ -44,10 +44,13 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   "Running the storage facility service" when {
     "interacting with the StorageUnitResource endpoints" should {
 
-      "successfully get kDReport for rooms" in {
+      "successfully get kDReport for rooms with different museumId" in {
+        val mid = 2
         val json = roomJson("EllensPersonalRoom", None)
-        val response = wsUrl(StorageNodesUrl).post(json).futureValue
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
+        (response.json \ "areaTo").as[Double] mustBe 21
+        (response.json \ "heightTo").as[Double] mustBe 2.6
 
         val room = verifyNode[Room](
           response, RoomType, "EllensPersonalRoom", 7, None
@@ -57,10 +60,10 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         room.heightTo mustBe Some(2.6)
 
         val json1 = roomJson("EllensWorkOutRoom", None)
-        val response1 = wsUrl(StorageNodesUrl).post(json1).futureValue
+        val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
         response1.status mustBe Status.CREATED
 
-        val report = wsUrl(KdReportUrl).get.futureValue
+        val report = wsUrl(KdReportUrl(mid)).get.futureValue
 
         (report.json \ "totalArea").as[Double] mustBe 41
         (report.json \ "perimeterSecurity").as[Double] mustBe 41
@@ -71,8 +74,9 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       }
       "fail when try to get KdReport from a deleted room" in {
+        val mid = 2
         val json = roomJson("EllensPersonalRoom", None)
-        val response = wsUrl(StorageNodesUrl).post(json).futureValue
+        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         response.status mustBe Status.CREATED
 
         val room1 = verifyNode[Room](
@@ -84,10 +88,10 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         room1.id.get.underlying mustBe 9
 
         val json1 = roomJson("EllensWorkOutRoom", None)
-        val response1 = wsUrl(StorageNodesUrl).post(json1).futureValue
+        val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
         response1.status mustBe Status.CREATED
 
-        val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl).get.futureValue
+        val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl(mid)).get.futureValue
 
         (reportAfterInsertsOfTwoRoom.json \ "totalArea").as[Double] mustBe 82
         (reportAfterInsertsOfTwoRoom.json \ "perimeterSecurity").as[Double] mustBe 82
@@ -97,8 +101,8 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (reportAfterInsertsOfTwoRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
 
         val roomId = room1.id.get
-        val deletedRoom = wsUrl(StorageNodeUrl(roomId)).delete().futureValue
-        val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl).get.futureValue
+        val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId)).delete().futureValue
+        val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl(mid)).get.futureValue
 
         (reportAfterDeleteOfOneRoom.json \ "totalArea").as[Double] mustBe 61.5
         (reportAfterDeleteOfOneRoom.json \ "perimeterSecurity").as[Double] mustBe 61.5

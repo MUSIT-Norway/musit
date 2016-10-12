@@ -22,6 +22,7 @@ package no.uio.musit.microservice.storagefacility.domain.event.dto
 import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
 import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 
 // TODO: Change id and partOf to EventId
 
