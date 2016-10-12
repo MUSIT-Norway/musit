@@ -25,7 +25,7 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
   private var latestEventId: Long = _
 
   "Processing events" should {
-    "fail when inserting a Control with wrong museumId" in {
+    "successfully insert a new Control" in {
       val mid = MuseumId(2)
       val ctrl = createControl(defaultBuilding.id)
       val controlEvent = controlService.add(mid, defaultBuilding.id.get, ctrl).futureValue
@@ -33,29 +33,51 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
       controlEvent.get.id.get mustBe EventId(1)
       latestEventId = controlEvent.get.id.get
       latestEventId mustBe 1L
-
-      val anotherMid = MuseumId(4)
-      val currentControlEvent = controlService.add(anotherMid, defaultBuilding.id.get, ctrl).futureValue
-      currentControlEvent.isSuccess mustBe false
-      currentControlEvent.isFailure mustBe true
     }
 
-    "Unsuccessfully when inserting a Observation with wrong museumId" in {
+    "fail when inserting a Control with wrong museumId" in {
+      val anotherMid = MuseumId(4)
+      val ctrl = createControl(defaultBuilding.id)
+      val res = controlService.add(anotherMid, defaultBuilding.id.get, ctrl).futureValue
+      res.isSuccess mustBe false
+      res.isFailure mustBe true
+    }
+
+    "successfully insert a new Observation" in {
       val mid = MuseumId(2)
-      val ctrl = createObservation(defaultBuilding.id)
-      val obsEvent = obsService.add(mid, defaultBuilding.id.get, ctrl).futureValue
-      obsEvent.isSuccess mustBe true
-      obsEvent.get.id.get mustBe EventId(9)
+      val obs = createObservation(defaultBuilding.id)
+      val res = obsService.add(mid, defaultBuilding.id.get, obs).futureValue
+      res.isSuccess mustBe true
+      val theObs = res.get
+      theObs.id.get mustBe EventId(9)
 
-      latestEventId = obsEvent.get.id.get
+      theObs.alcohol mustBe obs.alcohol
+      theObs.cleaning mustBe obs.cleaning
+      theObs.gas mustBe obs.gas
+      theObs.pest mustBe obs.pest
+      theObs.mold mustBe obs.mold
+      theObs.hypoxicAir mustBe obs.hypoxicAir
+      theObs.temperature mustBe obs.temperature
+      theObs.relativeHumidity mustBe obs.relativeHumidity
+      theObs.lightingCondition mustBe obs.lightingCondition
+      theObs.perimeterSecurity mustBe obs.perimeterSecurity
+      theObs.fireProtection mustBe obs.fireProtection
+      theObs.theftProtection mustBe obs.theftProtection
+      theObs.waterDamageAssessment mustBe obs.waterDamageAssessment
+
+      latestEventId = res.get.id.get
       latestEventId mustBe 9L
-
-      val anotherMid = MuseumId(4)
-      val currentObsEvent = obsService.add(anotherMid, defaultBuilding.id.get, ctrl).futureValue
-      currentObsEvent.isSuccess mustBe false
-      currentObsEvent.isFailure mustBe true
     }
-    "Unsuccessfully when inserting a EnvReq with wrong museumId" in {
+
+    "fail when inserting a Observation with wrong museumId" in {
+      val anotherMid = MuseumId(4)
+      val obs = createObservation(defaultBuilding.id)
+      val res = obsService.add(anotherMid, defaultBuilding.id.get, obs).futureValue
+      res.isSuccess mustBe false
+      res.isFailure mustBe true
+    }
+
+    "fail when inserting a EnvReq with wrong museumId" in {
       val mid = MuseumId(2)
       val envReq = createEnvRequirement(defaultBuilding.id)
       //val envReqEvent = storageNodeService.saveEnvReq(mid,defaultBuilding.id.get,envReq.asInstanceOf[EnvironmentRequirement]).futureValue

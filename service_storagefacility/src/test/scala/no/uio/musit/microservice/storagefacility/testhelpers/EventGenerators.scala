@@ -85,8 +85,19 @@ trait EventTypeInitializers {
       doneBy = Some(defaultActorId),
       affectedThing = storageNodeId,
       eventType = EventType.fromEventTypeId(ObservationEventType.id),
+      alcohol = Some(createAlcoholObservation),
       cleaning = Some(createCleaningObservation),
-      temperature = Some(createTemperatureObservation)
+      gas = Some(createGasObservation),
+      hypoxicAir = Some(createHypoxicObservation),
+      lightingCondition = Some(createLightingObservation),
+      mold = Some(createMoldObservation),
+      pest = Some(createPestObservation),
+      relativeHumidity = Some(createHumidityObservation),
+      temperature = Some(createTemperatureObservation),
+      theftProtection = Some(createTheftObservation),
+      fireProtection = Some(createFireObservation),
+      perimeterSecurity = Some(createPerimeterObservation),
+      waterDamageAssessment = Some(createWaterDmgObservation)
     )
   }
 
@@ -136,6 +147,60 @@ trait EventTypeInitializers {
     ObservationCleaning(
       note = Some("This is an observation cleaning note"),
       cleaning = Some("Pretty dirty stuff")
+    )
+
+  def createGasObservation: ObservationGas =
+    ObservationGas(
+      note = Some("This is an observation gas note"),
+      gas = Some("Smells like methane")
+    )
+
+  def createHypoxicObservation: ObservationHypoxicAir =
+    ObservationHypoxicAir(
+      note = Some("This is an observation hypoxic air note"),
+      range = FromToDouble(Some(11.11), Some(12.12))
+    )
+
+  def createLightingObservation: ObservationLightingCondition =
+    ObservationLightingCondition(
+      note = Some("This is an observation lighting condition note"),
+      lightingCondition = Some("Quite dim")
+    )
+
+  def createMoldObservation: ObservationMold =
+    ObservationMold(
+      note = Some("This is an observation mold note"),
+      mold = Some("Mold is a fun guy")
+    )
+
+  def createHumidityObservation: ObservationRelativeHumidity =
+    ObservationRelativeHumidity(
+      note = Some("This is an observation humidity note"),
+      range = FromToDouble(Some(70.0), Some(75.5))
+    )
+
+  def createTheftObservation: ObservationTheftProtection =
+    ObservationTheftProtection(
+      note = Some("This is an observation theft note"),
+      theftProtection = Some("They stole all our stuff!!")
+    )
+
+  def createFireObservation: ObservationFireProtection =
+    ObservationFireProtection(
+      note = Some("This is an observation fire note"),
+      fireProtection = Some("Fire extinguisher is almost empty")
+    )
+
+  def createPerimeterObservation: ObservationPerimeterSecurity =
+    ObservationPerimeterSecurity(
+      note = Some("This is an observation perimeter note"),
+      perimeterSecurity = Some("Someone has cut a hole in the fence")
+    )
+
+  def createWaterDmgObservation: ObservationWaterDamageAssessment =
+    ObservationWaterDamageAssessment(
+      note = Some("This is an observation water damage note"),
+      waterDamageAssessment = Some("The cellar is flooded")
     )
 
   def createPestControl(ok: Boolean = false): ControlPest =

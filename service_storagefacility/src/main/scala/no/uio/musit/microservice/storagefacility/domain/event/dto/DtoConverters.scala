@@ -326,6 +326,10 @@ object DtoConverters {
           obs.pest.map(o => parts += obsSubEventToDto(obs, ObsSubEvents.ObsPestType.id, o))
           obs.relativeHumidity.map(o => parts += obsSubEventToDto(obs, ObsSubEvents.ObsHumidityType.id, o))
           obs.temperature.map(o => parts += obsSubEventToDto(obs, ObsSubEvents.ObsTemperatureType.id, o))
+          obs.theftProtection.map(o => parts += obsSubEventToDto(obs, ObsSubEvents.ObsTheftType.id, o))
+          obs.fireProtection.map(o => parts += obsSubEventToDto(obs, ObsSubEvents.ObsFireType.id, o))
+          obs.perimeterSecurity.map(o => parts += obsSubEventToDto(obs, ObsSubEvents.ObsPerimeterType.id, o))
+          obs.waterDamageAssessment.map(o => parts += obsSubEventToDto(obs, ObsSubEvents.ObsWaterDamageType.id, o))
 
           parts.result()
         }
@@ -362,7 +366,11 @@ object DtoConverters {
         mold = fromMapObsSub[ObservationMold](p, ObsSubEvents.ObsMoldType.id),
         pest = fromMapObsSub[ObservationPest](p, ObsSubEvents.ObsPestType.id),
         relativeHumidity = fromMapObsSub[ObservationRelativeHumidity](p, ObsSubEvents.ObsHumidityType.id),
-        temperature = fromMapObsSub[ObservationTemperature](p, ObsSubEvents.ObsTemperatureType.id)
+        temperature = fromMapObsSub[ObservationTemperature](p, ObsSubEvents.ObsTemperatureType.id),
+        theftProtection = fromMapObsSub[ObservationTheftProtection](p, ObsSubEvents.ObsTheftType.id),
+        fireProtection = fromMapObsSub[ObservationFireProtection](p, ObsSubEvents.ObsFireType.id),
+        perimeterSecurity = fromMapObsSub[ObservationPerimeterSecurity](p, ObsSubEvents.ObsPerimeterType.id),
+        waterDamageAssessment = fromMapObsSub[ObservationWaterDamageAssessment](p, ObsSubEvents.ObsWaterDamageType.id)
       )
     }
 

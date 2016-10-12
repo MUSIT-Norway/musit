@@ -43,7 +43,11 @@ case class Observation(
   mold: Option[ObservationMold] = None,
   pest: Option[ObservationPest] = None,
   relativeHumidity: Option[ObservationRelativeHumidity] = None,
-  temperature: Option[ObservationTemperature] = None
+  temperature: Option[ObservationTemperature] = None,
+  theftProtection: Option[ObservationTheftProtection] = None,
+  fireProtection: Option[ObservationFireProtection] = None,
+  perimeterSecurity: Option[ObservationPerimeterSecurity] = None,
+  waterDamageAssessment: Option[ObservationWaterDamageAssessment] = None
 ) extends MusitEvent
 
 object Observation extends WithDateTimeFormatters {
