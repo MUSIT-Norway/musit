@@ -19,8 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
+
 case class LocalObject(
   objectId: Long,
   latestMoveId: Long,
-  currentLocationId: Long
+  currentLocationId: Long,
+  museumId: MuseumId
 )

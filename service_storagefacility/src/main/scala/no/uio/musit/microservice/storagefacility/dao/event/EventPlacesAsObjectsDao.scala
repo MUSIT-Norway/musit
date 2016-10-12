@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventRoleObject, EventRolePlace}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
@@ -52,7 +53,7 @@ class EventPlacesAsObjectsDao @Inject() (
     placesAsObjectsTable ++= relObjectsAsPlaces
   }
 
-  def getRelatedObjects(eventId: Long): Future[Seq[EventRoleObject]] = {
+  def getRelatedObjects(mid: MuseumId, eventId: Long): Future[Seq[EventRoleObject]] = {
     val query = placesAsObjectsTable.filter(_.eventId === eventId)
     db.run(query.result).map { places =>
       logger.debug(s"Found ${places.size} places")
@@ -63,6 +64,7 @@ class EventPlacesAsObjectsDao @Inject() (
   }
 
   def latestEventIdFor(
+    mid: MuseumId,
     nodeId: StorageNodeId,
     eventTypeId: EventTypeId
   ): Future[Option[Long]] = {
@@ -74,6 +76,7 @@ class EventPlacesAsObjectsDao @Inject() (
   }
 
   def latestEventIdsForNode(
+    mid: MuseumId,
     nodeId: StorageNodeId,
     eventTypeId: EventTypeId,
     limit: Option[Int] = None

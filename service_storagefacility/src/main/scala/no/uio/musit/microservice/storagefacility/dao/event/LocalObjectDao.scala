@@ -20,7 +20,8 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventDto, LocalObject}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -31,7 +32,7 @@ import scala.concurrent.Future
 
 class LocalObjectDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
@@ -40,13 +41,13 @@ class LocalObjectDao @Inject() (
   private def upsert(lo: LocalObject): DBIO[Int] =
     localObjectsTable.insertOrUpdate(lo)
 
-  def cacheLatestMove(eventId: Long, moveEvent: EventDto): DBIO[Int] = {
+  def cacheLatestMove(mid: MuseumId, eventId: Long, moveEvent: EventDto): DBIO[Int] = {
     val relObj = moveEvent.relatedObjects.headOption
     val relPlc = moveEvent.relatedPlaces.headOption
 
     relObj.flatMap { obj =>
       relPlc.map { place =>
-        upsert(LocalObject(obj.objectId, eventId, place.placeId))
+        upsert(LocalObject(obj.objectId, eventId, place.placeId, mid))
       }
     }.getOrElse(
       throw new AssertionError("A MoveObject event requires both the " + // scalastyle:ignore
@@ -68,25 +69,29 @@ class LocalObjectDao @Inject() (
     def * = (
       objectId,
       latestMoveId,
-      currentLocationId
+      currentLocationId,
+      museumId
     ) <> (create.tupled, destroy)
 
     val objectId = column[Long]("OBJECT_ID", O.PrimaryKey)
     val latestMoveId = column[Long]("LATEST_MOVE_ID")
     val currentLocationId = column[Long]("CURRENT_LOCATION_ID")
+    val museumId = column[MuseumId]("MUSEUM_ID")
 
-    def create = (objectId: Long, latestMoveId: Long, currentLocationId: Long) =>
+    def create = (objectId: Long, latestMoveId: Long, currentLocationId: Long, museumId: MuseumId) =>
       LocalObject(
         objectId,
         latestMoveId,
-        currentLocationId
+        currentLocationId,
+        museumId
       )
 
     def destroy(localObject: LocalObject) =
       Some((
         localObject.objectId,
         localObject.latestMoveId,
-        localObject.currentLocationId
+        localObject.currentLocationId,
+        localObject.museumId
       ))
   }
 
