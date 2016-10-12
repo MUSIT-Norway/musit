@@ -21,7 +21,11 @@ sealed trait FieldValue
 
 case class EmptyValue() extends FieldValue
 case class LiteralValue(v: String) extends FieldValue
-case class WildcardValue(v: String) extends FieldValue
+
+/*If v contains a value which needs to be escaped, escapeChar contains the appropriate escape character.
+If v doesn't contains a value which needs to be escaped, escapeChar =
+ */
+case class WildcardValue(v: String, escapeChar: Char) extends FieldValue
 case class InvalidValue(errorMessage: String) extends FieldValue
 
 class ObjectSearchDao @Inject() (
@@ -34,7 +38,6 @@ class ObjectSearchDao @Inject() (
 
   private val musitThingTable = TableQuery[MusitThingTable]
 
-
   def testInsert(museumId: Int, mthing: MusitThing): Future[Long] = {
     val dto = MusitThingDto.fromDomain(museumId, mthing)
 
@@ -43,19 +46,37 @@ class ObjectSearchDao @Inject() (
     db.run(action) //.map(_.get)
   }
 
+  val noEscapeChar = '\u0000' //Needs to be the same as Slicks no-escape-char value! (Default second parameter value to the like function)
+
+  val escapeChar = '¤' //can be anything really. Public just to let the unit tests get at it
+
+
   def classifyValue(rawValue: String): FieldValue = {
     //Since we build up a Slick Query object, we don't need to verify that the rawValue is "safe",
     // the database engine will validate the parameter value.
 
-    if(rawValue.contains('%')) {
+    //So security-wise, we don't need to guard against '--' etc here.
+    //(Else we could have flagged values containing "--" etc as InvalidValue here)
+    // We use '*' as wildcard symbol. And treat both '%' and '_' as ordinary characters, both in like-tests and =-tests.
+    /*if (rawValue.contains('%') ) {
       InvalidValue("Illegal character in search value")
-    }
-    else if(rawValue.isEmpty) EmptyValue()
-    else if(rawValue.contains('*')) {
-      WildcardValue(rawValue.replace('*', '%'))
-    }
-    else
-    {
+    } else */
+    if (rawValue.isEmpty) EmptyValue()
+    else if (rawValue.contains('*')) {
+      val wValue = rawValue.replace(escapeChar.toString, s"${escapeChar}${escapeChar}")
+                              .replace("%", s"${escapeChar}%")
+                              .replace("_", s"${escapeChar}_")
+                              .replace('*', '%')
+
+      /*Note that order above is important!
+        It is essential that the escapeChar -> escapeChar+escapeChar is done before the replacements which
+       introduces any escapeChars and that  %->escapeChar happens before *->'%'
+       */
+
+      val esc = if(wValue.contains(escapeChar)) escapeChar else noEscapeChar
+
+      WildcardValue(wValue, esc)
+    } else {
       LiteralValue(rawValue)
     }
   }
@@ -73,37 +94,33 @@ class ObjectSearchDao @Inject() (
 
   type QMusitThingTable = Query[MusitThingTable, MusitThingTable#TableElementType, scala.Seq]
 
-  private def maybeAddFilter[Q <: QMusitThingTable](q: Q, value: FieldValue, filterEqual: (Q,String) => Q, filterLike: (Q, String) => Q): Q = {
+  private def maybeAddFilter[Q <: QMusitThingTable](q: Q, value: FieldValue, filterEqual: (Q, String) => Q, filterLike: (Q, String, Char) => Q): Q = {
 
     value match {
       case EmptyValue() => q
-      case LiteralValue(v: String) => filterEqual(q, v)
-      case WildcardValue(v: String) => filterLike(q, v)
+      case LiteralValue(v) => filterEqual(q, v)
+      case WildcardValue(v, esc) => filterLike(q, v, esc)
       case InvalidValue(errorMessage: String) =>
         assert(false, s"internal error, invalid value: $errorMessage"); q //Returning q is just to make the compiler happy
     }
   }
 
-  private def maybeAddMuseumNoFilter(q: QMusitThingTable, value: FieldValue): QMusitThingTable= {
+  private def maybeAddMuseumNoFilter(q: QMusitThingTable, value: FieldValue): QMusitThingTable = {
     def isAllDigits(x: String) = x.forall(Character.isDigit)
-
-
 
     value match {
       case EmptyValue() => q
       case LiteralValue(v: String) =>
-        if(isAllDigits(v)) {
-          q.filter(_.museumNoAsNumber===v.toLong)
-        }
-        else {
+        if (isAllDigits(v)) {
+          q.filter(_.museumNoAsNumber === v.toLong)
+        } else {
           q.filter(_.museumNo.toUpperCase === v.toUpperCase)
         }
-      case WildcardValue(v: String) => q.filter(_.museumNo.toUpperCase like v.toUpperCase)
+      case WildcardValue(v, esc) => q.filter(_.museumNo.toUpperCase like(v.toUpperCase, esc))
       case InvalidValue(errorMessage: String) =>
         assert(false, s"internal error, invalid museumNo value: $errorMessage"); q //Returning q is just to make the compiler happy
     }
   }
-
 
   def search(mid: Int, museumNo: String, subNo: String, term: String, page: Int, pageSize: Int): Future[MusitResult[Seq[MusitThing]]] = {
 
@@ -116,22 +133,25 @@ class ObjectSearchDao @Inject() (
 
     val resultFutSeq = triple.map {
       case (musemNoValue, subNoValue, termValue) =>
+
         val q1 = maybeAddMuseumNoFilter(musitThingTable, musemNoValue)
 
         val q2 = maybeAddFilter[QMusitThingTable](q1, subNoValue, (q, value) => q.filter(_.subNo === value),
-                                                                        (q,value) => q.filter(_.subNo like value))
+          (q, value, esc) => q.filter(_.subNo like(value, esc)))
 
         val q3 = maybeAddFilter[QMusitThingTable](q2, termValue, (q, value) => q.filter(_.term.toLowerCase === value.toLowerCase),
-                                                                      (q, value) => q.filter(_.term.toLowerCase like value.toLowerCase))
+          (q, value, esc) => q.filter(_.term.toLowerCase.like(value.toLowerCase, esc)))
+
 
         val query = q3
-        val sortedQuery = query.sortBy(mt=> (mt.museumNoAsNumber.asc, mt.subNoAsNumber.asc, mt.subNo.asc, mt.id.asc))
+        val sortedQuery = query.sortBy(mt => (mt.museumNoAsNumber.asc, mt.museumNo.asc /*Should we use toLowerCase on sorting on museumNo?*/ ,
+          mt.subNoAsNumber.asc, mt.subNo.asc, mt.id.asc))
 
         val offset = (page - 1) * pageSize
         val action = sortedQuery.drop(offset).take(pageSize).result
         println(s"SQL: ${action.statements}")
         val res = db.run(action)
-          res.recover {
+        res.recover {
           case e: Exception =>
             val msg = s"Error while retrieving search result"
             logger.error(msg, e)
@@ -141,8 +161,6 @@ class ObjectSearchDao @Inject() (
     }
     FutureMusitResults.invertMF(resultFutSeq)
   }
-
-
 
   class MusitThingTable(
       val tag: Tag
@@ -159,7 +177,7 @@ class ObjectSearchDao @Inject() (
     val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
 
     def create = (museumId: Int, id: Option[Long], museumNo: String, museumNoAsNumber: Option[Long],
-                  subNo: Option[String], subNoAsNumber: Option[Long], term: String) =>
+      subNo: Option[String], subNoAsNumber: Option[Long], term: String) =>
       MusitThingDto(
         museumId = museumId,
         id = id,

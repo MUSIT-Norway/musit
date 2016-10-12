@@ -15,21 +15,15 @@ import play.api.Logger
   * Created by jarle on 07.10.16.
   */
 class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
-
-
-  /*
-  @Inject() (
-                                      val dao: ObjectSearchDao
-                                    )
-   */
-
   val dao: ObjectSearchDao = fromInstanceCache[ObjectSearchDao]
-
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
+
+  val escapeChar = dao.escapeChar
+
     def insertTestData(museumId: Int) = {
       def insert(museumNo: String, subNo: String, term: String) = {
         dao.testInsert(museumId, MusitThing(
@@ -68,9 +62,26 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
       insert("C.777", "34", "Øks")
       insert("C.777", "34A", "Øks")
 
-      insert("C555A", "34B", "Øks")
-      insert("C555B", "34A", "Øks")
-      insert("C555C", "34C", "Øks")
+      insert("C555", "34B", "Øks")
+      insert("C555", "34A", "Øks")
+      insert("C555", "34C", "Øks")
+      insert("C555A", "B", "Øks")
+      insert("C555B", "A", "Øks")
+      insert("C555C", "C", "Øks")
+
+      insert("C888_B", "B", "Øks")
+      insert("C888_A", "A", "Øks")
+      insert("C888xC", "C", "Øks")
+
+      insert("C81%A", "A", "Bøtte")
+      insert("C81%XA", "B", "Bøtte")
+
+      insert("C81-A", "A", "Bøtte")
+      insert("C81-XA", "B", "Bøtte")
+
+      insert(s"C81${escapeChar}A", "A", "Bøtte")
+      insert(s"C81${escapeChar}XA", "B", "Bøtte")
+
     }
 
 
@@ -130,22 +141,33 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
 
     val res = dao.search(1, "C555*", "", "", 1, 10).futureValue
     val seq = res.get
-    seq.length mustBe 3
+    seq.length mustBe 6
 
     seq(0).subNo mustBe Some("34A")
     seq(1).subNo mustBe Some("34B")
     seq(2).subNo mustBe Some("34C")
+    seq(3).museumNo mustBe "C555A"
+    seq(4).museumNo mustBe "C555B"
+    seq(5).museumNo mustBe "C555C"
+
   }
 
+  /*Not true anymore
   "museumNo with % should fail" in {
     val res = dao.search(1, "C.%", "", "", 1, 10).futureValue
     res.isFailure mustBe true
   }
+  */
 
+  "simple SQL-injection attempt should return 0 rows" in {
+    val res = dao.search(1, "C.' or 1=1 --", "", "", 1, 10).futureValue
+    val seq = res.get
+    seq.length mustBe 0
+  }
 
   "museumNo, subNo with * and term search should work" in {
 
-    val res = dao.search(1, "c*", "3*", "øks", 1, 10).futureValue
+    val res = dao.search(1, "c555*", "3*", "øks", 1, 10).futureValue
     val seq = res.get
 
     seq.length mustBe 3
@@ -154,5 +176,77 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
     seq(2).subNo mustBe Some("34C")
   }
 
+  "museumNo with * and _ should work" in {
 
+    val res = dao.search(1, "c888_*", "", "øks", 1, 10).futureValue
+    val seq = res.get
+
+    seq.length mustBe 2
+
+    seq(0).museumNo mustBe "C888_A"
+    seq(1).museumNo mustBe "C888_B"
+  }
+
+  "that % is treated like an ordinary character in =-context" in {
+    val res = dao.search(1, "C81%A", "", "", 1, 10).futureValue
+    val seq = res.get
+
+    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
+    seq(0).museumNo mustBe "C81%A"
+  }
+
+  "that % is treated like an ordinary character in like-context" in {
+    val res = dao.search(1, "C*%A", "", "", 1, 10).futureValue
+    val seq = res.get
+
+    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
+    seq(0).museumNo mustBe "C81%A"
+  }
+
+
+  "that - is treated like an ordinary character in =-context" in {
+    val res = dao.search(1, "C81-A", "", "", 1, 10).futureValue
+    val seq = res.get
+
+    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
+    seq(0).museumNo mustBe "C81-A"
+  }
+
+  "that - is treated like an ordinary character in like-context" in {
+    val res = dao.search(1, "C*-A", "", "", 1, 10).futureValue
+    val seq = res.get
+
+    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
+    seq(0).museumNo mustBe "C81-A"
+  }
+
+
+  "that the escape character is treated like an ordinary character in =-context" in {
+    val res = dao.search(1, s"C81${escapeChar}A", "", "", 1, 10).futureValue
+    val seq = res.get
+
+    seq.length mustBe 1 //We should find C81¤A and *not* C81¤XA
+    seq(0).museumNo mustBe s"C81${escapeChar}A"
+  }
+
+  "that the esacpe character is treated like an ordinary character in like-context" in {
+    val res = dao.search(1, s"C*${escapeChar}A", "", "", 1, 10).futureValue
+    val seq = res.get
+
+    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
+    seq(0).museumNo mustBe s"C81${escapeChar}A"
+  }
+
+
+  "that an escape clause is generated because it is needed" in {
+    val res = dao.search(1, s"C*_A", "", "", 1, 10).futureValue
+    val seq = res.get
+    //Todo: Check that the SQL has an escape clause!
+  }
+
+  "that an escape clause is not generated if not needed" in {
+    val res = dao.search(1, s"C*A", "", "", 1, 10).futureValue
+    val seq = res.get
+    //Todo: Check that the SQL doesn't have an escape clause!
+  }
 }

@@ -16,25 +16,23 @@ object MusitThingDto {
       term = x.term
     )
 
-  val regExp = """\A\D*(\d+)\D*\z""".r
-  //  val regExp = """\A(?>\D*)(\d+)\D*\z""".r
+  val regExp = """\A\D*(\d+)(?:\D.*)?\z""".r  // A sequence of non-digits, followed by a sequence of digits,
+    // followed by an optional tail starting with a non-digit (and then whatever).
 
   /** The number part of a museumNo */
   def museumNoNumberPart(museumNo: String): Option[Long] = {
     val optM = regExp.findFirstMatchIn(museumNo)
 
-    optM.map{m=>
-      assert(m.groupCount==1) //This regular expression is designed to only return one group
+    optM.map { m =>
+      assert(m.groupCount == 1) //This regular expression is designed to only return one group
       m.group(1).toLong //Per def of this re, this should always be possible (within reasonable length of museumNo!)
-                        // and never throw any exceptions.
+      // and never throw any exceptions.
     }
   }
 
   def subNoNumberPart(subNo: String): Option[Long] = {
     museumNoNumberPart(subNo)
   }
-
-
 
   implicit def fromDomain(museumId: Int, x: MusitThing): MusitThingDto =
     MusitThingDto(

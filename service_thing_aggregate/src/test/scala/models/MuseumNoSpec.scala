@@ -20,6 +20,8 @@ class MuseumNoSpec extends PlaySpec {
     numberPart("C4252a") mustBe Some(4252)
     numberPart("C.4252a") mustBe Some(4252)
     numberPart("C. 4252a") mustBe Some(4252)
+    numberPart("B3241/a_7") mustBe Some(3241)
+    numberPart("B4610/II_æ") mustBe Some(4610)
   }
 
 
