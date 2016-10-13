@@ -9,6 +9,12 @@ services:
         volumes:
           - ../../../postgres-storage:/var/lib/postgresql/data/
 
+    backing:
+        build:
+          context: "../../backing"
+        ports:
+          - "8080:8080"
+
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
         environment:
