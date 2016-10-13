@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.dao
 
-import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, MuseumId, NodePath, ObjectId}
 import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
 import play.api.db.slick.HasDatabaseConfig
@@ -40,10 +40,10 @@ trait ColumnTypeMappers {
       longId => StorageNodeId(longId)
     )
 
-  implicit lazy val storageTypeMapper =
-    MappedColumnType.base[StorageType, String](
-      storageType => storageType.entryName,
-      string => StorageType.withName(string)
+  implicit lazy val objectIdMapper: BaseColumnType[ObjectId] =
+    MappedColumnType.base[ObjectId, Long](
+      oid => oid.underlying,
+      longId => ObjectId(longId)
     )
 
   implicit lazy val eventIdMapper: BaseColumnType[EventId] =
@@ -52,10 +52,28 @@ trait ColumnTypeMappers {
       longId => EventId(longId)
     )
 
+  implicit val actorIdMapper: BaseColumnType[ActorId] =
+    MappedColumnType.base[ActorId, Long](
+      aid => aid.underlying,
+      longId => ActorId(longId)
+    )
+
+  implicit lazy val storageTypeMapper =
+    MappedColumnType.base[StorageType, String](
+      storageType => storageType.entryName,
+      string => StorageType.withName(string)
+    )
+
   implicit lazy val eventTypeIdMapper: BaseColumnType[EventTypeId] =
     MappedColumnType.base[EventTypeId, Int](
       eventTypeId => eventTypeId.underlying,
       id => EventTypeId(id)
+    )
+
+  implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =
+    MappedColumnType.base[MuseumId, Int](
+      museumId => museumId.underlying,
+      id => MuseumId(id)
     )
 
   implicit lazy val nodePathMapper: BaseColumnType[NodePath] =

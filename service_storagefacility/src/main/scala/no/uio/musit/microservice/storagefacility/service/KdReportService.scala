@@ -2,6 +2,7 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.storage.KdReportDao
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.report.KdReport
 import no.uio.musit.service.MusitResults.MusitResult
 
@@ -12,35 +13,56 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
  * TODO: Document me!!!
  */
 class KdReportService @Inject() (val kdReportDao: KdReportDao) {
-  def getReport: Future[MusitResult[KdReport]] = {
-    val futTotArea = kdReportDao.getReportTotalArea
-    val futAreaPerimeterSecurity = kdReportDao.getAreaPerimeterSecurity
-    val futAreaTheftProtection = kdReportDao.getAreaTheftProtection
-    val futAreaFireProtection = kdReportDao.getAreaFireProtectiony
-    val futAreaWaterDamageAssessment = kdReportDao.getAreaWaterDamageAssessment
-    val futAreaRoutinesAndContingencyPlan = kdReportDao.getAreaRoutinesAndContingencyPlan
+
+  private def flatMapResult(
+    totalRes: MusitResult[Double],
+    perimeterRes: MusitResult[Double],
+    theftRes: MusitResult[Double],
+    fireRes: MusitResult[Double],
+    waterRes: MusitResult[Double],
+    contingencyRes: MusitResult[Double]
+  ): MusitResult[KdReport] = {
     for {
-      mrTotArea <- futTotArea
-      mrAreaPerimeterSecurity <- futAreaPerimeterSecurity
-      mrAreaTheftProtection <- futAreaTheftProtection
-      mrAreaFireProtection <- futAreaFireProtection
-      mrAreaWaterDamageAssessment <- futAreaWaterDamageAssessment
-      mrAreaRoutinesAndContingencyPlan <- futAreaRoutinesAndContingencyPlan
-    } yield for {
-      totArea <- mrTotArea
-      areaPerimeterSecurity <- mrAreaPerimeterSecurity
-      areaTheftProtection <- mrAreaTheftProtection
-      areaFireProtection <- mrAreaFireProtection
-      areaWaterDamageAssessment <- mrAreaWaterDamageAssessment
-      areaRoutinesAndContingencyPlan <- mrAreaRoutinesAndContingencyPlan
+      total <- totalRes
+      perimeter <- perimeterRes
+      theft <- theftRes
+      fire <- fireRes
+      water <- waterRes
+      contingency <- contingencyRes
     } yield KdReport(
-      totalArea = totArea,
-      perimeterSecurity = areaPerimeterSecurity,
-      theftProtection = areaTheftProtection,
-      fireProtection = areaFireProtection,
-      waterDamageAssessment = areaWaterDamageAssessment,
-      routinesAndContingencyPlan = areaRoutinesAndContingencyPlan
+      totalArea = total,
+      perimeterSecurity = perimeter,
+      theftProtection = theft,
+      fireProtection = fire,
+      waterDamageAssessment = water,
+      routinesAndContingencyPlan = contingency
     )
+  }
+
+  def getReport(mid: MuseumId): Future[MusitResult[KdReport]] = {
+    val futTotArea = kdReportDao.getReportTotalArea(mid)
+    val futAreaPerimeter = kdReportDao.getAreaPerimeterSecurity(mid)
+    val futAreaTheft = kdReportDao.getAreaTheftProtection(mid)
+    val futAreaFire = kdReportDao.getAreaFireProtectiony(mid)
+    val futAreaWaterDamage = kdReportDao.getAreaWaterDamageAssessment(mid)
+    val futAreaContingency = kdReportDao.getAreaRoutinesAndContingencyPlan(mid)
+    for {
+      areaRes <- futTotArea
+      perimeterRes <- futAreaPerimeter
+      theftRes <- futAreaTheft
+      fireRes <- futAreaFire
+      waterRes <- futAreaWaterDamage
+      contingencyRes <- futAreaContingency
+    } yield {
+      flatMapResult(
+        totalRes = areaRes,
+        perimeterRes = perimeterRes,
+        theftRes = theftRes,
+        fireRes = fireRes,
+        waterRes = waterRes,
+        contingencyRes = contingencyRes
+      )
+    }
   }
 
 }

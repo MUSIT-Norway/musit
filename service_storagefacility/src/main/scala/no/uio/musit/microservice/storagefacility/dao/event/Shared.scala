@@ -22,7 +22,7 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
+import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, EventRelation, ObservationFromToDto}
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
@@ -73,7 +73,7 @@ object EventRelationTypes {
   /**
    * TODO: What am I and what is my purpose?
    */
-  case class EventRelationDto(idFrom: Long, relationId: Int, idTo: Long)
+  case class EventRelationDto(idFrom: EventId, relationId: Int, idTo: EventId)
 
 }
 
@@ -109,11 +109,11 @@ private[event] trait SharedEventTables extends BaseEventDao
     ) <> (create.tupled, destroy)
     // scalastyle:on method.name
 
-    val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[EventId]("ID", O.PrimaryKey, O.AutoInc)
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
     val eventDate = column[JSqlDate]("EVENT_DATE")
     val eventNote = column[Option[String]]("NOTE")
-    val partOf = column[Option[Long]]("PART_OF")
+    val partOf = column[Option[EventId]]("PART_OF")
     val valueLong = column[Option[Long]]("VALUE_LONG")
     val valueString = column[Option[String]]("VALUE_STRING")
     val valueDouble = column[Option[Double]]("VALUE_FLOAT")
@@ -121,11 +121,11 @@ private[event] trait SharedEventTables extends BaseEventDao
     val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
 
     def create = (
-      id: Option[Long],
+      id: Option[EventId],
       eventTypeId: EventTypeId,
       eventDate: JSqlDate,
       note: Option[String],
-      partOf: Option[Long],
+      partOf: Option[EventId],
       valueLong: Option[Long],
       valueString: Option[String],
       valueDouble: Option[Double],
@@ -170,13 +170,13 @@ private[event] trait SharedEventTables extends BaseEventDao
 
     def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Option[Long]]("ID", O.PrimaryKey)
+    val id = column[Option[EventId]]("ID", O.PrimaryKey)
 
     val from = column[Option[Double]]("VALUE_FROM")
     val to = column[Option[Double]]("VALUE_TO")
 
     def create =
-      (id: Option[Long], from: Option[Double], to: Option[Double]) =>
+      (id: Option[EventId], from: Option[Double], to: Option[Double]) =>
         ObservationFromToDto(id, from, to)
 
     def destroy(event: ObservationFromToDto) =
@@ -188,7 +188,7 @@ private[event] trait SharedEventTables extends BaseEventDao
   def insertObservationFromToAction(event: ObservationFromToDto): DBIO[Int] =
     observationFromToTable += event
 
-  def getObservationFromTo(id: Long): Future[Option[ObservationFromToDto]] =
+  def getObservationFromTo(id: EventId): Future[Option[ObservationFromToDto]] =
     db.run(
       observationFromToTable.filter(event => event.id === id).result.headOption
     )

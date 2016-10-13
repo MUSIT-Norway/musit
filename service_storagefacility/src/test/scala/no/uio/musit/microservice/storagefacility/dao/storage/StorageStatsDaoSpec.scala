@@ -44,18 +44,20 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     instance(app)
   }
 
+  val museumId = 2
+
   "StorageStatsDao" should {
 
     "return the number of direct child nodes" in {
       val basePath = NodePath(",1,2,3,4,")
 
-      val insId = storageUnitDao.insert(createStorageUnit(path = basePath)).futureValue
+      val insId = storageUnitDao.insert(museumId, createStorageUnit(path = basePath)).futureValue
       insId mustBe a[StorageNodeId]
 
       val childPath = basePath.appendChild(insId)
 
       for (i <- 1 to 10) {
-        val nodeId = storageUnitDao.insert(createStorageUnit(
+        val nodeId = storageUnitDao.insert(museumId, createStorageUnit(
           partOf = Some(insId),
           path = childPath
         )).futureValue

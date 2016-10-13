@@ -21,22 +21,27 @@ package no.uio.musit.microservice.storagefacility
 
 package object test {
 
-  val BaseUrl = "/v1/storagenodes"
-  val StorageNodesUrl = BaseUrl
-  val RootNodeUrl = s"$BaseUrl/root"
-  val StorageNodeUrl = (node: Long) => s"$BaseUrl/$node"
-  val MoveStorageNodeUrl = s"$StorageNodesUrl/moveNode"
-  val MoveObjectUrl = s"$StorageNodesUrl/moveObject"
-  val NodeChildrenUrl = (node: Long) => s"${StorageNodeUrl(node)}/children"
-  val ObjLocationHistoryUrl = (objectId: Long) => s"$StorageNodesUrl/objects/$objectId/locations"
+  val BaseUrl = "/v1/museum"
+  val StorageNodesUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes"
+  val RootNodeUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/root"
+  val StorageNodeUrl = (mid: Int, node: Long) => s"$BaseUrl/$mid/storagenodes/$node"
+  val MoveStorageNodeUrl = (mid: Int) => s"${StorageNodesUrl(mid)}/moveNode"
+  val MoveObjectUrl = (mid: Int) => s"${StorageNodesUrl(mid)}/moveObject"
+  val NodeChildrenUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/children"
+  val ObjLocationHistoryUrl = (mid: Int, objectId: Long) => s"${StorageNodesUrl(mid)}/objects/$objectId/locations"
 
-  val ControlsUrl = (node: Long) => s"${StorageNodeUrl(node)}/controls"
-  val ControlUrl = (node: Long, evt: Long) => s"${ControlsUrl(node)}/$evt"
-  val ObservationsUrl = (node: Long) => s"${StorageNodeUrl(node)}/observations"
-  val ObservationUrl = (node: Long, evt: Long) => s"${ObservationsUrl(node)}/$evt"
+  val ControlsUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/controls"
+  val ControlUrl = (mid: Int, node: Long, evt: Long) => s"${ControlsUrl(mid, node)}/$evt"
+  val ObservationsUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/observations"
+  val ObservationUrl = (mid: Int, node: Long, evt: Long) => s"${ObservationsUrl(mid, node)}/$evt"
+  val CtrlObsForNodeUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/events"
+  val KdReportUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/report"
 
-  val CtrlObsForNodeUrl = (node: Long) => s"${StorageNodeUrl(node)}/events"
-  val KdReportUrl = s"$BaseUrl/report"
+  val HundredAndOneCharString =
+    """abcdefghijklmnopqrstuvwxyzæøåa
+      |abcdefghijklmnopqrstuvwxyzæøåa
+      |abcdefghijklmnopqrstuvwxyzæøåa
+      |abcdefghijk""".stripMargin.replaceAll("\n", "")
 
   val VeryLongString =
     """12345678901234567890123456789012345678901234567890
@@ -51,6 +56,6 @@ package object test {
       |12345678901234567890123456789012345678901234567890
       |12345678901234567890123456789012345678901234567890
       |12345678901234567890123456789012345678901234567890
-      | """.stripMargin.replace('\n', ' ')
+      |""".stripMargin.replaceAll("\n", " ")
 
 }

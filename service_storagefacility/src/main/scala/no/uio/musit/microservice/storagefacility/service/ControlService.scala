@@ -21,20 +21,24 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
-import no.uio.musit.microservice.storagefacility.domain.event.{EventId, ObjectRole}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
+import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.CtrlConverters
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-class ControlService @Inject() (val eventDao: EventDao) {
+class ControlService @Inject() (
+    val eventDao: EventDao,
+    val storageNodeService: StorageNodeService
+) {
 
   val logger = Logger(classOf[ControlService])
 
@@ -42,34 +46,41 @@ class ControlService @Inject() (val eventDao: EventDao) {
    *
    */
   def add(
-    nodeId: Long,
+    mid: MuseumId,
+    nodeId: StorageNodeId,
     ctrl: Control
   )(implicit currUsr: String): Future[MusitResult[Control]] = {
-    val c = ctrl.copy(
-      baseEvent = ctrl.baseEvent.copy(
-        affectedThing = Some(ObjectRole(
-          roleId = 1,
-          objectId = nodeId
-        )),
-        registeredBy = Some(currUsr),
-        registeredDate = Some(dateTimeNow)
-      )
-    )
-    val dto = CtrlConverters.controlToDto(c)
-    eventDao.insertEvent(dto).flatMap { eventId =>
-      eventDao.getEvent(eventId).map { res =>
-        res.flatMap(_.map { dto =>
-          // We know we have a BaseEventDto representing a Control.
-          val bdto = dto.asInstanceOf[BaseEventDto]
-          MusitSuccess(CtrlConverters.controlFromDto(bdto))
-        }.getOrElse {
-          logger.error(
-            s"An unexpected error occured when trying to fetch a " +
-              s"control event that was added with eventId $eventId"
+    storageNodeService.exists(mid, nodeId).flatMap {
+      case MusitSuccess(nodeExists) =>
+        if (nodeExists) {
+          val c = ctrl.copy(
+            affectedThing = Some(nodeId),
+            registeredBy = Some(currUsr),
+            registeredDate = Some(dateTimeNow)
           )
-          MusitInternalError("Could not locate the control that was added")
-        })
-      }
+          val dto = CtrlConverters.controlToDto(c)
+          eventDao.insertEvent(mid, dto).flatMap { eventId =>
+            eventDao.getEvent(mid, eventId).map { res =>
+              res.flatMap(_.map { dto =>
+                // We know we have a BaseEventDto representing a Control.
+                val bdto = dto.asInstanceOf[BaseEventDto]
+                MusitSuccess(CtrlConverters.controlFromDto(bdto))
+              }.getOrElse {
+                logger.error(
+                  s"An unexpected error occured when trying to fetch a " +
+                    s"control event that was added with eventId $eventId"
+                )
+                MusitInternalError("Could not locate the control that was added")
+              })
+            }
+          }
+        } else {
+          Future.successful(MusitValidationError("Node not found."))
+        }
+
+      case err: MusitError =>
+        logger.error("An error occured when trying to add a Control")
+        Future.successful(err)
     }
   }
 
@@ -78,8 +89,8 @@ class ControlService @Inject() (val eventDao: EventDao) {
    * @param id
    * @return
    */
-  def findBy(id: EventId): Future[MusitResult[Option[Control]]] = {
-    eventDao.getEvent(id.underlying).map { result =>
+  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Control]]] = {
+    eventDao.getEvent(mid, id.underlying).map { result =>
       result.flatMap(_.map {
         case base: BaseEventDto =>
           MusitSuccess(
@@ -94,8 +105,8 @@ class ControlService @Inject() (val eventDao: EventDao) {
     }
   }
 
-  def listFor(nodeId: StorageNodeId): Future[MusitResult[Seq[Control]]] = {
-    eventDao.getEventsForNode(nodeId, ControlEventType).map { dtos =>
+  def listFor(mid: MuseumId, nodeId: StorageNodeId): Future[MusitResult[Seq[Control]]] = {
+    eventDao.getEventsForNode(mid, nodeId, ControlEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>
         // We know we have a BaseEventDto representing a Control.
         val base = dto.asInstanceOf[BaseEventDto]

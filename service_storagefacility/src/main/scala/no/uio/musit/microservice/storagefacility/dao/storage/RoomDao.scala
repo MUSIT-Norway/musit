@@ -20,7 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage.dto._
 import no.uio.musit.microservice.storagefacility.domain.storage.{Room, StorageNodeId}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
@@ -50,9 +50,9 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(id: StorageNodeId): Future[Option[Room]] = {
+  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[Room]] = {
     val action = for {
-      maybeUnitDto <- getUnitByIdAction(id)
+      maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeRoomDto <- roomTable.filter(_.id === id).result.headOption
     } yield {
       maybeUnitDto.flatMap(u =>
@@ -66,11 +66,11 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, room: Room): Future[MusitResult[Option[Int]]] = {
-    val roomDto = StorageNodeDto.fromRoom(room, Some(id))
+  def update(mid: MuseumId, id: StorageNodeId, room: Room): Future[MusitResult[Option[Int]]] = {
+    val roomDto = StorageNodeDto.fromRoom(mid, room, Some(id))
     val action = for {
-      unitsUpdated <- updateNodeAction(id, roomDto.storageUnitDto)
-      roomsUpdated <- updateAction(id, roomDto.extension)
+      unitsUpdated <- updateNodeAction(mid, id, roomDto.storageUnitDto)
+      roomsUpdated <- if (unitsUpdated > 0) updateAction(id, roomDto.extension) else DBIO.successful[Int](0)
     } yield roomsUpdated
 
     db.run(action.transactionally).map {
@@ -104,8 +104,8 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(room: Room): Future[StorageNodeId] = {
-    val extendedDto = StorageNodeDto.fromRoom(room)
+  def insert(mid: MuseumId, room: Room): Future[StorageNodeId] = {
+    val extendedDto = StorageNodeDto.fromRoom(mid, room)
     val action = (for {
       nodeId <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))

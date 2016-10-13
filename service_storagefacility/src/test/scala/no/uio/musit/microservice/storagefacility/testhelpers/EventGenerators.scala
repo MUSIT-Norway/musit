@@ -20,16 +20,17 @@
 package no.uio.musit.microservice.storagefacility.testhelpers
 
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ControlSubEvents._
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents._
 import no.uio.musit.microservice.storagefacility.domain.event._
+import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.control._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
+import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain.{FromToDouble, Interval, LifeCycle}
+import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
 
@@ -38,66 +39,77 @@ trait EventGenerators extends EventTypeInitializers {
 
   def eventDao: EventDao = fromInstanceCache[EventDao]
 
-  def addControl(ctrl: Control) = {
+  def addControl(mid: MuseumId, ctrl: Control) = {
     val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
-    eventDao.insertEvent(ctrlAsDto)
+    eventDao.insertEvent(mid, ctrlAsDto)
   }
 
-  def addObservation(obs: Observation) = {
+  def addObservation(mid: MuseumId, obs: Observation) = {
     val obsAsDto = DtoConverters.ObsConverters.observationToDto(obs)
-    eventDao.insertEvent(obsAsDto)
+    eventDao.insertEvent(mid, obsAsDto)
   }
 
-  def addEnvRequirement(envReq: EnvRequirement) = {
+  def addEnvRequirement(mid: MuseumId, envReq: EnvRequirement) = {
     val erAsDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
-    eventDao.insertEvent(erAsDto)
+    eventDao.insertEvent(mid, erAsDto)
   }
 }
 
 trait EventTypeInitializers {
 
   val registeredByName = "Darth Vader"
-  val defaultActorRole = ActorRole(1, 12)
-
-  def createBase(str: String, affected: Option[Long] = Some(1)): BaseEvent =
-    BaseEvent(
-      id = None,
-      doneDate = DateTime.now.minusDays(1),
-      note = Some(str),
-      partOf = None,
-      registeredBy = Some(registeredByName),
-      registeredDate = Some(DateTime.now),
-      doneBy = Some(defaultActorRole),
-      affectedThing = affected.map(a => ObjectRole(1, a))
-    )
+  val defaultActorId = ActorId(12)
 
   def createControl(storageNodeId: Option[StorageNodeId] = None) = {
     Control(
-      baseEvent = createBase("This is a control note", storageNodeId),
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      registeredBy = Some(registeredByName),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = storageNodeId,
       eventType = EventType.fromEventTypeId(ControlEventType.id),
-      parts = Some(Seq(
-        createTemperatureControl(),
-        createAlcoholControl(),
-        createCleaningControl(ok = true),
-        createPestControl()
-      ))
+      temperature = Some(createTemperatureControl()),
+      alcohol = Some(createAlcoholControl()),
+      cleaning = Some(createCleaningControl(ok = true)),
+      pest = Some(createPestControl())
     )
   }
 
   def createObservation(storageNodeId: Option[StorageNodeId] = None) = {
     Observation(
-      baseEvent = createBase("This is an observation note", storageNodeId),
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      registeredBy = Some(registeredByName),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = storageNodeId,
       eventType = EventType.fromEventTypeId(ObservationEventType.id),
-      parts = Some(Seq(
-        createCleaningObservation,
-        createTemperatureObservation
-      ))
+      alcohol = Some(createAlcoholObservation),
+      cleaning = Some(createCleaningObservation),
+      gas = Some(createGasObservation),
+      hypoxicAir = Some(createHypoxicObservation),
+      lightingCondition = Some(createLightingObservation),
+      mold = Some(createMoldObservation),
+      pest = Some(createPestObservation),
+      relativeHumidity = Some(createHumidityObservation),
+      temperature = Some(createTemperatureObservation),
+      theftProtection = Some(createTheftObservation),
+      fireProtection = Some(createFireObservation),
+      perimeterSecurity = Some(createPerimeterObservation),
+      waterDamageAssessment = Some(createWaterDmgObservation)
     )
   }
 
   def createEnvRequirement(storageNodeId: Option[StorageNodeId] = None) = {
     EnvRequirement(
-      baseEvent = createBase("This is the base note", storageNodeId),
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      note = Some("This is an envreq note"),
+      registeredBy = Some(registeredByName),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = storageNodeId,
       eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
       temperature = Some(Interval(20, Some(5))),
       airHumidity = Some(Interval(60.0, Some(10))),
@@ -108,65 +120,95 @@ trait EventTypeInitializers {
   }
 
   def createTemperatureControl(ok: Boolean = false): ControlTemperature = {
-    ControlTemperature(
-      baseEvent = createBase("This is a ctrl temp note"),
-      eventType = EventType.fromEventTypeId(CtrlTemperatureType.id),
-      ok = false,
-      motivates = if (ok) None else Some(createTemperatureObservation)
-    )
+    ControlTemperature(ok, if (ok) None else Some(createTemperatureObservation))
   }
 
   def createTemperatureObservation: ObservationTemperature = {
     ObservationTemperature(
-      baseEvent = createBase("This is an obs temp note"),
-      eventType = EventType.fromEventTypeId(ObsTemperatureType.id),
+      note = Some("This is an observation temperature note"),
       range = FromToDouble(Some(12.32), Some(24.12))
     )
   }
 
   def createAlcoholControl(ok: Boolean = false): ControlAlcohol =
-    ControlAlcohol(
-      baseEvent = createBase("This is a ctrl alcohol note"),
-      eventType = EventType.fromEventTypeId(CtrlAlcoholType.id),
-      ok = ok,
-      motivates = if (ok) None else Some(createAlcoholObservation)
-    )
+    ControlAlcohol(ok, if (ok) None else Some(createAlcoholObservation))
 
   def createAlcoholObservation: ObservationAlcohol =
     ObservationAlcohol(
-      baseEvent = createBase("This is an obs alcohol note"),
-      eventType = EventType.fromEventTypeId(ObsAlcoholType.id),
+      note = Some("This is an observation alcohol note"),
       condition = Some("pretty strong"),
       volume = Some(92.30)
     )
 
   def createCleaningControl(ok: Boolean = false): ControlCleaning =
-    ControlCleaning(
-      baseEvent = createBase("This is a ctrl cleaning note"),
-      eventType = EventType.fromEventTypeId(CtrlCleaningType.id),
-      ok = ok,
-      motivates = if (ok) None else Some(createCleaningObservation)
-    )
+    ControlCleaning(ok, if (ok) None else Some(createCleaningObservation))
 
   def createCleaningObservation: ObservationCleaning =
     ObservationCleaning(
-      baseEvent = createBase("This is an obs cleaning note"),
-      eventType = EventType.fromEventTypeId(ObsCleaningType.id),
+      note = Some("This is an observation cleaning note"),
       cleaning = Some("Pretty dirty stuff")
     )
 
-  def createPestControl(ok: Boolean = false): ControlPest =
-    ControlPest(
-      baseEvent = createBase("This is a ctrl pest note"),
-      eventType = EventType.fromEventTypeId(CtrlPestType.id),
-      ok = ok,
-      motivates = if (ok) None else Some(createPestObservation)
+  def createGasObservation: ObservationGas =
+    ObservationGas(
+      note = Some("This is an observation gas note"),
+      gas = Some("Smells like methane")
     )
+
+  def createHypoxicObservation: ObservationHypoxicAir =
+    ObservationHypoxicAir(
+      note = Some("This is an observation hypoxic air note"),
+      range = FromToDouble(Some(11.11), Some(12.12))
+    )
+
+  def createLightingObservation: ObservationLightingCondition =
+    ObservationLightingCondition(
+      note = Some("This is an observation lighting condition note"),
+      lightingCondition = Some("Quite dim")
+    )
+
+  def createMoldObservation: ObservationMold =
+    ObservationMold(
+      note = Some("This is an observation mold note"),
+      mold = Some("Mold is a fun guy")
+    )
+
+  def createHumidityObservation: ObservationRelativeHumidity =
+    ObservationRelativeHumidity(
+      note = Some("This is an observation humidity note"),
+      range = FromToDouble(Some(70.0), Some(75.5))
+    )
+
+  def createTheftObservation: ObservationTheftProtection =
+    ObservationTheftProtection(
+      note = Some("This is an observation theft note"),
+      theftProtection = Some("They stole all our stuff!!")
+    )
+
+  def createFireObservation: ObservationFireProtection =
+    ObservationFireProtection(
+      note = Some("This is an observation fire note"),
+      fireProtection = Some("Fire extinguisher is almost empty")
+    )
+
+  def createPerimeterObservation: ObservationPerimeterSecurity =
+    ObservationPerimeterSecurity(
+      note = Some("This is an observation perimeter note"),
+      perimeterSecurity = Some("Someone has cut a hole in the fence")
+    )
+
+  def createWaterDmgObservation: ObservationWaterDamageAssessment =
+    ObservationWaterDamageAssessment(
+      note = Some("This is an observation water damage note"),
+      waterDamageAssessment = Some("The cellar is flooded")
+    )
+
+  def createPestControl(ok: Boolean = false): ControlPest =
+    ControlPest(ok, if (ok) None else Some(createPestObservation))
 
   def createPestObservation: ObservationPest =
     ObservationPest(
-      baseEvent = createBase("This is an obs pests note"),
-      eventType = EventType.fromEventTypeId(ObsPestType.id),
+      note = Some("This is an observation pest note"),
       identification = Some("termintes"),
       lifecycles = Seq(
         LifeCycle(
@@ -180,4 +222,39 @@ trait EventTypeInitializers {
       )
     )
 
+  def createMoveObject(
+    objectId: Option[ObjectId] = Some(ObjectId(1)),
+    from: Option[StorageNodeId],
+    to: StorageNodeId
+  ): MoveObject = {
+    MoveObject(
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      registeredBy = Some(registeredByName),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = objectId,
+      eventType = EventType.fromEventTypeId(MoveObjectType.id),
+      from = from,
+      to = to
+    )
+  }
+
+  def createMoveNode(
+    nodeId: Option[StorageNodeId] = Some(StorageNodeId(1)),
+    from: Option[StorageNodeId],
+    to: StorageNodeId
+  ): MoveNode = {
+    MoveNode(
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      registeredBy = Some(registeredByName),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = nodeId,
+      eventType = EventType.fromEventTypeId(MoveNodeType.id),
+      from = from,
+      to = to
+    )
+  }
 }
