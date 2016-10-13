@@ -12,9 +12,9 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Logger
 
 /**
-  * Created by jarle on 07.10.16.
-  */
-class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
+ * Created by jarle on 07.10.16.
+ */
+class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
   val dao: ObjectSearchDao = fromInstanceCache[ObjectSearchDao]
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -24,66 +24,65 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
 
   val escapeChar = dao.escapeChar
 
-    def insertTestData(museumId: Int) = {
-      def insert(museumNo: String, subNo: String, term: String) = {
-        dao.testInsert(museumId, MusitThing(
-          museumNo = museumNo,
-          subNo = if(subNo.isEmpty) None else Some(subNo),
-          term = term
-        )).futureValue
-      }
-
-      insert("C1", "1a", "Øks")
-      insert("C1", "2a", "Skummel øks")
-      insert("C1", "3", "Fin øks")
-      insert("C1", "4", "Fin øks")
-      insert("C1", "5", "Fin øks")
-      insert("C1", "6", "Fin øks")
-      insert("C1", "7", "Fin øks")
-      insert("C1", "8", "Fin øks")
-      insert("C1", "9", "Fin øks")
-      insert("C1", "10a", "Fin øks")
-      insert("C1", "11", "Fin øks")
-      insert("C1", "12", "Fin øks")
-      insert("C1", "13", "Fin øks")
-      insert("C1", "14", "Fin øks")
-      insert("C1", "15", "Fin øks")
-      insert("C1", "16", "Fin øks")
-      insert("C1", "17", "Fin øks")
-      insert("C1", "18", "Fin øks")
-      insert("C1", "19", "Fin øks")
-      insert("C1", "20b", "Fin øks")
-      insert("C1", "22", "Fin øks") //Note: Deliberately inserting 22 before 21, to check if sorting works!
-      insert("C1", "21", "Fin øks")
-      insert("C2", "", "Sverd")
-
-      insert("C777", "35", "Øks")
-      insert("C.777", "34B", "Øks")
-      insert("C.777", "34", "Øks")
-      insert("C.777", "34A", "Øks")
-
-      insert("C555", "34B", "Øks")
-      insert("C555", "34A", "Øks")
-      insert("C555", "34C", "Øks")
-      insert("C555A", "B", "Øks")
-      insert("C555B", "A", "Øks")
-      insert("C555C", "C", "Øks")
-
-      insert("C888_B", "B", "Øks")
-      insert("C888_A", "A", "Øks")
-      insert("C888xC", "C", "Øks")
-
-      insert("C81%A", "A", "Bøtte")
-      insert("C81%XA", "B", "Bøtte")
-
-      insert("C81-A", "A", "Bøtte")
-      insert("C81-XA", "B", "Bøtte")
-
-      insert(s"C81${escapeChar}A", "A", "Bøtte")
-      insert(s"C81${escapeChar}XA", "B", "Bøtte")
-
+  def insertTestData(museumId: Int) = {
+    def insert(museumNo: String, subNo: String, term: String) = {
+      dao.testInsert(museumId, MusitThing(
+        museumNo = museumNo,
+        subNo = if (subNo.isEmpty) None else Some(subNo),
+        term = term
+      )).futureValue
     }
 
+    insert("C1", "1a", "Øks")
+    insert("C1", "2a", "Skummel øks")
+    insert("C1", "3", "Fin øks")
+    insert("C1", "4", "Fin øks")
+    insert("C1", "5", "Fin øks")
+    insert("C1", "6", "Fin øks")
+    insert("C1", "7", "Fin øks")
+    insert("C1", "8", "Fin øks")
+    insert("C1", "9", "Fin øks")
+    insert("C1", "10a", "Fin øks")
+    insert("C1", "11", "Fin øks")
+    insert("C1", "12", "Fin øks")
+    insert("C1", "13", "Fin øks")
+    insert("C1", "14", "Fin øks")
+    insert("C1", "15", "Fin øks")
+    insert("C1", "16", "Fin øks")
+    insert("C1", "17", "Fin øks")
+    insert("C1", "18", "Fin øks")
+    insert("C1", "19", "Fin øks")
+    insert("C1", "20b", "Fin øks")
+    insert("C1", "22", "Fin øks") //Note: Deliberately inserting 22 before 21, to check if sorting works!
+    insert("C1", "21", "Fin øks")
+    insert("C2", "", "Sverd")
+
+    insert("C777", "35", "Øks")
+    insert("C.777", "34B", "Øks")
+    insert("C.777", "34", "Øks")
+    insert("C.777", "34A", "Øks")
+
+    insert("C555", "34B", "Øks")
+    insert("C555", "34A", "Øks")
+    insert("C555", "34C", "Øks")
+    insert("C555A", "B", "Øks")
+    insert("C555B", "A", "Øks")
+    insert("C555C", "C", "Øks")
+
+    insert("C888_B", "B", "Øks")
+    insert("C888_A", "A", "Øks")
+    insert("C888xC", "C", "Øks")
+
+    insert("C81%A", "A", "Bøtte")
+    insert("C81%XA", "B", "Bøtte")
+
+    insert("C81-A", "A", "Bøtte")
+    insert("C81-XA", "B", "Bøtte")
+
+    insert(s"C81${escapeChar}A", "A", "Bøtte")
+    insert(s"C81${escapeChar}XA", "B", "Bøtte")
+
+  }
 
   "ObjectSearch" must {
     "dummy test to insert test data" in {
@@ -94,11 +93,11 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
 
       val res = dao.search(1, "C1", "", "", 1, 100).futureValue
       val seq = res.get
-      assert(seq.length>=3)
+      assert(seq.length >= 3)
 
       val res2 = dao.search(1, "C2", "", "", 1, 100).futureValue
       val seq2 = res2.get
-      assert(seq2.length>0)
+      assert(seq2.length > 0)
 
     }
 
@@ -152,13 +151,6 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
 
   }
 
-  /*Not true anymore
-  "museumNo with % should fail" in {
-    val res = dao.search(1, "C.%", "", "", 1, 10).futureValue
-    res.isFailure mustBe true
-  }
-  */
-
   "simple SQL-injection attempt should return 0 rows" in {
     val res = dao.search(1, "C.' or 1=1 --", "", "", 1, 10).futureValue
     val seq = res.get
@@ -203,7 +195,6 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
     seq(0).museumNo mustBe "C81%A"
   }
 
-
   "that - is treated like an ordinary character in =-context" in {
     val res = dao.search(1, "C81-A", "", "", 1, 10).futureValue
     val seq = res.get
@@ -219,7 +210,6 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
     seq.length mustBe 1 //We should find C81%A and *not* C81%XA
     seq(0).museumNo mustBe "C81-A"
   }
-
 
   "that the escape character is treated like an ordinary character in =-context" in {
     val res = dao.search(1, s"C81${escapeChar}A", "", "", 1, 10).futureValue
@@ -237,16 +227,20 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite{
     seq(0).museumNo mustBe s"C81${escapeChar}A"
   }
 
-
   "that an escape clause is generated because it is needed" in {
-    val res = dao.search(1, s"C*_A", "", "", 1, 10).futureValue
-    val seq = res.get
-    //Todo: Check that the SQL has an escape clause!
+    dao.testSearchSql(1, s"C*_A", "", "", 1, 10).get must include("escape")
+    dao.testSearchSql(1, s"C*%A", "", "", 1, 10).get must include("escape")
+
+    dao.testSearchSql(1, s"", "*_", "", 1, 10).get must include("escape")
+    dao.testSearchSql(1, s"", "*%", "", 1, 10).get must include("escape")
+
+    dao.testSearchSql(1, s"", "", "*_", 1, 10).get must include("escape")
+    dao.testSearchSql(1, s"", "", "*%", 1, 10).get must include("escape")
   }
 
   "that an escape clause is not generated if not needed" in {
-    val res = dao.search(1, s"C*A", "", "", 1, 10).futureValue
-    val seq = res.get
-    //Todo: Check that the SQL doesn't have an escape clause!
+    dao.testSearchSql(1, s"C*A", "", "", 1, 10).get mustNot include("escape")
+
+    dao.testSearchSql(1, s"C*A", "%", "_", 1, 10).get mustNot include("escape")
   }
 }

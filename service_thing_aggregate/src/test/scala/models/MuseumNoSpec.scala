@@ -1,8 +1,8 @@
 package models
 
 /**
-  * Created by jarle on 10.10.16.
-  */
+ * Created by jarle on 10.10.16.
+ */
 
 import models.dto.MusitThingDto
 import org.scalatestplus.play.PlaySpec
@@ -23,7 +23,6 @@ class MuseumNoSpec extends PlaySpec {
     numberPart("B3241/a_7") mustBe Some(3241)
     numberPart("B4610/II_æ") mustBe Some(4610)
   }
-
 
   "Interacting with SubNo" when {
     def numberPart(subNo: String): Option[Long] = {

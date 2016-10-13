@@ -16,8 +16,8 @@ object MusitThingDto {
       term = x.term
     )
 
-  val regExp = """\A\D*(\d+)(?:\D.*)?\z""".r  // A sequence of non-digits, followed by a sequence of digits,
-    // followed by an optional tail starting with a non-digit (and then whatever).
+  val regExp = """\A\D*(\d+)(?:\D.*)?\z""".r // A sequence of non-digits, followed by a sequence of digits,
+  // followed by an optional tail starting with a non-digit (and then whatever).
 
   /** The number part of a museumNo */
   def museumNoNumberPart(museumNo: String): Option[Long] = {
