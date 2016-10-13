@@ -18,22 +18,7 @@ class ObjectSearchIntegrationSpec @Inject() ( //    val dao: ObjectSearchDao
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
-  /*
-  def insertTestData(museumId: Int) = {
-    def insert(museumNo: String, subNo: String, term: String) = {
-      dao.testInsert(museumId, MusitThing(
-        museumNo = museumNo,
-        subNo = subNo,
-        term = term
-      ))
-    }
 
-    insert("C1", "", "Øks")
-    insert("C1", "1", "Skummel øks")
-    insert("C1", "2", "Fin øks")
-    insert("C2", "", "Sverd")
-  }
-*/
   def doSearch(museumId: Int, museumNo: String, subNo: String, term: String, page: Int = 1, limit: Int = 25) = {
     def encode(str: String) = UriEncoding.encodePathSegment(str, "utf-8")
     var url =
@@ -44,8 +29,6 @@ class ObjectSearchIntegrationSpec @Inject() ( //    val dao: ObjectSearchDao
 
   "ObjectSearch" must {
     "find an object which exists, via museumNo" in {
-
-      //    insertTestData(1)
 
       val res = doSearch(1, "C666", "", "")
       res.status mustBe 200
