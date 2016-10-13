@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
 import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
@@ -51,9 +52,9 @@ class StorageUnitDao @Inject() (
    * @param id
    * @return
    */
-  def exists(id: StorageNodeId): Future[MusitResult[Boolean]] = {
+  def exists(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Boolean]] = {
     val query = storageNodeTable.filter { su =>
-      su.id === id && su.isDeleted === false
+      su.museumId === mid && su.id === id && su.isDeleted === false
     }.exists.result
 
     db.run(query).map(found => MusitSuccess(found)).recover {
@@ -66,17 +67,17 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getUnitByIdAction(id)
+  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[StorageUnit]] = {
+    val query = getUnitByIdAction(mid, id)
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
   }
 
   /**
    * TODO: Document me!!!
    */
-  def getAllById(id: StorageNodeId): Future[Option[StorageUnit]] = {
-    val query = getAllByIdAction(id)
-    db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
+  def getNodeById(mid: MuseumId, id: StorageNodeId): Future[Option[GenericStorageNode]] = {
+    val query = getNodeByIdAction(mid, id)
+    db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
   }
 
   /**
@@ -84,9 +85,10 @@ class StorageUnitDao @Inject() (
    *
    * @return a Future collection of Root nodes.
    */
-  def findRootNodes: Future[Seq[Root]] = {
+  def findRootNodes(mid: MuseumId): Future[Seq[Root]] = {
     val query = storageNodeTable.filter { root =>
-      root.isDeleted === false &&
+      root.museumId === mid &&
+        root.isDeleted === false &&
         root.isPartOf.isEmpty &&
         root.storageType === rootNodeType
     }.result
@@ -115,9 +117,9 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getChildren(id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
+  def getChildren(mid: MuseumId, id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
     val query = storageNodeTable.filter { node =>
-      node.isPartOf === id && node.isDeleted === false
+      node.museumId === mid && node.isPartOf === id && node.isDeleted === false
     }.result
     db.run(query).map { dtos =>
       dtos.map { dto =>
@@ -142,17 +144,17 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(storageUnit: StorageUnit): Future[StorageNodeId] = {
-    val dto = StorageNodeDto.fromStorageUnit(storageUnit)
+  def insert(mid: MuseumId, storageUnit: StorageUnit): Future[StorageNodeId] = {
+    val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
     db.run(insertNodeAction(dto))
   }
 
   /**
    * TODO: Document me!!!
    */
-  def insertRoot(root: Root): Future[StorageNodeId] = {
+  def insertRoot(mid: MuseumId, root: Root): Future[StorageNodeId] = {
     logger.debug("Inserting root node...")
-    val dto = StorageNodeDto.fromRoot(root).asStorageUnit
+    val dto = StorageNodeDto.fromRoot(mid, root).asStorageUnit(mid)
     db.run(insertNodeAction(dto))
   }
 
@@ -179,7 +181,7 @@ class StorageUnitDao @Inject() (
   /**
    * Updates the path for all nodes that starts with the "oldPath".
    *
-   * @param id   the StorageNodeId to update
+   * @param id the StorageNodeId to update
    * @param path the NodePath to set
    * @return MusitResult[Unit]
    */
@@ -228,11 +230,12 @@ class StorageUnitDao @Inject() (
    * TODO: Document me!!!
    */
   def update(
+    mid: MuseumId,
     id: StorageNodeId,
     storageUnit: StorageUnit
   ): Future[MusitResult[Option[Int]]] = {
-    val dto = StorageNodeDto.fromStorageUnit(storageUnit)
-    db.run(updateNodeAction(id, dto)).map {
+    val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
+    db.run(updateNodeAction(mid, id, dto)).map {
       case res: Int if res == 1 => MusitSuccess(Some(res))
       case res: Int if res == 0 => MusitSuccess(None)
       case res: Int =>
@@ -255,9 +258,9 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def markAsDeleted(id: StorageNodeId): Future[MusitResult[Int]] = {
+  def markAsDeleted(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Int]] = {
     val query = storageNodeTable.filter { su =>
-      su.id === id && su.isDeleted === false
+      su.id === id && su.isDeleted === false && su.museumId === mid
     }.map(_.isDeleted).update(true)
 
     db.run(query).map {
@@ -283,13 +286,14 @@ class StorageUnitDao @Inject() (
     val q = for { n <- filter } yield n.isPartOf
     val query = q.update(partOf)
 
-    db.run(query).map { res =>
-      if (res == 1) MusitSuccess(res)
-      else MusitValidationError(
-        message = s"Unexpected result updating partOf for storage node $id",
-        expected = 1,
-        actual = res
-      )
+    db.run(query).map {
+      case res: Int if res == 1 =>
+        MusitSuccess(res)
+
+      case res: Int =>
+        val msg = wrongNumUpdatedRows(id, res)
+        logger.warn(msg)
+        MusitDbError(msg)
     }
   }
 

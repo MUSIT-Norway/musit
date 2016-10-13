@@ -19,22 +19,37 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
-import no.uio.musit.microservice.storagefacility.domain.event.{EventType, MusitEvent, BaseEvent, Parts}
-import play.api.libs.functional.syntax._
+import no.uio.musit.formatters.WithDateTimeFormatters
+import no.uio.musit.microservice.storagefacility.domain.ActorId
+import no.uio.musit.microservice.storagefacility.domain.event._
+import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEvents._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import org.joda.time.DateTime
 import play.api.libs.json.{Format, _}
 
-import ObservationSubEventFormats.ObservationSubEventFormat
-
 case class Observation(
-  baseEvent: BaseEvent,
+  id: Option[EventId],
+  doneBy: Option[ActorId],
+  doneDate: DateTime,
+  affectedThing: Option[StorageNodeId],
+  registeredBy: Option[String],
+  registeredDate: Option[DateTime],
   eventType: EventType,
-  parts: Option[Seq[ObservationSubEvent]] = None
-) extends MusitEvent with Parts[ObservationSubEvent]
+  alcohol: Option[ObservationAlcohol] = None,
+  cleaning: Option[ObservationCleaning] = None,
+  gas: Option[ObservationGas] = None,
+  hypoxicAir: Option[ObservationHypoxicAir] = None,
+  lightingCondition: Option[ObservationLightingCondition] = None,
+  mold: Option[ObservationMold] = None,
+  pest: Option[ObservationPest] = None,
+  relativeHumidity: Option[ObservationRelativeHumidity] = None,
+  temperature: Option[ObservationTemperature] = None,
+  theftProtection: Option[ObservationTheftProtection] = None,
+  fireProtection: Option[ObservationFireProtection] = None,
+  perimeterSecurity: Option[ObservationPerimeterSecurity] = None,
+  waterDamageAssessment: Option[ObservationWaterDamageAssessment] = None
+) extends MusitEvent
 
-object Observation {
-  implicit val format: Format[Observation] = (
-    __.format[BaseEvent] and
-    (__ \ "eventType").format[EventType] and
-    (__ \ "parts").formatNullable[Seq[ObservationSubEvent]]
-  )(Observation.apply, unlift(Observation.unapply))
+object Observation extends WithDateTimeFormatters {
+  implicit val format: Format[Observation] = Json.format[Observation]
 }

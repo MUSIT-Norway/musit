@@ -24,7 +24,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 case class Move[A](
-  doneBy: Int,
+  doneBy: ActorId,
   destination: StorageNodeId,
   items: Seq[A]
 )
@@ -32,13 +32,13 @@ case class Move[A](
 object Move {
 
   implicit val storageNodeIdFormat: Format[Move[StorageNodeId]] = (
-    (__ \ "doneBy").format[Int] and
+    (__ \ "doneBy").format[ActorId] and
     (__ \ "destination").format[StorageNodeId] and
     (__ \ "items").format[Seq[StorageNodeId]]
   )((db, snid, items) => Move(db, snid, items), m => (m.doneBy, m.destination, m.items))
 
   implicit val objectIdFormat: Format[Move[Long]] = (
-    (__ \ "doneBy").format[Int] and
+    (__ \ "doneBy").format[ActorId] and
     (__ \ "destination").format[StorageNodeId] and
     (__ \ "items").format[Seq[Long]]
   )((db, snid, items) => Move(db, snid, items), m => (m.doneBy, m.destination, m.items))

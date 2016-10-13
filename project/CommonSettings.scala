@@ -42,6 +42,7 @@ object CommonSettings {
     parallelExecution in IntegrationTest := false,
     logBuffered in Test := false,
     logBuffered in IntegrationTest := false,
+    javaOptions in IntegrationTest += "-Dlogger.resource=logback-test.xml",
     scalacOptions := Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-feature", // Emit warning and location for usages of features that should be imported explicitly.

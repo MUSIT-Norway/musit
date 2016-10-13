@@ -37,6 +37,6 @@ class MuseumNoSpec extends PlaySpec {
     numberPart("") mustBe None
     numberPart("U123") mustBe Some(123)
     numberPart("U123.") mustBe Some(123)
-    numberPart("UT123.") mustBe Some(123)
+    numberPart("UT123.5") mustBe Some(123)
   }
 }

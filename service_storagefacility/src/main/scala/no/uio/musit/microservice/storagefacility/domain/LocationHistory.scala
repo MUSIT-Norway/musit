@@ -17,33 +17,36 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event
+package no.uio.musit.microservice.storagefacility.domain
 
 import no.uio.musit.formatters.WithDateTimeFormatters
 import org.joda.time.DateTime
-import play.api.libs.json._
+import play.api.libs.json.{Json, Writes}
 
-// TODO: Change id and partOf to EventId
-
-case class BaseEvent(
-  id: Option[Long],
-  doneBy: Option[ActorRole],
+/**
+ *
+ */
+case class LocationHistory(
+  registeredBy: String,
+  registeredDate: DateTime,
+  doneBy: Option[ActorId],
   doneDate: DateTime,
-  note: Option[String],
-  partOf: Option[Long],
-  // TODO: Move affectedThing property to the specific types?!?!?
-  affectedThing: Option[ObjectRole],
-  /*
-    TODO: The following 2 fields are not really Optional. And is not something
-    the clients of the API will send in.
-    This highlights the difference between internal/external representation
-    (API vs Domain). And shows the need to have a separate layer of API models
-    that represent the in/out messages.
-   */
-  registeredBy: Option[String], // This should be UserId,
-  registeredDate: Option[DateTime]
+  from: FacilityLocation,
+  to: FacilityLocation
 )
 
-object BaseEvent extends WithDateTimeFormatters {
-  implicit val format: Format[BaseEvent] = Json.format[BaseEvent]
+object LocationHistory extends WithDateTimeFormatters {
+  implicit val writes: Writes[LocationHistory] = Json.writes[LocationHistory]
+}
+
+/**
+ *
+ */
+case class FacilityLocation(
+  path: NodePath,
+  pathNames: Seq[NamedPathElement]
+)
+
+object FacilityLocation {
+  implicit val writes: Writes[FacilityLocation] = Json.writes[FacilityLocation]
 }

@@ -19,9 +19,10 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
+import no.uio.musit.microservice.storagefacility.domain.MusitId
 import play.api.libs.json._
 
-case class EventId(underlying: Long) extends AnyVal
+case class EventId(underlying: Long) extends MusitId
 
 object EventId {
 
@@ -31,10 +32,8 @@ object EventId {
     JsNumber(eid.underlying)
   }
 
-  // ==========================================================================
-  // Some useful implicit converters for dealing with mapping to/from other
-  // data types.
-  // ==========================================================================
+  val empty: EventId = EventId(-1)
+
   implicit def longToEventId(l: Long): EventId = EventId(l)
 
   implicit def eventIdToLong(eid: EventId): Long = eid.underlying
@@ -43,8 +42,8 @@ object EventId {
     ml.map(longToEventId)
   }
 
-  implicit def optEventIdToLong(msnid: Option[EventId]): Option[Long] = {
-    msnid.map(eventIdToLong)
+  implicit def optEventIdToLong(meid: Option[EventId]): Option[Long] = {
+    meid.map(eventIdToLong)
   }
 
 }

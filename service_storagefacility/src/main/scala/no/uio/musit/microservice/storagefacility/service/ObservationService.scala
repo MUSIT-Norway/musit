@@ -21,8 +21,9 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.datetime._
-import no.uio.musit.microservice.storagefacility.domain.event.{EventId, ObjectRole}
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.ObsConverters
@@ -34,7 +35,10 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-class ObservationService @Inject() (val eventDao: EventDao) {
+class ObservationService @Inject() (
+    val eventDao: EventDao,
+    val storageNodeService: StorageNodeService
+) {
 
   val logger = Logger(classOf[ObservationService])
 
@@ -42,42 +46,50 @@ class ObservationService @Inject() (val eventDao: EventDao) {
    * TODO: Document me!
    */
   def add(
-    nodeId: Long,
+    mid: MuseumId,
+    nodeId: StorageNodeId,
     obs: Observation
   )(implicit currUsr: String): Future[MusitResult[Observation]] = {
-    val o = obs.copy(
-      baseEvent = obs.baseEvent.copy(
-        affectedThing = Some(ObjectRole(
-          roleId = 1,
-          objectId = nodeId
-        )),
-        registeredBy = Some(currUsr),
-        registeredDate = Some(dateTimeNow)
-      )
-    )
-    val dto = ObsConverters.observationToDto(o)
-    eventDao.insertEvent(dto).flatMap { eventId =>
-      eventDao.getEvent(eventId).map { res =>
-        res.flatMap(_.map { dto =>
-          // We know we have a BaseEventDto representing an Observation.
-          val bdto = dto.asInstanceOf[BaseEventDto]
-          MusitSuccess(ObsConverters.observationFromDto(bdto))
-        }.getOrElse {
-          logger.error(
-            s"An unexpected error occured when trying to fetch an " +
-              s"observation event that was added with eventId $eventId"
+    storageNodeService.exists(mid, nodeId).flatMap {
+      case MusitSuccess(nodeExists) =>
+        if (nodeExists) {
+          val o = obs.copy(
+            affectedThing = Some(nodeId),
+            registeredBy = Some(currUsr),
+            registeredDate = Some(dateTimeNow)
           )
-          MusitInternalError("Could not locate the observation that was added")
-        })
-      }
+
+          val dto = ObsConverters.observationToDto(o)
+          eventDao.insertEvent(mid, dto).flatMap { eventId =>
+            eventDao.getEvent(mid, eventId).map { res =>
+              res.flatMap(_.map { dto =>
+                // We know we have a BaseEventDto representing an Observation.
+                val bdto = dto.asInstanceOf[BaseEventDto]
+                MusitSuccess(ObsConverters.observationFromDto(bdto))
+              }.getOrElse {
+                logger.error(
+                  s"An unexpected error occured when trying to fetch an " +
+                    s"observation event that was added with eventId $eventId"
+                )
+                MusitInternalError("Could not locate the observation that was added")
+              })
+            }
+          }
+        } else {
+          Future.successful(MusitValidationError("Node not found."))
+        }
+
+      case err: MusitError =>
+        logger.error("An error occured when trying to add an Observation")
+        Future.successful(err)
     }
   }
 
   /**
    * TODO: Document me!
    */
-  def findBy(id: EventId): Future[MusitResult[Option[Observation]]] = {
-    eventDao.getEvent(id.underlying).map { result =>
+  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Observation]]] = {
+    eventDao.getEvent(mid, id.underlying).map { result =>
       result.flatMap(_.map {
         case base: BaseEventDto =>
           MusitSuccess(
@@ -95,8 +107,8 @@ class ObservationService @Inject() (val eventDao: EventDao) {
   /**
    * TODO: Document me!
    */
-  def listFor(nodeId: StorageNodeId): Future[MusitResult[Seq[Observation]]] = {
-    eventDao.getEventsForNode(nodeId, ObservationEventType).map { dtos =>
+  def listFor(mid: MuseumId, nodeId: StorageNodeId): Future[MusitResult[Seq[Observation]]] = {
+    eventDao.getEventsForNode(mid, nodeId, ObservationEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>
         // We know we have a BaseEventDto representing an Observation.
         val base = dto.asInstanceOf[BaseEventDto]

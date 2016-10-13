@@ -19,24 +19,36 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.control
 
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEventFormats.ControlSubEventsFormat
-import play.api.libs.functional.syntax._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.ActorId
+import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEvents._
+import org.joda.time.DateTime
 import play.api.libs.json._
 
-// TODO: Make SUB events as a direct part of the Control event.
-
+/**
+ * TODO: Document me
+ */
 case class Control(
-  baseEvent: BaseEvent,
+  id: Option[EventId],
+  doneBy: Option[ActorId],
+  doneDate: DateTime,
+  affectedThing: Option[StorageNodeId],
+  registeredBy: Option[String],
+  registeredDate: Option[DateTime],
   eventType: EventType,
-  parts: Option[Seq[ControlSubEvent]] = None
-) extends MusitEvent with Parts[ControlSubEvent]
+  alcohol: Option[ControlAlcohol] = None,
+  cleaning: Option[ControlCleaning] = None,
+  gas: Option[ControlGas] = None,
+  hypoxicAir: Option[ControlHypoxicAir] = None,
+  lightingCondition: Option[ControlLightingCondition] = None,
+  mold: Option[ControlMold] = None,
+  pest: Option[ControlPest] = None,
+  relativeHumidity: Option[ControlRelativeHumidity] = None,
+  temperature: Option[ControlTemperature] = None
+) extends MusitEvent
 
-object Control {
-  implicit val format: Format[Control] = (
-    __.format[BaseEvent] and
-    (__ \ "eventType").format[EventType] and
-    (__ \ "parts").formatNullable[Seq[ControlSubEvent]]
-  )(Control.apply, unlift(Control.unapply))
-
+object Control extends WithDateTimeFormatters {
+  implicit val format: Format[Control] = Json.format[Control]
 }

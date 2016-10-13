@@ -19,10 +19,13 @@
 
 package no.uio.musit.microservice.storagefacility.dao.event
 
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
+import no.uio.musit.microservice.storagefacility.domain.ObjectId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{ControlEventType, MoveNodeType, MoveObjectType, ObservationEventType}
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move._
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.testhelpers._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors._
@@ -41,23 +44,25 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
   )
 
   // This is mutable to allow keeping track of the last inserted eventId.
-  private var latestEventId: Long = _
+  private var latestEventId: EventId = _
 
   "The EventDao" when {
 
     "processing controls with sub-controls and observations" should {
       "succeed when inserting a Control" in {
+        val mid = MuseumId(2)
         val ctrl = createControl(defaultBuilding.id)
-        latestEventId = addControl(ctrl).futureValue
+        latestEventId = addControl(mid, ctrl).futureValue
 
-        latestEventId mustBe a[java.lang.Long]
-        latestEventId mustBe 1L
+        latestEventId mustBe an[EventId]
+        latestEventId mustBe EventId(1L)
       }
 
       "return the Control associated with the provided Id" in {
+        val mid = MuseumId(2)
         val ctrl = createControl(defaultBuilding.id)
-        val ctrlId = addControl(ctrl).futureValue
-        val res = eventDao.getEvent(latestEventId).futureValue
+        val ctrlId = addControl(mid, ctrl).futureValue
+        val res = eventDao.getEvent(mid, latestEventId).futureValue
 
         res.isFailure must not be true
         res.get.isEmpty must not be true
@@ -65,14 +70,18 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         res.get.get match {
           case base: BaseEventDto =>
             val c = DtoConverters.CtrlConverters.controlFromDto(base)
-
             c.eventType mustBe EventType.fromEventTypeId(ControlEventType.id)
-            c.baseEvent.note mustBe ctrl.baseEvent.note
-            c.baseEvent.registeredBy mustBe Some(registeredByName)
-            c.baseEvent.registeredDate must not be None
-            c.parts must not be None
-
-          // TODO: Inspect all the parts
+            c.registeredBy mustBe Some(registeredByName)
+            c.registeredDate must not be None
+            c.temperature mustBe ctrl.temperature
+            c.alcohol mustBe ctrl.alcohol
+            c.cleaning mustBe ctrl.cleaning
+            c.pest mustBe ctrl.pest
+            c.relativeHumidity mustBe ctrl.relativeHumidity
+            c.mold mustBe ctrl.mold
+            c.gas mustBe ctrl.gas
+            c.hypoxicAir mustBe ctrl.hypoxicAir
+            c.lightingCondition mustBe ctrl.lightingCondition
 
           case _ =>
             fail("Expected dto to be of type BaseEventDto")
@@ -83,18 +92,20 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
     "processing observations" should {
       "succeed when inserting an observation" in {
+        val mid = MuseumId(2)
         val obs = createObservation(defaultBuilding.id)
-        val eventId = addObservation(obs).futureValue
+        val eventId = addObservation(mid, obs).futureValue
 
         latestEventId = eventId
 
-        eventId mustBe a[java.lang.Long]
+        eventId mustBe an[EventId]
       }
 
       "return the Observation associated with the provided Id" in {
+        val mid = MuseumId(2)
         val obs = createObservation(defaultBuilding.id)
-        val obsId = addObservation(obs).futureValue
-        val res = eventDao.getEvent(latestEventId).futureValue
+        val obsId = addObservation(mid, obs).futureValue
+        val res = eventDao.getEvent(mid, latestEventId).futureValue
 
         res.isFailure must not be true
         res.get.isEmpty must not be true
@@ -104,10 +115,17 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
             val o = DtoConverters.ObsConverters.observationFromDto(base)
 
             o.eventType mustBe EventType.fromEventTypeId(ObservationEventType.id)
-            o.baseEvent.note mustBe obs.baseEvent.note
-            o.baseEvent.registeredBy mustBe Some(registeredByName)
-            o.baseEvent.registeredDate must not be None
-            o.parts must not be None
+            o.registeredBy mustBe Some(registeredByName)
+            o.registeredDate must not be None
+            o.alcohol mustBe obs.alcohol
+            o.cleaning mustBe obs.cleaning
+            o.gas mustBe obs.gas
+            o.hypoxicAir mustBe obs.hypoxicAir
+            o.lightingCondition mustBe obs.lightingCondition
+            o.mold mustBe obs.mold
+            o.pest mustBe obs.pest
+            o.relativeHumidity mustBe o.relativeHumidity
+            o.temperature mustBe obs.temperature
 
           case _ =>
             fail("Expected dto to be of type BaseEventDto")
@@ -120,16 +138,18 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       val envReq = createEnvRequirement(defaultBuilding.id)
 
       "succeed when inserting an Environment Requirement" in {
+        val mid = MuseumId(2)
         val erDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
-        val eventId = eventDao.insertEvent(erDto).futureValue
+        val eventId = eventDao.insertEvent(mid, erDto).futureValue
 
         latestEventId = eventId
 
-        eventId mustBe a[java.lang.Long]
+        eventId mustBe an[EventId]
       }
 
       "return the Environment Requirement event with the provided ID" in {
-        val res = eventDao.getEvent(latestEventId).futureValue
+        val mid = MuseumId(2)
+        val res = eventDao.getEvent(mid, latestEventId).futureValue
 
         res.isFailure must not be true
         res.get.isEmpty must not be true
@@ -139,9 +159,9 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
             val er = DtoConverters.EnvReqConverters.envReqFromDto(ext)
 
             er.eventType mustBe envReq.eventType
-            er.baseEvent.note mustBe envReq.baseEvent.note
-            er.baseEvent.registeredBy mustBe Some(registeredByName)
-            er.baseEvent.registeredDate must not be None
+            er.note mustBe envReq.note
+            er.registeredBy mustBe Some(registeredByName)
+            er.registeredDate must not be None
             er.light mustBe envReq.light
             er.temperature mustBe envReq.temperature
             er.hypoxicAir mustBe envReq.hypoxicAir
@@ -158,21 +178,22 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
     "processing Move events" should {
 
       "succeed when moving an object" in {
-        val moveObj = MoveObject(
-          baseEvent = createBase("This is a note on moving an object"),
-          eventType = EventType.fromEventTypeId(MoveObjectType.id),
-          to = PlaceRole(1, 1)
+        val mid = MuseumId(2)
+        val moveObj = createMoveObject(
+          from = Some(StorageNodeId(1)),
+          to = StorageNodeId(2)
         )
         val dto = DtoConverters.MoveConverters.moveObjectToDto(moveObj)
-        val eventId = eventDao.insertEvent(dto).futureValue
+        val eventId = eventDao.insertEvent(mid, dto).futureValue
 
         latestEventId = eventId
 
-        eventId mustBe a[java.lang.Long]
+        eventId mustBe an[EventId]
       }
 
       "return the move object event" in {
-        val res = eventDao.getEvent(latestEventId, recursive = false).futureValue
+        val mid = MuseumId(2)
+        val res = eventDao.getEvent(mid, latestEventId, recursive = false).futureValue
         res.isFailure must not be true
         res.get.isEmpty must not be true
 
@@ -186,29 +207,31 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val baseRoleObj = EventRoleObject.toObjectRole(br.relatedObjects.head)
 
         br.eventTypeId mustBe MoveObjectType.id
-        baseRoleActor mustBe defaultActorRole
-        baseRolePlace mustBe PlaceRole(1, 1)
-        baseRoleObj mustBe ObjectRole(1, 1)
+        baseRoleActor mustBe ActorRole(1, defaultActorId)
+        baseRoleObj mustBe ObjectRole(1, ObjectId(1))
+        baseRolePlace mustBe PlaceRole(1, StorageNodeId(2))
+        br.valueLong mustBe Some(1L)
       }
 
       "succeed when moving a storage node" in {
-        val moveNode = MoveNode(
-          baseEvent = createBase("This is a note on moving a Node"),
-          eventType = EventType.fromEventTypeId(MoveNodeType.id),
-          to = PlaceRole(1, 1)
+        val mid = MuseumId(2)
+        val moveNode = createMoveNode(
+          from = Some(StorageNodeId(1)),
+          to = StorageNodeId(2)
         )
 
         val dto = DtoConverters.MoveConverters.moveNodeToDto(moveNode)
-        val eventId = eventDao.insertEvent(dto).futureValue
+        val eventId = eventDao.insertEvent(mid, dto).futureValue
 
         latestEventId = eventId
 
-        eventId mustBe a[java.lang.Long]
+        eventId mustBe a[EventId]
 
       }
 
       "return the move node event" in {
-        val res = eventDao.getEvent(latestEventId, recursive = false).futureValue
+        val mid = MuseumId(2)
+        val res = eventDao.getEvent(mid, latestEventId, recursive = false).futureValue
         res.isFailure must not be true
         res.get.isEmpty must not be true
 
@@ -222,9 +245,10 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val baseRoleObj = EventRoleObject.toObjectRole(br.relatedObjects.head)
 
         br.eventTypeId mustBe MoveNodeType.id
-        baseRoleActor mustBe defaultActorRole
-        baseRolePlace mustBe PlaceRole(1, 1)
-        baseRoleObj mustBe ObjectRole(1, 1)
+        baseRoleActor mustBe ActorRole(1, defaultActorId)
+        baseRolePlace mustBe PlaceRole(1, StorageNodeId(2))
+        baseRoleObj mustBe ObjectRole(1, ObjectId(1))
+        br.valueLong mustBe Some(1L)
       }
 
     }
@@ -235,13 +259,14 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         val ctrl2 = createControl(defaultBuilding.id)
         val ctrl3 = createControl(defaultBuilding.id)
 
-        val ctrlId1 = addControl(ctrl1).futureValue
-        val ctrlId2 = addControl(ctrl2).futureValue
-        val ctrlId3 = addControl(ctrl3).futureValue
+        val ctrlId1 = addControl(defaultMuseumId, ctrl1).futureValue
+        val ctrlId2 = addControl(defaultMuseumId, ctrl2).futureValue
+        val ctrlId3 = addControl(defaultMuseumId, ctrl3).futureValue
 
         val controls = eventDao.getEventsForNode(
-          defaultBuilding.id.get,
-          ControlEventType
+          mid = defaultMuseumId,
+          id = defaultBuilding.id.get,
+          eventType = ControlEventType
         ).futureValue
 
         controls must not be empty
@@ -249,18 +274,20 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         forAll(controls) { c =>
           c.eventTypeId mustBe ControlEventType.id
-          c.relatedObjects.head.objectId mustBe defaultBuilding.id.get.underlying
+          c.relatedObjects.head.objectId.underlying mustBe defaultBuilding.id.get.underlying
         }
       }
 
       "return all observation events" in {
+        val mid = MuseumId(2)
         val obs1 = createObservation(defaultRoom.id)
         val obs2 = createObservation(defaultRoom.id)
 
-        val obsId1 = addObservation(obs1).futureValue
-        val obsId2 = addObservation(obs2).futureValue
+        val obsId1 = addObservation(mid, obs1).futureValue
+        val obsId2 = addObservation(mid, obs2).futureValue
 
         val observations = eventDao.getEventsForNode(
+          mid,
           defaultRoom.id.get,
           ObservationEventType
         ).futureValue
@@ -270,12 +297,11 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         forAll(observations) { o =>
           o.eventTypeId mustBe ObservationEventType.id
-          o.relatedObjects.head.objectId mustBe defaultRoom.id.get.underlying
+          o.relatedObjects.head.objectId.underlying mustBe defaultRoom.id.get.underlying
         }
       }
 
     }
-
   }
-
 }
+

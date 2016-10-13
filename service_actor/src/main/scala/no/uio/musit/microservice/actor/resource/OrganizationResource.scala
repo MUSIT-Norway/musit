@@ -30,7 +30,7 @@ import scala.concurrent.Future
 
 class OrganizationResource @Inject() (orgService: OrganizationService) extends Controller {
 
-  def listRoot(search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
+  def listRoot(museumId: Int, search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
     search match {
       case Some(criteria) => orgService.find(criteria).map(orgs => Ok(Json.toJson(orgs)))
       case None => orgService.all.map(org => Ok(Json.toJson(org)))

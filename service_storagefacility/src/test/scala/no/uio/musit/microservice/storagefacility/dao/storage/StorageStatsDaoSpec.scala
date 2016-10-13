@@ -26,6 +26,12 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Application
 
+/**
+ * ¡¡¡This spec relies on objects being inserted in the evolution script under
+ * {{{src/test/resources/evolutions/default/1.sql script.}}}.
+ * This is acheived by using relaxed constraints on primary and foreign key
+ * references in comparison to the proper schema!!!
+ */
 class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -38,18 +44,20 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     instance(app)
   }
 
+  val museumId = 2
+
   "StorageStatsDao" should {
 
     "return the number of direct child nodes" in {
       val basePath = NodePath(",1,2,3,4,")
 
-      val insId = storageUnitDao.insert(createStorageUnit(path = basePath)).futureValue
+      val insId = storageUnitDao.insert(museumId, createStorageUnit(path = basePath)).futureValue
       insId mustBe a[StorageNodeId]
 
       val childPath = basePath.appendChild(insId)
 
       for (i <- 1 to 10) {
-        val nodeId = storageUnitDao.insert(createStorageUnit(
+        val nodeId = storageUnitDao.insert(museumId, createStorageUnit(
           partOf = Some(insId),
           path = childPath
         )).futureValue
@@ -60,21 +68,11 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "return the number of objects on a node" in {
-      //      val basePath = NodePath(",1,2,3,4,")
-      //
-      //      val inserted = storageUnitDao.insert(createStorageUnit(path = basePath)).futureValue
-      //      inserted.id must not be None
-      //      inserted.path mustBe basePath
-      //
-      //      val childPath = basePath.appendChild(inserted.id.get)
-
-      // TODO: Implement me once move object has been modified to reflect path etc...
-      pending
+      statsDao.directObjectCount(StorageNodeId(5)).futureValue mustBe 5
     }
 
     "return the total number of objects i a node hierarchy" in {
-      // TODO: As above...
-      pending
+      statsDao.totalObjectCount(NodePath(",1,")).futureValue mustBe 13
     }
 
   }

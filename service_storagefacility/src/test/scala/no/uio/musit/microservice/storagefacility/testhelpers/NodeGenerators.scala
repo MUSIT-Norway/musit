@@ -20,8 +20,8 @@
 package no.uio.musit.microservice.storagefacility.testhelpers
 
 import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
-import no.uio.musit.microservice.storagefacility.domain.{Interval, NodePath}
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.microservice.storagefacility.domain.{Interval, MuseumId, NodePath}
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
 
@@ -31,6 +31,8 @@ import scala.concurrent.{Await, Future}
 
 trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>
+
+  val defaultMuseumId = MuseumId(2)
 
   def buildingDao: BuildingDao = {
     val instance = Application.instanceCache[BuildingDao]
@@ -52,49 +54,55 @@ trait NodeGenerators extends NodeTypeInitializers {
     instance(musitFakeApp)
   }
 
-  // Some default nodes
-  lazy val defaultBuilding: Building = {
+  private def createAndFetchNode[A <: StorageNode](
+    node: A,
+    insert: (MuseumId, A) => Future[StorageNodeId],
+    get: (MuseumId, StorageNodeId) => Future[Option[A]]
+  ): A = {
     Await.result({
       for {
-        nodeId <- buildingDao.insert(createBuilding())
-        nodeRes <- buildingDao.getById(nodeId)
+        nodeId <- insert(defaultMuseumId, node)
+        nodeRes <- get(defaultMuseumId, nodeId)
       } yield {
         nodeRes.get
       }
     }, 5 seconds)
+  }
+
+  // Some default nodes
+  lazy val defaultBuilding: Building = {
+    createAndFetchNode(
+      node = createBuilding(path = NodePath(",123,")),
+      insert = buildingDao.insert,
+      get = buildingDao.getById
+    )
   }
 
   lazy val defaultRoom: Room = {
-    Await.result({
-      for {
-        nodeId <- roomDao.insert(createRoom())
-        nodeRes <- roomDao.getById(nodeId)
-      } yield {
-        nodeRes.get
-      }
-    }, 5 seconds)
+    createAndFetchNode(
+      node = createRoom(path = NodePath(",123,")),
+      insert = roomDao.insert,
+      get = roomDao.getById
+    )
   }
 
   lazy val defaultStorageUnit: StorageUnit = {
-    Await.result({
-      for {
-        nodeId <- storageUnitDao.insert(createStorageUnit())
-        nodeRes <- storageUnitDao.getById(nodeId)
-      } yield {
-        nodeRes.get // It _has_ to be present...if this fails all else fails
-      }
-    }, 5 seconds)
+    createAndFetchNode(
+      createStorageUnit(path = NodePath(",123,")),
+      storageUnitDao.insert,
+      storageUnitDao.getById
+    )
   }
 
-  def addRoot(r: Root) = storageUnitDao.insertRoot(r)
+  def addRoot(r: Root) = storageUnitDao.insertRoot(defaultMuseumId, r)
 
-  def addBuilding(b: Building) = buildingDao.insert(b)
+  def addBuilding(b: Building) = buildingDao.insert(defaultMuseumId, b)
 
-  def addOrganisation(o: Organisation) = organisationDao.insert(o)
+  def addOrganisation(o: Organisation) = organisationDao.insert(defaultMuseumId, o)
 
-  def addRoom(r: Room) = roomDao.insert(r)
+  def addRoom(r: Room) = roomDao.insert(defaultMuseumId, r)
 
-  def addStorageUnit(su: StorageUnit) = storageUnitDao.insert(su)
+  def addStorageUnit(su: StorageUnit) = storageUnitDao.insert(defaultMuseumId, su)
 
   def addNode(nodes: StorageNode*): Seq[StorageNodeId] = {
     val eventuallyInserted = Future.sequence {
@@ -198,7 +206,7 @@ trait NodeTypeInitializers {
   ): StorageUnit = {
     StorageUnit(
       id = None,
-      name = "FooUnit",
+      name = name,
       area = Some(1),
       areaTo = Some(2),
       isPartOf = partOf,
@@ -212,7 +220,7 @@ trait NodeTypeInitializers {
   }
 
   def createRoomWithDifferentArea(
-    areaTo: Double,
+    area: Double,
     perimeter: Boolean = false,
     theftProtection: Boolean = false,
     fireProtection: Boolean = false,
@@ -222,7 +230,7 @@ trait NodeTypeInitializers {
     createRoom().copy(
       id = None,
       name = "MyPrivateRoom",
-      areaTo = Some(areaTo),
+      area = Some(area),
       environmentRequirement = Some(defaultEnvironmentRequirement),
       securityAssessment = SecurityAssessment(
         perimeter = Some(perimeter),
