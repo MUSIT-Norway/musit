@@ -154,13 +154,12 @@ class ObjectSearchDao @Inject() (
       val action = query.result
 
       val res = db.run(action).map(seq => MusitSuccess(seq.map(MusitThingDto.toDomain(_))))
-      val res2 = res.recover {
+      res.recover {
         case e: Exception =>
           val msg = s"Error while retrieving search result"
           logger.error(msg, e)
           MusitDbError(msg, Some(e))
       }
-      res2
     }
     musitResultFutureToFutureMusitResult(resultFutSeq).map(_.flatten)
   }

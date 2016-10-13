@@ -34,7 +34,7 @@ object MusitThingDto {
     museumNoNumberPart(subNo)
   }
 
-  implicit def fromDomain(museumId: Int, x: MusitThing): MusitThingDto =
+  def fromDomain(museumId: Int, x: MusitThing): MusitThingDto =
     MusitThingDto(
       id = None,
       museumId = museumId,
