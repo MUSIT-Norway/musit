@@ -51,5 +51,4 @@ case class Control(
 
 object Control extends WithDateTimeFormatters {
   implicit val format: Format[Control] = Json.format[Control]
-
 }

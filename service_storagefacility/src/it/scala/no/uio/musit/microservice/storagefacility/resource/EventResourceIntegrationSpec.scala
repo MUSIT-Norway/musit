@@ -26,7 +26,7 @@ import no.uio.musit.microservice.storagefacility.test.{EventJsonGenerator, Stora
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{JsArray, JsObject, Json}
 
 import scala.util.Try
 
@@ -86,6 +86,31 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       res.status mustBe Status.CREATED
       (res.json \ "id").asOpt[Long] must not be None
+    }
+
+    "fail when a sub-control is ok and contains an observation" in {
+      val mid = 2
+      val json = Json.parse(EventJsonGenerator.controlJson(5)).as[JsObject] ++
+        Json.obj(
+          "cleaning" -> Json.obj(
+            "ok" -> true,
+            "observation" -> EventJsonGenerator.obsStringJson("cleaning")
+          )
+        )
+
+      val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
+      res.status mustBe Status.BAD_REQUEST
+      res.body must include("cannot also have an observation")
+    }
+
+    "fail when a sub-control is not ok and doesn't contain an observation" in {
+      val mid = 2
+      val json = Json.parse(EventJsonGenerator.controlJson(5)).as[JsObject] ++
+        Json.obj("cleaning" -> Json.obj("ok" -> false))
+
+      val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
+      res.status mustBe Status.BAD_REQUEST
+      res.body must include("must have an observation")
     }
 
     "successfully register a new observation" in {
