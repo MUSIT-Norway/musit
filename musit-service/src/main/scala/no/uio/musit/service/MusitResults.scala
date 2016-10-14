@@ -87,8 +87,8 @@ object MusitResults {
    */
   case class MusitValidationError(
       message: String,
-      expected: Any,
-      actual: Any
+      expected: Option[Any] = None,
+      actual: Option[Any] = None
   ) extends MusitError {
     override val isSuccess: Boolean = false
   }

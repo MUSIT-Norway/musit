@@ -19,8 +19,9 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
-import no.uio.musit.microservice.storagefacility.domain.event.{ActorRole, EventTypeId, ObjectRole, PlaceRole}
+import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, ObjectId}
 
 /**
  * isNormalizedDirection is whether this direction is the same which the links
@@ -73,7 +74,7 @@ object EventRelations {
 // concepts in the system.
 // =============================================================================
 
-case class EventRoleActor(eventId: Option[Long], roleId: Int, actorId: Int)
+case class EventRoleActor(eventId: Option[EventId], roleId: Int, actorId: ActorId)
 
 object EventRoleActor {
   def toEventRoleActor(actRole: ActorRole, eventId: Option[Long] = None) =
@@ -83,7 +84,7 @@ object EventRoleActor {
     ActorRole(eventRoleActor.roleId, eventRoleActor.actorId)
 }
 
-case class EventRoleObject(eventId: Option[Long], roleId: Int, objectId: Long, eventTypeId: EventTypeId)
+case class EventRoleObject(eventId: Option[EventId], roleId: Int, objectId: ObjectId, eventTypeId: EventTypeId)
 
 object EventRoleObject {
 
@@ -94,12 +95,12 @@ object EventRoleObject {
     ObjectRole(eventRoleObject.roleId, eventRoleObject.objectId)
 }
 
-case class EventRolePlace(eventId: Option[Long], roleId: Int, placeId: StorageNodeId, eventTypeId: EventTypeId)
+case class EventRolePlace(eventId: Option[EventId], roleId: Int, placeId: StorageNodeId, eventTypeId: EventTypeId)
 
 object EventRolePlace {
 
   def toEventRolePlace(placeRole: PlaceRole, eventTypeId: EventTypeId, eventId: Option[Long] = None) =
-    EventRolePlace(eventId, placeRole.roleId, placeRole.placeId, eventTypeId)
+    EventRolePlace(eventId, placeRole.roleId, placeRole.nodeId, eventTypeId)
 
   def toPlaceRole(eventRolePlace: EventRolePlace) =
     PlaceRole(eventRolePlace.roleId, eventRolePlace.placeId)

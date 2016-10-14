@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
@@ -54,9 +55,9 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(id: StorageNodeId): Future[Option[Building]] = {
+  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[Building]] = {
     val action = for {
-      maybeUnitDto <- getUnitByIdAction(id)
+      maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
@@ -72,11 +73,11 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(id: StorageNodeId, building: Building): Future[MusitResult[Option[Int]]] = {
-    val extendedBuildingDto = StorageNodeDto.fromBuilding(building, Some(id))
+  def update(mid: MuseumId, id: StorageNodeId, building: Building): Future[MusitResult[Option[Int]]] = {
+    val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
     val action = for {
-      unitsUpdated <- updateNodeAction(id, extendedBuildingDto.storageUnitDto)
-      buildingsUpdated <- updateAction(id, extendedBuildingDto.extension)
+      unitsUpdated <- updateNodeAction(mid, id, extendedBuildingDto.storageUnitDto)
+      buildingsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedBuildingDto.extension) else DBIO.successful[Int](0)
     } yield buildingsUpdated
 
     db.run(action.transactionally).map {
@@ -117,8 +118,8 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(building: Building): Future[StorageNodeId] = {
-    val extendedDto = StorageNodeDto.fromBuilding(building)
+  def insert(mid: MuseumId, building: Building): Future[StorageNodeId] = {
+    val extendedDto = StorageNodeDto.fromBuilding(mid, building)
     val query = for {
       nodeId <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))

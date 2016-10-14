@@ -23,6 +23,7 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes._
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -52,7 +53,7 @@ class EventRelationDao @Inject() (
     eventRelTable += relation
   }
 
-  def getRelatedEvents(parentId: Long): Future[Seq[(Int, BaseEventDto)]] = {
+  def getRelatedEvents(parentId: EventId): Future[Seq[(Int, BaseEventDto)]] = {
     val relevantRelations = eventRelTable.filter(evt => evt.fromId === parentId)
 
     logger.debug(s"gets relatedEventDtos for parentId: $parentId")
@@ -73,11 +74,11 @@ class EventRelationDao @Inject() (
 
     def * = (fromId, relationId, toId) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val fromId = column[Long]("FROM_EVENT_ID")
-    val toId = column[Long]("TO_EVENT_ID")
+    val fromId = column[EventId]("FROM_EVENT_ID")
+    val toId = column[EventId]("TO_EVENT_ID")
     val relationId = column[Int]("RELATION_ID")
 
-    def create = (idFrom: Long, relationId: Int, idTo: Long) =>
+    def create = (idFrom: EventId, relationId: Int, idTo: EventId) =>
       EventRelationDto(
         idFrom,
         relationId,

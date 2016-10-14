@@ -19,10 +19,12 @@
 
 package no.uio.musit.microservice.storagefacility
 
+import no.uio.musit.microservice.storagefacility.domain.ActorId
+
 object DummyData {
 
   implicit val DummyUser = "Darth Vader"
 
-  val DummyUserId = 123
+  val DummyUserId = ActorId(123)
 
 }

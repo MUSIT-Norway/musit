@@ -20,7 +20,7 @@
 package dao
 
 import no.uio.musit.service.MusitResults.MusitSuccess
-import models.{MuseumIdentifier, ObjectId}
+import models.{MuseumId, MuseumIdentifier, ObjectId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Logger
@@ -36,9 +36,9 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
   "Interacting with the ObjectAggregationDao" when {
 
-    "getting objects for a nodeId that exists" should {
+    "getting objects for a nodeId that exists within a museum" should {
       "return a list of objects" in {
-        val mr = dao.getObjects(3)
+        val mr = dao.getObjects(MuseumId(2), 3)
         val fut = mr.futureValue
         fut match {
           case MusitSuccess(result) =>
@@ -64,9 +64,20 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
       }
     }
 
-    "getting objects for a nodeId that does not exist" should {
+    "get objects for a nodeId that does not exist, museum exists" should {
       "return a an empty vector" in {
-        val mr = dao.getObjects(999999)
+        val mr = dao.getObjects(MuseumId(1), 999999)
+        val fut = mr.futureValue
+        fut match {
+          case MusitSuccess(result) =>
+            result.length mustBe 0
+          case _ => fail("Should fail")
+        }
+      }
+    }
+    "get objects for a museum that does not exist, nodeId exists" should {
+      "return a an empty vector" in {
+        val mr = dao.getObjects(MuseumId(55), 2)
         val fut = mr.futureValue
         fut match {
           case MusitSuccess(result) =>
@@ -77,4 +88,3 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
     }
   }
 }
-

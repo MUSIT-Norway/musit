@@ -19,12 +19,13 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
+import no.uio.musit.microservice.storagefacility.domain.MusitId
 import play.api.libs.json._
 
 /**
- * Value class to give the storage node ID a strong typing.
+ * Class to give the storage node ID a strong typing.
  */
-case class StorageNodeId(underlying: Long) extends AnyVal
+case class StorageNodeId(underlying: Long) extends MusitId
 
 object StorageNodeId {
 

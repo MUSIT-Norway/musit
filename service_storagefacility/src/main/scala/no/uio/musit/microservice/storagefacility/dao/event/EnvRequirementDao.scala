@@ -1,7 +1,8 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EnvRequirementDto
 import play.api.db.slick.DatabaseConfigProvider
 
@@ -13,31 +14,43 @@ import scala.concurrent.Future
 @Singleton
 class EnvRequirementDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends BaseEventDao {
+) extends BaseEventDao with ColumnTypeMappers {
 
   import driver.api._
 
-  private val EnvRequirementTable = TableQuery[EnvRequirementTable]
+  private val envReqTable = TableQuery[EnvRequirementTable]
 
   /**
    * TODO: Document me!
    */
   def insertAction(event: EnvRequirementDto): DBIO[Int] =
-    EnvRequirementTable += event
+    envReqTable += event
 
   /**
    * TODO: Document me!
    */
-  def getEnvRequirement(id: Long): Future[Option[EnvRequirementDto]] =
-    db.run(EnvRequirementTable.filter(event => event.id === id).result.headOption)
+  def getEnvRequirement(id: EventId): Future[Option[EnvRequirementDto]] =
+    db.run(envReqTable.filter(event => event.id === id).result.headOption)
 
   private class EnvRequirementTable(
       tag: Tag
   ) extends Table[EnvRequirementDto](tag, SchemaName, "E_ENVIRONMENT_REQUIREMENT") {
 
-    def * = (id, temp, tempTolerance, relativeHumidity, relativeHumidityTolerance, hypoxicAir, hypoxicAirTolerance, cleaning, light) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (
+      id,
+      temp,
+      tempTolerance,
+      relativeHumidity,
+      relativeHumidityTolerance,
+      hypoxicAir,
+      hypoxicAirTolerance,
+      cleaning,
+      light
+    ) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
-    val id = column[Option[Long]]("ID", O.PrimaryKey)
+    val id = column[Option[EventId]]("ID", O.PrimaryKey)
 
     val temp = column[Option[Double]]("TEMPERATURE")
     val tempTolerance = column[Option[Int]]("TEMP_TOLERANCE")
@@ -49,7 +62,7 @@ class EnvRequirementDao @Inject() (
     val light = column[Option[String]]("LIGHT")
 
     def create = (
-      id: Option[Long],
+      id: Option[EventId],
       temp: Option[Double],
       tempTolerance: Option[Int],
       relHumidity: Option[Double],

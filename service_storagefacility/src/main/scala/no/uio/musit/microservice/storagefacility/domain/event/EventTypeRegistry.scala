@@ -101,7 +101,7 @@ object EventTypeRegistry {
 
   }
 
-  object ControlSubEvents extends Enum[CtrlSubEventType] {
+  object CtrlSubEvents extends Enum[CtrlSubEventType] {
 
     val values = findValues
 
@@ -130,7 +130,7 @@ object EventTypeRegistry {
 
   }
 
-  object ObservationSubEvents extends Enum[ObsSubEventType] {
+  object ObsSubEvents extends Enum[ObsSubEventType] {
     val values = findValues
 
     def fromId(id: EventTypeId): Option[ObsSubEventType] =
@@ -167,16 +167,16 @@ object EventTypeRegistry {
   }
 
   def unsafeFromId(id: EventTypeId): EventTypeEntry = {
-    ControlSubEvents.fromId(id)
-      .orElse(ObservationSubEvents.fromId(id))
+    CtrlSubEvents.fromId(id)
+      .orElse(ObsSubEvents.fromId(id))
       .orElse(TopLevelEvents.fromId(id))
       .get
   }
 
   def withNameInsensitiveOption(name: String): Option[EventTypeEntry] = {
     TopLevelEvents.withNameInsensitiveOption(name)
-      .orElse(ControlSubEvents.withNameInsensitiveOption(name))
-      .orElse(ObservationSubEvents.withNameInsensitiveOption(name))
+      .orElse(CtrlSubEvents.withNameInsensitiveOption(name))
+      .orElse(ObsSubEvents.withNameInsensitiveOption(name))
   }
 
   def withNameInsensitive(name: String): EventTypeEntry = {
@@ -190,8 +190,8 @@ object EventTypeRegistry {
    * @return an Option[SubEvent]
    */
   def subEventWithNameOption(n: String): Option[SubEventType] = {
-    ControlSubEvents.withNameInsensitiveOption(n)
-      .orElse(ObservationSubEvents.withNameInsensitiveOption(n))
+    CtrlSubEvents.withNameInsensitiveOption(n)
+      .orElse(ObsSubEvents.withNameInsensitiveOption(n))
   }
 
   /**
@@ -220,7 +220,7 @@ object EventTypeRegistry {
    * @throws NoSuchElementException   if no SubEventType was found at all.
    */
   def unsafeSubFromId[T <: SubEventType](id: EventTypeId)(implicit ct: ClassTag[T]): T = {
-    ControlSubEvents.fromId(id).orElse(ObservationSubEvents.fromId(id)).map {
+    CtrlSubEvents.fromId(id).orElse(ObsSubEvents.fromId(id)).map {
       case sub: T => sub
       case bad =>
         val expStr = ct.toString

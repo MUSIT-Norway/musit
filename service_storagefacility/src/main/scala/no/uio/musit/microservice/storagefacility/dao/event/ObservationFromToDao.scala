@@ -21,7 +21,8 @@
 package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.dao.SchemaName
+import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
+import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.ObservationFromToDto
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -34,7 +35,7 @@ import scala.concurrent.Future
 @Singleton
 class ObservationFromToDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends BaseEventDao {
+) extends BaseEventDao with ColumnTypeMappers {
 
   import driver.api._
 
@@ -53,7 +54,7 @@ class ObservationFromToDao @Inject() (
   /**
    * TODO: Document me!
    */
-  def getObservationFromTo(id: Long): Future[Option[ObservationFromToDto]] =
+  def getObservationFromTo(id: EventId): Future[Option[ObservationFromToDto]] =
     db.run(
       observationFromToTable.filter(event => event.id === id).result.headOption
     )
@@ -63,13 +64,13 @@ class ObservationFromToDao @Inject() (
   ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
     def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Option[Long]]("ID", O.PrimaryKey)
+    val id = column[Option[EventId]]("ID", O.PrimaryKey)
 
     val from = column[Option[Double]]("VALUE_FROM")
     val to = column[Option[Double]]("VALUE_TO")
 
     def create =
-      (id: Option[Long], from: Option[Double], to: Option[Double]) =>
+      (id: Option[EventId], from: Option[Double], to: Option[Double]) =>
         ObservationFromToDto(id, from, to)
 
     def destroy(event: ObservationFromToDto) =

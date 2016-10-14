@@ -40,7 +40,7 @@ class LegacyPersonIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       }
     }
     "search on person" in {
-      val future = wsUrl("/v1/person?search=[And]").get()
+      val future = wsUrl("/v1/person?museumId=0&search=[And]").get()
       whenReady(future) { response =>
         val persons = Json.parse(response.body).validate[Seq[Person]].get
         persons.length mustBe 1
@@ -48,7 +48,7 @@ class LegacyPersonIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       }
     }
     "search on person case insensitive" in {
-      val future = wsUrl("/v1/person?search=[and]").get()
+      val future = wsUrl("/v1/person?museumId=0&search=[and]").get()
       whenReady(future) { response =>
         val persons = Json.parse(response.body).validate[Seq[Person]].get
         persons.length mustBe 1
@@ -56,7 +56,7 @@ class LegacyPersonIntegrationSpec extends PlaySpec with OneServerPerSuite with S
       }
     }
     "get root" in {
-      val future = wsUrl("/v1/person").get()
+      val future = wsUrl("/v1/person?museumId=0").get()
       whenReady(future) { response =>
         val persons = Json.parse(response.body).validate[Seq[Person]].get
         persons.length mustBe 2

@@ -19,21 +19,23 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, ObjectId}
 import play.api.libs.json.{Format, Json}
 
-case class ActorRole(roleId: Int, actorId: Int)
+case class ActorRole(roleId: Int, actorId: ActorId)
 
 object ActorRole {
   implicit val format: Format[ActorRole] = Json.format[ActorRole]
 }
 
-case class ObjectRole(roleId: Int, objectId: Long)
+case class ObjectRole(roleId: Int, objectId: ObjectId)
 
 object ObjectRole {
   implicit val format: Format[ObjectRole] = Json.format[ObjectRole]
 }
 
-case class PlaceRole(roleId: Int, placeId: Long)
+case class PlaceRole(roleId: Int, nodeId: StorageNodeId)
 
 object PlaceRole {
   implicit val format: Format[PlaceRole] = Json.format[PlaceRole]

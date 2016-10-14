@@ -21,7 +21,8 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
+import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{EventRoleObject, EventRolePlace}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import play.api.Logger
@@ -43,7 +44,7 @@ class EventPlacesAsObjectsDao @Inject() (
   private val placesAsObjectsTable = TableQuery[EventPlacesAsObjectsTable]
 
   def insertObjects(
-    eventId: Long,
+    eventId: EventId,
     relatedObjects: Seq[EventRoleObject]
   ): DBIO[Option[Int]] = {
     val relObjectsAsPlaces = relatedObjects.map { ero =>
@@ -52,7 +53,7 @@ class EventPlacesAsObjectsDao @Inject() (
     placesAsObjectsTable ++= relObjectsAsPlaces
   }
 
-  def getRelatedObjects(eventId: Long): Future[Seq[EventRoleObject]] = {
+  def getRelatedObjects(mid: MuseumId, eventId: EventId): Future[Seq[EventRoleObject]] = {
     val query = placesAsObjectsTable.filter(_.eventId === eventId)
     db.run(query.result).map { places =>
       logger.debug(s"Found ${places.size} places")
@@ -63,9 +64,10 @@ class EventPlacesAsObjectsDao @Inject() (
   }
 
   def latestEventIdFor(
+    mid: MuseumId,
     nodeId: StorageNodeId,
     eventTypeId: EventTypeId
-  ): Future[Option[Long]] = {
+  ): Future[Option[EventId]] = {
     val queryMax = placesAsObjectsTable.filter { erp =>
       erp.placeId === nodeId && erp.eventTypeId === eventTypeId
     }.map(_.eventId).max.result
@@ -74,10 +76,11 @@ class EventPlacesAsObjectsDao @Inject() (
   }
 
   def latestEventIdsForNode(
+    mid: MuseumId,
     nodeId: StorageNodeId,
     eventTypeId: EventTypeId,
     limit: Option[Int] = None
-  ): Future[Seq[Long]] = {
+  ): Future[Seq[EventId]] = {
     val q = placesAsObjectsTable.filter { erp =>
       erp.placeId === nodeId && erp.eventTypeId === eventTypeId
     }.sortBy(_.eventId.desc).map(_.eventId)
@@ -95,13 +98,13 @@ class EventPlacesAsObjectsDao @Inject() (
   ) extends Table[EventRolePlace](tag, SchemaName, "EVENT_ROLE_PLACE_AS_OBJECT") {
     def * = (eventId.?, roleId, placeId, eventTypeId) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val eventId = column[Long]("EVENT_ID")
+    val eventId = column[EventId]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
     val placeId = column[StorageNodeId]("PLACE_ID")
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
 
     def create = (
-      eventId: Option[Long],
+      eventId: Option[EventId],
       roleId: Int,
       placeId: StorageNodeId,
       eventTypeId: EventTypeId

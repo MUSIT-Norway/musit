@@ -20,14 +20,20 @@
 package no.uio.musit.microservice.storagefacility.domain.event.envreq
 
 import no.uio.musit.microservice.storagefacility.DummyData
-import no.uio.musit.microservice.storagefacility.domain.Interval
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, Interval}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, StorageNodeId}
 import org.joda.time.DateTime
 
 case class EnvRequirement(
-    baseEvent: BaseEvent,
+    id: Option[EventId],
+    doneBy: Option[ActorId],
+    doneDate: DateTime,
+    note: Option[String],
+    affectedThing: Option[StorageNodeId],
+    registeredBy: Option[String],
+    registeredDate: Option[DateTime],
     eventType: EventType,
     temperature: Option[Interval[Double]],
     airHumidity: Option[Interval[Double]],
@@ -38,13 +44,13 @@ case class EnvRequirement(
 
   def similar(er: EnvRequirement): Boolean = {
     // Compare the basic similarities of the environment requirements
-    baseEvent.affectedThing == er.baseEvent.affectedThing &&
+    affectedThing == er.affectedThing &&
       temperature == er.temperature &&
       airHumidity == er.airHumidity &&
       hypoxicAir == er.hypoxicAir &&
       cleaning == er.cleaning &&
       light == er.light &&
-      baseEvent.note == er.baseEvent.note
+      note == er.note
   }
 
 }
@@ -66,22 +72,14 @@ object EnvRequirement {
     er: EnvironmentRequirement
   )(implicit currUsr: String): EnvRequirement = {
     EnvRequirement(
-      baseEvent = BaseEvent(
-        id = None,
-        // FIXME: DO NOT FORGET TO CHANGE THIS!!!
-        doneBy = Some(ActorRole(1, DummyData.DummyUserId)),
-        doneDate = now,
-        note = er.comment,
-        partOf = None,
-        affectedThing = Some(ObjectRole(
-          // FIXME: ObjectRole should needs to pre-exist in the DB.
-          // Should probably add to the DB on app bootstrap if non-existant.
-          roleId = 1,
-          objectId = affectedNodeId
-        )),
-        registeredBy = Some(currUsr),
-        registeredDate = Some(now)
-      ),
+      id = None,
+      // FIXME: DO NOT FORGET TO CHANGE THIS!!!
+      doneBy = Some(DummyData.DummyUserId),
+      doneDate = now,
+      note = er.comment,
+      affectedThing = Some(affectedNodeId),
+      registeredBy = Some(currUsr),
+      registeredDate = Some(now),
       eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
       temperature = er.temperature,
       airHumidity = er.relativeHumidity,
@@ -98,7 +96,7 @@ object EnvRequirement {
       hypoxicAir = er.hypoxicAir,
       cleaning = er.cleaning,
       lightingCondition = er.light,
-      comment = er.baseEvent.note
+      comment = er.note
     )
   }
 

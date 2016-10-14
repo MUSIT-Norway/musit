@@ -29,7 +29,7 @@ import play.api.libs.json.{Json, Writes}
 case class LocationHistory(
   registeredBy: String,
   registeredDate: DateTime,
-  doneBy: Option[Int],
+  doneBy: Option[ActorId],
   doneDate: DateTime,
   from: FacilityLocation,
   to: FacilityLocation
