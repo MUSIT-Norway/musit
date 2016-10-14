@@ -235,17 +235,17 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val currLoc = service.getCurrentObjectLocation(2).futureValue
     currLoc.isSuccess mustBe true
     currLoc.get.get.id.get.underlying mustBe 4
-    currLoc.get.get.path.toString must include (currLoc.get.get.id.get.underlying.toString)
+    currLoc.get.get.path.toString must include(currLoc.get.get.id.get.underlying.toString)
 
-    val moveObject = Move[Long](3,StorageNodeId(3) ,Seq(2))
-    val moveSeq = MoveObject.fromCommand("Dummy",moveObject)
-    service.moveObject(2,moveSeq.head).futureValue
+    val moveObject = Move[Long](3, StorageNodeId(3), Seq(2))
+    val moveSeq = MoveObject.fromCommand("Dummy", moveObject)
+    service.moveObject(2, moveSeq.head).futureValue
     val newCurrLoc = service.getCurrentObjectLocation(2).futureValue
     newCurrLoc.isSuccess mustBe true
-    println(s"siste path:  ${newCurrLoc.get.get.path}")
     newCurrLoc.get.get.id.get.underlying mustBe 3
-    newCurrLoc.get.get.path.toString must include (newCurrLoc.get.get.id.get.underlying.toString)
+    newCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
 
+    // TODO: Test with different museumID when museumId is implemented
   }
 
   // TODO: MORE TESTING!!!!!

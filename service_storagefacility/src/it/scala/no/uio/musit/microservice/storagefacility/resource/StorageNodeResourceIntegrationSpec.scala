@@ -584,10 +584,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val url = ObjCurrentLocationUrl(2)
         println(s"url $url")
         val currentLocation = wsUrl(ObjCurrentLocationUrl(2)).get().futureValue
-        //println(currentLocation.json.toString())
         currentLocation.status mustBe Status.OK
-        //println(currentLocation.json.toString)
-        //(currentLocation.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
       }
     }
   }
