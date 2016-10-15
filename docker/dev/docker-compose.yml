@@ -1,5 +1,17 @@
 version: "2"
 services:
+    nginx:
+      build:
+          context: "./nginx"
+      ports:
+          - "80:80"
+      links:
+          - backing
+          - thingaggregate
+          - actor
+          - geolocation
+          - storagefacility
+
     db:
         build: database/
         environment:
