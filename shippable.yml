@@ -31,7 +31,7 @@ build:
     options: "-e HOME=/root"
 
   ci:
-    - echo "AGAERGAERG $CODACY_PROJECT_TOKEN"
+    - echo $CODACY_PROJECT_TOKEN
     - sbt clean scalastyle
     - sbt -mem 2048 coverage test it:test coverageReport
     - sbt coverageAggregate codacyCoverage
