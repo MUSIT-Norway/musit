@@ -7,7 +7,7 @@ jdk:
 
 env:
   global:
-    - secure: o4f10lUKpuSz27+PSv/aVwUFazmNN5J19nJlFEfnw4/eguJCkO5NMkultDyslPN0NYiXFKIh/O2zjcAt4Kj1hD4THPxSfuWWyou7HktlyB3gZEcp9k2usi9mK57MvdQLxIsIpbKASb7gpvCXX/wTVr/zFak4ngLoOU0AmdikR9P4eveXoLr2GaVEoNjU37qpis3v+vIgsAFHFNrGy8nO5/hIKUud35uUQA+FFNhiy8eqJmziTYfc64uv1MzkBKeoE9UGeTYNs5wX4HX6XwrShON8tR/4dIbxDWW0c9A9Om3W/kG7u9okP1DkyVHuJeIEtPFAidiEQgW2FEpqOIWQ1Q==
+    - secure: - secure: qSC9uXa8IN7mbRe+KacgVlZZQEHoxtaWiMko1Y1tUCKOh9khryCmGUfQtBjVApryctGfbDGo6CKjYyaWGkX6xokxf7FLJ1Ms/JxjrXeb6voLzcHksBLVHmPiD4uBYWFOYpKJU+Hl9Hr1wDxK5N7DxEXT0x+53nCvPC5/kPvKTDYkespgPQpT+DxrGZYi9egqf2EeEush5hrUEZHSp3dUJM7cdqdfKh6r0/hFvIJBo9CHU/MoDy0Ea2XwpcRA2hUCWwvNb+ZgvJB9W9BumpR+JHA3ENnGHjSu7kvW4VY4hQMhlbgdkuM5opLoPLmXiEVmm16x2Wweg1gek2xVuf+Z9w==
 
 integrations:
   notifications:
