@@ -109,6 +109,18 @@ class StorageNodeService @Inject() (
     id.map(unitDao.getPathById).getOrElse(Future.successful(None))
   }
 
+  def validPosition[T <: StorageNode](node: T, dest: NodePath) = {
+    val maybeDest = dest.asIdSeq.lastOption
+
+    node match {
+      case r: Root => ???
+      case o: Organisation => ???
+      case b: Building => ???
+      case r: Room => ???
+      case u: StorageUnit => ???
+    }
+  }
+
   // A couple of type aliases to reduce the length of some function args.
   type NodeInsertIO[A] = (MuseumId, A) => Future[StorageNodeId]
   type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
@@ -619,6 +631,9 @@ class StorageNodeService @Inject() (
     event: MoveNode
   )(implicit currUsr: String): Future[MusitResult[EventId]] = {
     move(event, unitDao.getNodeById(mid, id), unitDao.getNodeById(mid, event.to)) { (curr, to) =>
+
+      // TODO: evaluate if the to location is valid given the type of the node being moved
+
       val theEvent = event.copy(from = curr.id)
       logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
       unitDao.updatePathForSubTree(id, curr.path, to.path.appendChild(id)).flatMap {
