@@ -33,4 +33,4 @@ build:
   ci:
     - sbt clean scalastyle
     - sbt -mem 2048 coverage test it:test coverageReport
-    - if [ $IS_PULL_REQUEST ]; then echo "Not reporting coverage for PR"; else sbt coverageAggregate codacyCoverage; fi
+    - if [ $IS_FORK ]; then echo "Not reporting coverage for PR"; else sbt coverageAggregate codacyCoverage; fi
