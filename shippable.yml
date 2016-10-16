@@ -31,6 +31,7 @@ build:
     options: "-e HOME=/root"
 
   ci:
+    - echo $IS_FORK
     - sbt clean scalastyle
     - sbt -mem 2048 coverage test it:test coverageReport
     - if [[ -n "$IS_FORK" &&  "$IS_FORK" = false ]]; then sbt coverageAggregate codacyCoverage; else echo "Coverage reporting disabled for PR from forks"; fi
