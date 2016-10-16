@@ -6,6 +6,7 @@ services:
       ports:
           - "80:80"
       links:
+          - webpack
           - backing
           - thingaggregate
           - actor
@@ -20,6 +21,10 @@ services:
           - POSTGRES_DB=postgres
         volumes:
           - ../../../postgres-storage:/var/lib/postgresql/data/
+
+    webpack:
+        build:
+            context: "../../frontend"
 
     backing:
         build:
