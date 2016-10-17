@@ -12,13 +12,6 @@ services:
     webpack:
         build:
             context: "../../frontend"
-        volumes:
-            - ../../frontend/src:/usr/src/app/src
-            - ../../frontend/public:/usr/src/app/public
-            - ../../fake_security.json:/usr/src/fake_security.json:ro
-        environment:
-          - PUBLIC_PORT=80
-          - MILJO
 
     backing:
         build:
