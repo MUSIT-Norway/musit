@@ -24,6 +24,7 @@ import no.uio.musit.microservice.storagefacility.domain.{Move, Museum, MusitId}
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
+import no.uio.musit.service.MusitSearch
 import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess, MusitValidationError}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -334,6 +335,13 @@ final class StorageNodeResource @Inject() (
       }
     }.getOrElse {
       Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
+    }
+  }
+
+  def search(mId: Int, search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
+    search match {
+      case Some(criteria) => service.find(criteria).map(persons => Ok(Json.toJson(persons)))
+      case None => ??? //service.all.map(persons => Ok(Json.toJson(persons)))
     }
   }
 }

@@ -15,7 +15,7 @@ DELETE        /v1/museum/:mid/storagenodes/:nodeId                              
 GET           /v1/museum/:mid/storagenodes/:nodeId/children                     no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.children(mid: Int, nodeId: Long)
 GET           /v1/museum/:mid/storagenodes/:nodeId/stats                        no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.stats(mid: Int, nodeId: Long)
 GET           /v1/museum/:mid/storagenodes/objects/:oid/locations               no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.objectLocationHistory(mid: Int, oid: Long, limit: Int ?= 50)
-
+GET           /v1/museum/:mid/storagenodes                                      no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.search(mid: Int, search: Option[no.uio.musit.service.MusitSearch])
 # Controls
 POST          /v1/museum/:mid/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.addControl(mid: Int, nodeId: Long)
 GET           /v1/museum/:mid/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.listControls(mid: Int, nodeId: Long)
