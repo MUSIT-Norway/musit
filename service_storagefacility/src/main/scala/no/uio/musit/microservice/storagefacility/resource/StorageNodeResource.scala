@@ -341,10 +341,10 @@ final class StorageNodeResource @Inject() (
     Museum.fromMuseumId(mid).map { museum =>
       service.getCurrentObjectLocation(mid, oid).map {
         case MusitSuccess(optCurrLoc) =>
-          optCurrLoc.map { CurrLoc =>
-            Ok(Json.toJson(CurrLoc))
+          optCurrLoc.map { currLoc =>
+            Ok(Json.toJson(currLoc))
           }.getOrElse {
-            NotFound(Json.obj("message" -> s"Could not find objectId $oid"))
+            NotFound(Json.obj("message" -> s"Could not find objectId $oid in museum $mid"))
           }
 
         case err: MusitError =>

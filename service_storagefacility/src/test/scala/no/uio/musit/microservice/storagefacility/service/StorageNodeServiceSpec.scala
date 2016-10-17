@@ -438,33 +438,33 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val oldDataRes = service.getRoomById(mid, inserted.id.get).futureValue
     oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
   }
-    "get currentLocation on a object" in {
-      val mid = MuseumId(2)
-      val oid = ObjectId(2)
-      val aid = ActorId(3)
+  "get currentLocation on a object" in {
+    val mid = MuseumId(2)
+    val oid = ObjectId(2)
+    val aid = ActorId(3)
     val currLoc = service.getCurrentObjectLocation(mid, 2).futureValue
     currLoc.isSuccess mustBe true
     currLoc.get.get.id.get.underlying mustBe 4
     currLoc.get.get.path.toString must include(currLoc.get.get.id.get.underlying.toString)
 
-    val moveObject = Move[Long](aid , StorageNodeId(3), Seq(oid))
+    val moveObject = Move[Long](aid, StorageNodeId(3), Seq(oid))
     val moveSeq = MoveObject.fromCommand("Dummy", moveObject)
-    service.moveObject(mid, oid ,moveSeq.head).futureValue
+    service.moveObject(mid, oid, moveSeq.head).futureValue
     val newCurrLoc = service.getCurrentObjectLocation(mid, 2).futureValue
     newCurrLoc.isSuccess mustBe true
     newCurrLoc.get.get.id.get.underlying mustBe 3
     newCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
 
     val anotherMid = MuseumId(4)
-      val moveSameObject= Move[Long](aid , StorageNodeId(2), Seq(oid))
-      val moveSameSeq = MoveObject.fromCommand("Dummy", moveSameObject)
-      service.moveObject(anotherMid, oid ,moveSameSeq.head).futureValue
-      val SameCurrLoc = service.getCurrentObjectLocation(mid, 2).futureValue
-      SameCurrLoc.isSuccess mustBe true
-      SameCurrLoc.get.get.id.get.underlying mustBe 3
-      SameCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
+    val moveSameObject = Move[Long](aid, StorageNodeId(2), Seq(oid))
+    val moveSameSeq = MoveObject.fromCommand("Dummy", moveSameObject)
+    service.moveObject(anotherMid, oid, moveSameSeq.head).futureValue
+    val SameCurrLoc = service.getCurrentObjectLocation(mid, 2).futureValue
+    SameCurrLoc.isSuccess mustBe true
+    SameCurrLoc.get.get.id.get.underlying mustBe 3
+    SameCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
 
-}
+  }
   // TODO: MORE TESTING!!!!!
 
 }
