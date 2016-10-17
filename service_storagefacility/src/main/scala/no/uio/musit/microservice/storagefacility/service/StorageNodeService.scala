@@ -37,19 +37,19 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 /**
- * TODO: Document me!!!
- */
+  * TODO: Document me!!!
+  */
 // scalastyle:off number.of.methods
-class StorageNodeService @Inject() (
-    val unitDao: StorageUnitDao,
-    val roomDao: RoomDao,
-    val buildingDao: BuildingDao,
-    val orgDao: OrganisationDao,
-    val envReqService: EnvironmentRequirementService,
-    val eventDao: EventDao,
-    val localObjectDao: LocalObjectDao,
-    val statsDao: StorageStatsDao
-) {
+class StorageNodeService @Inject()(
+                                    val unitDao: StorageUnitDao,
+                                    val roomDao: RoomDao,
+                                    val buildingDao: BuildingDao,
+                                    val orgDao: OrganisationDao,
+                                    val envReqService: EnvironmentRequirementService,
+                                    val eventDao: EventDao,
+                                    val localObjectDao: LocalObjectDao,
+                                    val statsDao: StorageStatsDao
+                                  ) {
 
   val logger = Logger(classOf[StorageNodeService])
 
@@ -721,11 +721,17 @@ class StorageNodeService @Inject() (
     }
   }
 
-
-  def find(search: MusitSearch): Future[Seq[StorageUnit]] = {
-    val searchString = search.searchStrings.reduce(_ + " " + _)
-    //actorDao.getPersonLegacyByName(searchString)
+  def searchName(mid: MuseumId, searchStr: String, page: Int, pageSize: Int): Future[MusitResult[Seq[GenericStorageNode]]] = {
+    if (searchStr.size > 2) {
+      unitDao.getStorageNodeByName(mid, searchStr, page, pageSize).map { sn =>
+        MusitSuccess(sn)
+      }
+    }
+    else {
+      Future.successful(MusitValidationError(s"To few letters in searchstring $searchStr storageNode name."))
+    }
   }
+
 }
 
 // scalastyle:on number.of.methods

@@ -80,6 +80,11 @@ class StorageUnitDao @Inject() (
     db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
   }
 
+  def getStorageNodeByName(mid: MuseumId, searchString: String, page: Int, pageSize: Int): Future[Seq[GenericStorageNode]] = {
+    val query = getStorageNodeByNameAction(mid, searchString, page, pageSize)
+    db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
+  }
+
   /**
    * Find all nodes that are of type Root.
    *

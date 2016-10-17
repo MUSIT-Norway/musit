@@ -1,7 +1,5 @@
 package no.uio.musit.service
 
-
-
 case class MusitSearch(searchMap: Map[String, String], searchStrings: List[String])
 
 object MusitSearch {
@@ -27,5 +25,4 @@ object MusitSearch {
 
   implicit val queryBinder = new BindableOf[MusitSearch](_.map(v => Right(parseSearch(v.trim))))
 }
-
 
