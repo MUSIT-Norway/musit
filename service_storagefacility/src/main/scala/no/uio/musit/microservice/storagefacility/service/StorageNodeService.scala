@@ -109,15 +109,33 @@ class StorageNodeService @Inject() (
     id.map(unitDao.getPathById).getOrElse(Future.successful(None))
   }
 
-  def validPosition[T <: StorageNode](node: T, dest: NodePath) = {
-    val maybeDest = dest.asIdSeq.lastOption
+  def validPosition[T <: StorageNode](
+    mid: MuseumId,
+    node: T,
+    dest: NodePath
+  ) = {
+    val destId = dest.asIdSeq.lastOption
+    // Get the StorageType for the first 3 elements in the destination path
+    unitDao.getStorageTypesInPath(mid, dest, limit = 3).map { strictPathTypes =>
+      node match {
+        case r: Root =>
+          logger.debug("validating root node position")
+          ???
 
-    node match {
-      case r: Root => ???
-      case o: Organisation => ???
-      case b: Building => ???
-      case r: Room => ???
-      case u: StorageUnit => ???
+        case o: Organisation =>
+          logger.debug("validating organisation node position")
+          strictPathTypes
+          ???
+
+        case b: Building =>
+          ???
+
+        case r: Room =>
+          ???
+
+        case u: StorageUnit =>
+          ???
+      }
     }
   }
 
