@@ -145,6 +145,27 @@ trait NodeTypeInitializers {
   val defaultEnvironmentRequirement: EnvironmentRequirement =
     initEnvironmentRequirement()
 
+  def createOrganisation(
+    name: String = "FooBarOrg",
+    partOf: Option[StorageNodeId] = None,
+    path: NodePath = NodePath.empty
+  ): Organisation = {
+    Organisation(
+      id = None,
+      name = name,
+      area = None,
+      areaTo = None,
+      isPartOf = partOf,
+      height = None,
+      heightTo = None,
+      groupRead = None,
+      groupWrite = None,
+      path = path,
+      environmentRequirement = None,
+      address = Some("FooBar Gate 8, 111 Oslo, Norge")
+    )
+  }
+
   def createBuilding(
     name: String = "FooBarBuilding",
     partOf: Option[StorageNodeId] = None,

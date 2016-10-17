@@ -27,6 +27,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageType.{BuildingType, OrganisationType, RoomType, RootType, StorageUnitType}
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -109,33 +110,30 @@ class StorageNodeService @Inject() (
     id.map(unitDao.getPathById).getOrElse(Future.successful(None))
   }
 
-  def validPosition[T <: StorageNode](
+  def isValidPosition[T <: StorageNode](
     mid: MuseumId,
     node: T,
     dest: NodePath
-  ) = {
-    val destId = dest.asIdSeq.lastOption
-    // Get the StorageType for the first 3 elements in the destination path
-    unitDao.getStorageTypesInPath(mid, dest, limit = 3).map { strictPathTypes =>
-      node match {
-        case r: Root =>
-          logger.debug("validating root node position")
-          ???
+  ): Future[Boolean] = {
 
-        case o: Organisation =>
-          logger.debug("validating organisation node position")
-          strictPathTypes
-          ???
+    if (!dest.childOf(node.path)) {
 
-        case b: Building =>
-          ???
-
-        case r: Room =>
-          ???
-
-        case u: StorageUnit =>
-          ???
+      val maybeDestId = dest.asIdSeq.lastOption
+      // Get the StorageType for the elements in the destination path so we can
+      // use it to verify that nodes are placed on a valid location
+      unitDao.getStorageTypesInPath(mid, dest).map { idTypeTuples =>
+        // Identify the type of node we want to place in the hierarchy, and
+        // validate if the destination location is valid for the given type.
+        node.storageType match {
+          case RootType => Root.isValidLocation(dest)
+          case OrganisationType => Organisation.isValidLocation(maybeDestId, idTypeTuples)
+          case BuildingType => Building.isValidLocation(maybeDestId, idTypeTuples)
+          case RoomType => Room.isValidLocation(maybeDestId, idTypeTuples)
+          case StorageUnitType => StorageUnit.isValidLocation(maybeDestId, idTypeTuples)
+        }
       }
+    } else {
+      Future.successful(false)
     }
   }
 

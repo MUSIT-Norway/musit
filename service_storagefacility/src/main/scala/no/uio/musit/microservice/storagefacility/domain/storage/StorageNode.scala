@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.domain.storage
 
 import no.uio.musit.formatters.StrictFormatters._
 import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
+import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -170,12 +171,19 @@ case class Root(
 
 object Root {
 
+  val logger = Logger(classOf[Root])
+
   val formats: Format[Root] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply)
   )(Root.apply, unlift(Root.unapply))
+
+  /**
+   * A Root node can only be placed at the very top of the hierarchy.
+   */
+  def isValidLocation(destPath: NodePath): Boolean = destPath == NodePath.empty
 
 }
 
@@ -202,6 +210,8 @@ case class StorageUnit(
 
 object StorageUnit {
 
+  val logger = Logger(classOf[StorageUnit])
+
   val formats: Format[StorageUnit] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
@@ -216,6 +226,24 @@ object StorageUnit {
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement]
   )(StorageUnit.apply, unlift(StorageUnit.unapply))
+
+  /**
+   * A StorageUnit node can only be placed _after_ the 3 required top-nodes.
+   */
+  def isValidLocation(
+    maybeDestId: Option[StorageNodeId],
+    pathTypes: Seq[(StorageNodeId, StorageType)]
+  ): Boolean = {
+    maybeDestId.exists { destId =>
+      pathTypes match {
+        case Nil => false
+        case root :: Nil => false
+        case root :: org :: Nil => false
+        case root :: org :: building :: Nil => building._1 == destId
+        case root :: org :: building :: tail => tail.exists(_._1 == destId)
+      }
+    }
+  }
 
 }
 
@@ -243,6 +271,8 @@ case class Room(
 
 object Room {
 
+  val logger = Logger(classOf[Room])
+
   val formats: Format[Room] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
@@ -259,6 +289,24 @@ object Room {
     (__ \ "securityAssessment").format[SecurityAssessment] and
     (__ \ "environmentAssessment").format[EnvironmentAssessment]
   )(Room.apply, unlift(Room.unapply))
+
+  /**
+   * A Room node can only be placed _after_ the 3 required top-nodes.
+   */
+  def isValidLocation(
+    maybeDestId: Option[StorageNodeId],
+    pathTypes: Seq[(StorageNodeId, StorageType)]
+  ): Boolean = {
+    maybeDestId.exists { destId =>
+      pathTypes match {
+        case Nil => false
+        case root :: Nil => false
+        case root :: org :: Nil => false
+        case root :: org :: building :: Nil => building._1 == destId
+        case root :: org :: building :: tail => tail.exists(_._1 == destId)
+      }
+    }
+  }
 
 }
 
@@ -285,6 +333,8 @@ case class Building(
 
 object Building {
 
+  val logger = Logger(classOf[Building])
+
   val formats: Format[Building] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
@@ -301,6 +351,23 @@ object Building {
     (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites))
   )(Building.apply, unlift(Building.unapply))
 
+  /**
+   * A Building node can only be placed _after_ the top organisation node or
+   * after the first required building node.
+   */
+  def isValidLocation(
+    maybeDestId: Option[StorageNodeId],
+    pathTypes: Seq[(StorageNodeId, StorageType)]
+  ): Boolean = {
+    maybeDestId.exists { destId =>
+      pathTypes match {
+        case Nil => false
+        case root :: Nil => false
+        case root :: tail => tail.exists(_._1 == destId)
+
+      }
+    }
+  }
 }
 
 /**
@@ -326,6 +393,8 @@ case class Organisation(
 
 object Organisation {
 
+  val logger = Logger(classOf[Organisation])
+
   val formats: Format[Organisation] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
@@ -341,5 +410,23 @@ object Organisation {
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites))
   )(Organisation.apply, unlift(Organisation.unapply))
+
+  /**
+   * An StorageUnit node can only be placed _after_ the 3 required top-nodes.
+   */
+  def isValidLocation(
+    maybeDestId: Option[StorageNodeId],
+    pathTypes: Seq[(StorageNodeId, StorageType)]
+  ): Boolean = {
+    maybeDestId.exists { destId =>
+      pathTypes match {
+        case Nil => false
+        case root :: Nil => destId == root._1
+        case root :: org :: Nil => false
+        case root :: org :: building :: Nil => destId == root._1 || destId == building._1
+        case root :: org :: building :: tail => tail.exists(_._1 == destId)
+      }
+    }
+  }
 
 }

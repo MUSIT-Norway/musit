@@ -86,12 +86,12 @@ class StorageUnitDao @Inject() (
   def getStorageTypesInPath(
     mid: MuseumId,
     path: NodePath,
-    limit: Int
+    limit: Option[Int] = None
   ): Future[Seq[(StorageNodeId, StorageType)]] = {
-    val ids = path.asIdSeq.take(limit)
+    val ids = limit.map(l => path.asIdSeq.take(l)).getOrElse(path.asIdSeq)
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
-      sn.id.inSet(ids)
+        sn.id.inSet(ids)
     }.map(res => (res.id, res.storageType)).result
     db.run(query)
   }
