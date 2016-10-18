@@ -341,19 +341,19 @@ final class StorageNodeResource @Inject() (
   def search(mid: Int, searchStr: Option[String], page: Int = 1, limit: Int = 25): Action[AnyContent] = Action.async { request =>
     Museum.fromMuseumId(mid).map { museum =>
       searchStr match {
-        case Some(criteria) => {
-          if (criteria.size > 2) {
-            // def toJson(storageNodes: Seq[GenericStorageNode]) = Json.toJson(storageNodes)
-            service.searchName(mid, criteria, page, limit).map {
-              case MusitSuccess(mr) => Ok(Json.toJson(mr))
-              case r: MusitError => InternalServerError(Json.obj("message" -> r.message))
-            }
-          } else {
-            Future.successful(BadRequest(Json.obj("message" -> s"You need to write three letters before searching for storageNode name")))
+        case Some(criteria) if criteria.length > 2 =>
+          // def toJson(storageNodes: Seq[GenericStorageNode]) = Json.toJson(storageNodes)
+          service.searchName(mid, criteria, page, limit).map {
+            case MusitSuccess(mr) => Ok(Json.toJson(mr))
+            case r: MusitError => InternalServerError(Json.obj("message" -> r.message))
           }
-        }
+
+        case Some(criteria) =>
+          Future.successful(BadRequest(Json.obj("message" -> s"You need to write three letters before searching for storageNode name")))
+
         case None => Future.successful(BadRequest(Json.obj("message" -> s"You need to write three letters before searching for storageNode name")))
       }
+
     }.getOrElse {
       Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
     }

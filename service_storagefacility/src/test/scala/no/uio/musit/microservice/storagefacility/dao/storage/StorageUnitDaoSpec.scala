@@ -205,6 +205,30 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val res = storageUnitDao.getById(defaultMuseumId, insId).futureValue
       res.get.id mustBe Some(insId)
     }
+    "successfully get a node when searching for name and not if it's wrong museumId" in {
+      val mid = MuseumId(5)
+      val getNodeName = storageUnitDao.getStorageNodeByName(mid,"Foo",1,25).futureValue
+      getNodeName.size mustBe 3
+      getNodeName.head.name must include ("Foo")
+      getNodeName.lift(2).get.name must include ("Foo")
+
+      val anotherMid = MuseumId(4)
+      val notGetNodeName = storageUnitDao.getStorageNodeByName(anotherMid,"Foo",1,25).futureValue
+      notGetNodeName.size mustBe 0
+    }
+    "fail when searching for name without any search criteria, or too few, or another museumId" in {
+      val mid = MuseumId(5)
+      val getNodeName = storageUnitDao.getStorageNodeByName(mid,"",1,25).futureValue
+      getNodeName.size mustBe 0
+
+      val tooFewLettersInSearchStr = storageUnitDao.getStorageNodeByName(mid,"",1,25).futureValue
+      tooFewLettersInSearchStr.size mustBe 0
+
+      val anotherMid = MuseumId(4)
+      val noNodeName = storageUnitDao.getStorageNodeByName(anotherMid,"Foo",1,25).futureValue
+      noNodeName.size mustBe 0
+    }
+
   }
 
 }

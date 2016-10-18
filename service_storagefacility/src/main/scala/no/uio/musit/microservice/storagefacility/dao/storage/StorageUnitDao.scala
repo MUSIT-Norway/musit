@@ -80,11 +80,6 @@ class StorageUnitDao @Inject() (
     db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
   }
 
-  def getStorageNodeByName(mid: MuseumId, searchString: String, page: Int, pageSize: Int): Future[Seq[GenericStorageNode]] = {
-    val query = getStorageNodeByNameAction(mid, searchString, page, pageSize)
-    db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
-  }
-
   /**
    * Find all nodes that are of type Root.
    *
@@ -311,6 +306,15 @@ class StorageUnitDao @Inject() (
    */
   def namesForPath(nodePath: NodePath): Future[Seq[NamedPathElement]] = {
     db.run(namesForPathAction(nodePath))
+  }
+
+  def getStorageNodeByName(mid: MuseumId, searchString: String, page: Int, pageSize: Int): Future[Seq[GenericStorageNode]] = {
+    if (searchString.length > 2) {
+      val query = getStorageNodeByNameAction(mid, searchString, page, pageSize)
+      db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
+    } else {
+      Future.successful(Seq.empty)
+    }
   }
 
 }
