@@ -110,14 +110,24 @@ class StorageNodeService @Inject() (
     id.map(unitDao.getPathById).getOrElse(Future.successful(None))
   }
 
-  def isValidPosition[T <: StorageNode](
+  /**
+   * This function helps to validate that the relevant rules about the node
+   * hierarchy are enforced. All operations that involves positioning a node
+   * somewhere in the hierarchy, will need to call this function to ensure
+   * validity.
+   *
+   * @param mid MuseumId
+   * @param node an instance of T which must be a sub-type of StorageNode
+   * @param dest the destination NodePath.
+   * @tparam T the specific StorageNode type
+   * @return a Future of Boolean indicating valid or invalid positioning
+   */
+  private[service] def isValidPosition[T <: StorageNode](
     mid: MuseumId,
     node: T,
     dest: NodePath
   ): Future[Boolean] = {
-
     if (!dest.childOf(node.path)) {
-
       val maybeDestId = dest.asIdSeq.lastOption
       // Get the StorageType for the elements in the destination path so we can
       // use it to verify that nodes are placed on a valid location
@@ -125,14 +135,24 @@ class StorageNodeService @Inject() (
         // Identify the type of node we want to place in the hierarchy, and
         // validate if the destination location is valid for the given type.
         node.storageType match {
-          case RootType => Root.isValidLocation(dest)
-          case OrganisationType => Organisation.isValidLocation(maybeDestId, idTypeTuples)
-          case BuildingType => Building.isValidLocation(maybeDestId, idTypeTuples)
-          case RoomType => Room.isValidLocation(maybeDestId, idTypeTuples)
-          case StorageUnitType => StorageUnit.isValidLocation(maybeDestId, idTypeTuples)
+          case RootType =>
+            Root.isValidLocation(dest)
+
+          case OrganisationType =>
+            Organisation.isValidLocation(maybeDestId, idTypeTuples)
+
+          case BuildingType =>
+            Building.isValidLocation(maybeDestId, idTypeTuples)
+
+          case RoomType =>
+            Room.isValidLocation(maybeDestId, idTypeTuples)
+
+          case StorageUnitType =>
+            StorageUnit.isValidLocation(maybeDestId, idTypeTuples)
         }
       }
     } else {
+      logger.error(s"destination $dest is not allowed beause it's a child of ${node.path}")
       Future.successful(false)
     }
   }

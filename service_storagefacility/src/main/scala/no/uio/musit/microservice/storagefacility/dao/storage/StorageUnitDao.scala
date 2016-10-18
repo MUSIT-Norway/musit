@@ -92,7 +92,7 @@ class StorageUnitDao @Inject() (
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
         sn.id.inSet(ids)
-    }.map(res => (res.id, res.storageType)).result
+    }.map(res => res.id -> res.storageType).result
     db.run(query)
   }
 
