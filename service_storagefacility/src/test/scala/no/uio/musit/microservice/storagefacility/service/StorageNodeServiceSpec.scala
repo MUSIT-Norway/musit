@@ -215,7 +215,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val mostChildren = childIds ++ grandChildIds
 
     val move = Move[StorageNodeId](
-      doneBy = 123,
+      doneBy = ActorId(123),
       destination = building2.id.get,
       items = Seq(unit1.id.get)
     )
@@ -346,7 +346,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     stillNotDeleted.get.get.id mustBe inserted1.id
   }
 
-  "UnSuccessfully mark a node as deleted when it has wrong museumId" in {
+  "not mark a node as deleted when wrong museumId is used" in {
     val mid = MuseumId(5)
     val su = createStorageUnit()
     val ins = service.addStorageUnit(mid, su).futureValue
@@ -363,7 +363,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     StillAvailable.isSuccess mustBe true
     StillAvailable.get.get.id mustBe inserted.id
   }
-  "UnSuccessfully update a storage unit and fetch as StorageNode with same data than before" in {
+  "not update a storage unit when using the wrong museumId" in {
     val mid = MuseumId(5)
     val su = createStorageUnit()
     val ins = service.addStorageUnit(mid, su).futureValue
@@ -394,7 +394,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     getAgain.name must include("FooUnit")
     getAgain.areaTo mustBe Some(2.0)
   }
-  "UnSuccessfully update a building with new environment requirements and wrong MuseumID" in {
+  "not update a building or environment requirements when using wrong museumID" in {
     val mid = MuseumId(5)
     val building = createBuilding()
     val ins = service.addBuilding(mid, building).futureValue
@@ -418,7 +418,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val oldDataRes = service.getBuildingById(mid, inserted.id.get).futureValue
     oldDataRes.get.get.address.get must include("Foo")
   }
-  "UnSuccessfully update a room with wrong or not existing MuseumID" in {
+  "not update a room when using wrong museumID" in {
     val mid = MuseumId(5)
     val room = createRoom()
     val ins = service.addRoom(mid, room).futureValue
@@ -438,7 +438,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val oldDataRes = service.getRoomById(mid, inserted.id.get).futureValue
     oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
   }
-  "get currentLocation on a object" in {
+  "get current location for an object" in {
     val mid = MuseumId(2)
     val oid = ObjectId(2)
     val aid = ActorId(3)
