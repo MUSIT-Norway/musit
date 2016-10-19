@@ -167,7 +167,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
         sn.isDeleted === false &&
-        (sn.name.toUpperCase like s"%${searchString.toUpperCase}%")
+        (sn.name.toUpperCase like s"${searchString.toUpperCase}%")
     }.sortBy(sn1 => sn1.name)
     val offset = (page - 1) * pageSize
     query.drop(offset).take(pageSize).result
