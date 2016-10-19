@@ -1041,9 +1041,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       "successfully get storageNode when searching for storageName within the same MuseumId" in {
         val mid = MuseumId(2)
 
-       val searchName = wsUrl(StorageNodeSearchName(mid)).withQueryString(
-         "searchStr" -> "My Buil"
-       ).get().futureValue
+        val searchName = wsUrl(StorageNodeSearchName(mid)).withQueryString(
+          "searchStr" -> "My Buil"
+        ).get().futureValue
 
         searchName.status mustBe Status.OK
 
@@ -1063,7 +1063,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         searchName.status mustBe Status.OK
 
-
       }
       "fail when searching for storageName with another MuseumId and with fewer letters in search criteria" in {
         val anotherMid = MuseumId(4)
@@ -1071,7 +1070,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val anotherMidSearch = wsUrl(StorageNodeSearchName(anotherMid)).withQueryString(
           "searchStr" -> "My Buil"
         ).get().futureValue
-
 
         anotherMidSearch.status mustBe Status.OK
 

@@ -20,11 +20,10 @@ package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.domain.event.EventId
-import no.uio.musit.microservice.storagefacility.domain.{Move, Museum, MusitId}
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.microservice.storagefacility.domain.{Move, Museum, MusitId}
 import no.uio.musit.microservice.storagefacility.service.StorageNodeService
-import no.uio.musit.service.MusitSearch
 import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess, MusitValidationError}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
