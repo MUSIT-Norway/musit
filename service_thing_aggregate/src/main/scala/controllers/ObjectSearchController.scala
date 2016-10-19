@@ -1,49 +1,85 @@
+/*
+ * MUSIT is a museum database to archive natural and cultural history data.
+ * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License,
+ * or any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package controllers
 
 import com.google.inject.Inject
-import models.MusitThing
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitResult, MusitSuccess}
-import play.api.Logger
+import models.{MuseumNo, MusitObject, SubNo}
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
+import play.api.{Configuration, Logger}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, Controller, Result, Results}
+import play.api.libs.json.Json
+import play.api.mvc.{Action, Controller, Results}
 import services.ObjectSearchService
 
-/**
- * Created by jarle on 05.10.16.
- */
-
-object Utils {
-
-  //TODO: Move this to somewhere common
-  def musitResultToPlayResult[A](musitResult: MusitResult[A], toJsonTransformer: A => JsValue): Result = {
-    musitResult match {
-      case MusitSuccess(res) =>
-        Results.Ok(toJsonTransformer(res))
-
-      case MusitDbError(msg, ex) =>
-        Logger.error(msg, ex.orNull)
-        Results.InternalServerError(msg)
-
-      case r: MusitError =>
-        Results.InternalServerError(r.message)
-    }
-  }
-}
+import scala.concurrent.Future
 
 class ObjectSearchController @Inject() (
+    conf: Configuration,
     service: ObjectSearchService
 ) extends Controller {
 
-  private val maxLimit = 100
+  val logger = Logger(classOf[ObjectSearchController])
 
-  def search(mid: Int, museumNo: String = "", subNo: String = "", term: String = "", page: Int = 1, limit: Int = 25) =
-    Action.async { request =>
+  private val maxLimit = conf.getInt("musit.objects.search.max-limit").getOrElse(100)
+  private val defaultLimit = conf.getInt("musit.objects.search.default-limit").getOrElse(25)
 
-      val limitToUse = Math.max(limit, maxLimit)
+  private def calcLimit(l: Int): Int = l match {
+    case lim: Int if lim > maxLimit => maxLimit
+    case lim: Int if lim < 0 => defaultLimit
+    case lim: Int => lim
+  }
 
-      def toJson(ob: Seq[MusitThing]) = Json.toJson(ob)
+  /**
+   * Controller enabling searching for objects. It has 3 search specific fields
+   * that may or may not contain different criteria. There are also fields to
+   * specify paging and a limit for how many results should be returned.
+   */
+  def search(
+    mid: Int,
+    page: Int = 1,
+    limit: Int = defaultLimit,
+    museumNo: Option[String],
+    subNo: Option[String],
+    term: Option[String]
+  ) = Action.async { implicit request =>
+    if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
+      Future.successful {
+        BadRequest(Json.obj(
+          "messages" -> "at least one of museumNo, subNo or term must be specified"
+        ))
+      }
+    } else {
+      val mno = museumNo.map(MuseumNo.apply)
+      val sno = subNo.map(SubNo.apply)
+      service.search(mid, page, calcLimit(limit), mno, sno, term).map {
+        case MusitSuccess(res) =>
+          Ok(Json.toJson[Seq[MusitObject]](res))
 
-      service.search(mid, museumNo, subNo, term, page, limitToUse).map(mr => Utils.musitResultToPlayResult(mr, toJson))
+        case MusitDbError(msg, ex) =>
+          logger.error(msg, ex.orNull)
+          InternalServerError(Json.obj("message" -> msg))
+
+        case err: MusitError =>
+          logger.error(err.message)
+          Results.InternalServerError(Json.obj("message" -> err.message))
+      }
     }
+  }
 }

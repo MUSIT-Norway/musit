@@ -17,19 +17,38 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package models.dto
 
-import com.google.inject.Inject
-import dao.StorageNodeDao
-import no.uio.musit.service.MusitResults.MusitResult
-import models.MuseumId
+import models.{MuseumNo, MusitObject, SubNo}
 
-import scala.concurrent.Future
+case class MusitObjectDto(
+  museumId: Int,
+  id: Option[Long],
+  museumNo: String,
+  museumNoAsNumber: Option[Long],
+  subNo: Option[String],
+  subNoAsNumber: Option[Long],
+  term: String
+)
 
-class StorageNodeService @Inject() (
-    storageNodeDao: StorageNodeDao
-) {
-  def nodeExists(mid: MuseumId, nodeId: Long): Future[MusitResult[Boolean]] = {
-    storageNodeDao.nodeExists(mid, nodeId)
-  }
+object MusitObjectDto {
+
+  def toDomain(x: MusitObjectDto): MusitObject =
+    MusitObject(
+      museumNo = MuseumNo(x.museumNo),
+      subNo = x.subNo.map(SubNo.apply),
+      term = x.term
+    )
+
+  def fromDomain(museumId: Int, x: MusitObject): MusitObjectDto =
+    MusitObjectDto(
+      id = None,
+      museumId = museumId,
+      museumNo = x.museumNo.value,
+      museumNoAsNumber = x.museumNo.asNumber,
+      subNo = x.subNo.map(_.value),
+      subNoAsNumber = x.subNo.flatMap(_.asNumber),
+      term = x.term
+    )
 }
+

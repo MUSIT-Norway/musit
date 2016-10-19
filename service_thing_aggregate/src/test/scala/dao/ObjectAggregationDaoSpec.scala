@@ -19,11 +19,9 @@
 
 package dao
 
-import no.uio.musit.service.MusitResults.MusitSuccess
 import models.{MuseumId, MuseumIdentifier, ObjectId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.Logger
 
 class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
@@ -38,52 +36,37 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId that exists within a museum" should {
       "return a list of objects" in {
-        val mr = dao.getObjects(MuseumId(2), 3)
-        val fut = mr.futureValue
-        fut match {
-          case MusitSuccess(result) =>
-            result match {
-              case Vector(first, second, third) =>
-                first.id mustBe ObjectId(1)
-                first.identifier mustBe MuseumIdentifier("C666", Some("34"))
-                first.displayName mustBe Some("Øks")
+        val mr = dao.getObjects(MuseumId(2), 3).futureValue
+        mr.isSuccess mustBe true
+        mr.get match {
+          case Vector(first, second, third) =>
+            first.id mustBe ObjectId(1)
+            first.identifier mustBe MuseumIdentifier("C666", Some("34"))
+            first.displayName mustBe Some("Øks")
 
-                second.id mustBe ObjectId(2)
-                second.identifier mustBe MuseumIdentifier("C666", Some("31"))
-                second.displayName mustBe Some("Sverd")
+            second.id mustBe ObjectId(2)
+            second.identifier mustBe MuseumIdentifier("C666", Some("31"))
+            second.displayName mustBe Some("Sverd")
 
-                third.id mustBe ObjectId(3)
-                third.identifier mustBe MuseumIdentifier("C666", Some("38"))
-                third.displayName mustBe Some("Sommerfugl")
-            }
-          case other =>
-            println(other)
-            Logger.error("something went wrong")
-            fail("This went TOTALLY off the road")
+            third.id mustBe ObjectId(3)
+            third.identifier mustBe MuseumIdentifier("C666", Some("38"))
+            third.displayName mustBe Some("Sommerfugl")
         }
       }
     }
 
     "get objects for a nodeId that does not exist, museum exists" should {
       "return a an empty vector" in {
-        val mr = dao.getObjects(MuseumId(1), 999999)
-        val fut = mr.futureValue
-        fut match {
-          case MusitSuccess(result) =>
-            result.length mustBe 0
-          case _ => fail("Should fail")
-        }
+        val mr = dao.getObjects(MuseumId(1), 999999).futureValue
+        mr.isSuccess mustBe true
+        mr.get.length mustBe 0
       }
     }
     "get objects for a museum that does not exist, nodeId exists" should {
       "return a an empty vector" in {
-        val mr = dao.getObjects(MuseumId(55), 2)
-        val fut = mr.futureValue
-        fut match {
-          case MusitSuccess(result) =>
-            result.length mustBe 0
-          case _ => fail("Should fail")
-        }
+        val mr = dao.getObjects(MuseumId(55), 2).futureValue
+        mr.isSuccess mustBe true
+        mr.get.length mustBe 0
       }
     }
   }

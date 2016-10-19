@@ -17,19 +17,42 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package controllers
 
 import com.google.inject.Inject
-import dao.StorageNodeDao
-import no.uio.musit.service.MusitResults.MusitResult
-import models.MuseumId
+import no.uio.musit.test.MusitSpecWithServerPerSuite
+import org.scalatest.time.{Millis, Seconds, Span}
 
-import scala.concurrent.Future
+import scala.language.postfixOps
 
-class StorageNodeService @Inject() (
-    storageNodeDao: StorageNodeDao
-) {
-  def nodeExists(mid: MuseumId, nodeId: Long): Future[MusitResult[Boolean]] = {
-    storageNodeDao.nodeExists(mid, nodeId)
+class ObjectSearchIntegrationSpec @Inject() () extends MusitSpecWithServerPerSuite {
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
+
+  var url = (mid: Int) => s"/museum/$mid/objects/search"
+
+  "ObjectSearch" must {
+
+    "find an object that exist with a specific museumNo" in {
+
+      val res = wsUrl(url(1)).withQueryString(
+        "museumNo" -> "C666",
+        "subNo" -> "",
+        "term" -> "",
+        "page" -> "1",
+        "limit" -> "3"
+      ).get().futureValue
+
+      res.status mustBe 200
+      res.body must include("C666")
+      res.body must include("Øks")
+    }
+
+    // TODO: There needs to be _loads_ more tests here!
   }
+
 }
+

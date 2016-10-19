@@ -17,19 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package models
 
-import com.google.inject.Inject
-import dao.StorageNodeDao
-import no.uio.musit.service.MusitResults.MusitResult
-import models.MuseumId
+import play.api.libs.json.Json
 
-import scala.concurrent.Future
+case class MusitObject(museumNo: MuseumNo, subNo: Option[SubNo], term: String)
 
-class StorageNodeService @Inject() (
-    storageNodeDao: StorageNodeDao
-) {
-  def nodeExists(mid: MuseumId, nodeId: Long): Future[MusitResult[Boolean]] = {
-    storageNodeDao.nodeExists(mid, nodeId)
-  }
+object MusitObject {
+  implicit val format = Json.format[MusitObject]
 }
+

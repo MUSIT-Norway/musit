@@ -1,18 +1,31 @@
+/*
+ * MUSIT is a museum database to archive natural and cultural history data.
+ * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License,
+ * or any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package dao
 
-import com.google.inject.Inject
-import models.MusitThing
-import no.uio.musit.test.{MusitSpecWithAppPerSuite}
-import org.scalatest.time.{Millis, Seconds, Span}
-
-import no.uio.musit.service.MusitResults.MusitSuccess
-import models.{MuseumIdentifier, ObjectId}
+import models.{MuseumNo, SubNo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.Logger
 
 /**
- * Created by jarle on 07.10.16.
+ * NOTE: Test data for these tests are loaded in the evolution scripts in the
+ * src/test/resources directory.
  */
 class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
   val dao: ObjectSearchDao = fromInstanceCache[ObjectSearchDao]
@@ -24,223 +37,178 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
 
   val escapeChar = dao.escapeChar
 
-  def insertTestData(museumId: Int) = {
-    def insert(museumNo: String, subNo: String, term: String) = {
-      dao.testInsert(museumId, MusitThing(
-        museumNo = museumNo,
-        subNo = if (subNo.isEmpty) None else Some(subNo),
-        term = term
-      )).futureValue
-    }
+  "The ObjectSearchDao" when {
 
-    insert("C1", "1a", "Øks")
-    insert("C1", "2a", "Skummel øks")
-    insert("C1", "3", "Fin øks")
-    insert("C1", "4", "Fin øks")
-    insert("C1", "5", "Fin øks")
-    insert("C1", "6", "Fin øks")
-    insert("C1", "7", "Fin øks")
-    insert("C1", "8", "Fin øks")
-    insert("C1", "9", "Fin øks")
-    insert("C1", "10a", "Fin øks")
-    insert("C1", "11", "Fin øks")
-    insert("C1", "12", "Fin øks")
-    insert("C1", "13", "Fin øks")
-    insert("C1", "14", "Fin øks")
-    insert("C1", "15", "Fin øks")
-    insert("C1", "16", "Fin øks")
-    insert("C1", "17", "Fin øks")
-    insert("C1", "18", "Fin øks")
-    insert("C1", "19", "Fin øks")
-    insert("C1", "20b", "Fin øks")
-    insert("C1", "22", "Fin øks") //Note: Deliberately inserting 22 before 21, to check if sorting works!
-    insert("C1", "21", "Fin øks")
-    insert("C2", "", "Sverd")
+    "classifying search criteria" should {
 
-    insert("C777", "35", "Øks")
-    insert("C.777", "34B", "Øks")
-    insert("C.777", "34", "Øks")
-    insert("C.777", "34A", "Øks")
+      def wildcard(arg: String, expected: String) = {
+        val res = dao.classifyValue(Some(arg))
+        res must not be None
+        res.get.v mustBe expected
+      }
 
-    insert("C555", "34B", "Øks")
-    insert("C555", "34A", "Øks")
-    insert("C555", "34C", "Øks")
-    insert("C555A", "B", "Øks")
-    insert("C555B", "A", "Øks")
-    insert("C555C", "C", "Øks")
+      "replace '%' with the escape character" in {
+        wildcard("C*_A", s"C%${escapeChar}_A")
+      }
 
-    insert("C888_B", "B", "Øks")
-    insert("C888_A", "A", "Øks")
-    insert("C888xC", "C", "Øks")
+      "replace '*' with '%' and '%' with the escape character" in {
+        wildcard("C*%A", s"C%$escapeChar%A")
+      }
 
-    insert("C81%A", "A", "Bøtte")
-    insert("C81%XA", "B", "Bøtte")
+      "replace '*' with '%' and prefix '_' with the escape character" in {
+        wildcard("*_", s"%${escapeChar}_")
+      }
 
-    insert("C81-A", "A", "Bøtte")
-    insert("C81-XA", "B", "Bøtte")
+      "replace '*' with '%'" in {
+        wildcard("C*A", "C%A")
+      }
 
-    insert(s"C81${escapeChar}A", "A", "Bøtte")
-    insert(s"C81${escapeChar}XA", "B", "Bøtte")
+      "not prefix a single'%' with the escape character" in {
+        wildcard("%", "%")
+      }
 
-  }
-
-  "ObjectSearch" must {
-    "dummy test to insert test data" in {
-
-    }
-    "find an object which exists, via museumNo" in {
-      insertTestData(1)
-
-      val res = dao.search(1, "C1", "", "", 1, 100).futureValue
-      val seq = res.get
-      assert(seq.length >= 3)
-
-      val res2 = dao.search(1, "C2", "", "", 1, 100).futureValue
-      val seq2 = res2.get
-      assert(seq2.length > 0)
+      "not prefix a single '_' with the escape character" in {
+        wildcard("_", "_")
+      }
 
     }
 
-    "offsets and sorting must work ok" in {
+    "searching for objects" should {
 
-      val res = dao.search(1, "C1", "", "", 1, 10).futureValue
-      val seq = res.get
-      seq.length mustBe 10
+      "find an existing objects searching with museumNo" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("C1")), None, None).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 10
 
-      seq(0).subNo mustBe Some("1a")
-      seq(1).subNo mustBe Some("2a")
+        val res2 = dao.search(1, 1, 10, Some(MuseumNo("C2")), None, None).futureValue
+        res2.isSuccess mustBe true
+        res2.get.length mustBe 1
+      }
 
-      val res2 = dao.search(1, "C1", "", "", 2, 10).futureValue
-      val seq2 = res2.get
-      seq2.length mustBe 10
+      "handle paging correctly" in {
+        val res1 = dao.search(1, 1, 3, Some(MuseumNo("C1")), None, None).futureValue
+        res1.isSuccess mustBe true
+        val seq1 = res1.get
+        seq1.length mustBe 3
+        seq1.head.subNo mustBe Some(SubNo("10a"))
+        seq1.tail.head.subNo mustBe Some(SubNo("11"))
+        seq1.last.subNo mustBe Some(SubNo("12"))
 
-      val res3 = dao.search(1, "C1", "", "", 3, 10).futureValue
-      val seq3 = res3.get
+        val res2 = dao.search(1, 2, 3, Some(MuseumNo("C1")), None, None).futureValue
+        res2.isSuccess mustBe true
+        val seq2 = res2.get
+        seq2.length mustBe 3
+        seq2.head.subNo mustBe Some(SubNo("13"))
+        seq2.tail.head.subNo mustBe Some(SubNo("14"))
+        seq2.last.subNo mustBe Some(SubNo("15"))
 
-      seq3.length mustBe 2
+        val res3 = dao.search(1, 3, 3, Some(MuseumNo("C1")), None, None).futureValue
+        val seq3 = res3.get
 
-      seq3(0).subNo mustBe Some("21")
-      seq3(1).subNo mustBe Some("22")
+        seq3.length mustBe 3
+        seq3.head.subNo mustBe Some(SubNo("16"))
+        seq3.tail.head.subNo mustBe Some(SubNo("17"))
+        seq3.last.subNo mustBe Some(SubNo("18"))
+
+        seq1 must not contain seq2
+        seq1 must not contain seq3
+        seq2 must not contain seq3
+      }
+
+      "allow search where museumNo has only digits" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("777")), None, None).futureValue
+        res.isSuccess mustBe true
+        val seq = res.get
+
+        seq.length mustBe 4
+        seq.head.subNo mustBe Some(SubNo("34"))
+        seq(1).subNo mustBe Some(SubNo("34A"))
+        seq(2).subNo mustBe Some(SubNo("34B"))
+        seq(3).subNo mustBe Some(SubNo("35"))
+      }
+
+      "allow wildcard search on museumNo" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("C555*")), None, None).futureValue
+        res.isSuccess mustBe true
+        val seq = res.get
+
+        seq.length mustBe 6
+        seq.head.subNo mustBe Some(SubNo("34A"))
+        seq(1).subNo mustBe Some(SubNo("34B"))
+        seq(2).subNo mustBe Some(SubNo("34C"))
+        seq(3).museumNo mustBe MuseumNo("C555A")
+        seq(4).museumNo mustBe MuseumNo("C555B")
+        seq(5).museumNo mustBe MuseumNo("C555C")
+      }
+
+      "return 0 results when attempting SQL-injection" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("C.' or 1=1 --")), None, None).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 0
+      }
+
+      "find objects using museumNo, subNo with wildcard and term" in {
+
+        val res = dao.search(1, 1, 10, Some(MuseumNo("c555*")), Some(SubNo("3*")), Some("øks")).futureValue
+        res.isSuccess mustBe true
+        val seq = res.get
+
+        seq.length mustBe 3
+        seq.head.subNo mustBe Some(SubNo("34A"))
+        seq(1).subNo mustBe Some(SubNo("34B"))
+        seq(2).subNo mustBe Some(SubNo("34C"))
+      }
+
+      "find objects using museumNo with wildcard" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("c888_*")), None, Some("øks")).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 2
+        res.get.head.museumNo mustBe MuseumNo("C888_A")
+        res.get.last.museumNo mustBe MuseumNo("C888_B")
+      }
+
+      "treat '%' like an ordinary character in equality comparison" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("C81%A")), None, None).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 1 //We should find C81%A and *not* C81%XA
+        res.get.head.museumNo mustBe MuseumNo("C81%A")
+      }
+
+      "treat '%' like an ordinary character in like comparison" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("C*%A")), None, None).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 1
+        res.get.head.museumNo mustBe MuseumNo("C81%A")
+      }
+
+      "treat '-' like an ordinary character in equality comparison" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("C81-A")), None, None).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 1
+        res.get.head.museumNo mustBe MuseumNo("C81-A")
+      }
+
+      "treat '-' like an ordinary character in like comparison" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo("C*-A")), None, None).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 1
+        res.get.head.museumNo mustBe MuseumNo("C81-A")
+      }
+
+      "treat the escape character like an ordinary character equality comparison" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo(s"C81${escapeChar}A")), None, None).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 1
+        res.get.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")
+      }
+
+      "treat the escape character like an ordinary character like comparison" in {
+        val res = dao.search(1, 1, 10, Some(MuseumNo(s"C*${escapeChar}A")), None, None).futureValue
+        res.isSuccess mustBe true
+        res.get.length mustBe 1
+        res.get.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")
+      }
+
     }
-  }
-
-  "museumNo with digits only" in {
-
-    val res = dao.search(1, "777", "", "", 1, 10).futureValue
-    val seq = res.get
-    seq.length mustBe 4
-
-    seq(0).subNo mustBe Some("34")
-    seq(1).subNo mustBe Some("34A")
-    seq(2).subNo mustBe Some("34B")
-    seq(3).subNo mustBe Some("35")
-  }
-
-  "museumNo with * should work" in {
-
-    val res = dao.search(1, "C555*", "", "", 1, 10).futureValue
-    val seq = res.get
-    seq.length mustBe 6
-
-    seq(0).subNo mustBe Some("34A")
-    seq(1).subNo mustBe Some("34B")
-    seq(2).subNo mustBe Some("34C")
-    seq(3).museumNo mustBe "C555A"
-    seq(4).museumNo mustBe "C555B"
-    seq(5).museumNo mustBe "C555C"
-
-  }
-
-  "simple SQL-injection attempt should return 0 rows" in {
-    val res = dao.search(1, "C.' or 1=1 --", "", "", 1, 10).futureValue
-    val seq = res.get
-    seq.length mustBe 0
-  }
-
-  "museumNo, subNo with * and term search should work" in {
-
-    val res = dao.search(1, "c555*", "3*", "øks", 1, 10).futureValue
-    val seq = res.get
-
-    seq.length mustBe 3
-    seq(0).subNo mustBe Some("34A")
-    seq(1).subNo mustBe Some("34B")
-    seq(2).subNo mustBe Some("34C")
-  }
-
-  "museumNo with * and _ should work" in {
-
-    val res = dao.search(1, "c888_*", "", "øks", 1, 10).futureValue
-    val seq = res.get
-
-    seq.length mustBe 2
-
-    seq(0).museumNo mustBe "C888_A"
-    seq(1).museumNo mustBe "C888_B"
-  }
-
-  "that % is treated like an ordinary character in =-context" in {
-    val res = dao.search(1, "C81%A", "", "", 1, 10).futureValue
-    val seq = res.get
-
-    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
-    seq(0).museumNo mustBe "C81%A"
-  }
-
-  "that % is treated like an ordinary character in like-context" in {
-    val res = dao.search(1, "C*%A", "", "", 1, 10).futureValue
-    val seq = res.get
-
-    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
-    seq(0).museumNo mustBe "C81%A"
-  }
-
-  "that - is treated like an ordinary character in =-context" in {
-    val res = dao.search(1, "C81-A", "", "", 1, 10).futureValue
-    val seq = res.get
-
-    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
-    seq(0).museumNo mustBe "C81-A"
-  }
-
-  "that - is treated like an ordinary character in like-context" in {
-    val res = dao.search(1, "C*-A", "", "", 1, 10).futureValue
-    val seq = res.get
-
-    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
-    seq(0).museumNo mustBe "C81-A"
-  }
-
-  "that the escape character is treated like an ordinary character in =-context" in {
-    val res = dao.search(1, s"C81${escapeChar}A", "", "", 1, 10).futureValue
-    val seq = res.get
-
-    seq.length mustBe 1 //We should find C81¤A and *not* C81¤XA
-    seq(0).museumNo mustBe s"C81${escapeChar}A"
-  }
-
-  "that the esacpe character is treated like an ordinary character in like-context" in {
-    val res = dao.search(1, s"C*${escapeChar}A", "", "", 1, 10).futureValue
-    val seq = res.get
-
-    seq.length mustBe 1 //We should find C81%A and *not* C81%XA
-    seq(0).museumNo mustBe s"C81${escapeChar}A"
-  }
-
-  "that an escape clause is generated because it is needed" in {
-    dao.testSearchSql(1, s"C*_A", "", "", 1, 10).get must include("escape")
-    dao.testSearchSql(1, s"C*%A", "", "", 1, 10).get must include("escape")
-
-    dao.testSearchSql(1, s"", "*_", "", 1, 10).get must include("escape")
-    dao.testSearchSql(1, s"", "*%", "", 1, 10).get must include("escape")
-
-    dao.testSearchSql(1, s"", "", "*_", 1, 10).get must include("escape")
-    dao.testSearchSql(1, s"", "", "*%", 1, 10).get must include("escape")
-  }
-
-  "that an escape clause is not generated if not needed" in {
-    dao.testSearchSql(1, s"C*A", "", "", 1, 10).get mustNot include("escape")
-
-    dao.testSearchSql(1, s"C*A", "%", "_", 1, 10).get mustNot include("escape")
   }
 }

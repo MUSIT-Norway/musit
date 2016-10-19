@@ -27,7 +27,7 @@ class ObjectAggregationDao @Inject() (
          SELECT "VIEW_MUSITTHING"."ID", "VIEW_MUSITTHING"."DISPLAYID", "VIEW_MUSITTHING"."DISPLAYNAME"
          FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
          WHERE "LOCAL_OBJECT"."MUSEUM_ID" = ${mid.underlying}
-         AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = $nodeId
+         AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId}
          AND "LOCAL_OBJECT"."OBJECT_ID" = "ID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     ).recover {

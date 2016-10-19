@@ -17,19 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package models
 
-import com.google.inject.Inject
-import dao.StorageNodeDao
-import no.uio.musit.service.MusitResults.MusitResult
-import models.MuseumId
+object SearchFieldValues {
 
-import scala.concurrent.Future
-
-class StorageNodeService @Inject() (
-    storageNodeDao: StorageNodeDao
-) {
-  def nodeExists(mid: MuseumId, nodeId: Long): Future[MusitResult[Boolean]] = {
-    storageNodeDao.nodeExists(mid, nodeId)
+  sealed trait FieldValue {
+    val v: String
   }
+
+  case class EmptyValue() extends FieldValue {
+    override val v: String = ""
+  }
+
+  case class LiteralValue(v: String) extends FieldValue
+
+  /**
+   * If v contains a value which needs to be escaped, escapeChar contains the
+   * appropriate escape character. If v doesn't contains a value which needs to be
+   * escaped with the given escapeChar.
+   */
+  case class WildcardValue(v: String, escapeChar: Char) extends FieldValue
+
 }
