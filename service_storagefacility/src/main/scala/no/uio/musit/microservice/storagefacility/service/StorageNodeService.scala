@@ -720,6 +720,15 @@ class StorageNodeService @Inject() (
     }
   }
 
+  def getCurrentObjectLocation(mid: MuseumId, oid: Long): Future[MusitResult[Option[GenericStorageNode]]] = {
+    val currentNodeId = localObjectDao.currentLocation(oid)
+    val genNode = currentNodeId.flatMap { optCurrentNodeId =>
+      optCurrentNodeId.map { id =>
+        unitDao.getNodeById(mid, id).map(MusitSuccess.apply)
+      }.getOrElse(Future.successful(MusitSuccess(None)))
+    }
+    genNode
+  }
   def searchName(mid: MuseumId, searchStr: String, page: Int, pageSize: Int): Future[MusitResult[Seq[GenericStorageNode]]] = {
     if (searchStr.length > 2) {
       unitDao.getStorageNodeByName(mid, searchStr, page, pageSize).map { sn =>

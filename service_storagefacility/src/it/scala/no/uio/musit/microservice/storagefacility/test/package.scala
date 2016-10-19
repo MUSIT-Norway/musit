@@ -36,6 +36,7 @@ package object test {
   val ObservationUrl = (mid: Int, node: Long, evt: Long) => s"${ObservationsUrl(mid, node)}/$evt"
   val CtrlObsForNodeUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/events"
   val KdReportUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/report"
+  val ObjCurrentLocationUrl = (mid: Int, objectId: Long) => s"${StorageNodesUrl(mid)}/objects/$objectId"
   val StorageNodeSearchName = (mid: Int) => s"${StorageNodesUrl(mid)}/search"
 
   val HundredAndOneCharString =

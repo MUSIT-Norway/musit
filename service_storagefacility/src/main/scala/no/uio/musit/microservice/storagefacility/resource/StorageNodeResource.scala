@@ -337,6 +337,27 @@ final class StorageNodeResource @Inject() (
     }
   }
 
+  def currentObjectLocation(mid: Int, oid: Long) = Action.async { implicit request =>
+    Museum.fromMuseumId(mid).map { museum =>
+      service.getCurrentObjectLocation(mid, oid).map {
+        case MusitSuccess(optCurrLoc) =>
+          optCurrLoc.map { currLoc =>
+            Ok(Json.toJson(currLoc))
+          }.getOrElse {
+            NotFound(Json.obj("message" -> s"Could not find objectId $oid in museum $mid"))
+          }
+
+        case err: MusitError =>
+          logger.error("An unexpected error occured when trying to read " +
+            s" currentLocation for object $oid. Message was: ${err.message}")
+          InternalServerError(Json.obj("message" -> err.message))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
+
+    }
+  }
+
   def search(mid: Int, searchStr: Option[String], page: Int = 1, limit: Int = 25): Action[AnyContent] = Action.async { request =>
     Museum.fromMuseumId(mid).map { museum =>
       searchStr match {

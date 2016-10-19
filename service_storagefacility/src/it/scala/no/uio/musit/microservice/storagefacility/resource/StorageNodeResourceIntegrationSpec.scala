@@ -596,6 +596,33 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (lastElem \ "to" \ "path").as[NodePath] mustBe NodePath(",1,2,3,5,")
         (lastElem \ "to" \ "pathNames").as[JsArray].value must not be empty
       }
+      "successfully get currentLocation of a single object" in {
+        val id2 = 2
+        val mid = MuseumId(2)
+
+        val moveJson = Json.parse(
+          s"""{
+              |  "doneBy": 1,
+              |  "destination": 3,
+              |  "items": [$id2]
+              |}""".stripMargin
+        )
+
+        val move = wsUrl(MoveObjectUrl(mid)).put(moveJson).futureValue
+        move.status mustBe Status.OK
+        (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
+
+        val currentLocation = wsUrl(ObjCurrentLocationUrl(mid, 2)).get().futureValue
+        currentLocation.status mustBe Status.OK
+
+        val anotherMid = MuseumId(4)
+        val moveWithAnotherMid = wsUrl(MoveObjectUrl(anotherMid)).put(moveJson).futureValue
+        moveWithAnotherMid.status mustBe Status.BAD_REQUEST
+
+        val currentLocation1 = wsUrl(ObjCurrentLocationUrl(anotherMid, 2)).get().futureValue
+        currentLocation1.status mustBe Status.NOT_FOUND
+
+      }
 
       "respond with 404(should be 403 ??) when trying to get an organisation with wrong museum" in {
         val mid = MuseumId(5)
