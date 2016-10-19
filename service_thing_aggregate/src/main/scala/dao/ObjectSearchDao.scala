@@ -11,22 +11,17 @@ import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
-/**
- * Created by jarle on 06.10.16.
- */
-
 sealed trait FieldValue
 
 case class EmptyValue() extends FieldValue
 
 case class LiteralValue(v: String) extends FieldValue
 
-/*If v contains a value which needs to be escaped, escapeChar contains the appropriate escape character.
-If v doesn't contains a value which needs to be escaped, escapeChar =
+/**
+  *  If v contains a value which needs to be escaped, escapeChar contains the appropriate escape character.
+  *  If v doesn't contains a value which needs to be escaped, escapeChar will be the "empty/none" char, here defined by noEscapeChar.
  */
 case class WildcardValue(v: String, escapeChar: Char) extends FieldValue
-
-//#If we (in the future) need to treat some characters as invalid: case class InvalidValue(errorMessage: String) extends FieldValue
 
 class ObjectSearchDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
@@ -45,30 +40,37 @@ class ObjectSearchDao @Inject() (
     db.run(action)
   }
 
-  val noEscapeChar = '\u0000' //Needs to be the same as Slicks no-escape-char value! (Default second parameter value to the like function)
+  //Needs to be the same as Slicks no-escape-char value! (Default second parameter value to the like function)
+  val noEscapeChar = '\u0000'
 
   val escapeChar = '¤' //can be any char really. Public just to let the unit tests get at it
 
-  def classifyValue(rawValue: String): FieldValue = {
-    //Since we build up a Slick Query object, we don't need to verify that the rawValue is "safe",
-    // the database engine will validate the parameter value.
+  /**
+    * Interprets rawValue by looking for special characters like '*'.
+    *
+    * Since we build up a Slick Query object, we don't need to verify that the rawValue is "safe",
+    * the database engine will validate the parameter value.
+    * So security-wise, we don't need to guard against '--' etc here. (Else we could have flagged values
+    * containing "--" etc as InvalidValue here)
 
-    //So security-wise, we don't need to guard against '--' etc here.
-    //(Else we could have flagged values containing "--" etc as InvalidValue here)
-    // We use '*' as wildcard symbol. And treat both '%' and '_' as ordinary characters, both in like-tests and =-tests.
+    * We use '*' as wildcard symbol. And treat both '%' and '_' as ordinary characters,
+    * both in like-tests and =-tests.
+*/
+  def classifyValue(rawValue: String): FieldValue = {
 
     if (rawValue.isEmpty) EmptyValue()
     else if (rawValue.contains('*')) {
+
+      // Note that in the below expression, order is vital!
+      // It is essential that the escapeChar -> escapeChar+escapeChar is done before the
+      // replacements which introduces any escapeChars and that  %->escapeChar happens before *->'%'
+
       val wValue = rawValue
         .replace(escapeChar.toString, s"${escapeChar}${escapeChar}")
         .replace("%", s"${escapeChar}%")
         .replace("_", s"${escapeChar}_")
         .replace('*', '%')
 
-      /*Note that in the above expression, order is vital!
-        It is essential that the escapeChar -> escapeChar+escapeChar is done before the replacements which
-       introduces any escapeChars and that  %->escapeChar happens before *->'%'
-       */
 
       val esc = if (wValue.contains(escapeChar)) escapeChar else noEscapeChar
 
@@ -78,17 +80,15 @@ class ObjectSearchDao @Inject() (
     }
   }
 
-  def fieldValueToMusitResult(fieldValue: FieldValue): MusitResult[FieldValue] = {
-    MusitSuccess(fieldValue)
-  }
-
   def classifyValueAsMusitResult(rawValue: String): MusitResult[FieldValue] = {
-    fieldValueToMusitResult(classifyValue(rawValue))
+    MusitSuccess(classifyValue(rawValue))
   }
 
   type QMusitThingTable = Query[MusitThingTable, MusitThingTable#TableElementType, scala.Seq]
 
-  private def maybeAddFilter[Q <: QMusitThingTable](q: Q, value: FieldValue, filterEqual: (Q, String) => Q, filterLike: (Q, String, Char) => Q): Q = {
+  private def maybeAddFilter[Q <: QMusitThingTable](q: Q, value: FieldValue,
+                                                    filterEqual: (Q, String) => Q,
+                                                    filterLike: (Q, String, Char) => Q): Q = {
 
     value match {
       case EmptyValue() => q
@@ -112,7 +112,11 @@ class ObjectSearchDao @Inject() (
     }
   }
 
-  def searchQuery(mid: Int, museumNo: String, subNo: String, term: String, page: Int, pageSize: Int): MusitResult[QMusitThingTable] = {
+  def searchQuery(mid: Int, museumNo: String,
+                  subNo: String,
+                  term: String,
+                  page: Int,
+                  pageSize: Int): MusitResult[QMusitThingTable] = {
 
     val triple =
       for {
@@ -126,15 +130,21 @@ class ObjectSearchDao @Inject() (
 
         val q1 = maybeAddMuseumNoFilter(musitThingTable, musemNoValue)
 
-        val q2 = maybeAddFilter[QMusitThingTable](q1, subNoValue, (q, value) => q.filter(_.subNo === value),
-          (q, value, esc) => q.filter(_.subNo like (value, esc)))
+        val q2 = maybeAddFilter[QMusitThingTable](
+          q = q1,
+          value = subNoValue,
+          filterEqual = (q, value) => q.filter(_.subNo === value),
+          filterLike = (q, value, esc) => q.filter(_.subNo like (value, esc)))
 
-        val q3 = maybeAddFilter[QMusitThingTable](q2, termValue, (q, value) => q.filter(_.term.toLowerCase === value.toLowerCase),
-          (q, value, esc) => q.filter(_.term.toLowerCase.like(value.toLowerCase, esc)))
+        val q3 = maybeAddFilter[QMusitThingTable](
+          q = q2,
+          value = termValue,
+          filterEqual = (q, value) => q.filter(_.term.toLowerCase === value.toLowerCase),
+          filterLike = (q, value, esc) => q.filter(_.term.toLowerCase.like(value.toLowerCase, esc)))
 
         val query = q3
         val sortedQuery = query.sortBy(mt => (mt.museumNoAsNumber.asc, mt.museumNo.asc /*Should we use toLowerCase on sorting on museumNo?*/ ,
-          mt.subNoAsNumber.asc, mt.subNo.asc, mt.id.asc)) //Should we search on term as well?
+          mt.subNoAsNumber.asc, mt.subNo.asc, mt.id.asc)) //Should we sort on term as well?
 
         val offset = (page - 1) * pageSize
         sortedQuery.drop(offset).take(pageSize)
@@ -163,6 +173,8 @@ class ObjectSearchDao @Inject() (
     }
     musitResultFutureToFutureMusitResult(resultFutSeq).map(_.flatten)
   }
+
+
 
   /** Gets the underlying SQL-statement that will be used to execute this search. This method is only meant for testing code! */
   def testSearchSql(mid: Int, museumNo: String, subNo: String, term: String, page: Int, pageSize: Int): MusitResult[String] = {

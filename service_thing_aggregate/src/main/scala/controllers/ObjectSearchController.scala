@@ -2,48 +2,48 @@ package controllers
 
 import com.google.inject.Inject
 import models.MusitThing
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, Controller, Result, Results}
+import play.api.libs.json.Json
+import play.api.mvc.{Action, Controller, Results}
 import services.ObjectSearchService
-
-/**
- * Created by jarle on 05.10.16.
- */
-
-object Utils {
-
-  //TODO: Move this to somewhere common
-  def musitResultToPlayResult[A](musitResult: MusitResult[A], toJsonTransformer: A => JsValue): Result = {
-    musitResult match {
-      case MusitSuccess(res) =>
-        Results.Ok(toJsonTransformer(res))
-
-      case MusitDbError(msg, ex) =>
-        Logger.error(msg, ex.orNull)
-        Results.InternalServerError(msg)
-
-      case r: MusitError =>
-        Results.InternalServerError(r.message)
-    }
-  }
-}
 
 class ObjectSearchController @Inject() (
     service: ObjectSearchService
 ) extends Controller {
 
-  private val maxLimit = 100
+  val logger = Logger(classOf[ObjectSearchController])
 
-  def search(mid: Int, museumNo: String = "", subNo: String = "", term: String = "", page: Int = 1, limit: Int = 25) =
+  private val maxLimit = 100
+  private val minLimit = 1
+  private val defaultLimit = 25
+
+  def search(mid: Int,
+             museumNo: String = "",
+             subNo: String = "",
+             term: String = "",
+             page: Int,
+             limit: Int) =
     Action.async { request =>
 
-      val limitToUse = Math.max(limit, maxLimit)
+      val limitToUse = limit match {
+        case lim: Int if lim > maxLimit => maxLimit
+        case lim: Int if lim < 0 => defaultLimit
+        case lim: Int => lim
+      }
 
-      def toJson(ob: Seq[MusitThing]) = Json.toJson(ob)
+      service.search(mid, museumNo, subNo, term, page, limitToUse).map {
+        case MusitSuccess(res) =>
+          Ok(Json.toJson[Seq[MusitThing]](res))
 
-      service.search(mid, museumNo, subNo, term, page, limitToUse).map(mr => Utils.musitResultToPlayResult(mr, toJson))
+        case MusitDbError(msg, ex) =>
+          logger.error(msg, ex.orNull)
+          InternalServerError(Json.obj("message" -> msg))
+
+        case err: MusitError =>
+          logger.error(err.message)
+          Results.InternalServerError(Json.obj("message" -> err.message))
+      }
     }
 }
