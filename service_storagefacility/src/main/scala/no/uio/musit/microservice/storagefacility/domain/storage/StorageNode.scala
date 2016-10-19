@@ -240,8 +240,7 @@ object StorageUnit {
         case Nil => false
         case root :: Nil => false
         case root :: org :: Nil => false
-        case root :: org :: building :: Nil => building._1 == destId
-        case root :: org :: building :: tail => tail.exists(_._1 == destId)
+        case root :: org :: tail => tail.exists(_._1 == destId)
         case err =>
           logger.error(s"No matches found in pattern match.\n${err.mkString("\n")}")
           false
@@ -306,8 +305,7 @@ object Room {
         case Nil => false
         case root :: Nil => false
         case root :: org :: Nil => false
-        case root :: org :: building :: Nil => building._1 == destId
-        case root :: org :: building :: tail => tail.exists(_._1 == destId)
+        case root :: org :: tail => tail.exists(_._1 == destId)
         case _ =>
           logger.error("No matches found in pattern match.")
           false
