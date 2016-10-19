@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.domain.storage
 
 import no.uio.musit.formatters.StrictFormatters._
 import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
+import org.joda.time.DateTime
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -123,8 +124,10 @@ case class GenericStorageNode(
     groupWrite: Option[String],
     path: NodePath,
     environmentRequirement: Option[EnvironmentRequirement],
-    storageType: StorageType
-) extends StorageNode {
+    storageType: StorageType,
+    updatedBy: Option[String],
+    updatedDate: Option[DateTime]
+                             ) extends StorageNode {
   val pathNames: Option[Seq[NamedPathElement]] = None
 }
 
@@ -142,7 +145,9 @@ object GenericStorageNode {
     (__ \ "groupWrite").formatNullable[String] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "type").format[StorageType]
+    (__ \ "type").format[StorageType] and
+    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedDate").formatNullable[DateTime]
   )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
 
 }

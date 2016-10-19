@@ -3,84 +3,87 @@ package no.uio.musit.microservice.storagefacility.domain.storage.dto
 import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import org.joda.time.DateTime
 
 sealed trait StorageNodeDto
 
 sealed trait SpecializedStorageNode
 
 case class StorageUnitDto(
-  id: Option[StorageNodeId],
-  name: String,
-  area: Option[Double],
-  areaTo: Option[Double],
-  isPartOf: Option[StorageNodeId],
-  height: Option[Double],
-  heightTo: Option[Double],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  path: NodePath,
-  isDeleted: Option[Boolean],
-  storageType: StorageType,
-  museumId: MuseumId
-) extends StorageNodeDto
+                           id: Option[StorageNodeId],
+                           name: String,
+                           area: Option[Double],
+                           areaTo: Option[Double],
+                           isPartOf: Option[StorageNodeId],
+                           height: Option[Double],
+                           heightTo: Option[Double],
+                           groupRead: Option[String],
+                           groupWrite: Option[String],
+                           path: NodePath,
+                           isDeleted: Option[Boolean],
+                           storageType: StorageType,
+                           museumId: MuseumId,
+                           updatedBy: Option[String],
+                           updatedDate: Option[DateTime]
+                         ) extends StorageNodeDto
 
 case class ExtendedStorageNode[T <: SpecializedStorageNode](
-  storageUnitDto: StorageUnitDto,
-  extension: T
-) extends StorageNodeDto
+                                                             storageUnitDto: StorageUnitDto,
+                                                             extension: T
+                                                           ) extends StorageNodeDto
 
 case class RootDto(
-    id: Option[StorageNodeId],
-    name: String,
-    storageType: StorageType,
-    museumId: MuseumId,
-    path: NodePath = NodePath.empty
-) extends StorageNodeDto {
+                    id: Option[StorageNodeId],
+                    name: String,
+                    storageType: StorageType,
+                    museumId: MuseumId,
+                    path: NodePath = NodePath.empty
+                  ) extends StorageNodeDto {
 
   /**
-   * Hack to convert into a StorageUnitDto for DB inserts
-   */
+    * Hack to convert into a StorageUnitDto for DB inserts
+    */
   def asStorageUnit(mid: MuseumId): StorageUnitDto =
-    StorageUnitDto(
-      id = id,
-      name = name,
-      area = None,
-      areaTo = None,
-      isPartOf = None,
-      height = None,
-      heightTo = None,
-      groupRead = None,
-      groupWrite = None,
-      path = path,
-      isDeleted = None,
-      storageType = storageType,
-      museumId = mid
-    )
+  StorageUnitDto(
+    id = id,
+    name = name,
+    area = None,
+    areaTo = None,
+    isPartOf = None,
+    height = None,
+    heightTo = None,
+    groupRead = None,
+    groupWrite = None,
+    path = path,
+    isDeleted = None,
+    storageType = storageType,
+    museumId = mid
+  )
 
 }
 
 case class BuildingDto(
-  id: Option[StorageNodeId],
-  address: Option[String]
-) extends SpecializedStorageNode
+                        id: Option[StorageNodeId],
+                        address: Option[String]
+                      ) extends SpecializedStorageNode
 
 case class OrganisationDto(
-  id: Option[StorageNodeId],
-  address: Option[String]
-) extends SpecializedStorageNode
+                            id: Option[StorageNodeId],
+                            address: Option[String]
+                          ) extends SpecializedStorageNode
 
 case class RoomDto(
-  id: Option[StorageNodeId],
-  perimeterSecurity: Option[Boolean],
-  theftProtection: Option[Boolean],
-  fireProtection: Option[Boolean],
-  waterDamageAssessment: Option[Boolean],
-  routinesAndContingencyPlan: Option[Boolean],
-  relativeHumidity: Option[Boolean],
-  temperatureAssessment: Option[Boolean],
-  lightingCondition: Option[Boolean],
-  preventiveConservation: Option[Boolean]
-) extends SpecializedStorageNode
+                    id: Option[StorageNodeId],
+                    perimeterSecurity: Option[Boolean],
+                    theftProtection: Option[Boolean],
+                    fireProtection: Option[Boolean],
+                    waterDamageAssessment: Option[Boolean],
+                    routinesAndContingencyPlan: Option[Boolean],
+                    relativeHumidity: Option[Boolean],
+                    temperatureAssessment: Option[Boolean],
+                    lightingCondition: Option[Boolean],
+                    preventiveConservation: Option[Boolean]
+                  ) extends SpecializedStorageNode
 
 object StorageNodeDto {
 
@@ -230,10 +233,10 @@ object StorageNodeDto {
     )
 
   def fromStorageUnit(
-    mid: MuseumId,
-    su: StorageUnit,
-    id: Option[StorageNodeId] = None
-  ): StorageUnitDto =
+                       mid: MuseumId,
+                       su: StorageUnit,
+                       id: Option[StorageNodeId] = None
+                     ): StorageUnitDto =
     StorageUnitDto(
       id = id.orElse(su.id),
       name = su.name,
@@ -251,10 +254,10 @@ object StorageNodeDto {
     )
 
   def fromBuilding(
-    mid: MuseumId,
-    b: Building,
-    id: Option[StorageNodeId] = None
-  ): ExtendedStorageNode[BuildingDto] =
+                    mid: MuseumId,
+                    b: Building,
+                    id: Option[StorageNodeId] = None
+                  ): ExtendedStorageNode[BuildingDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
         id = id.orElse(b.id),
@@ -278,10 +281,10 @@ object StorageNodeDto {
     )
 
   def fromOrganisation(
-    mid: MuseumId,
-    o: Organisation,
-    id: Option[StorageNodeId] = None
-  ): ExtendedStorageNode[OrganisationDto] =
+                        mid: MuseumId,
+                        o: Organisation,
+                        id: Option[StorageNodeId] = None
+                      ): ExtendedStorageNode[OrganisationDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
         id = id.orElse(o.id),
@@ -305,10 +308,10 @@ object StorageNodeDto {
     )
 
   def fromRoom(
-    mid: MuseumId,
-    r: Room,
-    id: Option[StorageNodeId] = None
-  ): ExtendedStorageNode[RoomDto] =
+                mid: MuseumId,
+                r: Room,
+                id: Option[StorageNodeId] = None
+              ): ExtendedStorageNode[RoomDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
         id = id.orElse(r.id),
