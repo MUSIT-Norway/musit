@@ -21,13 +21,20 @@ package models
 
 import play.api.libs.json.Json
 
-case class ObjectAggregation(
-  id: ObjectId,
+case class MusitObject(
+  id: Long,
   museumNo: MuseumNo,
   subNo: Option[SubNo],
-  term: Option[String]
+  term: String,
+  // The following attributes are populated in a separate step in the
+  // ObjectSearchService implementation. Because it lives in a different
+  // schema than the object information itself.
+  currentLocationId: Option[Long] = None,
+  path: Option[NodePath] = None,
+  pathNames: Option[Seq[NamedPathElement]] = None
 )
 
-object ObjectAggregation {
-  implicit val format = Json.format[ObjectAggregation]
+object MusitObject {
+  implicit val format = Json.format[MusitObject]
 }
+
