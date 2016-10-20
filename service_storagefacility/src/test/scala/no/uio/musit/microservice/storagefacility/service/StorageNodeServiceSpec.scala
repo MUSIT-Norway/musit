@@ -472,8 +472,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     searchRoom.get.head.name mustBe "FooRoom"
     searchRoom.get.size mustBe 2
 
-    val AnotherMid = MuseumId(4)
-    val wrongRoom = service.searchName(AnotherMid, "FooRoom", 1, 25).futureValue
+    val anotherMid = MuseumId(4)
+    val wrongRoom = service.searchName(anotherMid, "FooRoom", 1, 25).futureValue
     wrongRoom.isSuccess mustBe true
     wrongRoom.get.size mustBe 0
 
@@ -484,8 +484,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val searchRoom = service.searchName(mid, "Fo", 1, 25).futureValue
     searchRoom.isSuccess mustBe false
     searchRoom.isFailure mustBe true
-    val NoSearchCriteria = service.searchName(mid, "", 1, 25).futureValue
-    NoSearchCriteria.isSuccess mustBe false
+    val noSearchCriteria = service.searchName(mid, "", 1, 25).futureValue
+    noSearchCriteria.isSuccess mustBe false
 
   }
   // TODO: MORE TESTING!!!!!
