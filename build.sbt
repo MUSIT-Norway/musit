@@ -94,7 +94,8 @@ lazy val musitService = (
     settings(
       libraryDependencies ++= Seq[ModuleID](
         scalatest,
-        PlayFrameWork.json
+        PlayFrameWork.json,
+        PlayFrameWork.ws
       )
     )
 )

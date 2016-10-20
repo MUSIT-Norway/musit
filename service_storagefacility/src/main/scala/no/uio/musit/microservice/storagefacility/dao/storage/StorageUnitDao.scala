@@ -308,4 +308,13 @@ class StorageUnitDao @Inject() (
     db.run(namesForPathAction(nodePath))
   }
 
+  def getStorageNodeByName(mid: MuseumId, searchString: String, page: Int, pageSize: Int): Future[Seq[GenericStorageNode]] = {
+    if (searchString.length > 2) {
+      val query = getStorageNodeByNameAction(mid, searchString, page, pageSize)
+      db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
+    } else {
+      Future.successful(Seq.empty)
+    }
+  }
+
 }
