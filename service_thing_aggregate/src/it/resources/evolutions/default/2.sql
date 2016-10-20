@@ -10,3 +10,6 @@ insert into MUSIT_MAPPING.VIEW_MUSITTHING(id, displayId, displayName) values(3, 
 insert into MUSARK_STORAGE.LOCAL_OBJECT(object_id, latest_move_id, current_location_id, museum_id) values(1, 23, 3,2);
 insert into MUSARK_STORAGE.LOCAL_OBJECT(object_id, latest_move_id, current_location_id, museum_id) values(2, 23, 3,2);
 insert into MUSARK_STORAGE.LOCAL_OBJECT(object_id, latest_move_id, current_location_id, museum_id) values(3, 23, 3,2);
+
+insert into MUSIT_MAPPING.MUSITTHING( museumNo, subNo, term, museumId, museumNoAsNumber )
+                              values('C666', '34', 'Øks', 1, 666);
