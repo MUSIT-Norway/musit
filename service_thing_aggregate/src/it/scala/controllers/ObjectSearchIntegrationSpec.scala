@@ -51,7 +51,7 @@ class ObjectSearchIntegrationSpec @Inject() () extends MusitSpecWithServerPerSui
 
       val json = res.json
 
-      val entries = json.as[JsArray].value
+      val entries = (json \ "matches").as[JsArray].value
 
       entries.size mustBe 3
 
