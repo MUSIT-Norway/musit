@@ -719,6 +719,16 @@ class StorageNodeService @Inject() (
         MusitInternalError(msg)
     }
   }
+
+  def getCurrentObjectLocation(mid: MuseumId, oid: Long): Future[MusitResult[Option[StorageNode]]] = {
+    val currentNodeId = localObjectDao.currentLocation(oid)
+    val genNode = currentNodeId.flatMap { optCurrentNodeId =>
+      optCurrentNodeId.map { id =>
+        getNodeById(mid, id)
+      }.getOrElse(Future.successful(MusitSuccess(None)))
+    }
+    genNode
+  }
 }
 
 // scalastyle:on number.of.methods

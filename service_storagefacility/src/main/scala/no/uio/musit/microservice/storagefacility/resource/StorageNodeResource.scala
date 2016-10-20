@@ -302,9 +302,9 @@ final class StorageNodeResource @Inject() (
   /**
    * Endpoint for retrieving the {{{limit}}} number of past move events.
    *
-   * @param mid    : MuseumId
+   * @param mid      : MuseumId
    * @param objectId the objectId to get move history for.
-   * @param limit  Int indicating the number of results to return.
+   * @param limit    Int indicating the number of results to return.
    * @return A JSON array with the {{{limit}}} number of move events.
    */
   def objectLocationHistory(mid: Int, objectId: Long, limit: Int) = Action.async { implicit request =>
@@ -334,6 +334,27 @@ final class StorageNodeResource @Inject() (
       }
     }.getOrElse {
       Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
+    }
+  }
+
+  def currentObjectLocation(mid: Int, oid: Long) = Action.async { implicit request =>
+    Museum.fromMuseumId(mid).map { museum =>
+      service.getCurrentObjectLocation(mid, oid).map {
+        case MusitSuccess(optCurrLoc) =>
+          optCurrLoc.map { currLoc =>
+            Ok(Json.toJson(currLoc))
+          }.getOrElse {
+            NotFound(Json.obj("message" -> s"Could not find objectId $oid in museum $mid"))
+          }
+
+        case err: MusitError =>
+          logger.error("An unexpected error occured when trying to read " +
+            s" currentLocation for object $oid. Message was: ${err.message}")
+          InternalServerError(Json.obj("message" -> err.message))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
+
     }
   }
 }
