@@ -729,6 +729,16 @@ class StorageNodeService @Inject() (
     }
     genNode
   }
+  def searchName(mid: MuseumId, searchStr: String, page: Int, pageSize: Int): Future[MusitResult[Seq[GenericStorageNode]]] = {
+    if (searchStr.length > 2) {
+      unitDao.getStorageNodeByName(mid, searchStr, page, pageSize).map { sn =>
+        MusitSuccess(sn)
+      }
+    } else {
+      Future.successful(MusitValidationError(s"Too few letters in search string $searchStr storageNode name."))
+    }
+  }
+
 }
 
 // scalastyle:on number.of.methods

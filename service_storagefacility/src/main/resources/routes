@@ -9,6 +9,7 @@ GET           /v1/museum/:mid/storagenodes/root                                 
 GET           /v1/museum/:mid/storagenodes/report                               no.uio.musit.microservice.storagefacility.resource.KdReportResource.getReportByMuseum(mid: Int)
 PUT           /v1/museum/:mid/storagenodes/moveNode                             no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.moveNode(mid: Int)
 PUT           /v1/museum/:mid/storagenodes/moveObject                           no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.moveObject(mid: Int)
+GET           /v1/museum/:mid/storagenodes/search                               no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.search(mid: Int, searchStr: Option[String], page: Int ?= 1, limit: Int ?=25)
 GET           /v1/museum/:mid/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.getById(mid: Int, nodeId: Long)
 PUT           /v1/museum/:mid/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.update(mid: Int, nodeId: Long)
 DELETE        /v1/museum/:mid/storagenodes/:nodeId                              no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.delete(mid: Int, nodeId: Long)
@@ -16,7 +17,6 @@ GET           /v1/museum/:mid/storagenodes/:nodeId/children                     
 GET           /v1/museum/:mid/storagenodes/:nodeId/stats                        no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.stats(mid: Int, nodeId: Long)
 GET           /v1/museum/:mid/storagenodes/objects/:oid/locations               no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.objectLocationHistory(mid: Int, oid: Long, limit: Int ?= 50)
 GET           /v1/museum/:mid/storagenodes/objects/:oid/currentlocation         no.uio.musit.microservice.storagefacility.resource.StorageNodeResource.currentObjectLocation(mid: Int, oid: Long)
-
 # Controls
 POST          /v1/museum/:mid/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.addControl(mid: Int, nodeId: Long)
 GET           /v1/museum/:mid/storagenodes/:nodeId/controls                     no.uio.musit.microservice.storagefacility.resource.EventResource.listControls(mid: Int, nodeId: Long)
