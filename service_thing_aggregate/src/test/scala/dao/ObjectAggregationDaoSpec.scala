@@ -38,6 +38,7 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
       "return a list of objects" in {
         val mr = dao.getObjects(MuseumId(2), 3).futureValue
         mr.isSuccess mustBe true
+        mr.get.size mustBe 3
         mr.get match {
           case Vector(first, second, third) =>
             first.id mustBe ObjectId(1)

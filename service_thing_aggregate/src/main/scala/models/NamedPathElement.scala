@@ -17,30 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models.dto
+package models
 
-import models.{MuseumNo, MusitObject, SubNo}
+import play.api.libs.json.{Format, Json}
 
-case class MusitObjectDto(
-  museumId: Int,
-  id: Option[Long],
-  museumNo: String,
-  museumNoAsNumber: Option[Long],
-  subNo: Option[String],
-  subNoAsNumber: Option[Long],
-  term: String
-)
+/**
+ * FIXME: THIS CODE IS COPIED FROM THE STORAGEFACILITY SERVICE.
+ * Need to move this into a separate library. All identifiers and other types
+ * that are core to the system should also be moved in the same operation.
+ *
+ * A NodePath contains a comma separated String of StorageNodeId (or Long)
+ * values, each of these ID's can be represented as a NamedPathElement.
+ *
+ * @param nodeId StorageNodeId of the named path element
+ * @param name String containing the name value of the StorageNode.
+ */
+case class NamedPathElement(nodeId: Long, name: String)
 
-object MusitObjectDto {
+object NamedPathElement {
 
-  def toDomain(x: MusitObjectDto): MusitObject =
-    MusitObject(
-      // We can use get on the ID since we're only reading objects.
-      // Hence an object _must_ have an ID in the database.
-      id = x.id.get,
-      museumNo = MuseumNo(x.museumNo),
-      subNo = x.subNo.map(SubNo.apply),
-      term = x.term
-    )
+  implicit val formats: Format[NamedPathElement] = Json.format[NamedPathElement]
+
 }
-

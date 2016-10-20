@@ -22,6 +22,7 @@ package controllers
 import com.google.inject.Inject
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
+import play.api.libs.json.{JsArray, Json}
 
 import scala.language.postfixOps
 
@@ -38,7 +39,7 @@ class ObjectSearchIntegrationSpec @Inject() () extends MusitSpecWithServerPerSui
 
     "find an object that exist with a specific museumNo" in {
 
-      val res = wsUrl(url(1)).withQueryString(
+      val res = wsUrl(url(2)).withQueryString(
         "museumNo" -> "C666",
         "subNo" -> "",
         "term" -> "",
@@ -47,8 +48,54 @@ class ObjectSearchIntegrationSpec @Inject() () extends MusitSpecWithServerPerSui
       ).get().futureValue
 
       res.status mustBe 200
-      res.body must include("C666")
-      res.body must include("Øks")
+
+      val json = res.json
+
+      val entries = json.as[JsArray].value
+
+      entries.size mustBe 3
+
+      val first = entries.head
+      (first \ "museumNo").as[String] mustBe "C666"
+      (first \ "subNo").as[String] mustBe "31"
+      (first \ "term").as[String] mustBe "Sverd"
+      (first \ "currentLocationId").as[Long] mustBe 3
+      (first \ "path").as[String] mustBe ",1,2,3,"
+      val firstPnames = (first \ "pathNames").as[JsArray].value
+      (firstPnames.head \ "nodeId").as[Long] mustBe 1
+      (firstPnames.head \ "name").as[String] mustBe "root-node"
+      (firstPnames.tail.head \ "nodeId").as[Long] mustBe 2
+      (firstPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet"
+      (firstPnames.last \ "nodeId").as[Long] mustBe 3
+      (firstPnames.last \ "name").as[String] mustBe "Forskningens hus"
+
+      val second = entries.tail.head
+      (second \ "museumNo").as[String] mustBe "C666"
+      (second \ "subNo").as[String] mustBe "34"
+      (second \ "term").as[String] mustBe "Øks"
+      (second \ "currentLocationId").as[Long] mustBe 3
+      (second \ "path").as[String] mustBe ",1,2,3,"
+      val secondPnames = (first \ "pathNames").as[JsArray].value
+      (secondPnames.head \ "nodeId").as[Long] mustBe 1
+      (secondPnames.head \ "name").as[String] mustBe "root-node"
+      (secondPnames.tail.head \ "nodeId").as[Long] mustBe 2
+      (secondPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet"
+      (secondPnames.last \ "nodeId").as[Long] mustBe 3
+      (secondPnames.last \ "name").as[String] mustBe "Forskningens hus"
+
+      val third = entries.last
+      (third \ "museumNo").as[String] mustBe "C666"
+      (third \ "subNo").as[String] mustBe "38"
+      (third \ "term").as[String] mustBe "Sommerfugl"
+      (third \ "currentLocationId").as[Long] mustBe 3
+      (third \ "path").as[String] mustBe ",1,2,3,"
+      val thirdPnames = (first \ "pathNames").as[JsArray].value
+      (thirdPnames.head \ "nodeId").as[Long] mustBe 1
+      (thirdPnames.head \ "name").as[String] mustBe "root-node"
+      (thirdPnames.tail.head \ "nodeId").as[Long] mustBe 2
+      (thirdPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet"
+      (thirdPnames.last \ "nodeId").as[Long] mustBe 3
+      (thirdPnames.last \ "name").as[String] mustBe "Forskningens hus"
     }
 
     // TODO: There needs to be _loads_ more tests here!

@@ -20,13 +20,21 @@
 package services
 
 import com.google.inject.Inject
-import dao.ObjectSearchDao
+import dao.{ObjectSearchDao, StorageNodeDao}
 import models.{MuseumNo, MusitObject, SubNo}
-import no.uio.musit.service.MusitResults.MusitResult
+import no.uio.musit.service.MusitResults._
+import play.api.Logger
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
-class ObjectSearchService @Inject() (objectSearchDao: ObjectSearchDao) {
+class ObjectSearchService @Inject() (
+    objSearchDao: ObjectSearchDao,
+    nodeDao: StorageNodeDao
+) {
+
+  private val logger = Logger(classOf[ObjectSearchService])
 
   /**
    * Search for objects based on the given criteria.
@@ -47,6 +55,33 @@ class ObjectSearchService @Inject() (objectSearchDao: ObjectSearchDao) {
     subNo: Option[SubNo],
     term: Option[String]
   ): Future[MusitResult[Seq[MusitObject]]] = {
-    objectSearchDao.search(mid, page, limit, museumNo, subNo, term)
+    objSearchDao.search(mid, page, limit, museumNo, subNo, term).flatMap {
+      case MusitSuccess(objects) =>
+        // We found some objects...now we need to find the current location for each.
+        Future.sequence {
+          objects.map { obj =>
+            nodeDao.currentLocation(mid, obj.id).flatMap {
+              case Some(nodeIdAndPath) =>
+                nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
+                  obj.copy(
+                    currentLocationId = Some(nodeIdAndPath._1),
+                    path = Some(nodeIdAndPath._2),
+                    pathNames = Some(pathNames)
+                  )
+                }
+              case None =>
+                Future.successful(obj)
+            }
+          }
+        }.map(MusitSuccess.apply).recover {
+          case NonFatal(ex) =>
+            val msg = s"An error occured when executing object search"
+            logger.error(msg, ex)
+            MusitInternalError(msg)
+        }
+
+      case err: MusitError =>
+        Future.successful(err)
+    }
   }
 }
