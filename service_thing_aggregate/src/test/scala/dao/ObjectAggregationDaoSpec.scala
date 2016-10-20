@@ -19,7 +19,7 @@
 
 package dao
 
-import models.{MuseumId, MuseumIdentifier, ObjectId}
+import models.{MuseumId, MuseumNo, ObjectId, SubNo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
@@ -42,16 +42,19 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
         mr.get match {
           case Vector(first, second, third) =>
             first.id mustBe ObjectId(1)
-            first.identifier mustBe MuseumIdentifier("C666", Some("34"))
-            first.displayName mustBe Some("Øks")
+            first.museumNo mustBe MuseumNo("C666")
+            first.subNo mustBe Some(SubNo("34"))
+            first.term mustBe Some("Øks")
 
             second.id mustBe ObjectId(2)
-            second.identifier mustBe MuseumIdentifier("C666", Some("31"))
-            second.displayName mustBe Some("Sverd")
+            second.museumNo mustBe MuseumNo("C666")
+            second.subNo mustBe Some(SubNo("31"))
+            second.term mustBe Some("Sverd")
 
             third.id mustBe ObjectId(3)
-            third.identifier mustBe MuseumIdentifier("C666", Some("38"))
-            third.displayName mustBe Some("Sommerfugl")
+            third.museumNo mustBe MuseumNo("C666")
+            third.subNo mustBe Some(SubNo("38"))
+            third.term mustBe Some("Sommerfugl")
         }
       }
     }

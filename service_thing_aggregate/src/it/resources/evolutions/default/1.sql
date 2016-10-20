@@ -2,13 +2,6 @@
 
 CREATE SCHEMA IF NOT EXISTS MUSIT_MAPPING;
 
-CREATE TABLE MUSIT_MAPPING.VIEW_MUSITTHING (
-  id NUMBER(20) NOT NULL GENERATED ALWAYS AS IDENTITY,
-  displayId VARCHAR NOT NULL,
-  displayName VARCHAR,
-  PRIMARY KEY (id)
-);
-
 CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 
 CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
@@ -66,22 +59,16 @@ INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_NAME, AREA, AREA_TO, IS_ST
 VALUES ('Forskningsværelset', NULL, NULL, '1', 3, NULL, NULL, false, 'Room', NULL, NULL, ',1,2,3,6,', 2);
 
 
-INSERT INTO MUSIT_MAPPING.VIEW_MUSITTHING (id, displayId, displayName)
-VALUES (1, 'C666/34', 'Øks');
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber)
 VALUES ('C666', '34', 'Øks', 2, 666);
 INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id)
 VALUES (1, 23, 3, 2);
 
-INSERT INTO MUSIT_MAPPING.VIEW_MUSITTHING (id, displayId, displayName)
-VALUES (2, 'C666/31', 'Sverd');
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber)
 VALUES ('C666', '31', 'Sverd', 2, 666);
 INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id)
 VALUES (2, 23, 3, 2);
 
-INSERT INTO MUSIT_MAPPING.VIEW_MUSITTHING (id, displayId, displayName)
-VALUES (3, 'C666/38', 'Sommerfugl');
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber)
 VALUES ('C666', '38', 'Sommerfugl', 2, 666);
 INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id)

@@ -19,7 +19,7 @@
 
 package controllers
 
-import models.{MuseumIdentifier, ObjectId}
+import models.{MuseumNo, ObjectId, SubNo}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
@@ -45,8 +45,9 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       objects must not be empty
       val obj = objects.head
       (obj \ "id").as[ObjectId] mustBe ObjectId(1)
-      (obj \ "displayName").as[String] mustBe "Øks"
-      (obj \ "identifier").as[MuseumIdentifier] mustBe MuseumIdentifier("C666", Some("34"))
+      (obj \ "term").as[String] mustBe "Øks"
+      (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("C666")
+      (obj \ "subNo").as[SubNo] mustBe SubNo("34")
     }
     "respond with 404 for nodeId that does not exist" in {
       val nodeId = 99999

@@ -2,7 +2,7 @@ package dao
 
 import com.google.inject.Inject
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import models.{MuseumId, MuseumIdentifier, ObjectAggregation, ObjectId}
+import models._
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -21,11 +21,16 @@ class ObjectAggregationDao @Inject() (
 
   def getObjects(mid: MuseumId, nodeId: Long): Future[MusitResult[Seq[ObjectAggregation]]] = {
     implicit val getObject = GetResult(r =>
-      ObjectAggregation(ObjectId(r.nextLong), MuseumIdentifier.fromSqlString(r.nextString), r.nextStringOption))
+      ObjectAggregation(
+        id = ObjectId(r.nextLong),
+        museumNo = MuseumNo(r.nextString),
+        subNo = r.nextStringOption.map(SubNo.apply),
+        term = r.nextStringOption
+      ))
     db.run(
       sql"""
-         SELECT "VIEW_MUSITTHING"."ID", "VIEW_MUSITTHING"."DISPLAYID", "VIEW_MUSITTHING"."DISPLAYNAME"
-         FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."VIEW_MUSITTHING"
+         SELECT "MUSITTHING"."ID", "MUSITTHING"."MUSEUMNO", "MUSITTHING"."SUBNO", "MUSITTHING"."TERM"
+         FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."MUSITTHING"
          WHERE "LOCAL_OBJECT"."MUSEUM_ID" = ${mid.underlying}
          AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId}
          AND "LOCAL_OBJECT"."OBJECT_ID" = "ID";
