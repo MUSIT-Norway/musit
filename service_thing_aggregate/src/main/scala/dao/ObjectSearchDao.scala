@@ -20,7 +20,7 @@
 package dao
 
 import com.google.inject.Inject
-import models.{MuseumNo, MusitObject, SubNo}
+import models.{MuseumNo, MusitObject, ObjectSearchResult, SubNo}
 import models.SearchFieldValues._
 import models.dto.MusitObjectDto
 import no.uio.musit.service.MusitResults._
@@ -137,7 +137,7 @@ class ObjectSearchDao @Inject() (
     val q3 = classifyValue(term).map(f => termFilter(q2, f)).getOrElse(q2)
 
     // Tweak here if sorting needs to be tuned
-    val sortedQuery = q3.sortBy { mt =>
+    q3.sortBy { mt =>
       (
         mt.museumNoAsNumber.asc,
         mt.museumNo.toLowerCase.asc,
@@ -145,9 +145,6 @@ class ObjectSearchDao @Inject() (
         mt.subNo.toLowerCase.asc
       )
     }
-
-    val offset = (page - 1) * pageSize
-    sortedQuery.drop(offset).take(pageSize)
   }
 
   /**
@@ -168,11 +165,21 @@ class ObjectSearchDao @Inject() (
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String]
-  ): Future[MusitResult[Seq[MusitObject]]] = {
+  ): Future[MusitResult[ObjectSearchResult]] = {
+    val offset = (page - 1) * pageSize
     val query = searchQuery(mid, page, pageSize, museumNo, subNo, term)
-    db.run(query.result).map { seq =>
-      MusitSuccess(seq.map(MusitObjectDto.toDomain))
-    }.recover {
+
+    val totalMatches = db.run(query.length.result)
+    val matchedResults = db.run(query.drop(offset).take(pageSize).result)
+
+    (for {
+      total <- totalMatches
+      matches <- matchedResults
+    } yield {
+      MusitSuccess(
+        ObjectSearchResult(total, matches.map(MusitObjectDto.toDomain))
+      )
+    }).recover {
       case e: Exception =>
         val msg = s"Error while retrieving search result"
         logger.error(msg, e)

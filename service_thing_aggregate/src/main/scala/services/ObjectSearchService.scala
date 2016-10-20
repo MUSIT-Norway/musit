@@ -21,7 +21,7 @@ package services
 
 import com.google.inject.Inject
 import dao.{ObjectSearchDao, StorageNodeDao}
-import models.{MuseumNo, MusitObject, SubNo}
+import models.{MuseumNo, MusitObject, ObjectSearchResult, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -54,12 +54,12 @@ class ObjectSearchService @Inject() (
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String]
-  ): Future[MusitResult[Seq[MusitObject]]] = {
+  ): Future[MusitResult[ObjectSearchResult]] = {
     objSearchDao.search(mid, page, limit, museumNo, subNo, term).flatMap {
-      case MusitSuccess(objects) =>
+      case MusitSuccess(searchResult) =>
         // We found some objects...now we need to find the current location for each.
         Future.sequence {
-          objects.map { obj =>
+          searchResult.matches.map { obj =>
             nodeDao.currentLocation(mid, obj.id).flatMap {
               case Some(nodeIdAndPath) =>
                 nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
@@ -73,7 +73,9 @@ class ObjectSearchService @Inject() (
                 Future.successful(obj)
             }
           }
-        }.map(MusitSuccess.apply).recover {
+        }.map { objects =>
+          MusitSuccess(searchResult.copy(matches = objects))
+        }.recover {
           case NonFatal(ex) =>
             val msg = s"An error occured when executing object search"
             logger.error(msg, ex)

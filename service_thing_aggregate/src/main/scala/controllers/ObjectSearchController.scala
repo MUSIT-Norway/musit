@@ -20,7 +20,7 @@
 package controllers
 
 import com.google.inject.Inject
-import models.{MuseumNo, MusitObject, SubNo}
+import models.{MuseumNo, MusitObject, ObjectSearchResult, SubNo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
 import play.api.{Configuration, Logger}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -70,7 +70,7 @@ class ObjectSearchController @Inject() (
       val sno = subNo.map(SubNo.apply)
       service.search(mid, page, calcLimit(limit), mno, sno, term).map {
         case MusitSuccess(res) =>
-          Ok(Json.toJson[Seq[MusitObject]](res))
+          Ok(Json.toJson[ObjectSearchResult](res))
 
         case MusitDbError(msg, ex) =>
           logger.error(msg, ex.orNull)
