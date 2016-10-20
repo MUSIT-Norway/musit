@@ -17,17 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package models.dto
 
-import play.api.libs.json.Json
+import models.{MuseumNo, MusitObject, SubNo}
 
-case class ObjectAggregation(
-  id: ObjectId,
-  museumNo: MuseumNo,
-  subNo: Option[SubNo],
-  term: Option[String]
+case class MusitObjectDto(
+  museumId: Int,
+  id: Option[Long],
+  museumNo: String,
+  museumNoAsNumber: Option[Long],
+  subNo: Option[String],
+  subNoAsNumber: Option[Long],
+  term: String
 )
 
-object ObjectAggregation {
-  implicit val format = Json.format[ObjectAggregation]
+object MusitObjectDto {
+
+  def toDomain(x: MusitObjectDto): MusitObject =
+    MusitObject(
+      // We can use get on the ID since we're only reading objects.
+      // Hence an object _must_ have an ID in the database.
+      id = x.id.get,
+      museumNo = MuseumNo(x.museumNo),
+      subNo = x.subNo.map(SubNo.apply),
+      term = x.term
+    )
 }
+

@@ -19,15 +19,23 @@
 
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, Json}
 
-case class ObjectAggregation(
-  id: ObjectId,
-  museumNo: MuseumNo,
-  subNo: Option[SubNo],
-  term: Option[String]
-)
+/**
+ * FIXME: THIS CODE IS COPIED FROM THE STORAGEFACILITY SERVICE.
+ * Need to move this into a separate library. All identifiers and other types
+ * that are core to the system should also be moved in the same operation.
+ *
+ * A NodePath contains a comma separated String of StorageNodeId (or Long)
+ * values, each of these ID's can be represented as a NamedPathElement.
+ *
+ * @param nodeId StorageNodeId of the named path element
+ * @param name String containing the name value of the StorageNode.
+ */
+case class NamedPathElement(nodeId: Long, name: String)
 
-object ObjectAggregation {
-  implicit val format = Json.format[ObjectAggregation]
+object NamedPathElement {
+
+  implicit val formats: Format[NamedPathElement] = Json.format[NamedPathElement]
+
 }

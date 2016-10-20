@@ -527,5 +527,28 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     }
 
   }
+  "Successfully search for a room with a MuseumID and with wrong museumId" in {
+    val mid = MuseumId(5)
+    val searchRoom = service.searchName(mid, "FooRoom", 1, 25).futureValue
+    searchRoom.isSuccess mustBe true
+    searchRoom.get.head.name mustBe "FooRoom"
+    searchRoom.get.size mustBe 2
+
+    val anotherMid = MuseumId(4)
+    val wrongRoom = service.searchName(anotherMid, "FooRoom", 1, 25).futureValue
+    wrongRoom.isSuccess mustBe true
+    wrongRoom.get.size mustBe 0
+
+  }
+  "failed when searching for a room with no search criteria and with too few " in {
+
+    val mid = MuseumId(5)
+    val searchRoom = service.searchName(mid, "Fo", 1, 25).futureValue
+    searchRoom.isSuccess mustBe false
+    searchRoom.isFailure mustBe true
+    val noSearchCriteria = service.searchName(mid, "", 1, 25).futureValue
+    noSearchCriteria.isSuccess mustBe false
+
+  }
 
 }
