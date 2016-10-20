@@ -49,6 +49,8 @@ sealed trait StorageNode {
   val pathNames: Option[Seq[NamedPathElement]]
   val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
+  val updatedBy: Option[String]
+  val updatedDate: Option[DateTime]
 }
 
 object StorageNode {
@@ -171,6 +173,8 @@ case class Root(
   val groupWrite: Option[String] = None
   val pathNames: Option[Seq[NamedPathElement]] = None
   val storageType: StorageType = StorageType.RootType
+  val updatedBy: Option[String] = None
+  val updatedDate: Option[DateTime] = None
 }
 
 object Root {
@@ -200,8 +204,10 @@ case class StorageUnit(
     groupWrite: Option[String],
     path: NodePath,
     pathNames: Option[Seq[NamedPathElement]] = None,
-    environmentRequirement: Option[EnvironmentRequirement] = None
-) extends StorageNode {
+    environmentRequirement: Option[EnvironmentRequirement] = None,
+    updatedBy: Option[String],
+    updatedDate: Option[DateTime])
+  extends StorageNode {
   val storageType: StorageType = StorageType.StorageUnitType
 }
 
@@ -219,7 +225,9 @@ object StorageUnit {
     (__ \ "groupWrite").formatNullable[String] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement]
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedDate").formatNullable[DateTime]
   )(StorageUnit.apply, unlift(StorageUnit.unapply))
 
 }
@@ -241,9 +249,12 @@ case class Room(
     pathNames: Option[Seq[NamedPathElement]] = None,
     environmentRequirement: Option[EnvironmentRequirement] = None,
     securityAssessment: SecurityAssessment,
-    environmentAssessment: EnvironmentAssessment
-) extends StorageNode {
+    environmentAssessment: EnvironmentAssessment,
+    updatedBy: Option[String],
+    updatedDate: Option[DateTime]
+    ) extends StorageNode {
   val storageType: StorageType = StorageType.RoomType
+
 }
 
 object Room {
@@ -262,7 +273,9 @@ object Room {
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "securityAssessment").format[SecurityAssessment] and
-    (__ \ "environmentAssessment").format[EnvironmentAssessment]
+    (__ \ "environmentAssessment").format[EnvironmentAssessment] and
+    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedDate").formatNullable[DateTime]
   )(Room.apply, unlift(Room.unapply))
 
 }
@@ -283,7 +296,9 @@ case class Building(
     path: NodePath,
     pathNames: Option[Seq[NamedPathElement]] = None,
     environmentRequirement: Option[EnvironmentRequirement] = None,
-    address: Option[String]
+    address: Option[String],
+    updatedBy: Option[String],
+    updatedDate: Option[DateTime]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.BuildingType
 }
@@ -303,7 +318,9 @@ object Building {
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites))
+    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and
+    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedDate").formatNullable[DateTime]
   )(Building.apply, unlift(Building.unapply))
 
 }
@@ -324,7 +341,9 @@ case class Organisation(
     path: NodePath,
     pathNames: Option[Seq[NamedPathElement]] = None,
     environmentRequirement: Option[EnvironmentRequirement] = None,
-    address: Option[String]
+    address: Option[String],
+    updatedBy: Option[String],
+    updatedDate: Option[DateTime]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.OrganisationType
 }
@@ -344,7 +363,9 @@ object Organisation {
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites))
+    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and
+    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedDate").formatNullable[DateTime]
   )(Organisation.apply, unlift(Organisation.unapply))
 
 }
