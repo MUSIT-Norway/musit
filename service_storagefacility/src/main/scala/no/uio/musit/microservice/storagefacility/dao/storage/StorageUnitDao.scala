@@ -267,8 +267,8 @@ class StorageUnitDao @Inject() (
    * @param id StorageNodeId to get the NodePath for
    * @return NodePath
    */
-  def getPathById(id: StorageNodeId): Future[Option[NodePath]] = {
-    db.run(getPathByIdAction(id))
+  def getPathById(mid: MuseumId, id: StorageNodeId): Future[Option[NodePath]] = {
+    db.run(getPathByIdAction(mid, id))
   }
 
   /**

@@ -74,7 +74,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         genAndAddRootNode(2, 2).size mustBe 2
         genAndAddRootNode(3, 2, 3).size mustBe 2
-
       }
 
       "successfully create an organisation node" in {
@@ -868,8 +867,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val updRes = wsUrl(StorageNodeUrl(wrongMid, organisation.id.get)).put(updatedJson).futureValue
         updRes.status mustBe Status.NOT_FOUND
 
-        val NotExistsMid = MuseumId(55)
-        val notExistsupdRes = wsUrl(StorageNodeUrl(NotExistsMid, organisation.id.get)).put(updatedJson).futureValue
+        val notExistsMid = MuseumId(55)
+        val notExistsupdRes = wsUrl(StorageNodeUrl(notExistsMid, organisation.id.get)).put(updatedJson).futureValue
         notExistsupdRes.status mustBe Status.BAD_REQUEST
 
         val checkOldRes = wsUrl(StorageNodeUrl(mid, organisation.id.get)).get.futureValue
@@ -910,10 +909,10 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "not delete a storage node when the museumId is incorrect" in {
         val mid = MuseumId(2)
-        val json = storageUnitJson("Remove me", StorageNodeId(7))
+        val json = storageUnitJson("Remove me", StorageNodeId(30))
         val res = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
         val created = verifyNode[StorageUnit](
-          res, StorageUnitType, "Remove me", 32, Some(7)
+          res, StorageUnitType, "Remove me", 32, Some(30)
         )
 
         created mustBe a[StorageUnit]
@@ -991,15 +990,25 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
       "successfully move some nodes and fail for others when museumId is invalid" in {
         val mid = MuseumId(2)
-        val anotherMid = MuseumId(4)
+        val anotherMid = MuseumId(3)
 
-        val json1 = storageUnitJson("Move me1", StorageNodeId(6))
+        val json1 = storageUnitJson("Move me1", StorageNodeId(33))
         val res1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
 
-        val json2 = storageUnitJson("Move me2", StorageNodeId(6))
+        val json2 = storageUnitJson("Move me2", StorageNodeId(33))
         val res2 = wsUrl(StorageNodesUrl(mid)).post(json2).futureValue
 
-        val json3 = storageUnitJson("Move me3", StorageNodeId(6))
+        val o3 = wsUrl(StorageNodesUrl(anotherMid))
+          .post(organisationJson("Hanky", Some(StorageNodeId(4)))).futureValue
+        o3.status mustBe Status.CREATED
+        val o3Id = (o3.json \ "id").as[Long]
+
+        val b3 = wsUrl(StorageNodesUrl(anotherMid))
+          .post(buildingJson("Panky", StorageNodeId(o3Id))).futureValue
+        b3.status mustBe Status.CREATED
+        val b3Id = (b3.json \ "id").as[Long]
+
+        val json3 = storageUnitJson("Move me3", StorageNodeId(b3Id))
         val res3 = wsUrl(StorageNodesUrl(anotherMid)).post(json3).futureValue
 
         res1.status mustBe Status.CREATED
@@ -1035,7 +1044,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           movedRes2, StorageUnitType, "Move me2", id2, Some(29)
         )
         val n3 = verifyNode[StorageUnit](
-          movedRes3, StorageUnitType, "Move me3", id3, Some(6)
+          movedRes3, StorageUnitType, "Move me3", id3, Some(StorageNodeId(b3Id))
         )
 
         n1.path mustBe NodePath(s",1,2,3,6,29,$id1,")

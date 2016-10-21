@@ -235,15 +235,11 @@ object StorageUnit {
     pathTypes: Seq[(StorageNodeId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
-      logger.error(s"contains $destId = ${pathTypes.exists(_._1 == destId)}")
-      pathTypes match {
+      pathTypes.toList match {
         case Nil => false
         case root :: Nil => false
         case root :: org :: Nil => false
         case root :: org :: tail => tail.exists(_._1 == destId)
-        case err =>
-          logger.error(s"No matches found in pattern match.\n${err.mkString("\n")}")
-          false
       }
     }
   }
@@ -301,14 +297,11 @@ object Room {
     pathTypes: Seq[(StorageNodeId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
-      pathTypes match {
+      pathTypes.toList match {
         case Nil => false
         case root :: Nil => false
         case root :: org :: Nil => false
         case root :: org :: tail => tail.exists(_._1 == destId)
-        case _ =>
-          logger.error("No matches found in pattern match.")
-          false
       }
     }
   }
@@ -365,13 +358,10 @@ object Building {
     pathTypes: Seq[(StorageNodeId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
-      pathTypes match {
+      pathTypes.toList match {
         case Nil => false
         case root :: Nil => false
         case root :: tail => tail.exists(_._1 == destId)
-        case _ =>
-          logger.error("No matches found in pattern match.")
-          false
       }
     }
   }
@@ -426,15 +416,11 @@ object Organisation {
     pathTypes: Seq[(StorageNodeId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
-      pathTypes match {
+      pathTypes.toList match {
         case Nil => false
         case root :: Nil => destId == root._1
         case root :: org :: Nil => false
-        case root :: org :: building :: Nil => destId == root._1 || destId == building._1
-        case root :: org :: building :: tail => tail.exists(_._1 == destId)
-        case _ =>
-          logger.error("No matches found in pattern match.")
-          false
+        case root :: org :: tail => tail.exists(_._1 == destId)
       }
     }
   }

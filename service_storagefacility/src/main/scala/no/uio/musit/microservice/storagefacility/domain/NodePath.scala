@@ -64,6 +64,8 @@ trait NodePath {
     path.stripPrefix(",")
       .stripSuffix(",")
       .split(",")
+      .map(_.trim())
+      .filterNot(_ == "")
       .map(s => StorageNodeId(s.toLong))
   }
 

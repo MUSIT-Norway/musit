@@ -52,10 +52,17 @@ final class StorageNodeResource @Inject() (
         maybeNode.map { n =>
           Created(Json.toJson[T](n))
         }.getOrElse {
-          InternalServerError(Json.obj("message" -> "Could not node after insertion"))
+          val errMsg = "Could not find node after insertion"
+          logger.error(errMsg)
+          InternalServerError(Json.obj("message" -> errMsg))
         }
 
+      case verr: MusitValidationError =>
+        logger.warn(verr.message)
+        BadRequest(Json.obj("message" -> verr.message))
+
       case err: MusitError =>
+        logger.error(err.message)
         InternalServerError(Json.obj("message" -> err.message))
     }
   }

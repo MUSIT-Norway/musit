@@ -80,10 +80,11 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   }
 
   protected[storage] def getPathByIdAction(
+    mid: MuseumId,
     id: StorageNodeId
   ): DBIO[Option[NodePath]] = {
     storageNodeTable.filter { sn =>
-      sn.id === id && sn.isDeleted === false
+      sn.museumId === mid && sn.id === id && sn.isDeleted === false
     }.map(_.path).result.headOption
   }
 
