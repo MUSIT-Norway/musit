@@ -1,9 +1,10 @@
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NamedPathElement, NodePath}
+import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
+import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
+import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NamedPathElement, NodePath}
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
 import no.uio.musit.microservice.storagefacility.test._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
@@ -89,6 +90,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         organisation mustBe an[Organisation]
         organisation.path mustBe NodePath(",1,11,")
+        organisation.updatedBy mustBe Some(DummyData.DummyUserId)
+        organisation.updatedDate.get.toString must include("2016")
       }
 
       "successfully create a building node" in {
@@ -102,6 +105,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         building mustBe a[Building]
         building.path mustBe NodePath(",1,11,12,")
+        building.updatedBy.get mustBe DummyData.DummyUserId
+        building.updatedDate.get.toString must include("2016")
       }
 
       "successfully create a room node" in {
@@ -115,6 +120,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         room mustBe a[Room]
         room.path mustBe NodePath(",1,11,12,13,")
+        room.updatedBy.get mustBe DummyData.DummyUserId
+        room.updatedDate.get.toString must include("2016")
       }
 
       "successfully create a storage unit node" in {
@@ -128,6 +135,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         su mustBe a[StorageUnit]
         su.path mustBe NodePath(",1,11,12,13,14,")
+        su.updatedBy.get mustBe DummyData.DummyUserId
+        su.updatedDate.get.toString must include("2016")
       }
 
       "not allow creating a storage node with a name over 100 chars" in {
@@ -239,6 +248,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated.path mustBe NodePath(",1,11,12,13,15,")
         updated.areaTo mustBe Some(.8)
         updated.heightTo mustBe Some(.8)
+        updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
       }
 
       "successfully update a room" in {
@@ -278,6 +288,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           NamedPathElement(StorageNodeId(12), "My Building1"),
           NamedPathElement(StorageNodeId(16), "My Room2b")
         )
+        updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
       }
 
       "successfully update a building with environment requirements" in {
@@ -311,6 +322,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
         updated.environmentRequirement.isEmpty must not be true
         updated.environmentRequirement.get.cleaning mustBe Some("Filthy")
+        updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+
       }
 
       "successfully update an organisation" in {
@@ -330,6 +343,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           Json.parse(response.body).as[JsObject] ++ Json.obj(
             "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge"
           )
+
         }
 
         val updRes = wsUrl(StorageNodeUrl(mid, organisation.id.get)).put(updatedJson).futureValue
@@ -341,6 +355,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated mustBe an[Organisation]
         updated.path mustBe NodePath(",1,18,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
+        updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
       }
 
       "respond with 404 when trying to update a node that doesn't exist" in {
@@ -768,6 +783,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         oldDataRes.path mustBe NodePath("1,2,3,6,28,")
         oldDataRes.areaTo mustBe Some(.5)
         oldDataRes.heightTo mustBe Some(.6)
+        oldDataRes.updatedBy.get mustBe DummyData.DummyUserId
       }
 
       "not update a room when the MuseumId isn't correct" in {
@@ -805,6 +821,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         oldDataRes.path mustBe NodePath("1,2,3,6,29,")
         oldDataRes.environmentAssessment.lightingCondition mustBe Some(true)
         oldDataRes.securityAssessment.waterDamage mustBe Some(true)
+        oldDataRes.updatedBy.get mustBe DummyData.DummyUserId
       }
 
       "not update a building or its env requirements when the MuseumId isn't correct" in {
@@ -843,6 +860,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         oldDataRes.address.get must include("Foo")
         oldDataRes.environmentRequirement.isEmpty must not be true
         oldDataRes.environmentRequirement.get.cleaning mustBe Some("Keep it clean!")
+        oldDataRes.updatedBy.get mustBe DummyData.DummyUserId
       }
 
       "not update an organisation when the MuseumId isn't correct" in {
@@ -879,6 +897,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         oldDataRes mustBe an[Organisation]
         oldDataRes.path mustBe NodePath(",1,31,")
         oldDataRes.address.get must include("Foo gate 13")
+        oldDataRes.updatedBy.get mustBe DummyData.DummyUserId
       }
 
       "respond with 404 when trying to update a node that doesn't exist and with wrong MuseumId" in {
@@ -926,8 +945,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "respond with 400 when trying to delete a node using an invalid museumId" in {
-        val notExistsMmid = MuseumId(55)
-        val rmRes = wsUrl(StorageNodeUrl(notExistsMmid, 9999)).delete().futureValue
+        val notExistsMid = MuseumId(55)
+        val rmRes = wsUrl(StorageNodeUrl(notExistsMid, 9999)).delete().futureValue
         rmRes.status mustBe Status.BAD_REQUEST
       }
 

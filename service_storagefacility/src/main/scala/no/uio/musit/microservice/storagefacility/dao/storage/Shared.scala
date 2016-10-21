@@ -19,11 +19,12 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
+import java.sql.{Timestamp => JSqlTimestamp}
+
 import no.uio.musit.microservice.storagefacility.dao._
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
-import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, MuseumId, NamedPathElement, NodePath}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -193,7 +194,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       groupWrite,
       isDeleted,
       museumId,
-      path
+      path,
+      updatedBy,
+      updatedDate
     ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
@@ -211,6 +214,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val isDeleted = column[Boolean]("IS_DELETED")
     val museumId = column[MuseumId]("MUSEUM_ID")
     val path = column[NodePath]("NODE_PATH")
+    val updatedBy = column[Option[ActorId]]("UPDATED_BY")
+    val updatedDate = column[Option[JSqlTimestamp]]("UPDATED_DATE")
 
     def create = (
       id: Option[StorageNodeId],
@@ -225,7 +230,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       groupWrite: Option[String],
       isDeleted: Boolean,
       museumId: MuseumId,
-      nodePath: NodePath
+      nodePath: NodePath,
+      updatedBy: Option[ActorId],
+      updatedDate: Option[JSqlTimestamp]
     ) =>
       StorageUnitDto(
         id = id,
@@ -240,7 +247,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         path = nodePath,
         isDeleted = Option(isDeleted),
         museumId = museumId,
-        storageType = storageType
+        storageType = storageType,
+        updatedBy = updatedBy,
+        updatedDate = updatedDate
       )
 
     def destroy(unit: StorageUnitDto) =
@@ -257,7 +266,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         unit.groupWrite,
         unit.isDeleted.getOrElse(false),
         unit.museumId,
-        unit.path
+        unit.path,
+        unit.updatedBy,
+        unit.updatedDate
       ))
   }
 
