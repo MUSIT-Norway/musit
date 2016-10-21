@@ -19,8 +19,12 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
+import java.sql.{Timestamp => JSqlTimestamp}
+
+import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.formatters.StrictFormatters._
-import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
+import no.uio.musit.formatters.WithDateTimeFormatters
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, NamedPathElement, NodePath}
 import org.joda.time.DateTime
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
@@ -49,7 +53,7 @@ sealed trait StorageNode {
   val pathNames: Option[Seq[NamedPathElement]]
   val environmentRequirement: Option[EnvironmentRequirement]
   val storageType: StorageType
-  val updatedBy: Option[String]
+  val updatedBy: Option[ActorId]
   val updatedDate: Option[DateTime]
 }
 
@@ -127,9 +131,9 @@ case class GenericStorageNode(
     path: NodePath,
     environmentRequirement: Option[EnvironmentRequirement],
     storageType: StorageType,
-    updatedBy: Option[String],
+    updatedBy: Option[ActorId],
     updatedDate: Option[DateTime]
-                             ) extends StorageNode {
+) extends StorageNode {
   val pathNames: Option[Seq[NamedPathElement]] = None
 }
 
@@ -148,7 +152,7 @@ object GenericStorageNode {
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "type").format[StorageType] and
-    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedBy").formatNullable[ActorId] and
     (__ \ "updatedDate").formatNullable[DateTime]
   )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
 
@@ -173,7 +177,7 @@ case class Root(
   val groupWrite: Option[String] = None
   val pathNames: Option[Seq[NamedPathElement]] = None
   val storageType: StorageType = StorageType.RootType
-  val updatedBy: Option[String] = None
+  val updatedBy: Option[ActorId] = None
   val updatedDate: Option[DateTime] = None
 }
 
@@ -193,25 +197,26 @@ object Root {
  * a shelf, box, etc...
  */
 case class StorageUnit(
-    id: Option[StorageNodeId],
-    name: String,
-    area: Option[Double],
-    areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
-    height: Option[Double],
-    heightTo: Option[Double],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    path: NodePath,
-    pathNames: Option[Seq[NamedPathElement]] = None,
-    environmentRequirement: Option[EnvironmentRequirement] = None,
-    updatedBy: Option[String],
-    updatedDate: Option[DateTime])
-  extends StorageNode {
+  id: Option[StorageNodeId],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[StorageNodeId],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  path: NodePath,
+  pathNames: Option[Seq[NamedPathElement]] = None,
+  environmentRequirement: Option[EnvironmentRequirement] = None,
+  updatedBy: Option[ActorId],
+  updatedDate: Option[DateTime]
+)
+    extends StorageNode {
   val storageType: StorageType = StorageType.StorageUnitType
 }
 
-object StorageUnit {
+object StorageUnit extends WithDateTimeFormatters {
 
   val formats: Format[StorageUnit] = (
     (__ \ "id").formatNullable[StorageNodeId] and
@@ -226,7 +231,7 @@ object StorageUnit {
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedBy").formatNullable[ActorId] and
     (__ \ "updatedDate").formatNullable[DateTime]
   )(StorageUnit.apply, unlift(StorageUnit.unapply))
 
@@ -250,9 +255,9 @@ case class Room(
     environmentRequirement: Option[EnvironmentRequirement] = None,
     securityAssessment: SecurityAssessment,
     environmentAssessment: EnvironmentAssessment,
-    updatedBy: Option[String],
+    updatedBy: Option[ActorId],
     updatedDate: Option[DateTime]
-    ) extends StorageNode {
+) extends StorageNode {
   val storageType: StorageType = StorageType.RoomType
 
 }
@@ -274,7 +279,7 @@ object Room {
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "securityAssessment").format[SecurityAssessment] and
     (__ \ "environmentAssessment").format[EnvironmentAssessment] and
-    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedBy").formatNullable[ActorId] and
     (__ \ "updatedDate").formatNullable[DateTime]
   )(Room.apply, unlift(Room.unapply))
 
@@ -297,7 +302,7 @@ case class Building(
     pathNames: Option[Seq[NamedPathElement]] = None,
     environmentRequirement: Option[EnvironmentRequirement] = None,
     address: Option[String],
-    updatedBy: Option[String],
+    updatedBy: Option[ActorId],
     updatedDate: Option[DateTime]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.BuildingType
@@ -319,7 +324,7 @@ object Building {
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and
-    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedBy").formatNullable[ActorId] and
     (__ \ "updatedDate").formatNullable[DateTime]
   )(Building.apply, unlift(Building.unapply))
 
@@ -342,7 +347,7 @@ case class Organisation(
     pathNames: Option[Seq[NamedPathElement]] = None,
     environmentRequirement: Option[EnvironmentRequirement] = None,
     address: Option[String],
-    updatedBy: Option[String],
+    updatedBy: Option[ActorId],
     updatedDate: Option[DateTime]
 ) extends StorageNode {
   val storageType: StorageType = StorageType.OrganisationType
@@ -364,7 +369,7 @@ object Organisation {
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and
-    (__ \ "updatedBy").formatNullable[String] and
+    (__ \ "updatedBy").formatNullable[ActorId] and
     (__ \ "updatedDate").formatNullable[DateTime]
   )(Organisation.apply, unlift(Organisation.unapply))
 

@@ -33,6 +33,7 @@ import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
+import no.uio.musit.microservice.storagefacility
 
 trait EventGenerators extends EventTypeInitializers {
   self: MusitSpecWithApp =>

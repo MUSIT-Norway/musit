@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.service
 
+import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageUnit}
 import no.uio.musit.microservice.storagefacility.domain._
@@ -45,6 +46,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val ins = service.addRoom(mid, room).futureValue
     ins.isSuccess mustBe true
     ins.get must not be None
+    ins.get.get.updatedBy.get mustBe (DummyData.DummyUserId)
+    ins.get.get.updatedDate.get.toString must include("2016")
 
     val inserted = ins.get.get
     inserted.id must not be None
@@ -70,6 +73,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     inserted.id must not be None
     inserted.environmentRequirement must not be None
     inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
+    inserted.updatedBy.get mustBe (DummyData.DummyUserId)
+    inserted.updatedDate.get.toString must include("2016")
 
     val someEnvReq = Some(initEnvironmentRequirement(
       hypoxic = Some(Interval[Double](44.4, Some(55)))
@@ -83,6 +88,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val updated = res.get.get
     updated.id mustBe inserted.id
     updated.environmentRequirement mustBe someEnvReq
+    updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+    updated.updatedDate.get.toString must include("2016")
   }
 
   "successfully update a storage unit and fetch as StorageNode" in {
@@ -94,6 +101,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
     val inserted = ins.get.get
     inserted.id must not be None
+    inserted.updatedBy.get mustBe (DummyData.DummyUserId)
+    inserted.updatedDate.get.toString must include("2016")
 
     val res = storageUnitDao.getById(mid, inserted.id.get).futureValue
     res must not be None
@@ -113,6 +122,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     again.get must not be None
     again.get.get.name mustBe "UggaBugga"
     again.get.get.areaTo mustBe Some(4.0)
+    again.get.get.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+    again.get.get.updatedDate.get.toString must include("2016")
   }
 
   "successfully mark a node as deleted" in {
@@ -215,7 +226,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val mostChildren = childIds ++ grandChildIds
 
     val move = Move[StorageNodeId](
-      doneBy = 123,
+      doneBy = DummyData.DummyUserId,
       destination = building2.id.get,
       items = Seq(unit1.id.get)
     )
@@ -362,6 +373,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val StillAvailable = service.getNodeById(mid, inserted.id.get).futureValue
     StillAvailable.isSuccess mustBe true
     StillAvailable.get.get.id mustBe inserted.id
+    StillAvailable.get.get.updatedBy.get mustBe DummyData.DummyUserId
   }
   "UnSuccessfully update a storage unit and fetch as StorageNode with same data than before" in {
     val mid = MuseumId(5)
@@ -393,6 +405,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val getAgain = again.get.get
     getAgain.name must include("FooUnit")
     getAgain.areaTo mustBe Some(2.0)
+    getAgain.updatedBy mustBe Some(DummyData.DummyUserId)
   }
   "UnSuccessfully update a building with new environment requirements and wrong MuseumID" in {
     val mid = MuseumId(5)
@@ -417,6 +430,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
     val oldDataRes = service.getBuildingById(mid, inserted.id.get).futureValue
     oldDataRes.get.get.address.get must include("Foo")
+    oldDataRes.get.get.updatedBy mustBe Some(DummyData.DummyUserId)
   }
   "UnSuccessfully update a room with wrong or not existing MuseumID" in {
     val mid = MuseumId(5)
@@ -437,6 +451,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
     val oldDataRes = service.getRoomById(mid, inserted.id.get).futureValue
     oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
+    oldDataRes.get.get.updatedBy mustBe Some(DummyData.DummyUserId)
   }
   "get currentLocation on a object" in {
     val mid = MuseumId(2)

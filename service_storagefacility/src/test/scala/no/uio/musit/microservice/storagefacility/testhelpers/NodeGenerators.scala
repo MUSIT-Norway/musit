@@ -19,10 +19,13 @@
 
 package no.uio.musit.microservice.storagefacility.testhelpers
 
+import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
+import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.{Interval, MuseumId, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, Interval, MuseumId, NodePath}
 import no.uio.musit.test.MusitSpecWithApp
+import org.joda.time.DateTime
 import play.api.Application
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -162,7 +165,9 @@ trait NodeTypeInitializers {
       groupWrite = None,
       path = path,
       environmentRequirement = Some(defaultEnvironmentRequirement),
-      address = Some("FooBar Gate 8, 111 Oslo, Norge")
+      address = Some("FooBar Gate 8, 111 Oslo, Norge"),
+      updatedBy = Some(DummyData.DummyUserId),
+      updatedDate = Some(dateTimeNow)
     )
   }
 
@@ -195,7 +200,9 @@ trait NodeTypeInitializers {
         lightingCondition = Some(true),
         temperature = Some(true),
         preventiveConservation = Some(false)
-      )
+      ),
+      updatedBy = Some(DummyData.DummyUserId),
+      updatedDate = Some(dateTimeNow)
     )
   }
 
@@ -215,7 +222,9 @@ trait NodeTypeInitializers {
       groupRead = None,
       groupWrite = None,
       path = path,
-      environmentRequirement = Some(defaultEnvironmentRequirement)
+      environmentRequirement = Some(defaultEnvironmentRequirement),
+      updatedBy = Some(DummyData.DummyUserId),
+      updatedDate = Some(dateTimeNow)
     )
   }
 

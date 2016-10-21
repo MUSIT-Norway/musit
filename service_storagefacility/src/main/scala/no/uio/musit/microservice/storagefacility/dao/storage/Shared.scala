@@ -19,12 +19,12 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
+import java.sql.{Timestamp => JSqlTimestamp}
+
 import no.uio.musit.microservice.storagefacility.dao._
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
-import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
-import org.joda.time.DateTime
+import no.uio.musit.microservice.storagefacility.domain.{ActorId, MuseumId, NamedPathElement, NodePath}
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -203,8 +203,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val isDeleted = column[Boolean]("IS_DELETED")
     val museumId = column[MuseumId]("MUSEUM_ID")
     val path = column[NodePath]("NODE_PATH")
-    val updatedBy = column[Option[String]]("UPDATED_BY")
-    val updatedDate = column[Option[DateTime]]("UPDATED_DATE")
+    val updatedBy = column[Option[ActorId]]("UPDATED_BY")
+    val updatedDate = column[Option[JSqlTimestamp]]("UPDATED_DATE")
 
     def create = (
       id: Option[StorageNodeId],
@@ -220,9 +220,9 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       isDeleted: Boolean,
       museumId: MuseumId,
       nodePath: NodePath,
-      updatedBy: Option[String],
-      updatedDate: Option[DateTime]
-                 ) =>
+      updatedBy: Option[ActorId],
+      updatedDate: Option[JSqlTimestamp]
+    ) =>
       StorageUnitDto(
         id = id,
         name = storageNodeName,
