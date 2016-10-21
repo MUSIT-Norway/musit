@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.testhelpers
 
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
+import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents._
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEvents._
@@ -30,7 +31,6 @@ import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, Mo
 import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
 

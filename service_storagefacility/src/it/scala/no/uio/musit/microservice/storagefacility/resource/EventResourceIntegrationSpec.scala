@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.resource
 
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, StorageNodeId}
@@ -26,7 +27,7 @@ import no.uio.musit.microservice.storagefacility.test.{EventJsonGenerator, Stora
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
-import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.libs.json.{JsArray, JsNull, JsObject, Json}
 
 import scala.util.Try
 
@@ -37,13 +38,17 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     interval = Span(50, Millis)
   )
 
+  val mid = MuseumId(2)
+
   override def beforeTests(): Unit = {
     Try {
       import StorageNodeJsonGenerator._
       // Initialise some storage units...
-      val mid = 2
-      wsUrl(StorageNodesUrl(mid)).post(organisationJson("Foo")).futureValue
-      wsUrl(StorageNodesUrl(mid)).post(buildingJson("Bar", StorageNodeId(1))).futureValue
+      val root = wsUrl(RootNodeUrl(mid)).post(JsNull).futureValue
+      val rootId = (root.json \ "id").asOpt[StorageNodeId]
+      val org = wsUrl(StorageNodesUrl(mid)).post(organisationJson("Foo", rootId)).futureValue
+      val orgId = (org.json \ "id").as[StorageNodeId]
+      wsUrl(StorageNodesUrl(mid)).post(buildingJson("Bar", orgId)).futureValue
       println("Done populating") // scalastyle:ignore
     }.recover {
       case t: Throwable =>
@@ -54,7 +59,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   "The storage facility event service" should {
 
     "successfully register a new control" in {
-      val mid = 2
       val json = Json.parse(EventJsonGenerator.controlJson(20))
       val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
 
@@ -65,7 +69,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "get a specific control for a node" in {
-      val mid = 2
       val ctrlId = 2
       val res = wsUrl(s"${ControlsUrl(mid, 2)}/$ctrlId").get().futureValue
 
@@ -80,7 +83,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully register another control" in {
-      val mid = 2
       val json = Json.parse(EventJsonGenerator.controlJson(22))
       val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
 
@@ -89,7 +91,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "fail when a sub-control is ok and contains an observation" in {
-      val mid = 2
       val json = Json.parse(EventJsonGenerator.controlJson(5)).as[JsObject] ++
         Json.obj(
           "cleaning" -> Json.obj(
@@ -104,7 +105,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "fail when a sub-control is not ok and doesn't contain an observation" in {
-      val mid = 2
       val json = Json.parse(EventJsonGenerator.controlJson(5)).as[JsObject] ++
         Json.obj("cleaning" -> Json.obj("ok" -> false))
 
@@ -114,7 +114,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully register a new observation" in {
-      val mid = 2
       val json = Json.parse(EventJsonGenerator.observationJson(22))
       val res = wsUrl(ObservationsUrl(mid, 2)).post(json).futureValue
 
@@ -124,11 +123,10 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "get a specific observation for a node" in {
-
+      pending
     }
 
     "successfully register another observation" in {
-      val mid = 2
       val json = Json.parse(EventJsonGenerator.observationJson(22))
       val res = wsUrl(ObservationsUrl(mid, 2)).post(json).futureValue
 
@@ -139,7 +137,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "list all controls and observations for a node, ordered by doneDate" in {
       // TODO: Update this test once observations are created in above tests
-      val mid = 2
       val res = wsUrl(CtrlObsForNodeUrl(mid, 2)).get().futureValue
 
       res.status mustBe Status.OK
@@ -147,50 +144,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       // TODO: Verify ordering.
     }
 
-    //    "list all controls for a node"
-
-  }
-
-  "return the last environment requirement event for the node" in {
-    val mid = 2
-    val nodeJson = StorageNodeJsonGenerator.roomJson("test")
-    val res = wsUrl(StorageNodesUrl(mid)).post(nodeJson).futureValue
-
-    res.status mustBe Status.CREATED
-    val maybeNodeId = (res.json \ "id").asOpt[Long]
-
-    maybeNodeId must not be None
-
-    maybeNodeId.foreach(nodeId => {
-      val jsonControl = Json.parse(EventJsonGenerator.controlJson(20))
-      val resCtrl = wsUrl(ControlsUrl(mid, nodeId)).post(jsonControl).futureValue
-
-      resCtrl.status mustBe Status.CREATED
-
-      val resNode = wsUrl(StorageNodeUrl(mid, nodeId)).get().futureValue
-
-      val maybeEnvData = (resNode.json \ "environmentRequirement").asOpt[EnvironmentRequirement]
-
-      maybeEnvData must not be None
-
-      maybeEnvData.foreach(envData => {
-        envData.temperature must not be None
-        envData.temperature.foreach(temp => {
-          temp.base mustBe 20
-          temp.tolerance mustBe Some(25)
-        })
-        envData.relativeHumidity must not be None
-        envData.relativeHumidity.foreach(relhum => {
-          relhum.base mustBe 60.7
-          relhum.tolerance mustBe Some(70)
-        })
-        envData.hypoxicAir must not be None
-        envData.hypoxicAir.foreach(hypoxicAir => {
-          hypoxicAir.base mustBe 12
-          hypoxicAir.tolerance mustBe Some(20)
-        })
-      })
-    })
   }
 
 }

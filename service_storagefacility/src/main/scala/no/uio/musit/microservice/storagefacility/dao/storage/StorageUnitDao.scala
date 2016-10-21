@@ -20,7 +20,10 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
+import no.uio.musit.microservice.storagefacility.domain.datetime.Implicits._
+import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.domain.MuseumId
+import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
 import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
@@ -277,7 +280,9 @@ class StorageUnitDao @Inject() (
   def markAsDeleted(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Int]] = {
     val query = storageNodeTable.filter { su =>
       su.id === id && su.isDeleted === false && su.museumId === mid
-    }.map(_.isDeleted).update(true)
+    }.map { del =>
+      (del.isDeleted, del.updatedBy, del.updatedDate)
+    }.update((true, Some(DummyData.DummyUserId), Some(dateTimeNow)))
 
     db.run(query).map {
       case res: Int if res == 1 =>

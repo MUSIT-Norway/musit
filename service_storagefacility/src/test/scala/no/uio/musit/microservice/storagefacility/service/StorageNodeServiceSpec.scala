@@ -19,6 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.service
 
+import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageUnit}
 import no.uio.musit.microservice.storagefacility.domain._
@@ -52,6 +53,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val ins = service.addRoom(defaultMuseumId, room).futureValue
       ins.isSuccess mustBe true
       ins.get must not be None
+      ins.get.get.updatedBy.get mustBe (DummyData.DummyUserId)
+      ins.get.get.updatedDate.get.toString must include("2016")
 
       val inserted = ins.get.get
       inserted.id must not be None
@@ -76,6 +79,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       inserted.id must not be None
       inserted.environmentRequirement must not be None
       inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
+      inserted.updatedBy.get mustBe (DummyData.DummyUserId)
+      inserted.updatedDate.get.toString must include("2016")
 
       val someEnvReq = Some(initEnvironmentRequirement(
         hypoxic = Some(Interval[Double](44.4, Some(55)))
@@ -89,6 +94,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val updated = res.get.get
       updated.id mustBe inserted.id
       updated.environmentRequirement mustBe someEnvReq
+      updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+      updated.updatedDate.get.toString must include("2016")
     }
 
     "successfully update a storage unit and fetch as StorageNode" in {
@@ -99,6 +106,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val inserted = ins.get.get
       inserted.id must not be None
+      inserted.updatedBy.get mustBe (DummyData.DummyUserId)
+      inserted.updatedDate.get.toString must include("2016")
 
       val res = storageUnitDao.getById(defaultMuseumId, inserted.id.get).futureValue
       res must not be None
@@ -118,6 +127,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       again.get must not be None
       again.get.get.name mustBe "UggaBugga"
       again.get.get.areaTo mustBe Some(4.0)
+      again.get.get.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+      again.get.get.updatedDate.get.toString must include("2016")
     }
 
     "successfully mark a node as deleted" in {
@@ -212,7 +223,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val mostChildren = childIds ++ grandChildIds
 
       val move = Move[StorageNodeId](
-        doneBy = ActorId(123),
+        doneBy = DummyData.DummyUserId,
         destination = building2.id.get,
         items = Seq(unit1.id.get)
       )
@@ -306,6 +317,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val stillAvailable = service.getNodeById(defaultMuseumId, inserted.id.get).futureValue
       stillAvailable.isSuccess mustBe true
       stillAvailable.get.get.id mustBe inserted.id
+      stillAvailable.get.get.updatedBy.get mustBe DummyData.DummyUserId
     }
 
     "not update a storage unit when using the wrong museumId" in {
@@ -337,6 +349,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val getAgain = again.get.get
       getAgain.name must include("FooUnit")
       getAgain.areaTo mustBe Some(2.0)
+      getAgain.updatedBy mustBe Some(DummyData.DummyUserId)
     }
 
     "not update a building or environment requirements when using wrong museumID" in {
@@ -361,6 +374,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val oldDataRes = service.getBuildingById(defaultMuseumId, inserted.id.get).futureValue
       oldDataRes.get.get.address.get must include("Foo")
+      oldDataRes.get.get.updatedBy mustBe Some(DummyData.DummyUserId)
     }
 
     "not update a room when using wrong museumId" in {
@@ -381,6 +395,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val oldDataRes = service.getRoomById(defaultMuseumId, inserted.id.get).futureValue
       oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
+      oldDataRes.get.get.updatedBy mustBe Some(DummyData.DummyUserId)
     }
 
     "get current location for an object" in {
@@ -408,6 +423,31 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       sameCurrLoc.get.get.id.get.underlying mustBe 3
       sameCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
 
+    }
+
+    "find the relevant rooms when searching with a valid MuseumId" in {
+      val searchRoom = service.searchName(defaultMuseumId, "FooRoom", 1, 25).futureValue
+      searchRoom.isSuccess mustBe true
+      searchRoom.get.head.name mustBe "FooRoom"
+      searchRoom.get.size mustBe 5
+    }
+
+    "not find any rooms when searching with the wrong MuseumId" in {
+      val theMid = MuseumId(4)
+      val wrongRoom = service.searchName(theMid, "FooRoom", 1, 25).futureValue
+      wrongRoom.isSuccess mustBe true
+      wrongRoom.get.size mustBe 0
+
+    }
+
+    "fail when searching for a room with no search criteria" in {
+      val noSearchCriteria = service.searchName(defaultMuseumId, "", 1, 25).futureValue
+      noSearchCriteria.isSuccess mustBe false
+    }
+
+    "fail when searching for a room with less than 3 characters" in {
+      val searchRoom = service.searchName(defaultMuseumId, "Fo", 1, 25).futureValue
+      searchRoom.isSuccess mustBe false
     }
   }
 
@@ -450,30 +490,6 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       service.isValidPosition(defaultMuseumId, unit1, room3.path).futureValue mustBe true
     }
 
-  }
-  "find the relevant rooms when searching with a valid MuseumId" in {
-    val searchRoom = service.searchName(defaultMuseumId, "FooRoom", 1, 25).futureValue
-    searchRoom.isSuccess mustBe true
-    searchRoom.get.head.name mustBe "FooRoom"
-    searchRoom.get.size mustBe 5
-  }
-
-  "not find any rooms when searching with the wrong MuseumId" in {
-    val theMid = MuseumId(4)
-    val wrongRoom = service.searchName(theMid, "FooRoom", 1, 25).futureValue
-    wrongRoom.isSuccess mustBe true
-    wrongRoom.get.size mustBe 0
-
-  }
-
-  "fail when searching for a room with no search criteria" in {
-    val noSearchCriteria = service.searchName(defaultMuseumId, "", 1, 25).futureValue
-    noSearchCriteria.isSuccess mustBe false
-  }
-
-  "fail when searching for a room with less than 3 characters" in {
-    val searchRoom = service.searchName(defaultMuseumId, "Fo", 1, 25).futureValue
-    searchRoom.isSuccess mustBe false
   }
 
 }

@@ -24,7 +24,9 @@ import no.uio.musit.microservice.storagefacility.domain.ActorId
 object DummyData {
 
   implicit val DummyUser = "Darth Vader"
+  implicit val DummyUpdatedUser = "Harry Hole"
 
   val DummyUserId = ActorId(123)
+  val DummyUpdatedUserId = ActorId(666)
 
 }

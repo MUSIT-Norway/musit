@@ -21,6 +21,7 @@ package no.uio.musit.microservice.storagefacility.service
 import java.util.NoSuchElementException
 
 import com.google.inject.Inject
+import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.dao.event.{EventDao, LocalObjectDao}
 import no.uio.musit.microservice.storagefacility.dao.storage._
 import no.uio.musit.microservice.storagefacility.domain._
@@ -136,12 +137,9 @@ class StorageNodeService @Inject() (
       val maybeDestId = dest.asIdSeq.lastOption
       // Get the StorageType for the elements in the destination path so we can
       // use it to verify that nodes are placed on a valid location
-      logger.error(s"dest $dest")
-      logger.error(s"maybeDestId = $maybeDestId")
       unitDao.getStorageTypesInPath(mid, dest).map { idTypeTuples =>
         // Identify the type of node we want to place in the hierarchy, and
         // validate if the destination location is valid for the given type.
-        logger.error(s"dest tuples:\n${idTypeTuples.mkString("\n")}")
         node.storageType match {
           case RootType =>
             Root.isValidLocation(dest)
@@ -229,7 +227,7 @@ class StorageNodeService @Inject() (
   )(implicit currUsr: String): Future[MusitResult[Option[StorageUnit]]] = {
     addNode[StorageUnit](
       mid = mid,
-      node = storageUnit,
+      node = storageUnit.copy(updatedBy = Some(DummyData.DummyUserId), updatedDate = Some(dateTimeNow)),
       insert = unitDao.insert,
       setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
       updateWithPath = (id, path) => unitDao.setPath(id, path),
@@ -244,9 +242,10 @@ class StorageNodeService @Inject() (
     mid: MuseumId,
     room: Room
   )(implicit currUsr: String): Future[MusitResult[Option[Room]]] = {
+    val test = room.copy(updatedBy = Some(DummyData.DummyUserId), updatedDate = Some(dateTimeNow))
     addNode[Room](
       mid = mid,
-      node = room,
+      node = room.copy(updatedBy = Some(DummyData.DummyUserId), updatedDate = Some(dateTimeNow)),
       insert = roomDao.insert,
       setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
       updateWithPath = (id, path) => roomDao.setPath(id, path),
@@ -263,7 +262,7 @@ class StorageNodeService @Inject() (
   )(implicit currUsr: String): Future[MusitResult[Option[Building]]] = {
     addNode[Building](
       mid = mid,
-      node = building,
+      node = building.copy(updatedBy = Some(DummyData.DummyUserId), updatedDate = Some(dateTimeNow)),
       insert = buildingDao.insert,
       setEnvReq = (node, maybeEnvReq) => node.copy(environmentRequirement = maybeEnvReq),
       updateWithPath = (id, path) => buildingDao.setPath(id, path),
@@ -280,7 +279,7 @@ class StorageNodeService @Inject() (
   )(implicit currUsr: String): Future[MusitResult[Option[Organisation]]] = {
     addNode[Organisation](
       mid = mid,
-      node = organisation,
+      node = organisation.copy(updatedBy = Some(DummyData.DummyUserId), updatedDate = Some(dateTimeNow)),
       insert = orgDao.insert,
       setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
       updateWithPath = (id, path) => orgDao.setPath(id, path),
@@ -296,11 +295,12 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     storageUnit: StorageUnit
   )(implicit currUsr: String): Future[MusitResult[Option[StorageUnit]]] = {
-    unitDao.update(mid, id, storageUnit).flatMap {
+    val su = storageUnit.copy(updatedBy = Some(DummyData.DummyUpdatedUserId), updatedDate = Some(dateTimeNow))
+    unitDao.update(mid, id, su).flatMap {
       case MusitSuccess(maybeRes) =>
         maybeRes.map { numUpdated =>
           for {
-            _ <- storageUnit.environmentRequirement.map(er => saveEnvReq(mid, id, er))
+            _ <- su.environmentRequirement.map(er => saveEnvReq(mid, id, er))
               .getOrElse(Future.successful(None))
             node <- getStorageUnitById(mid, id)
           } yield {
@@ -321,11 +321,12 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     room: Room
   )(implicit currUsr: String): Future[MusitResult[Option[Room]]] = {
-    roomDao.update(mid, id, room).flatMap {
+    val updateRoom = room.copy(updatedBy = Some(DummyData.DummyUpdatedUserId), updatedDate = Some(dateTimeNow))
+    roomDao.update(mid, id, updateRoom).flatMap {
       case MusitSuccess(maybeRes) =>
         maybeRes.map { numUpdated =>
           for {
-            _ <- room.environmentRequirement.map(er => saveEnvReq(mid, id, er))
+            _ <- updateRoom.environmentRequirement.map(er => saveEnvReq(mid, id, er))
               .getOrElse(Future.successful(None))
             node <- getRoomById(mid, id)
           } yield {
@@ -346,11 +347,12 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     building: Building
   )(implicit currUsr: String): Future[MusitResult[Option[Building]]] = {
-    buildingDao.update(mid, id, building).flatMap {
+    val updateBuilding = building.copy(updatedBy = Some(DummyData.DummyUpdatedUserId), updatedDate = Some(dateTimeNow))
+    buildingDao.update(mid, id, updateBuilding).flatMap {
       case MusitSuccess(maybeRes) =>
         maybeRes.map { numUpdated =>
           for {
-            _ <- building.environmentRequirement.map(er => saveEnvReq(mid, id, er))
+            _ <- updateBuilding.environmentRequirement.map(er => saveEnvReq(mid, id, er))
               .getOrElse(Future.successful(None))
             node <- getBuildingById(mid, id)
           } yield {
@@ -371,11 +373,12 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     organisation: Organisation
   )(implicit currUsr: String): Future[MusitResult[Option[Organisation]]] = {
-    orgDao.update(mid, id, organisation).flatMap {
+    val updateOrg = organisation.copy(updatedBy = Some(DummyData.DummyUpdatedUserId), updatedDate = Some(dateTimeNow))
+    orgDao.update(mid, id, updateOrg).flatMap {
       case MusitSuccess(maybeRes) =>
         maybeRes.map { numUpdated =>
           for {
-            _ <- organisation.environmentRequirement.map(er => saveEnvReq(mid, id, er))
+            _ <- updateOrg.environmentRequirement.map(er => saveEnvReq(mid, id, er))
               .getOrElse(Future.successful(None))
             node <- getOrganisationById(mid, id)
           } yield {

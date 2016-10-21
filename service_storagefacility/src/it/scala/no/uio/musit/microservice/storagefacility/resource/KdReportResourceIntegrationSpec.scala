@@ -1,5 +1,6 @@
 package no.uio.musit.microservice.storagefacility.resource
 
+import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
@@ -9,6 +10,8 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
+
+import scala.util.Try
 
 class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
@@ -41,27 +44,37 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     parsed.get.asInstanceOf[T]
   }
 
+  val mid = MuseumId(2)
+
+  // Will be properly initialised in beforeTests method. So any value should do.
+  var buildingId: StorageNodeId = StorageNodeId(9)
+
+  override def beforeTests(): Unit = {
+    Try {
+      val root = wsUrl(RootNodeUrl(mid)).post(JsNull).futureValue
+      val rootId = (root.json \ "id").asOpt[StorageNodeId]
+      val org = wsUrl(StorageNodesUrl(mid)).post(organisationJson("Hanky", rootId)).futureValue
+      val orgId = (org.json \ "id").as[StorageNodeId]
+      val building = wsUrl(StorageNodesUrl(mid)).post(buildingJson("Panky", orgId)).futureValue
+      buildingId = (building.json \ "id").as[StorageNodeId]
+    }.recover {
+      case t: Throwable =>
+        println("Error occured when loading data") // scalastyle:ignore
+    }
+  }
+
   "Running the storage facility service" when {
+
     "interacting with the StorageUnitResource endpoints" should {
 
       "successfully get kDReport for rooms with different museumId" in {
-        val mid = 2
-        val json = roomJson("EllensPersonalRoom", None)
-        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
-        response.status mustBe Status.CREATED
-        (response.json \ "areaTo").as[Double] mustBe 21
-        (response.json \ "heightTo").as[Double] mustBe 2.6
+        val js1 = roomJson("r00m", Some(StorageNodeId(buildingId)))
+        val res1 = wsUrl(StorageNodesUrl(mid)).post(js1).futureValue
+        res1.status mustBe Status.CREATED
 
-        val room = verifyNode[Room](
-          response, RoomType, "EllensPersonalRoom", 7, None
-        )
-        room mustBe a[Room]
-        room.areaTo mustBe Some(21)
-        room.heightTo mustBe Some(2.6)
-
-        val json1 = roomJson("EllensWorkOutRoom", None)
-        val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
-        response1.status mustBe Status.CREATED
+        val js2 = roomJson("rUUm", Some(StorageNodeId(buildingId)))
+        val res2 = wsUrl(StorageNodesUrl(mid)).post(js2).futureValue
+        res2.status mustBe Status.CREATED
 
         val report = wsUrl(KdReportUrl(mid)).get.futureValue
 
@@ -73,23 +86,15 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (report.json \ "routinesAndContingencyPlan").as[Double] mustBe 41
 
       }
+
       "fail when try to get KdReport from a deleted room" in {
-        val mid = 2
-        val json = roomJson("EllensPersonalRoom", None)
-        val response = wsUrl(StorageNodesUrl(mid)).post(json).futureValue
-        response.status mustBe Status.CREATED
+        val js1 = roomJson("RooM", Some(StorageNodeId(buildingId)))
+        val res1 = wsUrl(StorageNodesUrl(mid)).post(js1).futureValue
+        res1.status mustBe Status.CREATED
 
-        val room1 = verifyNode[Room](
-          response, RoomType, "EllensPersonalRoom", 9, None
-        )
-        room1 mustBe a[Room]
-        room1.area mustBe Some(20.5)
-        room1.heightTo mustBe Some(2.6)
-        room1.id.get.underlying mustBe 9
-
-        val json1 = roomJson("EllensWorkOutRoom", None)
-        val response1 = wsUrl(StorageNodesUrl(mid)).post(json1).futureValue
-        response1.status mustBe Status.CREATED
+        val js2 = roomJson("RuuM", Some(StorageNodeId(buildingId)))
+        val res2 = wsUrl(StorageNodesUrl(mid)).post(js2).futureValue
+        res2.status mustBe Status.CREATED
 
         val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl(mid)).get.futureValue
 
@@ -100,7 +105,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (reportAfterInsertsOfTwoRoom.json \ "waterDamageAssessment").as[Double] mustBe 82
         (reportAfterInsertsOfTwoRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
 
-        val roomId = room1.id.get
+        val roomId = (res1.json \ "id").as[Long]
         val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId)).delete().futureValue
         val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl(mid)).get.futureValue
 
