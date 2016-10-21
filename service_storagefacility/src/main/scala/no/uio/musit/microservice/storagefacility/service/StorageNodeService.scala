@@ -726,15 +726,25 @@ class StorageNodeService @Inject() (
     }
   }
 
-  def getCurrentObjectLocation(mid: MuseumId, oid: Long): Future[MusitResult[Option[GenericStorageNode]]] = {
+  def getCurrentObjectLocation(mid: MuseumId, oid: Long): Future[MusitResult[Option[StorageNode]]] = {
     val currentNodeId = localObjectDao.currentLocation(oid)
     val genNode = currentNodeId.flatMap { optCurrentNodeId =>
       optCurrentNodeId.map { id =>
-        unitDao.getNodeById(mid, id).map(MusitSuccess.apply)
+        getNodeById(mid, id)
       }.getOrElse(Future.successful(MusitSuccess(None)))
     }
     genNode
   }
+  def searchName(mid: MuseumId, searchStr: String, page: Int, pageSize: Int): Future[MusitResult[Seq[GenericStorageNode]]] = {
+    if (searchStr.length > 2) {
+      unitDao.getStorageNodeByName(mid, searchStr, page, pageSize).map { sn =>
+        MusitSuccess(sn)
+      }
+    } else {
+      Future.successful(MusitValidationError(s"Too few letters in search string $searchStr storageNode name."))
+    }
+  }
+
 }
 
 // scalastyle:on number.of.methods

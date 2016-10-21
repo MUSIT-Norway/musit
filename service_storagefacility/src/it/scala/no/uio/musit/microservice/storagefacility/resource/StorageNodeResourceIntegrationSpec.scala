@@ -1084,6 +1084,59 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
       }*/
+      "successfully get storageNode when searching for storageName within the same MuseumId" in {
+        val mid = MuseumId(2)
+
+        val searchName = wsUrl(StorageNodeSearchName(mid)).withQueryString(
+          "searchStr" -> "My Buil"
+        ).get().futureValue
+
+        searchName.status mustBe Status.OK
+
+        val searchAnotherName = wsUrl(StorageNodeSearchName(mid)).withQueryString(
+          "searchStr" -> "My R"
+        ).get().futureValue
+
+        searchAnotherName.status mustBe Status.OK
+
+      }
+      "Returns no storageNode when searching for storageName that not exists" in {
+        val mid = MuseumId(2)
+
+        val searchName = wsUrl(StorageNodeSearchName(mid)).withQueryString(
+          "searchStr" -> "My_private_building"
+        ).get().futureValue
+
+        searchName.status mustBe Status.OK
+
+      }
+      "fail when searching for storageName with another MuseumId and with fewer letters in search criteria" in {
+        val anotherMid = MuseumId(4)
+
+        val anotherMidSearch = wsUrl(StorageNodeSearchName(anotherMid)).withQueryString(
+          "searchStr" -> "My Buil"
+        ).get().futureValue
+
+        anotherMidSearch.status mustBe Status.OK
+
+        val mid = MuseumId(2)
+        val searchNameShort = wsUrl(StorageNodeSearchName(mid)).withQueryString(
+          "searchStr" -> "My"
+        ).get().futureValue
+
+        searchNameShort.status mustBe Status.BAD_REQUEST
+
+      }
+      "fail when searching for storageName with no search criteria" in {
+
+        val mid = MuseumId(2)
+        val searchNameShort = wsUrl(StorageNodeSearchName(mid)).withQueryString(
+          "searchStr" -> ""
+        ).get().futureValue
+
+        searchNameShort.status mustBe Status.BAD_REQUEST
+
+      }
     }
   }
 }

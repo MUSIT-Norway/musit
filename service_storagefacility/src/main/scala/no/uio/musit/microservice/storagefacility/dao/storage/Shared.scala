@@ -26,9 +26,10 @@ import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
 import no.uio.musit.microservice.storagefacility.domain.{ActorId, MuseumId, NamedPathElement, NodePath}
 import play.api.Logger
-import play.api.db.slick.HasDatabaseConfigProvider
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
+import scala.concurrent.Future
 
 private[dao] trait BaseStorageDao extends HasDatabaseConfigProvider[JdbcProfile]
 
@@ -161,6 +162,16 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
         sn.isDeleted === false &&
         sn.storageType === storageUnit.storageType
     }.update(storageUnit)
+  }
+
+  protected[storage] def getStorageNodeByNameAction(mid: MuseumId, searchString: String, page: Int, pageSize: Int): DBIO[Seq[StorageUnitDto]] = {
+    val query = storageNodeTable.filter { sn =>
+      sn.museumId === mid &&
+        sn.isDeleted === false &&
+        (sn.name.toUpperCase like s"${searchString.toUpperCase}%")
+    }.sortBy(sn1 => sn1.name)
+    val offset = (page - 1) * pageSize
+    query.drop(offset).take(pageSize).result
   }
 
   /**

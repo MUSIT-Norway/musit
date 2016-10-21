@@ -19,15 +19,12 @@
 
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, Json}
 
-case class ObjectAggregation(
-  id: ObjectId,
-  museumNo: MuseumNo,
-  subNo: Option[SubNo],
-  term: Option[String]
-)
+case class ObjectSearchResult(totalMatches: Int, matches: Seq[MusitObject])
 
-object ObjectAggregation {
-  implicit val format = Json.format[ObjectAggregation]
+object ObjectSearchResult {
+
+  implicit val format: Format[ObjectSearchResult] = Json.format[ObjectSearchResult]
+
 }
