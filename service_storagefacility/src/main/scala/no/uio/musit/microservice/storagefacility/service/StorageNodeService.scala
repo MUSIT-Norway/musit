@@ -698,20 +698,30 @@ class StorageNodeService @Inject() (
     move(event, unitDao.getNodeById(mid, id), unitDao.getNodeById(mid, event.to)) { (curr, to) =>
 
       // TODO: evaluate if the to location is valid given the type of the node being moved
+      isValidPosition(mid, curr, to.path).flatMap { isValid =>
+        if (!isValid) {
+          val invalidMsg = s"Attempted to move node $id to invalid location ${to.path}"
+          logger.warn(invalidMsg)
+          Future.successful(MusitValidationError(invalidMsg))
+        } else {
+          val theEvent = event.copy(from = curr.id)
 
-      val theEvent = event.copy(from = curr.id)
-      logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
-      unitDao.updatePathForSubTree(id, curr.path, to.path.appendChild(id)).flatMap {
-        case MusitSuccess(numUpdated) =>
-          persistMoveEvent(mid, id, theEvent) { eventId =>
-            unitDao.updatePartOf(id, Some(event.to)).map { updRes =>
-              logger.debug(s"Update partOf result $updRes")
-              MusitSuccess(eventId)
-            }
+          logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
+
+          unitDao.updatePathForSubTree(id, curr.path, to.path.appendChild(id)).flatMap {
+            case MusitSuccess(numUpdated) =>
+              persistMoveEvent(mid, id, theEvent) { eventId =>
+                unitDao.updatePartOf(id, Some(event.to)).map { updRes =>
+                  logger.debug(s"Update partOf result $updRes")
+                  MusitSuccess(eventId)
+                }
+              }
+
+            case err: MusitError => Future.successful(err)
           }
-
-        case err: MusitError => Future.successful(err)
+        }
       }
+
     }
   }
 

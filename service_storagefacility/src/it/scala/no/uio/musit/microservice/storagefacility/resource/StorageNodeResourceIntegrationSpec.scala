@@ -503,7 +503,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "successfully move a node and all its children" in {
         val mid = MuseumId(2)
-        val res1 = wsUrl(NodeChildrenUrl(mid, 11)).get().futureValue
+        val res1 = wsUrl(NodeChildrenUrl(mid, 15)).get().futureValue
         res1.status mustBe Status.OK
         val directChildIds = res1.json.as[JsArray].value.map { jsv =>
           (jsv \ "id").as[Long]
@@ -522,14 +522,14 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveJson = Json.parse(
           s"""{
               |  "doneBy": 1,
-              |  "destination": 2,
-              |  "items": [11]
+              |  "destination": 14,
+              |  "items": [15]
               |}""".stripMargin
         )
 
         val moveRes = wsUrl(MoveStorageNodeUrl(mid)).put(moveJson).futureValue
         moveRes.status mustBe Status.OK
-        (moveRes.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain(11)
+        (moveRes.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain(15)
 
         val paths = verifyIds.map { id =>
           val r = wsUrl(StorageNodeUrl(mid, id)).get().futureValue
