@@ -23,9 +23,8 @@ import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, Interval, MuseumId, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.{Interval, MuseumId, NodePath}
 import no.uio.musit.test.MusitSpecWithApp
-import org.joda.time.DateTime
 import play.api.Application
 
 import scala.concurrent.ExecutionContext.Implicits.global

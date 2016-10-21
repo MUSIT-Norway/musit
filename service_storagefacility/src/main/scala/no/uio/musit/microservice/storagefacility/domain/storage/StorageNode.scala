@@ -216,7 +216,7 @@ case class StorageUnit(
   val storageType: StorageType = StorageType.StorageUnitType
 }
 
-object StorageUnit extends WithDateTimeFormatters {
+object StorageUnit {
 
   val formats: Format[StorageUnit] = (
     (__ \ "id").formatNullable[StorageNodeId] and
