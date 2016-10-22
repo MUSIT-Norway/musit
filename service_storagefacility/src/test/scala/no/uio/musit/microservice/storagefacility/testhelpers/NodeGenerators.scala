@@ -71,6 +71,12 @@ trait NodeGenerators extends NodeTypeInitializers {
     }, 5 seconds)
   }
 
+  lazy val defaultRoot: Root = {
+    val root = Root()
+    val id = Await.result(addRoot(root), 5 seconds)
+    root.copy(id = Some(id))
+  }
+
   // Some default nodes
   lazy val defaultBuilding: Building = {
     createAndFetchNode(
@@ -93,6 +99,23 @@ trait NodeGenerators extends NodeTypeInitializers {
       createStorageUnit(path = NodePath(",123,")),
       storageUnitDao.insert,
       storageUnitDao.getById
+    )
+  }
+
+  type BaseStructureIds = (StorageNodeId, StorageNodeId, StorageNodeId)
+
+  def bootstrapBaseStructure(museumId: MuseumId = defaultMuseumId): BaseStructureIds = {
+    Await.result(
+      awaitable = for {
+      rid <- storageUnitDao.insertRoot(museumId, Root())
+      _ <- storageUnitDao.setRootPath(rid, NodePath(s",${rid.underlying},"))
+      oid <- organisationDao.insert(museumId, createOrganisation(partOf = Some(rid)))
+      _ <- organisationDao.setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},"))
+      bid <- buildingDao.insert(museumId, createBuilding(partOf = Some(oid)))
+      _ <- buildingDao.setPath(bid, NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},"))
+    } yield (rid, oid, bid),
+
+      atMost = 5 seconds
     )
   }
 
@@ -146,6 +169,29 @@ trait NodeTypeInitializers {
 
   val defaultEnvironmentRequirement: EnvironmentRequirement =
     initEnvironmentRequirement()
+
+  def createOrganisation(
+    name: String = "FooBarOrg",
+    partOf: Option[StorageNodeId] = None,
+    path: NodePath = NodePath.empty
+  ): Organisation = {
+    Organisation(
+      id = None,
+      name = name,
+      area = None,
+      areaTo = None,
+      isPartOf = partOf,
+      height = None,
+      heightTo = None,
+      groupRead = None,
+      groupWrite = None,
+      path = path,
+      environmentRequirement = None,
+      address = Some("FooBar Gate 8, 111 Oslo, Norge"),
+      updatedBy = Some(DummyData.DummyUserId),
+      updatedDate = Some(dateTimeNow)
+    )
+  }
 
   def createBuilding(
     name: String = "FooBarBuilding",
@@ -233,9 +279,10 @@ trait NodeTypeInitializers {
     theftProtection: Boolean = false,
     fireProtection: Boolean = false,
     waterDamage: Boolean = false,
-    routinesAndContingencyPlan: Boolean = false
+    routinesAndContingencyPlan: Boolean = false,
+    partOf: Option[StorageNodeId] = None
   ): Room = {
-    createRoom().copy(
+    createRoom(partOf = partOf).copy(
       id = None,
       name = "MyPrivateRoom",
       area = Some(area),

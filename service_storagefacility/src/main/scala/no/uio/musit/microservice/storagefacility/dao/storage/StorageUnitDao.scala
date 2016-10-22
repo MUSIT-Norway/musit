@@ -84,6 +84,22 @@ class StorageUnitDao @Inject() (
   }
 
   /**
+   * TODO: Document me!!!
+   */
+  def getStorageTypesInPath(
+    mid: MuseumId,
+    path: NodePath,
+    limit: Option[Int] = None
+  ): Future[Seq[(StorageNodeId, StorageType)]] = {
+    val ids = limit.map(l => path.asIdSeq.take(l)).getOrElse(path.asIdSeq)
+    val query = storageNodeTable.filter { sn =>
+      sn.museumId === mid &&
+        sn.id.inSet(ids)
+    }.map(res => res.id -> res.storageType).result
+    db.run(query)
+  }
+
+  /**
    * Find all nodes that are of type Root.
    *
    * @return a Future collection of Root nodes.
@@ -254,8 +270,8 @@ class StorageUnitDao @Inject() (
    * @param id StorageNodeId to get the NodePath for
    * @return NodePath
    */
-  def getPathById(id: StorageNodeId): Future[Option[NodePath]] = {
-    db.run(getPathByIdAction(id))
+  def getPathById(mid: MuseumId, id: StorageNodeId): Future[Option[NodePath]] = {
+    db.run(getPathByIdAction(mid, id))
   }
 
   /**

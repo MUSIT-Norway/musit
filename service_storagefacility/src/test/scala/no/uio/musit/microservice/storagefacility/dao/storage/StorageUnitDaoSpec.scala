@@ -19,8 +19,9 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
-import no.uio.musit.microservice.storagefacility.domain.{Museum, MuseumId, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageNodeId, StorageType}
+import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NodePath}
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.service.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -97,13 +98,13 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
 
-    "UnSuccessfully list root nodes with wrong museum" in {
+    "fail to list root nodes when museumId is wrong" in {
       val mid = MuseumId(5)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
       nodes.size mustBe 0
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
-    "UnSuccessfully list root nodes with museum that do not exists" in {
+    "fail to list root nodes with museumId that does not exists" in {
       val mid = MuseumId(55)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
       nodes.size mustBe 0
@@ -153,7 +154,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       res.last.name mustBe "node2"
     }
 
-    "UnSuccessfully fetch a storage unit with wrong museumId" in {
+    "fail to fetch a storage unit with wrong museumId" in {
       val mid = MuseumId(5)
       val su = createStorageUnit()
       val insId = storageUnitDao.insert(mid, su).futureValue
@@ -167,7 +168,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       res.get.name mustBe su.name
     }
 
-    "UnSuccessfully update a storage unit with wrong museumId and fetch as StorageNode" in {
+    "fail to update a storage unit when museumId is wrong" in {
       val mid = MuseumId(5)
       val su = createStorageUnit()
       val insId = storageUnitDao.insert(mid, su).futureValue
@@ -193,7 +194,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       again.get.areaTo mustBe Some(2.0)
     }
 
-    "Unsuccessfully mark a node as deleted with wrong museumId" in {
+    "fail to mark a node as deleted when museumId is wrong" in {
       val su = createStorageUnit()
       val insId = storageUnitDao.insert(defaultMuseumId, su).futureValue
       insId mustBe a[StorageNodeId]
@@ -204,6 +205,49 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
       val res = storageUnitDao.getById(defaultMuseumId, insId).futureValue
       res.get.id mustBe Some(insId)
+    }
+
+    "fetch tuples of StorageNodeId and StorageType for a NodePath" in {
+      val mid = MuseumId(2)
+      val orgPath = NodePath(",1,22,")
+      val org = createOrganisation(
+        partOf = Some(StorageNodeId(1)),
+        path = orgPath
+      ).copy(name = "node-x")
+      val organisationId = organisationDao.insert(mid, org).futureValue
+
+      val buildingPath = NodePath(",1,22,23,")
+      val building = createBuilding(
+        partOf = Some(organisationId),
+        path = buildingPath
+      )
+      val buildingId = buildingDao.insert(mid, building).futureValue
+
+      val roomPath = NodePath(",1,22,23,24,")
+      val room = createRoom(
+        partOf = Some(buildingId),
+        path = roomPath
+      )
+      val roomId = roomDao.insert(mid, room).futureValue
+
+      val su1Path = NodePath(",1,22,23,24,25,")
+      val su1 = createStorageUnit(
+        partOf = Some(roomId),
+        path = su1Path
+      )
+      val suId = storageUnitDao.insert(mid, su1).futureValue
+
+      val expected = Seq(
+        StorageNodeId(1) -> RootType,
+        organisationId -> OrganisationType,
+        buildingId -> BuildingType,
+        roomId -> RoomType,
+        suId -> StorageUnitType
+      )
+
+      val tuples = storageUnitDao.getStorageTypesInPath(mid, su1Path).futureValue
+
+      tuples must contain theSameElementsInOrderAs expected
     }
     "successfully get a node when searching for name and not if it's wrong museumId" in {
       val mid = MuseumId(5)

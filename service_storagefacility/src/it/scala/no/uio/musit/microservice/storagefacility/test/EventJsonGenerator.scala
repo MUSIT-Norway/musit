@@ -43,7 +43,7 @@ object EventJsonGenerator {
         |  "temperature" : ${obsFromToJson("temperature")},
         |  "alcohol": ${obsFromToJson("alcohol")},
         |  "cleaning": ${obsStringJson("cleaning")},
-        |  "pest": ${obsPestJson}
+        |  "pest": $obsPestJson
         |}""".stripMargin
   }
 
@@ -74,7 +74,7 @@ object EventJsonGenerator {
   def ctrlSubPestJson(ok: Boolean = true) = {
     val maybeMotivates = {
       if (!ok) {
-        s""""observation" : ${obsPestJson}"""
+        s""""observation" : $obsPestJson"""
       } else {
         ""
       }

@@ -23,6 +23,7 @@ import com.typesafe.sbt.packager.docker.DockerPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import play.sbt.PlayImport.PlayKeys
 import play.sbt.{Play, PlayLayoutPlugin}
 import sbt.Keys._
 import sbt._
@@ -91,6 +92,7 @@ object CommonSettings {
         DockerPlugin
       )
       .settings(Seq(
+        PlayKeys.playOmnidoc := false,
         maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
         packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
         packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",

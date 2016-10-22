@@ -57,14 +57,32 @@ trait NodePath {
 
   /**
    * Converts the path to a collection of StorageNodeIds
+   *
    * @return Seq[StorageNodeId]
    */
   def asIdSeq: Seq[StorageNodeId] = {
     path.stripPrefix(",")
       .stripSuffix(",")
       .split(",")
+      .map(_.trim())
+      .filterNot(_ == "")
       .map(s => StorageNodeId(s.toLong))
   }
+
+  /**
+   * Calculates whether or not the current node is a child of the given path.
+   *
+   * @param p NodePath to check if this node is a child of
+   * @return true if this node is a child, else false
+   */
+  def childOf(p: NodePath): Boolean = {
+    if (p != NodePath.empty && this != NodePath.empty) {
+      path.startsWith(p.path)
+    } else {
+      false
+    }
+  }
+
 }
 
 object NodePath {
