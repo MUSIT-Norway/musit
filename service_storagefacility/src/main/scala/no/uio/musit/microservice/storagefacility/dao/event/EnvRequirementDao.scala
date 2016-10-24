@@ -50,7 +50,7 @@ class EnvRequirementDao @Inject() (
     ) <> (create.tupled, destroy)
     // scalastyle:on method.name
 
-    val id = column[Option[EventId]]("ID", O.PrimaryKey)
+    val id = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)
 
     val temp = column[Option[Double]]("TEMPERATURE")
     val tempTolerance = column[Option[Int]]("TEMP_TOLERANCE")

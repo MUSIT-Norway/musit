@@ -109,7 +109,7 @@ private[event] trait SharedEventTables extends BaseEventDao
     ) <> (create.tupled, destroy)
     // scalastyle:on method.name
 
-    val id = column[EventId]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
     val eventDate = column[JSqlDate]("EVENT_DATE")
     val eventNote = column[Option[String]]("NOTE")
@@ -170,7 +170,7 @@ private[event] trait SharedEventTables extends BaseEventDao
 
     def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Option[EventId]]("ID", O.PrimaryKey)
+    val id = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)
 
     val from = column[Option[Double]]("VALUE_FROM")
     val to = column[Option[Double]]("VALUE_TO")
