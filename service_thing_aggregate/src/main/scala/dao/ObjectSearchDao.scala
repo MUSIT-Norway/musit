@@ -203,7 +203,7 @@ class ObjectSearchDao @Inject() (
     ) <> (create.tupled, destroy)
     // scalastyle:on method.name
 
-    val id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Long]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
     val museumId = column[Int]("MUSEUMID")
     val museumNo = column[String]("MUSEUMNO")
     val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")

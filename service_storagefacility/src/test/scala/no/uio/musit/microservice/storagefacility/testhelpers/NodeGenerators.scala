@@ -115,7 +115,7 @@ trait NodeGenerators extends NodeTypeInitializers {
       _ <- buildingDao.setPath(bid, NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},"))
     } yield (rid, oid, bid),
 
-      atMost = 5 seconds
+      atMost = 15 seconds
     )
   }
 
