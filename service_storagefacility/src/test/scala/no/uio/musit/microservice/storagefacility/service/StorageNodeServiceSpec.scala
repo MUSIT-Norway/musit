@@ -23,8 +23,11 @@ import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageUnit}
 import no.uio.musit.microservice.storagefacility.domain._
+import no.uio.musit.microservice.storagefacility.domain.event.EventType
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
 
 class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
@@ -35,6 +38,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   )
 
   implicit val DummyUser = "Bevel Lemelisk"
+  val DummyUserId = ActorId(123)
 
   val service: StorageNodeService = fromInstanceCache[StorageNodeService]
 
@@ -240,6 +244,56 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
           n.get.path.path must startWith(building2.path.path)
         }
       }
+    }
+
+    "successfully move an object with a previous location" in {
+      val oid = ObjectId(8)
+
+      val loc1 = service.getCurrentObjectLocation(defaultMuseumId, oid).futureValue
+      loc1.isSuccess mustBe true
+      loc1.get must not be None
+      loc1.get.get.id mustBe Some(StorageNodeId(5))
+
+      val event = MoveObject(
+        id = None,
+        doneBy = Some(DummyUserId),
+        doneDate = DateTime.now,
+        affectedThing = Some(oid),
+        registeredBy = Some(DummyUser),
+        registeredDate = Some(DateTime.now),
+        eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        from = Some(StorageNodeId(5)),
+        to = StorageNodeId(12)
+      )
+      val res = service.moveObject(defaultMuseumId, oid, event).futureValue
+      res.isSuccess mustBe true
+
+      val loc2 = service.getCurrentObjectLocation(defaultMuseumId, oid).futureValue
+      loc2.isSuccess mustBe true
+      loc2.get must not be None
+      loc2.get.get.id mustBe Some(StorageNodeId(12))
+    }
+
+    "successfully move an object with no previous location" in {
+      val oid = ObjectId(22)
+      val event = MoveObject(
+        id = None,
+        doneBy = Some(DummyUserId),
+        doneDate = DateTime.now,
+        affectedThing = Some(oid),
+        registeredBy = Some(DummyUser),
+        registeredDate = Some(DateTime.now),
+        eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        from = None,
+        to = StorageNodeId(12)
+      )
+      val res = service.moveObject(defaultMuseumId, oid, event).futureValue
+      res.isSuccess mustBe true
+
+      val loc = service.getCurrentObjectLocation(defaultMuseumId, oid).futureValue
+      loc.isSuccess mustBe true
+      loc.get must not be None
+      loc.get.get.id mustBe Some(StorageNodeId(12))
     }
 
     "UnSuccessfully move a node and all its children with wrong museum" in {

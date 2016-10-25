@@ -671,7 +671,7 @@ class StorageNodeService @Inject() (
     eventuallyMaybeCurrent: Future[Option[GenericStorageNode]],
     eventuallyMaybeTo: Future[Option[GenericStorageNode]]
   )(
-    mv: (GenericStorageNode, GenericStorageNode) => Future[MusitResult[EventId]]
+    mv: (Option[GenericStorageNode], GenericStorageNode) => Future[MusitResult[EventId]]
   ): Future[MusitResult[EventId]] = {
     val eventuallyExistence = for {
       maybeCurrent <- eventuallyMaybeCurrent
@@ -680,10 +680,9 @@ class StorageNodeService @Inject() (
 
     eventuallyExistence.flatMap {
       case (maybeCurrent: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
-        maybeCurrent.flatMap(current => maybeTo.map(to => mv(current, to)))
-          .getOrElse {
-            Future.successful(MusitValidationError("Could not find to or from node."))
-          }
+        maybeTo.map(to => mv(maybeCurrent, to)).getOrElse {
+          Future.successful(MusitValidationError("Could not find to node."))
+        }
     }
   }
 
@@ -695,33 +694,33 @@ class StorageNodeService @Inject() (
     id: StorageNodeId,
     event: MoveNode
   )(implicit currUsr: String): Future[MusitResult[EventId]] = {
-    move(event, unitDao.getNodeById(mid, id), unitDao.getNodeById(mid, event.to)) { (curr, to) =>
+    move(event, unitDao.getNodeById(mid, id), unitDao.getNodeById(mid, event.to)) { (maybeCurr, to) =>
+      maybeCurr.map { curr =>
+        // TODO: evaluate if the to location is valid given the type of the node being moved
+        isValidPosition(mid, curr, to.path).flatMap { isValid =>
+          if (!isValid) {
+            val invalidMsg = s"Attempted to move node $id to invalid location ${to.path}"
+            logger.warn(invalidMsg)
+            Future.successful(MusitValidationError(invalidMsg))
+          } else {
+            val theEvent = event.copy(from = curr.id)
 
-      // TODO: evaluate if the to location is valid given the type of the node being moved
-      isValidPosition(mid, curr, to.path).flatMap { isValid =>
-        if (!isValid) {
-          val invalidMsg = s"Attempted to move node $id to invalid location ${to.path}"
-          logger.warn(invalidMsg)
-          Future.successful(MusitValidationError(invalidMsg))
-        } else {
-          val theEvent = event.copy(from = curr.id)
+            logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
 
-          logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
-
-          unitDao.updatePathForSubTree(id, curr.path, to.path.appendChild(id)).flatMap {
-            case MusitSuccess(numUpdated) =>
-              persistMoveEvent(mid, id, theEvent) { eventId =>
-                unitDao.updatePartOf(id, Some(event.to)).map { updRes =>
-                  logger.debug(s"Update partOf result $updRes")
-                  MusitSuccess(eventId)
+            unitDao.updatePathForSubTree(id, curr.path, to.path.appendChild(id)).flatMap {
+              case MusitSuccess(numUpdated) =>
+                persistMoveEvent(mid, id, theEvent) { eventId =>
+                  unitDao.updatePartOf(id, Some(event.to)).map { updRes =>
+                    logger.debug(s"Update partOf result $updRes")
+                    MusitSuccess(eventId)
+                  }
                 }
-              }
 
-            case err: MusitError => Future.successful(err)
+              case err: MusitError => Future.successful(err)
+            }
           }
         }
-      }
-
+      }.getOrElse(Future.successful(MusitValidationError(s"Node $id was not found")))
     }
   }
 
@@ -738,9 +737,9 @@ class StorageNodeService @Inject() (
         maybeId.map(id => unitDao.getNodeById(mid, id)).getOrElse(Future.successful(None))
       }
 
-    move(event, eventuallyMaybeCurrent, unitDao.getNodeById(mid, event.to)) { (curr, to) =>
-      val theEvent = event.copy(from = curr.id)
-      logger.debug(s"Going to move object $objectId from ${curr.path} to ${to.path}")
+    move(event, eventuallyMaybeCurrent, unitDao.getNodeById(mid, event.to)) { (maybeCurr, to) =>
+      val theEvent = event.copy(from = maybeCurr.flatMap(_.id))
+      logger.debug(s"Going to move object $objectId from ${maybeCurr.map(_.path).getOrElse("NA")} to ${to.path}")
       persistMoveEvent(mid, objectId, theEvent) { eventId =>
         Future.successful(MusitSuccess(eventId))
       }
