@@ -3,6 +3,7 @@ package dao
 import com.google.inject.Inject
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import models._
+import no.uio.musit.models.MuseumId
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

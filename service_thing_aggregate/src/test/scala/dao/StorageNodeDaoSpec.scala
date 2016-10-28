@@ -19,9 +19,9 @@
 
 package dao
 
+import no.uio.musit.models.MuseumId
 import no.uio.musit.service.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import models.MuseumId
 import org.scalatest.time.{Millis, Seconds, Span}
 
 class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {

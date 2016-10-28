@@ -21,7 +21,8 @@ package dao
 
 import com.google.inject.Inject
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import models.{MuseumId, NamedPathElement, NodePath}
+import models.{NamedPathElement, NodePath}
+import no.uio.musit.models.MuseumId
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile

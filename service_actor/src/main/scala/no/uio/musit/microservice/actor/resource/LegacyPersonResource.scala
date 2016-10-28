@@ -36,7 +36,7 @@ class LegacyPersonResource @Inject() (
   def search(
     museumId: Int,
     search: Option[MusitSearch]
-  ) = MusitSecureAction(museumId).async { request =>
+  ) = MusitSecureAction().async { request =>
     search match {
       case Some(criteria) =>
         service.find(criteria).map(persons => Ok(Json.toJson(persons)))

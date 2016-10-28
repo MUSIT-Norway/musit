@@ -19,7 +19,8 @@
 
 package dao
 
-import models.{MuseumId, MuseumNo, ObjectId, SubNo}
+import models.{MuseumNo, ObjectId, SubNo}
+import no.uio.musit.models.MuseumId
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 

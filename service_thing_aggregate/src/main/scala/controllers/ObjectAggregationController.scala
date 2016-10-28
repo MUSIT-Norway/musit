@@ -20,7 +20,8 @@
 package controllers
 
 import com.google.inject.Inject
-import models.{Museum, MuseumId}
+import no.uio.musit.models.MuseumId
+import no.uio.musit.models.Museums.Museum
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

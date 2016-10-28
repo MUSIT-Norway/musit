@@ -37,7 +37,7 @@ class OrganizationResource @Inject() (
   def search(
     museumId: Int,
     search: Option[MusitSearch]
-  ) = MusitSecureAction(museumId).async { request =>
+  ) = MusitSecureAction().async { request =>
     search match {
       case Some(criteria) =>
         orgService.find(criteria).map(orgs => Ok(Json.toJson(orgs)))

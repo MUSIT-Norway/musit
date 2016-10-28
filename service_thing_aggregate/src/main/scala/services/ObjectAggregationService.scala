@@ -22,7 +22,8 @@ package services
 import com.google.inject.Inject
 import dao.{ObjectAggregationDao, StorageNodeDao}
 import no.uio.musit.service.MusitResults.MusitResult
-import models.{MuseumId, ObjectAggregation}
+import models.ObjectAggregation
+import no.uio.musit.models.MuseumId
 
 import scala.concurrent.Future
 
