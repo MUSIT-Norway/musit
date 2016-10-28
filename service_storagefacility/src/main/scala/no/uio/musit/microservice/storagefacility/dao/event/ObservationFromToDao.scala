@@ -64,7 +64,7 @@ class ObservationFromToDao @Inject() (
   ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
     def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Option[EventId]]("ID", O.PrimaryKey)
+    val id = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)
 
     val from = column[Option[Double]]("VALUE_FROM")
     val to = column[Option[Double]]("VALUE_TO")

@@ -29,11 +29,11 @@ class ObjectAggregationDao @Inject() (
       ))
     db.run(
       sql"""
-         SELECT "MUSITTHING"."ID", "MUSITTHING"."MUSEUMNO", "MUSITTHING"."SUBNO", "MUSITTHING"."TERM"
+         SELECT "MUSITTHING"."OBJECT_ID", "MUSITTHING"."MUSEUMNO", "MUSITTHING"."SUBNO", "MUSITTHING"."TERM"
          FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."MUSITTHING"
          WHERE "LOCAL_OBJECT"."MUSEUM_ID" = ${mid.underlying}
          AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId}
-         AND "LOCAL_OBJECT"."OBJECT_ID" = "ID";
+         AND "LOCAL_OBJECT"."OBJECT_ID" = "MUSITTHING"."OBJECT_ID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     ).recover {
         case e: Exception =>
