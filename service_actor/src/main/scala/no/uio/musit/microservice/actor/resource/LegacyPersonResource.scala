@@ -21,7 +21,7 @@ package no.uio.musit.microservice.actor.resource
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservice.actor.service.LegacyPersonService
-import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch}
+import no.uio.musit.service.MusitSearch
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -29,42 +29,55 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 // TODO: Activate new routes and delete old ones for Actor, and rename resource to LegacyPerson + redo the integration tests
-class LegacyPersonResource @Inject() (legacyPersonService: LegacyPersonService) extends Controller {
+class LegacyPersonResource @Inject() (
+    service: LegacyPersonService
+) extends Controller {
 
-  def list(museumId: Int, search: Option[MusitSearch]): Action[AnyContent] = Action.async { request =>
+  def search(museumId: Int, search: Option[MusitSearch]) = Action.async { request =>
     search match {
-      case Some(criteria) => legacyPersonService.find(criteria).map(persons => Ok(Json.toJson(persons)))
-      case None => legacyPersonService.all.map(persons => Ok(Json.toJson(persons)))
+      case Some(criteria) =>
+        service.find(criteria).map(persons => Ok(Json.toJson(persons)))
+
+      case None =>
+        Future.successful(
+          BadRequest(Json.obj("message" -> "Search criteria is required"))
+        )
     }
   }
 
-  def getPersonDetails: Action[JsValue] = Action.async(parse.json) { request =>
-    val res: JsResult[Seq[Long]] = request.body.validate[Seq[Long]]
-    res match {
+  def details = Action.async(parse.json) { request =>
+    request.body.validate[Seq[Long]] match {
       case JsSuccess(ids, path) =>
-        legacyPersonService.findDetails(ids.toSet).map { persons =>
+        service.findDetails(ids.toSet).map { persons =>
           if (persons.isEmpty) {
             NoContent
           } else {
             Ok(Json.toJson(persons))
           }
         }
-      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
+
+      case e: JsError =>
+        Future.successful(BadRequest(Json.obj("message" -> e.toString)))
     }
   }
 
-  def getById(id: Long): Action[AnyContent] = Action.async { request =>
-    legacyPersonService.find(id).map {
-      case Some(actor) => Ok(Json.toJson(actor))
-      case None => NotFound(Json.toJson(MusitError(NOT_FOUND, s"Did not find object with id: $id")))
+  def get(id: Long) = Action.async { request =>
+    service.find(id).map {
+      case Some(actor) =>
+        Ok(Json.toJson(actor))
+
+      case None =>
+        NotFound(Json.obj("message" -> s"Did not find object with id: $id"))
     }
   }
 
-  def add: Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val actorResult: JsResult[Person] = request.body.validate[Person]
-    actorResult match {
-      case s: JsSuccess[Person] => legacyPersonService.create(s.get).map(newActor => Created(Json.toJson(newActor)))
-      case e: JsError => Future.successful(BadRequest(Json.toJson(MusitError(BAD_REQUEST, e.toString))))
+  def add = Action.async(parse.json) { request =>
+    request.body.validate[Person] match {
+      case s: JsSuccess[Person] =>
+        service.create(s.get).map(newActor => Created(Json.toJson(newActor)))
+
+      case e: JsError =>
+        Future.successful(BadRequest(Json.obj("message" -> e.toString)))
     }
   }
 }

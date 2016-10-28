@@ -24,7 +24,8 @@ object Dependencies {
   val scala = "2.11.8"
 
   val resolvers = DefaultOptions.resolvers(snapshot = true) ++ Seq(
-    Resolver.bintrayRepo("scalaz", "releases")
+    Resolver.bintrayRepo("scalaz", "releases"),
+    Resolver.jcenterRepo
   )
 
   object PlayFrameWork {
@@ -46,9 +47,27 @@ object Dependencies {
   }
 
   object Enumeratum {
-    val enumeratum = "com.beachape" %% "enumeratum" % "1.4.4"
-    val enumeratumPlayJson = "com.beachape" %% "enumeratum-play-json" % "1.4.4"
-    val enumeratumPlay = "com.beachape" %% "enumeratum-play" % "1.4.4"
+    val enumeratumVersion = "1.4.17"
+    val enumeratum = "com.beachape" %% "enumeratum" % enumeratumVersion
+    val enumeratumPlayJson = "com.beachape" %% "enumeratum-play-json" % enumeratumVersion
+    val enumeratumPlay = "com.beachape" %% "enumeratum-play" % enumeratumVersion
+  }
+
+  object Silhouette {
+    val silhouetteVersion = "4.0.0"
+    val silhouette = "com.mohiva" %% "play-silhouette" % silhouetteVersion
+    val silhouetteBcrypt = "com.mohiva" %% "play-silhouette-password-bcrypt" % silhouetteVersion
+    val silhouetteCrypto = "com.mohiva" %% "play-silhouette-crypto-jca" % silhouetteVersion
+    val silhouettePersistence = "com.mohiva" %% "play-silhouette-persistence" % silhouetteVersion
+    val silhouetteTestkit = "com.mohiva" %% "play-silhouette-testkit" % silhouetteVersion % "it,test"
+
+    val allDeps = Seq(
+      silhouette,
+      silhouetteBcrypt,
+      silhouetteCrypto,
+      silhouettePersistence,
+      silhouetteTestkit
+    )
   }
 
   object Logging {
@@ -60,6 +79,8 @@ object Dependencies {
     val loggingDeps = slf4j ++ Seq(logback)
   }
 
+  val iheartFicus = "com.iheart" %% "ficus" % "1.2.3"
+  val scalaGuice = "net.codingwell" %% "scala-guice" % "4.1.0"
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
   val h2database = "com.h2database" % "h2" % "1.4.192"
   var scalatestSpec = "org.scalatest" %% "scalatest" % "2.2.4"

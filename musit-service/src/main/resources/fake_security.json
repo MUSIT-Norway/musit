@@ -1,0 +1,145 @@
+{
+  "groups": [
+    {
+      "id": "EtnoRead",
+      "type": "fc:org",
+      "displayName": "Read access to etnobasen"
+    },
+    {
+      "id": "FotoRead",
+      "type": "fc:org",
+      "displayName": "Read access to fotobasen"
+    },
+    {
+      "id": "KhmSfRead",
+      "type": "fc:org",
+      "displayName": "Read access to storage facility for KHM"
+    },
+    {
+      "id": "KhmSfWrite",
+      "type": "fc:org",
+      "displayName": "Write access to storage facility for KHM"
+    },
+    {
+      "id": "NhmSfRead",
+      "type": "fc:org",
+      "displayName": "Read access to storage facility for NHM"
+    },
+    {
+      "id": "NhmSfWrite",
+      "type": "fc:org",
+      "displayName": "Write access to storage facility for NHM"
+    },
+    {
+      "id": "NhmSfAdmin",
+      "type": "fc:org",
+      "displayName": "Admin access to storage facility for NHM"
+    }
+  ],
+
+  "users": [
+    {
+      "userid": "jarle",
+      "name": "Jarle Stabell",
+      "email": "foo@bar.bas" ,
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-jarle"
+    },
+    {
+      "userid": "stein",
+      "name": "Stein A. Olsen",
+      "email": "foo@bar.bas",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-stein"
+    },
+    {
+      "userid": "musitTestUser",
+      "name": "Fake Musit Test User",
+      "email": "foo@bar.bas",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-musitTestUser"
+    },
+    {
+      "userid": "musitTestUserKhmRead",
+      "name": "Fake Musit Test User KHM Read",
+      "email": "foo@bar.bas",
+      "groups": ["KhmSfRead", "EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-musitTestUserKhmRead"
+    },
+    {
+      "userid": "musitTestUserNhmRead",
+      "name": "Fake Musit Test User NHM Read",
+      "email": "foo@bar.bas",
+      "groups": ["NhmSfRead"],
+      "accessToken": "fake-token-zab-xy-musitTestUserNhmRead"
+    },
+    {
+      "userid": "musitTestUserNhmWrite",
+      "name": "Fake Musit Test User NHM Write",
+      "email": "foo@bar.bas",
+      "groups": ["NhmSfWrite"],
+      "accessToken": "fake-token-zab-xy-musitTestUserNhmWrite"
+    },
+    {
+      "userid": "musitTestUserNhmAdmin",
+      "name": "Fake Musit Test User NHM Admin",
+      "email": "foo@bar.bas",
+      "groups": ["NhmSfAdmin"],
+      "accessToken": "fake-token-zab-xy-musitTestUserNhmAdmin"
+    },
+    {
+      "userid": "DawnWilliams",
+      "name": "Dawn Williams",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-DawnWilliams"
+    },
+    {
+      "userid": "EspenUleberg",
+      "name": "Espen Uleberg",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-EspenUleberg"
+    },
+    {
+      "userid": "HeiniEmilia",
+      "name": "Heini Emilia Rämä",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-HeiniEmilia"
+    },
+    {
+      "userid": "Karsten",
+      "name": "Karsten Hårsaker",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-Karsten"
+    },
+    {
+      "userid": "MarielleBergh",
+      "name": "Marielle Bergh",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-MarielleBergh"
+    },
+    {
+      "userid": "WencheBrun",
+      "name": "Wenche Brun",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-WencheBrun"
+    },
+    {
+      "userid": "SusanMatland",
+      "name": "Susan Matland",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-SusanMatland"
+    },
+    {
+      "userid": "KjellGunnarMobekk",
+      "name": "Kjell Gunnar Mobekk",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-KjellGunnarMobekk"
+    },
+    {
+      "userid": "LineArildSjo",
+      "name": "Line Arild Sjo",
+      "groups": ["EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-LineArildSjo"
+    }
+  ]
+}

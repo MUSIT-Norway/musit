@@ -52,6 +52,20 @@ class GeoLocationServiceSpec extends MusitSpec {
         }
       }
 
+      "return a list of results that contains street number with house letter" in {
+        WsTestClient.withClient { client =>
+          val service = new GeoLocationService(config, client)
+
+          val res = service.searchGeoNorway("Kirkegata 11, Hønefoss").futureValue
+
+          res must not be empty
+          res.head.street mustBe "Kirkegata"
+          res.head.streetNo mustBe "11 E"
+          res.head.place mustBe "HØNEFOSS"
+          res.head.zip mustBe "3510"
+        }
+      }
+
     }
   }
 

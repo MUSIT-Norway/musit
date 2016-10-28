@@ -110,4 +110,22 @@ object MusitResults {
     override val isSuccess: Boolean = false
   }
 
+  /**
+   * Use this error type when handling situations where authentication is
+   * required. Typically this will in an Action or at least near the controller
+   * or service implementation.
+   */
+  case class MusitNotAuthenticated() extends MusitError {
+    override val message: String = "Requires authentication"
+    override val isSuccess: Boolean = false
+  }
+
+  /**
+   * Use this error type whenever some level of authorization is required.
+   */
+  case class MusitNotAuthorized() extends MusitError {
+    override val message: String = "Requires authorization"
+    override val isSuccess: Boolean = false
+  }
+
 }

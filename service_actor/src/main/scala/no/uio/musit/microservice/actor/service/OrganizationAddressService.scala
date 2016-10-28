@@ -21,9 +21,7 @@ package no.uio.musit.microservice.actor.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.OrganizationAddress
-import no.uio.musit.microservices.common.domain.{MusitError, MusitStatusMessage}
-import play.api.http.Status
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import no.uio.musit.service.MusitResults.MusitResult
 
 import scala.concurrent.Future
 
@@ -44,11 +42,8 @@ class OrganizationAddressService @Inject() (val actorDao: ActorDao) {
     actorDao.insertOrganizationAddress(address)
   }
 
-  def update(address: OrganizationAddress): Future[Either[MusitError, MusitStatusMessage]] = {
-    actorDao.updateOrganizationAddress(address).map {
-      case 1 => Right(MusitStatusMessage("Record was updated!"))
-      case _ => Left(MusitError(Status.BAD_REQUEST, "No records were updated!"))
-    }
+  def update(address: OrganizationAddress): Future[MusitResult[Option[Int]]] = {
+    actorDao.updateOrganizationAddress(address)
   }
 
   def remove(id: Long): Future[Int] = {

@@ -2,9 +2,11 @@
  * Created by ellenjo on 4/15/16.
  */
 
+import no.uio.musit.security.FakeAuthenticator
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
+import play.api.http.HeaderNames.AUTHORIZATION
 import play.api.libs.json.JsArray
 
 import scala.language.postfixOps
@@ -21,7 +23,11 @@ class GeoLocationIntegrationSpec extends MusitSpecWithServerPerSuite {
   "Using the GeoLocation API" when {
     "searching for addresses" should {
       "return a list of results matching the query paramter" in {
-        val res = wsUrl(queryParam("Paal Bergsvei 56, Rykkinn")).get().futureValue
+        val res = wsUrl(queryParam("Paal Bergsvei 56, Rykkinn"))
+          .withHeaders(
+            AUTHORIZATION -> ("Bearer " + FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
+          )
+          .get().futureValue
 
         res.status mustBe Status.OK
 

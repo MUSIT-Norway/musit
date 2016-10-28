@@ -28,8 +28,8 @@ version := "0.1"
 
 val baseDockerSettings = Seq(
   maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
-  packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
-  packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",
+  packageSummary in Docker := "A Microservice for Musit Norway",
+  packageDescription in Docker := "A Microservice for Musit Norway",
   dockerExposedPorts in Docker := Seq(8080)
 )
 
@@ -46,12 +46,8 @@ val noPublish = Seq(
 )
 
 lazy val root = project in file(".") settings noPublish aggregate(
-  commonTest,
   musitTest,
   musitService,
-  common,
-  security,
-  serviceCore,
   serviceThingAggregate,
   serviceActor,
   serviceGeoLocation,
@@ -59,23 +55,6 @@ lazy val root = project in file(".") settings noPublish aggregate(
 )
 
 // Base projects used as dependencies
-
-// TODO: Move the good parts into musit-service and other modules.
-lazy val common = (
-  BaseProject("common")
-    settings noPublish
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(libraryDependencies += PlayFrameWork.logback)
-    settings(scoverageSettings: _*)
-  ) dependsOn(commonTest % "it,test")
-
-@deprecated(message = "Use musit-test instead.")
-lazy val commonTest = (
-  BaseProject("common_test")
-    settings noPublish
-    settings(libraryDependencies ++= playWithPersistenceDependencies ++ Seq[ModuleID](scalatestSpec))
-    settings(scoverageSettings: _*)
-  )
 
 lazy val musitTest = (
   BaseProject("musit-test")
@@ -86,7 +65,7 @@ lazy val musitTest = (
         scalatestplusSpec
       ) ++ playDependencies
     )
-  )
+)
 
 lazy val musitService = (
   BaseProject("musit-service")
@@ -95,29 +74,12 @@ lazy val musitService = (
       libraryDependencies ++= Seq[ModuleID](
         scalatest,
         PlayFrameWork.json,
-        PlayFrameWork.ws
+        PlayFrameWork.ws,
+        scalaGuice,
+        iheartFicus
       )
     )
-)
-
-lazy val security = (
-  BaseProject("security")
-    settings noPublish
-    settings(libraryDependencies ++= testablePlayDependencies)
-    settings(scoverageSettings: _*)
-  ) dependsOn(common, commonTest % "it,test")
-
-lazy val serviceCore = (
-  PlayProject("service_core")
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(
-      baseDockerSettings ++ Seq(
-        packageName in Docker := "musit_service_core"
-      )
-    )
-  ) dependsOn(common, security, musitTest % "it,test")
+) dependsOn(musitTest % "it,test")
 
 lazy val serviceThingAggregate = (
   PlayProject("service_thing_aggregate")
@@ -129,7 +91,7 @@ lazy val serviceThingAggregate = (
         packageName in Docker := "musit_service_thing_aggregate"
       )
     )
-  ) dependsOn(musitService, musitTest % "it,test")
+) dependsOn(musitService, musitTest % "it,test")
 
 lazy val serviceActor = (
   PlayProject("service_actor")
@@ -137,7 +99,7 @@ lazy val serviceActor = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(packageName in Docker := "musit_service_actor"))
-  ) dependsOn(common, security, commonTest % "it,test")
+) dependsOn(musitService, musitTest % "it,test")
 
 lazy val serviceGeoLocation = (
   PlayProject("service_geo_location")
@@ -149,7 +111,7 @@ lazy val serviceGeoLocation = (
         packageName in Docker := "musit_service_geo_location"
       )
     )
-  ) dependsOn(musitService, musitTest % "it,test")
+) dependsOn(musitService, musitTest % "it,test")
 
 lazy val serviceStoragefacility = (
   PlayProject("service_storagefacility")
@@ -162,4 +124,4 @@ lazy val serviceStoragefacility = (
         packageName in Docker := "musit_service_storagefacility"
       )
     )
-  ) dependsOn(musitService, musitTest % "it,test")
+) dependsOn(musitService, musitTest % "it,test")

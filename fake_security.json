@@ -1,12 +1,20 @@
 {
   "groups": [
     {
-      "name": "EtnoLes",
+      "name": "EtnoRead",
       "description": "Lesetilgang til etnobasen"
     },
     {
-      "name": "FotoLes",
+      "name": "FotoRead",
       "description": "Lesetilgang til fotobasen"
+    },
+    {
+      "name": "KhmSfRead",
+      "description": "Lesetilgang til SF for KHM"
+    },
+    {
+      "name": "KhmSfWrite",
+      "description": "skrivetilgang til SF for KHM"
     }
   ],
   "users": [
@@ -14,75 +22,82 @@
       "userId": "jarle",
       "name": "Jarle Stabell",
       "emails": [ "foo@bar.bas" ],
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-jarle"
     },
     {
       "userId": "stein",
       "name": "Stein A. Olsen",
       "emails": [ "foo@bar.bas" ],
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-stein"
     },
     {
       "userId": "musitTestUser",
       "name": "Fake Musit Test User",
       "emails": [ "foo@bar.bas" ],
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-musitTestUser"
+    },
+    {
+      "userId": "musitTestUserKhmRead",
+      "name": "Fake Musit Test User KHM Read",
+      "emails": [ "foo@bar.bas" ],
+      "groups": ["KhmSfRead", "EtnoRead", "FotoRead"],
+      "accessToken": "fake-token-zab-xy-musitTestUserKhmRead"
     },
     {
       "userId": "DawnWilliams",
       "name": "Dawn Williams",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-DawnWilliams"
     },
     {
       "userId": "EspenUleberg",
       "name": "Espen Uleberg",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-EspenUleberg"
     },
     {
       "userId": "HeiniEmilia",
       "name": "Heini Emilia Rämä",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-HeiniEmilia"
     },
     {
       "userId": "Karsten",
       "name": "Karsten Hårsaker",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-Karsten"
     },
     {
       "userId": "MarielleBergh",
       "name": "Marielle Bergh",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-MarielleBergh"
     },
     {
       "userId": "WencheBrun",
       "name": "Wenche Brun",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-WencheBrun"
     },
     {
       "userId": "SusanMatland",
       "name": "Susan Matland",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-SusanMatland"
     },
     {
       "userId": "KjellGunnarMobekk",
       "name": "Kjell Gunnar Mobekk",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-KjellGunnarMobekk"
     },
     {
       "userId": "LineArildSjo",
       "name": "Line Arild Sjo",
-      "groups": ["EtnoLes", "FotoLes"],
+      "groups": ["EtnoRead", "FotoRead"],
       "accessToken": "fake-token-zab-xy-LineArildSjo"
     }
   ]
