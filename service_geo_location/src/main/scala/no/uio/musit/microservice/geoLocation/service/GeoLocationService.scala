@@ -36,13 +36,16 @@ class GeoLocationService @Inject() (config: Configuration, ws: WSClient) {
 
     ws.url(searchUrl).get.map { response =>
       val json = Json.parse(response.body)
-      val addresses = (json \ "adresser").as[List[Map[String, String]]]
-      addresses.map(address => {
+      val addresses = (json \ "adresser").as[JsArray].value
+      addresses.map(adrJs => {
         GeoNorwayAddress(
-          street = address.getOrElse("adressenavn", ""),
-          streetNo = address.getOrElse("husnr", ""),
-          place = address.getOrElse("poststed", ""),
-          zip = address.getOrElse("postnr", "")
+          street = (adrJs \ "adressenavn").asOpt[String].getOrElse(""),
+          streetNo = (adrJs \ "husnr").asOpt[String].map { houseNumber =>
+            val houseLetter = (adrJs \ "bokstav").asOpt[String]
+            s"$houseNumber${houseLetter.map(l => " " + l).getOrElse("")}"
+          }.getOrElse(""),
+          place = (adrJs \ "poststed").asOpt[String].getOrElse(""),
+          zip = (adrJs \ "postnr").asOpt[String].getOrElse("")
         )
       })
     }

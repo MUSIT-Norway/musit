@@ -19,53 +19,24 @@
 
 package no.uio.musit.microservice.actor.domain
 
-import no.uio.musit.microservices.common.domain.{BaseAddress, BaseMusitDomain}
 import play.api.libs.json._
 
 /**
  * Domain Person
  */
-case class Person(id: Option[Long], fn: String, title: Option[String] = None, role: Option[String] = None, tel: Option[String] = None,
-  web: Option[String] = None, email: Option[String] = None, dataportenId: Option[String] = None) extends BaseMusitDomain
-
-/**
- * Domain Organization
- */
-case class Organization(
+case class Person(
   id: Option[Long],
   fn: String,
-  nickname: String,
-  tel: String,
-  web: String
-) extends BaseMusitDomain
-
-/**
- * Address specialized for Organization
- */
-case class OrganizationAddress(
-  id: Option[Long],
-  organizationId: Option[Long],
-  addressType: String,
-  streetAddress: String,
-  locality: String,
-  postalCode: String,
-  countryName: String,
-  latitude: Double,
-  longitude: Double
-) extends BaseAddress
+  title: Option[String] = None,
+  role: Option[String] = None,
+  tel: Option[String] = None,
+  web: Option[String] = None,
+  email: Option[String] = None,
+  dataportenId: Option[String] = None
+)
 
 object Person {
   val tupled = (Person.apply _).tupled
   implicit val format = Json.format[Person]
-}
-
-object Organization {
-  val tupled = (Organization.apply _).tupled
-  implicit val format = Json.format[Organization]
-}
-
-object OrganizationAddress {
-  val tupled = (OrganizationAddress.apply _).tupled
-  implicit val format = Json.format[OrganizationAddress]
 }
 

@@ -23,6 +23,8 @@ import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.domain.{ActorId, ObjectId}
 import play.api.libs.json.{Format, Json}
 
+// TODO: A better name for these
+
 case class ActorRole(roleId: Int, actorId: ActorId)
 
 object ActorRole {
