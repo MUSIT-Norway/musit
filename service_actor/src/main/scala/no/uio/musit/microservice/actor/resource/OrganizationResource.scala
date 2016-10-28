@@ -21,17 +21,23 @@ package no.uio.musit.microservice.actor.resource
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Organization
 import no.uio.musit.microservice.actor.service.OrganizationService
+import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
-import no.uio.musit.service.MusitSearch
+import no.uio.musit.service.{MusitController, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
-import play.api.mvc._
 
 import scala.concurrent.Future
 
-class OrganizationResource @Inject() (orgService: OrganizationService) extends Controller {
+class OrganizationResource @Inject() (
+    val authService: Authenticator,
+    val orgService: OrganizationService
+) extends MusitController {
 
-  def search(museumId: Int, search: Option[MusitSearch]) = Action.async { request =>
+  def search(
+    museumId: Int,
+    search: Option[MusitSearch]
+  ) = MusitSecureAction(museumId).async { request =>
     search match {
       case Some(criteria) =>
         orgService.find(criteria).map(orgs => Ok(Json.toJson(orgs)))
@@ -43,7 +49,7 @@ class OrganizationResource @Inject() (orgService: OrganizationService) extends C
     }
   }
 
-  def get(id: Long) = Action.async { request =>
+  def get(id: Long) = MusitSecureAction().async { request =>
     orgService.find(id).map {
       case Some(person) =>
         Ok(Json.toJson(person))
@@ -53,7 +59,7 @@ class OrganizationResource @Inject() (orgService: OrganizationService) extends C
     }
   }
 
-  def add = Action.async(parse.json) { request =>
+  def add = MusitSecureAction().async(parse.json) { request =>
     request.body.validate[Organization] match {
       case s: JsSuccess[Organization] =>
         orgService.create(s.get).map(org => Created(Json.toJson(org)))
@@ -63,7 +69,7 @@ class OrganizationResource @Inject() (orgService: OrganizationService) extends C
     }
   }
 
-  def update(id: Long) = Action.async(parse.json) { request =>
+  def update(id: Long) = MusitSecureAction().async(parse.json) { request =>
     request.body.validate[Organization] match {
       case s: JsSuccess[Organization] =>
         orgService.update(s.get).map {
@@ -84,7 +90,7 @@ class OrganizationResource @Inject() (orgService: OrganizationService) extends C
     }
   }
 
-  def delete(id: Long) = Action.async { request =>
+  def delete(id: Long) = MusitSecureAction().async { request =>
     orgService.remove(id).map { noDeleted =>
       Ok(Json.obj("message" -> s"Deleted $noDeleted record(s)."))
     }
