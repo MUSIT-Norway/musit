@@ -19,11 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.move
 
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, Move, ObjectId}
+import no.uio.musit.microservice.storagefacility.domain.Move
 import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.models.{ActorId, EventId, ObjectId, StorageNodeId}
 import org.joda.time.DateTime
 
 sealed trait MoveEvent extends MusitEvent {

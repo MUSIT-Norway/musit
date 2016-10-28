@@ -1,8 +1,7 @@
 package no.uio.musit.microservice.storagefacility.service
 
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.testhelpers.{EventGenerators, NodeGenerators}
+import no.uio.musit.models.{EventId, MuseumId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 

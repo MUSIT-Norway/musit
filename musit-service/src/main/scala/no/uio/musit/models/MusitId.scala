@@ -17,30 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.models
 
-import play.api.libs.json._
+trait MusitId {
+  val underlying: Long
+}
 
-case class ObjectId(underlying: Long) extends MusitId
+object MusitId {
 
-object ObjectId {
-
-  implicit val reads: Reads[ObjectId] = __.read[Long].map(ObjectId.apply)
-
-  implicit val writes: Writes[ObjectId] = Writes { oid =>
-    JsNumber(oid.underlying)
-  }
-
-  implicit def longToObjectId(l: Long): ObjectId = ObjectId(l)
-
-  implicit def objectIdToLong(oid: ObjectId): Long = oid.underlying
-
-  implicit def optLongToObjectId(ml: Option[Long]): Option[ObjectId] = {
-    ml.map(longToObjectId)
-  }
-
-  implicit def optObjectIdToLong(moid: Option[ObjectId]): Option[Long] = {
-    moid.map(objectIdToLong)
-  }
+  implicit def toStorageNodeId(m: MusitId): StorageNodeId = StorageNodeId(m.underlying)
+  implicit def toEventId(m: MusitId): EventId = EventId(m.underlying)
+  implicit def toObjectId(m: MusitId): ObjectId = ObjectId(m.underlying)
+  implicit def toActorId(m: MusitId): ActorId = ActorId(m.underlying)
 
 }

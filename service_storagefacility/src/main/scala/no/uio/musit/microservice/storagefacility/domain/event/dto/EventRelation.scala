@@ -20,8 +20,7 @@
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
 import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, ObjectId}
+import no.uio.musit.models.{ActorId, EventId, ObjectId, StorageNodeId}
 
 /**
  * isNormalizedDirection is whether this direction is the same which the links

@@ -4,9 +4,10 @@ import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NamedPathElement, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
 import no.uio.musit.microservice.storagefacility.test._
+import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}

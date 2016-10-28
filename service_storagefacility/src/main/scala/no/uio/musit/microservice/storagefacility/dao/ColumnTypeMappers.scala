@@ -19,9 +19,10 @@
 
 package no.uio.musit.microservice.storagefacility.dao
 
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, MuseumId, NodePath, ObjectId}
-import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
-import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
+import no.uio.musit.microservice.storagefacility.domain.NodePath
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageType
+import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfig
 import slick.driver.JdbcProfile
 

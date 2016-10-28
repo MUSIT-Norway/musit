@@ -1,9 +1,9 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.Inject
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType.RoomType
+import no.uio.musit.models.MuseumId
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -20,7 +20,6 @@ class KdReportDao @Inject() (
   private val roomType: StorageType = RoomType
 
   def getReportTotalArea(mid: MuseumId): Future[MusitResult[Double]] = {
-
     val query = storageNodeTable.filter { sn =>
       sn.storageType === roomType && sn.museumId === mid && sn.isDeleted === false
     }.map(_.area)

@@ -21,9 +21,8 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
-import no.uio.musit.microservice.storagefacility.domain.ActorId
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EventRoleActor
+import no.uio.musit.models.{ActorId, EventId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 

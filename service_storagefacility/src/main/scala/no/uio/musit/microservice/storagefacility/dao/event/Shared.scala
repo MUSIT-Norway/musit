@@ -22,8 +22,9 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
-import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId}
+import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.{BaseEventDto, EventRelation, ObservationFromToDto}
+import no.uio.musit.models.EventId
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
@@ -107,6 +108,7 @@ private[event] trait SharedEventTables extends BaseEventDao
       registeredBy,
       registeredDate
     ) <> (create.tupled, destroy)
+
     // scalastyle:on method.name
 
     val id = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)

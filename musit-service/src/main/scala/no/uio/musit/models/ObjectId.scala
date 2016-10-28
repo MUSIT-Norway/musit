@@ -17,33 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain.event
+package no.uio.musit.models
 
-import no.uio.musit.microservice.storagefacility.domain.MusitId
 import play.api.libs.json._
 
-case class EventId(underlying: Long) extends MusitId
+case class ObjectId(underlying: Long) extends MusitId
 
-object EventId {
+object ObjectId {
 
-  implicit val reads: Reads[EventId] = __.read[Long].map(EventId.apply)
+  implicit val reads: Reads[ObjectId] = __.read[Long].map(ObjectId.apply)
 
-  implicit val writes: Writes[EventId] = Writes { eid =>
-    JsNumber(eid.underlying)
+  implicit val writes: Writes[ObjectId] = Writes { oid =>
+    JsNumber(oid.underlying)
   }
 
-  val empty: EventId = EventId(-1)
+  implicit def longToObjectId(l: Long): ObjectId = ObjectId(l)
 
-  implicit def longToEventId(l: Long): EventId = EventId(l)
+  implicit def objectIdToLong(oid: ObjectId): Long = oid.underlying
 
-  implicit def eventIdToLong(eid: EventId): Long = eid.underlying
-
-  implicit def optLongToEventId(ml: Option[Long]): Option[EventId] = {
-    ml.map(longToEventId)
+  implicit def optLongToObjectId(ml: Option[Long]): Option[ObjectId] = {
+    ml.map(longToObjectId)
   }
 
-  implicit def optEventIdToLong(meid: Option[EventId]): Option[Long] = {
-    meid.map(eventIdToLong)
+  implicit def optObjectIdToLong(moid: Option[ObjectId]): Option[Long] = {
+    moid.map(objectIdToLong)
   }
 
 }

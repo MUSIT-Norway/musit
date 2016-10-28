@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
+import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._

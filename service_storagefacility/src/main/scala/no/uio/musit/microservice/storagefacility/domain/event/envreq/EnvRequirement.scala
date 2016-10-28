@@ -20,10 +20,11 @@
 package no.uio.musit.microservice.storagefacility.domain.event.envreq
 
 import no.uio.musit.microservice.storagefacility.DummyData
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, Interval}
+import no.uio.musit.microservice.storagefacility.domain.Interval
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, StorageNodeId}
+import no.uio.musit.microservice.storagefacility.domain.storage.EnvironmentRequirement
+import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
 import org.joda.time.DateTime
 
 case class EnvRequirement(

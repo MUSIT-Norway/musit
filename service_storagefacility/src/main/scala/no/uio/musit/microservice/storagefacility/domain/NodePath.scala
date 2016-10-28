@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain
 
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.models.StorageNodeId
 import play.api.Logger
 import play.api.libs.json.Reads._
 import play.api.libs.json._

@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, MusitId}
+import no.uio.musit.models.{ActorId, EventId, MusitId}
 import org.joda.time.DateTime
 
 /**

@@ -21,14 +21,12 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.event.EventDao
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.datetime._
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
 import no.uio.musit.microservice.storagefacility.domain.event.dto.BaseEventDto
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.ObsConverters
 import no.uio.musit.microservice.storagefacility.domain.event.observation.Observation
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -89,7 +87,7 @@ class ObservationService @Inject() (
    * TODO: Document me!
    */
   def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Observation]]] = {
-    eventDao.getEvent(mid, id.underlying).map { result =>
+    eventDao.getEvent(mid, id).map { result =>
       result.flatMap(_.map {
         case base: BaseEventDto =>
           MusitSuccess(

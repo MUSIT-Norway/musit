@@ -20,12 +20,13 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import no.uio.musit.microservice.storagefacility.DummyData
-import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
-import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageUnit}
 import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.microservice.storagefacility.domain.event.EventType
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageUnit
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
+import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}

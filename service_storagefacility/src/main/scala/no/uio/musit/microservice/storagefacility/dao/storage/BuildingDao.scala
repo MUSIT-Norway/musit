@@ -20,10 +20,10 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
+import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider

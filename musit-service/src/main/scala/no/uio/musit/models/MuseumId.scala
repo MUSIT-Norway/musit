@@ -30,5 +30,7 @@ object MuseumId {
   }
 
   implicit def fromInt(id: Int): MuseumId = MuseumId(id)
+
+  implicit def toInt(mid: MuseumId): Int = mid.underlying
 }
 

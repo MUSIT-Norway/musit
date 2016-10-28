@@ -22,8 +22,8 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.ObservationFromToDto
+import no.uio.musit.models.EventId
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 

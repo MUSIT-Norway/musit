@@ -20,10 +20,10 @@
 package no.uio.musit.microservice.storagefacility.resource
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.Museum
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
 import no.uio.musit.microservice.storagefacility.domain.event.observation.Observation
 import no.uio.musit.microservice.storagefacility.service.{ControlService, ObservationService}
+import no.uio.musit.models.Museums.Museum
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

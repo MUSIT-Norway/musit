@@ -20,9 +20,10 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
-import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageNodeId, StorageType}
-import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageType}
+import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
+import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.service.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}

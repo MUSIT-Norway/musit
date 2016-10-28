@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain
 
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.models.StorageNodeId
 import org.scalatest.{MustMatchers, WordSpec}
 
 class NodePathSpec extends WordSpec with MustMatchers {

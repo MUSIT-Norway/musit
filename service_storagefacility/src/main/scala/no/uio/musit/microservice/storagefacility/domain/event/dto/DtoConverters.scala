@@ -29,7 +29,7 @@ import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirem
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.observation._
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.models.{ActorId, ObjectId, StorageNodeId}
 
 object DtoConverters {
 

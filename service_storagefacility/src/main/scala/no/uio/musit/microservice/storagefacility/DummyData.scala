@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility
 
-import no.uio.musit.microservice.storagefacility.domain.ActorId
+import no.uio.musit.models.ActorId
 
 object DummyData {
 

@@ -2,8 +2,8 @@ package no.uio.musit.microservice.storagefacility.service
 
 import com.google.inject.Inject
 import no.uio.musit.microservice.storagefacility.dao.storage.KdReportDao
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.report.KdReport
+import no.uio.musit.models.MuseumId
 import no.uio.musit.service.MusitResults.MusitResult
 
 import scala.concurrent.Future

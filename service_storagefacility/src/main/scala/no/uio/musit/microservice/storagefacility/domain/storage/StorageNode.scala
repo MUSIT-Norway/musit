@@ -23,7 +23,8 @@ import java.sql.{Timestamp => JSqlTimestamp}
 
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.formatters.StrictFormatters._
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, NamedPathElement, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
+import no.uio.musit.models.{ActorId, StorageNodeId}
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.data.validation.ValidationError

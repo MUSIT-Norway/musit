@@ -23,12 +23,14 @@ import java.sql.{Timestamp => JSqlTimestamp}
 
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
-import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageType}
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, MuseumId, NamedPathElement, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageType
+import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
+import no.uio.musit.models.{ActorId, MuseumId, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
+
 import scala.concurrent.Future
 
 private[dao] trait BaseStorageDao extends HasDatabaseConfigProvider[JdbcProfile]

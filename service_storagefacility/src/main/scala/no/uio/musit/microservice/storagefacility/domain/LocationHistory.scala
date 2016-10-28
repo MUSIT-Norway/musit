@@ -20,6 +20,7 @@
 package no.uio.musit.microservice.storagefacility.domain
 
 import no.uio.musit.formatters.WithDateTimeFormatters
+import no.uio.musit.models.ActorId
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, Writes}
 
