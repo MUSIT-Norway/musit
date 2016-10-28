@@ -22,15 +22,11 @@ package no.uio.musit.microservice.actor.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Person
-import no.uio.musit.microservices.common.domain.MusitSearch
+import no.uio.musit.service.MusitSearch
 
 import scala.concurrent.Future
 
 class LegacyPersonService @Inject() (val actorDao: ActorDao) {
-
-  def all: Future[Seq[Person]] = {
-    actorDao.allPersonsLegacy()
-  }
 
   def find(id: Long): Future[Option[Person]] = {
     actorDao.getPersonLegacyById(id)

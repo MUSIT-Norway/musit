@@ -20,63 +20,60 @@
 package no.uio.musit.microservice.actor.dao
 
 import no.uio.musit.microservice.actor.domain.{Organization, OrganizationAddress, Person}
-import no.uio.musit.microservices.common.PlayTestDefaults
-import no.uio.musit.security.FakeSecurity
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import org.scalatest.Matchers._
-import org.scalatest.exceptions.TestFailedException
+import no.uio.musit.security.{AuthenticatedUser, BearerToken, FakeAuthenticator}
+import no.uio.musit.test.MusitSpecWithAppPerSuite
+import org.scalatest.time.{Millis, Seconds, Span}
 
-class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
+class ActorDaoSpec extends MusitSpecWithAppPerSuite {
 
-  implicit override lazy val app = new GuiceApplicationBuilder()
-    .configure(PlayTestDefaults.inMemoryDatabaseConfig())
-    .build()
+  val actorDao: ActorDao = fromInstanceCache[ActorDao]
 
-  val actorDao: ActorDao = {
-    val instance = Application.instanceCache[ActorDao]
-    instance(app)
-  }
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
 
   "Actor dao" when {
 
     "querying the person legacy methods" should {
 
       "return None when Id is very large" in {
-        val res = actorDao.getPersonLegacyById(6386363673636335366L).futureValue
-        res mustBe None
+        actorDao.getPersonLegacyById(6386363673636335366L).futureValue mustBe None
       }
 
       "return a Person if the Id is valid" in {
-        val expected = Person(Some(1), "And, Arne1", dataportenId = Some("12345678-adb2-4b49-bce3-320ddfe6c90f"))
-        val res = actorDao.getPersonLegacyById(1).futureValue
+        val expected = Person(
+          id = Some(1),
+          fn = "And, Arne1",
+          dataportenId = Some("12345678-adb2-4b49-bce3-320ddfe6c90f")
+        )
 
-        res mustBe Some(expected)
-
+        actorDao.getPersonLegacyById(1).futureValue mustBe Some(expected)
       }
 
       "return None if the Id is 0 (zero)" in {
-        val res = actorDao.getPersonLegacyById(0).futureValue
-        res mustBe None
+        actorDao.getPersonLegacyById(0).futureValue mustBe None
       }
 
       "return empty list if the search string is not found" in {
-        val res = actorDao.getPersonLegacyByName("Andlkjlkj").futureValue
-        res.isEmpty mustBe true
+        actorDao.getPersonLegacyByName("Andlkjlkj").futureValue.isEmpty mustBe true
       }
     }
 
     "querying the organization methods" should {
 
       "return None when Id is very large" in {
-        val res = actorDao.getOrganizationById(6386363673636335366L).futureValue
-        res mustBe None
+        actorDao.getOrganizationById(Long.MaxValue).futureValue mustBe None
       }
 
       "return a organization if the Id is valid" in {
-        val expected = Organization(Some(1), "Kulturhistorisk museum - Universitetet i Oslo", "KHM", "22 85 19 00", "www.khm.uio.no")
+        val expected = Organization(
+          id = Some(1),
+          fn = "Kulturhistorisk museum - Universitetet i Oslo",
+          nickname = "KHM",
+          tel = "22 85 19 00",
+          web = "www.khm.uio.no"
+        )
         val res = actorDao.getOrganizationById(1).futureValue
         expected.id mustBe res.get.id
         expected.fn mustBe res.get.fn
@@ -86,32 +83,48 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "return None if the Id is 0 (zero)" in {
-        val res = actorDao.getOrganizationById(0).futureValue
-        res mustBe None
+        actorDao.getOrganizationById(0).futureValue mustBe None
       }
 
       "return empty list if the search string is not found" in {
-        val res = actorDao.getOrganizationByName("Andlkjlkj").futureValue
-        res.isEmpty mustBe true
+        actorDao.getOrganizationByName("Andlkjlkj").futureValue mustBe empty
       }
     }
 
     "modifying organization" should {
 
       "succeed when inserting organization" in {
-        val org = Organization(None, "Testmuseet i Bergen", "TM", "99887766", "www.tmib.no")
+        val org = Organization(
+          id = None,
+          fn = "Testmuseet i Bergen",
+          nickname = "TM",
+          tel = "99887766",
+          "www.tmib.no"
+        )
         val res = actorDao.insertOrganization(org).futureValue
         res.fn mustBe "Testmuseet i Bergen"
         res.id mustBe Some(2)
       }
 
       "succeed when updating organization" in {
-        val org1 = Organization(None, "Museet i Foobar", "FB", "12344321", "www.foob.no")
+        val org1 = Organization(
+          id = None,
+          fn = "Museet i Foobar",
+          nickname = "FB",
+          tel = "12344321",
+          web = "www.foob.no"
+        )
         val res1 = actorDao.insertOrganization(org1).futureValue
         res1.fn mustBe "Museet i Foobar"
         res1.id mustBe Some(3)
 
-        val orgUpd = Organization(Some(3), "Museet i Bar", "B", "99344321", "www.bar.no")
+        val orgUpd = Organization(
+          id = Some(3),
+          fn = "Museet i Bar",
+          nickname = "B",
+          tel = "99344321",
+          web = "www.bar.no"
+        )
 
         val resInt = actorDao.updateOrganization(orgUpd).futureValue
         val res = actorDao.getOrganizationById(3).futureValue
@@ -122,20 +135,25 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "not update organization with invalid id" in {
-        val orgUpd = Organization(Some(999991), "Museet i Bar99", "B", "99344321", "www.bar.no")
-        actorDao.updateOrganization(orgUpd).futureValue mustBe 0
+        val orgUpd = Organization(
+          id = Some(999991),
+          fn = "Museet i Bar99",
+          nickname = "B",
+          tel = "99344321",
+          web = "www.bar.no"
+        )
+        val res = actorDao.updateOrganization(orgUpd).futureValue
+        res.isSuccess mustBe true
+        res.get mustBe None
       }
 
       "succeed when deleting organization" in {
-        val res1 = actorDao.deleteOrganization(3).futureValue
-        res1 mustBe 1
-        val res = actorDao.getOrganizationById(3).futureValue
-        res mustBe None
+        actorDao.deleteOrganization(3).futureValue mustBe 1
+        actorDao.getOrganizationById(3).futureValue mustBe None
       }
 
       "not be able to delete organization with invalid id" in {
-        val res2 = actorDao.deleteOrganization(999999).futureValue
-        res2 mustBe 0
+        actorDao.deleteOrganization(999999).futureValue mustBe 0
       }
 
     }
@@ -143,7 +161,16 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     "modifying organizationAddress" should {
 
       "succeed when inserting organizationAddress" in {
-        val orgAddr = OrganizationAddress(None, Some(2), "WORK", "Adressen", "Oslo", "0123", "Norway", 60.11, 11.60)
+        val orgAddr = OrganizationAddress(
+          id = None,
+          Some(2),
+          "WORK",
+          "Adressen",
+          "Oslo",
+          "0123",
+          "Norway",
+          60.11, 11.60
+        )
         val res = actorDao.insertOrganizationAddress(orgAddr).futureValue
         res.addressType mustBe "WORK"
         res.streetAddress mustBe "Adressen"
@@ -152,19 +179,47 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "succeed when updating organizationAddress" in {
-        val orgAddr1 = OrganizationAddress(None, Some(2), "WORK2", "Adressen2", "Bergen", "0122", "Norway2", 60.11, 11.60)
+        val orgAddr1 = OrganizationAddress(
+          id = None,
+          organizationId = Some(2),
+          addressType = "WORK2",
+          streetAddress = "Adressen2",
+          locality = "Bergen",
+          postalCode = "0122",
+          countryName = "Norway2",
+          latitude = 60.11,
+          longitude = 11.60
+        )
         val res1 = actorDao.insertOrganizationAddress(orgAddr1).futureValue
         res1.addressType mustBe "WORK2"
         res1.streetAddress mustBe "Adressen2"
         res1.postalCode mustBe "0122"
         res1.id mustBe Some(3)
 
-        val orgUpd = Organization(Some(3), "Museet i Bar", "B", "99344321", "www.bar.no")
-        val orgAddrUpd = OrganizationAddress(Some(3), Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60)
+        val orgUpd = Organization(
+          id = Some(3),
+          fn = "Museet i Bar",
+          nickname = "B",
+          tel = "99344321",
+          web = "www.bar.no"
+        )
+        val orgAddrUpd = OrganizationAddress(
+          id = Some(3),
+          organizationId = Some(2),
+          addressType = "WORK3",
+          streetAddress = "Adressen3",
+          locality = "Bergen3",
+          postalCode = "0133",
+          countryName = "Norway3",
+          latitude = 60.11,
+          longitude = 11.60
+        )
 
         val resInt = actorDao.updateOrganizationAddress(orgAddrUpd).futureValue
-        resInt mustBe 1
+        resInt.isSuccess mustBe true
+        resInt.get mustBe Some(1)
         val res = actorDao.getOrganizationAddressById(3).futureValue
+        res must not be None
         res.get.id mustBe Some(3)
         res.get.organizationId mustBe Some(2)
         res.get.addressType mustBe "WORK3"
@@ -177,101 +232,124 @@ class ActorDaoSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       }
 
       "not update organization address with invalid id" in {
-        val orgAddrUpd = OrganizationAddress(Some(9999992), Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60)
-        actorDao.updateOrganizationAddress(orgAddrUpd).futureValue mustBe 0
+        val orgAddrUpd = OrganizationAddress(
+          id = Some(9999992),
+          organizationId = Some(2),
+          addressType = "WORK3",
+          streetAddress = "Adressen3",
+          locality = "Bergen3",
+          postalCode = "0133",
+          countryName = "Norway3",
+          latitude = 60.11,
+          longitude = 11.60
+        )
+        val res = actorDao.updateOrganizationAddress(orgAddrUpd).futureValue
+        res.isSuccess mustBe true
+        res.get mustBe None
       }
 
       "not update organization address with missing id" in {
-        val orgAddrUpd = OrganizationAddress(None, Some(2), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60)
-        actorDao.updateOrganizationAddress(orgAddrUpd).futureValue mustBe 0
+        val orgAddrUpd = OrganizationAddress(
+          id = None,
+          organizationId = Some(2),
+          addressType = "WORK3",
+          streetAddress = "Adressen3",
+          locality = "Bergen3",
+          postalCode = "0133",
+          countryName = "Norway3",
+          latitude = 60.11,
+          longitude = 11.60
+        )
+        val res = actorDao.updateOrganizationAddress(orgAddrUpd).futureValue
+        res.isSuccess mustBe true
+        res.get mustBe None
       }
 
       "not update organization address with invalid organization id" in {
-        val orgAddrUpd = OrganizationAddress(Some(3), Some(9999993), "WORK3", "Adressen3", "Bergen3", "0133", "Norway3", 60.11, 11.60)
+        val orgAddrUpd = OrganizationAddress(
+          id = Some(3),
+          organizationId = Some(9999993),
+          addressType = "WORK3",
+          streetAddress = "Adressen3",
+          locality = "Bergen3",
+          postalCode = "0133",
+          countryName = "Norway3",
+          latitude = 60.11,
+          longitude = 11.60
+        )
+        // FIXME: This test assumes exception...there's nothing exceptional about invalid ID's
         whenReady(actorDao.updateOrganizationAddress(orgAddrUpd).failed) { e =>
-          e shouldBe a[org.h2.jdbc.JdbcSQLException]
-          e.getMessage should startWith("Referential integrity")
+          e mustBe a[org.h2.jdbc.JdbcSQLException]
+          e.getMessage must startWith("Referential integrity")
         }
       }
 
       "succeed when deleting organization address" in {
-        val res1 = actorDao.deleteOrganizationAddress(3).futureValue
-        res1 mustBe 1
-        val res = actorDao.getOrganizationAddressById(3).futureValue
-        res mustBe None
+        actorDao.deleteOrganizationAddress(3).futureValue mustBe 1
+        actorDao.getOrganizationAddressById(3).futureValue mustBe None
       }
 
       "not be able to delete organization address with invalid id" in {
-        val res2 = actorDao.deleteOrganizationAddress(999999).futureValue
-        res2 mustBe 0
+        actorDao.deleteOrganizationAddress(999999).futureValue mustBe 0
       }
     }
+
     "querying person details" should {
+
       "get person details" in {
         val ids = Set(1L, 2L, 3L)
         val persons = actorDao.getPersonDetailsByIds(ids).futureValue
         persons.length mustBe 2
-        val person1 = persons(0)
-        person1.fn mustBe "And, Arne1"
-        val person2 = persons(1)
-        person2.fn mustBe "Kanin, Kalle1"
-
+        persons.head.fn mustBe "And, Arne1"
+        persons.tail.head.fn mustBe "Kanin, Kalle1"
       }
     }
+
     "queriyng finders" should {
-      "get all legacy persons" in {
-        val persons = actorDao.allPersonsLegacy().futureValue
-        persons.length mustBe 2
-      }
-      "get all organizations" in {
-        val orgs = actorDao.allOrganizations().futureValue
-        orgs.length mustBe 2
-      }
+
       "get all organization addresses" in {
         val orgAddrs = actorDao.allAddressesForOrganization(1).futureValue
         orgAddrs.length mustBe 1
-        orgAddrs(0).streetAddress mustBe "Fredriks gate 2"
+        orgAddrs.head.streetAddress mustBe "Fredriks gate 2"
       }
     }
 
     "dataporten integration" should {
+
       "return a Person if the dataportenId is valid" in {
         val uid = "a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f"
         val newPerson = Person(Some(2), "Herr Larmerud", dataportenId = Some(uid))
-
         val personId = actorDao.insertPersonLegacy(newPerson).futureValue.id.get
-
         val res = actorDao.getPersonByDataportenId(uid).futureValue
         res.isDefined mustBe true
         val person = res.get
         person.fn mustBe "Herr Larmerud"
         person.dataportenId mustBe Some(uid)
         person.id mustBe Some(personId)
-        //We don't have a way to delete legacyPersons, may want to delete the newly insterted actor in the future: actorDao.deletePerson(personId)
+        // We don't have a way to delete legacyPersons, may want to delete the
+        // newly inserted actor in the future: actorDao.deletePerson(personId)
       }
 
-      "Don't find actor with unknown dataportenId" in {
-        val res = actorDao.getPersonByDataportenId("tullballId").futureValue
-        res.isDefined mustBe false
+      "not find actor with unknown dataportenId" in {
+        actorDao.getPersonByDataportenId("tullballId").futureValue.isDefined mustBe false
       }
 
-      "Don't find actor with unknown dataportenId based on security connection etc" in {
-        val secConnection = FakeSecurity.createInMemoryFromFakeAccessToken("fake-token-zab-xy-jarle", false).futureValue
-        val res = actorDao.getPersonByDataportenId(secConnection.userId).futureValue
-        res.isDefined mustBe false
+      "not find actor with unknown dataportenId based on security connection etc" in {
+        val authenticator = new FakeAuthenticator
+        val fakeUsrId = "jarle"
+        val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + fakeUsrId)
+        val fakeAuthUsr = AuthenticatedUser(authenticator.userInfo(fakeToken).futureValue.get, Seq.empty)
 
-        val person = actorDao.insertActorWithDataportenUserInfo(secConnection).futureValue
-        person.isRight mustBe true
-        person.right.map {
-          p =>
-            p.dataportenId mustBe Some(secConnection.userId)
-            p.fn mustBe secConnection.userName
-            p.email mustBe secConnection.userEmail
-        }
+        actorDao.getPersonByDataportenId(fakeAuthUsr.userInfo.id).futureValue.isDefined mustBe false
 
-        val res2 = actorDao.getPersonByDataportenId(secConnection.userId).futureValue
+        val person = actorDao.insertAuthenticatedUser(fakeAuthUsr).futureValue
+        person.dataportenId mustBe Some(fakeAuthUsr.userInfo.id)
+        person.fn mustBe fakeAuthUsr.userInfo.name.get
+        person.email mustBe fakeAuthUsr.userInfo.email
+
+        val res2 = actorDao.getPersonByDataportenId(fakeAuthUsr.userInfo.id).futureValue
         res2.isDefined mustBe true
-        res2.get.fn mustBe secConnection.userName
+        res2.get.fn mustBe fakeAuthUsr.userInfo.name.get
       }
     }
   }

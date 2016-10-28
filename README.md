@@ -153,6 +153,11 @@ While standing in the gui directory you can build the project by using the npm r
 You use npm to run the application while standing in the gui directory and the following targets are available:
 TBD
 
+# Credits
+
+We would like to thank [JetBrains](https://www.jetbrains.com) for free OSS licenses to [IntelliJ IDEA](https://www.jetbrains.com/idea/)![](https://raw.githubusercontent.com/MUSIT-Norway/guidelines/master/images/icon_IntelliJIDEA.png)
+
+
 ## Contact
 
 If you are interested in participating in the project please contact opensource@musit.uio.no (not active yet)

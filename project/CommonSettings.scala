@@ -37,13 +37,19 @@ object CommonSettings {
     organization := "no.uio.musit",
     scalaVersion := Dependencies.scala,
     resolvers ++= Dependencies.resolvers,
-    fork in Test := false,
+    // Setting forking for tests explicitly to true to avoid OOME in local dev env.
+    fork in Test := true,
     fork in IntegrationTest := true,
+    // Run tests sequentially
     parallelExecution in Test := false,
     parallelExecution in IntegrationTest := false,
+    // Print log statements as they happen instead of doing it out of band.
     logBuffered in Test := false,
     logBuffered in IntegrationTest := false,
+    // Need to set which log config to use for integration testing.
     javaOptions in IntegrationTest += "-Dlogger.resource=logback-test.xml",
+    // Compiler flags that enable certain language features, and adds
+    // checks to prevent "bad" code.
     scalacOptions := Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-feature", // Emit warning and location for usages of features that should be imported explicitly.
@@ -65,6 +71,7 @@ object CommonSettings {
       "-encoding", "UTF-8",
       "-Xmax-classfile-name", "100" // This will limit the classname generation to 100 characters.
     ),
+    // Configuring the scoverage plugin.
     coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router;no.uio.musit.test",
     coverageExcludedFiles := "",
     coverageMinimum := 80,

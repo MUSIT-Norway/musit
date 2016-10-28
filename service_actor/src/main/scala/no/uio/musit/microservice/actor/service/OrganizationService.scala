@@ -21,9 +21,8 @@ package no.uio.musit.microservice.actor.service
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.dao.ActorDao
 import no.uio.musit.microservice.actor.domain.Organization
-import no.uio.musit.microservices.common.domain.{MusitError, MusitSearch, MusitStatusMessage}
-import play.api.http.Status
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import no.uio.musit.service.MusitResults.MusitResult
+import no.uio.musit.service.MusitSearch
 
 import scala.concurrent.Future
 
@@ -31,10 +30,6 @@ import scala.concurrent.Future
  * Business logic for the Person entity in the microservice, simple lookups and so on.
  */
 class OrganizationService @Inject() (val actorDao: ActorDao) {
-
-  def all: Future[Seq[Organization]] = {
-    actorDao.allOrganizations()
-  }
 
   def find(id: Long): Future[Option[Organization]] = {
     actorDao.getOrganizationById(id)
@@ -49,11 +44,8 @@ class OrganizationService @Inject() (val actorDao: ActorDao) {
     actorDao.insertOrganization(organization)
   }
 
-  def update(organization: Organization): Future[Either[MusitError, MusitStatusMessage]] = {
-    actorDao.updateOrganization(organization).map {
-      case 1 => Right(MusitStatusMessage("Record was updated!"))
-      case _ => Left(MusitError(Status.BAD_REQUEST, "Update did not update any records!"))
-    }
+  def update(organization: Organization): Future[MusitResult[Option[Int]]] = {
+    actorDao.updateOrganization(organization)
   }
 
   def remove(id: Long): Future[Int] = {

@@ -1,33 +1,20 @@
 package no.uio.musit.microservice.actor.resource
 
-import no.uio.musit.microservice.actor.domain.Organization
-import no.uio.musit.microservices.common.PlayTestDefaults
-import no.uio.musit.microservices.common.domain.{MusitError, MusitStatusMessage}
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsObject, JsValue, Json}
 import no.uio.musit.microservice.actor.testdata.ActorJsonGenerator._
+import no.uio.musit.test.MusitSpecWithServerPerSuite
+import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
+import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
- * Created by sveigl on 20.09.16.
- */
-class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with ScalaFutures {
+class OrganizationIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
-
-  override lazy val port: Int = 19009
-
-  implicit override lazy val app = new GuiceApplicationBuilder().configure(PlayTestDefaults.inMemoryDatabaseConfig()).build()
 
   def postOrganization(json: JsValue): Future[WSResponse] = {
     wsUrl("/v1/organization").post(json)
@@ -41,117 +28,105 @@ class OrganizationIntegrationSpec extends PlaySpec with OneServerPerSuite with S
     wsUrl(s"/v1/organization/$id").delete
   }
 
-  def getOrganizationRsp(id: Long): Future[WSResponse] = {
+  def getOrganization(id: Long): Future[WSResponse] = {
     wsUrl(s"/v1/organization/$id").get
-  }
-
-  def getOrganization(id: Long): Future[Organization] = {
-    for {
-      resp <- getOrganizationRsp(id)
-      org = Json.parse(resp.body).validate[Organization].get
-    } yield org
   }
 
   "OrganizationIntegration " must {
     "successfully get Organization by id" in {
-      val org = getOrganization(1).futureValue
-      org.id mustBe Some(1)
+      val res = getOrganization(1).futureValue
+      res.status mustBe Status.OK
+      (res.json \ "id").as[Int] mustBe 1
     }
 
     "not find Organization with invalid id " in {
-      val response = getOrganizationRsp(9999).futureValue
-      response.status mustBe Status.NOT_FOUND
+      val res = getOrganization(9999).futureValue
+      res.status mustBe Status.NOT_FOUND
     }
 
-    "successfully get root" in {
-      val future = wsUrl("/v1/organization?museumId=0").get()
-      val response = future.futureValue
-      val orgs = Json.parse(response.body).validate[Seq[Organization]].get
-      orgs.seq.head.id.get mustBe 1
-      assert(orgs.length >= 1)
+    "return bad request when no search criteria is specified" in {
+      val res = wsUrl("/v1/organization?museumId=0").get().futureValue
+      res.status mustBe Status.BAD_REQUEST
     }
 
     "successfully search for organization" in {
-      val future = wsUrl("/v1/organization?museumId=0&search=[KHM]").get()
-      whenReady(future) { response =>
-        val orgs = Json.parse(response.body).validate[Seq[Organization]].get
-        orgs.length mustBe 1
-        orgs.head.fn mustBe "Kulturhistorisk museum - Universitetet i Oslo"
-      }
+      val res = wsUrl("/v1/organization?museumId=0&search=[KHM]").get().futureValue
+      val orgs = res.json.as[JsArray].value
+      orgs.length mustBe 1
+      (orgs.head \ "fn").as[String] mustBe "Kulturhistorisk museum - Universitetet i Oslo"
     }
 
     "successfully create organization" in {
-      val reqBody = organisationJson(None, "Foo Bar", "FB", "12345678", "http://www.foo.bar")
-      val response = postOrganization(reqBody).futureValue
-      response.status mustBe Status.CREATED
+      val reqBody = orgJson(None, "Foo Bar", "FB", "12345678", "http://www.foo.bar")
+      val res = postOrganization(reqBody).futureValue
+      res.status mustBe Status.CREATED
 
-      val org = Json.parse(response.body).validate[Organization].get
-      org.fn mustBe "Foo Bar"
-      org.nickname mustBe "FB"
-      org.tel mustBe "12345678"
-      org.web mustBe "http://www.foo.bar"
+      (res.json \ "fn").as[String] mustBe "Foo Bar"
+      (res.json \ "nickname").as[String] mustBe "FB"
+      (res.json \ "tel").as[String] mustBe "12345678"
+      (res.json \ "web").as[String] mustBe "http://www.foo.bar"
     }
 
     "not create organization with illegal input" in {
-      val reqBody = organisationIllegalJson
-      val response = postOrganization(reqBody).futureValue
+      val response = postOrganization(orgIllegalJson).futureValue
       response.status mustBe Status.BAD_REQUEST
     }
 
     "successfully update organization" in {
-      val crJson = organisationJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
-      val crResponse = postOrganization(crJson).futureValue
-      crResponse.status mustBe Status.CREATED
-      val crOrg = Json.parse(crResponse.body).validate[Organization].get
+      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
+      val res1 = postOrganization(addJson).futureValue
+      res1.status mustBe Status.CREATED
 
-      val updJson = organisationJson(Some(crOrg.id.get), "Foo Barcode 123", "FB 123", "12345123", "http://www.foo123.bar")
-      val response = putOrganization(crOrg.id.get, updJson).futureValue
-      response.status mustBe Status.OK
+      val id1 = (res1.json \ "id").as[Long]
+      val updJson = Json.obj(
+        "id" -> id1,
+        "fn" -> "Foo Barcode 123",
+        "nickname" -> "FB 123",
+        "tel" -> "12345123",
+        "web" -> "http://www.foo123.bar"
+      )
 
-      val updOrg = getOrganization(crOrg.id.get).futureValue
-      val message = Json.parse(response.body).validate[MusitStatusMessage].get
-      message.message mustBe "Record was updated!"
+      val res2 = putOrganization(id1, updJson).futureValue
+      res2.status mustBe Status.OK
+      (res2.json \ "message").as[String] mustBe "Record was updated!"
 
-      val updOrgJson = Json.toJson(updOrg).as[JsObject]
+      val res3 = getOrganization(id1).futureValue
+      val updOrgJson = res3.json.as[JsObject]
 
-      updJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet).size mustBe 0
-      assert(crJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet).size > 0)
+      updJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet) mustBe empty
+      addJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet) must not be empty
 
-      updOrg.id mustBe Some(crOrg.id.get)
-      updOrg.fn mustBe "Foo Barcode 123"
-      updOrg.nickname mustBe "FB 123"
-      updOrg.tel mustBe "12345123"
-      updOrg.web mustBe "http://www.foo123.bar"
+      (res3.json \ "id").as[Int] mustBe id1
+      (res3.json \ "fn").as[String] mustBe "Foo Barcode 123"
+      (res3.json \ "nickname").as[String] mustBe "FB 123"
+      (res3.json \ "tel").as[String] mustBe "12345123"
+      (res3.json \ "web").as[String] mustBe "http://www.foo123.bar"
     }
 
     "not update organization with illegal input" in {
-      val crJson = organisationJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
-      val crResponse = postOrganization(crJson).futureValue
-      crResponse.status mustBe Status.CREATED
-      val crOrg = Json.parse(crResponse.body).validate[Organization].get
+      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
+      val res1 = postOrganization(addJson).futureValue
+      res1.status mustBe Status.CREATED
+      val id = (res1.json \ "id").as[Long]
 
-      val updJson = organisationIllegalJson
-      val response = putOrganization(crOrg.id.get, updJson).futureValue
-      response.status mustBe Status.BAD_REQUEST
+      val res2 = putOrganization(id, orgIllegalJson).futureValue
+      res2.status mustBe Status.BAD_REQUEST
     }
 
     "not update organization with illegal id" in {
-      val updJson = organisationIllegalJson.as[JsObject] + ("id" -> Json.toJson(999999))
-      val response = putOrganization(999999, updJson).futureValue
-      response.status mustBe Status.BAD_REQUEST
+      val js = orgIllegalJson.as[JsObject] ++ Json.obj("id" -> 999999)
+      putOrganization(999999, js).futureValue.status mustBe Status.BAD_REQUEST
     }
 
     "successfully delete organization" in {
-      val crJson = organisationJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com")
-      val crResponse = postOrganization(crJson).futureValue
-      crResponse.status mustBe Status.CREATED
-      val createdOrg = Json.parse(crResponse.body).validate[Organization].get
-      val createdOrgId = createdOrg.id.get
+      val crJson = orgJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com")
+      val res1 = postOrganization(crJson).futureValue
+      res1.status mustBe Status.CREATED
+      val id = (res1.json \ "id").as[Long]
 
-      val response = deleteOrganization(createdOrgId).futureValue
-      response.status mustBe Status.OK
-      val msm = Json.parse(response.body).validate[MusitStatusMessage].get
-      msm.message mustBe "Deleted 1 record(s)."
+      val res2 = deleteOrganization(id).futureValue
+      res2.status mustBe Status.OK
+      (res2.json \ "message").as[String] mustBe "Deleted 1 record(s)."
     }
   }
 
