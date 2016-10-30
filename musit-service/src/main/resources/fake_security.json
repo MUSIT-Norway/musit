@@ -34,6 +34,21 @@
       "id": "NhmSfAdmin",
       "type": "fc:org",
       "displayName": "Admin access to storage facility for NHM"
+    },
+    {
+      "id": "UmSfRead",
+      "type": "fc:org",
+      "displayName": "Read access to storage facility for UM"
+    },
+    {
+      "id": "UmSfWrite",
+      "type": "fc:org",
+      "displayName": "Write access to storage facility for UM"
+    },
+    {
+      "id": "UmSfAdmin",
+      "type": "fc:org",
+      "displayName": "Admin access to storage facility for UM"
     }
   ],
 
@@ -56,7 +71,7 @@
       "userid": "musitTestUser",
       "name": "Fake Musit Test User",
       "email": "foo@bar.bas",
-      "groups": ["EtnoRead", "FotoRead", "KhmSfRead"],
+      "groups": ["EtnoRead", "FotoRead", "KhmSfRead", "NhmSfWrite", "UmSfRead"],
       "accessToken": "fake-token-zab-xy-musitTestUser"
     },
     {

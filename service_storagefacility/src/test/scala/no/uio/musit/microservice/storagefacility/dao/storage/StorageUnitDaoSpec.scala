@@ -209,7 +209,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "fetch tuples of StorageNodeId and StorageType for a NodePath" in {
-      val mid = MuseumId(2)
+      val mid = MuseumId(1)
       val orgPath = NodePath(",1,22,")
       val org = createOrganisation(
         partOf = Some(StorageNodeId(1)),

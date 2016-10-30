@@ -35,7 +35,7 @@ import scala.concurrent.{Await, Future}
 trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>
 
-  val defaultMuseumId = MuseumId(2)
+  val defaultMuseumId = MuseumId(1)
 
   def buildingDao: BuildingDao = {
     val instance = Application.instanceCache[BuildingDao]

@@ -25,9 +25,8 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
 
   "Processing events" should {
     "successfully insert a new Control" in {
-      val mid = MuseumId(2)
       val ctrl = createControl(defaultBuilding.id)
-      val controlEvent = controlService.add(mid, defaultBuilding.id.get, ctrl).futureValue
+      val controlEvent = controlService.add(defaultMuseumId, defaultBuilding.id.get, ctrl).futureValue
       controlEvent.isSuccess mustBe true
       controlEvent.get.id.get mustBe EventId(1)
       latestEventId = controlEvent.get.id.get
@@ -43,9 +42,8 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
     }
 
     "successfully insert a new Observation" in {
-      val mid = MuseumId(2)
       val obs = createObservation(defaultBuilding.id)
-      val res = obsService.add(mid, defaultBuilding.id.get, obs).futureValue
+      val res = obsService.add(defaultMuseumId, defaultBuilding.id.get, obs).futureValue
       res.isSuccess mustBe true
       val theObs = res.get
       theObs.id.get mustBe EventId(9)

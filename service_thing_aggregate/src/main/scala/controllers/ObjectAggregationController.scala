@@ -21,9 +21,7 @@ package controllers
 
 import com.google.inject.Inject
 import no.uio.musit.models.MuseumId
-import no.uio.musit.models.Museums.Museum
 import no.uio.musit.security.Authenticator
-import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
