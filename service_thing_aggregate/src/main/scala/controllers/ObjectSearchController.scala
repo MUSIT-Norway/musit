@@ -61,7 +61,7 @@ class ObjectSearchController @Inject() (
     museumNo: Option[String],
     subNo: Option[String],
     term: Option[String]
-  ) = MusitSecureAction().async { implicit request =>
+  ) = MusitSecureAction(mid).async { implicit request =>
     if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
       Future.successful {
         BadRequest(Json.obj(

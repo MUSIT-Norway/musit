@@ -5,6 +5,7 @@ import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.test.StorageNodeJsonGenerator._
 import no.uio.musit.microservice.storagefacility.test._
+import no.uio.musit.security.{BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
@@ -44,18 +45,26 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     parsed.get.asInstanceOf[T]
   }
 
-  val mid = MuseumId(2)
+  val mid = MuseumId(1)
 
   // Will be properly initialised in beforeTests method. So any value should do.
   var buildingId: StorageNodeId = StorageNodeId(9)
 
+  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
+
   override def beforeTests(): Unit = {
     Try {
-      val root = wsUrl(RootNodeUrl(mid)).post(JsNull).futureValue
+      val root = wsUrl(RootNodeUrl(mid))
+        .withHeaders(fakeToken.asHeader)
+        .post(JsNull).futureValue
       val rootId = (root.json \ "id").asOpt[StorageNodeId]
-      val org = wsUrl(StorageNodesUrl(mid)).post(organisationJson("Hanky", rootId)).futureValue
+      val org = wsUrl(StorageNodesUrl(mid))
+        .withHeaders(fakeToken.asHeader)
+        .post(organisationJson("Hanky", rootId)).futureValue
       val orgId = (org.json \ "id").as[StorageNodeId]
-      val building = wsUrl(StorageNodesUrl(mid)).post(buildingJson("Panky", orgId)).futureValue
+      val building = wsUrl(StorageNodesUrl(mid))
+        .withHeaders(fakeToken.asHeader)
+        .post(buildingJson("Panky", orgId)).futureValue
       buildingId = (building.json \ "id").as[StorageNodeId]
     }.recover {
       case t: Throwable =>
@@ -67,16 +76,22 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "interacting with the StorageUnitResource endpoints" should {
 
-      "successfully get kDReport for rooms with different museumId" in {
+      "successfully get kDReport for rooms in a museum" in {
         val js1 = roomJson("r00m", Some(StorageNodeId(buildingId)))
-        val res1 = wsUrl(StorageNodesUrl(mid)).post(js1).futureValue
+        val res1 = wsUrl(StorageNodesUrl(mid))
+          .withHeaders(fakeToken.asHeader)
+          .post(js1).futureValue
         res1.status mustBe Status.CREATED
 
         val js2 = roomJson("rUUm", Some(StorageNodeId(buildingId)))
-        val res2 = wsUrl(StorageNodesUrl(mid)).post(js2).futureValue
+        val res2 = wsUrl(StorageNodesUrl(mid))
+          .withHeaders(fakeToken.asHeader)
+          .post(js2).futureValue
         res2.status mustBe Status.CREATED
 
-        val report = wsUrl(KdReportUrl(mid)).get.futureValue
+        val report = wsUrl(KdReportUrl(mid))
+          .withHeaders(fakeToken.asHeader)
+          .get.futureValue
 
         (report.json \ "totalArea").as[Double] mustBe 41
         (report.json \ "perimeterSecurity").as[Double] mustBe 41
@@ -89,14 +104,20 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "fail when try to get KdReport from a deleted room" in {
         val js1 = roomJson("RooM", Some(StorageNodeId(buildingId)))
-        val res1 = wsUrl(StorageNodesUrl(mid)).post(js1).futureValue
+        val res1 = wsUrl(StorageNodesUrl(mid))
+          .withHeaders(fakeToken.asHeader)
+          .post(js1).futureValue
         res1.status mustBe Status.CREATED
 
         val js2 = roomJson("RuuM", Some(StorageNodeId(buildingId)))
-        val res2 = wsUrl(StorageNodesUrl(mid)).post(js2).futureValue
+        val res2 = wsUrl(StorageNodesUrl(mid))
+          .withHeaders(fakeToken.asHeader)
+          .post(js2).futureValue
         res2.status mustBe Status.CREATED
 
-        val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl(mid)).get.futureValue
+        val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl(mid))
+          .withHeaders(fakeToken.asHeader)
+          .get.futureValue
 
         (reportAfterInsertsOfTwoRoom.json \ "totalArea").as[Double] mustBe 82
         (reportAfterInsertsOfTwoRoom.json \ "perimeterSecurity").as[Double] mustBe 82
@@ -106,8 +127,12 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         (reportAfterInsertsOfTwoRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
 
         val roomId = (res1.json \ "id").as[Long]
-        val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId)).delete().futureValue
-        val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl(mid)).get.futureValue
+        val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId))
+          .withHeaders(fakeToken.asHeader)
+          .delete().futureValue
+        val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl(mid))
+          .withHeaders(fakeToken.asHeader)
+          .get.futureValue
 
         (reportAfterDeleteOfOneRoom.json \ "totalArea").as[Double] mustBe 61.5
         (reportAfterDeleteOfOneRoom.json \ "perimeterSecurity").as[Double] mustBe 61.5

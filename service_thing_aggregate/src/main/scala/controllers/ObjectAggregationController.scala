@@ -22,6 +22,9 @@ package controllers
 import com.google.inject.Inject
 import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums.Museum
+import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.Read
+import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -32,32 +35,29 @@ import services.{ObjectAggregationService, StorageNodeService}
 import scala.concurrent.Future
 
 class ObjectAggregationController @Inject() (
-    service: ObjectAggregationService,
-    storageNodeService: StorageNodeService
-) extends Controller {
+    val authService: Authenticator,
+    val service: ObjectAggregationService,
+    val storageNodeService: StorageNodeService
+) extends MusitController {
 
   val logger = Logger(classOf[ObjectAggregationController])
 
-  def getObjects(mid: Int, nodeId: Long) = Action.async { request =>
-    Museum.fromMuseumId(mid).map { museumId =>
-      storageNodeService.nodeExists(mid, nodeId).flatMap {
-        case MusitSuccess(true) =>
-          getObjectsByNodeId(mid, nodeId)
+  def getObjects(mid: Int, nodeId: Long) = MusitSecureAction(mid).async { request =>
+    storageNodeService.nodeExists(mid, nodeId).flatMap {
+      case MusitSuccess(true) =>
+        getObjectsByNodeId(mid, nodeId)
 
-        case MusitSuccess(false) =>
-          Future.successful(
-            NotFound(Json.obj("message" -> s"Did not find node in museum $mid with nodeId $nodeId"))
-          )
+      case MusitSuccess(false) =>
+        Future.successful(NotFound(Json.obj(
+          "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
+        )))
 
-        case MusitDbError(msg, ex) =>
-          logger.error(msg, ex.orNull)
-          Future.successful(InternalServerError(Json.obj("message" -> msg)))
+      case MusitDbError(msg, ex) =>
+        logger.error(msg, ex.orNull)
+        Future.successful(InternalServerError(Json.obj("message" -> msg)))
 
-        case r: MusitError =>
-          Future.successful(InternalServerError(Json.obj("message" -> r.message)))
-      }
-    }.getOrElse {
-      Future.successful(BadRequest(Json.obj("message" -> s"Unknown museum $mid")))
+      case r: MusitError =>
+        Future.successful(InternalServerError(Json.obj("message" -> r.message)))
     }
   }
 

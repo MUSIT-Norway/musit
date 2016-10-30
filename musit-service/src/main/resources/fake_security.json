@@ -56,7 +56,7 @@
       "userid": "musitTestUser",
       "name": "Fake Musit Test User",
       "email": "foo@bar.bas",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["EtnoRead", "FotoRead", "KhmSfRead"],
       "accessToken": "fake-token-zab-xy-musitTestUser"
     },
     {
