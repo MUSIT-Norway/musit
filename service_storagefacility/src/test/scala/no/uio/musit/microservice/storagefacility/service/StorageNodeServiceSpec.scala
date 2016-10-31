@@ -58,7 +58,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val ins = service.addRoom(defaultMuseumId, room).futureValue
       ins.isSuccess mustBe true
       ins.get must not be None
-      ins.get.get.updatedBy.get mustBe (DummyData.DummyUserId)
+      ins.get.get.updatedBy.get mustBe DummyData.DummyUserId
       ins.get.get.updatedDate.get.toString must include("2016")
 
       val inserted = ins.get.get
@@ -84,7 +84,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       inserted.id must not be None
       inserted.environmentRequirement must not be None
       inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
-      inserted.updatedBy.get mustBe (DummyData.DummyUserId)
+      inserted.updatedBy.get mustBe DummyData.DummyUserId
       inserted.updatedDate.get.toString must include("2016")
 
       val someEnvReq = Some(initEnvironmentRequirement(
@@ -111,7 +111,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val inserted = ins.get.get
       inserted.id must not be None
-      inserted.updatedBy.get mustBe (DummyData.DummyUserId)
+      inserted.updatedBy.get mustBe DummyData.DummyUserId
       inserted.updatedDate.get.toString must include("2016")
 
       val res = storageUnitDao.getById(defaultMuseumId, inserted.id.get).futureValue

@@ -19,6 +19,7 @@
 
 package models
 
+import no.uio.musit.models.{MuseumNo, NamedPathElement, NodePath, SubNo}
 import play.api.libs.json.Json
 
 case class MusitObject(
@@ -26,9 +27,6 @@ case class MusitObject(
   museumNo: MuseumNo,
   subNo: Option[SubNo],
   term: String,
-  // The following attributes are populated in a separate step in the
-  // ObjectSearchService implementation. Because it lives in a different
-  // schema than the object information itself.
   currentLocationId: Option[Long] = None,
   path: Option[NodePath] = None,
   pathNames: Option[Seq[NamedPathElement]] = None

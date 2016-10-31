@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import dao.{ObjectAggregationDao, StorageNodeDao}
 import no.uio.musit.service.MusitResults.MusitResult
 import models.ObjectAggregation
-import no.uio.musit.models.MuseumId
+import no.uio.musit.models.{MuseumId, StorageNodeId}
 
 import scala.concurrent.Future
 
@@ -32,7 +32,9 @@ class ObjectAggregationService @Inject() (
     storageNodeDao: StorageNodeDao
 ) {
 
-  def getObjects(mid: MuseumId, nodeId: Long): Future[MusitResult[Seq[ObjectAggregation]]] =
-    dao.getObjects(mid, nodeId)
+  def getObjects(
+    mid: MuseumId,
+    nodeId: StorageNodeId
+  ): Future[MusitResult[Seq[ObjectAggregation]]] = dao.getObjects(mid, nodeId)
 
 }

@@ -3,11 +3,10 @@ package no.uio.musit.microservice.storagefacility.domain.storage.dto
 import java.sql.{Timestamp => JSqlTimestamp}
 
 import no.uio.musit.microservice.storagefacility.DummyData
-import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.datetime.Implicits._
 import no.uio.musit.microservice.storagefacility.domain.datetime.dateTimeNow
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.models.{ActorId, MuseumId, StorageNodeId}
+import no.uio.musit.models.{ActorId, MuseumId, NodePath, StorageNodeId}
 
 sealed trait StorageNodeDto
 

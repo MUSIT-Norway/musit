@@ -19,7 +19,7 @@
 
 package controllers
 
-import models.{MuseumNo, ObjectId, SubNo}
+import no.uio.musit.models.{MuseumNo, ObjectId, SubNo}
 import no.uio.musit.security.{BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}

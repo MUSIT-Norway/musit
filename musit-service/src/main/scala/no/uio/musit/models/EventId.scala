@@ -27,22 +27,16 @@ object EventId {
 
   implicit val reads: Reads[EventId] = __.read[Long].map(EventId.apply)
 
-  implicit val writes: Writes[EventId] = Writes { eid =>
-    JsNumber(eid.underlying)
-  }
+  implicit val writes: Writes[EventId] = Writes(eid => JsNumber(eid.underlying))
 
   val empty: EventId = EventId(-1)
 
-  implicit def longToEventId(l: Long): EventId = EventId(l)
+  implicit def fromLong(l: Long): EventId = EventId(l)
 
-  implicit def eventIdToLong(eid: EventId): Long = eid.underlying
+  implicit def toLong(id: EventId): Long = id.underlying
 
-  implicit def optLongToEventId(ml: Option[Long]): Option[EventId] = {
-    ml.map(longToEventId)
-  }
+  implicit def fromOptLong(ml: Option[Long]): Option[EventId] = ml.map(fromLong)
 
-  implicit def optEventIdToLong(meid: Option[EventId]): Option[Long] = {
-    meid.map(eventIdToLong)
-  }
+  implicit def toOptLong(id: Option[EventId]): Option[Long] = id.map(toLong)
 
 }

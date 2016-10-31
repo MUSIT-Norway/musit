@@ -19,9 +19,8 @@
 
 package no.uio.musit.microservice.storagefacility.domain.storage
 
-import no.uio.musit.microservice.storagefacility.domain.NodePath
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
-import no.uio.musit.models.StorageNodeId
+import no.uio.musit.models.{NodePath, StorageNodeId}
 import org.scalatest.{MustMatchers, WordSpec}
 
 class StorageNodeSpec extends WordSpec with MustMatchers {

@@ -24,8 +24,7 @@ import java.sql.{Timestamp => JSqlTimestamp}
 import no.uio.musit.microservice.storagefacility.dao._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType
-import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
-import no.uio.musit.models.{ActorId, MuseumId, StorageNodeId}
+import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

@@ -17,9 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.models
 
-import no.uio.musit.models.StorageNodeId
 import play.api.Logger
 import play.api.libs.json.Reads._
 import play.api.libs.json._

@@ -17,25 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package no.uio.musit.models
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Json
 
-/**
- * FIXME: THIS CODE IS COPIED FROM THE STORAGEFACILITY SERVICE.
- * Need to move this into a separate library. All identifiers and other types
- * that are core to the system should also be moved in the same operation.
- *
- * A NodePath contains a comma separated String of StorageNodeId (or Long)
- * values, each of these ID's can be represented as a NamedPathElement.
- *
- * @param nodeId StorageNodeId of the named path element
- * @param name String containing the name value of the StorageNode.
- */
-case class NamedPathElement(nodeId: Long, name: String)
+case class MuseumIdentifier(museumNo: String, subNo: Option[String])
 
-object NamedPathElement {
+object MuseumIdentifier {
+  def fromSqlString(displayId: String): MuseumIdentifier =
+    displayId.split("/", 2) match {
+      case Array(museumNo, subNo) =>
+        MuseumIdentifier(museumNo, Some(subNo))
+      case Array(museumNo) =>
+        MuseumIdentifier(museumNo, None)
+    }
 
-  implicit val formats: Format[NamedPathElement] = Json.format[NamedPathElement]
+  implicit val format = Json.format[MuseumIdentifier]
 
 }

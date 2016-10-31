@@ -23,8 +23,8 @@ import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.{Interval, NodePath}
-import no.uio.musit.models.{MuseumId, StorageNodeId}
+import no.uio.musit.microservice.storagefacility.domain.Interval
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeId}
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
 

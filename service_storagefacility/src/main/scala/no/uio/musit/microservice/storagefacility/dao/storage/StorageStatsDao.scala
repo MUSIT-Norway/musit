@@ -20,8 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.NodePath
-import no.uio.musit.models.StorageNodeId
+import no.uio.musit.models.{StorageNodeId, NodePath}
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future

@@ -20,7 +20,8 @@
 package controllers
 
 import com.google.inject.Inject
-import models.{MuseumNo, ObjectSearchResult, SubNo}
+import models.ObjectSearchResult
+import no.uio.musit.models.{MuseumNo, SubNo}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}

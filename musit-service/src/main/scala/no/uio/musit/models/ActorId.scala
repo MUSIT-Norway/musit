@@ -27,20 +27,14 @@ object ActorId {
 
   implicit val reads: Reads[ActorId] = __.read[Long].map(ActorId.apply)
 
-  implicit val writes: Writes[ActorId] = Writes { aid =>
-    JsNumber(aid.underlying)
-  }
+  implicit val writes: Writes[ActorId] = Writes(aid => JsNumber(aid.underlying))
 
-  implicit def longToActorId(l: Long): ActorId = ActorId(l)
+  implicit def fromLong(l: Long): ActorId = ActorId(l)
 
-  implicit def actorIdToLong(aid: ActorId): Long = aid.underlying
+  implicit def toLong(aid: ActorId): Long = aid.underlying
 
-  implicit def optLongToActorId(ml: Option[Long]): Option[ActorId] = {
-    ml.map(longToActorId)
-  }
+  implicit def fromOptLong(ml: Option[Long]): Option[ActorId] = ml.map(fromLong)
 
-  implicit def optActorIdToLong(maid: Option[ActorId]): Option[Long] = {
-    maid.map(actorIdToLong)
-  }
+  implicit def toOptLong(maid: Option[ActorId]): Option[Long] = maid.map(toLong)
 
 }

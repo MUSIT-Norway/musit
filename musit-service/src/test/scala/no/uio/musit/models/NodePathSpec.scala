@@ -17,9 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.models
 
-import no.uio.musit.models.StorageNodeId
 import org.scalatest.{MustMatchers, WordSpec}
 
 class NodePathSpec extends WordSpec with MustMatchers {

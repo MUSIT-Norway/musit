@@ -17,9 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.models
 
-import no.uio.musit.models.StorageNodeId
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -27,7 +26,7 @@ import play.api.libs.json.{Format, Json}
  * values, each of these ID's can be represented as a NamedPathElement.
  *
  * @param nodeId StorageNodeId of the named path element
- * @param name String containing the name value of the StorageNode.
+ * @param name   String containing the name value of the StorageNode.
  */
 case class NamedPathElement(nodeId: StorageNodeId, name: String)
 

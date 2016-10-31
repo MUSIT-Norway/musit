@@ -28,38 +28,15 @@ case class StorageNodeId(underlying: Long) extends MusitId
 
 object StorageNodeId {
 
-  /**
-   * Reads lifts out the actual value from the key and instantiates a new
-   * StorageNodeId.
-   */
-  implicit val reads: Reads[StorageNodeId] =
-    __.read[Long].map(StorageNodeId.apply)
+  implicit val reads: Reads[StorageNodeId] = __.read[Long].map(StorageNodeId.apply)
+  implicit val writes: Writes[StorageNodeId] = Writes(id => JsNumber(id.underlying))
 
-  /**
-   * Writes the value of the underlying value as a JSON value of type JsNumber.
-   */
-  implicit val writes: Writes[StorageNodeId] = Writes { snid =>
-    JsNumber(snid.underlying)
-  }
+  implicit def fromLong(l: Long): StorageNodeId = StorageNodeId(l)
 
-  // ==========================================================================
-  // Some useful implicit converters for dealing with mapping to/from other
-  // data types.
-  // ==========================================================================
-  implicit def longToStorageNodeId(l: Long): StorageNodeId = StorageNodeId(l)
+  implicit def toLong(id: StorageNodeId): Long = id.underlying
 
-  implicit def storageNodeIdToLong(snid: StorageNodeId): Long = snid.underlying
+  implicit def fromOptLong(l: Option[Long]): Option[StorageNodeId] = l.map(fromLong)
 
-  implicit def optLongToStorageNodeId(
-    ml: Option[Long]
-  ): Option[StorageNodeId] = {
-    ml.map(longToStorageNodeId)
-  }
-
-  implicit def optStorageNodeIdToLong(
-    msnid: Option[StorageNodeId]
-  ): Option[Long] = {
-    msnid.map(storageNodeIdToLong)
-  }
+  implicit def toOptLong(id: Option[StorageNodeId]): Option[Long] = id.map(toLong)
 
 }

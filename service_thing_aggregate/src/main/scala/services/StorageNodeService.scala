@@ -21,15 +21,25 @@ package services
 
 import com.google.inject.Inject
 import dao.StorageNodeDao
-import no.uio.musit.models.MuseumId
+import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.service.MusitResults.MusitResult
 
 import scala.concurrent.Future
 
 class StorageNodeService @Inject() (
-    storageNodeDao: StorageNodeDao
+    val storageNodeDao: StorageNodeDao
 ) {
-  def nodeExists(mid: MuseumId, nodeId: Long): Future[MusitResult[Boolean]] = {
-    storageNodeDao.nodeExists(mid, nodeId)
-  }
+
+  /**
+   * Checks if the node exists in the storage facility for given museum ID.
+   *
+   * @param mid MuseumId
+   * @param nodeId StorageNodeId
+   * @return
+   */
+  def nodeExists(
+    mid: MuseumId,
+    nodeId: StorageNodeId
+  ): Future[MusitResult[Boolean]] = storageNodeDao.nodeExists(mid, nodeId)
+
 }
