@@ -316,7 +316,7 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
 
     "dataporten integration" should {
 
-      "return a Person if the dataportenId is valid" in {
+      "return a Person if the ID from dataporten is valid" in {
         val uid = "a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f"
         val newPerson = Person(Some(2), "Herr Larmerud", dataportenId = Some(uid))
         val personId = actorDao.insertPersonLegacy(newPerson).futureValue.id.get
@@ -326,17 +326,15 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
         person.fn mustBe "Herr Larmerud"
         person.dataportenId mustBe Some(uid)
         person.id mustBe Some(personId)
-        // We don't have a way to delete legacyPersons, may want to delete the
-        // newly inserted actor in the future: actorDao.deletePerson(personId)
       }
 
-      "not find actor with unknown dataportenId" in {
+      "not find an actor if the Id from dataporten is unknown" in {
         actorDao.getPersonByDataportenId("tullballId").futureValue.isDefined mustBe false
       }
 
-      "not find actor with unknown dataportenId based on security connection etc" in {
+      "insert an authenticated user that doesn't exist in the actor table" in {
         val authenticator = new FakeAuthenticator
-        val fakeUsrId = "jarle"
+        val fakeUsrId = "guest"
         val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + fakeUsrId)
         val fakeAuthUsr = AuthenticatedUser(authenticator.userInfo(fakeToken).futureValue.get, Seq.empty)
 
