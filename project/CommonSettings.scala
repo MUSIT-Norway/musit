@@ -39,15 +39,10 @@ object CommonSettings {
     resolvers ++= Dependencies.resolvers,
     // Setting forking for tests explicitly to true to avoid OOME in local dev env.
     fork in Test := true,
-    fork in IntegrationTest := true,
     // Run tests sequentially
     parallelExecution in Test := false,
-    parallelExecution in IntegrationTest := false,
     // Print log statements as they happen instead of doing it out of band.
     logBuffered in Test := false,
-    logBuffered in IntegrationTest := false,
-    // Need to set which log config to use for integration testing.
-    javaOptions in IntegrationTest += "-Dlogger.resource=logback-test.xml",
     // Compiler flags that enable certain language features, and adds
     // checks to prevent "bad" code.
     scalacOptions := Seq(
@@ -55,7 +50,7 @@ object CommonSettings {
       "-feature", // Emit warning and location for usages of features that should be imported explicitly.
       "-unchecked", // Enable additional warnings where generated code depends on assumptions.
       // FIXME: the fatal-warnings option must be re-enabled at some point!
-    //  "-Xfatal-warnings", // Fail the compilation if there are any warnings.
+      //"-Xfatal-warnings", // Fail the compilation if there are any warnings.
       "-Xlint", // Enable recommended additional warnings.
       "-Ywarn-adapted-args", // Warn if an argument list is modified to match the receiver.
       "-Ywarn-dead-code", // Warn when dead code is identified.
@@ -82,7 +77,6 @@ object CommonSettings {
   def BaseProject(name: String): Project =
     Project(name, file(name))
       .settings(projectSettings: _*)
-      .settings(Defaults.itSettings: _*)
       .settings(SbtScalariform.scalariformSettingsWithIt ++ Seq(
         ScalariformKeys.preferences := ScalariformKeys.preferences.value
           .setPreference(FormatXml, false)
@@ -92,7 +86,6 @@ object CommonSettings {
 
   def PlayProject(name: String): Project =
     BaseProject(name)
-      .disablePlugins(PlayLayoutPlugin)
       .enablePlugins(
         Play,
         SbtNativePackager,
