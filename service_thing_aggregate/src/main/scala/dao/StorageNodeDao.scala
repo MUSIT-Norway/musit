@@ -21,7 +21,7 @@ package dao
 
 import com.google.inject.Inject
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import models.{MuseumId, NamedPathElement, NodePath}
+import no.uio.musit.models._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
@@ -31,26 +31,17 @@ import scala.util.control.NonFatal
 
 class StorageNodeDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
-
-  implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =
-    MappedColumnType.base[MuseumId, Int](
-      museumId => museumId.underlying,
-      id => MuseumId(id)
-    )
-
-  implicit lazy val nodePathMapper: BaseColumnType[NodePath] =
-    MappedColumnType.base[NodePath, String](
-      nodePath => nodePath.path,
-      pathStr => NodePath(pathStr)
-    )
 
   private val storageNodeTable = TableQuery[StorageNodeTable]
   private val localObjectTable = TableQuery[LocalObjectsTable]
 
-  def nodeExists(mid: MuseumId, nodeId: Long): Future[MusitResult[Boolean]] = {
+  def nodeExists(
+    mid: MuseumId,
+    nodeId: StorageNodeId
+  ): Future[MusitResult[Boolean]] = {
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
         sn.id === nodeId
@@ -61,12 +52,15 @@ class StorageNodeDao @Inject() (
     }
   }
 
-  def currentLocation(mid: MuseumId, objectId: Long): Future[Option[(Long, NodePath)]] = {
+  def currentLocation(
+    mid: MuseumId,
+    objectId: ObjectId
+  ): Future[Option[(StorageNodeId, NodePath)]] = {
     val findLocalObjectAction = localObjectTable.filter { lo =>
       lo.museumId === mid && lo.objectId === objectId
     }.map(_.currentLocationId).result.headOption
 
-    val findPathAction = (maybeId: Option[Long]) => maybeId.map { nodeId =>
+    val findPathAction = (maybeId: Option[StorageNodeId]) => maybeId.map { nodeId =>
       storageNodeTable.filter(_.id === nodeId).map(_.path).result.headOption
     }.getOrElse(DBIO.successful(None))
 
@@ -85,7 +79,7 @@ class StorageNodeDao @Inject() (
     db.run(query)
   }
 
-  type TableType = (Option[Long], String, String, Option[Double], Option[Double], Option[Long], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath) // scalastyle:ignore
+  type TableType = (Option[StorageNodeId], String, String, Option[Double], Option[Double], Option[Long], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath)
 
   private class StorageNodeTable(
       val tag: Tag
@@ -109,7 +103,7 @@ class StorageNodeDao @Inject() (
 
     // scalastyle:on method.name
 
-    val id = column[Long]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
     val storageType = column[String]("STORAGE_TYPE")
     val name = column[String]("STORAGE_NODE_NAME")
     val area = column[Option[Double]]("AREA")
@@ -124,7 +118,7 @@ class StorageNodeDao @Inject() (
     val path = column[NodePath]("NODE_PATH")
   }
 
-  type LocObjTable = (Long, Long, Long, MuseumId)
+  type LocObjTable = (ObjectId, EventId, StorageNodeId, MuseumId)
 
   private class LocalObjectsTable(
       tag: Tag
@@ -132,9 +126,9 @@ class StorageNodeDao @Inject() (
 
     def * = (objectId, latestMoveId, currentLocationId, museumId) // scalastyle:ignore
 
-    val objectId = column[Long]("OBJECT_ID", O.PrimaryKey)
-    val latestMoveId = column[Long]("LATEST_MOVE_ID")
-    val currentLocationId = column[Long]("CURRENT_LOCATION_ID")
+    val objectId = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
+    val latestMoveId = column[EventId]("LATEST_MOVE_ID")
+    val currentLocationId = column[StorageNodeId]("CURRENT_LOCATION_ID")
     val museumId = column[MuseumId]("MUSEUM_ID")
   }
 }

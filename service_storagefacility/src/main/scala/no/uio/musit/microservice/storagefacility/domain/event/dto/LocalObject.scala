@@ -19,10 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event.dto
 
-import no.uio.musit.microservice.storagefacility.domain.ObjectId
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeId}
 
 case class LocalObject(
   objectId: ObjectId,

@@ -17,46 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package no.uio.musit.models
 
-sealed trait Museum {
-  val id: MuseumId
+import play.api.libs.json._
+
+case class EventId(underlying: Long) extends MusitId
+
+object EventId {
+
+  implicit val reads: Reads[EventId] = __.read[Long].map(EventId.apply)
+
+  implicit val writes: Writes[EventId] = Writes(eid => JsNumber(eid.underlying))
+
+  val empty: EventId = EventId(-1)
+
+  implicit def fromLong(l: Long): EventId = EventId(l)
+
+  implicit def toLong(id: EventId): Long = id.underlying
+
+  implicit def fromOptLong(ml: Option[Long]): Option[EventId] = ml.map(fromLong)
+
+  implicit def toOptLong(id: Option[EventId]): Option[Long] = id.map(toLong)
+
 }
-
-object Museum {
-  def fromMuseumId(i: MuseumId): Option[Museum] =
-    i match {
-      case Am.id => Some(Am)
-      case Um.id => Some(Um)
-      case Khm.id => Some(Khm)
-      case Nhm.id => Some(Nhm)
-      case Vm.id => Some(Vm)
-      case Tmu.id => Some(Tmu)
-      case unknown => None
-    }
-}
-
-case object Am extends Museum {
-  val id = MuseumId(1)
-}
-
-case object Um extends Museum {
-  val id = MuseumId(2)
-}
-
-case object Khm extends Museum {
-  val id = MuseumId(3)
-}
-
-case object Nhm extends Museum {
-  val id = MuseumId(4)
-}
-
-case object Vm extends Museum {
-  val id = MuseumId(5)
-}
-
-case object Tmu extends Museum {
-  val id = MuseumId(6)
-}
-

@@ -1,16 +1,6 @@
 {
   "groups": [
     {
-      "id": "EtnoRead",
-      "type": "fc:org",
-      "displayName": "Read access to etnobasen"
-    },
-    {
-      "id": "FotoRead",
-      "type": "fc:org",
-      "displayName": "Read access to fotobasen"
-    },
-    {
       "id": "KhmSfRead",
       "type": "fc:org",
       "displayName": "Read access to storage facility for KHM"
@@ -19,6 +9,11 @@
       "id": "KhmSfWrite",
       "type": "fc:org",
       "displayName": "Write access to storage facility for KHM"
+    },
+    {
+      "id": "KhmSfAdmin",
+      "type": "fc:org",
+      "displayName": "Admin access to storage facility for KHM"
     },
     {
       "id": "NhmSfRead",
@@ -34,36 +29,51 @@
       "id": "NhmSfAdmin",
       "type": "fc:org",
       "displayName": "Admin access to storage facility for NHM"
+    },
+    {
+      "id": "UmSfRead",
+      "type": "fc:org",
+      "displayName": "Read access to storage facility for UM"
+    },
+    {
+      "id": "UmSfWrite",
+      "type": "fc:org",
+      "displayName": "Write access to storage facility for UM"
+    },
+    {
+      "id": "UmSfAdmin",
+      "type": "fc:org",
+      "displayName": "Admin access to storage facility for UM"
     }
   ],
 
   "users": [
     {
-      "userid": "jarle",
-      "name": "Jarle Stabell",
+      "userid": "guest",
+      "name": "Gjestebruker",
       "email": "foo@bar.bas" ,
-      "groups": ["EtnoRead", "FotoRead"],
-      "accessToken": "fake-token-zab-xy-jarle"
+      "groups": ["KhmSfRead"],
+      "accessToken": "fake-token-zab-xy-guest"
     },
     {
       "userid": "stein",
       "name": "Stein A. Olsen",
       "email": "foo@bar.bas",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-stein"
     },
     {
       "userid": "musitTestUser",
       "name": "Fake Musit Test User",
       "email": "foo@bar.bas",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfRead", "NhmSfWrite", "UmSfRead"],
       "accessToken": "fake-token-zab-xy-musitTestUser"
     },
     {
       "userid": "musitTestUserKhmRead",
       "name": "Fake Musit Test User KHM Read",
       "email": "foo@bar.bas",
-      "groups": ["KhmSfRead", "EtnoRead", "FotoRead"],
+      "groups": ["KhmSfRead"],
       "accessToken": "fake-token-zab-xy-musitTestUserKhmRead"
     },
     {
@@ -90,55 +100,55 @@
     {
       "userid": "DawnWilliams",
       "name": "Dawn Williams",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-DawnWilliams"
     },
     {
       "userid": "EspenUleberg",
       "name": "Espen Uleberg",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-EspenUleberg"
     },
     {
       "userid": "HeiniEmilia",
       "name": "Heini Emilia Rämä",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-HeiniEmilia"
     },
     {
       "userid": "Karsten",
       "name": "Karsten Hårsaker",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-Karsten"
     },
     {
       "userid": "MarielleBergh",
       "name": "Marielle Bergh",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-MarielleBergh"
     },
     {
       "userid": "WencheBrun",
       "name": "Wenche Brun",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-WencheBrun"
     },
     {
       "userid": "SusanMatland",
       "name": "Susan Matland",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-SusanMatland"
     },
     {
       "userid": "KjellGunnarMobekk",
       "name": "Kjell Gunnar Mobekk",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-KjellGunnarMobekk"
     },
     {
       "userid": "LineArildSjo",
       "name": "Line Arild Sjo",
-      "groups": ["EtnoRead", "FotoRead"],
+      "groups": ["KhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-LineArildSjo"
     }
   ]

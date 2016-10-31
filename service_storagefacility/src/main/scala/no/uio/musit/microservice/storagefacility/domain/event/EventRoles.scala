@@ -19,8 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.domain.event
 
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain.{ActorId, ObjectId}
+import no.uio.musit.models.{ActorId, ObjectId, StorageNodeId}
 import play.api.libs.json.{Format, Json}
 
 // TODO: A better name for these

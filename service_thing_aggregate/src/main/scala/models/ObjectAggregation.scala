@@ -19,6 +19,7 @@
 
 package models
 
+import no.uio.musit.models.{MuseumNo, ObjectId, SubNo}
 import play.api.libs.json.Json
 
 case class ObjectAggregation(

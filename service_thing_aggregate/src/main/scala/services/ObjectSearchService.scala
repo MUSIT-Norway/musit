@@ -21,7 +21,8 @@ package services
 
 import com.google.inject.Inject
 import dao.{ObjectSearchDao, StorageNodeDao}
-import models.{MuseumNo, MusitObject, ObjectSearchResult, SubNo}
+import models.ObjectSearchResult
+import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -30,8 +31,8 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 class ObjectSearchService @Inject() (
-    objSearchDao: ObjectSearchDao,
-    nodeDao: StorageNodeDao
+    val objSearchDao: ObjectSearchDao,
+    val nodeDao: StorageNodeDao
 ) {
 
   private val logger = Logger(classOf[ObjectSearchService])
@@ -48,7 +49,7 @@ class ObjectSearchService @Inject() (
    * @return
    */
   def search(
-    mid: Int,
+    mid: MuseumId,
     page: Int,
     limit: Int,
     museumNo: Option[MuseumNo],

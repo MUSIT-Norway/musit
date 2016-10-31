@@ -20,10 +20,9 @@
 package no.uio.musit.microservice.storagefacility.domain.event.observation
 
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.microservice.storagefacility.domain.ActorId
+import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
 import no.uio.musit.microservice.storagefacility.domain.event._
 import no.uio.musit.microservice.storagefacility.domain.event.observation.ObservationSubEvents._
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, _}
 

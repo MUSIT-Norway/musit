@@ -17,30 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.models
 
 import play.api.libs.json._
 
-case class ObjectId(underlying: Long) extends MusitId
+/**
+ * Class to give the storage node ID a strong typing.
+ */
+case class StorageNodeId(underlying: Long) extends MusitId
 
-object ObjectId {
+object StorageNodeId {
 
-  implicit val reads: Reads[ObjectId] = __.read[Long].map(ObjectId.apply)
+  implicit val reads: Reads[StorageNodeId] = __.read[Long].map(StorageNodeId.apply)
+  implicit val writes: Writes[StorageNodeId] = Writes(id => JsNumber(id.underlying))
 
-  implicit val writes: Writes[ObjectId] = Writes { oid =>
-    JsNumber(oid.underlying)
-  }
+  implicit def fromLong(l: Long): StorageNodeId = StorageNodeId(l)
 
-  implicit def longToObjectId(l: Long): ObjectId = ObjectId(l)
+  implicit def toLong(id: StorageNodeId): Long = id.underlying
 
-  implicit def objectIdToLong(oid: ObjectId): Long = oid.underlying
+  implicit def fromOptLong(l: Option[Long]): Option[StorageNodeId] = l.map(fromLong)
 
-  implicit def optLongToObjectId(ml: Option[Long]): Option[ObjectId] = {
-    ml.map(longToObjectId)
-  }
-
-  implicit def optObjectIdToLong(moid: Option[ObjectId]): Option[Long] = {
-    moid.map(objectIdToLong)
-  }
+  implicit def toOptLong(id: Option[StorageNodeId]): Option[Long] = id.map(toLong)
 
 }

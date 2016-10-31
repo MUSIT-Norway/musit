@@ -1,6 +1,6 @@
 package no.uio.musit.microservice.actor.resource
 
-import no.uio.musit.security.FakeAuthenticator
+import no.uio.musit.security.{BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
@@ -14,7 +14,8 @@ class UserIntegrationSpec extends MusitSpecWithServerPerSuite {
   )
 
   def withFakeUser(wsr: WSRequest, username: String) = {
-    wsr.withHeaders("Authorization" -> ("Bearer " + FakeAuthenticator.fakeAccessTokenPrefix + username))
+    val token = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + username)
+    wsr.withHeaders(token.asHeader)
   }
 
   "Actor and dataporten integration" must {
@@ -24,9 +25,9 @@ class UserIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "get actor with matching dataportenId" in {
-      val res = withFakeUser(wsUrl("/v1/dataporten/currentUser"), "jarle").get().futureValue
+      val res = withFakeUser(wsUrl("/v1/dataporten/currentUser"), "guest").get().futureValue
       res.status mustBe Status.OK
-      (res.json \ "fn").as[String] mustBe "Jarle Stabell"
+      (res.json \ "fn").as[String] mustBe "Gjestebruker"
     }
   }
 

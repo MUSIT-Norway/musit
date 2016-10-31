@@ -19,7 +19,7 @@
 
 package no.uio.musit.microservice.storagefacility.test
 
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.models.StorageNodeId
 import play.api.libs.json.{JsValue, Json}
 
 object StorageNodeJsonGenerator {

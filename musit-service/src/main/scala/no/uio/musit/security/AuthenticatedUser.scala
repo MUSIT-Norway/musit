@@ -33,9 +33,10 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
     permissions: Seq[Permission]
   ): MusitResult[Unit] = {
     if (isAuthorizedFor(museum)) {
-      val lowest = permissions.reduceLeft { (a, b) =>
-        if (a.priority > b.priority) b
-        else a
+      val lowest = if (permissions.nonEmpty) {
+        permissions.reduceLeft((a, b) => if (a.priority > b.priority) b else a)
+      } else {
+        Permissions.Unspecified
       }
       val allowed = permissionsFor(museum).exists(_.priority >= lowest.priority)
       if (allowed) MusitSuccess(())

@@ -34,6 +34,8 @@ import scala.concurrent.Future
 /**
  * Service for communicating with Dataporten
  *
+ * TODO: Ensure use of caching of tokens and user/group info
+ *
  * @param configuration The Play! Configuration instance
  */
 class DataportenAuthenticator @Inject() (

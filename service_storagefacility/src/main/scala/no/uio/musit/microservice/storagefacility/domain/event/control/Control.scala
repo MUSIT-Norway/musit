@@ -21,9 +21,8 @@ package no.uio.musit.microservice.storagefacility.domain.event.control
 
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.microservice.storagefacility.domain.event._
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import no.uio.musit.microservice.storagefacility.domain.ActorId
 import no.uio.musit.microservice.storagefacility.domain.event.control.ControlSubEvents._
+import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
 import org.joda.time.DateTime
 import play.api.libs.json._
 

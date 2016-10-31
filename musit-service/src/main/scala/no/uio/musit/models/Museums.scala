@@ -28,9 +28,9 @@ object Museums {
   object Museum {
     def fromMuseumId(i: MuseumId): Option[Museum] =
       i match {
+        case Khm.id => Some(Khm)
         case Am.id => Some(Am)
         case Um.id => Some(Um)
-        case Khm.id => Some(Khm)
         case Nhm.id => Some(Nhm)
         case Vm.id => Some(Vm)
         case Tmu.id => Some(Tmu)
@@ -38,15 +38,15 @@ object Museums {
       }
   }
 
-  case object Am extends Museum {
+  case object Khm extends Museum {
     val id = MuseumId(1)
   }
 
-  case object Um extends Museum {
+  case object Am extends Museum {
     val id = MuseumId(2)
   }
 
-  case object Khm extends Museum {
+  case object Um extends Museum {
     val id = MuseumId(3)
   }
 

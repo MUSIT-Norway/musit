@@ -20,9 +20,9 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType._
-import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageNodeId, StorageType}
-import no.uio.musit.microservice.storagefacility.domain.{MuseumId, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.storage.{Root, StorageType}
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeId}
 import no.uio.musit.service.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -208,7 +208,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "fetch tuples of StorageNodeId and StorageType for a NodePath" in {
-      val mid = MuseumId(2)
+      val mid = MuseumId(1)
       val orgPath = NodePath(",1,22,")
       val org = createOrganisation(
         partOf = Some(StorageNodeId(1)),

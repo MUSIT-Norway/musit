@@ -19,9 +19,9 @@
 
 package dao
 
+import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.service.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import models.MuseumId
 import org.scalatest.time.{Millis, Seconds, Span}
 
 class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
@@ -35,27 +35,27 @@ class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
 
   "Interacting with the StorageNodeDao" when {
 
-    "getting objects for a nodeId that does not exist within a spesific museum" should {
+    "getting objects for a nodeId that does not exist in a museum" should {
       "return false" in {
-        dao.nodeExists(MuseumId(2), 9999).futureValue match {
+        dao.nodeExists(MuseumId(1), StorageNodeId(9999)).futureValue match {
           case MusitSuccess(false) =>
           case _ => fail("it should not exist")
         }
       }
     }
 
-    "getting objects for a nodeId that exists in a spesific museum" should {
+    "getting objects for a nodeId that exists in a museum" should {
       "return true" in {
-        dao.nodeExists(MuseumId(2), 3).futureValue match {
+        dao.nodeExists(MuseumId(1), StorageNodeId(3)).futureValue match {
           case MusitSuccess(true) =>
           case _ => fail("it should exist")
         }
       }
     }
 
-    "getting objects for a nodeId with wrong museum" should {
+    "getting objects using an invalid museum ID" should {
       "return true" in {
-        dao.nodeExists(MuseumId(55), 3).futureValue match {
+        dao.nodeExists(MuseumId(55), StorageNodeId(3)).futureValue match {
           case MusitSuccess(false) =>
           case _ => fail("it should not exist")
         }

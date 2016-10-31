@@ -17,18 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package no.uio.musit.models
 
-import play.api.libs.json._
-
-case class MuseumId(underlying: Int) extends AnyVal
-
-object MuseumId {
-  implicit val reads: Reads[MuseumId] = __.read[Int].map(MuseumId.apply)
-  implicit val writes: Writes[MuseumId] = Writes { value: MuseumId =>
-    JsNumber(value.underlying)
-  }
-
-  implicit def fromInt(id: Int): MuseumId = MuseumId(id)
+trait MusitId {
+  val underlying: Long
 }
 
+object MusitId {
+
+  implicit def toStorageNodeId(m: MusitId): StorageNodeId = StorageNodeId(m.underlying)
+  implicit def toEventId(m: MusitId): EventId = EventId(m.underlying)
+  implicit def toObjectId(m: MusitId): ObjectId = ObjectId(m.underlying)
+  implicit def toActorId(m: MusitId): ActorId = ActorId(m.underlying)
+
+}

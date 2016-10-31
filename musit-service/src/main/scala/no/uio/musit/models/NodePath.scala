@@ -17,17 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package no.uio.musit.models
 
 import play.api.Logger
-import play.api.libs.json.{JsString, Reads, Writes, _}
+import play.api.libs.json.Reads._
+import play.api.libs.json._
 
 /**
- * FIXME: THIS CODE IS COPIED FROM THE STORAGEFACILITY SERVICE.
- * Need to move this into a separate library. All identifiers and other types
- * that are core to the system should also be moved in the same operation.
- *
- *
  * Trait defining the shape of a NodePath
  */
 trait NodePath {
@@ -54,22 +50,38 @@ trait NodePath {
    *
    * @param childId StorageNodeId of to append to the path.
    */
-  def appendChild(childId: Long): NodePath = {
-    NodePath(s"$path$childId,")
+  def appendChild(childId: StorageNodeId): NodePath = {
+    NodePath(s"$path${childId.underlying},")
   }
 
   /**
    * Converts the path to a collection of StorageNodeIds
+   *
    * @return Seq[StorageNodeId]
    */
-  def asIdSeq: Seq[Long] = {
+  def asIdSeq: Seq[StorageNodeId] = {
     path.stripPrefix(",")
       .stripSuffix(",")
       .split(",")
       .map(_.trim())
       .filterNot(_ == "")
-      .map(s => s.toLong)
+      .map(s => StorageNodeId(s.toLong))
   }
+
+  /**
+   * Calculates whether or not the current node is a child of the given path.
+   *
+   * @param p NodePath to check if this node is a child of
+   * @return true if this node is a child, else false
+   */
+  def childOf(p: NodePath): Boolean = {
+    if (p != NodePath.empty && this != NodePath.empty) {
+      path.startsWith(p.path)
+    } else {
+      false
+    }
+  }
+
 }
 
 object NodePath {

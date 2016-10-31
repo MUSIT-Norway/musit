@@ -19,7 +19,7 @@
 
 package dao
 
-import models.{MuseumId, MuseumNo, ObjectId, SubNo}
+import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
@@ -36,7 +36,7 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId that exists within a museum" should {
       "return a list of objects" in {
-        val mr = dao.getObjects(MuseumId(2), 3).futureValue
+        val mr = dao.getObjects(MuseumId(1), StorageNodeId(3)).futureValue
         mr.isSuccess mustBe true
         mr.get.size mustBe 3
         mr.get match {
@@ -59,16 +59,16 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
       }
     }
 
-    "get objects for a nodeId that does not exist, museum exists" should {
+    "get objects for a nodeId that does not exist in museum" should {
       "return a an empty vector" in {
-        val mr = dao.getObjects(MuseumId(1), 999999).futureValue
+        val mr = dao.getObjects(MuseumId(1), StorageNodeId(999999)).futureValue
         mr.isSuccess mustBe true
         mr.get.length mustBe 0
       }
     }
-    "get objects for a museum that does not exist, nodeId exists" should {
+    "get objects for a museum that does not exist" should {
       "return a an empty vector" in {
-        val mr = dao.getObjects(MuseumId(55), 2).futureValue
+        val mr = dao.getObjects(MuseumId(55), StorageNodeId(2)).futureValue
         mr.isSuccess mustBe true
         mr.get.length mustBe 0
       }

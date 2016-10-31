@@ -20,12 +20,13 @@
 package no.uio.musit.microservice.storagefacility.service
 
 import no.uio.musit.microservice.storagefacility.DummyData
-import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
-import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNodeId, StorageUnit}
 import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.microservice.storagefacility.domain.event.EventType
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
+import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveNode, MoveObject}
+import no.uio.musit.microservice.storagefacility.domain.storage.StorageUnit
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
+import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -57,7 +58,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val ins = service.addRoom(defaultMuseumId, room).futureValue
       ins.isSuccess mustBe true
       ins.get must not be None
-      ins.get.get.updatedBy.get mustBe (DummyData.DummyUserId)
+      ins.get.get.updatedBy.get mustBe DummyData.DummyUserId
       ins.get.get.updatedDate.get.toString must include("2016")
 
       val inserted = ins.get.get
@@ -83,7 +84,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       inserted.id must not be None
       inserted.environmentRequirement must not be None
       inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
-      inserted.updatedBy.get mustBe (DummyData.DummyUserId)
+      inserted.updatedBy.get mustBe DummyData.DummyUserId
       inserted.updatedDate.get.toString must include("2016")
 
       val someEnvReq = Some(initEnvironmentRequirement(
@@ -110,7 +111,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val inserted = ins.get.get
       inserted.id must not be None
-      inserted.updatedBy.get mustBe (DummyData.DummyUserId)
+      inserted.updatedBy.get mustBe DummyData.DummyUserId
       inserted.updatedDate.get.toString must include("2016")
 
       val res = storageUnitDao.getById(defaultMuseumId, inserted.id.get).futureValue

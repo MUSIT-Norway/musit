@@ -17,22 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package no.uio.musit.models
 
 import play.api.libs.json.{Format, Json}
 
 /**
- * FIXME: THIS CODE IS COPIED FROM THE STORAGEFACILITY SERVICE.
- * Need to move this into a separate library. All identifiers and other types
- * that are core to the system should also be moved in the same operation.
- *
  * A NodePath contains a comma separated String of StorageNodeId (or Long)
  * values, each of these ID's can be represented as a NamedPathElement.
  *
  * @param nodeId StorageNodeId of the named path element
- * @param name String containing the name value of the StorageNode.
+ * @param name   String containing the name value of the StorageNode.
  */
-case class NamedPathElement(nodeId: Long, name: String)
+case class NamedPathElement(nodeId: StorageNodeId, name: String)
 
 object NamedPathElement {
 

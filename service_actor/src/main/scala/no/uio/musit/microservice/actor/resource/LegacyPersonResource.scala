@@ -21,19 +21,22 @@ package no.uio.musit.microservice.actor.resource
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.Person
 import no.uio.musit.microservice.actor.service.LegacyPersonService
-import no.uio.musit.service.MusitSearch
+import no.uio.musit.security.Authenticator
+import no.uio.musit.service.{MusitController, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
-import play.api.mvc._
 
 import scala.concurrent.Future
 
-// TODO: Activate new routes and delete old ones for Actor, and rename resource to LegacyPerson + redo the integration tests
 class LegacyPersonResource @Inject() (
-    service: LegacyPersonService
-) extends Controller {
+    val authService: Authenticator,
+    val service: LegacyPersonService
+) extends MusitController {
 
-  def search(museumId: Int, search: Option[MusitSearch]) = Action.async { request =>
+  def search(
+    museumId: Int,
+    search: Option[MusitSearch]
+  ) = MusitSecureAction().async { request =>
     search match {
       case Some(criteria) =>
         service.find(criteria).map(persons => Ok(Json.toJson(persons)))
@@ -45,7 +48,7 @@ class LegacyPersonResource @Inject() (
     }
   }
 
-  def details = Action.async(parse.json) { request =>
+  def details = MusitSecureAction().async(parse.json) { request =>
     request.body.validate[Seq[Long]] match {
       case JsSuccess(ids, path) =>
         service.findDetails(ids.toSet).map { persons =>
@@ -61,7 +64,7 @@ class LegacyPersonResource @Inject() (
     }
   }
 
-  def get(id: Long) = Action.async { request =>
+  def get(id: Long) = MusitSecureAction().async { request =>
     service.find(id).map {
       case Some(actor) =>
         Ok(Json.toJson(actor))
@@ -71,7 +74,7 @@ class LegacyPersonResource @Inject() (
     }
   }
 
-  def add = Action.async(parse.json) { request =>
+  def add = MusitSecureAction().async(parse.json) { request =>
     request.body.validate[Person] match {
       case s: JsSuccess[Person] =>
         service.create(s.get).map(newActor => Created(Json.toJson(newActor)))

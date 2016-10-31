@@ -21,22 +21,24 @@ package no.uio.musit.microservice.actor.resource
 import com.google.inject.Inject
 import no.uio.musit.microservice.actor.domain.OrganizationAddress
 import no.uio.musit.microservice.actor.service.OrganizationAddressService
+import no.uio.musit.security.Authenticator
+import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
-import play.api.mvc._
 
 import scala.concurrent.Future
 
 class OrganizationAddressResource @Inject() (
+    val authService: Authenticator,
     val orgAdrService: OrganizationAddressService
-) extends Controller {
+) extends MusitController {
 
-  def listForOrg(organizationId: Long) = Action.async { request =>
+  def listForOrg(organizationId: Long) = MusitSecureAction().async { request =>
     orgAdrService.all(organizationId).map(addr => Ok(Json.toJson(addr)))
   }
 
-  def get(organizationId: Long, id: Long) = Action.async { request =>
+  def get(organizationId: Long, id: Long) = MusitSecureAction().async { request =>
     orgAdrService.find(id).map {
       case Some(addr) =>
         Ok(Json.toJson(addr))
@@ -46,7 +48,7 @@ class OrganizationAddressResource @Inject() (
     }
   }
 
-  def add(organizationId: Long) = Action.async(parse.json) { request =>
+  def add(organizationId: Long) = MusitSecureAction().async(parse.json) { request =>
     request.body.validate[OrganizationAddress] match {
       case s: JsSuccess[OrganizationAddress] =>
         orgAdrService.create(s.get).map(newAddr => Created(Json.toJson(newAddr)))
@@ -56,7 +58,7 @@ class OrganizationAddressResource @Inject() (
     }
   }
 
-  def update(organizationId: Long, id: Long) = Action.async(parse.json) { request =>
+  def update(organizationId: Long, id: Long) = MusitSecureAction().async(parse.json) { request =>
     request.body.validate[OrganizationAddress] match {
       case s: JsSuccess[OrganizationAddress] =>
         orgAdrService.update(s.get).map {
@@ -77,7 +79,7 @@ class OrganizationAddressResource @Inject() (
     }
   }
 
-  def delete(organizationId: Long, id: Long) = Action.async { request =>
+  def delete(organizationId: Long, id: Long) = MusitSecureAction().async { request =>
     orgAdrService.remove(id).map { noDeleted =>
       Ok(Json.obj("message" -> s"Deleted $noDeleted record(s)."))
     }

@@ -23,7 +23,8 @@ import no.uio.musit.microservice.storagefacility.DummyData
 import no.uio.musit.microservice.storagefacility.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.storage._
-import no.uio.musit.microservice.storagefacility.domain.{Interval, MuseumId, NodePath}
+import no.uio.musit.microservice.storagefacility.domain.Interval
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeId}
 import no.uio.musit.test.MusitSpecWithApp
 import play.api.Application
 
@@ -34,7 +35,7 @@ import scala.concurrent.{Await, Future}
 trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>
 
-  val defaultMuseumId = MuseumId(2)
+  val defaultMuseumId = MuseumId(1)
 
   def buildingDao: BuildingDao = {
     val instance = Application.instanceCache[BuildingDao]

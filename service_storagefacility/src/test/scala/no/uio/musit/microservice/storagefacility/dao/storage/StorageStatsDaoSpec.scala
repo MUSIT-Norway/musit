@@ -19,9 +19,8 @@
 
 package no.uio.musit.microservice.storagefacility.dao.storage
 
-import no.uio.musit.microservice.storagefacility.domain.NodePath
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
 import no.uio.musit.microservice.storagefacility.testhelpers.NodeGenerators
+import no.uio.musit.models.{NodePath, StorageNodeId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Application

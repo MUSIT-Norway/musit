@@ -19,19 +19,21 @@
 
 package controllers
 
-import com.google.inject.Inject
+import no.uio.musit.security.{BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.JsArray
 
 import scala.language.postfixOps
 
-class ObjectSearchIntegrationSpec @Inject() () extends MusitSpecWithServerPerSuite {
+class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
+
+  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
 
   var url = (mid: Int) => s"/museum/$mid/objects/search"
 
@@ -39,7 +41,7 @@ class ObjectSearchIntegrationSpec @Inject() () extends MusitSpecWithServerPerSui
 
     "find an object that exist with a specific museumNo" in {
 
-      val res = wsUrl(url(2)).withQueryString(
+      val res = wsUrl(url(1)).withHeaders(fakeToken.asHeader).withQueryString(
         "museumNo" -> "C666",
         "subNo" -> "",
         "term" -> "",

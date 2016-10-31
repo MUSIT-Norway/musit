@@ -20,20 +20,24 @@
 package controllers
 
 import com.google.inject.Inject
-import models.{MuseumNo, MusitObject, ObjectSearchResult, SubNo}
+import models.ObjectSearchResult
+import no.uio.musit.models.{MuseumNo, SubNo}
+import no.uio.musit.security.Authenticator
+import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
 import play.api.{Configuration, Logger}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Controller, Results}
+import play.api.mvc.Results
 import services.ObjectSearchService
 
 import scala.concurrent.Future
 
 class ObjectSearchController @Inject() (
-    conf: Configuration,
-    service: ObjectSearchService
-) extends Controller {
+    val authService: Authenticator,
+    val conf: Configuration,
+    val service: ObjectSearchService
+) extends MusitController {
 
   val logger = Logger(classOf[ObjectSearchController])
 
@@ -58,7 +62,7 @@ class ObjectSearchController @Inject() (
     museumNo: Option[String],
     subNo: Option[String],
     term: Option[String]
-  ) = Action.async { implicit request =>
+  ) = MusitSecureAction(mid).async { implicit request =>
     if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
       Future.successful {
         BadRequest(Json.obj(

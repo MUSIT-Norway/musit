@@ -20,9 +20,10 @@
 package dao
 
 import com.google.inject.Inject
-import models.{MuseumNo, MusitObject, ObjectSearchResult, SubNo}
+import models.ObjectSearchResult
 import models.SearchFieldValues._
 import models.dto.MusitObjectDto
+import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -36,7 +37,7 @@ import scala.concurrent.Future
  */
 class ObjectSearchDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   val logger = Logger(classOf[ObjectAggregationDao])
 
@@ -123,7 +124,7 @@ class ObjectSearchDao @Inject() (
   }
 
   private[dao] def searchQuery(
-    mid: Int,
+    mid: MuseumId,
     page: Int,
     pageSize: Int,
     museumNo: Option[MuseumNo],
@@ -159,7 +160,7 @@ class ObjectSearchDao @Inject() (
    * @return
    */
   def search(
-    mid: Int,
+    mid: MuseumId,
     page: Int,
     pageSize: Int,
     museumNo: Option[MuseumNo],
@@ -177,7 +178,7 @@ class ObjectSearchDao @Inject() (
       matches <- matchedResults
     } yield {
       MusitSuccess(
-        ObjectSearchResult(total, matches.map(MusitObjectDto.toDomain))
+        ObjectSearchResult(total, matches.map(MusitObjectDto.toMusitObject))
       )
     }).recover {
       case e: Exception =>
@@ -201,10 +202,11 @@ class ObjectSearchDao @Inject() (
       subNoAsNumber,
       term
     ) <> (create.tupled, destroy)
+
     // scalastyle:on method.name
 
-    val id = column[Long]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
-    val museumId = column[Int]("MUSEUMID")
+    val id = column[ObjectId]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
+    val museumId = column[MuseumId]("MUSEUMID")
     val museumNo = column[String]("MUSEUMNO")
     val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")
     val subNo = column[Option[String]]("SUBNO")
@@ -212,8 +214,8 @@ class ObjectSearchDao @Inject() (
     val term = column[String]("TERM")
 
     def create = (
-      museumId: Int,
-      id: Option[Long],
+      museumId: MuseumId,
+      id: Option[ObjectId],
       museumNo: String,
       museumNoAsNumber: Option[Long],
       subNo: Option[String],
@@ -223,9 +225,9 @@ class ObjectSearchDao @Inject() (
       MusitObjectDto(
         museumId = museumId,
         id = id,
-        museumNo = museumNo,
+        museumNo = MuseumNo(museumNo),
         museumNoAsNumber = museumNoAsNumber,
-        subNo = subNo,
+        subNo = subNo.map(SubNo.apply),
         subNoAsNumber = subNoAsNumber,
         term = term
       )
@@ -234,11 +236,12 @@ class ObjectSearchDao @Inject() (
       Some((
         thing.museumId,
         thing.id,
-        thing.museumNo,
+        thing.museumNo.value,
         thing.museumNoAsNumber,
-        thing.subNo,
+        thing.subNo.map(_.value),
         thing.subNoAsNumber,
         thing.term
       ))
   }
+
 }

@@ -17,10 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.dao
+package dao
 
-import no.uio.musit.microservice.storagefacility.domain.event.EventTypeId
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageType
 import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfig
 import slick.driver.JdbcProfile
@@ -58,18 +56,6 @@ trait ColumnTypeMappers {
       longId => ActorId(longId)
     )
 
-  implicit lazy val storageTypeMapper =
-    MappedColumnType.base[StorageType, String](
-      storageType => storageType.entryName,
-      string => StorageType.withName(string)
-    )
-
-  implicit lazy val eventTypeIdMapper: BaseColumnType[EventTypeId] =
-    MappedColumnType.base[EventTypeId, Int](
-      eventTypeId => eventTypeId.underlying,
-      id => EventTypeId(id)
-    )
-
   implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =
     MappedColumnType.base[MuseumId, Int](
       museumId => museumId.underlying,
@@ -80,5 +66,17 @@ trait ColumnTypeMappers {
     MappedColumnType.base[NodePath, String](
       nodePath => nodePath.path,
       pathStr => NodePath(pathStr)
+    )
+
+  implicit lazy val museumNoMapper: BaseColumnType[MuseumNo] =
+    MappedColumnType.base[MuseumNo, String](
+      museumNo => museumNo.value,
+      noStr => MuseumNo(noStr)
+    )
+
+  implicit lazy val subNoMapper: BaseColumnType[SubNo] =
+    MappedColumnType.base[SubNo, String](
+      subNo => subNo.value,
+      noStr => SubNo(noStr)
     )
 }

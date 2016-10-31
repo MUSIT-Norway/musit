@@ -23,16 +23,14 @@ package no.uio.musit.microservice.storagefacility.dao.event
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.ColumnTypeMappers
 import no.uio.musit.microservice.storagefacility.dao.event.EventRelationTypes.PartialEventRelation
-import no.uio.musit.microservice.storagefacility.domain.ObjectId
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.ObsSubEvents._
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.{EnvRequirementEventType, MoveNodeType, MoveObjectType}
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry._
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters.MoveConverters
 import no.uio.musit.microservice.storagefacility.domain.event.dto._
 import no.uio.musit.microservice.storagefacility.domain.event.move.MoveObject
-import no.uio.musit.microservice.storagefacility.domain.event.{EventId, EventTypeId, EventTypeRegistry}
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
+import no.uio.musit.microservice.storagefacility.domain.event.{EventTypeId, EventTypeRegistry}
+import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeId}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -575,7 +573,7 @@ class EventDao @Inject() (
   /**
    * Fetch events of a given TopLevelEvent type for the given StorageNodeId
    *
-   * @param mid: MuseumId
+   * @param mid       : MuseumId
    * @param id        StorageNodeId to get events for
    * @param eventType TopLevelEvent type to fetch
    * @tparam A type argument specifying the type of TopLevelEvent to fetch

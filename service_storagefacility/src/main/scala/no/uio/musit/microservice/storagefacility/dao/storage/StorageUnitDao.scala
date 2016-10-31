@@ -20,13 +20,12 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.datetime.Implicits._
 import no.uio.musit.microservice.storagefacility.DummyData
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
+import no.uio.musit.microservice.storagefacility.domain.datetime.Implicits._
 import no.uio.musit.microservice.storagefacility.domain.datetime._
 import no.uio.musit.microservice.storagefacility.domain.storage._
 import no.uio.musit.microservice.storagefacility.domain.storage.dto.StorageNodeDto
-import no.uio.musit.microservice.storagefacility.domain.{NamedPathElement, NodePath}
+import no.uio.musit.models.{MuseumId, NamedPathElement, NodePath, StorageNodeId}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -200,7 +199,7 @@ class StorageUnitDao @Inject() (
   /**
    * Updates the path for all nodes that starts with the "oldPath".
    *
-   * @param id the StorageNodeId to update
+   * @param id   the StorageNodeId to update
    * @param path the NodePath to set
    * @return MusitResult[Unit]
    */

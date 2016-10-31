@@ -3,8 +3,8 @@ Norwegian university museums IT organization (MUSIT); cultural history and natur
 
 Code status for master branch:
 * [![Run Status](https://api.shippable.com/projects/5756ccf92a8192902e22c72c/badge?branch=master)](https://app.shippable.com/projects/5756ccf92a8192902e22c72c)
-* [![Codacy Badge](https://api.codacy.com/project/badge/Grade/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/musit-project/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Grade)
-* [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/musit-project/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Coverage)  (NOTE: due to a bug in scoverage, the test coverage is not reported correctly)
+* [![Codacy Badge](https://api.codacy.com/project/badge/Grade/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/MUSIT-Norway/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Grade)
+* [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/MUSIT-Norway/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Coverage)  (NOTE: due to a bug in scoverage, the test coverage is not reported correctly)
 
 Status badges is retrieved directly from the services monitoring the code.
 
@@ -16,35 +16,12 @@ MUSIT strives for greater integration between its databases and is an open sourc
 ## License
 All code is protected under the [GPL v2 or later](http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) and copyright holder is [MUSIT](http://musit.uio.no) as a part of [University of Oslo](http://www.uio.no).
 
-## Contents
-**gui** - ReactJS w/redux frontend and NodeJS api gateway implemetation. ([See Frontend](#Frontend))
-
-**common** - A directory for common code for all service implementations.
-
-**service**_* - Microservice implementations in scala and Playframework. ([See Middleware](#Middleware))
-
-
-### Middleware
-All middeware service* projects are a Scala 2.11.x implementation of a microservice architecture using Playframework 2.4.x.
-The base structure for the application is made from Lightbends activator example on Playframework microservices and customised for the projects requirements.
-
-The microservices is the service support for the ReactJS frontend to store informastion about all objects collected for both Naturalhistory and Culturalhistory as well as how and where these are stored.
-
-The microservices will be database transparent when the project is at version 1, but during the development process we are gradualy migrating an old Oracle database. This makes us dependant on Oracle in the start.
-
-The project use Slick to abstract the new database.
-
-The REST endpoints follow best practices with HATEOS linking to keep datapackets small. This enables us to support mobile devices easier.
-
-All development has been done on Redhat Linux Enterprise 7 and Apple OSX. If you find any issues do not hesitate posting an issue or make a pull request on GitHub for the project so we can look closer at this and get it sorted.
-
-Notice that all files in this directory and hereunder is subject to the GPL License and the full copyright is owned by MUSIT as part of UIO.
 
 #### Installation
 
 To get started you need to install the following components on your computer:
 * [SBT](http://www.scala-sbt.org) latest version.
-* [Java 8](http://java.oracle.com) lates patchlevel of java 8 SE JDK.
+* [Java 8](http://java.oracle.com) latest patchlevel of java 8 SE JDK.
 * [Docker](http://www.docker.com) latest version for your OS.
 
 After Java 8 and sbt is installed.

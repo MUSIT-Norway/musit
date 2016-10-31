@@ -2,8 +2,8 @@ package no.uio.musit.microservice.storagefacility.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.microservice.storagefacility.dao.{ColumnTypeMappers, SchemaName}
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.EnvRequirementDto
+import no.uio.musit.models.EventId
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
@@ -48,6 +48,7 @@ class EnvRequirementDao @Inject() (
       cleaning,
       light
     ) <> (create.tupled, destroy)
+
     // scalastyle:on method.name
 
     val id = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)

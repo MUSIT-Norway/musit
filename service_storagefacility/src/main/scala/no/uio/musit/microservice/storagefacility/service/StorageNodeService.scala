@@ -26,12 +26,12 @@ import no.uio.musit.microservice.storagefacility.dao.event.{EventDao, LocalObjec
 import no.uio.musit.microservice.storagefacility.dao.storage._
 import no.uio.musit.microservice.storagefacility.domain._
 import no.uio.musit.microservice.storagefacility.domain.datetime._
-import no.uio.musit.microservice.storagefacility.domain.event.EventId
 import no.uio.musit.microservice.storagefacility.domain.event.dto.DtoConverters
 import no.uio.musit.microservice.storagefacility.domain.event.envreq.EnvRequirement
 import no.uio.musit.microservice.storagefacility.domain.event.move.{MoveEvent, MoveNode, MoveObject}
 import no.uio.musit.microservice.storagefacility.domain.storage.StorageType.{BuildingType, OrganisationType, RoomType, RootType, StorageUnitType}
 import no.uio.musit.microservice.storagefacility.domain.storage._
+import no.uio.musit.models._
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -122,7 +122,7 @@ class StorageNodeService @Inject() (
    * somewhere in the hierarchy, will need to call this function to ensure
    * validity.
    *
-   * @param mid MuseumId
+   * @param mid  MuseumId
    * @param node an instance of T which must be a sub-type of StorageNode
    * @param dest the destination NodePath.
    * @tparam T the specific StorageNode type
@@ -749,7 +749,7 @@ class StorageNodeService @Inject() (
   /**
    * Helper method to find PathNames for a potentially present StorageNodeId.
    *
-   * @param mid MuseumId
+   * @param mid     MuseumId
    * @param maybeId Option[StorageNodeId]
    * @return Future[(NodePath, Seq[NamedPathElement])]
    */
@@ -820,6 +820,7 @@ class StorageNodeService @Inject() (
     }
     genNode
   }
+
   def searchName(mid: MuseumId, searchStr: String, page: Int, pageSize: Int): Future[MusitResult[Seq[GenericStorageNode]]] = {
     if (searchStr.length > 2) {
       unitDao.getStorageNodeByName(mid, searchStr, page, pageSize).map { sn =>

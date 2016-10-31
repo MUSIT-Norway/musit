@@ -17,22 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.microservice.storagefacility.domain
+package no.uio.musit.models
 
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{JsNumber, Reads, Writes, _}
 
-/**
- * A NodePath contains a comma separated String of StorageNodeId (or Long)
- * values, each of these ID's can be represented as a NamedPathElement.
- *
- * @param nodeId StorageNodeId of the named path element
- * @param name String containing the name value of the StorageNode.
- */
-case class NamedPathElement(nodeId: StorageNodeId, name: String)
+case class ActorId(underlying: Long) extends MusitId
 
-object NamedPathElement {
+object ActorId {
 
-  implicit val formats: Format[NamedPathElement] = Json.format[NamedPathElement]
+  implicit val reads: Reads[ActorId] = __.read[Long].map(ActorId.apply)
+
+  implicit val writes: Writes[ActorId] = Writes(aid => JsNumber(aid.underlying))
+
+  implicit def fromLong(l: Long): ActorId = ActorId(l)
+
+  implicit def toLong(aid: ActorId): Long = aid.underlying
+
+  implicit def fromOptLong(ml: Option[Long]): Option[ActorId] = ml.map(fromLong)
+
+  implicit def toOptLong(maid: Option[ActorId]): Option[Long] = maid.map(toLong)
 
 }

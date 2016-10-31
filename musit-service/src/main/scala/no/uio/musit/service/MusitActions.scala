@@ -25,6 +25,7 @@ import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, BearerToken}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -42,12 +43,15 @@ trait MusitActions {
    * calculating authorisation and filtering of data.
    *
    * @param user    The authenticated user.
+   * @param token   A valid BearerToken
+   * @param museum  An optional Museum derived from an incoming MuseumId
    * @param request The incoming request
    * @tparam A Body content type of the incoming request
    */
   case class MusitRequest[A](
     user: AuthenticatedUser,
     token: BearerToken,
+    museum: Option[Museum],
     request: Request[A]
   ) extends WrappedRequest[A](request)
 
@@ -92,14 +96,18 @@ trait MusitActions {
               museum match {
                 case Some(m) =>
                   authUser.authorize(m, permissions).map { empty =>
-                    Right(MusitRequest(authUser, token, request))
+                    Right(MusitRequest(authUser, token, museum, request))
                   }.getOrElse {
                     logger.debug(s"Action is unauthorized for ${userInfo.id}")
                     Left(Forbidden)
                   }
 
                 case None =>
-                  Right(MusitRequest(authUser, token, request))
+                  if (museumId.isDefined) {
+                    Left(BadRequest(Json.obj("message" -> s"Unknown museum $museumId")))
+                  } else {
+                    Right(MusitRequest(authUser, token, museum, request))
+                  }
               }
             }
           }.getOrElse(Left(Unauthorized))

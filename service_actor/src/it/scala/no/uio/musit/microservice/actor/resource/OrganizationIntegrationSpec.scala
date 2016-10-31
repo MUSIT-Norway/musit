@@ -1,6 +1,7 @@
 package no.uio.musit.microservice.actor.resource
 
 import no.uio.musit.microservice.actor.testdata.ActorJsonGenerator._
+import no.uio.musit.security.{BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
@@ -16,20 +17,23 @@ class OrganizationIntegrationSpec extends MusitSpecWithServerPerSuite {
     interval = Span(50, Millis)
   )
 
+  val fakeUserId = "musitTestUser"
+  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + fakeUserId)
+
   def postOrganization(json: JsValue): Future[WSResponse] = {
-    wsUrl("/v1/organization").post(json)
+    wsUrl("/v1/organization").withHeaders(fakeToken.asHeader).post(json)
   }
 
   def putOrganization(id: Long, json: JsValue): Future[WSResponse] = {
-    wsUrl(s"/v1/organization/$id").put(json)
+    wsUrl(s"/v1/organization/$id").withHeaders(fakeToken.asHeader).put(json)
   }
 
   def deleteOrganization(id: Long): Future[WSResponse] = {
-    wsUrl(s"/v1/organization/$id").delete
+    wsUrl(s"/v1/organization/$id").withHeaders(fakeToken.asHeader).delete
   }
 
   def getOrganization(id: Long): Future[WSResponse] = {
-    wsUrl(s"/v1/organization/$id").get
+    wsUrl(s"/v1/organization/$id").withHeaders(fakeToken.asHeader).get
   }
 
   "OrganizationIntegration " must {
@@ -45,12 +49,16 @@ class OrganizationIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "return bad request when no search criteria is specified" in {
-      val res = wsUrl("/v1/organization?museumId=0").get().futureValue
+      val res = wsUrl("/v1/organization?museumId=0")
+        .withHeaders(fakeToken.asHeader)
+        .get().futureValue
       res.status mustBe Status.BAD_REQUEST
     }
 
     "successfully search for organization" in {
-      val res = wsUrl("/v1/organization?museumId=0&search=[KHM]").get().futureValue
+      val res = wsUrl("/v1/organization?museumId=0&search=[KHM]")
+        .withHeaders(fakeToken.asHeader)
+        .get().futureValue
       val orgs = res.json.as[JsArray].value
       orgs.length mustBe 1
       (orgs.head \ "fn").as[String] mustBe "Kulturhistorisk museum - Universitetet i Oslo"

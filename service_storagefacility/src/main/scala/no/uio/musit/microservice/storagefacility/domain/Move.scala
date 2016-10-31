@@ -19,9 +19,9 @@
 
 package no.uio.musit.microservice.storagefacility.domain
 
-import no.uio.musit.microservice.storagefacility.domain.storage.StorageNodeId
-import play.api.libs.json._
+import no.uio.musit.models.{ActorId, StorageNodeId}
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 case class Move[A](
   doneBy: ActorId,

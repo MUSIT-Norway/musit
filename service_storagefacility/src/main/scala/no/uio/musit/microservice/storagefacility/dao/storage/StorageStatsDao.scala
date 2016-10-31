@@ -20,8 +20,7 @@
 package no.uio.musit.microservice.storagefacility.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.microservice.storagefacility.domain.NodePath
-import no.uio.musit.microservice.storagefacility.domain.storage.{StorageNode, StorageNodeId}
+import no.uio.musit.models.{StorageNodeId, NodePath}
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
@@ -71,9 +70,9 @@ class StorageStatsDao @Inject() (
   def directObjectCount(nodeId: StorageNodeId): Future[Int] = {
     db.run(
       sql"""
-        select count(*)
-        from "MUSARK_STORAGE"."LOCAL_OBJECT"
-        where "CURRENT_LOCATION_ID" = ${nodeId.underlying}
+        SELECT count(*)
+        FROM "MUSARK_STORAGE"."LOCAL_OBJECT"
+        WHERE "CURRENT_LOCATION_ID" = ${nodeId.underlying}
       """.as[Int].head
     )
   }

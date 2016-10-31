@@ -19,11 +19,11 @@
 
 package no.uio.musit.microservice.storagefacility.resource
 
-import no.uio.musit.microservice.storagefacility.domain.MuseumId
 import no.uio.musit.microservice.storagefacility.domain.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.microservice.storagefacility.domain.event.control.Control
-import no.uio.musit.microservice.storagefacility.domain.storage.{EnvironmentRequirement, StorageNodeId}
 import no.uio.musit.microservice.storagefacility.test.{EventJsonGenerator, StorageNodeJsonGenerator, _}
+import no.uio.musit.models.{MuseumId, StorageNodeId}
+import no.uio.musit.security.{BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
@@ -38,17 +38,25 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     interval = Span(50, Millis)
   )
 
-  val mid = MuseumId(2)
+  val mid = MuseumId(1)
+
+  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
 
   override def beforeTests(): Unit = {
     Try {
       import StorageNodeJsonGenerator._
       // Initialise some storage units...
-      val root = wsUrl(RootNodeUrl(mid)).post(JsNull).futureValue
+      val root = wsUrl(RootNodeUrl(mid))
+        .withHeaders(fakeToken.asHeader)
+        .post(JsNull).futureValue
       val rootId = (root.json \ "id").asOpt[StorageNodeId]
-      val org = wsUrl(StorageNodesUrl(mid)).post(organisationJson("Foo", rootId)).futureValue
+      val org = wsUrl(StorageNodesUrl(mid))
+        .withHeaders(fakeToken.asHeader)
+        .post(organisationJson("Foo", rootId)).futureValue
       val orgId = (org.json \ "id").as[StorageNodeId]
-      wsUrl(StorageNodesUrl(mid)).post(buildingJson("Bar", orgId)).futureValue
+      wsUrl(StorageNodesUrl(mid))
+        .withHeaders(fakeToken.asHeader)
+        .post(buildingJson("Bar", orgId)).futureValue
       println("Done populating") // scalastyle:ignore
     }.recover {
       case t: Throwable =>
@@ -60,7 +68,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "successfully register a new control" in {
       val json = Json.parse(EventJsonGenerator.controlJson(20))
-      val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
+      val res = wsUrl(ControlsUrl(mid, 2)).withHeaders(fakeToken.asHeader).post(json).futureValue
 
       res.status mustBe Status.CREATED
       val maybeCtrlId = (res.json \ "id").asOpt[Long]
@@ -70,7 +78,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "get a specific control for a node" in {
       val ctrlId = 2
-      val res = wsUrl(s"${ControlsUrl(mid, 2)}/$ctrlId").get().futureValue
+      val res = wsUrl(s"${ControlsUrl(mid, 2)}/$ctrlId")
+        .withHeaders(fakeToken.asHeader)
+        .get().futureValue
 
       res.status mustBe Status.OK
 
@@ -84,7 +94,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "successfully register another control" in {
       val json = Json.parse(EventJsonGenerator.controlJson(22))
-      val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
+      val res = wsUrl(ControlsUrl(mid, 2))
+        .withHeaders(fakeToken.asHeader)
+        .post(json).futureValue
 
       res.status mustBe Status.CREATED
       (res.json \ "id").asOpt[Long] must not be None
@@ -99,7 +111,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           )
         )
 
-      val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
+      val res = wsUrl(ControlsUrl(mid, 2))
+        .withHeaders(fakeToken.asHeader)
+        .post(json).futureValue
       res.status mustBe Status.BAD_REQUEST
       res.body must include("cannot also have an observation")
     }
@@ -108,14 +122,18 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       val json = Json.parse(EventJsonGenerator.controlJson(5)).as[JsObject] ++
         Json.obj("cleaning" -> Json.obj("ok" -> false))
 
-      val res = wsUrl(ControlsUrl(mid, 2)).post(json).futureValue
+      val res = wsUrl(ControlsUrl(mid, 2))
+        .withHeaders(fakeToken.asHeader)
+        .post(json).futureValue
       res.status mustBe Status.BAD_REQUEST
       res.body must include("must have an observation")
     }
 
     "successfully register a new observation" in {
       val json = Json.parse(EventJsonGenerator.observationJson(22))
-      val res = wsUrl(ObservationsUrl(mid, 2)).post(json).futureValue
+      val res = wsUrl(ObservationsUrl(mid, 2))
+        .withHeaders(fakeToken.asHeader)
+        .post(json).futureValue
 
       res.status mustBe Status.CREATED
       val obsId = (res.json \ "id").asOpt[Long]
@@ -128,7 +146,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "successfully register another observation" in {
       val json = Json.parse(EventJsonGenerator.observationJson(22))
-      val res = wsUrl(ObservationsUrl(mid, 2)).post(json).futureValue
+      val res = wsUrl(ObservationsUrl(mid, 2))
+        .withHeaders(fakeToken.asHeader)
+        .post(json).futureValue
 
       res.status mustBe Status.CREATED
       val obsId = (res.json \ "id").asOpt[Long]
@@ -137,7 +157,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "list all controls and observations for a node, ordered by doneDate" in {
       // TODO: Update this test once observations are created in above tests
-      val res = wsUrl(CtrlObsForNodeUrl(mid, 2)).get().futureValue
+      val res = wsUrl(CtrlObsForNodeUrl(mid, 2))
+        .withHeaders(fakeToken.asHeader)
+        .get().futureValue
 
       res.status mustBe Status.OK
       res.json.as[JsArray].value.size mustBe 4

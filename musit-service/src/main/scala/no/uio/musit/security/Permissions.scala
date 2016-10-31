@@ -25,12 +25,18 @@ object Permissions {
     val priority: Int
   }
 
+  object Unspecified extends Permission {
+    override val priority: Int = 0
+  }
+
   object Read extends Permission {
     override val priority: Int = 1
   }
+
   object Write extends Permission {
     override val priority: Int = 2
   }
+
   object Admin extends Permission {
     override val priority: Int = 3
   }

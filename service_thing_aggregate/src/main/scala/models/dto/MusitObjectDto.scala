@@ -19,27 +19,28 @@
 
 package models.dto
 
-import models.{MuseumNo, MusitObject, SubNo}
+import models.MusitObject
+import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
 
 case class MusitObjectDto(
-  museumId: Int,
-  id: Option[Long],
-  museumNo: String,
+  museumId: MuseumId,
+  id: Option[ObjectId],
+  museumNo: MuseumNo,
   museumNoAsNumber: Option[Long],
-  subNo: Option[String],
+  subNo: Option[SubNo],
   subNoAsNumber: Option[Long],
   term: String
 )
 
 object MusitObjectDto {
 
-  def toDomain(x: MusitObjectDto): MusitObject =
+  def toMusitObject(x: MusitObjectDto): MusitObject =
     MusitObject(
       // We can use get on the ID since we're only reading objects.
       // Hence an object _must_ have an ID in the database.
       id = x.id.get,
-      museumNo = MuseumNo(x.museumNo),
-      subNo = x.subNo.map(SubNo.apply),
+      museumNo = x.museumNo,
+      subNo = x.subNo,
       term = x.term
     )
 }

@@ -1,8 +1,9 @@
 package dao
 
 import com.google.inject.Inject
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import models._
+import no.uio.musit.models._
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -13,13 +14,16 @@ import scala.concurrent.Future
 
 class ObjectAggregationDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   val logger = Logger(classOf[ObjectAggregationDao])
 
   import driver.api._
 
-  def getObjects(mid: MuseumId, nodeId: Long): Future[MusitResult[Seq[ObjectAggregation]]] = {
+  def getObjects(
+    mid: MuseumId,
+    nodeId: StorageNodeId
+  ): Future[MusitResult[Seq[ObjectAggregation]]] = {
     implicit val getObject = GetResult(r =>
       ObjectAggregation(
         id = ObjectId(r.nextLong),
@@ -32,7 +36,7 @@ class ObjectAggregationDao @Inject() (
          SELECT "MUSITTHING"."OBJECT_ID", "MUSITTHING"."MUSEUMNO", "MUSITTHING"."SUBNO", "MUSITTHING"."TERM"
          FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."MUSITTHING"
          WHERE "LOCAL_OBJECT"."MUSEUM_ID" = ${mid.underlying}
-         AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId}
+         AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId.underlying}
          AND "LOCAL_OBJECT"."OBJECT_ID" = "MUSITTHING"."OBJECT_ID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     ).recover {

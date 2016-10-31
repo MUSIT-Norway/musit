@@ -43,6 +43,9 @@ object Roles {
   val KhmSfRead = "KhmSfRead"
   val KhmSfWrite = "KhmSfWrite"
   val KhmSfAdmin = "KhmSfAdmin"
+  val UmSfRead = "UmSfRead"
+  val UmSfWrite = "UmSfWrite"
+  val UmSfAdmin = "UmSfAdmin"
   val EtnoRead = "EtnoRead"
   val EtnoWrite = "EtnoWrite"
   val FotoRead = "FotoRead"
@@ -55,6 +58,9 @@ object Roles {
     KhmSfRead -> Role(KhmSfRead, Khm, Seq(Read)),
     KhmSfWrite -> Role(KhmSfWrite, Khm, Seq(Write)),
     KhmSfAdmin -> Role(KhmSfAdmin, Khm, Seq(Admin)),
+    UmSfRead -> Role(UmSfRead, Um, Seq(Read)),
+    UmSfWrite -> Role(UmSfWrite, Um, Seq(Write)),
+    UmSfAdmin -> Role(UmSfAdmin, Um, Seq(Admin)),
     EtnoRead -> Role(EtnoRead, Khm, Seq(Read)),
     EtnoWrite -> Role(EtnoWrite, Khm, Seq(Write)),
     FotoRead -> Role(FotoRead, Khm, Seq(Read)),
