@@ -20,37 +20,35 @@
 package services
 
 import com.google.inject.Inject
-import models.Organization
+import models.OrganisationAddress
 import no.uio.musit.service.MusitResults.MusitResult
-import no.uio.musit.service.MusitSearch
-import repositories.dao.ActorDao
+import repositories.dao.AddressDao
 
 import scala.concurrent.Future
 
 /**
- * Business logic for the Person entity in the microservice, simple lookups and so on.
+ * TODO: Document me!!!
  */
-class OrganizationService @Inject() (val actorDao: ActorDao) {
+class OrganisationAddressService @Inject() (val adrDao: AddressDao) {
 
-  def find(id: Long): Future[Option[Organization]] = {
-    actorDao.getOrganizationById(id)
+  def all(organizationId: Long): Future[Seq[OrganisationAddress]] = {
+    adrDao.allFor(organizationId)
   }
 
-  def find(search: MusitSearch): Future[Seq[Organization]] = {
-    val searchString = search.searchStrings.reduce(_ + " " + _)
-    actorDao.getOrganizationByName(searchString)
+  def find(id: Long): Future[Option[OrganisationAddress]] = {
+    adrDao.getById(id)
   }
 
-  def create(organization: Organization): Future[Organization] = {
-    actorDao.insertOrganization(organization)
+  def create(address: OrganisationAddress): Future[OrganisationAddress] = {
+    adrDao.insert(address)
   }
 
-  def update(organization: Organization): Future[MusitResult[Option[Int]]] = {
-    actorDao.updateOrganization(organization)
+  def update(address: OrganisationAddress): Future[MusitResult[Option[Int]]] = {
+    adrDao.update(address)
   }
 
   def remove(id: Long): Future[Int] = {
-    actorDao.deleteOrganization(id)
+    adrDao.delete(id)
   }
 
 }

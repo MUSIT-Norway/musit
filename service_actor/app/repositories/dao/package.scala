@@ -17,26 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package repositories
 
-import play.api.libs.json.Json
+package object dao {
 
-/**
- * Address specialized for Organization
- */
-case class OrganizationAddress(
-  id: Option[Long],
-  organizationId: Option[Long],
-  addressType: String,
-  streetAddress: String,
-  locality: String,
-  postalCode: String,
-  countryName: String,
-  latitude: Double,
-  longitude: Double
-)
+  val SchemaName = "MUSARK_ACTOR"
+  val MappingSchemaName = "MUSIT_MAPPING"
 
-object OrganizationAddress {
-  val tupled = (OrganizationAddress.apply _).tupled
-  implicit val format = Json.format[OrganizationAddress]
+  val ActorTableName = "VIEW_ACTOR"
+  val OrgTableName = "ORGANIZATION"
+  val OrgAdrTableName = "ORGANIZATION_ADDRESS"
+
 }

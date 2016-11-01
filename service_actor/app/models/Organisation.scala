@@ -17,29 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package models
 
-import com.google.inject.Inject
-import models.Person
-import no.uio.musit.security.AuthenticatedUser
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.ActorDao
+import play.api.libs.json.Json
 
-import scala.concurrent.Future
+/**
+ * Domain Organization
+ */
+case class Organisation(
+  id: Option[Long],
+  fn: String,
+  nickname: String,
+  tel: String,
+  web: String
+)
 
-class UserService @Inject() (val actorDao: ActorDao) {
-
-  /**
-   * Gets an actor representing the current user. If it doesn't exist one in the
-   * database, it creates one.
-   *
-   * @param user
-   * @return
-   */
-  def currenUserAsActor(user: AuthenticatedUser): Future[Person] = {
-    actorDao.getByDataportenId(user.userInfo.id).flatMap {
-      case Some(person) => Future.successful(person)
-      case None => actorDao.insertAuthUser(user)
-    }
-  }
+object Organisation {
+  val tupled = (Organisation.apply _).tupled
+  implicit val format = Json.format[Organisation]
 }

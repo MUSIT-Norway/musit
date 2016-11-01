@@ -17,7 +17,7 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # Example schema
- 
+
 # --- !Ups
 
 CREATE SCHEMA IF NOT EXISTS MUSIT_MAPPING;
@@ -52,8 +52,9 @@ CREATE TABLE MUSARK_ACTOR.ORGANIZATION_ADDRESS (
   LONGITUDE FLOAT,
   PRIMARY KEY (ID)
 );
+
 ALTER TABLE MUSARK_ACTOR.ORGANIZATION_ADDRESS ADD FOREIGN KEY (ORGANIZATION_ID) REFERENCES MUSARK_ACTOR.ORGANIZATION(ID);
- 
+
 insert into MUSIT_MAPPING.VIEW_ACTOR (actorname, DATAPORTEN_ID) values ('And, Arne1', '12345678-adb2-4b49-bce3-320ddfe6c90f');
 insert into MUSIT_MAPPING.VIEW_ACTOR (actorname) values ('Kanin, Kalle1');
 insert into MUSARK_ACTOR.ORGANIZATION (ID, FN, NICKNAME, TEL, WEB) values (1, 'Kulturhistorisk museum - Universitetet i Oslo', 'KHM', '22 85 19 00', 'www.khm.uio.no');

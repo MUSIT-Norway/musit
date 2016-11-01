@@ -20,35 +20,29 @@
 package services
 
 import com.google.inject.Inject
-import models.OrganizationAddress
-import no.uio.musit.service.MusitResults.MusitResult
+import models.Person
+import no.uio.musit.service.MusitSearch
 import repositories.dao.ActorDao
 
 import scala.concurrent.Future
 
-/**
- * Business logic for the Person entity in the microservice, simple lookups and so on.
- */
-class OrganizationAddressService @Inject() (val actorDao: ActorDao) {
+class ActorService @Inject() (val actorDao: ActorDao) {
 
-  def all(organizationId: Long): Future[Seq[OrganizationAddress]] = {
-    actorDao.allAddressesForOrganization(organizationId)
+  def find(id: Long): Future[Option[Person]] = {
+    actorDao.getById(id)
   }
 
-  def find(id: Long): Future[Option[OrganizationAddress]] = {
-    actorDao.getOrganizationAddressById(id)
+  def findDetails(ids: Set[Long]): Future[Seq[Person]] = {
+    actorDao.listByIds(ids)
   }
 
-  def create(address: OrganizationAddress): Future[OrganizationAddress] = {
-    actorDao.insertOrganizationAddress(address)
+  def find(search: MusitSearch): Future[Seq[Person]] = {
+    val searchString = search.searchStrings.reduce(_ + " " + _)
+    actorDao.getByName(searchString)
   }
 
-  def update(address: OrganizationAddress): Future[MusitResult[Option[Int]]] = {
-    actorDao.updateOrganizationAddress(address)
-  }
-
-  def remove(id: Long): Future[Int] = {
-    actorDao.deleteOrganizationAddress(id)
+  def create(person: Person): Future[Person] = {
+    actorDao.insert(person)
   }
 
 }
