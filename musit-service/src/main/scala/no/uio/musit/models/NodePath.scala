@@ -40,8 +40,7 @@ trait NodePath {
   def parent: NodePath = {
     if (NodePath.empty.path == path) {
       NodePath.empty
-    }
-    else {
+    } else {
       val stripped = path.stripSuffix(",")
       NodePath(stripped.substring(0, stripped.lastIndexOf(",") + 1))
     }
