@@ -20,12 +20,12 @@
 package services
 
 import com.google.inject.Inject
-import dao.{ObjectSearchDao, StorageNodeDao}
 import models.ObjectSearchResult
 import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.dao.{ObjectSearchDao, StorageNodeDao}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal

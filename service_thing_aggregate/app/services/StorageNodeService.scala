@@ -20,9 +20,9 @@
 package services
 
 import com.google.inject.Inject
-import dao.StorageNodeDao
 import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.service.MusitResults.MusitResult
+import repositories.dao.StorageNodeDao
 
 import scala.concurrent.Future
 

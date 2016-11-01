@@ -93,6 +93,7 @@ object CommonSettings {
       )
       .settings(Seq(
         PlayKeys.playOmnidoc := false,
+        javaOptions in Test += "-Dconfig.file=conf/application.test.conf",
         maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
         packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
         packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",

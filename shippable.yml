@@ -32,5 +32,5 @@ build:
 
   ci:
     - sbt clean scalastyle
-    - sbt -mem 2048 coverage test it:test coverageReport
+    - sbt -mem 2048 coverage test coverageReport
     - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then sbt coverageAggregate codacyCoverage; else echo "Coverage reporting disabled for PR from forks"; fi
