@@ -41,8 +41,7 @@ object DtoConverters {
   /**
    * Converts a Long value to a Boolean.
    */
-  implicit def maybeLongToBool(mi: Option[Long]): Boolean =
-    mi.exists(i => if (i == 1) true else false)
+  implicit def maybeLongToBool(mi: Option[Long]): Boolean = mi.contains(1)
 
   def fromMapObsSub[E](
     m: Map[EventTypeId, ObservationSubEvent],
