@@ -59,7 +59,7 @@ object Dependencies {
     val silhouetteBcrypt = "com.mohiva" %% "play-silhouette-password-bcrypt" % silhouetteVersion
     val silhouetteCrypto = "com.mohiva" %% "play-silhouette-crypto-jca" % silhouetteVersion
     val silhouettePersistence = "com.mohiva" %% "play-silhouette-persistence" % silhouetteVersion
-    val silhouetteTestkit = "com.mohiva" %% "play-silhouette-testkit" % silhouetteVersion % "it,test"
+    val silhouetteTestkit = "com.mohiva" %% "play-silhouette-testkit" % silhouetteVersion % "test"
 
     val allDeps = Seq(
       silhouette,
@@ -85,8 +85,8 @@ object Dependencies {
   val h2database = "com.h2database" % "h2" % "1.4.192"
   var scalatestSpec = "org.scalatest" %% "scalatest" % "2.2.4"
   val scalatestplusSpec = "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1"
-  val scalatest = scalatestSpec % "it,test"
-  val scalatestplus = scalatestplusSpec % "it,test"
+  val scalatest = scalatestSpec % "test"
+  val scalatestplus = scalatestplusSpec % "test"
 
 
   val enumeratumDependencies: Seq[ModuleID] = {

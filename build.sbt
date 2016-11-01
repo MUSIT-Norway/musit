@@ -91,7 +91,7 @@ lazy val serviceThingAggregate = (
         packageName in Docker := "musit_service_thing_aggregate"
       )
     )
-) dependsOn(musitService, musitTest % "it,test")
+) dependsOn(musitService, musitTest % "test")
 
 lazy val serviceActor = (
   PlayProject("service_actor")
@@ -99,7 +99,7 @@ lazy val serviceActor = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(packageName in Docker := "musit_service_actor"))
-) dependsOn(musitService, musitTest % "it,test")
+) dependsOn(musitService, musitTest % "test")
 
 lazy val serviceGeoLocation = (
   PlayProject("service_geo_location")
@@ -111,7 +111,7 @@ lazy val serviceGeoLocation = (
         packageName in Docker := "musit_service_geo_location"
       )
     )
-) dependsOn(musitService, musitTest % "it,test")
+) dependsOn(musitService, musitTest % "test")
 
 lazy val serviceStoragefacility = (
   PlayProject("service_storagefacility")
@@ -124,4 +124,5 @@ lazy val serviceStoragefacility = (
         packageName in Docker := "musit_service_storagefacility"
       )
     )
-) dependsOn(musitService, musitTest % "it,test")
+) dependsOn(musitService, musitTest % "test")
+

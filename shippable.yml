@@ -31,6 +31,11 @@ build:
     options: "-e HOME=/root"
 
   ci:
-    - sbt clean scalastyle
-    - sbt -mem 2048 coverage test it:test coverageReport
-    - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then sbt coverageAggregate codacyCoverage; else echo "Coverage reporting disabled for PR from forks"; fi
+    - sbt -mem 2048 clean coverage test coverageReport
+    - sbt coverageAggregate
+    - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then sbt codacyCoverage; else echo "Coverage reporting disabled for PR from forks"; fi
+
+  post_ci:
+    # Prepare for exporting coverage report to codacy
+    - mkdir -p shippable/codecoverage
+    - mv target/scala-2.10/coverage-report/cobertura.xml $PWD/shippable/codecoverage/

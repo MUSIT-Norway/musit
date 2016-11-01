@@ -1,6 +1,0 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
-# Setup endpoints
-GET        /v1/address        no.uio.musit.microservice.geoLocation.resource.GeoLocationResource.searchExternal(search: Option[String] ?= None)

@@ -1,0 +1,28 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Setup endpoints
+
+GET           /v1/dataporten/currentUser                 controllers.UserResource.currentUser
+
+## Mapping routes, TODO: Remove these endpoints when database is migrated.
+GET           /v1/person                                 controllers.LegacyPersonResource.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
+POST          /v1/person/details                         controllers.LegacyPersonResource.details
+GET           /v1/person/:id                             controllers.LegacyPersonResource.get(id:Long)
+
+## Organization routes, the new actor
+GET           /v1/organization                           controllers.OrganizationResource.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
+POST          /v1/organization                           controllers.OrganizationResource.add
+PUT           /v1/organization/:orgId                    controllers.OrganizationResource.update(orgId:Long)
+GET           /v1/organization/:orgId                    controllers.OrganizationResource.get(orgId:Long)
+DELETE        /v1/organization/:orgId                    controllers.OrganizationResource.delete(orgId:Long)
+
+## OrganizationAddress routes, the new actor
+GET           /v1/organization/:orgId/address            controllers.OrganizationAddressResource.listForOrg(orgId:Long)
+POST          /v1/organization/:orgId/address            controllers.OrganizationAddressResource.add(orgId:Long)
+PUT           /v1/organization/:orgId/address/:id        controllers.OrganizationAddressResource.update(orgId:Long, id:Long)
+GET           /v1/organization/:orgId/address/:id        controllers.OrganizationAddressResource.get(orgId:Long, id:Long)
+DELETE        /v1/organization/:orgId/address/:id        controllers.OrganizationAddressResource.delete(orgId:Long, id:Long)
+
+
