@@ -33,8 +33,6 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
     interval = Span(50, Millis)
   )
 
-  override val dbName: String = testDb
-
   val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
 
   var url = (mid: Int) => s"/museum/$mid/objects/search"

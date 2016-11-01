@@ -34,6 +34,7 @@ trait MusitSpec extends PlaySpec with ScalaFutures
  * Mixin this trait if all you need is a fake Play application.
  */
 trait MusitSpecWithApp extends MusitSpec with MusitFakeApplication {
+
   // ¡¡¡NOTE: Do not make this immutable!!!
   var musitFakeApp = createApplication()
 

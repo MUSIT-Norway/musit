@@ -35,8 +35,6 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
     interval = Span(50, Millis)
   )
 
-  override val dbName: String = testDb
-
   val escapeChar = dao.escapeChar
 
   "The ObjectSearchDao" when {

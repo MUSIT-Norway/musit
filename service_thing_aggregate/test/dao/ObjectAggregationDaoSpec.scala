@@ -30,8 +30,6 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
     interval = Span(50, Millis)
   )
 
-  override val dbName: String = testDb
-
   val dao: ObjectAggregationDao = fromInstanceCache[ObjectAggregationDao]
 
   "Interacting with the ObjectAggregationDao" when {

@@ -31,8 +31,6 @@ class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
     interval = Span(50, Millis)
   )
 
-  override val dbName: String = testDb
-
   val dao: StorageNodeDao = fromInstanceCache[StorageNodeDao]
 
   "Interacting with the StorageNodeDao" when {

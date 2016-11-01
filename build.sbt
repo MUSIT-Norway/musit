@@ -124,5 +124,8 @@ lazy val serviceStoragefacility = (
         packageName in Docker := "musit_service_storagefacility"
       )
     )
+    settings(
+      javaOptions in Test += "-Dconfig.file=conf/application.test.conf"
+    )
 ) dependsOn(musitService, musitTest % "test")
 
