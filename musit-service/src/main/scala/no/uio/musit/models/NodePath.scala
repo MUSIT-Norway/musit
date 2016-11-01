@@ -38,7 +38,9 @@ trait NodePath {
    * result back.
    */
   def parent: NodePath = {
-    if (NodePath.empty.path == path) NodePath.empty
+    if (NodePath.empty.path == path) {
+      NodePath.empty
+    }
     else {
       val stripped = path.stripSuffix(",")
       NodePath(stripped.substring(0, stripped.lastIndexOf(",") + 1))
@@ -148,7 +150,5 @@ object NodePath {
   // JSON picklers for the NodePath type.
   implicit val reads: Reads[NodePath] = __.read[String].map(NodePath.apply)
 
-  implicit val writes: Writes[NodePath] = Writes { nodePath =>
-    JsString(nodePath.path)
-  }
+  implicit val writes: Writes[NodePath] = Writes(np => JsString(np.path))
 }
