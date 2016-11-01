@@ -86,9 +86,9 @@ object DtoConverters {
       eventDate = base.doneDate,
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
-      relatedActors = base.doneBy.map(ar => EventRoleActor.toEventRoleActor(ActorRole(1, ar.underlying))).toSeq,
-      relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or, base.eventType.registeredEventId)).toSeq,
-      relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr, base.eventType.registeredEventId)),
+      relatedActors = base.doneBy.map(ar => EventRoleActor.fromActorRole(ActorRole(1, ar.underlying))).toSeq,
+      relatedObjects = affectedThing.map(or => EventRoleObject.fromObjectRole(or, base.eventType.registeredEventId)).toSeq,
+      relatedPlaces = relPlaces.map(pr => EventRolePlace.fromPlaceRole(pr, base.eventType.registeredEventId)),
       note = note,
       relatedSubEvents = relEvents,
       partOf = None,
@@ -137,9 +137,9 @@ object DtoConverters {
       eventDate = base.doneDate,
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
-      relatedActors = base.doneBy.map(ar => EventRoleActor.toEventRoleActor(ActorRole(1, ar.underlying))).toSeq,
-      relatedObjects = affectedThing.map(or => EventRoleObject.toEventRoleObject(or, base.eventType.registeredEventId)).toSeq,
-      relatedPlaces = relPlaces.map(pr => EventRolePlace.toEventRolePlace(pr, base.eventType.registeredEventId)),
+      relatedActors = base.doneBy.map(ar => EventRoleActor.fromActorRole(ActorRole(1, ar.underlying))).toSeq,
+      relatedObjects = affectedThing.map(or => EventRoleObject.fromObjectRole(or, base.eventType.registeredEventId)).toSeq,
+      relatedPlaces = relPlaces.map(pr => EventRolePlace.fromPlaceRole(pr, base.eventType.registeredEventId)),
       note = note,
       relatedSubEvents = Seq.empty[RelatedEvents],
       partOf = None,

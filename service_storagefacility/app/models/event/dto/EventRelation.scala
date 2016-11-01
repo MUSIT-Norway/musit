@@ -73,34 +73,59 @@ object EventRelations {
 // concepts in the system.
 // =============================================================================
 
-case class EventRoleActor(eventId: Option[EventId], roleId: Int, actorId: ActorId)
+case class EventRoleActor(
+  eventId: Option[EventId],
+  roleId: Int,
+  actorId: ActorId
+)
 
 object EventRoleActor {
-  def toEventRoleActor(actRole: ActorRole, eventId: Option[Long] = None) =
+  def fromActorRole(
+    actRole: ActorRole,
+    eventId: Option[Long] = None
+  ): EventRoleActor =
     EventRoleActor(eventId, actRole.roleId, actRole.actorId)
 
-  def toActorRole(eventRoleActor: EventRoleActor) =
+  def toActorRole(eventRoleActor: EventRoleActor): ActorRole =
     ActorRole(eventRoleActor.roleId, eventRoleActor.actorId)
 }
 
-case class EventRoleObject(eventId: Option[EventId], roleId: Int, objectId: ObjectId, eventTypeId: EventTypeId)
+case class EventRoleObject(
+  eventId: Option[EventId],
+  roleId: Int,
+  objectId: ObjectId,
+  eventTypeId: EventTypeId
+)
 
 object EventRoleObject {
 
-  def toEventRoleObject(objRole: ObjectRole, eventTypeId: EventTypeId, eventId: Option[Long] = None) =
+  def fromObjectRole(
+    objRole: ObjectRole,
+    eventTypeId: EventTypeId,
+    eventId: Option[Long] = None
+  ): EventRoleObject =
     EventRoleObject(eventId, objRole.roleId, objRole.objectId, eventTypeId)
 
-  def toObjectRole(eventRoleObject: EventRoleObject) =
+  def toObjectRole(eventRoleObject: EventRoleObject): ObjectRole =
     ObjectRole(eventRoleObject.roleId, eventRoleObject.objectId)
 }
 
-case class EventRolePlace(eventId: Option[EventId], roleId: Int, placeId: StorageNodeId, eventTypeId: EventTypeId)
+case class EventRolePlace(
+  eventId: Option[EventId],
+  roleId: Int,
+  placeId: StorageNodeId,
+  eventTypeId: EventTypeId
+)
 
 object EventRolePlace {
 
-  def toEventRolePlace(placeRole: PlaceRole, eventTypeId: EventTypeId, eventId: Option[Long] = None) =
+  def fromPlaceRole(
+    placeRole: PlaceRole,
+    eventTypeId: EventTypeId,
+    eventId: Option[Long] = None
+  ): EventRolePlace =
     EventRolePlace(eventId, placeRole.roleId, placeRole.nodeId, eventTypeId)
 
-  def toPlaceRole(eventRolePlace: EventRolePlace) =
+  def toPlaceRole(eventRolePlace: EventRolePlace): PlaceRole =
     PlaceRole(eventRolePlace.roleId, eventRolePlace.placeId)
 }
