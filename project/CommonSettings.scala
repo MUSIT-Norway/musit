@@ -24,7 +24,7 @@ import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import play.sbt.PlayImport.PlayKeys
-import play.sbt.{Play, PlayLayoutPlugin}
+import play.sbt.Play
 import sbt.Keys._
 import sbt._
 import scoverage.ScoverageKeys._

@@ -25,7 +25,6 @@ import models.event.dto.DtoConverters.EnvReqConverters
 import models.event.dto.{EventDto, ExtendedDto}
 import models.event.envreq.EnvRequirement
 import models.storage.EnvironmentRequirement
-import repositories.dao.event.EventDao
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.service.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger

@@ -21,7 +21,6 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.{Organization, OrganizationAddress, Person}
-import models.{OrganizationAddress, Person}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
