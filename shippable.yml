@@ -37,7 +37,7 @@ build:
     - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then sbt codacyCoverage; else echo "Coverage reporting disabled for PR from forks"; fi
 
   post_ci:
-    - git diff --exit-code || echo "ERROR Scalariform check failed, see differences above."; false
+    - git diff --exit-code || (echo "ERROR Scalariform check failed, see differences above."; false)
     # Prepare for exporting coverage report to codacy
     - mkdir -p shippable/codecoverage
     - mv target/scala-2.10/coverage-report/cobertura.xml $PWD/shippable/codecoverage/
