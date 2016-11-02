@@ -19,13 +19,14 @@
 
 package controllers
 
-import no.uio.musit.security.{BearerToken, FakeAuthenticator}
+import no.uio.musit.security.BearerToken
+import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json.{JsArray, JsValue, Json}
 
-class LegacyPersonIntegrationSpec extends MusitSpecWithServerPerSuite {
+class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -33,7 +34,7 @@ class LegacyPersonIntegrationSpec extends MusitSpecWithServerPerSuite {
   )
 
   val fakeUserId = "musitTestUser"
-  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + fakeUserId)
+  val fakeToken = BearerToken(fakeAccessTokenPrefix + fakeUserId)
 
   "LegacyPersonIntegration " must {
     "get by id" in {

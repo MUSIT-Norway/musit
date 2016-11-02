@@ -17,32 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package models
 
-import com.google.inject.Inject
-import models.Person
-import no.uio.musit.service.MusitSearch
-import repositories.dao.ActorDao
+import play.api.libs.json.Json
 
-import scala.concurrent.Future
+/**
+ * Address specialized for Organization
+ */
+case class OrganisationAddress(
+  id: Option[Long],
+  organizationId: Option[Long],
+  addressType: String,
+  streetAddress: String,
+  locality: String,
+  postalCode: String,
+  countryName: String,
+  latitude: Double,
+  longitude: Double
+)
 
-class LegacyPersonService @Inject() (val actorDao: ActorDao) {
-
-  def find(id: Long): Future[Option[Person]] = {
-    actorDao.getPersonLegacyById(id)
-  }
-
-  def findDetails(ids: Set[Long]): Future[Seq[Person]] = {
-    actorDao.getPersonDetailsByIds(ids)
-  }
-
-  def find(search: MusitSearch): Future[Seq[Person]] = {
-    val searchString = search.searchStrings.reduce(_ + " " + _)
-    actorDao.getPersonLegacyByName(searchString)
-  }
-
-  def create(person: Person): Future[Person] = {
-    actorDao.insertPersonLegacy(person)
-  }
-
+object OrganisationAddress {
+  val tupled = (OrganisationAddress.apply _).tupled
+  implicit val format = Json.format[OrganisationAddress]
 }

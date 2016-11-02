@@ -25,13 +25,13 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.service.{MusitController, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
-import services.LegacyPersonService
+import services.ActorService
 
 import scala.concurrent.Future
 
-class LegacyPersonResource @Inject() (
+class PersonResource @Inject() (
     val authService: Authenticator,
-    val service: LegacyPersonService
+    val service: ActorService
 ) extends MusitController {
 
   def search(
@@ -49,7 +49,7 @@ class LegacyPersonResource @Inject() (
     }
   }
 
-  def details = MusitSecureAction().async(parse.json) { request =>
+  def details = MusitSecureAction().async(parse.json) { implicit request =>
     request.body.validate[Seq[Long]] match {
       case JsSuccess(ids, path) =>
         service.findDetails(ids.toSet).map { persons =>
@@ -65,7 +65,7 @@ class LegacyPersonResource @Inject() (
     }
   }
 
-  def get(id: Long) = MusitSecureAction().async { request =>
+  def get(id: Long) = MusitSecureAction().async { implicit request =>
     service.find(id).map {
       case Some(actor) =>
         Ok(Json.toJson(actor))
@@ -75,7 +75,7 @@ class LegacyPersonResource @Inject() (
     }
   }
 
-  def add = MusitSecureAction().async(parse.json) { request =>
+  def add = MusitSecureAction().async(parse.json) { implicit request =>
     request.body.validate[Person] match {
       case s: JsSuccess[Person] =>
         service.create(s.get).map(newActor => Created(Json.toJson(newActor)))

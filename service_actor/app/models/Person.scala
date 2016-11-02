@@ -19,11 +19,9 @@
 
 package models
 
+import no.uio.musit.security.AuthenticatedUser
 import play.api.libs.json._
 
-/**
- * Domain Person
- */
 case class Person(
   id: Option[Long],
   fn: String,
@@ -38,5 +36,18 @@ case class Person(
 object Person {
   val tupled = (Person.apply _).tupled
   implicit val format = Json.format[Person]
+
+  def fromAuthUser(user: AuthenticatedUser): Person = {
+    Person(
+      id = None,
+      fn = user.userInfo.name.getOrElse(""),
+      title = None,
+      role = None,
+      tel = None,
+      web = None,
+      email = user.userInfo.email,
+      dataportenId = Some(user.userInfo.id)
+    )
+  }
 }
 

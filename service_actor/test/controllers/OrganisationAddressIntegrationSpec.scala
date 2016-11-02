@@ -19,7 +19,8 @@
 
 package controllers
 
-import no.uio.musit.security.{BearerToken, FakeAuthenticator}
+import no.uio.musit.security.BearerToken
+import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
@@ -29,7 +30,7 @@ import utils.testdata.ActorJsonGenerator._
 
 import scala.concurrent.Future
 
-class OrganizationAddressIntegrationSpec extends MusitSpecWithServerPerSuite {
+class OrganisationAddressIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -37,7 +38,7 @@ class OrganizationAddressIntegrationSpec extends MusitSpecWithServerPerSuite {
   )
 
   val fakeUserId = "musitTestUser"
-  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + fakeUserId)
+  val fakeToken = BearerToken(fakeAccessTokenPrefix + fakeUserId)
 
   def postOrganizationAddress(orgId: Int, json: JsValue): Future[WSResponse] = {
     wsUrl(s"/v1/organization/$orgId/address")

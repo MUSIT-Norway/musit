@@ -20,19 +20,19 @@
 package controllers
 
 import com.google.inject.Inject
-import models.Organization
+import models.Organisation
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.service.{MusitController, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
-import services.OrganizationService
+import services.OrganisationService
 
 import scala.concurrent.Future
 
-class OrganizationResource @Inject() (
+class OrganisationResource @Inject() (
     val authService: Authenticator,
-    val orgService: OrganizationService
+    val orgService: OrganisationService
 ) extends MusitController {
 
   def search(
@@ -61,8 +61,8 @@ class OrganizationResource @Inject() (
   }
 
   def add = MusitSecureAction().async(parse.json) { request =>
-    request.body.validate[Organization] match {
-      case s: JsSuccess[Organization] =>
+    request.body.validate[Organisation] match {
+      case s: JsSuccess[Organisation] =>
         orgService.create(s.get).map(org => Created(Json.toJson(org)))
 
       case e: JsError =>
@@ -71,8 +71,8 @@ class OrganizationResource @Inject() (
   }
 
   def update(id: Long) = MusitSecureAction().async(parse.json) { request =>
-    request.body.validate[Organization] match {
-      case s: JsSuccess[Organization] =>
+    request.body.validate[Organisation] match {
+      case s: JsSuccess[Organisation] =>
         orgService.update(s.get).map {
           case MusitSuccess(upd) =>
             upd match {

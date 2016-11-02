@@ -19,11 +19,11 @@
 
 package controllers
 
-import no.uio.musit.security.{BearerToken, FakeAuthenticator}
+import no.uio.musit.security.BearerToken
+import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
-import play.api.libs.ws.WSRequest
 
 class UserIntegrationSpec extends MusitSpecWithServerPerSuite {
 
@@ -32,10 +32,7 @@ class UserIntegrationSpec extends MusitSpecWithServerPerSuite {
     interval = Span(50, Millis)
   )
 
-  def withFakeUser(wsr: WSRequest, username: String) = {
-    val token = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + username)
-    wsr.withHeaders(token.asHeader)
-  }
+  val token = (uname: String) => BearerToken(fakeAccessTokenPrefix + uname)
 
   "Actor and dataporten integration" must {
 
@@ -44,7 +41,10 @@ class UserIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "get actor with matching dataportenId" in {
-      val res = withFakeUser(wsUrl("/v1/dataporten/currentUser"), "guest").get().futureValue
+      val res = wsUrl("/v1/dataporten/currentUser")
+        .withHeaders(token("guest").asHeader)
+        .get().futureValue
+
       res.status mustBe Status.OK
       (res.json \ "fn").as[String] mustBe "Gjestebruker"
     }

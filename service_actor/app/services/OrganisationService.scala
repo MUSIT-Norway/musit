@@ -17,22 +17,40 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package services
 
-import play.api.libs.json.Json
+import com.google.inject.Inject
+import models.Organisation
+import no.uio.musit.service.MusitResults.MusitResult
+import no.uio.musit.service.MusitSearch
+import repositories.dao.OrganisationDao
+
+import scala.concurrent.Future
 
 /**
- * Domain Organization
+ * TODO: Document me!
  */
-case class Organization(
-  id: Option[Long],
-  fn: String,
-  nickname: String,
-  tel: String,
-  web: String
-)
+class OrganisationService @Inject() (val orgDao: OrganisationDao) {
 
-object Organization {
-  val tupled = (Organization.apply _).tupled
-  implicit val format = Json.format[Organization]
+  def find(id: Long): Future[Option[Organisation]] = {
+    orgDao.getById(id)
+  }
+
+  def find(search: MusitSearch): Future[Seq[Organisation]] = {
+    val searchString = search.searchStrings.reduce(_ + " " + _)
+    orgDao.getByName(searchString)
+  }
+
+  def create(org: Organisation): Future[Organisation] = {
+    orgDao.insert(org)
+  }
+
+  def update(org: Organisation): Future[MusitResult[Option[Int]]] = {
+    orgDao.update(org)
+  }
+
+  def remove(id: Long): Future[Int] = {
+    orgDao.delete(id)
+  }
+
 }
