@@ -20,35 +20,46 @@
 package services
 
 import com.google.inject.Inject
-import models.GeoNorwayAddress
-import play.api.Configuration
+import models.{Address, GeoNorwayAddress}
+import play.api.{Configuration, Logger}
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
-
+import GeoLocationService._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 import scala.concurrent.Future
 
 class GeoLocationService @Inject() (config: Configuration, ws: WSClient) {
 
-  def searchGeoNorway(expression: String): Future[Seq[GeoNorwayAddress]] = {
-    val hitsPerResult = config.getInt("musit.geoLocation.geoNorway.hitsPerResult").getOrElse(10)
-    val searchUrl = s"http://ws.geonorge.no/AdresseWS/adresse/sok?sokestreng=$expression&antPerSide=$hitsPerResult"
+  val logger = Logger(classOf[GeoLocationService])
+
+  def searchGeoNorway(expr: String): Future[Seq[Address]] = {
+    val maxRes = config.getInt(HitsPerResultKey).getOrElse(10)
+    val searchUrl = SearchURL.format(expr, maxRes)
 
     ws.url(searchUrl).get().map { response =>
-      val json = Json.parse(response.body)
-      val addresses = (json \ "adresser").as[JsArray].value
-      addresses.map(adrJs => {
-        GeoNorwayAddress(
-          street = (adrJs \ "adressenavn").asOpt[String].getOrElse(""),
-          streetNo = (adrJs \ "husnr").asOpt[String].map { houseNumber =>
-            val houseLetter = (adrJs \ "bokstav").asOpt[String]
-            s"$houseNumber${houseLetter.map(l => " " + l).getOrElse("")}"
-          }.getOrElse(""),
-          place = (adrJs \ "poststed").asOpt[String].getOrElse(""),
-          zip = (adrJs \ "postnr").asOpt[String].getOrElse("")
-        )
-      })
+      (response.json \ "totaltAntallTreff").asOpt[String].map(_.toInt) match {
+        case Some(numRes) if numRes > 0 =>
+          logger.debug(s"Got $numRes address results.")
+          val jsArr = (response.json \ "adresser").as[JsArray].value
+          jsArr.foldLeft(List.empty[Address]) { (state, ajs) =>
+            Json.fromJson[GeoNorwayAddress](ajs).asOpt.map { gna =>
+              state :+ GeoNorwayAddress.asAddress(gna)
+            }.getOrElse(state)
+          }
+
+        case _ =>
+          logger.debug("Search did not return any results")
+          Seq.empty
+      }
     }
   }
+
+}
+
+object GeoLocationService {
+  val HitsPerResultKey = "musit.geoLocation.geoNorway.hitsPerResult"
+  val SearchURL =
+    "http://ws.geonorge.no/AdresseWS/adresse/sok?sokestreng=%s&antPerSide=%n"
 
 }

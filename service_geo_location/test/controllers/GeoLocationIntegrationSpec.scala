@@ -19,7 +19,8 @@
 
 package controllers
 
-import no.uio.musit.security.{BearerToken, FakeAuthenticator}
+import no.uio.musit.security.BearerToken
+import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
@@ -36,7 +37,7 @@ class GeoLocationIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   val queryParam = (adr: String) => s"/v1/address?search=$adr"
 
-  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
+  val fakeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
 
   "Using the GeoLocation API" when {
     "searching for addresses" should {
@@ -54,6 +55,31 @@ class GeoLocationIntegrationSpec extends MusitSpecWithServerPerSuite {
         (jsArr.head \ "streetNo").as[String] mustBe "56"
         (jsArr.head \ "place").as[String] mustBe "RYKKINN"
         (jsArr.head \ "zip").as[String] mustBe "1348"
+      }
+
+      "not return any data if the address doesn't exist" in {
+        val res = wsUrl(queryParam("nykt"))
+          .withHeaders(fakeToken.asHeader)
+          .get().futureValue
+
+        res.status mustBe Status.OK
+        res.json.as[JsArray].value mustBe empty
+      }
+
+      "pad with leading 0 for results where zip is a 3 digit integer" in {
+        val res = wsUrl(queryParam("oslo gate 20, oslo"))
+          .withHeaders(fakeToken.asHeader)
+          .get().futureValue
+
+        res.status mustBe Status.OK
+
+        val jsArr = res.json.as[JsArray].value
+        jsArr must not be empty
+
+        (jsArr.head \ "street").as[String] mustBe "Oslo gate"
+        (jsArr.head \ "streetNo").as[String] mustBe "20"
+        (jsArr.head \ "place").as[String] mustBe "OSLO"
+        (jsArr.head \ "zip").as[String] mustBe "0192"
       }
     }
   }
