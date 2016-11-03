@@ -1239,7 +1239,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         res2.json.as[JsArray].value must not be empty
       }
 
-      "not return any results when searching for storage name that doesn't exist" in {
+      "return no results when searching for storage name that doesn't exist" in {
         val res = wsUrl(StorageNodeSearchName(mid))
           .withHeaders(fakeToken.asHeader)
           .withQueryString("searchStr" -> "My_private_building")
@@ -1249,7 +1249,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         res.json.as[JsArray].value mustBe empty
       }
 
-      "not return any data when searching for node by name when using the wrong MuseumId" in {
+      "return no data when searching for node by name when using the wrong MuseumId" in {
         val anotherMid = MuseumId(4)
         val res = wsUrl(StorageNodeSearchName(anotherMid))
           .withHeaders(fakeToken.asHeader)
@@ -1272,6 +1272,15 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           .withHeaders(fakeToken.asHeader)
           .withQueryString("searchStr" -> "")
           .get().futureValue.status mustBe Status.BAD_REQUEST
+      }
+      "find a storage when searching by name with three characters and the third is blank" in {
+        val res1 = wsUrl(StorageNodeSearchName(mid))
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("searchStr" -> "My ")
+          .get().futureValue
+
+        res1.status mustBe Status.OK
+        res1.json.as[JsArray].value must not be empty
       }
     }
   }
