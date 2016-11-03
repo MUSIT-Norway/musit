@@ -37,6 +37,11 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
   val fakeToken = BearerToken(fakeAccessTokenPrefix + fakeUserId)
 
   "LegacyPersonIntegration " must {
+
+    "fail getting person by id when there is no valid token" in {
+      wsUrl("/v1/person/1").get().futureValue mustBe Status.UNAUTHORIZED
+    }
+
     "get by id" in {
       val res = wsUrl("/v1/person/1")
         .withHeaders(fakeToken.asHeader)

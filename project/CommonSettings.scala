@@ -69,7 +69,11 @@ object CommonSettings {
     coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router;no.uio.musit.test",
     coverageExcludedFiles := "",
     coverageMinimum := 80,
-    coverageFailOnMinimum := false
+    coverageFailOnMinimum := false,
+    // Disable scaladoc
+    publishArtifact in (Compile, packageDoc) := false,
+    publishArtifact in packageDoc := false,
+    sources in (Compile,doc) := Seq.empty
   )
 
   // scalastyle:off
