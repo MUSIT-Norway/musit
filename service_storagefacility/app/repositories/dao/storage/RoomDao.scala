@@ -66,11 +66,15 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(mid: MuseumId, id: StorageNodeId, room: Room): Future[MusitResult[Option[Int]]] = {
+  def update(
+    mid: MuseumId,
+    id: StorageNodeId,
+    room: Room
+  ): Future[MusitResult[Option[Int]]] = {
     val roomDto = StorageNodeDto.fromRoom(mid, room, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(mid, id, roomDto.storageUnitDto)
-      roomsUpdated <- if (unitsUpdated > 0) updateAction(id, roomDto.extension) else DBIO.successful[Int](0)
+      roomsUpdated <- if (unitsUpdated > 0) updateAction(id, roomDto.extension) else DBIO.successful[Int](0) // scalastyle:ignore
     } yield roomsUpdated
 
     db.run(action.transactionally).map {

@@ -39,10 +39,13 @@ class ObjectSearchController @Inject() (
     val service: ObjectSearchService
 ) extends MusitController {
 
+  val maxLimitConfKey = "musit.objects.search.max-limit"
+  val defaultLimitConfKey = "musit.objects.search.default-limit"
+
   val logger = Logger(classOf[ObjectSearchController])
 
-  private val maxLimit = conf.getInt("musit.objects.search.max-limit").getOrElse(100)
-  private val defaultLimit = conf.getInt("musit.objects.search.default-limit").getOrElse(25)
+  private val maxLimit = conf.getInt(maxLimitConfKey).getOrElse(100)
+  private val defaultLimit = conf.getInt(defaultLimitConfKey).getOrElse(25)
 
   private def calcLimit(l: Int): Int = l match {
     case lim: Int if lim > maxLimit => maxLimit

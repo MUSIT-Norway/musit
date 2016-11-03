@@ -8,7 +8,10 @@ object MusitSearch {
     p.foldLeft(Map[String, String]())((acc, next) => next.split("=") match {
       case Array(key, value) if value.nonEmpty =>
         acc + (key -> value)
-      case other => throw new IllegalArgumentException(s"Syntax error in (part of) search part of URL: $next")
+      case other =>
+        throw new IllegalArgumentException(
+          s"Syntax error in (part of) search part of URL: $next"
+        )
     })
 
   def parseSearch(search: String): MusitSearch =
@@ -23,6 +26,7 @@ object MusitSearch {
         MusitSearch(Map(), List())
     }
 
-  implicit val queryBinder = new BindableOf[MusitSearch](_.map(v => Right(parseSearch(v.trim))))
+  implicit val queryBinder =
+    new BindableOf[MusitSearch](_.map(v => Right(parseSearch(v.trim))))
 }
 

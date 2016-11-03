@@ -108,7 +108,10 @@ class KdReportDao @Inject() (
       .map(res => MusitSuccess(res.getOrElse(0.0)))
       .recover {
         case NonFatal(e) =>
-          MusitDbError("Error occurred while retrieving areaWaterDamageAssessment", Some(e))
+          MusitDbError(
+            message = "Error occurred while retrieving areaWaterDamageAssessment",
+            ex = Some(e)
+          )
       }
   }
 
@@ -123,7 +126,10 @@ class KdReportDao @Inject() (
       .map(res => MusitSuccess(res.getOrElse(0.0)))
       .recover {
         case NonFatal(e) =>
-          MusitDbError("Error occurred while retrieving AreaRoutinesAndContingencyPlan", Some(e))
+          MusitDbError(
+            message = "Error occurred while retrieving AreaRoutinesAndContingencyPlan",
+            ex = Some(e)
+          )
       }
   }
 

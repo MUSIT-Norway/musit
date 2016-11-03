@@ -56,7 +56,10 @@ class EnvironmentRequirementService @Inject() (
    * @param envReq The environment requirement to compare
    * @return A Future containing an Option of the EnvRequirement that was found.
    */
-  private def compareWithLatest(mid: MuseumId, envReq: EnvRequirement): Future[Option[EnvRequirement]] = {
+  private def compareWithLatest(
+    mid: MuseumId,
+    envReq: EnvRequirement
+  ): Future[Option[EnvRequirement]] = {
     envReq.affectedThing.map { snid =>
       latestForNodeId(mid, snid).map(_.map { mer =>
         if (mer.exists(_.similar(envReq))) mer
@@ -80,7 +83,10 @@ class EnvironmentRequirementService @Inject() (
   /**
    * TODO: Document me!!!!
    */
-  def add(mid: MuseumId, envReq: EnvRequirement)(implicit currUsr: String): Future[MusitResult[EnvRequirement]] = {
+  def add(
+    mid: MuseumId,
+    envReq: EnvRequirement
+  )(implicit currUsr: String): Future[MusitResult[EnvRequirement]] = {
     val dto = EnvReqConverters.envReqToDto(envReq)
 
     compareWithLatest(mid, envReq).flatMap { sameEr =>

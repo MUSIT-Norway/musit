@@ -65,7 +65,7 @@ object MusitResults {
     val message: String
 
     override def get: Nothing =
-      throw new NoSuchElementException("MusitResult.get on MusitError") // scalastyle:ignore
+      throw new NoSuchElementException("MusitResult.get on MusitError")
   }
 
   // ========================================================================

@@ -72,11 +72,15 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def update(mid: MuseumId, id: StorageNodeId, building: Building): Future[MusitResult[Option[Int]]] = {
+  def update(
+    mid: MuseumId,
+    id: StorageNodeId,
+    building: Building
+  ): Future[MusitResult[Option[Int]]] = {
     val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(mid, id, extendedBuildingDto.storageUnitDto)
-      buildingsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedBuildingDto.extension) else DBIO.successful[Int](0)
+      buildingsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedBuildingDto.extension) else DBIO.successful[Int](0) // scalastyle:ignore
     } yield buildingsUpdated
 
     db.run(action.transactionally).map {

@@ -164,7 +164,12 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     }.update(storageUnit)
   }
 
-  protected[storage] def getStorageNodeByNameAction(mid: MuseumId, searchString: String, page: Int, pageSize: Int): DBIO[Seq[StorageUnitDto]] = {
+  protected[storage] def getStorageNodeByNameAction(
+    mid: MuseumId,
+    searchString: String,
+    page: Int,
+    pageSize: Int
+  ): DBIO[Seq[StorageUnitDto]] = {
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
         sn.isDeleted === false &&

@@ -20,7 +20,7 @@
 package no.uio.musit.security
 
 import no.uio.musit.security.FakeAuthenticator.FakeUserDetails
-import no.uio.musit.service.MusitResults.{MusitNotAuthenticated, MusitResult, MusitSuccess}
+import no.uio.musit.service.MusitResults._
 import play.api.libs.json.{JsArray, Json}
 
 import scala.concurrent.Future

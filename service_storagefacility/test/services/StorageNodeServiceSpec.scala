@@ -249,7 +249,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     "successfully move an object with a previous location" in {
       val oid = ObjectId(8)
 
-      val loc1 = service.getCurrentObjectLocation(defaultMuseumId, oid).futureValue
+      val loc1 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc1.isSuccess mustBe true
       loc1.get must not be None
       loc1.get.get.id mustBe Some(StorageNodeId(5))
@@ -268,7 +268,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val res = service.moveObject(defaultMuseumId, oid, event).futureValue
       res.isSuccess mustBe true
 
-      val loc2 = service.getCurrentObjectLocation(defaultMuseumId, oid).futureValue
+      val loc2 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc2.isSuccess mustBe true
       loc2.get must not be None
       loc2.get.get.id mustBe Some(StorageNodeId(12))
@@ -290,7 +290,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val res = service.moveObject(defaultMuseumId, oid, event).futureValue
       res.isSuccess mustBe true
 
-      val loc = service.getCurrentObjectLocation(defaultMuseumId, oid).futureValue
+      val loc = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc.isSuccess mustBe true
       loc.get must not be None
       loc.get.get.id mustBe Some(StorageNodeId(12))
@@ -455,7 +455,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     "get current location for an object" in {
       val oid = ObjectId(2)
       val aid = ActorId(3)
-      val currLoc = service.getCurrentObjectLocation(defaultMuseumId, 2).futureValue
+      val currLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       currLoc.isSuccess mustBe true
       currLoc.get.get.id.get.underlying mustBe 4
       currLoc.get.get.path.toString must include(currLoc.get.get.id.get.underlying.toString)
@@ -463,7 +463,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val moveObject = Move[Long](aid, StorageNodeId(3), Seq(oid))
       val moveSeq = MoveObject.fromCommand("Dummy", moveObject)
       service.moveObject(defaultMuseumId, oid, moveSeq.head).futureValue
-      val newCurrLoc = service.getCurrentObjectLocation(defaultMuseumId, 2).futureValue
+      val newCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       newCurrLoc.isSuccess mustBe true
       newCurrLoc.get.get.id.get.underlying mustBe 3
       newCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
@@ -472,7 +472,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val moveSameObject = Move[Long](aid, StorageNodeId(2), Seq(oid))
       val moveSameSeq = MoveObject.fromCommand("Dummy", moveSameObject)
       service.moveObject(anotherMid, oid, moveSameSeq.head).futureValue
-      val sameCurrLoc = service.getCurrentObjectLocation(defaultMuseumId, 2).futureValue
+      val sameCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       sameCurrLoc.isSuccess mustBe true
       sameCurrLoc.get.get.id.get.underlying mustBe 3
       sameCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)

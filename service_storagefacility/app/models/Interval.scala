@@ -26,7 +26,7 @@ case class Interval[T](base: T, tolerance: Option[Int])
 
 object Interval {
   /*
-     FIXME: https://github.com/playframework/playframework/issues/5261
+     See: https://github.com/playframework/playframework/issues/5261
 
      The above issue makes it impossible to use the JSON macros for generating
      JSON reads/writes/formats for `Interval`. Because it contains a recursive

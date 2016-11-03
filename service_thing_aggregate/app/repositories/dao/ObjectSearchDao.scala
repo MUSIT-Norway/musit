@@ -94,7 +94,7 @@ class ObjectSearchDao @Inject() (
     value match {
       case EmptyValue() => q
       case LiteralValue(v) => q.filter(_.subNo.toUpperCase === v.toUpperCase)
-      case WildcardValue(v, esc) => q.filter(_.subNo.toUpperCase like (v.toUpperCase, esc))
+      case WildcardValue(v, esc) => q.filter(_.subNo.toUpperCase like (v.toUpperCase, esc)) // scalastyle:ignore
     }
   }
 

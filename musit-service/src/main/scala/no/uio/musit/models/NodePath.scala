@@ -98,7 +98,6 @@ object NodePath {
    */
   private case class NodePathImpl(path: String) extends NodePath
 
-  // scalastyle:off
   /**
    * Creates a new NodePath instance after validating the syntax.
    *
@@ -116,10 +115,11 @@ object NodePath {
     val p1 = if (!path.startsWith(",")) s",$path" else path
     val p2 = if (!p1.endsWith(",")) s"$p1," else p1
 
-    if (path.contains(",,"))
+    if (path.contains(",,")) {
       throw new IllegalArgumentException(
         s"Requirement failed: Path $path contained empty path element ',,'"
       )
+    }
 
     if (path != empty.path) {
       // Consciously using regular try catch here!

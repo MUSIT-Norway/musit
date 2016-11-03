@@ -22,7 +22,7 @@ package no.uio.musit.security
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
 import no.uio.musit.security.DataportenAuthenticator._
-import no.uio.musit.service.MusitResults.{MusitInternalError, MusitNotAuthenticated, MusitResult, MusitSuccess}
+import no.uio.musit.service.MusitResults._
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}

@@ -48,7 +48,7 @@ class LocalObjectDao @Inject() (
         upsert(LocalObject(obj.objectId, eventId, place.placeId, mid))
       }
     }.getOrElse(
-      throw new AssertionError("A MoveObject event requires both the " + // scalastyle:ignore
+      throw new AssertionError("A MoveObject event requires both the " +
         "'affectedThing' and 'to' attributes set")
     )
   }

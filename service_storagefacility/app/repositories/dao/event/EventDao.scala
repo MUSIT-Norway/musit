@@ -21,7 +21,7 @@ package repositories.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import models.event.EventTypeRegistry.ObsSubEvents._
-import models.event.EventTypeRegistry.TopLevelEvents.{EnvRequirementEventType, MoveNodeType, MoveObjectType}
+import models.event.EventTypeRegistry.TopLevelEvents._
 import models.event.EventTypeRegistry._
 import models.event.dto.DtoConverters.MoveConverters
 import models.event.dto._
@@ -92,7 +92,10 @@ class EventDao @Inject() (
   /**
    * Helper to build up the correct insert action depending on Dto type.
    */
-  private def buildInsertAction(event: EventDto, parentId: Option[EventId]): DBIO[EventId] = {
+  private def buildInsertAction(
+    event: EventDto,
+    parentId: Option[EventId]
+  ): DBIO[EventId] = {
     event match {
       case simple: BaseEventDto =>
         insertBaseAction(simple.copy(partOf = parentId))
@@ -210,7 +213,11 @@ class EventDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  private def insertChildrenAction(mid: MuseumId, parentEventId: EventId, children: Seq[RelatedEvents]) = {
+  private def insertChildrenAction(
+    mid: MuseumId,
+    parentEventId: EventId,
+    children: Seq[RelatedEvents]
+  ) = {
     val actions = children.map { relatedEvents =>
       val relActions = relatedEvents.events.map { subEvent =>
         insertEventAction(
@@ -449,7 +456,7 @@ class EventDao @Inject() (
             maybeSuccess
 
           case notPossible =>
-            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+            throw new IllegalStateException("Encountered impossible state")
 
         }.filter(_.isDefined).map(_.get)
       }
@@ -488,7 +495,7 @@ class EventDao @Inject() (
             maybeSuccess
 
           case notPossible =>
-            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+            throw new IllegalStateException("Encountered impossible state")
 
         }.filter(_.isDefined).map(_.get)
       }
@@ -562,7 +569,7 @@ class EventDao @Inject() (
             maybeSuccess.map(dto => success(dto))
 
           case impossible =>
-            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+            throw new IllegalStateException("Encountered impossible state")
 
         }.filter(_.isDefined).map(_.get)
       }
@@ -614,7 +621,7 @@ class EventDao @Inject() (
             maybeSuccess.map(dto => success(dto))
 
           case impossible =>
-            throw new IllegalStateException("Encountered impossible state") // scalastyle:ignore
+            throw new IllegalStateException("Encountered impossible state")
 
         }.filter(_.isDefined).map(_.get)
       }

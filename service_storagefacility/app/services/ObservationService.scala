@@ -105,7 +105,10 @@ class ObservationService @Inject() (
   /**
    * TODO: Document me!
    */
-  def listFor(mid: MuseumId, nodeId: StorageNodeId): Future[MusitResult[Seq[Observation]]] = {
+  def listFor(
+    mid: MuseumId,
+    nodeId: StorageNodeId
+  ): Future[MusitResult[Seq[Observation]]] = {
     eventDao.getEventsForNode(mid, nodeId, ObservationEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>
         // We know we have a BaseEventDto representing an Observation.

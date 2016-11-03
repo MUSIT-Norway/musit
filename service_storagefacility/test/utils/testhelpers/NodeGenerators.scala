@@ -138,7 +138,7 @@ trait NodeGenerators extends NodeTypeInitializers {
         case o: Organisation => addOrganisation(o)
         case r: Root => addRoot(r)
         case notCorrect =>
-          throw new IllegalArgumentException( // scalastyle:ignore
+          throw new IllegalArgumentException(
             s"${notCorrect.getClass} is not supported"
           )
       }

@@ -50,6 +50,7 @@ class ObjectAggregationDao @Inject() (
         subNo = r.nextStringOption.map(SubNo.apply),
         term = r.nextStringOption
       ))
+    // scalastyle:off line.size.limit
     db.run(
       sql"""
          SELECT "MUSITTHING"."OBJECT_ID", "MUSITTHING"."MUSEUMNO", "MUSITTHING"."SUBNO", "MUSITTHING"."TERM"
@@ -58,6 +59,7 @@ class ObjectAggregationDao @Inject() (
          AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId.underlying}
          AND "LOCAL_OBJECT"."OBJECT_ID" = "MUSITTHING"."OBJECT_ID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
+    // scalastyle:on line.size.limit
     ).recover {
         case e: Exception =>
           val msg = s"Error while retrieving objects for nodeId $nodeId"

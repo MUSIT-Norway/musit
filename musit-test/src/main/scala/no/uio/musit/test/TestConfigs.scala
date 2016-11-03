@@ -35,7 +35,7 @@ trait TestConfigs {
     "slick.dbs.test.socketTimeout" -> "20000",
     "slick.dbs.test.db.driver" -> "org.h2.Driver",
     "slick.dbs.test.connectionTestQuery" -> "SELECT 1",
-    "slick.dbs.test.db.url" -> s"jdbc:h2:mem:musit-test${Random.nextInt()};MODE=Oracle;DB_CLOSE_DELAY=-1",
+    "slick.dbs.test.db.url" -> s"jdbc:h2:mem:musit-test${Random.nextInt()};MODE=Oracle;DB_CLOSE_DELAY=-1", // scalastyle:ignore
     "slick.dbs.test.leakDetectionThreshold" -> "5000",
     "evolutionplugin" -> evolve
   )

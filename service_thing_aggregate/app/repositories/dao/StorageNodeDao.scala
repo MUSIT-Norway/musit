@@ -48,7 +48,8 @@ class StorageNodeDao @Inject() (
     }.length.result
     db.run(query).map(res => MusitSuccess(res == 1)).recover {
       case NonFatal(e) =>
-        MusitDbError(s"Error occurred while checking for node existence for nodeId $nodeId", Some(e))
+        MusitDbError(s"Error occurred while checking for node existence for " +
+          s"nodeId $nodeId", Some(e))
     }
   }
 
@@ -79,7 +80,7 @@ class StorageNodeDao @Inject() (
     db.run(query)
   }
 
-  type TableType = (Option[StorageNodeId], String, String, Option[Double], Option[Double], Option[Long], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath)
+  type TableType = (Option[StorageNodeId], String, String, Option[Double], Option[Double], Option[Long], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath) // scalastyle:ignore
 
   private class StorageNodeTable(
       val tag: Tag

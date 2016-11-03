@@ -79,7 +79,12 @@ class EventObjectsDao @Inject() (
     val objectId = column[ObjectId]("OBJECT_ID")
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
 
-    def create = (eventId: Option[EventId], roleId: Int, objectId: ObjectId, eventTypeId: EventTypeId) =>
+    def create = (
+      eventId: Option[EventId],
+      roleId: Int,
+      objectId: ObjectId,
+      eventTypeId: EventTypeId
+    ) =>
       EventRoleObject(
         eventId = eventId,
         roleId = roleId,

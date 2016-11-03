@@ -166,7 +166,7 @@ object ObservationSubEvents {
     implicit val formats: Format[ObservationWaterDamageAssessment] = (
       (__ \ "note").formatNullable[String](maxCharsFormat(250)) and
       (__ \ "waterDamageAssessment").formatNullable[String](maxCharsFormat(250))
-    )(ObservationWaterDamageAssessment.apply, unlift(ObservationWaterDamageAssessment.unapply))
+    )(ObservationWaterDamageAssessment.apply, unlift(ObservationWaterDamageAssessment.unapply)) // scalastyle:ignore
   }
 
   case class ObservationPest(

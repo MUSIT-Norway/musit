@@ -64,7 +64,7 @@ class ObservationPestDao @Inject() (
   private class LifeCycleTable(
       val tag: Tag
   ) extends Table[LifecycleDto](tag, SchemaName, "OBSERVATION_PEST_LIFECYCLE") {
-    def * = (eventId, stage, quantity) <> (create.tupled, destroy)
+    def * = (eventId, stage, quantity) <> (create.tupled, destroy) // scalastyle:ignore
 
     val eventId = column[Option[EventId]]("EVENT_ID")
     val stage = column[Option[String]]("STAGE")

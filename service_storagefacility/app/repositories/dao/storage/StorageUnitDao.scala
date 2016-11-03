@@ -77,7 +77,10 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getNodeById(mid: MuseumId, id: StorageNodeId): Future[Option[GenericStorageNode]] = {
+  def getNodeById(
+    mid: MuseumId,
+    id: StorageNodeId
+  ): Future[Option[GenericStorageNode]] = {
     val query = getNodeByIdAction(mid, id)
     db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
   }
@@ -328,7 +331,12 @@ class StorageUnitDao @Inject() (
     db.run(namesForPathAction(nodePath))
   }
 
-  def getStorageNodeByName(mid: MuseumId, searchString: String, page: Int, pageSize: Int): Future[Seq[GenericStorageNode]] = {
+  def getStorageNodeByName(
+    mid: MuseumId,
+    searchString: String,
+    page: Int,
+    pageSize: Int
+  ): Future[Seq[GenericStorageNode]] = {
     if (searchString.length > 2) {
       val query = getStorageNodeByNameAction(mid, searchString, page, pageSize)
       db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))

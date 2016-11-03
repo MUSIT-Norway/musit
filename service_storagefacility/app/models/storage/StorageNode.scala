@@ -149,7 +149,7 @@ object GenericStorageNode {
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "type").format[StorageType] and
     (__ \ "updatedBy").formatNullable[ActorId] and
@@ -189,7 +189,7 @@ object Root {
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply)
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) // scalastyle:ignore
   )(Root.apply, unlift(Root.unapply))
 
   /**
@@ -237,7 +237,7 @@ object StorageUnit {
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "updatedBy").formatNullable[ActorId] and
@@ -302,7 +302,7 @@ object Room {
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "securityAssessment").format[SecurityAssessment] and
@@ -367,10 +367,10 @@ object Building {
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and
+    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and // scalastyle:ignore
     (__ \ "updatedBy").formatNullable[ActorId] and
     (__ \ "updatedDate").formatNullable[DateTime]
   )(Building.apply, unlift(Building.unapply))
@@ -430,10 +430,10 @@ object Organisation {
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
     (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
     (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and
+    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and // scalastyle:ignore
     (__ \ "updatedBy").formatNullable[ActorId] and
     (__ \ "updatedDate").formatNullable[DateTime]
   )(Organisation.apply, unlift(Organisation.unapply))
