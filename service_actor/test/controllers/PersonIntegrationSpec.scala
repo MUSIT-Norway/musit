@@ -39,7 +39,7 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
   "LegacyPersonIntegration " must {
 
     "fail getting person by id when there is no valid token" in {
-      wsUrl("/v1/person/1").get().futureValue mustBe Status.UNAUTHORIZED
+      wsUrl("/v1/person/1").get().futureValue.status mustBe Status.UNAUTHORIZED
     }
 
     "get by id" in {
