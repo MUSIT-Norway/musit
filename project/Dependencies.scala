@@ -42,24 +42,13 @@ object Dependencies {
 
   }
 
-  object PlayJson {
-    val derivedCodecs = "org.julienrf" %% "play-json-derived-codecs" % "3.3"
-  }
-
-  object Enumeratum {
-    val enumeratumVersion = "1.4.17"
-    val enumeratum = "com.beachape" %% "enumeratum" % enumeratumVersion
-    val enumeratumPlayJson = "com.beachape" %% "enumeratum-play-json" % enumeratumVersion
-    val enumeratumPlay = "com.beachape" %% "enumeratum-play" % enumeratumVersion
-  }
-
   object Silhouette {
     val silhouetteVersion = "4.0.0"
     val silhouette = "com.mohiva" %% "play-silhouette" % silhouetteVersion
     val silhouetteBcrypt = "com.mohiva" %% "play-silhouette-password-bcrypt" % silhouetteVersion
     val silhouetteCrypto = "com.mohiva" %% "play-silhouette-crypto-jca" % silhouetteVersion
     val silhouettePersistence = "com.mohiva" %% "play-silhouette-persistence" % silhouetteVersion
-    val silhouetteTestkit = "com.mohiva" %% "play-silhouette-testkit" % silhouetteVersion % "test"
+    val silhouetteTestkit = "com.mohiva" %% "play-silhouette-testkit" % silhouetteVersion % Test
 
     val allDeps = Seq(
       silhouette,
@@ -74,32 +63,36 @@ object Dependencies {
     val logbackVersion = "1.1.7"
     val slf4jVersion = "1.7.21"
     val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
-    val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
+    val slf4jLibs = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j")
+    val slf4j = slf4jLibs.map("org.slf4j" % _ % slf4jVersion)
 
     val loggingDeps = slf4j ++ Seq(logback)
+  }
+
+  object ScalaTest {
+    val scalaTestVersion = "2.2.6" // "3.0.0"
+    val scalaTestPlusVersion = "1.5.1" // "2.0.0-M1"
+
+    var scalatestSpec = "org.scalatest" %% "scalatest" % scalaTestVersion
+    val scalactic = "org.scalactic" %% "scalactic" % scalaTestVersion
+
+    val scalatestplusSpec = "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusVersion
+
+    val scalatest = scalatestSpec % Test
+    val scalatestplus = scalatestplusSpec % Test
   }
 
   val iheartFicus = "com.iheart" %% "ficus" % "1.2.3"
   val scalaGuice = "net.codingwell" %% "scala-guice" % "4.1.0"
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
   val h2database = "com.h2database" % "h2" % "1.4.192"
-  var scalatestSpec = "org.scalatest" %% "scalatest" % "2.2.4"
-  val scalatestplusSpec = "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1"
-  val scalatest = scalatestSpec % "test"
-  val scalatestplus = scalatestplusSpec % "test"
 
 
-  val enumeratumDependencies: Seq[ModuleID] = {
+  val enumeratumDeps: Seq[ModuleID] = {
     val enumeratumVersion = "1.4.10"
-    Seq(
-      "com.beachape" %% "enumeratum" % enumeratumVersion,
-      "com.beachape" %% "enumeratum-play-json" % enumeratumVersion,
-      "com.beachape" %% "enumeratum-play" % enumeratumVersion
-    )
+    val libs = Seq("enumeratum", "enumeratum-play", "enumeratum-play-json")
+    libs.map("com.beachape" %% _ % enumeratumVersion)
   }
-
-  // packager for RPM and Docker
-  val dockerClient = "com.spotify" % "docker-client" % "3.2.1"
 
   val playDependencies: Seq[ModuleID] = Seq(
     PlayFrameWork.cache,
@@ -108,8 +101,9 @@ object Dependencies {
   ) ++ Logging.loggingDeps
 
   val testablePlayDependencies: Seq[ModuleID] = playDependencies ++ Seq(
-    scalatest,
-    scalatestplus
+    ScalaTest.scalatest,
+    ScalaTest.scalatestplus,
+    ScalaTest.scalactic
   )
 
 
@@ -120,8 +114,10 @@ object Dependencies {
     h2database
   )
 
-  val testablePlayWithPersistenceDependencies: Seq[ModuleID] = playWithPersistenceDependencies ++ Seq(
-    scalatest,
-    scalatestplus
-  )
+  val testablePlayWithPersistenceDependencies: Seq[ModuleID] =
+    playWithPersistenceDependencies ++ Seq(
+      ScalaTest.scalatest,
+      ScalaTest.scalatestplus,
+      ScalaTest.scalactic
+    )
 }

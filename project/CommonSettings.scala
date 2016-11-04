@@ -17,6 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+import Dependencies.ScalaTest
 import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.SbtNativePackager.autoImport._
 import com.typesafe.sbt.packager.docker.DockerPlugin
@@ -87,6 +88,7 @@ object CommonSettings {
           .setPreference(FormatXml, false)
           .setPreference(SpacesAroundMultiImports, false)
       ))
+      .settings(dependencyOverrides += ScalaTest.scalatest)
       .configs(IntegrationTest)
 
   def PlayProject(projName: String): Project =

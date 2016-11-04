@@ -61,8 +61,9 @@ lazy val musitTest = (
     settings noPublish
     settings(
       libraryDependencies ++= Seq[ModuleID](
-        scalatestSpec,
-        scalatestplusSpec
+        ScalaTest.scalatestSpec,
+        ScalaTest.scalatestplusSpec,
+        ScalaTest.scalactic
       ) ++ playDependencies
     )
 )
@@ -72,7 +73,8 @@ lazy val musitService = (
     settings noPublish
     settings(
       libraryDependencies ++= Seq[ModuleID](
-        scalatest,
+        ScalaTest.scalatest,
+        ScalaTest.scalactic,
         PlayFrameWork.json,
         PlayFrameWork.ws,
         scalaGuice,
@@ -91,7 +93,7 @@ lazy val serviceThingAggregate = (
         packageName in Docker := "musit_service_thing_aggregate"
       )
     )
-) dependsOn(musitService, musitTest % "test")
+) dependsOn(musitService, musitTest % Test)
 
 lazy val serviceActor = (
   PlayProject("service_actor")
@@ -99,7 +101,7 @@ lazy val serviceActor = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(baseDockerSettings ++ Seq(packageName in Docker := "musit_service_actor"))
-) dependsOn(musitService, musitTest % "test")
+) dependsOn(musitService, musitTest % Test)
 
 lazy val serviceGeoLocation = (
   PlayProject("service_geo_location")
@@ -111,12 +113,12 @@ lazy val serviceGeoLocation = (
         packageName in Docker := "musit_service_geo_location"
       )
     )
-) dependsOn(musitService, musitTest % "test")
+) dependsOn(musitService, musitTest % Test)
 
 lazy val serviceStoragefacility = (
   PlayProject("service_storagefacility")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(libraryDependencies ++= enumeratumDependencies)
+    settings(libraryDependencies ++= enumeratumDeps)
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(
@@ -124,5 +126,5 @@ lazy val serviceStoragefacility = (
         packageName in Docker := "musit_service_storagefacility"
       )
     )
-) dependsOn(musitService, musitTest % "test")
+) dependsOn(musitService, musitTest % Test)
 

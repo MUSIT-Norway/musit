@@ -24,6 +24,7 @@ resolvers ++= DefaultOptions.resolvers(snapshot = true)
 resolvers += Resolver.typesafeRepo("releases")
 resolvers += Resolver.sonatypeRepo("releases")
 
+
 // The Play plugin
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.9")
 
