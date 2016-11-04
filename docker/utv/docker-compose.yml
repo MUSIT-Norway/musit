@@ -20,7 +20,7 @@ services:
           - "3030:3030"
 
     db:
-        image: postgres
+        image: postgres:9.5
         environment:
           - POSTGRES_USER=postgres
           - POSTGRES_PASSWORD=postgres
