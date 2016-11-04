@@ -2,6 +2,8 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+GET           /service/storagefacility/buildinfo                                controllers.Application.buildInfo
+
 # StorageNode endpoints
 POST          /v1/museum/:mid/storagenodes                                      controllers.StorageNodeResource.add(mid: Int)
 POST          /v1/museum/:mid/storagenodes/root                                 controllers.StorageNodeResource.addRoot(mid: Int)

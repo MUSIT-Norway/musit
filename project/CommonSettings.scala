@@ -17,6 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+import Dependencies.ScalaTest
 import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.SbtNativePackager.autoImport._
 import com.typesafe.sbt.packager.docker.DockerPlugin
@@ -27,6 +28,8 @@ import play.sbt.PlayImport.PlayKeys
 import play.sbt.Play
 import sbt.Keys._
 import sbt._
+import sbtbuildinfo.BuildInfoPlugin
+import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import scoverage.ScoverageKeys._
 
 import scalariform.formatter.preferences.{FormatXml, SpacesAroundMultiImports}
@@ -77,25 +80,30 @@ object CommonSettings {
   )
 
   // scalastyle:off
-  def BaseProject(name: String): Project =
-    Project(name, file(name))
+  def BaseProject(projName: String): Project =
+    Project(projName, file(projName))
       .settings(projectSettings: _*)
       .settings(SbtScalariform.scalariformSettingsWithIt ++ Seq(
         ScalariformKeys.preferences := ScalariformKeys.preferences.value
           .setPreference(FormatXml, false)
           .setPreference(SpacesAroundMultiImports, false)
       ))
+      .settings(dependencyOverrides += ScalaTest.scalatest)
       .configs(IntegrationTest)
 
-  def PlayProject(name: String): Project =
-    BaseProject(name)
+  def PlayProject(projName: String): Project =
+    BaseProject(projName)
       .enablePlugins(
         Play,
+        BuildInfoPlugin,
         SbtNativePackager,
         DockerPlugin
       )
       .settings(Seq(
         PlayKeys.playOmnidoc := false,
+        buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, buildInfoBuildNumber),
+        buildInfoPackage := "no.uio.musit.service",
+        buildInfoOptions += BuildInfoOption.ToJson,
         javaOptions in Test += "-Dconfig.file=conf/application.test.conf",
         maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
         packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",

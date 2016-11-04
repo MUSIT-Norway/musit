@@ -3,6 +3,7 @@
 # ~~~~
 
 # Setup endpoints
+GET           /service/actor/buildinfo                   controllers.Application.buildInfo
 
 GET           /v1/dataporten/currentUser                 controllers.UserResource.currentUser
 
