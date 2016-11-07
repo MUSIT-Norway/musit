@@ -15,9 +15,9 @@ services:
     db:
         build: database/
         environment:
-          - POSTGRES_USER=postgres
-          - POSTGRES_PASSWORD=postgres
-          - POSTGRES_DB=postgres
+          - POSTGRES_USER
+          - POSTGRES_PASSWORD
+          - POSTGRES_DB
         volumes:
           - ../../../postgres-storage:/var/lib/postgresql/data/
 
@@ -29,12 +29,10 @@ services:
 
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
           - "7070:7070"
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
@@ -46,12 +44,10 @@ services:
 
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
           - "7072:7070"
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER
@@ -63,29 +59,17 @@ services:
 
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
         ports:
           - "7073:7070"
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
+          - APPLICATION_SECRET
 
     storagefacility:
         image: musit_service_storagefacility:0.1-SNAPSHOT
-        environment:
-          - APPLICATION_SECRET="VEzE=puv#7-wUDeS@upr"
         ports:
           - "7075:7070"
         environment:
-          - APPLICATION_SECRET=@ES^UzC^202_kBdV8VqJyW8`7lt7<5cQz`wEajYfJyS2_ThkE=Sr<tk4=s_DaPjC
+          - APPLICATION_SECRET
           - EVOLUTION_ENABLED
           - SLICK_DRIVER
           - SLICK_DB_DRIVER

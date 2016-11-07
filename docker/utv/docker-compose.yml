@@ -22,9 +22,9 @@ services:
     db:
         image: postgres:9.5
         environment:
-          - POSTGRES_USER=postgres
-          - POSTGRES_PASSWORD=postgres
-          - POSTGRES_DB=postgres
+          - POSTGRES_USER
+          - POSTGRES_PASSWORD
+          - POSTGRES_DB
         volumes:
           - ../../../postgres-storage:/var/lib/postgresql/data/
 
