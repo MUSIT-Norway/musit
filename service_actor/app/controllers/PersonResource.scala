@@ -52,7 +52,7 @@ class PersonResource @Inject() (
   def details = MusitSecureAction().async(parse.json) { implicit request =>
     request.body.validate[Seq[Long]] match {
       case JsSuccess(ids, path) =>
-        service.findDetails(ids.toSet).map { persons =>
+        service.findDetails(ids).map { persons =>
           if (persons.isEmpty) {
             NoContent
           } else {

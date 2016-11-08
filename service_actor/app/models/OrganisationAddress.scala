@@ -19,14 +19,15 @@
 
 package models
 
+import no.uio.musit.models.{DatabaseId, OrgId}
 import play.api.libs.json.Json
 
 /**
  * Address specialized for Organization
  */
 case class OrganisationAddress(
-  id: Option[Long],
-  organizationId: Option[Long],
+  id: Option[DatabaseId],
+  organizationId: Option[OrgId],
   addressType: String,
   streetAddress: String,
   locality: String,

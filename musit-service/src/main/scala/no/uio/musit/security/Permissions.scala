@@ -25,20 +25,53 @@ object Permissions {
     val priority: Int
   }
 
+  /**
+   * Permission to use when no permissions are required.
+   * Typically used when a service needs to be accessible for users regardless
+   * of access to museum or collection.
+   */
   object Unspecified extends Permission {
     override val priority: Int = 0
   }
 
-  object Read extends Permission {
+  /**
+   * Handy permission to use when a service should be usable for authenticated
+   * users that aren't registered as users in the system.
+   */
+  object Guest extends Permission {
     override val priority: Int = 1
   }
 
-  object Write extends Permission {
-    override val priority: Int = 2
+  /**
+   * Provides READ permission to a service within the context of the
+   * potentially additional constraints.
+   */
+  object Read extends Permission {
+    override val priority: Int = 10
   }
 
+  /**
+   * Provides WRITE permission to a service within the context of the
+   * potentially additional constraints.
+   */
+  object Write extends Permission {
+    override val priority: Int = 20
+  }
+
+  /**
+   * Provides ADMIN permission to a service within the context of the
+   * potentially additional constraints.
+   */
   object Admin extends Permission {
-    override val priority: Int = 3
+    override val priority: Int = 30
+  }
+
+  /**
+   * Highest level of permission available. Should _only_ be used for services
+   * that require system/application admin restrictions.
+   */
+  object GodMode extends Permission {
+    override val priority: Int = Int.MaxValue
   }
 
 }

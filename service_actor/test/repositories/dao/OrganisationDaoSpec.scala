@@ -20,6 +20,7 @@
 package repositories.dao
 
 import models.Organisation
+import no.uio.musit.models.OrgId
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
@@ -41,14 +42,15 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return a organization if the Id is valid" in {
+        val oid = OrgId(1)
         val expected = Organisation(
-          id = Some(1),
+          id = Some(oid),
           fn = "Kulturhistorisk museum - Universitetet i Oslo",
           nickname = "KHM",
           tel = "22 85 19 00",
           web = "www.khm.uio.no"
         )
-        val res = orgDao.getById(1).futureValue
+        val res = orgDao.getById(oid).futureValue
         expected.id mustBe res.get.id
         expected.fn mustBe res.get.fn
         expected.nickname mustBe res.get.nickname
@@ -57,7 +59,7 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return None if the Id is 0 (zero)" in {
-        orgDao.getById(0).futureValue mustBe None
+        orgDao.getById(OrgId(0)).futureValue mustBe None
       }
 
       "return empty list if the search string is not found" in {
@@ -77,7 +79,7 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         )
         val res = orgDao.insert(org).futureValue
         res.fn mustBe "Testmuseet i Bergen"
-        res.id mustBe Some(2)
+        res.id mustBe Some(OrgId(2))
       }
 
       "succeed when updating organization" in {
@@ -90,10 +92,10 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         )
         val res1 = orgDao.insert(org1).futureValue
         res1.fn mustBe "Museet i Foobar"
-        res1.id mustBe Some(3)
+        res1.id mustBe Some(OrgId(3))
 
         val orgUpd = Organisation(
-          id = Some(3),
+          id = Some(OrgId(3)),
           fn = "Museet i Bar",
           nickname = "B",
           tel = "99344321",
@@ -101,7 +103,7 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         )
 
         val resInt = orgDao.update(orgUpd).futureValue
-        val res = orgDao.getById(3).futureValue
+        val res = orgDao.getById(OrgId(3)).futureValue
         res.get.fn mustBe "Museet i Bar"
         res.get.nickname mustBe "B"
         res.get.tel mustBe "99344321"
@@ -110,7 +112,7 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
 
       "not update organization with invalid id" in {
         val orgUpd = Organisation(
-          id = Some(999991),
+          id = Some(OrgId(999991)),
           fn = "Museet i Bar99",
           nickname = "B",
           tel = "99344321",
@@ -122,12 +124,12 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "succeed when deleting organization" in {
-        orgDao.delete(3).futureValue mustBe 1
-        orgDao.getById(3).futureValue mustBe None
+        orgDao.delete(OrgId(3)).futureValue mustBe 1
+        orgDao.getById(OrgId(3)).futureValue mustBe None
       }
 
       "not be able to delete organization with invalid id" in {
-        orgDao.delete(999999).futureValue mustBe 0
+        orgDao.delete(OrgId(3)).futureValue mustBe 0
       }
     }
   }

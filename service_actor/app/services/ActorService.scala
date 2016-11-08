@@ -21,6 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.Person
+import no.uio.musit.models.ActorId
 import no.uio.musit.service.MusitSearch
 import repositories.dao.ActorDao
 
@@ -28,11 +29,11 @@ import scala.concurrent.Future
 
 class ActorService @Inject() (val actorDao: ActorDao) {
 
-  def find(id: Long): Future[Option[Person]] = {
+  def find(id: ActorId): Future[Option[Person]] = {
     actorDao.getById(id)
   }
 
-  def findDetails(ids: Set[Long]): Future[Seq[Person]] = {
+  def findDetails(ids: Set[ActorId]): Future[Seq[Person]] = {
     actorDao.listByIds(ids)
   }
 

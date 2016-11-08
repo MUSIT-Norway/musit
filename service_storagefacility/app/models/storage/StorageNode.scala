@@ -19,7 +19,6 @@
 
 package models.storage
 
-import java.sql.{Timestamp => JSqlTimestamp}
 
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.formatters.StrictFormatters._

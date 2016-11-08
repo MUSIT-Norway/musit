@@ -37,4 +37,7 @@ object ActorId {
 
   implicit def toOptLong(maid: Option[ActorId]): Option[Long] = maid.map(toLong)
 
+  implicit def fromSeqLongToSet(seq: Seq[Long]): Set[ActorId] =
+    seq.map(ActorId.apply).toSet
+
 }

@@ -17,26 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.models
 
-import no.uio.musit.models.AuthId
-import play.api.libs.functional.syntax._
+import java.util.UUID
+
 import play.api.libs.json._
 
-case class UserInfo(
-  id: AuthId,
-  name: Option[String],
-  email: Option[String],
-  picture: Option[String]
-)
+case class AuthId(underlying: UUID) {
 
-object UserInfo {
+  def asString: String = underlying.toString
 
-  implicit val format: Format[UserInfo] = (
-    (__ \ "userid").format[AuthId] and
-    (__ \ "name").formatNullable[String] and
-    (__ \ "email").formatNullable[String] and
-    (__ \ "profilephoto").formatNullable[String]
-  )(UserInfo.apply, unlift(UserInfo.unapply))
+}
+
+object AuthId {
+
+  implicit val reads: Reads[AuthId] =
+    __.read[String].map(s => AuthId(UUID.fromString(s)))
+
+  implicit val writes: Writes[AuthId] = Writes(id => JsString(id.asString))
+
+  def validate(str: String) = UUID.fromString(str)
 
 }

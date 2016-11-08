@@ -19,7 +19,10 @@
 
 package repositories.dao
 
+import java.util.UUID
+
 import models.Person
+import no.uio.musit.models.{ActorId, AuthId}
 import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.security.{AuthenticatedUser, BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -34,6 +37,8 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
     interval = Span(50, Millis)
   )
 
+  val authId = AuthId(UUID.fromString("12345678-adb2-4b49-bce3-320ddfe6c90f"))
+
   "ActorDao" when {
 
     "querying the person legacy methods" should {
@@ -43,17 +48,18 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return a Person if the Id is valid" in {
+        val actorId = ActorId(1L)
         val expected = Person(
-          id = Some(1),
+          id = Some(actorId),
           fn = "And, Arne1",
-          dataportenId = Some("12345678-adb2-4b49-bce3-320ddfe6c90f")
+          dataportenId = Some(authId)
         )
 
-        actorDao.getById(1).futureValue mustBe Some(expected)
+        actorDao.getById(actorId).futureValue mustBe Some(expected)
       }
 
       "return None if the Id is 0 (zero)" in {
-        actorDao.getById(0).futureValue mustBe None
+        actorDao.getById(ActorId(0L)).futureValue mustBe None
       }
 
       "return empty list if the search string is not found" in {
@@ -61,7 +67,7 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "get person details" in {
-        val ids = Set(1L, 2L, 3L)
+        val ids = Set(ActorId(1L), ActorId(2L), ActorId(3L))
         val persons = actorDao.listByIds(ids).futureValue
         persons.length mustBe 2
         persons.head.fn mustBe "And, Arne1"
@@ -69,23 +75,24 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return a Person if the ID from dataporten is valid" in {
-        val uid = "a1a2a3a4-adb2-4b49-bce3-320ddfe6c90f"
+        val did = AuthId(UUID.randomUUID())
         val newPerson = Person(
-          id = Some(2),
+          id = Some(ActorId(2L)),
           fn = "Herr Larmerud",
-          dataportenId = Some(uid)
+          dataportenId = Some(did)
         )
         val personId = actorDao.insert(newPerson).futureValue.id.get
-        val res = actorDao.getByDataportenId(uid).futureValue
+        val res = actorDao.getByDataportenId(did).futureValue
         res.isDefined mustBe true
         val person = res.get
         person.fn mustBe "Herr Larmerud"
-        person.dataportenId mustBe Some(uid)
+        person.dataportenId mustBe Some(did)
         person.id mustBe Some(personId)
       }
 
       "not find an actor if the Id from dataporten is unknown" in {
-        actorDao.getByDataportenId("tull").futureValue.isDefined mustBe false
+        actorDao.getByDataportenId(AuthId(UUID.randomUUID()))
+          .futureValue.isDefined mustBe false
       }
 
       "insert an authenticated user that doesn't exist in the actor table" in {

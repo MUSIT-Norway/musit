@@ -21,6 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.OrganisationAddress
+import no.uio.musit.models.{DatabaseId, OrgId}
 import no.uio.musit.service.MusitResults.MusitResult
 import repositories.dao.AddressDao
 
@@ -31,11 +32,11 @@ import scala.concurrent.Future
  */
 class OrganisationAddressService @Inject() (val adrDao: AddressDao) {
 
-  def all(organizationId: Long): Future[Seq[OrganisationAddress]] = {
+  def all(organizationId: OrgId): Future[Seq[OrganisationAddress]] = {
     adrDao.allFor(organizationId)
   }
 
-  def find(id: Long): Future[Option[OrganisationAddress]] = {
+  def find(id: DatabaseId): Future[Option[OrganisationAddress]] = {
     adrDao.getById(id)
   }
 
@@ -47,7 +48,7 @@ class OrganisationAddressService @Inject() (val adrDao: AddressDao) {
     adrDao.update(address)
   }
 
-  def remove(id: Long): Future[Int] = {
+  def remove(id: DatabaseId): Future[Int] = {
     adrDao.delete(id)
   }
 

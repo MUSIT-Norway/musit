@@ -17,26 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.models
 
-import no.uio.musit.models.AuthId
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.json.{JsNumber, Reads, Writes, _}
 
-case class UserInfo(
-  id: AuthId,
-  name: Option[String],
-  email: Option[String],
-  picture: Option[String]
-)
+case class DatabaseId(underlying: Long) extends AnyVal
 
-object UserInfo {
+object DatabaseId {
 
-  implicit val format: Format[UserInfo] = (
-    (__ \ "userid").format[AuthId] and
-    (__ \ "name").formatNullable[String] and
-    (__ \ "email").formatNullable[String] and
-    (__ \ "profilephoto").formatNullable[String]
-  )(UserInfo.apply, unlift(UserInfo.unapply))
+  implicit val reads: Reads[DatabaseId] = __.read[Long].map(DatabaseId.apply)
+
+  implicit val writes: Writes[DatabaseId] = Writes(did => JsNumber(did.underlying))
+
+  implicit def fromLong(l: Long): DatabaseId = DatabaseId(l)
+
+  implicit def toLong(id: DatabaseId): Long = id.underlying
+
+  implicit def fromOptLong(ml: Option[Long]): Option[DatabaseId] = ml.map(fromLong)
+
+  implicit def toOptLong(mdid: Option[DatabaseId]): Option[Long] = mdid.map(toLong)
 
 }

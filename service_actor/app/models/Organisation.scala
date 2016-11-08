@@ -19,13 +19,14 @@
 
 package models
 
+import no.uio.musit.models.OrgId
 import play.api.libs.json.Json
 
 /**
  * Domain Organization
  */
 case class Organisation(
-  id: Option[Long],
+  id: Option[OrgId],
   fn: String,
   nickname: String,
   tel: String,

@@ -21,6 +21,7 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.Person
+import no.uio.musit.models.{ActorId, AuthId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
@@ -30,13 +31,13 @@ import scala.concurrent.Future
 @Singleton
 class ActorDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
   private val actorTable = TableQuery[ActorTable]
 
-  def getById(id: Long): Future[Option[Person]] = {
+  def getById(id: ActorId): Future[Option[Person]] = {
     db.run(actorTable.filter(_.id === id).result.headOption)
   }
 
@@ -45,11 +46,11 @@ class ActorDao @Inject() (
     db.run(actorTable.filter(_.fn.toUpperCase like s"%$likeArg%").result)
   }
 
-  def getByDataportenId(dataportenId: String): Future[Option[Person]] = {
+  def getByDataportenId(dataportenId: AuthId): Future[Option[Person]] = {
     db.run(actorTable.filter(_.dataportenId === dataportenId).result.headOption)
   }
 
-  def listByIds(ids: Set[Long]): Future[Seq[Person]] = {
+  def listByIds(ids: Set[ActorId]): Future[Seq[Person]] = {
     db.run(actorTable.filter(_.id inSet ids).result)
   }
 
@@ -72,23 +73,22 @@ class ActorDao @Inject() (
       tag: Tag
   ) extends Table[Person](tag, Some(MappingSchemaName), ActorTableName) {
 
-    val id = column[Option[Long]]("NY_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Option[ActorId]]("NY_ID", O.PrimaryKey, O.AutoInc)
     val fn = column[String]("ACTORNAME")
-    val dataportenId = column[Option[String]]("DATAPORTEN_ID")
+    val dataportenId = column[Option[AuthId]]("DATAPORTEN_ID")
 
-    val create = (id: Option[Long], fn: String, dataportenId: Option[String]) =>
-      Person(
-        id = id,
-        fn = fn,
-        dataportenId = dataportenId
-      )
+    val create = (
+      id: Option[ActorId],
+      fn: String,
+      dataportenId: Option[AuthId]
+    ) => Person(
+      id = id,
+      fn = fn,
+      dataportenId = dataportenId
+    )
 
     val destroy = (actor: Person) =>
-      Some((
-        actor.id,
-        actor.fn,
-        actor.dataportenId
-      ))
+      Some((actor.id, actor.fn, actor.dataportenId))
 
     // scalastyle:off method.name
     def * = (id, fn, dataportenId) <> (create.tupled, destroy)
