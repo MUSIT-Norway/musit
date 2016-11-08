@@ -13,17 +13,17 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   storage_node_name VARCHAR(512),
   area              NUMBER,
   area_to           NUMBER,
-  is_storage_unit   VARCHAR(1)   DEFAULT '1',
+  is_storage_unit   VARCHAR(1)        DEFAULT '1',
   is_part_of        NUMBER(20),
   height            NUMBER,
   height_to         NUMBER,
   node_path         VARCHAR(1000)     NOT NULL,
   is_deleted        INTEGER DEFAULT 0 NOT NULL,
-  storage_type      VARCHAR(100) DEFAULT 'StorageUnit',
+  storage_type      VARCHAR(100)      DEFAULT 'StorageUnit',
   group_read        VARCHAR(4000),
   group_write       VARCHAR(4000),
   museum_id         INTEGER           NOT NULL,
-  updated_by        INTEGER           NOT NULL,
+  updated_by        VARCHAR2(50)      NOT NULL,
   updated_date      TIMESTAMP         NOT NULL, -- When the change was received by the system
   --   latest_move_id NUMBER(20),
   --   latest_envreq_id NUMBER(20),
@@ -82,7 +82,7 @@ CREATE TABLE MUSARK_STORAGE.EVENT (
   event_type_id   INTEGER       NOT NULL, -- Move to separate table if we want to allow multiple instantiations
   note            VARCHAR2(500),
   event_date      DATE          NOT NULL, -- When the event happened. Should be nullable.
-  registered_by   VARCHAR2(100) NOT NULL,
+  registered_by   VARCHAR2(50)  NOT NULL,
   registered_date TIMESTAMP     NOT NULL, -- When the event was received by the system
   value_long      NUMBER(20), -- Custom value, events can choose to store some event-specific value here. NOTE: 20 is probably waaaaaay to much.
   value_string    VARCHAR2(250), -- Custom value, events can choose to store some event-specific value here.
@@ -113,12 +113,12 @@ CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
 );
 
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_ACTOR (
-  event_id NUMBER(20) NOT NULL,
-  role_id  INTEGER    NOT NULL,
-  actor_id INTEGER    NOT NULL, -- reference by Id to the ActorService
+  event_id NUMBER(20)    NOT NULL,
+  role_id  INTEGER       NOT NULL,
+  actor_id VARCHAR(50)   NOT NULL, -- reference by Id to the ActorService
   PRIMARY KEY (event_id, role_id, actor_id),
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT (event_id),
-  FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE (role_id)
+  FOREIGN KEY (role_id)  REFERENCES MUSARK_STORAGE.ROLE (role_id)
 );
 
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_OBJECT (
