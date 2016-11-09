@@ -1,6 +1,11 @@
 {
   "groups": [
     {
+      "id": "AppAdmin",
+      "type": "fc:org",
+      "displayName": "Application administrator with access to all functionality"
+    },
+    {
       "id": "KhmSfRead",
       "type": "fc:org",
       "displayName": "Read access to storage facility for KHM"
@@ -44,6 +49,21 @@
       "id": "UmSfAdmin",
       "type": "fc:org",
       "displayName": "Admin access to storage facility for UM"
+    },
+    {
+      "id": "AmSfRead",
+      "type": "fc:org",
+      "displayName": "Read access to storage facility for AM"
+    },
+    {
+      "id": "AmSfWrite",
+      "type": "fc:org",
+      "displayName": "Write access to storage facility for AM"
+    },
+    {
+      "id": "AmSfAdmin",
+      "type": "fc:org",
+      "displayName": "Admin access to storage facility for AM"
     }
   ],
 
@@ -54,6 +74,13 @@
       "email": "foo@bar.bas" ,
       "groups": ["KhmSfRead"],
       "accessToken": "fake-token-zab-xy-guest"
+    },
+    {
+      "userid": "896125d3-0563-46b6-a7c5-51f3f899ff0a",
+      "name": "Super Duper User",
+      "email": "foo@bar.bas",
+      "groups": ["AppAdmin"],
+      "accessToken": "fake-token-zab-xy-superuser"
     },
     {
       "userid": "34e74d46-d45c-49dc-ace7-587b0ff40646",
@@ -77,6 +104,20 @@
       "accessToken": "fake-token-zab-xy-musitTestUserKhmRead"
     },
     {
+      "userid": "a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a",
+      "name": "Fake Musit Test User KHM Write",
+      "email": "foo@bar.bas",
+      "groups": ["KhmSfWrite"],
+      "accessToken": "fake-token-zab-xy-musitTestUserKhmWrite"
+    },
+    {
+      "userid": "d63ab290-2fab-42d2-9b57-2475dfbd0b3c",
+      "name": "Fake Musit Test User KHM Admin",
+      "email": "foo@bar.bas",
+      "groups": ["KhmSfAdmin"],
+      "accessToken": "fake-token-zab-xy-musitTestUserKhmAdmin"
+    },
+    {
       "userid": "ddb4dc62-8c14-4bac-aafd-0401f619b0ac",
       "name": "Fake Musit Test User NHM Read",
       "email": "foo@bar.bas",
@@ -96,6 +137,28 @@
       "email": "foo@bar.bas",
       "groups": ["NhmSfAdmin"],
       "accessToken": "fake-token-zab-xy-musitTestUserNhmAdmin"
+    },
+
+    {
+      "userid": "690674c7-57ac-45d3-8f63-a764520ebe3f",
+      "name": "Fake Musit Test User VM Read",
+      "email": "foo@bar.bas",
+      "groups": ["NhmSfRead"],
+      "accessToken": "fake-token-zab-xy-musitTestUserVmRead"
+    },
+    {
+      "userid": "da673d83-342d-4f2c-b3bf-6136304e7131",
+      "name": "Fake Musit Test User VM Write",
+      "email": "foo@bar.bas",
+      "groups": ["NhmSfWrite"],
+      "accessToken": "fake-token-zab-xy-musitTestUserVmWrite"
+    },
+    {
+      "userid": "0967e7d7-a003-4fa5-88b2-55a0df0d8ed8",
+      "name": "Fake Musit Test User VM Admin",
+      "email": "foo@bar.bas",
+      "groups": ["NhmSfAdmin"],
+      "accessToken": "fake-token-zab-xy-musitTestUserVmAdmin"
     },
     {
       "userid": "dd457c4e-668e-41c5-8820-168f816a531b",

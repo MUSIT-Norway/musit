@@ -21,6 +21,7 @@ package controllers
 
 import com.google.inject.Inject
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -32,10 +33,14 @@ class KdReportResource @Inject() (
     val kdReportService: KdReportService
 ) extends MusitController {
 
-  def getReportByMuseum(mid: Int) = MusitSecureAction(mid).async { implicit request =>
-    kdReportService.getReport(mid).map {
-      case MusitSuccess(reports) => Ok(Json.toJson(reports))
-      case err: MusitError => InternalServerError(Json.obj("message" -> err.message))
+  def getReportByMuseum(mid: Int) =
+    MusitSecureAction(mid, Read).async { implicit request =>
+      kdReportService.getReport(mid).map {
+        case MusitSuccess(reports) =>
+          Ok(Json.toJson(reports))
+
+        case err: MusitError =>
+          InternalServerError(Json.obj("message" -> err.message))
+      }
     }
-  }
 }

@@ -25,6 +25,7 @@ import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
 import no.uio.musit.models.{EventId, MusitId, StorageNodeId}
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -76,7 +77,7 @@ final class StorageNodeResource @Inject() (
    */
   def add(
     mid: Int
-  ) = MusitSecureAction(mid).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
@@ -111,15 +112,19 @@ final class StorageNodeResource @Inject() (
 
   /**
    * TODO: Document me!
+   *
+   * TODO: We need to accept an argument for giving the root node a name
    */
-  def addRoot(mid: Int) = MusitSecureAction(mid).async { implicit request =>
+  def addRoot(
+    mid: Int
+  ) = MusitSecureAction(mid, GodMode).async { implicit request =>
     service.addRoot(mid).map(addResult)
   }
 
   /**
    * TODO: Document me!
    */
-  def root(mid: Int) = MusitSecureAction(mid).async { implicit request =>
+  def root(mid: Int) = MusitSecureAction(mid, Read).async { implicit request =>
     service.rootNodes(mid).map(roots => Ok(Json.toJson(roots)))
   }
 
@@ -129,7 +134,7 @@ final class StorageNodeResource @Inject() (
   def children(
     mid: Int,
     id: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     service.getChildren(mid, id).map { nodes =>
       Ok(Json.toJson[Seq[GenericStorageNode]](nodes))
     }
@@ -141,7 +146,7 @@ final class StorageNodeResource @Inject() (
   def getById(
     mid: Int,
     id: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     service.getNodeById(mid, id).map {
       case MusitSuccess(maybeNode) =>
         maybeNode.map(n => Ok(Json.toJson[StorageNode](n))).getOrElse(NotFound)
@@ -163,7 +168,7 @@ final class StorageNodeResource @Inject() (
   def update(
     mid: Int,
     id: Long
-  ) = MusitSecureAction(mid).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
@@ -200,7 +205,7 @@ final class StorageNodeResource @Inject() (
   def delete(
     mid: Int,
     id: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Admin).async { implicit request =>
     // TODO: Extract current user information from enriched request.
     service.deleteNode(mid, id).map {
       case MusitSuccess(maybeDeleted) =>
@@ -260,7 +265,7 @@ final class StorageNodeResource @Inject() (
    */
   def moveNode(
     mid: Int
-  ) = MusitSecureAction(mid).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[Move[StorageNodeId]] match {
       case JsSuccess(cmd, _) =>
@@ -279,7 +284,7 @@ final class StorageNodeResource @Inject() (
    */
   def moveObject(
     mid: Int
-  ) = MusitSecureAction(mid).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[Move[Long]] match {
       case JsSuccess(cmd, _) =>
@@ -305,7 +310,7 @@ final class StorageNodeResource @Inject() (
     mid: Int,
     objectId: Long,
     limit: Int
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     service.objectLocationHistory(mid, objectId, Option(limit)).map {
       case MusitSuccess(history) =>
         Ok(Json.toJson(history))
@@ -321,7 +326,7 @@ final class StorageNodeResource @Inject() (
   def stats(
     mid: Int,
     nodeId: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     service.nodeStats(mid, nodeId).map {
       case MusitSuccess(maybeStats) =>
         maybeStats.map { stats =>
@@ -340,7 +345,7 @@ final class StorageNodeResource @Inject() (
   def currentObjectLocation(
     mid: Int,
     oid: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     service.currentObjectLocation(mid, oid).map {
       case MusitSuccess(optCurrLoc) =>
         optCurrLoc.map { currLoc =>
@@ -361,7 +366,7 @@ final class StorageNodeResource @Inject() (
     searchStr: Option[String],
     page: Int = 1,
     limit: Int = 25
-  ) = MusitSecureAction(mid).async { request =>
+  ) = MusitSecureAction(mid, Read).async { request =>
     searchStr match {
       case Some(criteria) if criteria.length >= 3 =>
         service.searchName(mid, criteria, page, limit).map {

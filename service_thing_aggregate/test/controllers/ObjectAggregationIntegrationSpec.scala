@@ -23,8 +23,8 @@ import no.uio.musit.models.{MuseumNo, ObjectId, SubNo}
 import no.uio.musit.security.{BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.http.Status
 import play.api.libs.json._
+import play.api.test.Helpers._
 
 import scala.language.postfixOps
 
@@ -44,7 +44,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
-      response.status mustBe Status.OK
+      response.status mustBe OK
 
       val objects = response.json.as[JsArray].value
       objects must not be empty
@@ -54,47 +54,61 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("C666")
       (obj \ "subNo").as[SubNo] mustBe SubNo("34")
     }
+
     "respond with 404 for nodeId that does not exist" in {
       val nodeId = 99999
       val mid = 1
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
-      response.status mustBe Status.NOT_FOUND
+      response.status mustBe NOT_FOUND
       (response.json \ "message").as[String] must endWith(s"$nodeId")
     }
+
     "respond with 400 if the request URI is missing nodeId " in {
       val nodeId = None
       val mid = 1
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
-      response.status mustBe Status.BAD_REQUEST
+      response.status mustBe BAD_REQUEST
     }
+
     "respond with 400 if the museumId is invalid" in {
       val nodeId = 99999
       val mid = 555
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
-      response.status mustBe Status.BAD_REQUEST
+      response.status mustBe BAD_REQUEST
       (response.json \ "message").as[String] must include(s"$mid")
     }
+
     "respond with 400 if the museumId is missing from the request URI" in {
       val nodeId = 3
       val mid = None
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
-      response.status mustBe Status.BAD_REQUEST
+      response.status mustBe BAD_REQUEST
     }
+
     "respond with 400 if the museumId isn't a valid number" in {
       val nodeId = 3
       val mid = "blæBlæBlæ"
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
-      response.status mustBe Status.BAD_REQUEST
+      response.status mustBe BAD_REQUEST
+    }
+
+    "respond with 403 if the user doesn't have read access to the museum" in {
+      val nodeId = 99999
+      val mid = 6
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+        .withHeaders(fakeToken.asHeader)
+        .get().futureValue
+      response.status mustBe FORBIDDEN
     }
   }
 }

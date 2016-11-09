@@ -22,12 +22,13 @@ package controllers
 import models.storage.StorageType._
 import models.storage.{StorageNode, StorageType}
 import no.uio.musit.models.{MuseumId, StorageNodeId}
-import no.uio.musit.security.{BearerToken, FakeAuthenticator}
+import no.uio.musit.security.BearerToken
+import no.uio.musit.security.FakeAuthenticator._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
+import play.api.test.Helpers._
 import utils.testhelpers.StorageNodeJsonGenerator._
 import utils.testhelpers._
 
@@ -69,25 +70,33 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   // Will be properly initialised in beforeTests method. So any value should do.
   var buildingId: StorageNodeId = StorageNodeId(9)
 
-  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
+  val readToken = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
+  val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmWrite")
+  val adminToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmAdmin")
+  val godToken = BearerToken(fakeAccessTokenPrefix + "superuser")
 
   override def beforeTests(): Unit = {
     Try {
       val root = wsUrl(RootNodeUrl(mid))
-        .withHeaders(fakeToken.asHeader)
+        .withHeaders(godToken.asHeader)
         .post(JsNull).futureValue
+
       val rootId = (root.json \ "id").asOpt[StorageNodeId]
+
       val org = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(fakeToken.asHeader)
+        .withHeaders(godToken.asHeader)
         .post(organisationJson("Hanky", rootId)).futureValue
+
       val orgId = (org.json \ "id").as[StorageNodeId]
+
       val building = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(fakeToken.asHeader)
+        .withHeaders(godToken.asHeader)
         .post(buildingJson("Panky", orgId)).futureValue
+
       buildingId = (building.json \ "id").as[StorageNodeId]
     }.recover {
       case t: Throwable =>
-        println("Error occured when loading data") // scalastyle:ignore
+        println("Error occured when loading data:\n" + t) // scalastyle:ignore
     }
   }
 
@@ -98,18 +107,18 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       "successfully get kDReport for rooms in a museum" in {
         val js1 = roomJson("r00m", Some(StorageNodeId(buildingId)))
         val res1 = wsUrl(StorageNodesUrl(mid))
-          .withHeaders(fakeToken.asHeader)
+          .withHeaders(adminToken.asHeader)
           .post(js1).futureValue
-        res1.status mustBe Status.CREATED
+        res1.status mustBe CREATED
 
         val js2 = roomJson("rUUm", Some(StorageNodeId(buildingId)))
         val res2 = wsUrl(StorageNodesUrl(mid))
-          .withHeaders(fakeToken.asHeader)
+          .withHeaders(adminToken.asHeader)
           .post(js2).futureValue
-        res2.status mustBe Status.CREATED
+        res2.status mustBe CREATED
 
         val report = wsUrl(KdReportUrl(mid))
-          .withHeaders(fakeToken.asHeader)
+          .withHeaders(readToken.asHeader)
           .get.futureValue
 
         (report.json \ "totalArea").as[Double] mustBe 41
@@ -124,41 +133,47 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       "fail when try to get KdReport from a deleted room" in {
         val js1 = roomJson("RooM", Some(StorageNodeId(buildingId)))
         val res1 = wsUrl(StorageNodesUrl(mid))
-          .withHeaders(fakeToken.asHeader)
+          .withHeaders(adminToken.asHeader)
           .post(js1).futureValue
-        res1.status mustBe Status.CREATED
+        res1.status mustBe CREATED
 
         val js2 = roomJson("RuuM", Some(StorageNodeId(buildingId)))
         val res2 = wsUrl(StorageNodesUrl(mid))
-          .withHeaders(fakeToken.asHeader)
+          .withHeaders(adminToken.asHeader)
           .post(js2).futureValue
-        res2.status mustBe Status.CREATED
+        res2.status mustBe CREATED
 
-        val reportAfterInsertsOfTwoRoom = wsUrl(KdReportUrl(mid))
-          .withHeaders(fakeToken.asHeader)
+        val repAfterIns2 = wsUrl(KdReportUrl(mid))
+          .withHeaders(readToken.asHeader)
           .get.futureValue
 
-        (reportAfterInsertsOfTwoRoom.json \ "totalArea").as[Double] mustBe 82
-        (reportAfterInsertsOfTwoRoom.json \ "perimeterSecurity").as[Double] mustBe 82
-        (reportAfterInsertsOfTwoRoom.json \ "theftProtection").as[Double] mustBe 82
-        (reportAfterInsertsOfTwoRoom.json \ "fireProtection").as[Double] mustBe 0
-        (reportAfterInsertsOfTwoRoom.json \ "waterDamageAssessment").as[Double] mustBe 82
-        (reportAfterInsertsOfTwoRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
+        (repAfterIns2.json \ "totalArea").as[Double] mustBe 82
+        (repAfterIns2.json \ "perimeterSecurity").as[Double] mustBe 82
+        (repAfterIns2.json \ "theftProtection").as[Double] mustBe 82
+        (repAfterIns2.json \ "fireProtection").as[Double] mustBe 0
+        (repAfterIns2.json \ "waterDamageAssessment").as[Double] mustBe 82
+        (repAfterIns2.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
 
         val roomId = (res1.json \ "id").as[Long]
         val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId))
-          .withHeaders(fakeToken.asHeader)
+          .withHeaders(adminToken.asHeader)
           .delete().futureValue
-        val reportAfterDeleteOfOneRoom = wsUrl(KdReportUrl(mid))
-          .withHeaders(fakeToken.asHeader)
+        val repAfterDel1 = wsUrl(KdReportUrl(mid))
+          .withHeaders(readToken.asHeader)
           .get.futureValue
 
-        (reportAfterDeleteOfOneRoom.json \ "totalArea").as[Double] mustBe 61.5
-        (reportAfterDeleteOfOneRoom.json \ "perimeterSecurity").as[Double] mustBe 61.5
-        (reportAfterDeleteOfOneRoom.json \ "theftProtection").as[Double] mustBe 61.5
-        (reportAfterDeleteOfOneRoom.json \ "fireProtection").as[Double] mustBe 0
-        (reportAfterDeleteOfOneRoom.json \ "waterDamageAssessment").as[Double] mustBe 61.5
-        (reportAfterDeleteOfOneRoom.json \ "routinesAndContingencyPlan").as[Double] mustBe 61.5
+        (repAfterDel1.json \ "totalArea").as[Double] mustBe 61.5
+        (repAfterDel1.json \ "perimeterSecurity").as[Double] mustBe 61.5
+        (repAfterDel1.json \ "theftProtection").as[Double] mustBe 61.5
+        (repAfterDel1.json \ "fireProtection").as[Double] mustBe 0
+        (repAfterDel1.json \ "waterDamageAssessment").as[Double] mustBe 61.5
+        (repAfterDel1.json \ "routinesAndContingencyPlan").as[Double] mustBe 61.5
+      }
+
+      "not allow getting the report without READ permission to the museum" in {
+        wsUrl(KdReportUrl(6))
+          .withHeaders(readToken.asHeader)
+          .get.futureValue.status mustBe FORBIDDEN
       }
 
     }

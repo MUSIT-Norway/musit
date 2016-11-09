@@ -40,7 +40,7 @@ app.use(compression());
 const passportStrategy = new DataportenStrategy({
   clientID: config.dataportenClientID,
   clientSecret: config.dataportenClientSecret,
-  callbackURL: `http://${config.host}:8080/musit`,
+  callbackURL: config.dataportenCallbackUrl,
 }, (accessToken, refreshToken, profile, done) =>
   done(null, {
     userId: profile.data.id,

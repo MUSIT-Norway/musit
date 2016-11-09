@@ -22,6 +22,7 @@ package controllers
 import com.google.inject.Inject
 import no.uio.musit.models.MuseumId
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -40,7 +41,10 @@ class ObjectAggregationController @Inject() (
 
   val logger = Logger(classOf[ObjectAggregationController])
 
-  def getObjects(mid: Int, nodeId: Long) = MusitSecureAction(mid).async { request =>
+  def getObjects(
+    mid: Int,
+    nodeId: Long
+  ) = MusitSecureAction(mid, Read).async { request =>
     storageNodeService.nodeExists(mid, nodeId).flatMap {
       case MusitSuccess(true) =>
         getObjectsByNodeId(mid, nodeId)
