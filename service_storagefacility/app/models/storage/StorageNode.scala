@@ -19,7 +19,6 @@
 
 package models.storage
 
-
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.formatters.StrictFormatters._
 import no.uio.musit.models.{ActorId, NamedPathElement, NodePath, StorageNodeId}

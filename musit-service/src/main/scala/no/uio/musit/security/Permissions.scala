@@ -67,6 +67,14 @@ object Permissions {
   }
 
   /**
+   * Provides application wide ADMIN privileges for _shared_ data across all
+   * museums data.
+   */
+  object MusitAdmin extends Permission {
+    override val priority: Int = 40
+  }
+
+  /**
    * Highest level of permission available. Should _only_ be used for services
    * that require system/application admin restrictions.
    */
