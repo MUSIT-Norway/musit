@@ -23,6 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.event.control.Control
 import models.event.observation.Observation
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
@@ -51,7 +52,7 @@ class EventResource @Inject() (
   def addControl(
     mid: Int,
     nodeId: Long
-  ) = MusitSecureAction(mid).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[Control] match {
       case JsSuccess(ctrl, jsPath) =>
@@ -74,7 +75,7 @@ class EventResource @Inject() (
   def addObservation(
     mid: Int,
     nodeId: Long
-  ) = MusitSecureAction(mid).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     // TODO: Extract current user information from enriched request.
     request.body.validate[Observation] match {
       case JsSuccess(obs, jsPath) =>
@@ -98,7 +99,7 @@ class EventResource @Inject() (
     mid: Int,
     nodeId: Long,
     eventId: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     controlService.findBy(mid, eventId).map {
       case MusitSuccess(maybeControl) =>
         maybeControl.map { ctrl =>
@@ -120,7 +121,7 @@ class EventResource @Inject() (
     mid: Int,
     nodeId: Long,
     eventId: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     observationService.findBy(mid, eventId).map {
       case MusitSuccess(maybeObservation) =>
         maybeObservation.map { obs =>
@@ -139,7 +140,7 @@ class EventResource @Inject() (
   def listControls(
     mid: Int,
     nodeId: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     controlService.listFor(mid, nodeId).map {
       case MusitSuccess(controls) =>
         Ok(Json.toJson(controls))
@@ -155,7 +156,7 @@ class EventResource @Inject() (
   def listObservations(
     mid: Int,
     nodeId: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     observationService.listFor(mid, nodeId).map {
       case MusitSuccess(observations) =>
         Ok(Json.toJson(observations))
@@ -172,7 +173,7 @@ class EventResource @Inject() (
   def listEventsForNode(
     mid: Int,
     nodeId: Long
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     val eventuallyCtrls = controlService.listFor(mid, nodeId)
     val eventyallyObs = observationService.listFor(mid, nodeId)
     for {

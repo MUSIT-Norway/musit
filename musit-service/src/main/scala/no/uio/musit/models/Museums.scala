@@ -38,28 +38,64 @@ object Museums {
       }
   }
 
+  // TODO: The ID's need to be aligned with the ID's in the DB.
+  // TODO: fake_security.json needs to be modified to align with the changed ID's.
+
+  /**
+   * Gives access to all museums...needed to provide cross museum
+   * permissions in certain Roles.
+   */
+  case object All extends Museum {
+    val id = MuseumId(Int.MaxValue)
+  }
+
+  /**
+   * Kulturhistorisk museum i Oslo
+   */
   case object Khm extends Museum {
     val id = MuseumId(1)
   }
 
+  /**
+   * Arkeologisk museum i Stavanger
+   */
   case object Am extends Museum {
     val id = MuseumId(2)
   }
 
+  /**
+   * Universitetsmuseet i Bergen
+   */
   case object Um extends Museum {
     val id = MuseumId(3)
   }
 
+  /**
+   * Naturhistorisk museum i Oslo
+   */
   case object Nhm extends Museum {
     val id = MuseumId(4)
   }
 
+  /**
+   * Vitenskapsmuseet i Trondheim (NTNU)
+   */
   case object Vm extends Museum {
     val id = MuseumId(5)
   }
 
+  /**
+   * Tromsø museum
+   */
   case object Tmu extends Museum {
     val id = MuseumId(6)
+  }
+
+  /**
+   * Kristiansand naturmuseum
+   */
+  case object Kmn extends Museum {
+    val id = MuseumId(7)
   }
 
 }
