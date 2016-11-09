@@ -25,6 +25,7 @@ import no.uio.musit.models.{MuseumNo, SubNo}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
+import no.uio.musit.security.Permissions.Read
 import play.api.{Configuration, Logger}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -65,7 +66,7 @@ class ObjectSearchController @Inject() (
     museumNo: Option[String],
     subNo: Option[String],
     term: Option[String]
-  ) = MusitSecureAction(mid).async { implicit request =>
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
       Future.successful {
         BadRequest(Json.obj(

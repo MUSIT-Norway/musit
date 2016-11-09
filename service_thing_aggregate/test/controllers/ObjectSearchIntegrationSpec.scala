@@ -23,6 +23,7 @@ import no.uio.musit.security.{BearerToken, FakeAuthenticator}
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.libs.json.JsArray
+import play.api.test.Helpers._
 
 import scala.language.postfixOps
 
@@ -49,7 +50,7 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
         "limit" -> "3"
       ).get().futureValue
 
-      res.status mustBe 200
+      res.status mustBe OK
 
       val json = res.json
 
@@ -98,6 +99,16 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
       (thirdPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet"
       (thirdPnames.last \ "nodeId").as[Long] mustBe 3
       (thirdPnames.last \ "name").as[String] mustBe "Forskningens hus"
+    }
+
+    "not allow searching for objects if user doesn't have read access" in {
+      val res = wsUrl(url(6)).withHeaders(fakeToken.asHeader).withQueryString(
+        "museumNo" -> "FOO6565",
+        "subNo" -> "",
+        "term" -> "",
+        "page" -> "1",
+        "limit" -> "3"
+      ).get().futureValue.status mustBe FORBIDDEN
     }
 
     // TODO: There needs to be _loads_ more tests here!

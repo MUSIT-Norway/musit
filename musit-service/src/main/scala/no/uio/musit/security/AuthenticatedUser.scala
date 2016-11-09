@@ -20,7 +20,7 @@
 package no.uio.musit.security
 
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.security.Permissions.Permission
+import no.uio.musit.security.Permissions.{GodMode, Permission}
 import no.uio.musit.service.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
 import play.api.Logger
 
@@ -32,12 +32,15 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
     museum: Museum,
     permissions: Seq[Permission]
   ): MusitResult[Unit] = {
-    if (isAuthorizedFor(museum)) {
-      val lowest = if (permissions.nonEmpty) {
-        permissions.reduceLeft((a, b) => if (a.priority > b.priority) b else a)
-      } else {
-        Permissions.Unspecified
-      }
+    val lowest = if (permissions.nonEmpty) {
+      permissions.reduceLeft((a, b) => if (a.priority > b.priority) b else a)
+    } else {
+      Permissions.Unspecified
+    }
+
+    if (hasGodMode) {
+      MusitSuccess(())
+    } else if (isAuthorizedFor(museum)) {
       val allowed = permissionsFor(museum).exists(_.priority >= lowest.priority)
       if (allowed) MusitSuccess(())
       else MusitNotAuthorized()
@@ -45,6 +48,8 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
       MusitNotAuthorized()
     }
   }
+
+  def hasGodMode: Boolean = groups.exists(_.hasPermission(GodMode))
 
   def permissionsFor(museum: Museum): Seq[Permission] = groups.flatMap { g =>
     g.museum.find(_.id == museum.id).flatMap { m =>

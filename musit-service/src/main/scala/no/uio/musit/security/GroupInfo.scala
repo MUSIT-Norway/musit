@@ -20,6 +20,7 @@
 package no.uio.musit.security
 
 import no.uio.musit.models.Museums.Museum
+import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security.Roles.Role
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -33,6 +34,9 @@ case class GroupInfo(
 
   val group: Option[Role] = Roles.fromGroupId(id)
   val museum: Option[Museum] = group.map(_.museum)
+
+  def hasPermission(permission: Permission): Boolean =
+    group.exists(_.permissions.contains(permission))
 
 }
 

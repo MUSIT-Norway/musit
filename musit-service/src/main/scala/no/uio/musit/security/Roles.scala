@@ -37,6 +37,7 @@ object Roles {
     permissions: Seq[Permission]
   )
 
+  val AppAdmin = "AppAdmin"
   val NhmSfRead = "NhmSfRead"
   val NhmSfWrite = "NhmSfWrite"
   val NhmSfAdmin = "NhmSfAdmin"
@@ -46,12 +47,16 @@ object Roles {
   val UmSfRead = "UmSfRead"
   val UmSfWrite = "UmSfWrite"
   val UmSfAdmin = "UmSfAdmin"
+  val VmSfRead = "VmSfRead"
+  val VmSfWrite = "VmSfWrite"
+  val VmSfAdmin = "VmSfAdmin"
   val EtnoRead = "EtnoRead"
   val EtnoWrite = "EtnoWrite"
   val FotoRead = "FotoRead"
   val FotoWrite = "FotoWrite"
 
   val roles: Map[String, Role] = Map(
+    AppAdmin -> Role(AppAdmin, All, Seq(GodMode)),
     NhmSfRead -> Role(NhmSfRead, Nhm, Seq(Read)),
     NhmSfWrite -> Role(NhmSfWrite, Nhm, Seq(Write)),
     NhmSfAdmin -> Role(NhmSfAdmin, Nhm, Seq(Admin)),
@@ -61,6 +66,9 @@ object Roles {
     UmSfRead -> Role(UmSfRead, Um, Seq(Read)),
     UmSfWrite -> Role(UmSfWrite, Um, Seq(Write)),
     UmSfAdmin -> Role(UmSfAdmin, Um, Seq(Admin)),
+    VmSfRead -> Role(VmSfRead, Vm, Seq(Read)),
+    VmSfWrite -> Role(VmSfWrite, Vm, Seq(Write)),
+    VmSfAdmin -> Role(VmSfAdmin, Vm, Seq(Admin)),
     EtnoRead -> Role(EtnoRead, Khm, Seq(Read)),
     EtnoWrite -> Role(EtnoWrite, Khm, Seq(Write)),
     FotoRead -> Role(FotoRead, Khm, Seq(Read)),
