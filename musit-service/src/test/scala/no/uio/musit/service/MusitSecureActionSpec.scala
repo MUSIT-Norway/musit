@@ -85,8 +85,8 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
 
         val action = new Dummy().MusitSecureAction(Khm.id, Read) { request =>
           request.token mustBe token
-          request.user.userInfo.id mustBe userId
-          Ok(request.user.userInfo.id)
+          request.user.userInfo.id.asString mustBe userId
+          Ok(request.user.userInfo.id.asString)
         }
 
         val req = FakeRequest(GET, "/").withHeaders(token.asHeader)
@@ -97,13 +97,13 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
       }
 
       "accept requests if the user has write access to the museum" in {
-        val userId = "musitTestUserKhmWrite"
+        val userId = "a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a"
         val token = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmWrite")
 
         val action = new Dummy().MusitSecureAction(Khm.id, Read) { request =>
           request.token mustBe token
-          request.user.userInfo.id mustBe userId
-          Ok(request.user.userInfo.id)
+          request.user.userInfo.id.asString mustBe userId
+          Ok(request.user.userInfo.id.asString)
         }
 
         val req = FakeRequest(GET, "/").withHeaders(token.asHeader)
@@ -114,7 +114,7 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
       }
 
       "accept requests if the user has God permission" in {
-        val userId = "superuser"
+        val userId = "896125d3-0563-46b6-a7c5-51f3f899ff0a"
         val token = BearerToken(fakeAccessTokenPrefix + "superuser")
 
         val action = new Dummy().MusitSecureAction(Khm.id, Read) { request =>
@@ -150,8 +150,8 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
 
         val action = new Dummy().MusitSecureAction(Nhm.id, Write) { request =>
           request.token mustBe token
-          request.user.userInfo.id mustBe userId
-          Ok(request.user.userInfo.id)
+          request.user.userInfo.id.asString mustBe userId
+          Ok(request.user.userInfo.id.asString)
         }
 
         val req = FakeRequest(GET, "/").withHeaders(token.asHeader)
@@ -162,7 +162,7 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
       }
 
       "accept requests if the user has god permissions" in {
-        val userId = "superuser"
+        val userId = "896125d3-0563-46b6-a7c5-51f3f899ff0a"
         val token = BearerToken(fakeAccessTokenPrefix + "superuser")
 
         val action = new Dummy().MusitSecureAction(Nhm.id, Write) { request =>
@@ -199,8 +199,8 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
 
         val action = new Dummy().MusitSecureAction(Nhm.id, Admin) { request =>
           request.token mustBe token
-          request.user.userInfo.id mustBe userId
-          Ok(request.user.userInfo.id)
+          request.user.userInfo.id.asString mustBe userId
+          Ok(request.user.userInfo.id.asString)
         }
 
         val req = FakeRequest(GET, "/").withHeaders(token.asHeader)
@@ -213,7 +213,7 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
 
     "used with God rights on a controller" should {
       "accept requests if the user has got God access to the application" in {
-        val userId = "superuser"
+        val userId = "896125d3-0563-46b6-a7c5-51f3f899ff0a"
         val token = BearerToken(fakeAccessTokenPrefix + "superuser")
 
         val action = new Dummy().MusitSecureAction(Nhm.id, GodMode) { request =>
@@ -230,7 +230,7 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
       }
 
       "not accept requests from un-Godly users" in {
-        val userId = "musitTestUserNhmRead"
+        val userId = "896125d3-0563-46b6-a7c5-51f3f899ff0a"
         val token = BearerToken(fakeAccessTokenPrefix + "musitTestUserNhmRead")
 
         val action = new Dummy().MusitSecureAction(Nhm.id, GodMode)(_ => Ok)
