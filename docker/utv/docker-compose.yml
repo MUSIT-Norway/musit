@@ -16,6 +16,11 @@ services:
     backing:
         build:
           context: "../../backing"
+        environment:
+          - CLIENT_ID
+          - CLIENT_SECRET
+          - CALLBACK_URL
+          - JWT_SECRET
         ports:
           - "3030:3030"
 
