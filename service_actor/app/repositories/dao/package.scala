@@ -24,7 +24,7 @@ package object dao {
   val SchemaName = "MUSARK_ACTOR"
   val MappingSchemaName = "MUSIT_MAPPING"
 
-  val ActorTableName = "VIEW_ACTOR"
+  val ActorTableName = "ACTOR"
   val OrgTableName = "ORGANIZATION"
   val OrgAdrTableName = "ORGANIZATION_ADDRESS"
 

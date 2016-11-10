@@ -26,6 +26,7 @@ import models.event.control.Control
 import models.event.dto.BaseEventDto
 import models.event.dto.DtoConverters.CtrlConverters
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
+import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -42,18 +43,23 @@ class ControlService @Inject() (
 
   /**
    *
+   * @param mid
+   * @param nodeId
+   * @param ctrl
+   * @param currUsr
+   * @return
    */
   def add(
     mid: MuseumId,
     nodeId: StorageNodeId,
     ctrl: Control
-  )(implicit currUsr: String): Future[MusitResult[Control]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Control]] = {
     storageNodeService.exists(mid, nodeId).flatMap {
       case MusitSuccess(nodeExists) =>
         if (nodeExists) {
           val c = ctrl.copy(
             affectedThing = Some(nodeId),
-            registeredBy = Some(currUsr),
+            registeredBy = Some(currUsr.id),
             registeredDate = Some(dateTimeNow)
           )
           val dto = CtrlConverters.controlToDto(c)

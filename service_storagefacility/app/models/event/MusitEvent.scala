@@ -31,7 +31,7 @@ trait MusitEvent {
   val doneBy: Option[ActorId]
   val doneDate: DateTime
   val affectedThing: Option[MusitId]
-  val registeredBy: Option[String]
+  val registeredBy: Option[ActorId]
   val registeredDate: Option[DateTime]
   val eventType: EventType
 }

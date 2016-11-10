@@ -34,7 +34,7 @@ case class Control(
   doneBy: Option[ActorId],
   doneDate: DateTime,
   affectedThing: Option[StorageNodeId],
-  registeredBy: Option[String],
+  registeredBy: Option[ActorId],
   registeredDate: Option[DateTime],
   eventType: EventType,
   alcohol: Option[ControlAlcohol] = None,

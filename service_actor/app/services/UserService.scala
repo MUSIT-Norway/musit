@@ -37,6 +37,9 @@ class UserService @Inject() (val actorDao: ActorDao) {
    * @return
    */
   def currenUserAsActor(user: AuthenticatedUser): Future[Person] = {
+    // TODO: This may be a bit simplistic. we need to check if the retrieved
+    // user is known by his/her dataporten user name. If so, we need to _update_
+    // the user row instead of adding a new one.
     actorDao.getByDataportenId(user.userInfo.id).flatMap {
       case Some(person) => Future.successful(person)
       case None => actorDao.insertAuthUser(user)

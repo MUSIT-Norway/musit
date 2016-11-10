@@ -68,7 +68,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
           case base: BaseEventDto =>
             val c = DtoConverters.CtrlConverters.controlFromDto(base)
             c.eventType mustBe EventType.fromEventTypeId(ControlEventType.id)
-            c.registeredBy mustBe Some(registeredByName)
+            c.registeredBy mustBe Some(defaultActorId)
             c.registeredDate must not be None
             c.temperature mustBe ctrl.temperature
             c.alcohol mustBe ctrl.alcohol
@@ -112,7 +112,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
             val o = DtoConverters.ObsConverters.observationFromDto(base)
 
             o.eventType mustBe EventType.fromEventTypeId(ObservationEventType.id)
-            o.registeredBy mustBe Some(registeredByName)
+            o.registeredBy mustBe Some(defaultActorId)
             o.registeredDate must not be None
             o.alcohol mustBe obs.alcohol
             o.cleaning mustBe obs.cleaning
@@ -157,7 +157,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
             er.eventType mustBe envReq.eventType
             er.note mustBe envReq.note
-            er.registeredBy mustBe Some(registeredByName)
+            er.registeredBy mustBe Some(defaultActorId)
             er.registeredDate must not be None
             er.light mustBe envReq.light
             er.temperature mustBe envReq.temperature

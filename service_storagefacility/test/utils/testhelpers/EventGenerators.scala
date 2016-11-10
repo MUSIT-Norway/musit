@@ -57,14 +57,13 @@ trait EventGenerators extends EventTypeInitializers {
 
 trait EventTypeInitializers {
 
-  val registeredByName = "Darth Vader"
-  val defaultActorId = ActorId(12)
+  val defaultActorId = ActorId.generate()
 
   def createControl(storageNodeId: Option[StorageNodeId] = None) = {
     Control(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      registeredBy = Some(registeredByName),
+      registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = storageNodeId,
@@ -80,7 +79,7 @@ trait EventTypeInitializers {
     Observation(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      registeredBy = Some(registeredByName),
+      registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = storageNodeId,
@@ -106,7 +105,7 @@ trait EventTypeInitializers {
       id = None,
       doneDate = DateTime.now.minusDays(1),
       note = Some("This is an envreq note"),
-      registeredBy = Some(registeredByName),
+      registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = storageNodeId,
@@ -230,7 +229,7 @@ trait EventTypeInitializers {
     MoveObject(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      registeredBy = Some(registeredByName),
+      registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = objectId,
@@ -248,7 +247,7 @@ trait EventTypeInitializers {
     MoveNode(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      registeredBy = Some(registeredByName),
+      registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = nodeId,

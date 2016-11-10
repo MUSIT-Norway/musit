@@ -19,9 +19,11 @@
 
 package repositories.dao
 
+import java.util.UUID
+
 import com.google.inject.{Inject, Singleton}
 import models.Person
-import no.uio.musit.models.{ActorId, AuthId}
+import no.uio.musit.models.{ActorId, DatabaseId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
@@ -37,8 +39,15 @@ class ActorDao @Inject() (
 
   private val actorTable = TableQuery[ActorTable]
 
-  def getById(id: ActorId): Future[Option[Person]] = {
+  def getByDbId(id: DatabaseId): Future[Option[Person]] = {
     db.run(actorTable.filter(_.id === id).result.headOption)
+  }
+
+  def getByActorId(uuid: ActorId): Future[Option[Person]] = {
+    val query = actorTable.filter { a =>
+      a.applicationId === uuid || a.dpId === uuid
+    }
+    db.run(query.result.headOption)
   }
 
   def getByName(searchString: String): Future[Seq[Person]] = {
@@ -46,12 +55,14 @@ class ActorDao @Inject() (
     db.run(actorTable.filter(_.fn.toUpperCase like s"%$likeArg%").result)
   }
 
-  def getByDataportenId(dataportenId: AuthId): Future[Option[Person]] = {
-    db.run(actorTable.filter(_.dataportenId === dataportenId).result.headOption)
+  def getByDataportenId(dataportenId: ActorId): Future[Option[Person]] = {
+    db.run(actorTable.filter(_.dpId === dataportenId).result.headOption)
   }
 
-  def listByIds(ids: Set[ActorId]): Future[Seq[Person]] = {
-    db.run(actorTable.filter(_.id inSet ids).result)
+  def listBy(ids: Set[ActorId]): Future[Seq[Person]] = {
+    db.run(actorTable.filter { a =>
+      (a.applicationId inSet ids) || (a.dpId inSet ids)
+    }.result)
   }
 
   def insertAuthUser(user: AuthenticatedUser): Future[Person] = {
@@ -60,10 +71,11 @@ class ActorDao @Inject() (
   }
 
   def insert(actor: Person): Future[Person] = {
+    val insAct = actor.copy(applicationId = Option(ActorId.generate()))
     val insQuery = actorTable returning
-      actorTable.map(_.id) into ((actor, id) => actor.copy(id = id))
+      actorTable.map(_.id) into ((insAct, id) => insAct.copy(id = id))
 
-    val action = insQuery += actor
+    val action = insQuery += insAct
 
     db.run(action)
   }
@@ -73,25 +85,37 @@ class ActorDao @Inject() (
       tag: Tag
   ) extends Table[Person](tag, Some(MappingSchemaName), ActorTableName) {
 
-    val id = column[Option[ActorId]]("NY_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Option[DatabaseId]]("ACTOR_ID", O.PrimaryKey, O.AutoInc)
     val fn = column[String]("ACTORNAME")
-    val dataportenId = column[Option[AuthId]]("DATAPORTEN_ID")
+    val dpId = column[Option[ActorId]]("DATAPORTEN_UUID")
+    val dpUsername = column[Option[String]]("DATAPORTEN_USERNAME")
+    val applicationId = column[Option[ActorId]]("APPLICATION_UUID")
 
     val create = (
-      id: Option[ActorId],
+      id: Option[DatabaseId],
       fn: String,
-      dataportenId: Option[AuthId]
+      dataportenId: Option[ActorId],
+      dataportenUsername: Option[String],
+      applicationId: Option[ActorId]
     ) => Person(
       id = id,
       fn = fn,
-      dataportenId = dataportenId
+      dataportenId = dataportenId,
+      dataportenUser = dataportenUsername,
+      applicationId = applicationId
     )
 
     val destroy = (actor: Person) =>
-      Some((actor.id, actor.fn, actor.dataportenId))
+      Some((
+        actor.id,
+        actor.fn,
+        actor.dataportenId,
+        actor.dataportenUser,
+        actor.applicationId
+      ))
 
     // scalastyle:off method.name
-    def * = (id, fn, dataportenId) <> (create.tupled, destroy)
+    def * = (id, fn, dpId, dpUsername, applicationId) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
   }

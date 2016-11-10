@@ -26,6 +26,7 @@ import models.event.dto.{EventDto, ExtendedDto}
 import models.event.envreq.EnvRequirement
 import models.storage.EnvironmentRequirement
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
+import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -85,8 +86,9 @@ class EnvironmentRequirementService @Inject() (
    */
   def add(
     mid: MuseumId,
-    envReq: EnvRequirement
-  )(implicit currUsr: String): Future[MusitResult[EnvRequirement]] = {
+    er: EnvRequirement
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EnvRequirement]] = {
+    val envReq = er.copy(registeredBy = Option(currUsr.id))
     val dto = EnvReqConverters.envReqToDto(envReq)
 
     compareWithLatest(mid, envReq).flatMap { sameEr =>

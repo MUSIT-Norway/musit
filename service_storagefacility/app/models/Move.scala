@@ -19,7 +19,7 @@
 
 package models
 
-import no.uio.musit.models.{ActorId, StorageNodeId}
+import no.uio.musit.models.{ActorId, ObjectId, StorageNodeId}
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
@@ -37,10 +37,10 @@ object Move {
     (__ \ "items").format[Seq[StorageNodeId]]
   )((db, snid, items) => Move(db, snid, items), m => (m.doneBy, m.destination, m.items))
 
-  implicit val objectIdFormat: Format[Move[Long]] = (
+  implicit val objectIdFormat: Format[Move[ObjectId]] = (
     (__ \ "doneBy").format[ActorId] and
     (__ \ "destination").format[StorageNodeId] and
-    (__ \ "items").format[Seq[Long]]
+    (__ \ "items").format[Seq[ObjectId]]
   )((db, snid, items) => Move(db, snid, items), m => (m.doneBy, m.destination, m.items))
 
 }

@@ -20,6 +20,7 @@
 package services
 
 import no.uio.musit.models.{EventId, MuseumId}
+import no.uio.musit.security.{AuthenticatedUser, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import utils.testhelpers.{EventGenerators, NodeGenerators}
@@ -33,7 +34,15 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
     interval = Span(50, Millis)
   )
 
-  implicit val DummyUser = "Bevel Lemelisk"
+  implicit val dummyUser = AuthenticatedUser(
+    userInfo = UserInfo(
+      id = defaultActorId,
+      name = Some("Darth Vader"),
+      email = None,
+      picture = None
+    ),
+    groups = Seq.empty
+  )
 
   val controlService: ControlService = fromInstanceCache[ControlService]
   val obsService: ObservationService = fromInstanceCache[ObservationService]

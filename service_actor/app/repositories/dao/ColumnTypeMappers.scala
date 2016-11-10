@@ -21,7 +21,7 @@ package repositories.dao
 
 import java.util.UUID
 
-import no.uio.musit.models.{ActorId, AuthId, DatabaseId, OrgId}
+import no.uio.musit.models.{ActorId, DatabaseId, OrgId}
 import play.api.db.slick.HasDatabaseConfig
 import slick.driver.JdbcProfile
 
@@ -31,9 +31,9 @@ trait ColumnTypeMappers {
   import driver.api._
 
   implicit val actorIdMapper: BaseColumnType[ActorId] =
-    MappedColumnType.base[ActorId, Long](
-      aid => aid.underlying,
-      longId => ActorId(longId)
+    MappedColumnType.base[ActorId, String](
+      aid => aid.asString,
+      strId => ActorId(UUID.fromString(strId))
     )
 
   implicit val orgIdMapper: BaseColumnType[OrgId] =
@@ -46,12 +46,6 @@ trait ColumnTypeMappers {
     MappedColumnType.base[DatabaseId, Long](
       did => did.underlying,
       longId => DatabaseId(longId)
-    )
-
-  implicit val authIdMapper: BaseColumnType[AuthId] =
-    MappedColumnType.base[AuthId, String](
-      aid => aid.asString,
-      strId => AuthId(UUID.fromString(strId))
     )
 
 }

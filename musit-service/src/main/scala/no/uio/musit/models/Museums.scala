@@ -41,6 +41,16 @@ object Museums {
   // TODO: The ID's need to be aligned with the ID's in the DB.
   // TODO: fake_security.json needs to be modified to align with the changed ID's.
 
+  /*
+    1   Arkeologisk Museum  AM
+    2   Bergen Universitetsmuseum   UM
+    3   Kulturhistorisk Museum  KHM
+    4   Naturhistorisk Museum   NHM
+    5   NTNU Vitenskapsmuseet   VM
+    6   Tromsø Museum  TMU
+    7   Kristiansand Naturmuseum    KMN
+  */
+
   /**
    * Gives access to all museums...needed to provide cross museum
    * permissions in certain Roles.

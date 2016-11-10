@@ -19,12 +19,15 @@
 
 package no.uio.musit.security
 
+import no.uio.musit.models.ActorId
 import no.uio.musit.models.Museums.Museum
 import no.uio.musit.security.Permissions.{GodMode, Permission}
 import no.uio.musit.service.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
 import play.api.Logger
 
 case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
+
+  val id: ActorId = userInfo.id
 
   private val logger = Logger(classOf[AuthenticatedUser])
 

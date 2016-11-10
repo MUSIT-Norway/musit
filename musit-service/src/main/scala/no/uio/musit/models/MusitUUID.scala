@@ -21,21 +21,10 @@ package no.uio.musit.models
 
 import java.util.UUID
 
-import play.api.libs.json._
+trait MusitUUID {
 
-case class AuthId(underlying: UUID) {
+  val underlying: UUID
 
   def asString: String = underlying.toString
-
-}
-
-object AuthId {
-
-  implicit val reads: Reads[AuthId] =
-    __.read[String].map(s => AuthId(UUID.fromString(s)))
-
-  implicit val writes: Writes[AuthId] = Writes(id => JsString(id.asString))
-
-  def validate(str: String) = UUID.fromString(str)
 
 }

@@ -21,9 +21,10 @@ package utils.testhelpers
 
 import models.datetime.dateTimeNow
 import models.storage._
-import models.{DummyData, Interval}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeId}
+import models.Interval
+import no.uio.musit.models.{ActorId, MuseumId, NodePath, StorageNodeId}
 import no.uio.musit.test.MusitSpecWithApp
+import org.joda.time.DateTime
 import play.api.Application
 import repositories.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
 
@@ -107,7 +108,10 @@ trait NodeGenerators extends NodeTypeInitializers {
   def bootstrapBaseStructure(museumId: MuseumId = defaultMuseumId): BaseStructureIds = {
     Await.result(
       awaitable = for {
-      rid <- storageUnitDao.insertRoot(museumId, Root())
+      rid <- storageUnitDao.insertRoot(museumId, Root(
+        updatedBy = Some(defaultUserId),
+        updatedDate = Some(DateTime.now)
+      ))
       _ <- storageUnitDao.setRootPath(rid, NodePath(s",${rid.underlying},"))
       oid <- organisationDao.insert(museumId, createOrganisation(partOf = Some(rid)))
       _ <- organisationDao.setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},"))
@@ -149,6 +153,8 @@ trait NodeGenerators extends NodeTypeInitializers {
 
 trait NodeTypeInitializers {
 
+  val defaultUserId = ActorId.generate()
+
   def initEnvironmentRequirement(
     temp: Option[Interval[Double]] = Some(Interval[Double](20.0, Some(25))),
     humid: Option[Interval[Double]] = Some(Interval[Double](60.7, Some(70))),
@@ -188,7 +194,7 @@ trait NodeTypeInitializers {
       path = path,
       environmentRequirement = None,
       address = Some("FooBar Gate 8, 111 Oslo, Norge"),
-      updatedBy = Some(DummyData.DummyUserId),
+      updatedBy = Some(defaultUserId),
       updatedDate = Some(dateTimeNow)
     )
   }
@@ -211,7 +217,7 @@ trait NodeTypeInitializers {
       path = path,
       environmentRequirement = Some(defaultEnvironmentRequirement),
       address = Some("FooBar Gate 8, 111 Oslo, Norge"),
-      updatedBy = Some(DummyData.DummyUserId),
+      updatedBy = Some(defaultUserId),
       updatedDate = Some(dateTimeNow)
     )
   }
@@ -246,7 +252,7 @@ trait NodeTypeInitializers {
         temperature = Some(true),
         preventiveConservation = Some(false)
       ),
-      updatedBy = Some(DummyData.DummyUserId),
+      updatedBy = Some(defaultUserId),
       updatedDate = Some(dateTimeNow)
     )
   }
@@ -268,7 +274,7 @@ trait NodeTypeInitializers {
       groupWrite = None,
       path = path,
       environmentRequirement = Some(defaultEnvironmentRequirement),
-      updatedBy = Some(DummyData.DummyUserId),
+      updatedBy = Some(defaultUserId),
       updatedDate = Some(dateTimeNow)
     )
   }

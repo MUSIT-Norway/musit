@@ -137,7 +137,7 @@ case class GenericStorageNode(
 
 object GenericStorageNode {
 
-  val formats: Format[GenericStorageNode] = (
+  implicit val formats: Format[GenericStorageNode] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
@@ -164,7 +164,9 @@ case class Root(
     id: Option[StorageNodeId] = None,
     name: String = "root-node",
     environmentRequirement: Option[EnvironmentRequirement] = None,
-    path: NodePath = NodePath.empty
+    path: NodePath = NodePath.empty,
+    updatedBy: Option[ActorId] = None,
+    updatedDate: Option[DateTime] = None
 ) extends StorageNode {
   val area: Option[Double] = None
   val areaTo: Option[Double] = None
@@ -175,19 +177,19 @@ case class Root(
   val groupWrite: Option[String] = None
   val pathNames: Option[Seq[NamedPathElement]] = None
   val storageType: StorageType = StorageType.RootType
-  val updatedBy: Option[ActorId] = None
-  val updatedDate: Option[DateTime] = None
 }
 
 object Root {
 
   val logger = Logger(classOf[Root])
 
-  val formats: Format[Root] = (
+  implicit val formats: Format[Root] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) // scalastyle:ignore
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
+    (__ \ "updatedBy").formatNullable[ActorId] and
+    (__ \ "updatedDate").formatNullable[DateTime]
   )(Root.apply, unlift(Root.unapply))
 
   /**
@@ -225,7 +227,7 @@ object StorageUnit {
 
   val logger = Logger(classOf[StorageUnit])
 
-  val formats: Format[StorageUnit] = (
+  implicit val formats: Format[StorageUnit] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
@@ -290,7 +292,7 @@ object Room {
 
   val logger = Logger(classOf[Room])
 
-  val formats: Format[Room] = (
+  implicit val formats: Format[Room] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
@@ -355,7 +357,7 @@ object Building {
 
   val logger = Logger(classOf[Building])
 
-  val formats: Format[Building] = (
+  implicit val formats: Format[Building] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
@@ -418,7 +420,7 @@ object Organisation {
 
   val logger = Logger(classOf[Organisation])
 
-  val formats: Format[Organisation] = (
+  implicit val formats: Format[Organisation] = (
     (__ \ "id").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and

@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import models.Move
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
-import no.uio.musit.models.{EventId, MusitId, StorageNodeId}
+import no.uio.musit.models.{EventId, MusitId, ObjectId, StorageNodeId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
@@ -45,9 +45,6 @@ final class StorageNodeResource @Inject() (
 ) extends MusitController {
 
   val logger = Logger(classOf[StorageNodeResource])
-
-  // TODO: Use user from an enriched request type in a proper SecureAction
-  import models.DummyData.DummyUser
 
   private def addResult[T <: StorageNode](
     res: MusitResult[Option[T]]
@@ -78,7 +75,8 @@ final class StorageNodeResource @Inject() (
   def add(
     mid: Int
   ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
-    // TODO: Extract current user information from enriched request.
+    implicit val currUsr = request.user
+
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
         node match {
@@ -112,13 +110,16 @@ final class StorageNodeResource @Inject() (
 
   /**
    * TODO: Document me!
-   *
-   * TODO: We need to accept an argument for giving the root node a name
    */
   def addRoot(
     mid: Int
-  ) = MusitSecureAction(mid, GodMode).async { implicit request =>
-    service.addRoot(mid).map(addResult)
+  ) = MusitSecureAction(mid, GodMode).async(parse.json) { implicit request =>
+    implicit val currUsr = request.user
+
+    request.body.validate[Root] match {
+      case JsSuccess(root, _) => service.addRoot(mid, root).map(addResult)
+      case err: JsError => Future.successful(BadRequest(JsError.toJson(err)))
+    }
   }
 
   /**
@@ -169,7 +170,8 @@ final class StorageNodeResource @Inject() (
     mid: Int,
     id: Long
   ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
-    // TODO: Extract current user information from enriched request.
+    implicit val currUsr = request.user
+
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
         val futureRes: Future[MusitResult[Option[StorageNode]]] = node match {
@@ -206,7 +208,8 @@ final class StorageNodeResource @Inject() (
     mid: Int,
     id: Long
   ) = MusitSecureAction(mid, Admin).async { implicit request =>
-    // TODO: Extract current user information from enriched request.
+    implicit val currUsr = request.user
+
     service.deleteNode(mid, id).map {
       case MusitSuccess(maybeDeleted) =>
         maybeDeleted.map { numDeleted =>
@@ -266,10 +269,11 @@ final class StorageNodeResource @Inject() (
   def moveNode(
     mid: Int
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    // TODO: Extract current user information from enriched request.
+    implicit val currUsr = request.user
+
     request.body.validate[Move[StorageNodeId]] match {
       case JsSuccess(cmd, _) =>
-        val events = MoveNode.fromCommand(DummyUser, cmd)
+        val events = MoveNode.fromCommand(request.user.id, cmd)
         move(events)((id, evt) => service.moveNode(mid, id, evt))
 
       case JsError(error) =>
@@ -285,10 +289,11 @@ final class StorageNodeResource @Inject() (
   def moveObject(
     mid: Int
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    // TODO: Extract current user information from enriched request.
-    request.body.validate[Move[Long]] match {
+    implicit val currUsr = request.user
+
+    request.body.validate[Move[ObjectId]] match {
       case JsSuccess(cmd, _) =>
-        val events = MoveObject.fromCommand(DummyUser, cmd)
+        val events = MoveObject.fromCommand(request.user.id, cmd)
         move(events)((id, evt) => service.moveObject(mid, id, evt))
 
       case JsError(error) =>

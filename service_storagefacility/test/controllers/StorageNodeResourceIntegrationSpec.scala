@@ -19,11 +19,12 @@
 
 package controllers
 
-import models.DummyData
+import java.util.UUID
+
 import models.storage.StorageType._
 import models.storage._
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
-import no.uio.musit.models.{MuseumId, NamedPathElement, NodePath, StorageNodeId}
+import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
@@ -75,7 +76,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   val readToken = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
   val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmWrite")
+  val writeId = ActorId(UUID.fromString("a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a"))
   val adminToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmAdmin")
+  val adminId = ActorId(UUID.fromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
   val godToken = BearerToken(fakeAccessTokenPrefix + "superuser")
 
   // TODO: add override def beforeTests to bootstrap a re-usable structure to
@@ -93,7 +96,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           for (i <- fromIncInserted until numNodes + fromIncInserted) {
             val res = wsUrl(RootNodeUrl(mid))
               .withHeaders(godToken.asHeader)
-              .post(JsNull).futureValue
+              .post(rootJson(s"root-$i")).futureValue
             val root = parseAndVerifyResponse[Root](res)
             root mustBe a[Root]
             root.id.isEmpty must not be true
@@ -123,7 +126,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         organisation mustBe an[Organisation]
         organisation.path mustBe NodePath(",1,11,")
-        organisation.updatedBy mustBe Some(DummyData.DummyUserId)
+        organisation.updatedBy mustBe Some(adminId)
         organisation.updatedDate.get.toString must include("2016")
       }
 
@@ -139,7 +142,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         building mustBe a[Building]
         building.path mustBe NodePath(",1,11,12,")
-        building.updatedBy.get mustBe DummyData.DummyUserId
+        building.updatedBy.get mustBe adminId
         building.updatedDate.get.toString must include("2016")
       }
 
@@ -155,7 +158,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         room mustBe a[Room]
         room.path mustBe NodePath(",1,11,12,13,")
-        room.updatedBy.get mustBe DummyData.DummyUserId
+        room.updatedBy.get mustBe adminId
         room.updatedDate.get.toString must include("2016")
       }
 
@@ -171,7 +174,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         su mustBe a[StorageUnit]
         su.path mustBe NodePath(",1,11,12,13,14,")
-        su.updatedBy.get mustBe DummyData.DummyUserId
+        su.updatedBy.get mustBe adminId
         su.updatedDate.get.toString must include("2016")
       }
 
@@ -288,7 +291,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated.path mustBe NodePath(",1,11,12,13,15,")
         updated.areaTo mustBe Some(.8)
         updated.heightTo mustBe Some(.8)
-        updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+        updated.updatedBy.get mustBe adminId
       }
 
       "successfully update a room" in {
@@ -331,7 +334,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           NamedPathElement(StorageNodeId(12), "My Building1"),
           NamedPathElement(StorageNodeId(16), "My Room2b")
         )
-        updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+        updated.updatedBy.get mustBe adminId
       }
 
       "successfully update a building with environment requirements" in {
@@ -368,7 +371,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
         updated.environmentRequirement.isEmpty must not be true
         updated.environmentRequirement.get.cleaning mustBe Some("Filthy")
-        updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+        updated.updatedBy.get mustBe adminId
 
       }
 
@@ -404,7 +407,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated mustBe an[Organisation]
         updated.path mustBe NodePath(",1,18,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
-        updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+        updated.updatedBy.get mustBe adminId
       }
 
       "respond with 404 when trying to update a node that doesn't exist" in {
@@ -486,7 +489,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveMeId = created.id.get.underlying
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 15,
               |  "items": [${created.id.get.underlying}]
               |}""".stripMargin
@@ -512,7 +515,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       "fail when trying to move a node to an invalid destination" in {
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 20,
               |  "items": [13]
               |}""".stripMargin
@@ -546,7 +549,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 15,
               |  "items": [$id1, $id2, $id3]
               |}""".stripMargin
@@ -606,7 +609,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 1,
               |  "items": [$id1, $id2, $id3]
               |}""".stripMargin
@@ -638,7 +641,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val verifyIds = directChildIds ++ subChildrenIds
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 14,
               |  "items": [15]
               |}""".stripMargin
@@ -670,7 +673,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 5,
               |  "items": [$id1, $id2, $id3]
               |}""".stripMargin
@@ -691,7 +694,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 3,
               |  "items": [$id2]
               |}""".stripMargin
@@ -716,9 +719,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val firstElem = resArr.head
         (firstElem \ "doneDate").as[DateTime] mustBe today
-        (firstElem \ "doneBy").as[Int] mustBe 1
+        (firstElem \ "doneBy").as[String] mustBe adminId.asString
         (firstElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
-        (firstElem \ "registeredBy").as[String] mustBe "Darth Vader"
+        (firstElem \ "registeredBy").as[String] mustBe writeId.asString
         (firstElem \ "from" \ "path").as[NodePath] mustBe NodePath(",1,2,3,5,")
         (firstElem \ "from" \ "pathNames").as[JsArray].value must not be empty
         (firstElem \ "to" \ "path").as[NodePath] mustBe NodePath(",1,2,3,")
@@ -726,9 +729,9 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val lastElem = resArr.last
         (lastElem \ "doneDate").as[DateTime] mustBe today
-        (lastElem \ "doneBy").as[Int] mustBe 1
+        (lastElem \ "doneBy").as[String] mustBe adminId.asString
         (lastElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
-        (lastElem \ "registeredBy").as[String] mustBe "Darth Vader"
+        (lastElem \ "registeredBy").as[String] mustBe writeId.asString
         (lastElem \ "from" \ "path").as[NodePath] mustBe NodePath(",1,2,3,4,")
         (lastElem \ "from" \ "pathNames").as[JsArray].value must not be empty
         (lastElem \ "to" \ "path").as[NodePath] mustBe NodePath(",1,2,3,5,")
@@ -740,7 +743,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 3,
               |  "items": [$id2]
               |}""".stripMargin
@@ -1095,7 +1098,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveMeId = (res1.json \ "id").as[Long]
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 29,
               |  "items": [$moveMeId]
               |}""".stripMargin
@@ -1156,7 +1159,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": 1,
+              |  "doneBy": "${adminId.asString}",
               |  "destination": 29,
               |  "items": [$id1, $id2, $id3]
               |}""".stripMargin
@@ -1194,31 +1197,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         n2.path mustBe NodePath(s",1,2,3,6,29,$id2,")
         n3.path mustBe NodePath(s",10,39,40,$id3,")
       }
-
-      /* "successfully and UnSuccesfully move several objects with different MuseumId " in {
-     TODO: This test is pending until we can insert object with different museumId
-        val mid = 2
-        val id1 = 1234
-        val id2 = 5678
-        val id3 = 9876
-
-        val moveJson = Json.parse(
-          s"""{
-              |  "doneBy": 1,
-              |  "destination": 9,
-              |  "items": [$id1, $id2, $id3]
-              |}""".stripMargin
-        )
-
-        val move = wsUrl(MoveObjectUrl(mid))
-          .withHeaders(fakeToken.asHeader)
-          .put(moveJson).futureValue
-
-        move.status mustBe OK
-        println(Json.prettyPrint(move.json))
-
-        (move.json \ "moved").as[JsArray].value.map(_.as[Int]) must contain allOf (id1, id2, id3)
-      }*/
 
       "find a storage when searching by name" in {
         val res1 = wsUrl(StorageNodeSearchName(mid))

@@ -23,7 +23,7 @@ import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
 import models.event.EventTypeId
 import models.event.dto.{BaseEventDto, EventRelation, ObservationFromToDto}
-import no.uio.musit.models.EventId
+import no.uio.musit.models.{ActorId, EventId}
 import play.api.db.slick.HasDatabaseConfigProvider
 import repositories.dao.{ColumnTypeMappers, SchemaName}
 import slick.driver.JdbcProfile
@@ -119,7 +119,7 @@ private[event] trait SharedEventTables extends BaseEventDao
     val valueLong = column[Option[Long]]("VALUE_LONG")
     val valueString = column[Option[String]]("VALUE_STRING")
     val valueDouble = column[Option[Double]]("VALUE_FLOAT")
-    val registeredBy = column[Option[String]]("REGISTERED_BY")
+    val registeredBy = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
 
     def create = (
@@ -131,7 +131,7 @@ private[event] trait SharedEventTables extends BaseEventDao
       valueLong: Option[Long],
       valueString: Option[String],
       valueDouble: Option[Double],
-      registeredBy: Option[String],
+      registeredBy: Option[ActorId],
       registeredDate: Option[JSqlTimestamp]
     ) =>
       BaseEventDto(

@@ -21,7 +21,6 @@ package models.storage.dto
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
-import models.DummyData
 import models.storage._
 import models.datetime.Implicits._
 import models.datetime.dateTimeNow
@@ -59,12 +58,15 @@ case class RootDto(
     name: String,
     storageType: StorageType,
     museumId: MuseumId,
-    path: NodePath = NodePath.empty
+    path: NodePath = NodePath.empty,
+    updatedBy: Option[ActorId],
+    updatedDate: Option[JSqlTimestamp]
 ) extends StorageNodeDto {
+
   /**
    * Hack to convert into a StorageUnitDto for DB inserts
    */
-  def asStorageUnit(mid: MuseumId): StorageUnitDto =
+  def asStorageUnitDto(mid: MuseumId): StorageUnitDto =
     StorageUnitDto(
       id = id,
       name = name,
@@ -79,8 +81,8 @@ case class RootDto(
       isDeleted = None,
       storageType = storageType,
       museumId = mid,
-      updatedBy = Some(DummyData.DummyUserId),
-      updatedDate = Some(dateTimeNow)
+      updatedBy = updatedBy,
+      updatedDate = updatedDate
     )
 
 }
@@ -262,7 +264,9 @@ object StorageNodeDto {
       id = r.id,
       name = r.name,
       storageType = r.storageType,
-      museumId = mid
+      museumId = mid,
+      updatedBy = r.updatedBy,
+      updatedDate = r.updatedDate
     )
 
   def fromStorageUnit(

@@ -79,7 +79,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     Try {
       val root = wsUrl(RootNodeUrl(mid))
         .withHeaders(godToken.asHeader)
-        .post(JsNull).futureValue
+        .post(rootJson("daRoot")).futureValue
 
       val rootId = (root.json \ "id").asOpt[StorageNodeId]
 
