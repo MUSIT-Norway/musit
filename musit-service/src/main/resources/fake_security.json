@@ -6,6 +6,21 @@
       "displayName": "Application administrator with access to all functionality"
     },
     {
+      "id": "TestSfRead",
+      "type": "fc:org",
+      "displayName": "Read access to storage facility for TEST"
+    },
+    {
+      "id": "TestSfWrite",
+      "type": "fc:org",
+      "displayName": "Write access to storage facility for TEST"
+    },
+    {
+      "id": "TestSfAdmin",
+      "type": "fc:org",
+      "displayName": "Admin access to storage facility for TEST"
+    },
+    {
       "id": "KhmSfRead",
       "type": "fc:org",
       "displayName": "Read access to storage facility for KHM"
@@ -93,29 +108,29 @@
       "userid": "8efd41bb-bc58-4bbf-ac95-eea21ba9db81",
       "name": "Fake Musit Test User",
       "email": "foo@bar.bas",
-      "groups": ["KhmSfRead", "NhmSfWrite", "UmSfRead"],
+      "groups": ["TestSfRead", "AmSfRead", "NhmSfWrite", "UmSfRead"],
       "accessToken": "fake-token-zab-xy-musitTestUser"
     },
     {
       "userid": "caef058a-16d7-400f-9f73-3736477c6b44",
-      "name": "Fake Musit Test User KHM Read",
+      "name": "Fake Musit Test User TEST Read",
       "email": "foo@bar.bas",
-      "groups": ["KhmSfRead"],
-      "accessToken": "fake-token-zab-xy-musitTestUserKhmRead"
+      "groups": ["TestSfRead"],
+      "accessToken": "fake-token-zab-xy-musitTestUserTestRead"
     },
     {
       "userid": "a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a",
-      "name": "Fake Musit Test User KHM Write",
+      "name": "Fake Musit Test User TEST Write",
       "email": "foo@bar.bas",
-      "groups": ["KhmSfWrite"],
-      "accessToken": "fake-token-zab-xy-musitTestUserKhmWrite"
+      "groups": ["TestSfWrite"],
+      "accessToken": "fake-token-zab-xy-musitTestUserTestWrite"
     },
     {
       "userid": "d63ab290-2fab-42d2-9b57-2475dfbd0b3c",
-      "name": "Fake Musit Test User KHM Admin",
+      "name": "Fake Musit Test User TEST Admin",
       "email": "foo@bar.bas",
-      "groups": ["KhmSfAdmin"],
-      "accessToken": "fake-token-zab-xy-musitTestUserKhmAdmin"
+      "groups": ["TestSfAdmin"],
+      "accessToken": "fake-token-zab-xy-musitTestUserTestAdmin"
     },
     {
       "userid": "ddb4dc62-8c14-4bac-aafd-0401f619b0ac",
@@ -143,75 +158,75 @@
       "userid": "690674c7-57ac-45d3-8f63-a764520ebe3f",
       "name": "Fake Musit Test User VM Read",
       "email": "foo@bar.bas",
-      "groups": ["NhmSfRead"],
+      "groups": ["VmSfRead"],
       "accessToken": "fake-token-zab-xy-musitTestUserVmRead"
     },
     {
       "userid": "da673d83-342d-4f2c-b3bf-6136304e7131",
       "name": "Fake Musit Test User VM Write",
       "email": "foo@bar.bas",
-      "groups": ["NhmSfWrite"],
+      "groups": ["VmSfWrite"],
       "accessToken": "fake-token-zab-xy-musitTestUserVmWrite"
     },
     {
       "userid": "0967e7d7-a003-4fa5-88b2-55a0df0d8ed8",
       "name": "Fake Musit Test User VM Admin",
       "email": "foo@bar.bas",
-      "groups": ["NhmSfAdmin"],
+      "groups": ["VmSfAdmin"],
       "accessToken": "fake-token-zab-xy-musitTestUserVmAdmin"
     },
     {
       "userid": "dd457c4e-668e-41c5-8820-168f816a531b",
       "name": "Dawn Williams",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-DawnWilliams"
     },
     {
       "userid": "ca04b20e-5094-4b02-8b72-05ec629e7cb4",
       "name": "Espen Uleberg",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-EspenUleberg"
     },
     {
       "userid": "54c2e6f8-53f6-46be-b029-6f01b4b97231",
       "name": "Heini Emilia Rämä",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-HeiniEmilia"
     },
     {
       "userid": "71899f45-08da-48ef-b4c3-0f519d27157f",
       "name": "Karstein Hårsaker",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-Karstein"
     },
     {
       "userid": "064c9dff-9956-4f4e-b3f7-ed77b6e5bc62",
       "name": "Marielle Bergh",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-MarielleBergh"
     },
     {
       "userid": "e5bc8090-705d-40be-bcfa-2b351e7f2339",
       "name": "Wenche Brun",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-WencheBrun"
     },
     {
       "userid": "6eb49c1b-82c7-478b-85e4-9d69d5a50057",
       "name": "Susan Matland",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-SusanMatland"
     },
     {
       "userid": "86626c72-2da2-4fa5-969b-8226a4141dcf",
       "name": "Kjell Gunnar Mobekk",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-KjellGunnarMobekk"
     },
     {
       "userid": "4acad74e-eb4d-4632-be84-7ada5fef1074",
       "name": "Line Arild Sjo",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-LineArildSjo"
     }
   ]

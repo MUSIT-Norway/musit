@@ -42,7 +42,7 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "find an object that exist with a specific museumNo" in {
 
-      val res = wsUrl(url(1)).withHeaders(fakeToken.asHeader).withQueryString(
+      val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
         "museumNo" -> "C666",
         "subNo" -> "",
         "term" -> "",

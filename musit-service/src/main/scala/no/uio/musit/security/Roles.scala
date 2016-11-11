@@ -38,41 +38,73 @@ object Roles {
   )
 
   val AppAdmin = "AppAdmin"
-  val NhmSfRead = "NhmSfRead"
-  val NhmSfWrite = "NhmSfWrite"
-  val NhmSfAdmin = "NhmSfAdmin"
-  val KhmSfRead = "KhmSfRead"
-  val KhmSfWrite = "KhmSfWrite"
-  val KhmSfAdmin = "KhmSfAdmin"
+
+  val TestSfRead = "TestSfRead"
+  val TestSfWrite = "TestSfWrite"
+  val TestSfAdmin = "TestSfAdmin"
+
+  val AmSfRead = "AmSfRead"
+  val AmSfWrite = "AmSfWrite"
+  val AmSfAdmin = "AmSfAdmin"
+
   val UmSfRead = "UmSfRead"
   val UmSfWrite = "UmSfWrite"
   val UmSfAdmin = "UmSfAdmin"
+
+  val KhmSfRead = "KhmSfRead"
+  val KhmSfWrite = "KhmSfWrite"
+  val KhmSfAdmin = "KhmSfAdmin"
+
+  val NhmSfRead = "NhmSfRead"
+  val NhmSfWrite = "NhmSfWrite"
+  val NhmSfAdmin = "NhmSfAdmin"
+
   val VmSfRead = "VmSfRead"
   val VmSfWrite = "VmSfWrite"
   val VmSfAdmin = "VmSfAdmin"
-  val EtnoRead = "EtnoRead"
-  val EtnoWrite = "EtnoWrite"
-  val FotoRead = "FotoRead"
-  val FotoWrite = "FotoWrite"
+
+  val TmuSfRead = "TmuSfRead"
+  val TmuSfWrite = "TmuSfWrite"
+  val TmuSfAdmin = "TmuSfAdmin"
+
+  val KmnSfRead = "KmnSfRead"
+  val KmnSfWrite = "KmnSfWrite"
+  val KmnSfAdmin = "KmnSfAdmin"
 
   val roles: Map[String, Role] = Map(
     AppAdmin -> Role(AppAdmin, All, Seq(GodMode)),
-    NhmSfRead -> Role(NhmSfRead, Nhm, Seq(Read)),
-    NhmSfWrite -> Role(NhmSfWrite, Nhm, Seq(Write)),
-    NhmSfAdmin -> Role(NhmSfAdmin, Nhm, Seq(Admin)),
-    KhmSfRead -> Role(KhmSfRead, Khm, Seq(Read)),
-    KhmSfWrite -> Role(KhmSfWrite, Khm, Seq(Write)),
-    KhmSfAdmin -> Role(KhmSfAdmin, Khm, Seq(Admin)),
+
+    TestSfRead -> Role(TestSfRead, Test, Seq(Read)),
+    TestSfWrite -> Role(TestSfWrite, Test, Seq(Write)),
+    TestSfAdmin -> Role(TestSfAdmin, Test, Seq(Admin)),
+
+    AmSfRead -> Role(AmSfRead, Am, Seq(Read)),
+    AmSfWrite -> Role(AmSfWrite, Am, Seq(Write)),
+    AmSfAdmin -> Role(AmSfAdmin, Am, Seq(Admin)),
+
     UmSfRead -> Role(UmSfRead, Um, Seq(Read)),
     UmSfWrite -> Role(UmSfWrite, Um, Seq(Write)),
     UmSfAdmin -> Role(UmSfAdmin, Um, Seq(Admin)),
+
+    KhmSfRead -> Role(KhmSfRead, Khm, Seq(Read)),
+    KhmSfWrite -> Role(KhmSfWrite, Khm, Seq(Write)),
+    KhmSfAdmin -> Role(KhmSfAdmin, Khm, Seq(Admin)),
+
+    NhmSfRead -> Role(NhmSfRead, Nhm, Seq(Read)),
+    NhmSfWrite -> Role(NhmSfWrite, Nhm, Seq(Write)),
+    NhmSfAdmin -> Role(NhmSfAdmin, Nhm, Seq(Admin)),
+
     VmSfRead -> Role(VmSfRead, Vm, Seq(Read)),
     VmSfWrite -> Role(VmSfWrite, Vm, Seq(Write)),
     VmSfAdmin -> Role(VmSfAdmin, Vm, Seq(Admin)),
-    EtnoRead -> Role(EtnoRead, Khm, Seq(Read)),
-    EtnoWrite -> Role(EtnoWrite, Khm, Seq(Write)),
-    FotoRead -> Role(FotoRead, Khm, Seq(Read)),
-    FotoWrite -> Role(FotoWrite, Khm, Seq(Read))
+
+    TmuSfRead -> Role(TmuSfRead, Tmu, Seq(Read)),
+    TmuSfWrite -> Role(TmuSfWrite, Tmu, Seq(Write)),
+    TmuSfAdmin -> Role(TmuSfAdmin, Tmu, Seq(Admin)),
+
+    KmnSfRead -> Role(KmnSfRead, Kmn, Seq(Read)),
+    KmnSfWrite -> Role(KmnSfWrite, Kmn, Seq(Write)),
+    KmnSfAdmin -> Role(KmnSfAdmin, Kmn, Seq(Admin))
   )
 
   def fromGroupId(gid: String): Option[Role] = roles.get(gid)

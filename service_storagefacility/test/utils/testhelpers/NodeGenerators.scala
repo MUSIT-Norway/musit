@@ -35,8 +35,6 @@ import scala.concurrent.{Await, Future}
 trait NodeGenerators extends NodeTypeInitializers {
   self: MusitSpecWithApp =>
 
-  val defaultMuseumId = MuseumId(1)
-
   def buildingDao: BuildingDao = {
     val instance = Application.instanceCache[BuildingDao]
     instance(musitFakeApp)
@@ -153,6 +151,7 @@ trait NodeGenerators extends NodeTypeInitializers {
 
 trait NodeTypeInitializers {
 
+  val defaultMuseumId = MuseumId(99)
   val defaultUserId = ActorId.generate()
 
   def initEnvironmentRequirement(

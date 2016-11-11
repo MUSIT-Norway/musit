@@ -43,9 +43,9 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     interval = Span(50, Millis)
   )
 
-  val mid = MuseumId(1)
+  val mid = MuseumId(99)
 
-  val fakeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmWrite")
+  val fakeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestWrite")
   val userId = ActorId(UUID.fromString("a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a"))
   val godToken = BearerToken(fakeAccessTokenPrefix + "superuser")
 

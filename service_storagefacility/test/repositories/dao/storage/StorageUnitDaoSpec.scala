@@ -218,34 +218,33 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "fetch tuples of StorageNodeId and StorageType for a NodePath" in {
-      val mid = MuseumId(1)
       val orgPath = NodePath(",1,22,")
       val org = createOrganisation(
         partOf = Some(StorageNodeId(1)),
         path = orgPath
       ).copy(name = "node-x")
-      val organisationId = organisationDao.insert(mid, org).futureValue
+      val organisationId = organisationDao.insert(defaultMuseumId, org).futureValue
 
       val buildingPath = NodePath(",1,22,23,")
       val building = createBuilding(
         partOf = Some(organisationId),
         path = buildingPath
       )
-      val buildingId = buildingDao.insert(mid, building).futureValue
+      val buildingId = buildingDao.insert(defaultMuseumId, building).futureValue
 
       val roomPath = NodePath(",1,22,23,24,")
       val room = createRoom(
         partOf = Some(buildingId),
         path = roomPath
       )
-      val roomId = roomDao.insert(mid, room).futureValue
+      val roomId = roomDao.insert(defaultMuseumId, room).futureValue
 
       val su1Path = NodePath(",1,22,23,24,25,")
       val su1 = createStorageUnit(
         partOf = Some(roomId),
         path = su1Path
       )
-      val suId = storageUnitDao.insert(mid, su1).futureValue
+      val suId = storageUnitDao.insert(defaultMuseumId, su1).futureValue
 
       val expected = Seq(
         StorageNodeId(1) -> RootType,
@@ -255,7 +254,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         suId -> StorageUnitType
       )
 
-      val tuples = storageUnitDao.getStorageTypesInPath(mid, su1Path).futureValue
+      val tuples = storageUnitDao.getStorageTypesInPath(defaultMuseumId, su1Path).futureValue
 
       tuples must contain theSameElementsInOrderAs expected
     }

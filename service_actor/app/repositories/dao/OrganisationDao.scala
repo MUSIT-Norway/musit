@@ -76,8 +76,8 @@ class OrganisationDao @Inject() (
       tag: Tag
   ) extends Table[Organisation](tag, Some(SchemaName), OrgTableName) {
 
-    val id = column[Option[OrgId]]("ID", O.PrimaryKey, O.AutoInc)
-    val fn = column[String]("FN")
+    val id = column[Option[OrgId]]("ORG_ID", O.PrimaryKey, O.AutoInc)
+    val fn = column[String]("FULL_NAME")
     val nickname = column[String]("NICKNAME")
     val tel = column[String]("TEL")
     val web = column[String]("WEB")

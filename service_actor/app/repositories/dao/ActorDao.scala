@@ -19,8 +19,6 @@
 
 package repositories.dao
 
-import java.util.UUID
-
 import com.google.inject.{Inject, Singleton}
 import models.Person
 import no.uio.musit.models.{ActorId, DatabaseId}
@@ -85,10 +83,15 @@ class ActorDao @Inject() (
       tag: Tag
   ) extends Table[Person](tag, Some(MappingSchemaName), ActorTableName) {
 
-    val id = column[Option[DatabaseId]]("ACTOR_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Option[DatabaseId]]("ACTORID", O.PrimaryKey, O.AutoInc)
     val fn = column[String]("ACTORNAME")
     val dpId = column[Option[ActorId]]("DATAPORTEN_UUID")
     val dpUsername = column[Option[String]]("DATAPORTEN_USERNAME")
+    val oldUsername = column[Option[String]]("OLD_USERNAME")
+    val oldPk = column[Option[Int]]("LOKAL_PK")
+    val oldTableId = column[Option[Int]]("TABELLID")
+    val oldSchemaName = column[Option[String]]("OLD_SCHEMANAME")
+    val museumId = column[Option[Int]]("MUSEUM_ID")
     val applicationId = column[Option[ActorId]]("APPLICATION_UUID")
 
     val create = (

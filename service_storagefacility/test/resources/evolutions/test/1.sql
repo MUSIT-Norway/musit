@@ -26,7 +26,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   group_read        VARCHAR(4000),
   group_write       VARCHAR(4000),
   museum_id         INTEGER           NOT NULL,
-  updated_by        VARCHAR2(50)      NOT NULL,
+  updated_by        VARCHAR2(36)      NOT NULL,
   updated_date      TIMESTAMP         NOT NULL, -- When the change was received by the system
   --   latest_move_id NUMBER(20),
   --   latest_envreq_id NUMBER(20),
@@ -85,7 +85,7 @@ CREATE TABLE MUSARK_STORAGE.EVENT (
   event_type_id   INTEGER       NOT NULL, -- Move to separate table if we want to allow multiple instantiations
   note            VARCHAR2(500),
   event_date      DATE          NOT NULL, -- When the event happened. Should be nullable.
-  registered_by   VARCHAR2(50)  NOT NULL,
+  registered_by   VARCHAR2(36)  NOT NULL,
   registered_date TIMESTAMP     NOT NULL, -- When the event was received by the system
   value_long      NUMBER(20), -- Custom value, events can choose to store some event-specific value here. NOTE: 20 is probably waaaaaay to much.
   value_string    VARCHAR2(250), -- Custom value, events can choose to store some event-specific value here.
@@ -117,7 +117,7 @@ CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_ACTOR (
   event_id NUMBER(20)   NOT NULL,
   role_id  INTEGER      NOT NULL,
-  actor_id VARCHAR2(50) NOT NULL, -- reference by Id to the ActorService
+  actor_id VARCHAR2(36) NOT NULL, -- reference by Id to the ActorService
   PRIMARY KEY (event_id, role_id, actor_id),
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT (event_id),
   FOREIGN KEY (role_id) REFERENCES MUSARK_STORAGE.ROLE (role_id)
@@ -278,22 +278,22 @@ VALUES (4, 'fromPlace', 'storageNode');
 
 -- Inserting nodes
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_NAME, AREA, AREA_TO, IS_STORAGE_UNIT, IS_PART_OF, HEIGHT, HEIGHT_TO, IS_DELETED, STORAGE_TYPE, GROUP_READ, GROUP_WRITE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE)
-VALUES ('root-node', NULL, NULL, '1', NULL, NULL, NULL, FALSE, 'Root', NULL, NULL, ',1,', 1, '896125d3-0563-46b6-a7c5-51f3f899ff0a', '2016-01-01 00:00:00');
+VALUES ('root-node', NULL, NULL, '1', NULL, NULL, NULL, FALSE, 'Root', NULL, NULL, ',1,', 99, '896125d3-0563-46b6-a7c5-51f3f899ff0a', '2016-01-01 00:00:00');
 
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_NAME, AREA, AREA_TO, IS_STORAGE_UNIT, IS_PART_OF, HEIGHT, HEIGHT_TO, IS_DELETED, STORAGE_TYPE, GROUP_READ, GROUP_WRITE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE)
-VALUES ('Utviklingsmuseet', NULL, NULL, '1', 1, NULL, NULL, FALSE, 'Organisation', NULL, NULL, ',1,2,', 1, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
+VALUES ('Utviklingsmuseet', NULL, NULL, '1', 1, NULL, NULL, FALSE, 'Organisation', NULL, NULL, ',1,2,', 99, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
 
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_NAME, AREA, AREA_TO, IS_STORAGE_UNIT, IS_PART_OF, HEIGHT, HEIGHT_TO, IS_DELETED, STORAGE_TYPE, GROUP_READ, GROUP_WRITE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE)
-VALUES ('Forskningens hus', NULL, NULL, '1', 2, NULL, NULL, FALSE, 'Building', NULL, NULL, ',1,2,3,', 1, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
+VALUES ('Forskningens hus', NULL, NULL, '1', 2, NULL, NULL, FALSE, 'Building', NULL, NULL, ',1,2,3,', 99, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
 
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_NAME, AREA, AREA_TO, IS_STORAGE_UNIT, IS_PART_OF, HEIGHT, HEIGHT_TO, IS_DELETED, STORAGE_TYPE, GROUP_READ, GROUP_WRITE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE)
-VALUES ('Kulturværelset', NULL, NULL, '1', 3, NULL, NULL, FALSE, 'Room', NULL, NULL, ',1,2,3,4,', 1, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
+VALUES ('Kulturværelset', NULL, NULL, '1', 3, NULL, NULL, FALSE, 'Room', NULL, NULL, ',1,2,3,4,', 99, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
 
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_NAME, AREA, AREA_TO, IS_STORAGE_UNIT, IS_PART_OF, HEIGHT, HEIGHT_TO, IS_DELETED, STORAGE_TYPE, GROUP_READ, GROUP_WRITE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE)
-VALUES ('Naturværelset', NULL, NULL, '1', 3, NULL, NULL, FALSE, 'Room', NULL, NULL, ',1,2,3,5,', 1, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
+VALUES ('Naturværelset', NULL, NULL, '1', 3, NULL, NULL, FALSE, 'Room', NULL, NULL, ',1,2,3,5,', 99, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
 
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_NAME, AREA, AREA_TO, IS_STORAGE_UNIT, IS_PART_OF, HEIGHT, HEIGHT_TO, IS_DELETED, STORAGE_TYPE, GROUP_READ, GROUP_WRITE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE)
-VALUES ('Forskningsværelset', NULL, NULL, '1', 3, NULL, NULL, FALSE, 'Room', NULL, NULL, ',1,2,3,6,', 1, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
+VALUES ('Forskningsværelset', NULL, NULL, '1', 3, NULL, NULL, FALSE, 'Room', NULL, NULL, ',1,2,3,6,', 99, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', '2016-01-01 00:00:00');
 
 -- Specific node details
 INSERT INTO MUSARK_STORAGE.ORGANISATION VALUES (2, 'Foo Bar Street 1');

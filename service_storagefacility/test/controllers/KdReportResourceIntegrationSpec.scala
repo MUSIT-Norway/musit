@@ -65,14 +65,14 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     parsed.get.asInstanceOf[T]
   }
 
-  val mid = MuseumId(1)
+  val mid = MuseumId(99)
 
   // Will be properly initialised in beforeTests method. So any value should do.
   var buildingId: StorageNodeId = StorageNodeId(9)
 
   val readToken = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
-  val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmWrite")
-  val adminToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmAdmin")
+  val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestWrite")
+  val adminToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestAdmin")
   val godToken = BearerToken(fakeAccessTokenPrefix + "superuser")
 
   override def beforeTests(): Unit = {

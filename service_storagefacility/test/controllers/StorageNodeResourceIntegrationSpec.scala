@@ -72,12 +72,12 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     parsed.get.asInstanceOf[T]
   }
 
-  val mid = MuseumId(1)
+  val mid = MuseumId(99)
 
   val readToken = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
-  val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmWrite")
+  val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestWrite")
   val writeId = ActorId(UUID.fromString("a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a"))
-  val adminToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserKhmAdmin")
+  val adminToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestAdmin")
   val adminId = ActorId(UUID.fromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
   val godToken = BearerToken(fakeAccessTokenPrefix + "superuser")
 
@@ -780,7 +780,7 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         failedUpdate.status mustBe BAD_REQUEST
       }
 
-      "Not list all children for a rootnode with museumId that not exist" in {
+      "Not list all children for a root node with museumId that doesn't exist" in {
         val mid = MuseumId(55)
         val res = wsUrl(NodeChildrenUrl(mid, 1))
           .withHeaders(readToken.asHeader)
@@ -788,8 +788,8 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         res.status mustBe BAD_REQUEST
       }
 
-      "Not list all children for a rootnode with wrong museumId " in {
-        val mid = MuseumId(3)
+      "Not list all children for a root node with wrong museumId " in {
+        val mid = MuseumId(1)
         val res = wsUrl(NodeChildrenUrl(mid, 1))
           .withHeaders(readToken.asHeader)
           .get().futureValue
