@@ -131,7 +131,7 @@ class StorageUnitDao @Inject() (
     }.result.headOption
 
     db.run(query).map { dto =>
-      MusitSuccess(dto.map(n => Root(id = n.id, path = n.path)))
+      MusitSuccess(dto.map(n => Root(id = n.id, name = n.name, path = n.path)))
     }
   }
 
