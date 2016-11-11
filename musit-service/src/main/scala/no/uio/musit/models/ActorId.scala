@@ -34,8 +34,6 @@ object ActorId {
 
   implicit val writes: Writes[ActorId] = Writes(id => JsString(id.asString))
 
-  implicit def asActorId(authId: ActorId): ActorId = ActorId(authId.underlying)
-
   implicit def fromUUID(uuid: UUID): ActorId = ActorId(uuid)
 
   def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
