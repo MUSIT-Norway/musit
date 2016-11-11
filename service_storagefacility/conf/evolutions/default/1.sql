@@ -113,10 +113,10 @@ CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
 );
 
 CREATE TABLE MUSARK_STORAGE.EVENT_ROLE_ACTOR (
-  event_id NUMBER(20)    NOT NULL,
-  role_id  INTEGER       NOT NULL,
-  actor_id VARCHAR2(36)   NOT NULL, -- reference by Id to the ActorService
-  PRIMARY KEY (event_id, role_id, actor_id),
+  event_id NUMBER(20)     NOT NULL,
+  role_id  INTEGER        NOT NULL,
+  actor_uuid VARCHAR2(36) NOT NULL, -- reference by Id to the ActorService
+  PRIMARY KEY (event_id, role_id, actor_uuid),
   FOREIGN KEY (event_id) REFERENCES MUSARK_STORAGE.EVENT (event_id),
   FOREIGN KEY (role_id)  REFERENCES MUSARK_STORAGE.ROLE (role_id)
 );

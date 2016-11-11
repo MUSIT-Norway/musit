@@ -58,7 +58,7 @@ class EventActorsDao @Inject() (
 
     val eventId = column[EventId]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
-    val actorId = column[ActorId]("ACTOR_ID")
+    val actorId = column[ActorId]("ACTOR_UUID")
 
     def create = (eventId: Option[EventId], roleId: Int, actorId: ActorId) =>
       EventRoleActor(
