@@ -260,16 +260,16 @@ VALUES (26, 'ObservationTheftProtection');
 INSERT INTO MUSARK_STORAGE.EVENT_TYPE (event_type_id, name)
 VALUES (27, 'ObservationWaterDamageAssessment');
 
-INSERT INTO MUSARK_STORAGE.ROLE (role_id, name, type)
+INSERT INTO MUSARK_STORAGE.ROLE (role_id, name, data_type)
 VALUES (1, 'DoneWith', 'object');
 
-INSERT INTO MUSARK_STORAGE.ROLE (role_id, name, type)
+INSERT INTO MUSARK_STORAGE.ROLE (role_id, name, data_type)
 VALUES (2, 'DoneBy', 'actor');
 
-INSERT INTO MUSARK_STORAGE.ROLE (role_id, name, type)
+INSERT INTO MUSARK_STORAGE.ROLE (role_id, name, data_type)
 VALUES (3, 'toPlace', 'storageNode');
 
-INSERT INTO MUSARK_STORAGE.ROLE (role_id, name, type)
+INSERT INTO MUSARK_STORAGE.ROLE (role_id, name, data_type)
 VALUES (4, 'fromPlace', 'storageNode')
 
 
