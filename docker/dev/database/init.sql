@@ -18,6 +18,7 @@ CREATE TABLE "MUSARK_STORAGE"."STORAGE_NODE" (
   "GROUP_READ" VARCHAR(4000),
   "GROUP_WRITE" VARCHAR(4000),
   "NODE_PATH" VARCHAR(4000),
+  "OLD_BARCODE" INTEGER,
   "MUSEUM_ID" INTEGER NOT NULL,
   "UPDATED_BY" VARCHAR(36) NOT NULL,
   "UPDATED_DATE" TIMESTAMP NOT NULL,
@@ -60,7 +61,7 @@ CREATE TABLE "MUSARK_STORAGE"."ORGANISATION"(
 CREATE TABLE "MUSARK_STORAGE"."ROLE" (
   "ROLE_ID" SERIAL,
   "NAME" VARCHAR(100) NOT NULL,
-  "TYPE" VARCHAR(100),
+  "DATA_TYPE" VARCHAR(100),
   PRIMARY KEY ("ROLE_ID")
 );
 
@@ -271,10 +272,10 @@ INSERT INTO "EVENT_TYPE" ("NAME") VALUES ('ObservationTemperature');
 INSERT INTO "EVENT_TYPE" ("NAME") VALUES ('ObservationTheftProtection');
 INSERT INTO "EVENT_TYPE" ("NAME") VALUES ('ObservationWaterDamageAssessment');
 
-INSERT INTO "ROLE" ("NAME", "TYPE") VALUES ('DoneWith', 'object');
-INSERT INTO "ROLE" ("NAME", "TYPE") VALUES ('DoneBy', 'actor');
-INSERT INTO "ROLE" ("NAME", "TYPE") VALUES ('toPlace', 'storageNode');
-INSERT INTO "ROLE" ("NAME", "TYPE") VALUES ('fromPlace', 'storageNode');
+INSERT INTO "ROLE" ("NAME", "DATA_TYPE") VALUES ('DoneWith', 'object');
+INSERT INTO "ROLE" ("NAME", "DATA_TYPE") VALUES ('DoneBy', 'actor');
+INSERT INTO "ROLE" ("NAME", "DATA_TYPE") VALUES ('toPlace', 'storageNode');
+INSERT INTO "ROLE" ("NAME", "DATA_TYPE") VALUES ('fromPlace', 'storageNode');
 
 -- ===========================================================================
 -- Inserting test data

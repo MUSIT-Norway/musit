@@ -101,7 +101,7 @@
       "userid": "34e74d46-d45c-49dc-ace7-587b0ff40646",
       "name": "Stein A. Olsen",
       "email": "foo@bar.bas",
-      "groups": ["KhmSfAdmin"],
+      "groups": ["TestSfAdmin"],
       "accessToken": "fake-token-zab-xy-stein"
     },
     {
