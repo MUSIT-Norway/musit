@@ -76,6 +76,13 @@
       "accessToken": "fake-token-zab-xy-guest"
     },
     {
+      "userid": "normal",
+      "name": "Normalbruker",
+      "email": "foo@bar.bas" ,
+      "groups": ["KhmSfWrite"],
+      "accessToken": "fake-token-zab-xy-normal"
+    },
+    {
       "userid": "superuser",
       "name": "Super Duper User",
       "email": "foo@bar.bas",
