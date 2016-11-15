@@ -564,8 +564,7 @@ class StorageNodeService @Inject() (
 
         maybeType.map {
           case StorageType.RootType =>
-            logger.warn(s"Trying to read root node $id in getNodeById.")
-            Future.successful(MusitSuccess(None))
+            unitDao.findRootNode(id)
 
           case StorageType.OrganisationType =>
             getOrganisationById(mid, id)

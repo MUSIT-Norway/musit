@@ -91,6 +91,13 @@
       "accessToken": "fake-token-zab-xy-guest"
     },
     {
+      "userid": "3655615b-e385-4833-b414-9957ea225e58",
+      "name": "Normalbruker",
+      "email": "foo@bar.bas" ,
+      "groups": ["TestSfWrite"],
+      "accessToken": "fake-token-zab-xy-normal"
+    },
+    {
       "userid": "896125d3-0563-46b6-a7c5-51f3f899ff0a",
       "name": "Super Duper User",
       "email": "foo@bar.bas",
