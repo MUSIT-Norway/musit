@@ -113,7 +113,15 @@ class StorageUnitDao @Inject() (
         root.storageType === rootNodeType
     }.result
 
-    db.run(query).map(_.map(n => Root(n.id)))
+    db.run(query).map(_.map { n =>
+      Root(
+        id = n.id,
+        name = n.name,
+        path = n.path,
+        updatedBy = n.updatedBy,
+        updatedDate = n.updatedDate
+      )
+    })
   }
 
   /**
@@ -130,7 +138,15 @@ class StorageUnitDao @Inject() (
     }.result.headOption
 
     db.run(query).map { dto =>
-      MusitSuccess(dto.map(n => Root(id = n.id, name = n.name, path = n.path)))
+      MusitSuccess(dto.map { n =>
+        Root(
+          id = n.id,
+          name = n.name,
+          path = n.path,
+          updatedBy = n.updatedBy,
+          updatedDate = n.updatedDate
+        )
+      })
     }
   }
 
