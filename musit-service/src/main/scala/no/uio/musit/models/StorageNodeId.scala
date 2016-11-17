@@ -19,24 +19,21 @@
 
 package no.uio.musit.models
 
+import java.util.UUID
+
 import play.api.libs.json._
 
-/**
- * Class to give the storage node ID a strong typing.
- */
-case class StorageNodeId(underlying: Long) extends MusitId
+case class StorageNodeId(underlying: UUID) extends MusitUUID
 
-object StorageNodeId {
+object StorageNodeId extends MusitUUIDOps[StorageNodeId] {
 
-  implicit val reads: Reads[StorageNodeId] = __.read[Long].map(StorageNodeId.apply)
-  implicit val writes: Writes[StorageNodeId] = Writes(id => JsNumber(id.underlying))
+  implicit val reads: Reads[StorageNodeId] =
+    __.read[String].map(s => StorageNodeId(UUID.fromString(s)))
 
-  implicit def fromLong(l: Long): StorageNodeId = StorageNodeId(l)
+  implicit val writes: Writes[StorageNodeId] = Writes(id => JsString(id.asString))
 
-  implicit def toLong(id: StorageNodeId): Long = id.underlying
+  override implicit def fromUUID(uuid: UUID): StorageNodeId = StorageNodeId(uuid)
 
-  implicit def fromOptLong(l: Option[Long]): Option[StorageNodeId] = l.map(fromLong)
-
-  implicit def toOptLong(id: Option[StorageNodeId]): Option[Long] = id.map(toLong)
+  override def generate(): StorageNodeId = StorageNodeId(UUID.randomUUID())
 
 }

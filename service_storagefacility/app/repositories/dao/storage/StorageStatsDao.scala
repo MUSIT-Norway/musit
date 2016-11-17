@@ -20,7 +20,7 @@
 package repositories.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.models.{NodePath, StorageNodeId}
+import no.uio.musit.models.{NodePath, StorageNodeDatabaseId}
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
@@ -36,7 +36,7 @@ class StorageStatsDao @Inject() (
    * Count of *all* children of this node, irrespective of access rights to
    * the children
    */
-  def childCount(id: StorageNodeId): Future[Int] = {
+  def childCount(id: StorageNodeDatabaseId): Future[Int] = {
     db.run(countChildren(id))
   }
 
@@ -67,7 +67,7 @@ class StorageStatsDao @Inject() (
    * @param nodeId StorageNodeId to count objects for.
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
-  def directObjectCount(nodeId: StorageNodeId): Future[Int] = {
+  def directObjectCount(nodeId: StorageNodeDatabaseId): Future[Int] = {
     db.run(
       sql"""
         SELECT count(*)

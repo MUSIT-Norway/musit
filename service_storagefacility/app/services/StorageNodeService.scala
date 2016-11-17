@@ -59,7 +59,7 @@ class StorageNodeService @Inject() (
 
   private[services] def saveEnvReq(
     mid: MuseumId,
-    nodeId: StorageNodeId,
+    nodeId: StorageNodeDatabaseId,
     envReq: EnvironmentRequirement
   )(implicit currUsr: AuthenticatedUser): Future[Option[EnvironmentRequirement]] = {
     unitDao.getById(mid, nodeId).flatMap { mayBeNode =>
@@ -89,7 +89,7 @@ class StorageNodeService @Inject() (
    * @param id
    * @return
    */
-  def exists(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Boolean]] = {
+  def exists(mid: MuseumId, id: StorageNodeDatabaseId): Future[MusitResult[Boolean]] = {
     unitDao.exists(mid, id)
   }
 
@@ -127,7 +127,7 @@ class StorageNodeService @Inject() (
    */
   private[services] def findPath(
     mid: MuseumId,
-    maybeId: Option[StorageNodeId]
+    maybeId: Option[StorageNodeDatabaseId]
   ): Future[Option[NodePath]] = {
     maybeId.map(id => unitDao.getPathById(mid, id))
       .getOrElse(Future.successful(None))
@@ -182,10 +182,10 @@ class StorageNodeService @Inject() (
   }
 
   // A couple of type aliases to reduce the length of some function args.
-  type NodeInsertIO[A] = (MuseumId, A) => Future[StorageNodeId]
+  type NodeInsertIO[A] = (MuseumId, A) => Future[StorageNodeDatabaseId]
   type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
-  type NodeUpdateIO[A] = (StorageNodeId, NodePath) => Future[MusitResult[Unit]]
-  type GetNodeIO[A] = (MuseumId, StorageNodeId) => Future[MusitResult[Option[A]]]
+  type NodeUpdateIO[A] = (StorageNodeDatabaseId, NodePath) => Future[MusitResult[Unit]]
+  type GetNodeIO[A] = (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
 
   private val futureFilterErr = "Future.filter predicate is not satisfied"
 
@@ -326,7 +326,7 @@ class StorageNodeService @Inject() (
    */
   def updateStorageUnit(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     storageUnit: StorageUnit
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[StorageUnit]]] = {
     val su = storageUnit.copy(
@@ -355,7 +355,7 @@ class StorageNodeService @Inject() (
    */
   def updateRoom(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     room: Room
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Room]]] = {
     val updateRoom = room.copy(
@@ -384,7 +384,7 @@ class StorageNodeService @Inject() (
    */
   def updateBuilding(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     building: Building
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Building]]] = {
     val updateBuilding = building.copy(
@@ -413,7 +413,7 @@ class StorageNodeService @Inject() (
    */
   def updateOrganisation(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     organisation: Organisation
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Organisation]]] = {
     val updateOrg = organisation.copy(
@@ -451,7 +451,7 @@ class StorageNodeService @Inject() (
    */
   private def nodeById[A <: StorageNode](
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     eventuallyMaybeNode: Future[Option[A]]
   )(cp: CopyNode[A]): Future[MusitResult[Option[A]]] = {
     val eventuallyMaybeEnvReq = getEnvReq(mid, id)
@@ -475,7 +475,7 @@ class StorageNodeService @Inject() (
    */
   def getStorageUnitById(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageUnit]]] = {
     val eventuallyUnit = unitDao.getById(mid, id)
     nodeById(mid, id, eventuallyUnit) { (n, maybeReq, maybeNames) =>
@@ -491,7 +491,7 @@ class StorageNodeService @Inject() (
    */
   def getRoomById(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Room]]] = {
     val eventuallyRoom = roomDao.getById(mid, id)
     nodeById(mid, id, eventuallyRoom) { (n, maybeReq, maybeNames) =>
@@ -507,7 +507,7 @@ class StorageNodeService @Inject() (
    */
   def getBuildingById(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Building]]] = {
     val eventuallyBuilding = buildingDao.getById(mid, id)
     nodeById(mid, id, eventuallyBuilding) { (n, maybeReq, maybeNames) =>
@@ -523,7 +523,7 @@ class StorageNodeService @Inject() (
    */
   def getOrganisationById(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Organisation]]] = {
     val eventuallyOrg = orgDao.getById(mid, id)
     nodeById(mid, id, eventuallyOrg) { (n, maybeReq, maybeNames) =>
@@ -536,7 +536,7 @@ class StorageNodeService @Inject() (
 
   private def getEnvReq(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): Future[Option[EnvironmentRequirement]] = {
     envReqService.findLatestForNodeId(mid, id).map {
       case MusitSuccess(maybeEnvRequirement) => maybeEnvRequirement
@@ -556,7 +556,7 @@ class StorageNodeService @Inject() (
    */
   def getNodeById(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageNode]]] = {
     unitDao.getStorageType(id).flatMap { res =>
       res.map { maybeType =>
@@ -597,14 +597,14 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!
    */
-  def getChildren(mid: MuseumId, id: StorageNodeId): Future[Seq[GenericStorageNode]] = {
+  def getChildren(mid: MuseumId, id: StorageNodeDatabaseId): Future[Seq[GenericStorageNode]] = {
     unitDao.getChildren(mid, id)
   }
 
   /**
    * TODO: Document me!
    */
-  def getStorageType(id: StorageNodeId): Future[MusitResult[Option[StorageType]]] = {
+  def getStorageType(id: StorageNodeDatabaseId): Future[MusitResult[Option[StorageType]]] = {
     unitDao.getStorageType(id)
   }
 
@@ -617,7 +617,7 @@ class StorageNodeService @Inject() (
    */
   def nodeStats(
     mid: MuseumId,
-    nodeId: StorageNodeId
+    nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Option[NodeStats]]] = {
     getNodeById(mid, nodeId).flatMap {
       case MusitSuccess(maybeNode) =>
@@ -670,7 +670,7 @@ class StorageNodeService @Inject() (
    */
   def deleteNode(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Int]]] = {
     unitDao.getById(mid, id).flatMap {
       case Some(node) =>
@@ -729,7 +729,7 @@ class StorageNodeService @Inject() (
    */
   def moveNode(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     event: MoveNode
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
     move(event, unitDao.getNodeById(mid, id), unitDao.getNodeById(mid, event.to)) {
@@ -796,7 +796,7 @@ class StorageNodeService @Inject() (
    */
   private def findPathAndNames(
     mid: MuseumId,
-    maybeId: Option[StorageNodeId]
+    maybeId: Option[StorageNodeDatabaseId]
   ): Future[(NodePath, Seq[NamedPathElement])] = {
     findPath(mid, maybeId).flatMap { maybePath =>
       maybePath.map(p => unitDao.namesForPath(p).map(names => (p, names)))

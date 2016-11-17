@@ -19,7 +19,7 @@
 
 package models.event
 
-import no.uio.musit.models.{ActorId, ObjectId, StorageNodeId}
+import no.uio.musit.models.{ActorId, ObjectId, StorageNodeDatabaseId}
 import play.api.libs.json.{Format, Json}
 
 // TODO: A better name for these
@@ -36,7 +36,7 @@ object ObjectRole {
   implicit val format: Format[ObjectRole] = Json.format[ObjectRole]
 }
 
-case class PlaceRole(roleId: Int, nodeId: StorageNodeId)
+case class PlaceRole(roleId: Int, nodeId: StorageNodeDatabaseId)
 
 object PlaceRole {
   implicit val format: Format[PlaceRole] = Json.format[PlaceRole]

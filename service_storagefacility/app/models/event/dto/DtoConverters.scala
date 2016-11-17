@@ -31,7 +31,7 @@ import models.event.observation._
 import models.event.observation.ObservationSubEvents._
 import models.{FromToDouble, Interval, LifeCycle}
 import models.event.control.ControlSubEvents._
-import no.uio.musit.models.{ObjectId, StorageNodeId}
+import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import EventRoleActor._
 import EventRoleObject._
 import EventRolePlace._
@@ -253,7 +253,7 @@ object DtoConverters {
         id = dto.id,
         doneDate = dto.eventDate,
         doneBy = dto.relatedActors.map(_.actorId).headOption,
-        affectedThing = dto.relatedObjects.map(e => StorageNodeId(e.objectId)).headOption,
+        affectedThing = dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
         registeredBy = dto.registeredBy,
         registeredDate = dto.registeredDate,
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
@@ -388,7 +388,7 @@ object DtoConverters {
         id = dto.id,
         doneDate = dto.eventDate,
         doneBy = dto.relatedActors.map(_.actorId).headOption,
-        affectedThing = dto.relatedObjects.map(e => StorageNodeId(e.objectId)).headOption,
+        affectedThing = dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
         registeredBy = dto.registeredBy,
         registeredDate = dto.registeredDate,
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
@@ -576,7 +576,7 @@ object DtoConverters {
         id = dto.id,
         doneDate = dto.eventDate,
         doneBy = dto.relatedActors.map(_.actorId).headOption,
-        affectedThing = dto.relatedObjects.map(e => StorageNodeId(e.objectId)).headOption,
+        affectedThing = dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
         note = dto.note,
         registeredBy = dto.registeredBy,
         registeredDate = dto.registeredDate,
@@ -607,7 +607,7 @@ object DtoConverters {
 
     def moveFromDto[A <: MoveEvent](
       dto: BaseEventDto
-    )(init: (EventType, Option[StorageNodeId], StorageNodeId) => A): A = {
+    )(init: (EventType, Option[StorageNodeDatabaseId], StorageNodeDatabaseId) => A): A = {
       val eventType = EventType.fromEventTypeId(dto.eventTypeId)
       val from = dto.valueLong
       val to = dto.relatedPlaces.head.placeId
@@ -638,7 +638,7 @@ object DtoConverters {
           id = dto.id,
           doneDate = dto.eventDate,
           doneBy = dto.relatedActors.map(_.actorId).headOption,
-          affectedThing = dto.relatedObjects.map(e => StorageNodeId(e.objectId)).headOption, // scalastyle:ignore
+          affectedThing = dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption, // scalastyle:ignore
           registeredBy = dto.registeredBy,
           registeredDate = dto.registeredDate,
           eventType = eventType,

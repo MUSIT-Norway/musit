@@ -41,7 +41,7 @@ class ObjectAggregationDao @Inject() (
 
   def getObjects(
     mid: MuseumId,
-    nodeId: StorageNodeId
+    nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Seq[ObjectAggregation]]] = {
     implicit val getObject = GetResult(r =>
       ObjectAggregation(

@@ -39,7 +39,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   import driver.api._
 
-  protected def wrongNumUpdatedRows(id: StorageNodeId, numRowsUpdated: Int) =
+  protected def wrongNumUpdatedRows(id: StorageNodeDatabaseId, numRowsUpdated: Int) =
     s"Wrong amount of rows ($numRowsUpdated) updated for node $id"
 
   protected val rootNodeType: StorageType = StorageType.RootType
@@ -59,7 +59,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    */
   protected[storage] def getUnitByIdAction(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid &&
@@ -71,7 +71,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   protected[storage] def getNodeByIdAction(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid &&
@@ -81,7 +81,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
   protected[storage] def getPathByIdAction(
     mid: MuseumId,
-    id: StorageNodeId
+    id: StorageNodeDatabaseId
   ): DBIO[Option[NodePath]] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid && sn.id === id && sn.isDeleted === false
@@ -89,7 +89,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   }
 
   protected[storage] def updatePathAction(
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     path: NodePath
   ): DBIO[Int] = {
     storageNodeTable.filter { sn =>
@@ -135,14 +135,16 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    */
   protected[storage] def insertNodeAction(
     dto: StorageUnitDto
-  ): DBIO[StorageNodeId] = {
-    storageNodeTable returning storageNodeTable.map(_.id) += dto
+  ): DBIO[StorageNodeDatabaseId] = {
+    val nid = dto.nodeId.getOrElse(StorageNodeId.generate())
+    val withNodeId = dto.copy(nodeId = Option(nid))
+    storageNodeTable returning storageNodeTable.map(_.id) += withNodeId
   }
 
   /**
    * TODO: Document me!!!
    */
-  protected[storage] def countChildren(id: StorageNodeId): DBIO[Int] = {
+  protected[storage] def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
     storageNodeTable.filter { sn =>
       sn.isPartOf === id && sn.isDeleted === false
     }.length.result
@@ -153,7 +155,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    */
   protected[storage] def updateNodeAction(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     storageUnit: StorageUnitDto
   ): DBIO[Int] = {
     storageNodeTable.filter { sn =>
@@ -188,6 +190,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     // scalastyle:off method.name
     def * = (
       id.?,
+      uuid.?,
       storageType,
       name,
       area,
@@ -206,12 +209,13 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
     // scalastyle:on method.name
 
-    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
+    val uuid = column[StorageNodeId]("STORAGE_NODE_UUID")
     val storageType = column[StorageType]("STORAGE_TYPE")
     val name = column[String]("STORAGE_NODE_NAME")
     val area = column[Option[Double]]("AREA")
     val areaTo = column[Option[Double]]("AREA_TO")
-    val isPartOf = column[Option[StorageNodeId]]("IS_PART_OF")
+    val isPartOf = column[Option[StorageNodeDatabaseId]]("IS_PART_OF")
     val height = column[Option[Double]]("HEIGHT")
     val heightTo = column[Option[Double]]("HEIGHT_TO")
     val groupRead = column[Option[String]]("GROUP_READ")
@@ -223,12 +227,13 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val updatedDate = column[Option[JSqlTimestamp]]("UPDATED_DATE")
 
     def create = (
-      id: Option[StorageNodeId],
+      id: Option[StorageNodeDatabaseId],
+      nodeId: Option[StorageNodeId],
       storageType: StorageType,
       storageNodeName: String,
       area: Option[Double],
       areaTo: Option[Double],
-      isPartOf: Option[StorageNodeId],
+      isPartOf: Option[StorageNodeDatabaseId],
       height: Option[Double],
       heightTo: Option[Double],
       groupRead: Option[String],
@@ -241,6 +246,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     ) =>
       StorageUnitDto(
         id = id,
+        nodeId = nodeId,
         name = storageNodeName,
         area = area,
         areaTo = areaTo,
@@ -260,6 +266,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     def destroy(unit: StorageUnitDto) =
       Some((
         unit.id,
+        unit.nodeId,
         unit.storageType,
         unit.name,
         unit.area,
@@ -296,7 +303,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
     // scalastyle:on method.name
 
-    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
+    val id = column[Option[StorageNodeDatabaseId]]("STORAGE_NODE_ID", O.PrimaryKey)
     val perimeterSecurity = column[Option[Boolean]]("PERIMETER_SECURITY")
     val theftProtection = column[Option[Boolean]]("THEFT_PROTECTION")
     val fireProtection = column[Option[Boolean]]("FIRE_PROTECTION")
@@ -308,7 +315,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val preventiveConservation = column[Option[Boolean]]("PREVENTIVE_CONSERVATION")
 
     def create = (
-      id: Option[StorageNodeId],
+      id: Option[StorageNodeDatabaseId],
       perimeterSecurity: Option[Boolean],
       theftProtection: Option[Boolean],
       fireProtection: Option[Boolean],
@@ -353,10 +360,10 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
     def * = (id.?, address) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey)
+    val id = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey)
     val address = column[Option[String]]("POSTAL_ADDRESS")
 
-    def create = (id: Option[StorageNodeId], address: Option[String]) =>
+    def create = (id: Option[StorageNodeDatabaseId], address: Option[String]) =>
       BuildingDto(
         id = id,
         address = address
@@ -372,10 +379,10 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
 
     def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
 
-    val id = column[Option[StorageNodeId]]("STORAGE_NODE_ID", O.PrimaryKey)
+    val id = column[Option[StorageNodeDatabaseId]]("STORAGE_NODE_ID", O.PrimaryKey)
     val address = column[Option[String]]("POSTAL_ADDRESS")
 
-    def create = (id: Option[StorageNodeId], address: Option[String]) =>
+    def create = (id: Option[StorageNodeDatabaseId], address: Option[String]) =>
       OrganisationDto(
         id = id,
         address = address

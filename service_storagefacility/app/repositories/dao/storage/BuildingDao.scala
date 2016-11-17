@@ -22,7 +22,7 @@ package repositories.dao.storage
 import com.google.inject.{Inject, Singleton}
 import models.storage.Building
 import models.storage.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeId}
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -43,7 +43,7 @@ class BuildingDao @Inject() (
 
   val logger = Logger(classOf[BuildingDao])
 
-  private def updateAction(id: StorageNodeId, building: BuildingDto): DBIO[Int] = {
+  private def updateAction(id: StorageNodeDatabaseId, building: BuildingDto): DBIO[Int] = {
     buildingTable.filter(_.id === id).update(building)
   }
 
@@ -54,7 +54,7 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[Building]] = {
+  def getById(mid: MuseumId, id: StorageNodeDatabaseId): Future[Option[Building]] = {
     val action = for {
       maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
@@ -74,7 +74,7 @@ class BuildingDao @Inject() (
    */
   def update(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     building: Building
   ): Future[MusitResult[Option[Int]]] = {
     val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
@@ -107,7 +107,7 @@ class BuildingDao @Inject() (
    * @param path the NodePath to set
    * @return MusitResult[Unit]
    */
-  def setPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+  def setPath(id: StorageNodeDatabaseId, path: NodePath): Future[MusitResult[Unit]] = {
     db.run(updatePathAction(id, path)).map {
       case res: Int if res == 1 => MusitSuccess(())
 
@@ -121,7 +121,7 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(mid: MuseumId, building: Building): Future[StorageNodeId] = {
+  def insert(mid: MuseumId, building: Building): Future[StorageNodeDatabaseId] = {
     val extendedDto = StorageNodeDto.fromBuilding(mid, building)
     val query = for {
       nodeId <- insertNodeAction(extendedDto.storageUnitDto)

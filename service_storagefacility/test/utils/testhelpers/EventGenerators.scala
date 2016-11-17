@@ -29,7 +29,7 @@ import models.event.move.{MoveNode, MoveObject}
 import models.event.observation.Observation
 import models.event.observation.ObservationSubEvents._
 import models.{FromToDouble, Interval, LifeCycle}
-import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeId}
+import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
 import repositories.dao.event.EventDao
@@ -59,7 +59,7 @@ trait EventTypeInitializers {
 
   val defaultActorId = ActorId.generate()
 
-  def createControl(storageNodeId: Option[StorageNodeId] = None) = {
+  def createControl(storageNodeId: Option[StorageNodeDatabaseId] = None) = {
     Control(
       id = None,
       doneDate = DateTime.now.minusDays(1),
@@ -75,7 +75,7 @@ trait EventTypeInitializers {
     )
   }
 
-  def createObservation(storageNodeId: Option[StorageNodeId] = None) = {
+  def createObservation(storageNodeId: Option[StorageNodeDatabaseId] = None) = {
     Observation(
       id = None,
       doneDate = DateTime.now.minusDays(1),
@@ -100,7 +100,7 @@ trait EventTypeInitializers {
     )
   }
 
-  def createEnvRequirement(storageNodeId: Option[StorageNodeId] = None) = {
+  def createEnvRequirement(storageNodeId: Option[StorageNodeDatabaseId] = None) = {
     EnvRequirement(
       id = None,
       doneDate = DateTime.now.minusDays(1),
@@ -223,8 +223,8 @@ trait EventTypeInitializers {
 
   def createMoveObject(
     objectId: Option[ObjectId] = Some(ObjectId(1)),
-    from: Option[StorageNodeId],
-    to: StorageNodeId
+    from: Option[StorageNodeDatabaseId],
+    to: StorageNodeDatabaseId
   ): MoveObject = {
     MoveObject(
       id = None,
@@ -240,9 +240,9 @@ trait EventTypeInitializers {
   }
 
   def createMoveNode(
-    nodeId: Option[StorageNodeId] = Some(StorageNodeId(1)),
-    from: Option[StorageNodeId],
-    to: StorageNodeId
+    nodeId: Option[StorageNodeDatabaseId] = Some(StorageNodeDatabaseId(1)),
+    from: Option[StorageNodeDatabaseId],
+    to: StorageNodeDatabaseId
   ): MoveNode = {
     MoveNode(
       id = None,

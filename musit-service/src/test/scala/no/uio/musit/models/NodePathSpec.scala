@@ -59,12 +59,12 @@ class NodePathSpec extends WordSpec with MustMatchers {
 
     "append a new path element" in {
       NodePath("1,2,3,4,5,6,7")
-        .appendChild(StorageNodeId(8)).path mustBe ",1,2,3,4,5,6,7,8,"
+        .appendChild(StorageNodeDatabaseId(8)).path mustBe ",1,2,3,4,5,6,7,8,"
     }
 
     "append a new path element to NodePath.empty" in {
       NodePath.empty
-        .appendChild(StorageNodeId(3)).path mustBe ",3,"
+        .appendChild(StorageNodeDatabaseId(3)).path mustBe ",3,"
     }
 
     "return NodePath.empty when trying get the parent of NodePath.empty" in {

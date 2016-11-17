@@ -66,9 +66,9 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
       (first \ "path").as[String] mustBe ",1,2,3,"
       val firstPnames = (first \ "pathNames").as[JsArray].value
       (firstPnames.head \ "nodeId").as[Long] mustBe 1
-      (firstPnames.head \ "name").as[String] mustBe "root-node"
+      (firstPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
       (firstPnames.tail.head \ "nodeId").as[Long] mustBe 2
-      (firstPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet"
+      (firstPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
       (firstPnames.last \ "nodeId").as[Long] mustBe 3
       (firstPnames.last \ "name").as[String] mustBe "Forskningens hus"
 
@@ -80,9 +80,9 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
       (second \ "path").as[String] mustBe ",1,2,3,"
       val secondPnames = (first \ "pathNames").as[JsArray].value
       (secondPnames.head \ "nodeId").as[Long] mustBe 1
-      (secondPnames.head \ "name").as[String] mustBe "root-node"
+      (secondPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
       (secondPnames.tail.head \ "nodeId").as[Long] mustBe 2
-      (secondPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet"
+      (secondPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
       (secondPnames.last \ "nodeId").as[Long] mustBe 3
       (secondPnames.last \ "name").as[String] mustBe "Forskningens hus"
 
@@ -94,9 +94,9 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
       (third \ "path").as[String] mustBe ",1,2,3,"
       val thirdPnames = (first \ "pathNames").as[JsArray].value
       (thirdPnames.head \ "nodeId").as[Long] mustBe 1
-      (thirdPnames.head \ "name").as[String] mustBe "root-node"
+      (thirdPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
       (thirdPnames.tail.head \ "nodeId").as[Long] mustBe 2
-      (thirdPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet"
+      (thirdPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
       (thirdPnames.last \ "nodeId").as[Long] mustBe 3
       (thirdPnames.last \ "name").as[String] mustBe "Forskningens hus"
     }

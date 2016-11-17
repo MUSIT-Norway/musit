@@ -21,7 +21,7 @@ package repositories.dao.event
 
 import com.google.inject.Inject
 import models.event.dto.{EventDto, LocalObject}
-import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeId}
+import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import repositories.dao.{ColumnTypeMappers, SchemaName}
 import slick.driver.JdbcProfile
@@ -53,7 +53,7 @@ class LocalObjectDao @Inject() (
     )
   }
 
-  def currentLocation(objectId: ObjectId): Future[Option[StorageNodeId]] = {
+  def currentLocation(objectId: ObjectId): Future[Option[StorageNodeDatabaseId]] = {
     val query = localObjectsTable.filter { locObj =>
       locObj.objectId === objectId
     }.map(_.currentLocationId).max.result
@@ -76,13 +76,13 @@ class LocalObjectDao @Inject() (
 
     val objectId = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
     val latestMoveId = column[EventId]("LATEST_MOVE_ID")
-    val currentLocationId = column[StorageNodeId]("CURRENT_LOCATION_ID")
+    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
     val museumId = column[MuseumId]("MUSEUM_ID")
 
     def create = (
       objectId: ObjectId,
       latestMoveId: EventId,
-      currentLocationId: StorageNodeId,
+      currentLocationId: StorageNodeDatabaseId,
       museumId: MuseumId
     ) =>
       LocalObject(

@@ -21,7 +21,7 @@ package controllers
 
 import models.storage.StorageType._
 import models.storage.{StorageNode, StorageType}
-import no.uio.musit.models.{MuseumId, StorageNodeId}
+import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.FakeAuthenticator._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
@@ -49,9 +49,9 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     expPartOf: Option[Long] = None
   )(implicit manifest: Manifest[T]): T = {
     val storageNode = parseAndVerifyResponse[T](response)
-    storageNode.id mustBe Some(StorageNodeId(expId))
+    storageNode.id mustBe Some(StorageNodeDatabaseId(expId))
     storageNode.storageType mustBe expStorageType
-    storageNode.isPartOf mustBe expPartOf.map(StorageNodeId.apply)
+    storageNode.isPartOf mustBe expPartOf.map(StorageNodeDatabaseId.apply)
     storageNode.name mustBe expName
     storageNode mustBe a[T]
 
@@ -68,7 +68,7 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
   val mid = MuseumId(99)
 
   // Will be properly initialised in beforeTests method. So any value should do.
-  var buildingId: StorageNodeId = StorageNodeId(9)
+  var buildingId: StorageNodeDatabaseId = StorageNodeDatabaseId(9)
 
   val readToken = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
   val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestWrite")
@@ -81,19 +81,19 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
         .withHeaders(godToken.asHeader)
         .post(rootJson("daRoot")).futureValue
 
-      val rootId = (root.json \ "id").asOpt[StorageNodeId]
+      val rootId = (root.json \ "id").asOpt[StorageNodeDatabaseId]
 
       val org = wsUrl(StorageNodesUrl(mid))
         .withHeaders(godToken.asHeader)
         .post(organisationJson("Hanky", rootId)).futureValue
 
-      val orgId = (org.json \ "id").as[StorageNodeId]
+      val orgId = (org.json \ "id").as[StorageNodeDatabaseId]
 
       val building = wsUrl(StorageNodesUrl(mid))
         .withHeaders(godToken.asHeader)
         .post(buildingJson("Panky", orgId)).futureValue
 
-      buildingId = (building.json \ "id").as[StorageNodeId]
+      buildingId = (building.json \ "id").as[StorageNodeDatabaseId]
     }.recover {
       case t: Throwable =>
         println("Error occured when loading data:\n" + t) // scalastyle:ignore
@@ -105,13 +105,13 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     "interacting with the StorageUnitResource endpoints" should {
 
       "successfully get kDReport for rooms in a museum" in {
-        val js1 = roomJson("r00m", Some(StorageNodeId(buildingId)))
+        val js1 = roomJson("r00m", Some(StorageNodeDatabaseId(buildingId)))
         val res1 = wsUrl(StorageNodesUrl(mid))
           .withHeaders(adminToken.asHeader)
           .post(js1).futureValue
         res1.status mustBe CREATED
 
-        val js2 = roomJson("rUUm", Some(StorageNodeId(buildingId)))
+        val js2 = roomJson("rUUm", Some(StorageNodeDatabaseId(buildingId)))
         val res2 = wsUrl(StorageNodesUrl(mid))
           .withHeaders(adminToken.asHeader)
           .post(js2).futureValue
@@ -131,13 +131,13 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "fail when try to get KdReport from a deleted room" in {
-        val js1 = roomJson("RooM", Some(StorageNodeId(buildingId)))
+        val js1 = roomJson("RooM", Some(StorageNodeDatabaseId(buildingId)))
         val res1 = wsUrl(StorageNodesUrl(mid))
           .withHeaders(adminToken.asHeader)
           .post(js1).futureValue
         res1.status mustBe CREATED
 
-        val js2 = roomJson("RuuM", Some(StorageNodeId(buildingId)))
+        val js2 = roomJson("RuuM", Some(StorageNodeDatabaseId(buildingId)))
         val res2 = wsUrl(StorageNodesUrl(mid))
           .withHeaders(adminToken.asHeader)
           .post(js2).futureValue

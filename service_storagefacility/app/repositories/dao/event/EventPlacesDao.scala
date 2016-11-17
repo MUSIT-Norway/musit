@@ -22,7 +22,7 @@ package repositories.dao.event
 import com.google.inject.{Inject, Singleton}
 import models.event.EventTypeId
 import models.event.dto.EventRolePlace
-import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
+import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import repositories.dao.{ColumnTypeMappers, SchemaName}
 import slick.driver.JdbcProfile
@@ -59,13 +59,13 @@ class EventPlacesDao @Inject() (
 
     val eventId = column[EventId]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
-    val placeId = column[StorageNodeId]("PLACE_ID")
+    val placeId = column[StorageNodeDatabaseId]("PLACE_ID")
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
 
     def create = (
       eventId: Option[EventId],
       roleId: Int,
-      placeId: StorageNodeId,
+      placeId: StorageNodeDatabaseId,
       eventTypeId: EventTypeId
     ) =>
       EventRolePlace(

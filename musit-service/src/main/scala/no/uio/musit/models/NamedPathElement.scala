@@ -28,7 +28,7 @@ import play.api.libs.json.{Format, Json}
  * @param nodeId StorageNodeId of the named path element
  * @param name   String containing the name value of the StorageNode.
  */
-case class NamedPathElement(nodeId: StorageNodeId, name: String)
+case class NamedPathElement(nodeId: StorageNodeDatabaseId, name: String)
 
 object NamedPathElement {
 
