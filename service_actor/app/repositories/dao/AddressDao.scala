@@ -21,6 +21,7 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.OrganisationAddress
+import no.uio.musit.models.{DatabaseId, OrgId}
 import no.uio.musit.service.MusitResults._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -31,17 +32,17 @@ import scala.concurrent.Future
 @Singleton
 class AddressDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
   private val orgAdrTable = TableQuery[OrganisationAddressTable]
 
-  def allFor(id: Long): Future[Seq[OrganisationAddress]] = {
+  def allFor(id: OrgId): Future[Seq[OrganisationAddress]] = {
     db.run(orgAdrTable.filter(_.organizationId === id).result)
   }
 
-  def getById(id: Long): Future[Option[OrganisationAddress]] = {
+  def getById(id: DatabaseId): Future[Option[OrganisationAddress]] = {
     db.run(orgAdrTable.filter(_.id === id).result.headOption)
   }
 
@@ -63,7 +64,7 @@ class AddressDao @Inject() (
     }
   }
 
-  def delete(id: Long): Future[Int] = {
+  def delete(id: DatabaseId): Future[Int] = {
     db.run(orgAdrTable.filter(_.id === id).delete)
   }
 
@@ -71,9 +72,9 @@ class AddressDao @Inject() (
       tag: Tag
   ) extends Table[OrganisationAddress](tag, Some(SchemaName), OrgAdrTableName) {
 
-    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
-    val organizationId = column[Option[Long]]("ORGANIZATION_ID")
-    val addressType = column[String]("TYPE")
+    val id = column[Option[DatabaseId]]("ORGADDRESSID", O.PrimaryKey, O.AutoInc)
+    val organizationId = column[Option[OrgId]]("ORG_ID")
+    val addressType = column[String]("ADDRESS_TYPE")
     val streetAddress = column[String]("STREET_ADDRESS")
     val locality = column[String]("LOCALITY")
     val postalCode = column[String]("POSTAL_CODE")
@@ -82,8 +83,8 @@ class AddressDao @Inject() (
     val longitude = column[Double]("LONGITUDE")
 
     val create = (
-      id: Option[Long],
-      organizationId: Option[Long],
+      id: Option[DatabaseId],
+      organizationId: Option[OrgId],
       addressType: String,
       streetAddress: String,
       locality: String,

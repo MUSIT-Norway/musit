@@ -21,18 +21,23 @@ package controllers
 
 import com.google.inject.Inject
 import models.Person
+import no.uio.musit.models.ActorId
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.{MusitController, MusitSearch}
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import services.ActorService
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 class PersonResource @Inject() (
     val authService: Authenticator,
     val service: ActorService
 ) extends MusitController {
+
+  val logger = Logger(classOf[PersonResource])
 
   def search(
     museumId: Int,
@@ -40,7 +45,7 @@ class PersonResource @Inject() (
   ) = MusitSecureAction().async { request =>
     search match {
       case Some(criteria) =>
-        service.find(criteria).map(persons => Ok(Json.toJson(persons)))
+        service.findByName(criteria).map(persons => Ok(Json.toJson(persons)))
 
       case None =>
         Future.successful(
@@ -50,9 +55,9 @@ class PersonResource @Inject() (
   }
 
   def details = MusitSecureAction().async(parse.json) { implicit request =>
-    request.body.validate[Seq[Long]] match {
+    request.body.validate[Set[ActorId]] match {
       case JsSuccess(ids, path) =>
-        service.findDetails(ids.toSet).map { persons =>
+        service.findDetails(ids).map { persons =>
           if (persons.isEmpty) {
             NoContent
           } else {
@@ -65,13 +70,19 @@ class PersonResource @Inject() (
     }
   }
 
-  def get(id: Long) = MusitSecureAction().async { implicit request =>
-    service.find(id).map {
-      case Some(actor) =>
-        Ok(Json.toJson(actor))
+  def get(id: String) = MusitSecureAction().async { implicit request =>
+    ActorId.validate(id) match {
+      case Success(uuid) =>
+        service.findByActorId(uuid).map {
+          case Some(actor) =>
+            Ok(Json.toJson(actor))
 
-      case None =>
-        NotFound(Json.obj("message" -> s"Did not find object with id: $id"))
+          case None =>
+            NotFound(Json.obj("message" -> s"Did not find object with id: $id"))
+        }
+      case Failure(ex) =>
+        logger.debug("Request contained invalid UUID")
+        Future.successful(BadRequest(Json.obj("message" -> s"Id $id is not a valid UUID")))
     }
   }
 

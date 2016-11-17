@@ -17,16 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package no.uio.musit.models
 
-import no.uio.musit.models.ActorId
+import play.api.libs.json.{JsNumber, Reads, Writes, _}
 
-object DummyData {
+case class DatabaseId(underlying: Long) extends AnyVal
 
-  implicit val DummyUser = "Darth Vader"
-  implicit val DummyUpdatedUser = "Harry Hole"
+object DatabaseId {
 
-  val DummyUserId = ActorId(123)
-  val DummyUpdatedUserId = ActorId(666)
+  implicit val reads: Reads[DatabaseId] = __.read[Long].map(DatabaseId.apply)
+
+  implicit val writes: Writes[DatabaseId] = Writes(did => JsNumber(did.underlying))
+
+  implicit def fromLong(l: Long): DatabaseId = DatabaseId(l)
+
+  implicit def toLong(id: DatabaseId): Long = id.underlying
+
+  implicit def fromOptLong(ml: Option[Long]): Option[DatabaseId] = ml.map(fromLong)
+
+  implicit def toOptLong(mdid: Option[DatabaseId]): Option[Long] = mdid.map(toLong)
 
 }

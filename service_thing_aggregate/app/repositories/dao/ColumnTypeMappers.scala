@@ -19,6 +19,8 @@
 
 package repositories.dao
 
+import java.util.UUID
+
 import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfig
 import slick.driver.JdbcProfile
@@ -51,9 +53,9 @@ trait ColumnTypeMappers {
     )
 
   implicit val actorIdMapper: BaseColumnType[ActorId] =
-    MappedColumnType.base[ActorId, Long](
-      aid => aid.underlying,
-      longId => ActorId(longId)
+    MappedColumnType.base[ActorId, String](
+      aid => aid.asString,
+      strId => ActorId(UUID.fromString(strId))
     )
 
   implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =

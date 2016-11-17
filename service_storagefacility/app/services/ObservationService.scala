@@ -26,6 +26,7 @@ import models.event.dto.BaseEventDto
 import models.event.dto.DtoConverters.ObsConverters
 import models.event.observation.Observation
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
+import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -47,13 +48,13 @@ class ObservationService @Inject() (
     mid: MuseumId,
     nodeId: StorageNodeId,
     obs: Observation
-  )(implicit currUsr: String): Future[MusitResult[Observation]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Observation]] = {
     storageNodeService.exists(mid, nodeId).flatMap {
       case MusitSuccess(nodeExists) =>
         if (nodeExists) {
           val o = obs.copy(
             affectedThing = Some(nodeId),
-            registeredBy = Some(currUsr),
+            registeredBy = Some(currUsr.id),
             registeredDate = Some(dateTimeNow)
           )
 

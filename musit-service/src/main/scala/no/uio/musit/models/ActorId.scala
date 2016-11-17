@@ -19,22 +19,25 @@
 
 package no.uio.musit.models
 
-import play.api.libs.json.{JsNumber, Reads, Writes, _}
+import java.util.UUID
 
-case class ActorId(underlying: Long) extends MusitId
+import play.api.libs.json._
+
+import scala.util.Try
+
+case class ActorId(underlying: UUID) extends MusitUUID
 
 object ActorId {
 
-  implicit val reads: Reads[ActorId] = __.read[Long].map(ActorId.apply)
+  implicit val reads: Reads[ActorId] =
+    __.read[String].map(s => ActorId(UUID.fromString(s)))
 
-  implicit val writes: Writes[ActorId] = Writes(aid => JsNumber(aid.underlying))
+  implicit val writes: Writes[ActorId] = Writes(id => JsString(id.asString))
 
-  implicit def fromLong(l: Long): ActorId = ActorId(l)
+  implicit def fromUUID(uuid: UUID): ActorId = ActorId(uuid)
 
-  implicit def toLong(aid: ActorId): Long = aid.underlying
+  def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
 
-  implicit def fromOptLong(ml: Option[Long]): Option[ActorId] = ml.map(fromLong)
-
-  implicit def toOptLong(maid: Option[ActorId]): Option[Long] = maid.map(toLong)
+  def generate(): ActorId = ActorId(UUID.randomUUID())
 
 }

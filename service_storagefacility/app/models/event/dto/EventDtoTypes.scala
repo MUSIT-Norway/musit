@@ -22,7 +22,7 @@ package models.event.dto
 import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
 import models.event.EventTypeId
-import no.uio.musit.models.EventId
+import no.uio.musit.models.{ActorId, EventId}
 
 // TODO: Change id and partOf to EventId
 
@@ -39,7 +39,7 @@ sealed trait EventDto {
   val valueLong: Option[Long]
   val valueString: Option[String]
   val valueDouble: Option[Double]
-  val registeredBy: Option[String]
+  val registeredBy: Option[ActorId]
   val registeredDate: Option[JSqlTimestamp]
 }
 
@@ -59,7 +59,7 @@ case class BaseEventDto(
   valueLong: Option[Long] = None,
   valueString: Option[String] = None,
   valueDouble: Option[Double] = None,
-  registeredBy: Option[String],
+  registeredBy: Option[ActorId],
   registeredDate: Option[JSqlTimestamp]
 ) extends EventDto
 
@@ -82,7 +82,7 @@ case class ExtendedDto(
     valueLong: Option[Long] = None,
     valueString: Option[String] = None,
     valueDouble: Option[Double] = None,
-    registeredBy: Option[String],
+    registeredBy: Option[ActorId],
     registeredDate: Option[JSqlTimestamp],
     extension: DtoExtension
 ) extends EventDto {

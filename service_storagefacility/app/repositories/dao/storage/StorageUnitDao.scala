@@ -20,12 +20,11 @@
 package repositories.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import models.DummyData
 import models.datetime.Implicits._
 import models.datetime.dateTimeNow
 import models.storage.dto.StorageNodeDto
 import models.storage.{GenericStorageNode, Root, StorageType, StorageUnit}
-import no.uio.musit.models.{MuseumId, NamedPathElement, NodePath, StorageNodeId}
+import no.uio.musit.models._
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -114,7 +113,15 @@ class StorageUnitDao @Inject() (
         root.storageType === rootNodeType
     }.result
 
-    db.run(query).map(_.map(n => Root(n.id)))
+    db.run(query).map(_.map { n =>
+      Root(
+        id = n.id,
+        name = n.name,
+        path = n.path,
+        updatedBy = n.updatedBy,
+        updatedDate = n.updatedDate
+      )
+    })
   }
 
   /**
@@ -131,7 +138,15 @@ class StorageUnitDao @Inject() (
     }.result.headOption
 
     db.run(query).map { dto =>
-      MusitSuccess(dto.map(n => Root(id = n.id, name = n.name, path = n.path)))
+      MusitSuccess(dto.map { n =>
+        Root(
+          id = n.id,
+          name = n.name,
+          path = n.path,
+          updatedBy = n.updatedBy,
+          updatedDate = n.updatedDate
+        )
+      })
     }
   }
 
@@ -175,7 +190,7 @@ class StorageUnitDao @Inject() (
    */
   def insertRoot(mid: MuseumId, root: Root): Future[StorageNodeId] = {
     logger.debug("Inserting root node...")
-    val dto = StorageNodeDto.fromRoot(mid, root).asStorageUnit(mid)
+    val dto = StorageNodeDto.fromRoot(mid, root).asStorageUnitDto(mid)
     db.run(insertNodeAction(dto))
   }
 
@@ -279,12 +294,16 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def markAsDeleted(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Int]] = {
+  def markAsDeleted(
+    doneBy: ActorId,
+    mid: MuseumId,
+    id: StorageNodeId
+  ): Future[MusitResult[Int]] = {
     val query = storageNodeTable.filter { su =>
       su.id === id && su.isDeleted === false && su.museumId === mid
     }.map { del =>
       (del.isDeleted, del.updatedBy, del.updatedDate)
-    }.update((true, Some(DummyData.DummyUserId), Some(dateTimeNow)))
+    }.update((true, Some(doneBy), Some(dateTimeNow)))
 
     db.run(query).map {
       case res: Int if res == 1 =>

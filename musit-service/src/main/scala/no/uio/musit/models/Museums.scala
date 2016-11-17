@@ -34,12 +34,11 @@ object Museums {
         case Nhm.id => Some(Nhm)
         case Vm.id => Some(Vm)
         case Tmu.id => Some(Tmu)
+        case Kmn.id => Some(Kmn)
+        case Test.id => Some(Test)
         case unknown => None
       }
   }
-
-  // TODO: The ID's need to be aligned with the ID's in the DB.
-  // TODO: fake_security.json needs to be modified to align with the changed ID's.
 
   /**
    * Gives access to all museums...needed to provide cross museum
@@ -50,28 +49,35 @@ object Museums {
   }
 
   /**
-   * Kulturhistorisk museum i Oslo
+   * Museum
    */
-  case object Khm extends Museum {
+  case object Test extends Museum {
+    val id = MuseumId(99)
+  }
+
+  /**
+   * Museum of Archeology in Stavanger
+   */
+  case object Am extends Museum {
     val id = MuseumId(1)
   }
 
   /**
-   * Arkeologisk museum i Stavanger
+   * The university museum in Bergen
    */
-  case object Am extends Museum {
+  case object Um extends Museum {
     val id = MuseumId(2)
   }
 
   /**
-   * Universitetsmuseet i Bergen
+   * Cultural history museum in Oslo
    */
-  case object Um extends Museum {
+  case object Khm extends Museum {
     val id = MuseumId(3)
   }
 
   /**
-   * Naturhistorisk museum i Oslo
+   * Natural history museum in Oslo
    */
   case object Nhm extends Museum {
     val id = MuseumId(4)

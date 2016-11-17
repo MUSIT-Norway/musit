@@ -19,11 +19,12 @@
 
 package no.uio.musit.security
 
+import no.uio.musit.models.ActorId
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class UserInfo(
-  id: String,
+  id: ActorId,
   name: Option[String],
   email: Option[String],
   picture: Option[String]
@@ -32,7 +33,7 @@ case class UserInfo(
 object UserInfo {
 
   implicit val format: Format[UserInfo] = (
-    (__ \ "userid").format[String] and
+    (__ \ "userid").format[ActorId] and
     (__ \ "name").formatNullable[String] and
     (__ \ "email").formatNullable[String] and
     (__ \ "profilephoto").formatNullable[String]

@@ -19,18 +19,21 @@
 
 package models
 
+import no.uio.musit.models.{ActorId, DatabaseId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.libs.json._
 
 case class Person(
-  id: Option[Long],
+  id: Option[DatabaseId],
   fn: String,
   title: Option[String] = None,
   role: Option[String] = None,
   tel: Option[String] = None,
   web: Option[String] = None,
   email: Option[String] = None,
-  dataportenId: Option[String] = None
+  dataportenId: Option[ActorId] = None,
+  dataportenUser: Option[String] = None,
+  applicationId: Option[ActorId] = None
 )
 
 object Person {
@@ -41,12 +44,9 @@ object Person {
     Person(
       id = None,
       fn = user.userInfo.name.getOrElse(""),
-      title = None,
-      role = None,
-      tel = None,
-      web = None,
       email = user.userInfo.email,
-      dataportenId = Some(user.userInfo.id)
+      dataportenId = Option(user.userInfo.id),
+      dataportenUser = user.userInfo.email
     )
   }
 }

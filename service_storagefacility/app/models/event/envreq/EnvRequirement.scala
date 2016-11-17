@@ -19,11 +19,12 @@
 
 package models.event.envreq
 
-import models.{DummyData, Interval}
+import models.Interval
 import models.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import models.event.{EventType, MusitEvent}
 import models.storage.EnvironmentRequirement
 import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
+import no.uio.musit.security.AuthenticatedUser
 import org.joda.time.DateTime
 
 case class EnvRequirement(
@@ -32,7 +33,7 @@ case class EnvRequirement(
     doneDate: DateTime,
     note: Option[String],
     affectedThing: Option[StorageNodeId],
-    registeredBy: Option[String],
+    registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     eventType: EventType,
     temperature: Option[Interval[Double]],
@@ -60,25 +61,26 @@ object EnvRequirement {
   /**
    * Convert an EnvironmentRequirement type into an EnvRequirement event.
    *
+   * @param doneBy         The ActorId of the currently logged in user.
    * @param affectedNodeId The StorageNodeId the event applies to
    * @param now            The current timestamp.
    * @param er             EnvironmentRequirement to convert
-   * @param currUsr        The currently logged in user.
    * @return an EnvRequirement instance
    */
   def toEnvRequirementEvent(
+    doneBy: ActorId,
     affectedNodeId: StorageNodeId,
     now: DateTime,
     er: EnvironmentRequirement
-  )(implicit currUsr: String): EnvRequirement = {
+  ): EnvRequirement = {
     EnvRequirement(
       id = None,
       // FIXME: DO NOT FORGET TO CHANGE THIS!!!
-      doneBy = Some(DummyData.DummyUserId),
+      doneBy = Some(doneBy),
       doneDate = now,
       note = er.comment,
       affectedThing = Some(affectedNodeId),
-      registeredBy = Some(currUsr),
+      registeredBy = Some(doneBy),
       registeredDate = Some(now),
       eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
       temperature = er.temperature,

@@ -19,6 +19,9 @@
 
 package controllers
 
+import java.util.UUID
+
+import no.uio.musit.models.ActorId
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
@@ -36,26 +39,30 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
   val fakeUserId = "musitTestUser"
   val fakeToken = BearerToken(fakeAccessTokenPrefix + fakeUserId)
 
+  val andersAuthId = ActorId(UUID.fromString("12345678-adb2-4b49-bce3-320ddfe6c90f"))
+  val andersAppId = ActorId(UUID.fromString("41ede78c-a6f6-4744-adad-02c25fb1c97c"))
+  val kalleAppId = ActorId(UUID.fromString("5224f873-5fe1-44ec-9aaf-b9313db410c6"))
+
   "LegacyPersonIntegration " must {
 
     "fail getting person by id when there is no valid token" in {
-      wsUrl("/v1/person/1").get().futureValue.status mustBe Status.UNAUTHORIZED
+      wsUrl(s"/v1/person/${andersAppId.asString}").get()
+        .futureValue.status mustBe Status.UNAUTHORIZED
     }
 
     "get by id" in {
-      val res = wsUrl("/v1/person/1")
+      val res = wsUrl(s"/v1/person/${andersAppId.asString}")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
       res.status mustBe Status.OK
       (res.json \ "id").as[Int] mustBe 1
     }
 
-    "negative get by id" in {
-      val res = wsUrl("/v1/person/9999")
+    "not find a user if the ID doesn't exist" in {
+      val res = wsUrl(s"/v1/person/${UUID.randomUUID().toString}")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
       res.status mustBe Status.NOT_FOUND
-      (res.json \ "message").as[String] mustBe "Did not find object with id: 9999"
     }
 
     "search on person" in {
@@ -86,10 +93,10 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "get person details" in {
-      val reqBody: JsValue = Json.parse("[1,2]")
+      val jsStr = s"""["${andersAuthId.asString}", "${kalleAppId.asString}"]"""
+      val reqBody = Json.parse(jsStr)
       val res = wsUrl("/v1/person/details")
-        .withHeaders(fakeToken.asHeader)
-        .post(reqBody).futureValue
+        .withHeaders(fakeToken.asHeader).post(reqBody).futureValue
       res.status mustBe Status.OK
       val js = res.json.as[JsArray].value
       js.length mustBe 2
@@ -98,7 +105,9 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "get person details with extra ids" in {
-      val reqBody: JsValue = Json.parse("[1234567,2,9999]")
+      val (id1, id2) = (ActorId.generate(), ActorId.generate())
+      val jsStr = s"""["${id1.asString}", "${kalleAppId.asString}", "${id2.asString}"]"""
+      val reqBody: JsValue = Json.parse(jsStr)
       val res = wsUrl("/v1/person/details")
         .withHeaders(fakeToken.asHeader)
         .post(reqBody).futureValue

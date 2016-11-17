@@ -17,15 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories
+package no.uio.musit.models
 
-package object dao {
+import java.util.UUID
 
-  val SchemaName = "MUSARK_ACTOR"
-  val MappingSchemaName = "MUSIT_MAPPING"
+trait MusitUUID {
 
-  val ActorTableName = "ACTOR"
-  val OrgTableName = "ORGANIZATION"
-  val OrgAdrTableName = "ORGANIZATION_ADDRESS"
+  val underlying: UUID
+
+  def asString: String = underlying.toString
 
 }

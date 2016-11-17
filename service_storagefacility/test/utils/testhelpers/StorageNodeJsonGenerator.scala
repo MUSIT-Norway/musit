@@ -47,6 +47,8 @@ object StorageNodeJsonGenerator {
     """.stripMargin
   }
 
+  def rootJson(name: String): JsValue = Json.parse(s"""{ "name" : "$name" }""")
+
   def organisationJson(name: String, partOf: Option[StorageNodeId] = None): JsValue = {
     val pof = partOf.map(p => s""""isPartOf" : ${p.underlying},""")
     Json.parse(

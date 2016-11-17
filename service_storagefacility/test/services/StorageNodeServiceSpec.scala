@@ -23,8 +23,9 @@ import models.event.EventType
 import models.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import models.event.move.{MoveNode, MoveObject}
 import models.storage.StorageUnit
-import models.{DummyData, Interval, Move}
+import models.{Interval, Move}
 import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeId}
+import no.uio.musit.security.{AuthenticatedUser, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -37,8 +38,15 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     interval = Span(50, Millis)
   )
 
-  implicit val DummyUser = "Bevel Lemelisk"
-  val DummyUserId = ActorId(123)
+  implicit val dummyUser = AuthenticatedUser(
+    userInfo = UserInfo(
+      id = defaultUserId,
+      name = Some("Darth Vader"),
+      email = None,
+      picture = None
+    ),
+    groups = Seq.empty
+  )
 
   val service: StorageNodeService = fromInstanceCache[StorageNodeService]
 
@@ -57,7 +65,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val ins = service.addRoom(defaultMuseumId, room).futureValue
       ins.isSuccess mustBe true
       ins.get must not be None
-      ins.get.get.updatedBy.get mustBe DummyData.DummyUserId
+      ins.get.get.updatedBy.get mustBe defaultUserId
       ins.get.get.updatedDate.get.toString must include("2016")
 
       val inserted = ins.get.get
@@ -83,7 +91,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       inserted.id must not be None
       inserted.environmentRequirement must not be None
       inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
-      inserted.updatedBy.get mustBe DummyData.DummyUserId
+      inserted.updatedBy.get mustBe defaultUserId
       inserted.updatedDate.get.toString must include("2016")
 
       val someEnvReq = Some(initEnvironmentRequirement(
@@ -98,7 +106,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val updated = res.get.get
       updated.id mustBe inserted.id
       updated.environmentRequirement mustBe someEnvReq
-      updated.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+      updated.updatedBy.get mustBe defaultUserId
       updated.updatedDate.get.toString must include("2016")
     }
 
@@ -110,7 +118,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val inserted = ins.get.get
       inserted.id must not be None
-      inserted.updatedBy.get mustBe DummyData.DummyUserId
+      inserted.updatedBy.get mustBe defaultUserId
       inserted.updatedDate.get.toString must include("2016")
 
       val res = storageUnitDao.getById(defaultMuseumId, inserted.id.get).futureValue
@@ -131,7 +139,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       again.get must not be None
       again.get.get.name mustBe "UggaBugga"
       again.get.get.areaTo mustBe Some(4.0)
-      again.get.get.updatedBy.get mustBe DummyData.DummyUpdatedUserId
+      again.get.get.updatedBy.get mustBe defaultUserId
       again.get.get.updatedDate.get.toString must include("2016")
     }
 
@@ -227,12 +235,12 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val mostChildren = childIds ++ grandChildIds
 
       val move = Move[StorageNodeId](
-        doneBy = DummyData.DummyUserId,
+        doneBy = defaultUserId,
         destination = building2.id.get,
         items = Seq(unit1.id.get)
       )
 
-      val event = MoveNode.fromCommand("foobar", move).head
+      val event = MoveNode.fromCommand(defaultUserId, move).head
 
       val m = service.moveNode(defaultMuseumId, unit1.id.get, event).futureValue
       m.isSuccess mustBe true
@@ -256,10 +264,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val event = MoveObject(
         id = None,
-        doneBy = Some(DummyUserId),
+        doneBy = Some(defaultUserId),
         doneDate = DateTime.now,
         affectedThing = Some(oid),
-        registeredBy = Some(DummyUser),
+        registeredBy = Some(defaultUserId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = Some(StorageNodeId(5)),
@@ -278,10 +286,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val oid = ObjectId(22)
       val event = MoveObject(
         id = None,
-        doneBy = Some(DummyUserId),
+        doneBy = Some(defaultUserId),
         doneDate = DateTime.now,
         affectedThing = Some(oid),
-        registeredBy = Some(DummyUser),
+        registeredBy = Some(defaultUserId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = None,
@@ -296,66 +304,6 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       loc.get.get.id mustBe Some(StorageNodeId(12))
     }
 
-    "UnSuccessfully move a node and all its children with wrong museum" in {
-      /* TODO: This test is pending until it's been clarified if this scenario will occur
-    val defaultMuseumId = MuseumId(5)
-    val root1 = service.addRoot(mid, Root()).futureValue
-    root1.id must not be None
-
-    val b1 = createBuilding(name = "Building1", partOf = root1.id)
-    val building1 = service.addBuilding(mid, b1).futureValue
-    building1.id must not be None
-
-    val b2 = createBuilding(name = "Building2", partOf = root1.id)
-    val building2 = service.addBuilding(mid, b2).futureValue
-    building2.id must not be None
-
-    val su1 = createStorageUnit(name = "Unit1", partOf = building1.id)
-    val unit1 = service.addStorageUnit(mid, su1).futureValue
-    unit1.id must not be None
-
-    val su2 = createStorageUnit(name = "Unit2", partOf = unit1.id)
-    val unit2 = service.addStorageUnit(mid, su2).futureValue
-    unit2.id must not be None
-
-    val AnotherMid = MuseumId(3)
-    val su3 = createStorageUnit(name = "Unit3", partOf = unit1.id)
-    val unit3 = service.addStorageUnit(AnotherMid, su3).futureValue
-    unit3.id must not be None
-
-    val su4 = createStorageUnit(name = "Unit4", partOf = unit3.id)
-    val unit4 = service.addStorageUnit(mid, su4).futureValue
-    unit4.id must not be None
-
-    val children = service.getChildren(AnotherMid, unit1.id.get).futureValue
-    val childIds = children.map(_.id)
-    val grandChildIds = childIds.flatMap { id =>
-      service.getChildren(AnotherMid, id.get).futureValue.map(_.id)
-    }
-
-    val mostChildren = childIds ++ grandChildIds
-
-    val move = Move[StorageNodeId](
-      doneBy = 123,
-      destination = building2.id.get,
-      items = Seq(unit1.id.get)
-    )
-
-    val event = MoveNode.fromCommand("foobar", move).head
-    val wrongMid = MuseumId(4)
-    val m = service.moveNode(mid, unit1.id.get, event).futureValue
-    m.isSuccess mustBe true
-
-    mostChildren.map { id =>
-      service.getNodeById(AnotherMid, id.get).futureValue.map { n =>
-        n must not be None
-        println(s"nodenavn: ${n.get.name}")
-       // n.get.name must include ("Unit")
-      }
-    }*/
-      pending
-    }
-
     "not mark a node as deleted when wrong museumId is used" in {
       val su = createStorageUnit(partOf = Some(buildingId))
       val ins = service.addStorageUnit(defaultMuseumId, su).futureValue
@@ -368,10 +316,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val deleted = service.deleteNode(wrongMid, inserted.id.get).futureValue
       deleted.isSuccess mustBe true
 
-      val stillAvailable = service.getNodeById(defaultMuseumId, inserted.id.get).futureValue
-      stillAvailable.isSuccess mustBe true
-      stillAvailable.get.get.id mustBe inserted.id
-      stillAvailable.get.get.updatedBy.get mustBe DummyData.DummyUserId
+      val stillAv = service.getNodeById(defaultMuseumId, inserted.id.get).futureValue
+      stillAv.isSuccess mustBe true
+      stillAv.get.get.id mustBe inserted.id
+      stillAv.get.get.updatedBy.get mustBe defaultUserId
     }
 
     "not update a storage unit when using the wrong museumId" in {
@@ -403,7 +351,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val getAgain = again.get.get
       getAgain.name must include("FooUnit")
       getAgain.areaTo mustBe Some(2.0)
-      getAgain.updatedBy mustBe Some(DummyData.DummyUserId)
+      getAgain.updatedBy mustBe Some(defaultUserId)
     }
 
     "not update a building or environment requirements when using wrong museumID" in {
@@ -420,15 +368,18 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val someEnvReq = Some(initEnvironmentRequirement(
         hypoxic = Some(Interval[Double](44.4, Some(55)))
       ))
-      val ub = building.copy(environmentRequirement = someEnvReq, address = Some("BortIStaurOgVeggAddress"))
+      val ub = building.copy(
+        environmentRequirement = someEnvReq,
+        address = Some("BortIStaurOgVeggAddress")
+      )
       val wrongMid = MuseumId(4)
       val res = service.updateBuilding(wrongMid, inserted.id.get, ub).futureValue
       res.isSuccess mustBe true
       res.get mustBe None
 
-      val oldDataRes = service.getBuildingById(defaultMuseumId, inserted.id.get).futureValue
-      oldDataRes.get.get.address.get must include("Foo")
-      oldDataRes.get.get.updatedBy mustBe Some(DummyData.DummyUserId)
+      val orig = service.getBuildingById(defaultMuseumId, inserted.id.get).futureValue
+      orig.get.get.address.get must include("Foo")
+      orig.get.get.updatedBy mustBe Some(defaultUserId)
     }
 
     "not update a room when using wrong museumId" in {
@@ -447,21 +398,21 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       res.isSuccess mustBe true
       res.get mustBe None
 
-      val oldDataRes = service.getRoomById(defaultMuseumId, inserted.id.get).futureValue
-      oldDataRes.get.get.securityAssessment.waterDamage mustBe Some(false)
-      oldDataRes.get.get.updatedBy mustBe Some(DummyData.DummyUserId)
+      val orig = service.getRoomById(defaultMuseumId, inserted.id.get).futureValue
+      orig.get.get.securityAssessment.waterDamage mustBe Some(false)
+      orig.get.get.updatedBy mustBe Some(defaultUserId)
     }
 
     "get current location for an object" in {
       val oid = ObjectId(2)
-      val aid = ActorId(3)
+      val aid = ActorId.generate()
       val currLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       currLoc.isSuccess mustBe true
       currLoc.get.get.id.get.underlying mustBe 4
       currLoc.get.get.path.toString must include(currLoc.get.get.id.get.underlying.toString)
 
-      val moveObject = Move[Long](aid, StorageNodeId(3), Seq(oid))
-      val moveSeq = MoveObject.fromCommand("Dummy", moveObject)
+      val moveObject = Move[ObjectId](aid, StorageNodeId(3), Seq(oid))
+      val moveSeq = MoveObject.fromCommand(aid, moveObject)
       service.moveObject(defaultMuseumId, oid, moveSeq.head).futureValue
       val newCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       newCurrLoc.isSuccess mustBe true
@@ -469,8 +420,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       newCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
 
       val anotherMid = MuseumId(4)
-      val moveSameObject = Move[Long](aid, StorageNodeId(2), Seq(oid))
-      val moveSameSeq = MoveObject.fromCommand("Dummy", moveSameObject)
+      val moveSameObject = Move[ObjectId](aid, StorageNodeId(2), Seq(oid))
+      val moveSameSeq = MoveObject.fromCommand(aid, moveSameObject)
       service.moveObject(anotherMid, oid, moveSameSeq.head).futureValue
       val sameCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       sameCurrLoc.isSuccess mustBe true

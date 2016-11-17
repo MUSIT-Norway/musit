@@ -21,6 +21,7 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.Organisation
+import no.uio.musit.models.OrgId
 import no.uio.musit.service.MusitResults._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -31,13 +32,13 @@ import scala.concurrent.Future
 @Singleton
 class OrganisationDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import driver.api._
 
   private val orgTable = TableQuery[OrganisationTable]
 
-  def getById(id: Long): Future[Option[Organisation]] = {
+  def getById(id: OrgId): Future[Option[Organisation]] = {
     db.run(orgTable.filter(_.id === id).result.headOption)
   }
 
@@ -67,7 +68,7 @@ class OrganisationDao @Inject() (
     }
   }
 
-  def delete(id: Long): Future[Int] = {
+  def delete(id: OrgId): Future[Int] = {
     db.run(orgTable.filter(_.id === id).delete)
   }
 
@@ -75,14 +76,14 @@ class OrganisationDao @Inject() (
       tag: Tag
   ) extends Table[Organisation](tag, Some(SchemaName), OrgTableName) {
 
-    val id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
-    val fn = column[String]("FN")
+    val id = column[Option[OrgId]]("ORG_ID", O.PrimaryKey, O.AutoInc)
+    val fn = column[String]("FULL_NAME")
     val nickname = column[String]("NICKNAME")
     val tel = column[String]("TEL")
     val web = column[String]("WEB")
 
     val create = (
-      id: Option[Long],
+      id: Option[OrgId],
       fn: String,
       nickname: String,
       tel: String,

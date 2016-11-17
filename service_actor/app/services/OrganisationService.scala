@@ -21,6 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.Organisation
+import no.uio.musit.models.OrgId
 import no.uio.musit.service.MusitResults.MusitResult
 import no.uio.musit.service.MusitSearch
 import repositories.dao.OrganisationDao
@@ -32,7 +33,7 @@ import scala.concurrent.Future
  */
 class OrganisationService @Inject() (val orgDao: OrganisationDao) {
 
-  def find(id: Long): Future[Option[Organisation]] = {
+  def find(id: OrgId): Future[Option[Organisation]] = {
     orgDao.getById(id)
   }
 
@@ -49,7 +50,7 @@ class OrganisationService @Inject() (val orgDao: OrganisationDao) {
     orgDao.update(org)
   }
 
-  def remove(id: Long): Future[Int] = {
+  def remove(id: OrgId): Future[Int] = {
     orgDao.delete(id)
   }
 

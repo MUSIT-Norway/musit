@@ -19,6 +19,8 @@
 
 package repositories.dao
 
+import java.util.UUID
+
 import models.event.EventTypeId
 import models.storage.StorageType
 import no.uio.musit.models._
@@ -53,9 +55,9 @@ trait ColumnTypeMappers {
     )
 
   implicit val actorIdMapper: BaseColumnType[ActorId] =
-    MappedColumnType.base[ActorId, Long](
-      aid => aid.underlying,
-      longId => ActorId(longId)
+    MappedColumnType.base[ActorId, String](
+      aid => aid.asString,
+      strId => ActorId(UUID.fromString(strId))
     )
 
   implicit lazy val storageTypeMapper =

@@ -17,15 +17,35 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories
+package repositories.dao
 
-package object dao {
+import java.util.UUID
 
-  val SchemaName = "MUSARK_ACTOR"
-  val MappingSchemaName = "MUSIT_MAPPING"
+import no.uio.musit.models.{ActorId, DatabaseId, OrgId}
+import play.api.db.slick.HasDatabaseConfig
+import slick.driver.JdbcProfile
 
-  val ActorTableName = "ACTOR"
-  val OrgTableName = "ORGANIZATION"
-  val OrgAdrTableName = "ORGANIZATION_ADDRESS"
+trait ColumnTypeMappers {
+  self: HasDatabaseConfig[JdbcProfile] =>
+
+  import driver.api._
+
+  implicit val actorIdMapper: BaseColumnType[ActorId] =
+    MappedColumnType.base[ActorId, String](
+      aid => aid.asString,
+      strId => ActorId(UUID.fromString(strId))
+    )
+
+  implicit val orgIdMapper: BaseColumnType[OrgId] =
+    MappedColumnType.base[OrgId, Long](
+      oid => oid.underlying,
+      longId => OrgId(longId)
+    )
+
+  implicit val dbIdMapper: BaseColumnType[DatabaseId] =
+    MappedColumnType.base[DatabaseId, Long](
+      did => did.underlying,
+      longId => DatabaseId(longId)
+    )
 
 }

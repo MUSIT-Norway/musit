@@ -19,17 +19,19 @@
 
 package utils.testhelpers
 
+import no.uio.musit.models.ActorId
+
 object EventJsonGenerator {
 
-  def baseEventJson(eventType: String, regDay: Int) = {
+  def baseEventJson(doneBy: ActorId, eventType: String, regDay: Int) = {
     s""""doneDate" : "2016-09-${regDay}T09:17:46+02:00",
-        |"doneBy" : 12,
+        |"doneBy" : "${doneBy.asString}",
         |"eventType" : "$eventType"""".stripMargin
   }
 
-  def controlJson(regDay: Int) = {
+  def controlJson(doneBy: ActorId, regDay: Int) = {
     s"""{
-        |  ${baseEventJson("Control", regDay)},
+        |  ${baseEventJson(doneBy, "Control", regDay)},
         |  "temperature" : ${ctrlSubFromToJson("temperature", ok = false)},
         |  "alcohol": ${ctrlSubFromToJson("alcohol", ok = false)},
         |  "cleaning": ${ctrlSubStringJson("cleaning", ok = false)},
@@ -37,9 +39,9 @@ object EventJsonGenerator {
         |}""".stripMargin
   }
 
-  def observationJson(regDay: Int) = {
+  def observationJson(doneBy: ActorId, regDay: Int) = {
     s"""{
-        |  ${baseEventJson("Observation", regDay)},
+        |  ${baseEventJson(doneBy, "Observation", regDay)},
         |  "temperature" : ${obsFromToJson("temperature")},
         |  "alcohol": ${obsFromToJson("alcohol")},
         |  "cleaning": ${obsStringJson("cleaning")},

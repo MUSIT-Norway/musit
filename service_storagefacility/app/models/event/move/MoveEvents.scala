@@ -36,7 +36,7 @@ case class MoveObject(
   doneBy: Option[ActorId],
   doneDate: DateTime,
   affectedThing: Option[ObjectId],
-  registeredBy: Option[String],
+  registeredBy: Option[ActorId],
   registeredDate: Option[DateTime],
   eventType: EventType,
   from: Option[StorageNodeId],
@@ -45,16 +45,16 @@ case class MoveObject(
 
 object MoveObject {
 
-  def fromCommand(user: String, cmd: Move[Long]): Seq[MoveObject] = {
+  def fromCommand(currUserId: ActorId, cmd: Move[ObjectId]): Seq[MoveObject] = {
     cmd.items.map { objectId =>
       val now = dateTimeNow
       MoveObject(
         id = None,
-        doneBy = Some(cmd.doneBy),
+        doneBy = Option(cmd.doneBy),
         doneDate = now,
-        affectedThing = Some(objectId),
-        registeredBy = Some(user),
-        registeredDate = Some(now),
+        affectedThing = Option(objectId),
+        registeredBy = Option(currUserId),
+        registeredDate = Option(now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = None,
         to = cmd.destination
@@ -68,7 +68,7 @@ case class MoveNode(
   doneBy: Option[ActorId],
   doneDate: DateTime,
   affectedThing: Option[StorageNodeId],
-  registeredBy: Option[String],
+  registeredBy: Option[ActorId],
   registeredDate: Option[DateTime],
   eventType: EventType,
   from: Option[StorageNodeId],
@@ -77,16 +77,16 @@ case class MoveNode(
 
 object MoveNode {
 
-  def fromCommand(user: String, cmd: Move[StorageNodeId]): Seq[MoveNode] = {
+  def fromCommand(currUserId: ActorId, cmd: Move[StorageNodeId]): Seq[MoveNode] = {
     cmd.items.map { nodeId =>
       val now = dateTimeNow
       MoveNode(
         id = None,
-        doneBy = Some(cmd.doneBy),
+        doneBy = Option(cmd.doneBy),
         doneDate = now,
-        affectedThing = Some(nodeId),
-        registeredBy = Some(user),
-        registeredDate = Some(now),
+        affectedThing = Option(nodeId),
+        registeredBy = Option(currUserId),
+        registeredDate = Option(now),
         eventType = EventType.fromEventTypeId(MoveNodeType.id),
         from = None,
         to = cmd.destination

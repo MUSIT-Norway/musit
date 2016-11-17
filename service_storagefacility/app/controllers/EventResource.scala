@@ -42,9 +42,6 @@ class EventResource @Inject() (
 
   val logger = Logger(classOf[EventResource])
 
-  // TODO: Use user from an enriched request type in a proper SecureAction
-  import models.DummyData.DummyUser
-
   /**
    * Controller endpoint for adding a new Control for a storage node with
    * the given nodeId.
@@ -53,10 +50,9 @@ class EventResource @Inject() (
     mid: Int,
     nodeId: Long
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    // TODO: Extract current user information from enriched request.
     request.body.validate[Control] match {
       case JsSuccess(ctrl, jsPath) =>
-        controlService.add(mid, nodeId, ctrl).map {
+        controlService.add(mid, nodeId, ctrl)(request.user).map {
           case MusitSuccess(addedCtrl) =>
             Created(Json.toJson(addedCtrl))
 
@@ -76,10 +72,9 @@ class EventResource @Inject() (
     mid: Int,
     nodeId: Long
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    // TODO: Extract current user information from enriched request.
     request.body.validate[Observation] match {
       case JsSuccess(obs, jsPath) =>
-        observationService.add(mid, nodeId, obs).map {
+        observationService.add(mid, nodeId, obs)(request.user).map {
           case MusitSuccess(addedObs) =>
             Created(Json.toJson(addedObs))
 

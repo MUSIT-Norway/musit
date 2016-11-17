@@ -17,15 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories
+package no.uio.musit.models
 
-package object dao {
+import play.api.libs.json.{JsNumber, Reads, Writes, _}
 
-  val SchemaName = "MUSARK_ACTOR"
-  val MappingSchemaName = "MUSIT_MAPPING"
+case class OrgId(underlying: Long) extends MusitId
 
-  val ActorTableName = "ACTOR"
-  val OrgTableName = "ORGANIZATION"
-  val OrgAdrTableName = "ORGANIZATION_ADDRESS"
+object OrgId {
+  implicit val reads: Reads[OrgId] = __.read[Long].map(OrgId.apply)
 
+  implicit val writes: Writes[OrgId] = Writes(oid => JsNumber(oid.underlying))
+
+  implicit def fromLong(l: Long): OrgId = OrgId(l)
+
+  implicit def toLong(oid: OrgId): Long = oid.underlying
+
+  implicit def fromOptLong(ml: Option[Long]): Option[OrgId] = ml.map(fromLong)
+
+  implicit def toOptLong(moid: Option[OrgId]): Option[Long] = moid.map(toLong)
 }

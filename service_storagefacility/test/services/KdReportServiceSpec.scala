@@ -20,6 +20,7 @@
 package services
 
 import models.report.KdReport
+import no.uio.musit.security.{AuthenticatedUser, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import utils.testhelpers.NodeGenerators
@@ -31,7 +32,15 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     interval = Span(50, Millis)
   )
 
-  implicit val dummyUser = "dummyUser"
+  implicit val dummyUser = AuthenticatedUser(
+    userInfo = UserInfo(
+      id = defaultUserId,
+      name = Some("Darth Vader"),
+      email = None,
+      picture = None
+    ),
+    groups = Seq.empty
+  )
 
   val service: StorageNodeService = fromInstanceCache[StorageNodeService]
   val reportService: KdReportService = fromInstanceCache[KdReportService]

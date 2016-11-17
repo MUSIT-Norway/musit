@@ -40,7 +40,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
   "ObjectAggregation integration" must {
     "find objects for nodeId that exists" in {
       val nodeId = 3
-      val mid = 1
+      val mid = 99
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
@@ -57,7 +57,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "respond with 404 for nodeId that does not exist" in {
       val nodeId = 99999
-      val mid = 1
+      val mid = 99
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
@@ -67,7 +67,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "respond with 400 if the request URI is missing nodeId " in {
       val nodeId = None
-      val mid = 1
+      val mid = 99
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
