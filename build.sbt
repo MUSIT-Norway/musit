@@ -68,6 +68,19 @@ lazy val musitTest = (
     )
 )
 
+lazy val musitBarqr = (
+  BaseProject("musit-barqr")
+    settings noPublish
+    settings(
+      libraryDependencies ++= Seq[ModuleID](
+        zxing,
+        Logging.slf4jApi,
+        ScalaTest.scalatest,
+        ScalaTest.scalactic
+      )
+    )
+)
+
 lazy val musitService = (
   BaseProject("musit-service")
     settings noPublish
