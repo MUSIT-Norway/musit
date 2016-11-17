@@ -47,7 +47,7 @@ val noPublish = Seq(
 
 lazy val root = project in file(".") settings noPublish aggregate(
   musitTest,
-  musitBaqr,
+  musitBarqr,
   musitService,
   serviceThingAggregate,
   serviceActor,
