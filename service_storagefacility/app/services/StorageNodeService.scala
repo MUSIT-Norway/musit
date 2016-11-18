@@ -155,6 +155,9 @@ class StorageNodeService @Inject() (
       // Get the StorageType for the elements in the destination path so we can
       // use it to verify that nodes are placed on a valid location
       unitDao.getStorageTypesInPath(mid, dest).map { idTypeTuples =>
+        logger.debug(s"Found types for node IDs in destination path" +
+          s": ${idTypeTuples.mkString(", ")}")
+        logger.trace(s"Validating destination for ${node.storageType.entryName}...")
         // Identify the type of node we want to place in the hierarchy, and
         // validate if the destination location is valid for the given type.
         node.storageType match {
@@ -175,7 +178,7 @@ class StorageNodeService @Inject() (
         }
       }
     } else {
-      logger.warn(s"destination $dest is not allowed beause it's a child" +
+      logger.warn(s"destination $dest is not allowed because it's a child" +
         s" of ${node.path}")
       Future.successful(false)
     }
@@ -735,6 +738,10 @@ class StorageNodeService @Inject() (
     move(event, unitDao.getNodeById(mid, id), unitDao.getNodeById(mid, event.to)) {
       case (maybeCurr, to) =>
         maybeCurr.map { curr =>
+          logger.debug(s"Moving node [${curr.id}, ${curr.name}, " +
+            s"${curr.storageType.entryName}, ${curr.path}] " +
+            s"to destination [${to.id}, ${to.storageType.entryName}, ${to.name}, " +
+            s"${to.path}]")
           isValidPosition(mid, curr, to.path).flatMap { isValid =>
             if (!isValid) {
               val invMsg = s"Attempted to move node $id to invalid location ${to.path}"
