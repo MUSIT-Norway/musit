@@ -57,6 +57,11 @@ sealed trait StorageNode {
 
 object StorageNode {
 
+  def logExists(destId: StorageNodeId, exists: Boolean): String = {
+    s"Destination $destId ${if (exists) "exists" else "doesn't exist"} in " +
+      "expected position"
+  }
+
   private val tpe = "type"
 
   implicit val reads: Reads[StorageNode] = Reads { jsv =>
@@ -258,9 +263,7 @@ object StorageUnit {
         case root :: org :: Nil => false
         case root :: org :: tail =>
           val exists = tail.exists(_._1 == destId)
-          logger.debug(s"Destination $maybeDestId ${
-            if (exists) "exists" else "doesn't exist"
-          } in expected position")
+          StorageNode.logExists(destId, exists)
           exists
       }
     }
@@ -328,7 +331,10 @@ object Room {
         case Nil => false
         case root :: Nil => false
         case root :: org :: Nil => false
-        case root :: org :: tail => tail.exists(_._1 == destId)
+        case root :: org :: tail =>
+          val exists = tail.exists(_._1 == destId)
+          StorageNode.logExists(destId, exists)
+          exists
       }
     }
   }
@@ -392,7 +398,10 @@ object Building {
       pathTypes.toList match {
         case Nil => false
         case root :: Nil => false
-        case root :: tail => tail.exists(_._1 == destId)
+        case root :: tail =>
+          val exists = tail.exists(_._1 == destId)
+          StorageNode.logExists(destId, exists)
+          exists
       }
     }
   }
@@ -455,7 +464,10 @@ object Organisation {
         case Nil => false
         case root :: Nil => destId == root._1
         case root :: org :: Nil => false
-        case root :: org :: tail => tail.exists(_._1 == destId)
+        case root :: org :: tail =>
+          val exists = tail.exists(_._1 == destId)
+          StorageNode.logExists(destId, exists)
+          exists
       }
     }
   }
