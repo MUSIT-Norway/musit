@@ -28,12 +28,11 @@ import no.uio.musit.security.Permissions.Permission
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
-private[dao] trait AuthTables {
-  self: HasDatabaseConfigProvider[JdbcProfile] =>
+private[dao] trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._
 
-  implicit lazy val groupIdMapper: BaseColumnType[ActorId] =
+  implicit lazy val actorIdMapper: BaseColumnType[ActorId] =
     MappedColumnType.base[ActorId, String](
       gid => gid.asString,
       str => ActorId(UUID.fromString(str))
@@ -53,10 +52,12 @@ private[dao] trait AuthTables {
 
   val schema = "MUSARK_AUTH"
 
+  val grpTable = TableQuery[GroupTable]
+  val usrGrpTable = TableQuery[UserGroupTable]
 
   class GroupTable(
-    val tag: Tag
-  ) extends Table[GroupDto](tag, Some(schema), "GROUP") {
+      val tag: Tag
+  ) extends Table[GroupDto](tag, Some(schema), "AUTH_GROUP") {
 
     val id = column[GroupId]("GROUP_UUID", O.PrimaryKey)
     val name = column[String]("GROUP_NAME")
@@ -78,17 +79,17 @@ private[dao] trait AuthTables {
         dto.name,
         dto.permission,
         dto.description
-        ))
+      ))
   }
 
-  type UserGroupTableType = (ActorId, GroupId)
-
   class UserGroupTable(
-    val tag: Tag
-  ) extends Table[UserGroupTableType](tag, Some(schema), "USER_GROUP") {
+      val tag: Tag
+  ) extends Table[(ActorId, GroupId)](tag, Some(schema), "USER_AUTH_GROUP") {
 
     val userId = column[ActorId]("USER_UUID", O.PrimaryKey)
     val groupId = column[GroupId]("GROUP_UUID", O.PrimaryKey)
+
+    def pk = primaryKey("PK_USER_GROUP", (userId, groupId))
 
     override def * = (userId, groupId) // scalastyle:ignore
 

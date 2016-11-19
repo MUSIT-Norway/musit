@@ -19,6 +19,8 @@
 
 package no.uio.musit.security
 
+import play.api.libs.json._
+
 object Permissions {
 
   sealed trait Permission {
@@ -26,6 +28,10 @@ object Permissions {
   }
 
   object Permission {
+
+    implicit val reads: Reads[Permission] = __.read[Int].map(fromInt)
+
+    implicit val writes: Writes[Permission] = Writes(p => JsNumber(p.priority))
 
     def fromInt(pri: Int): Permission = {
       pri match {

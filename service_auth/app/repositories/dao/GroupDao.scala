@@ -19,15 +19,207 @@
 
 package repositories.dao
 
-import com.google.inject.Inject
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.driver.JdbcProfile
+import com.google.inject.{Inject, Singleton}
+import models.dto.GroupDto
+import models.{Group, GroupAdd, GroupId}
+import no.uio.musit.models.ActorId
+import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import play.api.Logger
+import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
+import scala.concurrent.Future
+import scala.util.control.NonFatal
+
+@Singleton
 class GroupDao @Inject() (
-  val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] {
+    val dbConfigProvider: DatabaseConfigProvider
+) extends AuthTables {
 
   import driver.api._
 
+  val logger = Logger(classOf[GroupDao])
+
+  /**
+   *
+   * @param grp
+   * @return
+   */
+  def add(grp: GroupAdd): Future[MusitResult[Group]] = {
+    val dto = GroupDto.fromGroupAdd(grp)
+    val action = grpTable += dto
+
+    db.run(action).map(res => MusitSuccess(GroupDto.toGroup(dto))).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when inserting new Group ${grp.name}"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  /**
+   *
+   * @param grpId
+   * @return
+   */
+  def findById(grpId: GroupId): Future[MusitResult[Option[Group]]] = {
+    val query = grpTable.filter(_.id === grpId).result.headOption
+    db.run(query).map { res =>
+      MusitSuccess(res.map(dto => GroupDto.toGroup(dto)))
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to find Group $grpId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  /**
+   *
+   * @param grpId
+   * @return
+   */
+  def findUsersInGroup(grpId: GroupId): Future[MusitResult[Seq[ActorId]]] = {
+    val query = usrGrpTable.filter(_.groupId === grpId).map(_.userId)
+    db.run(query.result).map { res =>
+      MusitSuccess(res)
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to find users in Group $grpId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  /**
+   *
+   * @param usrId
+   * @return
+   */
+  def findGroupsFor(usrId: ActorId): Future[MusitResult[Seq[Group]]] = {
+    val ugQuery = usrGrpTable.filter(_.userId === usrId)
+    val query = for {
+      (ug, g) <- ugQuery join grpTable on (_.groupId === _.id)
+    } yield g
+
+    db.run(query.result).map { grps =>
+      MusitSuccess(grps.map(GroupDto.toGroup))
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to find Groups for user $usrId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  /**
+   *
+   * @param grp
+   * @return
+   */
+  def update(grp: Group): Future[MusitResult[Option[Group]]] = {
+    val action = grpTable.filter { g =>
+      g.id === grp.id
+    }.update(GroupDto.fromGroup(grp))
+
+    db.run(action).map {
+      case res: Int if res == 1 => MusitSuccess(Some(grp))
+      case res: Int if res == 0 => MusitSuccess(None)
+      case res: Int =>
+        val msg = s"Wrong amount of rows ($res) updated for group ${grp.id}"
+        logger.warn(msg)
+        MusitDbError(msg)
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to update the Group ${grp.id}"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  /**
+   *
+   * @param grpId
+   * @return
+   */
+  def delete(grpId: GroupId): Future[MusitResult[Int]] = {
+    val action = grpTable.filter(_.id === grpId).delete
+    db.run(action).map {
+      case res: Int if res == 1 =>
+        logger.debug(s"Successfully removed Group $grpId")
+        MusitSuccess(res)
+
+      case res: Int if res == 0 =>
+        logger.debug(s"Group $grpId was not removed.")
+        MusitSuccess(res)
+
+      case res: Int =>
+        val msg = s"An unexpected amount of groups where removed using GroupId $grpId"
+        logger.warn(msg)
+        MusitDbError(msg)
+
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to delete the Group $grpId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  /**
+   *
+   * @param usrId
+   * @param grpId
+   * @return
+   */
+  def addUserToGroup(usrId: ActorId, grpId: GroupId): Future[MusitResult[Unit]] = {
+    val action = usrGrpTable += ((usrId, grpId))
+
+    db.run(action).map(res => MusitSuccess(())).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when inserting a new UserGroup relation " +
+          s"between userId $usrId and groupId $grpId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+
+    }
+  }
+
+  /**
+   *
+   * @param usrId
+   * @param grpId
+   * @return
+   */
+  def removeUserFromGroup(
+    usrId: ActorId,
+    grpId: GroupId
+  ): Future[MusitResult[Int]] = {
+    val action = usrGrpTable.filter { ug =>
+      ug.userId === usrId && ug.groupId === grpId
+    }.delete
+
+    db.run(action).map {
+      case res: Int if res == 1 =>
+        logger.debug(s"Successfully removed UserGroup ($usrId, $grpId)")
+        MusitSuccess(res)
+
+      case res: Int if res == 0 =>
+        logger.debug(s"UserGroup ($usrId, $grpId) was not removed.")
+        MusitSuccess(res)
+
+      case res: Int =>
+        val msg = s"An unexpected amount of UserGroups where removed using " +
+          s"UserGroup ($usrId, $grpId)"
+        logger.warn(msg)
+        MusitDbError(msg)
+
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"There was an error deleting the UserGroup ($usrId, $grpId)"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
 
 }
