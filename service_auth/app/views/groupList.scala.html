@@ -6,6 +6,8 @@
 
 @main("Group | List") {
     <h1>All groups</h1>
+    <a href="@controllers.web.routes.GroupController.groupAddGet">Add new group</a>
+    <h4>Found @groups.size groups</h4>
     @if(error.isEmpty) {
         <ul>
         @for(group <- groups) {

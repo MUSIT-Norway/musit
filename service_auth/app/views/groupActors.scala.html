@@ -5,7 +5,8 @@
 
 @main("Group | Actors") {
     <h1>Group: @group.name</h1>
-    Found @actors.size actors
+    <a href="@controllers.web.routes.GroupController.groupList">Go to group list</a>
+    <h4>Found @actors.size actors</h4>
     <ul>
     @for(actor <- actors) {
         <li>@actor.asString</li>

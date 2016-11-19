@@ -4,6 +4,7 @@
 
 @main("Group | Add") {
     <h1>Add group</h1>
+    <a href="@controllers.web.routes.GroupController.groupList">Go to group list</a>
     @helper.form(action = controllers.web.routes.GroupController.groupAddPost()) {
         @helper.inputText(form("name"))
         @helper.select(form("permission"), permissions)

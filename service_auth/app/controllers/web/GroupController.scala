@@ -1,7 +1,5 @@
 package controllers.web
 
-import java.util.UUID
-
 import com.google.inject.Inject
 import models.GroupAdd
 import no.uio.musit.models.GroupId
@@ -80,27 +78,33 @@ class GroupController @Inject() (
   }
 
   def groupActors(groupUUID: String) = Action.async { implicit request =>
-    val groupId = new GroupId(UUID.fromString(groupUUID))
-    groupService.group(groupId).flatMap {
-      case MusitSuccess(maybeGroup) => maybeGroup match {
-        case Some(group) =>
-          groupService.listUsersInGroup(groupId).map {
-            case MusitSuccess(result) =>
-              Ok(views.html.groupActors(result, group))
-            case error: MusitError =>
-              Ok(views.html.groupActors(Seq.empty, group, Some(error)))
-          }
-        case None =>
+    GroupId.validate(groupUUID).toOption.map { uuid =>
+      val groupId = GroupId.fromUUID(uuid)
+      groupService.group(groupId).flatMap {
+        case MusitSuccess(maybeGroup) => maybeGroup match {
+          case Some(group) =>
+            groupService.listUsersInGroup(groupId).map {
+              case MusitSuccess(result) =>
+                Ok(views.html.groupActors(result, group))
+              case error: MusitError =>
+                Ok(views.html.groupActors(Seq.empty, group, Some(error)))
+            }
+          case None =>
+            Future.successful(
+              NotFound(views.html.notFound(s"The group $uuid was not found"))
+            )
+        }
+
+        case error: MusitError =>
           Future.successful(
-            NotFound(views.html.notFound(s"The group id $groupUUID was not found"))
+            NotFound(views.html.notFound(s"Failed to get group with id: $uuid"))
           )
       }
-
-      case error: MusitError =>
-        Future.successful(
-          NotFound(views.html.notFound(s"Failed to get group with id $groupUUID"))
-        )
-    }
+    }.getOrElse(
+      Future.successful(
+        NotFound(views.html.notFound(s"Wrong uuid format: $groupUUID"))
+      )
+    )
   }
 
 }
