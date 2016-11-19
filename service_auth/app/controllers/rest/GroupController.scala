@@ -20,15 +20,15 @@
 package controllers.rest
 
 import com.google.inject.{Inject, Singleton}
-import models.{Group, GroupAdd, GroupId}
-import no.uio.musit.models.ActorId
+import models.{Group, GroupAdd}
+import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.api.mvc.{Result, Results}
+import play.api.mvc.Result
 import services.GroupService
 
 import scala.concurrent.Future

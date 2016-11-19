@@ -20,8 +20,8 @@
 package services
 
 import com.google.inject.Inject
-import models.{Group, GroupAdd, GroupId}
-import no.uio.musit.models.ActorId
+import models.{Group, GroupAdd}
+import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.service.MusitResults.MusitResult
 import play.api.Logger
 import repositories.dao.GroupDao

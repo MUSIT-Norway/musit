@@ -47,6 +47,7 @@ val noPublish = Seq(
 
 lazy val root = project in file(".") settings noPublish aggregate(
   musitTest,
+  musitModels,
   musitService,
   serviceAuth,
   serviceThingAggregate,
@@ -55,7 +56,9 @@ lazy val root = project in file(".") settings noPublish aggregate(
   serviceStoragefacility
 )
 
+// ======================================================================
 // Base projects used as dependencies
+// ======================================================================
 
 lazy val musitTest = (
   BaseProject("musit-test")
@@ -66,6 +69,19 @@ lazy val musitTest = (
         ScalaTest.scalatestplusSpec,
         ScalaTest.scalactic
       ) ++ playDependencies
+    )
+)
+
+lazy val musitModels = (
+  BaseProject("musit-models")
+    settings noPublish
+    settings(
+      libraryDependencies ++= Seq[ModuleID](
+        ScalaTest.scalatestSpec,
+        ScalaTest.scalatestplusSpec,
+        ScalaTest.scalactic,
+        PlayFrameWork.json
+      )
     )
 )
 
@@ -82,7 +98,11 @@ lazy val musitService = (
         iheartFicus
       )
     )
-) dependsOn(musitTest % "it,test")
+) dependsOn(musitModels, musitTest % "it,test")
+
+// ======================================================================
+// The MUSIT services
+// ======================================================================
 
 lazy val serviceAuth = (
   PlayProject("service_auth")

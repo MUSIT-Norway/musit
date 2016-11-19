@@ -20,9 +20,8 @@
 package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.dto.GroupDto
-import models.{Group, GroupAdd, GroupId}
-import no.uio.musit.models.ActorId
+import models.{Group, GroupAdd}
+import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -46,10 +45,10 @@ class GroupDao @Inject() (
    * @return
    */
   def add(grp: GroupAdd): Future[MusitResult[Group]] = {
-    val dto = GroupDto.fromGroupAdd(grp)
-    val action = grpTable += dto
+    val gid = GroupId.generate()
+    val action = grpTable += ((gid, grp.name, grp.permission, grp.description))
 
-    db.run(action).map(res => MusitSuccess(GroupDto.toGroup(dto))).recover {
+    db.run(action).map(res => MusitSuccess(Group.fromGroupAdd(gid, grp))).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when inserting new Group ${grp.name}"
         logger.error(msg, ex)
@@ -65,7 +64,9 @@ class GroupDao @Inject() (
   def findById(grpId: GroupId): Future[MusitResult[Option[Group]]] = {
     val query = grpTable.filter(_.id === grpId).result.headOption
     db.run(query).map { res =>
-      MusitSuccess(res.map(dto => GroupDto.toGroup(dto)))
+      MusitSuccess(res.map {
+        case (gid, name, perm, desc) => Group(gid, name, perm, desc)
+      })
     }.recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when trying to find Group $grpId"
@@ -103,7 +104,9 @@ class GroupDao @Inject() (
     } yield g
 
     db.run(query.result).map { grps =>
-      MusitSuccess(grps.map(GroupDto.toGroup))
+      MusitSuccess(grps.map {
+        case (gid, name, perm, desc) => Group(gid, name, perm, desc)
+      })
     }.recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when trying to find Groups for user $usrId"
@@ -118,7 +121,9 @@ class GroupDao @Inject() (
   def allGroups: Future[MusitResult[Seq[Group]]] = {
     val query = grpTable.sortBy(_.name)
     db.run(query.result).map { grps =>
-      MusitSuccess(grps.map(GroupDto.toGroup))
+      MusitSuccess(grps.map {
+        case (gid, name, perm, desc) => Group(gid, name, perm, desc)
+      })
     }.recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when trying to get all Groups"
@@ -135,7 +140,7 @@ class GroupDao @Inject() (
   def update(grp: Group): Future[MusitResult[Option[Group]]] = {
     val action = grpTable.filter { g =>
       g.id === grp.id
-    }.update(GroupDto.fromGroup(grp))
+    }.update((grp.id, grp.name, grp.permission, grp.description))
 
     db.run(action).map {
       case res: Int if res == 1 => MusitSuccess(Some(grp))

@@ -21,9 +21,7 @@ package repositories.dao
 
 import java.util.UUID
 
-import models.GroupId
-import models.dto.GroupDto
-import no.uio.musit.models.ActorId
+import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Permissions.Permission
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
@@ -55,31 +53,19 @@ private[dao] trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
   val grpTable = TableQuery[GroupTable]
   val usrGrpTable = TableQuery[UserGroupTable]
 
+  type GroupTableType = (GroupId, String, Permission, Option[String])
+
   class GroupTable(
       val tag: Tag
-  ) extends Table[GroupDto](tag, Some(schema), "AUTH_GROUP") {
+  ) extends Table[GroupTableType](tag, Some(schema), "AUTH_GROUP") {
 
     val id = column[GroupId]("GROUP_UUID", O.PrimaryKey)
     val name = column[String]("GROUP_NAME")
     val permission = column[Permission]("GROUP_PERMISSION")
     val description = column[Option[String]]("GROUP_DESCRIPTION")
 
-    override def * = (id, name, permission, description) <> (create.tupled, destroy) // scalastyle:ignore
+    override def * = (id, name, permission, description) // scalastyle:ignore
 
-    def create = (
-      id: GroupId,
-      name: String,
-      permission: Permission,
-      description: Option[String]
-    ) => GroupDto(id, name, permission, description)
-
-    def destroy(dto: GroupDto) =
-      Some((
-        dto.id,
-        dto.name,
-        dto.permission,
-        dto.description
-      ))
   }
 
   class UserGroupTable(

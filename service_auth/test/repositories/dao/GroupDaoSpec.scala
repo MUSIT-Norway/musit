@@ -20,7 +20,7 @@
 package repositories.dao
 
 import models._
-import no.uio.musit.models.ActorId
+import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Permissions
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitSuccess}
 import no.uio.musit.test.MusitSpecWithAppPerSuite

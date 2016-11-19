@@ -17,30 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models.dto
+package no.uio.musit.models
 
-import models.{Group, GroupAdd, GroupId}
-import no.uio.musit.security.Permissions.Permission
+import java.util.UUID
 
-case class GroupDto(
-  id: GroupId,
-  name: String,
-  permission: Permission,
-  description: Option[String]
-)
+import play.api.libs.json.{JsString, Writes, _}
 
-object GroupDto {
+import scala.util.Try
 
-  def fromGroupAdd(ga: GroupAdd): GroupDto = {
-    GroupDto(GroupId.generate(), ga.name, ga.permission, ga.description)
-  }
+case class GroupId(underlying: UUID) extends MusitUUID
 
-  def fromGroup(g: Group): GroupDto = {
-    GroupDto(g.id, g.name, g.permission, g.description)
-  }
+object GroupId {
+  implicit val reads: Reads[GroupId] =
+    __.read[String].map(s => GroupId(UUID.fromString(s)))
 
-  def toGroup(dto: GroupDto): Group = {
-    Group(dto.id, dto.name, dto.permission, dto.description)
-  }
+  implicit val writes: Writes[GroupId] = Writes(id => JsString(id.asString))
 
+  implicit def fromUUID(uuid: UUID): GroupId = GroupId(uuid)
+
+  def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
+
+  def generate(): GroupId = GroupId(UUID.randomUUID())
 }
