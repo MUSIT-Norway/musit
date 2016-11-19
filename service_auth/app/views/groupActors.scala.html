@@ -1,0 +1,14 @@
+@import no.uio.musit.models.ActorId
+@import models.Group
+@import no.uio.musit.service.MusitResults.MusitError
+@(actors: Seq[ActorId], group: Group, error: Option[MusitError] = None)
+
+@main("Group | Actors") {
+    <h1>Group: @group.name</h1>
+    Found @actors.size actors
+    <ul>
+    @for(actor <- actors) {
+        <li>@actor.asString</li>
+    }
+    </ul>
+}

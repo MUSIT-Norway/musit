@@ -1,0 +1,19 @@
+@import models.Group
+@import no.uio.musit.service.MusitResults.MusitError
+@import play.api.mvc.Flash
+
+@(groups: Seq[Group], error: Option[MusitError] = None)(implicit flash: Flash)
+
+@main("Group | List") {
+    <h1>All groups</h1>
+    @if(error.isEmpty) {
+        <ul>
+        @for(group <- groups) {
+            <li><a href="@controllers.web.routes.GroupController.groupActors(group.id.asString)">@group.name</a></li>
+        }
+        </ul>
+    } else {
+        <span style="color: red">@error.map(_.message).getOrElse("")</span>
+    }
+    <span style="color: green">@flash.get("success").getOrElse("")</span>
+}

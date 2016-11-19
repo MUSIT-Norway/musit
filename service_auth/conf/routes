@@ -2,6 +2,9 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-
-# Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file        controllers.Assets.versioned(path="/public", file: Asset)
+GET        /                       controllers.web.GroupController.index
+GET        /web                    controllers.web.GroupController.index
+GET        /web/group/list         controllers.web.GroupController.groupList
+GET        /web/group/add          controllers.web.GroupController.groupAddGet
+POST       /web/group/add          controllers.web.GroupController.groupAddPost
+GET        /web/group/:groupId     controllers.web.GroupController.groupActors(groupId: String)
