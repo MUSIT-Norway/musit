@@ -10,7 +10,8 @@ CREATE TABLE MUSARK_AUTH.AUTH_GROUP (
   group_permission INTEGER NOT NULL,
   group_description VARCHAR(512),
   PRIMARY KEY (group_uuid),
-  CONSTRAINT unique_group_uuid UNIQUE (group_uuid)
+  CONSTRAINT unique_group_uuid UNIQUE (group_uuid),
+  CONSTRAINT unique_group_name UNIQUE (group_name)
 );
 
 CREATE TABLE MUSARK_AUTH.USER_AUTH_GROUP (

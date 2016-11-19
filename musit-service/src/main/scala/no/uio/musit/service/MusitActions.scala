@@ -124,6 +124,9 @@ trait MusitActions {
 
     def apply(mid: MuseumId): MusitSecureAction = MusitSecureAction(Some(mid))
 
+    def apply(permissions: Permission*): MusitSecureAction =
+      MusitSecureAction(None, permissions: _*)
+
     def apply(mid: MuseumId, permissions: Permission*): MusitSecureAction =
       MusitSecureAction(Some(mid), permissions: _*)
 
