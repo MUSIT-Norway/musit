@@ -59,11 +59,17 @@ class GroupService @Inject() (val dao: GroupDao) {
 
   /**
    *
+   * @return
+   */
+  def allGroups: MusitResultF[Seq[Group]] = dao.allGroups
+
+  /**
+   *
    * @param grpId
    * @return
    */
   def listUsersInGroup(grpId: GroupId): MusitResultF[Seq[ActorId]] =
-    ???
+    dao.findUsersInGroup(grpId)
 
   /**
    *

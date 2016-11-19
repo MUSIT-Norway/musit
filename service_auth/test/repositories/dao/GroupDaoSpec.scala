@@ -243,7 +243,20 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "finding all the users in a group" should {
       "return all the ActorIds associated with that group" in {
-        pending
+        val uid1 = ActorId.generate()
+        val uid2 = ActorId.generate()
+        val uid3 = ActorId.generate()
+
+        val grp1 = addedGroupIds.result().reverse.tail.tail.head
+
+        dao.addUserToGroup(uid1, grp1).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(uid2, grp1).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(uid3, grp1).futureValue.isSuccess mustBe true
+
+        val res = dao.findUsersInGroup(grp1).futureValue
+        res.isSuccess mustBe true
+        res.get.size mustBe 3
+        res.get.sortBy(_.asString) mustBe Seq(uid1, uid2, uid3).sortBy(_.asString)
       }
     }
   }

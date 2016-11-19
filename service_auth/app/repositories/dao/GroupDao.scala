@@ -113,6 +113,21 @@ class GroupDao @Inject() (
   }
 
   /**
+   * WARNING: This is a full table scan
+   */
+  def allGroups: Future[MusitResult[Seq[Group]]] = {
+    val query = grpTable.sortBy(_.name)
+    db.run(query.result).map { grps =>
+      MusitSuccess(grps.map(GroupDto.toGroup))
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to get all Groups"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  /**
    *
    * @param grp
    * @return
