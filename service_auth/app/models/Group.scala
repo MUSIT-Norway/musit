@@ -19,16 +19,12 @@
 
 package models
 
-import java.util.UUID
-
 import no.uio.musit.models.Museums.Museum
 import no.uio.musit.models.{ActorId, GroupId, MuseumId}
 import no.uio.musit.security.Permissions.{Permission, Unspecified}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{Format, Json, Reads}
-
-import scala.util.Try
 
 case class Group(
   id: GroupId,
