@@ -1,12 +1,12 @@
-package controllers.web.dto
+package controllers.web.forms
 
 import no.uio.musit.security.Permissions._
 import play.api.data.Form
 import play.api.data.Forms._
 
-case class GroupDTO(name: String, permission: Int, description: Option[String])
+case class GroupForm(name: String, permission: Int, description: Option[String])
 
-object GroupDTO {
+object GroupForm {
   val allowedGroups = scala.collection.immutable.Seq(
     (GodMode.priority.toString, GodMode.productPrefix),
     (Admin.priority.toString, Admin.productPrefix),
@@ -20,6 +20,6 @@ object GroupDTO {
       "name" -> text(minLength = 3),
       "permission" -> number.verifying(n => allowedGroups.exists(_._1 == n.toString)),
       "description" -> optional(text)
-    )(GroupDTO.apply)(GroupDTO.unapply)
+    )(GroupForm.apply)(GroupForm.unapply)
   )
 }

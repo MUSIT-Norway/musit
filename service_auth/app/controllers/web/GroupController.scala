@@ -1,7 +1,7 @@
 package controllers.web
 
 import com.google.inject.Inject
-import controllers.web.dto.GroupDTO._
+import controllers.web.forms.GroupForm._
 import models.GroupAdd
 import no.uio.musit.models.GroupId
 import no.uio.musit.security.Permissions._
