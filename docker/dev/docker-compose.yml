@@ -11,6 +11,7 @@ services:
           - actor
           - geolocation
           - storagefacility
+          - auth
 
     db:
         build: database/
@@ -74,6 +75,24 @@ services:
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
           - APPLICATION_SECRET
+
+    auth:
+        image: musit_service_auth:0.1-SNAPSHOT
+        ports:
+          - "7074:7070"
+        environment:
+          - DATAPORTEN_CLIENT_ID
+          - DATAPORTEN_CLIENT_SECRET
+          - APPLICATION_SECRET
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - db
+          - actor
 
     storagefacility:
         image: musit_service_storagefacility:0.1-SNAPSHOT

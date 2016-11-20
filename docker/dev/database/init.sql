@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS MUSARK_AUTH;
+CREATE SCHEMA IF NOT EXISTS "MUSARK_AUTH";
 
 -- ===========================================================================
 -- Tables for auth stuff...
@@ -15,15 +15,13 @@ CREATE TABLE "MUSARK_AUTH"."AUTH_GROUP" (
   CONSTRAINT UNIQUE_GROUP_NAME UNIQUE ("GROUP_NAME")
 );
 
-CREATE TABLE MUSARK_AUTH.USER_AUTH_GROUP (
+CREATE TABLE "MUSARK_AUTH"."USER_AUTH_GROUP" (
   "USER_UUID" VARCHAR(36) NOT NULL, -- DATAPORTEN USER UUID
   "GROUP_UUID" VARCHAR(36) NOT NULL,
   PRIMARY KEY ("USER_UUID", "GROUP_UUID"),
   FOREIGN KEY ("GROUP_UUID") REFERENCES "MUSARK_AUTH"."AUTH_GROUP" ("GROUP_UUID"),
   CONSTRAINT UNIQUE_USERGROUP_UUIDS UNIQUE ("USER_UUID", "GROUP_UUID")
 );
-
-
 
 CREATE SCHEMA IF NOT EXISTS "MUSARK_STORAGE";
 
@@ -271,7 +269,7 @@ CREATE TABLE "MUSIT_MAPPING"."MUSITTHING" (
 SET search_path = "MUSARK_AUTH", pg_catalog;
 
 INSERT INTO "AUTH_GROUP" VALUES ('c0f20097-e803-4d1f-9d86-7b36bcfaec19', 'GodAccess', 10000, 10000, 'Full blown administrator with access to all functionality');
-INSERT INTO "AUTH_GROUP" VALUES ('c0f20097-e803-4d1f-9d86-7b36bcfaec19', 'TestAppAdmin', 40, 10000, 'Application administrator with access to all functionality');
+INSERT INTO "AUTH_GROUP" VALUES ('869cc344-5515-49c0-a7a5-79e371f4e64b', 'TestAppAdmin', 40, 10000, 'Application administrator with access to all functionality');
 INSERT INTO "AUTH_GROUP" VALUES ('2d503a2e-2211-45dd-a99f-fe1a38b5f2a2', 'TestSfRead',   10,    99, 'Read access to storage facility for TEST');
 INSERT INTO "AUTH_GROUP" VALUES ('c81c314c-0675-4cd1-8956-c96a7163825b', 'TestSfWrite',  20,    99, 'Write access to storage facility for TEST');
 INSERT INTO "AUTH_GROUP" VALUES ('bc4b4d44-9470-4622-8e29-03f0bfaf5149', 'TestSfAdmin',  30,    99, 'Admin access to storage facility for TEST');
