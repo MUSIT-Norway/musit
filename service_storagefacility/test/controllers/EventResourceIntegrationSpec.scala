@@ -26,7 +26,7 @@ import models.event.control.Control
 import models.event.observation.Observation
 import no.uio.musit.models.{ActorId, MuseumId, StorageNodeId}
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
+import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.test.Helpers._

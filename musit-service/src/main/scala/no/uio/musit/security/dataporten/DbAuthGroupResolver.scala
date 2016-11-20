@@ -17,10 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.security.dataporten
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.models.ActorId
+import no.uio.musit.security.{AuthGroupResolver, AuthTables, GroupInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider

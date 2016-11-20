@@ -23,7 +23,7 @@ import models.storage.StorageType._
 import models.storage.{StorageNode, StorageType}
 import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.FakeAuthenticator._
+import no.uio.musit.security.fake.FakeAuthenticator._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.libs.json._

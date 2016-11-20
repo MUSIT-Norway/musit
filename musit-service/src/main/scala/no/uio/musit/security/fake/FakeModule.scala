@@ -17,10 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.security.fake
 
 import com.google.inject.AbstractModule
 import net.codingwell.scalaguice.ScalaModule
+import no.uio.musit.security.Authenticator
 
 class FakeModule extends AbstractModule with ScalaModule {
 

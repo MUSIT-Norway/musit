@@ -17,10 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.security.fake
 
 import no.uio.musit.models.{ActorId, GroupId}
-import no.uio.musit.security.FakeAuthenticator.FakeUserDetails
+import no.uio.musit.security.fake.FakeAuthenticator.FakeUserDetails
+import no.uio.musit.security.{Authenticator, BearerToken, GroupInfo, UserInfo}
 import no.uio.musit.service.MusitResults._
 import play.api.libs.json.{JsArray, Json}
 

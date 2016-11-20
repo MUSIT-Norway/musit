@@ -17,12 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.security.dataporten
 
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
 import no.uio.musit.models.ActorId
-import no.uio.musit.security.DataportenAuthenticator._
+import no.uio.musit.security._
+import no.uio.musit.security.dataporten.DataportenAuthenticator._
 import no.uio.musit.service.MusitResults._
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

@@ -21,9 +21,10 @@ package no.uio.musit.service
 
 import akka.stream.Materializer
 import no.uio.musit.models.Museums._
-import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
+import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.security.Permissions._
 import no.uio.musit.security._
+import no.uio.musit.security.fake.FakeAuthenticator
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.mvc.Results._

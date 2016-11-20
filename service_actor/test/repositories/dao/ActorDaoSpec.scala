@@ -23,8 +23,9 @@ import java.util.UUID
 
 import models.Person
 import no.uio.musit.models.{ActorId, DatabaseId}
-import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.security.{AuthenticatedUser, BearerToken, FakeAuthenticator}
+import no.uio.musit.security.fake.FakeAuthenticator
+import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
+import no.uio.musit.security.{AuthenticatedUser, BearerToken}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
