@@ -1,42 +1,23 @@
 package controllers.web
 
 import com.google.inject.Inject
+import controllers.web.dto.GroupDTO._
 import models.GroupAdd
 import no.uio.musit.models.GroupId
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
-import play.api.data._
-import play.api.data.Forms._
+import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc._
 import services.GroupService
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
-import play.api.i18n.{I18nSupport, MessagesApi}
 
 class GroupController @Inject() (
     implicit
     groupService: GroupService,
     val messagesApi: MessagesApi
 ) extends Controller with I18nSupport {
-
-  case class GroupData(name: String, permission: Int, description: Option[String])
-
-  val allowedGroups = scala.collection.immutable.Seq(
-    (GodMode.priority.toString, GodMode.productPrefix),
-    (Admin.priority.toString, Admin.productPrefix),
-    (Write.priority.toString, Write.productPrefix),
-    (Read.priority.toString, Read.productPrefix),
-    (Guest.priority.toString, Guest.productPrefix)
-  )
-
-  val groupForm = Form(
-    mapping(
-      "name" -> text(minLength = 3),
-      "permission" -> number(min = 1),
-      "description" -> optional(text)
-    )(GroupData.apply)(GroupData.unapply)
-  )
 
   def groupAddGet() = Action { implicit request =>
     Ok(views.html.groupAdd(groupForm, allowedGroups))
