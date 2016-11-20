@@ -1,7 +1,8 @@
 @import no.uio.musit.models.ActorId
 @import models.Group
+@import models.Actor
 @import no.uio.musit.service.MusitResults.MusitError
-@(actors: Seq[ActorId], museumId: Int, group: Group, error: Option[MusitError] = None)
+@(actors: Seq[ActorId], museumId: Int, group: Group, actorIds: Seq[Actor], error: Option[MusitError] = None)
 
 @main("Group | Actors") {
     <h1>Group: @group.name</h1>
@@ -19,7 +20,7 @@
     <ul>
     @for(actor <- actors) {
         <li>
-            @actor.asString
+            @actorIds.find(_.dataportenId.getOrElse("") == actor.asString).map(_.fn).getOrElse(actor.asString)
             <form method="post" action="@controllers.web.routes.GroupController.deleteUser(museumId, actor.asString, group.id.asString)">
                 <input type="submit" value="Delete" />
             </form>

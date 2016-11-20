@@ -1,14 +1,17 @@
 package controllers.web
 
 import com.google.inject.Inject
+import models.Actor
 import models.GroupAdd._
 import models.UserGroupAdd._
 import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import play.api.Configuration
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.ws.WSClient
 import play.api.mvc._
 import services.GroupService
 
@@ -17,7 +20,9 @@ import scala.concurrent.Future
 class GroupController @Inject() (
     implicit
     groupService: GroupService,
-    val messagesApi: MessagesApi
+    val messagesApi: MessagesApi,
+    ws: WSClient,
+    configuration: Configuration
 ) extends Controller with I18nSupport {
 
   val allowedGroups = scala.collection.immutable.Seq(
@@ -140,6 +145,25 @@ class GroupController @Inject() (
     }
   }
 
+  def getActors(ids: Seq[String]): Future[Either[String, Seq[Actor]]] = {
+    configuration.getString("actor.detailsUrl").map { url =>
+      ws.url(url)
+        .withHeaders(
+          "Authorization" -> "Bearer fake-token-zab-xy-normal"
+        )
+        .post(Json.toJson(ids))
+        .map { res =>
+          res.status match {
+            case 200 => res.json.validate[Seq[Actor]] match {
+              case JsSuccess(actors, _) => Right(actors)
+              case JsError(error) => Left(error.mkString(", "))
+            }
+            case _ => Left("No content (ish)")
+          }
+        }
+    }.getOrElse(Future.successful(Left("Missing actor url")))
+  }
+
   def groupActorsList(museumId: Int, gUuid: String) = Action.async { implicit request =>
     val maybeGroupId = for {
       g <- GroupId.validate(gUuid)
@@ -148,11 +172,21 @@ class GroupController @Inject() (
       groupService.group(groupId).flatMap {
         case MusitSuccess(maybeGroup) => maybeGroup match {
           case Some(group) =>
-            groupService.listUsersInGroup(groupId).map {
+            groupService.listUsersInGroup(groupId).flatMap {
               case MusitSuccess(result) =>
-                Ok(views.html.groupActors(result, museumId, group))
+                getActors(result.map(_.asString)).map {
+                  case Right(actors) =>
+                    Ok(views.html.groupActors(result, museumId, group, actors))
+                  case Left(error) =>
+                    // TODO log error here
+                    Ok(views.html.groupActors(result, museumId, group, Seq.empty))
+                }
               case error: MusitError =>
-                Ok(views.html.groupActors(Seq.empty, museumId, group, Some(error)))
+                Future.successful(
+                  Ok(views.html.groupActors(
+                    Seq.empty, museumId, group, Seq.empty, Some(error)
+                  ))
+                )
             }
           case None =>
             Future.successful(
@@ -161,7 +195,6 @@ class GroupController @Inject() (
               )
             )
         }
-
         case error: MusitError =>
           Future.successful(
             NotFound(

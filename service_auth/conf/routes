@@ -12,6 +12,5 @@ GET        /web/museum/:museumId/group/:groupId           controllers.web.GroupC
 POST       /web/museum/:museumId/group/:groupId           controllers.web.GroupController.deleteGroup(museumId: Int, groupId: String)
 POST       /web/museum/:museumId/group/:groupId/:userId   controllers.web.GroupController.deleteUser(museumId: Int, userId: String, groupId: String)
 
-
 # REST endpoints
 GET         /rest/museums                  controllers.rest.MuseumController.listMuseums
