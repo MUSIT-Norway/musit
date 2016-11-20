@@ -145,17 +145,22 @@ class GroupController @Inject() (
     }
   }
 
-  def getActors(id: Seq[String]): Future[Either[String, Seq[Actor]]] = {
+  def getActors(ids: Seq[String]): Future[Either[String, Seq[Actor]]] = {
     configuration.getString("actor.detailsUrl").map { url =>
       ws.url(url)
         .withHeaders(
           "Authorization" -> "Bearer fake-token-zab-xy-normal"
         )
-        .post(Json.toJson(id))
-        .map(_.json.validate[Seq[Actor]] match {
-          case JsSuccess(actors, _) => Right(actors)
-          case JsError(error) => Left(error.mkString(", "))
-        })
+        .post(Json.toJson(ids))
+        .map { res =>
+          res.status match {
+            case 200 => res.json.validate[Seq[Actor]] match {
+              case JsSuccess(actors, _) => Right(actors)
+              case JsError(error) => Left(error.mkString(", "))
+            }
+            case _ => Left("No content (ish)")
+          }
+        }
     }.getOrElse(Future.successful(Left("Missing actor url")))
   }
 
