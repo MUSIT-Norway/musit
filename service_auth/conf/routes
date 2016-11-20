@@ -11,7 +11,6 @@ POST       /web/museum/:museumId/group/:groupId/addUser   controllers.web.GroupC
 GET        /web/museum/:museumId/group/:groupId           controllers.web.GroupController.groupActorsList(museumId: Int, groupId: String)
 POST       /web/museum/:museumId/group/:groupId           controllers.web.GroupController.deleteGroup(museumId: Int, groupId: String)
 POST       /web/museum/:museumId/group/:groupId/:userId   controllers.web.GroupController.deleteUser(museumId: Int, userId: String, groupId: String)
-GET        /test/:id                       controllers.web.GroupController.getActorsEndpoint(id: String)
 
 # REST endpoints
 GET         /rest/museums                  controllers.rest.MuseumController.listMuseums

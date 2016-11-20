@@ -1,6 +1,7 @@
 package controllers.web
 
 import com.google.inject.Inject
+import models.Actor
 import models.GroupAdd._
 import models.UserGroupAdd._
 import no.uio.musit.models.{ActorId, GroupId}
@@ -15,17 +16,6 @@ import play.api.mvc._
 import services.GroupService
 
 import scala.concurrent.Future
-
-case class Actor(
-  id: Int,
-  fn: String,
-  dataportenId: Option[String],
-  applicationId: Option[String]
-)
-
-object Actor {
-  implicit def format: Format[Actor] = Json.format[Actor]
-}
 
 class GroupController @Inject() (
     implicit
@@ -155,13 +145,7 @@ class GroupController @Inject() (
     }
   }
 
-  def getActorsEndpoint(id: String) = Action.async { implicit request =>
-    getActors(Seq(id)).map { actors =>
-      Ok(Json.toJson(actors))
-    }
-  }
-
-  def getActors(id: Seq[String]): Future[Seq[Actor]] = {
+  def getActors(id: Seq[String]): Future[Either[String, Seq[Actor]]] = {
     configuration.getString("actor.detailsUrl").map { url =>
       ws.url(url)
         .withHeaders(
@@ -169,10 +153,10 @@ class GroupController @Inject() (
         )
         .post(Json.toJson(id))
         .map(_.json.validate[Seq[Actor]] match {
-          case JsSuccess(actors, _) => actors
-          case JsError(error) => throw new IllegalStateException(error.mkString(", "))
+          case JsSuccess(actors, _) => Right(actors)
+          case JsError(error) => Left(error.mkString(", "))
         })
-    }.getOrElse(throw new IllegalStateException("Missing actor url"))
+    }.getOrElse(Future.successful(Left("Missing actor url")))
   }
 
   def groupActorsList(museumId: Int, gUuid: String) = Action.async { implicit request =>
@@ -183,11 +167,21 @@ class GroupController @Inject() (
       groupService.group(groupId).flatMap {
         case MusitSuccess(maybeGroup) => maybeGroup match {
           case Some(group) =>
-            groupService.listUsersInGroup(groupId).map {
+            groupService.listUsersInGroup(groupId).flatMap {
               case MusitSuccess(result) =>
-                Ok(views.html.groupActors(result, museumId, group))
+                getActors(result.map(_.asString)).map {
+                  case Right(actors) =>
+                    Ok(views.html.groupActors(result, museumId, group, actors))
+                  case Left(error) =>
+                    // TODO log error here
+                    Ok(views.html.groupActors(result, museumId, group, Seq.empty))
+                }
               case error: MusitError =>
-                Ok(views.html.groupActors(Seq.empty, museumId, group, Some(error)))
+                Future.successful(
+                  Ok(views.html.groupActors(
+                    Seq.empty, museumId, group, Seq.empty, Some(error)
+                  ))
+                )
             }
           case None =>
             Future.successful(
