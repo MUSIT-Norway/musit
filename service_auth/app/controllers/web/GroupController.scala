@@ -26,6 +26,14 @@ class GroupController @Inject() (
     (Guest.priority.toString, Guest.productPrefix)
   )
 
+  def groupAddActorGet = Action { implicit request =>
+    Ok
+  }
+
+  def groupAddActorPost = Action.async { implicit request =>
+    Future.successful(Ok)
+  }
+
   def groupAddGet() = Action { implicit request =>
     Ok(views.html.groupAdd(groupAddForm, allowedGroups))
   }
@@ -59,7 +67,7 @@ class GroupController @Inject() (
     }
   }
 
-  def groupActors(groupUUID: String) = Action.async { implicit request =>
+  def groupActorsList(groupUUID: String) = Action.async { implicit request =>
     GroupId.validate(groupUUID).toOption.map { uuid =>
       val groupId = GroupId.fromUUID(uuid)
       groupService.group(groupId).flatMap {
