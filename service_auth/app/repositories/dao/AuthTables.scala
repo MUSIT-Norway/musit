@@ -21,7 +21,7 @@ package repositories.dao
 
 import java.util.UUID
 
-import no.uio.musit.models.{ActorId, GroupId}
+import no.uio.musit.models.{ActorId, GroupId, MuseumId}
 import no.uio.musit.security.Permissions.Permission
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
@@ -42,6 +42,12 @@ private[dao] trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
       str => GroupId(UUID.fromString(str))
     )
 
+  implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =
+    MappedColumnType.base[MuseumId, Int](
+      m => m.underlying,
+      i => MuseumId.fromInt(i)
+    )
+
   implicit lazy val permissionMapper: BaseColumnType[Permission] =
     MappedColumnType.base[Permission, Int](
       p => p.priority,
@@ -53,7 +59,7 @@ private[dao] trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
   val grpTable = TableQuery[GroupTable]
   val usrGrpTable = TableQuery[UserGroupTable]
 
-  type GroupTableType = (GroupId, String, Permission, Option[String])
+  type GroupTableType = (GroupId, String, Permission, MuseumId, Option[String])
 
   class GroupTable(
       val tag: Tag
@@ -62,9 +68,10 @@ private[dao] trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
     val id = column[GroupId]("GROUP_UUID", O.PrimaryKey)
     val name = column[String]("GROUP_NAME")
     val permission = column[Permission]("GROUP_PERMISSION")
+    val museumId = column[MuseumId]("GROUP_MUSEUMID")
     val description = column[Option[String]]("GROUP_DESCRIPTION")
 
-    override def * = (id, name, permission, description) // scalastyle:ignore
+    override def * = (id, name, permission, museumId, description) // scalastyle:ignore
 
   }
 

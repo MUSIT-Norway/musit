@@ -35,6 +35,12 @@ object GroupId {
 
   implicit def fromUUID(uuid: UUID): GroupId = GroupId(uuid)
 
+  /**
+   * Unsafe converter from String to GroupId
+   */
+  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
+  def unsafeFromString(str: String): GroupId = UUID.fromString(str)
+
   def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
 
   def generate(): GroupId = GroupId(UUID.randomUUID())

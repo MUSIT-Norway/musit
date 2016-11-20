@@ -41,16 +41,16 @@ class GroupDao @Inject() (
 
   /**
    *
-   * @param grp
+   * @param g
    * @return
    */
-  def add(grp: GroupAdd): Future[MusitResult[Group]] = {
+  def add(g: GroupAdd): Future[MusitResult[Group]] = {
     val gid = GroupId.generate()
-    val action = grpTable += ((gid, grp.name, grp.permission, grp.description))
+    val action = grpTable += ((gid, g.name, g.permission, g.museumId, g.description))
 
-    db.run(action).map(res => MusitSuccess(Group.fromGroupAdd(gid, grp))).recover {
+    db.run(action).map(res => MusitSuccess(Group.fromGroupAdd(gid, g))).recover {
       case NonFatal(ex) =>
-        val msg = s"An error occurred when inserting new Group ${grp.name}"
+        val msg = s"An error occurred when inserting new Group ${g.name}"
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
     }
@@ -65,7 +65,7 @@ class GroupDao @Inject() (
     val query = grpTable.filter(_.id === grpId).result.headOption
     db.run(query).map { res =>
       MusitSuccess(res.map {
-        case (gid, name, perm, desc) => Group(gid, name, perm, desc)
+        case (gid, name, perm, mid, desc) => Group(gid, name, perm, mid, desc)
       })
     }.recover {
       case NonFatal(ex) =>
@@ -105,7 +105,7 @@ class GroupDao @Inject() (
 
     db.run(query.result).map { grps =>
       MusitSuccess(grps.map {
-        case (gid, name, perm, desc) => Group(gid, name, perm, desc)
+        case (gid, name, perm, mid, desc) => Group(gid, name, perm, mid, desc)
       })
     }.recover {
       case NonFatal(ex) =>
@@ -122,7 +122,7 @@ class GroupDao @Inject() (
     val query = grpTable.sortBy(_.name)
     db.run(query.result).map { grps =>
       MusitSuccess(grps.map {
-        case (gid, name, perm, desc) => Group(gid, name, perm, desc)
+        case (gid, name, perm, mid, desc) => Group(gid, name, perm, mid, desc)
       })
     }.recover {
       case NonFatal(ex) =>
@@ -140,7 +140,7 @@ class GroupDao @Inject() (
   def update(grp: Group): Future[MusitResult[Option[Group]]] = {
     val action = grpTable.filter { g =>
       g.id === grp.id
-    }.update((grp.id, grp.name, grp.permission, grp.description))
+    }.update((grp.id, grp.name, grp.permission, grp.museumId, grp.description))
 
     db.run(action).map {
       case res: Int if res == 1 => MusitSuccess(Some(grp))

@@ -20,33 +20,33 @@
 package no.uio.musit.security
 
 import no.uio.musit.models.Museums.Museum
+import no.uio.musit.models.{GroupId, MuseumId}
 import no.uio.musit.security.Permissions.Permission
-import no.uio.musit.security.Roles.Role
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class GroupInfo(
-    id: String,
-    groupType: String,
-    displayName: String,
-    description: Option[String]
+  id: GroupId,
+  name: String,
+  permission: Permission,
+  museumId: MuseumId,
+  description: Option[String]
 ) {
 
-  val group: Option[Role] = Roles.fromGroupId(id)
-  val museum: Option[Museum] = group.map(_.museum)
+  val museum: Option[Museum] = Museum.fromMuseumId(museumId)
 
-  def hasPermission(permission: Permission): Boolean =
-    group.exists(_.permissions.contains(permission))
+  def hasPermission(p: Permission): Boolean = permission == p
 
 }
 
 object GroupInfo {
 
   implicit val formats: Format[GroupInfo] = (
-    (__ \ "id").format[String] and
-    (__ \ "type").format[String] and
-    (__ \ "displayName").format[String] and
-    (__ \ "description").formatNullable[String]
-  )(GroupInfo.apply, unlift(GroupInfo.unapply))
+    (__ \ "id").format[GroupId] and
+      (__ \ "name").format[String] and
+      (__ \ "permission").format[Permission] and
+      (__ \ "museumId").format[MuseumId] and
+      (__ \ "description").formatNullable[String]
+    ) (GroupInfo.apply, unlift(GroupInfo.unapply))
 
 }

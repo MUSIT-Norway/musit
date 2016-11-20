@@ -101,7 +101,7 @@ object Permissions {
    * that require system/application admin restrictions.
    */
   case object GodMode extends Permission {
-    override val priority: Int = Int.MaxValue
+    override val priority: Int = 10000
   }
 
 }

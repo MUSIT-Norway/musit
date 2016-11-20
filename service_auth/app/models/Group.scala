@@ -19,7 +19,7 @@
 
 package models
 
-import no.uio.musit.models.GroupId
+import no.uio.musit.models.{GroupId, MuseumId}
 import no.uio.musit.security.Permissions.Permission
 import play.api.libs.json.{Format, Json, Reads}
 
@@ -27,6 +27,7 @@ case class Group(
   id: GroupId,
   name: String,
   permission: Permission,
+  museumId: MuseumId,
   description: Option[String]
 )
 
@@ -35,12 +36,13 @@ object Group {
   implicit def format: Format[Group] = Json.format[Group]
 
   def fromGroupAdd(gid: GroupId, ga: GroupAdd): Group =
-    Group(gid, ga.name, ga.permission, ga.description)
+    Group(gid, ga.name, ga.permission, ga.museumId, ga.description)
 }
 
 case class GroupAdd(
   name: String,
   permission: Permission,
+  museumId: MuseumId,
   description: Option[String]
 )
 

@@ -8,6 +8,7 @@ CREATE TABLE MUSARK_AUTH.AUTH_GROUP (
   group_uuid VARCHAR2(36) NOT NULL,
   group_name VARCHAR(100) NOT NULL,
   group_permission INTEGER NOT NULL,
+  group_museumId INTEGER NOT NULL,
   group_description VARCHAR(512),
   PRIMARY KEY (group_uuid),
   CONSTRAINT unique_group_uuid UNIQUE (group_uuid),

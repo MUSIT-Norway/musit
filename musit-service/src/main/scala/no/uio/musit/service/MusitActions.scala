@@ -132,4 +132,25 @@ trait MusitActions {
 
   }
 
+  case class MusitAdminAction(
+    museumId: Option[MuseumId],
+    permissions: Permission*
+  ) extends BaseMusitAction {
+
+    override def refine[T](request: Request[T]): MusitActionResult[T] = {
+      // TODO: Implement handling of requests that should _only_ be accessible
+      // for MusitAdmin or GodMode users.
+      BearerToken.fromRequest(request).map { token =>
+        for {
+          usrRes <- authService.userInfo(token)
+        } yield {
+          ???
+        }
+      }
+
+      ???
+    }
+
+  }
+
 }
