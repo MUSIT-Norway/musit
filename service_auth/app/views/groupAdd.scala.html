@@ -4,11 +4,16 @@
 
 @main("Group | Add") {
     <h1>Add group</h1>
-    <a href="@controllers.web.routes.GroupController.groupList(museumId)">Go to group list</a>
+    <p>
+        <a href="@controllers.web.routes.GroupController.groupList(museumId)">
+            Go to group list
+        </a>
+    </p>
     @helper.form(action = controllers.web.routes.GroupController.groupAddPost(museumId)) {
         @helper.inputText(form("name"))
         @helper.select(form("permission"), permissions)
         @helper.textarea(form("description"))
+        <input type="hidden" value="@museumId" name="museumId" />
         <button type="submit" name="submit" value="submit">Add group</button>
     }
 }

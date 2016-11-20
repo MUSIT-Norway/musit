@@ -5,7 +5,16 @@
 
 @main("Group | Actors") {
     <h1>Group: @group.name</h1>
-    <a href="@controllers.web.routes.GroupController.groupList(museumId)">Go to group list</a>
+    <p>
+        <a href="@controllers.web.routes.GroupController.groupList(museumId)">
+            Go to group list
+        </a>
+    </p>
+    <p>
+        <a href="@controllers.web.routes.GroupController.groupAddUserGet(museumId, group.id.asString)">
+            Add new user
+        </a>
+    </p>
     <h4>Found @actors.size actors</h4>
     <ul>
     @for(actor <- actors) {

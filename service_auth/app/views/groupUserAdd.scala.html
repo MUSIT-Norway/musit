@@ -1,0 +1,17 @@
+@import play.api.i18n.Messages
+
+@(form: play.api.data.Form[_], museumId: Int, groupId: String)(implicit messages: Messages)
+
+@main("Group | Add user") {
+    <h1>Add user to group</h1>
+    <p>
+        <a href="@controllers.web.routes.GroupController.groupActorsList(museumId, groupId)">
+            Go back
+        </a>
+    </p>
+    @helper.form(action = controllers.web.routes.GroupController.groupAddUserPost(museumId, groupId)) {
+        @helper.inputText(form("userId"))
+        <input type="hidden" value="@groupId" name="groupId" />
+        <button type="submit" name="submit" value="submit">Add user to group</button>
+    }
+}

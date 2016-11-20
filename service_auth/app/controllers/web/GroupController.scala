@@ -2,7 +2,8 @@ package controllers.web
 
 import com.google.inject.Inject
 import models.GroupAdd._
-import no.uio.musit.models.GroupId
+import models.UserGroupAdd._
+import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -26,12 +27,30 @@ class GroupController @Inject() (
     (Guest.priority.toString, Guest.productPrefix)
   )
 
-  def groupAddActorGet(museumId: Int, groupId: String) = Action { request =>
-    Ok
+  def groupAddUserGet(museumId: Int, gId: String) = Action { implicit request =>
+    Ok(views.html.groupUserAdd(userGroupAddForm, museumId, gId))
   }
 
-  def groupAddActorPost(museumId: Int, groupId: String) = Action.async { request =>
-    Future.successful(Ok)
+  def groupAddUserPost(museumId: Int, gId: String) = Action.async { implicit request =>
+    userGroupAddForm.bindFromRequest.fold(
+      formWithErrors => {
+        Future.successful(
+          BadRequest(views.html.groupUserAdd(formWithErrors, museumId, gId))
+        )
+      },
+      userAdd => {
+        val userId = ActorId.validate(userAdd.userId).get
+        val groupId = GroupId.validate(userAdd.groupId).get
+        groupService.addUserToGroup(userId, groupId).map {
+          case MusitSuccess(group) =>
+            Redirect(
+              controllers.web.routes.GroupController.groupActorsList(museumId, gId)
+            ).flashing("success" -> "User added!")
+          case error: MusitError =>
+            InternalServerError(error.message)
+        }
+      }
+    )
   }
 
   def groupAddGet(museumId: Int) = Action { implicit request =>

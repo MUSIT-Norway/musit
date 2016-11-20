@@ -19,12 +19,16 @@
 
 package models
 
+import java.util.UUID
+
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.models.{GroupId, MuseumId}
+import no.uio.musit.models.{ActorId, GroupId, MuseumId}
 import no.uio.musit.security.Permissions.{Permission, Unspecified}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{Format, Json, Reads}
+
+import scala.util.Try
 
 case class Group(
   id: GroupId,
@@ -68,4 +72,23 @@ object GroupAdd {
     )(applyForm)(unapplyForm)
   )
 
+}
+
+case class UserGroupAdd(userId: String, groupId: String)
+
+object UserGroupAdd {
+  implicit def reads: Reads[UserGroupAdd] = Json.reads[UserGroupAdd]
+
+  def applyForm(userId: String, groupId: String) =
+    UserGroupAdd(userId, groupId)
+
+  def unapplyForm(userGroup: UserGroupAdd) =
+    Some((userGroup.userId, userGroup.groupId))
+
+  val userGroupAddForm = Form(
+    mapping(
+      "userId" -> text.verifying(id => ActorId.validate(id).isSuccess),
+      "groupId" -> text.verifying(id => GroupId.validate(id).isSuccess)
+    )(applyForm)(unapplyForm)
+  )
 }
