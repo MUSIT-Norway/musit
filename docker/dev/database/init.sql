@@ -1,3 +1,30 @@
+CREATE SCHEMA IF NOT EXISTS MUSARK_AUTH;
+
+-- ===========================================================================
+-- Tables for auth stuff...
+-- ===========================================================================
+
+CREATE TABLE "MUSARK_AUTH"."AUTH_GROUP" (
+  "GROUP_UUID" VARCHAR(36) NOT NULL,
+  "GROUP_NAME" VARCHAR(100) NOT NULL,
+  "GROUP_PERMISSION" INTEGER NOT NULL,
+  "GROUP_MUSEUMID" INTEGER NOT NULL,
+  "GROUP_DESCRIPTION" VARCHAR(512),
+  PRIMARY KEY ("GROUP_UUID"),
+  CONSTRAINT UNIQUE_GROUP_UUID UNIQUE ("GROUP_UUID"),
+  CONSTRAINT UNIQUE_GROUP_NAME UNIQUE ("GROUP_NAME")
+);
+
+CREATE TABLE MUSARK_AUTH.USER_AUTH_GROUP (
+  "USER_UUID" VARCHAR(36) NOT NULL, -- DATAPORTEN USER UUID
+  "GROUP_UUID" VARCHAR(36) NOT NULL,
+  PRIMARY KEY ("USER_UUID", "GROUP_UUID"),
+  FOREIGN KEY ("GROUP_UUID") REFERENCES "MUSARK_AUTH"."AUTH_GROUP" ("GROUP_UUID"),
+  CONSTRAINT UNIQUE_USERGROUP_UUIDS UNIQUE ("USER_UUID", "GROUP_UUID")
+);
+
+
+
 CREATE SCHEMA IF NOT EXISTS "MUSARK_STORAGE";
 
 -- ===========================================================================
@@ -241,6 +268,35 @@ CREATE TABLE "MUSIT_MAPPING"."MUSITTHING" (
 -- ===========================================================================
 -- Pre-populating necessary data
 -- ===========================================================================
+SET search_path = "MUSARK_AUTH", pg_catalog;
+
+INSERT INTO "AUTH_GROUP" VALUES ('c0f20097-e803-4d1f-9d86-7b36bcfaec19', 'GodAccess', 10000, 10000, 'Full blown administrator with access to all functionality');
+INSERT INTO "AUTH_GROUP" VALUES ('c0f20097-e803-4d1f-9d86-7b36bcfaec19', 'TestAppAdmin', 40, 10000, 'Application administrator with access to all functionality');
+INSERT INTO "AUTH_GROUP" VALUES ('2d503a2e-2211-45dd-a99f-fe1a38b5f2a2', 'TestSfRead',   10,    99, 'Read access to storage facility for TEST');
+INSERT INTO "AUTH_GROUP" VALUES ('c81c314c-0675-4cd1-8956-c96a7163825b', 'TestSfWrite',  20,    99, 'Write access to storage facility for TEST');
+INSERT INTO "AUTH_GROUP" VALUES ('bc4b4d44-9470-4622-8e29-03f0bfaf5149', 'TestSfAdmin',  30,    99, 'Admin access to storage facility for TEST');
+INSERT INTO "AUTH_GROUP" VALUES ('3ce7692d-2101-45a4-955b-0ca861540cd9', 'KhmSfRead',    10,     3, 'Read access to storage facility for KHM');
+INSERT INTO "AUTH_GROUP" VALUES ('fd34b019-81e1-47a2-987b-64389d6fce04', 'KhmSfWrite',   20,     3, 'Write access to storage facility for KHM');
+INSERT INTO "AUTH_GROUP" VALUES ('de48b2dd-f25c-4b06-a5d4-7de45780ef2e', 'KhmSfAdmin',   30,     3, 'Admin access to storage facility for KHM');
+INSERT INTO "AUTH_GROUP" VALUES ('92e3b487-c962-43d9-a2ea-b8a7bed1b67a', 'NhmSfRead',    10,     4, 'Read access to storage facility for NHM');
+INSERT INTO "AUTH_GROUP" VALUES ('f311dd04-89b8-48a4-b4cd-68092f76ebab', 'NhmSfWrite',   20,     4, 'Write access to storage facility for NHM');
+INSERT INTO "AUTH_GROUP" VALUES ('5aa16994-92b3-45df-adfa-7f9fdf54ce34', 'NhmSfAdmin',   30,     4, 'Admin access to storage facility for NHM');
+INSERT INTO "AUTH_GROUP" VALUES ('b923b5df-54d3-4724-9386-c1273561f1a1', 'UmSfRead',     10,     2, 'Read access to storage facility for UM');
+INSERT INTO "AUTH_GROUP" VALUES ('6ae158a1-398c-4f05-9992-1e19759e3221', 'UmSfWrite',    20,     2, 'Write access to storage facility for UM');
+INSERT INTO "AUTH_GROUP" VALUES ('0ccefaff-aee3-4447-98e5-ec29bb9b80b7', 'UmSfAdmin',    30,     2, 'Admin access to storage facility for UM');
+INSERT INTO "AUTH_GROUP" VALUES ('428f6108-f376-47e5-80c2-0e166e75ae42', 'AmSfRead',     10,     1, 'Read access to storage facility for AM');
+INSERT INTO "AUTH_GROUP" VALUES ('f6a43a29-c0ee-419f-b315-d343629fb9b8', 'AmSfWrite',    20,     1, 'Write access to storage facility for AM');
+INSERT INTO "AUTH_GROUP" VALUES ('3a3a173e-cf99-4301-9988-78fcd5d3d153', 'AmSfAdmin',    30,     1, 'Admin access to storage facility for AM');
+INSERT INTO "AUTH_GROUP" VALUES ('3eb0b341-6c16-46f7-bd75-b0e12ba6cb8b', 'VmSfRead',     10,     5, 'Read access to storage facility for VM');
+INSERT INTO "AUTH_GROUP" VALUES ('b4beaefb-d124-4f10-874d-ef59ffa1bb3b', 'VmSfWrite',    20,     5, 'Write access to storage facility for VM');
+INSERT INTO "AUTH_GROUP" VALUES ('cd9ea5bf-7972-45c2-a0fd-b7e75fc2e5db', 'VmSfAdmin',    30,     5, 'Admin access to storage facility for VM');
+INSERT INTO "AUTH_GROUP" VALUES ('b08efccf-a4a7-41b0-b208-acc8fc9c9bb4', 'TmuSfRead',    10,     6, 'Read access to storage facility for TMU');
+INSERT INTO "AUTH_GROUP" VALUES ('4f8204c3-d48f-4a7c-9c79-1136edc337fb', 'TmuSfWrite',   20,     6, 'Write access to storage facility for TMU');
+INSERT INTO "AUTH_GROUP" VALUES ('611202c5-8c69-444d-9b82-6aac5be150e4', 'TmuSfAdmin',   30,     6, 'Admin access to storage facility for TMU');
+INSERT INTO "AUTH_GROUP" VALUES ('b1bd705b-a6b4-48ee-b517-f1c7be1bb015', 'KmnSfRead',    10,     7, 'Read access to storage facility for KMN');
+INSERT INTO "AUTH_GROUP" VALUES ('c875ae85-7a01-4594-8e3e-7e4fbc792489', 'KmnSfWrite',   20,     7, 'Write access to storage facility for KMN');
+INSERT INTO "AUTH_GROUP" VALUES ('53a87b63-4628-482a-b28c-40689129b962', 'KmnSfAdmin',   30,     7, 'Admin access to storage facility for KMN');
+
 
 SET search_path = "MUSARK_STORAGE", pg_catalog;
 
