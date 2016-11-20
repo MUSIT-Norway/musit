@@ -2,17 +2,17 @@
 @import no.uio.musit.service.MusitResults.MusitError
 @import play.api.mvc.Flash
 
-@(groups: Seq[Group], error: Option[MusitError] = None)(implicit flash: Flash)
+@(groups: Seq[Group], museumId: Int, error: Option[MusitError] = None)(implicit flash: Flash)
 
 @main("Group | List") {
     <h1>All groups</h1>
-    <a href="@controllers.web.routes.GroupController.groupAddGet">Add new group</a>
+    <a href="@controllers.web.routes.GroupController.groupAddGet(museumId)">Add new group</a>
     <h4>Found @groups.size groups</h4>
     @if(error.isEmpty) {
         <ul>
         @for(group <- groups) {
             <li>
-                <a href="@controllers.web.routes.GroupController.groupActors(group.id.asString)">
+                <a href="@controllers.web.routes.GroupController.groupActorsList(museumId, group.id.asString)">
                     @group.name
                 </a>
             </li>

@@ -1,11 +1,11 @@
 @import no.uio.musit.models.ActorId
 @import models.Group
 @import no.uio.musit.service.MusitResults.MusitError
-@(actors: Seq[ActorId], group: Group, error: Option[MusitError] = None)
+@(actors: Seq[ActorId], museumId: Int, group: Group, error: Option[MusitError] = None)
 
 @main("Group | Actors") {
     <h1>Group: @group.name</h1>
-    <a href="@controllers.web.routes.GroupController.groupList">Go to group list</a>
+    <a href="@controllers.web.routes.GroupController.groupList(museumId)">Go to group list</a>
     <h4>Found @actors.size actors</h4>
     <ul>
     @for(actor <- actors) {
