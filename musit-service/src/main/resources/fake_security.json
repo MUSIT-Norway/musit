@@ -121,7 +121,7 @@
     },
     {
       "id": "3eb0b341-6c16-46f7-bd75-b0e12ba6cb8b",
-      "name": "VmSfRead",
+      "name": "690674c7-57ac-45d3-8f63-a764520ebe3f",
       "permission": 10,
       "museumId": 5,
       "description": "Read access to storage facility for VM"
@@ -196,7 +196,7 @@
       "userid": "3655615b-e385-4833-b414-9957ea225e58",
       "name": "Normalbruker",
       "email": "foo@bar.bas" ,
-      "groups": ["TestSfWrite"],
+      "groups": ["c81c314c-0675-4cd1-8956-c96a7163825b"],
       "accessToken": "fake-token-zab-xy-normal"
     },
     {
@@ -210,7 +210,7 @@
       "userid": "34e74d46-d45c-49dc-ace7-587b0ff40646",
       "name": "Stein A. Olsen",
       "email": "foo@bar.bas",
-      "groups": ["TestSfAdmin"],
+      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
       "accessToken": "fake-token-zab-xy-stein"
     },
     {
@@ -267,21 +267,21 @@
       "userid": "690674c7-57ac-45d3-8f63-a764520ebe3f",
       "name": "Fake Musit Test User VM Read",
       "email": "foo@bar.bas",
-      "groups": ["VmSfRead"],
+      "groups": ["690674c7-57ac-45d3-8f63-a764520ebe3f"],
       "accessToken": "fake-token-zab-xy-musitTestUserVmRead"
     },
     {
       "userid": "da673d83-342d-4f2c-b3bf-6136304e7131",
       "name": "Fake Musit Test User VM Write",
       "email": "foo@bar.bas",
-      "groups": ["VmSfWrite"],
+      "groups": ["b4beaefb-d124-4f10-874d-ef59ffa1bb3b"],
       "accessToken": "fake-token-zab-xy-musitTestUserVmWrite"
     },
     {
       "userid": "0967e7d7-a003-4fa5-88b2-55a0df0d8ed8",
       "name": "Fake Musit Test User VM Admin",
       "email": "foo@bar.bas",
-      "groups": ["VmSfAdmin"],
+      "groups": ["cd9ea5bf-7972-45c2-a0fd-b7e75fc2e5db"],
       "accessToken": "fake-token-zab-xy-musitTestUserVmAdmin"
     },
     {

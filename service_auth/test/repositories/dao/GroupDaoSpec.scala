@@ -20,13 +20,13 @@
 package repositories.dao
 
 import models._
+import no.uio.musit.models.Museums.Test
 import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Permissions
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitSuccess}
+import no.uio.musit.service.MusitResults.MusitDbError
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatest.Inspectors._
 
 class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
@@ -42,7 +42,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
   override def beforeAll(): Unit = {
     // add some groups
     for (i <- 1 to 5) {
-      val grp = GroupAdd(s"test$i", Permissions.Write, Some(s"test group $i"))
+      val grp = GroupAdd(s"test$i", Permissions.Write, Test.id, Some(s"test group $i"))
       val res = dao.add(grp).futureValue
 
       res.isSuccess mustBe true
@@ -54,7 +54,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "adding new group data" should {
       "succeed when data is complete" in {
-        val grp = GroupAdd("test6", Permissions.Read, Some("test group 6"))
+        val grp = GroupAdd("test6", Permissions.Read, Test.id, Some("test group 6"))
         val res = dao.add(grp).futureValue
 
         res.isSuccess mustBe true
@@ -67,7 +67,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       }
 
       "succeed when description isn't set" in {
-        val grp = GroupAdd("test7", Permissions.Write, None)
+        val grp = GroupAdd("test7", Permissions.Write, Test.id, None)
         val res = dao.add(grp).futureValue
 
         res.isSuccess mustBe true
@@ -80,7 +80,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       }
 
       "fail if the name is null" in {
-        val grp = GroupAdd(null, Permissions.Read, Some("test group fail")) // scalastyle:ignore
+        val grp = GroupAdd(null, Permissions.Read, Test.id, Some("test group fail")) // scalastyle:ignore
         dao.add(grp).futureValue match {
           case MusitDbError(msg, ex) =>
             msg must include("An error occurred")
@@ -92,7 +92,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       }
 
       "fail if the permission is null" in {
-        val grp = GroupAdd("testFail", null, Some("test group fail")) // scalastyle:ignore
+        val grp = GroupAdd("testFail", null, Test.id, Some("test group fail")) // scalastyle:ignore
         dao.add(grp).futureValue match {
           case MusitDbError(msg, ex) =>
             msg must include("An error occurred")

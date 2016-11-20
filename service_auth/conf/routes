@@ -2,9 +2,17 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET        /                       controllers.web.GroupController.groupList
-GET        /web                    controllers.web.GroupController.groupList
-GET        /web/group/list         controllers.web.GroupController.groupList
-GET        /web/group/add          controllers.web.GroupController.groupAddGet
-POST       /web/group/add          controllers.web.GroupController.groupAddPost
-GET        /web/group/:groupId     controllers.web.GroupController.groupActors(groupId: String)
+
+# WEB endpoints
+GET         /                              controllers.web.GroupController.groupList
+GET         /web                           controllers.web.GroupController.groupList
+GET         /web/group/list                controllers.web.GroupController.groupList
+GET         /web/group/add                 controllers.web.GroupController.groupAddGet
+POST        /web/group/add                 controllers.web.GroupController.groupAddPost
+GET         /web/group/:groupId/add        controllers.web.GroupController.groupAddActorGet(groupId: String)
+POST        /web/group/:groupId/add        controllers.web.GroupController.groupAddActorPost(groupId: String)
+GET         /web/group/:groupId            controllers.web.GroupController.groupActorsList(groupId: String)
+
+
+# REST endpoints
+GET         /rest/museums                  controllers.rest.MuseumController.listMuseums

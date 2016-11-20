@@ -42,6 +42,7 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
     }
 
     if (hasGodMode) {
+      logger.debug(s"User with GodMode accessing system.")
       MusitSuccess(())
     } else if (isAuthorizedFor(museum)) {
       val allowed = permissionsFor(museum).exists(_.priority >= lowest.priority)
@@ -54,11 +55,8 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
 
   def hasGodMode: Boolean = groups.exists(_.hasPermission(GodMode))
 
-  def permissionsFor(museum: Museum): Seq[Permission] = groups.flatMap { g =>
-    g.museum.find(_.id == museum.id).flatMap { m =>
-      g.group.map(_.permissions)
-    }.getOrElse(Seq.empty)
-  }
+  def permissionsFor(museum: Museum): Seq[Permission] =
+    groups.filter(_.museumId == museum.id).map(gi => gi.permission)
 
   def isAuthorizedFor(museum: Museum): Boolean = {
     groups.exists(_.museum.contains(museum))

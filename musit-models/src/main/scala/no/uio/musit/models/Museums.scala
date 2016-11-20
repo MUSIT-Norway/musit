@@ -19,6 +19,8 @@
 
 package no.uio.musit.models
 
+import play.api.libs.json.{JsObject, Json}
+
 object Museums {
 
   sealed trait Museum { self =>
@@ -54,6 +56,13 @@ object Museums {
         case Kmn.shortName => Some(Kmn)
         case unknown => None
       }
+
+    def toJson(m: Museum): JsObject = {
+      Json.obj(
+        "id" -> m.id.underlying,
+        "shortName" -> m.shortName
+      )
+    }
   }
 
   /**

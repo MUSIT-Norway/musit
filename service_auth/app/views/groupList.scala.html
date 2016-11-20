@@ -12,7 +12,7 @@
         <ul>
         @for(group <- groups) {
             <li>
-                <a href="@controllers.web.routes.GroupController.groupActors(group.id.asString)">
+                <a href="@controllers.web.routes.GroupController.groupActorsList(group.id.asString)">
                     @group.name
                 </a>
             </li>

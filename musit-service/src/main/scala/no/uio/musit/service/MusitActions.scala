@@ -133,8 +133,8 @@ trait MusitActions {
   }
 
   case class MusitAdminAction(
-    museumId: Option[MuseumId],
-    permissions: Permission*
+      museumId: Option[MuseumId],
+      permissions: Permission*
   ) extends BaseMusitAction {
 
     override def refine[T](request: Request[T]): MusitActionResult[T] = {

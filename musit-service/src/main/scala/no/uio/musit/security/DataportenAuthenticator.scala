@@ -47,8 +47,6 @@ class DataportenAuthenticator @Inject() (
 
   val userInfoUrl = configuration.underlying.as[String](userApiConfKey)
 
-  val groupInfoUrl = configuration.underlying.as[String](groupApiConfKey)
-
   private def validate[A, B](
     res: WSResponse
   )(f: WSResponse => MusitResult[A]): MusitResult[A] = {
@@ -102,25 +100,25 @@ class DataportenAuthenticator @Inject() (
   override def groups(
     token: BearerToken
   ): Future[MusitResult[Seq[GroupInfo]]] = {
-    ws.url(groupInfoUrl).withHeaders(token.asHeader).get().map { response =>
-      validate(response) { res =>
-        response.json.validate[Seq[GroupInfo]] match {
-          case JsSuccess(groups, _) =>
-            MusitSuccess(groups)
-
-          case err: JsError =>
-            val prettyError = Json.prettyPrint(JsError.toJson(err))
-            logger.error(unableToParse.format(prettyError))
-            MusitInternalError(unableToParse.format(prettyError))
-        }
-      }
-    }
+    //    ws.url(groupInfoUrl).withHeaders(token.asHeader).get().map { response =>
+    //      validate(response) { res =>
+    //        response.json.validate[Seq[GroupInfo]] match {
+    //          case JsSuccess(groups, _) =>
+    //            MusitSuccess(groups)
+    //
+    //          case err: JsError =>
+    //            val prettyError = Json.prettyPrint(JsError.toJson(err))
+    //            logger.error(unableToParse.format(prettyError))
+    //            MusitInternalError(unableToParse.format(prettyError))
+    //        }
+    //      }
+    //    }
+    ???
   }
 }
 
 object DataportenAuthenticator {
   val userApiConfKey = "musit.dataporten.userApiURL"
-  val groupApiConfKey = "musit.dataporten.groupApiURL"
   val userInfoJsonKey = "user"
 
   val unexpectedResponseCode = s"Unexpected response code from dataporten: %i"

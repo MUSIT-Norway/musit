@@ -1,8 +1,7 @@
 package controllers.web
 
 import com.google.inject.Inject
-import controllers.web.dto.GroupDTO._
-import models.GroupAdd
+import models.GroupAdd._
 import no.uio.musit.models.GroupId
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
@@ -19,23 +18,34 @@ class GroupController @Inject() (
     val messagesApi: MessagesApi
 ) extends Controller with I18nSupport {
 
+  val allowedGroups = scala.collection.immutable.Seq(
+    (GodMode.priority.toString, GodMode.productPrefix),
+    (Admin.priority.toString, Admin.productPrefix),
+    (Write.priority.toString, Write.productPrefix),
+    (Read.priority.toString, Read.productPrefix),
+    (Guest.priority.toString, Guest.productPrefix)
+  )
+
+  def groupAddActorGet(groupId: String) = Action { implicit request =>
+    Ok
+  }
+
+  def groupAddActorPost(groupId: String) = Action.async { implicit request =>
+    Future.successful(Ok)
+  }
+
   def groupAddGet() = Action { implicit request =>
-    Ok(views.html.groupAdd(groupForm, allowedGroups))
+    Ok(views.html.groupAdd(groupAddForm, allowedGroups))
   }
 
   def groupAddPost() = Action.async { implicit request =>
-    groupForm.bindFromRequest.fold(
+    groupAddForm.bindFromRequest.fold(
       formWithErrors => {
         Future.successful(
           BadRequest(views.html.groupAdd(formWithErrors, allowedGroups))
         )
       },
-      groupData => {
-        val groupAdd = new GroupAdd(
-          groupData.name,
-          Permission.fromInt(groupData.permission),
-          groupData.description
-        )
+      groupAdd => {
         groupService.add(groupAdd).map {
           case MusitSuccess(group) =>
             Redirect(
@@ -57,8 +67,8 @@ class GroupController @Inject() (
     }
   }
 
-  def groupActors(groupUUID: String) = Action.async { implicit request =>
-    GroupId.validate(groupUUID).toOption.map { uuid =>
+  def groupActorsList(groupId: String) = Action.async { implicit request =>
+    GroupId.validate(groupId).toOption.map { uuid =>
       val groupId = GroupId.fromUUID(uuid)
       groupService.group(groupId).flatMap {
         case MusitSuccess(maybeGroup) => maybeGroup match {
@@ -82,7 +92,7 @@ class GroupController @Inject() (
       }
     }.getOrElse(
       Future.successful(
-        NotFound(views.html.notFound(s"Wrong uuid format: $groupUUID"))
+        NotFound(views.html.notFound(s"Wrong uuid format: $groupId"))
       )
     )
   }
