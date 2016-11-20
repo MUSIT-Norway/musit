@@ -19,7 +19,7 @@
 
 package no.uio.musit.security
 
-import no.uio.musit.models.GroupId
+import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.FakeAuthenticator.FakeUserDetails
 import no.uio.musit.service.MusitResults._
 import play.api.libs.json.{JsArray, Json}
@@ -69,19 +69,13 @@ class FakeAuthenticator extends Authenticator {
   /**
    * Method for retrieving the users GroupInfo from the AuthService.
    *
-   * @param token the BearerToken to use when performing the request
-   * @return a Future collection of GroupInfo wrapped in a MusitResult
+   * @param userId the ActorId of the user to fetch groups for
+   * @return a Future collection of GroupInfo
    */
   override def groups(
-    token: BearerToken
-  ): Future[MusitResult[Seq[GroupInfo]]] = {
-    Future.successful {
-      fakeUsers.get(token).map { fud =>
-        MusitSuccess(fud.groups)
-      }.getOrElse {
-        MusitNotAuthenticated()
-      }
-    }
+    userId: ActorId
+  ): Future[Seq[GroupInfo]] = Future.successful {
+    fakeUsers.find(_._2.info.id == userId).map(_._2.groups).getOrElse(Seq.empty)
   }
 
 }

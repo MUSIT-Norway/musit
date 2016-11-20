@@ -25,7 +25,4 @@ object DataportenProvider {
 
   val GetProfileError = "[Dataporten][%s] Error retrieving profile information. " +
     "Error message: %s, doc URL: %s"
-
-  val GetGroupsError = "[Dataporten][%s] Error retrieving groups information. " +
-    "Error message: %s, doc URL: %s"
 }
