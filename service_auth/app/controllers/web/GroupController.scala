@@ -6,18 +6,33 @@ import models.UserGroupAdd._
 import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import play.api.Configuration
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.ws.WSClient
 import play.api.mvc._
 import services.GroupService
 
 import scala.concurrent.Future
 
+case class Actor(
+  id: Int,
+  fn: String,
+  dataportenId: Option[String],
+  applicationId: Option[String]
+)
+
+object Actor {
+  implicit def format: Format[Actor] = Json.format[Actor]
+}
+
 class GroupController @Inject() (
     implicit
     groupService: GroupService,
-    val messagesApi: MessagesApi
+    val messagesApi: MessagesApi,
+    ws: WSClient,
+    configuration: Configuration
 ) extends Controller with I18nSupport {
 
   val allowedGroups = scala.collection.immutable.Seq(
@@ -140,6 +155,26 @@ class GroupController @Inject() (
     }
   }
 
+  def getActorsEndpoint(id: String) = Action.async { implicit request =>
+    getActors(Seq(id)).map { actors =>
+      Ok(Json.toJson(actors))
+    }
+  }
+
+  def getActors(id: Seq[String]): Future[Seq[Actor]] = {
+    configuration.getString("actor.detailsUrl").map { url =>
+      ws.url(url)
+        .withHeaders(
+          "Authorization" -> "Bearer fake-token-zab-xy-normal"
+        )
+        .post(Json.toJson(id))
+        .map(_.json.validate[Seq[Actor]] match {
+          case JsSuccess(actors, _) => actors
+          case JsError(error) => throw new IllegalStateException(error.mkString(", "))
+        })
+    }.getOrElse(throw new IllegalStateException("Missing actor url"))
+  }
+
   def groupActorsList(museumId: Int, gUuid: String) = Action.async { implicit request =>
     val maybeGroupId = for {
       g <- GroupId.validate(gUuid)
@@ -161,7 +196,6 @@ class GroupController @Inject() (
               )
             )
         }
-
         case error: MusitError =>
           Future.successful(
             NotFound(
