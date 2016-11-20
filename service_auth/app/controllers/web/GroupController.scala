@@ -38,10 +38,6 @@ class GroupController @Inject() (
     )(GroupData.apply)(GroupData.unapply)
   )
 
-  def index() = Action { implicit request =>
-    Redirect(controllers.web.routes.GroupController.groupAddGet())
-  }
-
   def groupAddGet() = Action { implicit request =>
     Ok(views.html.groupAdd(groupForm, allowedGroups))
   }
@@ -49,7 +45,9 @@ class GroupController @Inject() (
   def groupAddPost() = Action.async { implicit request =>
     groupForm.bindFromRequest.fold(
       formWithErrors => {
-        Future.successful(BadRequest(views.html.groupAdd(formWithErrors, allowedGroups)))
+        Future.successful(
+          BadRequest(views.html.groupAdd(formWithErrors, allowedGroups))
+        )
       },
       groupData => {
         val groupAdd = new GroupAdd(
@@ -59,8 +57,9 @@ class GroupController @Inject() (
         )
         groupService.add(groupAdd).map {
           case MusitSuccess(group) =>
-            Redirect(controllers.web.routes.GroupController.groupList())
-              .flashing("success" -> "Group added!")
+            Redirect(
+              controllers.web.routes.GroupController.groupList()
+            ).flashing("success" -> "Group added!")
           case error: MusitError =>
             InternalServerError(error.message)
         }

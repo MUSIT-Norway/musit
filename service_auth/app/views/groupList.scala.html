@@ -11,7 +11,11 @@
     @if(error.isEmpty) {
         <ul>
         @for(group <- groups) {
-            <li><a href="@controllers.web.routes.GroupController.groupActors(group.id.asString)">@group.name</a></li>
+            <li>
+                <a href="@controllers.web.routes.GroupController.groupActors(group.id.asString)">
+                    @group.name
+                </a>
+            </li>
         }
         </ul>
     } else {
