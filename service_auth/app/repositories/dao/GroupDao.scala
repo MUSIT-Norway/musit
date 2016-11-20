@@ -22,6 +22,7 @@ package repositories.dao
 import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd}
 import no.uio.musit.models.{ActorId, GroupId}
+import no.uio.musit.security.AuthTables
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider

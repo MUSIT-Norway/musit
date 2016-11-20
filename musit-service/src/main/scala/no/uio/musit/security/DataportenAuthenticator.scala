@@ -21,6 +21,7 @@ package no.uio.musit.security
 
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
+import no.uio.musit.models.ActorId
 import no.uio.musit.security.DataportenAuthenticator._
 import no.uio.musit.service.MusitResults._
 import play.api.http.Status
@@ -37,9 +38,12 @@ import scala.concurrent.Future
  * TODO: Ensure use of caching of tokens and user/group info
  *
  * @param configuration The Play! Configuration instance
+ * @param groupResolver Instance for resolving a users groups
+ * @param ws Play! WebService client
  */
 class DataportenAuthenticator @Inject() (
     configuration: Configuration,
+    groupResolver: AuthGroupResolver,
     ws: WSAPI
 ) extends Authenticator {
 
@@ -94,27 +98,11 @@ class DataportenAuthenticator @Inject() (
    * Retrieve all the GroupInfo, for the user associated with the given token,
    * from the Dataporten OAuth service.
    *
-   * @param token the BearerToken to use when performing the request
-   * @return Will eventually return a Seq of GroupInfo wrapped in a MusitResult
+   * @param userId the ActorId of the user to fetch groups for
+   * @return Will eventually return a Seq of GroupInfo
    */
-  override def groups(
-    token: BearerToken
-  ): Future[MusitResult[Seq[GroupInfo]]] = {
-    //    ws.url(groupInfoUrl).withHeaders(token.asHeader).get().map { response =>
-    //      validate(response) { res =>
-    //        response.json.validate[Seq[GroupInfo]] match {
-    //          case JsSuccess(groups, _) =>
-    //            MusitSuccess(groups)
-    //
-    //          case err: JsError =>
-    //            val prettyError = Json.prettyPrint(JsError.toJson(err))
-    //            logger.error(unableToParse.format(prettyError))
-    //            MusitInternalError(unableToParse.format(prettyError))
-    //        }
-    //      }
-    //    }
-    ???
-  }
+  override def groups(userId: ActorId): Future[Seq[GroupInfo]] =
+    groupResolver.findUserGroups(userId).map(_.getOrElse(Seq.empty))
 }
 
 object DataportenAuthenticator {

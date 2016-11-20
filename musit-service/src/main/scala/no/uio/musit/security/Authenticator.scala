@@ -19,6 +19,7 @@
 
 package no.uio.musit.security
 
+import no.uio.musit.models.ActorId
 import no.uio.musit.service.MusitResults.MusitResult
 
 import scala.concurrent.Future
@@ -41,9 +42,9 @@ trait Authenticator {
   /**
    * Method for retrieving the users GroupInfo from the AuthService.
    *
-   * @param token the BearerToken to use when performing the request
-   * @return Will eventually return a Seq of GroupInfo wrapped in a MusitResult
+   * @param userId the ActorId of the user to fetch groups for
+   * @return Will eventually return a Seq of GroupInfo
    */
-  def groups(token: BearerToken): Future[MusitResult[Seq[GroupInfo]]]
+  def groups(userId: ActorId): Future[Seq[GroupInfo]]
 
 }

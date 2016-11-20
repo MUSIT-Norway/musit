@@ -19,14 +19,15 @@
 
 package no.uio.musit.security
 
-import com.google.inject.AbstractModule
-import net.codingwell.scalaguice.ScalaModule
+import no.uio.musit.models.ActorId
+import no.uio.musit.service.MusitResults.MusitResult
 
-class DataportenModule extends AbstractModule with ScalaModule {
+import scala.concurrent.{ExecutionContext, Future}
 
-  def configure(): Unit = {
-    bind[Authenticator].to[DataportenAuthenticator]
-    bind[AuthGroupResolver].to[DbAuthGroupResolver]
-  }
+trait AuthGroupResolver {
+
+  def findUserGroups(
+    usrId: ActorId
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
 
 }

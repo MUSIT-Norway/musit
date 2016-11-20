@@ -23,6 +23,7 @@ import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, BearerToken}
+import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -85,12 +86,9 @@ trait MusitActions {
   ) extends BaseMusitAction {
     override def refine[T](request: Request[T]): MusitActionResult[T] = {
       BearerToken.fromRequest(request).map { token =>
-        for {
-          usrRes <- authService.userInfo(token)
-          grpsRes <- authService.groups(token)
-        } yield {
-          usrRes.flatMap { userInfo =>
-            grpsRes.map { groups =>
+        authService.userInfo(token).flatMap {
+          case MusitSuccess(userInfo) =>
+            authService.groups(userInfo.id).map { groups =>
               val authUser = AuthenticatedUser(userInfo, groups)
               val museum = museumId.flatMap(Museum.fromMuseumId)
               museum match {
@@ -110,7 +108,8 @@ trait MusitActions {
                   }
               }
             }
-          }.getOrElse(Left(Unauthorized))
+
+          case err: MusitError => Future.successful(Left(Unauthorized))
         }
       }.getOrElse {
         Future.successful(Left(Unauthorized))
@@ -141,16 +140,18 @@ trait MusitActions {
       // TODO: Implement handling of requests that should _only_ be accessible
       // for MusitAdmin or GodMode users.
       BearerToken.fromRequest(request).map { token =>
-        for {
-          usrRes <- authService.userInfo(token)
-        } yield {
-          ???
+        authService.userInfo(token).flatMap {
+          case MusitSuccess(userInfo) =>
+            authService.groups(userInfo.id).map { groups =>
+              ???
+            }
+
+          case err: MusitError => Future.successful(Left(Unauthorized))
         }
+      }.getOrElse {
+        Future.successful(Left(Unauthorized))
       }
-
-      ???
     }
-
   }
 
 }

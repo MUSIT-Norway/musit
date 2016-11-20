@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.dao
+package no.uio.musit.security
 
 import java.util.UUID
 
@@ -26,7 +26,7 @@ import no.uio.musit.security.Permissions.Permission
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
-private[dao] trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
+trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import driver.api._
 

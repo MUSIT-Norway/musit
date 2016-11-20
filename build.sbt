@@ -88,12 +88,9 @@ lazy val musitModels = (
 lazy val musitService = (
   BaseProject("musit-service")
     settings noPublish
+    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(
       libraryDependencies ++= Seq[ModuleID](
-        ScalaTest.scalatest,
-        ScalaTest.scalactic,
-        PlayFrameWork.json,
-        PlayFrameWork.ws,
         scalaGuice,
         iheartFicus
       )
