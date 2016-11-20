@@ -28,17 +28,26 @@ class GroupController @Inject() (
     (Guest.priority.toString, Guest.productPrefix)
   )
 
-  def deleteGroup(museumId: Int, groupId: String) = Action.async { implicit request =>
-    GroupId.validate(groupId).toOption.map { uuid =>
-      groupService.removeGroup(GroupId.fromUUID(uuid)).map {
+  def deleteGroup(museumId: Int, groupUuid: String) = Action.async { implicit request =>
+    val maybeGroupId = for {
+      g <- GroupId.validate(groupUuid)
+    } yield GroupId(g)
+    maybeGroupId.toOption.map { groupId =>
+      groupService.removeGroup(groupId).map {
         case MusitSuccess(int) =>
           Redirect(controllers.web.routes.GroupController.groupList(museumId))
             .flashing("success" -> "Group was removed")
         case error: MusitError =>
-          InternalServerError(error.message)
+          BadRequest(
+            Json.obj("error" -> error.message)
+          )
       }
     }.getOrElse(
-      Future.successful(BadRequest)
+      Future.successful(
+        BadRequest(
+          Json.obj("message" -> s"Invalid UUID for $groupUuid")
+        )
+      )
     )
   }
 
@@ -54,7 +63,9 @@ class GroupController @Inject() (
             Redirect(controllers.web.routes.GroupController.groupActorsList(mId, gId))
               .flashing("success" -> "User was removed")
           case error: MusitError =>
-            InternalServerError(error.message)
+            BadRequest(
+              Json.obj("error" -> error.message)
+            )
         }
     }.getOrElse {
       Future.successful {
@@ -86,7 +97,9 @@ class GroupController @Inject() (
               controllers.web.routes.GroupController.groupActorsList(museumId, gId)
             ).flashing("success" -> "User added!")
           case error: MusitError =>
-            InternalServerError(error.message)
+            BadRequest(
+              Json.obj("error" -> error.message)
+            )
         }
       }
     )
@@ -110,7 +123,9 @@ class GroupController @Inject() (
               controllers.web.routes.GroupController.groupList(museumId)
             ).flashing("success" -> "Group added!")
           case error: MusitError =>
-            InternalServerError(error.message)
+            BadRequest(
+              Json.obj("error" -> error.message)
+            )
         }
       }
     )
@@ -125,9 +140,11 @@ class GroupController @Inject() (
     }
   }
 
-  def groupActorsList(museumId: Int, groupId: String) = Action.async { implicit request =>
-    GroupId.validate(groupId).toOption.map { uuid =>
-      val groupId = GroupId.fromUUID(uuid)
+  def groupActorsList(museumId: Int, gUuid: String) = Action.async { implicit request =>
+    val maybeGroupId = for {
+      g <- GroupId.validate(gUuid)
+    } yield GroupId(g)
+    maybeGroupId.toOption.map { groupId =>
       groupService.group(groupId).flatMap {
         case MusitSuccess(maybeGroup) => maybeGroup match {
           case Some(group) =>
@@ -139,18 +156,22 @@ class GroupController @Inject() (
             }
           case None =>
             Future.successful(
-              NotFound(views.html.notFound(s"The group $uuid was not found"))
+              NotFound(
+                views.html.notFound(s"The group ${groupId.asString} was not found")
+              )
             )
         }
 
         case error: MusitError =>
           Future.successful(
-            NotFound(views.html.notFound(s"Failed to get group with id: $uuid"))
+            NotFound(
+              views.html.notFound(s"Failed to get group with id: ${groupId.asString}")
+            )
           )
       }
     }.getOrElse(
       Future.successful(
-        NotFound(views.html.notFound(s"Wrong uuid format: $groupId"))
+        NotFound(views.html.notFound(s"Wrong uuid format: $gUuid"))
       )
     )
   }
