@@ -18,7 +18,12 @@
     <h4>Found @actors.size actors</h4>
     <ul>
     @for(actor <- actors) {
-        <li>@actor.asString</li>
+        <li>
+            @actor.asString
+            <form method="post" action="@controllers.web.routes.GroupController.deleteUser(museumId, actor.asString, group.id.asString)">
+                <input type="submit" value="Delete" />
+            </form>
+        </li>
     }
     </ul>
 }

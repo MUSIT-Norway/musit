@@ -8,6 +8,7 @@ import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Json
 import play.api.mvc._
 import services.GroupService
 
@@ -26,6 +27,44 @@ class GroupController @Inject() (
     (Read.priority.toString, Read.productPrefix),
     (Guest.priority.toString, Guest.productPrefix)
   )
+
+  def deleteGroup(museumId: Int, groupId: String) = Action.async { implicit request =>
+    GroupId.validate(groupId).toOption.map { uuid =>
+      groupService.removeGroup(GroupId.fromUUID(uuid)).map {
+        case MusitSuccess(int) =>
+          Redirect(controllers.web.routes.GroupController.groupList(museumId))
+            .flashing("success" -> "Group was removed")
+        case error: MusitError =>
+          InternalServerError(error.message)
+      }
+    }.getOrElse(
+      Future.successful(BadRequest)
+    )
+  }
+
+  def deleteUser(mId: Int, uId: String, gId: String) = Action.async { implicit request =>
+    val ug = for {
+      u <- ActorId.validate(uId)
+      g <- GroupId.validate(gId)
+    } yield (ActorId(u), GroupId(g))
+    ug.toOption.map {
+      case (uid, gid) =>
+        groupService.removeUserFromGroup(uid, gid).map {
+          case MusitSuccess(int) =>
+            Redirect(controllers.web.routes.GroupController.groupActorsList(mId, gId))
+              .flashing("success" -> "User was removed")
+          case error: MusitError =>
+            InternalServerError(error.message)
+        }
+    }.getOrElse {
+      Future.successful {
+        BadRequest(
+          Json.obj("message" -> s"Invalid UUID for either $gId or $uId")
+        )
+      }
+    }
+
+  }
 
   def groupAddUserGet(museumId: Int, gId: String) = Action { implicit request =>
     Ok(views.html.groupUserAdd(userGroupAddForm, museumId, gId))

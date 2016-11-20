@@ -19,6 +19,9 @@
                 <a href="@controllers.web.routes.GroupController.groupActorsList(museumId, group.id.asString)">
                     @group.name
                 </a>
+                <form method="post" action="@controllers.web.routes.GroupController.deleteGroup(museumId, group.id.asString)">
+                    <input type="submit" value="Delete" />
+                </form>
             </li>
         }
         </ul>

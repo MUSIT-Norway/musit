@@ -9,6 +9,8 @@ GET        /web/museum/:museumId/group/list               controllers.web.GroupC
 GET        /web/museum/:museumId/group/:groupId/addUser   controllers.web.GroupController.groupAddUserGet(museumId: Int, groupId: String)
 POST       /web/museum/:museumId/group/:groupId/addUser   controllers.web.GroupController.groupAddUserPost(museumId: Int, groupId: String)
 GET        /web/museum/:museumId/group/:groupId           controllers.web.GroupController.groupActorsList(museumId: Int, groupId: String)
+POST       /web/museum/:museumId/group/:groupId           controllers.web.GroupController.deleteGroup(museumId: Int, groupId: String)
+POST       /web/museum/:museumId/group/:groupId/:userId   controllers.web.GroupController.deleteUser(museumId: Int, userId: String, groupId: String)
 
 
 # REST endpoints
