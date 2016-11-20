@@ -50,12 +50,15 @@ object GroupAdd {
 
   implicit def reads: Reads[GroupAdd] = Json.reads[GroupAdd]
 
+  def applyForm(name: String, permission: Int, description: Option[String]): GroupAdd =
+    GroupAdd(name, Permission.fromInt(permission), description)
+
   val groupAddForm = Form(
     mapping(
       "name" -> text(minLength = 3),
       "permission" -> number.verifying(Permission.fromInt(_) != Unspecified),
       "description" -> optional(text)
-    )((n, p, d) => GroupAdd(n, Permission.fromInt(p), d))(g => Some((g.name, g.permission.priority, g.description)))
+    )(applyForm)(g => Some((g.name, g.permission.priority, g.description)))
   )
 
 }
