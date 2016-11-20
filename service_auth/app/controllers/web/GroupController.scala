@@ -1,8 +1,7 @@
 package controllers.web
 
 import com.google.inject.Inject
-import controllers.web.forms.GroupForm._
-import models.GroupAdd
+import models.GroupAdd._
 import no.uio.musit.models.GroupId
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
@@ -19,23 +18,26 @@ class GroupController @Inject() (
     val messagesApi: MessagesApi
 ) extends Controller with I18nSupport {
 
+  val allowedGroups = scala.collection.immutable.Seq(
+    (GodMode.priority.toString, GodMode.productPrefix),
+    (Admin.priority.toString, Admin.productPrefix),
+    (Write.priority.toString, Write.productPrefix),
+    (Read.priority.toString, Read.productPrefix),
+    (Guest.priority.toString, Guest.productPrefix)
+  )
+
   def groupAddGet() = Action { implicit request =>
-    Ok(views.html.groupAdd(groupForm, allowedGroups))
+    Ok(views.html.groupAdd(groupAddForm, allowedGroups))
   }
 
   def groupAddPost() = Action.async { implicit request =>
-    groupForm.bindFromRequest.fold(
+    groupAddForm.bindFromRequest.fold(
       formWithErrors => {
         Future.successful(
           BadRequest(views.html.groupAdd(formWithErrors, allowedGroups))
         )
       },
-      groupData => {
-        val groupAdd = new GroupAdd(
-          groupData.name,
-          Permission.fromInt(groupData.permission),
-          groupData.description
-        )
+      groupAdd => {
         groupService.add(groupAdd).map {
           case MusitSuccess(group) =>
             Redirect(

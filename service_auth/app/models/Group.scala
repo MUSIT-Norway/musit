@@ -20,7 +20,9 @@
 package models
 
 import no.uio.musit.models.GroupId
-import no.uio.musit.security.Permissions.Permission
+import no.uio.musit.security.Permissions.{Permission, Unspecified}
+import play.api.data.Form
+import play.api.data.Forms._
 import play.api.libs.json.{Format, Json, Reads}
 
 case class Group(
@@ -47,6 +49,14 @@ case class GroupAdd(
 object GroupAdd {
 
   implicit def reads: Reads[GroupAdd] = Json.reads[GroupAdd]
+
+  val groupAddForm = Form(
+    mapping(
+      "name" -> text(minLength = 3),
+      "permission" -> number.verifying(Permission.fromInt(_) != Unspecified),
+      "description" -> optional(text)
+    )((n, p, d) => GroupAdd(n, Permission.fromInt(p), d))(g => Some((g.name, g.permission.priority, g.description)))
+  )
 
 }
 
