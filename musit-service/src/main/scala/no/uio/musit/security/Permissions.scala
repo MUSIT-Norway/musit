@@ -27,6 +27,8 @@ object Permissions {
     val priority: Int
   }
 
+  sealed trait ElevatedPermission extends Permission
+
   object Permission {
 
     implicit val reads: Reads[Permission] = __.read[Int].map(fromInt)
@@ -92,7 +94,7 @@ object Permissions {
    * Provides application wide ADMIN privileges for _shared_ data across all
    * museums data.
    */
-  case object MusitAdmin extends Permission {
+  case object MusitAdmin extends ElevatedPermission {
     override val priority: Int = 40
   }
 
@@ -100,7 +102,7 @@ object Permissions {
    * Highest level of permission available. Should _only_ be used for services
    * that require system/application admin restrictions.
    */
-  case object GodMode extends Permission {
+  case object GodMode extends ElevatedPermission {
     override val priority: Int = 10000
   }
 

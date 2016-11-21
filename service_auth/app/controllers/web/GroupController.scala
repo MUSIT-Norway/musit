@@ -17,12 +17,12 @@ import services.GroupService
 
 import scala.concurrent.Future
 
-class GroupController @Inject() (
-    implicit
-    groupService: GroupService,
-    val messagesApi: MessagesApi,
-    ws: WSClient,
-    configuration: Configuration
+class GroupController @Inject()(
+  implicit
+  val groupService: GroupService,
+  val messagesApi: MessagesApi,
+  val ws: WSClient,
+  val configuration: Configuration
 ) extends Controller with I18nSupport {
 
   val allowedGroups = scala.collection.immutable.Seq(
@@ -33,14 +33,12 @@ class GroupController @Inject() (
     (Guest.priority.toString, Guest.productPrefix)
   )
 
-  def deleteGroup(museumId: Int, groupUuid: String) = Action.async { implicit request =>
-    val maybeGroupId = for {
-      g <- GroupId.validate(groupUuid)
-    } yield GroupId(g)
-    maybeGroupId.toOption.map { groupId =>
+  def deleteGroup(mid: Int, gid: String) = Action.async { implicit request =>
+    val maybeGroupId = GroupId.validate(gid).toOption.map(GroupId.apply)
+    maybeGroupId.map { groupId =>
       groupService.removeGroup(groupId).map {
         case MusitSuccess(int) =>
-          Redirect(controllers.web.routes.GroupController.groupList(museumId))
+          Redirect(controllers.web.routes.GroupController.groupList(mid))
             .flashing("success" -> "Group was removed")
         case error: MusitError =>
           BadRequest(
@@ -50,22 +48,22 @@ class GroupController @Inject() (
     }.getOrElse(
       Future.successful(
         BadRequest(
-          Json.obj("message" -> s"Invalid UUID for $groupUuid")
+          Json.obj("message" -> s"Invalid UUID for $gid")
         )
       )
     )
   }
 
-  def deleteUser(mId: Int, uId: String, gId: String) = Action.async { implicit request =>
+  def deleteUser(mid: Int, uid: String, gid: String) = Action.async { implicit request =>
     val ug = for {
-      u <- ActorId.validate(uId)
-      g <- GroupId.validate(gId)
+      u <- ActorId.validate(uid)
+      g <- GroupId.validate(gid)
     } yield (ActorId(u), GroupId(g))
     ug.toOption.map {
       case (uid, gid) =>
         groupService.removeUserFromGroup(uid, gid).map {
           case MusitSuccess(int) =>
-            Redirect(controllers.web.routes.GroupController.groupActorsList(mId, gId))
+            Redirect(controllers.web.routes.GroupController.groupActorsList(mid, gid))
               .flashing("success" -> "User was removed")
           case error: MusitError =>
             BadRequest(
@@ -75,22 +73,22 @@ class GroupController @Inject() (
     }.getOrElse {
       Future.successful {
         BadRequest(
-          Json.obj("message" -> s"Invalid UUID for either $gId or $uId")
+          Json.obj("message" -> s"Invalid UUID for either $gid or $uid")
         )
       }
     }
 
   }
 
-  def groupAddUserGet(museumId: Int, gId: String) = Action { implicit request =>
-    Ok(views.html.groupUserAdd(userGroupAddForm, museumId, gId))
+  def groupAddUserGet(mid: Int, gid: String) = Action { implicit request =>
+    Ok(views.html.groupUserAdd(userGroupAddForm, mid, gid))
   }
 
-  def groupAddUserPost(museumId: Int, gId: String) = Action.async { implicit request =>
+  def groupAddUserPost(mid: Int, gid: String) = Action.async { implicit request =>
     userGroupAddForm.bindFromRequest.fold(
       formWithErrors => {
         Future.successful(
-          BadRequest(views.html.groupUserAdd(formWithErrors, museumId, gId))
+          BadRequest(views.html.groupUserAdd(formWithErrors, mid, gid))
         )
       },
       userAdd => {
@@ -99,7 +97,7 @@ class GroupController @Inject() (
         groupService.addUserToGroup(userId, groupId).map {
           case MusitSuccess(group) =>
             Redirect(
-              controllers.web.routes.GroupController.groupActorsList(museumId, gId)
+              controllers.web.routes.GroupController.groupActorsList(mid, gid)
             ).flashing("success" -> "User added!")
           case error: MusitError =>
             BadRequest(
@@ -110,22 +108,22 @@ class GroupController @Inject() (
     )
   }
 
-  def groupAddGet(museumId: Int) = Action { implicit request =>
-    Ok(views.html.groupAdd(groupAddForm, museumId, allowedGroups))
+  def groupAddGet(mid: Int) = Action { implicit request =>
+    Ok(views.html.groupAdd(groupAddForm, mid, allowedGroups))
   }
 
-  def groupAddPost(museumId: Int) = Action.async { implicit request =>
+  def groupAddPost(mid: Int) = Action.async { implicit request =>
     groupAddForm.bindFromRequest.fold(
       formWithErrors => {
         Future.successful(
-          BadRequest(views.html.groupAdd(formWithErrors, museumId, allowedGroups))
+          BadRequest(views.html.groupAdd(formWithErrors, mid, allowedGroups))
         )
       },
       groupAdd => {
         groupService.add(groupAdd).map {
           case MusitSuccess(group) =>
             Redirect(
-              controllers.web.routes.GroupController.groupList(museumId)
+              controllers.web.routes.GroupController.groupList(mid)
             ).flashing("success" -> "Group added!")
           case error: MusitError =>
             BadRequest(
@@ -136,12 +134,12 @@ class GroupController @Inject() (
     )
   }
 
-  def groupList(museumId: Int) = Action.async { implicit request =>
+  def groupList(mid: Int) = Action.async { implicit request =>
     groupService.allGroups.map {
       case MusitSuccess(groups) =>
-        Ok(views.html.groupList(groups, museumId, None))
+        Ok(views.html.groupList(groups, mid, None))
       case error: MusitError =>
-        Ok(views.html.groupList(Seq.empty, museumId, Some(error)))
+        Ok(views.html.groupList(Seq.empty, mid, Some(error)))
     }
   }
 
@@ -149,7 +147,7 @@ class GroupController @Inject() (
     configuration.getString("actor.detailsUrl").map { url =>
       ws.url(url)
         .withHeaders(
-          "Authorization" -> "Bearer fake-token-zab-xy-normal"
+          "Authorization" -> "Bearer fake-token-zab-xy-superuser"
         )
         .post(Json.toJson(ids))
         .map { res =>
@@ -164,49 +162,42 @@ class GroupController @Inject() (
     }.getOrElse(Future.successful(Left("Missing actor url")))
   }
 
-  def groupActorsList(museumId: Int, gUuid: String) = Action.async { implicit request =>
-    val maybeGroupId = for {
-      g <- GroupId.validate(gUuid)
-    } yield GroupId(g)
-    maybeGroupId.toOption.map { groupId =>
+  private def handleNotFound(msg: String): Future[Result] = {
+    Future.successful(NotFound(views.html.notFound(msg)))
+  }
+
+  def groupActorsList(mid: Int, gid: String) = Action.async { implicit request =>
+    val maybeGroupId = GroupId.validate(gid).toOption.map(GroupId.apply)
+    maybeGroupId.map { groupId =>
       groupService.group(groupId).flatMap {
-        case MusitSuccess(maybeGroup) => maybeGroup match {
-          case Some(group) =>
+        case MusitSuccess(maybeGroup) =>
+          maybeGroup.map { group =>
             groupService.listUsersInGroup(groupId).flatMap {
               case MusitSuccess(result) =>
                 getActors(result.map(_.asString)).map {
                   case Right(actors) =>
-                    Ok(views.html.groupActors(result, museumId, group, actors))
+                    Ok(views.html.groupActors(result, mid, group, actors))
+
                   case Left(error) =>
                     // TODO log error here
-                    Ok(views.html.groupActors(result, museumId, group, Seq.empty))
+                    Ok(views.html.groupActors(result, mid, group, Seq.empty))
                 }
               case error: MusitError =>
                 Future.successful(
                   Ok(views.html.groupActors(
-                    Seq.empty, museumId, group, Seq.empty, Some(error)
+                    Seq.empty, mid, group, Seq.empty, Some(error)
                   ))
                 )
             }
-          case None =>
-            Future.successful(
-              NotFound(
-                views.html.notFound(s"The group ${groupId.asString} was not found")
-              )
-            )
-        }
+          }.getOrElse {
+            handleNotFound(s"The group ${groupId.asString} was not found")
+          }
         case error: MusitError =>
-          Future.successful(
-            NotFound(
-              views.html.notFound(s"Failed to get group with id: ${groupId.asString}")
-            )
-          )
+          handleNotFound(s"Failed to get group with id: ${groupId.asString}")
       }
-    }.getOrElse(
-      Future.successful(
-        NotFound(views.html.notFound(s"Wrong uuid format: $gUuid"))
-      )
-    )
+    }.getOrElse {
+      handleNotFound(s"Wrong uuid format: $gid")
+    }
   }
 
 }

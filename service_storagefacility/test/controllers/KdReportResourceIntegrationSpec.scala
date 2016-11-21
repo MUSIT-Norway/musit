@@ -96,7 +96,8 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       buildingId = (building.json \ "id").as[StorageNodeId]
     }.recover {
       case t: Throwable =>
-        println("Error occured when loading data:\n" + t) // scalastyle:ignore
+        println("Error occured when loading data") // scalastyle:ignore
+        t.printStackTrace()
     }
   }
 

@@ -67,6 +67,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }.recover {
       case t: Throwable =>
         println("Error occured when loading data") // scalastyle:ignore
+        t.printStackTrace()
     }
   }
 

@@ -21,7 +21,7 @@ package no.uio.musit.security
 
 import no.uio.musit.models.ActorId
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.security.Permissions.{GodMode, Permission}
+import no.uio.musit.security.Permissions.{ElevatedPermission, GodMode, Permission}
 import no.uio.musit.service.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
 import play.api.Logger
 
@@ -31,15 +31,28 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
 
   private val logger = Logger(classOf[AuthenticatedUser])
 
-  def authorize(
-    museum: Museum,
-    permissions: Seq[Permission]
-  ): MusitResult[Unit] = {
-    val lowest = if (permissions.nonEmpty) {
+  private def lowestPermission(permissions: Seq[Permission]): Permission = {
+    if (permissions.nonEmpty) {
       permissions.reduceLeft((a, b) => if (a.priority > b.priority) b else a)
     } else {
       Permissions.Unspecified
     }
+  }
+
+  private def hasGodMode: Boolean = groups.exists(_.hasPermission(GodMode))
+
+  private def permissionsFor(museum: Museum): Seq[Permission] =
+    groups.filter(_.museumId == museum.id).map(gi => gi.permission)
+
+  private def isAuthorizedFor(museum: Museum): Boolean = {
+    groups.exists(_.museum.contains(museum))
+  }
+
+  private def authorizeUser(
+    museum: Museum,
+    permissions: Seq[Permission]
+  ): MusitResult[Unit] = {
+    val lowest = lowestPermission(permissions)
 
     if (hasGodMode) {
       logger.debug(s"User with GodMode accessing system.")
@@ -53,13 +66,22 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
     }
   }
 
-  def hasGodMode: Boolean = groups.exists(_.hasPermission(GodMode))
+  def authorize(
+    museum: Museum,
+    permissions: Seq[Permission]
+  ): MusitResult[Unit] = authorizeUser(museum, permissions)
 
-  def permissionsFor(museum: Museum): Seq[Permission] =
-    groups.filter(_.museumId == museum.id).map(gi => gi.permission)
-
-  def isAuthorizedFor(museum: Museum): Boolean = {
-    groups.exists(_.museum.contains(museum))
+  def authorizeAdmin(
+    maybeMuseum: Option[Museum],
+    permissions: Seq[ElevatedPermission]
+  ): MusitResult[Unit] = {
+    maybeMuseum.map { museum =>
+      authorizeUser(museum, permissions)
+    }.getOrElse {
+      // Only GodMode has access to all museums
+      if (hasGodMode) MusitSuccess(())
+      else MusitNotAuthorized()
+    }
   }
 
 }

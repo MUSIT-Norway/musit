@@ -203,7 +203,7 @@
       "userid": "896125d3-0563-46b6-a7c5-51f3f899ff0a",
       "name": "Super Duper User",
       "email": "foo@bar.bas",
-      "groups": ["869cc344-5515-49c0-a7a5-79e371f4e64b"],
+      "groups": ["c0f20097-e803-4d1f-9d86-7b36bcfaec19"],
       "accessToken": "fake-token-zab-xy-superuser"
     },
     {

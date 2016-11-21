@@ -21,9 +21,9 @@ package no.uio.musit.service
 
 import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
-import no.uio.musit.security.Permissions.Permission
-import no.uio.musit.security.{AuthenticatedUser, Authenticator, BearerToken}
-import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.security.Permissions.{ElevatedPermission, Permission}
+import no.uio.musit.security.{AuthenticatedUser, Authenticator, BearerToken, UserInfo}
+import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -56,7 +56,10 @@ trait MusitActions {
     request: Request[A]
   ) extends WrappedRequest[A](request)
 
-  type MusitActionResult[T] = Future[Either[Result, MusitRequest[T]]]
+  type MusitActionResult[T] = Either[Result, MusitRequest[T]]
+  type MusitActionResultF[T] = Future[MusitActionResult[T]]
+
+  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T] // scalastyle:ignore
 
   /**
    * The base representation of a MUSIT specific request.
@@ -64,14 +67,35 @@ trait MusitActions {
   abstract class BaseMusitAction extends ActionBuilder[MusitRequest]
       with ActionRefiner[Request, MusitRequest] {
 
-    override def refine[T](request: Request[T]): MusitActionResult[T]
+    override def refine[T](request: Request[T]): MusitActionResultF[T]
+
+  }
+
+  abstract class BaseSecureAction extends BaseMusitAction {
+
+    protected def auth[T](
+      request: Request[T],
+      museumId: Option[MuseumId]
+    )(authorize: AuthFunc[T]): MusitActionResultF[T] = {
+      BearerToken.fromRequest(request).map { token =>
+        authService.userInfo(token).flatMap {
+          case MusitSuccess(userInfo) =>
+            authService.groups(userInfo.id).map { groups =>
+              val authUser = AuthenticatedUser(userInfo, groups)
+              val museum = museumId.flatMap(Museum.fromMuseumId)
+              authorize(token, userInfo, authUser, museum)
+            }
+
+          case err: MusitError => Future.successful(Left(Unauthorized))
+        }
+      }.getOrElse {
+        Future.successful(Left(Unauthorized))
+      }
+    }
 
   }
 
   /**
-   * TODO: Need to add authorization permissions to restrict what operations
-   * should be allowed on any given action. (Read, Write, Admin)
-   *
    * A custom Action refiner that checks if the user is authenticated. If the
    * request contains a valid bearer token, the request is enriched with an
    * {{{AuthenticatedUser}}}. If the incoming request can't be authenticated
@@ -83,36 +107,25 @@ trait MusitActions {
   case class MusitSecureAction(
       museumId: Option[MuseumId],
       permissions: Permission*
-  ) extends BaseMusitAction {
-    override def refine[T](request: Request[T]): MusitActionResult[T] = {
-      BearerToken.fromRequest(request).map { token =>
-        authService.userInfo(token).flatMap {
-          case MusitSuccess(userInfo) =>
-            authService.groups(userInfo.id).map { groups =>
-              val authUser = AuthenticatedUser(userInfo, groups)
-              val museum = museumId.flatMap(Museum.fromMuseumId)
-              museum match {
-                case Some(m) =>
-                  authUser.authorize(m, permissions).map { empty =>
-                    Right(MusitRequest(authUser, token, museum, request))
-                  }.getOrElse {
-                    logger.debug(s"Action is unauthorized for ${userInfo.id}")
-                    Left(Forbidden)
-                  }
-
-                case None =>
-                  if (museumId.isDefined) {
-                    Left(BadRequest(Json.obj("message" -> s"Unknown museum $museumId")))
-                  } else {
-                    Right(MusitRequest(authUser, token, museum, request))
-                  }
-              }
+  ) extends BaseSecureAction {
+    override def refine[T](request: Request[T]): MusitActionResultF[T] = {
+      auth(request, museumId) { (token, userInfo, authUser, museum) =>
+        museum match {
+          case Some(m) =>
+            authUser.authorize(m, permissions).map { empty =>
+              Right(MusitRequest(authUser, token, museum, request))
+            }.getOrElse {
+              logger.debug(s"Action is unauthorized for ${userInfo.id}")
+              Left(Forbidden)
             }
 
-          case err: MusitError => Future.successful(Left(Unauthorized))
+          case None =>
+            if (museumId.isDefined) {
+              Left(BadRequest(Json.obj("message" -> s"Unknown museum $museumId")))
+            } else {
+              Right(MusitRequest(authUser, token, museum, request))
+            }
         }
-      }.getOrElse {
-        Future.successful(Left(Unauthorized))
       }
     }
   }
@@ -133,25 +146,31 @@ trait MusitActions {
 
   case class MusitAdminAction(
       museumId: Option[MuseumId],
-      permissions: Permission*
-  ) extends BaseMusitAction {
+      permissions: ElevatedPermission*
+  ) extends BaseSecureAction {
 
-    override def refine[T](request: Request[T]): MusitActionResult[T] = {
-      // TODO: Implement handling of requests that should _only_ be accessible
-      // for MusitAdmin or GodMode users.
-      BearerToken.fromRequest(request).map { token =>
-        authService.userInfo(token).flatMap {
-          case MusitSuccess(userInfo) =>
-            authService.groups(userInfo.id).map { groups =>
-              ???
-            }
-
-          case err: MusitError => Future.successful(Left(Unauthorized))
+    override def refine[T](request: Request[T]): MusitActionResultF[T] = {
+      auth(request, museumId) { (token, userInfo, authUser, museum) =>
+        authUser.authorizeAdmin(museum, permissions).map { empty =>
+          Right(MusitRequest(authUser, token, museum, request))
+        }.getOrElse {
+          logger.debug(s"Action is unauthorized for ${userInfo.id}")
+          Left(Forbidden)
         }
-      }.getOrElse {
-        Future.successful(Left(Unauthorized))
       }
     }
+  }
+
+  object MusitAdminAction {
+    def apply(): MusitAdminAction = MusitAdminAction(None)
+
+    def apply(mid: MuseumId): MusitAdminAction = MusitAdminAction(Some(mid))
+
+    def apply(permissions: ElevatedPermission*): MusitAdminAction =
+      MusitAdminAction(None, permissions: _*)
+
+    def apply(mid: MuseumId, permissions: ElevatedPermission*): MusitAdminAction =
+      MusitAdminAction(Some(mid), permissions: _*)
   }
 
 }

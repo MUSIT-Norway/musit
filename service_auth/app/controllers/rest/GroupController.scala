@@ -23,6 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd}
 import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.MusitAdmin
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
@@ -44,7 +45,9 @@ class GroupController @Inject() (
   private def serverError(msg: String): Result =
     InternalServerError(Json.obj("message" -> msg))
 
-  def addGroup() = MusitSecureAction().async(parse.json) { implicit request =>
+  def addGroup(
+    mid: Int
+  ) = MusitAdminAction(mid, MusitAdmin).async(parse.json) { implicit request =>
     request.body.validate[GroupAdd] match {
       case JsSuccess(ga, _) =>
         grpService.add(ga).map {
@@ -60,7 +63,7 @@ class GroupController @Inject() (
   def addUserToGroup(
     groupId: String,
     userId: String
-  ) = MusitSecureAction().async { implicit request =>
+  ) = MusitSecureAction(MusitAdmin).async { implicit request =>
     val ug = for {
       u <- ActorId.validate(userId)
       g <- GroupId.validate(groupId)
@@ -101,7 +104,9 @@ class GroupController @Inject() (
     }
   }
 
-  def usersInGroup(groupId: String) = MusitSecureAction().async { implicit request =>
+  def usersInGroup(
+    groupId: String
+  ) = MusitAdminAction(MusitAdmin).async { implicit request =>
     GroupId.validate(groupId).toOption.map { gid =>
       grpService.listUsersInGroup(gid).map {
         case MusitSuccess(usrs) => if (usrs.nonEmpty) Ok(Json.toJson(usrs)) else NoContent
@@ -114,7 +119,9 @@ class GroupController @Inject() (
     }
   }
 
-  def groupsForUser(userId: String) = MusitSecureAction().async { implicit request =>
+  def groupsForUser(
+    userId: String
+  ) = MusitSecureAction().async { implicit request =>
     ActorId.validate(userId).toOption.map { uid =>
       grpService.listGroupsFor(uid).map {
         case MusitSuccess(grps) => if (grps.nonEmpty) Ok(Json.toJson(grps)) else NoContent
@@ -129,7 +136,7 @@ class GroupController @Inject() (
 
   def updateGroup(
     groupId: String
-  ) = MusitSecureAction().async(parse.json) { implicit request =>
+  ) = MusitAdminAction(MusitAdmin).async(parse.json) { implicit request =>
     GroupId.validate(groupId).toOption.map { gid =>
       request.body.validate[Group] match {
         case JsSuccess(grp, _) =>
@@ -153,7 +160,9 @@ class GroupController @Inject() (
     }
   }
 
-  def removeGroup(groupId: String) = MusitSecureAction().async { implicit request =>
+  def removeGroup(
+    groupId: String
+  ) = MusitAdminAction(MusitAdmin).async { implicit request =>
     GroupId.validate(groupId).toOption.map { gid =>
       grpService.removeGroup(gid).map {
         case MusitSuccess(numDel) =>
@@ -176,7 +185,7 @@ class GroupController @Inject() (
   def removeUserFromGroup(
     groupId: String,
     userId: String
-  ) = MusitSecureAction().async { implicit request =>
+  ) = MusitAdminAction(MusitAdmin).async { implicit request =>
     val ug = for {
       u <- ActorId.validate(userId)
       g <- GroupId.validate(groupId)
