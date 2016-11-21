@@ -81,8 +81,8 @@ class GroupDao @Inject() (
    * @param grpId
    * @return
    */
-  def findUsersInGroup(grpId: GroupId): Future[MusitResult[Seq[ActorId]]] = {
-    val query = usrGrpTable.filter(_.groupId === grpId).map(_.userId)
+  def findUsersInGroup(grpId: GroupId): Future[MusitResult[Seq[String]]] = {
+    val query = usrGrpTable.filter(_.groupId === grpId).map(_.feideEmail)
     db.run(query.result).map { res =>
       MusitSuccess(res)
     }.recover {
@@ -95,11 +95,11 @@ class GroupDao @Inject() (
 
   /**
    *
-   * @param usrId
+   * @param feideEmail
    * @return
    */
-  def findGroupsFor(usrId: ActorId): Future[MusitResult[Seq[Group]]] = {
-    val ugQuery = usrGrpTable.filter(_.userId === usrId)
+  def findGroupsFor(feideEmail: String): Future[MusitResult[Seq[Group]]] = {
+    val ugQuery = usrGrpTable.filter(_.feideEmail === feideEmail)
     val query = for {
       (ug, g) <- ugQuery join grpTable on (_.groupId === _.id)
     } yield g
@@ -110,7 +110,7 @@ class GroupDao @Inject() (
       })
     }.recover {
       case NonFatal(ex) =>
-        val msg = s"An error occurred when trying to find Groups for user $usrId"
+        val msg = s"An error occurred when trying to find Groups for user $feideEmail"
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
     }
@@ -189,17 +189,22 @@ class GroupDao @Inject() (
 
   /**
    *
-   * @param usrId
+   * @param feideEmail
    * @param grpId
+   * @param usrId
    * @return
    */
-  def addUserToGroup(usrId: ActorId, grpId: GroupId): Future[MusitResult[Unit]] = {
-    val action = usrGrpTable += ((usrId, grpId))
+  def addUserToGroup(
+    feideEmail: String,
+    grpId: GroupId,
+    usrId: Option[ActorId]
+  ): Future[MusitResult[Unit]] = {
+    val action = usrGrpTable += ((feideEmail, usrId, grpId))
 
     db.run(action).map(res => MusitSuccess(())).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when inserting a new UserGroup relation " +
-          s"between userId $usrId and groupId $grpId"
+          s"between user $feideEmail and groupId $grpId"
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
 
@@ -208,36 +213,36 @@ class GroupDao @Inject() (
 
   /**
    *
-   * @param usrId
+   * @param feideEmail
    * @param grpId
    * @return
    */
   def removeUserFromGroup(
-    usrId: ActorId,
+    feideEmail: String,
     grpId: GroupId
   ): Future[MusitResult[Int]] = {
     val action = usrGrpTable.filter { ug =>
-      ug.userId === usrId && ug.groupId === grpId
+      ug.feideEmail === feideEmail && ug.groupId === grpId
     }.delete
 
     db.run(action).map {
       case res: Int if res == 1 =>
-        logger.debug(s"Successfully removed UserGroup ($usrId, $grpId)")
+        logger.debug(s"Successfully removed UserGroup ($feideEmail, $grpId)")
         MusitSuccess(res)
 
       case res: Int if res == 0 =>
-        logger.debug(s"UserGroup ($usrId, $grpId) was not removed.")
+        logger.debug(s"UserGroup ($feideEmail, $grpId) was not removed.")
         MusitSuccess(res)
 
       case res: Int =>
         val msg = s"An unexpected amount of UserGroups where removed using " +
-          s"UserGroup ($usrId, $grpId)"
+          s"UserGroup ($feideEmail, $grpId)"
         logger.warn(msg)
         MusitDbError(msg)
 
     }.recover {
       case NonFatal(ex) =>
-        val msg = s"There was an error deleting the UserGroup ($usrId, $grpId)"
+        val msg = s"There was an error deleting the UserGroup ($feideEmail, $grpId)"
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
     }

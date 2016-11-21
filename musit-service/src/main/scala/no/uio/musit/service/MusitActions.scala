@@ -80,7 +80,9 @@ trait MusitActions {
       BearerToken.fromRequest(request).map { token =>
         authService.userInfo(token).flatMap {
           case MusitSuccess(userInfo) =>
-            authService.groups(userInfo.id).map { groups =>
+            logger.debug(s"Got UserInfo\n$userInfo")
+            authService.groups(userInfo).map { groups =>
+              logger.debug(s"Got Groups\n${groups.map(_.name).mkString(", ")}")
               val authUser = AuthenticatedUser(userInfo, groups)
               val museum = museumId.flatMap(Museum.fromMuseumId)
               authorize(token, userInfo, authUser, museum)

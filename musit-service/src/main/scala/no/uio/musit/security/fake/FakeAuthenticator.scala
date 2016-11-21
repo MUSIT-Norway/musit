@@ -68,16 +68,18 @@ class FakeAuthenticator extends Authenticator {
   }
 
   /**
-   * Method for retrieving the users GroupInfo from the AuthService.
+   * Method for retrieving the users GroupInfo from the AuthService based
+   * on the UserInfo found.
    *
-   * @param userId the ActorId of the user to fetch groups for
-   * @return a Future collection of GroupInfo
+   * @param userInfo the UserInfo found by calling the userInfo method above.
+   * @return Will eventually return a Seq of GroupInfo
    */
-  override def groups(
-    userId: ActorId
-  ): Future[Seq[GroupInfo]] = Future.successful {
-    fakeUsers.find(_._2.info.id == userId).map(_._2.groups).getOrElse(Seq.empty)
-  }
+  override def groups(userInfo: UserInfo): Future[Seq[GroupInfo]] =
+    Future.successful {
+      fakeUsers.find(_._2.info.id == userInfo.id)
+        .map(_._2.groups)
+        .getOrElse(Seq.empty)
+    }
 
 }
 

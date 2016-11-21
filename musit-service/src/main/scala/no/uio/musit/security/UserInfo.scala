@@ -25,6 +25,7 @@ import play.api.libs.json._
 
 case class UserInfo(
   id: ActorId,
+  feideEmail: Option[String],
   name: Option[String],
   email: Option[String],
   picture: Option[String]
@@ -34,6 +35,8 @@ object UserInfo {
 
   implicit val format: Format[UserInfo] = (
     (__ \ "userid").format[ActorId] and
+    (__ \ "userid_sec").formatNullable[String]
+    .inmap(_.map(_.stripPrefix("feide:").trim), identity[Option[String]]) and
     (__ \ "name").formatNullable[String] and
     (__ \ "email").formatNullable[String] and
     (__ \ "profilephoto").formatNullable[String]

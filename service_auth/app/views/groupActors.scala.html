@@ -1,8 +1,6 @@
-@import no.uio.musit.models.ActorId
 @import models.Group
-@import models.Actor
 @import no.uio.musit.service.MusitResults.MusitError
-@(actors: Seq[ActorId], museumId: Int, group: Group, actorIds: Seq[Actor], error: Option[MusitError] = None)
+@(userEmails: Seq[String], museumId: Int, group: Group, error: Option[MusitError] = None)
 
 @main("Group | Actors") {
     <h1>Group: @group.name</h1>
@@ -16,12 +14,12 @@
             Add new user
         </a>
     </p>
-    <h4>Found @actors.size actors</h4>
+    <h4>Found @userEmails.size actors</h4>
     <ul>
-    @for(actor <- actors) {
+    @for(user <- userEmails) {
         <li>
-            @actorIds.find(_.dataportenId.getOrElse("") == actor.asString).map(_.fn).getOrElse(actor.asString)
-            <form method="post" action="@controllers.web.routes.GroupController.deleteUser(museumId, actor.asString, group.id.asString)">
+            @user
+            <form method="post" action="@controllers.web.routes.GroupController.deleteUser(museumId, user, group.id.asString)">
                 <input type="submit" value="Delete" />
             </form>
         </li>

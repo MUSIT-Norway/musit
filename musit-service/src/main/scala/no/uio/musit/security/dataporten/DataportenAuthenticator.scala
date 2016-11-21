@@ -108,14 +108,19 @@ class DataportenAuthenticator @Inject() (
   }
 
   /**
-   * Retrieve all the GroupInfo, for the user associated with the given token,
-   * from the Dataporten OAuth service.
+   * Method for retrieving the users GroupInfo from the AuthService based
+   * on the UserInfo found.
    *
-   * @param userId the ActorId of the user to fetch groups for
+   * @param userInfo the UserInfo found by calling the userInfo method above.
    * @return Will eventually return a Seq of GroupInfo
    */
-  override def groups(userId: ActorId): Future[Seq[GroupInfo]] =
-    groupResolver.findUserGroups(userId).map(_.getOrElse(Seq.empty))
+  override def groups(userInfo: UserInfo): Future[Seq[GroupInfo]] = {
+    userInfo.feideEmail.map { feide =>
+      groupResolver.findUserGroupsByEmail(feide)
+    }.getOrElse {
+      groupResolver.findUserGroupsByUserId(userInfo.id)
+    }.map(_.getOrElse(Seq.empty))
+  }
 }
 
 object DataportenAuthenticator {

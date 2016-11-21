@@ -70,20 +70,21 @@ object GroupAdd {
 
 }
 
-case class UserGroupAdd(userId: String, groupId: String)
+case class UserGroupAdd(email: String, userId: Option[String], groupId: String)
 
 object UserGroupAdd {
   implicit def reads: Reads[UserGroupAdd] = Json.reads[UserGroupAdd]
 
-  def applyForm(userId: String, groupId: String) =
-    UserGroupAdd(userId, groupId)
+  def applyForm(email: String, userId: Option[String], groupId: String) =
+    UserGroupAdd(email, userId, groupId)
 
-  def unapplyForm(userGroup: UserGroupAdd) =
-    Some((userGroup.userId, userGroup.groupId))
+  def unapplyForm(uga: UserGroupAdd) =
+    Some((uga.email, uga.userId, uga.groupId))
 
   val userGroupAddForm = Form(
     mapping(
-      "userId" -> text.verifying(id => ActorId.validate(id).isSuccess),
+      "email" -> email,
+      "userId" -> optional(text.verifying(id => ActorId.validate(id).isSuccess)),
       "groupId" -> text.verifying(id => GroupId.validate(id).isSuccess)
     )(applyForm)(unapplyForm)
   )

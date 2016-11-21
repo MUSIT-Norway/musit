@@ -26,8 +26,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthGroupResolver {
 
-  def findUserGroups(
+  def findUserGroupsByUserId(
     usrId: ActorId
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
 
+  def findUserGroupsByEmail(
+    email: String
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
 }

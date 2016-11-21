@@ -43,12 +43,16 @@ class GroupService @Inject() (val dao: GroupDao) {
 
   /**
    *
-   * @param uid
+   * @param email
    * @param grpId
+   * @param uid
    * @return
    */
-  def addUserToGroup(uid: ActorId, grpId: GroupId): MusitResultF[Unit] =
-    dao.addUserToGroup(uid, grpId)
+  def addUserToGroup(
+    email: String,
+    grpId: GroupId,
+    uid: Option[ActorId] = None
+  ): MusitResultF[Unit] = dao.addUserToGroup(email, grpId, uid)
 
   /**
    *
@@ -68,15 +72,15 @@ class GroupService @Inject() (val dao: GroupDao) {
    * @param grpId
    * @return
    */
-  def listUsersInGroup(grpId: GroupId): MusitResultF[Seq[ActorId]] =
+  def listUsersInGroup(grpId: GroupId): MusitResultF[Seq[String]] =
     dao.findUsersInGroup(grpId)
 
   /**
    *
-   * @param uid
+   * @param email
    * @return
    */
-  def listGroupsFor(uid: ActorId): MusitResultF[Seq[Group]] = dao.findGroupsFor(uid)
+  def listGroupsFor(email: String): MusitResultF[Seq[Group]] = dao.findGroupsFor(email)
 
   /**
    *
@@ -94,10 +98,10 @@ class GroupService @Inject() (val dao: GroupDao) {
 
   /**
    *
-   * @param uid
+   * @param email
    * @param grpId
    * @return
    */
-  def removeUserFromGroup(uid: ActorId, grpId: GroupId): MusitResultF[Int] =
-    dao.removeUserFromGroup(uid, grpId)
+  def removeUserFromGroup(email: String, grpId: GroupId): MusitResultF[Int] =
+    dao.removeUserFromGroup(email, grpId)
 }

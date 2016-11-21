@@ -75,16 +75,19 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   }
 
+  type UserGroupTableType = (String, Option[ActorId], GroupId)
+
   class UserGroupTable(
       val tag: Tag
-  ) extends Table[(ActorId, GroupId)](tag, Some(schema), "USER_AUTH_GROUP") {
+  ) extends Table[UserGroupTableType](tag, Some(schema), "USER_AUTH_GROUP") {
 
-    val userId = column[ActorId]("USER_UUID", O.PrimaryKey)
+    val feideEmail = column[String]("USER_FEIDE_EMAIL", O.PrimaryKey)
+    val userId = column[Option[ActorId]]("USER_UUID")
     val groupId = column[GroupId]("GROUP_UUID", O.PrimaryKey)
 
-    def pk = primaryKey("PK_USER_GROUP", (userId, groupId))
+    def pk = primaryKey("PK_USER_GROUP", (feideEmail, groupId))
 
-    override def * = (userId, groupId) // scalastyle:ignore
+    override def * = (feideEmail, userId, groupId) // scalastyle:ignore
 
   }
 

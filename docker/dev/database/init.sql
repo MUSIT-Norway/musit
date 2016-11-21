@@ -1,8 +1,8 @@
-CREATE SCHEMA IF NOT EXISTS "MUSARK_AUTH";
-
 -- ===========================================================================
 -- Tables for auth stuff...
 -- ===========================================================================
+CREATE SCHEMA IF NOT EXISTS "MUSARK_AUTH";
+
 
 CREATE TABLE "MUSARK_AUTH"."AUTH_GROUP" (
   "GROUP_UUID" VARCHAR(36) NOT NULL,
@@ -26,12 +26,11 @@ CREATE TABLE "MUSARK_AUTH"."USER_AUTH_GROUP" (
 
 
 
-
-CREATE SCHEMA IF NOT EXISTS "MUSARK_STORAGE";
-
 -- ===========================================================================
 -- Tables for storage nodes
 -- ===========================================================================
+CREATE SCHEMA IF NOT EXISTS "MUSARK_STORAGE";
+
 
 CREATE TABLE "MUSARK_STORAGE"."STORAGE_NODE" (
   "STORAGE_NODE_ID" BIGSERIAL,

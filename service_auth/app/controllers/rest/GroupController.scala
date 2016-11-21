@@ -61,25 +61,17 @@ class GroupController @Inject() (
   }
 
   def addUserToGroup(
-    groupId: String,
-    userId: String
+    email: String,
+    groupId: String
   ) = MusitSecureAction(MusitAdmin).async { implicit request =>
-    val ug = for {
-      u <- ActorId.validate(userId)
-      g <- GroupId.validate(groupId)
-    } yield (ActorId(u), GroupId(g))
-
-    ug.toOption.map {
-      case (uid, gid) =>
-        grpService.addUserToGroup(uid, gid).map {
-          case MusitSuccess(()) => Created
-          case err: MusitError => serverError(err.message)
-        }
+    GroupId.validate(groupId).toOption.map(GroupId.apply).map { gid =>
+      grpService.addUserToGroup(email, gid).map {
+        case MusitSuccess(()) => Created
+        case err: MusitError => serverError(err.message)
+      }
     }.getOrElse {
       Future.successful {
-        BadRequest(
-          Json.obj("message" -> s"Invalid UUID for either $groupId or $userId")
-        )
+        BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
       }
     }
   }
@@ -120,17 +112,11 @@ class GroupController @Inject() (
   }
 
   def groupsForUser(
-    userId: String
+    email: String
   ) = MusitSecureAction().async { implicit request =>
-    ActorId.validate(userId).toOption.map { uid =>
-      grpService.listGroupsFor(uid).map {
-        case MusitSuccess(grps) => if (grps.nonEmpty) Ok(Json.toJson(grps)) else NoContent
-        case err: MusitError => serverError(err.message)
-      }
-    }.getOrElse {
-      Future.successful {
-        BadRequest(Json.obj("message" -> s"Invalid UUID for $userId"))
-      }
+    grpService.listGroupsFor(email).map {
+      case MusitSuccess(grps) => if (grps.nonEmpty) Ok(Json.toJson(grps)) else NoContent
+      case err: MusitError => serverError(err.message)
     }
   }
 
@@ -184,32 +170,23 @@ class GroupController @Inject() (
 
   def removeUserFromGroup(
     groupId: String,
-    userId: String
+    email: String
   ) = MusitAdminAction(MusitAdmin).async { implicit request =>
-    val ug = for {
-      u <- ActorId.validate(userId)
-      g <- GroupId.validate(groupId)
-    } yield (ActorId(u), GroupId(g))
+    GroupId.validate(groupId).toOption.map(GroupId.apply).map { gid =>
+      grpService.removeUserFromGroup(email, gid).map {
+        case MusitSuccess(numDel) =>
+          val msg = {
+            if (numDel == 1) s"User $email was removed from group $groupId"
+            else s"User $email was not removed from group $groupId"
+          }
+          Ok(Json.obj("message" -> msg))
 
-    ug.toOption.map {
-      case (uid, gid) =>
-        grpService.removeUserFromGroup(uid, gid).map {
-          case MusitSuccess(numDel) =>
-            val msg = {
-              if (numDel == 1) s"User $userId was removed from group $groupId"
-              else s"User $userId was not removed from group $groupId"
-            }
-            Ok(Json.obj("message" -> msg))
-
-          case err: MusitError =>
-            serverError(err.message)
-        }
-
+        case err: MusitError =>
+          serverError(err.message)
+      }
     }.getOrElse {
       Future.successful {
-        BadRequest(
-          Json.obj("message" -> s"Invalid UUID for either $groupId or $userId")
-        )
+        BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
       }
     }
   }

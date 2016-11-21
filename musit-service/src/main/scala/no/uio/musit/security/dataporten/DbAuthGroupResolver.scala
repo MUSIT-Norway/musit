@@ -20,7 +20,7 @@
 package no.uio.musit.security.dataporten
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.models.ActorId
+import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.{AuthGroupResolver, AuthTables, GroupInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
@@ -38,21 +38,37 @@ class DbAuthGroupResolver @Inject() (
 
   val logger = Logger(classOf[DbAuthGroupResolver])
 
-  def findUserGroups(
-    usrId: ActorId
+  private def findBy(
+    q: Query[UserGroupTable, UserGroupTableType, Seq]
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
-    val ugQuery = usrGrpTable.filter(_.userId === usrId)
     val query = for {
-      (ug, g) <- ugQuery join grpTable on (_.groupId === _.id)
+      (ug, g) <- q join grpTable on (_.groupId === _.id)
     } yield g
 
     db.run(query.result).map { grps =>
       MusitSuccess(grps.map {
         case (gid, name, perm, mid, desc) => GroupInfo(gid, name, perm, mid, desc)
       })
-    }.recover {
+    }
+  }
+
+  override def findUserGroupsByUserId(
+    usrId: ActorId
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
+    findBy(usrGrpTable.filter(_.userId === usrId)).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when trying to find Groups for user $usrId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  override def findUserGroupsByEmail(
+    email: String
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
+    findBy(usrGrpTable.filter(_.feideEmail === email)).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to find Groups for user $email"
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
     }

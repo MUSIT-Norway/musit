@@ -41,6 +41,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
   implicit val dummyUser = AuthenticatedUser(
     userInfo = UserInfo(
       id = defaultUserId,
+      feideEmail = Some("vader@starwars.com"),
       name = Some("Darth Vader"),
       email = None,
       picture = None

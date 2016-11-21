@@ -1,12 +1,12 @@
 package controllers.web
 
 import com.google.inject.Inject
-import models.Actor
+import models.{Actor, Group}
 import models.GroupAdd._
 import models.UserGroupAdd._
 import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Permissions._
-import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import play.api.Configuration
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -16,13 +16,14 @@ import play.api.mvc._
 import services.GroupService
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
-class GroupController @Inject()(
-  implicit
-  val groupService: GroupService,
-  val messagesApi: MessagesApi,
-  val ws: WSClient,
-  val configuration: Configuration
+class GroupController @Inject() (
+    implicit
+    val groupService: GroupService,
+    val messagesApi: MessagesApi,
+    val ws: WSClient,
+    val configuration: Configuration
 ) extends Controller with I18nSupport {
 
   val allowedGroups = scala.collection.immutable.Seq(
@@ -54,26 +55,26 @@ class GroupController @Inject()(
     )
   }
 
-  def deleteUser(mid: Int, uid: String, gid: String) = Action.async { implicit request =>
-    val ug = for {
-      u <- ActorId.validate(uid)
-      g <- GroupId.validate(gid)
-    } yield (ActorId(u), GroupId(g))
-    ug.toOption.map {
-      case (uid, gid) =>
-        groupService.removeUserFromGroup(uid, gid).map {
-          case MusitSuccess(int) =>
-            Redirect(controllers.web.routes.GroupController.groupActorsList(mid, gid))
-              .flashing("success" -> "User was removed")
-          case error: MusitError =>
-            BadRequest(
-              Json.obj("error" -> error.message)
-            )
-        }
+  def deleteUser(
+    mid: Int,
+    email: String,
+    gid: String
+  ) = Action.async { implicit request =>
+    GroupId.validate(gid).toOption.map(GroupId.apply).map { gid =>
+      groupService.removeUserFromGroup(email, gid).map {
+        case MusitSuccess(int) =>
+          Redirect(
+            controllers.web.routes.GroupController.groupActorsList(mid, gid.asString)
+          ).flashing("success" -> "User was removed")
+        case error: MusitError =>
+          BadRequest(
+            Json.obj("error" -> error.message)
+          )
+      }
     }.getOrElse {
       Future.successful {
         BadRequest(
-          Json.obj("message" -> s"Invalid UUID for either $gid or $uid")
+          Json.obj("message" -> s"Invalid UUID for $gid")
         )
       }
     }
@@ -92,9 +93,11 @@ class GroupController @Inject()(
         )
       },
       userAdd => {
-        val userId = ActorId.validate(userAdd.userId).get
+        val userId = userAdd.userId.flatMap { uid =>
+          ActorId.validate(uid).toOption
+        }.map(ActorId.apply)
         val groupId = GroupId.validate(userAdd.groupId).get
-        groupService.addUserToGroup(userId, groupId).map {
+        groupService.addUserToGroup(userAdd.email, groupId, userId).map {
           case MusitSuccess(group) =>
             Redirect(
               controllers.web.routes.GroupController.groupActorsList(mid, gid)
@@ -163,37 +166,39 @@ class GroupController @Inject()(
   }
 
   private def handleNotFound(msg: String): Future[Result] = {
-    Future.successful(NotFound(views.html.notFound(msg)))
+    Future.successful(NotFound(views.html.error(msg)))
+  }
+
+  def getActorDetailsFor(
+    mid: Int,
+    groupRes: MusitResult[Option[Group]],
+    usersRes: MusitResult[Seq[String]]
+  ): Result = {
+    groupRes.flatMap { group =>
+      usersRes.map { users =>
+        // TODO: We should call getActors(users) if we have an ActorId
+        group.map { grp =>
+          Ok(views.html.groupActors(users, mid, grp))
+        }.getOrElse {
+          NotFound(views.html.error(s"Could not find group"))
+        }
+      }
+    }.getOrElse {
+      InternalServerError(views.html.error("An error occurred fetching the group"))
+    }
   }
 
   def groupActorsList(mid: Int, gid: String) = Action.async { implicit request =>
     val maybeGroupId = GroupId.validate(gid).toOption.map(GroupId.apply)
     maybeGroupId.map { groupId =>
-      groupService.group(groupId).flatMap {
-        case MusitSuccess(maybeGroup) =>
-          maybeGroup.map { group =>
-            groupService.listUsersInGroup(groupId).flatMap {
-              case MusitSuccess(result) =>
-                getActors(result.map(_.asString)).map {
-                  case Right(actors) =>
-                    Ok(views.html.groupActors(result, mid, group, actors))
-
-                  case Left(error) =>
-                    // TODO log error here
-                    Ok(views.html.groupActors(result, mid, group, Seq.empty))
-                }
-              case error: MusitError =>
-                Future.successful(
-                  Ok(views.html.groupActors(
-                    Seq.empty, mid, group, Seq.empty, Some(error)
-                  ))
-                )
-            }
-          }.getOrElse {
-            handleNotFound(s"The group ${groupId.asString} was not found")
-          }
-        case error: MusitError =>
-          handleNotFound(s"Failed to get group with id: ${groupId.asString}")
+      (for {
+        groupRes <- groupService.group(groupId)
+        usersRes <- groupService.listUsersInGroup(groupId)
+      } yield {
+        getActorDetailsFor(mid, groupRes, usersRes)
+      }).recover {
+        case NonFatal(ex) =>
+          InternalServerError(views.html.error("An error occurred fetching data"))
       }
     }.getOrElse {
       handleNotFound(s"Wrong uuid format: $gid")

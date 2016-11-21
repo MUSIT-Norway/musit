@@ -190,34 +190,36 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
     "adding a new UserGroup" should {
 
       val uid = ActorId.generate()
+      val email = "foo1@bar.com"
 
       "successfully add a new UserGroup row" in {
         val grpId = addedGroupIds.result().tail.head
-        dao.addUserToGroup(uid, grpId).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, grpId, Some(uid)).futureValue.isSuccess mustBe true
       }
 
       "not allow duplicate UserGroup entries" in {
         val grpId = addedGroupIds.result().tail.head
-        dao.addUserToGroup(uid, grpId).futureValue.isFailure mustBe true
+        dao.addUserToGroup(email, grpId, Some(uid)).futureValue.isFailure mustBe true
       }
     }
 
     "deleting a UserGroup relation" should {
       "successfully remove the row" in {
+        val email = "foo2@bar.com"
         val uid = ActorId.generate()
         val gid = addedGroupIds.result().last
-        dao.addUserToGroup(uid, gid).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid, Some(uid)).futureValue.isSuccess mustBe true
 
-        val res = dao.removeUserFromGroup(uid, gid).futureValue
+        val res = dao.removeUserFromGroup(email, gid).futureValue
         res.isSuccess mustBe true
         res.get mustBe 1
       }
 
       "not remove anything if the userId doesn't exist" in {
-        val uid = ActorId.generate()
+        val email = "asdf@asdf.net"
         val gid = addedGroupIds.result().last
 
-        val res = dao.removeUserFromGroup(uid, gid).futureValue
+        val res = dao.removeUserFromGroup(email, gid).futureValue
         res.isSuccess mustBe true
         res.get mustBe 0
       }
@@ -225,16 +227,16 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "finding all the groups for a user" should {
       "return all the groups the user is part of" in {
-        val uid = ActorId.generate()
+        val email = "bar@foo.com"
         val gid1 = addedGroupIds.result().tail.head
         val gid2 = addedGroupIds.result().tail.tail.head
         val gid3 = addedGroupIds.result().last
 
-        dao.addUserToGroup(uid, gid1).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(uid, gid2).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(uid, gid3).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid1, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid2, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid3, None).futureValue.isSuccess mustBe true
 
-        val res = dao.findGroupsFor(uid).futureValue
+        val res = dao.findGroupsFor(email).futureValue
 
         res.isSuccess mustBe true
         res.get.size mustBe 3
@@ -243,20 +245,20 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "finding all the users in a group" should {
       "return all the ActorIds associated with that group" in {
-        val uid1 = ActorId.generate()
-        val uid2 = ActorId.generate()
-        val uid3 = ActorId.generate()
+        val email1 = "luke@starwars.com"
+        val email2 = "leia@starwars.com"
+        val email3 = "anakin@starwars.com"
 
         val grp1 = addedGroupIds.result().reverse.tail.tail.head
 
-        dao.addUserToGroup(uid1, grp1).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(uid2, grp1).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(uid3, grp1).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email1, grp1, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email2, grp1, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email3, grp1, None).futureValue.isSuccess mustBe true
 
         val res = dao.findUsersInGroup(grp1).futureValue
         res.isSuccess mustBe true
         res.get.size mustBe 3
-        res.get.sortBy(_.asString) mustBe Seq(uid1, uid2, uid3).sortBy(_.asString)
+        res.get.sorted mustBe Seq(email1, email2, email3).sorted
       }
     }
   }
