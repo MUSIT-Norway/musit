@@ -96,17 +96,20 @@ class GroupController @Inject() (
         val userId = userAdd.userId.flatMap { uid =>
           ActorId.validate(uid).toOption
         }.map(ActorId.apply)
-        val groupId = GroupId.validate(userAdd.groupId).get
-        groupService.addUserToGroup(userAdd.email, groupId, userId).map {
-          case MusitSuccess(group) =>
-            Redirect(
-              controllers.web.routes.GroupController.groupActorsList(mid, gid)
-            ).flashing("success" -> "User added!")
-          case error: MusitError =>
-            BadRequest(
-              Json.obj("error" -> error.message)
-            )
-        }
+        GroupId.validate(userAdd.groupId).toOption.map { groupId =>
+          groupService.addUserToGroup(userAdd.email, groupId, userId).map {
+            case MusitSuccess(group) =>
+              Redirect(
+                controllers.web.routes.GroupController.groupActorsList(mid, gid)
+              ).flashing("success" -> "User added!")
+            case error: MusitError =>
+              BadRequest(
+                Json.obj("error" -> error.message)
+              )
+          }
+        }.getOrElse(
+          handleBadRequest(s"Invalid groupId ${userAdd.groupId}")
+        )
       }
     )
   }
@@ -166,6 +169,10 @@ class GroupController @Inject() (
   }
 
   private def handleNotFound(msg: String): Future[Result] = {
+    Future.successful(NotFound(views.html.error(msg)))
+  }
+
+  private def handleBadRequest(msg: String): Future[Result] = {
     Future.successful(NotFound(views.html.error(msg)))
   }
 
