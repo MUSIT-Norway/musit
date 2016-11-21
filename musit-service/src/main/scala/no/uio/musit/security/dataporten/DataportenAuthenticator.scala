@@ -38,27 +38,39 @@ import scala.concurrent.Future
  *
  * TODO: Ensure use of caching of tokens and user/group info
  *
- * @param configuration The Play! Configuration instance
+ * @param conf The Play! Configuration instance
  * @param groupResolver Instance for resolving a users groups
  * @param ws Play! WebService client
  */
 class DataportenAuthenticator @Inject() (
-    configuration: Configuration,
+    conf: Configuration,
     groupResolver: AuthGroupResolver,
     ws: WSAPI
 ) extends Authenticator {
 
   private val logger = Logger(classOf[DataportenAuthenticator])
 
-  val userInfoUrl = configuration.underlying.as[String](userApiConfKey)
+  val userInfoUrl = conf.underlying.as[String](userApiConfKey)
+  val clientId = conf.underlying.getAs[String](clientIdConfKey).flatMap { str =>
+    ClientId.validate(str).toOption.map(ClientId.apply)
+  }
 
   private def validate[A, B](
     res: WSResponse
   )(f: WSResponse => MusitResult[A]): MusitResult[A] = {
     res.status match {
       case ok: Int if ok == Status.OK =>
-        logger.debug(s"Received a request with valid bearer token")
-        f(res)
+        logger.info(s"Request contained a valid bearer token")
+        logger.info(s"Validating audience...")
+        // If the audience doesn't equal the clientId, the user isn't authorized
+        val audience = (res.json \ "audience").as[ClientId]
+        val usr = (res.json \ "user" \ "userid").as[String]
+        if (clientId.contains(audience)) {
+          f(res)
+        } else {
+          logger.warn(s"Access attempt with wrong clientId $audience by user $usr")
+          MusitNotAuthorized()
+        }
 
       case ko: Int if ko == Status.UNAUTHORIZED =>
         logger.info(s"Received a request without a valid bearer token.")
@@ -109,6 +121,8 @@ class DataportenAuthenticator @Inject() (
 object DataportenAuthenticator {
   val userApiConfKey = "musit.dataporten.userApiURL"
   val userInfoJsonKey = "user"
+
+  val clientIdConfKey = "musit.dataporten.clientId"
 
   val unexpectedResponseCode = s"Unexpected response code from dataporten: %i"
   val unableToParse = s"Unable to parse UserInfo from dataporten response:\n%s"
