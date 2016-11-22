@@ -1,0 +1,32 @@
+@import models.Group
+@import no.uio.musit.service.MusitResults.MusitError
+@import play.api.mvc.Flash
+
+@(groups: Seq[Group], museumId: Int, error: Option[MusitError] = None)(implicit flash: Flash)
+
+@main("Group | List") {
+    <h1>All groups</h1>
+    <p>
+        <a href="@controllers.web.routes.GroupController.groupAddGet(museumId)">
+            Add new group
+        </a>
+    </p>
+    <h4>Found @groups.size groups</h4>
+    @if(error.isEmpty) {
+        <ul>
+        @for(group <- groups) {
+            <li>
+                <a href="@controllers.web.routes.GroupController.groupActorsList(museumId, group.id.asString)">
+                    @group.name
+                </a>
+                <form method="post" action="@controllers.web.routes.GroupController.deleteGroup(museumId, group.id.asString)">
+                    <input type="submit" value="Delete" />
+                </form>
+            </li>
+        }
+        </ul>
+    } else {
+        <span style="color: red">@error.map(_.message).getOrElse("")</span>
+    }
+    <span style="color: green">@flash.get("success").getOrElse("")</span>
+}

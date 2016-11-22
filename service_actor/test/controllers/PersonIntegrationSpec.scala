@@ -23,7 +23,7 @@ import java.util.UUID
 
 import no.uio.musit.models.ActorId
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
+import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status

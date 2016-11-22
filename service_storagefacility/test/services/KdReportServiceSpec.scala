@@ -35,6 +35,7 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   implicit val dummyUser = AuthenticatedUser(
     userInfo = UserInfo(
       id = defaultUserId,
+      secondaryIds = Some(Seq("vader@starwars.com")),
       name = Some("Darth Vader"),
       email = None,
       picture = None

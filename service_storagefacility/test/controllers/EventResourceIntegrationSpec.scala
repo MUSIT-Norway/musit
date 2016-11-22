@@ -26,7 +26,7 @@ import models.event.control.Control
 import models.event.observation.Observation
 import no.uio.musit.models.{ActorId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
+import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.test.Helpers._
@@ -67,6 +67,7 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }.recover {
       case t: Throwable =>
         println("Error occured when loading data") // scalastyle:ignore
+        t.printStackTrace()
     }
   }
 

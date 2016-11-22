@@ -23,7 +23,7 @@ import models.storage.StorageType._
 import models.storage.{StorageNode, StorageType}
 import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.FakeAuthenticator._
+import no.uio.musit.security.fake.FakeAuthenticator._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.libs.json._
@@ -96,7 +96,8 @@ class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       buildingId = (building.json \ "id").as[StorageNodeDatabaseId]
     }.recover {
       case t: Throwable =>
-        println("Error occured when loading data:\n" + t) // scalastyle:ignore
+        println("Error occured when loading data") // scalastyle:ignore
+        t.printStackTrace()
     }
   }
 

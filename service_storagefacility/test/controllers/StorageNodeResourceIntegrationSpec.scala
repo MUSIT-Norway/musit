@@ -26,7 +26,7 @@ import models.storage._
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.FakeAuthenticator.fakeAccessTokenPrefix
+import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}

@@ -17,15 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.models
 
-object DataportenProvider {
+import java.util.UUID
 
-  val API = "https://auth.dataporten.no/userinfo?access_token=%s"
+import play.api.libs.json.{JsString, Writes, _}
 
-  val GetProfileError = "[Dataporten][%s] Error retrieving profile information. " +
-    "Error message: %s, doc URL: %s"
+import scala.util.Try
 
-  val GetGroupsError = "[Dataporten][%s] Error retrieving groups information. " +
-    "Error message: %s, doc URL: %s"
+case class GroupId(underlying: UUID) extends MusitUUID
+
+object GroupId {
+  implicit val reads: Reads[GroupId] =
+    __.read[String].map(s => GroupId(UUID.fromString(s)))
+
+  implicit val writes: Writes[GroupId] = Writes(id => JsString(id.asString))
+
+  implicit def fromUUID(uuid: UUID): GroupId = GroupId(uuid)
+
+  /**
+   * Unsafe converter from String to GroupId
+   */
+  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
+  def unsafeFromString(str: String): GroupId = UUID.fromString(str)
+
+  def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
+
+  def generate(): GroupId = GroupId(UUID.randomUUID())
 }

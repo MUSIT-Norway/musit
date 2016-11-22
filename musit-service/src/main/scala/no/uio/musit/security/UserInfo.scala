@@ -25,6 +25,7 @@ import play.api.libs.json._
 
 case class UserInfo(
   id: ActorId,
+  secondaryIds: Option[Seq[String]],
   name: Option[String],
   email: Option[String],
   picture: Option[String]
@@ -32,8 +33,11 @@ case class UserInfo(
 
 object UserInfo {
 
+  def removePrefix(str: String): String = str.reverse.takeWhile(_ != ':').reverse.trim
+
   implicit val format: Format[UserInfo] = (
     (__ \ "userid").format[ActorId] and
+    (__ \ "userid_sec").formatNullable[Seq[String]] and
     (__ \ "name").formatNullable[String] and
     (__ \ "email").formatNullable[String] and
     (__ \ "profilephoto").formatNullable[String]

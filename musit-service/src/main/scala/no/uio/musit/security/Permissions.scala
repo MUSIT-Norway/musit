@@ -19,10 +19,34 @@
 
 package no.uio.musit.security
 
+import play.api.libs.json._
+
 object Permissions {
 
   sealed trait Permission {
     val priority: Int
+  }
+
+  sealed trait ElevatedPermission extends Permission
+
+  object Permission {
+
+    implicit val reads: Reads[Permission] = __.read[Int].map(fromInt)
+
+    implicit val writes: Writes[Permission] = Writes(p => JsNumber(p.priority))
+
+    def fromInt(pri: Int): Permission = {
+      pri match {
+        case Guest.priority => Guest
+        case Read.priority => Read
+        case Write.priority => Write
+        case Admin.priority => Admin
+        case MusitAdmin.priority => MusitAdmin
+        case GodMode.priority => GodMode
+        case _ => Unspecified
+      }
+    }
+
   }
 
   /**
@@ -30,7 +54,7 @@ object Permissions {
    * Typically used when a service needs to be accessible for users regardless
    * of access to museum or collection.
    */
-  object Unspecified extends Permission {
+  case object Unspecified extends Permission {
     override val priority: Int = 0
   }
 
@@ -38,7 +62,7 @@ object Permissions {
    * Handy permission to use when a service should be usable for authenticated
    * users that aren't registered as users in the system.
    */
-  object Guest extends Permission {
+  case object Guest extends Permission {
     override val priority: Int = 1
   }
 
@@ -46,7 +70,7 @@ object Permissions {
    * Provides READ permission to a service within the context of the
    * potentially additional constraints.
    */
-  object Read extends Permission {
+  case object Read extends Permission {
     override val priority: Int = 10
   }
 
@@ -54,7 +78,7 @@ object Permissions {
    * Provides WRITE permission to a service within the context of the
    * potentially additional constraints.
    */
-  object Write extends Permission {
+  case object Write extends Permission {
     override val priority: Int = 20
   }
 
@@ -62,7 +86,7 @@ object Permissions {
    * Provides ADMIN permission to a service within the context of the
    * potentially additional constraints.
    */
-  object Admin extends Permission {
+  case object Admin extends Permission {
     override val priority: Int = 30
   }
 
@@ -70,7 +94,7 @@ object Permissions {
    * Provides application wide ADMIN privileges for _shared_ data across all
    * museums data.
    */
-  object MusitAdmin extends Permission {
+  case object MusitAdmin extends ElevatedPermission {
     override val priority: Int = 40
   }
 
@@ -78,8 +102,8 @@ object Permissions {
    * Highest level of permission available. Should _only_ be used for services
    * that require system/application admin restrictions.
    */
-  object GodMode extends Permission {
-    override val priority: Int = Int.MaxValue
+  case object GodMode extends ElevatedPermission {
+    override val priority: Int = 10000
   }
 
 }

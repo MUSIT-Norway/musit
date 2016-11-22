@@ -29,6 +29,8 @@ object MusitResults {
 
     def get: A
 
+    def toOption: Option[A] = if (isFailure) None else Option(this.get)
+
     def map[B](f: A => B): MusitResult[B] = this match {
       case MusitSuccess(success) => MusitSuccess(f(success))
       case err: MusitError => err
