@@ -32,8 +32,8 @@ object Dependencies {
     val version = "2.5.9"
     val slickVersion = "2.0.0"
 
-    val slick = "com.typesafe.play" %% "play-slick" % slickVersion
-    val slick_ext = "com.typesafe.play" %% "play-slick-evolutions" % slickVersion
+    val slick_play = "com.typesafe.play" %% "play-slick" % slickVersion
+    val slick_play_ev = "com.typesafe.play" %% "play-slick-evolutions" % slickVersion
     val jdbc = "com.typesafe.play" %% "play-jdbc" % version
     val cache = "com.typesafe.play" %% "play-cache" % version
     val ws = "com.typesafe.play" %% "play-ws" % version
@@ -108,8 +108,8 @@ object Dependencies {
 
 
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
-    PlayFrameWork.slick,
-    PlayFrameWork.slick_ext,
+    PlayFrameWork.slick_play,
+    PlayFrameWork.slick_play_ev,
     postgresql,
     h2database
   )
