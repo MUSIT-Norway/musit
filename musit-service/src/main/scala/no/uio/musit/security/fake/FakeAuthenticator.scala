@@ -17,9 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.security.fake
 
-import no.uio.musit.security.FakeAuthenticator.FakeUserDetails
+import no.uio.musit.models.{ActorId, GroupId}
+import no.uio.musit.security.fake.FakeAuthenticator.FakeUserDetails
+import no.uio.musit.security.{Authenticator, BearerToken, GroupInfo, UserInfo}
 import no.uio.musit.service.MusitResults._
 import play.api.libs.json.{JsArray, Json}
 
@@ -36,13 +38,14 @@ class FakeAuthenticator extends Authenticator {
     .mkString
   )
 
-  lazy val fakeData: Map[BearerToken, FakeUserDetails] = {
-    val groups = (config \ "groups").as[Seq[GroupInfo]]
+  lazy val allGroups: Seq[GroupInfo] = (config \ "groups").as[Seq[GroupInfo]]
+
+  lazy val fakeUsers: Map[BearerToken, FakeUserDetails] = {
     (config \ "users").as[JsArray].value.map { usrJs =>
       val token = BearerToken((usrJs \ "accessToken").as[String])
-      val usrGrps = (usrJs \ "groups").as[Seq[String]]
+      val usrGrps = (usrJs \ "groups").as[Seq[GroupId]]
       val usrInfo = usrJs.as[UserInfo]
-      val userGroups = groups.filter(g => usrGrps.contains(g.id))
+      val userGroups = allGroups.filter(g => usrGrps.contains(g.id))
 
       (token, FakeUserDetails(usrInfo, userGroups))
     }.toMap
@@ -56,7 +59,7 @@ class FakeAuthenticator extends Authenticator {
    */
   override def userInfo(token: BearerToken): Future[MusitResult[UserInfo]] = {
     Future.successful {
-      fakeData.get(token).map { fud =>
+      fakeUsers.get(token).map { fud =>
         MusitSuccess(fud.info)
       }.getOrElse {
         MusitNotAuthenticated()
@@ -65,22 +68,18 @@ class FakeAuthenticator extends Authenticator {
   }
 
   /**
-   * Method for retrieving the all the GroupInfo from the FakeAuthService.
+   * Method for retrieving the users GroupInfo from the AuthService based
+   * on the UserInfo found.
    *
-   * @param token the BearerToken to use when performing the request
-   * @return Will eventually return a Seq of GroupInfo wrapped in a MusitResult
+   * @param userInfo the UserInfo found by calling the userInfo method above.
+   * @return Will eventually return a Seq of GroupInfo
    */
-  override def groups(
-    token: BearerToken
-  ): Future[MusitResult[Seq[GroupInfo]]] = {
+  override def groups(userInfo: UserInfo): Future[Seq[GroupInfo]] =
     Future.successful {
-      fakeData.get(token).map { fud =>
-        MusitSuccess(fud.groups)
-      }.getOrElse {
-        MusitNotAuthenticated()
-      }
+      fakeUsers.find(_._2.info.id == userInfo.id)
+        .map(_._2.groups)
+        .getOrElse(Seq.empty)
     }
-  }
 
 }
 

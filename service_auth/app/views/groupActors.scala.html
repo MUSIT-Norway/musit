@@ -1,0 +1,28 @@
+@import models.Group
+@import no.uio.musit.service.MusitResults.MusitError
+@(userEmails: Seq[String], museumId: Int, group: Group, error: Option[MusitError] = None)
+
+@main("Group | Actors") {
+    <h1>Group: @group.name</h1>
+    <p>
+        <a href="@controllers.web.routes.GroupController.groupList(museumId)">
+            Go to group list
+        </a>
+    </p>
+    <p>
+        <a href="@controllers.web.routes.GroupController.groupAddUserGet(museumId, group.id.asString)">
+            Add new user
+        </a>
+    </p>
+    <h4>Found @userEmails.size actors</h4>
+    <ul>
+    @for(email <- userEmails) {
+        <li>
+            <b>@email</b>
+            <form method="post" action="@controllers.web.routes.GroupController.deleteUser(museumId, email, group.id.asString)">
+                <input type="submit" value="Delete" />
+            </form>
+        </li>
+    }
+    </ul>
+}

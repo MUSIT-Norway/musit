@@ -39,11 +39,12 @@ trait Authenticator {
   def userInfo(token: BearerToken): Future[MusitResult[UserInfo]]
 
   /**
-   * Method for retrieving the all the GroupInfo from the AuthService.
+   * Method for retrieving the users GroupInfo from the AuthService based
+   * on the UserInfo found.
    *
-   * @param token the BearerToken to use when performing the request
-   * @return Will eventually return a Seq of GroupInfo wrapped in a MusitResult
+   * @param userInfo the UserInfo found by calling the userInfo method above.
+   * @return Will eventually return a Seq of GroupInfo
    */
-  def groups(token: BearerToken): Future[MusitResult[Seq[GroupInfo]]]
+  def groups(userInfo: UserInfo): Future[Seq[GroupInfo]]
 
 }

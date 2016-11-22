@@ -17,15 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.security.dataporten
 
 import com.google.inject.AbstractModule
 import net.codingwell.scalaguice.ScalaModule
+import no.uio.musit.security.{AuthGroupResolver, Authenticator}
 
-class FakeModule extends AbstractModule with ScalaModule {
+class DataportenModule extends AbstractModule with ScalaModule {
 
   def configure(): Unit = {
-    bind[Authenticator].to[FakeAuthenticator]
+    bind[Authenticator].to[DataportenAuthenticator]
+    bind[AuthGroupResolver].to[DbAuthGroupResolver]
   }
 
 }

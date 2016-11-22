@@ -1,0 +1,17 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%level - %logger{15} %line - %message%n%xException</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="akka" level="WARN" />
+    <logger name="slick.jdbc" level="WARN"/>
+
+    <logger name="no.uio.musit" level="WARN" />
+
+    <root level="ERROR">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>
