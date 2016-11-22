@@ -115,11 +115,18 @@ class DataportenAuthenticator @Inject() (
    * @return Will eventually return a Seq of GroupInfo
    */
   override def groups(userInfo: UserInfo): Future[Seq[GroupInfo]] = {
-    userInfo.feideEmail.map { feide =>
-      groupResolver.findUserGroupsByEmail(feide)
+
+    def stripPrefix(s: String): String = s.reverse.takeWhile(_ != ':').reverse.trim
+
+    userInfo.secondaryIds.map { sids =>
+      Future.sequence {
+        sids.map(stripPrefix).filter(_.contains("@")).map { sid =>
+          groupResolver.findUserGroupsByEmail(sid).map(_.getOrElse(Seq.empty))
+        }
+      }.map(_.flatten)
     }.getOrElse {
-      groupResolver.findUserGroupsByUserId(userInfo.id)
-    }.map(_.getOrElse(Seq.empty))
+      groupResolver.findUserGroupsByUserId(userInfo.id).map(_.getOrElse(Seq.empty))
+    }
   }
 }
 

@@ -25,7 +25,7 @@ import play.api.libs.json._
 
 case class UserInfo(
   id: ActorId,
-  feideEmail: Option[String],
+  secondaryIds: Option[Seq[String]],
   name: Option[String],
   email: Option[String],
   picture: Option[String]
@@ -40,10 +40,12 @@ object UserInfo {
     (__ \ "userid").format[ActorId] and
     // FIXME: Ideally we should ensure that _all_ the secondary ID's are parsed
     // And taken care of. But we need to get cracking! This _must_ be fixed.
-    (__ \ "userid_sec").formatNullable[Seq[String]].inmap[Option[String]](
-      mss => mss.flatMap(_.headOption.map(removePrefix)),
-      ms => ms.map(s => Seq(s))
-    ) and
+    (__ \ "userid_sec").formatNullable[Seq[String]]
+//      .inmap[Option[String]](
+//      mss => mss.flatMap(_.headOption.map(removePrefix)),
+//      ms => ms.map(s => Seq(s))
+//    )
+      and
     (__ \ "name").formatNullable[String] and
     (__ \ "email").formatNullable[String] and
     (__ \ "profilephoto").formatNullable[String]

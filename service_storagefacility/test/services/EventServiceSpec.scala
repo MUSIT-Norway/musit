@@ -37,7 +37,7 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
   implicit val dummyUser = AuthenticatedUser(
     userInfo = UserInfo(
       id = defaultActorId,
-      feideEmail = Some("vader@starwars.com"),
+      secondaryIds = Some("vader@starwars.com"),
       name = Some("Darth Vader"),
       email = None,
       picture = None
