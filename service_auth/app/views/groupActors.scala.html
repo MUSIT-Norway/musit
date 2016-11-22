@@ -16,10 +16,10 @@
     </p>
     <h4>Found @userEmails.size actors</h4>
     <ul>
-    @for(user <- userEmails) {
+    @for(email <- userEmails) {
         <li>
-            @user
-            <form method="post" action="@controllers.web.routes.GroupController.deleteUser(museumId, user, group.id.asString)">
+            <b>@email</b>
+            <form method="post" action="@controllers.web.routes.GroupController.deleteUser(museumId, email, group.id.asString)">
                 <input type="submit" value="Delete" />
             </form>
         </li>

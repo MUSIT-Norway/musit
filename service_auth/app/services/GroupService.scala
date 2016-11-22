@@ -21,7 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.{Group, GroupAdd}
-import no.uio.musit.models.{ActorId, GroupId}
+import no.uio.musit.models.GroupId
 import no.uio.musit.service.MusitResults.MusitResult
 import play.api.Logger
 import repositories.dao.GroupDao
@@ -45,14 +45,12 @@ class GroupService @Inject() (val dao: GroupDao) {
    *
    * @param email
    * @param grpId
-   * @param uid
    * @return
    */
   def addUserToGroup(
     email: String,
-    grpId: GroupId,
-    uid: Option[ActorId] = None
-  ): MusitResultF[Unit] = dao.addUserToGroup(email, grpId, uid)
+    grpId: GroupId
+  ): MusitResultF[Unit] = dao.addUserToGroup(email, grpId)
 
   /**
    *
@@ -72,8 +70,9 @@ class GroupService @Inject() (val dao: GroupDao) {
    * @param grpId
    * @return
    */
-  def listUsersInGroup(grpId: GroupId): MusitResultF[Seq[String]] =
+  def listUsersInGroup(grpId: GroupId): MusitResultF[Seq[String]] = {
     dao.findUsersInGroup(grpId)
+  }
 
   /**
    *
@@ -102,6 +101,7 @@ class GroupService @Inject() (val dao: GroupDao) {
    * @param grpId
    * @return
    */
-  def removeUserFromGroup(email: String, grpId: GroupId): MusitResultF[Int] =
+  def removeUserFromGroup(email: String, grpId: GroupId): MusitResultF[Int] = {
     dao.removeUserFromGroup(email, grpId)
+  }
 }

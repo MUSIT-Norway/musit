@@ -21,7 +21,6 @@ package no.uio.musit.security.dataporten
 
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
-import no.uio.musit.models.ActorId
 import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
 import no.uio.musit.service.MusitResults._
@@ -125,7 +124,7 @@ class DataportenAuthenticator @Inject() (
         }
       }.map(_.flatten)
     }.getOrElse {
-      groupResolver.findUserGroupsByUserId(userInfo.id).map(_.getOrElse(Seq.empty))
+      Future.successful(Seq.empty)
     }
   }
 }

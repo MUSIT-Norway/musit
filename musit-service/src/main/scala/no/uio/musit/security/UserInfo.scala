@@ -36,20 +36,11 @@ object UserInfo {
   def removePrefix(str: String): String = str.reverse.takeWhile(_ != ':').reverse.trim
 
   implicit val format: Format[UserInfo] = (
-    // format: OFF
     (__ \ "userid").format[ActorId] and
-    // FIXME: Ideally we should ensure that _all_ the secondary ID's are parsed
-    // And taken care of. But we need to get cracking! This _must_ be fixed.
-    (__ \ "userid_sec").formatNullable[Seq[String]]
-//      .inmap[Option[String]](
-//      mss => mss.flatMap(_.headOption.map(removePrefix)),
-//      ms => ms.map(s => Seq(s))
-//    )
-      and
+    (__ \ "userid_sec").formatNullable[Seq[String]] and
     (__ \ "name").formatNullable[String] and
     (__ \ "email").formatNullable[String] and
     (__ \ "profilephoto").formatNullable[String]
-  // format: ON
   )(UserInfo.apply, unlift(UserInfo.unapply))
 
 }

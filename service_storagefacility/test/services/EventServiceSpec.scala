@@ -37,7 +37,7 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
   implicit val dummyUser = AuthenticatedUser(
     userInfo = UserInfo(
       id = defaultActorId,
-      secondaryIds = Some("vader@starwars.com"),
+      secondaryIds = Some(Seq("vader@starwars.com")),
       name = Some("Darth Vader"),
       email = None,
       picture = None
@@ -54,11 +54,11 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
 
   "Processing events" should {
     "successfully insert a new Control" in {
-      val ctrl = createControl(defaultBuilding.id)
-      val controlEvent = controlService.add(defaultMuseumId, defaultBuilding.id.get, ctrl).futureValue
-      controlEvent.isSuccess mustBe true
-      controlEvent.get.id.get mustBe EventId(1)
-      latestEventId = controlEvent.get.id.get
+      val c = createControl(defaultBuilding.id)
+      val ce = controlService.add(defaultMuseumId, defaultBuilding.id.get, c).futureValue
+      ce.isSuccess mustBe true
+      ce.get.id.get mustBe EventId(1)
+      latestEventId = ce.get.id.get
       latestEventId mustBe 1L
     }
 
@@ -104,8 +104,9 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
     }
 
     "fail when inserting a EnvReq with wrong museumId" in {
-      val mid = MuseumId(2)
-      val envReq = createEnvRequirement(defaultBuilding.id)
+      pending
+      //      val mid = MuseumId(2)
+      //      val envReq = createEnvRequirement(defaultBuilding.id)
       //val envReqEvent = storageNodeService.saveEnvReq(mid,defaultBuilding.id.get,envReq.asInstanceOf[EnvironmentRequirement]).futureValue
       // TODO: problem solving this test on envReqEvent against museumID
       /* envReqEvent.get mustBe true

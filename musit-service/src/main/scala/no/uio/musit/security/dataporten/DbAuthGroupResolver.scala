@@ -20,7 +20,6 @@
 package no.uio.musit.security.dataporten
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.{AuthGroupResolver, AuthTables, GroupInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
@@ -49,17 +48,6 @@ class DbAuthGroupResolver @Inject() (
       MusitSuccess(grps.map {
         case (gid, name, perm, mid, desc) => GroupInfo(gid, name, perm, mid, desc)
       })
-    }
-  }
-
-  override def findUserGroupsByUserId(
-    usrId: ActorId
-  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
-    findBy(usrGrpTable.filter(_.userId === usrId)).recover {
-      case NonFatal(ex) =>
-        val msg = s"An error occurred when trying to find Groups for user $usrId"
-        logger.error(msg, ex)
-        MusitDbError(msg, Some(ex))
     }
   }
 

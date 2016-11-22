@@ -93,11 +93,8 @@ class GroupController @Inject() (
         )
       },
       userAdd => {
-        val userId = userAdd.userId.flatMap { uid =>
-          ActorId.validate(uid).toOption
-        }.map(ActorId.apply)
         GroupId.validate(userAdd.groupId).toOption.map { groupId =>
-          groupService.addUserToGroup(userAdd.email, groupId, userId).map {
+          groupService.addUserToGroup(userAdd.email, groupId).map {
             case MusitSuccess(group) =>
               Redirect(
                 controllers.web.routes.GroupController.groupActorsList(mid, gid)
@@ -152,6 +149,8 @@ class GroupController @Inject() (
   def getActors(ids: Seq[String]): Future[Either[String, Seq[Actor]]] = {
     configuration.getString("actor.detailsUrl").map { url =>
       ws.url(url)
+        // FIXME: This is a hack to be able to use the Actor service since
+        // there is currently no handling of bearer token in the UI controllers.
         .withHeaders(
           "Authorization" -> "Bearer fake-token-zab-xy-superuser"
         )

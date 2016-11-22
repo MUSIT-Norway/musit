@@ -20,8 +20,8 @@
 package repositories.dao
 
 import models._
+import no.uio.musit.models.GroupId
 import no.uio.musit.models.Museums.Test
-import no.uio.musit.models.{ActorId, GroupId}
 import no.uio.musit.security.Permissions
 import no.uio.musit.service.MusitResults.MusitDbError
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -189,26 +189,24 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "adding a new UserGroup" should {
 
-      val uid = ActorId.generate()
       val email = "foo1@bar.com"
 
       "successfully add a new UserGroup row" in {
         val grpId = addedGroupIds.result().tail.head
-        dao.addUserToGroup(email, grpId, Some(uid)).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, grpId).futureValue.isSuccess mustBe true
       }
 
       "not allow duplicate UserGroup entries" in {
         val grpId = addedGroupIds.result().tail.head
-        dao.addUserToGroup(email, grpId, Some(uid)).futureValue.isFailure mustBe true
+        dao.addUserToGroup(email, grpId).futureValue.isFailure mustBe true
       }
     }
 
     "deleting a UserGroup relation" should {
       "successfully remove the row" in {
         val email = "foo2@bar.com"
-        val uid = ActorId.generate()
         val gid = addedGroupIds.result().last
-        dao.addUserToGroup(email, gid, Some(uid)).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid).futureValue.isSuccess mustBe true
 
         val res = dao.removeUserFromGroup(email, gid).futureValue
         res.isSuccess mustBe true
@@ -232,9 +230,9 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         val gid2 = addedGroupIds.result().tail.tail.head
         val gid3 = addedGroupIds.result().last
 
-        dao.addUserToGroup(email, gid1, None).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email, gid2, None).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email, gid3, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid1).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid2).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid3).futureValue.isSuccess mustBe true
 
         val res = dao.findGroupsFor(email).futureValue
 
@@ -251,9 +249,9 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
         val grp1 = addedGroupIds.result().reverse.tail.tail.head
 
-        dao.addUserToGroup(email1, grp1, None).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email2, grp1, None).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email3, grp1, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email1, grp1).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email2, grp1).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email3, grp1).futureValue.isSuccess mustBe true
 
         val res = dao.findUsersInGroup(grp1).futureValue
         res.isSuccess mustBe true

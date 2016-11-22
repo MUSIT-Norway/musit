@@ -20,7 +20,7 @@
 package models
 
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.models.{ActorId, GroupId, MuseumId}
+import no.uio.musit.models.{GroupId, MuseumId}
 import no.uio.musit.security.Permissions.{Permission, Unspecified}
 import play.api.data.Form
 import play.api.data.Forms._
@@ -70,21 +70,18 @@ object GroupAdd {
 
 }
 
-case class UserGroupAdd(email: String, userId: Option[String], groupId: String)
+case class UserGroupAdd(email: String, groupId: String)
 
 object UserGroupAdd {
   implicit def reads: Reads[UserGroupAdd] = Json.reads[UserGroupAdd]
 
-  def applyForm(email: String, userId: Option[String], groupId: String) =
-    UserGroupAdd(email, userId, groupId)
+  def applyForm(email: String, groupId: String) = UserGroupAdd(email, groupId)
 
-  def unapplyForm(uga: UserGroupAdd) =
-    Some((uga.email, uga.userId, uga.groupId))
+  def unapplyForm(uga: UserGroupAdd) = Some((uga.email, uga.groupId))
 
   val userGroupAddForm = Form(
     mapping(
       "email" -> email,
-      "userId" -> optional(text.verifying(id => ActorId.validate(id).isSuccess)),
       "groupId" -> text.verifying(id => GroupId.validate(id).isSuccess)
     )(applyForm)(unapplyForm)
   )

@@ -8,7 +8,7 @@
     <logger name="akka" level="WARN" />
     <logger name="slick.jdbc" level="WARN"/>
 
-    <logger name="no.uio.musit" level="DEBUG" />
+    <logger name="no.uio.musit" level="WARN" />
 
     <root level="ERROR">
         <appender-ref ref="STDOUT"/>

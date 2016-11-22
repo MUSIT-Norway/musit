@@ -19,18 +19,14 @@
 
 package no.uio.musit.security
 
-import no.uio.musit.models.ActorId
 import no.uio.musit.service.MusitResults.MusitResult
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthGroupResolver {
 
-  def findUserGroupsByUserId(
-    usrId: ActorId
-  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
-
   def findUserGroupsByEmail(
     email: String
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
+
 }

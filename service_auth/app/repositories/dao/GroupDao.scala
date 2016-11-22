@@ -21,7 +21,7 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd}
-import no.uio.musit.models.{ActorId, GroupId}
+import no.uio.musit.models.GroupId
 import no.uio.musit.security.AuthTables
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
@@ -191,15 +191,13 @@ class GroupDao @Inject() (
    *
    * @param feideEmail
    * @param grpId
-   * @param usrId
    * @return
    */
   def addUserToGroup(
     feideEmail: String,
-    grpId: GroupId,
-    usrId: Option[ActorId]
+    grpId: GroupId
   ): Future[MusitResult[Unit]] = {
-    val action = usrGrpTable += ((feideEmail, usrId, grpId))
+    val action = usrGrpTable += ((feideEmail, grpId))
 
     db.run(action).map(res => MusitSuccess(())).recover {
       case NonFatal(ex) =>

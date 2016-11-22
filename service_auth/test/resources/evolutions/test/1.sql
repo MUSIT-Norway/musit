@@ -17,7 +17,6 @@ CREATE TABLE MUSARK_AUTH.AUTH_GROUP (
 
 CREATE TABLE MUSARK_AUTH.USER_AUTH_GROUP (
   user_feide_email VARCHAR(254) NOT NULL,
-  user_uuid VARCHAR2(36), -- Dataporten user UUID
   group_uuid VARCHAR2(36) NOT NULL,
   PRIMARY KEY (user_feide_email, group_uuid),
   FOREIGN KEY (group_uuid) REFERENCES MUSARK_AUTH.AUTH_GROUP (group_uuid),
