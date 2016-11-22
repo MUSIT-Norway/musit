@@ -11,9 +11,9 @@ echo "##########################################################################
 # ------------------------------------------------------------------------
 export EVOLUTION_ENABLED=false
 export APPLICATION_SECRET=dummyAppSecret
-export SLICK_DRIVER=com.typesafe.slick.driver.oracle.OracleDriver$
-export SLICK_DB_DRIVER=oracle.jdbc.OracleDriver
-export SLICK_DB_URL=jdbc:oracle:thin:@blabla:1521:sid
+export SLICK_DRIVER=slick.driver.PostgresDriver$
+export SLICK_DB_DRIVER=org.postgresql.Driver
+export SLICK_DB_URL=jdbc:postgresql://db/postgres
 export SLICK_DB_USER=postgres
 export SLICK_DB_PASSWORD=postgres
 
