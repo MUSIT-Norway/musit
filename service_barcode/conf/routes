@@ -1,0 +1,5 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET /barcode/:uuid/generate     controllers.BarcodeController.generate(uuid: String, width: Option[Int], height: Option[Int], format: Int)

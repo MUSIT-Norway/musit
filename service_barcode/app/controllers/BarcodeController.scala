@@ -19,17 +19,19 @@
 
 package controllers
 
-import java.util.UUID
 import java.net.URLEncoder.encode
+import java.util.UUID
 
-import akka.stream.scaladsl.{Source, StreamConverters}
+import akka.stream.scaladsl.Source
 import com.google.inject.{Inject, Singleton}
 import models.BarcodeFormats.{BarcodeFormat, DataMatrix, QrCode}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json.Json
-import services.{DataMatrixGenerator, Generator, QrGenerator}
+import play.api.libs.streams.Streams
+import play.api.mvc.Action
+import services.Generator
 
 import scala.util.{Failure, Success, Try}
 
@@ -42,8 +44,7 @@ class BarcodeController @Inject()(
 
   def contentDisposition(name: String) = {
     CONTENT_DISPOSITION -> (s"""attachment; filename="$name.png"; filename*=UTF-8''""" +
-        encode(name, "UTF-8").replace("+", "%20")
-      )
+      encode(name, "UTF-8").replace("+", "%20"))
   }
 
   def generate(
@@ -51,7 +52,7 @@ class BarcodeController @Inject()(
     width: Option[Int],
     height: Option[Int],
     format: Int = QrCode.code
-  ) = MusitSecureAction() { implicit request =>
+  ) = Action { implicit request => // MusitSecureAction() { implicit request =>
     Try(UUID.fromString(uuid)) match {
       case Success(id) =>
         BarcodeFormat.fromInt(format).flatMap { bf =>

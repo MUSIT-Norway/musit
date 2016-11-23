@@ -38,9 +38,9 @@ object BarcodeFormats {
       i match {
         case QrCode.code => Some(QrCode)
         case DataMatrix.code => Some(DataMatrix)
-//        case Code39.code => Code39
-//        case Code93.code => Code93
-//        case Code128.code => Code128
+        //        case Code39.code => Code39
+        //        case Code93.code => Code93
+        //        case Code128.code => Code128
         case _ =>
           logger.warn(s"Barcode format $i is currently not supported")
           None
