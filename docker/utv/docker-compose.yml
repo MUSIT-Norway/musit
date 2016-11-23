@@ -12,6 +12,8 @@ services:
     webpack:
         build:
             context: "../../frontend"
+        environment:
+          - USE_DATAPORTEN
 
     backing:
         build:
