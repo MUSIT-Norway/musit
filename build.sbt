@@ -48,9 +48,9 @@ val noPublish = Seq(
 lazy val root = project in file(".") settings noPublish aggregate(
   musitTest,
   musitModels,
-  musitBarqr,
   musitService,
   serviceAuth,
+  serviceBarcode,
   serviceThingAggregate,
   serviceActor,
   serviceGeoLocation,
@@ -70,19 +70,6 @@ lazy val musitTest = (
         ScalaTest.scalatestplusSpec,
         ScalaTest.scalactic
       ) ++ playDependencies
-    )
-)
-
-lazy val musitBarqr = (
-  BaseProject("musit-barqr")
-    settings noPublish
-    settings(
-      libraryDependencies ++= Seq[ModuleID](
-        zxing,
-        Logging.slf4jApi,
-        ScalaTest.scalatest,
-        ScalaTest.scalactic
-      )
     )
 )
 
@@ -124,6 +111,20 @@ lazy val serviceAuth = (
     settings(
       baseDockerSettings ++ Seq(
         packageName in Docker := "musit_service_auth"
+      )
+    )
+) dependsOn(musitService, musitTest % Test)
+
+lazy val serviceBarcode = (
+  PlayProject("service_barcode")
+    settings noPublish
+    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(libraryDependencies += zxing)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings(scoverageSettings: _*)
+    settings(
+      baseDockerSettings ++ Seq(
+        packageName in Docker := "musit_service_barcode"
       )
     )
 ) dependsOn(musitService, musitTest % Test)

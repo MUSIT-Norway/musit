@@ -58,7 +58,7 @@ sealed trait StorageNode {
 
 object StorageNode {
 
-  def logExists(destId: StorageNodeId, exists: Boolean): String = {
+  def logExists(destId: StorageNodeDatabaseId, exists: Boolean): String = {
     s"Destination $destId ${if (exists) "exists" else "doesn't exist"} in " +
       "expected position"
   }
