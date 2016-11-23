@@ -19,15 +19,19 @@
 
 package services
 
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
+import java.awt.image.BufferedImage // scalastyle:ignore
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.UUID
 import javax.imageio.ImageIO
 
+import akka.stream.IOResult
+import akka.stream.scaladsl.{Source, StreamConverters}
+import akka.util.ByteString
 import com.google.zxing.{EncodeHintType, MultiFormatWriter}
 import models.BarcodeFormats._
 import play.api.Logger
 
+import scala.concurrent.Future
 import scala.util.Try
 
 trait Generator {
@@ -38,32 +42,29 @@ trait Generator {
   protected val white: Int = 0xFFFFFFFF
   protected val black: Int = 0xFF000000
 
-  val defaultWidth: Int
-  lazy val defaultHeight: Int = defaultWidth
+  val width: Int
+  lazy val height: Int = width
 
   /**
-   * Generate the actual barcode/qr code image and return it as an Array[Byte].
+   * Generate the actual barcode/qr code image and return it as a Source.
    * The images are so small that the footprint of keeping the in-memory should
    * not be a problem.
    */
   protected def generate(
     value: String,
     format: BarcodeFormat,
-    width: Int,
-    height: Int,
     hints: Map[EncodeHintType, Any] = Map.empty
-  ): Try[Array[Byte]] = Try {
+  ): Try[Source[ByteString, Future[IOResult]]] = Try {
     val writer = new MultiFormatWriter
+    // We need to implicitly convert hints from Scala to Java Map before encoding
     import scala.collection.JavaConversions._
-    // encode the value and ensure that it has correct case for the format.
-    val v = if (format.shouldUpperCase) value.toUpperCase else value.toLowerCase
-    val matrix = writer.encode(v, format.zxingFormat, width, height, hints)
+    val matrix = writer.encode(value, format.zxingFormat, width, height, hints)
 
     // "draw" the pixels (as black or white)
     val pixels = Array.newBuilder[Int]
-    for (i <- 0 until height) {
-      for (j <- 0 until width) {
-        val blackOrWhite = if (matrix.get(j, i)) black else white
+    for (i <- 0 until width) {
+      for (j <- 0 until height) {
+        val blackOrWhite = if (matrix.get(i, j)) black else white
         pixels += blackOrWhite
       }
     }
@@ -75,7 +76,7 @@ trait Generator {
 
     val baos = new ByteArrayOutputStream()
     ImageIO.write(img, "png", baos)
-    baos.toByteArray
+    StreamConverters.fromInputStream(() => new ByteArrayInputStream(baos.toByteArray))
   }.recover {
     case ex: Throwable =>
       logger.warn(s"Unable to generate ${format.zxingFormat.name()}", ex)
@@ -83,39 +84,12 @@ trait Generator {
   }
 
   /**
-   * Generates any of the supported 2D codes (QR or DataMatrix).
-   */
-  def generate2DCode(
-    value: String,
-    format: BarcodeFormat2D,
-    width: Int = defaultWidth,
-    height: Int = defaultHeight,
-    hints: Map[EncodeHintType, Any] = Map.empty
-  ): Option[Array[Byte]] = generate(value, format, width, height, hints).toOption
-
-  /**
-   * Generates any of the supported 1D bar codes.
-   */
-  def generate1DCode(
-    value: String,
-    format: BarcodeFormat1D,
-    width: Int = defaultWidth,
-    height: Int = defaultHeight
-  ): Option[Array[Byte]] = {
-    val hints = Map(EncodeHintType.MARGIN -> 20)
-    generate(value, format, width, height, hints).toOption
-  }
-
-  /**
    * Generates an image of a barcode format based on the given input.
    *
    * @param value The UUID to generate an encoded image for
-   * @param width The width dimension of the image
-   * @param height The height dimension of the image
-   *
-   * @return An Array[Byte] representing the barcode image
+   * @return A Source representing the barcode image
    */
-  def write(value: UUID, width: Option[Int], height: Option[Int]): Option[Array[Byte]]
+  def write(value: UUID): Option[Source[ByteString, Future[IOResult]]]
 
 }
 

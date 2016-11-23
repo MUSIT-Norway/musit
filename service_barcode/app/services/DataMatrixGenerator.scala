@@ -21,10 +21,15 @@ package services
 
 import java.util.UUID
 
+import akka.stream.IOResult
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import com.google.zxing.EncodeHintType
 import com.google.zxing.datamatrix.encoder.SymbolShapeHint
 import models.BarcodeFormats.DataMatrix
 import play.api.Logger
+
+import scala.concurrent.Future
 
 object DataMatrixGenerator extends Generator {
 
@@ -32,32 +37,20 @@ object DataMatrixGenerator extends Generator {
 
   val minimumSize = 22
 
-  override val defaultWidth = 22
+  override val width = 22
 
   /**
    * Generates a DataMatrix code for an UUID
    *
    * @param value to encode as a DataMatrix code
-   * @param width
-   * @param height
-   * @return An Array[Byte] representing the DataMatrix image
+   * @return A Source representing the DataMatrix image
    */
-  def writeDataMatrix(
-    value: UUID,
-    width: Option[Int],
-    height: Option[Int]
-  ): Option[Array[Byte]] = {
+  def write(value: UUID): Option[Source[ByteString, Future[IOResult]]] = {
     val hints = Map[EncodeHintType, Any](
       EncodeHintType.DATA_MATRIX_SHAPE -> SymbolShapeHint.FORCE_NONE
     )
 
-    generate2DCode(
-      value.toString,
-      DataMatrix,
-      width.getOrElse(defaultWidth),
-      height.getOrElse(defaultHeight),
-      hints
-    )
+    generate(value.toString, DataMatrix, hints).toOption
   }
 
 }

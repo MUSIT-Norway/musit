@@ -17,40 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
-
-import models.BarcodeFormats._
-import play.api.Logger
+package models
 
 /**
- * Generator for 1D codes like Code 39, Code 93 and Code 128.
+ * Value class to encode Millimeter precision
+ *
+ * @param underlying Double representing the mm value.
  */
-object Barcode1DGenerator extends Generator {
+case class Millimeters(underlying: Double) extends AnyVal
 
-  private val logger = Logger(this.getClass)
+object Millimeters {
 
-  override val defaultWidth = 256
-  override lazy val defaultHeight = 50
+  implicit def asDouble(mm: Millimeters): Double = mm.underlying
 
-  /**
-   * Generates a Code 39 barcode for an UUID
-   *
-   * @param value to encode as a barcode
-   */
-  def writeCode39(value: String): Option[Array[Byte]] = generate1DCode(value, Code39)
-
-  /**
-   * Generates a Code 93 barcode for an UUID
-   *
-   * @param value to encode as a barcode
-   */
-  def writeCode93(value: String): Option[Array[Byte]] = generate1DCode(value, Code93)
-
-  /**
-   * Generates a Code 128 barcode for an UUID
-   *
-   * @param value to encode as a barcode
-   */
-  def writeCode128(value: String): Option[Array[Byte]] = generate1DCode(value, Code128)
+  implicit def fromDouble(d: Double): Millimeters = Millimeters(d)
 
 }

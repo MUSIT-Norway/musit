@@ -1,0 +1,37 @@
+@import java.util.UUID
+@import models.BarcodeFormats.BarcodeFormat
+@import controllers.routes
+
+@(uuid: UUID, name: String, bf: BarcodeFormat, isPreview: Boolean = false)
+
+@templateCss = {
+    <link rel="stylesheet" href="@routes.Assets.at("css/avery_5160.css")">
+}
+
+@label = {
+    <div class="label">
+        <div class="top">
+            <div class="codeImage">
+                <img
+                width="60px"
+                height="60px"
+                src="@routes.BarcodeController.generate(uuid.toString, bf.code)"
+                />
+            </div>
+            <div class="name">
+                <p>@name</p>
+            </div>
+        </div>
+        <div class="uuid">
+        @uuid
+        </div>
+    </div>
+}
+
+@if(isPreview) {
+    @preview(templateCss) {
+        @label
+    }
+} else {
+    @label
+}

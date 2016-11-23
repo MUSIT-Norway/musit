@@ -17,37 +17,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+.label {
+    /* Avery 5160 labels */
+    width: 51.435mm;
+    height: 22.225mm;
+    padding: 3.175mm 7.62mm 0;
+    margin-right: 3.175mm;
 
-import java.util.UUID
+    float: left;
 
-import akka.stream.IOResult
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
-import com.google.zxing.EncodeHintType
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import models.BarcodeFormats.QrCode
-import play.api.Logger
+    text-align: center;
+    overflow: hidden;
 
-import scala.concurrent.Future
+    background-color: white;
+    outline: 1px dotted;
+}
 
-object QrGenerator extends Generator {
+.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
 
-  private val logger = Logger(this.getClass)
+.codeImage {
+    align-self: flex-start;
+}
 
-  override val width = 100
+.name {
+    align-self: flex-end;
+}
 
-  /**
-   * Generates a QR code for an UUID
-   *
-   * @param value to encode as a QR code
-   * @return A Source representing the DataMatrix image
-   */
-  override def write(value: UUID): Option[Source[ByteString, Future[IOResult]]] = {
-    val hints = Map[EncodeHintType, Any](
-      EncodeHintType.ERROR_CORRECTION -> ErrorCorrectionLevel.H
-    )
-    generate(value.toString, QrCode, hints).toOption
-  }
-
+.uuid {
+    display: block;
+    font-size: x-small;
 }

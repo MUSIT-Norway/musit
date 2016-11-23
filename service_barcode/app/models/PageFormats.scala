@@ -17,37 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package models
 
-import java.util.UUID
+object PageFormats {
 
-import akka.stream.IOResult
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
-import com.google.zxing.EncodeHintType
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import models.BarcodeFormats.QrCode
-import play.api.Logger
+  sealed trait PageFormat {
+    val width: Millimeters
+    val height: Millimeters
+  }
 
-import scala.concurrent.Future
-
-object QrGenerator extends Generator {
-
-  private val logger = Logger(this.getClass)
-
-  override val width = 100
-
-  /**
-   * Generates a QR code for an UUID
-   *
-   * @param value to encode as a QR code
-   * @return A Source representing the DataMatrix image
-   */
-  override def write(value: UUID): Option[Source[ByteString, Future[IOResult]]] = {
-    val hints = Map[EncodeHintType, Any](
-      EncodeHintType.ERROR_CORRECTION -> ErrorCorrectionLevel.H
-    )
-    generate(value.toString, QrCode, hints).toOption
+  case object A4 extends PageFormat {
+    override val width = Millimeters(210D)
+    override val height = Millimeters(297D)
   }
 
 }

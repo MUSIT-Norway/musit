@@ -2,4 +2,13 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET /barcode/:uuid/generate     controllers.BarcodeController.generate(uuid: String, width: Option[Int], height: Option[Int], format: Int)
+# Endpoint for generating a 2D barcode (DataMatrix or QR)
+GET        /barcode/:uuid/generate           controllers.BarcodeController.generate(uuid: String, format: Int)
+
+# Endpoints for rendering templates
+GET        /label/:templateId/preview        controllers.LabelController.preview(templateId: Int, format: Int, name: String ?= "Lorem Ipsum", uuid: String ?= "1ab234cd-567e-898f-7e65-4d321c012b34")
+GET        /label/:templateId/render         controllers.LabelController.render(templateId: Int, format: Int)
+
+
+# Map static resources from the /public folder to the /assets URL path
+GET        /assets/*file                     controllers.Assets.at(path="/public", file)
