@@ -13,7 +13,7 @@ services:
         build:
             context: "../../frontend"
         environment:
-          - USE_DATAPORTEN
+          - REACT_APP_USE_DATAPORTEN
 
     backing:
         build:
