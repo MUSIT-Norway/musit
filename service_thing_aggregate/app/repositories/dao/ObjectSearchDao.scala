@@ -130,7 +130,7 @@ class ObjectSearchDao @Inject() (
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String]
-  ) = {
+  ): Query[Nothing, Nothing, Seq] = {
     val mno = museumNo.map(_.value)
 
     val q1 = classifyValue(mno).map(f => museumNoFilter(table, f)).getOrElse(table)
@@ -145,7 +145,7 @@ class ObjectSearchDao @Inject() (
         mt.subNoAsNumber.asc,
         mt.subNo.toLowerCase.asc
       )
-    }
+    }.groupBy(_.mainObjectId).map(_._2)
   }
 
   /**
@@ -178,7 +178,7 @@ class ObjectSearchDao @Inject() (
       matches <- matchedResults
     } yield {
       MusitSuccess(
-        ObjectSearchResult(total, matches.map(MusitObjectDto.toMusitObject))
+        ObjectSearchResult(total, matches.map(MusitObjectDto.toMusitObject)
       )
     }).recover {
       case e: Exception =>

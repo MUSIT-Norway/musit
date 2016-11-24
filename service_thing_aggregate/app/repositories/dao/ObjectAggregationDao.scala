@@ -58,7 +58,8 @@ class ObjectAggregationDao @Inject() (
          FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."MUSITTHING"
          WHERE "LOCAL_OBJECT"."MUSEUM_ID" = ${mid.underlying}
          AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId.underlying}
-         AND "LOCAL_OBJECT"."OBJECT_ID" = "MUSITTHING"."OBJECT_ID";
+         AND "LOCAL_OBJECT"."OBJECT_ID" = "MUSITTHING"."OBJECT_ID"
+         GROUP BY "MAINOBJECTID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     // scalastyle:on line.size.limit
     ).recover {
