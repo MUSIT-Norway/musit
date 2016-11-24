@@ -48,16 +48,18 @@ class ObjectAggregationDao @Inject() (
         id = ObjectId(r.nextLong),
         museumNo = MuseumNo(r.nextString),
         subNo = r.nextStringOption.map(SubNo.apply),
-        term = r.nextStringOption
+        term = r.nextStringOption,
+        mainObjectId = r.nextLongOption.map(ObjectId.apply)
       ))
     // scalastyle:off line.size.limit
     db.run(
       sql"""
-         SELECT "MUSITTHING"."OBJECT_ID", "MUSITTHING"."MUSEUMNO", "MUSITTHING"."SUBNO", "MUSITTHING"."TERM"
+         SELECT "MUSITTHING"."OBJECT_ID", "MUSITTHING"."MUSEUMNO", "MUSITTHING"."SUBNO", "MUSITTHING"."TERM", "MAINOBJECT_ID"
          FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."MUSITTHING"
          WHERE "LOCAL_OBJECT"."MUSEUM_ID" = ${mid.underlying}
          AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId.underlying}
-         AND "LOCAL_OBJECT"."OBJECT_ID" = "MUSITTHING"."OBJECT_ID";
+         AND "LOCAL_OBJECT"."OBJECT_ID" = "MUSITTHING"."OBJECT_ID"
+         GROUP BY "MAINOBJECTID";
       """.as[ObjectAggregation].map(MusitSuccess.apply)
     // scalastyle:on line.size.limit
     ).recover {

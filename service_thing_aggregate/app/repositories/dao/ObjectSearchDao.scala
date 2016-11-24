@@ -39,7 +39,7 @@ class ObjectSearchDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
-  val logger = Logger(classOf[ObjectAggregationDao])
+  val logger = Logger(classOf[ObjectSearchDao])
 
   import driver.api._
 
@@ -130,7 +130,7 @@ class ObjectSearchDao @Inject() (
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String]
-  ): QObjectTable = {
+  ): Query[Nothing, Nothing, Seq] = {
     val mno = museumNo.map(_.value)
 
     val q1 = classifyValue(mno).map(f => museumNoFilter(table, f)).getOrElse(table)
@@ -145,7 +145,7 @@ class ObjectSearchDao @Inject() (
         mt.subNoAsNumber.asc,
         mt.subNo.toLowerCase.asc
       )
-    }
+    }.groupBy(_.mainObjectId).map(_._2)
   }
 
   /**
@@ -200,7 +200,8 @@ class ObjectSearchDao @Inject() (
       museumNoAsNumber,
       subNo,
       subNoAsNumber,
-      term
+      term,
+      mainObjectId
     ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
@@ -212,6 +213,7 @@ class ObjectSearchDao @Inject() (
     val subNo = column[Option[String]]("SUBNO")
     val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
     val term = column[String]("TERM")
+    val mainObjectId = column[Option[Long]]("MAINOBJECT_ID")
 
     def create = (
       museumId: MuseumId,
@@ -220,7 +222,8 @@ class ObjectSearchDao @Inject() (
       museumNoAsNumber: Option[Long],
       subNo: Option[String],
       subNoAsNumber: Option[Long],
-      term: String
+      term: String,
+      mainObjectId: Option[Long]
     ) =>
       MusitObjectDto(
         museumId = museumId,
@@ -229,7 +232,8 @@ class ObjectSearchDao @Inject() (
         museumNoAsNumber = museumNoAsNumber,
         subNo = subNo.map(SubNo.apply),
         subNoAsNumber = subNoAsNumber,
-        term = term
+        term = term,
+        mainObjectId = mainObjectId
       )
 
     def destroy(thing: MusitObjectDto) =
@@ -240,7 +244,8 @@ class ObjectSearchDao @Inject() (
         thing.museumNoAsNumber,
         thing.subNo.map(_.value),
         thing.subNoAsNumber,
-        thing.term
+        thing.term,
+        thing.mainObjectId
       ))
   }
 
