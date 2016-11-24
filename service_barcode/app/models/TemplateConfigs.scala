@@ -23,22 +23,30 @@ import models.PageFormats.PageFormat
 
 object TemplateConfigs {
 
+  val AvailableConfigs: Seq[TemplateConfig] = Seq(
+    Avery5160,
+    Herma9650
+  )
+
   sealed trait TemplateConfig {
     val templateId: Int
+    val name: String
     val labelWidth: Millimeters
     val labelHeight: Millimeters
+    val rowsPerPage: Int
+    val colsPerPage: Int
 
     val pageFormat: PageFormat = PageFormats.A4
 
-    lazy val rowsPerPage: Int = (pageFormat.height / labelHeight).toInt
-    lazy val colsPerPage: Int = (pageFormat.width / labelWidth).toInt
+    def numPerPage = rowsPerPage * colsPerPage
+
   }
 
   object TemplateConfig {
     def fromInt(i: Int): Option[TemplateConfig] = {
       i match {
         case Avery5160.templateId => Some(Avery5160)
-        case Herma9560.templateId => Some(Herma9560)
+        case Herma9650.templateId => Some(Herma9650)
         case _ => None
       }
     }
@@ -46,14 +54,20 @@ object TemplateConfigs {
 
   case object Avery5160 extends TemplateConfig {
     override val templateId: Int = 1
+    override val name: String = "Avery 51x60"
     override val labelWidth: Millimeters = Millimeters(51.453)
     override val labelHeight: Millimeters = Millimeters(22.225)
+    override val rowsPerPage: Int = 30
+    override val colsPerPage: Int = 3
   }
 
-  case object Herma9560 extends TemplateConfig {
+  case object Herma9650 extends TemplateConfig {
     override val templateId: Int = 2
-    override val labelWidth: Millimeters = Millimeters(96D)
+    override val name: String = "Herma 95x50.8"
+    override val labelWidth: Millimeters = Millimeters(96.0)
     override val labelHeight: Millimeters = Millimeters(50.8)
+    override val rowsPerPage: Int = 5
+    override val colsPerPage: Int = 2
   }
 
 }

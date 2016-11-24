@@ -21,10 +21,10 @@ package models
 
 import play.api.libs.json.{Format, Json}
 
-case class LabelData(uuid: String, data: Seq[FieldData])
+case class FieldData(field: Option[String], value: String)
 
-object LabelData {
+object FieldData {
 
-  implicit val format: Format[LabelData] = Json.format[LabelData]
+  implicit val format: Format[FieldData] = Json.format[FieldData]
 
 }

@@ -21,13 +21,24 @@ body {
     /* A4 dimensions */
     width: 210mm;
     /*height: 297mm;*/
-    margin: 0 4.762mm;
-    /*margin: 0 0;*/
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
 }
 
 @page {
+    /* A4 dimensions */
     size: 210mm 297mm;
-    margin: 0 0;
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+}
+
+.labelsContainer {
+    height: 297mm;
+    width: 210mm;
+    margin: 0;
+    page-break-after: always;
 }
 
 .page-break {
