@@ -29,7 +29,6 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.Action
 
 import scala.util.Try
 
@@ -45,7 +44,7 @@ class TemplateController @Inject() (
     format: Int,
     name: String,
     uuid: String
-  ) = Action { implicit request =>
+  ) = MusitSecureAction() { implicit request =>
     Try(UUID.fromString(uuid)).toOption.map { id =>
       val labelData = Seq(LabelData(uuid, Seq(FieldData(Some("name"), name))))
       BarcodeFormat.fromInt(format).map { bf =>
@@ -72,7 +71,10 @@ class TemplateController @Inject() (
     }
   }
 
-  def render(templateId: Int, format: Int) = Action(parse.json) { implicit request =>
+  def render(
+    templateId: Int,
+    format: Int
+  ) = MusitSecureAction()(parse.json) { implicit request =>
     request.body.validate[Seq[LabelData]] match {
       case JsSuccess(data, _) =>
         BarcodeFormat.fromInt(format).map { bf =>
@@ -100,7 +102,7 @@ class TemplateController @Inject() (
     }
   }
 
-  def listTemplates = Action { implicit request =>
+  def listTemplates = MusitSecureAction() { implicit request =>
     val tjs = TemplateConfigs.AvailableConfigs.map { c =>
       Json.obj(
         "id" -> c.templateId,
