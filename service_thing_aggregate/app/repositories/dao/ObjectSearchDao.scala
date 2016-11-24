@@ -178,7 +178,7 @@ class ObjectSearchDao @Inject() (
       matches <- matchedResults
     } yield {
       MusitSuccess(
-        ObjectSearchResult(total, matches.map(MusitObjectDto.toMusitObject)
+        ObjectSearchResult(total, matches.map(MusitObjectDto.toMusitObject))
       )
     }).recover {
       case e: Exception =>
