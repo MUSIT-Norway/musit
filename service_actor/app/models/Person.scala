@@ -24,16 +24,16 @@ import no.uio.musit.security.AuthenticatedUser
 import play.api.libs.json._
 
 case class Person(
-  id: Option[DatabaseId],
-  fn: String,
-  title: Option[String] = None,
-  role: Option[String] = None,
-  tel: Option[String] = None,
-  web: Option[String] = None,
-  email: Option[String] = None,
-  dataportenId: Option[ActorId] = None,
-  dataportenUser: Option[String] = None,
-  applicationId: Option[ActorId] = None
+    id: Option[DatabaseId],
+    fn: String,
+    title: Option[String] = None,
+    role: Option[String] = None,
+    tel: Option[String] = None,
+    web: Option[String] = None,
+    email: Option[String] = None,
+    dataportenId: Option[ActorId] = None,
+    dataportenUser: Option[String] = None,
+    applicationId: Option[ActorId] = None
 )
 
 object Person {
