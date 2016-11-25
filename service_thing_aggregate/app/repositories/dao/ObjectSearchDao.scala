@@ -23,12 +23,11 @@ import com.google.inject.Inject
 import models.ObjectSearchResult
 import models.SearchFieldValues._
 import models.dto.MusitObjectDto
-import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
+import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
@@ -37,7 +36,7 @@ import scala.concurrent.Future
  */
 class ObjectSearchDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends ObjectTables {
 
   val logger = Logger(classOf[ObjectSearchDao])
 
@@ -130,7 +129,7 @@ class ObjectSearchDao @Inject() (
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String]
-  ): Query[Nothing, Nothing, Seq] = {
+  ) = {
     val mno = museumNo.map(_.value)
 
     val q1 = classifyValue(mno).map(f => museumNoFilter(table, f)).getOrElse(table)
@@ -143,9 +142,10 @@ class ObjectSearchDao @Inject() (
         mt.museumNoAsNumber.asc,
         mt.museumNo.toLowerCase.asc,
         mt.subNoAsNumber.asc,
-        mt.subNo.toLowerCase.asc
+        mt.subNo.toLowerCase.asc,
+        mt.mainObjectId.asc
       )
-    }.groupBy(_.mainObjectId).map(_._2)
+    }
   }
 
   /**
@@ -187,66 +187,4 @@ class ObjectSearchDao @Inject() (
         MusitDbError(msg, Some(e))
     }
   }
-
-  class ObjectTable(
-      val tag: Tag
-  ) extends Table[MusitObjectDto](tag, Some("MUSIT_MAPPING"), "MUSITTHING") {
-
-    // scalastyle:off method.name
-    def * = (
-      museumId,
-      id.?,
-      museumNo,
-      museumNoAsNumber,
-      subNo,
-      subNoAsNumber,
-      term,
-      mainObjectId
-    ) <> (create.tupled, destroy)
-
-    // scalastyle:on method.name
-
-    val id = column[ObjectId]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
-    val museumId = column[MuseumId]("MUSEUMID")
-    val museumNo = column[String]("MUSEUMNO")
-    val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")
-    val subNo = column[Option[String]]("SUBNO")
-    val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
-    val term = column[String]("TERM")
-    val mainObjectId = column[Option[Long]]("MAINOBJECT_ID")
-
-    def create = (
-      museumId: MuseumId,
-      id: Option[ObjectId],
-      museumNo: String,
-      museumNoAsNumber: Option[Long],
-      subNo: Option[String],
-      subNoAsNumber: Option[Long],
-      term: String,
-      mainObjectId: Option[Long]
-    ) =>
-      MusitObjectDto(
-        museumId = museumId,
-        id = id,
-        museumNo = MuseumNo(museumNo),
-        museumNoAsNumber = museumNoAsNumber,
-        subNo = subNo.map(SubNo.apply),
-        subNoAsNumber = subNoAsNumber,
-        term = term,
-        mainObjectId = mainObjectId
-      )
-
-    def destroy(thing: MusitObjectDto) =
-      Some((
-        thing.museumId,
-        thing.id,
-        thing.museumNo.value,
-        thing.museumNoAsNumber,
-        thing.subNo.map(_.value),
-        thing.subNoAsNumber,
-        thing.term,
-        thing.mainObjectId
-      ))
-  }
-
 }

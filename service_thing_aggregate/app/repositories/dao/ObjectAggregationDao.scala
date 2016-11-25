@@ -24,49 +24,51 @@ import models._
 import no.uio.musit.models._
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
-import slick.jdbc.GetResult
 
 import scala.concurrent.Future
 
 class ObjectAggregationDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends ObjectTables {
 
   val logger = Logger(classOf[ObjectAggregationDao])
 
   import driver.api._
 
+  private val objects = TableQuery[ObjectTable]
+  private val localObjects = TableQuery[LocalObjectsTable]
+
   def getObjects(
     mid: MuseumId,
     nodeId: StorageNodeId
   ): Future[MusitResult[Seq[ObjectAggregation]]] = {
-    implicit val getObject = GetResult(r =>
-      ObjectAggregation(
-        id = ObjectId(r.nextLong),
-        museumNo = MuseumNo(r.nextString),
-        subNo = r.nextStringOption.map(SubNo.apply),
-        term = r.nextStringOption,
-        mainObjectId = r.nextLongOption.map(ObjectId.apply)
-      ))
-    // scalastyle:off line.size.limit
-    db.run(
-      sql"""
-         SELECT "MUSITTHING"."OBJECT_ID", "MUSITTHING"."MUSEUMNO", "MUSITTHING"."SUBNO", "MUSITTHING"."TERM", "MAINOBJECT_ID"
-         FROM "MUSARK_STORAGE"."LOCAL_OBJECT", "MUSIT_MAPPING"."MUSITTHING"
-         WHERE "LOCAL_OBJECT"."MUSEUM_ID" = ${mid.underlying}
-         AND "LOCAL_OBJECT"."CURRENT_LOCATION_ID" = ${nodeId.underlying}
-         AND "LOCAL_OBJECT"."OBJECT_ID" = "MUSITTHING"."OBJECT_ID"
-         GROUP BY "MAINOBJECTID";
-      """.as[ObjectAggregation].map(MusitSuccess.apply)
-    // scalastyle:on line.size.limit
-    ).recover {
-        case e: Exception =>
-          val msg = s"Error while retrieving objects for nodeId $nodeId"
-          logger.error(msg, e)
-          MusitDbError(msg, Some(e))
+
+    val locObjQuery = localObjects.filter { lo =>
+      lo.museumId === mid &&
+        lo.currentLocationId === nodeId
+    }
+
+    val query = for {
+      (lo, o) <- locObjQuery join objects on (_.objectId === _.id)
+    } yield (o.id, o.museumNo, o.subNo, o.term, o.mainObjectId)
+
+    db.run(query.result).map { objs =>
+      objs.map { o =>
+        ObjectAggregation(
+          id = o._1,
+          museumNo = MuseumNo(o._2),
+          subNo = o._3.map(SubNo.apply),
+          term = Option(o._4),
+          mainObjectId = o._5
+        )
       }
+    }.map(MusitSuccess.apply).recover {
+      case e: Exception =>
+        val msg = s"Error while retrieving objects for nodeId $nodeId"
+        logger.error(msg, e)
+        MusitDbError(msg, Some(e))
+    }
   }
 }
