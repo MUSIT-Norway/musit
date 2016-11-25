@@ -24,12 +24,22 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class UserInfo(
-  id: ActorId,
-  secondaryIds: Option[Seq[String]],
-  name: Option[String],
-  email: Option[String],
-  picture: Option[String]
-)
+    id: ActorId,
+    secondaryIds: Option[Seq[String]],
+    name: Option[String],
+    email: Option[String],
+    picture: Option[String]
+) {
+
+  def feideUser: Option[String] = {
+    secondaryIds.flatMap(_.find { sid =>
+      sid.startsWith("feide")
+    }.map { fid =>
+      fid.reverse.takeWhile(_ != ':').reverse.trim
+    })
+  }
+
+}
 
 object UserInfo {
 
