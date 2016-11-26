@@ -22,21 +22,26 @@ package no.uio.musit.models
 case class MuseumCollection() {
 
   /*
+    We need to support the following (existing) collections by default.
 
-    We need to support the following collections.
+      ---------------------------------------------------
+      | English term               Norwegian term       |
+      ---------------------------------------------------
+      | Archeology              |  Arkeologi            |
+      | Ethnography             |  Etnografi            |
+      | Numismatics             |  Numismatikk          |
+      | Lichen                  |  Lav                  |
+      | Moss                    |  Mose                 |
+      | Fungi                   |  Sopp                 |
+      | Algae                   |  Alger                |
+      | Vascular plants         |  Karplanter           |
+      | Entomology              |  Entomologi           |
+      | Marine invertebrates    |  Marine evertebrater  |
+      |                         |                       |
+      ---------------------------------------------------
+  */
 
-      Arkeologi
-      Etnografi
-      Numismatikk
-      Lav
-      Mose
-      Sopp
-      Alger
-      Karplanter
-      Entomologi
-      Marine evertebrater
-
-
+  /*
     TL;DR
     ----------------
     Museum collections should be stored in the MUSIT_AUTH schema in a separate
