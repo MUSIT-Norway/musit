@@ -44,4 +44,4 @@ echo "MUSARK: sbt clean docker:publishLocal ." && sbt clean docker:publishLocal 
 
 cd ${STARTDIR}
 
-echo "MUSARK: docker-compose up ." && docker-compose up -d --build --force-recreate --remove-orphans > /dev/null
+echo "MUSARK: docker-compose up ." && docker-compose up -d --build --remove-orphans > /dev/null
