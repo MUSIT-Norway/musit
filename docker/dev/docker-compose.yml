@@ -14,7 +14,7 @@ services:
           - auth
 
     db:
-        image: kpmeen/oracle-12c:full_monty
+        image: musitproject/oracle-12c:testdata
         shm_size: 4G
         ports:
           - "1521:1521"
