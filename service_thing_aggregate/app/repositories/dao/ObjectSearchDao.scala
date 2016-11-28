@@ -20,10 +20,10 @@
 package repositories.dao
 
 import com.google.inject.Inject
-import models.ObjectSearchResult
+import models.{MusitObject, ObjectSearchResult}
 import models.SearchFieldValues._
 import models.dto.MusitObjectDto
-import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
+import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -146,6 +146,20 @@ class ObjectSearchDao @Inject() (
         mt.mainObjectId.asc
       )
     }
+  }
+
+  def getMainObjectChildren(
+    mid: MuseumId,
+    mainObjectId: ObjectId
+  ): Future[MusitResult[Seq[MusitObject]]] = {
+    db.run(table.filter(_.mainObjectId === mainObjectId.underlying).result)
+      .map(res => MusitSuccess(res.map(MusitObjectDto.toMusitObject)))
+      .recover {
+        case e: Exception =>
+          val msg = s"Error while retrieving search result"
+          logger.error(msg, e)
+          MusitDbError(msg, Some(e))
+      }
   }
 
   /**
