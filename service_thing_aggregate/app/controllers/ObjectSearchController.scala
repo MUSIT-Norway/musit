@@ -54,7 +54,7 @@ class ObjectSearchController @Inject() (
     case lim: Int => lim
   }
 
-  def mainObject(
+  def getMainObjectChildren(
     mid: Int,
     mainObjectId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
