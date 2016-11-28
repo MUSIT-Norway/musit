@@ -85,7 +85,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
       ))
   }
 
-  type LocalObject = ((ObjectId, EventId, StorageNodeId, MuseumId))
+  type LocalObject = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId))
 
   class LocalObjectsTable(
       tag: Tag
@@ -102,7 +102,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
 
     val objectId = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
     val latestMoveId = column[EventId]("LATEST_MOVE_ID")
-    val currentLocationId = column[StorageNodeId]("CURRENT_LOCATION_ID")
+    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
     val museumId = column[MuseumId]("MUSEUM_ID")
   }
 }
