@@ -24,21 +24,22 @@ case class MuseumCollection() {
   /*
     We need to support the following (existing) collections by default.
 
-      ---------------------------------------------------
-      | English term               Norwegian term       |
-      ---------------------------------------------------
-      | Archeology              |  Arkeologi            |
-      | Ethnography             |  Etnografi            |
-      | Numismatics             |  Numismatikk          |
-      | Lichen                  |  Lav                  |
-      | Moss                    |  Mose                 |
-      | Fungi                   |  Sopp                 |
-      | Algae                   |  Alger                |
-      | Vascular plants         |  Karplanter           |
-      | Entomology              |  Entomologi           |
-      | Marine invertebrates    |  Marine evertebrater  |
-      |                         |                       |
-      ---------------------------------------------------
+    ---------------------------------------------------
+    | English term               Norwegian term       | Seq(OLD_SCHEMA_NAME)
+    ---------------------------------------------------
+    | Archeology              |  Arkeologi            | (ARK_OSL, ARK_BRG)
+    | Ethnography             |  Etnografi            |
+    | Numismatics             |  Numismatikk          |
+    | Lichen                  |  Lav                  |
+    | Moss                    |  Mose                 |
+    | Fungi                   |  Sopp                 |
+    | Algae                   |  Alger                |
+    | Vascular plants         |  Karplanter           |
+    | Entomology              |  Entomologi           |
+    | Marine invertebrates    |  Marine evertebrater  |
+    |                         |                       |
+    |                         |  ArkEtno              |  (ARK_OSL, ETNO_OSL)
+    ---------------------------------------------------
   */
 
   /*
