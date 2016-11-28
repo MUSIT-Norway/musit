@@ -46,7 +46,7 @@ object Person {
       fn = user.userInfo.name.getOrElse(""),
       email = user.userInfo.email,
       dataportenId = Option(user.userInfo.id),
-      dataportenUser = user.userInfo.email
+      dataportenUser = user.userInfo.feideUser
     )
   }
 }

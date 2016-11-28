@@ -23,12 +23,11 @@ import com.google.inject.Inject
 import models.ObjectSearchResult
 import models.SearchFieldValues._
 import models.dto.MusitObjectDto
-import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
+import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 
@@ -37,7 +36,7 @@ import scala.concurrent.Future
  */
 class ObjectSearchDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends ObjectTables {
 
   val logger = Logger(classOf[ObjectAggregationDao])
 
@@ -186,62 +185,6 @@ class ObjectSearchDao @Inject() (
         logger.error(msg, e)
         MusitDbError(msg, Some(e))
     }
-  }
-
-  class ObjectTable(
-      val tag: Tag
-  ) extends Table[MusitObjectDto](tag, Some("MUSIT_MAPPING"), "MUSITTHING") {
-
-    // scalastyle:off method.name
-    def * = (
-      museumId,
-      id.?,
-      museumNo,
-      museumNoAsNumber,
-      subNo,
-      subNoAsNumber,
-      term
-    ) <> (create.tupled, destroy)
-
-    // scalastyle:on method.name
-
-    val id = column[ObjectId]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
-    val museumId = column[MuseumId]("MUSEUMID")
-    val museumNo = column[String]("MUSEUMNO")
-    val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")
-    val subNo = column[Option[String]]("SUBNO")
-    val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
-    val term = column[String]("TERM")
-
-    def create = (
-      museumId: MuseumId,
-      id: Option[ObjectId],
-      museumNo: String,
-      museumNoAsNumber: Option[Long],
-      subNo: Option[String],
-      subNoAsNumber: Option[Long],
-      term: String
-    ) =>
-      MusitObjectDto(
-        museumId = museumId,
-        id = id,
-        museumNo = MuseumNo(museumNo),
-        museumNoAsNumber = museumNoAsNumber,
-        subNo = subNo.map(SubNo.apply),
-        subNoAsNumber = subNoAsNumber,
-        term = term
-      )
-
-    def destroy(thing: MusitObjectDto) =
-      Some((
-        thing.museumId,
-        thing.id,
-        thing.museumNo.value,
-        thing.museumNoAsNumber,
-        thing.subNo.map(_.value),
-        thing.subNoAsNumber,
-        thing.term
-      ))
   }
 
 }
