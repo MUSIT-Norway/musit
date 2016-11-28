@@ -11,11 +11,11 @@ echo "##########################################################################
 # ------------------------------------------------------------------------
 export EVOLUTION_ENABLED=false
 export APPLICATION_SECRET=dummyAppSecret
-export SLICK_DRIVER=com.typesafe.slick.driver.oracle.OracleDriver$
-export SLICK_DB_DRIVER=oracle.jdbc.OracleDriver
-export SLICK_DB_URL=jdbc:oracle:thin:@db:1521:orcl
-export SLICK_DB_USER=musit
-export SLICK_DB_PASSWORD=musit
+export SLICK_DRIVER=slick.driver.PostgresDriver$
+export SLICK_DB_DRIVER=org.postgresql.Driver
+export SLICK_DB_URL=jdbc:postgresql://db/postgres
+export SLICK_DB_USER=postgres
+export SLICK_DB_PASSWORD=postgres
 
 # ------------------------------------------------------------------------
 # The application defaults to use the fake security module (no.uio.musit.security.fake.FakeModule)
@@ -37,6 +37,7 @@ export SLICK_DB_PASSWORD=musit
 STARTDIR=$(pwd)
 
 echo "MUSARK: docker-compose stop ." && docker-compose stop > /dev/null
+echo "MUSARK: docker-compose rm ." && docker-compose rm -f > /dev/null
 
 cd ../..
 
@@ -44,4 +45,4 @@ echo "MUSARK: sbt clean docker:publishLocal ." && sbt clean docker:publishLocal 
 
 cd ${STARTDIR}
 
-echo "MUSARK: docker-compose up ." && docker-compose up -d --build --remove-orphans > /dev/null
+echo "MUSARK: docker-compose up ." && docker-compose up -d --build --force-recreate --remove-orphans > /dev/null
