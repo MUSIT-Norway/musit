@@ -40,7 +40,7 @@ class BarcodeController @Inject() (
   val logger = Logger(classOf[BarcodeController])
 
   def contentDisposition(name: String) = {
-    CONTENT_DISPOSITION -> (s"""attachment; filename="$name.png"; filename*=UTF-8''""" +
+    CONTENT_DISPOSITION -> (s"""inline; filename="$name.png"; filename*=UTF-8''""" +
       encode(name, "UTF-8").replace("+", "%20"))
   }
 

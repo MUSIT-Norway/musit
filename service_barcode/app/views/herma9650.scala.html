@@ -8,7 +8,7 @@
 
 @(labelData: Seq[LabelData], bf: BarcodeFormat, conf: TemplateConfig, isPreview: Boolean = false)
 
-@templateCss = {
+@templateCss() = {
     <link rel="stylesheet" href="@routes.Assets.at("css/herma_9650.css")">
 }
 
@@ -30,7 +30,7 @@
     </div>
 }
 
-@main(templateCss) {
+@main(templateCss()) {
     @if(isPreview) {
         <div class="labelsContainer">
             @labelData.headOption.map { ld =>

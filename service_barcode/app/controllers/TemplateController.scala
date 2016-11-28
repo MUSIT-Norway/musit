@@ -41,13 +41,13 @@ class TemplateController @Inject() (
 
   def preview(
     templateId: Int,
-    format: Int,
+    codeFormat: Int,
     name: String,
     uuid: String
   ) = MusitSecureAction() { implicit request =>
     Try(UUID.fromString(uuid)).toOption.map { id =>
       val labelData = Seq(LabelData(uuid, Seq(FieldData(Some("name"), name))))
-      BarcodeFormat.fromInt(format).map { bf =>
+      BarcodeFormat.fromInt(codeFormat).map { bf =>
         TemplateConfig.fromInt(templateId).map {
           // TODO: For now this is OK...but eventually we'll need to accommodate
           // quite a few label templates. And a huuuuge pattern match is going
@@ -64,7 +64,7 @@ class TemplateController @Inject() (
           BadRequest(views.html.error(s"Template Id $templateId is not valid"))
         }
       }.getOrElse {
-        BadRequest(views.html.error(s"Unsupported barcode format $format"))
+        BadRequest(views.html.error(s"Unsupported barcode format $codeFormat"))
       }
     }.getOrElse {
       BadRequest(views.html.error(s"The argument $uuid is not a valid UUID"))
@@ -73,11 +73,11 @@ class TemplateController @Inject() (
 
   def render(
     templateId: Int,
-    format: Int
+    codeFormat: Int
   ) = MusitSecureAction()(parse.json) { implicit request =>
     request.body.validate[Seq[LabelData]] match {
       case JsSuccess(data, _) =>
-        BarcodeFormat.fromInt(format).map { bf =>
+        BarcodeFormat.fromInt(codeFormat).map { bf =>
           TemplateConfig.fromInt(templateId).map {
             // TODO: For now this is OK...but eventually we'll need to accommodate
             // quite a few label templates. And a huuuuge pattern match is going
@@ -94,7 +94,7 @@ class TemplateController @Inject() (
             BadRequest(views.html.error(s"Template Id $templateId is not valid"))
           }
         }.getOrElse {
-          BadRequest(views.html.error(s"Unsupported barcode format $format"))
+          BadRequest(views.html.error(s"Unsupported barcode format $codeFormat"))
         }
 
       case err: JsError =>
