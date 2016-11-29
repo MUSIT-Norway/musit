@@ -38,12 +38,12 @@ import scala.concurrent.Future
  * TODO: Ensure use of caching of tokens and user/group info
  *
  * @param conf The Play! Configuration instance
- * @param groupResolver Instance for resolving a users groups
+ * @param authResolver Instance for resolving a users groups
  * @param ws Play! WebService client
  */
 class DataportenAuthenticator @Inject() (
     conf: Configuration,
-    groupResolver: AuthGroupResolver,
+    authResolver: AuthResolver,
     ws: WSAPI
 ) extends Authenticator {
 
@@ -95,6 +95,11 @@ class DataportenAuthenticator @Inject() (
         val usrInfoJson = (response.json \ userInfoJsonKey).as[JsObject]
         usrInfoJson.validate[UserInfo] match {
           case JsSuccess(userInfo, _) =>
+            // If the user doesn't exist, we add it to the UserInfo table
+            authResolver.saveUserInfo(userInfo).foreach {
+              case MusitSuccess(()) => logger.debug("Successfully authenticated user")
+              case err: MusitError => logger.debug(err.message)
+            }
             MusitSuccess(userInfo)
 
           case err: JsError =>
@@ -120,7 +125,7 @@ class DataportenAuthenticator @Inject() (
     userInfo.secondaryIds.map { sids =>
       Future.sequence {
         sids.map(stripPrefix).filter(_.contains("@")).map { sid =>
-          groupResolver.findUserGroupsByEmail(sid).map(_.getOrElse(Seq.empty))
+          authResolver.findUserGroupsByEmail(sid).map(_.getOrElse(Seq.empty))
         }
       }.map(_.flatten)
     }.getOrElse {
