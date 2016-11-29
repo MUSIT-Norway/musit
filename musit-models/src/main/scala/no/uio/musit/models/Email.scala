@@ -17,16 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.models
 
-import no.uio.musit.service.MusitResults.MusitResult
+import play.api.libs.json._
+import play.api.libs.json.Reads._
 
-import scala.concurrent.{ExecutionContext, Future}
+case class Email(value: String) extends AnyVal
 
-trait AuthGroupResolver {
+object Email {
 
-  def findUserGroupsByEmail(
-    email: String
-  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
+  implicit val reads: Reads[Email] = __.read[String](email).map(Email.apply)
+
+  implicit val writes: Writes[Email] = Writes(oid => JsString(oid.value))
 
 }
