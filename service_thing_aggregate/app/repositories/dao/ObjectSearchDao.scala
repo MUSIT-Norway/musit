@@ -20,9 +20,8 @@
 package repositories.dao
 
 import com.google.inject.Inject
-import models.ObjectSearchResult
 import models.SearchFieldValues._
-import models.dto.MusitObjectDto
+import models.{MusitObject, ObjectSearchResult}
 import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -177,7 +176,7 @@ class ObjectSearchDao @Inject() (
       matches <- matchedResults
     } yield {
       MusitSuccess(
-        ObjectSearchResult(total, matches.map(MusitObjectDto.toMusitObject))
+        ObjectSearchResult(total, matches.map(MusitObject.fromTuple))
       )
     }).recover {
       case e: Exception =>

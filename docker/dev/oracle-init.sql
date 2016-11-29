@@ -271,7 +271,9 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   term VARCHAR(256) NOT NULL,
   museumId INTEGER NOT NULL,
   museumNoAsNumber INTEGER,
-  subNoAsNumber INTEGER
+  subNoAsNumber INTEGER,
+  old_schema_name VARCHAR(100),
+  PRIMARY KEY (object_id)
 );
 
 -- Grant all rights on tables to musit user

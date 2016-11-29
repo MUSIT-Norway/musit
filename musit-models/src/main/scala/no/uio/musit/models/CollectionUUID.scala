@@ -17,31 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models.dto
+package no.uio.musit.models
 
-import models.MusitObject
-import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
+import java.util.UUID
 
-case class MusitObjectDto(
-  museumId: MuseumId,
-  id: Option[ObjectId],
-  museumNo: MuseumNo,
-  museumNoAsNumber: Option[Long],
-  subNo: Option[SubNo],
-  subNoAsNumber: Option[Long],
-  term: String
-)
+import play.api.libs.json.{JsString, Reads, Writes, __}
 
-object MusitObjectDto {
+case class CollectionUUID(underlying: UUID) extends MusitUUID
 
-  def toMusitObject(x: MusitObjectDto): MusitObject =
-    MusitObject(
-      // We can use get on the ID since we're only reading objects.
-      // Hence an object _must_ have an ID in the database.
-      id = x.id.get,
-      museumNo = x.museumNo,
-      subNo = x.subNo,
-      term = x.term
-    )
+object CollectionUUID extends MusitUUIDOps[CollectionUUID] {
+  implicit val reads: Reads[CollectionUUID] =
+    __.read[String].map(s => CollectionUUID(UUID.fromString(s)))
+
+  implicit val writes: Writes[CollectionUUID] = Writes(id => JsString(id.asString))
+
+  override implicit def fromUUID(uuid: UUID): CollectionUUID = CollectionUUID(uuid)
+
+  override def generate() = CollectionUUID(UUID.randomUUID())
 }
-

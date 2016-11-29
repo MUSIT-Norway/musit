@@ -19,57 +19,14 @@
 
 package no.uio.musit.models
 
-case class MuseumCollection() {
+import no.uio.musit.models.OldDbSchemas.OldSchema
 
-  /*
-    We need to support the following (existing) collections by default.
+case class MuseumCollection(
+  uuid: CollectionUUID,
+  name: String,
+  oldSchemaNames: Seq[OldSchema]
+)
 
-    ---------------------------------------------------
-    | English term               Norwegian term       | Seq(OLD_SCHEMA_NAME)
-    ---------------------------------------------------
-    | Archeology              |  Arkeologi            | (ARK_OSL, ARK_BRG)
-    | Ethnography             |  Etnografi            |
-    | Numismatics             |  Numismatikk          |
-    | Lichen                  |  Lav                  |
-    | Moss                    |  Mose                 |
-    | Fungi                   |  Sopp                 |
-    | Algae                   |  Alger                |
-    | Vascular plants         |  Karplanter           |
-    | Entomology              |  Entomologi           |
-    | Marine invertebrates    |  Marine evertebrater  |
-    |                         |                       |
-    |                         |  ArkEtno              |  (ARK_OSL, ETNO_OSL)
-    ---------------------------------------------------
-  */
-
-  /*
-    TL;DR
-    ----------------
-    Museum collections should be stored in the MUSIT_AUTH schema in a separate
-    table, AUTH_COLLECTION. There will then also need to be a table for
-    USER_AUTH_COLLECTION to keep track of users with access to the collections.
-    Much the same way as AUTH_GROUP <=> USER_AUTH_GROUP.
-
-
-    Evaluation
-    ----------------
-    Ideally these should be configurable in some way or another. Quite possibly
-    in a similar manner as how Auth Groups are handled. The option of keeping
-    them in a configuration file is also somewhat appealing. Since it doesn't
-    require the use of the DB.
-
-    There are pros and cons to both solutions. Groups, and access to that DB,
-    are already required by all services due to the authorisation implementation
-    in the security lib. Having collection defs in the DB is also beneficial
-    in that it provides the opportunity to add new collections at runtime. Which
-    configuration files cannot do since we're living in Docker land. Also, it
-    would require _all_ services to have the same config def at all time!
-
-    Writing this has helped come to a conclusion! The more I think of it, the
-    more it makes sense to use the DB. It requires only 1 point of data entry.
-    Config would require the same amount of configs as there are running
-    instances of services.
-
-  */
+object MuseumCollection {
 
 }

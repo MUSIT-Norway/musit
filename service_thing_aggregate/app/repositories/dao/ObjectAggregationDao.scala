@@ -51,7 +51,7 @@ class ObjectAggregationDao @Inject() (
     }
 
     val query = for {
-      (lo, o) <- locObjQuery join objects on (_.objectId === _.id)
+      (_, o) <- locObjQuery join objects on (_.objectId === _.id)
     } yield (o.id, o.museumNo, o.subNo, o.term)
 
     db.run(query.result).map { objs =>
