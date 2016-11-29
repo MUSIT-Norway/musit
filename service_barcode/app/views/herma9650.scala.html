@@ -40,7 +40,7 @@
     } else {
         @defining(labelData.grouped(conf.numPerPage)) { groupedData =>
             @for(ldg <- groupedData) {
-                <div class="labelsContainer">
+                <div class="labelsContainer hermaPadding">
                 @for(ld <- ldg) {
                     @label(ld)
                 }
