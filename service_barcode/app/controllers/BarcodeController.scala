@@ -28,6 +28,7 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json.Json
+import play.api.mvc.Action
 import services.Generator
 
 import scala.util.{Failure, Success, Try}
@@ -47,7 +48,7 @@ class BarcodeController @Inject() (
   def generate(
     uuid: String,
     format: Int = QrCode.code
-  ) = MusitSecureAction() { implicit request =>
+  ) = Action {
     Try(UUID.fromString(uuid)) match {
       case Success(id) =>
         BarcodeFormat.fromInt(format).flatMap { bf =>
