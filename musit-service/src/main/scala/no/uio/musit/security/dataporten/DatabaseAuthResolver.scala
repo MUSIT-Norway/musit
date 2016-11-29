@@ -20,7 +20,7 @@
 package no.uio.musit.security.dataporten
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.security.{AuthGroupResolver, AuthTables, GroupInfo}
+import no.uio.musit.security.{AuthResolver, AuthTables, GroupInfo, UserInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -29,15 +29,15 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 @Singleton
-class DbAuthGroupResolver @Inject() (
+class DatabaseAuthResolver @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends AuthTables with AuthGroupResolver {
+) extends AuthTables with AuthResolver {
 
   import driver.api._
 
-  val logger = Logger(classOf[DbAuthGroupResolver])
+  val logger = Logger(classOf[DatabaseAuthResolver])
 
-  private def findBy(
+  private def findUserGroupsBy(
     q: Query[UserGroupTable, UserGroupTableType, Seq]
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
     val query = for {
@@ -54,9 +54,22 @@ class DbAuthGroupResolver @Inject() (
   override def findUserGroupsByEmail(
     email: String
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
-    findBy(usrGrpTable.filter(_.feideEmail === email)).recover {
+    findUserGroupsBy(usrGrpTable.filter(_.feideEmail === email)).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when trying to find Groups for user $email"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  override def saveUserInfo(
+    userInfo: UserInfo
+  )(implicit ec: ExecutionContext): Future[MusitResult[Unit]] = {
+    val cmd = usrInfoTable.insertOrUpdate(UserInfo.asTuple(userInfo))
+
+    db.run(cmd).map(_ => MusitSuccess(())).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when upserting userinfo for ${userInfo.id}"
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
     }

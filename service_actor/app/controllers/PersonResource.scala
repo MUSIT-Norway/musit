@@ -82,17 +82,9 @@ class PersonResource @Inject() (
         }
       case Failure(ex) =>
         logger.debug("Request contained invalid UUID")
-        Future.successful(BadRequest(Json.obj("message" -> s"Id $id is not a valid UUID")))
-    }
-  }
-
-  def add = MusitSecureAction().async(parse.json) { implicit request =>
-    request.body.validate[Person] match {
-      case s: JsSuccess[Person] =>
-        service.create(s.get).map(newActor => Created(Json.toJson(newActor)))
-
-      case e: JsError =>
-        Future.successful(BadRequest(Json.obj("message" -> e.toString)))
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Id $id is not a valid UUID"))
+        }
     }
   }
 }
