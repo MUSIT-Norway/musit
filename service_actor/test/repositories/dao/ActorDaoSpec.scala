@@ -23,9 +23,6 @@ import java.util.UUID
 
 import models.Person
 import no.uio.musit.models.{ActorId, DatabaseId}
-import no.uio.musit.security.fake.FakeAuthenticator
-import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.security.{AuthenticatedUser, BearerToken}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
@@ -78,51 +75,9 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
         persons.tail.head.fn mustBe "Kanin, Kalle1"
       }
 
-      "return a Person if the ID from dataporten is valid" in {
-        val did = ActorId(UUID.randomUUID())
-        val newPerson = Person(
-          id = None,
-          fn = "Herr Larmerud",
-          dataportenId = Some(did),
-          dataportenUser = Some("larmerud")
-        )
-        val personId = actorDao.insert(newPerson).futureValue.id.get
-        val res = actorDao.getByDataportenId(did).futureValue
-        res.isDefined mustBe true
-        val person = res.get
-        person.fn mustBe "Herr Larmerud"
-        person.dataportenId mustBe Some(did)
-        person.dataportenUser mustBe Some("larmerud")
-        person.applicationId must not be None
-        person.applicationId.get mustBe an[ActorId]
-        person.id mustBe Some(DatabaseId(3L))
-      }
-
       "not find an actor if the Id from dataporten is unknown" in {
         actorDao.getByDataportenId(ActorId(UUID.randomUUID()))
           .futureValue.isDefined mustBe false
-      }
-
-      "insert an authenticated user that doesn't exist in the actor table" in {
-        val authenticator = new FakeAuthenticator
-        val fakeUsrId = "guest"
-        val fakeToken = BearerToken(fakeAccessTokenPrefix + fakeUsrId)
-        val authUsr = AuthenticatedUser(
-          userInfo = authenticator.userInfo(fakeToken).futureValue.get,
-          groups = Seq.empty
-        )
-
-        actorDao.getByDataportenId(authUsr.userInfo.id)
-          .futureValue.isDefined mustBe false
-
-        val person = actorDao.insertAuthUser(authUsr).futureValue
-        person.dataportenId mustBe Some(authUsr.userInfo.id)
-        person.fn mustBe authUsr.userInfo.name.get
-        person.email mustBe authUsr.userInfo.email
-
-        val res2 = actorDao.getByDataportenId(authUsr.userInfo.id).futureValue
-        res2.isDefined mustBe true
-        res2.get.fn mustBe authUsr.userInfo.name.get
       }
     }
   }
