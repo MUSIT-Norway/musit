@@ -26,10 +26,18 @@ CREATE TABLE MUSARK_AUTH.USER_AUTH_GROUP (
 CREATE TABLE MUSARK_AUTH.MUSEUM_COLLECTION (
   collection_uuid VARCHAR2(36) NOT NULL,
   collection_name VARCHAR(100),
-  collection_schema_identifier VARCHAR(100) NOT NULL,
+  collection_schema_identifiers VARCHAR(100) NOT NULL,
   PRIMARY KEY (collection_uuid)
 );
 
+CREATE TABLE MUSARK_AUTH.USER_INFO (
+  user_uuid VARCHAR2(36) NOT NULL,
+  secondary_id VARCHAR(512),
+  name VARCHAR(512),
+  email VARCHAR(254),
+  picture VARCHAR(100),
+  PRIMARY KEY (user_uuid)
+);
 
 
 # --- !Downs
