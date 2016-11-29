@@ -22,7 +22,6 @@ package repositories.dao
 import com.google.inject.{Inject, Singleton}
 import models.Person
 import no.uio.musit.models.{ActorId, DatabaseId}
-import no.uio.musit.security.AuthenticatedUser
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
@@ -61,21 +60,6 @@ class ActorDao @Inject() (
     db.run(actorTable.filter { a =>
       (a.applicationId inSet ids) || (a.dpId inSet ids)
     }.result)
-  }
-
-  def insertAuthUser(user: AuthenticatedUser): Future[Person] = {
-    val person = Person.fromAuthUser(user)
-    insert(person)
-  }
-
-  def insert(actor: Person): Future[Person] = {
-    val insAct = actor.copy(applicationId = Option(ActorId.generate()))
-    val insQuery = actorTable returning
-      actorTable.map(_.id) into ((insAct, id) => insAct.copy(id = id))
-
-    val action = insQuery += insAct
-
-    db.run(action)
   }
 
   /* TABLE DEF using fieldnames from w3c vcard standard */
