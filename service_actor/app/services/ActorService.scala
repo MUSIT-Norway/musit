@@ -21,33 +21,60 @@ package services
 
 import com.google.inject.Inject
 import models.Person
-import no.uio.musit.models.{ActorId, DatabaseId}
+import no.uio.musit.models.ActorId
+import no.uio.musit.security.UserInfo
 import no.uio.musit.service.MusitSearch
-import repositories.dao.ActorDao
+import repositories.dao.{ActorDao, UserInfoDao}
 
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 
-class ActorService @Inject() (val actorDao: ActorDao) {
-
-  def findById(id: DatabaseId): Future[Option[Person]] = {
-    actorDao.getByDbId(id)
-  }
+class ActorService @Inject() (
+    val actorDao: ActorDao,
+    val usrInfDao: UserInfoDao
+) {
 
   def findByActorId(id: ActorId): Future[Option[Person]] = {
-    actorDao.getByActorId(id)
+    val userInfoPerson = usrInfDao.getById(id)
+    val actor = actorDao.getByActorId(id)
+
+    for {
+      uip <- userInfoPerson
+      act <- actor
+    } yield {
+      // We prefer the result from UserInfo over the one in Actor if the
+      // ID is registered as an active user of the system.
+      uip.map(Person.fromUserInfo).orElse(act)
+    }
   }
 
   def findDetails(ids: Set[ActorId]): Future[Seq[Person]] = {
-    actorDao.listBy(ids)
+    val users = usrInfDao.listBy(ids)
+    val actors = actorDao.listBy(ids)
+
+    for {
+      u <- users
+      a <- actors
+    } yield dedupe(u, a)
   }
 
   def findByName(search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
-    actorDao.getByName(searchString)
+    val users = usrInfDao.getByName(searchString)
+    val actors = actorDao.getByName(searchString)
+
+    for {
+      u <- users
+      a <- actors
+    } yield dedupe(u, a)
   }
 
-  def create(person: Person): Future[Person] = {
-    actorDao.insert(person)
+  private def dedupe(users: Seq[UserInfo], actors: Seq[Person]): Seq[Person] = {
+    actors.filterNot { p =>
+      users.exists { u =>
+        p.dataportenUser.exists(prefix => u.feideUser.exists(_.startsWith(prefix)))
+      }
+    }.union(users.map(Person.fromUserInfo))
   }
 
 }
