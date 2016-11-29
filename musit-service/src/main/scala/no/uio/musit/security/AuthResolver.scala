@@ -17,27 +17,20 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package no.uio.musit.security
 
-import models.Person
-import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.service.MusitResults.MusitResult
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class UserService {
+trait AuthResolver {
 
-  /**
-   * Gets an actor representing the current user. If a match isn't found in the
-   * UserInfo database, it will create the entry based on the current users data.
-   *
-   * @param user the current AuthenticatedUser.
-   * @return a Future Person representation of the current user.
-   */
-  def currenUserAsActor(user: AuthenticatedUser): Future[Person] = {
-    // FIXME: We need to check BOTH the Actor table, and the UserInfo table for
-    // users that match the userinfo data.
-    // In case the current user doesn't exist anywhere, we must add it to the
-    // USER_INFO table!!!!!!!
-    Future.successful(Person.fromAuthUser(user))
-  }
+  def findUserGroupsByEmail(
+    email: String
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
+
+  def saveUserInfo(
+    userInfo: UserInfo
+  )(implicit ec: ExecutionContext): Future[MusitResult[Unit]]
+
 }
