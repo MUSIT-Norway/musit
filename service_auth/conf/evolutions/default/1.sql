@@ -19,8 +19,9 @@ CREATE TABLE MUSARK_AUTH.USER_AUTH_GROUP (
   group_uuid VARCHAR2(36) NOT NULL,
   collection_uuid VARCHAR(36),
   PRIMARY KEY (user_feide_email, group_uuid),
-  FOREIGN KEY (group_uuid) REFERENCES MUSARK_AUTH.AUTH_GROUP (group_uuid),
-  FOREIGN KEY (collection_uuid) REFERENCES MUSARK_AUTH.MUSEUM_COLLECTION (collection_uuid)
+  FOREIGN KEY (group_uuid) REFERENCES MUSARK_AUTH.AUTH_GROUP (group_uuid)
+--   ,
+--   FOREIGN KEY (collection_uuid) REFERENCES MUSARK_AUTH.MUSEUM_COLLECTION (collection_uuid)
 );
 
 CREATE TABLE MUSARK_AUTH.MUSEUM_COLLECTION (
