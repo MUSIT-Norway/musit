@@ -20,7 +20,7 @@
 package no.uio.musit.security
 
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.models.{GroupId, MuseumId}
+import no.uio.musit.models.{GroupId, MuseumCollection, MuseumId}
 import no.uio.musit.security.Permissions.Permission
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -30,7 +30,8 @@ case class GroupInfo(
     name: String,
     permission: Permission,
     museumId: MuseumId,
-    description: Option[String]
+    description: Option[String],
+    collections: Seq[MuseumCollection]
 ) {
 
   val museum: Option[Museum] = Museum.fromMuseumId(museumId)
@@ -46,7 +47,8 @@ object GroupInfo {
     (__ \ "name").format[String] and
     (__ \ "permission").format[Permission] and
     (__ \ "museumId").format[MuseumId] and
-    (__ \ "description").formatNullable[String]
+    (__ \ "description").formatNullable[String] and
+    (__ \ "collections").format[Seq[MuseumCollection]]
   )(GroupInfo.apply, unlift(GroupInfo.unapply))
 
 }

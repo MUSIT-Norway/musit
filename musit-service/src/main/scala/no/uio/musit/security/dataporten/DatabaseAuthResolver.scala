@@ -20,6 +20,7 @@
 package no.uio.musit.security.dataporten
 
 import com.google.inject.{Inject, Singleton}
+import no.uio.musit.models.{GroupId, MuseumId}
 import no.uio.musit.security.{AuthResolver, AuthTables, GroupInfo, UserInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
@@ -60,6 +61,10 @@ class DatabaseAuthResolver @Inject() (
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
     }
+  }
+
+  def findCollectionsFor(groupId: GroupId) = {
+
   }
 
   override def saveUserInfo(

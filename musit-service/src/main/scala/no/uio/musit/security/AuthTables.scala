@@ -21,6 +21,7 @@ package no.uio.musit.security
 
 import java.util.UUID
 
+import no.uio.musit.models.OldDbSchemas.OldSchema
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
 import play.api.db.slick.HasDatabaseConfigProvider
@@ -60,11 +61,11 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
       i => Permission.fromInt(i)
     )
 
-  //  implicit lazy val museumCollectionMapper: BaseColumnType[Seq[OldSchema]] =
-  //    MappedColumnType.base[Seq[OldSchema], String](
-  //      seqSchemas => seqSchemas.map(_.id).mkString("[", ",", "]"),
-  //      str => OldDbSchemas.fromJsonString(str)
-  //    )
+  implicit lazy val museumCollectionMapper: BaseColumnType[Seq[OldSchema]] =
+    MappedColumnType.base[Seq[OldSchema], String](
+      seqSchemas => seqSchemas.map(_.id).mkString("[", ",", "]"),
+      str => OldDbSchemas.fromJsonString(str)
+    )
 
   val schema = "MUSARK_AUTH"
 
@@ -89,19 +90,19 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   }
 
-  //  type CollectionTableType = ((CollectionUUID, Option[String], Seq[OldSchema]))
-  //
-  //  class MuseumCollectionTable(
-  //      val tag: Tag
-  //  ) extends Table[CollectionTableType](tag, Some(schema), "MUSEUM_COLLECTION") {
-  //
-  //    val uuid = column[CollectionUUID]("COLLECTION_UUID", O.PrimaryKey)
-  //    val name = column[Option[String]]("COLLECTION_NAME")
-  //    val schemaIds = column[Seq[OldSchema]]("COLLECTION_SCHEMA_IDENTIFIERS")
-  //
-  //    override def * = (uuid, name, schemaIds) // scalastyle:ignore
-  //
-  //  }
+  type CollectionTableType = ((CollectionUUID, Option[String], Seq[OldSchema]))
+
+  class MuseumCollectionTable(
+      val tag: Tag
+  ) extends Table[CollectionTableType](tag, Some(schema), "MUSEUM_COLLECTION") {
+
+    val uuid = column[CollectionUUID]("COLLECTION_UUID", O.PrimaryKey)
+    val name = column[Option[String]]("COLLECTION_NAME")
+    val schemaIds = column[Seq[OldSchema]]("COLLECTION_SCHEMA_IDENTIFIERS")
+
+    override def * = (uuid, name, schemaIds) // scalastyle:ignore
+
+  }
 
   type UserInfoTableType = ((ActorId, Option[String], Option[String], Option[Email], Option[String])) // scalastyle:ignore
 
@@ -119,7 +120,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   }
 
-  type UserGroupTableType = ((String, GroupId)) //, Option[CollectionUUID]))
+  type UserGroupTableType = ((String, GroupId)), Option[CollectionUUID]))
 
   class UserGroupTable(
       val tag: Tag
@@ -127,7 +128,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
     val feideEmail = column[String]("USER_FEIDE_EMAIL", O.PrimaryKey)
     val groupId = column[GroupId]("GROUP_UUID", O.PrimaryKey)
-    //    val collectionId = column[CollectionUUID]("COLLECTION_UUID")
+    val collectionId = column[CollectionUUID]("COLLECTION_UUID")
 
     def pk = primaryKey("PK_USER_GROUP", (feideEmail, groupId))
 
