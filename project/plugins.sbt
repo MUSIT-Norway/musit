@@ -24,6 +24,8 @@ resolvers ++= DefaultOptions.resolvers(snapshot = true)
 resolvers += Resolver.typesafeRepo("releases")
 resolvers += Resolver.sonatypeRepo("releases")
 
+// Coursier dependency resolver (much improved over default SBT resolution)
+addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0-M15")
 
 // The Play plugin
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.10")
