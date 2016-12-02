@@ -24,8 +24,8 @@ export default {
   port: process.env.PORT || 8080,
   gatewayHost: process.env.APIHOST || 'localhost',
   gatewayPort: process.env.APIPORT || 3030,
-  dataportenClientID: process.env.CLIENT_ID || 'ccee5f45-6f32-4315-9a89-9e6ad98a8186',
-  dataportenClientSecret: process.env.CLIENT_SECRET || 'd01c882a-b24c-4ebf-9035-381a9a8cd74e',
-  dataportenCallbackUrl: process.env.CALLBACK_URL || 'http://musit-test:8888/musit',
+  dataportenClientID: process.env.CLIENT_ID,
+  dataportenClientSecret: process.env.CLIENT_SECRET,
+  dataportenCallbackUrl: process.env.CALLBACK_URL,
   jwtSecret: process.env.JWT_SECRET || 'K456thizI33ReallySecr#t127'
 };
