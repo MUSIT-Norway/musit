@@ -5,182 +5,458 @@
       "name": "GodAccess",
       "permission": 10000,
       "museumId": 10000,
-      "description": "Application administrator with access to all functionality"
+      "description": "Application administrator with access to all functionality",
+      "collections": [
+        {
+          "uuid": "925748d6-bf49-4733-afd1-0e127d639f18",
+          "name": "AllCollections",
+          "oldSchemaNames": [1,2,3,4,5,6,7,8,9,10]
+        }
+      ]
     },
     {
       "id": "869cc344-5515-49c0-a7a5-79e371f4e64b",
       "name": "TestAppAdmin",
       "permission": 40,
       "museumId": 10000,
-      "description": "Application administrator with access to all functionality"
+      "description": "Application administrator with access to all functionality",
+      "collections": [
+        {
+          "uuid": "925748d6-bf49-4733-afd1-0e127d639f18",
+          "name": "AllCollections",
+          "oldSchemaNames": [1,2,3,4,5,6,7,8,9,10]
+        }
+      ]
     },
     {
       "id": "2d503a2e-2211-45dd-a99f-fe1a38b5f2a2",
       "name": "TestSfRead",
       "permission": 10,
       "museumId": 99,
-      "description": "Read access to storage facility for TEST"
+      "description": "Read access to storage facility for TEST",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        }
+      ]
     },
     {
       "id": "c81c314c-0675-4cd1-8956-c96a7163825b",
       "name": "TestSfWrite",
       "permission": 20,
       "museumId": 99,
-      "description": "Write access to storage facility for TEST"
+      "description": "Write access to storage facility for TEST",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        }
+      ]
     },
     {
       "id": "bc4b4d44-9470-4622-8e29-03f0bfaf5149",
       "name": "TestSfAdmin",
       "permission": 30,
       "museumId": 99,
-      "description": "Admin access to storage facility for TEST"
+      "description": "Admin access to storage facility for TEST",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "3ce7692d-2101-45a4-955b-0ca861540cd9",
       "name": "KhmSfRead",
       "permission": 10,
       "museumId": 3,
-      "description": "Read access to storage facility for KHM"
+      "description": "Read access to storage facility for KHM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "fd34b019-81e1-47a2-987b-64389d6fce04",
       "name": "KhmSfWrite",
       "permission": 20,
       "museumId": 3,
-      "description": "Write access to storage facility for KHM"
+      "description": "Write access to storage facility for KHM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "de48b2dd-f25c-4b06-a5d4-7de45780ef2e",
       "name": "KhmSfAdmin",
       "permission": 30,
       "museumId": 3,
-      "description": "Admin access to storage facility for KHM"
+      "description": "Admin access to storage facility for KHM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "92e3b487-c962-43d9-a2ea-b8a7bed1b67a",
       "name": "NhmSfRead",
       "permission": 10,
       "museumId": 4,
-      "description": "Read access to storage facility for NHM"
+      "description": "Read access to storage facility for NHM",
+      "collections": [
+        {
+          "uuid": "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c",
+          "name": "Entomologi",
+          "oldSchemaNames": [9]
+        }
+      ]
     },
     {
       "id": "f311dd04-89b8-48a4-b4cd-68092f76ebab",
       "name": "NhmSfWrite",
       "permission": 20,
       "museumId": 4,
-      "description": "Write access to storage facility for NHM"
+      "description": "Write access to storage facility for NHM",
+      "collections": [
+        {
+          "uuid": "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c",
+          "name": "Entomologi",
+          "oldSchemaNames": [9]
+        }
+      ]
     },
     {
       "id": "5aa16994-92b3-45df-adfa-7f9fdf54ce34",
       "name": "NhmSfAdmin",
       "permission": 30,
       "museumId": 4,
-      "description": "Admin access to storage facility for NHM"
+      "description": "Admin access to storage facility for NHM",
+      "collections": [
+        {
+          "uuid": "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c",
+          "name": "Entomologi",
+          "oldSchemaNames": [9]
+        }
+      ]
     },
     {
       "id": "b923b5df-54d3-4724-9386-c1273561f1a1",
       "name": "UmSfRead",
       "permission": 10,
       "museumId": 2,
-      "description": "Read access to storage facility for UM"
+      "description": "Read access to storage facility for UM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "6ae158a1-398c-4f05-9992-1e19759e3221",
       "name": "UmSfWrite",
       "permission": 20,
       "museumId": 2,
-      "description": "Write access to storage facility for UM"
+      "description": "Write access to storage facility for UM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "0ccefaff-aee3-4447-98e5-ec29bb9b80b7",
       "name": "UmSfAdmin",
       "permission": 30,
       "museumId": 2,
-      "description": "Admin access to storage facility for UM"
+      "description": "Admin access to storage facility for UM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "428f6108-f376-47e5-80c2-0e166e75ae42",
       "name": "AmSfRead",
       "permission": 10,
       "museumId": 1,
-      "description": "Read access to storage facility for AM"
+      "description": "Read access to storage facility for AM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "f6a43a29-c0ee-419f-b315-d343629fb9b8",
       "name": "AmSfWrite",
       "permission": 20,
       "museumId": 1,
-      "description": "Write access to storage facility for AM"
+      "description": "Write access to storage facility for AM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "3a3a173e-cf99-4301-9988-78fcd5d3d153",
       "name": "AmSfAdmin",
       "permission": 30,
       "museumId": 1,
-      "description": "Admin access to storage facility for AM"
+      "description": "Admin access to storage facility for AM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "3eb0b341-6c16-46f7-bd75-b0e12ba6cb8b",
       "name": "VmSfRead",
       "permission": 10,
       "museumId": 5,
-      "description": "Read access to storage facility for VM"
+      "description": "Read access to storage facility for VM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "b4beaefb-d124-4f10-874d-ef59ffa1bb3b",
       "name": "VmSfWrite",
       "permission": 20,
       "museumId": 5,
-      "description": "Write access to storage facility for VM"
+      "description": "Write access to storage facility for VM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "cd9ea5bf-7972-45c2-a0fd-b7e75fc2e5db",
       "name": "VmSfAdmin",
       "permission": 30,
       "museumId": 5,
-      "description": "Admin access to storage facility for VM"
+      "description": "Admin access to storage facility for VM",
+      "collections": [
+        {
+          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "name": "Arkeologi",
+          "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
+        },
+        {
+          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+          "name": "Etnografi",
+          "oldSchemaNames": [2]
+        }
+      ]
     },
     {
       "id": "b08efccf-a4a7-41b0-b208-acc8fc9c9bb4",
       "name": "TmuSfRead",
       "permission": 10,
       "museumId": 6,
-      "description": "Read access to storage facility for TMU"
+      "description": "Read access to storage facility for TMU",
+      "collections": []
     },
     {
       "id": "4f8204c3-d48f-4a7c-9c79-1136edc337fb",
       "name": "TmuSfWrite",
       "permission": 20,
       "museumId": 6,
-      "description": "Write access to storage facility for TMU"
+      "description": "Write access to storage facility for TMU",
+      "collections": []
     },
     {
       "id": "611202c5-8c69-444d-9b82-6aac5be150e4",
       "name": "TmuSfAdmin",
       "permission": 30,
       "museumId": 6,
-      "description": "Admin access to storage facility for TMU"
+      "description": "Admin access to storage facility for TMU",
+      "collections": []
     },
     {
       "id": "b1bd705b-a6b4-48ee-b517-f1c7be1bb015",
       "name": "KmnSfRead",
       "permission": 10,
       "museumId": 7,
-      "description": "Read access to storage facility for KMN"
+      "description": "Read access to storage facility for KMN",
+      "collections": []
     },
     {
       "id": "c875ae85-7a01-4594-8e3e-7e4fbc792489",
       "name": "KmnSfWrite",
       "permission": 20,
       "museumId": 7,
-      "description": "Write access to storage facility for KMN"
+      "description": "Write access to storage facility for KMN",
+      "collections": []
     },
     {
       "id": "53a87b63-4628-482a-b28c-40689129b962",
       "name": "KmnSfAdmin",
       "permission": 30,
       "museumId": 7,
-      "description": "Admin access to storage facility for KMN"
+      "description": "Admin access to storage facility for KMN",
+      "collections": []
     }
   ],
 

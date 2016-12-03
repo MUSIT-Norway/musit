@@ -30,6 +30,19 @@ object OldDbSchemas {
     }.getOrElse(Seq.empty)
   }
 
+  val all = Seq(
+    Archeology,
+    Ethnography,
+    Numismatics,
+    Lichen,
+    Moss,
+    Fungi,
+    Algae,
+    VascularPlants,
+    Entomology,
+    MarineInvertebrates
+  )
+
   sealed trait OldSchema {
     val id: Int
     val schemas: Seq[String]

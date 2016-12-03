@@ -21,7 +21,6 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd}
-import no.uio.musit.models.OldDbSchemas.OldSchema
 import no.uio.musit.models.{CollectionUUID, GroupId, MuseumCollection, UserGroupMembership}
 import no.uio.musit.security.{AuthTables, GroupInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
@@ -108,6 +107,12 @@ class AuthDao @Inject() (
     }
   }
 
+  /**
+   *
+   * @param feideEmail
+   * @param groupId
+   * @return
+   */
   def findCollectionsFor(
     feideEmail: String,
     groupId: GroupId
