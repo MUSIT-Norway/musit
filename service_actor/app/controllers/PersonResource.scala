@@ -20,7 +20,6 @@
 package controllers
 
 import com.google.inject.Inject
-import models.Person
 import no.uio.musit.models.ActorId
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.{MusitController, MusitSearch}

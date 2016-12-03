@@ -21,7 +21,7 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd}
-import no.uio.musit.models.{CollectionUUID, GroupId, MuseumCollection, UserGroupMembership}
+import no.uio.musit.models.{CollectionUUID, GroupId, MuseumCollection, UserGroupMembership} // scalastyle:ignore
 import no.uio.musit.security.{AuthTables, GroupInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
@@ -137,6 +137,13 @@ class AuthDao @Inject() (
     }
   }
 
+  /**
+   *
+   * @param feideEmail
+   * @param groupId
+   * @param collectionId
+   * @return
+   */
   def revokeCollectionFor(
     feideEmail: String,
     groupId: GroupId,

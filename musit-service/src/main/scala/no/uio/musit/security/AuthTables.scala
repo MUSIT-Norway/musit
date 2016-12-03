@@ -25,12 +25,15 @@ import no.uio.musit.models.OldDbSchemas.OldSchema
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.service.MusitResults.{MusitResult, MusitSuccess}
+import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
+
+  private val logger = Logger(classOf[AuthTables])
 
   import driver.api._
 
@@ -155,15 +158,25 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   type GrpColTuples = Seq[(GroupTableType, CollectionTableType)]
 
+  /**
+   * Helper function to locate GroupInfo entries for a query based on the
+   * UserGroupTable. The query will be joined with the GroupTable and the
+   * MuseumCollectionTable to calculate valid GroupInfo instances.
+   *
+   * @param q
+   * @param ec
+   * @return A Future MusitResult containing collection of GroupInfos
+   */
   def findGroupInfoBy(
     q: Query[UserGroupTable, UserGroupMembership, Seq]
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
-    val query = for {
-      (ug, g) <- q join grpTable on (_.groupId === _.id)
-      (_, c) <- q join musColTable on (_.collectionId === _.uuid)
-    } yield (g, c)
+    val q1 = q join grpTable on (_.groupId === _.id)
+    val q2 = q1 join musColTable on { (ugg, col) =>
+      ugg._1.collectionId === col.uuid || ugg._1.collectionId.isEmpty
+    }
+    val query = for (((_, grp), col) <- q2) yield (grp, col)
 
-    db.run(query.result).map(gc => MusitSuccess(foldGroupCol(gc)))
+    db.run(query.distinct.result).map(gc => MusitSuccess(foldGroupCol(gc)))
   }
 
   def convertColGrpTuples(tuples: GrpColTuples): Seq[(GroupInfo, MuseumCollection)] = {

@@ -30,7 +30,8 @@ CREATE TABLE MUSARK_AUTH.USER_AUTH_GROUP (
   collection_uuid  VARCHAR(36),
   PRIMARY KEY (uag_id),
   FOREIGN KEY (group_uuid) REFERENCES MUSARK_AUTH.AUTH_GROUP (group_uuid),
-  FOREIGN KEY (collection_uuid) REFERENCES MUSARK_AUTH.MUSEUM_COLLECTION (collection_uuid)
+  FOREIGN KEY (collection_uuid) REFERENCES MUSARK_AUTH.MUSEUM_COLLECTION (collection_uuid),
+  CONSTRAINT unique_auth_entry UNIQUE (user_feide_email, group_uuid, collection_uuid)
 );
 
 CREATE TABLE MUSARK_AUTH.USER_INFO (

@@ -20,7 +20,7 @@
 package repositories.dao
 
 import models._
-import no.uio.musit.models.{GroupId, MuseumCollection}
+import no.uio.musit.models.GroupId
 import no.uio.musit.models.Museums.Test
 import no.uio.musit.security.Permissions
 import no.uio.musit.service.MusitResults.MusitDbError
