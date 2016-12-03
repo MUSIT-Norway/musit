@@ -21,3 +21,4 @@ Museum collections should be stored in the `MUSIT_AUTH` schema in a separate
 table, `AUTH_COLLECTION`. There will then also need to be a table for
 `USER_AUTH_COLLECTION` to keep track of users with access to the collections.
 Much the same way as `AUTH_GROUP` <=> `USER_AUTH_GROUP`.
+

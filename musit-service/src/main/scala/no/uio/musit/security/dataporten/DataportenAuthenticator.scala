@@ -125,7 +125,7 @@ class DataportenAuthenticator @Inject() (
     userInfo.secondaryIds.map { sids =>
       Future.sequence {
         sids.map(stripPrefix).filter(_.contains("@")).map { sid =>
-          authResolver.findUserGroupsByEmail(sid).map(_.getOrElse(Seq.empty))
+          authResolver.findGroupInfoByFeideEmail(sid).map(_.getOrElse(Seq.empty))
         }
       }.map(_.flatten)
     }.getOrElse {

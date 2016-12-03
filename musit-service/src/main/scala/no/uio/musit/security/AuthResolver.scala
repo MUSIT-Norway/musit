@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthResolver {
 
-  def findUserGroupsByEmail(
+  def findGroupInfoByFeideEmail(
     email: String
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
 

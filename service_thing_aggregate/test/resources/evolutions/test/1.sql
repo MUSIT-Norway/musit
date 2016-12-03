@@ -41,6 +41,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   museumId         INTEGER      NOT NULL,
   museumNoAsNumber INTEGER,
   subNoAsNumber    INTEGER,
+  mainobject_id    NUMBER(20),
   old_schema_name  VARCHAR(500),
   PRIMARY KEY (object_id)
 );

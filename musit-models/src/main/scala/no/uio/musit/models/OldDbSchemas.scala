@@ -19,7 +19,7 @@
 
 package no.uio.musit.models
 
-import play.api.libs.json.Json
+import play.api.libs.json._
 
 object OldDbSchemas {
 
@@ -36,6 +36,10 @@ object OldDbSchemas {
   }
 
   object OldSchema {
+
+    implicit val reads: Reads[OldSchema] = __.read[Int].map(fromInt)
+
+    implicit val writes: Writes[OldSchema] = Writes(os => JsNumber(os.id))
 
     // scalastyle:off
     @throws(classOf[IllegalArgumentException])
@@ -79,42 +83,42 @@ object OldDbSchemas {
   }
 
   case object Numismatics extends OldSchema {
-    override val id: Int = 1
+    override val id: Int = 3
     override val schemas: Seq[String] = Seq("USD_NUMISMATIKK")
   }
 
   case object Lichen extends OldSchema {
-    override val id: Int = 2
+    override val id: Int = 4
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_LAV")
   }
 
   case object Moss extends OldSchema {
-    override val id: Int = 3
+    override val id: Int = 5
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_MOSE")
   }
 
   case object Fungi extends OldSchema {
-    override val id: Int = 4
+    override val id: Int = 6
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_SOPP")
   }
 
   case object Algae extends OldSchema {
-    override val id: Int = 5
+    override val id: Int = 7
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_ALGE")
   }
 
   case object VascularPlants extends OldSchema {
-    override val id: Int = 6
+    override val id: Int = 8
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_FELLES")
   }
 
   case object Entomology extends OldSchema {
-    override val id: Int = 7
+    override val id: Int = 9
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_ENTOMOLOGI")
   }
 
   case object MarineInvertebrates extends OldSchema {
-    override val id: Int = 8
+    override val id: Int = 10
     // TODO: There's some uncertainty about this one. Ask Svein...
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_ENTOMOLOGI")
   }

@@ -24,8 +24,11 @@ import java.util.UUID
 import no.uio.musit.models.OldDbSchemas.OldSchema
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
+import no.uio.musit.service.MusitResults.{MusitResult, MusitSuccess}
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
+
+import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
@@ -41,6 +44,12 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
     MappedColumnType.base[Email, String](
       email => email.value,
       str => Email(str)
+    )
+
+  implicit lazy val collectionIdMapper: BaseColumnType[CollectionUUID] =
+    MappedColumnType.base[CollectionUUID, String](
+      cid => cid.asString,
+      str => CollectionUUID(UUID.fromString(str))
     )
 
   implicit lazy val groupIdMapper: BaseColumnType[GroupId] =
@@ -61,7 +70,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
       i => Permission.fromInt(i)
     )
 
-  implicit lazy val museumCollectionMapper: BaseColumnType[Seq[OldSchema]] =
+  implicit lazy val oldSchemaMapper: BaseColumnType[Seq[OldSchema]] =
     MappedColumnType.base[Seq[OldSchema], String](
       seqSchemas => seqSchemas.map(_.id).mkString("[", ",", "]"),
       str => OldDbSchemas.fromJsonString(str)
@@ -72,7 +81,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
   val grpTable = TableQuery[GroupTable]
   val usrGrpTable = TableQuery[UserGroupTable]
   val usrInfoTable = TableQuery[UserInfoTable]
-  //  val musColTable = TableQuery[MuseumCollectionTable]
+  val musColTable = TableQuery[MuseumCollectionTable]
 
   type GroupTableType = ((GroupId, String, Permission, MuseumId, Option[String]))
 
@@ -106,6 +115,8 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   type UserInfoTableType = ((ActorId, Option[String], Option[String], Option[Email], Option[String])) // scalastyle:ignore
 
+  // scalastyle:ignore
+
   class UserInfoTable(
       val tag: Tag
   ) extends Table[UserInfoTableType](tag, Some(schema), "USER_INFO") {
@@ -120,20 +131,72 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   }
 
-  type UserGroupTableType = ((String, GroupId)), Option[CollectionUUID]))
-
   class UserGroupTable(
       val tag: Tag
-  ) extends Table[UserGroupTableType](tag, Some(schema), "USER_AUTH_GROUP") {
+  ) extends Table[UserGroupMembership](tag, Some(schema), "USER_AUTH_GROUP") {
 
-    val feideEmail = column[String]("USER_FEIDE_EMAIL", O.PrimaryKey)
-    val groupId = column[GroupId]("GROUP_UUID", O.PrimaryKey)
-    val collectionId = column[CollectionUUID]("COLLECTION_UUID")
+    val tableId = column[Option[Int]]("UAG_ID", O.PrimaryKey, O.AutoInc)
+    val feideEmail = column[String]("USER_FEIDE_EMAIL")
+    val groupId = column[GroupId]("GROUP_UUID")
+    val collectionId = column[Option[CollectionUUID]]("COLLECTION_UUID")
 
-    def pk = primaryKey("PK_USER_GROUP", (feideEmail, groupId))
+    val create = (
+      id: Option[Int],
+      feideEmail: String,
+      groupId: GroupId,
+      collection: Option[CollectionUUID]
+    ) => UserGroupMembership(id, feideEmail, groupId, collection)
 
-    override def * = (feideEmail, groupId) // scalastyle:ignore
+    val destroy = (ugm: UserGroupMembership) =>
+      Some((ugm.id, ugm.feideEmail, ugm.groupId, ugm.collection))
 
+    override def * = (tableId, feideEmail, groupId, collectionId) <> (create.tupled, destroy) // scalastyle:ignore
+  }
+
+  type GrpColTuples = Seq[(GroupTableType, CollectionTableType)]
+
+  def findGroupInfoBy(
+    q: Query[UserGroupTable, UserGroupMembership, Seq]
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
+    val query = for {
+      (ug, g) <- q join grpTable on (_.groupId === _.id)
+      (_, c) <- q join musColTable on (_.collectionId === _.uuid)
+    } yield (g, c)
+
+    db.run(query.result).map(gc => MusitSuccess(foldGroupCol(gc)))
+  }
+
+  def convertColGrpTuples(tuples: GrpColTuples): Seq[(GroupInfo, MuseumCollection)] = {
+    tuples.map(convertColGrpTuple)
+  }
+
+  def convertColGrpTuple(
+    tuple: (GroupTableType, CollectionTableType)
+  ): (GroupInfo, MuseumCollection) = {
+    (GroupInfo.fromTuple(tuple._1), MuseumCollection.fromTuple(tuple._2))
+  }
+
+  /**
+   * Function that helps to reduce rows of GroupInfo and MuseumCollections into
+   * one GroupInfo (per unique group) containing all its MuseumCollection.
+   *
+   * @param tuples A Sequence of tuples of GroupTableType and CollectionTableType
+   * @return A List of GroupInfo data
+   */
+  def foldGroupCol(tuples: GrpColTuples): List[GroupInfo] = {
+    convertColGrpTuples(tuples).foldLeft(List.empty[GroupInfo]) { (grpInfos, tuple) =>
+      val currGrp = tuple._1
+      val currCol = tuple._2
+
+      if (grpInfos.exists(_.id == currGrp.id)) {
+        grpInfos.map { gi =>
+          if (gi.id == currGrp.id) gi.copy(collections = gi.collections :+ currCol)
+          else gi
+        }
+      } else {
+        grpInfos :+ currGrp.copy(collections = currGrp.collections :+ currCol)
+      }
+    }
   }
 
 }

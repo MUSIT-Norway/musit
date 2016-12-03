@@ -51,4 +51,15 @@ object GroupInfo {
     (__ \ "collections").format[Seq[MuseumCollection]]
   )(GroupInfo.apply, unlift(GroupInfo.unapply))
 
+  def fromTuple(t: (GroupId, String, Permission, MuseumId, Option[String])): GroupInfo = {
+    GroupInfo(
+      id = t._1,
+      name = t._2,
+      permission = t._3,
+      museumId = t._4,
+      description = t._5,
+      collections = Seq.empty
+    )
+  }
+
 }

@@ -76,7 +76,7 @@ class ObjectSearchController @Inject() (
     } else {
       val mno = museumNo.map(MuseumNo.apply)
       val sno = subNo.map(SubNo.apply)
-      service.search(mid, page, calcLimit(limit), mno, sno, term).map {
+      service.search(mid, page, calcLimit(limit), mno, sno, term)(request.user).map {
         case MusitSuccess(res) =>
           Ok(Json.toJson[ObjectSearchResult](res))
 

@@ -19,29 +19,43 @@
 
 package no.uio.musit.models
 
-import no.uio.musit.models.OldDbSchemas.OldSchema
-import play.api.libs.json.{Format, Json}
+case class UserGroupMembership(
+  id: Option[Int] = None,
+  feideEmail: String,
+  groupId: GroupId,
+  collection: Option[CollectionUUID]
+)
 
-case class MuseumCollection(
-    uuid: CollectionUUID,
-    name: Option[String],
-    oldSchemaNames: Seq[OldSchema]
-) {
+object UserGroupMembership {
 
-  def flattenSchemas: Seq[String] = oldSchemaNames.flatMap(_.schemas)
-
-}
-
-object MuseumCollection {
-
-  implicit val format: Format[MuseumCollection] = Json.format[MuseumCollection]
-
-  def fromTuple(t: (CollectionUUID, Option[String], Seq[OldSchema])): MuseumCollection = {
-    MuseumCollection(
-      uuid = t._1,
-      name = t._2,
-      oldSchemaNames = t._3
-    )
+  def applyMulti(
+    email: String,
+    grpId: GroupId,
+    maybeCollections: Option[Seq[CollectionUUID]]
+  ): Seq[UserGroupMembership] = {
+    maybeCollections.map { cids =>
+      if (cids.nonEmpty) {
+        cids.map { cid =>
+          UserGroupMembership(
+            feideEmail = email,
+            groupId = grpId,
+            collection = Option(cid)
+          )
+        }
+      } else {
+        Seq(UserGroupMembership(
+          feideEmail = email,
+          groupId = grpId,
+          collection = None
+        ))
+      }
+    }.getOrElse {
+      Seq(UserGroupMembership(
+        feideEmail = email,
+        groupId = grpId,
+        collection = None
+      ))
+    }
   }
 
 }

@@ -21,8 +21,9 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd}
-import no.uio.musit.models.GroupId
-import no.uio.musit.security.AuthTables
+import no.uio.musit.models.OldDbSchemas.OldSchema
+import no.uio.musit.models.{CollectionUUID, GroupId, MuseumCollection, UserGroupMembership}
+import no.uio.musit.security.{AuthTables, GroupInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -32,20 +33,20 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 @Singleton
-class GroupDao @Inject() (
+class AuthDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends AuthTables {
 
   import driver.api._
 
-  val logger = Logger(classOf[GroupDao])
+  val logger = Logger(classOf[AuthDao])
 
   /**
    *
    * @param g
    * @return
    */
-  def add(g: GroupAdd): Future[MusitResult[Group]] = {
+  def addGroup(g: GroupAdd): Future[MusitResult[Group]] = {
     val gid = GroupId.generate()
     val action = grpTable += ((gid, g.name, g.permission, g.museumId, g.description))
 
@@ -62,7 +63,7 @@ class GroupDao @Inject() (
    * @param grpId
    * @return
    */
-  def findById(grpId: GroupId): Future[MusitResult[Option[Group]]] = {
+  def findGroupById(grpId: GroupId): Future[MusitResult[Option[Group]]] = {
     val query = grpTable.filter(_.id === grpId).result.headOption
     db.run(query).map { res =>
       MusitSuccess(res.map {
@@ -82,8 +83,8 @@ class GroupDao @Inject() (
    * @return
    */
   def findUsersInGroup(grpId: GroupId): Future[MusitResult[Seq[String]]] = {
-    val query = usrGrpTable.filter(_.groupId === grpId).map(_.feideEmail)
-    db.run(query.result).map { res =>
+    val q = usrGrpTable.filter(_.groupId === grpId).map(_.feideEmail).distinct
+    db.run(q.result).map { res =>
       MusitSuccess(res)
     }.recover {
       case NonFatal(ex) =>
@@ -98,19 +99,71 @@ class GroupDao @Inject() (
    * @param feideEmail
    * @return
    */
-  def findGroupsFor(feideEmail: String): Future[MusitResult[Seq[Group]]] = {
-    val ugQuery = usrGrpTable.filter(_.feideEmail === feideEmail)
-    val query = for {
-      (ug, g) <- ugQuery join grpTable on (_.groupId === _.id)
-    } yield g
+  def findGroupInfoFor(feideEmail: String): Future[MusitResult[Seq[GroupInfo]]] = {
+    findGroupInfoBy(usrGrpTable.filter(_.feideEmail === feideEmail)).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to find GroupInfo for user $feideEmail"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
 
-    db.run(query.result).map { grps =>
-      MusitSuccess(grps.map {
-        case (gid, name, perm, mid, desc) => Group(gid, name, perm, mid, desc)
+  def findCollectionsFor(
+    feideEmail: String,
+    groupId: GroupId
+  ): Future[MusitResult[Seq[MuseumCollection]]] = {
+    val q = usrGrpTable.filter { ug =>
+      ug.feideEmail === feideEmail && ug.groupId === groupId
+    }
+    val query = for {
+      (ug, c) <- q join musColTable on (_.collectionId === _.uuid)
+    } yield c
+
+    db.run(query.result).map { cols =>
+      MusitSuccess(cols.map {
+        case (id, name, schemas) => MuseumCollection(id, name, schemas)
       })
     }.recover {
       case NonFatal(ex) =>
-        val msg = s"An error occurred when trying to find Groups for user $feideEmail"
+        val msg = s"An error occurred when trying to get collections " +
+          s"for $feideEmail in group $groupId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
+
+  def revokeCollectionFor(
+    feideEmail: String,
+    groupId: GroupId,
+    collectionId: CollectionUUID
+  ): Future[MusitResult[Int]] = {
+    val q = usrGrpTable.filter { ug =>
+      ug.feideEmail === feideEmail &&
+        ug.groupId === groupId &&
+        ug.collectionId === collectionId
+    }.delete
+
+    db.run(q).map {
+      case res: Int if res == 1 =>
+        logger.debug(s"Successfully revoked collection $collectionId " +
+          s"for $feideEmail on $groupId")
+        MusitSuccess(res)
+
+      case res: Int if res == 0 =>
+        logger.debug(s"Collection $collectionId was not removed from $feideEmail " +
+          s"on $groupId.")
+        MusitSuccess(res)
+
+      case res: Int =>
+        val msg = s"An unexpected amount of collections where removed from " +
+          s"GroupId $groupId for $feideEmail"
+        logger.warn(msg)
+        MusitDbError(msg)
+
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to delete the " +
+          s"collection $collectionId for $feideEmail from $groupId"
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
     }
@@ -138,7 +191,7 @@ class GroupDao @Inject() (
    * @param grp
    * @return
    */
-  def update(grp: Group): Future[MusitResult[Option[Group]]] = {
+  def updateGroup(grp: Group): Future[MusitResult[Option[Group]]] = {
     val action = grpTable.filter { g =>
       g.id === grp.id
     }.update((grp.id, grp.name, grp.permission, grp.museumId, grp.description))
@@ -163,8 +216,14 @@ class GroupDao @Inject() (
    * @param grpId
    * @return
    */
-  def delete(grpId: GroupId): Future[MusitResult[Int]] = {
-    val action = grpTable.filter(_.id === grpId).delete
+  def deleteGroup(grpId: GroupId): Future[MusitResult[Int]] = {
+    val action1 = usrGrpTable.filter(_.groupId === grpId).delete
+    val action2 = grpTable.filter(_.id === grpId).delete
+
+    // First we need to remove the users from the group.
+    // Then we remove the group.
+    val action = action1.andThen(action2).transactionally
+
     db.run(action).map {
       case res: Int if res == 1 =>
         logger.debug(s"Successfully removed Group $grpId")
@@ -191,21 +250,27 @@ class GroupDao @Inject() (
    *
    * @param feideEmail
    * @param grpId
+   * @param maybeCollections
    * @return
    */
   def addUserToGroup(
     feideEmail: String,
-    grpId: GroupId
+    grpId: GroupId,
+    maybeCollections: Option[Seq[CollectionUUID]]
   ): Future[MusitResult[Unit]] = {
-    val action = usrGrpTable += ((feideEmail, grpId))
+    val ugms = UserGroupMembership.applyMulti(feideEmail, grpId, maybeCollections)
 
-    db.run(action).map(res => MusitSuccess(())).recover {
+    val action = (usrGrpTable ++= ugms).map(_.fold(1)(identity))
+
+    db.run(action).map { res =>
+      logger.debug(s"Added user $feideEmail to group $grpId returned ${res}")
+      MusitSuccess(())
+    }.recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when inserting a new UserGroup relation " +
           s"between user $feideEmail and groupId $grpId"
         logger.error(msg, ex)
         MusitDbError(msg, Some(ex))
-
     }
   }
 
@@ -246,4 +311,21 @@ class GroupDao @Inject() (
     }
   }
 
+  /**
+   *
+   * @return
+   */
+  def allCollections: Future[MusitResult[Seq[MuseumCollection]]] = {
+    val query = musColTable.sortBy(_.name)
+    db.run(query.result).map { cols =>
+      MusitSuccess(cols.map {
+        case (uuid, name, oldSchemas) => MuseumCollection(uuid, name, oldSchemas)
+      })
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when trying to get all MuseumCollections."
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
+  }
 }

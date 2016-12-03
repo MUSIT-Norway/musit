@@ -42,7 +42,8 @@ class ObjectAggregationDao @Inject() (
 
   def getObjects(
     mid: MuseumId,
-    nodeId: StorageNodeId
+    nodeId: StorageNodeId,
+    collections: Seq[MuseumCollection]
   ): Future[MusitResult[Seq[ObjectAggregation]]] = {
 
     val locObjQuery = localObjects.filter { lo =>
@@ -50,8 +51,13 @@ class ObjectAggregationDao @Inject() (
         lo.currentLocationId === nodeId
     }
 
+    // Filter on collection access
+    val objQuery = objects.filter {
+      _.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct
+    }
+
     val query = for {
-      (_, o) <- locObjQuery join objects on (_.objectId === _.id)
+      (_, o) <- locObjQuery join objQuery on (_.objectId === _.id)
     } yield (o.id, o.museumNo, o.subNo, o.term)
 
     db.run(query.result).map { objs =>

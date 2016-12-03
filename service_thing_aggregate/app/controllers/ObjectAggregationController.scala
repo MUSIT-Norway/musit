@@ -21,7 +21,7 @@ package controllers
 
 import com.google.inject.Inject
 import no.uio.musit.models.MuseumId
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{AuthenticatedUser, Authenticator}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults._
@@ -47,7 +47,7 @@ class ObjectAggregationController @Inject() (
   ) = MusitSecureAction(mid, Read).async { request =>
     storageNodeService.nodeExists(mid, nodeId).flatMap {
       case MusitSuccess(true) =>
-        getObjectsByNodeId(mid, nodeId)
+        getObjectsByNodeId(mid, nodeId)(request.user)
 
       case MusitSuccess(false) =>
         Future.successful(NotFound(Json.obj(
@@ -63,7 +63,10 @@ class ObjectAggregationController @Inject() (
     }
   }
 
-  private def getObjectsByNodeId(mid: MuseumId, nodeId: Long): Future[Result] = {
+  private def getObjectsByNodeId(
+    mid: MuseumId,
+    nodeId: Long
+  )(implicit currUsr: AuthenticatedUser): Future[Result] = {
     service.getObjects(mid, nodeId).map {
       case MusitSuccess(objects) =>
         Ok(Json.toJson(objects))

@@ -28,14 +28,14 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.time.{Millis, Seconds, Span}
 
-class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
+class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
 
-  val dao = fromInstanceCache[GroupDao]
+  val dao = fromInstanceCache[AuthDao]
 
   val addedGroupIds = List.newBuilder[GroupId]
 
@@ -43,19 +43,19 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
     // add some groups
     for (i <- 1 to 5) {
       val grp = GroupAdd(s"test$i", Permissions.Write, Test.id, Some(s"test group $i"))
-      val res = dao.add(grp).futureValue
+      val res = dao.addGroup(grp).futureValue
 
       res.isSuccess mustBe true
       addedGroupIds += res.get.id
     }
   }
 
-  "Using the GroupDao" when {
+  "Using the AuthDao" when {
 
     "adding new group data" should {
       "succeed when data is complete" in {
         val grp = GroupAdd("test6", Permissions.Read, Test.id, Some("test group 6"))
-        val res = dao.add(grp).futureValue
+        val res = dao.addGroup(grp).futureValue
 
         res.isSuccess mustBe true
 
@@ -68,7 +68,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
       "succeed when description isn't set" in {
         val grp = GroupAdd("test7", Permissions.Write, Test.id, None)
-        val res = dao.add(grp).futureValue
+        val res = dao.addGroup(grp).futureValue
 
         res.isSuccess mustBe true
 
@@ -81,7 +81,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
       "fail if the name is null" in {
         val grp = GroupAdd(null, Permissions.Read, Test.id, Some("test group fail")) // scalastyle:ignore
-        dao.add(grp).futureValue match {
+        dao.addGroup(grp).futureValue match {
           case MusitDbError(msg, ex) =>
             msg must include("An error occurred")
             ex must not be None
@@ -93,7 +93,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
       "fail if the permission is null" in {
         val grp = GroupAdd("testFail", null, Test.id, Some("test group fail")) // scalastyle:ignore
-        dao.add(grp).futureValue match {
+        dao.addGroup(grp).futureValue match {
           case MusitDbError(msg, ex) =>
             msg must include("An error occurred")
             ex must not be None
@@ -108,7 +108,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       "return the correct data when it exists" in {
         val id = addedGroupIds.result().head
 
-        val res = dao.findById(id).futureValue
+        val res = dao.findGroupById(id).futureValue
 
         res.isSuccess mustBe true
         res.get must not be None
@@ -120,7 +120,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       }
 
       "not return any data when id doesn't exist" in {
-        val res = dao.findById(GroupId.generate()).futureValue
+        val res = dao.findGroupById(GroupId.generate()).futureValue
 
         res.isSuccess mustBe true
         res.get mustBe None
@@ -131,7 +131,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       "return the correctly updated data" in {
         val id = addedGroupIds.result().last
 
-        val ug = dao.findById(id).futureValue
+        val ug = dao.findGroupById(id).futureValue
         ug.isSuccess mustBe true
         ug.get must not be None
 
@@ -140,7 +140,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
           description = Some("test group 7")
         )
 
-        val res = dao.update(updGrp).futureValue
+        val res = dao.updateGroup(updGrp).futureValue
 
         res.isSuccess mustBe true
         res.get must not be None
@@ -155,13 +155,13 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       "fail when setting required field to null" in {
         val id = addedGroupIds.result().last
 
-        val ug = dao.findById(id).futureValue
+        val ug = dao.findGroupById(id).futureValue
         ug.isSuccess mustBe true
         ug.get must not be None
 
         val updGrp = ug.get.get.copy(permission = null) // scalastyle:ignore
 
-        dao.update(updGrp).futureValue match {
+        dao.updateGroup(updGrp).futureValue match {
           case MusitDbError(msg, ex) =>
             msg must include("An error occurred")
             ex must not be None
@@ -175,13 +175,13 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
     "deleting a group" should {
       "successfully remove a group" in {
         val id = addedGroupIds.result().head
-        val res = dao.delete(id).futureValue
+        val res = dao.deleteGroup(id).futureValue
         res.isSuccess mustBe true
         res.get mustBe 1
       }
 
       "not remove any groups if GroupId doesn't exist" in {
-        val res = dao.delete(GroupId.generate()).futureValue
+        val res = dao.deleteGroup(GroupId.generate()).futureValue
         res.isSuccess mustBe true
         res.get mustBe 0
       }
@@ -193,12 +193,12 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
       "successfully add a new UserGroup row" in {
         val grpId = addedGroupIds.result().tail.head
-        dao.addUserToGroup(email, grpId).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, grpId, None).futureValue.isSuccess mustBe true
       }
 
       "not allow duplicate UserGroup entries" in {
         val grpId = addedGroupIds.result().tail.head
-        dao.addUserToGroup(email, grpId).futureValue.isFailure mustBe true
+        dao.addUserToGroup(email, grpId, None).futureValue.isFailure mustBe true
       }
     }
 
@@ -206,7 +206,7 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       "successfully remove the row" in {
         val email = "foo2@bar.com"
         val gid = addedGroupIds.result().last
-        dao.addUserToGroup(email, gid).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid, None).futureValue.isSuccess mustBe true
 
         val res = dao.removeUserFromGroup(email, gid).futureValue
         res.isSuccess mustBe true
@@ -230,11 +230,11 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         val gid2 = addedGroupIds.result().tail.tail.head
         val gid3 = addedGroupIds.result().last
 
-        dao.addUserToGroup(email, gid1).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email, gid2).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email, gid3).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid1, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid2, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid3, None).futureValue.isSuccess mustBe true
 
-        val res = dao.findGroupsFor(email).futureValue
+        val res = dao.findGroupInfoFor(email).futureValue
 
         res.isSuccess mustBe true
         res.get.size mustBe 3
@@ -249,9 +249,9 @@ class GroupDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
         val grp1 = addedGroupIds.result().reverse.tail.tail.head
 
-        dao.addUserToGroup(email1, grp1).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email2, grp1).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email3, grp1).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email1, grp1, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email2, grp1, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email3, grp1, None).futureValue.isSuccess mustBe true
 
         val res = dao.findUsersInGroup(grp1).futureValue
         res.isSuccess mustBe true

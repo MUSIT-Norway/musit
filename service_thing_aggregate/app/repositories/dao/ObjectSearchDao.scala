@@ -22,7 +22,7 @@ package repositories.dao
 import com.google.inject.Inject
 import models.SearchFieldValues._
 import models.{MusitObject, ObjectSearchResult}
-import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
+import no.uio.musit.models.{MuseumCollection, MuseumId, MuseumNo, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -127,16 +127,21 @@ class ObjectSearchDao @Inject() (
     pageSize: Int,
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
-    term: Option[String]
+    term: Option[String],
+    collections: Seq[MuseumCollection]
   ): QObjectTable = {
     val mno = museumNo.map(_.value)
 
     val q1 = classifyValue(mno).map(f => museumNoFilter(table, f)).getOrElse(table)
     val q2 = classifyValue(subNo.map(_.value)).map(f => subNoFilter(q1, f)).getOrElse(q1)
     val q3 = classifyValue(term).map(f => termFilter(q2, f)).getOrElse(q2)
-
+    val q4 = q3.filter { o =>
+      o.museumId === mid &&
+        // Filter on collection access
+        (o.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct)
+    }
     // Tweak here if sorting needs to be tuned
-    q3.sortBy { mt =>
+    q4.sortBy { mt =>
       (
         mt.museumNoAsNumber.asc,
         mt.museumNo.toLowerCase.asc,
@@ -155,6 +160,7 @@ class ObjectSearchDao @Inject() (
    * @param museumNo
    * @param subNo
    * @param term
+   * @param collections
    * @return
    */
   def search(
@@ -163,10 +169,11 @@ class ObjectSearchDao @Inject() (
     pageSize: Int,
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
-    term: Option[String]
+    term: Option[String],
+    collections: Seq[MuseumCollection]
   ): Future[MusitResult[ObjectSearchResult]] = {
     val offset = (page - 1) * pageSize
-    val query = searchQuery(mid, page, pageSize, museumNo, subNo, term)
+    val query = searchQuery(mid, page, pageSize, museumNo, subNo, term, collections)
 
     val totalMatches = db.run(query.length.result)
     val matchedResults = db.run(query.drop(offset).take(pageSize).result)

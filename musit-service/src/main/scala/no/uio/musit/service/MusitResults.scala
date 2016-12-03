@@ -21,6 +21,8 @@ package no.uio.musit.service
 
 object MusitResults {
 
+  // FIXME: Ok..the time has come for a Monad Transformer for this type!!!
+
   sealed abstract class MusitResult[+A] {
 
     def isSuccess: Boolean
