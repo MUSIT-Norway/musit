@@ -32,7 +32,7 @@ class MuseumController @Inject() (
 ) extends MusitController {
 
   def listMuseums = MusitSecureAction() { implicit request =>
-    Ok(Json.arr(Museums.museums.map(Museum.toJson)))
+    Ok(Json.toJson(Museums.museums.map(Museum.toJson)))
   }
 
 }
