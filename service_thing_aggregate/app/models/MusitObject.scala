@@ -19,20 +19,34 @@
 
 package models
 
-import no.uio.musit.models.{MuseumNo, NamedPathElement, NodePath, SubNo}
+import no.uio.musit.models._
 import play.api.libs.json.Json
 
 case class MusitObject(
-  id: Long,
+  id: ObjectId,
   museumNo: MuseumNo,
   subNo: Option[SubNo],
   term: String,
   currentLocationId: Option[Long] = None,
   path: Option[NodePath] = None,
-  pathNames: Option[Seq[NamedPathElement]] = None
+  pathNames: Option[Seq[NamedPathElement]] = None,
+  mainObjectId: Option[Long]
 )
 
 object MusitObject {
   implicit val format = Json.format[MusitObject]
+
+  type ObjTuple = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String])) // scalastyle:ignore
+
+  def fromTuple(t: ObjTuple): MusitObject = {
+    MusitObject(
+      id = t._1.get, // scalastyle:ignore
+      museumNo = MuseumNo(t._3),
+      subNo = t._5.map(SubNo.apply),
+      mainObjectId = t._7,
+      term = t._8
+    )
+  }
+
 }
 

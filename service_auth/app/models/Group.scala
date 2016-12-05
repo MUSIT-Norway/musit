@@ -70,19 +70,3 @@ object GroupAdd {
 
 }
 
-case class UserGroupAdd(email: String, groupId: String)
-
-object UserGroupAdd {
-  implicit def reads: Reads[UserGroupAdd] = Json.reads[UserGroupAdd]
-
-  def applyForm(email: String, groupId: String) = UserGroupAdd(email, groupId)
-
-  def unapplyForm(uga: UserGroupAdd) = Some((uga.email, uga.groupId))
-
-  val userGroupAddForm = Form(
-    mapping(
-      "email" -> email,
-      "groupId" -> text.verifying(id => GroupId.validate(id).isSuccess)
-    )(applyForm)(unapplyForm)
-  )
-}

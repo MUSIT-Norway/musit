@@ -22,6 +22,7 @@ package repositories.dao
 import com.google.inject.Inject
 import models._
 import no.uio.musit.models._
+import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -42,16 +43,25 @@ class ObjectAggregationDao @Inject() (
 
   def getObjects(
     mid: MuseumId,
-    nodeId: StorageNodeDatabaseId
-  ): Future[MusitResult[Seq[ObjectAggregation]]] = {
+    nodeId: StorageNodeDatabaseId,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
 
     val locObjQuery = localObjects.filter { lo =>
       lo.museumId === mid &&
         lo.currentLocationId === nodeId
     }
 
+    // Filter on collection access if the user doesn't have GodMode
+    val objQuery = {
+      if (currUsr.hasGodMode) objects
+      else objects.filter { o =>
+        o.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct
+      }
+    }
+
     val query = for {
-      (lo, o) <- locObjQuery join objects on (_.objectId === _.id)
+      (_, o) <- locObjQuery join objQuery on (_.objectId === _.id)
     } yield (o.id, o.museumNo, o.subNo, o.term)
 
     db.run(query.result).map { objs =>

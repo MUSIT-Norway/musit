@@ -19,8 +19,8 @@
 
 package no.uio.musit.security
 
-import no.uio.musit.models.ActorId
-import no.uio.musit.models.Museums.Museum
+import no.uio.musit.models.Museums.{All, Museum}
+import no.uio.musit.models.{ActorId, CollectionUUID, MuseumCollection, MuseumId}
 import no.uio.musit.security.Permissions.{ElevatedPermission, GodMode, Permission}
 import no.uio.musit.service.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
 import play.api.Logger
@@ -39,13 +39,13 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
     }
   }
 
-  private def hasGodMode: Boolean = groups.exists(_.hasPermission(GodMode))
+  def hasGodMode: Boolean = groups.exists(_.hasPermission(GodMode))
 
   private def permissionsFor(museum: Museum): Seq[Permission] =
     groups.filter(_.museumId == museum.id).map(gi => gi.permission)
 
   private def isAuthorizedFor(museum: Museum): Boolean = {
-    groups.exists(_.museum.contains(museum))
+    groups.exists(g => g.museum.contains(museum) || g.museum.contains(All))
   }
 
   private def authorizeUser(
@@ -64,6 +64,19 @@ case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
     } else {
       MusitNotAuthorized()
     }
+  }
+
+  def isAuthorized(museumId: MuseumId): Boolean = {
+    Museum.fromMuseumId(museumId).exists(isAuthorizedFor)
+  }
+
+  def collectionsFor(museumId: MuseumId): Seq[MuseumCollection] = {
+    groups.filter(_.museumId == museumId).flatMap(_.collections)
+  }
+
+  def canAccess(mid: MuseumId, collection: CollectionUUID): Boolean = {
+    if (hasGodMode) true
+    else collectionsFor(mid).exists(_.uuid == collection)
   }
 
   def authorize(

@@ -19,7 +19,7 @@
 
 package models
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 
 case class Address(
   street: String,

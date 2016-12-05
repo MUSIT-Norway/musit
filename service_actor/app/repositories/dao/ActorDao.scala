@@ -49,17 +49,21 @@ class ActorDao @Inject() (
 
   def getByName(searchString: String): Future[Seq[Person]] = {
     val likeArg = searchString.toUpperCase
-    db.run(actorTable.filter(_.fn.toUpperCase like s"%$likeArg%").result)
+    val query = actorTable.filter { a =>
+      a.fn.toUpperCase like s"%$likeArg%"
+    }.sortBy(_.fn)
+
+    db.run(query.result)
   }
 
   def getByDataportenId(dataportenId: ActorId): Future[Option[Person]] = {
-    db.run(actorTable.filter(_.dpId === dataportenId).result.headOption)
+    db.run(actorTable.filter(_.dpId === dataportenId).sortBy(_.fn).result.headOption)
   }
 
   def listBy(ids: Set[ActorId]): Future[Seq[Person]] = {
     db.run(actorTable.filter { a =>
       (a.applicationId inSet ids) || (a.dpId inSet ids)
-    }.result)
+    }.sortBy(_.fn).result)
   }
 
   /* TABLE DEF using fieldnames from w3c vcard standard */

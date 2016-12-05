@@ -17,31 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models.dto
+package no.uio.musit.models
 
-import models.MusitObject
-import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
+import no.uio.musit.models.OldDbSchemas.OldSchema
+import play.api.libs.json.{Format, Json}
 
-case class MusitObjectDto(
-  museumId: MuseumId,
-  id: Option[ObjectId],
-  museumNo: MuseumNo,
-  museumNoAsNumber: Option[Long],
-  subNo: Option[SubNo],
-  subNoAsNumber: Option[Long],
-  term: String
-)
+case class MuseumCollection(
+    uuid: CollectionUUID,
+    name: Option[String],
+    oldSchemaNames: Seq[OldSchema]
+) {
 
-object MusitObjectDto {
+  def flattenSchemas: Seq[String] = oldSchemaNames.flatMap(_.schemas)
 
-  def toMusitObject(x: MusitObjectDto): MusitObject =
-    MusitObject(
-      // We can use get on the ID since we're only reading objects.
-      // Hence an object _must_ have an ID in the database.
-      id = x.id.get,
-      museumNo = x.museumNo,
-      subNo = x.subNo,
-      term = x.term
-    )
 }
 
+object MuseumCollection {
+
+  implicit val format: Format[MuseumCollection] = Json.format[MuseumCollection]
+
+  def fromTuple(t: (CollectionUUID, Option[String], Seq[OldSchema])): MuseumCollection = {
+    MuseumCollection(
+      uuid = t._1,
+      name = t._2,
+      oldSchemaNames = t._3
+    )
+  }
+
+}

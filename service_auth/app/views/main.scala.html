@@ -1,12 +1,28 @@
-
 @(title: String)(content: Html)
 
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>@title</title>
-    </head>
-    <body>
-        @content
-    </body>
+  <head>
+    <title>@title</title>
+    <style>
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td, th {
+      border: 1px solid black;
+      text-align: left;
+      padding: 8px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+    </style>
+  </head>
+  <body>
+    @content
+  </body>
 </html>

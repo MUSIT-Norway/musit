@@ -19,25 +19,43 @@
 
 package no.uio.musit.models
 
-import java.util.UUID
+case class UserGroupMembership(
+  id: Option[Int] = None,
+  feideEmail: Email,
+  groupId: GroupId,
+  collection: Option[CollectionUUID]
+)
 
-import play.api.libs.json.{JsString, Writes, _}
+object UserGroupMembership {
 
-case class GroupId(underlying: UUID) extends MusitUUID
+  def applyMulti(
+    email: Email,
+    grpId: GroupId,
+    maybeCollections: Option[Seq[CollectionUUID]]
+  ): Seq[UserGroupMembership] = {
+    maybeCollections.map { cids =>
+      if (cids.nonEmpty) {
+        cids.map { cid =>
+          UserGroupMembership(
+            feideEmail = email,
+            groupId = grpId,
+            collection = Option(cid)
+          )
+        }
+      } else {
+        Seq(UserGroupMembership(
+          feideEmail = email,
+          groupId = grpId,
+          collection = None
+        ))
+      }
+    }.getOrElse {
+      Seq(UserGroupMembership(
+        feideEmail = email,
+        groupId = grpId,
+        collection = None
+      ))
+    }
+  }
 
-object GroupId extends MusitUUIDOps[GroupId] {
-  implicit val reads: Reads[GroupId] =
-    __.read[String].map(s => GroupId(UUID.fromString(s)))
-
-  implicit val writes: Writes[GroupId] = Writes(id => JsString(id.asString))
-
-  override implicit def fromUUID(uuid: UUID): GroupId = GroupId(uuid)
-
-  /**
-   * Unsafe converter from String to GroupId
-   */
-  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
-  def unsafeFromString(str: String): GroupId = UUID.fromString(str)
-
-  override def generate(): GroupId = GroupId(UUID.randomUUID())
 }

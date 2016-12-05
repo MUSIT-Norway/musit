@@ -19,12 +19,20 @@
 
 package no.uio.musit.models
 
+import play.api.data.validation._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 
 case class Email(value: String) extends AnyVal
 
 object Email {
+
+  def fromString(str: String): Option[Email] = {
+    Constraints.emailAddress(str) match {
+      case Valid => Option(Email(str))
+      case Invalid(errs) => None
+    }
+  }
 
   implicit val reads: Reads[Email] = __.read[String](email).map(Email.apply)
 

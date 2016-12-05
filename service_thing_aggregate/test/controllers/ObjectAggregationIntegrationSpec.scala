@@ -19,6 +19,8 @@
 
 package controllers
 
+import java.util.UUID
+
 import no.uio.musit.models.{MuseumNo, ObjectId, SubNo}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator
@@ -38,12 +40,16 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
 
+  val archeologyCollection = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
+  val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
+
   "ObjectAggregation integration" must {
     "find objects for nodeId that exists" in {
       val nodeId = 3
       val mid = 99
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> archeologyCollection)
         .get().futureValue
       response.status mustBe OK
 
@@ -61,6 +67,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       val mid = 99
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> archeologyCollection)
         .get().futureValue
       response.status mustBe NOT_FOUND
       (response.json \ "message").as[String] must endWith(s"$nodeId")
@@ -71,6 +78,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       val mid = 99
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> archeologyCollection)
         .get().futureValue
       response.status mustBe BAD_REQUEST
     }
@@ -80,6 +88,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       val mid = 555
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> archeologyCollection)
         .get().futureValue
       response.status mustBe BAD_REQUEST
       (response.json \ "message").as[String] must include(s"$mid")
@@ -90,6 +99,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       val mid = None
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> archeologyCollection)
         .get().futureValue
       response.status mustBe BAD_REQUEST
     }
@@ -99,6 +109,7 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       val mid = "blæBlæBlæ"
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> archeologyCollection)
         .get().futureValue
       response.status mustBe BAD_REQUEST
     }
@@ -108,6 +119,18 @@ class ObjectAggregationIntegrationSpec extends MusitSpecWithServerPerSuite {
       val mid = 6
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> archeologyCollection)
+        .get().futureValue
+      response.status mustBe FORBIDDEN
+    }
+
+    "respond with 403 if the user doesn't have access to the collection" in {
+      val nodeId = 345
+      val mid = 99
+      val collection = UUID.randomUUID().toString
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+        .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> collection)
         .get().futureValue
       response.status mustBe FORBIDDEN
     }

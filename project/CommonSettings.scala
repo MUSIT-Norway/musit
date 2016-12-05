@@ -69,7 +69,7 @@ object CommonSettings {
       "-Xmax-classfile-name", "100" // This will limit the classname generation to 100 characters.
     ),
     // Configuring the scoverage plugin.
-    coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router;no.uio.musit.test",
+    coverageExcludedPackages := "<empty>;controllers.javascript;controllers.web;views.*;router;no.uio.musit.test",
     coverageExcludedFiles := "",
     coverageMinimum := 80,
     coverageFailOnMinimum := false,
@@ -99,6 +99,7 @@ object CommonSettings {
         SbtNativePackager,
         DockerPlugin
       )
+      .settings(dependencyOverrides += "com.typesafe.play" %% "play-logback" % Dependencies.PlayFrameWork.version)
       .settings(Seq(
         PlayKeys.playOmnidoc := false,
         buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, buildInfoBuildNumber),

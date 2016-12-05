@@ -20,9 +20,9 @@
 package controllers
 
 import com.google.inject.Inject
-import no.uio.musit.models.MuseumId
-import no.uio.musit.security.Authenticator
+import no.uio.musit.models.{CollectionUUID, MuseumCollection, MuseumId}
 import no.uio.musit.security.Permissions.Read
+import no.uio.musit.security.{AuthenticatedUser, Authenticator}
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -41,30 +41,46 @@ class ObjectAggregationController @Inject() (
 
   val logger = Logger(classOf[ObjectAggregationController])
 
+  /**
+   *
+   * @param mid
+   * @param nodeId
+   * @param collectionIds Comma separated String of CollectionUUIDs.
+   * @return
+   */
   def getObjects(
     mid: Int,
-    nodeId: Long
+    nodeId: Long,
+    collectionIds: String
   ) = MusitSecureAction(mid, Read).async { request =>
-    storageNodeService.nodeExists(mid, nodeId).flatMap {
-      case MusitSuccess(true) =>
-        getObjectsByNodeId(mid, nodeId)
+    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      case Left(res) => Future.successful(res)
+      case Right(cids) =>
+        storageNodeService.nodeExists(mid, nodeId).flatMap {
+          case MusitSuccess(true) =>
+            getObjectsByNodeId(mid, nodeId, cids)(request.user)
 
-      case MusitSuccess(false) =>
-        Future.successful(NotFound(Json.obj(
-          "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
-        )))
+          case MusitSuccess(false) =>
+            Future.successful(NotFound(Json.obj(
+              "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
+            )))
 
-      case MusitDbError(msg, ex) =>
-        logger.error(msg, ex.orNull)
-        Future.successful(InternalServerError(Json.obj("message" -> msg)))
+          case MusitDbError(msg, ex) =>
+            logger.error(msg, ex.orNull)
+            Future.successful(InternalServerError(Json.obj("message" -> msg)))
 
-      case r: MusitError =>
-        Future.successful(InternalServerError(Json.obj("message" -> r.message)))
+          case r: MusitError =>
+            Future.successful(InternalServerError(Json.obj("message" -> r.message)))
+        }
     }
   }
 
-  private def getObjectsByNodeId(mid: MuseumId, nodeId: Long): Future[Result] = {
-    service.getObjects(mid, nodeId).map {
+  private def getObjectsByNodeId(
+    mid: MuseumId,
+    nodeId: Long,
+    collectionIds: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[Result] = {
+    service.getObjects(mid, nodeId, collectionIds).map {
       case MusitSuccess(objects) =>
         Ok(Json.toJson(objects))
 

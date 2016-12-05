@@ -19,11 +19,13 @@
 
 package controllers
 
+import java.util.UUID
+
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.libs.json.JsArray
+import play.api.libs.json.{JsArray, Json}
 import play.api.test.Helpers._
 
 import scala.language.postfixOps
@@ -37,13 +39,17 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
 
+  val archeologyCollection = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
+  val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
+
   var url = (mid: Int) => s"/museum/$mid/objects/search"
 
   "ObjectSearch" must {
 
-    "find an object that exist with a specific museumNo" in {
+    "find objects in the archeology collection with a specific museumNo" in {
 
       val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
+        "collectionIds" -> archeologyCollection,
         "museumNo" -> "C666",
         "subNo" -> "",
         "term" -> "",
@@ -102,14 +108,52 @@ class ObjectSearchIntegrationSpec extends MusitSpecWithServerPerSuite {
       (thirdPnames.last \ "name").as[String] mustBe "Forskningens hus"
     }
 
+    "find objects for archeology and numismatics collections with a similar museumNo" in {
+      val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
+        "collectionIds" -> s"$archeologyCollection,$numismaticsCollection",
+        "museumNo" -> "555",
+        "subNo" -> "",
+        "term" -> "",
+        "page" -> "1",
+        "limit" -> "10"
+      ).get().futureValue
+
+      res.status mustBe OK
+
+      val json = res.json
+
+      val entries = (json \ "matches").as[JsArray].value
+
+      entries.size mustBe 7
+
+      entries.exists { js =>
+        // Taking a shortcut and explicitly checking for the object in Numismatics
+        (js \ "museumNo").as[String] == "F555"
+      } mustBe true
+    }
+
     "not allow searching for objects if user doesn't have read access" in {
       val res = wsUrl(url(6)).withHeaders(fakeToken.asHeader).withQueryString(
+        "collectionIds" -> "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
         "museumNo" -> "FOO6565",
         "subNo" -> "",
         "term" -> "",
         "page" -> "1",
         "limit" -> "3"
       ).get().futureValue.status mustBe FORBIDDEN
+    }
+
+    "not allow searching in a collection without access" in {
+      val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
+        "collectionIds" -> s"$numismaticsCollection,${UUID.randomUUID().toString}",
+        "museumNo" -> "L234",
+        "subNo" -> "",
+        "term" -> "",
+        "page" -> "1",
+        "limit" -> "10"
+      ).get().futureValue
+
+      res.status mustBe FORBIDDEN
     }
 
     // TODO: There needs to be _loads_ more tests here!

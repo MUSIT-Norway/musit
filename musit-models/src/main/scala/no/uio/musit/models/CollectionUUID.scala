@@ -21,23 +21,28 @@ package no.uio.musit.models
 
 import java.util.UUID
 
-import play.api.libs.json.{JsString, Writes, _}
+import play.api.libs.json.{JsString, Reads, Writes, __}
 
-case class GroupId(underlying: UUID) extends MusitUUID
+case class CollectionUUID(underlying: UUID) extends MusitUUID
 
-object GroupId extends MusitUUIDOps[GroupId] {
-  implicit val reads: Reads[GroupId] =
-    __.read[String].map(s => GroupId(UUID.fromString(s)))
+object CollectionUUID extends MusitUUIDOps[CollectionUUID] {
+  implicit val reads: Reads[CollectionUUID] =
+    __.read[String].map(s => CollectionUUID(UUID.fromString(s)))
 
-  implicit val writes: Writes[GroupId] = Writes(id => JsString(id.asString))
+  implicit val writes: Writes[CollectionUUID] = Writes(id => JsString(id.asString))
 
-  override implicit def fromUUID(uuid: UUID): GroupId = GroupId(uuid)
+  override implicit def fromUUID(uuid: UUID): CollectionUUID = CollectionUUID(uuid)
 
   /**
-   * Unsafe converter from String to GroupId
+   * Unsafe converter from String to CollectionUUID
    */
   @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
-  def unsafeFromString(str: String): GroupId = UUID.fromString(str)
+  def unsafeFromString(str: String): CollectionUUID = UUID.fromString(str)
 
-  override def generate(): GroupId = GroupId(UUID.randomUUID())
+  def fromString(str: String): Option[CollectionUUID] = {
+    validate(str).toOption.map(CollectionUUID.apply)
+  }
+
+  override def generate() = CollectionUUID(UUID.randomUUID())
+
 }
