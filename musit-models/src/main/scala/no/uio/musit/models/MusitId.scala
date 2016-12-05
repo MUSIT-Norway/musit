@@ -20,7 +20,7 @@
 package no.uio.musit.models
 
 trait MusitId {
-  val underlying: Long // TODO: This needs to be changed to UUID
+  val underlying: Long
 }
 
 object MusitId {

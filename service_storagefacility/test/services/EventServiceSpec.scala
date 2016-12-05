@@ -102,25 +102,6 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
       res.isSuccess mustBe false
       res.isFailure mustBe true
     }
-
-    "fail when inserting a EnvReq with wrong museumId" in {
-      pending
-      //      val mid = MuseumId(2)
-      //      val envReq = createEnvRequirement(defaultBuilding.id)
-      //val envReqEvent = storageNodeService.saveEnvReq(mid,defaultBuilding.id.get,envReq.asInstanceOf[EnvironmentRequirement]).futureValue
-      // TODO: problem solving this test on envReqEvent against museumID
-      /* envReqEvent.get mustBe true
-        envReqEvent.get. mustBe 9
-        println("inni envReq")
-        latestEventId = obsEvent.get.baseEvent.id.get
-        latestEventId mustBe 9L
-
-        val anotherMid = MuseumId(4)
-        val currentObsEvent = obsService.add(anotherMid, defaultBuilding.id.get, ctrl).futureValue
-        currentObsEvent.isSuccess mustBe false
-        currentObsEvent.isFailure mustBe true*/
-    }
-
   }
 }
 

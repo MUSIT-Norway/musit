@@ -212,7 +212,6 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "list all controls and observations for a node, ordered by doneDate" in {
-      // TODO: Update this test once observations are created in above tests
       val res = wsUrl(CtrlObsForNodeUrl(mid, 2))
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
