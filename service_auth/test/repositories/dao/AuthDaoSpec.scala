@@ -20,7 +20,7 @@
 package repositories.dao
 
 import models._
-import no.uio.musit.models.GroupId
+import no.uio.musit.models.{Email, GroupId}
 import no.uio.musit.models.Museums.Test
 import no.uio.musit.security.Permissions
 import no.uio.musit.service.MusitResults.MusitDbError
@@ -189,7 +189,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "adding a new UserGroup" should {
 
-      val email = "foo1@bar.com"
+      val email = Email("foo1@bar.com")
 
       "successfully add a new UserGroup row" in {
         val grpId = addedGroupIds.result().tail.head
@@ -204,7 +204,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "deleting a UserGroup relation" should {
       "successfully remove the row" in {
-        val email = "foo2@bar.com"
+        val email = Email("foo2@bar.com")
         val gid = addedGroupIds.result().last
         dao.addUserToGroup(email, gid, None).futureValue.isSuccess mustBe true
 
@@ -214,7 +214,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       }
 
       "not remove anything if the userId doesn't exist" in {
-        val email = "asdf@asdf.net"
+        val email = Email("asdf@asdf.net")
         val gid = addedGroupIds.result().last
 
         val res = dao.removeUserFromGroup(email, gid).futureValue
@@ -225,7 +225,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "finding all the groups for a user" should {
       "return all the groups the user is part of" in {
-        val email = "bar@foo.com"
+        val email = Email("bar@foo.com")
         val gid1 = addedGroupIds.result().tail.head
         val gid2 = addedGroupIds.result().tail.tail.head
         val gid3 = addedGroupIds.result().last
@@ -243,9 +243,9 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "finding all the users in a group" should {
       "return all the ActorIds associated with that group" in {
-        val email1 = "luke@starwars.com"
-        val email2 = "leia@starwars.com"
-        val email3 = "anakin@starwars.com"
+        val email1 = Email("luke@starwars.com")
+        val email2 = Email("leia@starwars.com")
+        val email3 = Email("anakin@starwars.com")
 
         val grp1 = addedGroupIds.result().reverse.tail.tail.head
 
@@ -256,7 +256,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         val res = dao.findUsersInGroup(grp1).futureValue
         res.isSuccess mustBe true
         res.get.size mustBe 3
-        res.get.sorted mustBe Seq(email1, email2, email3).sorted
+        res.get.sortBy(_.value) mustBe Seq(email1, email2, email3).sortBy(_.value)
       }
     }
   }

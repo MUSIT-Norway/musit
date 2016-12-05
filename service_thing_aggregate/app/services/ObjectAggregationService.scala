@@ -21,7 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.ObjectAggregation
-import no.uio.musit.models.{MuseumId, StorageNodeId}
+import no.uio.musit.models.{MuseumCollection, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults.MusitResult
 import repositories.dao.{ObjectAggregationDao, StorageNodeDao}
@@ -33,12 +33,20 @@ class ObjectAggregationService @Inject() (
     storageNodeDao: StorageNodeDao
 ) {
 
+  /**
+   *
+   * @param mid
+   * @param nodeId
+   * @param collectionIds
+   * @param currUsr
+   * @return
+   */
   def getObjects(
     mid: MuseumId,
-    nodeId: StorageNodeId
+    nodeId: StorageNodeId,
+    collectionIds: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
-    val collections = currUsr.collectionsFor(mid)
-    dao.getObjects(mid, nodeId, collections)
+    dao.getObjects(mid, nodeId, collectionIds)
   }
 
 }

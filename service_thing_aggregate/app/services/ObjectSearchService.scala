@@ -21,7 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.ObjectSearchResult
-import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
+import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -42,6 +42,7 @@ class ObjectSearchService @Inject() (
    * Search for objects based on the given criteria.
    *
    * @param mid
+   * @param collectionIds
    * @param page
    * @param limit
    * @param museumNo
@@ -51,14 +52,14 @@ class ObjectSearchService @Inject() (
    */
   def search(
     mid: MuseumId,
+    collectionIds: Seq[MuseumCollection],
     page: Int,
     limit: Int,
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
-    val cols = currUsr.collectionsFor(mid)
-    objSearchDao.search(mid, page, limit, museumNo, subNo, term, cols).flatMap {
+    objSearchDao.search(mid, page, limit, museumNo, subNo, term, collectionIds).flatMap {
       case MusitSuccess(searchResult) =>
         // We found some objects...now we need to find the current location for each.
         Future.sequence {

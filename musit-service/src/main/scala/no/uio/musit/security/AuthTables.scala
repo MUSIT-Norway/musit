@@ -116,7 +116,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
 
   }
 
-  type UserInfoTableType = ((ActorId, Option[String], Option[String], Option[Email], Option[String])) // scalastyle:ignore
+  type UserInfoTableType = ((ActorId, Option[Email], Option[String], Option[Email], Option[String])) // scalastyle:ignore
 
   // scalastyle:ignore
 
@@ -125,7 +125,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
   ) extends Table[UserInfoTableType](tag, Some(schema), "USER_INFO") {
 
     val uuid = column[ActorId]("USER_UUID", O.PrimaryKey)
-    val secId = column[Option[String]]("SECONDARY_ID")
+    val secId = column[Option[Email]]("SECONDARY_ID")
     val name = column[Option[String]]("NAME")
     val email = column[Option[Email]]("EMAIL")
     val picture = column[Option[String]]("PICTURE")
@@ -139,13 +139,13 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] {
   ) extends Table[UserGroupMembership](tag, Some(schema), "USER_AUTH_GROUP") {
 
     val tableId = column[Option[Int]]("UAG_ID", O.PrimaryKey, O.AutoInc)
-    val feideEmail = column[String]("USER_FEIDE_EMAIL")
+    val feideEmail = column[Email]("USER_FEIDE_EMAIL")
     val groupId = column[GroupId]("GROUP_UUID")
     val collectionId = column[Option[CollectionUUID]]("COLLECTION_UUID")
 
     val create = (
       id: Option[Int],
-      feideEmail: String,
+      feideEmail: Email,
       groupId: GroupId,
       collection: Option[CollectionUUID]
     ) => UserGroupMembership(id, feideEmail, groupId, collection)

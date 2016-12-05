@@ -2,8 +2,9 @@
 @import no.uio.musit.service.MusitResults.MusitError
 @import controllers.web.routes.GroupController
 @import no.uio.musit.models.MuseumCollection
+@import no.uio.musit.models.Email
 
-@(usrCols: Seq[(String, Seq[MuseumCollection])], museumId: Int, group: Group, error: Option[MusitError] = None)
+@(usrCols: Seq[(Email, Seq[MuseumCollection])], museumId: Int, group: Group, error: Option[MusitError] = None)
 
 @main("Group | Actors") {
   <h1>Group: @group.name</h1>
@@ -29,14 +30,14 @@
     <tbody>
       @for(usrCol <- usrCols) {
         <tr>
-          <td>@usrCol._1</td>
+          <td>@usrCol._1.value</td>
           <td>
             @*
               Should allow for removing access to collection here
             *@
             @for(col <- usrCol._2) {
               <div>
-                <form method="post" action="@GroupController.revokeCollectionAuth(museumId, usrCol._1, group.id.asString, col.uuid.asString)">
+                <form method="post" action="@GroupController.revokeCollectionAuth(museumId, usrCol._1.value, group.id.asString, col.uuid.asString)">
                   <span>@col.name</span>
                   <input type="submit" value="Revoke">
                 </form>
@@ -44,7 +45,7 @@
             }
           </td>
           <td>
-            <form method="post" action="@GroupController.deleteUser(museumId, usrCol._1, group.id.asString)">
+            <form method="post" action="@GroupController.deleteUser(museumId, usrCol._1.value, group.id.asString)">
               <input type="submit" value="Remove" />
             </form>
           </td>

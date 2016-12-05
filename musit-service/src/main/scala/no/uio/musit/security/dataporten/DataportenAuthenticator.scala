@@ -21,6 +21,7 @@ package no.uio.musit.security.dataporten
 
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
+import no.uio.musit.models.Email
 import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
 import no.uio.musit.service.MusitResults._
@@ -125,7 +126,9 @@ class DataportenAuthenticator @Inject() (
     userInfo.secondaryIds.map { sids =>
       Future.sequence {
         sids.map(stripPrefix).filter(_.contains("@")).map { sid =>
-          authResolver.findGroupInfoByFeideEmail(sid).map(_.getOrElse(Seq.empty))
+          Email.fromString(sid).map { email =>
+            authResolver.findGroupInfoByFeideEmail(email).map(_.getOrElse(Seq.empty))
+          }.getOrElse(Future.successful(Seq.empty))
         }
       }.map(_.flatten)
     }.getOrElse {

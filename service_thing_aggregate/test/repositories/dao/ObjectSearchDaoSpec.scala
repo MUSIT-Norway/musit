@@ -22,6 +22,7 @@ package repositories.dao
 import java.util.UUID
 
 import no.uio.musit.models._
+import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
@@ -44,6 +45,24 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
     name = Some("Arkeologi"),
     oldSchemaNames = Seq(OldDbSchemas.Archeology)
   ))
+
+  implicit val dummyUser = AuthenticatedUser(
+    userInfo = UserInfo(
+      id = ActorId.generate(),
+      secondaryIds = Some(Seq("vader@starwars.com")),
+      name = Some("Darth Vader"),
+      email = None,
+      picture = None
+    ),
+    groups = Seq(GroupInfo(
+      id = GroupId.generate(),
+      name = "FooBarGroup",
+      permission = Permissions.Admin,
+      museumId = mid,
+      description = None,
+      collections = allCollections
+    ))
+  )
 
   val escapeChar = dao.escapeChar
 

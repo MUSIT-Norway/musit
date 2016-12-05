@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import models.GroupAdd._
 import models.UserAuthAdd._
 import models.Group
-import no.uio.musit.models.{CollectionUUID, GroupId}
+import no.uio.musit.models.{CollectionUUID, Email, GroupId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
@@ -103,21 +103,29 @@ class GroupController @Inject() (
     email: String,
     gid: String
   ) = Action.async { implicit request =>
-    GroupId.validate(gid).toOption.map(GroupId.apply).map { gid =>
-      dao.removeUserFromGroup(email, gid).map {
-        case MusitSuccess(int) =>
-          Redirect(
-            controllers.web.routes.GroupController.groupActorsList(mid, gid.asString)
-          ).flashing("success" -> "User was removed")
-        case error: MusitError =>
+    Email.fromString(email).map { feideEmail =>
+      GroupId.validate(gid).toOption.map(GroupId.apply).map { gid =>
+        dao.removeUserFromGroup(feideEmail, gid).map {
+          case MusitSuccess(int) =>
+            Redirect(
+              controllers.web.routes.GroupController.groupActorsList(mid, gid.asString)
+            ).flashing("success" -> "User was removed")
+          case error: MusitError =>
+            BadRequest(
+              Json.obj("error" -> error.message)
+            )
+        }
+      }.getOrElse {
+        Future.successful {
           BadRequest(
-            Json.obj("error" -> error.message)
+            Json.obj("message" -> s"Invalid UUID for $gid")
           )
+        }
       }
     }.getOrElse {
       Future.successful {
         BadRequest(
-          Json.obj("message" -> s"Invalid UUID for $gid")
+          Json.obj("message" -> s"Invalid email: $email")
         )
       }
     }
@@ -178,7 +186,7 @@ class GroupController @Inject() (
           }
         },
         userAdd => {
-          dao.addUserToGroup(userAdd.email, groupId, userAdd.collections).map {
+          dao.addUserToGroup(Email(userAdd.email), groupId, userAdd.collections).map {
             case MusitSuccess(group) =>
               Redirect(
                 controllers.web.routes.GroupController.groupActorsList(mid, gid)
@@ -257,7 +265,7 @@ class GroupController @Inject() (
     mid: Int,
     groupId: GroupId,
     groupRes: MusitResult[Option[Group]],
-    usersRes: MusitResult[Seq[String]]
+    usersRes: MusitResult[Seq[Email]]
   ): Future[Result] = {
     groupRes.flatMap { group =>
       usersRes.map { users =>
@@ -322,21 +330,25 @@ class GroupController @Inject() (
     gid: String,
     cid: String
   ) = Action.async { implicit request =>
-    GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
-      CollectionUUID.validate(cid).toOption.map(CollectionUUID.apply).map { colId =>
-        dao.revokeCollectionFor(email, groupId, colId).map {
-          case MusitSuccess(res) =>
-            Redirect(
-              controllers.web.routes.GroupController.groupActorsList(mid, gid)
-            ).flashing("success" -> "Collection access revoked")
-          case err: MusitError =>
-            InternalServerError(views.html.error(err.message))
+    Email.fromString(email).map { feideEmail =>
+      GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
+        CollectionUUID.validate(cid).toOption.map(CollectionUUID.apply).map { colId =>
+          dao.revokeCollectionFor(feideEmail, groupId, colId).map {
+            case MusitSuccess(res) =>
+              Redirect(
+                controllers.web.routes.GroupController.groupActorsList(mid, gid)
+              ).flashing("success" -> "Collection access revoked")
+            case err: MusitError =>
+              InternalServerError(views.html.error(err.message))
+          }
+        }.getOrElse {
+          handleNotFound(s"Wrong uuid format: $cid")
         }
       }.getOrElse {
-        handleNotFound(s"Wrong uuid format: $cid")
+        handleNotFound(s"Wrong uuid format: $gid")
       }
     }.getOrElse {
-      handleNotFound(s"Wrong uuid format: $gid")
+      handleNotFound(s"Not a valid email: $email")
     }
   }
 

@@ -22,6 +22,7 @@ package repositories.dao
 import java.util.UUID
 
 import no.uio.musit.models._
+import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
@@ -34,21 +35,37 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
   val dao: ObjectAggregationDao = fromInstanceCache[ObjectAggregationDao]
 
+  val mid = MuseumId(99)
+
   val allCollections = Seq(MuseumCollection(
     uuid = CollectionUUID(UUID.fromString("925748d6-bf49-4733-afd1-0e127d639f18")),
     name = Some("AllCollections"),
     oldSchemaNames = OldDbSchemas.all
   ))
 
+  implicit val dummyUser = AuthenticatedUser(
+    userInfo = UserInfo(
+      id = ActorId.generate(),
+      secondaryIds = Some(Seq("vader@starwars.com")),
+      name = Some("Darth Vader"),
+      email = None,
+      picture = None
+    ),
+    groups = Seq(GroupInfo(
+      id = GroupId.generate(),
+      name = "FooBarGroup",
+      permission = Permissions.Admin,
+      museumId = mid,
+      description = None,
+      collections = allCollections
+    ))
+  )
+
   "Interacting with the ObjectAggregationDao" when {
 
     "getting objects for a nodeId that exists within a museum" should {
       "return a list of objects" in {
-        val mr = dao.getObjects(
-          MuseumId(99),
-          StorageNodeId(3),
-          allCollections
-        ).futureValue
+        val mr = dao.getObjects(mid, StorageNodeId(3), allCollections).futureValue
         mr.isSuccess mustBe true
         mr.get.size mustBe 3
         mr.get match {
@@ -73,11 +90,7 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
     "get objects for a nodeId that does not exist in museum" should {
       "return a an empty vector" in {
-        val mr = dao.getObjects(
-          MuseumId(99),
-          StorageNodeId(999999),
-          allCollections
-        ).futureValue
+        val mr = dao.getObjects(mid, StorageNodeId(999999), allCollections).futureValue
         mr.isSuccess mustBe true
         mr.get.length mustBe 0
       }

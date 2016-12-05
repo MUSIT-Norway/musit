@@ -289,3 +289,15 @@ INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoA
 VALUES('C81¤XA', 'B', 'Bøtte', 99, 81, 'USD_ARK_GJENSTAND_O');
 INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id)
 VALUES (45, 23, 5, 99);
+
+-- Numismatikk
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schema_name)
+VALUES('F555', '55A', 'Gammel mynt', 99, 555, 'USD_NUMISMATIKK');
+INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id)
+VALUES (46, 23, 5, 99);
+
+-- Lav
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schema_name)
+VALUES('L234', '', 'Reinlav', 99, 234, 'MUSIT_BOTANIKK_LAV');
+INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id)
+VALUES (47, 23, 5, 99);

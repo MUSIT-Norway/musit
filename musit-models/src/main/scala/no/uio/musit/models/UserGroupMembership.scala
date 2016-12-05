@@ -21,7 +21,7 @@ package no.uio.musit.models
 
 case class UserGroupMembership(
   id: Option[Int] = None,
-  feideEmail: String,
+  feideEmail: Email,
   groupId: GroupId,
   collection: Option[CollectionUUID]
 )
@@ -29,7 +29,7 @@ case class UserGroupMembership(
 object UserGroupMembership {
 
   def applyMulti(
-    email: String,
+    email: Email,
     grpId: GroupId,
     maybeCollections: Option[Seq[CollectionUUID]]
   ): Seq[UserGroupMembership] = {

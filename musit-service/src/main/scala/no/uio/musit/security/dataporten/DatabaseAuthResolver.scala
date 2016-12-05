@@ -20,6 +20,7 @@
 package no.uio.musit.security.dataporten
 
 import com.google.inject.{Inject, Singleton}
+import no.uio.musit.models.Email
 import no.uio.musit.security.{AuthResolver, AuthTables, GroupInfo, UserInfo}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
@@ -38,7 +39,7 @@ class DatabaseAuthResolver @Inject() (
   val logger = Logger(classOf[DatabaseAuthResolver])
 
   override def findGroupInfoByFeideEmail(
-    feideEmail: String
+    feideEmail: Email
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
     findGroupInfoBy(usrGrpTable.filter(_.feideEmail === feideEmail)).recover {
       case NonFatal(ex) =>

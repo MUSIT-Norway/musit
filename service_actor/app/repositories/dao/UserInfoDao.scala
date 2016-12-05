@@ -41,7 +41,7 @@ class UserInfoDao @Inject() (
   private def userInfoFromTuple(tuple: UserInfoTableType): UserInfo = {
     UserInfo(
       id = tuple._1,
-      secondaryIds = tuple._2.map(sec => Seq(sec)),
+      secondaryIds = tuple._2.map(sec => Seq(sec.value)),
       name = tuple._3,
       email = tuple._4,
       picture = tuple._5

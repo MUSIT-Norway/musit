@@ -39,6 +39,11 @@
           "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
           "name": "Arkeologi",
           "oldSchemaNames": [1]
+        },
+        {
+          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+          "name": "Numismatikk",
+          "oldSchemaNames": [3]
         }
       ]
     },
