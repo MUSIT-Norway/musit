@@ -26,8 +26,7 @@ case class ObjectAggregation(
   id: ObjectId,
   museumNo: MuseumNo,
   subNo: Option[SubNo],
-  term: Option[String],
-  mainObjectId: Option[ObjectId]
+  term: Option[String]
 )
 
 object ObjectAggregation {

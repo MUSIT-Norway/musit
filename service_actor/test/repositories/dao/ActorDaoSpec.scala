@@ -35,7 +35,6 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
     interval = Span(50, Millis)
   )
 
-  val andersAndAuthId = ActorId(UUID.fromString("12345678-adb2-4b49-bce3-320ddfe6c90f"))
   val andersAndAppId = ActorId(UUID.fromString("41ede78c-a6f6-4744-adad-02c25fb1c97c"))
   val kalleKaninAppId = ActorId(UUID.fromString("5224f873-5fe1-44ec-9aaf-b9313db410c6"))
 
@@ -51,7 +50,7 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
         val expected = Person(
           id = Some(DatabaseId(1L)),
           fn = "And, Arne1",
-          dataportenId = Some(andersAndAuthId),
+          dataportenId = None,
           dataportenUser = Some("andarn"),
           applicationId = Some(andersAndAppId)
         )
@@ -68,7 +67,7 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "get person details" in {
-        val ids = Set(andersAndAuthId, kalleKaninAppId, ActorId.generate())
+        val ids = Set(andersAndAppId, kalleKaninAppId, ActorId.generate())
         val persons = actorDao.listBy(ids).futureValue
         persons.length mustBe 2
         persons.head.fn mustBe "And, Arne1"

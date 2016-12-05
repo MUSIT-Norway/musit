@@ -27,17 +27,12 @@ import scala.concurrent.Future
 class UserService {
 
   /**
-   * Gets an actor representing the current user. If a match isn't found in the
-   * UserInfo database, it will create the entry based on the current users data.
+   * Gets an actor representing the current user. This is now a silly service!
    *
    * @param user the current AuthenticatedUser.
    * @return a Future Person representation of the current user.
    */
   def currenUserAsActor(user: AuthenticatedUser): Future[Person] = {
-    // FIXME: We need to check BOTH the Actor table, and the UserInfo table for
-    // users that match the userinfo data.
-    // In case the current user doesn't exist anywhere, we must add it to the
-    // USER_INFO table!!!!!!!
     Future.successful(Person.fromAuthUser(user))
   }
 }

@@ -41,7 +41,7 @@ class UserInfoDao @Inject() (
   private def userInfoFromTuple(tuple: UserInfoTableType): UserInfo = {
     UserInfo(
       id = tuple._1,
-      secondaryIds = tuple._2.map(sec => Seq(sec)),
+      secondaryIds = tuple._2.map(sec => Seq(sec.value)),
       name = tuple._3,
       email = tuple._4,
       picture = tuple._5
@@ -59,7 +59,8 @@ class UserInfoDao @Inject() (
   }
 
   def listBy(ids: Set[ActorId]): Future[Seq[UserInfo]] = {
-    db.run(usrInfoTable.filter(_.uuid inSet ids).result.map(_.map(userInfoFromTuple)))
+    val query = usrInfoTable.filter(_.uuid inSet ids).sortBy(_.name)
+    db.run(query.result.map(_.map(userInfoFromTuple)))
   }.recover {
     case NonFatal(ex) =>
       logger.error(s"An error occurred reading UserInfo for ${ids.mkString(", ")}", ex)
@@ -68,8 +69,8 @@ class UserInfoDao @Inject() (
 
   def getByName(searchString: String): Future[Seq[UserInfo]] = {
     val likeArg = searchString.toUpperCase
-    val query = usrInfoTable.filter(_.name.toUpperCase like s"%$likeArg%").result
-    db.run(query.map(_.map(userInfoFromTuple))).recover {
+    val query = usrInfoTable.filter(_.name.toUpperCase like s"%$likeArg%").sortBy(_.name)
+    db.run(query.result.map(_.map(userInfoFromTuple))).recover {
       case NonFatal(ex) =>
         logger.error(s"An error occurred searching for UserInfo with $searchString", ex)
         Seq.empty

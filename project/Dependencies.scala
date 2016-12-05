@@ -30,7 +30,7 @@ object Dependencies {
   )
 
   object PlayFrameWork {
-    val version = "2.5.9"
+    val version = "2.5.10"
     val playSlickVersion = "2.0.0"
 
     val slick_play = "com.typesafe.play" %% "play-slick" % playSlickVersion

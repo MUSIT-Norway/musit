@@ -23,7 +23,7 @@ import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
 import no.uio.musit.security.Permissions.{ElevatedPermission, Permission}
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, BearerToken, UserInfo}
-import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -59,7 +59,9 @@ trait MusitActions {
   type MusitActionResult[T] = Either[Result, MusitRequest[T]]
   type MusitActionResultF[T] = Future[MusitActionResult[T]]
 
-  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T] // scalastyle:ignore
+  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T]
+
+  // scalastyle:ignore
 
   /**
    * The base representation of a MUSIT specific request.
@@ -103,7 +105,7 @@ trait MusitActions {
    * {{{AuthenticatedUser}}}. If the incoming request can't be authenticated
    * a {{{Result}}} with HTTP Forbidden is returned.
    *
-   * @param museumId      An Option with the MuseumId for which the request wants info
+   * @param museumId    An Option with the MuseumId for which the request wants info
    * @param permissions Varargs of Permission restrict who is authorized.
    */
   case class MusitSecureAction(

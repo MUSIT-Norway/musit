@@ -23,17 +23,15 @@ import java.util.UUID
 
 import play.api.libs.json.{JsString, Writes, _}
 
-import scala.util.Try
-
 case class GroupId(underlying: UUID) extends MusitUUID
 
-object GroupId {
+object GroupId extends MusitUUIDOps[GroupId] {
   implicit val reads: Reads[GroupId] =
     __.read[String].map(s => GroupId(UUID.fromString(s)))
 
   implicit val writes: Writes[GroupId] = Writes(id => JsString(id.asString))
 
-  implicit def fromUUID(uuid: UUID): GroupId = GroupId(uuid)
+  override implicit def fromUUID(uuid: UUID): GroupId = GroupId(uuid)
 
   /**
    * Unsafe converter from String to GroupId
@@ -41,7 +39,5 @@ object GroupId {
   @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
   def unsafeFromString(str: String): GroupId = UUID.fromString(str)
 
-  def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
-
-  def generate(): GroupId = GroupId(UUID.randomUUID())
+  override def generate(): GroupId = GroupId(UUID.randomUUID())
 }

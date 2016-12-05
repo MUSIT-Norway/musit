@@ -20,10 +20,10 @@
 package repositories.dao
 
 import com.google.inject.Inject
-import models.{MusitObject, ObjectSearchResult}
 import models.SearchFieldValues._
-import models.dto.MusitObjectDto
-import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
+import models.{MusitObject, ObjectSearchResult}
+import no.uio.musit.models._
+import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -34,11 +34,11 @@ import scala.concurrent.Future
 /**
  * Dao intended for searching through objects
  */
-class ObjectSearchDao @Inject() (
+class ObjectDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends ObjectTables {
 
-  val logger = Logger(classOf[ObjectSearchDao])
+  val logger = Logger(classOf[ObjectAggregationDao])
 
   import driver.api._
 
@@ -91,9 +91,16 @@ class ObjectSearchDao @Inject() (
     value: FieldValue
   ): QObjectTable = {
     value match {
-      case EmptyValue() => q
-      case LiteralValue(v) => q.filter(_.subNo.toUpperCase === v.toUpperCase)
-      case WildcardValue(v, esc) => q.filter(_.subNo.toUpperCase like (v.toUpperCase, esc)) // scalastyle:ignore
+      case EmptyValue() =>
+        logger.debug("Using empty value for subNo filter")
+        q
+      case LiteralValue(v) =>
+        logger.debug("Using literal value for subNo filter")
+        q.filter(_.subNo.toUpperCase === v.toUpperCase)
+
+      case WildcardValue(v, esc) =>
+        logger.debug("Using wildcard value for subNo filter")
+        q.filter(_.subNo.toUpperCase like (v.toUpperCase, esc))
     }
   }
 
@@ -103,21 +110,34 @@ class ObjectSearchDao @Inject() (
   ): QObjectTable = {
     value match {
       // No value to search for means we don't append a filter.
-      case EmptyValue() => q
-      case LiteralValue(v) => q.filter(_.term.toUpperCase === v.toUpperCase)
-      case WildcardValue(v, esc) => q.filter(_.term.toUpperCase like (v.toUpperCase, esc))
+      case EmptyValue() =>
+        logger.debug("Using empty value for term filter")
+        q
+
+      case LiteralValue(v) =>
+        logger.debug("Using literal value for term filter")
+        q.filter(_.term.toUpperCase === v.toUpperCase)
+
+      case WildcardValue(v, esc) =>
+        logger.debug("Using wildcard value for term filter")
+        q.filter(_.term.toUpperCase like (v.toUpperCase, esc))
     }
   }
 
   private def museumNoFilter(q: QObjectTable, value: FieldValue): QObjectTable = {
     value match {
-      case EmptyValue() => q
+      case EmptyValue() =>
+        logger.debug("Using empty value for museumNo filter")
+        q
+
       case LiteralValue(v) =>
+        logger.debug("Using literal value for museumNo filter")
         val digitsOnly = v.forall(Character.isDigit)
         if (digitsOnly) q.filter(_.museumNoAsNumber === v.toLong)
         else q.filter(_.museumNo.toUpperCase === v.toUpperCase)
 
       case WildcardValue(v, esc) =>
+        logger.debug("Using wildcard value for museumNo filter")
         q.filter(_.museumNo.toUpperCase like (v.toUpperCase, esc))
     }
   }
@@ -128,38 +148,31 @@ class ObjectSearchDao @Inject() (
     pageSize: Int,
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
-    term: Option[String]
-  ): QObjectTable = {
+    term: Option[String],
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): QObjectTable = {
+    logger.debug(s"Performing search in collections: ${collections.mkString(", ")}")
+
     val mno = museumNo.map(_.value)
 
     val q1 = classifyValue(mno).map(f => museumNoFilter(table, f)).getOrElse(table)
     val q2 = classifyValue(subNo.map(_.value)).map(f => subNoFilter(q1, f)).getOrElse(q1)
     val q3 = classifyValue(term).map(f => termFilter(q2, f)).getOrElse(q2)
-
+    val q4 = q3.filter(_.museumId === mid)
+    val q5 = {
+      if (currUsr.hasGodMode) q4
+      // Filter on collection access if the user doesn't have GodMode
+      else q4.filter(_.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct)
+    }
     // Tweak here if sorting needs to be tuned
-    q3.sortBy { mt =>
+    q5.sortBy { mt =>
       (
         mt.museumNoAsNumber.asc,
         mt.museumNo.toLowerCase.asc,
         mt.subNoAsNumber.asc,
-        mt.subNo.toLowerCase.asc,
-        mt.mainObjectId.asc
+        mt.subNo.toLowerCase.asc
       )
     }
-  }
-
-  def getMainObjectChildren(
-    mid: MuseumId,
-    mainObjectId: ObjectId
-  ): Future[MusitResult[Seq[MusitObject]]] = {
-    db.run(table.filter(_.mainObjectId === mainObjectId.underlying).result)
-      .map(res => MusitSuccess(res.map(MusitObjectDto.toMusitObject)))
-      .recover {
-        case e: Exception =>
-          val msg = s"Error while retrieving search result"
-          logger.error(msg, e)
-          MusitDbError(msg, Some(e))
-      }
   }
 
   /**
@@ -171,6 +184,7 @@ class ObjectSearchDao @Inject() (
    * @param museumNo
    * @param subNo
    * @param term
+   * @param collections
    * @return
    */
   def search(
@@ -179,10 +193,11 @@ class ObjectSearchDao @Inject() (
     pageSize: Int,
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
-    term: Option[String]
-  ): Future[MusitResult[ObjectSearchResult]] = {
+    term: Option[String],
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
     val offset = (page - 1) * pageSize
-    val query = searchQuery(mid, page, pageSize, museumNo, subNo, term)
+    val query = searchQuery(mid, page, pageSize, museumNo, subNo, term, collections)
 
     val totalMatches = db.run(query.length.result)
     val matchedResults = db.run(query.drop(offset).take(pageSize).result)
@@ -191,8 +206,9 @@ class ObjectSearchDao @Inject() (
       total <- totalMatches
       matches <- matchedResults
     } yield {
+      logger.debug(s"Gpt ")
       MusitSuccess(
-        ObjectSearchResult(total, matches.map(MusitObjectDto.toMusitObject))
+        ObjectSearchResult(total, matches.map(MusitObject.fromTuple))
       )
     }).recover {
       case e: Exception =>
@@ -201,4 +217,33 @@ class ObjectSearchDao @Inject() (
         MusitDbError(msg, Some(e))
     }
   }
+
+  /**
+   *
+   * @param mid
+   * @param mainObjectId
+   * @param collections
+   * @param currUsr
+   * @return
+   */
+  def getMainObjectChildren(
+    mid: MuseumId,
+    mainObjectId: ObjectId,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+    val q = table.filter(_.mainObjectId === mainObjectId.underlying)
+    val query = {
+      if (currUsr.hasGodMode) q
+      else q.filter(_.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct)
+    }
+    db.run(query.result)
+      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
+      .recover {
+        case e: Exception =>
+          val msg = s"Error while retrieving search result"
+          logger.error(msg, e)
+          MusitDbError(msg, Some(e))
+      }
+  }
+
 }

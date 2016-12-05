@@ -43,7 +43,7 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
   val andersAppId = ActorId(UUID.fromString("41ede78c-a6f6-4744-adad-02c25fb1c97c"))
   val kalleAppId = ActorId(UUID.fromString("5224f873-5fe1-44ec-9aaf-b9313db410c6"))
 
-  "LegacyPersonIntegration " must {
+  "PersonIntegration " must {
 
     "fail getting person by id when there is no valid token" in {
       wsUrl(s"/v1/person/${andersAppId.asString}").get()
@@ -92,7 +92,7 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
       res.status mustBe Status.BAD_REQUEST
     }
 
-    "get person details" in {
+    "get person details from Actor and UserInfo" in {
       val jsStr = s"""["${andersAuthId.asString}", "${kalleAppId.asString}"]"""
       val reqBody = Json.parse(jsStr)
       val res = wsUrl("/v1/person/details")
@@ -100,8 +100,8 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
       res.status mustBe Status.OK
       val js = res.json.as[JsArray].value
       js.length mustBe 2
-      (js.head \ "fn").as[String] mustBe "And, Arne1"
-      (js.last \ "fn").as[String] mustBe "Kanin, Kalle1"
+      (js.last \ "fn").as[String] mustBe "Fred Flintstone"
+      (js.head \ "fn").as[String] mustBe "Kanin, Kalle1"
     }
 
     "get person details with extra ids" in {

@@ -21,10 +21,20 @@ package no.uio.musit.models
 
 import java.util.UUID
 
+import scala.util.Try
+
 trait MusitUUID {
 
   val underlying: UUID
 
   def asString: String = underlying.toString
 
+}
+
+trait MusitUUIDOps[A <: MusitUUID] {
+  implicit def fromUUID(uuid: UUID): A
+
+  def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
+
+  def generate(): A
 }
