@@ -22,7 +22,7 @@ package repositories.dao
 import com.google.inject.Inject
 import models.SearchFieldValues._
 import models.{MusitObject, ObjectSearchResult}
-import no.uio.musit.models.{MuseumCollection, MuseumId, MuseumNo, SubNo}
+import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
@@ -34,7 +34,7 @@ import scala.concurrent.Future
 /**
  * Dao intended for searching through objects
  */
-class ObjectSearchDao @Inject() (
+class ObjectDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends ObjectTables {
 
@@ -216,6 +216,34 @@ class ObjectSearchDao @Inject() (
         logger.error(msg, e)
         MusitDbError(msg, Some(e))
     }
+  }
+
+  /**
+   *
+   * @param mid
+   * @param mainObjectId
+   * @param collections
+   * @param currUsr
+   * @return
+   */
+  def getMainObjectChildren(
+    mid: MuseumId,
+    mainObjectId: ObjectId,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+    val q = table.filter(_.mainObjectId === mainObjectId.underlying)
+    val query = {
+      if (currUsr.hasGodMode) q
+      else q.filter(_.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct)
+    }
+    db.run(query.result)
+      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
+      .recover {
+        case e: Exception =>
+          val msg = s"Error while retrieving search result"
+          logger.error(msg, e)
+          MusitDbError(msg, Some(e))
+      }
   }
 
 }

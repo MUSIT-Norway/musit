@@ -29,20 +29,22 @@ case class MusitObject(
   term: String,
   currentLocationId: Option[Long] = None,
   path: Option[NodePath] = None,
-  pathNames: Option[Seq[NamedPathElement]] = None
+  pathNames: Option[Seq[NamedPathElement]] = None,
+  mainObjectId: Option[Long]
 )
 
 object MusitObject {
   implicit val format = Json.format[MusitObject]
 
-  type ObjTuple = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], String, Option[String])) // scalastyle:ignore
+  type ObjTuple = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String])) // scalastyle:ignore
 
   def fromTuple(t: ObjTuple): MusitObject = {
     MusitObject(
       id = t._1.get, // scalastyle:ignore
       museumNo = MuseumNo(t._3),
       subNo = t._5.map(SubNo.apply),
-      term = t._7
+      mainObjectId = t._7,
+      term = t._8
     )
   }
 

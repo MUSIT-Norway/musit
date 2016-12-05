@@ -28,7 +28,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
 
   import driver.api._
 
-  type ObjectRow = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], String, Option[String])) // scalastyle:ignore
+  type ObjectRow = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String])) // scalastyle:ignore
 
   class ObjectTable(
       val tag: Tag
@@ -42,6 +42,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
       museumNoAsNumber,
       subNo,
       subNoAsNumber,
+      mainObjectId,
       term,
       oldSchema
     )
@@ -54,6 +55,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
     val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")
     val subNo = column[Option[String]]("SUBNO")
     val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
+    val mainObjectId = column[Option[Long]]("MAINOBJECT_ID")
     val term = column[String]("TERM")
     val oldSchema = column[Option[String]]("OLD_SCHEMA_NAME")
 

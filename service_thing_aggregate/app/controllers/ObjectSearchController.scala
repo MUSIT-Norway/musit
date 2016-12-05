@@ -59,14 +59,13 @@ class ObjectSearchController @Inject() (
    * that may or may not contain different criteria. There are also fields to
    * specify paging and a limit for how many results should be returned.
    *
-   * @param mid the MuseumId to filter on
+   * @param mid           the MuseumId to filter on
    * @param collectionIds Comma separated String of CollectionUUIDs.
-   * @param page the page number to return
-   * @param limit number of results per page
-   * @param museumNo museum number to search for
-   * @param subNo museum sub-number to search for
-   * @param term the object term to search for
-   *
+   * @param page          the page number to return
+   * @param limit         number of results per page
+   * @param museumNo      museum number to search for
+   * @param subNo         museum sub-number to search for
+   * @param term          the object term to search for
    * @return A JSON containing the objects that were found.
    */
   def search(
@@ -102,6 +101,35 @@ class ObjectSearchController @Inject() (
               logger.error(err.message)
               Results.InternalServerError(Json.obj("message" -> err.message))
           }
+        }
+    }
+  }
+
+  /**
+   *
+   * @param mid
+   * @param mainObjectId
+   * @return
+   */
+  def findMainObjectChildren(
+    mid: Int,
+    mainObjectId: Long,
+    collectionIds: String
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
+    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      case Left(res) => Future.successful(res)
+      case Right(cids) =>
+        service.findMainObjectChildren(mid, mainObjectId, cids)(request.user).map {
+          case MusitSuccess(res) =>
+            Ok(Json.toJson(res))
+
+          case MusitDbError(msg, ex) =>
+            logger.error(msg, ex.orNull)
+            InternalServerError(Json.obj("message" -> msg))
+
+          case err: MusitError =>
+            logger.error(err.message)
+            Results.InternalServerError(Json.obj("message" -> err.message))
         }
     }
   }

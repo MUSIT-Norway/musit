@@ -2,7 +2,8 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET        /service/thingaggregate/buildinfo        controllers.Application.buildInfo
+GET        /service/thingaggregate/buildinfo                  controllers.Application.buildInfo
 
-GET        /museum/:mid/node/:nodeId/objects        controllers.ObjectAggregationController.getObjects(mid: Int, nodeId: Long, collectionIds: String)
-GET        /museum/:mid/objects/search              controllers.ObjectSearchController.search(mid: Int, collectionIds: String, page: Int ?=1, limit: Int ?=25, museumNo: Option[String] ?= None, subNo: Option[String] ?= None, term: Option[String] ?= None)
+GET        /museum/:mid/node/:nodeId/objects                  controllers.ObjectAggregationController.getObjects(mid: Int, nodeId: Long, collectionIds: String)
+GET        /museum/:mid/objects/:mainObjectId/children        controllers.ObjectSearchController.findMainObjectChildren(mid: Int, mainObjectId: Long, collectionIds: String)
+GET        /museum/:mid/objects/search                        controllers.ObjectSearchController.search(mid: Int, collectionIds: String, page: Int ?=1, limit: Int ?=25, museumNo: Option[String] ?= None, subNo: Option[String] ?= None, term: Option[String] ?= None)

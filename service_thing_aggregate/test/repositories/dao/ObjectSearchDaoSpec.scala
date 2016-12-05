@@ -31,7 +31,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
  * src/test/resources directory.
  */
 class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
-  val dao: ObjectSearchDao = fromInstanceCache[ObjectSearchDao]
+  val dao: ObjectDao = fromInstanceCache[ObjectDao]
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
