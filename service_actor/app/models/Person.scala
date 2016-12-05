@@ -46,7 +46,7 @@ object Person {
       fn = user.name.getOrElse(""),
       email = user.email,
       dataportenId = Option(user.id),
-      dataportenUser = user.feideUser
+      dataportenUser = user.feideUser.map(_.value)
     )
   }
 

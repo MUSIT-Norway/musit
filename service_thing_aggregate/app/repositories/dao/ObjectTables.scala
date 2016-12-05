@@ -19,7 +19,6 @@
 
 package repositories.dao
 
-import models.dto.MusitObjectDto
 import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
@@ -29,21 +28,24 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
 
   import driver.api._
 
+  type ObjectRow = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String])) // scalastyle:ignore
+
   class ObjectTable(
       val tag: Tag
-  ) extends Table[MusitObjectDto](tag, Some("MUSIT_MAPPING"), "MUSITTHING") {
+  ) extends Table[ObjectRow](tag, Some("MUSIT_MAPPING"), "MUSITTHING") {
 
     // scalastyle:off method.name
     def * = (
-      museumId,
       id.?,
+      museumId,
       museumNo,
       museumNoAsNumber,
       subNo,
       subNoAsNumber,
+      mainObjectId,
       term,
-      mainObjectId
-    ) <> (create.tupled, destroy)
+      oldSchema
+    )
 
     // scalastyle:on method.name
 
@@ -55,39 +57,8 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
     val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
     val mainObjectId = column[Option[Long]]("MAINOBJECT_ID")
     val term = column[String]("TERM")
+    val oldSchema = column[Option[String]]("OLD_SCHEMA_NAME")
 
-    def create = (
-      museumId: MuseumId,
-      id: Option[ObjectId],
-      museumNo: String,
-      museumNoAsNumber: Option[Long],
-      subNo: Option[String],
-      subNoAsNumber: Option[Long],
-      term: String,
-      mainObjectId: Option[Long]
-    ) =>
-      MusitObjectDto(
-        museumId = museumId,
-        id = id,
-        museumNo = MuseumNo(museumNo),
-        museumNoAsNumber = museumNoAsNumber,
-        subNo = subNo.map(SubNo.apply),
-        subNoAsNumber = subNoAsNumber,
-        term = term,
-        mainObjectId = mainObjectId
-      )
-
-    def destroy(thing: MusitObjectDto) =
-      Some((
-        thing.museumId,
-        thing.id,
-        thing.museumNo.value,
-        thing.museumNoAsNumber,
-        thing.subNo.map(_.value),
-        thing.subNoAsNumber,
-        thing.term,
-        thing.mainObjectId
-      ))
   }
 
   type LocalObject = ((ObjectId, EventId, StorageNodeId, MuseumId))

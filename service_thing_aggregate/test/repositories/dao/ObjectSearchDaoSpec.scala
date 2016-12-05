@@ -19,7 +19,10 @@
 
 package repositories.dao
 
-import no.uio.musit.models.{MuseumNo, SubNo}
+import java.util.UUID
+
+import no.uio.musit.models._
+import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 
@@ -28,11 +31,37 @@ import org.scalatest.time.{Millis, Seconds, Span}
  * src/test/resources directory.
  */
 class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
-  val dao: ObjectSearchDao = fromInstanceCache[ObjectSearchDao]
+  val dao: ObjectDao = fromInstanceCache[ObjectDao]
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
+  )
+
+  val mid = MuseumId(99)
+
+  val allCollections = Seq(MuseumCollection(
+    uuid = CollectionUUID(UUID.fromString("925748d6-bf49-4733-afd1-0e127d639f18")),
+    name = Some("Arkeologi"),
+    oldSchemaNames = Seq(OldDbSchemas.Archeology)
+  ))
+
+  implicit val dummyUser = AuthenticatedUser(
+    userInfo = UserInfo(
+      id = ActorId.generate(),
+      secondaryIds = Some(Seq("vader@starwars.com")),
+      name = Some("Darth Vader"),
+      email = None,
+      picture = None
+    ),
+    groups = Seq(GroupInfo(
+      id = GroupId.generate(),
+      name = "FooBarGroup",
+      permission = Permissions.Admin,
+      museumId = mid,
+      description = None,
+      collections = allCollections
+    ))
   )
 
   val escapeChar = dao.escapeChar
@@ -76,17 +105,23 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
     "searching for objects" should {
 
       "find an existing objects searching with museumNo" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("C1")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("C1")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 10
 
-        val res2 = dao.search(2, 1, 10, Some(MuseumNo("C2")), None, None).futureValue
+        val res2 = dao.search(
+          mid, 1, 10, Some(MuseumNo("C2")), None, None, allCollections
+        ).futureValue
         res2.isSuccess mustBe true
         res2.get.matches.length mustBe 1
       }
 
       "handle paging correctly" in {
-        val res1 = dao.search(2, 1, 3, Some(MuseumNo("C1")), None, None).futureValue
+        val res1 = dao.search(
+          mid, 1, 3, Some(MuseumNo("C1")), None, None, allCollections
+        ).futureValue
         res1.isSuccess mustBe true
         val seq1 = res1.get
         seq1.matches.length mustBe 3
@@ -94,7 +129,9 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
         seq1.matches.tail.head.subNo mustBe Some(SubNo("11"))
         seq1.matches.last.subNo mustBe Some(SubNo("12"))
 
-        val res2 = dao.search(2, 2, 3, Some(MuseumNo("C1")), None, None).futureValue
+        val res2 = dao.search(
+          mid, 2, 3, Some(MuseumNo("C1")), None, None, allCollections
+        ).futureValue
         res2.isSuccess mustBe true
         val seq2 = res2.get
         seq2.matches.length mustBe 3
@@ -102,7 +139,9 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
         seq2.matches.tail.head.subNo mustBe Some(SubNo("14"))
         seq2.matches.last.subNo mustBe Some(SubNo("15"))
 
-        val res3 = dao.search(2, 3, 3, Some(MuseumNo("C1")), None, None).futureValue
+        val res3 = dao.search(
+          mid, 3, 3, Some(MuseumNo("C1")), None, None, allCollections
+        ).futureValue
         val seq3 = res3.get
 
         seq3.matches.length mustBe 3
@@ -116,7 +155,9 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "allow search where museumNo has only digits" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("777")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("777")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         val seq = res.get
 
@@ -128,7 +169,9 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "allow wildcard search on museumNo" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("C555*")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("C555*")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         val seq = res.get
 
@@ -142,14 +185,18 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return 0 results when attempting SQL-injection" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("C.' or 1=1 --")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("C.' or 1=1 --")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 0
       }
 
       "find objects using museumNo, subNo with wildcard and term" in {
 
-        val res = dao.search(2, 1, 10, Some(MuseumNo("c555*")), Some(SubNo("3*")), Some("øks")).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("c555*")), Some(SubNo("3*")), Some("øks"), allCollections
+        ).futureValue
         res.isSuccess mustBe true
         val seq = res.get
 
@@ -160,7 +207,9 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "find objects using museumNo with wildcard" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("c888_*")), None, Some("øks")).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("c888_*")), None, Some("øks"), allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 2
         res.get.matches.head.museumNo mustBe MuseumNo("C888_A")
@@ -168,42 +217,54 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "treat '%' like an ordinary character in equality comparison" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("C81%A")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("C81%A")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 1 //We should find C81%A and *not* C81%XA
         res.get.matches.head.museumNo mustBe MuseumNo("C81%A")
       }
 
       "treat '%' like an ordinary character in like comparison" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("C*%A")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("C*%A")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 1
         res.get.matches.head.museumNo mustBe MuseumNo("C81%A")
       }
 
       "treat '-' like an ordinary character in equality comparison" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("C81-A")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("C81-A")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 1
         res.get.matches.head.museumNo mustBe MuseumNo("C81-A")
       }
 
       "treat '-' like an ordinary character in like comparison" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo("C*-A")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo("C*-A")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 1
         res.get.matches.head.museumNo mustBe MuseumNo("C81-A")
       }
 
       "treat the escape character like an ordinary character equality comparison" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo(s"C81${escapeChar}A")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo(s"C81${escapeChar}A")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 1
         res.get.matches.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")
       }
 
       "treat the escape character like an ordinary character like comparison" in {
-        val res = dao.search(2, 1, 10, Some(MuseumNo(s"C*${escapeChar}A")), None, None).futureValue
+        val res = dao.search(
+          mid, 1, 10, Some(MuseumNo(s"C*${escapeChar}A")), None, None, allCollections
+        ).futureValue
         res.isSuccess mustBe true
         res.get.matches.length mustBe 1
         res.get.matches.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")

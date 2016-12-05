@@ -19,14 +19,30 @@
 
 package no.uio.musit.models
 
-trait MusitId {
-  val underlying: Long
-}
+import java.util.UUID
 
-object MusitId {
+import play.api.libs.json.{JsString, Reads, Writes, __}
 
-  implicit def toStorageNodeId(m: MusitId): StorageNodeId = StorageNodeId(m.underlying)
-  implicit def toEventId(m: MusitId): EventId = EventId(m.underlying)
-  implicit def toObjectId(m: MusitId): ObjectId = ObjectId(m.underlying)
+case class CollectionUUID(underlying: UUID) extends MusitUUID
+
+object CollectionUUID extends MusitUUIDOps[CollectionUUID] {
+  implicit val reads: Reads[CollectionUUID] =
+    __.read[String].map(s => CollectionUUID(UUID.fromString(s)))
+
+  implicit val writes: Writes[CollectionUUID] = Writes(id => JsString(id.asString))
+
+  override implicit def fromUUID(uuid: UUID): CollectionUUID = CollectionUUID(uuid)
+
+  /**
+   * Unsafe converter from String to CollectionUUID
+   */
+  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
+  def unsafeFromString(str: String): CollectionUUID = UUID.fromString(str)
+
+  def fromString(str: String): Option[CollectionUUID] = {
+    validate(str).toOption.map(CollectionUUID.apply)
+  }
+
+  override def generate() = CollectionUUID(UUID.randomUUID())
 
 }

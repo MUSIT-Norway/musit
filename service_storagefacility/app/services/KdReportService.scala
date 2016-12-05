@@ -35,7 +35,7 @@ class KdReportService @Inject() (val kdReportDao: KdReportDao) {
 
   /*
      TODO: This code should be re-written to use a monad transformer to reduce
-     the necessity for nesting
+     the necessity for nesting. See comment in MusitResult
    */
 
   private def flatMapResult(

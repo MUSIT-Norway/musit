@@ -72,7 +72,7 @@ class ActorService @Inject() (
   private def dedupe(users: Seq[UserInfo], actors: Seq[Person]): Seq[Person] = {
     actors.filterNot { p =>
       users.exists { u =>
-        p.dataportenUser.exists(prefix => u.feideUser.exists(_.startsWith(prefix)))
+        p.dataportenUser.exists(prefix => u.feideUser.exists(_.value.startsWith(prefix)))
       }
     }.union(users.map(Person.fromUserInfo))
   }

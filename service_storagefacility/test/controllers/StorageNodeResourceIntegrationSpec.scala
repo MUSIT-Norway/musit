@@ -858,7 +858,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           .withHeaders(readToken.asHeader)
           .get.futureValue
         wrongRes.status mustBe NOT_FOUND
-        // TODO: have to fill in later when auth-object is implemented.
       }
 
       "not be able get a storage unit node when the MuseumId doesn't exists" in {
@@ -879,7 +878,6 @@ class StorageNodeResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
           .withHeaders(readToken.asHeader)
           .get.futureValue
         wrongRes.status mustBe NOT_FOUND
-        // TODO: have to fill in later when auth-object is implemented.
       }
 
       "not update a storage unit when the MuseumId isn't correct" in {

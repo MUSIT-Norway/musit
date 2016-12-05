@@ -21,33 +21,36 @@ package services
 
 import com.google.inject.Inject
 import models.{MusitObject, ObjectSearchResult}
-import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
+import no.uio.musit.models._
+import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.{ObjectSearchDao, StorageNodeDao}
+import repositories.dao.{ObjectDao, StorageNodeDao}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 class ObjectSearchService @Inject() (
-    val objSearchDao: ObjectSearchDao,
+    val objSearchDao: ObjectDao,
     val nodeDao: StorageNodeDao
 ) {
 
   private val logger = Logger(classOf[ObjectSearchService])
 
-  def getMainObjectChildren(
+  def findMainObjectChildren(
     mid: MuseumId,
-    mainObjectId: ObjectId
-  ): Future[MusitResult[Seq[MusitObject]]] = {
-    objSearchDao.getMainObjectChildren(mid, mainObjectId)
+    mainObjectId: ObjectId,
+    collectionIds: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+    objSearchDao.getMainObjectChildren(mid, mainObjectId, collectionIds)
   }
 
   /**
    * Search for objects based on the given criteria.
    *
    * @param mid
+   * @param collectionIds
    * @param page
    * @param limit
    * @param museumNo
@@ -57,13 +60,14 @@ class ObjectSearchService @Inject() (
    */
   def search(
     mid: MuseumId,
+    collectionIds: Seq[MuseumCollection],
     page: Int,
     limit: Int,
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String]
-  ): Future[MusitResult[ObjectSearchResult]] = {
-    objSearchDao.search(mid, page, limit, museumNo, subNo, term).flatMap {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
+    objSearchDao.search(mid, page, limit, museumNo, subNo, term, collectionIds).flatMap {
       case MusitSuccess(searchResult) =>
         // We found some objects...now we need to find the current location for each.
         Future.sequence {

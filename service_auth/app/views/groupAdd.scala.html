@@ -1,15 +1,16 @@
 @import play.api.i18n.Messages
+@import controllers.web.routes.GroupController
 
 @(form: play.api.data.Form[_], museumId: Int, permissions: Seq[(String, String)])(implicit messages: Messages)
 
 @main("Group | Add") {
     <h1>Add group</h1>
     <p>
-        <a href="@controllers.web.routes.GroupController.groupList(museumId)">
+        <a href="@GroupController.groupList(museumId)">
             Go to group list
         </a>
     </p>
-    @helper.form(action = controllers.web.routes.GroupController.groupAddPost(museumId)) {
+    @helper.form(action = GroupController.groupAddPost(museumId)) {
         @helper.inputText(form("name"))
         @helper.select(form("permission"), permissions)
         @helper.textarea(form("description"))

@@ -1,28 +1,56 @@
 @import models.Group
 @import no.uio.musit.service.MusitResults.MusitError
-@(userEmails: Seq[String], museumId: Int, group: Group, error: Option[MusitError] = None)
+@import controllers.web.routes.GroupController
+@import no.uio.musit.models.MuseumCollection
+@import no.uio.musit.models.Email
+
+@(usrCols: Seq[(Email, Seq[MuseumCollection])], museumId: Int, group: Group, error: Option[MusitError] = None)
 
 @main("Group | Actors") {
-    <h1>Group: @group.name</h1>
-    <p>
-        <a href="@controllers.web.routes.GroupController.groupList(museumId)">
-            Go to group list
-        </a>
-    </p>
-    <p>
-        <a href="@controllers.web.routes.GroupController.groupAddUserGet(museumId, group.id.asString)">
-            Add new user
-        </a>
-    </p>
-    <h4>Found @userEmails.size actors</h4>
-    <ul>
-    @for(email <- userEmails) {
-        <li>
-            <b>@email</b>
-            <form method="post" action="@controllers.web.routes.GroupController.deleteUser(museumId, email, group.id.asString)">
-                <input type="submit" value="Delete" />
+  <h1>Group: @group.name</h1>
+  <p>
+    <a href="@GroupController.groupList(museumId)">
+      Go to group list
+    </a>
+  </p>
+  <p>
+    <a href="@GroupController.groupAddUserGet(museumId, group.id.asString)">
+      Add new user
+    </a>
+  </p>
+  <h4>Found @usrCols.size actors</h4>
+  <table>
+    <thead>
+      <tr>
+        <td><h4>Feide Username</h4></td>
+        <td><h4>Collections</h4></td>
+        <td>&nbsp;</td>
+      </tr>
+    </thead>
+    <tbody>
+      @for(usrCol <- usrCols) {
+        <tr>
+          <td>@usrCol._1.value</td>
+          <td>
+            @*
+              Should allow for removing access to collection here
+            *@
+            @for(col <- usrCol._2) {
+              <div>
+                <form method="post" action="@GroupController.revokeCollectionAuth(museumId, usrCol._1.value, group.id.asString, col.uuid.asString)">
+                  <span>@col.name</span>
+                  <input type="submit" value="Revoke">
+                </form>
+              </div>
+            }
+          </td>
+          <td>
+            <form method="post" action="@GroupController.deleteUser(museumId, usrCol._1.value, group.id.asString)">
+              <input type="submit" value="Remove" />
             </form>
-        </li>
-    }
-    </ul>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
 }

@@ -19,14 +19,43 @@
 
 package no.uio.musit.models
 
-trait MusitId {
-  val underlying: Long
-}
+case class UserGroupMembership(
+  id: Option[Int] = None,
+  feideEmail: Email,
+  groupId: GroupId,
+  collection: Option[CollectionUUID]
+)
 
-object MusitId {
+object UserGroupMembership {
 
-  implicit def toStorageNodeId(m: MusitId): StorageNodeId = StorageNodeId(m.underlying)
-  implicit def toEventId(m: MusitId): EventId = EventId(m.underlying)
-  implicit def toObjectId(m: MusitId): ObjectId = ObjectId(m.underlying)
+  def applyMulti(
+    email: Email,
+    grpId: GroupId,
+    maybeCollections: Option[Seq[CollectionUUID]]
+  ): Seq[UserGroupMembership] = {
+    maybeCollections.map { cids =>
+      if (cids.nonEmpty) {
+        cids.map { cid =>
+          UserGroupMembership(
+            feideEmail = email,
+            groupId = grpId,
+            collection = Option(cid)
+          )
+        }
+      } else {
+        Seq(UserGroupMembership(
+          feideEmail = email,
+          groupId = grpId,
+          collection = None
+        ))
+      }
+    }.getOrElse {
+      Seq(UserGroupMembership(
+        feideEmail = email,
+        groupId = grpId,
+        collection = None
+      ))
+    }
+  }
 
 }

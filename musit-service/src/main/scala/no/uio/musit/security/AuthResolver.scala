@@ -19,14 +19,15 @@
 
 package no.uio.musit.security
 
+import no.uio.musit.models.Email
 import no.uio.musit.service.MusitResults.MusitResult
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthResolver {
 
-  def findUserGroupsByEmail(
-    email: String
+  def findGroupInfoByFeideEmail(
+    email: Email
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
 
   def saveUserInfo(

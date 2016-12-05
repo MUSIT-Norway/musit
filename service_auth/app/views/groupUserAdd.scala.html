@@ -1,17 +1,27 @@
+@import helper._
+@import models.{Group, UserAuthAdd}
+@import no.uio.musit.models.MuseumCollection
 @import play.api.i18n.Messages
+@import controllers.web.routes.GroupController
 
-@(form: play.api.data.Form[_], museumId: Int, groupId: String)(implicit messages: Messages)
+@(theForm: play.api.data.Form[UserAuthAdd], group: Group, collections: Seq[MuseumCollection])(implicit messages: Messages)
 
 @main("Group | Add user") {
-    <h1>Add user to group</h1>
-    <p>
-        <a href="@controllers.web.routes.GroupController.groupActorsList(museumId, groupId)">
-            Go back
-        </a>
-    </p>
-    @helper.form(action = controllers.web.routes.GroupController.groupAddUserPost(museumId, groupId)) {
-        @helper.inputText(form("email"))
-        <input type="hidden" value="@groupId" name="groupId" />
-        <button type="submit" name="submit" value="submit">Add user to group</button>
-    }
+  <h1>Add user to group: @group.name</h1>
+  <p>
+    <a href="@GroupController.groupActorsList(group.museumId, group.id.asString)">
+      Go back
+    </a>
+  </p>
+  @form(action = GroupController.groupAddUserPost(group.museumId, group.id.asString)) {
+    @inputText(theForm("email"))
+    @helper.inputCheckboxGroup(
+      theForm("collections"),
+      options(
+        collections.map(c => (c.uuid.asString, c.name.getOrElse(""))): _*
+      )
+    )
+    <input type="hidden" value="@group.id.asString" name="groupId" />
+    <button type="submit" name="submit" value="submit">Add user to @group.name</button>
+  }
 }

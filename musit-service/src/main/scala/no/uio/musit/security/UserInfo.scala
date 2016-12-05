@@ -31,11 +31,11 @@ case class UserInfo(
     picture: Option[String]
 ) {
 
-  def feideUser: Option[String] = {
+  def feideUser: Option[Email] = {
     secondaryIds.flatMap(_.find { sid =>
       sid.startsWith("feide")
     }.map { fid =>
-      fid.reverse.takeWhile(_ != ':').reverse.trim
+      Email(fid.reverse.takeWhile(_ != ':').reverse.trim)
     })
   }
 

@@ -21,15 +21,15 @@ package controllers
 
 import com.google.inject.Inject
 import models.ObjectSearchResult
-import no.uio.musit.models.{MuseumNo, ObjectId, SubNo}
+import no.uio.musit.models.{MuseumNo, SubNo}
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
-import no.uio.musit.security.Permissions.Read
-import play.api.{Configuration, Logger}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc.Results
+import play.api.{Configuration, Logger}
 import services.ObjectSearchService
 
 import scala.concurrent.Future
@@ -54,56 +54,83 @@ class ObjectSearchController @Inject() (
     case lim: Int => lim
   }
 
-  def getMainObjectChildren(
-    mid: Int,
-    mainObjectId: Long
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.getMainObjectChildren(mid, ObjectId.fromLong(mainObjectId)).map {
-      case MusitSuccess(res) =>
-        Ok(Json.toJson(res))
-      case MusitDbError(msg, ex) =>
-        logger.error(msg, ex.orNull)
-        InternalServerError(Json.obj("message" -> msg))
-      case err: MusitError =>
-        logger.error(err.message)
-        Results.InternalServerError(Json.obj("message" -> err.message))
-    }
-  }
-
   /**
    * Controller enabling searching for objects. It has 3 search specific fields
    * that may or may not contain different criteria. There are also fields to
    * specify paging and a limit for how many results should be returned.
+   *
+   * @param mid           the MuseumId to filter on
+   * @param collectionIds Comma separated String of CollectionUUIDs.
+   * @param page          the page number to return
+   * @param limit         number of results per page
+   * @param museumNo      museum number to search for
+   * @param subNo         museum sub-number to search for
+   * @param term          the object term to search for
+   * @return A JSON containing the objects that were found.
    */
   def search(
     mid: Int,
-    page: Int = 1,
+    collectionIds: String,
+    page: Int,
     limit: Int = defaultLimit,
     museumNo: Option[String],
     subNo: Option[String],
     term: Option[String]
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
-      Future.successful {
-        BadRequest(Json.obj(
-          "messages" -> "at least one of museumNo, subNo or term must be specified"
-        ))
-      }
-    } else {
-      val mno = museumNo.map(MuseumNo.apply)
-      val sno = subNo.map(SubNo.apply)
-      service.search(mid, page, calcLimit(limit), mno, sno, term).map {
-        case MusitSuccess(res) =>
-          Ok(Json.toJson[ObjectSearchResult](res))
+    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      case Left(res) => Future.successful(res)
+      case Right(cids) =>
+        if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
+          Future.successful(BadRequest(Json.obj(
+            "messages" -> "at least one of museumNo, subNo or term must be specified."
+          )))
+        } else {
+          val mno = museumNo.map(MuseumNo.apply)
+          val sno = subNo.map(SubNo.apply)
+          val lim = calcLimit(limit)
 
-        case MusitDbError(msg, ex) =>
-          logger.error(msg, ex.orNull)
-          InternalServerError(Json.obj("message" -> msg))
+          service.search(mid, cids, page, lim, mno, sno, term)(request.user).map {
+            case MusitSuccess(res) =>
+              Ok(Json.toJson[ObjectSearchResult](res))
 
-        case err: MusitError =>
-          logger.error(err.message)
-          Results.InternalServerError(Json.obj("message" -> err.message))
-      }
+            case MusitDbError(msg, ex) =>
+              logger.error(msg, ex.orNull)
+              InternalServerError(Json.obj("message" -> msg))
+
+            case err: MusitError =>
+              logger.error(err.message)
+              Results.InternalServerError(Json.obj("message" -> err.message))
+          }
+        }
+    }
+  }
+
+  /**
+   *
+   * @param mid
+   * @param mainObjectId
+   * @return
+   */
+  def findMainObjectChildren(
+    mid: Int,
+    mainObjectId: Long,
+    collectionIds: String
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
+    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      case Left(res) => Future.successful(res)
+      case Right(cids) =>
+        service.findMainObjectChildren(mid, mainObjectId, cids)(request.user).map {
+          case MusitSuccess(res) =>
+            Ok(Json.toJson(res))
+
+          case MusitDbError(msg, ex) =>
+            logger.error(msg, ex.orNull)
+            InternalServerError(Json.obj("message" -> msg))
+
+          case err: MusitError =>
+            logger.error(err.message)
+            Results.InternalServerError(Json.obj("message" -> err.message))
+        }
     }
   }
 }
