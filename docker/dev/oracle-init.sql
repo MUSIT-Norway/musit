@@ -471,10 +471,10 @@ INSERT INTO musark_storage.local_object (object_id, latest_move_id, current_loca
 INSERT INTO musark_storage.local_object (object_id, latest_move_id, current_location_id, museum_id) VALUES (54, 9999, 1, 99);
 INSERT INTO musark_storage.local_object (object_id, latest_move_id, current_location_id, museum_id) VALUES (55, 9999, 1, 99);
 
-INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid) VALUES (1,  'MusK58', '1',   'Rar dings', 58, 1, 99);
-INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid) VALUES (2,  'MusK58', '2',   'Mansjettknapp', 58, 2, 99);
-INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid) VALUES (3,  'MusK58', '3',   'Spenne', 58, 3, 99);
-INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid) VALUES (4,  'MusK58', '4',   'Briller', 58, 4, 99);
+INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, mainObject_id) VALUES (1,  'MusK58', '1',   'Rar dings', 58, 1, 99, 1);
+INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, mainObject_id) VALUES (2,  'MusK58', '2',   'Mansjettknapp', 58, 2, 99, 1);
+INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, mainObject_id) VALUES (3,  'MusK58', '3',   'Spenne', 58, 3, 99, 1);
+INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, mainObject_id) VALUES (4,  'MusK58', '4',   'Briller', 58, 4, 99, 1);
 INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid) VALUES (5,  'MusN36', '1',   'Husflue', 36, 1, 99);
 INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid) VALUES (6,  'MusN45', NULL,  'Dyngebille', 45, NULL, 99);
 INSERT INTO musit_mapping.musitthing (object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid) VALUES (7,  'MusN36', '2',   'Spyflue', 36, 2, 99);
