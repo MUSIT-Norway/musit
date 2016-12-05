@@ -41,7 +41,8 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
       museumNoAsNumber,
       subNo,
       subNoAsNumber,
-      term
+      term,
+      mainObjectId
     ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
@@ -52,6 +53,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
     val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")
     val subNo = column[Option[String]]("SUBNO")
     val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
+    val mainObjectId = column[Option[Long]]("MAINOBJECT_ID")
     val term = column[String]("TERM")
 
     def create = (
@@ -61,7 +63,8 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
       museumNoAsNumber: Option[Long],
       subNo: Option[String],
       subNoAsNumber: Option[Long],
-      term: String
+      term: String,
+      mainObjectId: Option[Long]
     ) =>
       MusitObjectDto(
         museumId = museumId,
@@ -70,7 +73,8 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
         museumNoAsNumber = museumNoAsNumber,
         subNo = subNo.map(SubNo.apply),
         subNoAsNumber = subNoAsNumber,
-        term = term
+        term = term,
+        mainObjectId = mainObjectId
       )
 
     def destroy(thing: MusitObjectDto) =
@@ -81,7 +85,8 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
         thing.museumNoAsNumber,
         thing.subNo.map(_.value),
         thing.subNoAsNumber,
-        thing.term
+        thing.term,
+        thing.mainObjectId
       ))
   }
 

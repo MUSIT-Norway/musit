@@ -21,7 +21,7 @@ package controllers
 
 import com.google.inject.Inject
 import models.ObjectSearchResult
-import no.uio.musit.models.{MuseumNo, SubNo}
+import no.uio.musit.models.{MuseumNo, ObjectId, SubNo}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
@@ -52,6 +52,22 @@ class ObjectSearchController @Inject() (
     case lim: Int if lim > maxLimit => maxLimit
     case lim: Int if lim < 0 => defaultLimit
     case lim: Int => lim
+  }
+
+  def getMainObjectChildren(
+    mid: Int,
+    mainObjectId: Long
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
+    service.getMainObjectChildren(mid, ObjectId.fromLong(mainObjectId)).map {
+      case MusitSuccess(res) =>
+        Ok(Json.toJson(res))
+      case MusitDbError(msg, ex) =>
+        logger.error(msg, ex.orNull)
+        InternalServerError(Json.obj("message" -> msg))
+      case err: MusitError =>
+        logger.error(err.message)
+        Results.InternalServerError(Json.obj("message" -> err.message))
+    }
   }
 
   /**

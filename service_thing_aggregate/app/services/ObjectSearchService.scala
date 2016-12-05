@@ -20,8 +20,8 @@
 package services
 
 import com.google.inject.Inject
-import models.ObjectSearchResult
-import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
+import models.{MusitObject, ObjectSearchResult}
+import no.uio.musit.models.{MuseumId, MuseumNo, ObjectId, SubNo}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -36,6 +36,13 @@ class ObjectSearchService @Inject() (
 ) {
 
   private val logger = Logger(classOf[ObjectSearchService])
+
+  def getMainObjectChildren(
+    mid: MuseumId,
+    mainObjectId: ObjectId
+  ): Future[MusitResult[Seq[MusitObject]]] = {
+    objSearchDao.getMainObjectChildren(mid, mainObjectId)
+  }
 
   /**
    * Search for objects based on the given criteria.

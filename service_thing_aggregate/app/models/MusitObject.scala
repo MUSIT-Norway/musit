@@ -29,7 +29,8 @@ case class MusitObject(
   term: String,
   currentLocationId: Option[Long] = None,
   path: Option[NodePath] = None,
-  pathNames: Option[Seq[NamedPathElement]] = None
+  pathNames: Option[Seq[NamedPathElement]] = None,
+  mainObjectId: Option[Long]
 )
 
 object MusitObject {

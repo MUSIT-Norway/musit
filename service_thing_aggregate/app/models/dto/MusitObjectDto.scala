@@ -29,7 +29,8 @@ case class MusitObjectDto(
   museumNoAsNumber: Option[Long],
   subNo: Option[SubNo],
   subNoAsNumber: Option[Long],
-  term: String
+  term: String,
+  mainObjectId: Option[Long]
 )
 
 object MusitObjectDto {
@@ -41,7 +42,8 @@ object MusitObjectDto {
       id = x.id.get,
       museumNo = x.museumNo,
       subNo = x.subNo,
-      term = x.term
+      term = x.term,
+      mainObjectId = x.mainObjectId
     )
 }
 
