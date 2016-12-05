@@ -55,8 +55,8 @@ object TemplateConfigs {
   case object Avery5160 extends TemplateConfig {
     override val templateId: Int = 1
     override val name: String = "Avery 51x60"
-    override val labelWidth: Millimeters = Millimeters(51.453)
-    override val labelHeight: Millimeters = Millimeters(22.225)
+    override val labelWidth: Millimeters = Millimeters(251.98)
+    override val labelHeight: Millimeters = Millimeters(96)
     override val rowsPerPage: Int = 30
     override val colsPerPage: Int = 3
   }
@@ -64,8 +64,8 @@ object TemplateConfigs {
   case object Herma9650 extends TemplateConfig {
     override val templateId: Int = 2
     override val name: String = "Herma 95x50.8"
-    override val labelWidth: Millimeters = Millimeters(96.0)
-    override val labelHeight: Millimeters = Millimeters(50.8)
+    override val labelWidth: Millimeters = Millimeters(377.92)
+    override val labelHeight: Millimeters = Millimeters(207.09)
     override val rowsPerPage: Int = 5
     override val colsPerPage: Int = 2
   }
