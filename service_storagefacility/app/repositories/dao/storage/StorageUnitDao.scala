@@ -25,6 +25,7 @@ import models.datetime.dateTimeNow
 import models.storage.dto.StorageNodeDto
 import models.storage.{GenericStorageNode, Root, StorageType, StorageUnit}
 import no.uio.musit.models._
+import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -360,6 +361,14 @@ class StorageUnitDao @Inject() (
     db.run(namesForPathAction(nodePath))
   }
 
+  /**
+   *
+   * @param mid
+   * @param searchString
+   * @param page
+   * @param pageSize
+   * @return
+   */
   def getStorageNodeByName(
     mid: MuseumId,
     searchString: String,
@@ -371,6 +380,45 @@ class StorageUnitDao @Inject() (
       db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
     } else {
       Future.successful(Seq.empty)
+    }
+  }
+
+  /**
+   * This method is only executable for users with GodMode permissions.
+   * It will set a UUID to all storage nodes that are doesn't have one.
+   *
+   * @param currUsr the currently AuthenticatedUser
+   * @return the number of nodes that were updated
+   */
+  def setUUIDWhereEmpty(implicit currUsr: AuthenticatedUser): Future[MusitResult[Int]] = {
+    if (currUsr.hasGodMode) {
+      // First find all the nodes without the uuid set.
+      val q1 = storageNodeTable.filter(_.uuid.isEmpty)
+      val fn = db.run(q1.result).map(_.map(StorageNodeDto.toGenericStorageNode))
+
+      fn.flatMap { nodes =>
+        logger.info(s"Found ${nodes.size} without UUID.")
+        // Now we can iterate over all the found nodes, and set a new UUID to
+        // each of them separately.
+        Future.sequence {
+          nodes.map { n =>
+            val uuid = StorageNodeId.generateAsOpt()
+            val q2 = storageNodeTable.filter(_.id === n.id).map(_.uuid).update(uuid)
+            db.run(q2)
+          }
+        }.map { allRes =>
+          val total = allRes.sum
+          logger.info(s"Gave $total storage nodes a new UUID.")
+          MusitSuccess(total)
+        }
+      }.recover {
+        case NonFatal(ex) =>
+          val msg = "An error occurred setting UUID's to storage nodes."
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+    } else {
+      Future.successful(MusitNotAuthorized())
     }
   }
 

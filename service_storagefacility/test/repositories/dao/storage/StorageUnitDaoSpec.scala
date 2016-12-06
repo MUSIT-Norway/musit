@@ -21,12 +21,14 @@ package repositories.dao.storage
 
 import models.storage.StorageType._
 import models.storage.{Root, StorageType}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId, StorageNodeId}
+import no.uio.musit.models._
+import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
 import no.uio.musit.service.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
 import utils.testhelpers.NodeGenerators
+import org.scalatest.Inspectors._
 
 class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
@@ -46,14 +48,14 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         updatedDate = Some(DateTime.now())
       )
 
-      for (i <- 7 to 9) {
+      for (i <- 17 to 19) {
         val r = createRoot(s"root$i")
         val insId = storageUnitDao.insertRoot(defaultMuseumId, r).futureValue
         insId mustBe a[StorageNodeDatabaseId]
         insId mustBe StorageNodeDatabaseId(i.toLong)
       }
       val anotherMid = MuseumId(4)
-      for (i <- 10 to 12) {
+      for (i <- 20 to 22) {
         val r = createRoot(s"root$i")
         val insId = storageUnitDao.insertRoot(anotherMid, r).futureValue
         insId mustBe a[StorageNodeDatabaseId]
@@ -63,7 +65,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
     "succeed when inserting a new storage unit" in {
       val path = NodePath(",1,2,3,4,")
-      val insId = storageUnitDao.insert(defaultMuseumId, createStorageUnit(path = path)).futureValue
+      val insId = storageUnitDao.insert(defaultMuseumId, createStorageUnit(path = path)).futureValue // scalastyle:ignore
       insId mustBe a[StorageNodeDatabaseId]
     }
 
@@ -115,6 +117,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       nodes.size mustBe 0
       nodes.foreach(_.storageType mustBe StorageType.RootType)
     }
+
     "fail to list root nodes with museumId that does not exists" in {
       val mid = MuseumId(55)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
@@ -136,32 +139,32 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "successfully fetch the named path elements for a storage node" in {
-      val path1 = NodePath(",7,17,")
+      val path1 = NodePath(",17,27,")
       val su1 = createStorageUnit(
-        partOf = Some(StorageNodeDatabaseId(7)),
+        partOf = Some(StorageNodeDatabaseId(17)),
         path = path1
       ).copy(name = "node1")
       val insId1 = storageUnitDao.insert(defaultMuseumId, su1).futureValue
       insId1 mustBe a[StorageNodeDatabaseId]
-      insId1 mustBe StorageNodeDatabaseId(17)
+      insId1 mustBe StorageNodeDatabaseId(27)
 
-      val path2 = path1.appendChild(StorageNodeDatabaseId(18))
+      val path2 = path1.appendChild(StorageNodeDatabaseId(28))
       val su2 = createStorageUnit(
         partOf = Some(insId1),
         path = path2
       ).copy(name = "node2")
       val insId2 = storageUnitDao.insert(defaultMuseumId, su2).futureValue
       insId2 mustBe a[StorageNodeDatabaseId]
-      insId2 mustBe StorageNodeDatabaseId(18)
+      insId2 mustBe StorageNodeDatabaseId(28)
 
       val res = storageUnitDao.namesForPath(path2).futureValue
       res must not be empty
       res.size mustBe 3
-      res.head.nodeId mustBe StorageNodeDatabaseId(7)
-      res.head.name mustBe "root7"
-      res.tail.head.nodeId mustBe StorageNodeDatabaseId(17)
+      res.head.nodeId mustBe StorageNodeDatabaseId(17)
+      res.head.name mustBe "root17"
+      res.tail.head.nodeId mustBe StorageNodeDatabaseId(27)
       res.tail.head.name mustBe "node1"
-      res.last.nodeId mustBe StorageNodeDatabaseId(18)
+      res.last.nodeId mustBe StorageNodeDatabaseId(28)
       res.last.name mustBe "node2"
     }
 
@@ -219,28 +222,28 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "fetch tuples of StorageNodeId and StorageType for a NodePath" in {
-      val orgPath = NodePath(",1,22,")
+      val orgPath = NodePath(",1,32,")
       val org = createOrganisation(
         partOf = Some(StorageNodeDatabaseId(1)),
         path = orgPath
       ).copy(name = "node-x")
       val organisationId = organisationDao.insert(defaultMuseumId, org).futureValue
 
-      val buildingPath = NodePath(",1,22,23,")
+      val buildingPath = NodePath(",1,32,33,")
       val building = createBuilding(
         partOf = Some(organisationId),
         path = buildingPath
       )
       val buildingId = buildingDao.insert(defaultMuseumId, building).futureValue
 
-      val roomPath = NodePath(",1,22,23,24,")
+      val roomPath = NodePath(",1,32,33,34,")
       val room = createRoom(
         partOf = Some(buildingId),
         path = roomPath
       )
       val roomId = roomDao.insert(defaultMuseumId, room).futureValue
 
-      val su1Path = NodePath(",1,22,23,24,25,")
+      val su1Path = NodePath(",1,32,33,34,35,")
       val su1 = createStorageUnit(
         partOf = Some(roomId),
         path = su1Path
@@ -255,10 +258,11 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         suId -> StorageUnitType
       )
 
-      val tuples = storageUnitDao.getStorageTypesInPath(defaultMuseumId, su1Path).futureValue
+      val tuples = storageUnitDao.getStorageTypesInPath(defaultMuseumId, su1Path).futureValue // scalastyle:ignore
 
       tuples must contain theSameElementsInOrderAs expected
     }
+
     "successfully get a node when searching for name and not if it's wrong museumId" in {
       val mid = MuseumId(5)
       val getNodeName = storageUnitDao.getStorageNodeByName(mid, "Foo", 1, 25).futureValue
@@ -267,22 +271,54 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       getNodeName.lift(2).get.name must include("Foo")
 
       val anotherMid = MuseumId(4)
-      val notGetNodeName = storageUnitDao.getStorageNodeByName(anotherMid, "Foo", 1, 25).futureValue
+      val notGetNodeName = storageUnitDao.getStorageNodeByName(anotherMid, "Foo", 1, 25).futureValue // scalastyle:ignore
       notGetNodeName.size mustBe 0
     }
-    "fail when searching for name without any search criteria, or too few, or another museumId" in {
+
+    "fail when searching for name without any search criteria, or too few, or another museumId" in { // scalastyle:ignore
       val mid = MuseumId(5)
       val getNodeName = storageUnitDao.getStorageNodeByName(mid, "", 1, 25).futureValue
       getNodeName.size mustBe 0
 
-      val tooFewLettersInSearchStr = storageUnitDao.getStorageNodeByName(mid, "", 1, 25).futureValue
+      val tooFewLettersInSearchStr = storageUnitDao.getStorageNodeByName(mid, "", 1, 25).futureValue // scalastyle:ignore
       tooFewLettersInSearchStr.size mustBe 0
 
       val anotherMid = MuseumId(4)
-      val noNodeName = storageUnitDao.getStorageNodeByName(anotherMid, "Foo", 1, 25).futureValue
+      val noNodeName = storageUnitDao.getStorageNodeByName(anotherMid, "Foo", 1, 25).futureValue // scalastyle:ignore
       noNodeName.size mustBe 0
     }
 
+    "successfully set STORAGENODE_UUID for nodes that doesn't have one" in {
+      implicit val dummyUser = AuthenticatedUser(
+        userInfo = UserInfo(
+          id = ActorId.generate(),
+          secondaryIds = Some(Seq("vader@starwars.com")),
+          name = Some("Darth Vader"),
+          email = None,
+          picture = None
+        ),
+        groups = Seq(GroupInfo(
+          id = GroupId.generate(),
+          name = "FooBarGroup",
+          permission = Permissions.GodMode,
+          museumId = Museums.All.id,
+          description = None,
+          collections = Seq.empty
+        ))
+      )
+
+      val res = storageUnitDao.setUUIDWhereEmpty.futureValue
+
+      res.isSuccess mustBe true
+      res.get mustBe 10
+
+      for (id <- 7L to 16L) {
+        val nid = StorageNodeDatabaseId(id)
+        val r = storageUnitDao.getById(defaultMuseumId, nid).futureValue
+        r.isDefined mustBe true
+        r.get.nodeId must not be None
+      }
+    }
   }
 
 }

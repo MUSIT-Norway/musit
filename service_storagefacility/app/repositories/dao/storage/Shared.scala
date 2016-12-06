@@ -190,7 +190,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     // scalastyle:off method.name
     def * = (
       id.?,
-      uuid.?,
+      uuid,
       storageType,
       name,
       area,
@@ -210,7 +210,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     // scalastyle:on method.name
 
     val id = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
-    val uuid = column[StorageNodeId]("STORAGE_NODE_UUID")
+    val uuid = column[Option[StorageNodeId]]("STORAGE_NODE_UUID")
     val storageType = column[StorageType]("STORAGE_TYPE")
     val name = column[String]("STORAGE_NODE_NAME")
     val area = column[Option[Double]]("AREA")

@@ -272,7 +272,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = Some(StorageNodeDatabaseId(5)),
-        to = StorageNodeDatabaseId(12)
+        to = StorageNodeDatabaseId(22)
       )
       val res = service.moveObject(defaultMuseumId, oid, event).futureValue
       res.isSuccess mustBe true
@@ -280,7 +280,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val loc2 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc2.isSuccess mustBe true
       loc2.get must not be None
-      loc2.get.get.id mustBe Some(StorageNodeDatabaseId(12))
+      loc2.get.get.id mustBe Some(StorageNodeDatabaseId(22))
     }
 
     "successfully move an object with no previous location" in {
@@ -294,7 +294,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = None,
-        to = StorageNodeDatabaseId(12)
+        to = StorageNodeDatabaseId(22)
       )
       val res = service.moveObject(defaultMuseumId, oid, event).futureValue
       res.isSuccess mustBe true
@@ -302,7 +302,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val loc = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc.isSuccess mustBe true
       loc.get must not be None
-      loc.get.get.id mustBe Some(StorageNodeDatabaseId(12))
+      loc.get.get.id mustBe Some(StorageNodeDatabaseId(22))
     }
 
     "not mark a node as deleted when wrong museumId is used" in {
