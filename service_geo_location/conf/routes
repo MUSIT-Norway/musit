@@ -5,4 +5,4 @@
 # Setup endpoints
 GET        /service/geolocation/buildinfo        controllers.Application.buildInfo
 
-GET        /v1/address                           controllers.GeoLocationResource.searchExternal(search: Option[String] ?= None)
+GET        /v1/address                           controllers.GeoLocationController.searchExternal(search: Option[String] ?= None)

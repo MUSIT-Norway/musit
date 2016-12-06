@@ -34,7 +34,7 @@ import utils.testhelpers._
 
 import scala.util.Try
 
-class KdReportResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
+class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),

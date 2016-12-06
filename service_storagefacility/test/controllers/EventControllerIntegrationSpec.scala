@@ -36,7 +36,7 @@ import utils.testhelpers.{EventJsonGenerator, _}
 
 import scala.util.Try
 
-class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
+class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),

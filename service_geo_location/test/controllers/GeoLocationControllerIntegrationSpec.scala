@@ -28,7 +28,7 @@ import play.api.libs.json.JsArray
 
 import scala.language.postfixOps
 
-class GeoLocationIntegrationSpec extends MusitSpecWithServerPerSuite {
+class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),

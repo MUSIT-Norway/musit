@@ -25,7 +25,7 @@ import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 
-class UserIntegrationSpec extends MusitSpecWithServerPerSuite {
+class UserControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -34,9 +34,9 @@ class UserIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   val token = (uname: String) => BearerToken(fakeAccessTokenPrefix + uname)
 
-  "Actor and dataporten integration" must {
+  "The UserController" must {
 
-    "get 401 when not providing token" in {
+    "get 401 when not providing a bearer token" in {
       wsUrl("/v1/dataporten/currentUser").get().futureValue.status mustBe 401
     }
 

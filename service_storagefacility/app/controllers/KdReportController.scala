@@ -21,31 +21,26 @@ package controllers
 
 import com.google.inject.Inject
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
-import play.api.Logger
+import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json._
-import services.GeoLocationService
+import play.api.libs.json.Json
+import services.KdReportService
 
-class GeoLocationResource @Inject() (
+class KdReportController @Inject() (
     val authService: Authenticator,
-    val geoLocService: GeoLocationService
+    val kdReportService: KdReportService
 ) extends MusitController {
 
-  val logger = Logger(classOf[GeoLocationResource])
+  def getReportByMuseum(mid: Int) =
+    MusitSecureAction(mid, Read).async { implicit request =>
+      kdReportService.getReport(mid).map {
+        case MusitSuccess(reports) =>
+          Ok(Json.toJson(reports))
 
-  /**
-   * Service for looking up addresses in the geo-location service provided by
-   * kartverket.no
-   */
-  def searchExternal(
-    search: Option[String]
-  ) = MusitSecureAction().async { implicit request =>
-    val expression = search.getOrElse("")
-    geoLocService.searchGeoNorway(expression).map { location =>
-      Ok(Json.toJson(location))
+        case err: MusitError =>
+          InternalServerError(Json.obj("message" -> err.message))
+      }
     }
-  }
-
 }
-

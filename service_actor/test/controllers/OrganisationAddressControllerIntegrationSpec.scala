@@ -30,7 +30,7 @@ import utils.testdata.ActorJsonGenerator._
 
 import scala.concurrent.Future
 
-class OrganisationAddressIntegrationSpec extends MusitSpecWithServerPerSuite {
+class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -46,7 +46,7 @@ class OrganisationAddressIntegrationSpec extends MusitSpecWithServerPerSuite {
       .post(json)
   }
 
-  "OrganizationAddressIntegration " must {
+  "The OrganizationAddressController" must {
 
     "get by id" in {
       val res = wsUrl("/v1/organization/1/address/1")

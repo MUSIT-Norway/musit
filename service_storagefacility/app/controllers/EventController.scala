@@ -34,13 +34,13 @@ import services.{ControlService, ObservationService}
 import scala.concurrent.Future
 
 @Singleton
-class EventResource @Inject() (
+class EventController @Inject() (
     val authService: Authenticator,
     val controlService: ControlService,
     val observationService: ObservationService
 ) extends MusitController {
 
-  val logger = Logger(classOf[EventResource])
+  val logger = Logger(classOf[EventController])
 
   /**
    * Controller endpoint for adding a new Control for a storage node with
