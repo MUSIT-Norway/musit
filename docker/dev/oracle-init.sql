@@ -291,6 +291,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   subNoAsNumber    INTEGER,
   mainobject_id    NUMBER(20),
   old_schema_name  VARCHAR(100),
+  lokal_pk         NUMBER(20),
   PRIMARY KEY (object_id)
 );
 

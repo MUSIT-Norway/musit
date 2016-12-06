@@ -20,7 +20,7 @@
 package services
 
 import com.google.inject.Inject
-import models.{MusitObject, ObjectSearchResult}
+import models.{MusitObject, ObjectAggregation, ObjectSearchResult}
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
@@ -31,19 +31,35 @@ import repositories.dao.{ObjectDao, StorageNodeDao}
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class ObjectSearchService @Inject() (
-    val objSearchDao: ObjectDao,
+class ObjectService @Inject() (
+    val objDao: ObjectDao,
     val nodeDao: StorageNodeDao
 ) {
 
-  private val logger = Logger(classOf[ObjectSearchService])
+  private val logger = Logger(classOf[ObjectService])
 
   def findMainObjectChildren(
     mid: MuseumId,
     mainObjectId: ObjectId,
     collectionIds: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    objSearchDao.getMainObjectChildren(mid, mainObjectId, collectionIds)
+    objDao.getMainObjectChildren(mid, mainObjectId, collectionIds)
+  }
+
+  /**
+   *
+   * @param mid
+   * @param nodeId
+   * @param collectionIds
+   * @param currUsr
+   * @return
+   */
+  def getObjects(
+    mid: MuseumId,
+    nodeId: StorageNodeDatabaseId,
+    collectionIds: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
+    objDao.getObjects(mid, nodeId, collectionIds)
   }
 
   /**
@@ -67,7 +83,7 @@ class ObjectSearchService @Inject() (
     subNo: Option[SubNo],
     term: Option[String]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
-    objSearchDao.search(mid, page, limit, museumNo, subNo, term, collectionIds).flatMap {
+    objDao.search(mid, page, limit, museumNo, subNo, term, collectionIds).flatMap {
       case MusitSuccess(searchResult) =>
         // We found some objects...now we need to find the current location for each.
         Future.sequence {

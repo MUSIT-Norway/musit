@@ -30,7 +30,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
  * NOTE: Test data for these tests are loaded in the evolution scripts in the
  * src/test/resources directory.
  */
-class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
+class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
   val dao: ObjectDao = fromInstanceCache[ObjectDao]
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -270,6 +270,58 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
         res.get.matches.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")
       }
 
+    }
+
+    "getting objects for a nodeId that exists within a museum" should {
+      "return a list of objects" in {
+        val mr = dao.getObjects(
+          mid,
+          StorageNodeDatabaseId(3),
+          allCollections
+        ).futureValue
+        mr.isSuccess mustBe true
+        mr.get.size mustBe 3
+        mr.get match {
+          case Vector(first, second, third) =>
+            first.id mustBe ObjectId(1)
+            first.museumNo mustBe MuseumNo("C666")
+            first.subNo mustBe Some(SubNo("34"))
+            first.term mustBe Some("Øks")
+
+            second.id mustBe ObjectId(2)
+            second.museumNo mustBe MuseumNo("C666")
+            second.subNo mustBe Some(SubNo("31"))
+            second.term mustBe Some("Sverd")
+
+            third.id mustBe ObjectId(3)
+            third.museumNo mustBe MuseumNo("C666")
+            third.subNo mustBe Some(SubNo("38"))
+            third.term mustBe Some("Sommerfugl")
+        }
+      }
+    }
+
+    "get objects for a nodeId that does not exist in museum" should {
+      "return a an empty vector" in {
+        val mr = dao.getObjects(
+          mid,
+          StorageNodeDatabaseId(999999),
+          allCollections
+        ).futureValue
+        mr.isSuccess mustBe true
+        mr.get.length mustBe 0
+      }
+    }
+    "get objects for a museum that does not exist" should {
+      "return a an empty vector" in {
+        val mr = dao.getObjects(
+          MuseumId(55),
+          StorageNodeDatabaseId(2),
+          allCollections
+        ).futureValue
+        mr.isSuccess mustBe true
+        mr.get.length mustBe 0
+      }
     }
   }
 }

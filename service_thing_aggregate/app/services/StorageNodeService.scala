@@ -20,14 +20,15 @@
 package services
 
 import com.google.inject.Inject
-import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
-import no.uio.musit.service.MusitResults.MusitResult
-import repositories.dao.StorageNodeDao
+import no.uio.musit.models.{MuseumId, NamedPathElement, StorageNodeDatabaseId}
+import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import repositories.dao.{ObjectDao, StorageNodeDao}
 
 import scala.concurrent.Future
 
 class StorageNodeService @Inject() (
-    val storageNodeDao: StorageNodeDao
+    val nodeDao: StorageNodeDao,
+    val objDao: ObjectDao
 ) {
 
   /**
@@ -40,6 +41,42 @@ class StorageNodeService @Inject() (
   def nodeExists(
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId
-  ): Future[MusitResult[Boolean]] = storageNodeDao.nodeExists(mid, nodeId)
+  ): Future[MusitResult[Boolean]] = nodeDao.nodeExists(mid, nodeId)
+
+  /**
+   *
+   * @param mid
+   * @param oldObjectId
+   * @param oldSchemaName
+   * @return
+   */
+  def currNodeForOldObject(
+    mid: MuseumId,
+    oldObjectId: Long,
+    oldSchemaName: String
+  ): Future[MusitResult[Option[(StorageNodeDatabaseId, String)]]] = {
+    // Look up object using it's old object ID and the old DB schema name.
+    objDao.findByOldId(mid, oldObjectId, oldSchemaName).flatMap {
+      case MusitSuccess(mobj) =>
+        mobj match {
+          case Some(obj) =>
+            nodeDao.currentLocation(mid, obj.id).flatMap {
+              case Some(sn) =>
+                nodeDao.namesForPath(sn._2).map { np =>
+                  MusitSuccess(Option((sn._1, np.map(_.name).mkString(", "))))
+                }
+
+              case None =>
+                Future.successful(MusitSuccess(None))
+            }
+
+          case None =>
+            Future.successful(MusitSuccess(None))
+        }
+
+      case err: MusitError =>
+        Future.successful(err)
+    }
+  }
 
 }

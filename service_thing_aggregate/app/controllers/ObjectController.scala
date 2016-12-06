@@ -21,29 +21,30 @@ package controllers
 
 import com.google.inject.Inject
 import models.ObjectSearchResult
-import no.uio.musit.models.{MuseumNo, SubNo}
-import no.uio.musit.security.Authenticator
+import no.uio.musit.models.{MuseumCollection, MuseumId, MuseumNo, SubNo}
+import no.uio.musit.security.{AuthenticatedUser, Authenticator}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.Results
+import play.api.mvc.{Result, Results}
 import play.api.{Configuration, Logger}
-import services.ObjectSearchService
+import services.{ObjectService, StorageNodeService}
 
 import scala.concurrent.Future
 
-class ObjectSearchController @Inject() (
+class ObjectController @Inject() (
     val authService: Authenticator,
     val conf: Configuration,
-    val service: ObjectSearchService
+    val objService: ObjectService,
+    val nodeService: StorageNodeService
 ) extends MusitController {
 
   val maxLimitConfKey = "musit.objects.search.max-limit"
   val defaultLimitConfKey = "musit.objects.search.default-limit"
 
-  val logger = Logger(classOf[ObjectSearchController])
+  val logger = Logger(classOf[ObjectController])
 
   private val maxLimit = conf.getInt(maxLimitConfKey).getOrElse(100)
   private val defaultLimit = conf.getInt(defaultLimitConfKey).getOrElse(25)
@@ -89,7 +90,7 @@ class ObjectSearchController @Inject() (
           val sno = subNo.map(SubNo.apply)
           val lim = calcLimit(limit)
 
-          service.search(mid, cids, page, lim, mno, sno, term)(request.user).map {
+          objService.search(mid, cids, page, lim, mno, sno, term)(request.user).map {
             case MusitSuccess(res) =>
               Ok(Json.toJson[ObjectSearchResult](res))
 
@@ -119,7 +120,7 @@ class ObjectSearchController @Inject() (
     parseCollectionIdsParam(mid, collectionIds)(request.user) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
-        service.findMainObjectChildren(mid, mainObjectId, cids)(request.user).map {
+        objService.findMainObjectChildren(mid, mainObjectId, cids)(request.user).map {
           case MusitSuccess(res) =>
             Ok(Json.toJson(res))
 
@@ -131,6 +132,58 @@ class ObjectSearchController @Inject() (
             logger.error(err.message)
             Results.InternalServerError(Json.obj("message" -> err.message))
         }
+    }
+  }
+
+  /**
+   *
+   * @param mid
+   * @param nodeId
+   * @param collectionIds Comma separated String of CollectionUUIDs.
+   * @return
+   */
+  def getObjects(
+    mid: Int,
+    nodeId: Long,
+    collectionIds: String
+  ) = MusitSecureAction(mid, Read).async { request =>
+    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      case Left(res) => Future.successful(res)
+      case Right(cids) =>
+        nodeService.nodeExists(mid, nodeId).flatMap {
+          case MusitSuccess(true) =>
+            getObjectsByNodeId(mid, nodeId, cids)(request.user)
+
+          case MusitSuccess(false) =>
+            Future.successful(NotFound(Json.obj(
+              "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
+            )))
+
+          case MusitDbError(msg, ex) =>
+            logger.error(msg, ex.orNull)
+            Future.successful(InternalServerError(Json.obj("message" -> msg)))
+
+          case r: MusitError =>
+            Future.successful(InternalServerError(Json.obj("message" -> r.message)))
+        }
+    }
+  }
+
+  private def getObjectsByNodeId(
+    mid: MuseumId,
+    nodeId: Long,
+    collectionIds: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[Result] = {
+    objService.getObjects(mid, nodeId, collectionIds).map {
+      case MusitSuccess(objects) =>
+        Ok(Json.toJson(objects))
+
+      case MusitDbError(msg, ex) =>
+        logger.error(msg, ex.orNull)
+        InternalServerError(Json.obj("message" -> msg))
+
+      case r: MusitError =>
+        InternalServerError(Json.obj("message" -> r.message))
     }
   }
 }
