@@ -27,6 +27,8 @@ import play.api.Logger
 import play.api.libs.json.Json
 import services.StorageNodeService
 
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 class DelphiBridgeController @Inject() (
     val authService: Authenticator,
     val nodeService: StorageNodeService
@@ -36,17 +38,15 @@ class DelphiBridgeController @Inject() (
 
   /**
    *
-   * @param museumId
    * @param oldObjectId
    * @param schemaName
    * @return
    */
   def currentNode(
-    museumId: Int,
     oldObjectId: Long,
     schemaName: String
   ) = MusitSecureAction().async { implicit request =>
-    nodeService.currNodeForOldObject(museumId, oldObjectId, schemaName).map {
+    nodeService.currNodeForOldObject(oldObjectId, schemaName)(request.user).map {
       case MusitSuccess(mres) =>
         mres.map { res =>
           Ok(Json.obj(
@@ -56,7 +56,7 @@ class DelphiBridgeController @Inject() (
         }.getOrElse {
           NotFound(Json.obj(
             "message" -> (s"Could not find current node for object $oldObjectId " +
-              s"in schema $schemaName for museum $museumId")
+              s"in schema $schemaName")
           ))
         }
 

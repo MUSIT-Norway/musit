@@ -289,14 +289,12 @@ class ObjectDao @Inject() (
   }
 
   def findByOldId(
-    mid: MuseumId,
     oldObjectId: Long,
     oldSchemaName: String
   ): Future[MusitResult[Option[MusitObject]]] = {
     val query = objects.filter { o =>
-      o.museumId === mid &&
       o.oldObjId === oldObjectId &&
-      o.oldSchema === oldSchemaName
+        o.oldSchema === oldSchemaName
     }
 
     db.run(query.result.headOption).map { res =>

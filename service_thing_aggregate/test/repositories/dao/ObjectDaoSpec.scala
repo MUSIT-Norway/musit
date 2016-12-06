@@ -272,8 +272,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
     }
 
-    "getting objects for a nodeId that exists within a museum" should {
-      "return a list of objects" in {
+    "getting objects for a nodeId" should {
+      "return a list of objects if the nodeId exists in the museum" in {
         val mr = dao.getObjects(
           mid,
           StorageNodeDatabaseId(3),
@@ -299,10 +299,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             third.term mustBe Some("Sommerfugl")
         }
       }
-    }
 
-    "get objects for a nodeId that does not exist in museum" should {
-      "return a an empty vector" in {
+      "return a an empty vector when nodeId doesn't exist in museum" in {
         val mr = dao.getObjects(
           mid,
           StorageNodeDatabaseId(999999),
@@ -311,9 +309,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
         mr.isSuccess mustBe true
         mr.get.length mustBe 0
       }
-    }
-    "get objects for a museum that does not exist" should {
-      "return a an empty vector" in {
+
+      "return a an empty vector when museum doesn't exist" in {
         val mr = dao.getObjects(
           MuseumId(55),
           StorageNodeDatabaseId(2),
@@ -323,5 +320,25 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
         mr.get.length mustBe 0
       }
     }
+
+    "finding the location of an object using an old objectId and schema" should {
+      "return the object" in {
+        val res = dao.findByOldId(111L, "USD_ARK_GJENSTAND_O").futureValue
+        res.isSuccess mustBe true
+        res.get must not be None
+        val obj = res.get.get
+        obj.id mustBe ObjectId(12L)
+        obj.museumId mustBe mid
+        obj.term mustBe "Fin øks"
+      }
+
+      "return None if not found" in {
+        val res = dao.findByOldId(333L, "USD_ARK_GJENSTAND_O").futureValue
+        res.isSuccess mustBe true
+        res.get mustBe None
+      }
+
+    }
+
   }
 }

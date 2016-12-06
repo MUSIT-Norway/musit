@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 
 case class MusitObject(
   id: ObjectId,
+  museumId: MuseumId,
   museumNo: MuseumNo,
   subNo: Option[SubNo],
   term: String,
@@ -41,6 +42,7 @@ object MusitObject {
   def fromTuple(t: ObjTuple): MusitObject = {
     MusitObject(
       id = t._1.get, // scalastyle:ignore
+      museumId = t._2,
       museumNo = MuseumNo(t._3),
       subNo = t._5.map(SubNo.apply),
       mainObjectId = t._7,

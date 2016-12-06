@@ -45,7 +45,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   var url = (mid: Int) => s"/museum/$mid/objects/search"
 
-  "ObjectSearch" must {
+  "The ObjectController" must {
 
     "find objects in the archeology collection with a specific museumNo" in {
 

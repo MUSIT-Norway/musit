@@ -31,6 +31,10 @@ object Museums {
   val museums = List(All, Test, Am, Um, Khm, Nhm, Vm, Tmu, Kmn)
 
   object Museum {
+
+    def museumIdToString(i: MuseumId) =
+      fromMuseumId(i).map(_.shortName).getOrElse("")
+
     def fromMuseumId(i: MuseumId): Option[Museum] =
       i match {
         case Test.id => Some(Test)
