@@ -22,7 +22,7 @@ package models.event.observation
 import models.event.observation.ObservationSubEvents._
 import models.event.{EventType, MusitEvent}
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
+import no.uio.musit.models.{ActorId, EventId, StorageNodeDatabaseId}
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, _}
 
@@ -30,7 +30,7 @@ case class Observation(
   id: Option[EventId],
   doneBy: Option[ActorId],
   doneDate: DateTime,
-  affectedThing: Option[StorageNodeId],
+  affectedThing: Option[StorageNodeDatabaseId],
   registeredBy: Option[ActorId],
   registeredDate: Option[DateTime],
   eventType: EventType,

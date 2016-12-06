@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import models.Move
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
-import no.uio.musit.models.{EventId, MusitId, ObjectId, StorageNodeId}
+import no.uio.musit.models.{EventId, MusitId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
@@ -271,7 +271,7 @@ final class StorageNodeResource @Inject() (
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
-    request.body.validate[Move[StorageNodeId]] match {
+    request.body.validate[Move[StorageNodeDatabaseId]] match {
       case JsSuccess(cmd, _) =>
         val events = MoveNode.fromCommand(request.user.id, cmd)
         move(events)((id, evt) => service.moveNode(mid, id, evt))

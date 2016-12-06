@@ -66,7 +66,7 @@ object Dependencies {
     val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
     val slf4jLibs = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j")
     val slf4j = slf4jLibs.map("org.slf4j" % _ % slf4jVersion)
-
+    val slf4jApi = "org.slf4j" % slf4jLibs.head % slf4jVersion
     val loggingDeps = slf4j ++ Seq(logback)
   }
 
@@ -87,6 +87,7 @@ object Dependencies {
   val scalaGuice = "net.codingwell" %% "scala-guice" % "4.1.0"
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
   val h2database = "com.h2database" % "h2" % "1.4.192"
+  val zxing = "com.google.zxing" % "core" % "3.3.0"
   def dir = new java.io.File(".").getCanonicalPath
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 

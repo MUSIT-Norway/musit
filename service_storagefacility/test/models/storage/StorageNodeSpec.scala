@@ -20,7 +20,7 @@
 package models.storage
 
 import models.storage.StorageType._
-import no.uio.musit.models.{NodePath, StorageNodeId}
+import no.uio.musit.models.{NodePath, StorageNodeDatabaseId}
 import org.scalatest.{MustMatchers, WordSpec}
 
 class StorageNodeSpec extends WordSpec with MustMatchers {
@@ -42,47 +42,47 @@ class StorageNodeSpec extends WordSpec with MustMatchers {
     "not be allowed to be placed when there's no destination Id" in {
       Organisation.isValidLocation(
         maybeDestId = None,
-        pathTypes = Seq(StorageNodeId(1) -> RootType)
+        pathTypes = Seq(StorageNodeDatabaseId(1) -> RootType)
       ) mustBe false
     }
 
     "be allowed directly under a root node" in {
       Organisation.isValidLocation(
-        maybeDestId = Some(StorageNodeId(1)),
-        pathTypes = Seq(StorageNodeId(1) -> RootType)
+        maybeDestId = Some(StorageNodeDatabaseId(1)),
+        pathTypes = Seq(StorageNodeDatabaseId(1) -> RootType)
       ) mustBe true
     }
 
     "not be allowed under a top-level organisation node" in {
       Organisation.isValidLocation(
-        maybeDestId = Some(StorageNodeId(2)),
+        maybeDestId = Some(StorageNodeDatabaseId(2)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType
         )
       ) mustBe false
     }
 
     "be allowed under a top-level building node" in {
       Organisation.isValidLocation(
-        maybeDestId = Some(StorageNodeId(3)),
+        maybeDestId = Some(StorageNodeDatabaseId(3)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType
         )
       ) mustBe true
     }
 
     "be allowed anywhere after the 3 required top-nodes" in {
       Organisation.isValidLocation(
-        maybeDestId = Some(StorageNodeId(5)),
+        maybeDestId = Some(StorageNodeDatabaseId(5)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType,
-          StorageNodeId(4) -> RoomType,
-          StorageNodeId(5) -> StorageUnitType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType,
+          StorageNodeDatabaseId(4) -> RoomType,
+          StorageNodeDatabaseId(5) -> StorageUnitType
         )
       ) mustBe true
     }
@@ -93,17 +93,17 @@ class StorageNodeSpec extends WordSpec with MustMatchers {
 
     "not be allowed directly under a root node" in {
       Building.isValidLocation(
-        maybeDestId = Some(StorageNodeId(1)),
-        pathTypes = Seq(StorageNodeId(1) -> RootType)
+        maybeDestId = Some(StorageNodeDatabaseId(1)),
+        pathTypes = Seq(StorageNodeDatabaseId(1) -> RootType)
       ) mustBe false
     }
 
     "be allowed under a top-level organisation node" in {
       Building.isValidLocation(
-        maybeDestId = Some(StorageNodeId(2)),
+        maybeDestId = Some(StorageNodeDatabaseId(2)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType
         )
       ) mustBe true
     }
@@ -112,32 +112,32 @@ class StorageNodeSpec extends WordSpec with MustMatchers {
       Building.isValidLocation(
         maybeDestId = None,
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType
         )
       ) mustBe false
     }
 
     "be allowed under a top-level building node" in {
       Building.isValidLocation(
-        maybeDestId = Some(StorageNodeId(3)),
+        maybeDestId = Some(StorageNodeDatabaseId(3)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType
         )
       ) mustBe true
     }
 
     "be allowed anywhere after the 3 required top-nodes" in {
       Building.isValidLocation(
-        maybeDestId = Some(StorageNodeId(5)),
+        maybeDestId = Some(StorageNodeDatabaseId(5)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType,
-          StorageNodeId(4) -> RoomType,
-          StorageNodeId(5) -> StorageUnitType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType,
+          StorageNodeDatabaseId(4) -> RoomType,
+          StorageNodeDatabaseId(5) -> StorageUnitType
         )
       ) mustBe true
     }
@@ -147,28 +147,28 @@ class StorageNodeSpec extends WordSpec with MustMatchers {
 
     "not be allowed under a root node" in {
       Room.isValidLocation(
-        maybeDestId = Some(StorageNodeId(1)),
-        pathTypes = Seq(StorageNodeId(1) -> RootType)
+        maybeDestId = Some(StorageNodeDatabaseId(1)),
+        pathTypes = Seq(StorageNodeDatabaseId(1) -> RootType)
       ) mustBe false
     }
 
     "not be allowed under a top-level organisation node" in {
       Room.isValidLocation(
-        maybeDestId = Some(StorageNodeId(2)),
+        maybeDestId = Some(StorageNodeDatabaseId(2)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType
         )
       ) mustBe false
     }
 
     "be allowed under a top-level building node" in {
       Room.isValidLocation(
-        maybeDestId = Some(StorageNodeId(3)),
+        maybeDestId = Some(StorageNodeDatabaseId(3)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType
         )
       ) mustBe true
     }
@@ -177,22 +177,22 @@ class StorageNodeSpec extends WordSpec with MustMatchers {
       Room.isValidLocation(
         maybeDestId = None,
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType
         )
       ) mustBe false
     }
 
     "be allowed anywhere after the 3 required top-nodes" in {
       Room.isValidLocation(
-        maybeDestId = Some(StorageNodeId(5)),
+        maybeDestId = Some(StorageNodeDatabaseId(5)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType,
-          StorageNodeId(4) -> RoomType,
-          StorageNodeId(5) -> StorageUnitType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType,
+          StorageNodeDatabaseId(4) -> RoomType,
+          StorageNodeDatabaseId(5) -> StorageUnitType
         )
       ) mustBe true
     }
@@ -203,28 +203,28 @@ class StorageNodeSpec extends WordSpec with MustMatchers {
 
     "not be allowed under a root node" in {
       StorageUnit.isValidLocation(
-        maybeDestId = Some(StorageNodeId(1)),
-        pathTypes = Seq(StorageNodeId(1) -> RootType)
+        maybeDestId = Some(StorageNodeDatabaseId(1)),
+        pathTypes = Seq(StorageNodeDatabaseId(1) -> RootType)
       ) mustBe false
     }
 
     "not be allowed under a top-level organisation node" in {
       StorageUnit.isValidLocation(
-        maybeDestId = Some(StorageNodeId(2)),
+        maybeDestId = Some(StorageNodeDatabaseId(2)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType
         )
       ) mustBe false
     }
 
     "be allowed under a top-level building node" in {
       StorageUnit.isValidLocation(
-        maybeDestId = Some(StorageNodeId(3)),
+        maybeDestId = Some(StorageNodeDatabaseId(3)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType
         )
       ) mustBe true
     }
@@ -233,22 +233,22 @@ class StorageNodeSpec extends WordSpec with MustMatchers {
       StorageUnit.isValidLocation(
         maybeDestId = None,
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType
         )
       ) mustBe false
     }
 
     "be allowed anywhere after the 3 required top-nodes" in {
       StorageUnit.isValidLocation(
-        maybeDestId = Some(StorageNodeId(5)),
+        maybeDestId = Some(StorageNodeDatabaseId(5)),
         pathTypes = Seq(
-          StorageNodeId(1) -> RootType,
-          StorageNodeId(2) -> OrganisationType,
-          StorageNodeId(3) -> BuildingType,
-          StorageNodeId(4) -> RoomType,
-          StorageNodeId(5) -> StorageUnitType
+          StorageNodeDatabaseId(1) -> RootType,
+          StorageNodeDatabaseId(2) -> OrganisationType,
+          StorageNodeDatabaseId(3) -> BuildingType,
+          StorageNodeDatabaseId(4) -> RoomType,
+          StorageNodeDatabaseId(5) -> StorageUnitType
         )
       ) mustBe true
     }

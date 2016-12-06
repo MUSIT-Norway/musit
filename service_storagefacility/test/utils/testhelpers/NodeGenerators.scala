@@ -22,7 +22,7 @@ package utils.testhelpers
 import models.datetime.dateTimeNow
 import models.storage._
 import models.Interval
-import no.uio.musit.models.{ActorId, MuseumId, NodePath, StorageNodeId}
+import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
 import play.api.Application
@@ -57,8 +57,8 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   private def createAndFetchNode[A <: StorageNode](
     node: A,
-    insert: (MuseumId, A) => Future[StorageNodeId],
-    get: (MuseumId, StorageNodeId) => Future[Option[A]]
+    insert: (MuseumId, A) => Future[StorageNodeDatabaseId],
+    get: (MuseumId, StorageNodeDatabaseId) => Future[Option[A]]
   ): A = {
     Await.result({
       for {
@@ -71,9 +71,11 @@ trait NodeGenerators extends NodeTypeInitializers {
   }
 
   lazy val defaultRoot: Root = {
-    val root = Root()
-    val id = Await.result(addRoot(root), 5 seconds)
-    root.copy(id = Some(id))
+    val theRoot: Root = Root(
+      nodeId = StorageNodeId.generateAsOpt()
+    )
+    val id = Await.result(addRoot(theRoot), 5 seconds)
+    theRoot.copy(id = Some(id))
   }
 
   // Some default nodes
@@ -101,12 +103,13 @@ trait NodeGenerators extends NodeTypeInitializers {
     )
   }
 
-  type BaseStructureIds = (StorageNodeId, StorageNodeId, StorageNodeId)
+  type BaseStructureIds = (StorageNodeDatabaseId, StorageNodeDatabaseId, StorageNodeDatabaseId)
 
   def bootstrapBaseStructure(museumId: MuseumId = defaultMuseumId): BaseStructureIds = {
     Await.result(
       awaitable = for {
       rid <- storageUnitDao.insertRoot(museumId, Root(
+        nodeId = StorageNodeId.generateAsOpt(),
         updatedBy = Some(defaultUserId),
         updatedDate = Some(DateTime.now)
       ))
@@ -131,7 +134,7 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   def addStorageUnit(su: StorageUnit) = storageUnitDao.insert(defaultMuseumId, su)
 
-  def addNode(nodes: StorageNode*): Seq[StorageNodeId] = {
+  def addNode(nodes: StorageNode*): Seq[StorageNodeDatabaseId] = {
     val eventuallyInserted = Future.sequence {
       nodes.filterNot(_.isInstanceOf[GenericStorageNode]).map {
         case su: StorageUnit => addStorageUnit(su)
@@ -177,11 +180,12 @@ trait NodeTypeInitializers {
 
   def createOrganisation(
     name: String = "FooBarOrg",
-    partOf: Option[StorageNodeId] = None,
+    partOf: Option[StorageNodeDatabaseId] = None,
     path: NodePath = NodePath.empty
   ): Organisation = {
     Organisation(
       id = None,
+      nodeId = None,
       name = name,
       area = None,
       areaTo = None,
@@ -200,11 +204,12 @@ trait NodeTypeInitializers {
 
   def createBuilding(
     name: String = "FooBarBuilding",
-    partOf: Option[StorageNodeId] = None,
+    partOf: Option[StorageNodeDatabaseId] = None,
     path: NodePath = NodePath.empty
   ): Building = {
     Building(
       id = None,
+      nodeId = None,
       name = name,
       area = Some(200),
       areaTo = Some(250),
@@ -223,11 +228,12 @@ trait NodeTypeInitializers {
 
   def createRoom(
     name: String = "FooRoom",
-    partOf: Option[StorageNodeId] = None,
+    partOf: Option[StorageNodeDatabaseId] = None,
     path: NodePath = NodePath.empty
   ): Room = {
     Room(
       id = None,
+      nodeId = None,
       name = name,
       area = Some(50),
       areaTo = Some(55),
@@ -258,11 +264,12 @@ trait NodeTypeInitializers {
 
   def createStorageUnit(
     name: String = "FooUnit",
-    partOf: Option[StorageNodeId] = None,
+    partOf: Option[StorageNodeDatabaseId] = None,
     path: NodePath = NodePath.empty
   ): StorageUnit = {
     StorageUnit(
       id = None,
+      nodeId = None,
       name = name,
       area = Some(1),
       areaTo = Some(2),
@@ -285,10 +292,11 @@ trait NodeTypeInitializers {
     fireProtection: Boolean = false,
     waterDamage: Boolean = false,
     routinesAndContingencyPlan: Boolean = false,
-    partOf: Option[StorageNodeId] = None
+    partOf: Option[StorageNodeDatabaseId] = None
   ): Room = {
     createRoom(partOf = partOf).copy(
       id = None,
+      nodeId = None,
       name = "MyPrivateRoom",
       area = Some(area),
       environmentRequirement = Some(defaultEnvironmentRequirement),

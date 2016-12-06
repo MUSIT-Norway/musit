@@ -20,7 +20,7 @@
 package services
 
 import com.google.inject.Inject
-import no.uio.musit.models.{MuseumId, StorageNodeId}
+import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.service.MusitResults.MusitResult
 import repositories.dao.StorageNodeDao
 
@@ -39,7 +39,7 @@ class StorageNodeService @Inject() (
    */
   def nodeExists(
     mid: MuseumId,
-    nodeId: StorageNodeId
+    nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Boolean]] = storageNodeDao.nodeExists(mid, nodeId)
 
 }

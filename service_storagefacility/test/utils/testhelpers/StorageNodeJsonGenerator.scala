@@ -19,7 +19,7 @@
 
 package utils.testhelpers
 
-import no.uio.musit.models.StorageNodeId
+import no.uio.musit.models.StorageNodeDatabaseId
 import play.api.libs.json.{JsValue, Json}
 
 object StorageNodeJsonGenerator {
@@ -49,7 +49,7 @@ object StorageNodeJsonGenerator {
 
   def rootJson(name: String): JsValue = Json.parse(s"""{ "name" : "$name" }""")
 
-  def organisationJson(name: String, partOf: Option[StorageNodeId] = None): JsValue = {
+  def organisationJson(name: String, partOf: Option[StorageNodeDatabaseId] = None): JsValue = {
     val pof = partOf.map(p => s""""isPartOf" : ${p.underlying},""")
     Json.parse(
       s"""{
@@ -68,7 +68,7 @@ object StorageNodeJsonGenerator {
     )
   }
 
-  def storageUnitJson(name: String, partOf: StorageNodeId): JsValue = {
+  def storageUnitJson(name: String, partOf: StorageNodeDatabaseId): JsValue = {
     Json.parse(
       s"""{
           |  "type" : "StorageUnit",
@@ -86,7 +86,7 @@ object StorageNodeJsonGenerator {
     )
   }
 
-  def roomJson(name: String, partOf: Option[StorageNodeId] = None): JsValue = {
+  def roomJson(name: String, partOf: Option[StorageNodeDatabaseId] = None): JsValue = {
     val pof = partOf.map(p => s""""isPartOf" : ${p.underlying},""")
     Json.parse(
       s"""{
@@ -118,7 +118,7 @@ object StorageNodeJsonGenerator {
     )
   }
 
-  def buildingJson(name: String, partOf: StorageNodeId): JsValue = {
+  def buildingJson(name: String, partOf: StorageNodeDatabaseId): JsValue = {
     Json.parse(
       s"""{
           |  "type" : "Building",

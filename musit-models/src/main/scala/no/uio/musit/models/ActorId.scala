@@ -23,20 +23,16 @@ import java.util.UUID
 
 import play.api.libs.json._
 
-import scala.util.Try
-
 case class ActorId(underlying: UUID) extends MusitUUID
 
-object ActorId {
+object ActorId extends MusitUUIDOps[ActorId] {
 
   implicit val reads: Reads[ActorId] =
     __.read[String].map(s => ActorId(UUID.fromString(s)))
 
   implicit val writes: Writes[ActorId] = Writes(id => JsString(id.asString))
 
-  implicit def fromUUID(uuid: UUID): ActorId = ActorId(uuid)
-
-  def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
+  override implicit def fromUUID(uuid: UUID): ActorId = ActorId(uuid)
 
   def generate(): ActorId = ActorId(UUID.randomUUID())
 

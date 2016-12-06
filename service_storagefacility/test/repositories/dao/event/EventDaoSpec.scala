@@ -22,7 +22,7 @@ package repositories.dao.event
 import models.event.EventTypeRegistry.TopLevelEvents.{ControlEventType, MoveNodeType, MoveObjectType, ObservationEventType}
 import models.event.dto._
 import models.event.{ActorRole, EventType, ObjectRole, PlaceRole}
-import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeId}
+import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors._
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -177,8 +177,8 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
       "succeed when moving an object" in {
         val mid = MuseumId(2)
         val moveObj = createMoveObject(
-          from = Some(StorageNodeId(1)),
-          to = StorageNodeId(2)
+          from = Some(StorageNodeDatabaseId(1)),
+          to = StorageNodeDatabaseId(2)
         )
         val dto = DtoConverters.MoveConverters.moveObjectToDto(moveObj)
         val eventId = eventDao.insertEvent(mid, dto).futureValue
@@ -206,15 +206,15 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
         br.eventTypeId mustBe MoveObjectType.id
         baseRoleActor mustBe ActorRole(1, defaultActorId)
         baseRoleObj mustBe ObjectRole(1, ObjectId(1))
-        baseRolePlace mustBe PlaceRole(1, StorageNodeId(2))
+        baseRolePlace mustBe PlaceRole(1, StorageNodeDatabaseId(2))
         br.valueLong mustBe Some(1L)
       }
 
       "succeed when moving a storage node" in {
         val mid = MuseumId(2)
         val moveNode = createMoveNode(
-          from = Some(StorageNodeId(1)),
-          to = StorageNodeId(2)
+          from = Some(StorageNodeDatabaseId(1)),
+          to = StorageNodeDatabaseId(2)
         )
 
         val dto = DtoConverters.MoveConverters.moveNodeToDto(moveNode)
@@ -243,7 +243,7 @@ class EventDaoSpec extends MusitSpecWithAppPerSuite
 
         br.eventTypeId mustBe MoveNodeType.id
         baseRoleActor mustBe ActorRole(1, defaultActorId)
-        baseRolePlace mustBe PlaceRole(1, StorageNodeId(2))
+        baseRolePlace mustBe PlaceRole(1, StorageNodeDatabaseId(2))
         baseRoleObj mustBe ObjectRole(1, ObjectId(1))
         br.valueLong mustBe Some(1L)
       }

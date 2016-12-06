@@ -21,7 +21,7 @@ package models.storage
 
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.formatters.StrictFormatters._
-import no.uio.musit.models.{ActorId, NamedPathElement, NodePath, StorageNodeId}
+import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.data.validation.ValidationError
@@ -38,11 +38,12 @@ import play.api.libs.json._
  * should be created or not. That is directly depending on its value.
  */
 sealed trait StorageNode {
-  val id: Option[StorageNodeId]
+  val id: Option[StorageNodeDatabaseId]
+  val nodeId: Option[StorageNodeId]
   val name: String
   val area: Option[Double]
   val areaTo: Option[Double]
-  val isPartOf: Option[StorageNodeId]
+  val isPartOf: Option[StorageNodeDatabaseId]
   val height: Option[Double]
   val heightTo: Option[Double]
   val groupRead: Option[String]
@@ -57,7 +58,7 @@ sealed trait StorageNode {
 
 object StorageNode {
 
-  def logExists(destId: StorageNodeId, exists: Boolean): String = {
+  def logExists(destId: StorageNodeDatabaseId, exists: Boolean): String = {
     s"Destination $destId ${if (exists) "exists" else "doesn't exist"} in " +
       "expected position"
   }
@@ -122,11 +123,12 @@ object StorageNode {
  * {{{Seq[NamedPathElement]}}}.
  */
 case class GenericStorageNode(
-    id: Option[StorageNodeId],
+    id: Option[StorageNodeDatabaseId],
+    nodeId: Option[StorageNodeId],
     name: String,
     area: Option[Double],
     areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
+    isPartOf: Option[StorageNodeDatabaseId],
     height: Option[Double],
     heightTo: Option[Double],
     groupRead: Option[String],
@@ -143,11 +145,12 @@ case class GenericStorageNode(
 object GenericStorageNode {
 
   implicit val formats: Format[GenericStorageNode] = (
-    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "id").formatNullable[StorageNodeDatabaseId] and
+    (__ \ "nodeId").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
     (__ \ "height").formatNullable[Double] and
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
@@ -166,7 +169,8 @@ object GenericStorageNode {
  * have _at least_ one root node.
  */
 case class Root(
-    id: Option[StorageNodeId] = None,
+    id: Option[StorageNodeDatabaseId] = None,
+    nodeId: Option[StorageNodeId],
     name: String = "root-node",
     environmentRequirement: Option[EnvironmentRequirement] = None,
     path: NodePath = NodePath.empty,
@@ -175,7 +179,7 @@ case class Root(
 ) extends StorageNode {
   val area: Option[Double] = None
   val areaTo: Option[Double] = None
-  val isPartOf: Option[StorageNodeId] = None
+  val isPartOf: Option[StorageNodeDatabaseId] = None
   val height: Option[Double] = None
   val heightTo: Option[Double] = None
   val groupRead: Option[String] = None
@@ -189,7 +193,8 @@ object Root {
   val logger = Logger(classOf[Root])
 
   implicit val formats: Format[Root] = (
-    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "id").formatNullable[StorageNodeDatabaseId] and
+    (__ \ "nodeId").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
@@ -209,23 +214,25 @@ object Root {
  * a shelf, box, etc...
  */
 case class StorageUnit(
-  id: Option[StorageNodeId],
-  name: String,
-  area: Option[Double],
-  areaTo: Option[Double],
-  isPartOf: Option[StorageNodeId],
-  height: Option[Double],
-  heightTo: Option[Double],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  path: NodePath,
-  pathNames: Option[Seq[NamedPathElement]] = None,
-  environmentRequirement: Option[EnvironmentRequirement] = None,
-  updatedBy: Option[ActorId],
-  updatedDate: Option[DateTime]
-)
-    extends StorageNode {
+    id: Option[StorageNodeDatabaseId],
+    nodeId: Option[StorageNodeId],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    isPartOf: Option[StorageNodeDatabaseId],
+    height: Option[Double],
+    heightTo: Option[Double],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    path: NodePath,
+    pathNames: Option[Seq[NamedPathElement]] = None,
+    environmentRequirement: Option[EnvironmentRequirement] = None,
+    updatedBy: Option[ActorId],
+    updatedDate: Option[DateTime]
+) extends StorageNode {
+
   val storageType: StorageType = StorageType.StorageUnitType
+
 }
 
 object StorageUnit {
@@ -233,11 +240,12 @@ object StorageUnit {
   val logger = Logger(classOf[StorageUnit])
 
   implicit val formats: Format[StorageUnit] = (
-    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "id").formatNullable[StorageNodeDatabaseId] and
+    (__ \ "nodeId").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
     (__ \ "height").formatNullable[Double] and
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
@@ -253,8 +261,8 @@ object StorageUnit {
    * A StorageUnit node can only be placed _after_ the 3 required top-nodes.
    */
   def isValidLocation(
-    maybeDestId: Option[StorageNodeId],
-    pathTypes: Seq[(StorageNodeId, StorageType)]
+    maybeDestId: Option[StorageNodeDatabaseId],
+    pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
       pathTypes.toList match {
@@ -275,11 +283,12 @@ object StorageUnit {
  * Represents a Room.
  */
 case class Room(
-    id: Option[StorageNodeId],
+    id: Option[StorageNodeDatabaseId],
+    nodeId: Option[StorageNodeId],
     name: String,
     area: Option[Double],
     areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
+    isPartOf: Option[StorageNodeDatabaseId],
     height: Option[Double],
     heightTo: Option[Double],
     groupRead: Option[String],
@@ -301,11 +310,12 @@ object Room {
   val logger = Logger(classOf[Room])
 
   implicit val formats: Format[Room] = (
-    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "id").formatNullable[StorageNodeDatabaseId] and
+    (__ \ "nodeId").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
     (__ \ "height").formatNullable[Double] and
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
@@ -323,8 +333,8 @@ object Room {
    * A Room node can only be placed _after_ the 3 required top-nodes.
    */
   def isValidLocation(
-    maybeDestId: Option[StorageNodeId],
-    pathTypes: Seq[(StorageNodeId, StorageType)]
+    maybeDestId: Option[StorageNodeDatabaseId],
+    pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
       pathTypes.toList match {
@@ -345,11 +355,12 @@ object Room {
  * Represents a Building.
  */
 case class Building(
-    id: Option[StorageNodeId],
+    id: Option[StorageNodeDatabaseId],
+    nodeId: Option[StorageNodeId],
     name: String,
     area: Option[Double],
     areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
+    isPartOf: Option[StorageNodeDatabaseId],
     height: Option[Double],
     heightTo: Option[Double],
     groupRead: Option[String],
@@ -369,11 +380,12 @@ object Building {
   val logger = Logger(classOf[Building])
 
   implicit val formats: Format[Building] = (
-    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "id").formatNullable[StorageNodeDatabaseId] and
+    (__ \ "nodeId").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
     (__ \ "height").formatNullable[Double] and
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
@@ -391,8 +403,8 @@ object Building {
    * after the first required building node.
    */
   def isValidLocation(
-    maybeDestId: Option[StorageNodeId],
-    pathTypes: Seq[(StorageNodeId, StorageType)]
+    maybeDestId: Option[StorageNodeDatabaseId],
+    pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
       pathTypes.toList match {
@@ -411,11 +423,12 @@ object Building {
  * Represents an Organisation. Both internal and external.
  */
 case class Organisation(
-    id: Option[StorageNodeId],
+    id: Option[StorageNodeDatabaseId],
+    nodeId: Option[StorageNodeId],
     name: String,
     area: Option[Double],
     areaTo: Option[Double],
-    isPartOf: Option[StorageNodeId],
+    isPartOf: Option[StorageNodeDatabaseId],
     height: Option[Double],
     heightTo: Option[Double],
     groupRead: Option[String],
@@ -427,7 +440,9 @@ case class Organisation(
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime]
 ) extends StorageNode {
+
   val storageType: StorageType = StorageType.OrganisationType
+
 }
 
 object Organisation {
@@ -435,11 +450,12 @@ object Organisation {
   val logger = Logger(classOf[Organisation])
 
   implicit val formats: Format[Organisation] = (
-    (__ \ "id").formatNullable[StorageNodeId] and
+    (__ \ "id").formatNullable[StorageNodeDatabaseId] and
+    (__ \ "nodeId").formatNullable[StorageNodeId] and
     (__ \ "name").format[String](maxCharsFormat(100)) and
     (__ \ "area").formatNullable[Double] and
     (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeId] and
+    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
     (__ \ "height").formatNullable[Double] and
     (__ \ "heightTo").formatNullable[Double] and
     (__ \ "groupRead").formatNullable[String] and
@@ -456,8 +472,8 @@ object Organisation {
    * An StorageUnit node can only be placed _after_ the 3 required top-nodes.
    */
   def isValidLocation(
-    maybeDestId: Option[StorageNodeId],
-    pathTypes: Seq[(StorageNodeId, StorageType)]
+    maybeDestId: Option[StorageNodeDatabaseId],
+    pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
       pathTypes.toList match {

@@ -43,7 +43,7 @@ class ObjectAggregationDao @Inject() (
 
   def getObjects(
     mid: MuseumId,
-    nodeId: StorageNodeId,
+    nodeId: StorageNodeDatabaseId,
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
 

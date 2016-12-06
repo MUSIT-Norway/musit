@@ -51,7 +51,7 @@ trait NodePath {
    *
    * @param childId StorageNodeId of to append to the path.
    */
-  def appendChild(childId: StorageNodeId): NodePath = {
+  def appendChild(childId: StorageNodeDatabaseId): NodePath = {
     NodePath(s"$path${childId.underlying},")
   }
 
@@ -60,13 +60,13 @@ trait NodePath {
    *
    * @return Seq[StorageNodeId]
    */
-  def asIdSeq: Seq[StorageNodeId] = {
+  def asIdSeq: Seq[StorageNodeDatabaseId] = {
     path.stripPrefix(",")
       .stripSuffix(",")
       .split(",")
       .map(_.trim())
       .filterNot(_ == "")
-      .map(s => StorageNodeId(s.toLong))
+      .map(s => StorageNodeDatabaseId(s.toLong))
   }
 
   /**

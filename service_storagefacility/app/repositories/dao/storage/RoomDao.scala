@@ -22,7 +22,7 @@ package repositories.dao.storage
 import com.google.inject.{Inject, Singleton}
 import models.storage.Room
 import models.storage.dto.{ExtendedStorageNode, RoomDto, StorageNodeDto}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeId}
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -39,7 +39,7 @@ class RoomDao @Inject() (
 
   val logger = Logger(classOf[RoomDao])
 
-  private def updateAction(id: StorageNodeId, room: RoomDto): DBIO[Int] = {
+  private def updateAction(id: StorageNodeDatabaseId, room: RoomDto): DBIO[Int] = {
     roomTable.filter(_.id === id).update(room)
   }
 
@@ -50,7 +50,7 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[Room]] = {
+  def getById(mid: MuseumId, id: StorageNodeDatabaseId): Future[Option[Room]] = {
     val action = for {
       maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeRoomDto <- roomTable.filter(_.id === id).result.headOption
@@ -68,7 +68,7 @@ class RoomDao @Inject() (
    */
   def update(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     room: Room
   ): Future[MusitResult[Option[Int]]] = {
     val roomDto = StorageNodeDto.fromRoom(mid, room, Some(id))
@@ -94,7 +94,7 @@ class RoomDao @Inject() (
    * @param path the NodePath to set
    * @return MusitResult[Unit]
    */
-  def setPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+  def setPath(id: StorageNodeDatabaseId, path: NodePath): Future[MusitResult[Unit]] = {
     db.run(updatePathAction(id, path)).map {
       case res: Int if res == 1 => MusitSuccess(())
 
@@ -108,7 +108,7 @@ class RoomDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(mid: MuseumId, room: Room): Future[StorageNodeId] = {
+  def insert(mid: MuseumId, room: Room): Future[StorageNodeDatabaseId] = {
     val extendedDto = StorageNodeDto.fromRoom(mid, room)
     val action = (for {
       nodeId <- insertNodeAction(extendedDto.storageUnitDto)

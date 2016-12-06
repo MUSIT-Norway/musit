@@ -22,7 +22,7 @@ package repositories.dao.event
 import com.google.inject.{Inject, Singleton}
 import models.event.EventTypeId
 import models.event.dto.{EventRoleObject, EventRolePlace}
-import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
+import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -64,7 +64,7 @@ class EventPlacesAsObjectsDao @Inject() (
 
   def latestEventIdFor(
     mid: MuseumId,
-    nodeId: StorageNodeId,
+    nodeId: StorageNodeDatabaseId,
     eventTypeId: EventTypeId
   ): Future[Option[EventId]] = {
     val queryMax = placesAsObjectsTable.filter { erp =>
@@ -76,7 +76,7 @@ class EventPlacesAsObjectsDao @Inject() (
 
   def latestEventIdsForNode(
     mid: MuseumId,
-    nodeId: StorageNodeId,
+    nodeId: StorageNodeDatabaseId,
     eventTypeId: EventTypeId,
     limit: Option[Int] = None
   ): Future[Seq[EventId]] = {
@@ -99,13 +99,13 @@ class EventPlacesAsObjectsDao @Inject() (
 
     val eventId = column[EventId]("EVENT_ID")
     val roleId = column[Int]("ROLE_ID")
-    val placeId = column[StorageNodeId]("PLACE_ID")
+    val placeId = column[StorageNodeDatabaseId]("PLACE_ID")
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
 
     def create = (
       eventId: Option[EventId],
       roleId: Int,
-      placeId: StorageNodeId,
+      placeId: StorageNodeDatabaseId,
       eventTypeId: EventTypeId
     ) =>
       EventRolePlace(

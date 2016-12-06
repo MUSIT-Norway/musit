@@ -34,10 +34,10 @@ trait ColumnTypeMappers {
 
   import driver.api._
 
-  implicit lazy val storageNodeIdMapper: BaseColumnType[StorageNodeId] =
-    MappedColumnType.base[StorageNodeId, Long](
+  implicit lazy val storageNodeIdMapper: BaseColumnType[StorageNodeDatabaseId] =
+    MappedColumnType.base[StorageNodeDatabaseId, Long](
       snid => snid.underlying,
-      longId => StorageNodeId(longId)
+      longId => StorageNodeDatabaseId(longId)
     )
 
   implicit lazy val objectIdMapper: BaseColumnType[ObjectId] =

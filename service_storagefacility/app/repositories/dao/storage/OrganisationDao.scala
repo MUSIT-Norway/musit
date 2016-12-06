@@ -22,7 +22,7 @@ package repositories.dao.storage
 import com.google.inject.{Inject, Singleton}
 import models.storage.Organisation
 import models.storage.dto.{ExtendedStorageNode, OrganisationDto, StorageNodeDto}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeId}
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -42,7 +42,7 @@ class OrganisationDao @Inject() (
 
   val logger = Logger(classOf[OrganisationDao])
 
-  private def updateAction(id: StorageNodeId, org: OrganisationDto): DBIO[Int] = {
+  private def updateAction(id: StorageNodeDatabaseId, org: OrganisationDto): DBIO[Int] = {
     organisationTable.filter { ot =>
       ot.id === id
     }.update(org)
@@ -55,7 +55,7 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(mid: MuseumId, id: StorageNodeId): Future[Option[Organisation]] = {
+  def getById(mid: MuseumId, id: StorageNodeDatabaseId): Future[Option[Organisation]] = {
     val action = for {
       maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeOrgDto <- organisationTable.filter(_.id === id).result.headOption
@@ -75,7 +75,7 @@ class OrganisationDao @Inject() (
    */
   def update(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     organisation: Organisation
   ): Future[MusitResult[Option[Int]]] = {
     val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
@@ -101,7 +101,7 @@ class OrganisationDao @Inject() (
    * @param path the NodePath to set
    * @return MusitResult[Unit]
    */
-  def setPath(id: StorageNodeId, path: NodePath): Future[MusitResult[Unit]] = {
+  def setPath(id: StorageNodeDatabaseId, path: NodePath): Future[MusitResult[Unit]] = {
     db.run(updatePathAction(id, path)).map {
       case res: Int if res == 1 => MusitSuccess(())
 
@@ -115,7 +115,7 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(mid: MuseumId, organisation: Organisation): Future[StorageNodeId] = {
+  def insert(mid: MuseumId, organisation: Organisation): Future[StorageNodeDatabaseId] = {
     val extendedDto = StorageNodeDto.fromOrganisation(mid, organisation)
     val query = for {
       nodeId <- insertNodeAction(extendedDto.storageUnitDto)

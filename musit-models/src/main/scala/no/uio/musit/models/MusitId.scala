@@ -25,8 +25,13 @@ trait MusitId {
 
 object MusitId {
 
-  implicit def toStorageNodeId(m: MusitId): StorageNodeId = StorageNodeId(m.underlying)
-  implicit def toEventId(m: MusitId): EventId = EventId(m.underlying)
-  implicit def toObjectId(m: MusitId): ObjectId = ObjectId(m.underlying)
+  implicit def asStorageNodeId(m: MusitId): StorageNodeDatabaseId =
+    StorageNodeDatabaseId(m.underlying)
+
+  implicit def asEventId(m: MusitId): EventId =
+    EventId(m.underlying)
+
+  implicit def asObjectId(m: MusitId): ObjectId =
+    ObjectId(m.underlying)
 
 }

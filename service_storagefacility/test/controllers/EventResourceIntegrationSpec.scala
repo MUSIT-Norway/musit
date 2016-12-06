@@ -24,7 +24,7 @@ import java.util.UUID
 import models.event.EventTypeRegistry.TopLevelEvents.{ControlEventType, ObservationEventType}
 import models.event.control.Control
 import models.event.observation.Observation
-import no.uio.musit.models.{ActorId, MuseumId, StorageNodeId}
+import no.uio.musit.models.{ActorId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
@@ -55,11 +55,11 @@ class EventResourceIntegrationSpec extends MusitSpecWithServerPerSuite {
       val root = wsUrl(RootNodeUrl(mid))
         .withHeaders(godToken.asHeader)
         .post(rootJson(s"event-root-node")).futureValue
-      val rootId = (root.json \ "id").asOpt[StorageNodeId]
+      val rootId = (root.json \ "id").asOpt[StorageNodeDatabaseId]
       val org = wsUrl(StorageNodesUrl(mid))
         .withHeaders(godToken.asHeader)
         .post(organisationJson("Foo", rootId)).futureValue
-      val orgId = (org.json \ "id").as[StorageNodeId]
+      val orgId = (org.json \ "id").as[StorageNodeDatabaseId]
       wsUrl(StorageNodesUrl(mid))
         .withHeaders(godToken.asHeader)
         .post(buildingJson("Bar", orgId)).futureValue

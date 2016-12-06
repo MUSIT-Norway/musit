@@ -19,7 +19,7 @@
 
 package repositories.dao.storage
 
-import no.uio.musit.models.{NodePath, StorageNodeId}
+import no.uio.musit.models.{NodePath, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Application
@@ -49,9 +49,9 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
     "return the number of direct child nodes" in {
       val basePath = NodePath(",1,2,3,4,")
-
-      val insId = storageUnitDao.insert(museumId, createStorageUnit(path = basePath)).futureValue
-      insId mustBe a[StorageNodeId]
+      val su = createStorageUnit(path = basePath)
+      val insId = storageUnitDao.insert(museumId, su).futureValue
+      insId mustBe a[StorageNodeDatabaseId]
 
       val childPath = basePath.appendChild(insId)
 
@@ -60,14 +60,14 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
           partOf = Some(insId),
           path = childPath
         )).futureValue
-        nodeId mustBe a[StorageNodeId]
+        nodeId mustBe a[StorageNodeDatabaseId]
       }
 
       statsDao.childCount(insId).futureValue mustBe 10
     }
 
     "return the number of objects on a node" in {
-      statsDao.directObjectCount(StorageNodeId(5)).futureValue mustBe 5
+      statsDao.directObjectCount(StorageNodeDatabaseId(5)).futureValue mustBe 5
     }
 
     "return the total number of objects i a node hierarchy" in {

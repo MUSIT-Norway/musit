@@ -40,7 +40,7 @@ class StorageNodeDao @Inject() (
 
   def nodeExists(
     mid: MuseumId,
-    nodeId: StorageNodeId
+    nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Boolean]] = {
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
@@ -56,12 +56,12 @@ class StorageNodeDao @Inject() (
   def currentLocation(
     mid: MuseumId,
     objectId: ObjectId
-  ): Future[Option[(StorageNodeId, NodePath)]] = {
+  ): Future[Option[(StorageNodeDatabaseId, NodePath)]] = {
     val findLocalObjectAction = localObjectTable.filter { lo =>
       lo.museumId === mid && lo.objectId === objectId
     }.map(_.currentLocationId).result.headOption
 
-    val findPathAction = (maybeId: Option[StorageNodeId]) => maybeId.map { nodeId =>
+    val findPathAction = (maybeId: Option[StorageNodeDatabaseId]) => maybeId.map { nodeId =>
       storageNodeTable.filter(_.id === nodeId).map(_.path).result.headOption
     }.getOrElse(DBIO.successful(None))
 
@@ -80,7 +80,7 @@ class StorageNodeDao @Inject() (
     db.run(query)
   }
 
-  type TableType = (Option[StorageNodeId], String, String, Option[Double], Option[Double], Option[Long], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath) // scalastyle:ignore
+  type TableType = (Option[StorageNodeDatabaseId], String, String, Option[Double], Option[Double], Option[Long], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath) // scalastyle:ignore
 
   private class StorageNodeTable(
       val tag: Tag
@@ -104,7 +104,7 @@ class StorageNodeDao @Inject() (
 
     // scalastyle:on method.name
 
-    val id = column[StorageNodeId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
+    val id = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
     val storageType = column[String]("STORAGE_TYPE")
     val name = column[String]("STORAGE_NODE_NAME")
     val area = column[Option[Double]]("AREA")
@@ -119,7 +119,7 @@ class StorageNodeDao @Inject() (
     val path = column[NodePath]("NODE_PATH")
   }
 
-  type LocObjTable = (ObjectId, EventId, StorageNodeId, MuseumId)
+  type LocObjTable = (ObjectId, EventId, StorageNodeDatabaseId, MuseumId)
 
   private class LocalObjectsTable(
       tag: Tag
@@ -129,7 +129,7 @@ class StorageNodeDao @Inject() (
 
     val objectId = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
     val latestMoveId = column[EventId]("LATEST_MOVE_ID")
-    val currentLocationId = column[StorageNodeId]("CURRENT_LOCATION_ID")
+    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
     val museumId = column[MuseumId]("MUSEUM_ID")
   }
 

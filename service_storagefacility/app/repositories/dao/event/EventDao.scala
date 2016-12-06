@@ -27,7 +27,7 @@ import models.event.dto.DtoConverters.MoveConverters
 import models.event.dto._
 import models.event.move.MoveObject
 import models.event.{EventTypeId, EventTypeRegistry}
-import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeId}
+import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -408,7 +408,7 @@ class EventDao @Inject() (
    */
   def latestByNodeId(
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     eventTypeId: EventTypeId
   ): Future[MusitResult[Option[EventDto]]] = {
     for {
@@ -551,7 +551,7 @@ class EventDao @Inject() (
    */
   private def eventsForNode[EType <: TopLevelEvent, Res](
     mid: MuseumId,
-    nodeId: StorageNodeId,
+    nodeId: StorageNodeDatabaseId,
     eventType: EType,
     limit: Option[Int] = None
   )(success: EventDto => Res): Future[Seq[Res]] = {
@@ -587,7 +587,7 @@ class EventDao @Inject() (
    */
   def getEventsForNode[A <: TopLevelEvent](
     mid: MuseumId,
-    id: StorageNodeId,
+    id: StorageNodeDatabaseId,
     eventType: A
   ): Future[Seq[EventDto]] = eventsForNode(mid, id, eventType)(dto => dto)
 

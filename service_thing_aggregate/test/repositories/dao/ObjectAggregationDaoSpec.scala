@@ -65,7 +65,11 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId that exists within a museum" should {
       "return a list of objects" in {
-        val mr = dao.getObjects(mid, StorageNodeId(3), allCollections).futureValue
+        val mr = dao.getObjects(
+          mid,
+          StorageNodeDatabaseId(3),
+          allCollections
+        ).futureValue
         mr.isSuccess mustBe true
         mr.get.size mustBe 3
         mr.get match {
@@ -90,7 +94,11 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
 
     "get objects for a nodeId that does not exist in museum" should {
       "return a an empty vector" in {
-        val mr = dao.getObjects(mid, StorageNodeId(999999), allCollections).futureValue
+        val mr = dao.getObjects(
+          mid,
+          StorageNodeDatabaseId(999999),
+          allCollections
+        ).futureValue
         mr.isSuccess mustBe true
         mr.get.length mustBe 0
       }
@@ -99,7 +107,7 @@ class ObjectAggregationDaoSpec extends MusitSpecWithAppPerSuite {
       "return a an empty vector" in {
         val mr = dao.getObjects(
           MuseumId(55),
-          StorageNodeId(2),
+          StorageNodeDatabaseId(2),
           allCollections
         ).futureValue
         mr.isSuccess mustBe true

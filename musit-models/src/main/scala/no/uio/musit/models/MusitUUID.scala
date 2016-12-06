@@ -31,10 +31,14 @@ trait MusitUUID {
 
 }
 
-trait MusitUUIDOps[A <: MusitUUID] {
-  implicit def fromUUID(uuid: UUID): A
+trait MusitUUIDOps[T <: MusitUUID] {
+
+  implicit def fromUUID(uuid: UUID): T
 
   def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
 
-  def generate(): A
+  def generate(): T
+
+  def generateAsOpt(): Option[T] = Option(generate())
+
 }
