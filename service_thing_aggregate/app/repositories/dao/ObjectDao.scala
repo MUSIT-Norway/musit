@@ -21,7 +21,7 @@ package repositories.dao
 
 import com.google.inject.Inject
 import models.SearchFieldValues._
-import models.{MusitObject, ObjectSearchResult}
+import models.{MusitObject, ObjectAggregation, ObjectSearchResult}
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
@@ -30,6 +30,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 /**
  * Dao intended for searching through objects
@@ -38,11 +39,12 @@ class ObjectDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends ObjectTables {
 
-  val logger = Logger(classOf[ObjectAggregationDao])
+  val logger = Logger(classOf[ObjectDao])
 
   import driver.api._
 
-  private val table = TableQuery[ObjectTable]
+  private val objects = TableQuery[ObjectTable]
+  private val localObjects = TableQuery[LocalObjectsTable]
 
   // Needs to be the same as Slicks no-escape-char value!
   // (Default second parameter value to the like function)
@@ -155,7 +157,7 @@ class ObjectDao @Inject() (
 
     val mno = museumNo.map(_.value)
 
-    val q1 = classifyValue(mno).map(f => museumNoFilter(table, f)).getOrElse(table)
+    val q1 = classifyValue(mno).map(f => museumNoFilter(objects, f)).getOrElse(objects)
     val q2 = classifyValue(subNo.map(_.value)).map(f => subNoFilter(q1, f)).getOrElse(q1)
     val q3 = classifyValue(term).map(f => termFilter(q2, f)).getOrElse(q2)
     val q4 = q3.filter(_.museumId === mid)
@@ -211,10 +213,10 @@ class ObjectDao @Inject() (
         ObjectSearchResult(total, matches.map(MusitObject.fromTuple))
       )
     }).recover {
-      case e: Exception =>
+      case NonFatal(ex) =>
         val msg = s"Error while retrieving search result"
-        logger.error(msg, e)
-        MusitDbError(msg, Some(e))
+        logger.error(msg, ex)
+        MusitDbError(msg, Some(ex))
     }
   }
 
@@ -231,7 +233,7 @@ class ObjectDao @Inject() (
     mainObjectId: ObjectId,
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    val q = table.filter(_.mainObjectId === mainObjectId.underlying)
+    val q = objects.filter(_.mainObjectId === mainObjectId.underlying)
     val query = {
       if (currUsr.hasGodMode) q
       else q.filter(_.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct)
@@ -239,11 +241,70 @@ class ObjectDao @Inject() (
     db.run(query.result)
       .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
       .recover {
-        case e: Exception =>
+        case NonFatal(ex) =>
           val msg = s"Error while retrieving search result"
-          logger.error(msg, e)
-          MusitDbError(msg, Some(e))
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
       }
+  }
+
+  def getObjects(
+    mid: MuseumId,
+    nodeId: StorageNodeDatabaseId,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
+
+    val locObjQuery = localObjects.filter { lo =>
+      lo.museumId === mid &&
+        lo.currentLocationId === nodeId
+    }
+
+    // Filter on collection access if the user doesn't have GodMode
+    val objQuery = {
+      if (currUsr.hasGodMode) objects
+      else objects.filter { o =>
+        o.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct
+      }
+    }
+
+    val query = for {
+      (_, o) <- locObjQuery join objQuery on (_.objectId === _.id)
+    } yield (o.id, o.museumNo, o.subNo, o.term)
+
+    db.run(query.result).map { objs =>
+      objs.map { o =>
+        ObjectAggregation(
+          id = o._1,
+          museumNo = MuseumNo(o._2),
+          subNo = o._3.map(SubNo.apply),
+          term = Option(o._4)
+        )
+      }
+    }.map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"Error while retrieving objects for nodeId $nodeId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  def findByOldId(
+    oldObjectId: Long,
+    oldSchemaName: String
+  ): Future[MusitResult[Option[MusitObject]]] = {
+    val query = objects.filter { o =>
+      o.oldObjId === oldObjectId &&
+        o.oldSchema === oldSchemaName
+    }
+
+    db.run(query.result.headOption).map { res =>
+      MusitSuccess(res.map(MusitObject.fromTuple))
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"Error while locating object with old object ID $oldObjectId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
   }
 
 }

@@ -39,12 +39,12 @@ import scala.concurrent.Future
 /**
  * TODO: Document me!
  */
-final class StorageNodeResource @Inject() (
+final class StorageController @Inject() (
     val authService: Authenticator,
     val service: StorageNodeService
 ) extends MusitController {
 
-  val logger = Logger(classOf[StorageNodeResource])
+  val logger = Logger(classOf[StorageController])
 
   private def addResult[T <: StorageNode](
     res: MusitResult[Option[T]]

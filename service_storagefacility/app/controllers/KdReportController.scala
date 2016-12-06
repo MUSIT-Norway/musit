@@ -28,7 +28,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import services.KdReportService
 
-class KdReportResource @Inject() (
+class KdReportController @Inject() (
     val authService: Authenticator,
     val kdReportService: KdReportService
 ) extends MusitController {

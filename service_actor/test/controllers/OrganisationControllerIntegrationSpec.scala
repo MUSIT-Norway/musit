@@ -30,7 +30,7 @@ import utils.testdata.ActorJsonGenerator._
 
 import scala.concurrent.Future
 
-class OrganisationIntegrationSpec extends MusitSpecWithServerPerSuite {
+class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -56,7 +56,7 @@ class OrganisationIntegrationSpec extends MusitSpecWithServerPerSuite {
     wsUrl(s"/v1/organization/$id").withHeaders(fakeToken.asHeader).get
   }
 
-  "OrganizationIntegration " must {
+  "The OrganizationController" must {
     "successfully get Organization by id" in {
       val res = getOrganization(1).futureValue
       res.status mustBe Status.OK

@@ -31,12 +31,12 @@ import services.ActorService
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class PersonResource @Inject() (
+class PersonController @Inject() (
     val authService: Authenticator,
     val service: ActorService
 ) extends MusitController {
 
-  val logger = Logger(classOf[PersonResource])
+  val logger = Logger(classOf[PersonController])
 
   def search(
     museumId: Int,

@@ -20,34 +20,44 @@
 package controllers
 
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
+import no.uio.musit.security.fake.FakeAuthenticator
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.http.Status
+import play.api.test.Helpers._
 
-class UserIntegrationSpec extends MusitSpecWithServerPerSuite {
+class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
 
-  val token = (uname: String) => BearerToken(fakeAccessTokenPrefix + uname)
+  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
 
-  "Actor and dataporten integration" must {
+  val archeologyCollection = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
+  val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
 
-    "get 401 when not providing token" in {
-      wsUrl("/v1/dataporten/currentUser").get().futureValue.status mustBe 401
+  def get(objId: Int, oldSchema: String) =
+    wsUrl(s"/delphi/objects/$objId")
+      .withHeaders(fakeToken.asHeader)
+      .withQueryString("schemaName" -> oldSchema)
+      .get()
+
+  "The DelphiBridgeController" when {
+
+    "finding the current location for an old object ID and schema" should {
+
+      "return the objects current nodeId and path location" in {
+        val expectedLocation = "Utviklingsmuseet, Utviklingsmuseet Org, " +
+          "Forskningens hus, Naturværelset"
+        val res = get(111, "USD_ARK_GJENSTAND_O").futureValue
+        res.status mustBe OK
+        (res.json \ "nodeId").as[Int] mustBe 5
+        (res.json \ "currentLocation").as[String] mustBe expectedLocation
+      }
+
     }
 
-    "get actor with matching dataportenId" in {
-      val res = wsUrl("/v1/dataporten/currentUser")
-        .withHeaders(token("guest").asHeader)
-        .get().futureValue
-
-      res.status mustBe Status.OK
-      (res.json \ "fn").as[String] mustBe "Gjestebruker"
-    }
   }
 
 }

@@ -17,36 +17,35 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package controllers
 
 import com.google.inject.Inject
-import models.ObjectAggregation
-import no.uio.musit.models.{MuseumCollection, MuseumId, StorageNodeDatabaseId}
-import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.service.MusitResults.MusitResult
-import repositories.dao.{ObjectAggregationDao, StorageNodeDao}
+import no.uio.musit.security.Authenticator
+import no.uio.musit.service.MusitController
+import play.api.Logger
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json._
+import services.GeoLocationService
 
-import scala.concurrent.Future
+class GeoLocationController @Inject() (
+    val authService: Authenticator,
+    val geoLocService: GeoLocationService
+) extends MusitController {
 
-class ObjectAggregationService @Inject() (
-    dao: ObjectAggregationDao,
-    storageNodeDao: StorageNodeDao
-) {
+  val logger = Logger(classOf[GeoLocationController])
 
   /**
-   *
-   * @param mid
-   * @param nodeId
-   * @param collectionIds
-   * @param currUsr
-   * @return
+   * Service for looking up addresses in the geo-location service provided by
+   * kartverket.no
    */
-  def getObjects(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    collectionIds: Seq[MuseumCollection]
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
-    dao.getObjects(mid, nodeId, collectionIds)
+  def searchExternal(
+    search: Option[String]
+  ) = MusitSecureAction().async { implicit request =>
+    val expression = search.getOrElse("")
+    geoLocService.searchGeoNorway(expression).map { location =>
+      Ok(Json.toJson(location))
+    }
   }
 
 }
+

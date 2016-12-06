@@ -29,7 +29,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json.{JsArray, JsValue, Json}
 
-class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
+class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -43,7 +43,7 @@ class PersonIntegrationSpec extends MusitSpecWithServerPerSuite {
   val andersAppId = ActorId(UUID.fromString("41ede78c-a6f6-4744-adad-02c25fb1c97c"))
   val kalleAppId = ActorId(UUID.fromString("5224f873-5fe1-44ec-9aaf-b9313db410c6"))
 
-  "PersonIntegration " must {
+  "The PersonController" must {
 
     "fail getting person by id when there is no valid token" in {
       wsUrl(s"/v1/person/${andersAppId.asString}").get()

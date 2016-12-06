@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 
 case class MusitObject(
   id: ObjectId,
+  museumId: MuseumId,
   museumNo: MuseumNo,
   subNo: Option[SubNo],
   term: String,
@@ -36,11 +37,12 @@ case class MusitObject(
 object MusitObject {
   implicit val format = Json.format[MusitObject]
 
-  type ObjTuple = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String])) // scalastyle:ignore
+  type ObjTuple = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String], Option[Long])) // scalastyle:ignore
 
   def fromTuple(t: ObjTuple): MusitObject = {
     MusitObject(
       id = t._1.get, // scalastyle:ignore
+      museumId = t._2,
       museumNo = MuseumNo(t._3),
       subNo = t._5.map(SubNo.apply),
       mainObjectId = t._7,

@@ -30,7 +30,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
  * NOTE: Test data for these tests are loaded in the evolution scripts in the
  * src/test/resources directory.
  */
-class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
+class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
   val dao: ObjectDao = fromInstanceCache[ObjectDao]
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -271,5 +271,74 @@ class ObjectSearchDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
     }
+
+    "getting objects for a nodeId" should {
+      "return a list of objects if the nodeId exists in the museum" in {
+        val mr = dao.getObjects(
+          mid,
+          StorageNodeDatabaseId(3),
+          allCollections
+        ).futureValue
+        mr.isSuccess mustBe true
+        mr.get.size mustBe 3
+        mr.get match {
+          case Vector(first, second, third) =>
+            first.id mustBe ObjectId(1)
+            first.museumNo mustBe MuseumNo("C666")
+            first.subNo mustBe Some(SubNo("34"))
+            first.term mustBe Some("Øks")
+
+            second.id mustBe ObjectId(2)
+            second.museumNo mustBe MuseumNo("C666")
+            second.subNo mustBe Some(SubNo("31"))
+            second.term mustBe Some("Sverd")
+
+            third.id mustBe ObjectId(3)
+            third.museumNo mustBe MuseumNo("C666")
+            third.subNo mustBe Some(SubNo("38"))
+            third.term mustBe Some("Sommerfugl")
+        }
+      }
+
+      "return a an empty vector when nodeId doesn't exist in museum" in {
+        val mr = dao.getObjects(
+          mid,
+          StorageNodeDatabaseId(999999),
+          allCollections
+        ).futureValue
+        mr.isSuccess mustBe true
+        mr.get.length mustBe 0
+      }
+
+      "return a an empty vector when museum doesn't exist" in {
+        val mr = dao.getObjects(
+          MuseumId(55),
+          StorageNodeDatabaseId(2),
+          allCollections
+        ).futureValue
+        mr.isSuccess mustBe true
+        mr.get.length mustBe 0
+      }
+    }
+
+    "finding the location of an object using an old objectId and schema" should {
+      "return the object" in {
+        val res = dao.findByOldId(111L, "USD_ARK_GJENSTAND_O").futureValue
+        res.isSuccess mustBe true
+        res.get must not be None
+        val obj = res.get.get
+        obj.id mustBe ObjectId(12L)
+        obj.museumId mustBe mid
+        obj.term mustBe "Fin øks"
+      }
+
+      "return None if not found" in {
+        val res = dao.findByOldId(333L, "USD_ARK_GJENSTAND_O").futureValue
+        res.isSuccess mustBe true
+        res.get mustBe None
+      }
+
+    }
+
   }
 }

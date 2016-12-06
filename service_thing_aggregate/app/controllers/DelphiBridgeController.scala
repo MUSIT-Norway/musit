@@ -22,30 +22,54 @@ package controllers
 import com.google.inject.Inject
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
+import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json._
-import services.GeoLocationService
+import play.api.libs.json.Json
+import services.StorageNodeService
 
-class GeoLocationResource @Inject() (
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+class DelphiBridgeController @Inject() (
     val authService: Authenticator,
-    val geoLocService: GeoLocationService
+    val nodeService: StorageNodeService
 ) extends MusitController {
 
-  val logger = Logger(classOf[GeoLocationResource])
+  val logger = Logger(classOf[DelphiBridgeController])
 
   /**
-   * Service for looking up addresses in the geo-location service provided by
-   * kartverket.no
+   *
+   * @param oldObjectId
+   * @param schemaName
+   * @return
    */
-  def searchExternal(
-    search: Option[String]
+  def currentNode(
+    oldObjectId: Long,
+    schemaName: String
   ) = MusitSecureAction().async { implicit request =>
-    val expression = search.getOrElse("")
-    geoLocService.searchGeoNorway(expression).map { location =>
-      Ok(Json.toJson(location))
+    nodeService.currNodeForOldObject(oldObjectId, schemaName)(request.user).map {
+      case MusitSuccess(mres) =>
+        mres.map { res =>
+          Ok(Json.obj(
+            "nodeId" -> Json.toJson(res._1),
+            "currentLocation" -> res._2
+          ))
+        }.getOrElse {
+          NotFound(Json.obj(
+            "message" -> (s"Could not find current node for object $oldObjectId " +
+              s"in schema $schemaName")
+          ))
+        }
+
+      case err: MusitError =>
+        InternalServerError(Json.obj("message" -> err.message))
     }
   }
 
-}
+  def outsideNodes(
+    museumId: String
+  ) = MusitSecureAction().async { implicit request =>
+    // TODO: Fetch all nodes under the _outside_ museum root node.
+    ???
+  }
 
+}

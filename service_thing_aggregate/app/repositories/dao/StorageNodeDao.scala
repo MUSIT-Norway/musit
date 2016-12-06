@@ -61,9 +61,10 @@ class StorageNodeDao @Inject() (
       lo.museumId === mid && lo.objectId === objectId
     }.map(_.currentLocationId).result.headOption
 
-    val findPathAction = (maybeId: Option[StorageNodeDatabaseId]) => maybeId.map { nodeId =>
-      storageNodeTable.filter(_.id === nodeId).map(_.path).result.headOption
-    }.getOrElse(DBIO.successful(None))
+    val findPathAction = (maybeId: Option[StorageNodeDatabaseId]) =>
+      maybeId.map { nodeId =>
+        storageNodeTable.filter(_.id === nodeId).map(_.path).result.headOption
+      }.getOrElse(DBIO.successful(None))
 
     val query = for {
       maybeNodeId <- findLocalObjectAction
