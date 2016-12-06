@@ -26,12 +26,6 @@ services:
         ports:
           - "3030:3030"
 
-    db:
-        image: musitproject/oracle-12c:testdata
-        shm_size: 4G
-        ports:
-          - "1521:1521"
-
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
         environment:
@@ -45,8 +39,6 @@ services:
           - SLICK_DB_URL
           - SLICK_DB_USER
           - SLICK_DB_PASSWORD
-        links:
-          - db
 
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
@@ -61,8 +53,6 @@ services:
           - SLICK_DB_URL
           - SLICK_DB_USER
           - SLICK_DB_PASSWORD
-        links:
-          - db
 
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
@@ -88,7 +78,6 @@ services:
           - SLICK_DB_USER
           - SLICK_DB_PASSWORD
         links:
-          - db
           - actor
 
     storagefacility:
@@ -104,5 +93,3 @@ services:
           - SLICK_DB_URL
           - SLICK_DB_USER
           - SLICK_DB_PASSWORD
-        links:
-          - db
