@@ -116,7 +116,7 @@ final class StorageController @Inject() (
   ) = MusitSecureAction(mid, GodMode).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
-    request.body.validate[Root] match {
+    request.body.validate[RootNode] match {
       case JsSuccess(root, _) => service.addRoot(mid, root).map(addResult)
       case err: JsError => Future.successful(BadRequest(JsError.toJson(err)))
     }
@@ -126,7 +126,8 @@ final class StorageController @Inject() (
    * TODO: Document me!
    */
   def root(mid: Int) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.rootNodes(mid).map(roots => Ok(Json.toJson(roots)))
+    service.rootNodes(mid).map { roots => Ok(Json.toJson[Seq[StorageNode]](roots))
+    }
   }
 
   /**

@@ -21,12 +21,12 @@ package controllers
 
 import com.google.inject.Inject
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import services.StorageNodeService
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class DelphiBridgeController @Inject() (
@@ -65,11 +65,20 @@ class DelphiBridgeController @Inject() (
     }
   }
 
-  def outsideNodes(
-    museumId: String
-  ) = MusitSecureAction().async { implicit request =>
-    // TODO: Fetch all nodes under the _outside_ museum root node.
-    ???
+  def outsideNodes(mid: Int) = MusitSecureAction(Read).async { implicit request =>
+    nodeService.nodesOutsideMuseum(mid).map {
+      case MusitSuccess(res) =>
+        val jsSeq = JsArray(
+          res.map(sn => Json.obj(
+            "nodeId" -> Json.toJson(sn._1),
+            "name" -> sn._2
+          ))
+        )
+        Ok(jsSeq)
+
+      case err: MusitError =>
+        InternalServerError(Json.obj("message" -> err.message))
+    }
   }
 
 }

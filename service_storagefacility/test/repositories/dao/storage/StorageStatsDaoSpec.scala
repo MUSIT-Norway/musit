@@ -48,7 +48,7 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
   "StorageStatsDao" should {
 
     "return the number of direct child nodes" in {
-      val basePath = NodePath(",1,2,3,4,")
+      val basePath = NodePath(",1,3,4,5,")
       val su = createStorageUnit(path = basePath)
       val insId = storageUnitDao.insert(museumId, su).futureValue
       insId mustBe a[StorageNodeDatabaseId]
@@ -67,7 +67,7 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "return the number of objects on a node" in {
-      statsDao.directObjectCount(StorageNodeDatabaseId(5)).futureValue mustBe 5
+      statsDao.directObjectCount(StorageNodeDatabaseId(6)).futureValue mustBe 5
     }
 
     "return the total number of objects i a node hierarchy" in {

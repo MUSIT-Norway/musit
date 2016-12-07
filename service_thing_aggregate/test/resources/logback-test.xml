@@ -28,7 +28,7 @@
     </appender>
 
     <logger name="akka" level="WARN" />
-    <logger name="slick.jdbc" level="WARN"/>
+    <logger name="slick.jdbc" level="INFO"/>
     <logger name="controllers" level="INFO" />
     <logger name="services" level="INFO" />
     <logger name="repositories.dao" level="INFO" />

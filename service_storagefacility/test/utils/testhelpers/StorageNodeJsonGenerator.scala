@@ -47,9 +47,16 @@ object StorageNodeJsonGenerator {
     """.stripMargin
   }
 
-  def rootJson(name: String): JsValue = Json.parse(s"""{ "name" : "$name" }""")
+  def rootJson(name: String): JsValue =
+    Json.parse(s"""{ "name" : "$name", "type": "Root" }""")
 
-  def organisationJson(name: String, partOf: Option[StorageNodeDatabaseId] = None): JsValue = {
+  def rootLoan(name: String): JsValue =
+    Json.parse(s"""{ "name" : "$name", "type": "RootLoan" }""")
+
+  def organisationJson(
+    name: String,
+    partOf: Option[StorageNodeDatabaseId] = None
+  ): JsValue = {
     val pof = partOf.map(p => s""""isPartOf" : ${p.underlying},""")
     Json.parse(
       s"""{

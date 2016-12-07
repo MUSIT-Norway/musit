@@ -102,11 +102,11 @@ class StorageNodeService @Inject() (
    */
   def addRoot(
     mid: MuseumId,
-    root: Root
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Root]]] = {
-    val theRoot = root.copy(
-      updatedBy = Some(currUsr.id),
-      updatedDate = Some(dateTimeNow)
+    root: RootNode
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[RootNode]]] = {
+    val theRoot = root.setUpdated(
+      by = Some(currUsr.id),
+      date = Some(dateTimeNow)
     )
 
     unitDao.insertRoot(mid, theRoot).flatMap { nodeId =>
@@ -162,7 +162,10 @@ class StorageNodeService @Inject() (
         // validate if the destination location is valid for the given type.
         node.storageType match {
           case RootType =>
-            Root.isValidLocation(dest)
+            RootNode.isValidLocation(dest)
+
+          case RootLoanType =>
+            RootNode.isValidLocation(dest)
 
           case OrganisationType =>
             Organisation.isValidLocation(maybeDestId, idTypeTuples)
@@ -569,6 +572,9 @@ class StorageNodeService @Inject() (
           case StorageType.RootType =>
             unitDao.findRootNode(id)
 
+          case StorageType.RootLoanType =>
+            unitDao.findRootNode(id)
+
           case StorageType.OrganisationType =>
             getOrganisationById(mid, id)
 
@@ -595,21 +601,24 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!
    */
-  def rootNodes(mid: MuseumId): Future[Seq[StorageNode]] = unitDao.findRootNodes(mid)
-
-  /**
-   * TODO: Document me!
-   */
-  def getChildren(mid: MuseumId, id: StorageNodeDatabaseId): Future[Seq[GenericStorageNode]] = {
-    unitDao.getChildren(mid, id)
+  def rootNodes(mid: MuseumId): Future[Seq[RootNode]] = {
+    unitDao.findRootNodes(mid)
   }
 
   /**
    * TODO: Document me!
    */
-  def getStorageType(id: StorageNodeDatabaseId): Future[MusitResult[Option[StorageType]]] = {
-    unitDao.getStorageType(id)
-  }
+  def getChildren(
+    mid: MuseumId,
+    id: StorageNodeDatabaseId
+  ): Future[Seq[GenericStorageNode]] = unitDao.getChildren(mid, id)
+
+  /**
+   * TODO: Document me!
+   */
+  def getStorageType(
+    id: StorageNodeDatabaseId
+  ): Future[MusitResult[Option[StorageType]]] = unitDao.getStorageType(id)
 
   /**
    * TODO: Document me!

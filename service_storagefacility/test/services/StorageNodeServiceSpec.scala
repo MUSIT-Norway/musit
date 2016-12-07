@@ -261,7 +261,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val loc1 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc1.isSuccess mustBe true
       loc1.get must not be None
-      loc1.get.get.id mustBe Some(StorageNodeDatabaseId(5))
+      loc1.get.get.id mustBe Some(StorageNodeDatabaseId(6))
 
       val event = MoveObject(
         id = None,
@@ -271,8 +271,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
         registeredBy = Some(defaultUserId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
-        from = Some(StorageNodeDatabaseId(5)),
-        to = StorageNodeDatabaseId(22)
+        from = Some(StorageNodeDatabaseId(6)),
+        to = StorageNodeDatabaseId(23)
       )
       val res = service.moveObject(defaultMuseumId, oid, event).futureValue
       res.isSuccess mustBe true
@@ -280,7 +280,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val loc2 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc2.isSuccess mustBe true
       loc2.get must not be None
-      loc2.get.get.id mustBe Some(StorageNodeDatabaseId(22))
+      loc2.get.get.id mustBe Some(StorageNodeDatabaseId(23))
     }
 
     "successfully move an object with no previous location" in {
@@ -294,7 +294,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = None,
-        to = StorageNodeDatabaseId(22)
+        to = StorageNodeDatabaseId(23)
       )
       val res = service.moveObject(defaultMuseumId, oid, event).futureValue
       res.isSuccess mustBe true
@@ -302,7 +302,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val loc = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc.isSuccess mustBe true
       loc.get must not be None
-      loc.get.get.id mustBe Some(StorageNodeDatabaseId(22))
+      loc.get.get.id mustBe Some(StorageNodeDatabaseId(23))
     }
 
     "not mark a node as deleted when wrong museumId is used" in {
@@ -342,7 +342,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val upd = storageUnit.copy(name = "UggaBugga", areaTo = Some(4.0))
 
       val wrongMid = MuseumId(4)
-      val updRes = service.updateStorageUnit(wrongMid, storageUnit.id.get, upd).futureValue
+      val updRes = service.updateStorageUnit(wrongMid, storageUnit.id.get, upd).futureValue // scalastyle:ignore
       updRes.isSuccess mustBe true
       updRes.get mustBe None
 
@@ -409,24 +409,24 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val aid = ActorId.generate()
       val currLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       currLoc.isSuccess mustBe true
-      currLoc.get.get.id.get.underlying mustBe 4
+      currLoc.get.get.id.get.underlying mustBe 5
       currLoc.get.get.path.toString must include(currLoc.get.get.id.get.underlying.toString)
 
-      val moveObject = Move[ObjectId](aid, StorageNodeDatabaseId(3), Seq(oid))
+      val moveObject = Move[ObjectId](aid, StorageNodeDatabaseId(4), Seq(oid))
       val moveSeq = MoveObject.fromCommand(aid, moveObject)
       service.moveObject(defaultMuseumId, oid, moveSeq.head).futureValue
       val newCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       newCurrLoc.isSuccess mustBe true
-      newCurrLoc.get.get.id.get.underlying mustBe 3
+      newCurrLoc.get.get.id.get.underlying mustBe 4
       newCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
 
       val anotherMid = MuseumId(4)
-      val moveSameObject = Move[ObjectId](aid, StorageNodeDatabaseId(2), Seq(oid))
+      val moveSameObject = Move[ObjectId](aid, StorageNodeDatabaseId(3), Seq(oid))
       val moveSameSeq = MoveObject.fromCommand(aid, moveSameObject)
       service.moveObject(anotherMid, oid, moveSameSeq.head).futureValue
       val sameCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       sameCurrLoc.isSuccess mustBe true
-      sameCurrLoc.get.get.id.get.underlying mustBe 3
+      sameCurrLoc.get.get.id.get.underlying mustBe 4
       sameCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
 
     }

@@ -20,10 +20,12 @@
 package services
 
 import com.google.inject.Inject
+import controllers.SimpleNode
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.models.{MuseumId, Museums, StorageNodeDatabaseId}
+import no.uio.musit.models.{MuseumId, Museums, StorageNodeDatabaseId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.{ObjectDao, StorageNodeDao}
 
@@ -33,6 +35,8 @@ class StorageNodeService @Inject() (
     val nodeDao: StorageNodeDao,
     val objDao: ObjectDao
 ) {
+
+  val logger = Logger(classOf[StorageNodeService])
 
   /**
    * Checks if the node exists in the storage facility for given museum ID.
@@ -68,6 +72,7 @@ class StorageNodeService @Inject() (
               case Some(sn) =>
                 nodeDao.namesForPath(sn._2).map { np =>
                   // Only authorized users are allowed to see the full path
+                  // TODO: We probably need to verify the _group_ and not the museum.
                   if (currUsr.isAuthorized(obj.museumId)) {
                     MusitSuccess(Option((sn._1, np.map(_.name).mkString(", "))))
                   } else {
@@ -85,6 +90,16 @@ class StorageNodeService @Inject() (
 
       case err: MusitError =>
         Future.successful(err)
+    }
+  }
+
+  def nodesOutsideMuseum(museumId: MuseumId): Future[MusitResult[Seq[SimpleNode]]] = {
+    nodeDao.getRootLoanNodes(museumId).flatMap {
+      case MusitSuccess(rids) =>
+        logger.debug(s"Found ${rids.size} external Root nodes: ${rids.mkString(", ")}")
+        if (rids.nonEmpty) nodeDao.listAllChildrenFor(museumId, rids)
+        else Future.successful(MusitSuccess(Seq.empty))
+      case err: MusitError => Future.successful(err)
     }
   }
 

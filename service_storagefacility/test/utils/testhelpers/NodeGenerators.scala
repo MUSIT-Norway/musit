@@ -103,7 +103,7 @@ trait NodeGenerators extends NodeTypeInitializers {
     )
   }
 
-  type BaseStructureIds = (StorageNodeDatabaseId, StorageNodeDatabaseId, StorageNodeDatabaseId)
+  type BaseStructureIds = (StorageNodeDatabaseId, StorageNodeDatabaseId, StorageNodeDatabaseId) // scalastyle:ignore
 
   def bootstrapBaseStructure(museumId: MuseumId = defaultMuseumId): BaseStructureIds = {
     Await.result(
@@ -115,16 +115,16 @@ trait NodeGenerators extends NodeTypeInitializers {
       ))
       _ <- storageUnitDao.setRootPath(rid, NodePath(s",${rid.underlying},"))
       oid <- organisationDao.insert(museumId, createOrganisation(partOf = Some(rid)))
-      _ <- organisationDao.setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},"))
+      _ <- organisationDao.setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},")) // scalastyle:ignore
       bid <- buildingDao.insert(museumId, createBuilding(partOf = Some(oid)))
-      _ <- buildingDao.setPath(bid, NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},"))
+      _ <- buildingDao.setPath(bid, NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},")) // scalastyle:ignore
     } yield (rid, oid, bid),
 
       atMost = 15 seconds
     )
   }
 
-  def addRoot(r: Root) = storageUnitDao.insertRoot(defaultMuseumId, r)
+  def addRoot(r: RootNode) = storageUnitDao.insertRoot(defaultMuseumId, r)
 
   def addBuilding(b: Building) = buildingDao.insert(defaultMuseumId, b)
 

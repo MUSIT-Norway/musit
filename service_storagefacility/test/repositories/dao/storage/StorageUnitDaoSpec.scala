@@ -20,7 +20,7 @@
 package repositories.dao.storage
 
 import models.storage.StorageType._
-import models.storage.{Root, StorageType}
+import models.storage.{Root, RootLoan, StorageType}
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
 import no.uio.musit.service.MusitResults.MusitSuccess
@@ -28,7 +28,6 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
 import utils.testhelpers.NodeGenerators
-import org.scalatest.Inspectors._
 
 class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
@@ -48,15 +47,22 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         updatedDate = Some(DateTime.now())
       )
 
-      for (i <- 17 to 19) {
+      def createRootLoan(name: String): RootLoan = RootLoan(
+        nodeId = StorageNodeId.generateAsOpt(),
+        name = name,
+        updatedBy = Some(defaultUserId),
+        updatedDate = Some(DateTime.now())
+      )
+
+      for (i <- 18 to 20) {
         val r = createRoot(s"root$i")
         val insId = storageUnitDao.insertRoot(defaultMuseumId, r).futureValue
         insId mustBe a[StorageNodeDatabaseId]
         insId mustBe StorageNodeDatabaseId(i.toLong)
       }
       val anotherMid = MuseumId(4)
-      for (i <- 20 to 22) {
-        val r = createRoot(s"root$i")
+      for (i <- 21 to 23) {
+        val r = createRootLoan(s"rootLoan$i")
         val insId = storageUnitDao.insertRoot(anotherMid, r).futureValue
         insId mustBe a[StorageNodeDatabaseId]
         insId mustBe StorageNodeDatabaseId(i.toLong)
@@ -108,7 +114,9 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
     "successfully list root nodes" in {
       val nodes = storageUnitDao.findRootNodes(defaultMuseumId).futureValue
-      nodes.foreach(_.storageType mustBe StorageType.RootType)
+      nodes.foreach { n =>
+        n.storageType.entryName must startWith("Root")
+      }
     }
 
     "fail to list root nodes when museumId is wrong" in {
@@ -139,32 +147,32 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "successfully fetch the named path elements for a storage node" in {
-      val path1 = NodePath(",17,27,")
+      val path1 = NodePath(",18,28,")
       val su1 = createStorageUnit(
-        partOf = Some(StorageNodeDatabaseId(17)),
+        partOf = Some(StorageNodeDatabaseId(18)),
         path = path1
       ).copy(name = "node1")
       val insId1 = storageUnitDao.insert(defaultMuseumId, su1).futureValue
       insId1 mustBe a[StorageNodeDatabaseId]
-      insId1 mustBe StorageNodeDatabaseId(27)
+      insId1 mustBe StorageNodeDatabaseId(28)
 
-      val path2 = path1.appendChild(StorageNodeDatabaseId(28))
+      val path2 = path1.appendChild(StorageNodeDatabaseId(29))
       val su2 = createStorageUnit(
         partOf = Some(insId1),
         path = path2
       ).copy(name = "node2")
       val insId2 = storageUnitDao.insert(defaultMuseumId, su2).futureValue
       insId2 mustBe a[StorageNodeDatabaseId]
-      insId2 mustBe StorageNodeDatabaseId(28)
+      insId2 mustBe StorageNodeDatabaseId(29)
 
       val res = storageUnitDao.namesForPath(path2).futureValue
       res must not be empty
       res.size mustBe 3
-      res.head.nodeId mustBe StorageNodeDatabaseId(17)
-      res.head.name mustBe "root17"
-      res.tail.head.nodeId mustBe StorageNodeDatabaseId(27)
+      res.head.nodeId mustBe StorageNodeDatabaseId(18)
+      res.head.name mustBe "root18"
+      res.tail.head.nodeId mustBe StorageNodeDatabaseId(28)
       res.tail.head.name mustBe "node1"
-      res.last.nodeId mustBe StorageNodeDatabaseId(28)
+      res.last.nodeId mustBe StorageNodeDatabaseId(29)
       res.last.name mustBe "node2"
     }
 
@@ -222,28 +230,28 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     }
 
     "fetch tuples of StorageNodeId and StorageType for a NodePath" in {
-      val orgPath = NodePath(",1,32,")
+      val orgPath = NodePath(",1,33,")
       val org = createOrganisation(
         partOf = Some(StorageNodeDatabaseId(1)),
         path = orgPath
       ).copy(name = "node-x")
       val organisationId = organisationDao.insert(defaultMuseumId, org).futureValue
 
-      val buildingPath = NodePath(",1,32,33,")
+      val buildingPath = NodePath(",1,33,34,")
       val building = createBuilding(
         partOf = Some(organisationId),
         path = buildingPath
       )
       val buildingId = buildingDao.insert(defaultMuseumId, building).futureValue
 
-      val roomPath = NodePath(",1,32,33,34,")
+      val roomPath = NodePath(",1,33,34,35,")
       val room = createRoom(
         partOf = Some(buildingId),
         path = roomPath
       )
       val roomId = roomDao.insert(defaultMuseumId, room).futureValue
 
-      val su1Path = NodePath(",1,32,33,34,35,")
+      val su1Path = NodePath(",1,33,34,35,36,")
       val su1 = createStorageUnit(
         partOf = Some(roomId),
         path = su1Path
@@ -275,7 +283,8 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       notGetNodeName.size mustBe 0
     }
 
-    "fail when searching for name without any search criteria, or too few, or another museumId" in { // scalastyle:ignore
+    "fail when searching for name without any search criteria, or too few, or another museumId" in {
+      // scalastyle:ignore
       val mid = MuseumId(5)
       val getNodeName = storageUnitDao.getStorageNodeByName(mid, "", 1, 25).futureValue
       getNodeName.size mustBe 0

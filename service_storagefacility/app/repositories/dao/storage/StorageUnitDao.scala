@@ -23,7 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.datetime.Implicits._
 import models.datetime.dateTimeNow
 import models.storage.dto.StorageNodeDto
-import models.storage.{GenericStorageNode, Root, StorageType, StorageUnit}
+import models.storage._
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
@@ -106,24 +106,15 @@ class StorageUnitDao @Inject() (
    *
    * @return a Future collection of Root nodes.
    */
-  def findRootNodes(mid: MuseumId): Future[Seq[Root]] = {
+  def findRootNodes(mid: MuseumId): Future[Seq[RootNode]] = {
     val query = storageNodeTable.filter { root =>
       root.museumId === mid &&
         root.isDeleted === false &&
         root.isPartOf.isEmpty &&
-        root.storageType === rootNodeType
+        (root.storageType === rootNodeType || root.storageType === rootLoanType)
     }.result
 
-    db.run(query).map(_.map { n =>
-      Root(
-        id = n.id,
-        nodeId = n.nodeId,
-        name = n.name,
-        path = n.path,
-        updatedBy = n.updatedBy,
-        updatedDate = n.updatedDate
-      )
-    })
+    db.run(query).map(_.map(StorageNodeDto.toRootNode))
   }
 
   /**
@@ -132,25 +123,14 @@ class StorageUnitDao @Inject() (
    * @param id StorageNodeId for the Root node.
    * @return An Option that contains the Root node if it was found.
    */
-  def findRootNode(id: StorageNodeDatabaseId): Future[MusitResult[Option[Root]]] = {
+  def findRootNode(id: StorageNodeDatabaseId): Future[MusitResult[Option[RootNode]]] = {
     val query = storageNodeTable.filter { root =>
       root.id === id &&
         root.isDeleted === false &&
-        root.storageType === rootNodeType
+        (root.storageType === rootNodeType || root.storageType === rootLoanType)
     }.result.headOption
 
-    db.run(query).map { dto =>
-      MusitSuccess(dto.map { n =>
-        Root(
-          id = n.id,
-          nodeId = n.nodeId,
-          name = n.name,
-          path = n.path,
-          updatedBy = n.updatedBy,
-          updatedDate = n.updatedDate
-        )
-      })
-    }
+    db.run(query).map(mdto => MusitSuccess(mdto.map(StorageNodeDto.toRootNode)))
   }
 
   /**
@@ -196,9 +176,9 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insertRoot(mid: MuseumId, root: Root): Future[StorageNodeDatabaseId] = {
+  def insertRoot(mid: MuseumId, root: RootNode): Future[StorageNodeDatabaseId] = {
     logger.debug("Inserting root node...")
-    val dto = StorageNodeDto.fromRoot(mid, root).asStorageUnitDto(mid)
+    val dto = StorageNodeDto.fromRootNode(mid, root).asStorageUnitDto(mid)
     db.run(insertNodeAction(dto))
   }
 

@@ -43,6 +43,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     s"Wrong amount of rows ($numRowsUpdated) updated for node $id"
 
   protected val rootNodeType: StorageType = StorageType.RootType
+  protected val rootLoanType: StorageType = StorageType.RootLoanType
 
   protected val storageNodeTable = TableQuery[StorageNodeTable]
 
@@ -105,8 +106,8 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     val op = oldParent.path
     val np = newParent.path
 
-    logger.debug(s"Using old path: $op and new path: $np")
-    logger.debug(s"performing update with LIKE: $pathFilter")
+    logger.debug(s"Using old path: $op and new path: $np. " +
+      s"Performing update with LIKE: $pathFilter")
 
     sql"""
          UPDATE "MUSARK_STORAGE"."STORAGE_NODE"

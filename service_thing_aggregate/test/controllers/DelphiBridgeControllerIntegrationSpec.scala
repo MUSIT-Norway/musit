@@ -23,6 +23,7 @@ import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
+import play.api.libs.json.JsArray
 import play.api.test.Helpers._
 
 class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
@@ -37,10 +38,15 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
   val archeologyCollection = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
   val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
 
-  def get(objId: Int, oldSchema: String) =
+  def getObj(objId: Int, oldSchema: String) =
     wsUrl(s"/delphi/objects/$objId")
       .withHeaders(fakeToken.asHeader)
       .withQueryString("schemaName" -> oldSchema)
+      .get()
+
+  def getExt(mid: Int) =
+    wsUrl(s"/delphi/museum/$mid/nodes/external")
+      .withHeaders(fakeToken.asHeader)
       .get()
 
   "The DelphiBridgeController" when {
@@ -50,12 +56,21 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       "return the objects current nodeId and path location" in {
         val expectedLocation = "Utviklingsmuseet, Utviklingsmuseet Org, " +
           "Forskningens hus, Naturværelset"
-        val res = get(111, "USD_ARK_GJENSTAND_O").futureValue
+        val res = getObj(111, "USD_ARK_GJENSTAND_O").futureValue
         res.status mustBe OK
-        (res.json \ "nodeId").as[Int] mustBe 5
+        (res.json \ "nodeId").as[Int] mustBe 6
         (res.json \ "currentLocation").as[String] mustBe expectedLocation
       }
 
+    }
+
+    "listing all external nodes" should {
+      "return a list of all nodes below the RootLoan node" in {
+        val res = getExt(99).futureValue
+
+        res.status mustBe OK
+        res.json.as[JsArray].value.size mustBe 6
+      }
     }
 
   }
