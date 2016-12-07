@@ -274,7 +274,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId" should {
       "return a list of objects if the nodeId exists in the museum" in {
-        val mr = dao.getObjects(
+        val mr = dao.findObjects(
           mid,
           StorageNodeDatabaseId(4),
           allCollections
@@ -301,7 +301,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return a an empty vector when nodeId doesn't exist in museum" in {
-        val mr = dao.getObjects(
+        val mr = dao.findObjects(
           mid,
           StorageNodeDatabaseId(999999),
           allCollections
@@ -311,7 +311,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return a an empty vector when museum doesn't exist" in {
-        val mr = dao.getObjects(
+        val mr = dao.findObjects(
           MuseumId(55),
           StorageNodeDatabaseId(2),
           allCollections

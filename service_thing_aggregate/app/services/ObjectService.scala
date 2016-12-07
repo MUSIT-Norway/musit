@@ -21,6 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.{MusitObject, ObjectAggregation, ObjectSearchResult}
+import no.uio.musit.models.OldDbSchemas.OldSchema
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
@@ -38,12 +39,19 @@ class ObjectService @Inject() (
 
   private val logger = Logger(classOf[ObjectService])
 
+  def findByOldObjectIds(
+    oldSchema: String,
+    oldObjectIds: Seq[Long]
+  ): Future[MusitResult[Seq[ObjectId]]] = {
+    objDao.findObjectIdsForOld(oldSchema, oldObjectIds)
+  }
+
   def findMainObjectChildren(
     mid: MuseumId,
     mainObjectId: ObjectId,
     collectionIds: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    objDao.getMainObjectChildren(mid, mainObjectId, collectionIds)
+    objDao.findMainObjectChildren(mid, mainObjectId, collectionIds)
   }
 
   /**
@@ -54,12 +62,12 @@ class ObjectService @Inject() (
    * @param currUsr
    * @return
    */
-  def getObjects(
+  def findObjects(
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId,
     collectionIds: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
-    objDao.getObjects(mid, nodeId, collectionIds)
+    objDao.findObjects(mid, nodeId, collectionIds)
   }
 
   /**

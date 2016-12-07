@@ -118,10 +118,12 @@ class StorageNodeDao @Inject() (
     val q1 = (likePath: String) => storageNodeTable.filter { n =>
       n.museumId === museumId && (n.path.asColumnOf[String] like likePath)
     }
+
     val query = ids.map(id => s",${id.underlying},%")
       .map(q1)
       .reduce((query, queryPart) => query union queryPart)
       .map(n => (n.id, n.name))
+      .sortBy(_._2.asc)
 
     db.run(query.result).map { res =>
       MusitSuccess(
