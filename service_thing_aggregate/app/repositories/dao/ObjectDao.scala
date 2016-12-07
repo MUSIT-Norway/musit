@@ -88,62 +88,90 @@ class ObjectDao @Inject() (
     }
   }
 
-  private def subNoFilter[Q <: QObjectTable, C](
-    q: Q,
-    value: FieldValue
-  ): QObjectTable = {
-    value match {
+  /**
+   *
+   * @param q
+   * @param v
+   * @tparam Q
+   * @tparam C
+   * @return
+   */
+  private def subNoFilter[Q <: QObjectTable, C](q: Q, v: FieldValue): QObjectTable = {
+    v match {
       case EmptyValue() =>
         logger.debug("Using empty value for subNo filter")
         q
-      case LiteralValue(v) =>
+      case LiteralValue(value) =>
         logger.debug("Using literal value for subNo filter")
-        q.filter(_.subNo.toUpperCase === v.toUpperCase)
+        q.filter(_.subNo.toUpperCase === value.toUpperCase)
 
-      case WildcardValue(v, esc) =>
+      case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for subNo filter")
-        q.filter(_.subNo.toUpperCase like (v.toUpperCase, esc))
+        q.filter(_.subNo.toUpperCase like (value.toUpperCase, esc))
     }
   }
 
-  private def termFilter[Q <: QObjectTable, C](
-    q: Q,
-    value: FieldValue
-  ): QObjectTable = {
-    value match {
+  /**
+   *
+   * @param q
+   * @param v
+   * @tparam Q
+   * @tparam C
+   * @return
+   */
+  private def termFilter[Q <: QObjectTable, C](q: Q, v: FieldValue): QObjectTable = {
+    v match {
       // No value to search for means we don't append a filter.
       case EmptyValue() =>
         logger.debug("Using empty value for term filter")
         q
 
-      case LiteralValue(v) =>
+      case LiteralValue(value) =>
         logger.debug("Using literal value for term filter")
-        q.filter(_.term.toUpperCase === v.toUpperCase)
+        q.filter(_.term.toUpperCase === value.toUpperCase)
 
-      case WildcardValue(v, esc) =>
+      case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for term filter")
-        q.filter(_.term.toUpperCase like (v.toUpperCase, esc))
+        q.filter(_.term.toUpperCase like (value.toUpperCase, esc))
     }
   }
 
-  private def museumNoFilter(q: QObjectTable, value: FieldValue): QObjectTable = {
-    value match {
+  /**
+   *
+   * @param q
+   * @param v
+   * @return
+   */
+  private def museumNoFilter(q: QObjectTable, v: FieldValue): QObjectTable = {
+    v match {
       case EmptyValue() =>
         logger.debug("Using empty value for museumNo filter")
         q
 
-      case LiteralValue(v) =>
+      case LiteralValue(value) =>
         logger.debug("Using literal value for museumNo filter")
-        val digitsOnly = v.forall(Character.isDigit)
-        if (digitsOnly) q.filter(_.museumNoAsNumber === v.toLong)
-        else q.filter(_.museumNo.toUpperCase === v.toUpperCase)
+        val digitsOnly = value.forall(Character.isDigit)
+        if (digitsOnly) q.filter(_.museumNoAsNumber === value.toLong)
+        else q.filter(_.museumNo.toUpperCase === value.toUpperCase)
 
-      case WildcardValue(v, esc) =>
+      case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for museumNo filter")
-        q.filter(_.museumNo.toUpperCase like (v.toUpperCase, esc))
+        q.filter(_.museumNo.toUpperCase like (value.toUpperCase, esc))
     }
   }
 
+  /**
+   *
+   * @param mid
+   * @param page
+   * @param pageSize
+   * @param museumNo
+   * @param subNo
+   * @param term
+   * @param collections
+   * @param currUsr
+   * @return
+   */
   private[dao] def searchQuery(
     mid: MuseumId,
     page: Int,
@@ -228,7 +256,7 @@ class ObjectDao @Inject() (
    * @param currUsr
    * @return
    */
-  def getMainObjectChildren(
+  def findMainObjectChildren(
     mid: MuseumId,
     mainObjectId: ObjectId,
     collections: Seq[MuseumCollection]
@@ -248,7 +276,15 @@ class ObjectDao @Inject() (
       }
   }
 
-  def getObjects(
+  /**
+   *
+   * @param mid
+   * @param nodeId
+   * @param collections
+   * @param currUsr
+   * @return
+   */
+  def findObjects(
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId,
     collections: Seq[MuseumCollection]
@@ -288,20 +324,52 @@ class ObjectDao @Inject() (
     }
   }
 
+  /**
+   * Find the ObjectIds for objects located in the given old schema with the
+   * provided old IDs.
+   *
+   * @param oldSchema
+   * @param oldIds
+   * @return
+   */
+  def findObjectIdsForOld(
+    oldSchema: String,
+    oldIds: Seq[Long]
+  ): Future[MusitResult[Seq[ObjectId]]] = {
+    val query = objects.filter { o =>
+      o.oldSchema === oldSchema &&
+        (o.oldObjId inSet oldIds)
+    }.map(_.id)
+
+    db.run(query.result).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"Error locating objectIds for old IDs ${oldIds.mkString(", ")}"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  /**
+   * Find the object with the given old object ID kept in the given old schema.
+   *
+   * @param oldId
+   * @param oldSchema
+   * @return
+   */
   def findByOldId(
-    oldObjectId: Long,
-    oldSchemaName: String
+    oldId: Long,
+    oldSchema: String
   ): Future[MusitResult[Option[MusitObject]]] = {
     val query = objects.filter { o =>
-      o.oldObjId === oldObjectId &&
-        o.oldSchema === oldSchemaName
+      o.oldObjId === oldId &&
+        o.oldSchema === oldSchema
     }
 
     db.run(query.result.headOption).map { res =>
       MusitSuccess(res.map(MusitObject.fromTuple))
     }.recover {
       case NonFatal(ex) =>
-        val msg = s"Error while locating object with old object ID $oldObjectId"
+        val msg = s"Error while locating object with old object ID $oldId"
         logger.error(msg, ex)
         MusitDbError(msg, Option(ex))
     }

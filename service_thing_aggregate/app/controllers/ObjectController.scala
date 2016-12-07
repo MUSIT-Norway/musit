@@ -174,7 +174,7 @@ class ObjectController @Inject() (
     nodeId: Long,
     collectionIds: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[Result] = {
-    objService.getObjects(mid, nodeId, collectionIds).map {
+    objService.findObjects(mid, nodeId, collectionIds).map {
       case MusitSuccess(objects) =>
         Ok(Json.toJson(objects))
 

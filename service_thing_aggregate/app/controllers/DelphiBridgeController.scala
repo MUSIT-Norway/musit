@@ -25,22 +25,22 @@ import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
-import play.api.libs.json.{JsArray, Json}
-import services.StorageNodeService
+import play.api.libs.json._
+import services.{ObjectService, StorageNodeService}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+import scala.concurrent.Future
 
 class DelphiBridgeController @Inject() (
     val authService: Authenticator,
-    val nodeService: StorageNodeService
+    val nodeService: StorageNodeService,
+    val objService: ObjectService
 ) extends MusitController {
 
   val logger = Logger(classOf[DelphiBridgeController])
 
   /**
-   *
-   * @param oldObjectId
-   * @param schemaName
-   * @return
+   * Returns the StorageNodeDatabaseId and name for an objects current location.
    */
   def currentNode(
     oldObjectId: Long,
@@ -65,6 +65,9 @@ class DelphiBridgeController @Inject() (
     }
   }
 
+  /**
+   * Endpoint that returns all the nodes under a museums external root nodes.
+   */
   def outsideNodes(mid: Int) = MusitSecureAction(Read).async { implicit request =>
     nodeService.nodesOutsideMuseum(mid).map {
       case MusitSuccess(res) =>
@@ -78,6 +81,29 @@ class DelphiBridgeController @Inject() (
 
       case err: MusitError =>
         InternalServerError(Json.obj("message" -> err.message))
+    }
+  }
+
+  case class TranslateIdRequest(schemaName: String, oldObjectIds: Seq[Long])
+
+  object TranslateIdRequest {
+    implicit val reads: Reads[TranslateIdRequest] = Json.reads[TranslateIdRequest]
+  }
+
+  /**
+   * Endpoint for converting old object IDs from the old MUSIT database schemas
+   * to an objectId recognized by the new system.
+   */
+  def translateOldObjectIds = MusitSecureAction().async(parse.json) { implicit request =>
+    request.body.validate[TranslateIdRequest] match {
+      case JsSuccess(trans, _) =>
+        objService.findByOldObjectIds(trans.schemaName, trans.oldObjectIds).map {
+          case MusitSuccess(res) => Ok(Json.toJson(res))
+          case err: MusitError => InternalServerError(Json.obj("message" -> err.message))
+        }
+
+      case jsErr: JsError =>
+        Future.successful(BadRequest(JsError.toJson(jsErr)))
     }
   }
 
