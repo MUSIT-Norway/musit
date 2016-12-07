@@ -30,7 +30,7 @@
     <logger name="akka" level="WARN" />
     <logger name="slick.jdbc" level="WARN"/>
     <logger name="controllers" level="INFO" />
-    <logger name="services" level="INFO" />
+    <logger name="services" level="DEBUG" />
     <logger name="repositories.dao" level="INFO" />
 
     <root level="ERROR">

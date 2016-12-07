@@ -68,6 +68,7 @@ class StorageNodeService @Inject() (
               case Some(sn) =>
                 nodeDao.namesForPath(sn._2).map { np =>
                   // Only authorized users are allowed to see the full path
+                  // TODO: We probably need to verify the _group_ and not the museum.
                   if (currUsr.isAuthorized(obj.museumId)) {
                     MusitSuccess(Option((sn._1, np.map(_.name).mkString(", "))))
                   } else {

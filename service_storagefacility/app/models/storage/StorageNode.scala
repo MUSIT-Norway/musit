@@ -70,6 +70,9 @@ object StorageNode {
       case StorageType.RootType.entryName =>
         Root.formats.reads(jsv)
 
+      case StorageType.RootLoanType.entryName =>
+        RootLoan.formats.reads(jsv)
+
       case StorageType.OrganisationType.entryName =>
         Organisation.formats.reads(jsv)
 
@@ -91,6 +94,10 @@ object StorageNode {
     case root: Root =>
       Root.formats.writes(root).as[JsObject] ++
         Json.obj(tpe -> root.storageType.entryName)
+
+    case rootLoan: RootLoan =>
+      RootLoan.formats.writes(rootLoan).as[JsObject] ++
+        Json.obj(tpe -> rootLoan.storageType.entryName)
 
     case org: Organisation =>
       Organisation.formats.writes(org).as[JsObject] ++
@@ -168,15 +175,7 @@ object GenericStorageNode {
  * A Root node is at the top of the storage node hierarchy. Each museum should
  * have _at least_ one root node.
  */
-case class Root(
-    id: Option[StorageNodeDatabaseId] = None,
-    nodeId: Option[StorageNodeId],
-    name: String = "root-node",
-    environmentRequirement: Option[EnvironmentRequirement] = None,
-    path: NodePath = NodePath.empty,
-    updatedBy: Option[ActorId] = None,
-    updatedDate: Option[DateTime] = None
-) extends StorageNode {
+sealed trait RootNode extends StorageNode {
   val area: Option[Double] = None
   val areaTo: Option[Double] = None
   val isPartOf: Option[StorageNodeDatabaseId] = None
@@ -185,7 +184,64 @@ case class Root(
   val groupRead: Option[String] = None
   val groupWrite: Option[String] = None
   val pathNames: Option[Seq[NamedPathElement]] = None
+
+  def setUpdated(
+    by: Option[ActorId] = None,
+    date: Option[DateTime] = None
+  ): RootNode
+}
+
+object RootNode {
+  private val tpe = "type"
+
+  implicit val reads: Reads[RootNode] = Reads { jsv =>
+    (jsv \ tpe).as[String] match {
+      case StorageType.RootType.entryName =>
+        Root.formats.reads(jsv)
+
+      case StorageType.RootLoanType.entryName =>
+        RootLoan.formats.reads(jsv)
+
+      case err =>
+        JsError(ValidationError("Invalid type for root node", err))
+    }
+  }
+
+  implicit val writes: Writes[RootNode] = Writes {
+    case root: Root =>
+      Root.formats.writes(root).as[JsObject] ++
+        Json.obj(tpe -> root.storageType.entryName)
+
+    case rootLoan: RootLoan =>
+      RootLoan.formats.writes(rootLoan).as[JsObject] ++
+        Json.obj(tpe -> rootLoan.storageType.entryName)
+  }
+
+  /**
+   * A Root node can only be placed at the very top of the hierarchy.
+   */
+  def isValidLocation(destPath: NodePath): Boolean = destPath == NodePath.empty
+}
+
+/**
+ * Root always represents the beginning of the hierarchy for nodes inside the
+ * museum storage facility.
+ */
+case class Root(
+    id: Option[StorageNodeDatabaseId] = None,
+    nodeId: Option[StorageNodeId],
+    name: String = "root-node",
+    environmentRequirement: Option[EnvironmentRequirement] = None,
+    path: NodePath = NodePath.empty,
+    updatedBy: Option[ActorId] = None,
+    updatedDate: Option[DateTime] = None
+) extends RootNode {
   val storageType: StorageType = StorageType.RootType
+
+  def setUpdated(
+    by: Option[ActorId] = None,
+    date: Option[DateTime] = None
+  ): RootNode = this.copy(updatedBy = by, updatedDate = date)
 }
 
 object Root {
@@ -202,10 +258,43 @@ object Root {
     (__ \ "updatedDate").formatNullable[DateTime]
   )(Root.apply, unlift(Root.unapply))
 
-  /**
-   * A Root node can only be placed at the very top of the hierarchy.
-   */
-  def isValidLocation(destPath: NodePath): Boolean = destPath == NodePath.empty
+}
+
+/**
+ * RootLoan nodes represent the beginning of the hierarchy for nodes that are
+ * outside the museum. Typically used to keep track of objects that have been
+ * lent to other organisations and actors.
+ */
+case class RootLoan(
+    id: Option[StorageNodeDatabaseId] = None,
+    nodeId: Option[StorageNodeId],
+    name: String = "root-loan-node",
+    environmentRequirement: Option[EnvironmentRequirement] = None,
+    path: NodePath = NodePath.empty,
+    updatedBy: Option[ActorId] = None,
+    updatedDate: Option[DateTime] = None
+) extends RootNode {
+  val storageType: StorageType = StorageType.RootLoanType
+
+  def setUpdated(
+    by: Option[ActorId] = None,
+    date: Option[DateTime] = None
+  ): RootNode = this.copy(updatedBy = by, updatedDate = date)
+}
+
+object RootLoan {
+
+  val logger = Logger(classOf[RootLoan])
+
+  implicit val formats: Format[RootLoan] = (
+    (__ \ "id").formatNullable[StorageNodeDatabaseId] and
+    (__ \ "nodeId").formatNullable[StorageNodeId] and
+    (__ \ "name").format[String](maxCharsFormat(100)) and
+    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
+    (__ \ "updatedBy").formatNullable[ActorId] and
+    (__ \ "updatedDate").formatNullable[DateTime]
+  )(RootLoan.apply, unlift(RootLoan.unapply))
 
 }
 

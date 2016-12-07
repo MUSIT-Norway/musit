@@ -43,6 +43,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     s"Wrong amount of rows ($numRowsUpdated) updated for node $id"
 
   protected val rootNodeType: StorageType = StorageType.RootType
+  protected val rootLoanType: StorageType = StorageType.RootLoanType
 
   protected val storageNodeTable = TableQuery[StorageNodeTable]
 

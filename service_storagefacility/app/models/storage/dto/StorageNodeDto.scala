@@ -117,7 +117,7 @@ object StorageNodeDto {
   def toStorageNode[T <: StorageNodeDto](dto: T) =
     dto match {
       case root: RootDto =>
-        toRoot(root)
+        toRootNode(root)
 
       case stu: StorageUnitDto =>
         toStorageUnit(stu)
@@ -146,7 +146,7 @@ object StorageNodeDto {
 
   def fromStorageNode[T <: StorageNode](mid: MuseumId, stu: T): StorageNodeDto =
     stu match {
-      case root: Root => fromRoot(mid, root)
+      case root: Root => fromRootNode(mid, root)
       case su: StorageUnit => fromStorageUnit(mid, su)
       case b: Building => fromBuilding(mid, b)
       case r: Room => fromRoom(mid, r)
@@ -171,14 +171,35 @@ object StorageNodeDto {
       updatedDate = su.updatedDate
     )
 
-  def toRoot(r: RootDto): Root =
-    Root(
-      id = r.id,
-      nodeId = r.nodeId,
-      name = r.name,
-      updatedBy = r.updatedBy,
-      updatedDate = r.updatedDate
-    )
+  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
+  def toRootNode(su: StorageUnitDto): RootNode = {
+    su.storageType match {
+      case StorageType.RootType =>
+        Root(
+          id = su.id,
+          nodeId = su.nodeId,
+          name = su.name,
+          path = su.path,
+          updatedBy = su.updatedBy,
+          updatedDate = su.updatedDate
+        )
+
+      case StorageType.RootLoanType =>
+        RootLoan(
+          id = su.id,
+          nodeId = su.nodeId,
+          name = su.name,
+          path = su.path,
+          updatedBy = su.updatedBy,
+          updatedDate = su.updatedDate
+        )
+
+      case tpe =>
+        throw new IllegalArgumentException(s"Cannot instantiate $tpe as RootNode") // scalastyle:ignore
+    }
+  }
+
+  def toRootNode(r: RootDto): RootNode = toRootNode(r.asStorageUnitDto(r.museumId))
 
   def toStorageUnit(su: StorageUnitDto): StorageUnit =
     StorageUnit(
@@ -270,7 +291,7 @@ object StorageNodeDto {
     )
   }
 
-  def fromRoot(mid: MuseumId, r: Root): RootDto =
+  def fromRootNode(mid: MuseumId, r: RootNode): RootDto =
     RootDto(
       id = r.id,
       nodeId = r.nodeId,

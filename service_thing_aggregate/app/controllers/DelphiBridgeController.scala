@@ -68,7 +68,11 @@ class DelphiBridgeController @Inject() (
   def outsideNodes(
     museumId: String
   ) = MusitSecureAction().async { implicit request =>
-    // TODO: Fetch all nodes under the _outside_ museum root node.
+    // TODO: Fetch all nodes under the museum root node for _outside_ the museum.
+
+    // TODO: Need to expand the Root types into 2 sub-types. One for regular
+    // Root for nodes inside the museum. And one RootLoan to keep track of all
+    // objects that have been loaned to other museums.
     ???
   }
 

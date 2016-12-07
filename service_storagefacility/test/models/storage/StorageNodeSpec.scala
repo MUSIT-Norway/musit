@@ -28,11 +28,11 @@ class StorageNodeSpec extends WordSpec with MustMatchers {
   "A Root node" should {
 
     "be allowed at the top location in a node hierarchy" in {
-      Root.isValidLocation(NodePath.empty) mustBe true
+      RootNode.isValidLocation(NodePath.empty) mustBe true
     }
 
     "not be valid other than top location in a node hierarchy" in {
-      Root.isValidLocation(NodePath(",1,2,3,")) mustBe false
+      RootNode.isValidLocation(NodePath(",1,2,3,")) mustBe false
     }
 
   }
