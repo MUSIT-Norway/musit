@@ -20,8 +20,10 @@
 package repositories.dao
 
 import com.google.inject.Inject
+import controllers.SimpleNode
 import no.uio.musit.models._
 import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
@@ -32,6 +34,8 @@ import scala.util.control.NonFatal
 class StorageNodeDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
 ) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+
+  private val logger = Logger(classOf[StorageNodeDao])
 
   import driver.api._
 
@@ -48,8 +52,9 @@ class StorageNodeDao @Inject() (
     }.length.result
     db.run(query).map(res => MusitSuccess(res == 1)).recover {
       case NonFatal(e) =>
-        MusitDbError(s"Error occurred while checking for node existence for " +
-          s"nodeId $nodeId", Some(e))
+        val msg = s"Error occurred while checking for node existence for nodeId $nodeId"
+        logger.error(msg, e)
+        MusitDbError(msg, Option(e))
     }
   }
 
@@ -71,14 +76,64 @@ class StorageNodeDao @Inject() (
       maybePath <- findPathAction(maybeNodeId)
     } yield maybeNodeId.flatMap(nid => maybePath.map(p => (nid, p)))
 
-    db.run(query)
+    db.run(query).recover {
+      case NonFatal(e) =>
+        val msg = s"Error occurred while getting current location for object $objectId"
+        logger.error(msg, e)
+        None
+    }
   }
 
   def namesForPath(nodePath: NodePath): Future[Seq[NamedPathElement]] = {
     val query = storageNodeTable.filter { sn =>
       sn.id inSetBind nodePath.asIdSeq
     }.map(s => (s.id, s.name)).result.map(_.map(t => NamedPathElement(t._1, t._2)))
-    db.run(query)
+    db.run(query).recover {
+      case NonFatal(e) =>
+        val msg = s"Error occurred while fetching named path for $nodePath"
+        logger.error(msg, e)
+        Seq.empty
+    }
+  }
+
+  def getRootLoanNodes(
+    museumId: MuseumId
+  ): Future[MusitResult[Seq[StorageNodeDatabaseId]]] = {
+    val query = storageNodeTable.filter { n =>
+      n.museumId === museumId && n.storageType === "RootLoan"
+    }.map(_.id)
+
+    db.run(query.result).map(nodes => MusitSuccess(nodes)).recover {
+      case NonFatal(e) =>
+        val msg = s"Error occurred getting RootLoan nodes for museum $museumId"
+        logger.error(msg, e)
+        MusitDbError(msg, Option(e))
+    }
+  }
+
+  def listAllChildrenFor(
+    museumId: MuseumId,
+    ids: Seq[StorageNodeDatabaseId]
+  ): Future[MusitResult[Seq[SimpleNode]]] = {
+    val q1 = (likePath: String) => storageNodeTable.filter { n =>
+      n.museumId === museumId && (n.path.asColumnOf[String] like likePath)
+    }
+    val query = ids.map(id => s",${id.underlying},%")
+      .map(q1)
+      .reduce((query, queryPart) => query union queryPart)
+      .map(n => (n.id, n.name))
+
+    db.run(query.result).map { res =>
+      MusitSuccess(
+        res.map(r => (r._1, r._2))
+      )
+    }.recover {
+      case NonFatal(e) =>
+        val msg = s"Error occurred reading children for RootLoan " +
+          s"nodes ${ids.mkString(", ")}"
+        logger.error(msg, e)
+        MusitDbError(msg, Option(e))
+    }
   }
 
   type TableType = (Option[StorageNodeDatabaseId], String, String, Option[Double], Option[Double], Option[Long], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath) // scalastyle:ignore

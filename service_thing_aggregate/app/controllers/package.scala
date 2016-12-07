@@ -1,4 +1,4 @@
-import no.uio.musit.models.{CollectionUUID, MuseumCollection, MuseumId}
+import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.libs.json.Json
 import play.api.mvc.{Result, Results}
@@ -23,6 +23,8 @@ import play.api.mvc.{Result, Results}
  */
 
 package object controllers {
+
+  type SimpleNode = (StorageNodeDatabaseId, String)
 
   /**
    * TODO: This is quite dirty... should be improved when time allows.

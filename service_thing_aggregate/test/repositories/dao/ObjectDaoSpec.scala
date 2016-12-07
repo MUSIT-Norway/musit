@@ -276,7 +276,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
       "return a list of objects if the nodeId exists in the museum" in {
         val mr = dao.getObjects(
           mid,
-          StorageNodeDatabaseId(3),
+          StorageNodeDatabaseId(4),
           allCollections
         ).futureValue
         mr.isSuccess mustBe true

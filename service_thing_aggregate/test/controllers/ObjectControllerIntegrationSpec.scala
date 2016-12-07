@@ -70,42 +70,42 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       (first \ "museumNo").as[String] mustBe "C666"
       (first \ "subNo").as[String] mustBe "31"
       (first \ "term").as[String] mustBe "Sverd"
-      (first \ "currentLocationId").as[Long] mustBe 3
-      (first \ "path").as[String] mustBe ",1,2,3,"
+      (first \ "currentLocationId").as[Long] mustBe 4
+      (first \ "path").as[String] mustBe ",1,3,4,"
       val firstPnames = (first \ "pathNames").as[JsArray].value
       (firstPnames.head \ "nodeId").as[Long] mustBe 1
       (firstPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
-      (firstPnames.tail.head \ "nodeId").as[Long] mustBe 2
+      (firstPnames.tail.head \ "nodeId").as[Long] mustBe 3
       (firstPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
-      (firstPnames.last \ "nodeId").as[Long] mustBe 3
+      (firstPnames.last \ "nodeId").as[Long] mustBe 4
       (firstPnames.last \ "name").as[String] mustBe "Forskningens hus"
 
       val second = entries.tail.head
       (second \ "museumNo").as[String] mustBe "C666"
       (second \ "subNo").as[String] mustBe "34"
       (second \ "term").as[String] mustBe "Øks"
-      (second \ "currentLocationId").as[Long] mustBe 3
-      (second \ "path").as[String] mustBe ",1,2,3,"
+      (second \ "currentLocationId").as[Long] mustBe 4
+      (second \ "path").as[String] mustBe ",1,3,4,"
       val secondPnames = (first \ "pathNames").as[JsArray].value
       (secondPnames.head \ "nodeId").as[Long] mustBe 1
       (secondPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
-      (secondPnames.tail.head \ "nodeId").as[Long] mustBe 2
+      (secondPnames.tail.head \ "nodeId").as[Long] mustBe 3
       (secondPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
-      (secondPnames.last \ "nodeId").as[Long] mustBe 3
+      (secondPnames.last \ "nodeId").as[Long] mustBe 4
       (secondPnames.last \ "name").as[String] mustBe "Forskningens hus"
 
       val third = entries.last
       (third \ "museumNo").as[String] mustBe "C666"
       (third \ "subNo").as[String] mustBe "38"
       (third \ "term").as[String] mustBe "Sommerfugl"
-      (third \ "currentLocationId").as[Long] mustBe 3
-      (third \ "path").as[String] mustBe ",1,2,3,"
+      (third \ "currentLocationId").as[Long] mustBe 4
+      (third \ "path").as[String] mustBe ",1,3,4,"
       val thirdPnames = (first \ "pathNames").as[JsArray].value
       (thirdPnames.head \ "nodeId").as[Long] mustBe 1
       (thirdPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
-      (thirdPnames.tail.head \ "nodeId").as[Long] mustBe 2
+      (thirdPnames.tail.head \ "nodeId").as[Long] mustBe 3
       (thirdPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
-      (thirdPnames.last \ "nodeId").as[Long] mustBe 3
+      (thirdPnames.last \ "nodeId").as[Long] mustBe 4
       (thirdPnames.last \ "name").as[String] mustBe "Forskningens hus"
     }
 
@@ -160,7 +160,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     // TODO: There needs to be _loads_ more tests here!
 
     "find objects for nodeId that exists" in {
-      val nodeId = 3
+      val nodeId = 4
       val mid = 99
       val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
         .withHeaders(fakeToken.asHeader)
