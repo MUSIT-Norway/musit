@@ -58,7 +58,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
     val subNoAsNumber = column[Option[Long]]("SUBNOASNUMBER")
     val mainObjectId = column[Option[Long]]("MAINOBJECT_ID")
     val term = column[String]("TERM")
-    val oldSchema = column[Option[String]]("OLD_SCHEMA_NAME")
+    val oldSchema = column[Option[String]]("OLD_SCHEMANAME")
     val oldObjId = column[Option[Long]]("LOKAL_PK")
 
   }
