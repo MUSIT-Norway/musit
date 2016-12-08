@@ -35,31 +35,36 @@ class GeoLocationService @Inject() (config: Configuration, ws: WSClient) {
 
   def searchGeoNorway(expr: String): Future[Seq[Address]] = {
     val maxRes = config.getInt(HitsPerResultKey).getOrElse(10)
-    val searchUrl = SearchURL.format(expr, maxRes)
 
-    ws.url(searchUrl).get().map { response =>
-      (response.json \ "totaltAntallTreff").asOpt[String].map(_.toInt) match {
-        case Some(numRes) if numRes > 0 =>
-          logger.debug(s"Got $numRes address results.")
-          val jsArr = (response.json \ "adresser").as[JsArray].value
-          jsArr.foldLeft(List.empty[Address]) { (state, ajs) =>
-            Json.fromJson[GeoNorwayAddress](ajs).asOpt.map { gna =>
-              state :+ GeoNorwayAddress.asAddress(gna)
-            }.getOrElse(state)
-          }
+    ws.url(SearchURL)
+      .withQueryString(
+        "sokestreng" -> expr,
+        "antPerSide" -> s"$maxRes"
+      )
+      .get()
+      .map { response =>
+        logger.debug(s"Got response from geonorge:\n${response.body}")
+        (response.json \ "totaltAntallTreff").asOpt[String].map(_.toInt) match {
+          case Some(numRes) if numRes > 0 =>
+            logger.debug(s"Got $numRes address results.")
+            val jsArr = (response.json \ "adresser").as[JsArray].value
+            jsArr.foldLeft(List.empty[Address]) { (state, ajs) =>
+              Json.fromJson[GeoNorwayAddress](ajs).asOpt.map { gna =>
+                state :+ GeoNorwayAddress.asAddress(gna)
+              }.getOrElse(state)
+            }
 
-        case _ =>
-          logger.debug("Search did not return any results")
-          Seq.empty
+          case _ =>
+            logger.debug("Search did not return any results")
+            Seq.empty
+        }
       }
-    }
   }
 
 }
 
 object GeoLocationService {
   val HitsPerResultKey = "musit.geoLocation.geoNorway.hitsPerResult"
-  val SearchURL =
-    "http://ws.geonorge.no/AdresseWS/adresse/sok?sokestreng=%s&antPerSide=%n"
+  val SearchURL = "http://ws.geonorge.no/AdresseWS/adresse/sok"
 
 }
