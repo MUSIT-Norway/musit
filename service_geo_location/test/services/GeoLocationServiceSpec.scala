@@ -19,51 +19,39 @@
 
 package services
 
-import no.uio.musit.test.MusitSpec
+import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.test.WsTestClient
-import play.api.{Configuration, Environment}
 
-import scala.language.postfixOps
-
-class GeoLocationServiceSpec extends MusitSpec {
+class GeoLocationServiceSpec extends MusitSpecWithAppPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
     interval = Span(50, Millis)
   )
 
-  val config = Configuration.load(Environment.simple())
+  val service: GeoLocationService = fromInstanceCache[GeoLocationService]
 
   "GeoLocationService" when {
 
     "searching for addresses" should {
 
       "return a list of results that match the query" in {
-        WsTestClient.withClient { client =>
-          val service = new GeoLocationService(config, client)
-
-          val res = service.searchGeoNorway("paal bergs vei 56, RYKKINN").futureValue
-          res must not be empty
-          res.head.street mustBe "Paal Bergs vei"
-          res.head.streetNo mustBe "56"
-          res.head.place mustBe "RYKKINN"
-          res.head.zip mustBe "1348"
-        }
+        val res = service.searchGeoNorway("paal bergs vei 56, RYKKINN").futureValue
+        res must not be empty
+        res.head.street mustBe "Paal Bergs vei"
+        res.head.streetNo mustBe "56"
+        res.head.place mustBe "RYKKINN"
+        res.head.zip mustBe "1348"
       }
 
       "return a list of results that contains street number with house letter" in {
-        WsTestClient.withClient { client =>
-          val service = new GeoLocationService(config, client)
+        val res = service.searchGeoNorway("Kirkegata 11, Hønefoss").futureValue
 
-          val res = service.searchGeoNorway("Kirkegata 11, Hønefoss").futureValue
-
-          res must not be empty
-          res.head.street mustBe "Kirkegata"
-          res.head.streetNo mustBe "11 E"
-          res.head.place mustBe "HØNEFOSS"
-          res.head.zip mustBe "3510"
-        }
+        res must not be empty
+        res.head.street mustBe "Kirkegata"
+        res.head.streetNo mustBe "11 E"
+        res.head.place mustBe "HØNEFOSS"
+        res.head.zip mustBe "3510"
       }
 
     }
