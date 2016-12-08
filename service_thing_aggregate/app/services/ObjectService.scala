@@ -20,8 +20,7 @@
 package services
 
 import com.google.inject.Inject
-import models.{MusitObject, ObjectAggregation, ObjectSearchResult}
-import no.uio.musit.models.OldDbSchemas.OldSchema
+import models.{MusitObject, ObjectSearchResult}
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
@@ -66,7 +65,7 @@ class ObjectService @Inject() (
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId,
     collectionIds: Seq[MuseumCollection]
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     objDao.findObjects(mid, nodeId, collectionIds)
   }
 

@@ -21,7 +21,7 @@ package repositories.dao
 
 import com.google.inject.Inject
 import models.SearchFieldValues._
-import models.{MusitObject, ObjectAggregation, ObjectSearchResult}
+import models.{MusitObject, ObjectSearchResult}
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.service.MusitResults._
@@ -288,7 +288,7 @@ class ObjectDao @Inject() (
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId,
     collections: Seq[MuseumCollection]
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectAggregation]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
 
     val locObjQuery = localObjects.filter { lo =>
       lo.museumId === mid &&
@@ -303,20 +303,11 @@ class ObjectDao @Inject() (
       }
     }
 
-    val query = for {
+    val q = for {
       (_, o) <- locObjQuery join objQuery on (_.objectId === _.id)
-    } yield (o.id, o.museumNo, o.subNo, o.term)
+    } yield o
 
-    db.run(query.result).map { objs =>
-      objs.map { o =>
-        ObjectAggregation(
-          id = o._1,
-          museumNo = MuseumNo(o._2),
-          subNo = o._3.map(SubNo.apply),
-          term = Option(o._4)
-        )
-      }
-    }.map(MusitSuccess.apply).recover {
+    db.run(q.result).map(_.map(MusitObject.fromTuple)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"Error while retrieving objects for nodeId $nodeId"
         logger.error(msg, ex)

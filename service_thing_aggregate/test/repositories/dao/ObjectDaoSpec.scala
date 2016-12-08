@@ -286,18 +286,53 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             first.id mustBe ObjectId(1)
             first.museumNo mustBe MuseumNo("C666")
             first.subNo mustBe Some(SubNo("34"))
-            first.term mustBe Some("Øks")
+            first.term mustBe "Øks"
+            first.mainObjectId mustBe None
 
             second.id mustBe ObjectId(2)
             second.museumNo mustBe MuseumNo("C666")
             second.subNo mustBe Some(SubNo("31"))
-            second.term mustBe Some("Sverd")
+            second.term mustBe "Sverd"
+            second.mainObjectId mustBe None
 
             third.id mustBe ObjectId(3)
             third.museumNo mustBe MuseumNo("C666")
             third.subNo mustBe Some(SubNo("38"))
-            third.term mustBe Some("Sommerfugl")
+            third.term mustBe "Sommerfugl"
+            third.mainObjectId mustBe None
         }
+      }
+
+      "return a list of objects that includes the main object ID" in {
+        val mr = dao.findObjects(
+          mid,
+          StorageNodeDatabaseId(7),
+          allCollections
+        ).futureValue
+
+        mr.isSuccess mustBe true
+        mr.get.size mustBe 3
+        mr.get match {
+          case Vector(first, second, third) =>
+            first.id mustBe ObjectId(48)
+            first.museumNo mustBe MuseumNo("K123")
+            first.subNo mustBe None
+            first.term mustBe "Drakt"
+            first.mainObjectId mustBe Some(12)
+
+            second.id mustBe ObjectId(49)
+            second.museumNo mustBe MuseumNo("K123")
+            second.subNo mustBe None
+            second.term mustBe "Skjorte"
+            second.mainObjectId mustBe Some(12)
+
+            third.id mustBe ObjectId(50)
+            third.museumNo mustBe MuseumNo("K123")
+            third.subNo mustBe None
+            third.term mustBe "Kjole"
+            third.mainObjectId mustBe Some(12)
+        }
+
       }
 
       "return a an empty vector when nodeId doesn't exist in museum" in {

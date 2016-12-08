@@ -177,6 +177,23 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       (obj \ "subNo").as[SubNo] mustBe SubNo("34")
     }
 
+    "find objects for nodeId that has mainObjectId" in {
+      val nodeId = 7
+      val mid = 99
+      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+        .withHeaders(fakeToken.asHeader)
+        .withQueryString("collectionIds" -> archeologyCollection)
+        .get().futureValue
+      response.status mustBe OK
+
+      val objects = response.json.as[JsArray].value
+      objects.size mustBe 3
+      objects.foreach { obj =>
+        (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("K123")
+        (obj \ "mainObjectId").as[Long] mustBe 12
+      }
+    }
+
     "respond with 404 for nodeId that does not exist" in {
       val nodeId = 99999
       val mid = 99
