@@ -24,7 +24,7 @@ import models.event.dto.ObservationFromToDto
 import no.uio.musit.models.EventId
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import repositories.dao.{ColumnTypeMappers, SchemaName}
+import repositories.dao.EventTables
 
 import scala.concurrent.Future
 
@@ -34,20 +34,18 @@ import scala.concurrent.Future
 @Singleton
 class ObservationFromToDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends BaseEventDao with ColumnTypeMappers {
+) extends EventTables {
 
   import driver.api._
 
   val logger = Logger(classOf[ObservationFromToDao])
-
-  private val observationFromToTable = TableQuery[ObservationFromToTable]
 
   /**
    * TODO: Document me!
    */
   def insertAction(event: ObservationFromToDto): DBIO[Int] = {
     logger.debug(s"Received ObservationFromTo with parentId ${event.id}")
-    observationFromToTable += event
+    obsFromToTable += event
   }
 
   /**
@@ -55,25 +53,7 @@ class ObservationFromToDao @Inject() (
    */
   def getObservationFromTo(id: EventId): Future[Option[ObservationFromToDto]] =
     db.run(
-      observationFromToTable.filter(event => event.id === id).result.headOption
+      obsFromToTable.filter(event => event.id === id).result.headOption
     )
-
-  private class ObservationFromToTable(
-      val tag: Tag
-  ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
-    def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val id = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)
-
-    val from = column[Option[Double]]("VALUE_FROM")
-    val to = column[Option[Double]]("VALUE_TO")
-
-    def create =
-      (id: Option[EventId], from: Option[Double], to: Option[Double]) =>
-        ObservationFromToDto(id, from, to)
-
-    def destroy(event: ObservationFromToDto) =
-      Some((event.id, event.from, event.to))
-  }
 
 }

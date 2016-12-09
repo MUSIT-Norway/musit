@@ -23,20 +23,17 @@ import com.google.inject.{Inject, Singleton}
 import models.event.EventTypeId
 import models.event.dto.EventRoleObject
 import no.uio.musit.models.{EventId, ObjectId}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import repositories.dao.{ColumnTypeMappers, SchemaName}
-import slick.driver.JdbcProfile
+import play.api.db.slick.DatabaseConfigProvider
+import repositories.dao.EventTables
 
 import scala.concurrent.Future
 
 @Singleton
 class EventObjectsDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends EventTables {
 
   import driver.api._
-
-  private val eventObjectsTable = TableQuery[EventObjectsTable]
 
   def insertObjects(
     eventId: EventId,
@@ -66,39 +63,6 @@ class EventObjectsDao @Inject() (
       case l: Int => q.take(50)
     }.getOrElse(q).result
     db.run(query)
-  }
-
-  private class EventObjectsTable(
-      tag: Tag
-  ) extends Table[EventRoleObject](tag, SchemaName, "EVENT_ROLE_OBJECT") {
-
-    def * = (eventId.?, roleId, objectId, eventTypeId) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val eventId = column[EventId]("EVENT_ID")
-    val roleId = column[Int]("ROLE_ID")
-    val objectId = column[ObjectId]("OBJECT_ID")
-    val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
-
-    def create = (
-      eventId: Option[EventId],
-      roleId: Int,
-      objectId: ObjectId,
-      eventTypeId: EventTypeId
-    ) =>
-      EventRoleObject(
-        eventId = eventId,
-        roleId = roleId,
-        objectId = objectId,
-        eventTypeId = eventTypeId
-      )
-
-    def destroy(eventRoleObject: EventRoleObject) =
-      Some((
-        eventRoleObject.eventId,
-        eventRoleObject.roleId,
-        eventRoleObject.objectId,
-        eventRoleObject.eventTypeId
-      ))
   }
 
 }

@@ -41,3 +41,5 @@ trait TestConfigs {
   )
 
 }
+
+object TestConfigs extends TestConfigs

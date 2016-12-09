@@ -19,7 +19,7 @@
 
 package no.uio.musit.security
 
-import no.uio.musit.service.MusitResults.MusitResult
+import no.uio.musit.MusitResults.MusitResult
 
 import scala.concurrent.Future
 

@@ -27,7 +27,7 @@ import no.uio.musit.models.{CollectionUUID, Email, GroupId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
-import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import play.api.Configuration
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

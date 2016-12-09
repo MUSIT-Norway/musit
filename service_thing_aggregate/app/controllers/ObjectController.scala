@@ -25,7 +25,7 @@ import no.uio.musit.models.{MuseumCollection, MuseumId, MuseumNo, SubNo}
 import no.uio.musit.security.{AuthenticatedUser, Authenticator}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitSuccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc.{Result, Results}

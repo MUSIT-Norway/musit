@@ -23,10 +23,11 @@ import com.google.inject.{Inject, Singleton}
 import models.storage.Building
 import models.storage.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
 import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.dao.StorageTables
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -37,7 +38,7 @@ import scala.util.control.NonFatal
 @Singleton
 class BuildingDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends SharedStorageTables {
+) extends StorageTables {
 
   import driver.api._
 

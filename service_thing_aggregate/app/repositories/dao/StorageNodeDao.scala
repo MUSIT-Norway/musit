@@ -22,7 +22,7 @@ package repositories.dao
 import com.google.inject.Inject
 import controllers.SimpleNode
 import no.uio.musit.models._
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

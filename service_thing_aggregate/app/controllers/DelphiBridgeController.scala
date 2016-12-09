@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
-import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.json._
 import services.{ObjectService, StorageNodeService}

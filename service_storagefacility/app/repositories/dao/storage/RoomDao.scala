@@ -23,17 +23,18 @@ import com.google.inject.{Inject, Singleton}
 import models.storage.Room
 import models.storage.dto.{ExtendedStorageNode, RoomDto, StorageNodeDto}
 import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.dao.StorageTables
 
 import scala.concurrent.Future
 
 @Singleton
 class RoomDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends SharedStorageTables {
+) extends StorageTables {
 
   import driver.api._
 

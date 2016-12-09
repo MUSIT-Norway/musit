@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import models.{MusitObject, ObjectSearchResult}
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.service.MusitResults._
+import no.uio.musit.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.{ObjectDao, StorageNodeDao}

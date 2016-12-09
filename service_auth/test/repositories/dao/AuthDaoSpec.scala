@@ -23,7 +23,7 @@ import models._
 import no.uio.musit.models.{Email, GroupId}
 import no.uio.musit.models.Museums.Test
 import no.uio.musit.security.Permissions
-import no.uio.musit.service.MusitResults.MusitDbError
+import no.uio.musit.MusitResults.MusitDbError
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.time.{Millis, Seconds, Span}

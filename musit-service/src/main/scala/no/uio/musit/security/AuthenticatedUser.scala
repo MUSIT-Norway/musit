@@ -22,7 +22,7 @@ package no.uio.musit.security
 import no.uio.musit.models.Museums.{All, Museum}
 import no.uio.musit.models.{ActorId, CollectionUUID, MuseumCollection, MuseumId}
 import no.uio.musit.security.Permissions.{ElevatedPermission, GodMode, Permission}
-import no.uio.musit.service.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
 import play.api.Logger
 
 case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {

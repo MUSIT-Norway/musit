@@ -24,8 +24,6 @@ import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 import models.event.EventTypeId
 import no.uio.musit.models.{ActorId, EventId}
 
-// TODO: Change id and partOf to EventId
-
 sealed trait EventDto {
   val id: Option[EventId]
   val eventTypeId: EventTypeId

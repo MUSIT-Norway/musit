@@ -157,8 +157,6 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       res.status mustBe FORBIDDEN
     }
 
-    // TODO: There needs to be _loads_ more tests here!
-
     "find objects for nodeId that exists" in {
       val nodeId = 4
       val mid = 99

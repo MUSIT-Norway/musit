@@ -19,6 +19,7 @@
 
 package repositories.dao.storage
 
+import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.{NodePath, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -63,15 +64,15 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         nodeId mustBe a[StorageNodeDatabaseId]
       }
 
-      statsDao.childCount(insId).futureValue mustBe 10
+      statsDao.childCount(insId).futureValue mustBe MusitSuccess(10)
     }
 
     "return the number of objects on a node" in {
-      statsDao.directObjectCount(StorageNodeDatabaseId(6)).futureValue mustBe 5
+      statsDao.directObjectCount(StorageNodeDatabaseId(6)).futureValue mustBe MusitSuccess(5)
     }
 
     "return the total number of objects i a node hierarchy" in {
-      statsDao.totalObjectCount(NodePath(",1,")).futureValue mustBe 13
+      statsDao.totalObjectCount(NodePath(",1,")).futureValue mustBe MusitSuccess(13)
     }
 
   }

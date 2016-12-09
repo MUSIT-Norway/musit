@@ -17,51 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.dao.event
+package repositories.dao
 
-import com.google.inject.Inject
-import models.event.dto.{EventDto, LocalObject}
-import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import repositories.dao.{ColumnTypeMappers, SchemaName}
-import slick.driver.JdbcProfile
+import models.event.dto.LocalObject
+import no.uio.musit.models._
 
-import scala.concurrent.Future
-
-class LocalObjectDao @Inject() (
-    val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
 
   import driver.api._
 
-  private val localObjectsTable = TableQuery[LocalObjectsTable]
+  val localObjectsTable = TableQuery[LocalObjectsTable]
 
-  private def upsert(lo: LocalObject): DBIO[Int] =
-    localObjectsTable.insertOrUpdate(lo)
-
-  def cacheLatestMove(mid: MuseumId, eventId: EventId, moveEvent: EventDto): DBIO[Int] = {
-    val relObj = moveEvent.relatedObjects.headOption
-    val relPlc = moveEvent.relatedPlaces.headOption
-
-    relObj.flatMap { obj =>
-      relPlc.map { place =>
-        upsert(LocalObject(obj.objectId, eventId, place.placeId, mid))
-      }
-    }.getOrElse(
-      throw new AssertionError("A MoveObject event requires both the " +
-        "'affectedThing' and 'to' attributes set")
-    )
-  }
-
-  def currentLocation(objectId: ObjectId): Future[Option[StorageNodeDatabaseId]] = {
-    val query = localObjectsTable.filter { locObj =>
-      locObj.objectId === objectId
-    }.map(_.currentLocationId).max.result
-
-    db.run(query)
-  }
-
-  private class LocalObjectsTable(
+  class LocalObjectsTable(
       tag: Tag
   ) extends Table[LocalObject](tag, SchemaName, "LOCAL_OBJECT") {
     // scalastyle:off method.name

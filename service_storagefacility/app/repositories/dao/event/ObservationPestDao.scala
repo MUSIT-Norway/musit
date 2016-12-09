@@ -20,22 +20,20 @@
 package repositories.dao.event
 
 import com.google.inject.{Inject, Singleton}
-import models.event.dto.{LifecycleDto, ObservationPestDto}
+import models.event.dto.ObservationPestDto
 import no.uio.musit.models.EventId
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.{ColumnTypeMappers, SchemaName}
+import repositories.dao.EventTables
 
 import scala.concurrent.Future
 
 @Singleton
 class ObservationPestDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends BaseEventDao with ColumnTypeMappers {
+) extends EventTables {
 
   import driver.api._
-
-  private val lifeCycleTable = TableQuery[LifeCycleTable]
 
   /**
    * The insertAction and getObservation are somewhat more complex than
@@ -60,22 +58,5 @@ class ObservationPestDao @Inject() (
         case Nil => None
         case lifeCycles => Some(ObservationPestDto(lifeCycles))
       }
-
-  private class LifeCycleTable(
-      val tag: Tag
-  ) extends Table[LifecycleDto](tag, SchemaName, "OBSERVATION_PEST_LIFECYCLE") {
-    def * = (eventId, stage, quantity) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val eventId = column[Option[EventId]]("EVENT_ID")
-    val stage = column[Option[String]]("STAGE")
-    val quantity = column[Option[Int]]("QUANTITY")
-
-    def create =
-      (eventId: Option[EventId], stage: Option[String], quantity: Option[Int]) =>
-        LifecycleDto(eventId, stage, quantity)
-
-    def destroy(lifeCycle: LifecycleDto) =
-      Some((lifeCycle.eventId, lifeCycle.stage, lifeCycle.quantity))
-  }
 
 }

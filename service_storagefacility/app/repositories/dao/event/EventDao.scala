@@ -28,12 +28,13 @@ import models.event.dto._
 import models.event.move.MoveObject
 import models.event.{EventTypeId, EventTypeRegistry}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
-import no.uio.musit.service.MusitResults._
+import no.uio.musit.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.ColumnTypeMappers
-import repositories.dao.event.EventRelationTypes.PartialEventRelation
+import repositories.dao.{ColumnTypeMappers, EventTables}
+import EventRelationTypes.PartialEventRelation
+import repositories.dao.caching.LocalObjectDao
 import slick.dbio.SequenceAction
 
 import scala.concurrent.Future
@@ -70,13 +71,11 @@ class EventDao @Inject() (
     val placesDao: EventPlacesDao,
     val placesAsObjDao: EventPlacesAsObjectsDao,
     val localObjectDao: LocalObjectDao
-) extends SharedEventTables with ColumnTypeMappers {
+) extends EventTables with ColumnTypeMappers {
 
   import driver.api._
 
   private val logger = Logger(classOf[EventDao])
-
-  private val eventBaseTable = TableQuery[EventBaseTable]
 
   /**
    * Assembles an action for inserting the base denominator of an event into the

@@ -27,7 +27,7 @@ import models.event.dto.BaseEventDto
 import models.event.dto.DtoConverters.CtrlConverters
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.service.MusitResults._
+import no.uio.musit.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.event.EventDao
@@ -109,7 +109,10 @@ class ControlService @Inject() (
     }
   }
 
-  def listFor(mid: MuseumId, nodeId: StorageNodeDatabaseId): Future[MusitResult[Seq[Control]]] = {
+  def listFor(
+    mid: MuseumId,
+    nodeId: StorageNodeDatabaseId
+  ): Future[MusitResult[Seq[Control]]] = {
     eventDao.getEventsForNode(mid, nodeId, ControlEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>
         // We know we have a BaseEventDto representing a Control.
