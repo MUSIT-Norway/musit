@@ -17,11 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.service
+package no.uio.musit
 
 object MusitResults {
-
-  // FIXME: Ok..the time has come for a Monad Transformer for this type!!!
 
   sealed abstract class MusitResult[+A] {
 
@@ -83,7 +81,7 @@ object MusitResults {
    */
   case object MusitEmpty extends MusitError {
     override val message: String = "empty"
-    override val isSuccess: Boolean = true
+    override val isSuccess: Boolean = false
   }
 
   /**

@@ -22,7 +22,7 @@ package controllers
 import com.google.inject.Inject
 import models.Organisation
 import no.uio.musit.security.Authenticator
-import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.service.{MusitController, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._

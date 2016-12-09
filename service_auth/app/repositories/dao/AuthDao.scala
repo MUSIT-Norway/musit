@@ -23,7 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd}
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthTables, GroupInfo}
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitError, MusitResult, MusitSuccess} // scalastyle:ignore
+import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitResult, MusitSuccess} // scalastyle:ignore
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

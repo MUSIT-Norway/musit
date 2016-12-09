@@ -1,6 +1,6 @@
 @import controllers.web.routes.GroupController
 @import models.Group
-@import no.uio.musit.service.MusitResults.MusitError
+@import no.uio.musit.MusitResults.MusitError
 @import play.api.mvc.Flash
 
 @(groups: Seq[Group], museumId: Int, error: Option[MusitError] = None)(implicit flash: Flash)

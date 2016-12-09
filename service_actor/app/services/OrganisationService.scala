@@ -22,7 +22,7 @@ package services
 import com.google.inject.Inject
 import models.Organisation
 import no.uio.musit.models.OrgId
-import no.uio.musit.service.MusitResults.MusitResult
+import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.service.MusitSearch
 import repositories.dao.OrganisationDao
 

@@ -22,7 +22,7 @@ package controllers.rest
 import com.google.inject.Inject
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
-import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -43,26 +43,26 @@ class CollectionController @Inject() (
   /**
    * Fetch all MuseumCollections in the system
    */
-  def getAllCollections = Action.async { implicit request =>
+  def getAllCollections = MusitSecureAction().async { implicit request =>
     dao.allCollections.map {
       case MusitSuccess(cols) => if (cols.nonEmpty) Ok(Json.toJson(cols)) else NoContent
       case err: MusitError => serverError(err.message)
     }
   }
 
-  def getCollection(colId: String) = Action.async { implicit request =>
+  def getCollection(colId: String) = MusitSecureAction().async { implicit request =>
     ???
   }
 
-  def addCollection = Action.async(parse.json) { implicit request =>
+  def addCollection = MusitAdminAction().async(parse.json) { implicit request =>
     ???
   }
 
-  def updateCollection = Action.async(parse.json) { implicit request =>
+  def updateCollection = MusitAdminAction().async(parse.json) { implicit request =>
     ???
   }
 
-  def removeCollection(colId: String) = Action.async { implicit request =>
+  def removeCollection(colId: String) = MusitAdminAction().async { implicit request =>
     ???
   }
 

@@ -19,22 +19,21 @@
 
 package services
 
-import java.util.NoSuchElementException
-
 import com.google.inject.Inject
 import models.datetime.dateTimeNow
 import models.event.dto.DtoConverters
-import models.event.envreq.EnvRequirement
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
-import models.storage.StorageType._
 import models.storage._
 import models.{FacilityLocation, LocationHistory, NodeStats}
+import no.uio.musit.MusitResults._
+import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.service.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.event.{EventDao, LocalObjectDao}
+import repositories.dao.caching.LocalObjectDao
+import repositories.dao.event.EventDao
 import repositories.dao.storage._
 
 import scala.concurrent.Future
@@ -43,7 +42,6 @@ import scala.util.control.NonFatal
 /**
  * TODO: Document me!!!
  */
-// scalastyle:off number.of.methods
 class StorageNodeService @Inject() (
     val unitDao: StorageUnitDao,
     val roomDao: RoomDao,
@@ -53,34 +51,9 @@ class StorageNodeService @Inject() (
     val eventDao: EventDao,
     val localObjectDao: LocalObjectDao,
     val statsDao: StorageStatsDao
-) {
+) extends NodeService {
 
   val logger = Logger(classOf[StorageNodeService])
-
-  private[services] def saveEnvReq(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    envReq: EnvironmentRequirement
-  )(implicit currUsr: AuthenticatedUser): Future[Option[EnvironmentRequirement]] = {
-    unitDao.getById(mid, nodeId).flatMap { mayBeNode =>
-      mayBeNode.map { _ =>
-        val now = dateTimeNow
-        val er = EnvRequirement.toEnvRequirementEvent(currUsr.id, nodeId, now, envReq)
-
-        envReqService.add(mid, er).map {
-          case MusitSuccess(success) =>
-            logger.debug("Successfully wrote environment requirement data " +
-              s"for node $nodeId")
-            Some(EnvRequirement.fromEnvRequirementEvent(er))
-
-          case err: MusitError =>
-            logger.error("Something went wrong while storing the environment " +
-              s"requirements for node $nodeId")
-            None
-        }
-      }.getOrElse(Future.successful(None))
-    }
-  }
 
   /**
    * Simple check to see if a node with the given exists in a museum.
@@ -119,127 +92,6 @@ class StorageNodeService @Inject() (
         case err: MusitError =>
           Future.successful(err)
       }
-    }
-  }
-
-  /**
-   * Find the NodePath for the given storageNodeId.
-   */
-  private[services] def findPath(
-    mid: MuseumId,
-    maybeId: Option[StorageNodeDatabaseId]
-  ): Future[Option[NodePath]] = {
-    maybeId.map(id => unitDao.getPathById(mid, id))
-      .getOrElse(Future.successful(None))
-  }
-
-  /**
-   * This function helps to validate that the relevant rules about the node
-   * hierarchy are enforced. All operations that involves positioning a node
-   * somewhere in the hierarchy, will need to call this function to ensure
-   * validity.
-   *
-   * @param mid  MuseumId
-   * @param node an instance of T which must be a sub-type of StorageNode
-   * @param dest the destination NodePath.
-   * @tparam T the specific StorageNode type
-   * @return a Future of Boolean indicating valid or invalid positioning
-   */
-  private[services] def isValidPosition[T <: StorageNode](
-    mid: MuseumId,
-    node: T,
-    dest: NodePath
-  ): Future[Boolean] = {
-    if (!dest.childOf(node.path)) {
-      val maybeDestId = dest.asIdSeq.lastOption
-      // Get the StorageType for the elements in the destination path so we can
-      // use it to verify that nodes are placed on a valid location
-      unitDao.getStorageTypesInPath(mid, dest).map { idTypeTuples =>
-        logger.debug(s"Found types for node IDs in destination path" +
-          s": ${idTypeTuples.mkString(", ")}")
-        logger.trace(s"Validating destination for ${node.storageType.entryName}...")
-        // Identify the type of node we want to place in the hierarchy, and
-        // validate if the destination location is valid for the given type.
-        node.storageType match {
-          case RootType =>
-            RootNode.isValidLocation(dest)
-
-          case RootLoanType =>
-            RootNode.isValidLocation(dest)
-
-          case OrganisationType =>
-            Organisation.isValidLocation(maybeDestId, idTypeTuples)
-
-          case BuildingType =>
-            Building.isValidLocation(maybeDestId, idTypeTuples)
-
-          case RoomType =>
-            Room.isValidLocation(maybeDestId, idTypeTuples)
-
-          case StorageUnitType =>
-            StorageUnit.isValidLocation(maybeDestId, idTypeTuples)
-        }
-      }
-    } else {
-      logger.warn(s"destination $dest is not allowed because it's a child" +
-        s" of ${node.path}")
-      Future.successful(false)
-    }
-  }
-
-  // A couple of type aliases to reduce the length of some function args.
-  type NodeInsertIO[A] = (MuseumId, A) => Future[StorageNodeDatabaseId]
-  type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
-  type NodeUpdateIO[A] = (StorageNodeDatabaseId, NodePath) => Future[MusitResult[Unit]]
-  type GetNodeIO[A] = (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
-
-  private val futureFilterErr = "Future.filter predicate is not satisfied"
-
-  /**
-   * Helper function that wraps the process of inserting a new StorageNode.
-   *
-   * @param node
-   * @param insert
-   * @param setEnvReq
-   * @param updateWithPath
-   * @tparam T
-   * @return
-   */
-  private def addNode[T <: StorageNode](
-    mid: MuseumId,
-    node: T,
-    insert: NodeInsertIO[T],
-    setEnvReq: SetEnvReq[T],
-    updateWithPath: NodeUpdateIO[T],
-    getNode: GetNodeIO[T]
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[T]]] = {
-    val res = for {
-      maybePath <- findPath(mid, node.isPartOf)
-      isValidDest <- isValidPosition(mid, node, maybePath.getOrElse(NodePath.empty))
-      // Call the insert function to persist the node if the path is valid.
-      if isValidDest
-      nodeId <- insert(mid, node)
-      pathUpdated <- updateWithPath(nodeId, maybePath.getOrElse(NodePath.empty).appendChild(nodeId)) // scalastyle:ignore
-      _ <- node.environmentRequirement.map(er => saveEnvReq(mid, nodeId, er)).getOrElse(Future.successful(None)) // scalastyle:ignore
-      theNode <- getNode(mid, nodeId)
-    } yield {
-      logger.debug(s"Successfully added node ${node.name} of type" +
-        s" ${node.storageType} to ${maybePath.getOrElse(NodePath.empty)}")
-      theNode
-    }
-
-    res.recover {
-      // TODO: Use custom defined exception in if guard in above for-comprehension.
-      case nse: NoSuchElementException if nse.getMessage.contains(futureFilterErr) =>
-        val msg = s"Invalid destination for ${node.name} of type ${node.storageType}"
-        logger.warn(msg)
-        MusitValidationError(msg)
-
-      case NonFatal(ex) =>
-        val msg = s"An unexpected error occurred trying to add node" +
-          s" ${node.name} of type ${node.storageType}"
-        logger.error(msg, ex)
-        MusitInternalError(msg)
     }
   }
 
@@ -443,39 +295,6 @@ class StorageNodeService @Inject() (
     }
   }
 
-  type CopyNode[A <: StorageNode] = (A, Option[EnvironmentRequirement], Option[Seq[NamedPathElement]]) => A // scalastyle:ignore
-
-  /**
-   * Helper function that applies the common logic for fetching a storage node.
-   *
-   * @param mid
-   * @param id
-   * @param eventuallyMaybeNode
-   * @param cp
-   * @tparam A
-   * @return
-   */
-  private def nodeById[A <: StorageNode](
-    mid: MuseumId,
-    id: StorageNodeDatabaseId,
-    eventuallyMaybeNode: Future[Option[A]]
-  )(cp: CopyNode[A]): Future[MusitResult[Option[A]]] = {
-    val eventuallyMaybeEnvReq = getEnvReq(mid, id)
-    for {
-      maybeNode <- eventuallyMaybeNode
-      maybeEnvReq <- eventuallyMaybeEnvReq
-      namedPathElems <- maybeNode.map { node =>
-        unitDao.namesForPath(node.path)
-      }.getOrElse(Future.successful(Seq.empty))
-    } yield {
-      val maybePathElems = {
-        if (namedPathElems.nonEmpty) Some(namedPathElems)
-        else None
-      }
-      MusitSuccess(maybeNode.map(n => cp(n, maybeEnvReq, maybePathElems)))
-    }
-  }
-
   /**
    * TODO: Document me!
    */
@@ -537,23 +356,6 @@ class StorageNodeService @Inject() (
         environmentRequirement = maybeReq,
         pathNames = maybeNames
       )
-    }
-  }
-
-  private def getEnvReq(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId
-  ): Future[Option[EnvironmentRequirement]] = {
-    envReqService.findLatestForNodeId(mid, id).map {
-      case MusitSuccess(maybeEnvRequirement) => maybeEnvRequirement
-      case _ => None
-
-    }.recover {
-      case NonFatal(ex) =>
-        // If we fail fetching the envreq event, we'll return None.
-        logger.warn("Something went wrong trying to locate latest " +
-          s"environment requirement data for unit $id", ex)
-        None
     }
   }
 
@@ -631,46 +433,25 @@ class StorageNodeService @Inject() (
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Option[NodeStats]]] = {
-    getNodeById(mid, nodeId).flatMap {
-      case MusitSuccess(maybeNode) =>
-        maybeNode.map { node =>
-          val eventuallyTotal = statsDao.totalObjectCount(node.path)
-          val eventuallyDirect = statsDao.directObjectCount(nodeId)
-          val eventuallyNodeCount = statsDao.childCount(nodeId)
+    MusitResultT(getNodeById(mid, nodeId)).flatMap { maybeNode =>
+      maybeNode.map { node =>
+        val totalF = MusitResultT(statsDao.totalObjectCount(node.path))
+        val directF = MusitResultT(statsDao.directObjectCount(nodeId))
+        val nodeCountF = MusitResultT(statsDao.childCount(nodeId))
 
-          for {
-            total <- eventuallyTotal
-            direct <- eventuallyDirect
-            nodeCount <- eventuallyNodeCount
-          } yield {
-            MusitSuccess(Some(NodeStats(nodeCount, direct, total)))
-          }
-        }.getOrElse {
-          Future.successful(MusitSuccess(None))
+        val res = for {
+          total <- totalF
+          direct <- directF
+          nodeCount <- nodeCountF
+        } yield {
+          Option(NodeStats(nodeCount, direct, total))
         }
 
-      case err: MusitError =>
-        Future.successful(err)
-    }
-  }
-
-  /**
-   * Helper method to check if a node is empty or not.
-   *
-   * @param node the StorageNode to check
-   *
-   * @return a Future[Boolean] that is true if node is empty, else false
-   */
-  private def isEmpty(node: StorageNode): Future[Boolean] = {
-    node.id.map { nodeId =>
-      val eventuallyTotal = statsDao.directObjectCount(nodeId)
-      val eventuallyNode = statsDao.childCount(nodeId)
-
-      for {
-        total <- eventuallyTotal
-        nodeCount <- eventuallyNode
-      } yield (total + nodeCount) == 0
-    }.getOrElse(Future.successful(false))
+        res
+      }.getOrElse {
+        MusitResultT[Future, Option[NodeStats]](Future.successful(MusitSuccess(None)))
+      }
+    }.value
   }
 
   /**
@@ -716,26 +497,6 @@ class StorageNodeService @Inject() (
     }
   }
 
-  private def move[E <: MoveEvent](
-    event: E,
-    eventuallyMaybeCurrent: Future[Option[GenericStorageNode]],
-    eventuallyMaybeTo: Future[Option[GenericStorageNode]]
-  )(
-    mv: (Option[GenericStorageNode], GenericStorageNode) => Future[MusitResult[EventId]]
-  ): Future[MusitResult[EventId]] = {
-    val eventuallyExistence = for {
-      maybeCurrent <- eventuallyMaybeCurrent
-      maybeTo <- eventuallyMaybeTo
-    } yield (maybeCurrent, maybeTo)
-
-    eventuallyExistence.flatMap {
-      case (maybeCurr: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
-        maybeTo.map(to => mv(maybeCurr, to)).getOrElse {
-          Future.successful(MusitValidationError("Could not find to node."))
-        }
-    }
-  }
-
   /**
    * TODO: This is a mess...refactor me when time allows
    */
@@ -761,7 +522,8 @@ class StorageNodeService @Inject() (
 
               logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
 
-              unitDao.updatePathForSubTree(id, curr.path, to.path.appendChild(id)).flatMap { // scalastyle:ignore
+              unitDao.updateSubTreePath(id, curr.path, to.path.appendChild(id)).flatMap {
+                // scalastyle:ignore
                 case MusitSuccess(numUpdated) =>
                   persistMoveEvent(mid, id, theEvent) { eventId =>
                     unitDao.updatePartOf(id, Some(event.to)).map { updRes =>
@@ -800,23 +562,6 @@ class StorageNodeService @Inject() (
         persistMoveEvent(mid, objectId, theEvent) { eventId =>
           Future.successful(MusitSuccess(eventId))
         }
-    }
-  }
-
-  /**
-   * Helper method to find PathNames for a potentially present StorageNodeId.
-   *
-   * @param mid     MuseumId
-   * @param maybeId Option[StorageNodeId]
-   * @return Future[(NodePath, Seq[NamedPathElement])]
-   */
-  private def findPathAndNames(
-    mid: MuseumId,
-    maybeId: Option[StorageNodeDatabaseId]
-  ): Future[(NodePath, Seq[NamedPathElement])] = {
-    findPath(mid, maybeId).flatMap { maybePath =>
-      maybePath.map(p => unitDao.namesForPath(p).map(names => (p, names)))
-        .getOrElse(Future.successful((NodePath.empty, Seq.empty)))
     }
   }
 
@@ -868,6 +613,12 @@ class StorageNodeService @Inject() (
     }
   }
 
+  /**
+   *
+   * @param mid
+   * @param oid
+   * @return
+   */
   def currentObjectLocation(
     mid: MuseumId,
     oid: Long
@@ -880,7 +631,15 @@ class StorageNodeService @Inject() (
     }
   }
 
-  def searchName(
+  /**
+   *
+   * @param mid
+   * @param searchStr
+   * @param page
+   * @param pageSize
+   * @return
+   */
+  def searchByName(
     mid: MuseumId,
     searchStr: String,
     page: Int,
@@ -898,5 +657,3 @@ class StorageNodeService @Inject() (
   }
 
 }
-
-// scalastyle:on number.of.methods

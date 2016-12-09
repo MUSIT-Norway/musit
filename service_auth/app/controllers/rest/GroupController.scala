@@ -25,7 +25,7 @@ import no.uio.musit.models.{Email, GroupId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.MusitAdmin
 import no.uio.musit.service.MusitController
-import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._

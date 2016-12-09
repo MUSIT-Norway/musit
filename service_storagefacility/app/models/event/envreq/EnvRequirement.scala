@@ -24,7 +24,6 @@ import models.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import models.event.{EventType, MusitEvent}
 import models.storage.EnvironmentRequirement
 import no.uio.musit.models.{ActorId, EventId, StorageNodeDatabaseId}
-import no.uio.musit.security.AuthenticatedUser
 import org.joda.time.DateTime
 
 case class EnvRequirement(
@@ -75,7 +74,6 @@ object EnvRequirement {
   ): EnvRequirement = {
     EnvRequirement(
       id = None,
-      // FIXME: DO NOT FORGET TO CHANGE THIS!!!
       doneBy = Some(doneBy),
       doneDate = now,
       note = er.comment,

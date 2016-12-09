@@ -22,7 +22,7 @@ package services
 import com.google.inject.Inject
 import models.OrganisationAddress
 import no.uio.musit.models.{DatabaseId, OrgId}
-import no.uio.musit.service.MusitResults.MusitResult
+import no.uio.musit.MusitResults.MusitResult
 import repositories.dao.AddressDao
 
 import scala.concurrent.Future

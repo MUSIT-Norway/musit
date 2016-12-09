@@ -8,7 +8,7 @@ GET           /service/storagefacility/buildinfo                                
 POST          /v1/museum/:mid/storagenodes                                      controllers.StorageController.add(mid: Int)
 POST          /v1/museum/:mid/storagenodes/root                                 controllers.StorageController.addRoot(mid: Int)
 GET           /v1/museum/:mid/storagenodes/root                                 controllers.StorageController.root(mid: Int)
-GET           /v1/museum/:mid/storagenodes/report                               controllers.KdReportController.getReportByMuseum(mid: Int)
+GET           /v1/museum/:mid/storagenodes/report                               controllers.KdReportController.getReport(mid: Int)
 PUT           /v1/museum/:mid/storagenodes/moveNode                             controllers.StorageController.moveNode(mid: Int)
 PUT           /v1/museum/:mid/storagenodes/moveObject                           controllers.StorageController.moveObject(mid: Int)
 GET           /v1/museum/:mid/storagenodes/search                               controllers.StorageController.search(mid: Int, searchStr: Option[String], page: Int ?= 1, limit: Int ?=25)

@@ -27,7 +27,7 @@ import no.uio.musit.models.{EventId, MusitId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
-import no.uio.musit.service.MusitResults._
+import no.uio.musit.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -375,7 +375,7 @@ final class StorageController @Inject() (
   ) = MusitSecureAction(mid, Read).async { request =>
     searchStr match {
       case Some(criteria) if criteria.length >= 3 =>
-        service.searchName(mid, criteria, page, limit).map {
+        service.searchByName(mid, criteria, page, limit).map {
           case MusitSuccess(mr) => Ok(Json.toJson(mr))
           case r: MusitError => InternalServerError(Json.obj("message" -> r.message))
         }

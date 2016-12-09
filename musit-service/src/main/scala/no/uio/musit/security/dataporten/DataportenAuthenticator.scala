@@ -24,7 +24,7 @@ import net.ceedubs.ficus.Ficus._
 import no.uio.musit.models.Email
 import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
-import no.uio.musit.service.MusitResults._
+import no.uio.musit.MusitResults._
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}

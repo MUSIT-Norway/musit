@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.dao.storage
+package repositories.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
@@ -25,17 +25,11 @@ import models.storage.StorageType
 import models.storage.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
 import no.uio.musit.models._
 import play.api.Logger
-import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.{ColumnTypeMappers, SchemaName}
-import slick.driver.JdbcProfile
 
-private[dao] trait BaseStorageDao extends HasDatabaseConfigProvider[JdbcProfile]
+private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
 
-private[dao] trait SharedStorageTables extends BaseStorageDao
-    with ColumnTypeMappers {
-
-  private val logger = Logger(classOf[SharedStorageTables])
+  private val logger = Logger(classOf[StorageTables])
 
   import driver.api._
 
@@ -58,7 +52,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    *
    * Only returns non-root nodes
    */
-  protected[storage] def getUnitByIdAction(
+  protected[dao] def getUnitByIdAction(
     mid: MuseumId,
     id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
@@ -70,7 +64,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     }.result.headOption
   }
 
-  protected[storage] def getNodeByIdAction(
+  protected[dao] def getNodeByIdAction(
     mid: MuseumId,
     id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
@@ -80,7 +74,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     }.result.headOption
   }
 
-  protected[storage] def getPathByIdAction(
+  protected[dao] def getPathByIdAction(
     mid: MuseumId,
     id: StorageNodeDatabaseId
   ): DBIO[Option[NodePath]] = {
@@ -89,7 +83,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     }.map(_.path).result.headOption
   }
 
-  protected[storage] def updatePathAction(
+  protected[dao] def updatePathAction(
     id: StorageNodeDatabaseId,
     path: NodePath
   ): DBIO[Int] = {
@@ -98,7 +92,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     }.map(_.path).update(path)
   }
 
-  protected[storage] def updatePaths(
+  protected[dao] def updatePaths(
     oldParent: NodePath,
     newParent: NodePath
   ): DBIO[Int] = {
@@ -123,7 +117,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
    * @param nodePath NodePath to get names for
    * @return A {{{DBIO[Seq[NamedPathElement]]}}}
    */
-  protected[storage] def namesForPathAction(
+  protected[dao] def namesForPathAction(
     nodePath: NodePath
   ): DBIO[Seq[NamedPathElement]] = {
     storageNodeTable.filter { sn =>
@@ -134,7 +128,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   /**
    * TODO: Document me!!!
    */
-  protected[storage] def insertNodeAction(
+  protected[dao] def insertNodeAction(
     dto: StorageUnitDto
   ): DBIO[StorageNodeDatabaseId] = {
     val nid = dto.nodeId.getOrElse(StorageNodeId.generate())
@@ -145,7 +139,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   /**
    * TODO: Document me!!!
    */
-  protected[storage] def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
+  protected[dao] def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
     storageNodeTable.filter { sn =>
       sn.isPartOf === id && sn.isDeleted === false
     }.length.result
@@ -154,7 +148,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   /**
    * TODO: Document me!!!
    */
-  protected[storage] def updateNodeAction(
+  protected[dao] def updateNodeAction(
     mid: MuseumId,
     id: StorageNodeDatabaseId,
     storageUnit: StorageUnitDto
@@ -167,7 +161,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
     }.update(storageUnit)
   }
 
-  protected[storage] def getStorageNodeByNameAction(
+  protected[dao] def getStorageNodeByNameAction(
     mid: MuseumId,
     searchString: String,
     page: Int,
@@ -185,7 +179,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
   /**
    * TODO: Document me!!!
    */
-  private[storage] class StorageNodeTable(
+  private[dao] class StorageNodeTable(
       val tag: Tag
   ) extends Table[StorageUnitDto](tag, SchemaName, "STORAGE_NODE") {
     // scalastyle:off method.name
@@ -285,7 +279,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       ))
   }
 
-  private[storage] class RoomTable(
+  private[dao] class RoomTable(
       val tag: Tag
   ) extends Table[RoomDto](tag, SchemaName, "ROOM") {
     // scalastyle:off method.name
@@ -355,7 +349,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       ))
   }
 
-  private[storage] class BuildingTable(
+  private[dao] class BuildingTable(
       val tag: Tag
   ) extends Table[BuildingDto](tag, SchemaName, "BUILDING") {
 
@@ -374,7 +368,7 @@ private[dao] trait SharedStorageTables extends BaseStorageDao
       Some((building.id, building.address))
   }
 
-  private[storage] class OrganisationTable(
+  private[dao] class OrganisationTable(
       val tag: Tag
   ) extends Table[OrganisationDto](tag, SchemaName, "ORGANISATION") {
 

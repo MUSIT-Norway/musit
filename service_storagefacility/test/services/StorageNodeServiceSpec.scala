@@ -432,7 +432,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     }
 
     "find the relevant rooms when searching with a valid MuseumId" in {
-      val searchRoom = service.searchName(defaultMuseumId, "FooRoom", 1, 25).futureValue
+      val searchRoom = service.searchByName(defaultMuseumId, "FooRoom", 1, 25).futureValue
       searchRoom.isSuccess mustBe true
       searchRoom.get.head.name mustBe "FooRoom"
       searchRoom.get.size mustBe 5
@@ -440,19 +440,19 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
     "not find any rooms when searching with the wrong MuseumId" in {
       val theMid = MuseumId(4)
-      val wrongRoom = service.searchName(theMid, "FooRoom", 1, 25).futureValue
+      val wrongRoom = service.searchByName(theMid, "FooRoom", 1, 25).futureValue
       wrongRoom.isSuccess mustBe true
       wrongRoom.get.size mustBe 0
 
     }
 
     "fail when searching for a room with no search criteria" in {
-      val noSearchCriteria = service.searchName(defaultMuseumId, "", 1, 25).futureValue
+      val noSearchCriteria = service.searchByName(defaultMuseumId, "", 1, 25).futureValue
       noSearchCriteria.isSuccess mustBe false
     }
 
     "fail when searching for a room with less than 3 characters" in {
-      val searchRoom = service.searchName(defaultMuseumId, "Fo", 1, 25).futureValue
+      val searchRoom = service.searchByName(defaultMuseumId, "Fo", 1, 25).futureValue
       searchRoom.isSuccess mustBe false
     }
   }

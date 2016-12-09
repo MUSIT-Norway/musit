@@ -21,21 +21,18 @@ package repositories.dao.event
 
 import com.google.inject.{Inject, Singleton}
 import models.event.dto.EventRoleActor
-import no.uio.musit.models.{ActorId, EventId}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import repositories.dao.{ColumnTypeMappers, SchemaName}
-import slick.driver.JdbcProfile
+import no.uio.musit.models.EventId
+import play.api.db.slick.DatabaseConfigProvider
+import repositories.dao.EventTables
 
 import scala.concurrent.Future
 
 @Singleton
 class EventActorsDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends EventTables {
 
   import driver.api._
-
-  private val eventActorsTable = TableQuery[EventActorsTable]
 
   def insertActors(
     eventId: EventId,
@@ -48,31 +45,6 @@ class EventActorsDao @Inject() (
   def getRelatedActors(eventId: EventId): Future[Seq[EventRoleActor]] = {
     val query = eventActorsTable.filter(evt => evt.eventId === eventId)
     db.run(query.result)
-  }
-
-  private class EventActorsTable(
-      tag: Tag
-  ) extends Table[EventRoleActor](tag, SchemaName, "EVENT_ROLE_ACTOR") {
-
-    def * = (eventId.?, roleId, actorId) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val eventId = column[EventId]("EVENT_ID")
-    val roleId = column[Int]("ROLE_ID")
-    val actorId = column[ActorId]("ACTOR_UUID")
-
-    def create = (eventId: Option[EventId], roleId: Int, actorId: ActorId) =>
-      EventRoleActor(
-        eventId = eventId,
-        roleId = roleId,
-        actorId = actorId
-      )
-
-    def destroy(eventRoleActor: EventRoleActor) =
-      Some((
-        eventRoleActor.eventId,
-        eventRoleActor.roleId,
-        eventRoleActor.actorId
-      ))
   }
 
 }

@@ -27,7 +27,7 @@ import models.event.dto.DtoConverters.ObsConverters
 import models.event.observation.Observation
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.service.MusitResults._
+import no.uio.musit.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.event.EventDao

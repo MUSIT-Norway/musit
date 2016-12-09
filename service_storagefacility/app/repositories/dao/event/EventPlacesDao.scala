@@ -20,23 +20,19 @@
 package repositories.dao.event
 
 import com.google.inject.{Inject, Singleton}
-import models.event.EventTypeId
 import models.event.dto.EventRolePlace
-import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import repositories.dao.{ColumnTypeMappers, SchemaName}
-import slick.driver.JdbcProfile
+import no.uio.musit.models.{EventId, MuseumId}
+import play.api.db.slick.DatabaseConfigProvider
+import repositories.dao.EventTables
 
 import scala.concurrent.Future
 
 @Singleton
 class EventPlacesDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends EventTables {
 
   import driver.api._
-
-  private val eventPlacesTable = TableQuery[EventPlacesTable]
 
   def insertPlaces(
     eventId: EventId,
@@ -49,39 +45,6 @@ class EventPlacesDao @Inject() (
   def getRelatedPlaces(mid: MuseumId, eventId: EventId): Future[Seq[EventRolePlace]] = {
     val query = eventPlacesTable.filter(evt => evt.eventId === eventId)
     db.run(query.result)
-  }
-
-  private class EventPlacesTable(
-      tag: Tag
-  ) extends Table[EventRolePlace](tag, SchemaName, "EVENT_ROLE_PLACE") {
-
-    def * = (eventId.?, roleId, placeId, eventTypeId) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val eventId = column[EventId]("EVENT_ID")
-    val roleId = column[Int]("ROLE_ID")
-    val placeId = column[StorageNodeDatabaseId]("PLACE_ID")
-    val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
-
-    def create = (
-      eventId: Option[EventId],
-      roleId: Int,
-      placeId: StorageNodeDatabaseId,
-      eventTypeId: EventTypeId
-    ) =>
-      EventRolePlace(
-        eventId = eventId,
-        roleId = roleId,
-        placeId = placeId,
-        eventTypeId = eventTypeId
-      )
-
-    def destroy(eventRolePlace: EventRolePlace) =
-      Some((
-        eventRolePlace.eventId,
-        eventRolePlace.roleId,
-        eventRolePlace.placeId,
-        eventRolePlace.eventTypeId
-      ))
   }
 
 }

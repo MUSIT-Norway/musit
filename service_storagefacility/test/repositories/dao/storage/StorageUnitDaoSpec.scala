@@ -21,9 +21,8 @@ package repositories.dao.storage
 
 import models.storage.StorageType._
 import models.storage.{Root, RootLoan, StorageType}
+import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models._
-import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
-import no.uio.musit.service.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -283,7 +282,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       notGetNodeName.size mustBe 0
     }
 
-    "fail when searching for name without any search criteria, or too few, or another museumId" in {
+    "fail when searching for name without invalid criteria" in {
       // scalastyle:ignore
       val mid = MuseumId(5)
       val getNodeName = storageUnitDao.getStorageNodeByName(mid, "", 1, 25).futureValue
@@ -295,38 +294,6 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val anotherMid = MuseumId(4)
       val noNodeName = storageUnitDao.getStorageNodeByName(anotherMid, "Foo", 1, 25).futureValue // scalastyle:ignore
       noNodeName.size mustBe 0
-    }
-
-    "successfully set STORAGENODE_UUID for nodes that doesn't have one" in {
-      implicit val dummyUser = AuthenticatedUser(
-        userInfo = UserInfo(
-          id = ActorId.generate(),
-          secondaryIds = Some(Seq("vader@starwars.com")),
-          name = Some("Darth Vader"),
-          email = None,
-          picture = None
-        ),
-        groups = Seq(GroupInfo(
-          id = GroupId.generate(),
-          name = "FooBarGroup",
-          permission = Permissions.GodMode,
-          museumId = Museums.All.id,
-          description = None,
-          collections = Seq.empty
-        ))
-      )
-
-      val res = storageUnitDao.setUUIDWhereEmpty.futureValue
-
-      res.isSuccess mustBe true
-      res.get mustBe 10
-
-      for (id <- 7L to 16L) {
-        val nid = StorageNodeDatabaseId(id)
-        val r = storageUnitDao.getById(defaultMuseumId, nid).futureValue
-        r.isDefined mustBe true
-        r.get.nodeId must not be None
-      }
     }
   }
 

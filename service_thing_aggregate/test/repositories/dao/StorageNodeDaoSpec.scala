@@ -20,7 +20,7 @@
 package repositories.dao
 
 import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
-import no.uio.musit.service.MusitResults.MusitSuccess
+import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 

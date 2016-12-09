@@ -21,10 +21,10 @@ package services
 
 import com.google.inject.Inject
 import controllers.SimpleNode
+import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.models.{MuseumId, Museums, StorageNodeDatabaseId, StorageNodeId}
+import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.service.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.{ObjectDao, StorageNodeDao}

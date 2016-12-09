@@ -23,16 +23,17 @@ import com.google.inject.Inject
 import models.storage.StorageType
 import models.storage.StorageType.RoomType
 import no.uio.musit.models.MuseumId
-import no.uio.musit.service.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.dao.StorageTables
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 class KdReportDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends SharedStorageTables {
+) extends StorageTables {
 
   import driver.api._
 

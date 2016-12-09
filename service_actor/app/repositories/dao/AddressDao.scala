@@ -22,7 +22,7 @@ package repositories.dao
 import com.google.inject.{Inject, Singleton}
 import models.OrganisationAddress
 import no.uio.musit.models.{DatabaseId, OrgId}
-import no.uio.musit.service.MusitResults._
+import no.uio.musit.MusitResults._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile

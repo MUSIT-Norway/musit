@@ -24,7 +24,7 @@ import java.util.UUID
 import no.uio.musit.models.OldDbSchemas.OldSchema
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
-import no.uio.musit.service.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile

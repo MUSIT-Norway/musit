@@ -23,7 +23,7 @@ import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
 import no.uio.musit.security.Permissions.{ElevatedPermission, Permission}
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, BearerToken, UserInfo}
-import no.uio.musit.service.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json

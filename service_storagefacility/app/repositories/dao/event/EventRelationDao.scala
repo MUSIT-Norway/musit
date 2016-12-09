@@ -24,7 +24,7 @@ import models.event.dto.BaseEventDto
 import no.uio.musit.models.EventId
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import repositories.dao.{ColumnTypeMappers, SchemaName}
+import repositories.dao.EventTables
 import repositories.dao.event.EventRelationTypes.{EventRelationDto, FullEventRelation}
 
 import scala.concurrent.Future
@@ -32,14 +32,11 @@ import scala.concurrent.Future
 @Singleton
 class EventRelationDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends SharedEventTables with ColumnTypeMappers {
+) extends EventTables {
 
   private val logger = Logger(classOf[EventRelationDao])
 
   import driver.api._
-
-  private val eventRelTable = TableQuery[EventRelationTable]
-  private val eventBaseTable = TableQuery[EventBaseTable]
 
   def insertRelationAction(relation: FullEventRelation): DBIO[Int] = {
     insertEventRelationDtoAction(relation.toNormalizedEventLinkDto)
@@ -65,27 +62,6 @@ class EventRelationDao @Inject() (
 
     db.run(query.result)
 
-  }
-
-  private class EventRelationTable(
-      val tag: Tag
-  ) extends Table[EventRelationDto](tag, SchemaName, "EVENT_RELATION_EVENT") {
-
-    def * = (fromId, relationId, toId) <> (create.tupled, destroy) // scalastyle:ignore
-
-    val fromId = column[EventId]("FROM_EVENT_ID")
-    val toId = column[EventId]("TO_EVENT_ID")
-    val relationId = column[Int]("RELATION_ID")
-
-    def create = (idFrom: EventId, relationId: Int, idTo: EventId) =>
-      EventRelationDto(
-        idFrom,
-        relationId,
-        idTo
-      )
-
-    def destroy(relation: EventRelationDto) =
-      Some((relation.idFrom, relation.relationId, relation.idTo))
   }
 
 }

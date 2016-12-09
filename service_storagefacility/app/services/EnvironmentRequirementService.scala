@@ -27,7 +27,7 @@ import models.event.envreq.EnvRequirement
 import models.storage.EnvironmentRequirement
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.service.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.event.{EnvRequirementDao, EventDao}
@@ -72,10 +72,10 @@ class EnvironmentRequirementService @Inject() (
       }
     }.getOrElse {
       /*
-        FIXME: Since environmentRequirement is an Optional argument on the
-        StorageNode types, we _have_ to assume they are not modified if they
-        are not passed in. Meaning we do _not_ add a new event for it.
-        This should be revisited. See TODO in StorageNode.
+        ¡¡¡NOTE!!!: Since environmentRequirement is an Optional argument on the
+        StorageNode types, we _have_ to assume they are not modified if they are
+        not passed in. Meaning we do _not_ add a new event for it. This should
+        be revisited. See TODO in StorageNode.
        */
       Future.successful(None)
     }
@@ -168,6 +168,7 @@ class EnvironmentRequirementService @Inject() (
 
       case _ =>
         unexpectedType
+
     }.getOrElse(MusitSuccess(None)))
   }
 
