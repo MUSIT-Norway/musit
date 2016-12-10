@@ -37,14 +37,11 @@ import scala.util.control.NonFatal
  */
 class ObjectDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends ObjectTables {
+) extends Tables {
 
   val logger = Logger(classOf[ObjectDao])
 
   import driver.api._
-
-  private val objects = TableQuery[ObjectTable]
-  private val localObjects = TableQuery[LocalObjectsTable]
 
   // Needs to be the same as Slicks no-escape-char value!
   // (Default second parameter value to the like function)
@@ -185,7 +182,7 @@ class ObjectDao @Inject() (
 
     val mno = museumNo.map(_.value)
 
-    val q1 = classifyValue(mno).map(f => museumNoFilter(objects, f)).getOrElse(objects)
+    val q1 = classifyValue(mno).map(f => museumNoFilter(objTable, f)).getOrElse(objTable)
     val q2 = classifyValue(subNo.map(_.value)).map(f => subNoFilter(q1, f)).getOrElse(q1)
     val q3 = classifyValue(term).map(f => termFilter(q2, f)).getOrElse(q2)
     val q4 = q3.filter(_.museumId === mid)
@@ -261,7 +258,7 @@ class ObjectDao @Inject() (
     mainObjectId: ObjectId,
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    val q = objects.filter(_.mainObjectId === mainObjectId.underlying)
+    val q = objTable.filter(_.mainObjectId === mainObjectId.underlying)
     val query = {
       if (currUsr.hasGodMode) q
       else q.filter(_.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct)
@@ -290,15 +287,15 @@ class ObjectDao @Inject() (
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
 
-    val locObjQuery = localObjects.filter { lo =>
+    val locObjQuery = locObjTable.filter { lo =>
       lo.museumId === mid &&
         lo.currentLocationId === nodeId
     }
 
     // Filter on collection access if the user doesn't have GodMode
     val objQuery = {
-      if (currUsr.hasGodMode) objects
-      else objects.filter { o =>
+      if (currUsr.hasGodMode) objTable
+      else objTable.filter { o =>
         o.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct
       }
     }
@@ -327,7 +324,7 @@ class ObjectDao @Inject() (
     oldSchema: String,
     oldIds: Seq[Long]
   ): Future[MusitResult[Seq[ObjectId]]] = {
-    val query = objects.filter { o =>
+    val query = objTable.filter { o =>
       o.oldSchema === oldSchema &&
         (o.oldObjId inSet oldIds)
     }.map(_.id)
@@ -351,7 +348,7 @@ class ObjectDao @Inject() (
     oldId: Long,
     oldSchema: String
   ): Future[MusitResult[Option[MusitObject]]] = {
-    val query = objects.filter { o =>
+    val query = objTable.filter { o =>
       o.oldObjId === oldId &&
         o.oldSchema === oldSchema
     }

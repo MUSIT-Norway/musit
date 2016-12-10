@@ -33,7 +33,7 @@ import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.storage.{StorageStatsDao, StorageUnitDao}
+import repositories.dao.storage.StorageUnitDao
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -44,7 +44,6 @@ trait NodeService {
 
   val unitDao: StorageUnitDao
   val envReqService: EnvironmentRequirementService
-  val statsDao: StorageStatsDao
 
   /**
    * Saves the provided environment requirements as an Event.
@@ -110,8 +109,8 @@ trait NodeService {
    */
   private[services] def isEmpty(node: StorageNode): Future[Boolean] = {
     node.id.map { nodeId =>
-      val eventuallyTotal = MusitResultT(statsDao.directObjectCount(nodeId))
-      val eventuallyNode = MusitResultT(statsDao.childCount(nodeId))
+      val eventuallyTotal = MusitResultT(unitDao.numObjectsInNode(nodeId))
+      val eventuallyNode = MusitResultT(unitDao.numChildren(nodeId))
 
       val emptyNode = for {
         total <- eventuallyTotal

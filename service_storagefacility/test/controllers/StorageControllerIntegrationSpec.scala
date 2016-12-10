@@ -1249,6 +1249,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .withQueryString("searchStr" -> "")
           .get().futureValue.status mustBe BAD_REQUEST
       }
+
       "find a storage when searching by name with three characters and the " +
         "third is blank" in {
           val res1 = wsUrl(StorageNodeSearchName(mid))

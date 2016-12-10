@@ -17,22 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.dao.storage
+package repositories.dao
 
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.{NodePath, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Application
-import utils.testhelpers.NodeGenerators
 
 /**
  * ¡¡¡This spec relies on objects being inserted in the evolution script under
  * {{{src/test/resources/evolutions/default/1.sql script.}}}.
- * This is acheived by using relaxed constraints on primary and foreign key
+ * This is achieved by using relaxed constraints on primary and foreign key
  * references in comparison to the proper schema!!!
  */
-class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
+class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite {
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
     timeout = Span(15, Seconds),
@@ -44,35 +43,21 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     instance(app)
   }
 
-  val museumId = 2
-
   "StorageStatsDao" should {
 
     "return the number of direct child nodes" in {
-      val basePath = NodePath(",1,3,4,5,")
-      val su = createStorageUnit(path = basePath)
-      val insId = storageUnitDao.insert(museumId, su).futureValue
-      insId mustBe a[StorageNodeDatabaseId]
-
-      val childPath = basePath.appendChild(insId)
-
-      for (i <- 1 to 10) {
-        val nodeId = storageUnitDao.insert(museumId, createStorageUnit(
-          partOf = Some(insId),
-          path = childPath
-        )).futureValue
-        nodeId mustBe a[StorageNodeDatabaseId]
-      }
-
-      statsDao.childCount(insId).futureValue mustBe MusitSuccess(10)
+      val nodeId = StorageNodeDatabaseId(4)
+      statsDao.numChildren(nodeId).futureValue mustBe MusitSuccess(3)
     }
 
     "return the number of objects on a node" in {
-      statsDao.directObjectCount(StorageNodeDatabaseId(6)).futureValue mustBe MusitSuccess(5)
+      val nodeId = StorageNodeDatabaseId(6)
+      statsDao.numObjectsInNode(nodeId).futureValue mustBe MusitSuccess(36)
     }
 
     "return the total number of objects i a node hierarchy" in {
-      statsDao.totalObjectCount(NodePath(",1,")).futureValue mustBe MusitSuccess(13)
+      val path = NodePath(",1,")
+      statsDao.numObjectsInPath(path).futureValue mustBe MusitSuccess(50)
     }
 
   }
