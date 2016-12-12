@@ -169,9 +169,9 @@ final class StorageController @Inject() (
    */
   def getByStorageNodeId(
     mid: Int,
-    storageNodeId: String
+    storageNodeId: Option[String]
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    StorageNodeId.fromString(storageNodeId).map { nodeId =>
+    storageNodeId.flatMap(StorageNodeId.fromString).map { nodeId =>
       service.getNodeByUUID(mid, nodeId).map {
         case MusitSuccess(maybeNode) =>
           maybeNode.map(node => Ok(Json.toJson(node))).getOrElse {

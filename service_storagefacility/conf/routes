@@ -18,6 +18,8 @@ PUT           /v1/museum/:mid/storagenodes/moveObject                           
 
 GET           /v1/museum/:mid/storagenodes/search                               controllers.StorageController.search(mid: Int, searchStr: Option[String], page: Int ?= 1, limit: Int ?=25)
 
+GET           /v1/museum/:mid/storagenodes/scan                                 controllers.StorageController.getByStorageNodeId(mid: Int, storageNodeId: Option[String])
+
 GET           /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.getById(mid: Int, nodeId: Long)
 PUT           /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.update(mid: Int, nodeId: Long)
 DELETE        /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.delete(mid: Int, nodeId: Long)
