@@ -20,10 +20,9 @@
 package repositories.dao
 
 import no.uio.musit.MusitResults.MusitSuccess
-import no.uio.musit.models.{NodePath, StorageNodeDatabaseId}
+import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.Application
 
 /**
  * ¡¡¡This spec relies on objects being inserted in the evolution script under
@@ -38,10 +37,7 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite {
     interval = Span(50, Millis)
   )
 
-  val statsDao: StorageStatsDao = {
-    val instance = Application.instanceCache[StorageStatsDao]
-    instance(app)
-  }
+  val statsDao = fromInstanceCache[StorageStatsDao]
 
   "StorageStatsDao" should {
 
@@ -57,7 +53,7 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite {
 
     "return the total number of objects i a node hierarchy" in {
       val path = NodePath(",1,")
-      statsDao.numObjectsInPath(path).futureValue mustBe MusitSuccess(50)
+      statsDao.numObjectsInPath(path).futureValue mustBe MusitSuccess(54)
     }
 
   }

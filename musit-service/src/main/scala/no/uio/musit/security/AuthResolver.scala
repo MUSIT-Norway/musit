@@ -19,8 +19,8 @@
 
 package no.uio.musit.security
 
-import no.uio.musit.models.Email
 import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.models.Email
 
 import scala.concurrent.{ExecutionContext, Future}
 

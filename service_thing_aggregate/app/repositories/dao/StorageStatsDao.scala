@@ -21,7 +21,8 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{NodePath, StorageNodeDatabaseId}
+import no.uio.musit.models._
+import no.uio.musit.security.Authenticator
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -99,5 +100,4 @@ class StorageStatsDao @Inject() (
         MusitDbError(msg, Option(ex))
     }
   }
-
 }

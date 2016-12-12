@@ -68,7 +68,14 @@ object OldDbSchemas {
         case VascularPlants.id => VascularPlants
         case Entomology.id => Entomology
         case MarineInvertebrates.id => MarineInvertebrates
-        case _ => throw new IllegalArgumentException("") // scalastyle:ignore
+        case _ => throw new IllegalArgumentException(s"$i can not be mapped to an old schema name.")
+      }
+    }
+
+    @throws(classOf[IllegalArgumentException])
+    def fromString(str: String): OldSchema = {
+      all.find(_.schemas.contains(str)).getOrElse {
+        throw new IllegalArgumentException(s"$str is not a valid OldSchema")
       }
     }
 

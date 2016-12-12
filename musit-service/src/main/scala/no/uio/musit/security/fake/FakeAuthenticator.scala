@@ -19,10 +19,11 @@
 
 package no.uio.musit.security.fake
 
-import no.uio.musit.models.{ActorId, GroupId}
-import no.uio.musit.security.fake.FakeAuthenticator.FakeUserDetails
-import no.uio.musit.security.{Authenticator, BearerToken, GroupInfo, UserInfo}
 import no.uio.musit.MusitResults._
+import no.uio.musit.models._
+import no.uio.musit.security.Permissions.Permission
+import no.uio.musit.security._
+import no.uio.musit.security.fake.FakeAuthenticator.FakeUserDetails
 import play.api.libs.json.{JsArray, Json}
 
 import scala.concurrent.Future
@@ -38,9 +39,33 @@ class FakeAuthenticator extends Authenticator {
     .mkString
   )
 
-  lazy val allGroups: Seq[GroupInfo] = (config \ "groups").as[Seq[GroupInfo]]
+  private case class FakeGroup(
+    id: GroupId,
+    name: String,
+    permission: Permission,
+    museumId: MuseumId,
+    description: Option[String],
+    collections: Seq[CollectionUUID]
+  )
 
-  lazy val fakeUsers: Map[BearerToken, FakeUserDetails] = {
+  private implicit val formatFakeGroup = Json.format[FakeGroup]
+
+  private lazy val allCols = (config \ "museumCollections").as[Seq[MuseumCollection]]
+
+  private lazy val collectionsMap = allCols.map(c => (c.uuid, c)).toMap
+
+  private lazy val allGroups = (config \ "groups").as[Seq[FakeGroup]].map { fg =>
+    GroupInfo(
+      id = fg.id,
+      name = fg.name,
+      permission = fg.permission,
+      museumId = fg.museumId,
+      description = fg.description,
+      collections = fg.collections.map(cid => collectionsMap(cid))
+    )
+  }
+
+  private lazy val fakeUsers: Map[BearerToken, FakeUserDetails] = {
     (config \ "users").as[JsArray].value.map { usrJs =>
       val token = BearerToken((usrJs \ "accessToken").as[String])
       val usrGrps = (usrJs \ "groups").as[Seq[GroupId]]
@@ -74,13 +99,14 @@ class FakeAuthenticator extends Authenticator {
    * @param userInfo the UserInfo found by calling the userInfo method above.
    * @return Will eventually return a Seq of GroupInfo
    */
-  override def groups(userInfo: UserInfo): Future[Seq[GroupInfo]] =
+  override def groups(userInfo: UserInfo): Future[MusitResult[Seq[GroupInfo]]] =
     Future.successful {
-      fakeUsers.find(_._2.info.id == userInfo.id)
-        .map(_._2.groups)
-        .getOrElse(Seq.empty)
+      MusitSuccess(
+        fakeUsers.find(_._2.info.id == userInfo.id)
+          .map(_._2.groups)
+          .getOrElse(Seq.empty)
+      )
     }
-
 }
 
 object FakeAuthenticator {

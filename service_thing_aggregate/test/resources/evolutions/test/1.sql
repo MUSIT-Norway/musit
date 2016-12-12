@@ -111,6 +111,10 @@ INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoA
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, mainobject_id) VALUES ('K123'  , ''   , 'Drakt'      , 99, 123, 'USD_ARK_GJENSTAND_O' , 147, 12);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, mainobject_id) VALUES ('K123'  , ''   , 'Skjorte'    , 99, 123, 'USD_ARK_GJENSTAND_O' , 148, 12);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, mainobject_id) VALUES ('K123'  , ''   , 'Kjole'      , 99, 123, 'USD_ARK_GJENSTAND_O'  , 149, 12);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk) VALUES ('L234'  , ''   , 'Kartlav'    , 99, 234, 'MUSIT_BOTANIKK_LAV'  , 150);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk) VALUES ('L234'  , ''   , 'Fokklav'    , 99, 234, 'MUSIT_BOTANIKK_LAV'  , 151);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk) VALUES ('L234'  , ''   , 'Grønnever'  , 99, 234, 'MUSIT_BOTANIKK_LAV'  , 152);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk) VALUES ('L234'  , ''   , 'Islandslav' , 99, 234, 'MUSIT_BOTANIKK_LAV'  , 153);
 
 
 
@@ -164,3 +168,7 @@ INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_loca
 INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (48, 23, 7, 99);
 INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (49, 23, 7, 99);
 INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (50, 23, 7, 99);
+INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (51, 23, 4, 99);
+INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (52, 23, 5, 99);
+INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (53, 23, 5, 99);
+INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (54, 23, 5, 99);

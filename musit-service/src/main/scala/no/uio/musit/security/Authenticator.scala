@@ -45,6 +45,6 @@ trait Authenticator {
    * @param userInfo the UserInfo found by calling the userInfo method above.
    * @return Will eventually return a Seq of GroupInfo
    */
-  def groups(userInfo: UserInfo): Future[Seq[GroupInfo]]
+  def groups(userInfo: UserInfo): Future[MusitResult[Seq[GroupInfo]]]
 
 }

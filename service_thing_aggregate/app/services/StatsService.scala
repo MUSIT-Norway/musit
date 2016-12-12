@@ -48,10 +48,6 @@ class StatsService @Inject() (
         val totalF = MusitResultT(statsDao.numObjectsInPath(node._2))
         val directF = MusitResultT(statsDao.numObjectsInNode(node._1))
         val nodeCountF = MusitResultT(statsDao.numChildren(node._1))
-        //        val perCol = MusitResultT(statsDao.numObjectsInNodeByCollection(
-        //          nodeId,
-        //          currUsr.collectionsFor(mid))
-        //        )
 
         for {
           total <- totalF
