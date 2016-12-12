@@ -64,13 +64,24 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     }.result.headOption
   }
 
+  protected[dao] def getUnitByUUIDAction(
+    mid: MuseumId,
+    nodeId: StorageNodeId
+  ): DBIO[Option[StorageUnitDto]] = {
+    storageNodeTable.filter { sn =>
+      sn.museumId === mid &&
+        sn.uuid === nodeId &&
+        sn.isDeleted === false &&
+        sn.storageType =!= rootNodeType
+    }.result.headOption
+  }
+
   protected[dao] def getNodeByIdAction(
     mid: MuseumId,
     id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
-      sn.museumId === mid &&
-        sn.id === id && sn.isDeleted === false
+      sn.museumId === mid && sn.id === id && sn.isDeleted === false
     }.result.headOption
   }
 

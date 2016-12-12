@@ -26,6 +26,7 @@ import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
 import models.{FacilityLocation, LocationHistory}
 import no.uio.musit.MusitResults._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -395,6 +396,16 @@ class StorageNodeService @Inject() (
         Future.successful(MusitSuccess(None))
       }
     }
+  }
+
+  def getNodeByUUID(
+    mid: MuseumId,
+    uuid: StorageNodeId
+  ): Future[MusitResult[Option[StorageNode]]] = {
+    (for {
+      (id, tpe) <- MusitResultT(unitDao.getStorageType(uuid))
+      node <- MusitResultT(getNodeById(mid, id))
+    } yield node).value
   }
 
   /**

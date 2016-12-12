@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import models.Move
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
-import no.uio.musit.models.{EventId, MusitId, ObjectId, StorageNodeDatabaseId}
+import no.uio.musit.models._
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
@@ -161,6 +161,32 @@ final class StorageController @Inject() (
           case internal: MusitError =>
             InternalServerError(Json.obj("message" -> internal.message))
         }
+    }
+  }
+
+  /**
+   * Service for looking up a storage node based on UUID.
+   */
+  def getByStorageNodeId(
+    mid: Int,
+    storageNodeId: String
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
+    StorageNodeId.fromString(storageNodeId).map { nodeId =>
+      service.getNodeByUUID(mid, nodeId).map {
+        case MusitSuccess(maybeNode) =>
+          maybeNode.map(node => Ok(Json.toJson(node))).getOrElse {
+            NotFound(Json.obj(
+              "message" -> s"Could not find node with UUID $storageNodeId"
+            ))
+          }
+
+        case err: MusitError =>
+          InternalServerError(Json.obj("message" -> err.message))
+      }
+    }.getOrElse {
+      Future.successful {
+        BadRequest(Json.obj("message" -> s"Invalid UUID $storageNodeId"))
+      }
     }
   }
 

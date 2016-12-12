@@ -132,6 +132,12 @@ object OldDbSchemas {
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_FELLES")
   }
 
+  // FIXME: The following two schemas are ambiguous. The _correct_ way to filter
+  // by collection in these cases, is to _also_ use the old database table ID.
+  // Which is an identifier for the actual table used for the given collection.
+  // NOTE: That ID is _not_ consistently the same ID across different environments.
+  // :,-(
+
   case object Entomology extends OldSchema {
     override val id: Int = 9
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_ENTOMOLOGI")
@@ -139,7 +145,6 @@ object OldDbSchemas {
 
   case object MarineInvertebrates extends OldSchema {
     override val id: Int = 10
-    // TODO: There's some uncertainty about this one. Ask Svein...
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_ENTOMOLOGI")
   }
 

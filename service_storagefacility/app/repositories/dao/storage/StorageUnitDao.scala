@@ -118,6 +118,21 @@ class StorageUnitDao @Inject() (
   }
 
   /**
+   * Fetch node, as a StorageUnit node, by StorageNodeId (UUID).
+   *
+   * @param mid the MuseumId to look for the nodeId
+   * @param nodeId the StorageNodeId to look for
+   * @return An option that may contain the found StorageUnit result.
+   */
+  def getByUUID(
+    mid: MuseumId,
+    nodeId: StorageNodeId
+  ): Future[Option[GenericStorageNode]] = {
+    val query = getUnitByUUIDAction(mid, nodeId)
+    db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
+  }
+
+  /**
    * TODO: Document me!!!
    */
   def getStorageTypesInPath(
@@ -188,13 +203,20 @@ class StorageUnitDao @Inject() (
   def getStorageType(
     id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageType]]] = {
-    db.run(
-      storageNodeTable.filter { node =>
+    val query = storageNodeTable.filter { node =>
       node.id === id && node.isDeleted === false
     }.map(_.storageType).result.headOption
-    ).map { maybeStorageType =>
-      MusitSuccess(maybeStorageType)
-    }
+
+    db.run(query).map(MusitSuccess.apply)
+  }
+
+  def getStorageType(
+    uuid: StorageNodeId
+  ): Future[MusitResult[Option[(StorageNodeDatabaseId, StorageType)]]] = {
+    val query = storageNodeTable.filter {
+      n => n.uuid === uuid && n.isDeleted === false
+    }.map(n => n.id -> n.storageType).result.headOption
+    db.run(query).map(MusitSuccess.apply)
   }
 
   /**
