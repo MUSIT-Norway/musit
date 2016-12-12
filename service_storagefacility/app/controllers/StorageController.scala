@@ -326,28 +326,6 @@ final class StorageController @Inject() (
     }
   }
 
-  /**
-   * TODO: Document me!
-   */
-  def stats(
-    mid: Int,
-    nodeId: Long
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.nodeStats(mid, nodeId).map {
-      case MusitSuccess(maybeStats) =>
-        maybeStats.map { stats =>
-          Ok(Json.toJson(stats))
-        }.getOrElse {
-          NotFound(Json.obj("message" -> s"Could not find nodeId $nodeId"))
-        }
-
-      case err: MusitError =>
-        logger.error("An unexpected error occured when trying to read " +
-          s"node stats for $nodeId. Message was: ${err.message}")
-        InternalServerError(Json.obj("message" -> err.message))
-    }
-  }
-
   def currentObjectLocation(
     mid: Int,
     oid: Long

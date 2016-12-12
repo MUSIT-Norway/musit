@@ -25,7 +25,10 @@ import no.uio.musit.security.Permissions.{ElevatedPermission, GodMode, Permissio
 import no.uio.musit.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
 import play.api.Logger
 
-case class AuthenticatedUser(userInfo: UserInfo, groups: Seq[GroupInfo]) {
+case class AuthenticatedUser(
+    userInfo: UserInfo,
+    groups: Seq[GroupInfo]
+) {
 
   val id: ActorId = userInfo.id
 

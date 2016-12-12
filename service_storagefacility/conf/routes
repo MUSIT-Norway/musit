@@ -16,7 +16,6 @@ GET           /v1/museum/:mid/storagenodes/:nodeId                              
 PUT           /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.update(mid: Int, nodeId: Long)
 DELETE        /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.delete(mid: Int, nodeId: Long)
 GET           /v1/museum/:mid/storagenodes/:nodeId/children                     controllers.StorageController.children(mid: Int, nodeId: Long)
-GET           /v1/museum/:mid/storagenodes/:nodeId/stats                        controllers.StorageController.stats(mid: Int, nodeId: Long)
 GET           /v1/museum/:mid/storagenodes/objects/:oid/locations               controllers.StorageController.objectLocationHistory(mid: Int, oid: Long, limit: Int ?= 50)
 GET           /v1/museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.StorageController.currentObjectLocation(mid: Int, oid: Long)
 # Controls

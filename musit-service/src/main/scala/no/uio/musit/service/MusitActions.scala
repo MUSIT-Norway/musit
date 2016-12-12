@@ -19,11 +19,12 @@
 
 package no.uio.musit.service
 
+import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
 import no.uio.musit.security.Permissions.{ElevatedPermission, Permission}
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, BearerToken, UserInfo}
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -59,9 +60,7 @@ trait MusitActions {
   type MusitActionResult[T] = Either[Result, MusitRequest[T]]
   type MusitActionResultF[T] = Future[MusitActionResult[T]]
 
-  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T]
-
-  // scalastyle:ignore
+  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T] // scalastyle:ignore
 
   /**
    * The base representation of a MUSIT specific request.
@@ -79,19 +78,21 @@ trait MusitActions {
       request: Request[T],
       museumId: Option[MuseumId]
     )(authorize: AuthFunc[T]): MusitActionResultF[T] = {
+      val museum = museumId.flatMap(Museum.fromMuseumId)
       BearerToken.fromRequest(request).map { token =>
-        authService.userInfo(token).flatMap {
-          case MusitSuccess(userInfo) =>
-            logger.debug(s"Got UserInfo\n$userInfo")
-            authService.groups(userInfo).map { groups =>
-              logger.debug(s"Got Groups\n${groups.map(_.name).mkString(", ")}")
-              val authUser = AuthenticatedUser(userInfo, groups)
-              val museum = museumId.flatMap(Museum.fromMuseumId)
-              authorize(token, userInfo, authUser, museum)
-            }
+        val res = for {
+          userInfo <- MusitResultT(authService.userInfo(token))
+          groups <- MusitResultT(authService.groups(userInfo))
+        } yield {
+          logger.debug(s"Got Groups\n${groups.map(_.name).mkString(", ")}")
 
-          case err: MusitError => Future.successful(Left(Unauthorized))
+          val authUser = AuthenticatedUser(userInfo, groups)
+
+          authorize(token, userInfo, authUser, museum)
         }
+
+        res.value.map(_.getOrElse(Left(Unauthorized)))
+
       }.getOrElse {
         Future.successful(Left(Unauthorized))
       }

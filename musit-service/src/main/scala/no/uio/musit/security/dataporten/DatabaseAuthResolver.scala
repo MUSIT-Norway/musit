@@ -20,9 +20,9 @@
 package no.uio.musit.security.dataporten
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.models.Email
-import no.uio.musit.security.{AuthResolver, AuthTables, GroupInfo, UserInfo}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.models.Email
+import no.uio.musit.security._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 

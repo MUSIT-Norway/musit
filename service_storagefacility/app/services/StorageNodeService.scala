@@ -24,10 +24,8 @@ import models.datetime.dateTimeNow
 import models.event.dto.DtoConverters
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
-import models.{FacilityLocation, LocationHistory, NodeStats}
+import models.{FacilityLocation, LocationHistory}
 import no.uio.musit.MusitResults._
-import no.uio.musit.functional.Implicits.futureMonad
-import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -49,8 +47,7 @@ class StorageNodeService @Inject() (
     val orgDao: OrganisationDao,
     val envReqService: EnvironmentRequirementService,
     val eventDao: EventDao,
-    val localObjectDao: LocalObjectDao,
-    val statsDao: StorageStatsDao
+    val localObjectDao: LocalObjectDao
 ) extends NodeService {
 
   val logger = Logger(classOf[StorageNodeService])
@@ -425,38 +422,6 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!
    *
-   * @param mid
-   * @param nodeId
-   * @return
-   */
-  def nodeStats(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId
-  ): Future[MusitResult[Option[NodeStats]]] = {
-    MusitResultT(getNodeById(mid, nodeId)).flatMap { maybeNode =>
-      maybeNode.map { node =>
-        val totalF = MusitResultT(statsDao.totalObjectCount(node.path))
-        val directF = MusitResultT(statsDao.directObjectCount(nodeId))
-        val nodeCountF = MusitResultT(statsDao.childCount(nodeId))
-
-        val res = for {
-          total <- totalF
-          direct <- directF
-          nodeCount <- nodeCountF
-        } yield {
-          Option(NodeStats(nodeCount, direct, total))
-        }
-
-        res
-      }.getOrElse {
-        MusitResultT[Future, Option[NodeStats]](Future.successful(MusitSuccess(None)))
-      }
-    }.value
-  }
-
-  /**
-   * TODO: Document me!
-   *
    * returns Some(-1) if the node has children and cannot be removed.
    * returns Some(1) when the node was successfully marked as removed.
    * returns None if the node isn't found.
@@ -650,9 +615,11 @@ class StorageNodeService @Inject() (
         MusitSuccess(sn)
       }
     } else {
-      Future.successful(
-        MusitValidationError(s"Too few letters in search string $searchStr storageNode name.") // scalastyle:ignore
-      )
+      Future.successful {
+        MusitValidationError(
+          s"Too few letters in search string $searchStr storageNode name."
+        )
+      }
     }
   }
 

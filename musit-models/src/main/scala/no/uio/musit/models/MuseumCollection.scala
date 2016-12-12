@@ -28,7 +28,7 @@ case class MuseumCollection(
     oldSchemaNames: Seq[OldSchema]
 ) {
 
-  def flattenSchemas: Seq[String] = oldSchemaNames.flatMap(_.schemas)
+  def flattenSchemas: Seq[String] = oldSchemaNames.flatMap(_.schemas).distinct
 
 }
 

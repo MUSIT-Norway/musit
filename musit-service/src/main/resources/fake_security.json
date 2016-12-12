@@ -1,4 +1,61 @@
 {
+  "museumCollections": [
+    {
+      "uuid": "925748d6-bf49-4733-afd1-0e127d639f18",
+      "name": "AllCollections",
+      "oldSchemaNames": [1,2,3,4,5,6,7,8,9,10]
+    },
+    {
+      "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+      "name": "Arkeologi",
+      "oldSchemaNames": [1]
+    },
+    {
+      "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+      "name": "Etnografi",
+      "oldSchemaNames": [2]
+    },
+    {
+      "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+      "name": "Numismatikk",
+      "oldSchemaNames": [3]
+    },
+    {
+      "uuid": "bbbe0808-a7e6-46b0-bb38-52475bd13679",
+      "name": "Lav",
+      "oldSchemaNames": [4]
+    },
+    {
+      "uuid": "703c79ef-9193-41fe-b705-4b53ad6e01e7",
+      "name": "Mose",
+      "oldSchemaNames": [5]
+    },
+    {
+      "uuid": "089f3320-39f5-4c17-afe2-0918704010e3",
+      "name": "Sopp",
+      "oldSchemaNames": [6]
+    },
+    {
+      "uuid": "7ffef848-a8d3-433e-948a-53916c5565f4",
+      "name": "Alger",
+      "oldSchemaNames": [7]
+    },
+    {
+      "uuid": "f7e6bf7f-b521-4f7e-84f8-e1538c7fd244",
+      "name": "Karplanter",
+      "oldSchemaNames": [8]
+    },
+    {
+      "uuid": "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c",
+      "name": "Entomologi",
+      "oldSchemaNames": [9]
+    },
+    {
+      "uuid": "5f518ec7-b72b-46c3-9bfb-66304ff17bae",
+      "name": "Marine invertebrater",
+      "oldSchemaNames": [10]
+    }
+  ],
   "groups": [
     {
       "id": "c0f20097-e803-4d1f-9d86-7b36bcfaec19",
@@ -7,11 +64,7 @@
       "museumId": 10000,
       "description": "Application administrator with access to all functionality",
       "collections": [
-        {
-          "uuid": "925748d6-bf49-4733-afd1-0e127d639f18",
-          "name": "AllCollections",
-          "oldSchemaNames": [1,2,3,4,5,6,7,8,9,10]
-        }
+        "925748d6-bf49-4733-afd1-0e127d639f18"
       ]
     },
     {
@@ -21,11 +74,7 @@
       "museumId": 10000,
       "description": "Application administrator with access to all functionality",
       "collections": [
-        {
-          "uuid": "925748d6-bf49-4733-afd1-0e127d639f18",
-          "name": "AllCollections",
-          "oldSchemaNames": [1,2,3,4,5,6,7,8,9,10]
-        }
+        "925748d6-bf49-4733-afd1-0e127d639f18"
       ]
     },
     {
@@ -35,16 +84,8 @@
       "museumId": 99,
       "description": "Read access to storage facility for TEST",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
       ]
     },
     {
@@ -54,11 +95,7 @@
       "museumId": 99,
       "description": "Write access to storage facility for TEST",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
       ]
     },
     {
@@ -68,21 +105,9 @@
       "museumId": 99,
       "description": "Admin access to storage facility for TEST",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -92,21 +117,9 @@
       "museumId": 3,
       "description": "Read access to storage facility for KHM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -116,21 +129,9 @@
       "museumId": 3,
       "description": "Write access to storage facility for KHM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -140,21 +141,9 @@
       "museumId": 3,
       "description": "Admin access to storage facility for KHM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -164,11 +153,7 @@
       "museumId": 4,
       "description": "Read access to storage facility for NHM",
       "collections": [
-        {
-          "uuid": "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c",
-          "name": "Entomologi",
-          "oldSchemaNames": [9]
-        }
+        "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c"
       ]
     },
     {
@@ -178,11 +163,7 @@
       "museumId": 4,
       "description": "Write access to storage facility for NHM",
       "collections": [
-        {
-          "uuid": "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c",
-          "name": "Entomologi",
-          "oldSchemaNames": [9]
-        }
+        "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c"
       ]
     },
     {
@@ -192,11 +173,7 @@
       "museumId": 4,
       "description": "Admin access to storage facility for NHM",
       "collections": [
-        {
-          "uuid": "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c",
-          "name": "Entomologi",
-          "oldSchemaNames": [9]
-        }
+        "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c"
       ]
     },
     {
@@ -206,21 +183,9 @@
       "museumId": 2,
       "description": "Read access to storage facility for UM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -230,21 +195,9 @@
       "museumId": 2,
       "description": "Write access to storage facility for UM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -254,21 +207,9 @@
       "museumId": 2,
       "description": "Admin access to storage facility for UM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -278,21 +219,9 @@
       "museumId": 1,
       "description": "Read access to storage facility for AM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -302,21 +231,9 @@
       "museumId": 1,
       "description": "Write access to storage facility for AM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -326,21 +243,9 @@
       "museumId": 1,
       "description": "Admin access to storage facility for AM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -350,21 +255,9 @@
       "museumId": 5,
       "description": "Read access to storage facility for VM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -374,21 +267,9 @@
       "museumId": 5,
       "description": "Write access to storage facility for VM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -398,21 +279,9 @@
       "museumId": 5,
       "description": "Admin access to storage facility for VM",
       "collections": [
-        {
-          "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "name": "Arkeologi",
-          "oldSchemaNames": [1]
-        },
-        {
-          "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-          "name": "Numismatikk",
-          "oldSchemaNames": [3]
-        },
-        {
-          "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
-          "name": "Etnografi",
-          "oldSchemaNames": [2]
-        }
+        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
       ]
     },
     {
@@ -484,7 +353,10 @@
       "userid": "896125d3-0563-46b6-a7c5-51f3f899ff0a",
       "name": "Super Duper User",
       "email": "foo@bar.bas",
-      "groups": ["c0f20097-e803-4d1f-9d86-7b36bcfaec19"],
+      "groups": [
+        "c0f20097-e803-4d1f-9d86-7b36bcfaec19",
+        "2d503a2e-2211-45dd-a99f-fe1a38b5f2a2"
+      ],
       "accessToken": "fake-token-zab-xy-superuser"
     },
     {
@@ -498,7 +370,12 @@
       "userid": "8efd41bb-bc58-4bbf-ac95-eea21ba9db81",
       "name": "Fake Musit Test User",
       "email": "foo@bar.bas",
-      "groups": ["2d503a2e-2211-45dd-a99f-fe1a38b5f2a2", "428f6108-f376-47e5-80c2-0e166e75ae42", "f311dd04-89b8-48a4-b4cd-68092f76ebab", "b923b5df-54d3-4724-9386-c1273561f1a1"],
+      "groups": [
+        "2d503a2e-2211-45dd-a99f-fe1a38b5f2a2",
+        "428f6108-f376-47e5-80c2-0e166e75ae42",
+        "f311dd04-89b8-48a4-b4cd-68092f76ebab",
+        "b923b5df-54d3-4724-9386-c1273561f1a1"
+      ],
       "accessToken": "fake-token-zab-xy-musitTestUser"
     },
     {

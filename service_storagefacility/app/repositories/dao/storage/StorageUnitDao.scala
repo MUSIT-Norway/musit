@@ -29,7 +29,7 @@ import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.StorageTables
+import repositories.dao.{SharedTables, StorageTables}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -42,7 +42,7 @@ import scala.util.control.NonFatal
 @Singleton
 class StorageUnitDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends StorageTables {
+) extends StorageTables with SharedTables {
 
   import driver.api._
 
@@ -63,6 +63,38 @@ class StorageUnitDao @Inject() (
       case NonFatal(ex) =>
         logger.error("Non fatal exception when checking for node existence", ex)
         MusitDbError("Checking if node exists caused an exception", Option(ex))
+    }
+  }
+
+  /**
+   * Count of *all* children of this node, irrespective of access rights to
+   * the children
+   */
+  def numChildren(id: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
+    db.run(countChildren(id)).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred counting number node children under $id"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  /**
+   * The number of museum objects directly at the given node.
+   * To calculate the total number of objects for nodes in the tree,
+   * use the {{{totalObjectCount}}} method.
+   *
+   * @param nodeId StorageNodeId to count objects for.
+   * @return Future[Int] with the number of objects directly on the provided nodeId
+   */
+  def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
+    db.run(
+      localObjectsTable.filter(_.currentLocationId === nodeId).length.result
+    ).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred counting number direct objects in $nodeId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
     }
   }
 

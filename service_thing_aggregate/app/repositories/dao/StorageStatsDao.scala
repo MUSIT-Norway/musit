@@ -17,15 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.dao.storage
+package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{NodePath, StorageNodeDatabaseId}
+import no.uio.musit.models._
+import no.uio.musit.security.Authenticator
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.{SharedTables, StorageTables}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -33,17 +33,23 @@ import scala.util.control.NonFatal
 @Singleton
 class StorageStatsDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
-) extends StorageTables with SharedTables {
+) extends Tables {
 
   val logger = Logger(classOf[StorageStatsDao])
 
   import driver.api._
 
+  private def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
+    nodeTable.filter { sn =>
+      sn.isPartOf === id && sn.isDeleted === false
+    }.length.result
+  }
+
   /**
    * Count of *all* children of this node, irrespective of access rights to
    * the children
    */
-  def childCount(id: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
+  def numChildren(id: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
     db.run(countChildren(id)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting number node children under $id"
@@ -59,13 +65,13 @@ class StorageStatsDao @Inject() (
    * @return Future[Int] with total number of objects under the provided node
    *         and all its child nodes.
    */
-  def totalObjectCount(path: NodePath): Future[MusitResult[Int]] = {
+  def numObjectsInPath(path: NodePath): Future[MusitResult[Int]] = {
     val nodeFilter = s"${path.path}%"
 
-    val q1 = storageNodeTable.filter(_.path.asColumnOf[String] like nodeFilter)
+    val q1 = nodeTable.filter(_.path.asColumnOf[String] like nodeFilter)
 
     val q2 = for {
-      (sn, lo) <- q1 join localObjectsTable on (_.id === _.currentLocationId)
+      (sn, lo) <- q1 join locObjTable on (_.id === _.currentLocationId)
     } yield sn
 
     db.run(q2.length.result).map(MusitSuccess.apply).recover {
@@ -84,9 +90,9 @@ class StorageStatsDao @Inject() (
    * @param nodeId StorageNodeId to count objects for.
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
-  def directObjectCount(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
+  def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
     db.run(
-      localObjectsTable.filter(_.currentLocationId === nodeId).length.result
+      locObjTable.filter(_.currentLocationId === nodeId).length.result
     ).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting number direct objects in $nodeId"
@@ -94,5 +100,4 @@ class StorageStatsDao @Inject() (
         MusitDbError(msg, Option(ex))
     }
   }
-
 }

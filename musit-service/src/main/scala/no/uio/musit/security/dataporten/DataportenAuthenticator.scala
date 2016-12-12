@@ -21,10 +21,10 @@ package no.uio.musit.security.dataporten
 
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
+import no.uio.musit.MusitResults._
 import no.uio.musit.models.Email
 import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
-import no.uio.musit.MusitResults._
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
@@ -38,9 +38,9 @@ import scala.concurrent.Future
  *
  * TODO: Ensure use of caching of tokens and user/group info
  *
- * @param conf The Play! Configuration instance
+ * @param conf         The Play! Configuration instance
  * @param authResolver Instance for resolving a users groups
- * @param ws Play! WebService client
+ * @param ws           Play! WebService client
  */
 class DataportenAuthenticator @Inject() (
     conf: Configuration,
@@ -119,7 +119,7 @@ class DataportenAuthenticator @Inject() (
    * @param userInfo the UserInfo found by calling the userInfo method above.
    * @return Will eventually return a Seq of GroupInfo
    */
-  override def groups(userInfo: UserInfo): Future[Seq[GroupInfo]] = {
+  override def groups(userInfo: UserInfo): Future[MusitSuccess[Seq[GroupInfo]]] = {
 
     def stripPrefix(s: String): String = s.reverse.takeWhile(_ != ':').reverse.trim
 
@@ -130,11 +130,12 @@ class DataportenAuthenticator @Inject() (
             authResolver.findGroupInfoByFeideEmail(email).map(_.getOrElse(Seq.empty))
           }.getOrElse(Future.successful(Seq.empty))
         }
-      }.map(_.flatten)
+      }.map(t => MusitSuccess(t.flatten))
     }.getOrElse {
-      Future.successful(Seq.empty)
+      Future.successful(MusitSuccess(Seq.empty))
     }
   }
+
 }
 
 object DataportenAuthenticator {

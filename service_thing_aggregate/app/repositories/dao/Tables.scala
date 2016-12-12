@@ -23,13 +23,23 @@ import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
 
-trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
+trait Tables extends HasDatabaseConfigProvider[JdbcProfile]
     with ColumnTypeMappers {
 
   import driver.api._
 
+  // Type aliases representing rows for the different tables
   type ObjectRow = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String], Option[Long])) // scalastyle:ignore
+  type LocalObjectRow = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId))
+  type StorageNodeRow = (Option[StorageNodeDatabaseId], String, String, Option[Double], Option[Double], Option[StorageNodeDatabaseId], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath) // scalastyle:ignore
 
+  val objTable = TableQuery[ObjectTable]
+  val locObjTable = TableQuery[LocalObjectsTable]
+  val nodeTable = TableQuery[StorageNodeTable]
+
+  /**
+   * Definition for the MUSIT_MAPPING.MUSITTHING table
+   */
   class ObjectTable(
       val tag: Tag
   ) extends Table[ObjectRow](tag, Some("MUSIT_MAPPING"), "MUSITTHING") {
@@ -63,11 +73,12 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
 
   }
 
-  type LocalObject = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId))
-
+  /**
+   * Definition for the MUSARK_STORAGE.LOCAL_OBJECT table
+   */
   class LocalObjectsTable(
       tag: Tag
-  ) extends Table[LocalObject](tag, Some("MUSARK_STORAGE"), "LOCAL_OBJECT") {
+  ) extends Table[LocalObjectRow](tag, Some("MUSARK_STORAGE"), "LOCAL_OBJECT") {
     // scalastyle:off method.name
     def * = (
       objectId,
@@ -82,5 +93,45 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile]
     val latestMoveId = column[EventId]("LATEST_MOVE_ID")
     val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
     val museumId = column[MuseumId]("MUSEUM_ID")
+  }
+
+  /**
+   * Definition for the MUSARK_STORAGE.STORAGE_NODE table
+   */
+  class StorageNodeTable(
+      val tag: Tag
+  ) extends Table[StorageNodeRow](tag, Some("MUSARK_STORAGE"), "STORAGE_NODE") {
+    // scalastyle:off method.name
+    def * = (
+      id.?,
+      storageType,
+      name,
+      area,
+      areaTo,
+      isPartOf,
+      height,
+      heightTo,
+      groupRead,
+      groupWrite,
+      isDeleted,
+      museumId,
+      path
+    )
+
+    // scalastyle:on method.name
+
+    val id = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
+    val storageType = column[String]("STORAGE_TYPE")
+    val name = column[String]("STORAGE_NODE_NAME")
+    val area = column[Option[Double]]("AREA")
+    val areaTo = column[Option[Double]]("AREA_TO")
+    val isPartOf = column[Option[StorageNodeDatabaseId]]("IS_PART_OF")
+    val height = column[Option[Double]]("HEIGHT")
+    val heightTo = column[Option[Double]]("HEIGHT_TO")
+    val groupRead = column[Option[String]]("GROUP_READ")
+    val groupWrite = column[Option[String]]("GROUP_WRITE")
+    val isDeleted = column[Boolean]("IS_DELETED")
+    val museumId = column[MuseumId]("MUSEUM_ID")
+    val path = column[NodePath]("NODE_PATH")
   }
 }
