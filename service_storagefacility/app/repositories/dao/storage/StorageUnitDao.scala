@@ -23,7 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.datetime.Implicits._
 import models.datetime.dateTimeNow
 import models.storage._
-import models.storage.dto.StorageNodeDto
+import models.storage.dto.{StorageNodeDto, StorageUnitDto}
 import no.uio.musit.MusitResults._
 import no.uio.musit.models._
 import play.api.Logger
@@ -127,7 +127,7 @@ class StorageUnitDao @Inject() (
   def getByUUID(
     mid: MuseumId,
     nodeId: StorageNodeId
-  ): Future[Option[GenericStorageNode]] = {
+  ): Future[Option[StorageUnit]] = {
     val query = getUnitByUUIDAction(mid, nodeId)
     db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
   }

@@ -27,6 +27,7 @@ import models.storage._
 import models.{FacilityLocation, LocationHistory}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -403,8 +404,12 @@ class StorageNodeService @Inject() (
     uuid: StorageNodeId
   ): Future[MusitResult[Option[StorageNode]]] = {
     (for {
-      (id, tpe) <- MusitResultT(unitDao.getStorageType(uuid))
-      node <- MusitResultT(getNodeById(mid, id))
+      tuple <- MusitResultT(unitDao.getStorageType(uuid))
+      node <- tuple.map(t => MusitResultT(getNodeById(mid, t._1))).getOrElse {
+        MusitResultT(
+          Future.successful[MusitResult[Option[StorageNode]]](MusitSuccess(None))
+        )
+      }
     } yield node).value
   }
 
