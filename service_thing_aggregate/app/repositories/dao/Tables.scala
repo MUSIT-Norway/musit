@@ -57,7 +57,6 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile]
       oldSchema,
       oldObjId
     )
-
     // scalastyle:on method.name
 
     val id = column[ObjectId]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
@@ -70,6 +69,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile]
     val term = column[String]("TERM")
     val oldSchema = column[Option[String]]("OLD_SCHEMANAME")
     val oldObjId = column[Option[Long]]("LOKAL_PK")
+    // TODO: Needs to be added to ObjectRow type!!!
+    val newCollectionId = column[Int]("NEW_COLLECTION_ID")
 
   }
 
