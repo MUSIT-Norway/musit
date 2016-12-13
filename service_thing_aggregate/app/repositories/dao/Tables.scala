@@ -29,7 +29,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile]
   import driver.api._
 
   // Type aliases representing rows for the different tables
-  type ObjectRow = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String], Option[Long])) // scalastyle:ignore
+  type ObjectRow = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String], Option[Long], Option[Int])) // scalastyle:ignore
   type LocalObjectRow = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId))
   type StorageNodeRow = (Option[StorageNodeDatabaseId], String, String, Option[Double], Option[Double], Option[StorageNodeDatabaseId], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath) // scalastyle:ignore
 
@@ -55,7 +55,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile]
       mainObjectId,
       term,
       oldSchema,
-      oldObjId
+      oldObjId,
+      newCollectionId
     )
     // scalastyle:on method.name
 
@@ -69,8 +70,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile]
     val term = column[String]("TERM")
     val oldSchema = column[Option[String]]("OLD_SCHEMANAME")
     val oldObjId = column[Option[Long]]("LOKAL_PK")
-    // TODO: Needs to be added to ObjectRow type!!!
-    val newCollectionId = column[Int]("NEW_COLLECTION_ID")
+    val newCollectionId = column[Option[Int]]("NEW_COLLECTION_ID")
 
   }
 

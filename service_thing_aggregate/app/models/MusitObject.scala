@@ -37,7 +37,7 @@ case class MusitObject(
 object MusitObject {
   implicit val format = Json.format[MusitObject]
 
-  type ObjTuple = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String], Option[Long])) // scalastyle:ignore
+  type ObjTuple = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], String, Option[String], Option[Long], Option[Int])) // scalastyle:ignore
 
   def fromTuple(t: ObjTuple): MusitObject = {
     MusitObject(
