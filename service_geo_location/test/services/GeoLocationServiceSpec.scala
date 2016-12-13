@@ -54,7 +54,7 @@ class GeoLocationServiceSpec extends MusitSpecWithAppPerSuite {
             a.place == "HØNEFOSS" &&
             a.zip == "3510"
         } must not be None
-        
+
       }
 
     }
