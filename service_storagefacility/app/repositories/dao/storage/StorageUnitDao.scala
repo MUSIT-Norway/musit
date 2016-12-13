@@ -118,21 +118,6 @@ class StorageUnitDao @Inject() (
   }
 
   /**
-   * Fetch node, as a StorageUnit node, by StorageNodeId (UUID).
-   *
-   * @param mid the MuseumId to look for the nodeId
-   * @param nodeId the StorageNodeId to look for
-   * @return An option that may contain the found StorageUnit result.
-   */
-  def getByUUID(
-    mid: MuseumId,
-    nodeId: StorageNodeId
-  ): Future[Option[StorageUnit]] = {
-    val query = getUnitByUUIDAction(mid, nodeId)
-    db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
-  }
-
-  /**
    * TODO: Document me!!!
    */
   def getStorageTypesInPath(
@@ -198,9 +183,10 @@ class StorageUnitDao @Inject() (
   }
 
   /**
-   * TODO: Document me!!!
+   * Get the StorageType for the given StorageNodeDatabaseId
    */
-  def getStorageType(
+  def getStorageTypeFor(
+    mid: MuseumId,
     id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageType]]] = {
     val query = storageNodeTable.filter { node =>
@@ -210,12 +196,31 @@ class StorageUnitDao @Inject() (
     db.run(query).map(MusitSuccess.apply)
   }
 
-  def getStorageType(
+  /**
+   * Get the StorageNodeDatabaseId and StorageType for the given StorageNodeId
+   */
+  def getStorageTypeFor(
+    mid: MuseumId,
     uuid: StorageNodeId
   ): Future[MusitResult[Option[(StorageNodeDatabaseId, StorageType)]]] = {
-    val query = storageNodeTable.filter {
-      n => n.uuid === uuid && n.isDeleted === false
+    val query = storageNodeTable.filter { n =>
+      n.museumId === mid && n.uuid === uuid && n.isDeleted === false
     }.map(n => n.id -> n.storageType).result.headOption
+
+    db.run(query).map(MusitSuccess.apply)
+  }
+
+  /**
+   * Get the StorageNodeDatabaseId and StorageType for the given old barcode.
+   */
+  def getStorageTypeFor(
+    mid: MuseumId,
+    oldBarcode: Int
+  ): Future[MusitResult[Option[(StorageNodeDatabaseId, StorageType)]]] = {
+    val query = storageNodeTable.filter { n =>
+      n.museumId === mid && n.oldBarcode === oldBarcode && n.isDeleted === false
+    }.map(n => n.id -> n.storageType).result.headOption
+
     db.run(query).map(MusitSuccess.apply)
   }
 

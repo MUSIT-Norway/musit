@@ -164,19 +164,13 @@ final class StorageController @Inject() (
     }
   }
 
-  /**
-   * Service for looking up a storage node based on UUID.
-   */
-  def getByStorageNodeId(
-    mid: Int,
-    storageNodeId: Option[String]
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
-    storageNodeId.flatMap(StorageNodeId.fromString).map { nodeId =>
-      service.getNodeByUUID(mid, nodeId).map {
+  def getByStorageNodeId(mid: Int, nodeId: Option[String]): Future[Result] = {
+    nodeId.flatMap(StorageNodeId.fromString).map { nid =>
+      service.getNodeByStorageNodeId(mid, nid).map {
         case MusitSuccess(maybeNode) =>
           maybeNode.map(node => Ok(Json.toJson(node))).getOrElse {
             NotFound(Json.obj(
-              "message" -> s"Could not find node with UUID $storageNodeId"
+              "message" -> s"Could not find node with UUID $nodeId"
             ))
           }
 
@@ -185,8 +179,45 @@ final class StorageController @Inject() (
       }
     }.getOrElse {
       Future.successful {
-        BadRequest(Json.obj("message" -> s"Invalid UUID $storageNodeId"))
+        BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
       }
+    }
+  }
+
+  def getByOldBarcode(mid: Int, oldBarcode: Option[Int]): Future[Result] = {
+    oldBarcode.map { barcode =>
+      service.getNodeByOldBarcode(mid, barcode).map {
+        case MusitSuccess(maybeNode) =>
+          maybeNode.map(node => Ok(Json.toJson(node))).getOrElse {
+            NotFound(Json.obj(
+              "message" -> s"Could not find node with old barcode $barcode"
+            ))
+          }
+
+        case err: MusitError =>
+          InternalServerError(Json.obj("message" -> err.message))
+      }
+    }.getOrElse {
+      Future.successful {
+        BadRequest(Json.obj("message" -> s"oldBarcode did not contain a value"))
+      }
+    }
+  }
+
+  /**
+   * Service for looking up a storage node based on UUID.
+   */
+  def scan(
+    mid: Int,
+    storageNodeId: Option[String],
+    oldBarcode: Option[Int]
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
+    if (storageNodeId.nonEmpty) getByStorageNodeId(mid, storageNodeId)
+    else if (oldBarcode.nonEmpty) getByOldBarcode(mid, oldBarcode)
+    else Future.successful {
+      BadRequest(Json.obj(
+        "message" -> "Either storage node id or old barcode must be specified"
+      ))
     }
   }
 

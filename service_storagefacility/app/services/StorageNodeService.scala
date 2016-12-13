@@ -365,7 +365,7 @@ class StorageNodeService @Inject() (
     mid: MuseumId,
     id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageNode]]] = {
-    unitDao.getStorageType(id).flatMap { res =>
+    unitDao.getStorageTypeFor(mid, id).flatMap { res =>
       res.map { maybeType =>
         logger.debug(s"Disambiguating StorageType $maybeType")
 
@@ -399,12 +399,26 @@ class StorageNodeService @Inject() (
     }
   }
 
-  def getNodeByUUID(
+  def getNodeByStorageNodeId(
     mid: MuseumId,
     uuid: StorageNodeId
   ): Future[MusitResult[Option[StorageNode]]] = {
     (for {
-      tuple <- MusitResultT(unitDao.getStorageType(uuid))
+      tuple <- MusitResultT(unitDao.getStorageTypeFor(mid, uuid))
+      node <- tuple.map(t => MusitResultT(getNodeById(mid, t._1))).getOrElse {
+        MusitResultT(
+          Future.successful[MusitResult[Option[StorageNode]]](MusitSuccess(None))
+        )
+      }
+    } yield node).value
+  }
+
+  def getNodeByOldBarcode(
+    mid: MuseumId,
+    oldBarcode: Int
+  ): Future[MusitResult[Option[StorageNode]]] = {
+    (for {
+      tuple <- MusitResultT(unitDao.getStorageTypeFor(mid, oldBarcode))
       node <- tuple.map(t => MusitResultT(getNodeById(mid, t._1))).getOrElse {
         MusitResultT(
           Future.successful[MusitResult[Option[StorageNode]]](MusitSuccess(None))
@@ -427,13 +441,6 @@ class StorageNodeService @Inject() (
     mid: MuseumId,
     id: StorageNodeDatabaseId
   ): Future[Seq[GenericStorageNode]] = unitDao.getChildren(mid, id)
-
-  /**
-   * TODO: Document me!
-   */
-  def getStorageType(
-    id: StorageNodeDatabaseId
-  ): Future[MusitResult[Option[StorageType]]] = unitDao.getStorageType(id)
 
   /**
    * TODO: Document me!
