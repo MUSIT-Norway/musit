@@ -48,10 +48,13 @@ class GeoLocationServiceSpec extends MusitSpecWithAppPerSuite {
         val res = service.searchGeoNorway("Kirkegata 11, Hønefoss").futureValue
 
         res must not be empty
-        res.head.street mustBe "Kirkegata"
-        res.head.streetNo mustBe "11 E"
-        res.head.place mustBe "HØNEFOSS"
-        res.head.zip mustBe "3510"
+        res.find { a =>
+          a.street == "Kirkegata" &&
+            a.streetNo == "11 E" &&
+            a.place == "HØNEFOSS" &&
+            a.zip == "3510"
+        } must not be None
+
       }
 
     }

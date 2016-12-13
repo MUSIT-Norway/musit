@@ -69,8 +69,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
-      sn.museumId === mid &&
-        sn.id === id && sn.isDeleted === false
+      sn.museumId === mid && sn.id === id && sn.isDeleted === false
     }.result.headOption
   }
 
@@ -103,6 +102,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     logger.debug(s"Using old path: $op and new path: $np. " +
       s"Performing update with LIKE: $pathFilter")
 
+    // TODO: This should be changed to use the Slick DSL
     sql"""
          UPDATE "MUSARK_STORAGE"."STORAGE_NODE"
          SET "NODE_PATH" = replace("NODE_PATH", ${op}, ${np})
@@ -195,6 +195,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
       heightTo,
       groupRead,
       groupWrite,
+      oldBarcode,
       isDeleted,
       museumId,
       path,
@@ -215,6 +216,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     val heightTo = column[Option[Double]]("HEIGHT_TO")
     val groupRead = column[Option[String]]("GROUP_READ")
     val groupWrite = column[Option[String]]("GROUP_WRITE")
+    val oldBarcode = column[Option[Int]]("OLD_BARCODE")
     val isDeleted = column[Boolean]("IS_DELETED")
     val museumId = column[MuseumId]("MUSEUM_ID")
     val path = column[NodePath]("NODE_PATH")
@@ -233,6 +235,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
       heightTo: Option[Double],
       groupRead: Option[String],
       groupWrite: Option[String],
+      oldBarcode: Option[Int],
       isDeleted: Boolean,
       museumId: MuseumId,
       nodePath: NodePath,
@@ -250,6 +253,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
         heightTo = heightTo,
         groupRead = groupRead,
         groupWrite = groupWrite,
+        oldBarcode = oldBarcode,
         path = nodePath,
         isDeleted = Option(isDeleted),
         museumId = museumId,
@@ -271,6 +275,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
         unit.heightTo,
         unit.groupRead,
         unit.groupWrite,
+        unit.oldBarcode,
         unit.isDeleted.getOrElse(false),
         unit.museumId,
         unit.path,

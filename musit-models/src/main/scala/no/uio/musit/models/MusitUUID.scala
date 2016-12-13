@@ -41,4 +41,6 @@ trait MusitUUIDOps[T <: MusitUUID] {
 
   def generateAsOpt(): Option[T] = Option(generate())
 
+  def fromString(str: String): Option[T] = validate(str).toOption.map(fromUUID)
+
 }

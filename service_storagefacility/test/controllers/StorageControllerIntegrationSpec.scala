@@ -86,7 +86,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   "Running the storage facility service" when {
 
-    "interacting with the StorageUnitResource endpoints" should {
+    "interacting with the StorageController endpoints" should {
 
       "successfully create a few root nodes" in {
 
@@ -1260,6 +1260,46 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           res1.status mustBe OK
           res1.json.as[JsArray].value must not be empty
         }
+    }
+
+    "scanning barcodes" should {
+      "find a storage node when calling the scan service with a UUID" in {
+        val uuid = "244f09a3-eb1a-49e7-80ee-7a07baa016dd"
+
+        val res = wsUrl(ScanUrl(mid))
+          .withHeaders(readToken.asHeader)
+          .withQueryString("storageNodeId" -> uuid)
+          .get().futureValue
+
+        res.status mustBe OK
+        (res.json \ "name").as[String] mustBe "Naturværelset"
+        (res.json \ "type").as[String] mustBe "Room"
+      }
+
+      "find a storage node when calling the scan service with an old barcode" in {
+        val oldBarcode = 11111111
+
+        val res = wsUrl(ScanUrl(mid))
+          .withHeaders(readToken.asHeader)
+          .withQueryString("oldBarcode" -> s"$oldBarcode")
+          .get().futureValue
+
+        res.status mustBe OK
+        (res.json \ "name").as[String] mustBe "No UUID 1"
+        (res.json \ "type").as[String] mustBe "Room"
+      }
+
+      "return BadRequest if none of the query params are specified" in {
+        wsUrl(ScanUrl(mid)).withHeaders(readToken.asHeader)
+          .get().futureValue.status mustBe BAD_REQUEST
+      }
+
+      "return BadRequest if storageNodeId isn't a valid UUID" in {
+        wsUrl(ScanUrl(mid))
+          .withHeaders(readToken.asHeader)
+          .withQueryString("storageNodeId" -> "foo-bar-code")
+          .get().futureValue.status mustBe BAD_REQUEST
+      }
     }
   }
 }

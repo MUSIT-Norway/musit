@@ -39,6 +39,8 @@ package object testhelpers {
   val ObjCurrentLocationUrl = (mid: Int, objectId: Long) => s"${StorageNodesUrl(mid)}/objects/$objectId/currentlocation" // scalastyle:ignore
   val StorageNodeSearchName = (mid: Int) => s"${StorageNodesUrl(mid)}/search"
 
+  val ScanUrl = (mid: Int) => s"${StorageNodesUrl(mid)}/scan"
+
   val HundredAndOneCharString =
     """abcdefghijklmnopqrstuvwxyzæøåa
       |abcdefghijklmnopqrstuvwxyzæøåa

@@ -23,7 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.datetime.Implicits._
 import models.datetime.dateTimeNow
 import models.storage._
-import models.storage.dto.StorageNodeDto
+import models.storage.dto.{StorageNodeDto, StorageUnitDto}
 import no.uio.musit.MusitResults._
 import no.uio.musit.models._
 import play.api.Logger
@@ -183,18 +183,45 @@ class StorageUnitDao @Inject() (
   }
 
   /**
-   * TODO: Document me!!!
+   * Get the StorageType for the given StorageNodeDatabaseId
    */
-  def getStorageType(
+  def getStorageTypeFor(
+    mid: MuseumId,
     id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageType]]] = {
-    db.run(
-      storageNodeTable.filter { node =>
+    val query = storageNodeTable.filter { node =>
       node.id === id && node.isDeleted === false
     }.map(_.storageType).result.headOption
-    ).map { maybeStorageType =>
-      MusitSuccess(maybeStorageType)
-    }
+
+    db.run(query).map(MusitSuccess.apply)
+  }
+
+  /**
+   * Get the StorageNodeDatabaseId and StorageType for the given StorageNodeId
+   */
+  def getStorageTypeFor(
+    mid: MuseumId,
+    uuid: StorageNodeId
+  ): Future[MusitResult[Option[(StorageNodeDatabaseId, StorageType)]]] = {
+    val query = storageNodeTable.filter { n =>
+      n.museumId === mid && n.uuid === uuid && n.isDeleted === false
+    }.map(n => n.id -> n.storageType).result.headOption
+
+    db.run(query).map(MusitSuccess.apply)
+  }
+
+  /**
+   * Get the StorageNodeDatabaseId and StorageType for the given old barcode.
+   */
+  def getStorageTypeFor(
+    mid: MuseumId,
+    oldBarcode: Int
+  ): Future[MusitResult[Option[(StorageNodeDatabaseId, StorageType)]]] = {
+    val query = storageNodeTable.filter { n =>
+      n.museumId === mid && n.oldBarcode === oldBarcode && n.isDeleted === false
+    }.map(n => n.id -> n.storageType).result.headOption
+
+    db.run(query).map(MusitSuccess.apply)
   }
 
   /**
