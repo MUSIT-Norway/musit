@@ -189,7 +189,7 @@ class ObjectDao @Inject() (
     val q5 = {
       if (currUsr.hasGodMode) q4
       // Filter on collection access if the user doesn't have GodMode
-      else q4.filter(_.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct)
+      else q4.filter(_.newCollectionId inSet collections.flatMap(_.schemaIds).distinct)
     }
     // Tweak here if sorting needs to be tuned
     q5.sortBy { mt =>
@@ -261,7 +261,7 @@ class ObjectDao @Inject() (
     val q = objTable.filter(_.mainObjectId === mainObjectId.underlying)
     val query = {
       if (currUsr.hasGodMode) q
-      else q.filter(_.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct)
+      else q.filter(_.newCollectionId inSet collections.flatMap(_.schemaIds).distinct)
     }
     db.run(query.result)
       .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
@@ -296,7 +296,7 @@ class ObjectDao @Inject() (
     val objQuery = {
       if (currUsr.hasGodMode) objTable
       else objTable.filter { o =>
-        o.oldSchema inSet collections.flatMap(_.flattenSchemas).distinct
+        o.newCollectionId inSet collections.flatMap(_.schemaIds).distinct
       }
     }
 
