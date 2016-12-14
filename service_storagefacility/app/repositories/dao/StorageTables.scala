@@ -216,7 +216,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     val heightTo = column[Option[Double]]("HEIGHT_TO")
     val groupRead = column[Option[String]]("GROUP_READ")
     val groupWrite = column[Option[String]]("GROUP_WRITE")
-    val oldBarcode = column[Option[Int]]("OLD_BARCODE")
+    val oldBarcode = column[Option[Long]]("OLD_BARCODE")
     val isDeleted = column[Boolean]("IS_DELETED")
     val museumId = column[MuseumId]("MUSEUM_ID")
     val path = column[NodePath]("NODE_PATH")
@@ -235,7 +235,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
       heightTo: Option[Double],
       groupRead: Option[String],
       groupWrite: Option[String],
-      oldBarcode: Option[Int],
+      oldBarcode: Option[Long],
       isDeleted: Boolean,
       museumId: MuseumId,
       nodePath: NodePath,

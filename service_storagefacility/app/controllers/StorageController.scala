@@ -184,7 +184,7 @@ final class StorageController @Inject() (
     }
   }
 
-  def getByOldBarcode(mid: Int, oldBarcode: Option[Int]): Future[Result] = {
+  def getByOldBarcode(mid: Int, oldBarcode: Option[Long]): Future[Result] = {
     oldBarcode.map { barcode =>
       service.getNodeByOldBarcode(mid, barcode).map {
         case MusitSuccess(maybeNode) =>
@@ -210,7 +210,7 @@ final class StorageController @Inject() (
   def scan(
     mid: Int,
     storageNodeId: Option[String],
-    oldBarcode: Option[Int]
+    oldBarcode: Option[Long]
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     if (storageNodeId.nonEmpty) getByStorageNodeId(mid, storageNodeId)
     else if (oldBarcode.nonEmpty) getByOldBarcode(mid, oldBarcode)
