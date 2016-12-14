@@ -215,7 +215,7 @@ class StorageUnitDao @Inject() (
    */
   def getStorageTypeFor(
     mid: MuseumId,
-    oldBarcode: Int
+    oldBarcode: Long
   ): Future[MusitResult[Option[(StorageNodeDatabaseId, StorageType)]]] = {
     val query = storageNodeTable.filter { n =>
       n.museumId === mid && n.oldBarcode === oldBarcode && n.isDeleted === false
