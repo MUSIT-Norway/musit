@@ -27,7 +27,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   storage_type      VARCHAR(100)      DEFAULT 'StorageUnit',
   group_read        VARCHAR(4000),
   group_write       VARCHAR(4000),
-  old_barcode       INTEGER,
+  old_barcode       NUMBER(20),
   museum_id         INTEGER           NOT NULL,
   updated_by        VARCHAR2(36)      NOT NULL,
   updated_date      TIMESTAMP         NOT NULL, -- When the change was received by the system

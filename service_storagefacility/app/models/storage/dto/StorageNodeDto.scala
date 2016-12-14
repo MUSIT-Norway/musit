@@ -40,7 +40,7 @@ case class StorageUnitDto(
   heightTo: Option[Double],
   groupRead: Option[String],
   groupWrite: Option[String],
-  oldBarcode: Option[Int],
+  oldBarcode: Option[Long],
   path: NodePath,
   isDeleted: Option[Boolean],
   storageType: StorageType,

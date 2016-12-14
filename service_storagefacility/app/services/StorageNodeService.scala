@@ -415,7 +415,7 @@ class StorageNodeService @Inject() (
 
   def getNodeByOldBarcode(
     mid: MuseumId,
-    oldBarcode: Int
+    oldBarcode: Long
   ): Future[MusitResult[Option[StorageNode]]] = {
     (for {
       tuple <- MusitResultT(unitDao.getStorageTypeFor(mid, oldBarcode))
