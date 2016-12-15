@@ -16,33 +16,51 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
-body {
+@media only screen {
+  html, body {
     /* A4 dimensions */
+    background: rgb(204,204,204);
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+  }
+
+  .labelsContainer {
+    display: block;
+    background: white;
+    height: 297mm;
     width: 210mm;
-    /*height: 297mm;*/
-    margin: 0;
+    margin: 10px;
     padding: 0;
-    border-collapse: collapse;
+    page-break-after: always;
+    box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+  }
 }
-
 @page {
+  /* A4 dimensions */
+  background: white;
+  size: 210mm 297mm;
+  margin: 0;
+  padding: 0;
+  border-collapse: collapse;
+}
+
+@media only print {
+  html, body {
     /* A4 dimensions */
-    size: 210mm 297mm;
+    background: white;
     margin: 0;
     padding: 0;
     border-collapse: collapse;
-}
-
-.labelsContainer {
+  }
+  .labelsContainer {
     height: 297mm;
     width: 210mm;
     margin: 0;
-    page-break-after: always;
+    padding: 0;
+    box-shadow: 0;
+    page-break-after: auto;
+  }
 }
 
-.page-break {
-    clear: left;
-    display: block;
-    page-break-after: always;
-}
+
