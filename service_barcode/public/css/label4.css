@@ -17,19 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-.hermaPadding {
-  padding: 21.5mm 7.73mm 18.5mm;
-}
-
 .label {
-  width: 96mm;
-  height: 50.8mm;
-  padding: 2mm;
-  margin: 0 1.27mm;
+  /* 210x11mm labels without padding on paper */
+  width: 210mm;
+  height: 11mm;
+  padding: 0;
+  margin: 0;
 
   float: left;
 
-  text-align: center;
+  text-align: left;
   overflow: hidden;
 
   background-color: white;
@@ -37,20 +34,27 @@
 }
 
 .top {
-  display: flex;
-  align-items: center;
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: flex-start;
   justify-content: space-between;
 }
 
 .codeImage {
+  margin-top: 1.5mm;
+  margin-left: 4mm;
+  vertical-align: middle;
   align-self: flex-start;
 }
 
 .name {
-  align-self: flex-end;
+  font-size: smaller;
+  margin-top: -1mm;
+  margin-left: 10mm;
 }
 
 .uuid {
-  display: block;
-  font-size: x-small;
+  font-size: xx-small;
+  margin-top: -4mm;
+  margin-left: 22mm;
 }

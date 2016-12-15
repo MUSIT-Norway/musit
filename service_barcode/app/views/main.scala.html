@@ -1,12 +1,16 @@
-@(templateCss: Html)(content: Html)
+@(templateCss: Html, isPortrait: Boolean = true)(content: Html)
 
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <link rel="stylesheet" href="@controllers.routes.Assets.at("css/defaults.css")">
-        @templateCss
-    </head>
-    <body>
-        @content
-    </body>
+  <head>
+    @if(isPortrait) {
+      <link rel="stylesheet" href="@controllers.routes.Assets.at("css/portrait.css")">
+    } else {
+      <link rel="stylesheet" href="@controllers.routes.Assets.at("css/landscape.css")">
+    }
+    @templateCss
+  </head>
+  <body>
+    @content
+  </body>
 </html>

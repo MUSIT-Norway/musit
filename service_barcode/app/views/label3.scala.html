@@ -1,0 +1,49 @@
+@*******************************************************************************
+* Template for Label 3
+*******************************************************************************@
+@import models.BarcodeFormats.BarcodeFormat
+@import controllers.routes
+@import models.LabelData
+@import models.TemplateConfigs.TemplateConfig
+
+@(labelData: Seq[LabelData], bf: BarcodeFormat, conf: TemplateConfig, isPreview: Boolean = false)
+
+@templateCss() = {
+  <link rel="stylesheet" href="@routes.Assets.at("css/label3.css").url">
+}
+
+@label(ld: LabelData) = {
+  <div class="label">
+    <div class="top">
+      <div class="codeImage">
+        <img
+            width="90px"
+            height="90px"
+            src="@routes.BarcodeController.generate(ld.uuid, bf.code)"
+        />
+      </div>
+    </div>
+    <div class="name"><p>@ld.data.head.value</p></div>
+    <div class="uuid">@ld.uuid</div>
+  </div>
+}
+
+@main(templateCss(), false) {
+  @if(isPreview) {
+    <div class="labelsContainer">
+    @labelData.headOption.map { ld =>
+      @label(ld)
+    }.getOrElse(<span>Cannot show template for nothing</span>)
+    </div>
+  } else {
+    @defining(labelData.grouped(conf.numPerPage)) { groupedData =>
+      @for(ldg <- groupedData) {
+        <div class="labelsContainer">
+        @for(ld <- ldg) {
+          @label(ld)
+        }
+        </div>
+      }
+    }
+  }
+}

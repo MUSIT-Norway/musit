@@ -18,36 +18,36 @@
  */
 
 .label {
-    /* Avery 5160 labels */
-    width: 51.435mm;
-    height: 22.225mm;
-    padding: 3.175mm 7.62mm 0;
-    margin-right: 3.175mm;
+  /* Avery 5160 labels */
+  width: 51.435mm;
+  height: 22.225mm;
+  padding: 3.175mm 7.62mm 0;
+  margin-right: 3.175mm;
 
-    float: left;
+  float: left;
 
-    text-align: center;
-    overflow: hidden;
+  text-align: center;
+  overflow: hidden;
 
-    background-color: white;
-    outline: 1px dotted;
+  background-color: white;
+  outline: 1px dotted;
 }
 
 .top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .codeImage {
-    align-self: flex-start;
+  align-self: flex-start;
 }
 
 .name {
-    align-self: flex-end;
+  align-self: flex-end;
 }
 
 .uuid {
-    display: block;
-    font-size: x-small;
+  display: block;
+  font-size: x-small;
 }
