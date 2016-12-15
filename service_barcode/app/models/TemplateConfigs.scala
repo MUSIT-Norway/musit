@@ -25,6 +25,7 @@ object TemplateConfigs {
 
   val AvailableConfigs: Seq[TemplateConfig] = Seq(
     Label1,
+    Label2,
     Avery5160,
     Herma9650
   )
@@ -47,6 +48,7 @@ object TemplateConfigs {
     def fromInt(i: Int): Option[TemplateConfig] = {
       i match {
         case Label1.templateId => Some(Label1)
+        case Label2.templateId => Some(Label2)
         case Avery5160.templateId => Some(Avery5160)
         case Herma9650.templateId => Some(Herma9650)
         case _ => None
@@ -61,6 +63,15 @@ object TemplateConfigs {
     override val labelHeight: Millimeters = Millimeters(37)
     override val rowsPerPage: Int = 8
     override val colsPerPage: Int = 3
+  }
+
+  case object Label2 extends TemplateConfig {
+    override val templateId: Int = 4
+    override val name: String = "Label-2 105x74"
+    override val labelWidth: Millimeters = Millimeters(105)
+    override val labelHeight: Millimeters = Millimeters(74)
+    override val rowsPerPage: Int = 4
+    override val colsPerPage: Int = 2
   }
 
   case object Avery5160 extends TemplateConfig {
