@@ -1,5 +1,5 @@
 @*******************************************************************************
-* Template for Label 3
+* Template for Label 5
 *******************************************************************************@
 @import models.BarcodeFormats.BarcodeFormat
 @import controllers.routes
@@ -9,7 +9,7 @@
 @(labelData: Seq[LabelData], bf: BarcodeFormat, conf: TemplateConfig, isPreview: Boolean = false)
 
 @templateCss() = {
-  <link rel="stylesheet" href="@routes.Assets.at("css/label3.css").url">
+  <link rel="stylesheet" href="@routes.Assets.at("css/label5.css").url">
 }
 
 @label(ld: LabelData) = {
@@ -22,13 +22,13 @@
             src="@routes.BarcodeController.generate(ld.uuid, bf.code)"
         />
       </div>
+      <div class="name"><p>@ld.data.head.value</p></div>
     </div>
-    <div class="name"><p>@ld.data.head.value</p></div>
     <div class="uuid">@ld.uuid</div>
   </div>
 }
 
-@main(templateCss(), false) {
+@main(templateCss()) {
   @if(isPreview) {
     <div class="labelsContainer">
     @labelData.headOption.map { ld =>
