@@ -17,40 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-.hermaPadding {
-  padding: 21.5mm 7.73mm 18.5mm;
-}
+package controllers
 
-.label {
-  width: 96mm;
-  height: 50.8mm;
-  padding: 2mm;
-  margin: 0 1.27mm;
+import no.uio.musit.service.BuildInfo
+import play.api.mvc.{Action, Controller}
 
-  float: left;
+class Application extends Controller {
 
-  text-align: center;
-  overflow: hidden;
+  def buildInfo = Action { implicit request =>
+    Ok(BuildInfo.toJson)
+  }
 
-  background-color: white;
-  outline: 1px dotted;
-}
-
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.codeImage {
-  align-self: flex-start;
-}
-
-.name {
-  align-self: flex-end;
-}
-
-.uuid {
-  display: block;
-  font-size: x-small;
 }

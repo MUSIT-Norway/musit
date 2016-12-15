@@ -7,6 +7,8 @@
 # This service has an overridden play.http.context value.
 # So to access these services, all request URI's need to start with "/service_barcode"
 
+GET         /service/barcode/buildinfo            controllers.Application.buildInfo
+
 # Endpoint for generating a 2D barcode (DataMatrix or QR)
 # ~~~~
 GET         /barcode/:uuid                        controllers.BarcodeController.generate(uuid: String, codeFormat: Int)

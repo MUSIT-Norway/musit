@@ -24,7 +24,7 @@ import java.util.UUID
 import com.google.inject.{Inject, Singleton}
 import models.BarcodeFormats.BarcodeFormat
 import models.{FieldData, LabelData, TemplateConfigs}
-import models.TemplateConfigs.{Avery5160, Herma9650, TemplateConfig}
+import models.TemplateConfigs._
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
@@ -52,6 +52,21 @@ class TemplateController @Inject() (
           // TODO: For now this is OK...but eventually we'll need to accommodate
           // quite a few label templates. And a huuuuge pattern match is going
           // to feel quite messy.
+          case Label1 =>
+            views.html.label1(labelData, bf, Label1, isPreview = true)
+
+          case Label2 =>
+            views.html.label2(labelData, bf, Label2, isPreview = true)
+
+          case Label3 =>
+            views.html.label3(labelData, bf, Label3, isPreview = true)
+
+          case Label4 =>
+            views.html.label4(labelData, bf, Label4, isPreview = true)
+
+          case Label5 =>
+            views.html.label5(labelData, bf, Label5, isPreview = true)
+
           case Avery5160 =>
             views.html.avery5160(labelData, bf, Avery5160, isPreview = true)
 
@@ -82,6 +97,21 @@ class TemplateController @Inject() (
             // TODO: For now this is OK...but eventually we'll need to accommodate
             // quite a few label templates. And a huuuuge pattern match is going
             // to feel quite messy.
+            case Label1 =>
+              views.html.label1(data, bf, Label1)
+
+            case Label2 =>
+              views.html.label2(data, bf, Label2)
+
+            case Label3 =>
+              views.html.label3(data, bf, Label3)
+
+            case Label4 =>
+              views.html.label4(data, bf, Label4)
+
+            case Label5 =>
+              views.html.label5(data, bf, Label5)
+
             case Avery5160 =>
               views.html.avery5160(data, bf, Avery5160)
 
