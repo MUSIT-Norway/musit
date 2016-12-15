@@ -1,0 +1,67 @@
+/*
+ * MUSIT is a museum database to archive natural and cultural history data.
+ * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License,
+ * or any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+@media only screen {
+  html, body {
+    /* A4 dimensions */
+    background: rgb(204,204,204);
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+  }
+
+  .labelsContainer {
+    display: block;
+    background: white;
+    width: 297mm;
+    height: 210mm;
+    margin: 10px;
+    padding: 0;
+    page-break-after: always;
+    box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+  }
+}
+@page {
+  /* A4 dimensions */
+  background: white;
+  size: 297mm 210mm;
+  margin: 0;
+  padding: 0;
+  border-collapse: collapse;
+}
+
+@media only print {
+  html, body {
+    /* A4 dimensions */
+    background: white;
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+  }
+  .labelsContainer {
+    width: 297mm;
+    height: 210mm;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0;
+    page-break-after: auto;
+  }
+}
+
+

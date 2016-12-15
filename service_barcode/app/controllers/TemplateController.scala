@@ -58,6 +58,9 @@ class TemplateController @Inject() (
           case Label2 =>
             views.html.label2(labelData, bf, Label2, isPreview = true)
 
+          case Label3 =>
+            views.html.label3(labelData, bf, Label3, isPreview = true)
+
           case Avery5160 =>
             views.html.avery5160(labelData, bf, Avery5160, isPreview = true)
 
@@ -93,6 +96,9 @@ class TemplateController @Inject() (
 
             case Label2 =>
               views.html.label2(data, bf, Label2)
+
+            case Label3 =>
+              views.html.label3(data, bf, Label3)
 
             case Avery5160 =>
               views.html.avery5160(data, bf, Avery5160)
