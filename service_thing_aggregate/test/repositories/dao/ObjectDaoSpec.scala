@@ -195,7 +195,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
       "find objects using museumNo, subNo with wildcard and term" in {
 
         val res = dao.search(
-          mid, 1, 10, Some(MuseumNo("c555*")), Some(SubNo("3*")), Some("øks"), allCollections
+          mid, 1, 10, Some(MuseumNo("c555*")), Some(SubNo("3*")), Some("øks"), allCollections // scalastyle:ignore
         ).futureValue
         res.isSuccess mustBe true
         val seq = res.get
@@ -275,9 +275,11 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
     "getting objects for a nodeId" should {
       "return a list of objects if the nodeId exists in the museum" in {
         val mr = dao.findObjects(
-          mid,
-          StorageNodeDatabaseId(4),
-          allCollections
+          mid = mid,
+          nodeId = StorageNodeDatabaseId(4),
+          collections = allCollections,
+          page = 1,
+          limit = 10
         ).futureValue
         mr.isSuccess mustBe true
         mr.get.size mustBe 3
@@ -305,9 +307,11 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
       "return a list of objects that includes the main object ID" in {
         val mr = dao.findObjects(
-          mid,
-          StorageNodeDatabaseId(7),
-          allCollections
+          mid = mid,
+          nodeId = StorageNodeDatabaseId(7),
+          collections = allCollections,
+          page = 1,
+          limit = 10
         ).futureValue
 
         mr.isSuccess mustBe true
@@ -337,9 +341,11 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
       "return a an empty vector when nodeId doesn't exist in museum" in {
         val mr = dao.findObjects(
-          mid,
-          StorageNodeDatabaseId(999999),
-          allCollections
+          mid = mid,
+          nodeId = StorageNodeDatabaseId(999999),
+          collections = allCollections,
+          page = 1,
+          limit = 10
         ).futureValue
         mr.isSuccess mustBe true
         mr.get.length mustBe 0
@@ -347,12 +353,26 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
       "return a an empty vector when museum doesn't exist" in {
         val mr = dao.findObjects(
-          MuseumId(55),
-          StorageNodeDatabaseId(2),
-          allCollections
+          mid = MuseumId(55),
+          nodeId = StorageNodeDatabaseId(2),
+          collections = allCollections,
+          page = 1,
+          limit = 10
         ).futureValue
         mr.isSuccess mustBe true
         mr.get.length mustBe 0
+      }
+
+      "return only the numberof objects per page specified in limit" in {
+        val mr = dao.findObjects(
+          mid = mid,
+          nodeId = StorageNodeDatabaseId(6),
+          collections = allCollections,
+          page = 1,
+          limit = 10
+        ).futureValue
+        mr.isSuccess mustBe true
+        mr.get.size mustBe 10
       }
     }
 
