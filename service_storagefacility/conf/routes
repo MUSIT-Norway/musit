@@ -23,7 +23,7 @@ GET           /v1/museum/:mid/storagenodes/scan                                 
 GET           /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.getById(mid: Int, nodeId: Long)
 PUT           /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.update(mid: Int, nodeId: Long)
 DELETE        /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.delete(mid: Int, nodeId: Long)
-GET           /v1/museum/:mid/storagenodes/:nodeId/children                     controllers.StorageController.children(mid: Int, nodeId: Long)
+GET           /v1/museum/:mid/storagenodes/:nodeId/children                     controllers.StorageController.children(mid: Int, nodeId: Long, page: Int ?= 1, limit: Int ?=25)
 
 # Controls
 POST          /v1/museum/:mid/storagenodes/:nodeId/controls                     controllers.EventController.addControl(mid: Int, nodeId: Long)
