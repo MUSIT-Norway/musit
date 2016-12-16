@@ -292,6 +292,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   mainobject_id     NUMBER(20),
   old_schemaname    VARCHAR(100),
   lokal_pk          NUMBER(20),
+  old_barcode       INTEGER,
   new_collection_id INTEGER,
   PRIMARY KEY (object_id)
 );

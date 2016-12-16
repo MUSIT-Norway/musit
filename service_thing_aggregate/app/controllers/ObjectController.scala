@@ -186,4 +186,26 @@ class ObjectController @Inject() (
         InternalServerError(Json.obj("message" -> r.message))
     }
   }
+
+  def scanForOldBarcode(
+    mid: MuseumId,
+    oldBarcode: Long,
+    collectionIds: String
+  ) = MusitSecureAction(mid, Read).async { request =>
+    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      case Left(res) => Future.successful(res)
+      case Right(cids) =>
+        objService.findByOldBarcode(mid, oldBarcode, cids)(request.user).map {
+          case MusitSuccess(objects) =>
+            Ok(Json.toJson(objects))
+
+          case MusitDbError(msg, ex) =>
+            logger.error(msg, ex.orNull)
+            InternalServerError(Json.obj("message" -> msg))
+
+          case r: MusitError =>
+            InternalServerError(Json.obj("message" -> r.message))
+        }
+    }
+  }
 }

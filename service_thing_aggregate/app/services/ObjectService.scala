@@ -45,6 +45,40 @@ class ObjectService @Inject() (
     objDao.findObjectIdsForOld(oldSchema, oldObjectIds)
   }
 
+  private def getCurrentLocation(mid: MuseumId, obj: MusitObject): Future[MusitObject] =
+    nodeDao.currentLocation(mid, obj.id).flatMap {
+      case Some(nodeIdAndPath) =>
+        nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
+          obj.copy(
+            currentLocationId = Some(nodeIdAndPath._1),
+            path = Some(nodeIdAndPath._2),
+            pathNames = Some(pathNames)
+          )
+        }
+      case None =>
+        Future.successful(obj)
+    }
+
+  def findByOldBarcode(
+    mid: MuseumId,
+    oldBarcode: Long,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+    objDao.findByOldBarcode(mid, oldBarcode, collections).flatMap {
+      case MusitSuccess(objs) =>
+        Future.sequence(objs.map(getCurrentLocation(mid, _)))
+          .map(MusitSuccess(_))
+          .recover {
+            case NonFatal(ex) =>
+              val msg = s"An error occured when executing object search"
+              logger.error(msg, ex)
+              MusitInternalError(msg)
+          }
+      case err: MusitError =>
+        Future.successful(err)
+    }
+  }
+
   def findMainObjectChildren(
     mid: MuseumId,
     mainObjectId: ObjectId,
@@ -93,29 +127,15 @@ class ObjectService @Inject() (
     objDao.search(mid, page, limit, museumNo, subNo, term, collectionIds).flatMap {
       case MusitSuccess(searchResult) =>
         // We found some objects...now we need to find the current location for each.
-        Future.sequence {
-          searchResult.matches.map { obj =>
-            nodeDao.currentLocation(mid, obj.id).flatMap {
-              case Some(nodeIdAndPath) =>
-                nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
-                  obj.copy(
-                    currentLocationId = Some(nodeIdAndPath._1),
-                    path = Some(nodeIdAndPath._2),
-                    pathNames = Some(pathNames)
-                  )
-                }
-              case None =>
-                Future.successful(obj)
-            }
+        Future.sequence(searchResult.matches.map(getCurrentLocation(mid, _)))
+          .map { objects =>
+            MusitSuccess(searchResult.copy(matches = objects))
+          }.recover {
+            case NonFatal(ex) =>
+              val msg = s"An error occured when executing object search"
+              logger.error(msg, ex)
+              MusitInternalError(msg)
           }
-        }.map { objects =>
-          MusitSuccess(searchResult.copy(matches = objects))
-        }.recover {
-          case NonFatal(ex) =>
-            val msg = s"An error occured when executing object search"
-            logger.error(msg, ex)
-            MusitInternalError(msg)
-        }
 
       case err: MusitError =>
         Future.successful(err)

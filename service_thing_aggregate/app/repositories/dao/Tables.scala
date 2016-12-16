@@ -70,6 +70,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile]
     val term = column[String]("TERM")
     val oldSchema = column[Option[String]]("OLD_SCHEMANAME")
     val oldObjId = column[Option[Long]]("LOKAL_PK")
+    val oldBarcode = column[Option[Long]]("OLD_BARCODE")
     val newCollectionId = column[Option[Int]]("NEW_COLLECTION_ID")
 
   }
