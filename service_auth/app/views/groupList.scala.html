@@ -1,39 +1,55 @@
 @import controllers.web.routes.GroupController
 @import models.Group
 @import no.uio.musit.MusitResults.MusitError
+@import no.uio.musit.models.Museums.Museum.fromMuseumId
 @import play.api.mvc.Flash
 
-@(groups: Seq[Group], museumId: Int, error: Option[MusitError] = None)(implicit flash: Flash)
+@(groups: Seq[Group], error: Option[MusitError] = None)(implicit flash: Flash)
 
-@main("Group | List") {
-  <h1>All groups</h1>
+@main("Groups", activeMenu = 3) {
   <p>
-    <a href="@GroupController.groupAddGet(museumId)">
-      Add new group
-    </a>
+    <a href="@GroupController.groupAddGet">Add new group</a>
   </p>
-  <h4>Found @groups.size groups</h4>
-  @if(error.isEmpty) {
-    <table>
-      <tbody>
-      @for(group <- groups) {
-        <tr>
-          <td>
-            <a href="@GroupController.groupActorsList(museumId, group.id.asString)">
-            @group.name
-            </a>
-          </td>
-          <td>
-            <form method="post" action="@GroupController.deleteGroup(museumId, group.id.asString)">
-              <input type="submit" value="Delete" />
-            </form>
-          </td>
-        </tr>
+  <div class="card">
+    <div class="header">
+      <h4 class="title">Found @groups.size groups</h4>
+    </div>
+    <div class="content table-responsive table-full-width">
+      @if(error.isEmpty) {
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Group name</th>
+              <th>Description</th>
+              <th>Museum</th>
+              <th>Permission</th>
+              <th>Delete group</th>
+            </tr>
+          </thead>
+          <tbody>
+          @for(group <- groups) {
+            <tr onclick="@GroupController.groupActorsList(group.id.asString)">
+              <td>
+                <a class="text-primary" href="@GroupController.groupActorsList(group.id.asString)">
+                  <b><u>@group.name</u></b>
+                </a>
+              </td>
+              <td>@group.description</td>
+              <td>@fromMuseumId(group.museumId).map(_.shortName).getOrElse("-")</td>
+              <td>@group.permission.toString</td>
+              <td>
+                <form method="post" action="@GroupController.deleteGroup(group.id.asString)">
+                  <input type="submit" value="Delete" />
+                </form>
+              </td>
+            </tr>
+          }
+          </tbody>
+        </table>
+      } else {
+        <span style="color: red">@error.map(_.message).getOrElse("")</span>
       }
-      </tbody>
-    </table>
-  } else {
-    <span style="color: red">@error.map(_.message).getOrElse("")</span>
-  }
-  <span style="color: green">@flash.get("success").getOrElse("")</span>
+      <span style="color: green">@flash.get("success").getOrElse("")</span>
+    </div>
+  </div>
 }

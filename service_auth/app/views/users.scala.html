@@ -1,0 +1,34 @@
+@import no.uio.musit.security.UserInfo
+
+@(users: Seq[UserInfo])
+
+@main("Users", activeMenu = 4) {
+
+  <div class="card">
+    <div class="header">
+      <h4 class="title">Found @users.size registered users</h4>
+    </div>
+    <div class="content table-responsive table-full-width">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Feide username</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(usr <- users) {
+            <tr>
+              <td>@usr.id.asString</td>
+              <td>@usr.name.getOrElse("-")</td>
+              <td>@usr.feideUser.map(_.value).getOrElse("-")</td>
+              <td>@usr.email.map(_.value).getOrElse("-")</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

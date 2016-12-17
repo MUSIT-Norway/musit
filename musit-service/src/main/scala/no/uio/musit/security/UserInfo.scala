@@ -33,7 +33,7 @@ case class UserInfo(
 
   def feideUser: Option[Email] = {
     secondaryIds.flatMap(_.find { sid =>
-      sid.startsWith("feide")
+      sid.startsWith("feide") || sid.contains("@")
     }.map { fid =>
       Email(fid.reverse.takeWhile(_ != ':').reverse.trim)
     })

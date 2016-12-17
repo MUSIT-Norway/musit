@@ -1,28 +1,117 @@
-@(title: String)(content: Html)
+@import controllers.web.routes.Dashboard
+@import controllers.web.routes.GroupController
+@import controllers.web.routes.UserController
+
+@(title: String, activeMenu: Int = 1)(content: Html)
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>@title</title>
-    <style>
-    table {
-      font-family: arial, sans-serif;
-      border-collapse: collapse;
-      width: 100%;
-    }
+    <title>MUSIT - User and Group Administration</title>
 
-    td, th {
-      border: 1px solid black;
-      text-align: left;
-      padding: 8px;
-    }
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <meta name="viewport" content="width=device-width">
 
-    tr:nth-child(even) {
-      background-color: #dddddd;
-    }
-    </style>
+    <!-- Bootstrap core CSS -->
+    <link href="@controllers.routes.Assets.at("css/bootstrap.min.css")" rel="stylesheet">
+    <!-- Paper Dashboard core CSS -->
+    <link href="@controllers.routes.Assets.at("css/paper-dashboard.css")" rel="stylesheet">
+    <!-- Application custom CSS -->
+    <link href="@controllers.routes.Assets.at("css/custom.css")" rel="stylesheet">
+    <!-- Fonts and icons -->
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Muli:400,300" rel="stylesheet" type="text/css">
   </head>
   <body>
-    @content
+    <div class="wrapper">
+      <div class="sidebar" data-background-color="white" data-active-color="danger">
+        <div class="sidebar-wrapper">
+          <div class="logo">
+            <span class="simple-text">MUSITbasen Admin</span>
+          </div>
+
+          <ul class="nav">
+            @if(activeMenu == 1) {
+              <li class="active">
+            } else {
+              <li>
+            }
+              <a href="@Dashboard.index()">
+                <i class="fa fa-home"></i>
+                <p>Dashboard</p>
+              </a>
+            </li>
+            @if(activeMenu == 2) {
+              <li class="active">
+            } else {
+              <li>
+            }
+              <a href="dashboard.html">
+                <i class="fa fa-archive"></i>
+                <p>Collections</p>
+              </a>
+            </li>
+            @if(activeMenu == 3) {
+              <li class="active">
+            } else {
+              <li>
+            }
+              <a href="@GroupController.groupList()">
+                <i class="fa fa-group"></i>
+                <p>Groups</p>
+              </a>
+            </li>
+            @if(activeMenu == 4) {
+              <li class="active">
+            } else {
+              <li>
+              }
+              <a href="@UserController.users()">
+                <i class="fa fa-user"></i>
+                <p>Users</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <nav class="navbar navbar-default">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <a class="navbar-brand" href="#">@title</a>
+            </div>
+            <div class="collapse navbar-collapse"></div>
+          </div>
+        </nav>
+        <div class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-12">
+              @content
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer">
+          <div class="container-fluid">
+            <nav class="pull-right">
+              <ul>
+                <li>
+                  <a href="#">
+                    MUSIT
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <script src="@controllers.routes.Assets.at("js/jquery-1.10.2.js")"></script>
+    <script src="@controllers.routes.Assets.at("js/bootstrap.min.js")"></script>
+
   </body>
 </html>
