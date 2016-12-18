@@ -21,9 +21,9 @@ package services
 
 import com.google.inject.Inject
 import models.{MusitObject, ObjectSearchResult}
+import no.uio.musit.MusitResults._
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.{ObjectDao, StorageNodeDao}
@@ -38,6 +38,14 @@ class ObjectService @Inject() (
 
   private val logger = Logger(classOf[ObjectService])
 
+  /**
+   * Service that looks up objects using the old primary key in for the old DB
+   * schema name. Implementation is specific to the Delphi client integration.
+   *
+   * @param oldSchema    The old DB schema name
+   * @param oldObjectIds The local primary key for the given schema name.
+   * @return A list containing the _new_ ObjectIds for the objects.
+   */
   def findByOldObjectIds(
     oldSchema: String,
     oldObjectIds: Seq[Long]
@@ -45,6 +53,13 @@ class ObjectService @Inject() (
     objDao.findObjectIdsForOld(oldSchema, oldObjectIds)
   }
 
+  /**
+   * A helper method for getting the current location of an object
+   *
+   * @param mid         The MuseumId to look in
+   * @param obj         The MusitObject to look for
+   * @return The augmented object with path, pathNames and currentLocationId
+   */
   private def getCurrentLocation(mid: MuseumId, obj: MusitObject): Future[MusitObject] =
     nodeDao.currentLocation(mid, obj.id).flatMap {
       case Some(nodeIdAndPath) =>
@@ -59,6 +74,15 @@ class ObjectService @Inject() (
         Future.successful(obj)
     }
 
+  /**
+   * Locate object(s) based on museum, old barcode and collection(s).
+   *
+   * @param mid          The MuseumId to look for objects in.
+   * @param oldBarcode   The bar code to look for.
+   * @param collections  Which collections to look in.
+   * @param currUsr      The currently authenticated user.
+   * @return A list of objects that share tha same bare code
+   */
   def findByOldBarcode(
     mid: MuseumId,
     oldBarcode: Long,
@@ -70,7 +94,7 @@ class ObjectService @Inject() (
           .map(MusitSuccess(_))
           .recover {
             case NonFatal(ex) =>
-              val msg = s"An error occured when executing object search"
+              val msg = s"An error occured when executing object search by old barcode"
               logger.error(msg, ex)
               MusitInternalError(msg)
           }
@@ -79,6 +103,15 @@ class ObjectService @Inject() (
     }
   }
 
+  /**
+   * Locate objects that share the same main object ID.
+   *
+   * @param mid           The MuseumId to look for objects in.
+   * @param mainObjectId  The main object ID to look for.
+   * @param collectionIds Which collections to look in.
+   * @param currUsr       The currently authenticated user.
+   * @return A list of objects that share the same main object ID.
+   */
   def findMainObjectChildren(
     mid: MuseumId,
     mainObjectId: ObjectId,
@@ -88,32 +121,38 @@ class ObjectService @Inject() (
   }
 
   /**
+   * Locate objects in the specified museum, node and collection(s).
    *
-   * @param mid
-   * @param nodeId
-   * @param collectionIds
-   * @param currUsr
-   * @return
+   * @param mid           The MuseumId to look for objects in.
+   * @param nodeId        The specific StorageNodeDatabaseId to look for objects in.
+   * @param collectionIds Specifies collections to fetch objects for.
+   * @param page          The page number to retrieve.
+   * @param limit         The number of results per page.
+   * @param currUsr       The currently authenticated user.
+   * @return A list of objects matching the given criteria.
    */
   def findObjects(
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId,
-    collectionIds: Seq[MuseumCollection]
+    collectionIds: Seq[MuseumCollection],
+    page: Int,
+    limit: Int
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    objDao.findObjects(mid, nodeId, collectionIds)
+    objDao.findObjects(mid, nodeId, collectionIds, page, limit)
   }
 
   /**
    * Search for objects based on the given criteria.
    *
-   * @param mid
-   * @param collectionIds
-   * @param page
-   * @param limit
-   * @param museumNo
-   * @param subNo
-   * @param term
-   * @return
+   * @param mid           The MuseumId to search for objects in
+   * @param collectionIds The collections to search for objects in.
+   * @param page          The page number to retrieve.
+   * @param limit         The number of results per page.
+   * @param museumNo      The MuseumNo to find matches for.
+   * @param subNo         The SubNo to find matches for.
+   * @param term          The object term to find matches for.
+   * @param currUsr       The currently authenticated user.
+   * @return A list of search results matching the given criteria.
    */
   def search(
     mid: MuseumId,

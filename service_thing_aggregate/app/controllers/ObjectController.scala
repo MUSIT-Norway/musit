@@ -21,14 +21,14 @@ package controllers
 
 import com.google.inject.Inject
 import models.ObjectSearchResult
-import no.uio.musit.models.{MuseumCollection, MuseumId, MuseumNo, SubNo}
-import no.uio.musit.security.{AuthenticatedUser, Authenticator}
+import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitSuccess}
+import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
+import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
-import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitSuccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.{Result, Results}
+import play.api.mvc.Results
 import play.api.{Configuration, Logger}
 import services.{ObjectService, StorageNodeService}
 
@@ -107,10 +107,11 @@ class ObjectController @Inject() (
   }
 
   /**
+   * Endpoint to fetch objects that share the same main object ID.
    *
-   * @param mid
-   * @param mainObjectId
-   * @return
+   * @param mid          The MuseumId to look for objects in.
+   * @param mainObjectId The main object ID to look for.
+   * @return A list of objects that share the same main object ID.
    */
   def findMainObjectChildren(
     mid: Int,
@@ -136,23 +137,40 @@ class ObjectController @Inject() (
   }
 
   /**
+   * Endpoint that will retrieve objects for a given nodeId in a museum. The
+   * result is paged, so that only the given {{{limit}}} of results are
+   * returned to the client.
    *
-   * @param mid
-   * @param nodeId
+   * @param mid           The MuseumId to look for the objects and node.
+   * @param nodeId        The StorageNodeDatabaseId to get objects for
    * @param collectionIds Comma separated String of CollectionUUIDs.
-   * @return
+   * @param page          The resultset page number.
+   * @param limit         The number of results per page.
+   * @return A list of objects located in the given node.
    */
   def getObjects(
     mid: Int,
     nodeId: Long,
-    collectionIds: String
-  ) = MusitSecureAction(mid, Read).async { request =>
+    collectionIds: String,
+    page: Int,
+    limit: Int = defaultLimit
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
     parseCollectionIdsParam(mid, collectionIds)(request.user) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
         nodeService.nodeExists(mid, nodeId).flatMap {
           case MusitSuccess(true) =>
-            getObjectsByNodeId(mid, nodeId, cids)(request.user)
+            objService.findObjects(mid, nodeId, cids, page, limit)(request.user).map {
+              case MusitSuccess(objects) =>
+                Ok(Json.toJson(objects))
+
+              case MusitDbError(msg, ex) =>
+                logger.error(msg, ex.orNull)
+                InternalServerError(Json.obj("message" -> msg))
+
+              case r: MusitError =>
+                InternalServerError(Json.obj("message" -> r.message))
+            }
 
           case MusitSuccess(false) =>
             Future.successful(NotFound(Json.obj(
@@ -166,24 +184,6 @@ class ObjectController @Inject() (
           case r: MusitError =>
             Future.successful(InternalServerError(Json.obj("message" -> r.message)))
         }
-    }
-  }
-
-  private def getObjectsByNodeId(
-    mid: MuseumId,
-    nodeId: Long,
-    collectionIds: Seq[MuseumCollection]
-  )(implicit currUsr: AuthenticatedUser): Future[Result] = {
-    objService.findObjects(mid, nodeId, collectionIds).map {
-      case MusitSuccess(objects) =>
-        Ok(Json.toJson(objects))
-
-      case MusitDbError(msg, ex) =>
-        logger.error(msg, ex.orNull)
-        InternalServerError(Json.obj("message" -> msg))
-
-      case r: MusitError =>
-        InternalServerError(Json.obj("message" -> r.message))
     }
   }
 

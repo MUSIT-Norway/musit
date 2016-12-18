@@ -135,9 +135,11 @@ final class StorageController @Inject() (
    */
   def children(
     mid: Int,
-    id: Long
+    id: Long,
+    page: Int,
+    limit: Int
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.getChildren(mid, id).map { nodes =>
+    service.getChildren(mid, id, page, limit).map { nodes =>
       Ok(Json.toJson[Seq[GenericStorageNode]](nodes))
     }
   }
