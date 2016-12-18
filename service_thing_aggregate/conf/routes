@@ -20,4 +20,4 @@ GET        /delphi/objects/:oldObjectId                       controllers.Delphi
 
 # Bar code services
 # ~~~~
-GET        /museum/:mid/scan                                  controllers.ObjectController.scanForOldBarcode(mid: Int, oldBarcode: Long, collectonIds: String)
+GET        /museum/:mid/scan                                  controllers.ObjectController.scanForOldBarcode(mid: Int, oldBarcode: Long, collectionIds: String)
