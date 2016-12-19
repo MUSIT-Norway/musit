@@ -48,12 +48,12 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite {
 
     "return the number of objects on a node" in {
       val nodeId = StorageNodeDatabaseId(6)
-      statsDao.numObjectsInNode(nodeId).futureValue mustBe MusitSuccess(36)
+      statsDao.numObjectsInNode(nodeId).futureValue mustBe MusitSuccess(34)
     }
 
     "return the total number of objects i a node hierarchy" in {
       val path = NodePath(",1,")
-      statsDao.numObjectsInPath(path).futureValue mustBe MusitSuccess(54)
+      statsDao.numObjectsInPath(path).futureValue mustBe MusitSuccess(52)
     }
 
   }

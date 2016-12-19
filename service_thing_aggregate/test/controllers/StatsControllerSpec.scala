@@ -23,7 +23,6 @@ import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.libs.json.JsArray
 import play.api.test.Helpers._
 
 class StatsControllerSpec extends MusitSpecWithServerPerSuite {
@@ -48,7 +47,7 @@ class StatsControllerSpec extends MusitSpecWithServerPerSuite {
 
       (res.json \ "numNodes").as[Int] mustBe 3
       (res.json \ "numObjects").as[Int] mustBe 4
-      (res.json \ "totalObjects").as[Int] mustBe 54
+      (res.json \ "totalObjects").as[Int] mustBe 52 // 2 are deleted
     }
   }
 

@@ -290,6 +290,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   museumNoAsNumber  INTEGER,
   subNoAsNumber     INTEGER,
   mainobject_id     NUMBER(20),
+  is_deleted        INTEGER DEFAULT 0 NOT NULL,
   old_schemaname    VARCHAR(100),
   lokal_pk          NUMBER(20),
   old_barcode       INTEGER,
