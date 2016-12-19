@@ -69,12 +69,14 @@ class StorageStatsDao @Inject() (
     val nodeFilter = s"${path.path}%"
 
     val q1 = nodeTable.filter(_.path.asColumnOf[String] like nodeFilter)
+    val q2 = objTable.filter(_.isDeleted === false)
+    val q3 = for { (lo, _) <- locObjTable join q2 on (_.objectId === _.id) } yield lo
 
-    val q2 = for {
-      (sn, lo) <- q1 join locObjTable on (_.id === _.currentLocationId)
+    val query = for {
+      (sn, lo) <- q1 join q3 on (_.id === _.currentLocationId)
     } yield sn
 
-    db.run(q2.length.result).map(MusitSuccess.apply).recover {
+    db.run(query.length.result).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting total objects for nodes in path $path"
         logger.error(msg, ex)
@@ -91,9 +93,13 @@ class StorageStatsDao @Inject() (
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
   def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
-    db.run(
-      locObjTable.filter(_.currentLocationId === nodeId).length.result
-    ).map(MusitSuccess.apply).recover {
+    val q1 = locObjTable.filter(_.currentLocationId === nodeId)
+    val q2 = objTable.filter(_.isDeleted === false)
+    val query = for {
+      (lo, o) <- q1 join q2 on (_.objectId === _.id)
+    } yield lo
+
+    db.run(query.length.result).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting number direct objects in $nodeId"
         logger.error(msg, ex)

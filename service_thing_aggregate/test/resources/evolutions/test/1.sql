@@ -43,6 +43,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   museumNoAsNumber  INTEGER,
   subNoAsNumber     INTEGER,
   mainobject_id     NUMBER(20),
+  is_deleted        INTEGER DEFAULT 0 NOT NULL,
   old_schemaname    VARCHAR(500),
   lokal_pk          NUMBER(20),
   old_barcode       NUMBER(20),
@@ -83,8 +84,8 @@ INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoA
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '15' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 117, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '16' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 118, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '17' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 119, 1);
-INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '18' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 120, 1);
-INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '19' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 121, 1);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, is_deleted) VALUES ('C1'    , '18' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 120, 1, 1);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, is_deleted) VALUES ('C1'    , '19' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 121, 1, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '20b', 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 122, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '22' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 123, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '21' , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 124, 1);
