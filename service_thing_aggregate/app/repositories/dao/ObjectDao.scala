@@ -28,6 +28,7 @@ import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import slick.lifted.QueryBase
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -269,6 +270,8 @@ class ObjectDao @Inject() (
       }
   }
 
+  type QLocObj = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, scala.Seq]
+
   /**
    *
    * @param mid
@@ -367,4 +370,24 @@ class ObjectDao @Inject() (
     }
   }
 
+  def findByOldBarcode(
+    museumId: MuseumId,
+    oldBarcode: Long,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+    val query = objTable.filter { o =>
+      o.oldBarcode === oldBarcode && o.museumId === museumId
+    }.filter { o =>
+      o.newCollectionId inSet collections.flatMap(_.schemaIds).distinct
+    }
+
+    db.run(query.result).map { res =>
+      MusitSuccess(res.map(MusitObject.fromTuple))
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"Error while locating object with old barcode $oldBarcode"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
 }

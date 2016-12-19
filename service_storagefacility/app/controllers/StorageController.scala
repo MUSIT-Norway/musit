@@ -190,11 +190,7 @@ final class StorageController @Inject() (
     oldBarcode.map { barcode =>
       service.getNodeByOldBarcode(mid, barcode).map {
         case MusitSuccess(maybeNode) =>
-          maybeNode.map(node => Ok(Json.toJson(node))).getOrElse {
-            NotFound(Json.obj(
-              "message" -> s"Could not find node with old barcode $barcode"
-            ))
-          }
+          maybeNode.map(node => Ok(Json.toJson(node))).getOrElse(NoContent)
 
         case err: MusitError =>
           InternalServerError(Json.obj("message" -> err.message))
@@ -239,7 +235,7 @@ final class StorageController @Inject() (
           case b: Building => service.updateBuilding(mid, id, b)
           case r: Room => service.updateRoom(mid, id, r)
           case o: Organisation => service.updateOrganisation(mid, id, o)
-          case notCorrect => Future.successful(MusitSuccess(None))
+          case _ => Future.successful(MusitSuccess(None))
         }
 
         futureRes.map { musitRes =>

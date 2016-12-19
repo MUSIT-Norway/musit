@@ -45,6 +45,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   mainobject_id     NUMBER(20),
   old_schemaname    VARCHAR(500),
   lokal_pk          NUMBER(20),
+  old_barcode       NUMBER(20),
   new_collection_id INTEGER,
   PRIMARY KEY (object_id)
 );
@@ -62,7 +63,7 @@ INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_UUID, STORAGE_NODE_NAME, I
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_UUID, STORAGE_NODE_NAME, IS_PART_OF, STORAGE_TYPE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE) VALUES ('4e93e2c8-0cbd-49f2-ab1f-427d5ccddec2', 'Utenfor 2'           , NULL, 'RootLoan'    , ',11,'     , 99, '896125d3-0563-46b6-a7c5-51f3f899ff0a', TO_DATE('2016-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_UUID, STORAGE_NODE_NAME, IS_PART_OF, STORAGE_TYPE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE) VALUES ('5fef94bc-aa79-4151-b4a2-658e89a949a4', 'FooBar of History'   , 11  , 'Organisation', ',11,12,'  , 99, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', TO_DATE('2016-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
-INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C666'  , '34' , 'Øks'        , 99, 666, 'USD_ARK_GJENSTAND_O', 100, 1);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, old_barcode) VALUES ('C666'  , '34' , 'Øks'        , 99, 666, 'USD_ARK_GJENSTAND_O', 100, 1, 1111111111);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C666'  , '31' , 'Sverd'      , 99, 666, 'USD_ARK_GJENSTAND_O', 101, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C666'  , '38' , 'Sommerfugl' , 99, 666, 'USD_ARK_GJENSTAND_O', 102, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('C1'    , '1a' , 'Øks'        , 99, 1  , 'USD_ARK_GJENSTAND_O', 103, 1);

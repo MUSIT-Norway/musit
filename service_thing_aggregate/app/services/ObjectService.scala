@@ -54,6 +54,56 @@ class ObjectService @Inject() (
   }
 
   /**
+   * A helper method for getting the current location of an object
+   *
+   * @param mid         The MuseumId to look in
+   * @param obj         The MusitObject to look for
+   * @return The augmented object with path, pathNames and currentLocationId
+   */
+  private def getCurrentLocation(mid: MuseumId, obj: MusitObject): Future[MusitObject] =
+    nodeDao.currentLocation(mid, obj.id).flatMap {
+      case Some(nodeIdAndPath) =>
+        nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
+          obj.copy(
+            currentLocationId = Some(nodeIdAndPath._1),
+            path = Some(nodeIdAndPath._2),
+            pathNames = Some(pathNames)
+          )
+        }
+      case None =>
+        Future.successful(obj)
+    }
+
+  /**
+   * Locate object(s) based on museum, old barcode and collection(s).
+   *
+   * @param mid          The MuseumId to look for objects in.
+   * @param oldBarcode   The bar code to look for.
+   * @param collections  Which collections to look in.
+   * @param currUsr      The currently authenticated user.
+   * @return A list of objects that share tha same bare code
+   */
+  def findByOldBarcode(
+    mid: MuseumId,
+    oldBarcode: Long,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+    objDao.findByOldBarcode(mid, oldBarcode, collections).flatMap {
+      case MusitSuccess(objs) =>
+        Future.sequence(objs.map(getCurrentLocation(mid, _)))
+          .map(MusitSuccess(_))
+          .recover {
+            case NonFatal(ex) =>
+              val msg = s"An error occured when executing object search by old barcode"
+              logger.error(msg, ex)
+              MusitInternalError(msg)
+          }
+      case err: MusitError =>
+        Future.successful(err)
+    }
+  }
+
+  /**
    * Locate objects that share the same main object ID.
    *
    * @param mid           The MuseumId to look for objects in.
@@ -116,29 +166,15 @@ class ObjectService @Inject() (
     objDao.search(mid, page, limit, museumNo, subNo, term, collectionIds).flatMap {
       case MusitSuccess(searchResult) =>
         // We found some objects...now we need to find the current location for each.
-        Future.sequence {
-          searchResult.matches.map { obj =>
-            nodeDao.currentLocation(mid, obj.id).flatMap {
-              case Some(nodeIdAndPath) =>
-                nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
-                  obj.copy(
-                    currentLocationId = Some(nodeIdAndPath._1),
-                    path = Some(nodeIdAndPath._2),
-                    pathNames = Some(pathNames)
-                  )
-                }
-              case None =>
-                Future.successful(obj)
-            }
+        Future.sequence(searchResult.matches.map(getCurrentLocation(mid, _)))
+          .map { objects =>
+            MusitSuccess(searchResult.copy(matches = objects))
+          }.recover {
+            case NonFatal(ex) =>
+              val msg = s"An error occured when executing object search"
+              logger.error(msg, ex)
+              MusitInternalError(msg)
           }
-        }.map { objects =>
-          MusitSuccess(searchResult.copy(matches = objects))
-        }.recover {
-          case NonFatal(ex) =>
-            val msg = s"An error occured when executing object search"
-            logger.error(msg, ex)
-            MusitInternalError(msg)
-        }
 
       case err: MusitError =>
         Future.successful(err)

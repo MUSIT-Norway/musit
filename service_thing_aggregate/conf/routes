@@ -17,3 +17,7 @@ GET        /museum/:mid/storagenodes/:nodeId/stats            controllers.StatsC
 PUT        /delphi/objects/tranlsate_old_ids                  controllers.DelphiBridgeController.translateOldObjectIds
 GET        /delphi/museum/:mid/nodes/external                 controllers.DelphiBridgeController.outsideNodes(mid: Int)
 GET        /delphi/objects/:oldObjectId                       controllers.DelphiBridgeController.currentNode(oldObjectId: Long, schemaName: String)
+
+# Bar code services
+# ~~~~
+GET        /museum/:mid/scan                                  controllers.ObjectController.scanForOldBarcode(mid: Int, oldBarcode: Long, collectionIds: String)
