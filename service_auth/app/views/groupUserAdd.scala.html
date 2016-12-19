@@ -1,27 +1,70 @@
 @import helper._
+@import play.api.i18n.Messages
 @import models.{Group, UserAuthAdd}
 @import no.uio.musit.models.MuseumCollection
-@import play.api.i18n.Messages
 @import controllers.web.routes.GroupController
 
 @(theForm: play.api.data.Form[UserAuthAdd], group: Group, collections: Seq[MuseumCollection])(implicit messages: Messages)
 
-@main("Group | Add user") {
-  <h1>Add user to group: @group.name</h1>
+@main(s"Add user to ${group.name}", activeMenu = 3) {
   <p>
-    <a href="@GroupController.groupActorsList(group.museumId, group.id.asString)">
+    <a href="@GroupController.groupUserList(group.id.asString)">
       Go back
     </a>
   </p>
-  @form(action = GroupController.groupAddUserPost(group.museumId, group.id.asString)) {
-    @inputText(theForm("email"))
-    @helper.inputCheckboxGroup(
-      theForm("collections"),
-      options(
-        collections.map(c => (c.uuid.asString, c.name.getOrElse(""))): _*
-      )
-    )
-    <input type="hidden" value="@group.id.asString" name="groupId" />
-    <button type="submit" name="submit" value="submit">Add user to @group.name</button>
-  }
+  <div class="card">
+    <div class="header">
+      <h4 class="title">Add user to @group.name</h4>
+    </div>
+    <div class="content">
+      @form(action = GroupController.groupAddUserPost(group.id.asString)) {
+        <input type="hidden" value="@group.id.asString" name="groupId" />
+        <div class="row">
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-offset-1 col-md-5">
+                @inputText(
+                  field = theForm("email"),
+                  args =
+                    'class -> "form-control border-input",
+                    '_label -> "Email"
+                )
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            @defining(collections.map(c => (c.uuid.asString, c.name.getOrElse(""))).grouped(4)) { grpdCols =>
+              <div class="row">
+                <div class="col-md-offset-1 col-md-5">
+                  <label>Collections</label>
+                  @for(cg <- grpdCols) {
+                    @helper.inputCheckboxGroup(
+                      theForm("collections"),
+                      options(
+                        cg: _*
+                      ),
+                      args =
+                        'class -> "checkbox-inline",
+                        '_label -> ""
+                    )
+                  }
+                </div>
+              </div>
+            }
+            <div class="row">
+              <div class="form-group">
+                <div class="row">
+                  <div class="col-md-offset-2 col-md-3">
+                    <button class="btn btn-info btn-fill btn-wd" type="submit" name="submit" value="submit">
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
 }

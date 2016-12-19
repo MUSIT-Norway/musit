@@ -22,8 +22,8 @@ package repositories.dao
 import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd}
 import no.uio.musit.models._
-import no.uio.musit.security.{AuthTables, GroupInfo}
-import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitResult, MusitSuccess} // scalastyle:ignore
+import no.uio.musit.security.{AuthTables, GroupInfo, UserInfo}
+import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -275,6 +275,24 @@ class AuthDao @Inject() (
     }
   }
 
+  def findUserGroupMembership(
+    grpId: GroupId,
+    email: Email
+  ): Future[MusitResult[Seq[UserGroupMembership]]] = {
+    val query = usrGrpTable.filter { ug =>
+      ug.groupId === grpId && ug.feideEmail === email
+    }.result
+
+    db.run(query).map { res =>
+      MusitSuccess(res)
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when fetching user group memberships" +
+          s"for $email in group $grpId"
+        handleError(msg, ex)
+    }
+  }
+
   /**
    *
    * @param feideEmail
@@ -290,19 +308,13 @@ class AuthDao @Inject() (
     }.delete
 
     db.run(action).map {
-      case res: Int if res == 1 =>
-        logger.debug(s"Successfully removed UserGroup ($feideEmail, $grpId)")
-        MusitSuccess(res)
-
       case res: Int if res == 0 =>
         logger.debug(s"UserGroup ($feideEmail, $grpId) was not removed.")
         MusitSuccess(res)
 
       case res: Int =>
-        val msg = s"An unexpected amount of UserGroups where removed using " +
-          s"UserGroup ($feideEmail, $grpId)"
-        logger.warn(msg)
-        MusitDbError(msg)
+        logger.debug(s"Successfully removed UserGroup ($feideEmail, $grpId)")
+        MusitSuccess(res)
 
     }.recover {
       case NonFatal(ex) =>
@@ -324,6 +336,26 @@ class AuthDao @Inject() (
     }.recover {
       case NonFatal(ex) =>
         handleError(s"An error occurred when trying to get all MuseumCollections.", ex)
+    }
+  }
+
+  def allUsers: Future[MusitResult[Seq[UserInfo]]] = {
+    val query = usrInfoTable.sortBy(_.name.nullsLast)
+    db.run(query.result).map { res =>
+      MusitSuccess(
+        res.map { u =>
+          UserInfo(
+            id = u._1,
+            secondaryIds = u._2.map(fe => Seq(fe.value)),
+            name = u._3,
+            email = u._4,
+            picture = u._5
+          )
+        }
+      )
+    }.recover {
+      case NonFatal(ex) =>
+        handleError(s"An error occurred trying to fetch registered users.", ex)
     }
   }
 }

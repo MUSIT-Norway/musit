@@ -1,20 +1,78 @@
 @import play.api.i18n.Messages
 @import controllers.web.routes.GroupController
 
-@(form: play.api.data.Form[_], museumId: Int, permissions: Seq[(String, String)])(implicit messages: Messages)
+@import no.uio.musit.models.Museums.museums
+@(form: play.api.data.Form[_], permissions: Seq[(String, String)])(implicit messages: Messages)
 
-@main("Group | Add") {
-    <h1>Add group</h1>
-    <p>
-        <a href="@GroupController.groupList(museumId)">
-            Go to group list
-        </a>
-    </p>
-    @helper.form(action = GroupController.groupAddPost(museumId)) {
-        @helper.inputText(form("name"))
-        @helper.select(form("permission"), permissions)
-        @helper.textarea(form("description"))
-        <input type="hidden" value="@museumId" name="museumId" />
-        <button type="submit" name="submit" value="submit">Add group</button>
-    }
+@main("Add group", activeMenu = 3) {
+  <p>
+    <a href="@GroupController.groupList()">
+      Go to group list
+    </a>
+  </p>
+  <div class="card">
+    <div class="header">
+      <h4 class="title">Add new Group</h4>
+    </div>
+    <div class="content">
+      @helper.form(action = GroupController.groupAddPost(), args = 'class -> "form-horizontal") {
+        <div class="row">
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-offset-1 col-md-5">
+                @helper.inputText(
+                  field = form("name"),
+                  args =
+                    'class -> "form-control border-input",
+                    '_label -> "Name"
+                )
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-offset-1 col-md-2">
+                @helper.select(
+                  field = form("permission"),
+                  options = permissions,
+                  args =
+                    'class -> "form-control border-input",
+                    '_default -> "-",
+                    '_label -> "Permission"
+                )
+              </div>
+              <div class="col-md-3">
+                @helper.select(
+                  field = form("museum"),
+                  options = museums.map(m => m.id.underlying.toString -> m.shortName),
+                  args =
+                    'class -> "form-control border-input",
+                    '_default -> "-",
+                    '_label -> "Museum"
+                )
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-offset-1 col-md-5">
+                @helper.textarea(
+                  field = form("description"),
+                  args =
+                    'class -> "form-control border-input",
+                    'rows -> "3",
+                    '_label -> "Description"
+                )
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-offset-2 col-md-3">
+                  <button class="btn btn-info btn-fill btn-wd" type="submit" name="submit" value="submit">Add group</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
 }

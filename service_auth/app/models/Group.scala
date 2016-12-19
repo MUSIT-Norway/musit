@@ -63,7 +63,7 @@ object GroupAdd {
     mapping(
       "name" -> text(minLength = 3),
       "permission" -> number.verifying(Permission.fromInt(_) != Unspecified),
-      "museumId" -> number.verifying(m => Museum.fromMuseumId(MuseumId(m)).nonEmpty),
+      "museum" -> number.verifying(m => Museum.fromMuseumId(MuseumId(m)).nonEmpty),
       "description" -> optional(text)
     )(applyForm)(unapplyForm)
   )

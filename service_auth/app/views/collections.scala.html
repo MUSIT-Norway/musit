@@ -1,0 +1,50 @@
+@import no.uio.musit.MusitResults.MusitError
+@import no.uio.musit.models.MuseumCollection
+@import play.api.mvc.Flash
+
+@(collections: Seq[MuseumCollection], error: Option[MusitError] = None)(implicit flash: Flash)
+
+
+@main("Collections", activeMenu = 2) {
+
+  @*<p>*@
+    @*<a href="#">Add new collection</a>*@
+  @*</p>*@
+  <div class="card">
+    <div class="header">
+      <h4 class="title">Found @collections.size collections</h4>
+    </div>
+    <div class="content table-responsive table-full-width">
+      @if(error.isEmpty) {
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Collection name</th>
+              <th>Old schema names</th>
+              <th>UUID</th>
+            </tr>
+          </thead>
+          <tbody>
+          @for(col <- collections) {
+            <tr onclick="#">
+              <td><b>@col.name.getOrElse("-")</b></td>
+              <td>
+                <ul>
+                @for(odbsn <- col.oldSchemaNames.flatMap(_.schemas).distinct) {
+                  <li>@odbsn</li>
+                }
+                </ul>
+              </td>
+              <td>@col.uuid.asString</td>
+            </tr>
+          }
+          </tbody>
+        </table>
+      } else {
+        <span style="color: red">@error.map(_.message).getOrElse("")</span>
+      }
+      <span style="color: green">@flash.get("success").getOrElse("")</span>
+    </div>
+  </div>
+
+}

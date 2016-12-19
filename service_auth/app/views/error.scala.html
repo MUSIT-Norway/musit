@@ -1,6 +1,16 @@
 @(error: String)
 
-@main("Error") {
-    <h1>Something went wrong</h1>
-    <span style="color: red">@error</span>
+@main("Error", activeMenu = 1) {
+  <div class="card">
+    <div class="header">
+      <h4 class="text-danger">An unexpected error occurred.</h4>
+    </div>
+    <div class="content">
+      <div class="row">
+        <div class="col-md-12">
+          <p>@error</p>
+        </div>
+      </div>
+    </div>
+  </div>
 }
