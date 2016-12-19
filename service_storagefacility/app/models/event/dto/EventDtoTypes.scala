@@ -19,7 +19,7 @@
 
 package models.event.dto
 
-import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
+import java.sql.{Timestamp => JSqlTimestamp}
 
 import models.event.EventTypeId
 import no.uio.musit.models.{ActorId, EventId}
@@ -27,7 +27,7 @@ import no.uio.musit.models.{ActorId, EventId}
 sealed trait EventDto {
   val id: Option[EventId]
   val eventTypeId: EventTypeId
-  val eventDate: JSqlDate
+  val eventDate: JSqlTimestamp
   val relatedActors: Seq[EventRoleActor]
   val relatedObjects: Seq[EventRoleObject]
   val relatedPlaces: Seq[EventRolePlace]
@@ -47,7 +47,7 @@ sealed trait EventDto {
 case class BaseEventDto(
   id: Option[EventId],
   eventTypeId: EventTypeId,
-  eventDate: JSqlDate,
+  eventDate: JSqlTimestamp,
   relatedActors: Seq[EventRoleActor],
   relatedObjects: Seq[EventRoleObject],
   relatedPlaces: Seq[EventRolePlace],
@@ -70,7 +70,7 @@ sealed trait DtoExtension
 case class ExtendedDto(
     id: Option[EventId],
     eventTypeId: EventTypeId,
-    eventDate: JSqlDate,
+    eventDate: JSqlTimestamp,
     relatedActors: Seq[EventRoleActor],
     relatedObjects: Seq[EventRoleObject],
     relatedPlaces: Seq[EventRolePlace],

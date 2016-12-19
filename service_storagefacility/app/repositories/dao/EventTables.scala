@@ -19,7 +19,7 @@
 
 package repositories.dao
 
-import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
+import java.sql.{Timestamp => JSqlTimestamp}
 
 import models.event.EventTypeId
 import models.event.dto._
@@ -66,7 +66,7 @@ private[dao] trait EventTables extends BaseDao
 
     val id = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
     val eventTypeId = column[EventTypeId]("EVENT_TYPE_ID")
-    val eventDate = column[JSqlDate]("EVENT_DATE")
+    val eventDate = column[JSqlTimestamp]("EVENT_DATE")
     val eventNote = column[Option[String]]("NOTE")
     val partOf = column[Option[EventId]]("PART_OF")
     val valueLong = column[Option[Long]]("VALUE_LONG")
@@ -78,7 +78,7 @@ private[dao] trait EventTables extends BaseDao
     def create = (
       id: Option[EventId],
       eventTypeId: EventTypeId,
-      eventDate: JSqlDate,
+      eventDate: JSqlTimestamp,
       note: Option[String],
       partOf: Option[EventId],
       valueLong: Option[Long],

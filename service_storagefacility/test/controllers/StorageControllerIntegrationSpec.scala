@@ -719,7 +719,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val today = DateTime.now.withTimeAtStartOfDay()
 
         val firstElem = resArr.head
-        (firstElem \ "doneDate").as[DateTime] mustBe today
+        (firstElem \ "doneDate").as[DateTime].withTimeAtStartOfDay() mustBe today
         (firstElem \ "doneBy").as[String] mustBe adminId.asString
         (firstElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
         (firstElem \ "registeredBy").as[String] mustBe writeId.asString
@@ -729,7 +729,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         (firstElem \ "to" \ "pathNames").as[JsArray].value must not be empty
 
         val lastElem = resArr.last
-        (lastElem \ "doneDate").as[DateTime] mustBe today
+        (lastElem \ "doneDate").as[DateTime].withTimeAtStartOfDay() mustBe today
         (lastElem \ "doneBy").as[String] mustBe adminId.asString
         (lastElem \ "registeredDate").as[DateTime].withTimeAtStartOfDay() mustBe today
         (lastElem \ "registeredBy").as[String] mustBe writeId.asString
