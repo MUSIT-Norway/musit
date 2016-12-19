@@ -7,6 +7,18 @@
 @(groups: Seq[Group], error: Option[MusitError] = None)(implicit flash: Flash)
 
 @main("Groups", activeMenu = 3) {
+  @if(error.nonEmpty) {
+    <div class="alert alert-warning">
+      <button type="button" data-dismiss="alert" aria-hidden="true" class="close">×</button>
+      <span><b>@error.map(_.message).getOrElse("")</b></span>
+    </div>
+  }
+  @flash.get("success").map { f =>
+    <div class="alert alert-success">
+      <button type="button" data-dismiss="alert" aria-hidden="true" class="close">×</button>
+      <span><b>@f</b></span>
+    </div>
+  }
   <p>
     <a href="@GroupController.groupAddGet">Add new group</a>
   </p>
@@ -15,41 +27,38 @@
       <h4 class="title">Found @groups.size groups</h4>
     </div>
     <div class="content table-responsive table-full-width">
-      @if(error.isEmpty) {
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Group name</th>
-              <th>Description</th>
-              <th>Museum</th>
-              <th>Permission</th>
-              <th>Delete group</th>
-            </tr>
-          </thead>
-          <tbody>
-          @for(group <- groups) {
-            <tr onclick="@GroupController.groupActorsList(group.id.asString)">
-              <td>
-                <a class="text-primary" href="@GroupController.groupActorsList(group.id.asString)">
-                  <b><u>@group.name</u></b>
-                </a>
-              </td>
-              <td>@group.description</td>
-              <td>@fromMuseumId(group.museumId).map(_.shortName).getOrElse("-")</td>
-              <td>@group.permission.toString</td>
-              <td>
-                <form method="post" action="@GroupController.deleteGroup(group.id.asString)">
-                  <input type="submit" value="Delete" />
-                </form>
-              </td>
-            </tr>
-          }
-          </tbody>
-        </table>
-      } else {
-        <span style="color: red">@error.map(_.message).getOrElse("")</span>
-      }
-      <span style="color: green">@flash.get("success").getOrElse("")</span>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Group name</th>
+            <th>Description</th>
+            <th>Museum</th>
+            <th>Permission</th>
+            <th> </th>
+          </tr>
+        </thead>
+        <tbody>
+        @for(group <- groups) {
+          <tr>
+            <td>
+              <a class="text-primary" href="@GroupController.groupUserList(group.id.asString)">
+                <b><u>@group.name</u></b>
+              </a>
+            </td>
+            <td>@group.description</td>
+            <td>@fromMuseumId(group.museumId).map(_.shortName).getOrElse("-")</td>
+            <td>@group.permission.toString</td>
+            <td>
+              <form method="post" action="@GroupController.deleteGroup(group.id.asString)">
+                <button class="btn btn-fill btn-danger btn-xs" type="submit">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+        }
+        </tbody>
+      </table>
     </div>
   </div>
 }

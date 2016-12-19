@@ -24,7 +24,9 @@ import models.Group
 import models.GroupAdd._
 import models.UserAuthAdd._
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{CollectionUUID, Email, GroupId}
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.models.{CollectionUUID, Email, GroupId, UserGroupMembership}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
@@ -94,15 +96,15 @@ class GroupController @Inject() (
    * @return
    */
   def deleteUser(
-    email: String,
-    gid: String
+    gid: String,
+    email: String
   ) = Action.async { implicit request =>
     Email.fromString(email).map { feideEmail =>
       GroupId.validate(gid).toOption.map(GroupId.apply).map { gid =>
         dao.removeUserFromGroup(feideEmail, gid).map {
           case MusitSuccess(int) =>
             Redirect(
-              controllers.web.routes.GroupController.groupActorsList(gid.asString)
+              controllers.web.routes.GroupController.groupUserList(gid.asString)
             ).flashing("success" -> "User was removed")
           case error: MusitError =>
             BadRequest(
@@ -136,7 +138,7 @@ class GroupController @Inject() (
         dao.findGroupById(groupId).map {
           case MusitSuccess(group) =>
             group.map { g =>
-              Ok(views.html.groupUserAdd(userAuthAddForm, g, cols.getOrElse(Seq.empty)))
+              Ok(views.html.groupUserAdd(userAuthForm, g, cols.getOrElse(Seq.empty)))
             }.getOrElse(BadRequest(views.html.error(s"GroupId $gid was not found")))
           case err: MusitError =>
             BadRequest(views.html.error(s"An error occurred trying to fetch group $gid"))
@@ -154,34 +156,32 @@ class GroupController @Inject() (
    */
   def groupAddUserPost(gid: String) = Action.async { implicit request =>
     GroupId.validate(gid).toOption.map { groupId =>
-      userAuthAddForm.bindFromRequest.fold(
+      userAuthForm.bindFromRequest.fold(
         formWithErrors => {
-          for {
-            cres <- dao.allCollections
-            gres <- dao.findGroupById(groupId)
+          (for {
+            cols <- MusitResultT(dao.allCollections)
+            maybeGroup <- MusitResultT(dao.findGroupById(groupId))
           } yield {
-            gres.map { maybeGroup =>
-              maybeGroup.map { group =>
-                BadRequest(views.html.groupUserAdd(
-                  theForm = formWithErrors,
-                  group = group,
-                  collections = cres.getOrElse(Seq.empty)
-                ))
-              }.getOrElse {
-                BadRequest(views.html.error(s"Group with ID $gid was not found"))
-              }
+            maybeGroup.map { group =>
+              BadRequest(views.html.groupUserAdd(
+                theForm = formWithErrors,
+                group = group,
+                collections = cols
+              ))
             }.getOrElse {
-              BadRequest(
-                views.html.error(s"An error occurred trying to fetch group $gid")
-              )
+              BadRequest(views.html.error(s"Group with ID $gid was not found"))
             }
-          }
+          }).value.map(_.getOrElse {
+            BadRequest(
+              views.html.error(s"An error occurred trying to fetch group $gid")
+            )
+          })
         },
         userAdd => {
           dao.addUserToGroup(Email(userAdd.email), groupId, userAdd.collections).map {
             case MusitSuccess(group) =>
               Redirect(
-                controllers.web.routes.GroupController.groupActorsList(gid)
+                controllers.web.routes.GroupController.groupUserList(gid)
               ).flashing("success" -> "User added!")
             case error: MusitError =>
               BadRequest(
@@ -190,6 +190,30 @@ class GroupController @Inject() (
           }
         }
       )
+    }.getOrElse(
+      handleBadRequest(s"Invalid groupId $gid")
+    )
+  }
+
+  def groupEditUser(gid: String, email: String) = Action.async { implicit request =>
+    GroupId.validate(gid).toOption.map { groupId =>
+      val feideMail = Email(email)
+      (for {
+        cols <- MusitResultT(dao.allCollections)
+        mgroup <- MusitResultT(dao.findGroupById(groupId))
+        mems <- MusitResultT(dao.findUserGroupMembership(groupId, feideMail))
+      } yield {
+        mgroup.map { group =>
+          Ok(views.html.groupUserEdit(group, feideMail, mems, cols, None))
+        }.getOrElse {
+          BadRequest(views.html.error(s"Group with ID $gid was not found"))
+        }
+      }).value.map(_.getOrElse {
+        BadRequest(
+          views.html.error(s"An error occurred trying to fetch user membership" +
+            s" for $email in group $gid")
+        )
+      })
     }.getOrElse(
       handleBadRequest(s"Invalid groupId $gid")
     )
@@ -249,7 +273,7 @@ class GroupController @Inject() (
    * @param usersRes
    * @return
    */
-  private def getActorDetailsFor(
+  private def getUserDetailsFor(
     groupId: GroupId,
     groupRes: MusitResult[Option[Group]],
     usersRes: MusitResult[Seq[Email]]
@@ -265,9 +289,8 @@ class GroupController @Inject() (
             }
           }
         }.map { ugis =>
-          // TODO: We should call getActors(users) if we have an ActorId
           group.map { grp =>
-            Ok(views.html.groupActors(ugis, grp))
+            Ok(views.html.groupUsers(ugis, grp))
           }.getOrElse {
             NotFound(views.html.error(s"Could not find group"))
           }
@@ -285,12 +308,12 @@ class GroupController @Inject() (
    * @param gid
    * @return
    */
-  def groupActorsList(gid: String) = Action.async { implicit request =>
+  def groupUserList(gid: String) = Action.async { implicit request =>
     GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
       val futureRes = for {
         groupRes <- dao.findGroupById(groupId)
         usersRes <- dao.findUsersInGroup(groupId)
-        res <- getActorDetailsFor(groupId, groupRes, usersRes)
+        res <- getUserDetailsFor(groupId, groupRes, usersRes)
       } yield res
 
       futureRes.recover {
@@ -310,8 +333,8 @@ class GroupController @Inject() (
    * @return
    */
   def revokeCollectionAuth(
-    email: String,
     gid: String,
+    email: String,
     cid: String
   ) = Action.async { implicit request =>
     Email.fromString(email).map { feideEmail =>
@@ -320,8 +343,36 @@ class GroupController @Inject() (
           dao.revokeCollectionFor(feideEmail, groupId, colId).map {
             case MusitSuccess(res) =>
               Redirect(
-                controllers.web.routes.GroupController.groupActorsList(gid)
+                controllers.web.routes.GroupController.groupEditUser(gid, email)
               ).flashing("success" -> "Collection access revoked")
+            case err: MusitError =>
+              InternalServerError(views.html.error(err.message))
+          }
+        }.getOrElse {
+          handleNotFound(s"Wrong uuid format: $cid")
+        }
+      }.getOrElse {
+        handleNotFound(s"Wrong uuid format: $gid")
+      }
+    }.getOrElse {
+      handleNotFound(s"Not a valid email: $email")
+    }
+  }
+
+  def grantCollectionAuth(
+    gid: String,
+    email: String,
+    cid: String
+  ) = Action.async { implicit request =>
+    Email.fromString(email).map { feideEmail =>
+      GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
+        CollectionUUID.validate(cid).toOption.map(CollectionUUID.apply).map { colId =>
+          dao.addUserToGroup(feideEmail, groupId, Option(Seq(colId))).map {
+            case MusitSuccess(res) =>
+              Redirect(
+                controllers.web.routes.GroupController.groupEditUser(gid, email)
+              )
+
             case err: MusitError =>
               InternalServerError(views.html.error(err.message))
           }

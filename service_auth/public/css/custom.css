@@ -21,6 +21,10 @@
   background-color: rgb(255, 205, 192);
 }
 
+.table-striped > tbody > tr:hover > td > table > tbody > tr {
+  background-color: rgb(255, 205, 192) !important;
+}
+
 dl > .info {
   visibility: collapse;
 }
@@ -33,4 +37,8 @@ dl > .info {
 .checkbox-inline {
   vertical-align: top;
   margin-left: 10px !important;
+}
+
+.inline-form {
+  display: inline;
 }

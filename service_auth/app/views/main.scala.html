@@ -1,6 +1,7 @@
 @import controllers.web.routes.Dashboard
 @import controllers.web.routes.GroupController
 @import controllers.web.routes.UserController
+@import controllers.web.routes.MuseumCollectionController
 
 @(title: String, activeMenu: Int = 1)(content: Html)
 
@@ -47,7 +48,7 @@
             } else {
               <li>
             }
-              <a href="dashboard.html">
+              <a href="@MuseumCollectionController.listCollections">
                 <i class="fa fa-archive"></i>
                 <p>Collections</p>
               </a>

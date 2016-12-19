@@ -7,6 +7,12 @@
 @(usrCols: Seq[(Email, Seq[MuseumCollection])], group: Group, error: Option[MusitError] = None)
 
 @main(s"Users in ${group.name}", activeMenu = 3) {
+  @if(error.nonEmpty) {
+    <div class="alert alert-warning">
+      <button type="button" data-dismiss="alert" aria-hidden="true" class="close">×</button>
+      <span><b>@error.map(_.message).getOrElse("")</b></span>
+    </div>
+  }
   <p>
     <a href="@GroupController.groupList()">Go to group list</a>
   </p>
@@ -31,23 +37,21 @@
         <tbody>
         @for(usrCol <- usrCols) {
           <tr>
-            <td>@usrCol._1.value</td>
             <td>
-              @*
-                Should allow for removing access to collection here
-              *@
+              <a class="text-primary" href="@GroupController.groupEditUser(group.id.asString, usrCol._1.value)">
+                <b><u>@usrCol._1.value</u></b>
+              </a>
+            </td>
+            <td>
               @for(col <- usrCol._2) {
-                <div>
-                  <form method="post" action="@GroupController.revokeCollectionAuth(usrCol._1.value, group.id.asString, col.uuid.asString)">
-                    <span>@col.name</span>
-                    <input type="submit" value="Revoke">
-                  </form>
-                </div>
+                <div>@col.name</div>
               }
             </td>
             <td>
-              <form method="post" action="@GroupController.deleteUser(usrCol._1.value, group.id.asString)">
-                <input type="submit" value="Remove" />
+              <form method="post" action="@GroupController.deleteUser(group.id.asString, usrCol._1.value)">
+                <button class="btn btn-fill btn-danger btn-xs" type="submit">
+                  <i class="fa fa-trash"></i>
+                </button>
               </form>
             </td>
           </tr>

@@ -2,29 +2,34 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET         /service/auth/buildinfo                              controllers.Application.buildInfo
+GET         /service/auth/buildinfo                                     controllers.Application.buildInfo
 
 
 # WEB endpoints
-GET         /web                                                 controllers.web.Dashboard.index()
-GET         /web/users                                           controllers.web.UserController.users
+GET         /web                                                        controllers.web.Dashboard.index()
+GET         /web/users                                                  controllers.web.UserController.users
 
-GET         /web/groups                                          controllers.web.GroupController.groupAddGet
-POST        /web/groups                                          controllers.web.GroupController.groupAddPost
-GET         /web/groups/list                                     controllers.web.GroupController.groupList
-GET         /web/groups/:groupId/addUser                         controllers.web.GroupController.groupAddUserGet(groupId: String)
-POST        /web/groups/:groupId/addUser                         controllers.web.GroupController.groupAddUserPost(groupId: String)
-GET         /web/groups/:groupId                                 controllers.web.GroupController.groupActorsList(groupId: String)
-POST        /web/groups/:groupId                                 controllers.web.GroupController.deleteGroup(groupId: String)
-POST        /web/groups/:groupId/:email                          controllers.web.GroupController.deleteUser(email: String, groupId: String)
-POST        /web/groups/:groupId/:email/collection/:colId        controllers.web.GroupController.revokeCollectionAuth(email: String, groupId: String, colId: String)
+GET         /web/collections                                            controllers.web.MuseumCollectionController.listCollections
+
+GET         /web/groups                                                 controllers.web.GroupController.groupAddGet
+POST        /web/groups                                                 controllers.web.GroupController.groupAddPost
+GET         /web/groups/list                                            controllers.web.GroupController.groupList
+GET         /web/groups/:groupId/addUser                                controllers.web.GroupController.groupAddUserGet(groupId: String)
+POST        /web/groups/:groupId/addUser                                controllers.web.GroupController.groupAddUserPost(groupId: String)
+GET         /web/groups/:groupId                                        controllers.web.GroupController.groupUserList(groupId: String)
+POST        /web/groups/:groupId                                        controllers.web.GroupController.deleteGroup(groupId: String)
+POST        /web/groups/:groupId/:email                                 controllers.web.GroupController.deleteUser(groupId: String, email: String)
+GET         /web/groups/:groupId/:email                                 controllers.web.GroupController.groupEditUser(groupId: String, email: String)
+POST        /web/groups/:groupId/:email/collection/:colId/grant         controllers.web.GroupController.grantCollectionAuth(groupId: String, email: String, colId: String)
+POST        /web/groups/:groupId/:email/collection/:colId/revoke        controllers.web.GroupController.revokeCollectionAuth(groupId: String, email: String, colId: String)
+
 
 # REST endpoints
-GET         /rest/museums                                        controllers.rest.MuseumController.listMuseums
-POST        /rest/museum/:museumId/group                         controllers.rest.GroupController.addGroup(museumId: Int)
-GET         /rest/groups/:feideEmail                             controllers.rest.GroupController.groupsForUser(feideEmail: String)
+GET         /rest/museums                                               controllers.rest.MuseumController.listMuseums
+POST        /rest/museum/:museumId/group                                controllers.rest.GroupController.addGroup(museumId: Int)
+GET         /rest/groups/:feideEmail                                    controllers.rest.GroupController.groupsForUser(feideEmail: String)
 # TODO: Add the remaining REST endpoings
 
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                        controllers.Assets.at(path="/public", file)
+GET         /assets/*file                                               controllers.Assets.at(path="/public", file)

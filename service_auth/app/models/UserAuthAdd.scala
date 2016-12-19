@@ -45,7 +45,7 @@ object UserAuthAdd {
 
   def unapplyForm(uga: UserAuthAdd) = Some((uga.email, uga.groupId, uga.collections))
 
-  val userAuthAddForm = Form(
+  val userAuthForm = Form(
     mapping(
       "email" -> email,
       "groupId" -> text.verifying(id => GroupId.validate(id).isSuccess),

@@ -1,14 +1,14 @@
 @import helper._
+@import play.api.i18n.Messages
 @import models.{Group, UserAuthAdd}
 @import no.uio.musit.models.MuseumCollection
-@import play.api.i18n.Messages
 @import controllers.web.routes.GroupController
 
 @(theForm: play.api.data.Form[UserAuthAdd], group: Group, collections: Seq[MuseumCollection])(implicit messages: Messages)
 
 @main(s"Add user to ${group.name}", activeMenu = 3) {
   <p>
-    <a href="@GroupController.groupActorsList(group.id.asString)">
+    <a href="@GroupController.groupUserList(group.id.asString)">
       Go back
     </a>
   </p>

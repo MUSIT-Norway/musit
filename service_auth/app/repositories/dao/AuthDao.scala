@@ -275,6 +275,24 @@ class AuthDao @Inject() (
     }
   }
 
+  def findUserGroupMembership(
+    grpId: GroupId,
+    email: Email
+  ): Future[MusitResult[Seq[UserGroupMembership]]] = {
+    val query = usrGrpTable.filter { ug =>
+      ug.groupId === grpId && ug.feideEmail === email
+    }.result
+
+    db.run(query).map { res =>
+      MusitSuccess(res)
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when fetching user group memberships" +
+          s"for $email in group $grpId"
+        handleError(msg, ex)
+    }
+  }
+
   /**
    *
    * @param feideEmail
