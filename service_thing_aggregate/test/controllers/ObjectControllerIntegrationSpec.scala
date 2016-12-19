@@ -302,6 +302,25 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         response.status mustBe FORBIDDEN
       }
     }
+
+    "scanning barcodes" should {
+      "find an object when calling the scan service with an old barcode" in {
+        val oldBarcode = "1111111111"
+        val mid = 99
+        val res = wsUrl(s"/museum/$mid/scan")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("oldBarcode" -> oldBarcode)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+
+        res.status mustBe OK
+        val objects = res.json.as[JsArray].value
+        objects.size mustBe 1
+        (objects.head \ "term").as[String] mustBe "Øks"
+        (objects.head \ "museumNo").as[String] mustBe "C666"
+        (objects.head \ "subNo").as[String] mustBe "34"
+      }
+    }
   }
 
 }
