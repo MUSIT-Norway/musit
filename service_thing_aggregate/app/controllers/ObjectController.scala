@@ -22,7 +22,7 @@ package controllers
 import com.google.inject.Inject
 import models.ObjectSearchResult
 import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitSuccess}
-import no.uio.musit.models.{MuseumNo, SubNo}
+import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
@@ -187,4 +187,25 @@ class ObjectController @Inject() (
     }
   }
 
+  def scanForOldBarcode(
+    mid: MuseumId,
+    oldBarcode: Long,
+    collectionIds: String
+  ) = MusitSecureAction(mid, Read).async { request =>
+    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      case Left(res) => Future.successful(res)
+      case Right(cids) =>
+        objService.findByOldBarcode(mid, oldBarcode, cids)(request.user).map {
+          case MusitSuccess(objects) =>
+            Ok(Json.toJson(objects))
+
+          case MusitDbError(msg, ex) =>
+            logger.error(msg, ex.orNull)
+            InternalServerError(Json.obj("message" -> msg))
+
+          case r: MusitError =>
+            InternalServerError(Json.obj("message" -> r.message))
+        }
+    }
+  }
 }
