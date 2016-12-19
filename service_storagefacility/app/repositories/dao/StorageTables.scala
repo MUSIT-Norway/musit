@@ -165,15 +165,15 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     mid: MuseumId,
     searchString: String,
     page: Int,
-    pageSize: Int
+    limit: Int
   ): DBIO[Seq[StorageUnitDto]] = {
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
         sn.isDeleted === false &&
         (sn.name.toUpperCase like s"${searchString.toUpperCase}%")
     }.sortBy(sn1 => sn1.name)
-    val offset = (page - 1) * pageSize
-    query.drop(offset).take(pageSize).result
+    val offset = (page - 1) * limit
+    query.drop(offset).take(limit).result
   }
 
   /**

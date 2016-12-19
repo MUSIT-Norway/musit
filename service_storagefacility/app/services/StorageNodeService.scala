@@ -439,8 +439,10 @@ class StorageNodeService @Inject() (
    */
   def getChildren(
     mid: MuseumId,
-    id: StorageNodeDatabaseId
-  ): Future[Seq[GenericStorageNode]] = unitDao.getChildren(mid, id)
+    id: StorageNodeDatabaseId,
+    page: Int,
+    limit: Int
+  ): Future[Seq[GenericStorageNode]] = unitDao.getChildren(mid, id, page, limit)
 
   /**
    * TODO: Document me!
@@ -624,17 +626,17 @@ class StorageNodeService @Inject() (
    * @param mid
    * @param searchStr
    * @param page
-   * @param pageSize
+   * @param limit
    * @return
    */
   def searchByName(
     mid: MuseumId,
     searchStr: String,
     page: Int,
-    pageSize: Int
+    limit: Int
   ): Future[MusitResult[Seq[GenericStorageNode]]] = {
     if (searchStr.length > 2) {
-      unitDao.getStorageNodeByName(mid, searchStr, page, pageSize).map { sn =>
+      unitDao.getStorageNodeByName(mid, searchStr, page, limit).map { sn =>
         MusitSuccess(sn)
       }
     } else {

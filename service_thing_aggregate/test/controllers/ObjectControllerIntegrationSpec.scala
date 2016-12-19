@@ -45,222 +45,262 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   "The ObjectController" must {
 
-    "find objects in the archeology collection with a specific museumNo" in {
+    "searching for objects" when {
 
-      val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
-        "collectionIds" -> archeologyCollection,
-        "museumNo" -> "C666",
-        "subNo" -> "",
-        "term" -> "",
-        "page" -> "1",
-        "limit" -> "3"
-      ).get().futureValue
+      "find objects in the archeology collection with a specific museumNo" in {
 
-      res.status mustBe OK
+        val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
+          "collectionIds" -> archeologyCollection,
+          "museumNo" -> "C666",
+          "subNo" -> "",
+          "term" -> "",
+          "page" -> "1",
+          "limit" -> "3"
+        ).get().futureValue
 
-      val json = res.json
+        res.status mustBe OK
 
-      val entries = (json \ "matches").as[JsArray].value
+        val json = res.json
 
-      entries.size mustBe 3
+        val entries = (json \ "matches").as[JsArray].value
 
-      val first = entries.head
-      (first \ "museumNo").as[String] mustBe "C666"
-      (first \ "subNo").as[String] mustBe "31"
-      (first \ "term").as[String] mustBe "Sverd"
-      (first \ "currentLocationId").as[Long] mustBe 4
-      (first \ "path").as[String] mustBe ",1,3,4,"
-      val firstPnames = (first \ "pathNames").as[JsArray].value
-      (firstPnames.head \ "nodeId").as[Long] mustBe 1
-      (firstPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
-      (firstPnames.tail.head \ "nodeId").as[Long] mustBe 3
-      (firstPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
-      (firstPnames.last \ "nodeId").as[Long] mustBe 4
-      (firstPnames.last \ "name").as[String] mustBe "Forskningens hus"
+        entries.size mustBe 3
 
-      val second = entries.tail.head
-      (second \ "museumNo").as[String] mustBe "C666"
-      (second \ "subNo").as[String] mustBe "34"
-      (second \ "term").as[String] mustBe "Øks"
-      (second \ "currentLocationId").as[Long] mustBe 4
-      (second \ "path").as[String] mustBe ",1,3,4,"
-      val secondPnames = (first \ "pathNames").as[JsArray].value
-      (secondPnames.head \ "nodeId").as[Long] mustBe 1
-      (secondPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
-      (secondPnames.tail.head \ "nodeId").as[Long] mustBe 3
-      (secondPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
-      (secondPnames.last \ "nodeId").as[Long] mustBe 4
-      (secondPnames.last \ "name").as[String] mustBe "Forskningens hus"
+        val first = entries.head
+        (first \ "museumNo").as[String] mustBe "C666"
+        (first \ "subNo").as[String] mustBe "31"
+        (first \ "term").as[String] mustBe "Sverd"
+        (first \ "currentLocationId").as[Long] mustBe 4
+        (first \ "path").as[String] mustBe ",1,3,4,"
+        val firstPnames = (first \ "pathNames").as[JsArray].value
+        (firstPnames.head \ "nodeId").as[Long] mustBe 1
+        (firstPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
+        (firstPnames.tail.head \ "nodeId").as[Long] mustBe 3
+        (firstPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
+        (firstPnames.last \ "nodeId").as[Long] mustBe 4
+        (firstPnames.last \ "name").as[String] mustBe "Forskningens hus"
 
-      val third = entries.last
-      (third \ "museumNo").as[String] mustBe "C666"
-      (third \ "subNo").as[String] mustBe "38"
-      (third \ "term").as[String] mustBe "Sommerfugl"
-      (third \ "currentLocationId").as[Long] mustBe 4
-      (third \ "path").as[String] mustBe ",1,3,4,"
-      val thirdPnames = (first \ "pathNames").as[JsArray].value
-      (thirdPnames.head \ "nodeId").as[Long] mustBe 1
-      (thirdPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
-      (thirdPnames.tail.head \ "nodeId").as[Long] mustBe 3
-      (thirdPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
-      (thirdPnames.last \ "nodeId").as[Long] mustBe 4
-      (thirdPnames.last \ "name").as[String] mustBe "Forskningens hus"
-    }
+        val second = entries.tail.head
+        (second \ "museumNo").as[String] mustBe "C666"
+        (second \ "subNo").as[String] mustBe "34"
+        (second \ "term").as[String] mustBe "Øks"
+        (second \ "currentLocationId").as[Long] mustBe 4
+        (second \ "path").as[String] mustBe ",1,3,4,"
+        val secondPnames = (first \ "pathNames").as[JsArray].value
+        (secondPnames.head \ "nodeId").as[Long] mustBe 1
+        (secondPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
+        (secondPnames.tail.head \ "nodeId").as[Long] mustBe 3
+        (secondPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
+        (secondPnames.last \ "nodeId").as[Long] mustBe 4
+        (secondPnames.last \ "name").as[String] mustBe "Forskningens hus"
 
-    "find objects for archeology and numismatics collections with a similar museumNo" in {
-      val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
-        "collectionIds" -> s"$archeologyCollection,$numismaticsCollection",
-        "museumNo" -> "555",
-        "subNo" -> "",
-        "term" -> "",
-        "page" -> "1",
-        "limit" -> "10"
-      ).get().futureValue
+        val third = entries.last
+        (third \ "museumNo").as[String] mustBe "C666"
+        (third \ "subNo").as[String] mustBe "38"
+        (third \ "term").as[String] mustBe "Sommerfugl"
+        (third \ "currentLocationId").as[Long] mustBe 4
+        (third \ "path").as[String] mustBe ",1,3,4,"
+        val thirdPnames = (first \ "pathNames").as[JsArray].value
+        (thirdPnames.head \ "nodeId").as[Long] mustBe 1
+        (thirdPnames.head \ "name").as[String] mustBe "Utviklingsmuseet"
+        (thirdPnames.tail.head \ "nodeId").as[Long] mustBe 3
+        (thirdPnames.tail.head \ "name").as[String] mustBe "Utviklingsmuseet Org"
+        (thirdPnames.last \ "nodeId").as[Long] mustBe 4
+        (thirdPnames.last \ "name").as[String] mustBe "Forskningens hus"
+      }
 
-      res.status mustBe OK
+      "find objects for archeology and numismatics collections with a similar museumNo" in {
+        val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
+          "collectionIds" -> s"$archeologyCollection,$numismaticsCollection",
+          "museumNo" -> "555",
+          "subNo" -> "",
+          "term" -> "",
+          "page" -> "1",
+          "limit" -> "10"
+        ).get().futureValue
 
-      val json = res.json
+        res.status mustBe OK
 
-      val entries = (json \ "matches").as[JsArray].value
+        val json = res.json
 
-      entries.size mustBe 7
+        val entries = (json \ "matches").as[JsArray].value
 
-      entries.exists { js =>
-        // Taking a shortcut and explicitly checking for the object in Numismatics
-        (js \ "museumNo").as[String] == "F555"
-      } mustBe true
-    }
+        entries.size mustBe 7
 
-    "not allow searching for objects if user doesn't have read access" in {
-      val res = wsUrl(url(6)).withHeaders(fakeToken.asHeader).withQueryString(
-        "collectionIds" -> "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "museumNo" -> "FOO6565",
-        "subNo" -> "",
-        "term" -> "",
-        "page" -> "1",
-        "limit" -> "3"
-      ).get().futureValue.status mustBe FORBIDDEN
-    }
+        entries.exists { js =>
+          // Taking a shortcut and explicitly checking for the object in Numismatics
+          (js \ "museumNo").as[String] == "F555"
+        } mustBe true
+      }
 
-    "not allow searching in a collection without access" in {
-      val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
-        "collectionIds" -> s"$numismaticsCollection,${UUID.randomUUID().toString}",
-        "museumNo" -> "L234",
-        "subNo" -> "",
-        "term" -> "",
-        "page" -> "1",
-        "limit" -> "10"
-      ).get().futureValue
+      "not allow searching for objects if user doesn't have read access" in {
+        val res = wsUrl(url(6)).withHeaders(fakeToken.asHeader).withQueryString(
+          "collectionIds" -> "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+          "museumNo" -> "FOO6565",
+          "subNo" -> "",
+          "term" -> "",
+          "page" -> "1",
+          "limit" -> "3"
+        ).get().futureValue.status mustBe FORBIDDEN
+      }
 
-      res.status mustBe FORBIDDEN
-    }
+      "not allow searching in a collection without access" in {
+        val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
+          "collectionIds" -> s"$numismaticsCollection,${UUID.randomUUID().toString}",
+          "museumNo" -> "L234",
+          "subNo" -> "",
+          "term" -> "",
+          "page" -> "1",
+          "limit" -> "10"
+        ).get().futureValue
 
-    "find objects for nodeId that exists" in {
-      val nodeId = 4
-      val mid = 99
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> archeologyCollection)
-        .get().futureValue
-      response.status mustBe OK
-
-      val objects = response.json.as[JsArray].value
-      objects must not be empty
-      val obj = objects.head
-      (obj \ "id").as[ObjectId] mustBe ObjectId(1)
-      (obj \ "term").as[String] mustBe "Øks"
-      (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("C666")
-      (obj \ "subNo").as[SubNo] mustBe SubNo("34")
-    }
-
-    "find objects for nodeId that has mainObjectId" in {
-      val nodeId = 7
-      val mid = 99
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> archeologyCollection)
-        .get().futureValue
-      response.status mustBe OK
-
-      val objects = response.json.as[JsArray].value
-      objects.size mustBe 3
-      objects.foreach { obj =>
-        (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("K123")
-        (obj \ "mainObjectId").as[Long] mustBe 12
+        res.status mustBe FORBIDDEN
       }
     }
 
-    "respond with 404 for nodeId that does not exist" in {
-      val nodeId = 99999
-      val mid = 99
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> archeologyCollection)
-        .get().futureValue
-      response.status mustBe NOT_FOUND
-      (response.json \ "message").as[String] must endWith(s"$nodeId")
-    }
+    "getting objects for a nodeId" when {
 
-    "respond with 400 if the request URI is missing nodeId " in {
-      val nodeId = None
-      val mid = 99
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> archeologyCollection)
-        .get().futureValue
-      response.status mustBe BAD_REQUEST
-    }
+      "return objects for nodeId that exists" in {
+        val nodeId = 4
+        val mid = 99
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+        response.status mustBe OK
 
-    "respond with 400 if the museumId is invalid" in {
-      val nodeId = 99999
-      val mid = 555
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> archeologyCollection)
-        .get().futureValue
-      response.status mustBe BAD_REQUEST
-      (response.json \ "message").as[String] must include(s"$mid")
-    }
+        val objects = response.json.as[JsArray].value
+        objects must not be empty
+        val obj = objects.head
+        (obj \ "id").as[ObjectId] mustBe ObjectId(1)
+        (obj \ "term").as[String] mustBe "Øks"
+        (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("C666")
+        (obj \ "subNo").as[SubNo] mustBe SubNo("34")
+      }
 
-    "respond with 400 if the museumId is missing from the request URI" in {
-      val nodeId = 3
-      val mid = None
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> archeologyCollection)
-        .get().futureValue
-      response.status mustBe BAD_REQUEST
-    }
+      "return objects for nodeId that has mainObjectId" in {
+        val nodeId = 7
+        val mid = 99
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+        response.status mustBe OK
 
-    "respond with 400 if the museumId isn't a valid number" in {
-      val nodeId = 3
-      val mid = "blæBlæBlæ"
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> archeologyCollection)
-        .get().futureValue
-      response.status mustBe BAD_REQUEST
-    }
+        val objects = response.json.as[JsArray].value
+        objects.size mustBe 3
+        objects.foreach { obj =>
+          (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("K123")
+          (obj \ "mainObjectId").as[Long] mustBe 12
+        }
+      }
 
-    "respond with 403 if the user doesn't have read access to the museum" in {
-      val nodeId = 99999
-      val mid = 6
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> archeologyCollection)
-        .get().futureValue
-      response.status mustBe FORBIDDEN
-    }
+      "return the number of results per page specified in the limit argument" in {
+        val nodeId = 6
+        val mid = 99
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString(
+            "collectionIds" -> archeologyCollection,
+            "page" -> "1",
+            "limit" -> "5"
+          )
+          .get().futureValue
+        response.status mustBe OK
 
-    "respond with 403 if the user doesn't have access to the collection" in {
-      val nodeId = 345
-      val mid = 99
-      val collection = UUID.randomUUID().toString
-      val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
-        .withHeaders(fakeToken.asHeader)
-        .withQueryString("collectionIds" -> collection)
-        .get().futureValue
-      response.status mustBe FORBIDDEN
+        val objects = response.json.as[JsArray].value
+        objects.size mustBe 5
+      }
+
+      "return the last page of objects with a specified limit and page size" in {
+        val nodeId = 6
+        val mid = 99
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString(
+            "collectionIds" -> archeologyCollection,
+            "page" -> "4",
+            "limit" -> "10"
+          )
+          .get().futureValue
+        response.status mustBe OK
+
+        val objects = response.json.as[JsArray].value
+        objects.size mustBe 4
+      }
+
+      "respond with 404 for nodeId that does not exist" in {
+        val nodeId = 99999
+        val mid = 99
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+        response.status mustBe NOT_FOUND
+        (response.json \ "message").as[String] must endWith(s"$nodeId")
+      }
+
+      "respond with 400 if the request URI is missing nodeId " in {
+        val nodeId = None
+        val mid = 99
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+        response.status mustBe BAD_REQUEST
+      }
+
+      "respond with 400 if the museumId is invalid" in {
+        val nodeId = 99999
+        val mid = 555
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+        response.status mustBe BAD_REQUEST
+        (response.json \ "message").as[String] must include(s"$mid")
+      }
+
+      "respond with 400 if the museumId is missing from the request URI" in {
+        val nodeId = 3
+        val mid = None
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+        response.status mustBe BAD_REQUEST
+      }
+
+      "respond with 400 if the museumId isn't a valid number" in {
+        val nodeId = 3
+        val mid = "blæBlæBlæ"
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+        response.status mustBe BAD_REQUEST
+      }
+
+      "respond with 403 if the user doesn't have read access to the museum" in {
+        val nodeId = 99999
+        val mid = 6
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get().futureValue
+        response.status mustBe FORBIDDEN
+      }
+
+      "respond with 403 if the user doesn't have access to the collection" in {
+        val nodeId = 345
+        val mid = 99
+        val collection = UUID.randomUUID().toString
+        val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> collection)
+          .get().futureValue
+        response.status mustBe FORBIDDEN
+      }
     }
   }
 

@@ -170,11 +170,16 @@ class StorageUnitDao @Inject() (
    */
   def getChildren(
     mid: MuseumId,
-    id: StorageNodeDatabaseId
+    id: StorageNodeDatabaseId,
+    page: Int,
+    limit: Int
   ): Future[Seq[GenericStorageNode]] = {
+    val offset = (page - 1) * limit
+
     val query = storageNodeTable.filter { node =>
       node.museumId === mid && node.isPartOf === id && node.isDeleted === false
-    }.result
+    }.drop(offset).take(limit).result
+
     db.run(query).map { dtos =>
       dtos.map { dto =>
         StorageNodeDto.toGenericStorageNode(dto)
@@ -405,17 +410,17 @@ class StorageUnitDao @Inject() (
    * @param mid
    * @param searchString
    * @param page
-   * @param pageSize
+   * @param limit
    * @return
    */
   def getStorageNodeByName(
     mid: MuseumId,
     searchString: String,
     page: Int,
-    pageSize: Int
+    limit: Int
   ): Future[Seq[GenericStorageNode]] = {
     if (searchString.length > 2) {
-      val query = getStorageNodeByNameAction(mid, searchString, page, pageSize)
+      val query = getStorageNodeByNameAction(mid, searchString, page, limit)
       db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
     } else {
       Future.successful(Seq.empty)

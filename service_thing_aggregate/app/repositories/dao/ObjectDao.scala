@@ -22,9 +22,9 @@ package repositories.dao
 import com.google.inject.Inject
 import models.SearchFieldValues._
 import models.{MusitObject, ObjectSearchResult}
+import no.uio.musit.MusitResults._
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.MusitResults._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -160,8 +160,6 @@ class ObjectDao @Inject() (
   /**
    *
    * @param mid
-   * @param page
-   * @param pageSize
    * @param museumNo
    * @param subNo
    * @param term
@@ -171,8 +169,6 @@ class ObjectDao @Inject() (
    */
   private[dao] def searchQuery(
     mid: MuseumId,
-    page: Int,
-    pageSize: Int,
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String],
@@ -207,7 +203,7 @@ class ObjectDao @Inject() (
    *
    * @param mid
    * @param page
-   * @param pageSize
+   * @param limit
    * @param museumNo
    * @param subNo
    * @param term
@@ -217,17 +213,17 @@ class ObjectDao @Inject() (
   def search(
     mid: MuseumId,
     page: Int,
-    pageSize: Int,
+    limit: Int,
     museumNo: Option[MuseumNo],
     subNo: Option[SubNo],
     term: Option[String],
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
-    val offset = (page - 1) * pageSize
-    val query = searchQuery(mid, page, pageSize, museumNo, subNo, term, collections)
+    val offset = (page - 1) * limit
+    val query = searchQuery(mid, museumNo, subNo, term, collections)
 
     val totalMatches = db.run(query.length.result)
-    val matchedResults = db.run(query.drop(offset).take(pageSize).result)
+    val matchedResults = db.run(query.drop(offset).take(limit).result)
 
     (for {
       total <- totalMatches
@@ -278,14 +274,19 @@ class ObjectDao @Inject() (
    * @param mid
    * @param nodeId
    * @param collections
+   * @param page
+   * @param limit
    * @param currUsr
    * @return
    */
   def findObjects(
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId,
-    collections: Seq[MuseumCollection]
+    collections: Seq[MuseumCollection],
+    page: Int,
+    limit: Int
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+    val offset = (page - 1) * limit
 
     val locObjQuery = locObjTable.filter { lo =>
       lo.museumId === mid &&
@@ -304,12 +305,15 @@ class ObjectDao @Inject() (
       (_, o) <- locObjQuery join objQuery on (_.objectId === _.id)
     } yield o
 
-    db.run(q.result).map(_.map(MusitObject.fromTuple)).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = s"Error while retrieving objects for nodeId $nodeId"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(q.drop(offset).take(limit).result)
+      .map(_.map(MusitObject.fromTuple))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Error while retrieving objects for nodeId $nodeId"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
   /**
