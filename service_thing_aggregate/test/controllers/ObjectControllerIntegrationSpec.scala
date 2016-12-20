@@ -226,7 +226,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         response.status mustBe OK
 
         val objects = response.json.as[JsArray].value
-        objects.size mustBe 4
+        objects.size mustBe 2 // 2 objects are deleted
       }
 
       "respond with 404 for nodeId that does not exist" in {

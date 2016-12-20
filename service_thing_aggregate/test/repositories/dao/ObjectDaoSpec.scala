@@ -66,7 +66,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
   val escapeChar = dao.escapeChar
 
-  "The ObjectSearchDao" when {
+  "The ObjectDao" when {
 
     "classifying search criteria" should {
 
@@ -147,7 +147,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
         seq3.matches.length mustBe 3
         seq3.matches.head.subNo mustBe Some(SubNo("16"))
         seq3.matches.tail.head.subNo mustBe Some(SubNo("17"))
-        seq3.matches.last.subNo mustBe Some(SubNo("18"))
+        seq3.matches.last.subNo mustBe Some(SubNo("1a"))
 
         seq1.matches must not contain seq2.matches
         seq1.matches must not contain seq3.matches
