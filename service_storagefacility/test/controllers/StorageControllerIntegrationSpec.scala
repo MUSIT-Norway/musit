@@ -422,7 +422,8 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .withHeaders(readToken.asHeader)
           .get().futureValue
         res.status mustBe OK
-        res.json.as[JsArray].value.foreach { jsv =>
+        (res.json \ "totalMatches").as[Int] mustBe 3
+        (res.json \ "matches").as[JsArray].value.foreach { jsv =>
           (jsv \ "type").as[String] mustBe "Organisation"
         }
 
@@ -625,7 +626,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .withHeaders(readToken.asHeader)
           .get().futureValue
         res1.status mustBe OK
-        val directChildIds = res1.json.as[JsArray].value.map { jsv =>
+        val directChildIds = (res1.json \ "matches").as[JsArray].value.map { jsv =>
           (jsv \ "id").as[Long]
         }
 
@@ -634,7 +635,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
             .withHeaders(readToken.asHeader)
             .get().futureValue
           r.status mustBe OK
-          r.json.as[JsArray].value.map { jsv =>
+          (r.json \ "matches").as[JsArray].value.map { jsv =>
             (jsv \ "id").as[Long]
           }
         }
@@ -781,7 +782,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         failedUpdate.status mustBe BAD_REQUEST
       }
 
-      "Not list all children for a root node with museumId that doesn't exist" in {
+      "not list all children for a root node with museumId that doesn't exist" in {
         val mid = MuseumId(55)
         val res = wsUrl(NodeChildrenUrl(mid, 1))
           .withHeaders(readToken.asHeader)
@@ -789,14 +790,15 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         res.status mustBe BAD_REQUEST
       }
 
-      "Not list all children for a root node with wrong museumId " in {
+      "not list all children for a root node with wrong museumId " in {
         val mid = MuseumId(1)
         val res = wsUrl(NodeChildrenUrl(mid, 1))
           .withHeaders(readToken.asHeader)
           .get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 0
+        (res.json \ "totalMatches").as[Int] mustBe 0
+        (res.json \ "matches").as[JsArray].value.size mustBe 0
       }
 
       "not be able to get an organisation node when the MuseumId doesn't exists" in {

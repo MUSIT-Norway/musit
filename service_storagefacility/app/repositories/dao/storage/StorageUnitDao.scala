@@ -173,18 +173,24 @@ class StorageUnitDao @Inject() (
     id: StorageNodeDatabaseId,
     page: Int,
     limit: Int
-  ): Future[Seq[GenericStorageNode]] = {
+  ): Future[PagedResult[GenericStorageNode]] = {
     val offset = (page - 1) * limit
 
     val query = storageNodeTable.filter { node =>
       node.museumId === mid && node.isPartOf === id && node.isDeleted === false
-    }.drop(offset).take(limit).result
+    }
 
-    db.run(query).map { dtos =>
+    val matches = db.run(query.drop(offset).take(limit).result).map { dtos =>
       dtos.map { dto =>
         StorageNodeDto.toGenericStorageNode(dto)
       }
     }
+    val total = db.run(query.length.result)
+
+    for {
+      mat <- matches
+      tot <- total
+    } yield PagedResult(tot, mat)
   }
 
   /**

@@ -137,7 +137,7 @@ class ObjectService @Inject() (
     collectionIds: Seq[MuseumCollection],
     page: Int,
     limit: Int
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[PagedResult[MusitObject]]] = {
     objDao.findObjects(mid, nodeId, collectionIds, page, limit)
   }
 

@@ -140,7 +140,10 @@ final class StorageController @Inject() (
     limit: Int
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     service.getChildren(mid, id, page, limit).map { nodes =>
-      Ok(Json.toJson[Seq[GenericStorageNode]](nodes))
+      Ok(Json.obj(
+        "totalMatches" -> nodes.totalMatches,
+        "matches" -> Json.toJson[Seq[GenericStorageNode]](nodes.matches)
+      ))
     }
   }
 

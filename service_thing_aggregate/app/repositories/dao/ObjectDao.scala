@@ -290,7 +290,7 @@ class ObjectDao @Inject() (
     collections: Seq[MuseumCollection],
     page: Int,
     limit: Int
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[PagedResult[MusitObject]]] = {
     val offset = (page - 1) * limit
 
     val locObjQuery = locObjTable.filter { lo =>
@@ -310,15 +310,21 @@ class ObjectDao @Inject() (
       (_, o) <- locObjQuery join objQuery on (_.objectId === _.id)
     } yield o
 
-    db.run(q.drop(offset).take(limit).result)
+    val total = db.run(q.length.result)
+    val matches = db.run(q.drop(offset).take(limit).result)
       .map(_.map(MusitObject.fromTuple))
-      .map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Error while retrieving objects for nodeId $nodeId"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+
+    (for {
+      tot <- total
+      res <- matches
+    } yield {
+      MusitSuccess(PagedResult[MusitObject](tot, res))
+    }).recover {
+      case NonFatal(ex) =>
+        val msg = s"Error while retrieving objects for nodeId $nodeId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
   }
 
   /**
