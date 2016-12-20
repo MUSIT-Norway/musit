@@ -282,8 +282,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
           limit = 10
         ).futureValue
         mr.isSuccess mustBe true
-        mr.get.size mustBe 3
-        mr.get match {
+        mr.get.totalMatches mustBe 3
+        mr.get.matches match {
           case Vector(first, second, third) =>
             first.id mustBe ObjectId(1)
             first.museumNo mustBe MuseumNo("C666")
@@ -315,8 +315,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
         ).futureValue
 
         mr.isSuccess mustBe true
-        mr.get.size mustBe 3
-        mr.get match {
+        mr.get.totalMatches mustBe 3
+        mr.get.matches match {
           case Vector(first, second, third) =>
             first.id mustBe ObjectId(48)
             first.museumNo mustBe MuseumNo("K123")
@@ -348,7 +348,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
           limit = 10
         ).futureValue
         mr.isSuccess mustBe true
-        mr.get.length mustBe 0
+        mr.get.totalMatches mustBe 0
       }
 
       "return a an empty vector when museum doesn't exist" in {
@@ -360,7 +360,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
           limit = 10
         ).futureValue
         mr.isSuccess mustBe true
-        mr.get.length mustBe 0
+        mr.get.totalMatches mustBe 0
       }
 
       "return only the numberof objects per page specified in limit" in {
@@ -372,7 +372,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
           limit = 10
         ).futureValue
         mr.isSuccess mustBe true
-        mr.get.size mustBe 10
+        mr.get.totalMatches mustBe 32
+        mr.get.matches.size mustBe 10
       }
     }
 

@@ -442,7 +442,9 @@ class StorageNodeService @Inject() (
     id: StorageNodeDatabaseId,
     page: Int,
     limit: Int
-  ): Future[Seq[GenericStorageNode]] = unitDao.getChildren(mid, id, page, limit)
+  ): Future[PagedResult[GenericStorageNode]] = {
+    unitDao.getChildren(mid, id, page, limit)
+  }
 
   /**
    * TODO: Document me!

@@ -158,7 +158,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
     }
 
-    "getting objects for a nodeId" when {
+    "getting objects for a nodeId" should {
 
       "return objects for nodeId that exists" in {
         val nodeId = 4
@@ -169,9 +169,9 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .get().futureValue
         response.status mustBe OK
 
-        val objects = response.json.as[JsArray].value
-        objects must not be empty
-        val obj = objects.head
+        val matches = response.json
+        val obj = (matches \ "matches").as[JsArray].value.head
+
         (obj \ "id").as[ObjectId] mustBe ObjectId(1)
         (obj \ "term").as[String] mustBe "Øks"
         (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("C666")
@@ -187,7 +187,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .get().futureValue
         response.status mustBe OK
 
-        val objects = response.json.as[JsArray].value
+        val objects = (response.json \ "matches").as[JsArray].value
         objects.size mustBe 3
         objects.foreach { obj =>
           (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("K123")
@@ -208,8 +208,8 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .get().futureValue
         response.status mustBe OK
 
-        val objects = response.json.as[JsArray].value
-        objects.size mustBe 5
+        (response.json \ "matches").as[JsArray].value.size mustBe 5
+        (response.json \ "totalMatches").as[Int] mustBe 32
       }
 
       "return the last page of objects with a specified limit and page size" in {
@@ -225,8 +225,8 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .get().futureValue
         response.status mustBe OK
 
-        val objects = response.json.as[JsArray].value
-        objects.size mustBe 2 // 2 objects are deleted
+        (response.json \ "matches").as[JsArray].value.size mustBe 2
+        (response.json \ "totalMatches").as[Int] mustBe 32
       }
 
       "respond with 404 for nodeId that does not exist" in {

@@ -161,8 +161,11 @@ class ObjectController @Inject() (
         nodeService.nodeExists(mid, nodeId).flatMap {
           case MusitSuccess(true) =>
             objService.findObjects(mid, nodeId, cids, page, limit)(request.user).map {
-              case MusitSuccess(objects) =>
-                Ok(Json.toJson(objects))
+              case MusitSuccess(pagedObjects) =>
+                Ok(Json.obj(
+                  "totalMatches" -> pagedObjects.totalMatches,
+                  "matches" -> Json.toJson(pagedObjects.matches)
+                ))
 
               case MusitDbError(msg, ex) =>
                 logger.error(msg, ex.orNull)
