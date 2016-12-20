@@ -189,7 +189,7 @@ class ObjectDao @Inject() (
       else q4.filter(_.newCollectionId inSet collections.flatMap(_.schemaIds).distinct)
     }
     // Tweak here if sorting needs to be tuned
-    q5.sortBy { mt =>
+    q5.filter(_.isDeleted === false).sortBy { mt =>
       (
         mt.museumNoAsNumber.asc,
         mt.museumNo.toLowerCase.asc,
@@ -255,7 +255,9 @@ class ObjectDao @Inject() (
     mainObjectId: ObjectId,
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    val q = objTable.filter(_.mainObjectId === mainObjectId.underlying)
+    val q = objTable.filter { o =>
+      o.mainObjectId === mainObjectId.underlying && o.isDeleted === false
+    }
     val query = {
       if (currUsr.hasGodMode) q
       else q.filter(_.newCollectionId inSet collections.flatMap(_.schemaIds).distinct)
@@ -302,7 +304,7 @@ class ObjectDao @Inject() (
       else objTable.filter { o =>
         o.newCollectionId inSet collections.flatMap(_.schemaIds).distinct
       }
-    }
+    }.filter(_.isDeleted === false)
 
     val q = for {
       (_, o) <- locObjQuery join objQuery on (_.objectId === _.id)
@@ -332,7 +334,8 @@ class ObjectDao @Inject() (
     oldIds: Seq[Long]
   ): Future[MusitResult[Seq[ObjectId]]] = {
     val query = objTable.filter { o =>
-      o.oldSchema === oldSchema &&
+      o.isDeleted === false &&
+        o.oldSchema === oldSchema &&
         (o.oldObjId inSet oldIds)
     }.map(_.id)
 
@@ -357,6 +360,7 @@ class ObjectDao @Inject() (
   ): Future[MusitResult[Option[MusitObject]]] = {
     val query = objTable.filter { o =>
       o.oldObjId === oldId &&
+        o.isDeleted === false &&
         o.oldSchema === oldSchema
     }
 
@@ -376,9 +380,10 @@ class ObjectDao @Inject() (
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     val query = objTable.filter { o =>
-      o.oldBarcode === oldBarcode && o.museumId === museumId
-    }.filter { o =>
-      o.newCollectionId inSet collections.flatMap(_.schemaIds).distinct
+      o.oldBarcode === oldBarcode &&
+        o.museumId === museumId &&
+        o.isDeleted === false &&
+        (o.newCollectionId inSet collections.flatMap(_.schemaIds).distinct)
     }
 
     db.run(query.result).map { res =>

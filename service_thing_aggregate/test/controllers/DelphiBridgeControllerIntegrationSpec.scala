@@ -82,7 +82,7 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
 
     "translating old objectIds in a schema" should {
       "return a list of the new ObjectIds" in {
-        val expected = (11 to 21).toList
+        val expected = (11 to 20).toList
 
         val in = Json.obj(
           "schemaName" -> "USD_ARK_GJENSTAND_O",
@@ -96,7 +96,7 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
 
         res.status mustBe OK
         val rl = res.json.as[Seq[Long]].toList
-        rl.size mustBe 11
+        rl.size mustBe 10
         rl mustBe expected
       }
     }
