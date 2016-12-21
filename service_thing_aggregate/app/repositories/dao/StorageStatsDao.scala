@@ -25,7 +25,6 @@ import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.ast.Library.AggregateFunction
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -68,17 +67,24 @@ class StorageStatsDao @Inject() (
   def numObjectsInPath(path: NodePath): Future[MusitResult[Int]] = {
     val nodeFilter = s"${path.path}%"
 
-    val query = sql"""
-      SELECT /*+DRIVING_SITE(x2)*/ COUNT(x3."OBJECT_ID") FROM
-        "MUSIT_MAPPING"."MUSITTHING" x2,
-        "MUSARK_STORAGE"."LOCAL_OBJECT" x3,
-        "MUSARK_STORAGE"."STORAGE_NODE" x4
-      WHERE x4."STORAGE_NODE_ID" = x3."CURRENT_LOCATION_ID"
-      AND NODE_PATH LIKE $nodeFilter
-      AND x2."IS_DELETED" = 0
-      AND x3."OBJECT_ID" = x2."OBJECT_ID";""".as[Int]
+    logger.debug(s"Using node filter: $nodeFilter")
 
-    db.run(query).map(vi => MusitSuccess.apply(vi.head)).recover {
+    val query =
+      sql"""
+        SELECT /*+DRIVING_SITE(mt)*/ COUNT(1) FROM
+          "MUSARK_STORAGE"."STORAGE_NODE" sn,
+          "MUSARK_STORAGE"."LOCAL_OBJECT" lo,
+          "MUSIT_MAPPING"."MUSITTHING" mt
+        WHERE (sn."NODE_PATH" LIKE '#${nodeFilter}')
+        AND (sn."STORAGE_NODE_ID" = lo."CURRENT_LOCATION_ID")
+        AND (mt."IS_DELETED" = 0)
+        AND (lo."OBJECT_ID" = mt."OBJECT_ID")
+      """.as[Int].head
+
+    db.run(query).map { vi =>
+      logger.debug(s"Result is $vi")
+      MusitSuccess.apply(vi)
+    }.recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting total objects for nodes in path $path"
         logger.error(msg, ex)
