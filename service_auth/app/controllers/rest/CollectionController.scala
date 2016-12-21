@@ -23,11 +23,11 @@ import com.google.inject.Inject
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.security.Permissions.{GodMode, MusitAdmin}
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories.dao.AuthDao
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class CollectionController @Inject() (
@@ -50,19 +50,26 @@ class CollectionController @Inject() (
     }
   }
 
-  def getCollection(colId: String) = MusitSecureAction().async { implicit request =>
+  def getCollection(
+    colId: String
+  ) = MusitSecureAction().async { implicit request =>
     ???
   }
 
-  def addCollection = MusitAdminAction().async(parse.json) { implicit request =>
+  def addCollection =
+    MusitAdminAction(MusitAdmin).async(parse.json) { implicit request =>
+      ???
+    }
+
+  def updateCollection(
+    colId: String
+  ) = MusitAdminAction(MusitAdmin).async(parse.json) { implicit request =>
     ???
   }
 
-  def updateCollection = MusitAdminAction().async(parse.json) { implicit request =>
-    ???
-  }
-
-  def removeCollection(colId: String) = MusitAdminAction().async { implicit request =>
+  def removeCollection(
+    colId: String
+  ) = MusitAdminAction(GodMode).async { implicit request =>
     ???
   }
 

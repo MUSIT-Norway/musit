@@ -24,9 +24,9 @@ import models.Group
 import models.GroupAdd._
 import models.UserAuthAdd._
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
-import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.functional.Implicits.futureMonad
-import no.uio.musit.models.{CollectionUUID, Email, GroupId, UserGroupMembership}
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.models.{CollectionUUID, Email, GroupId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController

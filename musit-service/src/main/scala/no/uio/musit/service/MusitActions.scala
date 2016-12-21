@@ -23,7 +23,8 @@ import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
-import no.uio.musit.security.Permissions.{ElevatedPermission, Permission}
+import no.uio.musit.security.Permissions.{ElevatedPermission, MusitAdmin, Permission}
+import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, BearerToken, UserInfo}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -60,7 +61,9 @@ trait MusitActions {
   type MusitActionResult[T] = Either[Result, MusitRequest[T]]
   type MusitActionResultF[T] = Future[MusitActionResult[T]]
 
-  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T] // scalastyle:ignore
+  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T]
+
+  // scalastyle:ignore
 
   /**
    * The base representation of a MUSIT specific request.
@@ -76,10 +79,11 @@ trait MusitActions {
 
     protected def auth[T](
       request: Request[T],
-      museumId: Option[MuseumId]
+      museumId: Option[MuseumId],
+      maybeToken: Option[BearerToken]
     )(authorize: AuthFunc[T]): MusitActionResultF[T] = {
       val museum = museumId.flatMap(Museum.fromMuseumId)
-      BearerToken.fromRequest(request).map { token =>
+      maybeToken.map { token =>
         val res = for {
           userInfo <- MusitResultT(authService.userInfo(token))
           groups <- MusitResultT(authService.groups(userInfo))
@@ -101,8 +105,8 @@ trait MusitActions {
   }
 
   /**
-   * A custom Action refiner that checks if the user is authenticated. If the
-   * request contains a valid bearer token, the request is enriched with an
+   * A custom Action that checks if the user is authenticated. If the request
+   * contains a valid bearer token, the request is enriched with an
    * {{{AuthenticatedUser}}}. If the incoming request can't be authenticated
    * a {{{Result}}} with HTTP Forbidden is returned.
    *
@@ -114,7 +118,8 @@ trait MusitActions {
       permissions: Permission*
   ) extends BaseSecureAction {
     override def refine[T](request: Request[T]): MusitActionResultF[T] = {
-      auth(request, museumId) { (token, userInfo, authUser, museum) =>
+      val maybeToken = BearerToken.fromRequestHeader(request)
+      auth(request, museumId, maybeToken) { (token, userInfo, authUser, museum) =>
         museum match {
           case Some(m) =>
             authUser.authorize(m, permissions).map { empty =>
@@ -149,13 +154,29 @@ trait MusitActions {
 
   }
 
+  /**
+   * Play Action that should be used for endpoints that require admin level
+   * authorization. The lowest allowable permission is {{{MusitAdmin}}}.
+   *
+   * @param museumId    The MuseumId to access.
+   * @param permissions The permissions required to access the endpoint.
+   * @param crypto      An implicit crypto implementation to handle special cases for
+   *                    parsing the access token.
+   */
   case class MusitAdminAction(
       museumId: Option[MuseumId],
       permissions: ElevatedPermission*
-  ) extends BaseSecureAction {
+  )(implicit crypto: MusitCrypto) extends BaseSecureAction {
 
     override def refine[T](request: Request[T]): MusitActionResultF[T] = {
-      auth(request, museumId) { (token, userInfo, authUser, museum) =>
+      val maybeToken = BearerToken.fromRequestHeader(request).orElse(
+        request.getQueryString("_at").map { qs =>
+          val decrypted = crypto.decryptAES(qs)
+          BearerToken(decrypted)
+        }
+      )
+
+      auth(request, museumId, maybeToken) { (token, userInfo, authUser, museum) =>
         authUser.authorizeAdmin(museum, permissions).map { empty =>
           Right(MusitRequest(authUser, token, museum, request))
         }.getOrElse {
@@ -167,14 +188,21 @@ trait MusitActions {
   }
 
   object MusitAdminAction {
-    def apply(): MusitAdminAction = MusitAdminAction(None)
+    def apply()(implicit crypto: MusitCrypto): MusitAdminAction =
+      MusitAdminAction(permissions = MusitAdmin)
 
-    def apply(mid: MuseumId): MusitAdminAction = MusitAdminAction(Some(mid))
+    def apply(mid: MuseumId)(implicit crypto: MusitCrypto): MusitAdminAction =
+      MusitAdminAction(Some(mid))
 
-    def apply(permissions: ElevatedPermission*): MusitAdminAction =
+    def apply(
+      permissions: ElevatedPermission*
+    )(implicit crypto: MusitCrypto): MusitAdminAction =
       MusitAdminAction(None, permissions: _*)
 
-    def apply(mid: MuseumId, permissions: ElevatedPermission*): MusitAdminAction =
+    def apply(
+      mid: MuseumId,
+      permissions: ElevatedPermission*
+    )(implicit crypto: MusitCrypto): MusitAdminAction =
       MusitAdminAction(Some(mid), permissions: _*)
   }
 

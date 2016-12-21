@@ -19,11 +19,22 @@
 
 package controllers.web
 
-import play.api.mvc._
+import com.google.inject.Inject
+import no.uio.musit.security.Authenticator
+import no.uio.musit.security.crypto.MusitCrypto
+import no.uio.musit.service.MusitController
+import play.api.Logger
 
-class Dashboard extends Controller {
+class Dashboard @Inject() (
+    implicit
+    val authService: Authenticator,
+    val crypto: MusitCrypto
+) extends MusitController {
 
-  def index() = Action { implicit request =>
+  val logger = Logger(classOf[Dashboard])
+
+  def index() = MusitAdminAction() { implicit request =>
+    logger.debug(s"request.token is: ${request.token}")
     Ok(views.html.index())
   }
 
