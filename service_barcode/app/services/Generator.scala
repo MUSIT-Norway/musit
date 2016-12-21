@@ -60,10 +60,12 @@ trait Generator {
     import scala.collection.JavaConversions._
     val matrix = writer.encode(value, format.zxingFormat, width, height, hints)
 
+    logger.debug(s"matrix height: ${matrix.getHeight}  width: ${matrix.getWidth}")
+
     // "draw" the pixels (as black or white)
     val pixels = Array.newBuilder[Int]
-    for (i <- 0 until width) {
-      for (j <- 0 until height) {
+    for (i <- 0 until matrix.getWidth) {
+      for (j <- 0 until matrix.getHeight) {
         val blackOrWhite = if (matrix.get(i, j)) black else white
         pixels += blackOrWhite
       }
