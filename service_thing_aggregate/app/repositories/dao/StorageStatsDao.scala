@@ -25,6 +25,7 @@ import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import slick.ast.Library.AggregateFunction
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -67,15 +68,17 @@ class StorageStatsDao @Inject() (
   def numObjectsInPath(path: NodePath): Future[MusitResult[Int]] = {
     val nodeFilter = s"${path.path}%"
 
-    val q1 = nodeTable.filter(_ => SimpleLiteral[String]("NODE_PATH") like nodeFilter)
-    val q2 = objTable.filter(_.isDeleted === false)
-    val q3 = for { (lo, _) <- locObjTable join q2 on (_.objectId === _.id) } yield lo
+    val query = sql"""
+      SELECT /*+DRIVING_SITE(x2)*/ COUNT(x3."OBJECT_ID") FROM
+        "MUSIT_MAPPING"."MUSITTHING" x2,
+        "MUSARK_STORAGE"."LOCAL_OBJECT" x3,
+        "MUSARK_STORAGE"."STORAGE_NODE" x4
+      WHERE x4."STORAGE_NODE_ID" = x3."CURRENT_LOCATION_ID"
+      AND NODE_PATH LIKE $nodeFilter
+      AND x2."IS_DELETED" = 0
+      AND x3."OBJECT_ID" = x2."OBJECT_ID";""".as[Int]
 
-    val query = for {
-      (sn, lo) <- q1 join q3 on (_.id === _.currentLocationId)
-    } yield sn
-
-    db.run(query.length.result).map(MusitSuccess.apply).recover {
+    db.run(query).map(vi => MusitSuccess.apply(vi.head)).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting total objects for nodes in path $path"
         logger.error(msg, ex)
@@ -92,10 +95,12 @@ class StorageStatsDao @Inject() (
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
   def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
-    val q1 = locObjTable.filter(_.currentLocationId === nodeId)
-    val q2 = objTable.filter(_.isDeleted === false)
     val query = for {
-      (lo, o) <- q1 join q2 on (_.objectId === _.id)
+      o <- objTable.filter(_.isDeleted === false)
+      lo <- locObjTable.filter { lo =>
+        lo.currentLocationId === nodeId &&
+          lo.objectId === o.id
+      }
     } yield lo
 
     db.run(query.length.result).map(MusitSuccess.apply).recover {
