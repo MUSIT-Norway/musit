@@ -128,7 +128,7 @@ class StorageNodeDao @Inject() (
     ids: Seq[StorageNodeDatabaseId]
   ): Future[MusitResult[Seq[SimpleNode]]] = {
     val q1 = (likePath: String) => nodeTable.filter { n =>
-      n.museumId === museumId && (n.path.asColumnOf[String] like likePath)
+      n.museumId === museumId && (SimpleLiteral[String]("NODE_PATH") like likePath)
     }
 
     val query = ids.map(id => s",${id.underlying},%")

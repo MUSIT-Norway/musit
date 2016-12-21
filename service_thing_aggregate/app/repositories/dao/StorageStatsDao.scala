@@ -22,7 +22,6 @@ package repositories.dao
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models._
-import no.uio.musit.security.Authenticator
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -68,7 +67,7 @@ class StorageStatsDao @Inject() (
   def numObjectsInPath(path: NodePath): Future[MusitResult[Int]] = {
     val nodeFilter = s"${path.path}%"
 
-    val q1 = nodeTable.filter(_.path.asColumnOf[String] like nodeFilter)
+    val q1 = nodeTable.filter(_ => SimpleLiteral[String]("NODE_PATH") like nodeFilter)
     val q2 = objTable.filter(_.isDeleted === false)
     val q3 = for { (lo, _) <- locObjTable join q2 on (_.objectId === _.id) } yield lo
 
