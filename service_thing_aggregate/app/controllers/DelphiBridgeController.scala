@@ -55,8 +55,7 @@ class DelphiBridgeController @Inject() (
           ))
         }.getOrElse {
           NotFound(Json.obj(
-            "message" -> (s"Could not find current node for object $oldObjectId " +
-              s"in schema $schemaName")
+            "message" -> s"Gjenstanden $oldObjectId har ingen plassering."
           ))
         }
 
