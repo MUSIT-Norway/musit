@@ -19,22 +19,39 @@
 
 package controllers.web
 
-import com.google.inject.Inject
-import no.uio.musit.security.{Authenticator, EncryptedToken}
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.security.crypto.MusitCrypto
-import no.uio.musit.service.MusitAdminController
 import play.api.Logger
+import play.api.libs.json.Json
+import play.api.mvc.{Action, Controller}
 
-class Dashboard @Inject() (
-    implicit
-    val authService: Authenticator,
+@Singleton
+class Init @Inject() (
     val crypto: MusitCrypto
-) extends MusitAdminController {
+) extends Controller {
 
-  val logger = Logger(classOf[Dashboard])
+  val logger = Logger(classOf[Init])
 
-  def index = MusitAdminAction() { implicit request =>
-    val encTok = EncryptedToken.fromBearerToken(request.token)
-    Ok(views.html.index(encTok))
+  def init = Action(parse.urlFormEncoded) { implicit request =>
+
+    logger.debug(s"Body with url form encoded params:\n${request.body.mkString("\n")}")
+
+    request.body.get("_at").flatMap { tokSeq =>
+      tokSeq.headOption.map { tokStr =>
+        logger.debug(s"Plain text token: $tokStr")
+
+        val token = crypto.encryptAES(tokStr)
+
+        logger.debug(s"Encrypted token: $token")
+
+        Redirect(
+          url = controllers.web.routes.Dashboard.index().absoluteURL(),
+          queryString = Map("_at" -> Seq(token))
+        )
+      }
+    }.getOrElse {
+      Unauthorized(Json.obj("message" -> "Access denied."))
+    }
   }
+
 }

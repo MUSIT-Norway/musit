@@ -40,18 +40,9 @@ import play.api.libs.crypto.CryptoException
 class MusitCrypto @Inject() (
     val ccp: CryptoConfigParser
 ) {
-
   lazy val config = ccp.get
 
-  /**
-   * Gets a Cipher with a configured provider, and a configurable AES
-   * transformation method.
-   */
-  private def getCipherWithConfiguredProvider(transformation: String): Cipher = {
-    config.provider.fold(Cipher.getInstance(transformation)) { p =>
-      Cipher.getInstance(transformation, p)
-    }
-  }
+  private val cipher = Cipher.getInstance(config.aesTransformation)
 
   def encryptAES(value: String): String = {
     encryptAES(value, config.secret)
@@ -59,7 +50,6 @@ class MusitCrypto @Inject() (
 
   def encryptAES(value: String, privateKey: String): String = {
     val skeySpec = secretKeyWithSha256(privateKey, "AES")
-    val cipher = getCipherWithConfiguredProvider(config.aesTransformation)
     cipher.init(Cipher.ENCRYPT_MODE, skeySpec)
     val encryptedValue = cipher.doFinal(value.getBytes("utf-8"))
     // return a formatted, versioned encrypted string
@@ -96,15 +86,9 @@ class MusitCrypto @Inject() (
       val version = value.substring(0, sepIndex)
       val data = value.substring(sepIndex + 1, value.length())
       version match {
-        case "1" => {
-          decryptAESVersion1(data, privateKey)
-        }
-        case "2" => {
-          decryptAESVersion2(data, privateKey)
-        }
-        case _ => {
-          throw new CryptoException("Unknown version")
-        }
+        case "1" => decryptAESVersion1(data, privateKey)
+        case "2" => decryptAESVersion2(data, privateKey)
+        case _ => throw new CryptoException("Unknown version")
       }
     }
   }
@@ -113,7 +97,6 @@ class MusitCrypto @Inject() (
   private def decryptAESVersion0(value: String, privateKey: String): String = {
     val raw = privateKey.substring(0, 16).getBytes("utf-8")
     val skeySpec = new SecretKeySpec(raw, "AES")
-    val cipher = getCipherWithConfiguredProvider("AES")
     cipher.init(Cipher.DECRYPT_MODE, skeySpec)
     new String(cipher.doFinal(Codecs.hexStringToByte(value)))
   }
@@ -122,7 +105,6 @@ class MusitCrypto @Inject() (
   private def decryptAESVersion1(value: String, privateKey: String): String = {
     val data = Base64.decodeBase64(value)
     val skeySpec = secretKeyWithSha256(privateKey, "AES")
-    val cipher = getCipherWithConfiguredProvider(config.aesTransformation)
     cipher.init(Cipher.DECRYPT_MODE, skeySpec)
     new String(cipher.doFinal(data), "utf-8")
   }
@@ -131,7 +113,6 @@ class MusitCrypto @Inject() (
   private def decryptAESVersion2(value: String, privateKey: String): String = {
     val data = Base64.decodeBase64(value)
     val skeySpec = secretKeyWithSha256(privateKey, "AES")
-    val cipher = getCipherWithConfiguredProvider(config.aesTransformation)
     val blockSize = cipher.getBlockSize
     val iv = data.slice(0, blockSize)
     val payload = data.slice(blockSize, data.size)

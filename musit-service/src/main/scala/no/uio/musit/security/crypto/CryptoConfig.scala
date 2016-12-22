@@ -29,7 +29,6 @@ import play.api._
 
 case class CryptoConfig(
   secret: String,
-  provider: Option[String] = None,
   aesTransformation: String = "AES/CTR/NoPadding"
 )
 
@@ -82,10 +81,9 @@ class CryptoConfigParser @Inject() (environment: Environment, config: Configurat
       case Some(s) => s
     }
 
-    val provider = config.getString("play.crypto.provider")
     val transformation = config.getString("play.crypto.aes.transformation").orNull
 
-    CryptoConfig(secret, provider, transformation)
+    CryptoConfig(secret, transformation)
   }
   private val Blank = """\s*""".r
   private val logger = Logger(classOf[CryptoConfigParser])

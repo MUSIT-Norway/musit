@@ -27,9 +27,10 @@ import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{CollectionUUID, Email, GroupId}
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{Authenticator, EncryptedToken}
 import no.uio.musit.security.Permissions._
-import no.uio.musit.service.MusitController
+import no.uio.musit.security.crypto.MusitCrypto
+import no.uio.musit.service.MusitAdminController
 import play.api.Configuration
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -37,15 +38,19 @@ import play.api.libs.json._
 import play.api.mvc._
 import repositories.dao.AuthDao
 
+import controllers.web
+
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 class GroupController @Inject() (
+    implicit
     val authService: Authenticator,
+    val crypto: MusitCrypto,
     val dao: AuthDao,
     val messagesApi: MessagesApi,
     val configuration: Configuration
-) extends MusitController with I18nSupport {
+) extends MusitAdminController with I18nSupport {
 
   val allowedGroups = scala.collection.immutable.Seq(
     (GodMode.priority.toString, GodMode.productPrefix),
@@ -55,12 +60,12 @@ class GroupController @Inject() (
     (Guest.priority.toString, Guest.productPrefix)
   )
 
-  private def handleNotFound(msg: String): Future[Result] = {
-    Future.successful(NotFound(views.html.error(msg)))
+  private def handleNotFound(encTok: EncryptedToken, msg: String): Future[Result] = {
+    Future.successful(NotFound(views.html.error(encTok, msg)))
   }
 
-  private def handleBadRequest(msg: String): Future[Result] = {
-    Future.successful(NotFound(views.html.error(msg)))
+  private def handleBadRequest(encTok: EncryptedToken, msg: String): Future[Result] = {
+    Future.successful(NotFound(views.html.error(encTok, msg)))
   }
 
   /**
@@ -68,13 +73,17 @@ class GroupController @Inject() (
    * @param gid
    * @return
    */
-  def deleteGroup(gid: String) = Action.async { implicit request =>
+  def deleteGroup(gid: String) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     val maybeGroupId = GroupId.validate(gid).toOption.map(GroupId.apply)
     maybeGroupId.map { groupId =>
       dao.deleteGroup(groupId).map {
         case MusitSuccess(int) =>
-          Redirect(controllers.web.routes.GroupController.groupList())
-            .flashing("success" -> "Group was removed")
+          Redirect(
+            url = web.routes.GroupController.groupList().absoluteURL(),
+            queryString = Map("_at" -> Seq(encTok.asString))
+          ).flashing("success" -> "Group was removed")
         case error: MusitError =>
           BadRequest(
             Json.obj("error" -> error.message)
@@ -98,13 +107,16 @@ class GroupController @Inject() (
   def deleteUser(
     gid: String,
     email: String
-  ) = Action.async { implicit request =>
+  ) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     Email.fromString(email).map { feideEmail =>
       GroupId.validate(gid).toOption.map(GroupId.apply).map { gid =>
         dao.removeUserFromGroup(feideEmail, gid).map {
           case MusitSuccess(int) =>
             Redirect(
-              controllers.web.routes.GroupController.groupUserList(gid.asString)
+              url = web.routes.GroupController.groupUserList(gid.asString).absoluteURL(),
+              queryString = Map("_at" -> Seq(encTok.asString))
             ).flashing("success" -> "User was removed")
           case error: MusitError =>
             BadRequest(
@@ -132,20 +144,29 @@ class GroupController @Inject() (
    * @param gid
    * @return
    */
-  def groupAddUserGet(gid: String) = Action.async { implicit request =>
+  def groupAddUserGet(gid: String) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     GroupId.validate(gid).toOption.map { groupId =>
       dao.allCollections.flatMap { cols =>
         dao.findGroupById(groupId).map {
           case MusitSuccess(group) =>
             group.map { g =>
-              Ok(views.html.groupUserAdd(userAuthForm, g, cols.getOrElse(Seq.empty)))
-            }.getOrElse(BadRequest(views.html.error(s"GroupId $gid was not found")))
+              Ok(views.html.groupUserAdd(
+                encTok, userAuthForm, g, cols.getOrElse(Seq.empty)
+              ))
+            }.getOrElse {
+              BadRequest(views.html.error(encTok, s"GroupId $gid was not found"))
+            }
+
           case err: MusitError =>
-            BadRequest(views.html.error(s"An error occurred trying to fetch group $gid"))
+            BadRequest(
+              views.html.error(encTok, s"An error occurred trying to fetch group $gid")
+            )
         }
       }
     }.getOrElse {
-      handleBadRequest(s"Invalid groupId $gid")
+      handleBadRequest(encTok, s"Invalid groupId $gid")
     }
   }
 
@@ -154,7 +175,9 @@ class GroupController @Inject() (
    * @param gid
    * @return
    */
-  def groupAddUserPost(gid: String) = Action.async { implicit request =>
+  def groupAddUserPost(gid: String) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     GroupId.validate(gid).toOption.map { groupId =>
       userAuthForm.bindFromRequest.fold(
         formWithErrors => {
@@ -164,16 +187,17 @@ class GroupController @Inject() (
           } yield {
             maybeGroup.map { group =>
               BadRequest(views.html.groupUserAdd(
+                etok = encTok,
                 theForm = formWithErrors,
                 group = group,
                 collections = cols
               ))
             }.getOrElse {
-              BadRequest(views.html.error(s"Group with ID $gid was not found"))
+              BadRequest(views.html.error(encTok, s"Group with ID $gid was not found"))
             }
           }).value.map(_.getOrElse {
             BadRequest(
-              views.html.error(s"An error occurred trying to fetch group $gid")
+              views.html.error(encTok, s"An error occurred trying to fetch group $gid")
             )
           })
         },
@@ -181,7 +205,8 @@ class GroupController @Inject() (
           dao.addUserToGroup(Email(userAdd.email), groupId, userAdd.collections).map {
             case MusitSuccess(group) =>
               Redirect(
-                controllers.web.routes.GroupController.groupUserList(gid)
+                url = web.routes.GroupController.groupUserList(gid).absoluteURL(),
+                queryString = Map("_at" -> Seq(encTok.asString))
               ).flashing("success" -> "User added!")
             case error: MusitError =>
               BadRequest(
@@ -191,11 +216,16 @@ class GroupController @Inject() (
         }
       )
     }.getOrElse(
-      handleBadRequest(s"Invalid groupId $gid")
+      handleBadRequest(encTok, s"Invalid groupId $gid")
     )
   }
 
-  def groupEditUser(gid: String, email: String) = Action.async { implicit request =>
+  def groupEditUser(
+    gid: String,
+    email: String
+  ) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     GroupId.validate(gid).toOption.map { groupId =>
       val feideMail = Email(email)
       (for {
@@ -204,18 +234,20 @@ class GroupController @Inject() (
         mems <- MusitResultT(dao.findUserGroupMembership(groupId, feideMail))
       } yield {
         mgroup.map { group =>
-          Ok(views.html.groupUserEdit(group, feideMail, mems, cols, None))
+          Ok(views.html.groupUserEdit(encTok, group, feideMail, mems, cols, None))
         }.getOrElse {
-          BadRequest(views.html.error(s"Group with ID $gid was not found"))
+          BadRequest(views.html.error(encTok, s"Group with ID $gid was not found"))
         }
       }).value.map(_.getOrElse {
         BadRequest(
-          views.html.error(s"An error occurred trying to fetch user membership" +
-            s" for $email in group $gid")
+          views.html.error(
+            encTok,
+            s"An error occurred fetching user membership for $email in group $gid"
+          )
         )
       })
     }.getOrElse(
-      handleBadRequest(s"Invalid groupId $gid")
+      handleBadRequest(encTok, s"Invalid groupId $gid")
     )
   }
 
@@ -223,26 +255,30 @@ class GroupController @Inject() (
    *
    * @return
    */
-  def groupAddGet = Action { implicit request =>
-    Ok(views.html.groupAdd(groupAddForm, allowedGroups))
+  def groupAddGet = MusitAdminAction() { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+    Ok(views.html.groupAdd(encTok, groupAddForm, allowedGroups))
   }
 
   /**
    *
    * @return
    */
-  def groupAddPost = Action.async { implicit request =>
+  def groupAddPost = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     groupAddForm.bindFromRequest.fold(
       formWithErrors => {
         Future.successful(
-          BadRequest(views.html.groupAdd(formWithErrors, allowedGroups))
+          BadRequest(views.html.groupAdd(encTok, formWithErrors, allowedGroups))
         )
       },
       groupAdd => {
         dao.addGroup(groupAdd).map {
           case MusitSuccess(group) =>
             Redirect(
-              controllers.web.routes.GroupController.groupList()
+              url = web.routes.GroupController.groupList().absoluteURL(),
+              queryString = Map("_at" -> Seq(encTok.asString))
             ).flashing("success" -> "Group added!")
           case error: MusitError =>
             BadRequest(
@@ -257,23 +293,27 @@ class GroupController @Inject() (
    *
    * @return
    */
-  def groupList = Action.async { implicit request =>
+  def groupList = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     dao.allGroups.map {
       case MusitSuccess(groups) =>
-        Ok(views.html.groupList(groups, None))
+        Ok(views.html.groupList(encTok, groups, None))
       case error: MusitError =>
-        Ok(views.html.groupList(Seq.empty, Some(error)))
+        Ok(views.html.groupList(encTok, Seq.empty, Some(error)))
     }
   }
 
   /**
    *
+   * @param encTok
    * @param groupId
    * @param groupRes
    * @param usersRes
    * @return
    */
   private def getUserDetailsFor(
+    encTok: EncryptedToken,
     groupId: GroupId,
     groupRes: MusitResult[Option[Group]],
     usersRes: MusitResult[Seq[Email]]
@@ -290,16 +330,16 @@ class GroupController @Inject() (
           }
         }.map { ugis =>
           group.map { grp =>
-            Ok(views.html.groupUsers(ugis, grp))
+            Ok(views.html.groupUsers(encTok, ugis, grp))
           }.getOrElse {
-            NotFound(views.html.error(s"Could not find group"))
+            NotFound(views.html.error(encTok, s"Could not find group"))
           }
         }
       }
     }.getOrElse {
-      Future.successful(
-        InternalServerError(views.html.error("An error occurred fetching the group"))
-      )
+      Future.successful(InternalServerError(
+        views.html.error(encTok, "An error occurred fetching the group")
+      ))
     }
   }
 
@@ -308,20 +348,22 @@ class GroupController @Inject() (
    * @param gid
    * @return
    */
-  def groupUserList(gid: String) = Action.async { implicit request =>
+  def groupUserList(gid: String) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
       val futureRes = for {
         groupRes <- dao.findGroupById(groupId)
         usersRes <- dao.findUsersInGroup(groupId)
-        res <- getUserDetailsFor(groupId, groupRes, usersRes)
+        res <- getUserDetailsFor(encTok, groupId, groupRes, usersRes)
       } yield res
 
       futureRes.recover {
         case NonFatal(ex) =>
-          InternalServerError(views.html.error("An error occurred fetching data"))
+          InternalServerError(views.html.error(encTok, "An error occurred fetching data"))
       }
     }.getOrElse {
-      handleNotFound(s"Wrong uuid format: $gid")
+      handleNotFound(encTok, s"Wrong uuid format: $gid")
     }
   }
 
@@ -336,26 +378,29 @@ class GroupController @Inject() (
     gid: String,
     email: String,
     cid: String
-  ) = Action.async { implicit request =>
+  ) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     Email.fromString(email).map { feideEmail =>
       GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
         CollectionUUID.validate(cid).toOption.map(CollectionUUID.apply).map { colId =>
           dao.revokeCollectionFor(feideEmail, groupId, colId).map {
             case MusitSuccess(res) =>
               Redirect(
-                controllers.web.routes.GroupController.groupEditUser(gid, email)
+                url = web.routes.GroupController.groupEditUser(gid, email).absoluteURL(),
+                queryString = Map("_at" -> Seq(encTok.asString))
               ).flashing("success" -> "Collection access revoked")
             case err: MusitError =>
-              InternalServerError(views.html.error(err.message))
+              InternalServerError(views.html.error(encTok, err.message))
           }
         }.getOrElse {
-          handleNotFound(s"Wrong uuid format: $cid")
+          handleNotFound(encTok, s"Wrong uuid format: $cid")
         }
       }.getOrElse {
-        handleNotFound(s"Wrong uuid format: $gid")
+        handleNotFound(encTok, s"Wrong uuid format: $gid")
       }
     }.getOrElse {
-      handleNotFound(s"Not a valid email: $email")
+      handleNotFound(encTok, s"Not a valid email: $email")
     }
   }
 
@@ -363,27 +408,30 @@ class GroupController @Inject() (
     gid: String,
     email: String,
     cid: String
-  ) = Action.async { implicit request =>
+  ) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     Email.fromString(email).map { feideEmail =>
       GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
         CollectionUUID.validate(cid).toOption.map(CollectionUUID.apply).map { colId =>
           dao.addUserToGroup(feideEmail, groupId, Option(Seq(colId))).map {
             case MusitSuccess(res) =>
               Redirect(
-                controllers.web.routes.GroupController.groupEditUser(gid, email)
+                url = web.routes.GroupController.groupEditUser(gid, email).absoluteURL(),
+                queryString = Map("_at" -> Seq(encTok.asString))
               )
 
             case err: MusitError =>
-              InternalServerError(views.html.error(err.message))
+              InternalServerError(views.html.error(encTok, err.message))
           }
         }.getOrElse {
-          handleNotFound(s"Wrong uuid format: $cid")
+          handleNotFound(encTok, s"Wrong uuid format: $cid")
         }
       }.getOrElse {
-        handleNotFound(s"Wrong uuid format: $gid")
+        handleNotFound(encTok, s"Wrong uuid format: $gid")
       }
     }.getOrElse {
-      handleNotFound(s"Not a valid email: $email")
+      handleNotFound(encTok, s"Not a valid email: $email")
     }
   }
 

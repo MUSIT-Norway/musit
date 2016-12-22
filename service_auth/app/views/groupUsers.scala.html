@@ -3,10 +3,11 @@
 @import controllers.web.routes.GroupController
 @import no.uio.musit.models.MuseumCollection
 @import no.uio.musit.models.Email
+@import no.uio.musit.security.EncryptedToken
 
-@(usrCols: Seq[(Email, Seq[MuseumCollection])], group: Group, error: Option[MusitError] = None)
+@(etok: EncryptedToken, usrCols: Seq[(Email, Seq[MuseumCollection])], group: Group, error: Option[MusitError] = None)
 
-@main(s"Users in ${group.name}", activeMenu = 3) {
+@main(etok, s"Users in ${group.name}", activeMenu = 3) {
   @if(error.nonEmpty) {
     <div class="alert alert-warning">
       <button type="button" data-dismiss="alert" aria-hidden="true" class="close">×</button>
@@ -14,10 +15,10 @@
     </div>
   }
   <p>
-    <a href="@GroupController.groupList()">Go to group list</a>
+    <a href="@GroupController.groupList()?_at=@etok.asString">Go to group list</a>
   </p>
   <p>
-    <a href="@GroupController.groupAddUserGet(group.id.asString)">
+    <a href="@GroupController.groupAddUserGet(group.id.asString)?_at=@etok.asString">
       Add new user
     </a>
   </p>
@@ -38,7 +39,7 @@
         @for(usrCol <- usrCols) {
           <tr>
             <td>
-              <a class="text-primary" href="@GroupController.groupEditUser(group.id.asString, usrCol._1.value)">
+              <a class="text-primary" href="@GroupController.groupEditUser(group.id.asString, usrCol._1.value)?_at=@etok.asString">
                 <b><u>@usrCol._1.value</u></b>
               </a>
             </td>
@@ -48,7 +49,7 @@
               }
             </td>
             <td>
-              <form method="post" action="@GroupController.deleteUser(group.id.asString, usrCol._1.value)">
+              <form method="post" action="@GroupController.deleteUser(group.id.asString, usrCol._1.value)?_at=@etok.asString">
                 <button class="btn btn-fill btn-danger btn-xs" type="submit">
                   <i class="fa fa-trash"></i>
                 </button>

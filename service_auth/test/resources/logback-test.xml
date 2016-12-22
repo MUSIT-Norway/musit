@@ -22,9 +22,11 @@
   <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel"/>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <pattern>
-      %coloredLevel - %logger{15} - [%d{yyyy-MM-dd_HH:mm:ss.SSS}] %message%n%xException
-    </pattern>
+    <encoder>
+      <pattern>
+        %coloredLevel - %logger{15} - [%d{yyyy-MM-dd_HH:mm:ss.SSS}] - %message%n%xException
+      </pattern>
+    </encoder>
   </appender>
 
   <logger name="ch.qos.logback" level="ERROR"/>

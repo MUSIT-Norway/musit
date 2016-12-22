@@ -23,9 +23,8 @@ import akka.stream.Materializer
 import com.google.inject.Inject
 import play.api.Logger
 import play.api.http.HeaderNames
-import play.api.mvc._
-import play.api.routing.Router.Tags
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.mvc._
 
 import scala.concurrent.Future
 
@@ -42,6 +41,10 @@ class AccessLogFilter @Inject() (implicit val mat: Materializer) extends Filter 
     nextFilter(rh).map { response =>
       val endTime = System.currentTimeMillis
       val procTime = endTime - startTime
+
+      logger.debug(
+        s"Request contained following headers:\n${rh.headers.toSimpleMap.mkString("\n")}"
+      )
 
       logger.info(
         s"${rh.remoteAddress} - ${response.header.status} - " +

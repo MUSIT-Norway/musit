@@ -2,13 +2,14 @@
 @import play.api.i18n.Messages
 @import models.{Group, UserAuthAdd}
 @import no.uio.musit.models.MuseumCollection
+@import no.uio.musit.security.EncryptedToken
 @import controllers.web.routes.GroupController
 
-@(theForm: play.api.data.Form[UserAuthAdd], group: Group, collections: Seq[MuseumCollection])(implicit messages: Messages)
+@(etok: EncryptedToken, theForm: play.api.data.Form[UserAuthAdd], group: Group, collections: Seq[MuseumCollection])(implicit messages: Messages)
 
-@main(s"Add user to ${group.name}", activeMenu = 3) {
+@main(etok, s"Add user to ${group.name}", activeMenu = 3) {
   <p>
-    <a href="@GroupController.groupUserList(group.id.asString)">
+    <a href="@GroupController.groupUserList(group.id.asString)?_at=@etok.asString">
       Go back
     </a>
   </p>
@@ -17,7 +18,7 @@
       <h4 class="title">Add user to @group.name</h4>
     </div>
     <div class="content">
-      @form(action = GroupController.groupAddUserPost(group.id.asString)) {
+      <form method="POST" action="@GroupController.groupAddUserPost(group.id.asString)?_at=@etok.asString">
         <input type="hidden" value="@group.id.asString" name="groupId" />
         <div class="row">
           <div class="form-group">
@@ -64,7 +65,7 @@
             </div>
           </div>
         </div>
-      }
+      </form>
     </div>
   </div>
 }

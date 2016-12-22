@@ -1,6 +1,8 @@
-@(error: String)
+@import no.uio.musit.security.EncryptedToken
 
-@main("Error", activeMenu = 1) {
+@(etok: EncryptedToken, error: String)
+
+@main(etok, "Error", activeMenu = 1) {
   <div class="card">
     <div class="header">
       <h4 class="text-danger">An unexpected error occurred.</h4>

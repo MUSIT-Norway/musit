@@ -2,8 +2,9 @@
 @import controllers.web.routes.GroupController
 @import controllers.web.routes.UserController
 @import controllers.web.routes.MuseumCollectionController
+@import no.uio.musit.security.EncryptedToken
 
-@(title: String, activeMenu: Int = 1)(content: Html)
+@(etok: EncryptedToken, title: String, activeMenu: Int = 1)(content: Html)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -38,7 +39,7 @@
             } else {
               <li>
             }
-              <a href="@Dashboard.index()">
+              <a href="@Dashboard.index()?_at=@etok.asString">
                 <i class="fa fa-home"></i>
                 <p>Dashboard</p>
               </a>
@@ -48,7 +49,7 @@
             } else {
               <li>
             }
-              <a href="@MuseumCollectionController.listCollections">
+              <a href="@MuseumCollectionController.listCollections?_at=@etok.asString">
                 <i class="fa fa-archive"></i>
                 <p>Collections</p>
               </a>
@@ -58,7 +59,7 @@
             } else {
               <li>
             }
-              <a href="@GroupController.groupList()">
+              <a href="@GroupController.groupList()?_at=@etok.asString">
                 <i class="fa fa-group"></i>
                 <p>Groups</p>
               </a>
@@ -68,7 +69,7 @@
             } else {
               <li>
               }
-              <a href="@UserController.users()">
+              <a href="@UserController.users()?_at=@etok.asString">
                 <i class="fa fa-user"></i>
                 <p>Users</p>
               </a>

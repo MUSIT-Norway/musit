@@ -93,8 +93,7 @@ lazy val musitService = (
     settings(
       libraryDependencies ++= Seq[ModuleID](
         scalaGuice,
-        iheartFicus,
-        bcrypt
+        iheartFicus
       )
     )
 ) dependsOn(musitModels, musitTest % "it,test")

@@ -61,9 +61,8 @@ trait MusitActions {
   type MusitActionResult[T] = Either[Result, MusitRequest[T]]
   type MusitActionResultF[T] = Future[MusitActionResult[T]]
 
-  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T]
-
-  // scalastyle:ignore
+  type AuthFunc[T] =
+    (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T]
 
   /**
    * The base representation of a MUSIT specific request.
@@ -154,19 +153,28 @@ trait MusitActions {
 
   }
 
+}
+
+trait MusitAdminActions extends MusitActions {
+
+  private val logger = Logger(classOf[MusitAdminActions])
+
+  /**
+   * Crypto implementation to handle special cases for parsing the access token.
+   */
+  val crypto: MusitCrypto
+
   /**
    * Play Action that should be used for endpoints that require admin level
    * authorization. The lowest allowable permission is {{{MusitAdmin}}}.
    *
    * @param museumId    The MuseumId to access.
    * @param permissions The permissions required to access the endpoint.
-   * @param crypto      An implicit crypto implementation to handle special cases for
-   *                    parsing the access token.
    */
   case class MusitAdminAction(
       museumId: Option[MuseumId],
       permissions: ElevatedPermission*
-  )(implicit crypto: MusitCrypto) extends BaseSecureAction {
+  ) extends BaseSecureAction {
 
     override def refine[T](request: Request[T]): MusitActionResultF[T] = {
       val maybeToken = BearerToken.fromRequestHeader(request).orElse(
@@ -188,21 +196,14 @@ trait MusitActions {
   }
 
   object MusitAdminAction {
-    def apply()(implicit crypto: MusitCrypto): MusitAdminAction =
-      MusitAdminAction(permissions = MusitAdmin)
+    def apply(): MusitAdminAction = MusitAdminAction(permissions = MusitAdmin)
 
-    def apply(mid: MuseumId)(implicit crypto: MusitCrypto): MusitAdminAction =
-      MusitAdminAction(Some(mid))
+    def apply(mid: MuseumId): MusitAdminAction = MusitAdminAction(Some(mid))
 
-    def apply(
-      permissions: ElevatedPermission*
-    )(implicit crypto: MusitCrypto): MusitAdminAction =
+    def apply(permissions: ElevatedPermission*): MusitAdminAction =
       MusitAdminAction(None, permissions: _*)
 
-    def apply(
-      mid: MuseumId,
-      permissions: ElevatedPermission*
-    )(implicit crypto: MusitCrypto): MusitAdminAction =
+    def apply(mid: MuseumId, permissions: ElevatedPermission*): MusitAdminAction =
       MusitAdminAction(Some(mid), permissions: _*)
   }
 
