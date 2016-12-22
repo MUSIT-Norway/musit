@@ -40,8 +40,6 @@ class AccessLogFilter @Inject() (implicit val mat: Materializer) extends Filter 
     val startTime = System.currentTimeMillis
 
     nextFilter(rh).map { response =>
-      val action = rh.tags(Tags.RouteController) +
-        "." + rh.tags(Tags.RouteActionMethod)
       val endTime = System.currentTimeMillis
       val procTime = endTime - startTime
 
