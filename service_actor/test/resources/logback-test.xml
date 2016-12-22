@@ -19,25 +19,28 @@
 
 <configuration>
 
-    <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel"/>
+  <conversionRule conversionWord="coloredLevel"
+                  converterClass="play.api.libs.logback.ColoredLevel"/>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%coloredLevel - %logger{15} %line - %message%n%xException</pattern>
-        </encoder>
-    </appender>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>
+        %coloredLevel - %logger{15} - [%d{yyyy-MM-dd_HH:mm:ss.SSS}] - %message%n%xException
+      </pattern>
+    </encoder>
+  </appender>
 
-    <logger name="akka" level="WARN" />
-    <logger name="slick.jdbc" level="WARN"/>
+  <logger name="akka" level="WARN"/>
+  <logger name="slick.jdbc" level="WARN"/>
 
-    <logger name="no.uio.musit" level="INFO" />
-    <logger name="controllers" level="INFO" />
-    <logger name="services" level="INFO" />
-    <logger name="models" level="INFO" />
-    <logger name="repositories" level="INFO" />
+  <logger name="no.uio.musit" level="INFO"/>
+  <logger name="controllers" level="INFO"/>
+  <logger name="services" level="INFO"/>
+  <logger name="models" level="INFO"/>
+  <logger name="repositories" level="INFO"/>
 
-    <root level="ERROR">
-        <appender-ref ref="STDOUT"/>
-    </root>
+  <root level="ERROR">
+    <appender-ref ref="STDOUT"/>
+  </root>
 
 </configuration>
