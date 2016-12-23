@@ -25,6 +25,7 @@ import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 
 import com.google.inject.{Inject, Singleton}
 import org.apache.commons.codec.binary.Base64
+import play.api.Logger
 import play.api.libs.Codecs
 import play.api.libs.crypto.CryptoException
 
@@ -37,9 +38,10 @@ import play.api.libs.crypto.CryptoException
  * and modified to use the REST endpoints to load data.
  */
 @Singleton
-class MusitCrypto @Inject() (
-    val ccp: CryptoConfigParser
-) {
+class MusitCrypto @Inject() (ccp: CryptoConfigParser) {
+
+  val logger = Logger(classOf[MusitCrypto])
+
   lazy val config = ccp.get
 
   private val cipher = Cipher.getInstance(config.aesTransformation)
@@ -49,16 +51,20 @@ class MusitCrypto @Inject() (
   }
 
   def encryptAES(value: String, privateKey: String): String = {
+    logger.trace(s"Encrypting value: $value")
     val skeySpec = secretKeyWithSha256(privateKey, "AES")
     cipher.init(Cipher.ENCRYPT_MODE, skeySpec)
     val encryptedValue = cipher.doFinal(value.getBytes("utf-8"))
     // return a formatted, versioned encrypted string
     // '2-*' represents an encrypted payload with an IV
     // '1-*' represents an encrypted payload without an IV
-    Option(cipher.getIV) match {
+    logger.trace(s"Using IV ${Option(cipher.getIV).map(_.mkString)}")
+    val enc = Option(cipher.getIV) match {
       case Some(iv) => s"2-${Base64.encodeBase64String(iv ++ encryptedValue)}"
       case None => s"1-${Base64.encodeBase64String(encryptedValue)}"
     }
+    logger.trace(s"Encrypted value is $enc")
+    enc
   }
 
   /**
@@ -78,18 +84,23 @@ class MusitCrypto @Inject() (
   }
 
   def decryptAES(value: String, privateKey: String): String = {
+    logger.trace(s"Decrypting value: $value")
     val seperator = "-"
     val sepIndex = value.indexOf(seperator)
     if (sepIndex < 0) {
+      logger.trace(s"Using AES V0 decryption")
       decryptAESVersion0(value, privateKey)
     } else {
       val version = value.substring(0, sepIndex)
       val data = value.substring(sepIndex + 1, value.length())
-      version match {
+      val dec = version match {
         case "1" => decryptAESVersion1(data, privateKey)
         case "2" => decryptAESVersion2(data, privateKey)
         case _ => throw new CryptoException("Unknown version")
       }
+      logger.trace(s"Decrypted Using AES V$version.")
+      logger.trace(s"Got decrypted value: $dec")
+      dec
     }
   }
 

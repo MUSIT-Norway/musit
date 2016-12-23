@@ -24,6 +24,7 @@ import no.uio.musit.security.crypto.MusitCrypto
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
+import controllers.web
 
 @Singleton
 class Init @Inject() (
@@ -33,19 +34,20 @@ class Init @Inject() (
   val logger = Logger(classOf[Init])
 
   def init = Action(parse.urlFormEncoded) { implicit request =>
-
-    logger.debug(s"Body with url form encoded params:\n${request.body.mkString("\n")}")
-
     request.body.get("_at").flatMap { tokSeq =>
       tokSeq.headOption.map { tokStr =>
-        logger.debug(s"Plain text token: $tokStr")
+        logger.trace(s"Plain text token: $tokStr")
 
         val token = crypto.encryptAES(tokStr)
 
-        logger.debug(s"Encrypted token: $token")
+        logger.trace(s"Encrypted token: $token")
+
+        logger.debug(
+          s"Redirecting to: ${web.routes.Dashboard.index().absoluteURL()}"
+        )
 
         Redirect(
-          url = controllers.web.routes.Dashboard.index().absoluteURL(),
+          url = web.routes.Dashboard.index().absoluteURL(),
           queryString = Map("_at" -> Seq(token))
         )
       }
