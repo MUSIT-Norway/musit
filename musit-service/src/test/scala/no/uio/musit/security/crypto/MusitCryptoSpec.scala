@@ -17,22 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security
+package no.uio.musit.security.crypto
 
-import no.uio.musit.security.crypto.MusitCrypto
+import no.uio.musit.test.MusitSpecWithAppPerSuite
 
-case class EncryptedToken(underlying: String) extends AnyVal {
+class MusitCryptoSpec extends MusitSpecWithAppPerSuite {
 
-  def asString = underlying
+  val crypto = fromInstanceCache[MusitCrypto]
 
-  def urlEncoded = java.net.URLEncoder.encode(underlying, "utf-8")
+  "MusitCrypto" should {
 
-}
+    "successfully encrypt a token" in {
+      val orig = "27b9c7bc-06c3-4cc5-8c83-b34125377dd6"
+      val res = crypto.encryptAES(orig)
+      res must not be orig
+      res must not include " "
+    }
 
-object EncryptedToken {
+    "successfully decrypt an encrypted token" in {
+      val orig = "27b9c7bc-06c3-4cc5-8c83-b34125377dd6"
+      val enc = crypto.encryptAES(orig)
+      val res = crypto.decryptAES(enc)
 
-  def fromBearerToken(bt: BearerToken)(implicit crypto: MusitCrypto) = {
-    EncryptedToken(crypto.encryptAES(bt.underlying))
+      res mustBe orig
+    }
   }
 
 }

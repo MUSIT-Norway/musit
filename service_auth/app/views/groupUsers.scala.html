@@ -15,10 +15,10 @@
     </div>
   }
   <p>
-    <a href="@GroupController.groupList()?_at=@etok.asString">Go to group list</a>
+    <a href="@GroupController.groupList()?_at=@etok.urlEncoded">Go to group list</a>
   </p>
   <p>
-    <a href="@GroupController.groupAddUserGet(group.id.asString)?_at=@etok.asString">
+    <a href="@GroupController.groupAddUserGet(group.id.asString)?_at=@etok.urlEncoded">
       Add new user
     </a>
   </p>
@@ -39,7 +39,7 @@
         @for(usrCol <- usrCols) {
           <tr>
             <td>
-              <a class="text-primary" href="@GroupController.groupEditUser(group.id.asString, usrCol._1.value)?_at=@etok.asString">
+              <a class="text-primary" href="@GroupController.groupEditUser(group.id.asString, usrCol._1.value)?_at=@etok.urlEncoded">
                 <b><u>@usrCol._1.value</u></b>
               </a>
             </td>
@@ -49,7 +49,7 @@
               }
             </td>
             <td>
-              <form method="post" action="@GroupController.deleteUser(group.id.asString, usrCol._1.value)?_at=@etok.asString">
+              <form method="post" action="@GroupController.deleteUser(group.id.asString, usrCol._1.value)?_at=@etok.urlEncoded">
                 <button class="btn btn-fill btn-danger btn-xs" type="submit">
                   <i class="fa fa-trash"></i>
                 </button>

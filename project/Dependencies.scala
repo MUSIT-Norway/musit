@@ -43,6 +43,10 @@ object Dependencies {
     val logback = "com.typesafe.play" %% "play-logback" % version
   }
 
+  object Netty {
+    val reactiveStreamsHttp = "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8"
+  }
+
   object Silhouette {
     val silhouetteVersion = "4.0.0"
     val silhouette = "com.mohiva" %% "play-silhouette" % silhouetteVersion

@@ -8,7 +8,7 @@
 
 @main(etok, "Add group", activeMenu = 3) {
   <p>
-    <a href="@GroupController.groupList()?_at=@etok.asString">
+    <a href="@GroupController.groupList()?_at=@etok.urlEncoded">
       Go to group list
     </a>
   </p>
@@ -17,7 +17,7 @@
       <h4 class="title">Add new Group</h4>
     </div>
     <div class="content">
-      <form class="form-horizontal" method="POST" action="@GroupController.groupAddPost()?_at=@etok.asString">
+      <form class="form-horizontal" method="POST" action="@GroupController.groupAddPost()?_at=@etok.urlEncoded">
         <div class="row">
           <div class="form-group">
             <div class="row">

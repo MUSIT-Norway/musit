@@ -21,7 +21,7 @@
     </div>
   }
   <p>
-    <a href="@GroupController.groupAddGet?_at=@etok.asString">Add new group</a>
+    <a href="@GroupController.groupAddGet?_at=@etok.urlEncoded">Add new group</a>
   </p>
   <div class="card">
     <div class="header">
@@ -42,7 +42,7 @@
         @for(group <- groups) {
           <tr>
             <td>
-              <a class="text-primary" href="@GroupController.groupUserList(group.id.asString)?_at=@etok.asString">
+              <a class="text-primary" href="@GroupController.groupUserList(group.id.asString)?_at=@etok.urlEncoded">
                 <b><u>@group.name</u></b>
               </a>
             </td>
@@ -50,7 +50,7 @@
             <td>@fromMuseumId(group.museumId).map(_.shortName).getOrElse("-")</td>
             <td>@group.permission.toString</td>
             <td>
-              <form method="post" action="@GroupController.deleteGroup(group.id.asString)?_at=@etok.asString">
+              <form method="post" action="@GroupController.deleteGroup(group.id.asString)?_at=@etok.urlEncoded">
                 <button class="btn btn-fill btn-danger btn-xs" type="submit">
                   <i class="fa fa-trash"></i>
                 </button>

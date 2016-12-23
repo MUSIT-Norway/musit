@@ -39,7 +39,7 @@
             } else {
               <li>
             }
-              <a href="@Dashboard.index()?_at=@etok.asString">
+              <a href="@Dashboard.index()?_at=@etok.urlEncoded">
                 <i class="fa fa-home"></i>
                 <p>Dashboard</p>
               </a>
@@ -49,7 +49,7 @@
             } else {
               <li>
             }
-              <a href="@MuseumCollectionController.listCollections?_at=@etok.asString">
+              <a href="@MuseumCollectionController.listCollections?_at=@etok.urlEncoded">
                 <i class="fa fa-archive"></i>
                 <p>Collections</p>
               </a>
@@ -59,7 +59,7 @@
             } else {
               <li>
             }
-              <a href="@GroupController.groupList()?_at=@etok.asString">
+              <a href="@GroupController.groupList()?_at=@etok.urlEncoded">
                 <i class="fa fa-group"></i>
                 <p>Groups</p>
               </a>
@@ -69,7 +69,7 @@
             } else {
               <li>
               }
-              <a href="@UserController.users()?_at=@etok.asString">
+              <a href="@UserController.users()?_at=@etok.urlEncoded">
                 <i class="fa fa-user"></i>
                 <p>Users</p>
               </a>

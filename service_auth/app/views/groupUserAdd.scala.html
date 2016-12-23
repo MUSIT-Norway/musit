@@ -9,7 +9,7 @@
 
 @main(etok, s"Add user to ${group.name}", activeMenu = 3) {
   <p>
-    <a href="@GroupController.groupUserList(group.id.asString)?_at=@etok.asString">
+    <a href="@GroupController.groupUserList(group.id.asString)?_at=@etok.urlEncoded">
       Go back
     </a>
   </p>
@@ -18,7 +18,7 @@
       <h4 class="title">Add user to @group.name</h4>
     </div>
     <div class="content">
-      <form method="POST" action="@GroupController.groupAddUserPost(group.id.asString)?_at=@etok.asString">
+      <form method="POST" action="@GroupController.groupAddUserPost(group.id.asString)?_at=@etok.urlEncoded">
         <input type="hidden" value="@group.id.asString" name="groupId" />
         <div class="row">
           <div class="form-group">
