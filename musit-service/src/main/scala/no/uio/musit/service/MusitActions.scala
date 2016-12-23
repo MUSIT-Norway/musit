@@ -61,8 +61,7 @@ trait MusitActions {
   type MusitActionResult[T] = Either[Result, MusitRequest[T]]
   type MusitActionResultF[T] = Future[MusitActionResult[T]]
 
-  type AuthFunc[T] =
-    (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T]
+  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T] // scalastyle:ignore
 
   /**
    * The base representation of a MUSIT specific request.
