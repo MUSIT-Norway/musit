@@ -34,27 +34,29 @@
 }
 
 .top {
-  display: inline-flex;
-  align-self: flex-start;
+  display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .codeImage {
   margin-top: 1.5mm;
   margin-left: 4mm;
-  vertical-align: middle;
   align-self: flex-start;
 }
 
 .name {
   font-size: smaller;
-  margin-top: -1mm;
-  margin-left: 10mm;
+  margin: 2mm 10mm 0;
+  height: 5mm;
+  line-height: 5mm;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .uuid {
   font-size: xx-small;
-  margin-top: -4mm;
-  margin-left: 22mm;
+  margin-top: -2mm;
+  margin-left: 20mm;
 }

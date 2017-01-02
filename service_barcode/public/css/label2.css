@@ -34,25 +34,30 @@
 }
 
 .top {
-  /*display: flex;*/
+  display: flex;
   align-items: center;
-  float: right;
-  justify-content: space-between;
-  height: 20mm;
+  justify-content: baseline;
+  height: 65mm;
+  flex-direction: column;
 }
 
 .codeImage {
+  align-self: flex-end;
 }
 
 .name {
   align-self: center;
   font-size: xx-large;
-  margin-top: 35mm;
+  overflow: hidden;
+  height: auto;
+  max-height: 45mm;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 .uuid {
   display: block;
   font-size: x-small;
   align-self: center;
-  margin-top: 25mm;
+  margin-top: 3px;
 }

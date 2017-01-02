@@ -16,13 +16,13 @@
   <div class="label">
     <div class="top">
       <div class="codeImage">
-        <img
-            width="50px"
-            height="50px"
-            src="@routes.BarcodeController.generate(ld.uuid, bf.code)"
-        />
+        @*
+          Choosing _not_ to set height here since this will _only_ ever
+          be usable with Datamatrix codes.
+        *@
+        <img src="@routes.BarcodeController.generate(ld.uuid, bf.code)" />
       </div>
-      <div class="name"><p>@ld.data.head.value</p></div>
+      <div class="name">@ld.data.head.value</div>
     </div>
     <div class="uuid">@ld.uuid</div>
   </div>

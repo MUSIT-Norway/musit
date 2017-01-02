@@ -18,7 +18,7 @@
  */
 
 .label {
-  /* 210x11mm labels without padding on paper */
+  /* 210x27mm labels without padding on paper */
   width: 210mm;
   height: 27mm;
   padding: 0;
@@ -34,10 +34,8 @@
 }
 
 .top {
-  display: inline-flex;
+  display: flex;
   align-self: flex-start;
-  align-items: flex-start;
-  justify-content: space-between;
 }
 
 .codeImage {
@@ -47,10 +45,13 @@
 }
 
 .name {
-  margin-top: 3mm;
-  margin-left: 10mm;
-  vertical-align: middle;
-  font-size: larger;
+  margin: 7mm 10mm 0;
+  font-size: x-large;
+  height: 11mm;
+  line-height: 11mm;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .uuid {

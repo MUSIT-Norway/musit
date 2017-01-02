@@ -34,10 +34,8 @@
 }
 
 .top {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 20mm;
+  display: flex;
+  height: 30mm;
 }
 
 .codeImage {
@@ -45,7 +43,11 @@
 }
 
 .name {
-  align-self: flex-end;
+  align-self: center;
+  margin-right: 5px;
+  height: auto;
+  max-height: 25mm;
+  overflow: hidden;
 }
 
 .uuid {
