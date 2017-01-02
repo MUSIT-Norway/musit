@@ -127,7 +127,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         organisation mustBe an[Organisation]
         organisation.path mustBe NodePath(",1,22,")
         organisation.updatedBy mustBe Some(adminId)
-        organisation.updatedDate.get.toString must include("2016")
+        organisation.updatedDate.get.year() mustBe DateTime.now().year()
       }
 
       "successfully create a building node" in {
@@ -143,7 +143,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         building mustBe a[Building]
         building.path mustBe NodePath(",1,22,23,")
         building.updatedBy.get mustBe adminId
-        building.updatedDate.get.toString must include("2016")
+        building.updatedDate.get.year() mustBe DateTime.now().year()
       }
 
       "successfully create a room node" in {
@@ -159,7 +159,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         room mustBe a[Room]
         room.path mustBe NodePath(",1,22,23,24,")
         room.updatedBy.get mustBe adminId
-        room.updatedDate.get.toString must include("2016")
+        room.updatedDate.get.year() mustBe DateTime.now().year()
       }
 
       "successfully create a storage unit node" in {
@@ -175,7 +175,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         su mustBe a[StorageUnit]
         su.path mustBe NodePath(",1,22,23,24,25,")
         su.updatedBy.get mustBe adminId
-        su.updatedDate.get.toString must include("2016")
+        su.updatedDate.get.year() mustBe DateTime.now().year()
       }
 
       "not allow creating a storage node with a name over 100 chars" in {

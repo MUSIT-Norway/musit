@@ -67,7 +67,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       ins.isSuccess mustBe true
       ins.get must not be None
       ins.get.get.updatedBy.get mustBe defaultUserId
-      ins.get.get.updatedDate.get.toString must include("2016")
+      ins.get.get.updatedDate.get.year().get() mustBe DateTime.now().year().get()
 
       val inserted = ins.get.get
       inserted.id must not be None
@@ -93,7 +93,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       inserted.environmentRequirement must not be None
       inserted.environmentRequirement.get mustBe defaultEnvironmentRequirement
       inserted.updatedBy.get mustBe defaultUserId
-      inserted.updatedDate.get.toString must include("2016")
+      inserted.updatedDate.get.year().get() mustBe DateTime.now().year().get()
 
       val someEnvReq = Some(initEnvironmentRequirement(
         hypoxic = Some(Interval[Double](44.4, Some(55)))
@@ -108,7 +108,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       updated.id mustBe inserted.id
       updated.environmentRequirement mustBe someEnvReq
       updated.updatedBy.get mustBe defaultUserId
-      updated.updatedDate.get.toString must include("2016")
+      updated.updatedDate.get.year().get() mustBe DateTime.now().year().get()
     }
 
     "successfully update a storage unit and fetch as StorageNode" in {
@@ -120,7 +120,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val inserted = ins.get.get
       inserted.id must not be None
       inserted.updatedBy.get mustBe defaultUserId
-      inserted.updatedDate.get.toString must include("2016")
+      inserted.updatedDate.get.year().get() mustBe DateTime.now().year().get()
 
       val res = storageUnitDao.getById(defaultMuseumId, inserted.id.get).futureValue
       res must not be None
@@ -141,7 +141,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       again.get.get.name mustBe "UggaBugga"
       again.get.get.areaTo mustBe Some(4.0)
       again.get.get.updatedBy.get mustBe defaultUserId
-      again.get.get.updatedDate.get.toString must include("2016")
+      again.get.get.updatedDate.get.year().get() mustBe DateTime.now().year().get()
     }
 
     "successfully mark a node as deleted" in {
