@@ -106,6 +106,7 @@ lazy val serviceAuth = (
   PlayProject("service_auth")
     settings noPublish
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(libraryDependencies += Netty.reactiveStreamsHttp)
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(scoverageSettings: _*)
     settings(

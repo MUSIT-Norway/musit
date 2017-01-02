@@ -21,11 +21,12 @@ package controllers.rest
 
 import com.google.inject.{Inject, Singleton}
 import models.{Group, GroupAdd, UserAuthAdd}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models.{Email, GroupId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.MusitAdmin
-import no.uio.musit.service.MusitController
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.security.crypto.MusitCrypto
+import no.uio.musit.service.MusitAdminController
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -36,9 +37,11 @@ import scala.concurrent.Future
 
 @Singleton
 class GroupController @Inject() (
+    implicit
     val authService: Authenticator,
+    val crypto: MusitCrypto,
     val dao: AuthDao
-) extends MusitController {
+) extends MusitAdminController {
 
   val logger = Logger(classOf[GroupController])
 

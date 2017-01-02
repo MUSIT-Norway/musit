@@ -21,22 +21,25 @@ package controllers.web
 
 import com.google.inject.Inject
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import no.uio.musit.security.Authenticator
-import no.uio.musit.service.MusitController
-import play.api.mvc.Action
+import no.uio.musit.security.crypto.MusitCrypto
+import no.uio.musit.security.{Authenticator, EncryptedToken}
+import no.uio.musit.service.MusitAdminController
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.AuthDao
 
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 class MuseumCollectionController @Inject() (
+    implicit
     val authService: Authenticator,
+    val crypto: MusitCrypto,
     val dao: AuthDao
-) extends MusitController {
+) extends MusitAdminController {
 
-  def listCollections = Action.async { implicit request =>
+  def listCollections = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
     dao.allCollections.map {
-      case MusitSuccess(cols) => Ok(views.html.collections(cols))
-      case err: MusitError => InternalServerError(views.html.error(err.message))
+      case MusitSuccess(cols) => Ok(views.html.collections(encTok, cols))
+      case err: MusitError => InternalServerError(views.html.error(encTok, err.message))
     }
   }
 

@@ -6,7 +6,8 @@ GET         /service/auth/buildinfo                                     controll
 
 
 # WEB endpoints
-GET         /web                                                        controllers.web.Dashboard.index()
+POST        /web                                                        controllers.web.Init.init
+GET         /web                                                        controllers.web.Dashboard.index
 GET         /web/users                                                  controllers.web.UserController.users
 
 GET         /web/collections                                            controllers.web.MuseumCollectionController.listCollections

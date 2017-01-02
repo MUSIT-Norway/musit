@@ -1,17 +1,17 @@
-@import helper._
 @import play.api.i18n.Messages
 @import no.uio.musit.MusitResults.MusitError
 @import no.uio.musit.models.UserGroupMembership
 @import no.uio.musit.models.Email
 @import no.uio.musit.models.MuseumCollection
+@import no.uio.musit.security.EncryptedToken
 @import controllers.web.routes.GroupController
 @import models.Group
 
-@(group: Group, email: Email, memberships: Seq[UserGroupMembership], collections: Seq[MuseumCollection], error: Option[MusitError] = None)(implicit messages: Messages)
+@(etok: EncryptedToken, group: Group, email: Email, memberships: Seq[UserGroupMembership], collections: Seq[MuseumCollection], error: Option[MusitError] = None)(implicit messages: Messages)
 
-@main(s"Edit ${email.value} in${group.name}", activeMenu = 3) {
+@main(etok, s"Edit ${email.value} in${group.name}", activeMenu = 3) {
   <p>
-    <a href="@GroupController.groupUserList(group.id.asString)">
+    <a href="@GroupController.groupUserList(group.id.asString)?_at=@etok.urlEncoded">
       Go back
     </a>
   </p>
@@ -46,12 +46,12 @@
                         @for(col <- cg) {
                           @defining(memberships.exists(ugm => ugm.collection.contains(col._1))) { checked =>
                             @if(checked) {
-                              <form class="inline-form" id="@col._1.asString" method="POST" action="@GroupController.revokeCollectionAuth(group.id.asString, email.value, col._1.asString)">
+                              <form class="inline-form" id="@col._1.asString" method="POST" action="@GroupController.revokeCollectionAuth(group.id.asString, email.value, col._1.asString)?_at=@etok.urlEncoded">
                                 <input id="@col._1.asString-input" type="checkbox" class="checkbox-inline" value="@col._1.asString" checked="" onchange='document.getElementById("@col._1.asString").submit()'>
                                 <label for="@col._1.asString-input">@col._2</label>
                               </form>
                             } else {
-                              <form class="inline-form" id="@col._1.asString" method="POST" action="@GroupController.grantCollectionAuth(group.id.asString, email.value, col._1.asString)" onchange='document.getElementById("@col._1.asString").submit()'>
+                              <form class="inline-form" id="@col._1.asString" method="POST" action="@GroupController.grantCollectionAuth(group.id.asString, email.value, col._1.asString)?_at=@etok.urlEncoded" onchange='document.getElementById("@col._1.asString").submit()'>
                                 <input id="@col._1.asString-input" type="checkbox" class="checkbox-inline" value="@col._1.asString">
                                 <label for="@col._1.asString-input">@col._2</label>
                               </form>

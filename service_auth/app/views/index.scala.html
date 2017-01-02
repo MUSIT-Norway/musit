@@ -1,5 +1,7 @@
-@()
+@import no.uio.musit.security.EncryptedToken
 
-@main("Dashboard", activeMenu = 1) {
+@(etok: EncryptedToken)
+
+@main(etok, "Dashboard", activeMenu = 1) {
   <p>Foo Bar</p>
 }

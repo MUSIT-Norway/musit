@@ -1,12 +1,14 @@
 @import play.api.i18n.Messages
 @import controllers.web.routes.GroupController
-
 @import no.uio.musit.models.Museums.museums
-@(form: play.api.data.Form[_], permissions: Seq[(String, String)])(implicit messages: Messages)
+@import no.uio.musit.security.EncryptedToken
+@import helper._
 
-@main("Add group", activeMenu = 3) {
+@(etok: EncryptedToken, form: play.api.data.Form[_], permissions: Seq[(String, String)])(implicit messages: Messages)
+
+@main(etok, "Add group", activeMenu = 3) {
   <p>
-    <a href="@GroupController.groupList()">
+    <a href="@GroupController.groupList()?_at=@etok.urlEncoded">
       Go to group list
     </a>
   </p>
@@ -15,12 +17,12 @@
       <h4 class="title">Add new Group</h4>
     </div>
     <div class="content">
-      @helper.form(action = GroupController.groupAddPost(), args = 'class -> "form-horizontal") {
+      <form class="form-horizontal" method="POST" action="@GroupController.groupAddPost()?_at=@etok.urlEncoded">
         <div class="row">
           <div class="form-group">
             <div class="row">
               <div class="col-md-offset-1 col-md-5">
-                @helper.inputText(
+                @inputText(
                   field = form("name"),
                   args =
                     'class -> "form-control border-input",
@@ -30,7 +32,7 @@
             </div>
             <div class="row">
               <div class="col-md-offset-1 col-md-2">
-                @helper.select(
+                @select(
                   field = form("permission"),
                   options = permissions,
                   args =
@@ -40,7 +42,7 @@
                 )
               </div>
               <div class="col-md-3">
-                @helper.select(
+                @select(
                   field = form("museum"),
                   options = museums.map(m => m.id.underlying.toString -> m.shortName),
                   args =
@@ -52,7 +54,7 @@
             </div>
             <div class="row">
               <div class="col-md-offset-1 col-md-5">
-                @helper.textarea(
+                @textarea(
                   field = form("description"),
                   args =
                     'class -> "form-control border-input",
@@ -72,7 +74,7 @@
             </div>
           </div>
         </div>
-      }
+      </form>
     </div>
   </div>
 }

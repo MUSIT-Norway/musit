@@ -43,6 +43,10 @@ object Dependencies {
     val logback = "com.typesafe.play" %% "play-logback" % version
   }
 
+  object Netty {
+    val reactiveStreamsHttp = "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8"
+  }
+
   object Silhouette {
     val silhouetteVersion = "4.0.0"
     val silhouette = "com.mohiva" %% "play-silhouette" % silhouetteVersion
@@ -88,6 +92,8 @@ object Dependencies {
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
   val h2database = "com.h2database" % "h2" % "1.4.192"
   val zxing = "com.google.zxing" % "core" % "3.3.0"
+
+  // Oracle specifics
   def dir = new java.io.File(".").getCanonicalPath
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 

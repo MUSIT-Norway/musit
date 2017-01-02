@@ -46,7 +46,7 @@ object BearerToken {
    * @tparam A The body content type of the incoming request
    * @return Option of BearerToken
    */
-  def fromRequest[A](request: Request[A]): Option[BearerToken] = {
+  def fromRequestHeader[A](request: Request[A]): Option[BearerToken] = {
     request.headers
       .get(AUTHORIZATION)
       .find(_.startsWith(prefix))

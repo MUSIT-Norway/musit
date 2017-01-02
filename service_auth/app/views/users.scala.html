@@ -1,8 +1,9 @@
 @import no.uio.musit.security.UserInfo
+@import no.uio.musit.security.EncryptedToken
 
-@(users: Seq[UserInfo])
+@(etok: EncryptedToken, users: Seq[UserInfo])
 
-@main("Users", activeMenu = 4) {
+@main(etok, "Users", activeMenu = 4) {
 
   <div class="card">
     <div class="header">

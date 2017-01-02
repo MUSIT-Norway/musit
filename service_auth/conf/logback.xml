@@ -34,12 +34,17 @@
   <logger name="logger" level="ERROR"/>
   <logger name="slick.jdbc" level="WARN"/>
 
-  <logger name="no.uio.musit" level="DEBUG"/>
+  <logger name="no.uio.musit" level="INFO"/>
   <logger name="controllers" level="DEBUG"/>
   <logger name="services" level="INFO"/>
   <logger name="models" level="INFO"/>
   <logger name="repositories" level="DEBUG"/>
   <logger name="accesslog" level="INFO"/>
+  <!--
+    If you need to verify the output of the crypto algos, remove the comment
+    around the below logger. It will enable quite verbose output.
+  -->
+  <!--<logger name="no.uio.musit.security.crypto" level="TRACE"/>-->
 
   <root level="INFO">
     <appender-ref ref="STDOUT"/>

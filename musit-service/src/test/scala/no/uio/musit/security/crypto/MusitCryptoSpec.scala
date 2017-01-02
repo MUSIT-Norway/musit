@@ -17,24 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package controllers.web
+package no.uio.musit.security.crypto
 
-import com.google.inject.Inject
-import no.uio.musit.security.{Authenticator, EncryptedToken}
-import no.uio.musit.security.crypto.MusitCrypto
-import no.uio.musit.service.MusitAdminController
-import play.api.Logger
+import no.uio.musit.test.MusitSpecWithAppPerSuite
 
-class Dashboard @Inject() (
-    implicit
-    val authService: Authenticator,
-    val crypto: MusitCrypto
-) extends MusitAdminController {
+class MusitCryptoSpec extends MusitSpecWithAppPerSuite {
 
-  val logger = Logger(classOf[Dashboard])
+  val crypto = fromInstanceCache[MusitCrypto]
 
-  def index = MusitAdminAction() { implicit request =>
-    val encTok = EncryptedToken.fromBearerToken(request.token)
-    Ok(views.html.index(encTok))
+  "MusitCrypto" should {
+
+    "successfully encrypt a token" in {
+      val orig = "27b9c7bc-06c3-4cc5-8c83-b34125377dd6"
+      val res = crypto.encryptAES(orig)
+      res must not be orig
+      res must not include " "
+    }
+
+    "successfully decrypt an encrypted token" in {
+      val orig = "27b9c7bc-06c3-4cc5-8c83-b34125377dd6"
+      val enc = crypto.encryptAES(orig)
+      val res = crypto.decryptAES(enc)
+
+      res mustBe orig
+    }
   }
+
 }

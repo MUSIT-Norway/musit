@@ -1,11 +1,12 @@
 @import no.uio.musit.MusitResults.MusitError
 @import no.uio.musit.models.MuseumCollection
+@import no.uio.musit.security.EncryptedToken
 @import play.api.mvc.Flash
 
-@(collections: Seq[MuseumCollection], error: Option[MusitError] = None)(implicit flash: Flash)
+@(etok: EncryptedToken, collections: Seq[MuseumCollection], error: Option[MusitError] = None)(implicit flash: Flash)
 
 
-@main("Collections", activeMenu = 2) {
+@main(etok, "Collections", activeMenu = 2) {
 
   @*<p>*@
     @*<a href="#">Add new collection</a>*@
