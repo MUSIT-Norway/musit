@@ -70,7 +70,7 @@ case class AuthenticatedUser(
   }
 
   def isAuthorized(museumId: MuseumId): Boolean = {
-    Museum.fromMuseumId(museumId).exists(isAuthorizedFor)
+    hasGodMode || Museum.fromMuseumId(museumId).exists(isAuthorizedFor)
   }
 
   def collectionsFor(museumId: MuseumId): Seq[MuseumCollection] = {
@@ -78,8 +78,7 @@ case class AuthenticatedUser(
   }
 
   def canAccess(mid: MuseumId, collection: CollectionUUID): Boolean = {
-    if (hasGodMode) true
-    else collectionsFor(mid).exists(_.uuid == collection)
+    hasGodMode || collectionsFor(mid).exists(_.uuid == collection)
   }
 
   def authorize(
