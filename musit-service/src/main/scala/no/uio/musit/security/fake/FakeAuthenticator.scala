@@ -25,6 +25,7 @@ import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security._
 import no.uio.musit.security.fake.FakeAuthenticator.FakeUserDetails
 import play.api.libs.json.{JsArray, Json}
+import play.api.mvc.Request
 
 import scala.concurrent.Future
 import scala.io.Source
@@ -107,6 +108,12 @@ class FakeAuthenticator extends Authenticator {
           .getOrElse(Seq.empty)
       )
     }
+
+  override def authenticate[A]()(implicit req: Request[A]) = {
+    Future.successful(
+      MusitGeneralError("Authenticate method not implemented for fake security.")
+    )
+  }
 }
 
 object FakeAuthenticator {

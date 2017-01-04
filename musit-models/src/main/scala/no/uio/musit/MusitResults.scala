@@ -130,4 +130,10 @@ object MusitResults {
     override val isSuccess: Boolean = false
   }
 
+  /**
+   * In case of a general error situation that needs handling.
+   */
+  case class MusitGeneralError(message: String) extends MusitError {
+    override val isSuccess: Boolean = false
+  }
 }

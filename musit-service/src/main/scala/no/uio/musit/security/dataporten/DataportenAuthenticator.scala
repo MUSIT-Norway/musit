@@ -19,16 +19,20 @@
 
 package no.uio.musit.security.dataporten
 
+import java.net.URLEncoder.encode
+
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.Email
 import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
+import no.uio.musit.security.oauth2.{OAuth2Constants, OAuth2Info}
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import play.api.libs.ws.{WSAPI, WSResponse}
+import play.api.mvc.{Request, RequestHeader, Result, Results}
 import play.api.{Configuration, Logger}
 
 import scala.concurrent.Future
@@ -42,18 +46,23 @@ import scala.concurrent.Future
  * @param authResolver Instance for resolving a users groups
  * @param ws           Play! WebService client
  */
-class DataportenAuthenticator @Inject() (
-    conf: Configuration,
-    authResolver: AuthResolver,
-    ws: WSAPI
-) extends Authenticator {
+class DataportenAuthenticator @Inject()(
+  conf: Configuration,
+  authResolver: AuthResolver,
+  ws: WSAPI
+) extends Authenticator with OAuth2Constants {
 
   private val logger = Logger(classOf[DataportenAuthenticator])
 
-  val userInfoUrl = conf.underlying.as[String](userApiConfKey)
+  // Reading in necessary OAuth2 configs
+  val authUrl = conf.underlying.as[String](authUrlConfKey)
+  val tokenUrl = conf.underlying.as[String](tokenUrlConfKey)
+  val callbackUrl = conf.underlying.as[String](callbackUrlConfKey)
+  val userInfoUrl = conf.underlying.as[String](userInfoApiConfKey)
   val clientId = conf.underlying.getAs[String](clientIdConfKey).flatMap { str =>
     ClientId.validate(str).toOption.map(ClientId.apply)
   }
+  val clientSecret = conf.underlying.as[String](clientSecretConfKey)
 
   private def validate[A, B](
     res: WSResponse
@@ -82,8 +91,76 @@ class DataportenAuthenticator @Inject() (
     }
   }
 
+  private def extractParam[A](param: String)(implicit req: Request[A]): Option[String] = {
+    req.queryString.get(param).flatMap(_.headOption)
+  }
+
+  private def fetchToken(
+    code: String
+  )(implicit req: RequestHeader): Future[MusitResult[OAuth2Info]] = {
+    ws.url(tokenUrl).post(Map(
+      ClientID -> Seq(clientId.getOrElse("")),
+      ClientSecret -> Seq(clientSecret),
+      GrantType -> Seq(AuthorizationCode),
+      Code -> Seq(code),
+      RedirectURI -> Seq(callbackUrl)
+    )).map { response =>
+      logger.debug(s"Access token response from Dataporten: ${response.body}")
+      response.json.validate[OAuth2Info] match {
+        case err: JsError =>
+          logger.warn(Json.prettyPrint(JsError.toJson(err)))
+          MusitValidationError("Invalid JSON response from Dataporten")
+
+        case JsSuccess(oi, _) =>
+          logger.debug("Successfully retrieved an access token from Dataporten")
+          MusitSuccess(oi)
+      }
+    }
+  }
+
   /**
-   * Retrieve the UserInfo from the Dataporten OAuth service.
+   * Starts the OAuth2 authentication process.
+   *
+   * @param req The current request.
+   * @tparam A The type of the request body.
+   * @return A MusitResult with the OAuth2Info from Dataporten
+   */
+  override def authenticate[A]()(
+    implicit req: Request[A]
+  ): Future[Either[Result, OAuth2Info]] = {
+    // 1. Check if request contains an Error
+    extractParam(Error).map {
+      case AccessDenied => MusitNotAuthenticated()
+      case e => MusitValidationError(s"Dataporten returned an error: $e")
+    }.map(Future.successful).getOrElse {
+      extractParam(Code) match {
+        // 2. If the request contains a Code, call service to get token.
+        case Some(code) =>
+          logger.debug(s"Got code $code. Trying to fetch access token from Dataporten...")
+          fetchToken(code)
+
+        case None =>
+          // 3. If none of the above, this is the first step in the OAuth2 flow.
+          logger.debug("Initializing OAuth2 process with Dataporten...")
+
+          val params = Map(
+            ClientID -> Seq(clientId.map(_.asString).getOrElse("")),
+            RedirectURI -> Seq(callbackUrl),
+            ResponseType -> Seq(Code)
+          )
+
+          val url = authUrl + params
+          val redirect = Results.Redirect(url, params)
+
+          Mus
+      }
+    }
+
+    ???
+  }
+
+  /**
+   * Retrieve the UserInfo from the Dataporten OAuth2 service.
    *
    * @param token the BearerToken to use when performing the request
    * @return Will eventually return the UserInfo wrapped in a MusitResult
@@ -139,10 +216,15 @@ class DataportenAuthenticator @Inject() (
 }
 
 object DataportenAuthenticator {
-  val userApiConfKey = "musit.dataporten.userApiURL"
-  val userInfoJsonKey = "user"
+  val authUrlConfKey = "musit.dataporten.authorizationURL"
+  val tokenUrlConfKey = "musit.dataporten.accessTokenURL"
+  val userInfoApiConfKey = "musit.dataporten.userApiURL"
+  val callbackUrlConfKey = "musit.dataporten.callbackURL"
 
   val clientIdConfKey = "musit.dataporten.clientId"
+  val clientSecretConfKey = "musit.dataporten.clientSecret"
+
+  val userInfoJsonKey = "user"
 
   val unexpectedResponseCode = s"Unexpected response code from dataporten: %i"
   val unableToParse = s"Unable to parse UserInfo from dataporten response:\n%s"

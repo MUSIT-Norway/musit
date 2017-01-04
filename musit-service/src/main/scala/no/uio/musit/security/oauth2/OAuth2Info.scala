@@ -17,19 +17,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package controllers.rest
+package no.uio.musit.security.oauth2
 
-import play.api.mvc.Controller
+import play.api.libs.json.{Reads, __}
+import play.api.libs.functional.syntax._
 
-/**
- * This controller will expose login and logout functionality for the MUSIT
- * system. It will handle the interaction with Dataporten to perform the OAuth2
- * authentication flow.
- */
-class AuthenticationController extends Controller {
+case class OAuth2Info(
+  accessToken: String,
+  tokenType: Option[String] = None,
+  expiresIn: Option[Int] = None,
+  refreshToken: Option[String] = None,
+  params: Option[Map[String, String]] = None
+)
 
-  def authenticate = ???
+object OAuth2Info extends OAuth2Constants {
 
-  def logout = ???
+  implicit val reads: Reads[OAuth2Info] = (
+    (__ \ AccessToken).read[String] and
+      (__ \ TokenType).readNullable[String] and
+      (__ \ ExpiresIn).readNullable[Int] and
+      (__ \ RefreshToken).readNullable[String]
+  )((accessToken, tokenType, expiresIn, refreshToken) =>
+    OAuth2Info(accessToken, tokenType, expiresIn, refreshToken)
+  )
 
 }
