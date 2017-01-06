@@ -17,28 +17,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security.oauth2
+package no.uio.musit.time
 
-import no.uio.musit.security.BearerToken
-import play.api.libs.json.{Reads, __}
-import play.api.libs.functional.syntax._
+import java.time.{ZoneId, ZoneOffset}
 
-case class OAuth2Info(
-  accessToken: BearerToken,
-  tokenType: Option[String] = None,
-  expiresIn: Option[Int] = None,
-  refreshToken: Option[String] = None,
-  params: Option[Map[String, String]] = None
-)
+import no.uio.musit.time.Implicits._
+import org.scalatest.{MustMatchers, WordSpec}
 
-object OAuth2Info extends OAuth2Constants {
+class DateTimeImplicitsSpec extends WordSpec with MustMatchers {
 
-  implicit val reads: Reads[OAuth2Info] = (
-    (__ \ AccessToken).read[BearerToken] and
-    (__ \ TokenType).readNullable[String] and
-    (__ \ ExpiresIn).readNullable[Int] and
-    (__ \ RefreshToken).readNullable[String]
-  )((accessToken, tokenType, expiresIn, refreshToken) =>
-      OAuth2Info(accessToken, tokenType, expiresIn, refreshToken))
+  "Converting between DateTime and java.sql.Timezone" should {
+    "result in correct values" in {
+
+      val dt1 = dateTimeNow
+      val ts = dateTimeToJTimestamp(dt1)
+
+      val zdt = ts.toInstant.atZone(ZoneId.ofOffset("UTC", ZoneOffset.ofHours(1)))
+
+      val dt2 = jSqlTimestampToDateTime(ts)
+
+      dt2 mustBe dt1
+      zdt.getDayOfYear mustBe dt1.getDayOfYear
+      zdt.getHour mustBe dt1.hourOfDay().get() + 1
+    }
+  }
 
 }

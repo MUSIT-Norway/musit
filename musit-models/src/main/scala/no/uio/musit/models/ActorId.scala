@@ -34,6 +34,12 @@ object ActorId extends MusitUUIDOps[ActorId] {
 
   override implicit def fromUUID(uuid: UUID): ActorId = ActorId(uuid)
 
+  /**
+   * Unsafe converter from String to SessionUUID
+   */
+  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
+  def unsafeFromString(str: String): ActorId = UUID.fromString(str)
+
   def generate(): ActorId = ActorId(UUID.randomUUID())
 
 }

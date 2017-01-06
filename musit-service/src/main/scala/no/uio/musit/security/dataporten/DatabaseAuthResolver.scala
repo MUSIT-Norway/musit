@@ -21,7 +21,7 @@ package no.uio.musit.security.dataporten
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.Email
+import no.uio.musit.models.{ActorId, Email}
 import no.uio.musit.security._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -45,7 +45,7 @@ class DatabaseAuthResolver @Inject() (
       case NonFatal(ex) =>
         val msg = s"An error occurred when trying to find Groups for user $feideEmail"
         logger.error(msg, ex)
-        MusitDbError(msg, Some(ex))
+        MusitDbError(msg, Option(ex))
     }
   }
 
@@ -56,9 +56,37 @@ class DatabaseAuthResolver @Inject() (
 
     db.run(cmd).map(_ => MusitSuccess(())).recover {
       case NonFatal(ex) =>
-        val msg = s"An error occurred when upserting userinfo for ${userInfo.id}"
+        val msg = s"An error occurred when saving userinfo for ${userInfo.id}"
         logger.error(msg, ex)
-        MusitDbError(msg, Some(ex))
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  override def sessionInit()(
+    implicit ec: ExecutionContext
+  ): Future[MusitResult[SessionUUID]] = {
+    // Initialize a new UserSession with a generated SessionUUID
+    val session = UserSession.initialize()
+    val cmd = usrSessionTable returning usrSessionTable += session
+
+    db.run(cmd).map(s => MusitSuccess(s.uuid)).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when initializing a new session in the DB."
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  override def userSession(
+    sessionUUID: SessionUUID
+  )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserSession]]] = {
+    val query = usrSessionTable.filter(_.uuid === sessionUUID)
+
+    db.run(query.result.headOption).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred when fetching session ${sessionUUID.asString}"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
     }
   }
 

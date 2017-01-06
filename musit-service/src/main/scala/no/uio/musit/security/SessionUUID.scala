@@ -17,28 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security.oauth2
+package no.uio.musit.security
 
-import no.uio.musit.security.BearerToken
-import play.api.libs.json.{Reads, __}
-import play.api.libs.functional.syntax._
+import java.util.UUID
 
-case class OAuth2Info(
-  accessToken: BearerToken,
-  tokenType: Option[String] = None,
-  expiresIn: Option[Int] = None,
-  refreshToken: Option[String] = None,
-  params: Option[Map[String, String]] = None
-)
+import no.uio.musit.models.{MusitUUID, MusitUUIDOps}
+import play.api.libs.json.{JsString, Reads, Writes, __}
 
-object OAuth2Info extends OAuth2Constants {
+case class SessionUUID(underlying: UUID) extends MusitUUID
 
-  implicit val reads: Reads[OAuth2Info] = (
-    (__ \ AccessToken).read[BearerToken] and
-    (__ \ TokenType).readNullable[String] and
-    (__ \ ExpiresIn).readNullable[Int] and
-    (__ \ RefreshToken).readNullable[String]
-  )((accessToken, tokenType, expiresIn, refreshToken) =>
-      OAuth2Info(accessToken, tokenType, expiresIn, refreshToken))
+object SessionUUID extends MusitUUIDOps[SessionUUID] {
+
+  implicit val reads: Reads[SessionUUID] =
+    __.read[String].map(s => SessionUUID(UUID.fromString(s)))
+
+  implicit val writes: Writes[SessionUUID] = Writes(id => JsString(id.asString))
+
+  override implicit def fromUUID(uuid: UUID): SessionUUID = SessionUUID(uuid)
+
+  /**
+   * Unsafe converter from String to SessionUUID
+   */
+  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
+  def unsafeFromString(str: String): SessionUUID = UUID.fromString(str)
+
+  override def generate() = SessionUUID(UUID.randomUUID())
 
 }

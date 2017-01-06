@@ -17,19 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package no.uio.musit.security
 
-import org.joda.time.{DateTime, DateTimeZone}
+import no.uio.musit.models.ActorId
+import org.joda.time.DateTime
 
-package object datetime {
+case class UserSession(
+  uuid: SessionUUID,
+  token: Option[BearerToken] = None,
+  userId: Option[ActorId] = None,
+  loginTime: Option[DateTime] = None,
+  lastActive: Option[DateTime] = None,
+  isLoggedIn: Boolean = false,
+  tokenExpiry: Option[Long] = None
+)
 
-  /**
-   * We should always be explicit about the timezone we work with. Otherwise,
-   * we risk ending up using the underlying OS timezone settings, which may
-   * vary depending on where the application is running.
-   */
-  val DefaultTimezone = DateTimeZone.UTC
+object UserSession {
 
-  def dateTimeNow = DateTime.now(DefaultTimezone)
+  def initialize(): UserSession = UserSession(SessionUUID.generate())
 
 }

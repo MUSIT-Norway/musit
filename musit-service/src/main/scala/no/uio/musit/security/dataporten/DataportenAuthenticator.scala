@@ -19,8 +19,6 @@
 
 package no.uio.musit.security.dataporten
 
-import java.net.URLEncoder.encode
-
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
 import no.uio.musit.MusitResults._
@@ -40,16 +38,14 @@ import scala.concurrent.Future
 /**
  * Service for communicating with Dataporten
  *
- * TODO: Ensure use of caching of tokens and user/group info
- *
  * @param conf         The Play! Configuration instance
  * @param authResolver Instance for resolving a users groups
  * @param ws           Play! WebService client
  */
-class DataportenAuthenticator @Inject()(
-  conf: Configuration,
-  authResolver: AuthResolver,
-  ws: WSAPI
+class DataportenAuthenticator @Inject() (
+    conf: Configuration,
+    authResolver: AuthResolver,
+    ws: WSAPI
 ) extends Authenticator with OAuth2Constants {
 
   private val logger = Logger(classOf[DataportenAuthenticator])
@@ -97,23 +93,26 @@ class DataportenAuthenticator @Inject()(
 
   private def fetchToken(
     code: String
-  )(implicit req: RequestHeader): Future[MusitResult[OAuth2Info]] = {
-    ws.url(tokenUrl).post(Map(
-      ClientID -> Seq(clientId.getOrElse("")),
+  )(implicit req: RequestHeader): Future[Either[Result, OAuth2Info]] = {
+    val params = Map(
+      ClientID -> Seq(clientId.map(_.asString).getOrElse("")),
       ClientSecret -> Seq(clientSecret),
       GrantType -> Seq(AuthorizationCode),
       Code -> Seq(code),
       RedirectURI -> Seq(callbackUrl)
-    )).map { response =>
+    )
+
+    ws.url(tokenUrl).post(params).map { response =>
       logger.debug(s"Access token response from Dataporten: ${response.body}")
       response.json.validate[OAuth2Info] match {
         case err: JsError =>
-          logger.warn(Json.prettyPrint(JsError.toJson(err)))
-          MusitValidationError("Invalid JSON response from Dataporten")
+          val msg = "Invalid JSON response from Dataporten"
+          logger.warn(s"$msg: ${Json.prettyPrint(JsError.toJson(err))}")
+          Left(Results.InternalServerError(Json.obj("message" -> msg)))
 
         case JsSuccess(oi, _) =>
           logger.debug("Successfully retrieved an access token from Dataporten")
-          MusitSuccess(oi)
+          Right(oi)
       }
     }
   }
@@ -123,41 +122,69 @@ class DataportenAuthenticator @Inject()(
    *
    * @param req The current request.
    * @tparam A The type of the request body.
-   * @return A MusitResult with the OAuth2Info from Dataporten
+   * @return Either a Result or the OAuth2Info from Dataporten
    */
+  // scalastyle:off method.length
   override def authenticate[A]()(
-    implicit req: Request[A]
+    implicit
+    req: Request[A]
   ): Future[Either[Result, OAuth2Info]] = {
     // 1. Check if request contains an Error
     extractParam(Error).map {
-      case AccessDenied => MusitNotAuthenticated()
-      case e => MusitValidationError(s"Dataporten returned an error: $e")
+      case AccessDenied => Left(Results.Unauthorized)
+      case e => Left(Results.Unauthorized(Json.obj("message" -> e)))
     }.map(Future.successful).getOrElse {
+
+      logger.debug(s"Request headers: ${req.headers.toMap.mkString("\n", "\n", "")}")
+      logger.debug(s"Request params: ${req.queryString.mkString("\n", "\n", "")}")
+
       extractParam(Code) match {
         // 2. If the request contains a Code, call service to get token.
         case Some(code) =>
           logger.debug(s"Got code $code. Trying to fetch access token from Dataporten...")
-          fetchToken(code)
+          fetchToken(code).map { resultOrInfo =>
+            resultOrInfo.right.foreach { oi =>
+              userInfo(oi.accessToken).map {
+                case MusitSuccess(ui) => ???
+                case err: MusitError => ???
+              }
+            }
+            resultOrInfo
+          }
+
+        // TODO: get Dataporten UserInfo and save if not exists
+        // TODO: prepare session
 
         case None =>
           // 3. If none of the above, this is the first step in the OAuth2 flow.
-          logger.debug("Initializing OAuth2 process with Dataporten...")
+          logger.debug("Initializing OAuth2 process with Dataporten")
 
-          val params = Map(
-            ClientID -> Seq(clientId.map(_.asString).getOrElse("")),
-            RedirectURI -> Seq(callbackUrl),
-            ResponseType -> Seq(Code)
-          )
+          authResolver.sessionInit().map {
+            case MusitSuccess(sessionId) =>
+              // Set the request params for the Dataporten authorization service
+              // Note that the OAuth2 "state" parameter is set to thesessionId
+              // that was assigned when initializing the session. This allows
+              // the state in subsequent callbacks to be validated against the
+              // stored value.
+              val params = Map(
+                ClientID -> Seq(clientId.map(_.asString).getOrElse("")),
+                RedirectURI -> Seq(callbackUrl),
+                ResponseType -> Seq(Code),
+                State -> Seq(sessionId.asString)
+              )
 
-          val url = authUrl + params
-          val redirect = Results.Redirect(url, params)
+              logger.trace(s"Using auth URL: $authUrl with params " +
+                s"${params.map(p => s"${p._1}=${p._2.head}").mkString("?", "&", "")}")
 
-          Mus
+              Left(Results.Redirect(authUrl, params))
+
+            case err: MusitError =>
+              Left(Results.Unauthorized)
+          }
       }
     }
-
-    ???
   }
+  // scalastyle:on method.length
 
   /**
    * Retrieve the UserInfo from the Dataporten OAuth2 service.
@@ -166,6 +193,17 @@ class DataportenAuthenticator @Inject()(
    * @return Will eventually return the UserInfo wrapped in a MusitResult
    */
   override def userInfo(token: BearerToken): Future[MusitResult[UserInfo]] = {
+    /*
+      TODO: This method should be modified to _first_ look for the UserInfo
+      associated the incoming token. If there is no match, or the token is
+      no longer valid, call the Dataporten userInfo service.
+
+      Flow will then be:
+
+      1. Check authResolver for token <=> user info match
+      2. IFF not found call Dataporten and Save UserInfo
+      3. Return UserInfo
+     */
     ws.url(userInfoUrl).withHeaders(token.asHeader).get().map { response =>
       validate(response) { res =>
         // The user info part of the message is always under the "user" key.
@@ -175,7 +213,7 @@ class DataportenAuthenticator @Inject()(
           case JsSuccess(userInfo, _) =>
             // If the user doesn't exist, we add it to the UserInfo table
             authResolver.saveUserInfo(userInfo).foreach {
-              case MusitSuccess(()) => logger.debug("Successfully authenticated user")
+              case MusitSuccess(()) => logger.debug("Successfully saved UserInfo")
               case err: MusitError => logger.debug(err.message)
             }
             MusitSuccess(userInfo)

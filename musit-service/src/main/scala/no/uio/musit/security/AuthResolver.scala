@@ -26,12 +26,42 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthResolver {
 
+  /**
+   * Locate the GroupInfos where the provided feide Email is a member.
+   *
+   * @param email Email with the feide username
+   * @param ec    ExecutionContext
+   * @return A MusitResult with a Seq of GroupInfo where the user is a member.
+   */
   def findGroupInfoByFeideEmail(
     email: Email
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
 
+  /**
+   * Persist the provided UserInfo.
+   *
+   * @param userInfo UserInfo to save.
+   * @param ec       ExecutionContext
+   * @return Returns a MusitResult[Unit].
+   */
   def saveUserInfo(
     userInfo: UserInfo
   )(implicit ec: ExecutionContext): Future[MusitResult[Unit]]
+
+  /**
+   * Prepares a new persistent user session
+   */
+  def sessionInit()(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]]
+
+  /**
+   * Fetch the UserSession with the given SessionUUID
+   *
+   * @param sessionUUID SessionUUID to fetch
+   * @param ec          ExecutionContext
+   * @return MusitResult containing the located UserSession
+   */
+  def userSession(
+    sessionUUID: SessionUUID
+  )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserSession]]]
 
 }

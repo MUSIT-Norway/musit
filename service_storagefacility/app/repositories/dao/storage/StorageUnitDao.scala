@@ -20,7 +20,7 @@
 package repositories.dao.storage
 
 import com.google.inject.{Inject, Singleton}
-import models.datetime.Implicits._
+import no.uio.musit.time.Implicits._
 import models.datetime.dateTimeNow
 import models.storage._
 import models.storage.dto.StorageNodeDto

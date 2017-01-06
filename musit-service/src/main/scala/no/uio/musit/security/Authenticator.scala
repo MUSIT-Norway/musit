@@ -21,7 +21,7 @@ package no.uio.musit.security
 
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.security.oauth2.OAuth2Info
-import play.api.mvc.Request
+import play.api.mvc.{Request, Result}
 
 import scala.concurrent.Future
 
@@ -37,9 +37,9 @@ trait Authenticator {
    *
    * @param req The current request.
    * @tparam A The type of the request body.
-   * @return A MusitResult with the OAuth2Info from the authentication provider
+   * @return Either a Result or the OAuth2Info from the authentication provider
    */
-  def authenticate[A]()(implicit req: Request[A]): Future[MusitResult[OAuth2Info]]
+  def authenticate[A]()(implicit req: Request[A]): Future[Either[Result, OAuth2Info]]
 
   /**
    * Method for retrieving the UserInfo from the AuthService.

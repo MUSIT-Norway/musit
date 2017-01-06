@@ -17,29 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models.datetime
+package no.uio.musit
 
-import java.time.{ZoneId, ZoneOffset}
+import org.joda.time.{DateTime, DateTimeZone}
 
-import org.scalatest.{MustMatchers, WordSpec}
-import Implicits._
+package object time {
 
-class DateTimeImplicitsSpec extends WordSpec with MustMatchers {
+  /**
+   * We should always be explicit about the timezone we work with. Otherwise,
+   * we risk ending up using the underlying OS timezone settings, which may
+   * vary depending on where the application is running.
+   */
+  val DefaultTimezone = DateTimeZone.UTC
 
-  "Converting between DateTime and java.sql.Timezone" should {
-    "result in correct values" in {
-
-      val dt1 = dateTimeNow
-      val ts = dateTimeToJTimestamp(dt1)
-
-      val zdt = ts.toInstant.atZone(ZoneId.ofOffset("UTC", ZoneOffset.ofHours(1)))
-
-      val dt2 = jSqlTimestampToDateTime(ts)
-
-      dt2 mustBe dt1
-      zdt.getDayOfYear mustBe dt1.getDayOfYear
-      zdt.getHour mustBe dt1.hourOfDay().get() + 1
-    }
-  }
+  def dateTimeNow = DateTime.now(DefaultTimezone)
 
 }

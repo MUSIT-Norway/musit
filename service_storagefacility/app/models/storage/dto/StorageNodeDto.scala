@@ -21,7 +21,7 @@ package models.storage.dto
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
-import models.datetime.Implicits._
+import no.uio.musit.time.Implicits._
 import models.storage._
 import no.uio.musit.models._
 

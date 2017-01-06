@@ -19,17 +19,43 @@
 
 package controllers.rest
 
-import play.api.mvc.Controller
+import com.google.inject.Inject
+import no.uio.musit.security.Authenticator
+import no.uio.musit.service.MusitController
+import play.api.Logger
+import play.api.mvc.Action
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
  * This controller will expose login and logout functionality for the MUSIT
  * system. It will handle the interaction with Dataporten to perform the OAuth2
  * authentication flow.
  */
-class AuthenticationController extends Controller {
+class AuthenticationController @Inject() (
+    implicit
+    val authService: Authenticator
+) extends MusitController {
 
-  def authenticate = ???
+  val logger = Logger(classOf[AuthenticationController])
 
-  def logout = ???
+  /**
+   * Handles OAuth2 authentication flow against the configured
+   * Authenticator service.
+   */
+  def authenticate = Action.async { implicit request =>
+    authService.authenticate().map {
+      case Left(res) => res
+      case Right(authInfo) =>
+        logger.info(s"Recieved oauth2info from dataporten: $authInfo")
+        Redirect("/musit").withHeaders(
+          authInfo.accessToken.asHeader
+        )
+    }
+  }
+
+  def logout = MusitSecureAction().async { implicit request =>
+    // TODO invalidate the user token and set flag indicating user is not active
+    ???
+  }
 
 }
