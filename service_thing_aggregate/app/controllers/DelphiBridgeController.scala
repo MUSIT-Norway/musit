@@ -54,8 +54,9 @@ class DelphiBridgeController @Inject() (
             "currentLocation" -> res._2
           ))
         }.getOrElse {
-          NotFound(Json.obj(
-            "message" -> s"Gjenstanden $oldObjectId har ingen plassering."
+          Ok(Json.obj(
+            "nodeId" -> "",
+            "currentLocation" -> s"Gjenstanden har ingen plassering."
           ))
         }
 

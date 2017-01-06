@@ -78,7 +78,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     id: StorageNodeDatabaseId
   ): DBIO[Option[NodePath]] = {
     storageNodeTable.filter { sn =>
-      sn.museumId === mid && sn.id === id && sn.isDeleted === false
+      sn.museumId === mid && sn.id === id
     }.map(_.path).result.headOption
   }
 
