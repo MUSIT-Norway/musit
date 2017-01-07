@@ -274,7 +274,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
     "getting objects for a nodeId" should {
       "return a list of objects if the nodeId exists in the museum" in {
-        val mr = dao.findObjects(
+        val mr = dao.pagedObjects(
           mid = mid,
           nodeId = StorageNodeDatabaseId(4),
           collections = allCollections,
@@ -306,7 +306,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return a list of objects that includes the main object ID" in {
-        val mr = dao.findObjects(
+        val mr = dao.pagedObjects(
           mid = mid,
           nodeId = StorageNodeDatabaseId(7),
           collections = allCollections,
@@ -339,8 +339,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
       }
 
-      "return a an empty vector when nodeId doesn't exist in museum" in {
-        val mr = dao.findObjects(
+      "return a an empty list when nodeId doesn't exist in museum" in {
+        val mr = dao.pagedObjects(
           mid = mid,
           nodeId = StorageNodeDatabaseId(999999),
           collections = allCollections,
@@ -352,7 +352,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return a an empty vector when museum doesn't exist" in {
-        val mr = dao.findObjects(
+        val mr = dao.pagedObjects(
           mid = MuseumId(55),
           nodeId = StorageNodeDatabaseId(2),
           collections = allCollections,
@@ -363,8 +363,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
         mr.get.totalMatches mustBe 0
       }
 
-      "return only the numberof objects per page specified in limit" in {
-        val mr = dao.findObjects(
+      "return only the number of objects per page specified in limit" in {
+        val mr = dao.pagedObjects(
           mid = mid,
           nodeId = StorageNodeDatabaseId(6),
           collections = allCollections,

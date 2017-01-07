@@ -75,14 +75,14 @@ class StorageStatsDao @Inject() (
           "MUSARK_STORAGE"."STORAGE_NODE" sn,
           "MUSARK_STORAGE"."LOCAL_OBJECT" lo,
           "MUSIT_MAPPING"."MUSITTHING" mt
-        WHERE (sn."NODE_PATH" LIKE '#${nodeFilter}')
-        AND (sn."STORAGE_NODE_ID" = lo."CURRENT_LOCATION_ID")
-        AND (mt."IS_DELETED" = 0)
-        AND (lo."OBJECT_ID" = mt."OBJECT_ID")
+        WHERE sn."NODE_PATH" LIKE '#${nodeFilter}'
+        AND sn."STORAGE_NODE_ID" = lo."CURRENT_LOCATION_ID"
+        AND mt."IS_DELETED" = 0
+        AND lo."OBJECT_ID" = mt."OBJECT_ID"
       """.as[Int].head
 
     db.run(query).map { vi =>
-      logger.debug(s"Result is $vi")
+      logger.debug(s"Num objects in path $path is $vi")
       MusitSuccess.apply(vi)
     }.recover {
       case NonFatal(ex) =>
@@ -101,15 +101,22 @@ class StorageStatsDao @Inject() (
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
   def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
-    val query = for {
-      o <- objTable.filter(_.isDeleted === false)
-      lo <- locObjTable.filter { lo =>
-        lo.currentLocationId === nodeId &&
-          lo.objectId === o.id
-      }
-    } yield lo
+    val query = {
+      val idAsString = nodeId.underlying
+      sql"""
+        SELECT /*+DRIVING_SITE(mt)*/ COUNT(1) FROM
+          "MUSIT_MAPPING"."MUSITTHING" mt,
+          "MUSARK_STORAGE"."LOCAL_OBJECT" lo
+        WHERE mt."IS_DELETED" = 0
+        AND lo."CURRENT_LOCATION_ID" = ${idAsString}
+        AND lo."OBJECT_ID" = mt."OBJECT_ID"
+      """.as[Int].head
+    }
 
-    db.run(query.length.result).map(MusitSuccess.apply).recover {
+    db.run(query).map { vi =>
+      logger.debug(s"Num objects in node $nodeId is $vi")
+      MusitSuccess.apply(vi)
+    }.recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting number direct objects in $nodeId"
         logger.error(msg, ex)

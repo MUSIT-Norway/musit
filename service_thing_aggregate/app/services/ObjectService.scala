@@ -138,7 +138,7 @@ class ObjectService @Inject() (
     page: Int,
     limit: Int
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[PagedResult[MusitObject]]] = {
-    objDao.findObjects(mid, nodeId, collectionIds, page, limit)
+    objDao.pagedObjects(mid, nodeId, collectionIds, page, limit)
   }
 
   /**
