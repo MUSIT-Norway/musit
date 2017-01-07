@@ -23,12 +23,13 @@ import com.google.inject.Inject
 import models.SearchFieldValues._
 import models.{MusitObject, ObjectSearchResult}
 import no.uio.musit.MusitResults._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.lifted.QueryBase
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -274,7 +275,48 @@ class ObjectDao @Inject() (
 
   type QLocObj = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, scala.Seq]
 
+  private def collectionFilter(
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser) = if (currUsr.hasGodMode) "" else {
+    val in = collections.flatMap(_.schemaIds).mkString("(", ",", ")")
+    s"""AND mt."NEW_COLLECTION_ID" in $in"""
+  }
+
   /**
+   * Count all objects in a node matching the given arguments.
+   *
+   * @param mid
+   * @param nodeId
+   * @param collections
+   * @param currUsr
+   * @return
+   */
+  private def countObjects(
+    mid: MuseumId,
+    nodeId: StorageNodeDatabaseId,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Int]] = {
+    val count =
+      sql"""
+        SELECT /*+DRIVING_SITE(mt)*/ COUNT(1)
+        FROM "MUSARK_STORAGE"."LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
+        WHERE lo."MUSEUM_ID" = ${mid.underlying}
+        AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
+        AND mt."OBJECT_ID" = lo."OBJECT_ID"
+        AND mt."IS_DELETED" = 0
+        #${collectionFilter(collections)}
+      """.as[Int].head
+
+    db.run(count).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An error occurred counting objects in node $nodeId"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  /**
+   * Fetch all objects for the given arguments.
    *
    * @param mid
    * @param nodeId
@@ -284,48 +326,77 @@ class ObjectDao @Inject() (
    * @param currUsr
    * @return
    */
-  def findObjects(
+  private def objectsFor(
     mid: MuseumId,
     nodeId: StorageNodeDatabaseId,
     collections: Seq[MuseumCollection],
     page: Int,
     limit: Int
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[PagedResult[MusitObject]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectRow]]] = {
     val offset = (page - 1) * limit
+    val query =
+      sql"""
+        SELECT /*+DRIVING_SITE(mt)*/
+          mt."OBJECT_ID",
+          mt."MUSEUMID",
+          mt."MUSEUMNO",
+          mt."MUSEUMNOASNUMBER",
+          mt."SUBNO",
+          mt."SUBNOASNUMBER",
+          mt."MAINOBJECT_ID",
+          mt."IS_DELETED",
+          mt."TERM",
+          mt."OLD_SCHEMANAME",
+          mt."LOKAL_PK",
+          mt."NEW_COLLECTION_ID"
+        FROM "MUSARK_STORAGE"."LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
+        WHERE lo."MUSEUM_ID" = ${mid.underlying}
+        AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
+        AND mt."OBJECT_ID" = lo."OBJECT_ID"
+        AND mt."IS_DELETED" = 0
+        #${collectionFilter(collections)}
+        OFFSET ${offset} ROWS
+        FETCH NEXT ${limit} ROWS ONLY
+      """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])] // scalastyle:ignore
 
-    val locObjQuery = locObjTable.filter { lo =>
-      lo.museumId === mid &&
-        lo.currentLocationId === nodeId
+    db.run(query).map { r =>
+      logger.debug(s"Got objects as tuples: ${r.mkString("\n", "\n", "")}")
+      MusitSuccess(r.map { t =>
+        (t._1.map(ObjectId.apply), MuseumId.fromInt(t._2), t._3, t._4, t._5,
+          t._6, t._7, t._8, t._9, t._10, t._11, t._12)
+      })
     }
+  }
 
-    // Filter on collection access if the user doesn't have GodMode
-    val objQuery = {
-      if (currUsr.hasGodMode) objTable
-      else objTable.filter { o =>
-        o.newCollectionId inSet collections.flatMap(_.schemaIds).distinct
-      }
-    }.filter(_.isDeleted === false)
-
-    val q = for {
-      (_, o) <- locObjQuery join objQuery on (_.objectId === _.id)
-    } yield o
-
-    val total = db.run(q.length.result)
-    val matches = db.run(q.drop(offset).take(limit).result)
-      .map(_.map(MusitObject.fromTuple))
-
+  /**
+   * Fetch all objects matching the given criteria.
+   *
+   * @param mid
+   * @param nodeId
+   * @param collections
+   * @param page
+   * @param limit
+   * @param currUsr
+   * @return
+   */
+  def pagedObjects(
+    mid: MuseumId,
+    nodeId: StorageNodeDatabaseId,
+    collections: Seq[MuseumCollection],
+    page: Int,
+    limit: Int
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[PagedResult[MusitObject]]] =
     (for {
-      tot <- total
-      res <- matches
+      tot <- MusitResultT(countObjects(mid, nodeId, collections))
+      res <- MusitResultT(objectsFor(mid, nodeId, collections, page, limit))
     } yield {
-      MusitSuccess(PagedResult[MusitObject](tot, res))
-    }).recover {
+      PagedResult[MusitObject](tot, res.map(MusitObject.fromTuple))
+    }).value.recover {
       case NonFatal(ex) =>
         val msg = s"Error while retrieving objects for nodeId $nodeId"
         logger.error(msg, ex)
         MusitDbError(msg, Option(ex))
     }
-  }
 
   /**
    * Find the ObjectIds for objects located in the given old schema with the
