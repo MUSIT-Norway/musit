@@ -55,7 +55,7 @@ class ActorService @Inject() (
     for {
       u <- users
       a <- actors
-    } yield dedupe(u, a)
+    } yield merge(u, a)
   }
 
   def findByName(search: MusitSearch): Future[Seq[Person]] = {
@@ -66,15 +66,29 @@ class ActorService @Inject() (
     for {
       u <- users
       a <- actors
-    } yield dedupe(u, a)
+    } yield merge(u, a)
   }
 
-  private def dedupe(users: Seq[UserInfo], actors: Seq[Person]): Seq[Person] = {
-    actors.filterNot { p =>
-      users.exists { u =>
-        p.dataportenUser.exists(prefix => u.feideUser.exists(_.value.startsWith(prefix)))
+  private[services] def merge(users: Seq[UserInfo], actors: Seq[Person]): Seq[Person] = {
+    def duplicateFilter(p: Person) = users.exists { u =>
+      p.dataportenUser.exists { prefix =>
+        u.feideUser.exists(_.value.startsWith(prefix))
       }
-    }.union(users.map(Person.fromUserInfo))
+    }
+
+    val dupes = actors.filter(duplicateFilter)
+    val merged = users.map(Person.fromUserInfo).map { p =>
+      dupes.find(_.dataportenUser.exists { prefix =>
+        p.dataportenUser.exists(_.startsWith(prefix))
+      }).map { a =>
+        p.copy(
+          dataportenUser = a.dataportenUser,
+          applicationId = a.applicationId
+        )
+      }.getOrElse(p)
+    }
+
+    actors.filterNot(duplicateFilter).union(merged)
   }
 
 }
