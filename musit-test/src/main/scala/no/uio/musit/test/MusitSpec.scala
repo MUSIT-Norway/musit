@@ -21,6 +21,7 @@ package no.uio.musit.test
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play._
 import play.api.Application
 import play.api.test.TestServer
@@ -28,7 +29,14 @@ import play.api.test.TestServer
 /**
  * Base trait to use
  */
-trait MusitSpec extends PlaySpec with ScalaFutures
+trait MusitSpec extends PlaySpec with ScalaFutures {
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(15, Seconds),
+    interval = Span(50, Millis)
+  )
+
+}
 
 /**
  * Mixin this trait if all you need is a fake Play application.

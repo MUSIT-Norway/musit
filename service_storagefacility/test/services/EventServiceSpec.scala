@@ -22,17 +22,11 @@ package services
 import no.uio.musit.models.{EventId, MuseumId}
 import no.uio.musit.security.{AuthenticatedUser, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 import utils.testhelpers.{EventGenerators, NodeGenerators}
 
 class EventServiceSpec extends MusitSpecWithAppPerSuite
     with NodeGenerators
     with EventGenerators {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   implicit val dummyUser = AuthenticatedUser(
     userInfo = UserInfo(

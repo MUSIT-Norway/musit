@@ -20,7 +20,7 @@
 package controllers.rest
 
 import com.google.inject.Inject
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{Authenticator, BearerToken}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.Action
@@ -45,10 +45,10 @@ class AuthenticationController @Inject() (
   def authenticate = Action.async { implicit request =>
     authService.authenticate().map {
       case Left(res) => res
-      case Right(authInfo) =>
-        logger.info(s"Recieved oauth2info from dataporten: $authInfo")
+      case Right(userSession) =>
+        logger.debug(s"Initialized new UserSesssion with id ${userSession.uuid}")
         Redirect("/musit").withHeaders(
-          authInfo.accessToken.asHeader
+          BearerToken.fromMusitUUID(userSession.uuid).asHeader
         )
     }
   }

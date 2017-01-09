@@ -25,7 +25,6 @@ import models.event.{ActorRole, EventType, ObjectRole, PlaceRole}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors._
-import org.scalatest.time.{Millis, Seconds, Span}
 import utils.testhelpers.{EventGenerators, NodeGenerators}
 
 /**
@@ -34,11 +33,6 @@ import utils.testhelpers.{EventGenerators, NodeGenerators}
 class EventDaoSpec extends MusitSpecWithAppPerSuite
     with EventGenerators
     with NodeGenerators {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   // This is mutable to allow keeping track of the last inserted eventId.
   private var latestEventId: EventId = _

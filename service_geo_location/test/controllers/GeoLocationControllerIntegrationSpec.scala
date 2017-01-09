@@ -22,18 +22,12 @@ package controllers
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.http.Status
 import play.api.libs.json.JsArray
 
 import scala.language.postfixOps
 
 class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   val queryParam = (adr: String) => s"/v1/address?search=$adr"
 

@@ -24,19 +24,14 @@ import java.util.UUID
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 
 /**
  * NOTE: Test data for these tests are loaded in the evolution scripts in the
  * src/test/resources directory.
  */
 class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
-  val dao: ObjectDao = fromInstanceCache[ObjectDao]
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
+  val dao: ObjectDao = fromInstanceCache[ObjectDao]
 
   val mid = MuseumId(99)
 

@@ -28,7 +28,6 @@ import no.uio.musit.models.{ActorId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.test.Helpers._
 import play.api.libs.json.{JsArray, JsNull, JsObject, Json}
 import utils.testhelpers.StorageNodeJsonGenerator._
@@ -37,11 +36,6 @@ import utils.testhelpers.{EventJsonGenerator, _}
 import scala.util.Try
 
 class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   val mid = MuseumId(99)
 

@@ -37,9 +37,9 @@ trait Authenticator {
    *
    * @param req The current request.
    * @tparam A The type of the request body.
-   * @return Either a Result or the OAuth2Info from the authentication provider
+   * @return Either a Result or the active UserSession
    */
-  def authenticate[A]()(implicit req: Request[A]): Future[Either[Result, OAuth2Info]]
+  def authenticate[A]()(implicit req: Request[A]): Future[Either[Result, UserSession]]
 
   /**
    * Method for retrieving the UserInfo from the AuthService.

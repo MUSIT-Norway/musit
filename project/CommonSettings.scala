@@ -88,6 +88,13 @@ object CommonSettings {
           .setPreference(FormatXml, false)
           .setPreference(SpacesAroundMultiImports, false)
       ))
+      .settings(
+        // Setting timezone for testing to UTC, because h2 doesn't support
+        // timezones very well, and it will always default to UTC regardless.
+        // For production environments we're using the timezone configured at
+        // OS level for each running service.
+        javaOptions in Test += "-Duser.timezone=UTC"
+      )
       .settings(dependencyOverrides += ScalaTest.scalatest)
       .configs(IntegrationTest)
 
@@ -105,7 +112,10 @@ object CommonSettings {
         buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, buildInfoBuildNumber),
         buildInfoPackage := "no.uio.musit.service",
         buildInfoOptions += BuildInfoOption.ToJson,
-        javaOptions in Test ++= Seq("-Dconfig.file=conf/application.test.conf", "-Dlogger.resource=logback-test.xml"),
+        javaOptions in Test ++= Seq(
+          "-Dconfig.file=conf/application.test.conf",
+          "-Dlogger.resource=logback-test.xml"
+        ),
         maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
         packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
         packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",

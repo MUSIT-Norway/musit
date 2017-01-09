@@ -25,7 +25,6 @@ import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
@@ -35,11 +34,6 @@ import utils.testhelpers._
 import scala.util.Try
 
 class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   def verifyNode[T <: StorageNode](
     response: WSResponse,

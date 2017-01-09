@@ -24,7 +24,7 @@ import org.joda.time.DateTime
 
 case class UserSession(
   uuid: SessionUUID,
-  token: Option[BearerToken] = None,
+  oauthToken: Option[BearerToken] = None,
   userId: Option[ActorId] = None,
   loginTime: Option[DateTime] = None,
   lastActive: Option[DateTime] = None,

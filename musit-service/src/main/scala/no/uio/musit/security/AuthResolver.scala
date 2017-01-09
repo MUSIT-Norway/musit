@@ -20,7 +20,7 @@
 package no.uio.musit.security
 
 import no.uio.musit.MusitResults.MusitResult
-import no.uio.musit.models.Email
+import no.uio.musit.models.{ActorId, Email}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -42,11 +42,22 @@ trait AuthResolver {
    *
    * @param userInfo UserInfo to save.
    * @param ec       ExecutionContext
-   * @return Returns a MusitResult[Unit].
+   * @return a MusitResult[Unit].
    */
   def saveUserInfo(
     userInfo: UserInfo
   )(implicit ec: ExecutionContext): Future[MusitResult[Unit]]
+
+  /**
+   * Find the UserInfo data for the given ActorId
+   *
+   * @param userId ActorId
+   * @param ec     ExecutionContext
+   * @return MusitResult of an Option of UserInfo
+   */
+  def getUserInfo(
+    userId: ActorId
+  )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserInfo]]]
 
   /**
    * Prepares a new persistent user session
@@ -63,5 +74,16 @@ trait AuthResolver {
   def userSession(
     sessionUUID: SessionUUID
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserSession]]]
+
+  /**
+   * Save the changes to the provided UserSession.
+   *
+   * @param userSession the UserSession to save
+   * @param ec ExecutionContext
+   * @return a MusitResult[Unit]
+   */
+  def updateSession(
+    userSession: UserSession
+  )(implicit ec: ExecutionContext): Future[MusitResult[Unit]]
 
 }

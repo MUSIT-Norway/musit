@@ -26,6 +26,7 @@ import no.uio.musit.models.OldDbSchemas.OldSchema
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.time.DateTimeImplicits
+import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.driver.JdbcProfile
@@ -33,7 +34,7 @@ import slick.driver.JdbcProfile
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
-  with DateTimeImplicits {
+    with DateTimeImplicits {
 
   private val logger = Logger(classOf[AuthTables])
 
@@ -91,6 +92,12 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
     MappedColumnType.base[BearerToken, String](
       bt => bt.underlying,
       str => BearerToken(str)
+    )
+
+  implicit lazy val dateTimeMapper: BaseColumnType[DateTime] =
+    MappedColumnType.base[DateTime, JSqlTimestamp](
+      dt => dateTimeToJTimestamp(dt),
+      jst => jSqlTimestampToDateTime(jst)
     )
 
   val schema = "MUSARK_AUTH"
@@ -154,8 +161,8 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
     val uuid = column[SessionUUID]("SESSION_UUID", O.PrimaryKey)
     val token = column[Option[BearerToken]]("TOKEN")
     val userUuid = column[Option[ActorId]]("USER_UUID")
-    val loginTime = column[Option[JSqlTimestamp]]("LOGIN_TIME")
-    val lastActive = column[Option[JSqlTimestamp]]("LAST_ACTIVE")
+    val loginTime = column[Option[DateTime]]("LOGIN_TIME")
+    val lastActive = column[Option[DateTime]]("LAST_ACTIVE")
     val isLoggedIn = column[Boolean]("IS_LOGGED_IN")
     val tokenExpiry = column[Option[Long]]("TOKEN_EXPIRES_IN")
 
@@ -163,14 +170,14 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       uuid: SessionUUID,
       accessToken: Option[BearerToken],
       userId: Option[ActorId],
-      loginTimestamp: Option[JSqlTimestamp],
-      lastActiveTimestamp: Option[JSqlTimestamp],
+      loginTimestamp: Option[DateTime],
+      lastActiveTimestamp: Option[DateTime],
       loggedIn: Boolean,
       expiration: Option[Long]
     ) =>
       UserSession(
         uuid = uuid,
-        token = accessToken,
+        oauthToken = accessToken,
         userId = userId,
         loginTime = loginTimestamp,
         lastActive = lastActiveTimestamp,
@@ -181,7 +188,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
     val destroy = (us: UserSession) =>
       Some((
         us.uuid,
-        us.token,
+        us.oauthToken,
         us.userId,
         us.loginTime,
         us.lastActive,

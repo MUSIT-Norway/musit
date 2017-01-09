@@ -24,16 +24,10 @@ import java.util.UUID
 import models.Person
 import no.uio.musit.models.{ActorId, DatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 
 class ActorDaoSpec extends MusitSpecWithAppPerSuite {
 
   val actorDao: ActorDao = fromInstanceCache[ActorDao]
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   val andersAndAppId = ActorId(UUID.fromString("41ede78c-a6f6-4744-adad-02c25fb1c97c"))
   val kalleKaninAppId = ActorId(UUID.fromString("5224f873-5fe1-44ec-9aaf-b9313db410c6"))

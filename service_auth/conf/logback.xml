@@ -35,6 +35,7 @@
   <logger name="slick.jdbc" level="WARN"/>
 
   <logger name="no.uio.musit" level="INFO"/>
+  <logger name="no.uio.musit.security" level="TRACE"/>
   <logger name="controllers" level="DEBUG"/>
   <logger name="services" level="INFO"/>
   <logger name="models" level="INFO"/>

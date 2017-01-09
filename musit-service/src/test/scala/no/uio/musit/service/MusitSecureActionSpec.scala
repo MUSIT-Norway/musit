@@ -26,7 +26,6 @@ import no.uio.musit.security.Permissions._
 import no.uio.musit.security._
 import no.uio.musit.security.fake.FakeAuthenticator
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.mvc.Results._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -34,11 +33,6 @@ import play.api.test.Helpers._
 import scala.concurrent.Future
 
 class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   implicit lazy val materializer: Materializer = app.materializer
 

@@ -20,7 +20,7 @@
 package models.event.move
 
 import models.Move
-import models.datetime.dateTimeNow
+import no.uio.musit.time.dateTimeNow
 import models.event.EventTypeRegistry.TopLevelEvents.{MoveNodeType, MoveObjectType}
 import models.event.{EventType, MusitEvent}
 import no.uio.musit.models.{ActorId, EventId, ObjectId, StorageNodeDatabaseId}

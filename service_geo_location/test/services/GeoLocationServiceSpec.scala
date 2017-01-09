@@ -20,14 +20,8 @@
 package services
 
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 
 class GeoLocationServiceSpec extends MusitSpecWithAppPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   val service: GeoLocationService = fromInstanceCache[GeoLocationService]
 

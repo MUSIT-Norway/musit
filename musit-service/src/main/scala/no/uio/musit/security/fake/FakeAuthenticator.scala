@@ -113,7 +113,7 @@ class FakeAuthenticator extends Authenticator {
   override def authenticate[A]()(
     implicit
     req: Request[A]
-  ): Future[Either[Result, OAuth2Info]] = Future.successful {
+  ): Future[Either[Result, UserSession]] = Future.successful {
     Left(Results.NotImplemented(
       Json.obj("message" -> "authenticate is not implemented for fake security")
     ))

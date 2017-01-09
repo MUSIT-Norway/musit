@@ -24,7 +24,11 @@ import java.util.UUID
 import no.uio.musit.models.{MusitUUID, MusitUUIDOps}
 import play.api.libs.json.{JsString, Reads, Writes, __}
 
-case class SessionUUID(underlying: UUID) extends MusitUUID
+case class SessionUUID(underlying: UUID) extends MusitUUID {
+
+  def asBearerToken: BearerToken = BearerToken.fromMusitUUID(this)
+
+}
 
 object SessionUUID extends MusitUUIDOps[SessionUUID] {
 

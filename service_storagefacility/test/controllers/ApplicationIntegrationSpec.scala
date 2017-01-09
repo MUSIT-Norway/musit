@@ -21,15 +21,9 @@ package controllers
 
 import no.uio.musit.service.BuildInfo
 import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.test.Helpers._
 
 class ApplicationIntegrationSpec extends MusitSpecWithServerPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   "Calling services in the Application controller" should {
 

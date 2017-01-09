@@ -22,14 +22,8 @@ package repositories.dao
 import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 
 class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   val dao: StorageNodeDao = fromInstanceCache[StorageNodeDao]
 

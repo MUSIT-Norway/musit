@@ -23,7 +23,6 @@ import models.{Organisation, OrganisationAddress}
 import no.uio.musit.models.{DatabaseId, OrgId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.time.{Millis, Seconds, Span}
 
 class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
@@ -40,11 +39,6 @@ class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
     )
     orgDao.insert(org).futureValue must not be None
   }
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   "AddressDao" when {
 
