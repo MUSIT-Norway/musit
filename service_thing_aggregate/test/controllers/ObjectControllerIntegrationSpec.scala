@@ -166,10 +166,10 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val matches = response.json
         val obj = (matches \ "matches").as[JsArray].value.head
 
-        (obj \ "id").as[ObjectId] mustBe ObjectId(1)
-        (obj \ "term").as[String] mustBe "Øks"
+        (obj \ "id").as[ObjectId] mustBe ObjectId(2)
+        (obj \ "term").as[String] mustBe "Sverd"
         (obj \ "museumNo").as[MuseumNo] mustBe MuseumNo("C666")
-        (obj \ "subNo").as[SubNo] mustBe SubNo("34")
+        (obj \ "subNo").as[SubNo] mustBe SubNo("31")
       }
 
       "return objects for nodeId that has mainObjectId" in {

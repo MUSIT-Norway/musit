@@ -280,16 +280,16 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
         mr.get.totalMatches mustBe 3
         mr.get.matches match {
           case Vector(first, second, third) =>
-            first.id mustBe ObjectId(1)
+            first.id mustBe ObjectId(2)
             first.museumNo mustBe MuseumNo("C666")
-            first.subNo mustBe Some(SubNo("34"))
-            first.term mustBe "Øks"
+            first.subNo mustBe Some(SubNo("31"))
+            first.term mustBe "Sverd"
             first.mainObjectId mustBe None
 
-            second.id mustBe ObjectId(2)
+            second.id mustBe ObjectId(1)
             second.museumNo mustBe MuseumNo("C666")
-            second.subNo mustBe Some(SubNo("31"))
-            second.term mustBe "Sverd"
+            second.subNo mustBe Some(SubNo("34"))
+            second.term mustBe "Øks"
             second.mainObjectId mustBe None
 
             third.id mustBe ObjectId(3)
@@ -313,22 +313,22 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
         mr.get.totalMatches mustBe 3
         mr.get.matches match {
           case Vector(first, second, third) =>
-            first.id mustBe ObjectId(48)
+            first.id mustBe ObjectId(50)
             first.museumNo mustBe MuseumNo("K123")
             first.subNo mustBe None
-            first.term mustBe "Drakt"
+            first.term mustBe "Kjole"
             first.mainObjectId mustBe Some(12)
 
-            second.id mustBe ObjectId(49)
+            second.id mustBe ObjectId(48)
             second.museumNo mustBe MuseumNo("K123")
             second.subNo mustBe None
-            second.term mustBe "Skjorte"
+            second.term mustBe "Drakt"
             second.mainObjectId mustBe Some(12)
 
-            third.id mustBe ObjectId(50)
+            third.id mustBe ObjectId(49)
             third.museumNo mustBe MuseumNo("K123")
             third.subNo mustBe None
-            third.term mustBe "Kjole"
+            third.term mustBe "Skjorte"
             third.mainObjectId mustBe Some(12)
         }
 
