@@ -24,9 +24,10 @@ import models.Person
 import no.uio.musit.models.ActorId
 import no.uio.musit.security.UserInfo
 import no.uio.musit.service.MusitSearch
+import play.api.Logger
 import repositories.dao.{ActorDao, UserInfoDao}
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 import scala.concurrent.Future
 
 class ActorService @Inject() (
@@ -34,6 +35,14 @@ class ActorService @Inject() (
     val usrInfDao: UserInfoDao
 ) {
 
+  val logger = Logger(classOf[ActorService])
+
+  /**
+   * Find the Person that is identified by the given ActorId
+   *
+   * @param id ActorId
+   * @return An option of Person
+   */
   def findByActorId(id: ActorId): Future[Option[Person]] = {
     val userInfoPerson = usrInfDao.getById(id)
     val actor = actorDao.getByActorId(id)
@@ -48,6 +57,12 @@ class ActorService @Inject() (
     }
   }
 
+  /**
+   * Find Person details for the given set of ActorIds.
+   *
+   * @param ids Set[ActorId]
+   * @return A collection of Person objects.
+   */
   def findDetails(ids: Set[ActorId]): Future[Seq[Person]] = {
     val users = usrInfDao.listBy(ids)
     val actors = actorDao.listBy(ids)
@@ -58,6 +73,12 @@ class ActorService @Inject() (
     } yield merge(u, a)
   }
 
+  /**
+   * Find the actors/users that match the given search criteria.
+   *
+   * @param search MusitSearch
+   * @return A collection of Person objects.
+   */
   def findByName(search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
     val users = usrInfDao.getByName(searchString)
@@ -71,24 +92,23 @@ class ActorService @Inject() (
 
   private[services] def merge(users: Seq[UserInfo], actors: Seq[Person]): Seq[Person] = {
     def duplicateFilter(p: Person) = users.exists { u =>
-      p.dataportenUser.exists { prefix =>
-        u.feideUser.exists(_.value.startsWith(prefix))
-      }
+      p.dataportenUser.exists(prefix => u.feideUser.exists(_.startsWith(prefix)))
     }
 
+    // Find actors that exist in both the users and actor lists
     val dupes = actors.filter(duplicateFilter)
+    // Remove the actors that exist in both lists
+    val nodup = actors.filterNot(duplicateFilter)
+    // Merge duplicate actors into the appropriate user in the users list
     val merged = users.map(Person.fromUserInfo).map { p =>
       dupes.find(_.dataportenUser.exists { prefix =>
         p.dataportenUser.exists(_.startsWith(prefix))
       }).map { a =>
-        p.copy(
-          dataportenUser = a.dataportenUser,
-          applicationId = a.applicationId
-        )
+        p.copy(applicationId = a.applicationId)
       }.getOrElse(p)
     }
-
-    actors.filterNot(duplicateFilter).union(merged)
+    // Return a union of the de-duped actors list and the users list
+    nodup.union(merged)
   }
 
 }
