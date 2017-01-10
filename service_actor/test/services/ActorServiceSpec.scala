@@ -58,7 +58,8 @@ class ActorServiceSpec extends MusitSpecWithAppPerSuite {
       val users = generateUserInfos
 
       val res = service.merge(users, persons).sortBy { p =>
-        p.dataportenUser.map(_.dropRight(4).toInt)
+        // isolate the number part of the ID
+        p.dataportenUser.map(_.stripSuffix("@foo.io").stripSuffix("user").toInt)
       }
 
       res.size mustBe 15
