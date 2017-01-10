@@ -19,12 +19,11 @@
 
 package models
 
-import no.uio.musit.models.{ActorId, ObjectId, StorageNodeDatabaseId}
+import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class Move[A](
-  doneBy: ActorId,
   destination: StorageNodeDatabaseId,
   items: Seq[A]
 )
@@ -32,15 +31,13 @@ case class Move[A](
 object Move {
 
   implicit val storageNodeIdFormat: Format[Move[StorageNodeDatabaseId]] = (
-    (__ \ "doneBy").format[ActorId] and
     (__ \ "destination").format[StorageNodeDatabaseId] and
     (__ \ "items").format[Seq[StorageNodeDatabaseId]]
-  )((db, snid, items) => Move(db, snid, items), m => (m.doneBy, m.destination, m.items))
+  )((snid, items) => Move(snid, items), m => (m.destination, m.items))
 
   implicit val objectIdFormat: Format[Move[ObjectId]] = (
-    (__ \ "doneBy").format[ActorId] and
     (__ \ "destination").format[StorageNodeDatabaseId] and
     (__ \ "items").format[Seq[ObjectId]]
-  )((db, snid, items) => Move(db, snid, items), m => (m.doneBy, m.destination, m.items))
+  )((snid, items) => Move(snid, items), m => (m.destination, m.items))
 
 }

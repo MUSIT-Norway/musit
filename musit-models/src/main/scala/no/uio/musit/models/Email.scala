@@ -23,7 +23,11 @@ import play.api.data.validation._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 
-case class Email(value: String) extends AnyVal
+case class Email(value: String) extends AnyVal {
+
+  def startsWith(str: String): Boolean = value.startsWith(str)
+
+}
 
 object Email {
 

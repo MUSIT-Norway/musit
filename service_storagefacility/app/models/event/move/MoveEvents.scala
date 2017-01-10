@@ -50,7 +50,7 @@ object MoveObject {
       val now = dateTimeNow
       MoveObject(
         id = None,
-        doneBy = Option(cmd.doneBy),
+        doneBy = Option(currUserId),
         doneDate = now,
         affectedThing = Option(objectId),
         registeredBy = Option(currUserId),
@@ -77,20 +77,21 @@ case class MoveNode(
 
 object MoveNode {
 
-  def fromCommand(currUserId: ActorId, cmd: Move[StorageNodeDatabaseId]): Seq[MoveNode] = {
-    cmd.items.map { nodeId =>
-      val now = dateTimeNow
-      MoveNode(
-        id = None,
-        doneBy = Option(cmd.doneBy),
-        doneDate = now,
-        affectedThing = Option(nodeId),
-        registeredBy = Option(currUserId),
-        registeredDate = Option(now),
-        eventType = EventType.fromEventTypeId(MoveNodeType.id),
-        from = None,
-        to = cmd.destination
-      )
-    }
+  def fromCommand(
+    currUserId: ActorId,
+    cmd: Move[StorageNodeDatabaseId]
+  ): Seq[MoveNode] = cmd.items.map { nodeId =>
+    val now = dateTimeNow
+    MoveNode(
+      id = None,
+      doneBy = Option(currUserId),
+      doneDate = now,
+      affectedThing = Option(nodeId),
+      registeredBy = Option(currUserId),
+      registeredDate = Option(now),
+      eventType = EventType.fromEventTypeId(MoveNodeType.id),
+      from = None,
+      to = cmd.destination
+    )
   }
 }
