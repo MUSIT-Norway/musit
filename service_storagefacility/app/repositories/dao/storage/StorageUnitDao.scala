@@ -19,17 +19,20 @@
 
 package repositories.dao.storage
 
+import java.sql.{Timestamp => JSqlTimestamp}
+
 import com.google.inject.{Inject, Singleton}
 import models.datetime.Implicits._
 import models.datetime.dateTimeNow
 import models.storage._
-import models.storage.dto.StorageNodeDto
+import models.storage.dto.{StorageNodeDto, StorageUnitDto}
 import no.uio.musit.MusitResults._
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.{SharedTables, StorageTables}
+import slick.jdbc.GetResult
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -165,6 +168,28 @@ class StorageUnitDao @Inject() (
     db.run(query).map(mdto => MusitSuccess(mdto.map(StorageNodeDto.toRootNode)))
   }
 
+  private implicit val storageUnitTupleGetResult: GetResult[StorageUnitDto] = {
+    GetResult(r => StorageUnitDto(
+      id = StorageNodeDatabaseId.fromOptLong(r.nextLongOption()),
+      nodeId = r.nextStringOption().flatMap(StorageNodeId.fromString),
+      name = r.nextString(),
+      area = r.nextDoubleOption(),
+      areaTo = r.nextDoubleOption(),
+      isPartOf = StorageNodeDatabaseId.fromOptLong(r.nextLongOption()),
+      height = r.nextDoubleOption(),
+      heightTo = r.nextDoubleOption(),
+      groupRead = r.nextStringOption(),
+      groupWrite = r.nextStringOption(),
+      oldBarcode = r.nextLongOption(),
+      path = NodePath(r.nextString()),
+      isDeleted = r.nextBooleanOption(),
+      storageType = StorageType.withName(r.nextString()),
+      museumId = MuseumId.fromInt(r.nextInt()),
+      updatedBy = r.nextStringOption().flatMap(ActorId.fromString),
+      updatedDate = r.nextTimestampOption()
+    ))
+  }
+
   /**
    * TODO: Document me!!!
    */
@@ -180,11 +205,27 @@ class StorageUnitDao @Inject() (
       node.museumId === mid && node.isPartOf === id && node.isDeleted === false
     }
 
-    val matches = db.run(query.drop(offset).take(limit).result).map { dtos =>
-      dtos.map { dto =>
-        StorageNodeDto.toGenericStorageNode(dto)
-      }
-    }
+    val sortedQuery =
+      sql"""
+         SELECT sn.STORAGE_NODE_ID, sn.STORAGE_NODE_UUID, sn.STORAGE_NODE_NAME,
+           sn.AREA, sn.AREA_TO, sn.IS_PART_OF, sn.HEIGHT, sn.HEIGHT_TO,
+           sn.GROUP_READ, sn.GROUP_WRITE, sn.OLD_BARCODE, sn.NODE_PATH,
+           sn.IS_DELETED, sn.STORAGE_TYPE, sn.MUSEUM_ID, sn.UPDATED_BY, sn.UPDATED_DATE
+         FROM MUSARK_STORAGE.STORAGE_NODE sn
+         WHERE sn.IS_PART_OF=${id.underlying}
+         AND sn.MUSEUM_ID=${mid.underlying}
+         ORDER BY
+           CASE WHEN sn.STORAGE_TYPE='Organisation' THEN '01'
+                WHEN sn.STORAGE_TYPE='Building' THEN '02'
+                WHEN sn.STORAGE_TYPE='Room' THEN '03'
+                WHEN sn.STORAGE_TYPE='StorageUnit' THEN '04'
+                ELSE sn.STORAGE_TYPE END ASC,
+           sn.STORAGE_NODE_NAME
+         OFFSET ${offset} ROWS
+         FETCH NEXT ${limit} ROWS ONLY
+      """.as[StorageUnitDto]
+
+    val matches = db.run(sortedQuery).map(_.map(StorageNodeDto.toGenericStorageNode))
     val total = db.run(query.length.result)
 
     for {

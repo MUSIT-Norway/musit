@@ -231,7 +231,6 @@ class ObjectDao @Inject() (
       total <- totalMatches
       matches <- matchedResults
     } yield {
-      logger.debug(s"Gpt ")
       MusitSuccess(
         ObjectSearchResult(total, matches.map(MusitObject.fromTuple))
       )
@@ -355,6 +354,11 @@ class ObjectDao @Inject() (
         AND mt."OBJECT_ID" = lo."OBJECT_ID"
         AND mt."IS_DELETED" = 0
         #${collectionFilter(collections)}
+        ORDER BY
+          mt.MUSEUMNOASNUMBER ASC,
+          lower(mt.MUSEUMNO) ASC,
+          mt.SUBNOASNUMBER ASC,
+          lower(mt.SUBNO) ASC
         OFFSET ${offset} ROWS
         FETCH NEXT ${limit} ROWS ONLY
       """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])] // scalastyle:ignore
