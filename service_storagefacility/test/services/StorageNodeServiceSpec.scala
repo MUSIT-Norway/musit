@@ -238,7 +238,6 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val mostChildren = childIds ++ grandChildIds
 
       val move = Move[StorageNodeDatabaseId](
-        doneBy = defaultUserId,
         destination = building2.id.get,
         items = Seq(unit1.id.get)
       )
@@ -414,7 +413,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       currLoc.get.get.id.get.underlying mustBe 5
       currLoc.get.get.path.toString must include(currLoc.get.get.id.get.underlying.toString)
 
-      val moveObject = Move[ObjectId](aid, StorageNodeDatabaseId(4), Seq(oid))
+      val moveObject = Move[ObjectId](StorageNodeDatabaseId(4), Seq(oid))
       val moveSeq = MoveObject.fromCommand(aid, moveObject)
       service.moveObject(defaultMuseumId, oid, moveSeq.head).futureValue
       val newCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
@@ -423,7 +422,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       newCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
 
       val anotherMid = MuseumId(4)
-      val moveSameObject = Move[ObjectId](aid, StorageNodeDatabaseId(3), Seq(oid))
+      val moveSameObject = Move[ObjectId](StorageNodeDatabaseId(3), Seq(oid))
       val moveSameSeq = MoveObject.fromCommand(aid, moveSameObject)
       service.moveObject(anotherMid, oid, moveSameSeq.head).futureValue
       val sameCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
