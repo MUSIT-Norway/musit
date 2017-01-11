@@ -32,7 +32,6 @@ import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.{SharedTables, StorageTables}
-import slick.jdbc.GetResult
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -168,28 +167,6 @@ class StorageUnitDao @Inject() (
     db.run(query).map(mdto => MusitSuccess(mdto.map(StorageNodeDto.toRootNode)))
   }
 
-  private implicit val storageUnitTupleGetResult: GetResult[StorageUnitDto] = {
-    GetResult(r => StorageUnitDto(
-      id = StorageNodeDatabaseId.fromOptLong(r.nextLongOption()),
-      nodeId = r.nextStringOption().flatMap(StorageNodeId.fromString),
-      name = r.nextString(),
-      area = r.nextDoubleOption(),
-      areaTo = r.nextDoubleOption(),
-      isPartOf = StorageNodeDatabaseId.fromOptLong(r.nextLongOption()),
-      height = r.nextDoubleOption(),
-      heightTo = r.nextDoubleOption(),
-      groupRead = r.nextStringOption(),
-      groupWrite = r.nextStringOption(),
-      oldBarcode = r.nextLongOption(),
-      path = NodePath(r.nextString()),
-      isDeleted = r.nextBooleanOption(),
-      storageType = StorageType.withName(r.nextString()),
-      museumId = MuseumId.fromInt(r.nextInt()),
-      updatedBy = r.nextStringOption().flatMap(ActorId.fromString),
-      updatedDate = r.nextTimestampOption()
-    ))
-  }
-
   /**
    * TODO: Document me!!!
    */
@@ -199,6 +176,8 @@ class StorageUnitDao @Inject() (
     page: Int,
     limit: Int
   ): Future[PagedResult[GenericStorageNode]] = {
+    implicit val tupleToResult = StorageNodeDto.storageUnitTupleGetResult
+
     val offset = (page - 1) * limit
 
     val query = storageNodeTable.filter { node =>
@@ -214,6 +193,7 @@ class StorageUnitDao @Inject() (
          FROM MUSARK_STORAGE.STORAGE_NODE sn
          WHERE sn.IS_PART_OF=${id.underlying}
          AND sn.MUSEUM_ID=${mid.underlying}
+         AND sn.IS_DELETED=0
          ORDER BY
            CASE WHEN sn.STORAGE_TYPE='Organisation' THEN '01'
                 WHEN sn.STORAGE_TYPE='Building' THEN '02'

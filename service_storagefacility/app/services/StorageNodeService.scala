@@ -431,7 +431,7 @@ class StorageNodeService @Inject() (
    * TODO: Document me!
    */
   def rootNodes(mid: MuseumId): Future[Seq[RootNode]] = {
-    unitDao.findRootNodes(mid)
+    unitDao.findRootNodes(mid).map(_.sortBy(_.storageType.displayOrder))
   }
 
   /**
