@@ -10,7 +10,7 @@
   <logger name="akka" level="WARN"/>
   <logger name="slick.jdbc" level="WARN"/>
 
-  <logger name="no.uio.musit" level="WARN"/>
+  <logger name="no.uio.musit" level="DEBUG"/>
 
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>

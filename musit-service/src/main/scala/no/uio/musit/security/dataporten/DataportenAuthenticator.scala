@@ -168,8 +168,8 @@ class DataportenAuthenticator @Inject() (
       case AccessDenied => Left(Results.Unauthorized)
       case e => Left(Results.Unauthorized(Json.obj("message" -> e)))
     }.map(Future.successful).getOrElse {
-      logger.debug(s"Request headers: ${req.headers.toMap.mkString("\n", "\n", "")}")
-      logger.debug(s"Request params: ${req.queryString.mkString("\n", "\n", "")}")
+      logger.trace(s"Request headers: ${req.headers.toMap.mkString("\n", "\n", "")}")
+      logger.trace(s"Request params: ${req.queryString.mkString("\n", "\n", "")}")
       // Now check if the request contains a Code, call service to get token.
       // If there is no code, this is the first step in the OAuth2 flow.
       extractParam(Code) match {

@@ -83,24 +83,34 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
       val token = BearerToken(UUID.randomUUID().toString)
       val expiresIn = (2 hours).toMillis
       implicit val fakeRequest = FakeRequest(
-        "GET",
-        s"/authenticate?code=$code&state=$sessionId"
+        method = "POST",
+        path = s"/authenticate?code=$code&state=$sessionId"
+      )
+      val expQueryParams = Map(
+        "code" -> Seq(code),
+        "state" -> Seq(sessionId)
       )
 
       // Setup some mocks to avoid actually calling Dataporten.
-      (mockWS.url _).expects("https://auth.dataporten.no/oauth/token")
+      (mockWS.url _)
+        .expects("https://auth.dataporten.no/oauth/token")
         .returning(mockWSRequest)
 
-      (mockWSRequest.post(_: FormDataType)(_: Writeable[FormDataType]))
+      (mockWSRequest
+        .post(_: FormDataType)(_: Writeable[FormDataType]))
         .expects(*, *)
         .returning(Future.successful(mockWSResponse))
 
-      (mockWSResponse.json _).expects().returning(
-        Json.obj(
+      (mockWSRequest.queryString _)
+        .expects()
+        .returning(expQueryParams)
+
+      (mockWSResponse.json _)
+        .expects()
+        .returning(Json.obj(
           "access_token" -> token.underlying,
           "expiresIn" -> expiresIn
-        )
-      )
+        ))
 
       (mockWS.url _).expects("https://auth.dataporten.no/userinfo")
         .returning(mockWSRequest)
