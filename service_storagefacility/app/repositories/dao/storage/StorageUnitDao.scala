@@ -220,7 +220,7 @@ class StorageUnitDao @Inject() (
                 WHEN sn.STORAGE_TYPE='Room' THEN '03'
                 WHEN sn.STORAGE_TYPE='StorageUnit' THEN '04'
                 ELSE sn.STORAGE_TYPE END ASC,
-           sn.STORAGE_NODE_NAME
+           lower(sn.STORAGE_NODE_NAME)
          OFFSET ${offset} ROWS
          FETCH NEXT ${limit} ROWS ONLY
       """.as[StorageUnitDto]
