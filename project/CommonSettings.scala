@@ -109,9 +109,15 @@ object CommonSettings {
       .settings(dependencyOverrides += "com.typesafe.play" %% "play-logback" % Dependencies.PlayFrameWork.version)
       .settings(Seq(
         PlayKeys.playOmnidoc := false,
-        buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, buildInfoBuildNumber),
+        buildInfoKeys := Seq[BuildInfoKey](
+          name,
+          version,
+          scalaVersion,
+          sbtVersion,
+          buildInfoBuildNumber
+        ),
         buildInfoPackage := "no.uio.musit.service",
-        buildInfoOptions += BuildInfoOption.ToJson,
+        buildInfoOptions ++= Seq(BuildInfoOption.ToJson, BuildInfoOption.BuildTime),
         javaOptions in Test ++= Seq(
           "-Dconfig.file=conf/application.test.conf",
           "-Dlogger.resource=logback-test.xml"
