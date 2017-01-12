@@ -24,6 +24,7 @@ import java.sql.{Timestamp => JSqlTimestamp}
 import no.uio.musit.time.Implicits._
 import models.storage._
 import no.uio.musit.models._
+import slick.jdbc.GetResult
 
 sealed trait StorageNodeDto
 
@@ -115,6 +116,28 @@ case class RoomDto(
 ) extends SpecializedStorageNode
 
 object StorageNodeDto {
+
+  val storageUnitTupleGetResult: GetResult[StorageUnitDto] = {
+    GetResult(r => StorageUnitDto(
+      id = StorageNodeDatabaseId.fromOptLong(r.nextLongOption()),
+      nodeId = r.nextStringOption().flatMap(StorageNodeId.fromString),
+      name = r.nextString(),
+      area = r.nextDoubleOption(),
+      areaTo = r.nextDoubleOption(),
+      isPartOf = StorageNodeDatabaseId.fromOptLong(r.nextLongOption()),
+      height = r.nextDoubleOption(),
+      heightTo = r.nextDoubleOption(),
+      groupRead = r.nextStringOption(),
+      groupWrite = r.nextStringOption(),
+      oldBarcode = r.nextLongOption(),
+      path = NodePath(r.nextString()),
+      isDeleted = r.nextBooleanOption(),
+      storageType = StorageType.withName(r.nextString()),
+      museumId = MuseumId.fromInt(r.nextInt()),
+      updatedBy = r.nextStringOption().flatMap(ActorId.fromString),
+      updatedDate = r.nextTimestampOption()
+    ))
+  }
 
   def toStorageNode[T <: StorageNodeDto](dto: T) =
     dto match {

@@ -24,6 +24,7 @@ import java.util.UUID
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import org.scalatest.Inspectors.forAll
 
 /**
  * NOTE: Test data for these tests are loaded in the evolution scripts in the
@@ -311,25 +312,12 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
         mr.isSuccess mustBe true
         mr.get.totalMatches mustBe 3
-        mr.get.matches match {
-          case Vector(first, second, third) =>
-            first.id mustBe ObjectId(50)
-            first.museumNo mustBe MuseumNo("K123")
-            first.subNo mustBe None
-            first.term mustBe "Kjole"
-            first.mainObjectId mustBe Some(12)
-
-            second.id mustBe ObjectId(48)
-            second.museumNo mustBe MuseumNo("K123")
-            second.subNo mustBe None
-            second.term mustBe "Drakt"
-            second.mainObjectId mustBe Some(12)
-
-            third.id mustBe ObjectId(49)
-            third.museumNo mustBe MuseumNo("K123")
-            third.subNo mustBe None
-            third.term mustBe "Skjorte"
-            third.mainObjectId mustBe Some(12)
+        forAll(mr.get.matches) { m =>
+          Seq(m.id) must contain oneOf (ObjectId(48), ObjectId(49), ObjectId(50))
+          m.museumNo mustBe MuseumNo("K123")
+          m.subNo mustBe None
+          Seq(m.term) must contain oneOf ("Kjole", "Drakt", "Skjorte")
+          m.mainObjectId mustBe Some(12)
         }
 
       }
