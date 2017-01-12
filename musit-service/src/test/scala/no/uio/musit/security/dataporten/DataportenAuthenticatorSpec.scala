@@ -101,10 +101,6 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
         .expects(*, *)
         .returning(Future.successful(mockWSResponse))
 
-      (mockWSRequest.queryString _)
-        .expects()
-        .returning(expQueryParams)
-
       (mockWSResponse.json _)
         .expects()
         .returning(Json.obj(
@@ -116,24 +112,35 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
         .returning(mockWSRequest)
 
       (mockWSRequest.withHeaders _).expects(*).returning(mockWSRequest)
+      // The below mock of "get" is incorrectly highlighted with red in IntelliJ.
+      // This is a known bug: https://youtrack.jetbrains.com/issue/SCL-10183
       (mockWSRequest.get _).expects().returning(Future.successful(mockWSResponse))
       (mockWSResponse.status _).expects().returning(OK)
       (mockWSResponse.json _).expects().returning(
         Json.obj(
-          "audience" -> "",
+          "audience" -> "b98123fe-3a25-44b9-8e26-75819d8aa5da",
           "user" -> Json.obj(
             "userid" -> userId.asString,
-            "userid_sec" -> userIdSec.value,
+            "userid_sec" -> Json.arr(userIdSec.value),
             "name" -> name,
             "email" -> email.value
           )
         )
-      )
+      ).atLeastTwice()
 
       val futRes = authenticator.authenticate()
 
       val res = futRes.futureValue
       res.isRight mustBe true
+
+      val session = res.right.get
+
+      session.uuid mustBe SessionUUID.unsafeFromString(sessionId)
+      session.isLoggedIn mustBe true
+      session.lastActive must not be None
+      session.oauthToken mustBe Some(token)
+      session.userId mustBe Some(userId)
+      session.loginTime must not be None
     }
 
   }

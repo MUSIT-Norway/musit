@@ -20,17 +20,33 @@
 package no.uio.musit.security
 
 import no.uio.musit.models.ActorId
+import no.uio.musit.security.oauth2.OAuth2Info
+import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 
 case class UserSession(
-  uuid: SessionUUID,
-  oauthToken: Option[BearerToken] = None,
-  userId: Option[ActorId] = None,
-  loginTime: Option[DateTime] = None,
-  lastActive: Option[DateTime] = None,
-  isLoggedIn: Boolean = false,
-  tokenExpiry: Option[Long] = None
-)
+    uuid: SessionUUID,
+    oauthToken: Option[BearerToken] = None,
+    userId: Option[ActorId] = None,
+    loginTime: Option[DateTime] = None,
+    lastActive: Option[DateTime] = None,
+    isLoggedIn: Boolean = false,
+    tokenExpiry: Option[Long] = None
+) {
+
+  def postInit(oauthInfo: OAuth2Info, userInfo: UserInfo): UserSession = {
+    val now = dateTimeNow
+    this.copy(
+      oauthToken = Option(oauthInfo.accessToken),
+      userId = Option(userInfo.id),
+      loginTime = Option(now),
+      lastActive = Option(now),
+      isLoggedIn = true,
+      tokenExpiry = oauthInfo.expiresIn
+    )
+  }
+
+}
 
 object UserSession {
 

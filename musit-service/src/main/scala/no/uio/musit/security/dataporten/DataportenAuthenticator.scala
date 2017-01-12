@@ -25,6 +25,7 @@ import no.uio.musit.MusitResults._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models.Email
+import no.uio.musit.time.dateTimeNow
 import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
 import no.uio.musit.security.oauth2.{OAuth2Constants, OAuth2Info}
@@ -114,7 +115,6 @@ class DataportenAuthenticator @Inject() (
     )
 
     ws.url(tokenUrl).post(params).map { response =>
-      logger.debug(s"Access token response from Dataporten: ${response.body}")
       response.json.validate[OAuth2Info] match {
         case err: JsError =>
           val msg = "Invalid JSON response from Dataporten"
@@ -223,10 +223,11 @@ class DataportenAuthenticator @Inject() (
               maybeSession <- MusitResultT(authResolver.userSession(sid))
               userInfo <- MusitResultT(userInfo(oauthInfo.accessToken))
               _ <- MusitResultT(authResolver.saveUserInfo(userInfo))
-            } yield maybeSession
+            } yield maybeSession.map(_.postInit(oauthInfo, userInfo))
 
             procRes.value.flatMap {
               case MusitSuccess(maybeSession) =>
+                logger.debug(s"Found session in DB: $maybeSession")
                 maybeSession.map { session =>
                   // Update the user session with the Oauth2Info and UserInfo.
                   authResolver.updateSession(session).map {
