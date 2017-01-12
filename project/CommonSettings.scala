@@ -109,7 +109,9 @@ object CommonSettings {
         maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
         packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
         packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",
-        dockerExposedPorts in Docker := Seq(8080)
+        dockerExposedPorts in Docker := Seq(8080),
+        dockerExposedVolumes in Docker := Seq("/opt/docker/logs"),
+        dockerBaseImage in Docker := "java:8"
       ))
 
 }
