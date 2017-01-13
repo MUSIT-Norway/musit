@@ -360,6 +360,13 @@
       "accessToken": "fake-token-zab-xy-superuser"
     },
     {
+      "userid": "5aa63499-6491-4917-b577-3b161c75d489",
+      "name": "Fake Test Database Coordinator",
+      "email": "foo@bar.bas",
+      "groups": ["869cc344-5515-49c0-a7a5-79e371f4e64b"],
+      "accessToken": "fake-token-zab-xy-dbcoord"
+    },
+    {
       "userid": "34e74d46-d45c-49dc-ace7-587b0ff40646",
       "name": "Stein A. Olsen",
       "email": "foo@bar.bas",

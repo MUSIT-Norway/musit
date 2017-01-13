@@ -19,29 +19,30 @@
 
 package no.uio.musit.service
 
-import akka.stream.Materializer
-import no.uio.musit.test.MusitSpecWithAppPerSuite
-import play.api.mvc.Results.Ok
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import org.scalatest.{MustMatchers, WordSpec}
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+class MusitSearchSpec extends WordSpec with MustMatchers {
 
-class MusitFiltersSpec extends MusitSpecWithAppPerSuite {
+  "MusitSearch" should {
 
-  implicit lazy val materializer: Materializer = app.materializer
+    "initialize a new instance of MusitSearch when parsing a search String" in {
+      val str = "[a=foo, b=bar, c=baz]"
 
-  "MusitFilters" when {
+      val res = MusitSearch.parseSearch(str)
 
-    "configured properly" should {
-
-      "return a Cache-Control header" in {
-        val filter = new NoCacheFilter {}
-        val result = filter(request => Future.successful(Ok))(FakeRequest())
-        val headers = result.futureValue.header.headers
-        headers.get(CACHE_CONTROL) mustBe Some("no-cache,no-store,max-age=0")
-      }
+      res.searchMap.size mustBe 3
+      res.searchMap.keySet must contain allOf ("a", "b", "c")
+      res.searchMap.get("a") mustBe Some("foo")
+      res.searchMap.get("b") mustBe Some("bar")
+      res.searchMap.get("c") mustBe Some("baz")
     }
+
+    "fail if search string doesn't have valid formatting" in {
+      val str = "[n=foo, bar, baz=]"
+
+      an[IllegalArgumentException] must be thrownBy MusitSearch.parseSearch(str)
+    }
+
   }
+
 }
