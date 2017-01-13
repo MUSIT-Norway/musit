@@ -23,6 +23,8 @@ case class MusitSearch(searchMap: Map[String, String], searchStrings: List[Strin
 
 object MusitSearch {
 
+  val empty = MusitSearch(Map.empty, List.empty)
+
   @throws(classOf[IllegalArgumentException])
   def parseParams(p: List[String]): Map[String, String] =
     p.foldLeft(Map[String, String]()) { (acc, next) =>
@@ -48,7 +50,7 @@ object MusitSearch {
         )
 
       case _ =>
-        MusitSearch(Map(), List())
+        empty
     }
 
   implicit val queryBinder =

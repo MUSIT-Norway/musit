@@ -20,6 +20,7 @@
 package no.uio.musit.service
 
 import akka.stream.Materializer
+import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
 import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.security.Permissions._
@@ -68,6 +69,22 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
 
         status(res) mustEqual OK
         contentAsString(res) must include(userId)
+      }
+
+      "return BAD_REQUEST if the museumId isn't valid" in {
+        val userId = "caef058a-16d7-400f-9f73-3736477c6b44"
+        val token = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestRead")
+
+        val action = new Dummy().MusitSecureAction(MuseumId(10)) { request =>
+          request.token mustBe token
+          request.user.userInfo.id.asString mustBe userId
+          Ok(request.user.userInfo.id.asString)
+        }
+
+        val req = FakeRequest(GET, "/").withHeaders(token.asHeader)
+        val res = call(action, req)
+
+        status(res) mustEqual BAD_REQUEST
       }
     }
 

@@ -43,6 +43,10 @@ class MusitSearchSpec extends WordSpec with MustMatchers {
       an[IllegalArgumentException] must be thrownBy MusitSearch.parseSearch(str)
     }
 
+    "return an empty MusitSearch instance" in {
+      MusitSearch.parseSearch("") mustBe MusitSearch.empty
+    }
+
   }
 
 }
