@@ -27,6 +27,7 @@ POST        /web/groups/:groupId/:email/collection/:colId/revoke        controll
 
 # REST endpoints
 GET         /rest/authenticate                                          controllers.rest.AuthenticationController.authenticate
+GET         /rest/logout                                                controllers.rest.AuthenticationController.logout
 GET         /rest/museums                                               controllers.rest.MuseumController.listMuseums
 POST        /rest/museum/:museumId/group                                controllers.rest.GroupController.addGroup(museumId: Int)
 GET         /rest/groups/:feideEmail                                    controllers.rest.GroupController.groupsForUser(feideEmail: String)
