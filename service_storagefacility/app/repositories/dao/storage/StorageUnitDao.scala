@@ -19,15 +19,13 @@
 
 package repositories.dao.storage
 
-import java.sql.{Timestamp => JSqlTimestamp}
-
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.time.Implicits._
-import models.datetime.dateTimeNow
 import models.storage._
 import models.storage.dto.{StorageNodeDto, StorageUnitDto}
 import no.uio.musit.MusitResults._
 import no.uio.musit.models._
+import no.uio.musit.time.Implicits._
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

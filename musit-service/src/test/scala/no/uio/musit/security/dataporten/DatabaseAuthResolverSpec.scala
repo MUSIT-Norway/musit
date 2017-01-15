@@ -57,7 +57,7 @@ class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
       }
 
       "find a UserInfo by " in {
-        val res = resolver.getUserInfo(uuid).futureValue
+        val res = resolver.userInfo(uuid).futureValue
         res.isSuccess mustBe true
         res.get mustBe Some(userInfo)
       }
@@ -65,7 +65,7 @@ class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
       "update existing UserInfo" in {
         val upd = userInfo.copy(name = Some("Darth Anakin Vader"))
         resolver.saveUserInfo(upd).futureValue.isSuccess mustBe true
-        val res = resolver.getUserInfo(uuid).futureValue
+        val res = resolver.userInfo(uuid).futureValue
         res.isSuccess mustBe true
         res.get mustBe Some(upd)
       }

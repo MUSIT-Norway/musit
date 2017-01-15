@@ -24,13 +24,13 @@ import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security._
 import no.uio.musit.security.fake.FakeAuthenticator.FakeUserDetails
-import no.uio.musit.security.oauth2.OAuth2Info
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Request, Result, Results}
 
 import scala.concurrent.Future
 import scala.io.Source
 
+// TODO: Refactor the entire Fake implementation to be usable in _tests only_.
 class FakeAuthenticator extends Authenticator {
 
   private val fakeFile = "/fake_security.json"
@@ -110,6 +110,14 @@ class FakeAuthenticator extends Authenticator {
       )
     }
 
+  /**
+   * Fake authenticate implementation that "logs" in a user based on the data
+   * found in the fake_security.json
+   *
+   * @param req The current request.
+   * @tparam A The type of the request body.
+   * @return Either a Result or the active UserSession
+   */
   override def authenticate[A]()(
     implicit
     req: Request[A]
@@ -118,6 +126,18 @@ class FakeAuthenticator extends Authenticator {
       Json.obj("message" -> "authenticate is not implemented for fake security")
     ))
   }
+
+  /**
+   * Just a dummy implementation that does nothing other than returning a
+   * successful future with a MusitSuccess.
+   *
+   * @param token BearerToken
+   * @return a MusitResult[Unit] wrapped in a Future.
+   */
+  override def invalidate(token: BearerToken): Future[MusitResult[Unit]] = {
+    Future.successful(MusitSuccess(()))
+  }
+
 }
 
 object FakeAuthenticator {

@@ -21,16 +21,16 @@ package services
 
 import java.util.NoSuchElementException
 
-import models.datetime.dateTimeNow
 import models.event.envreq.EnvRequirement
 import models.event.move.MoveEvent
 import models.storage.StorageType._
 import models.storage._
 import no.uio.musit.MusitResults._
-import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.storage.StorageUnitDao

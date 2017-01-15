@@ -22,13 +22,13 @@ package no.uio.musit.security.dataporten
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
 import no.uio.musit.MusitResults._
-import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.Email
-import no.uio.musit.time.dateTimeNow
 import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
 import no.uio.musit.security.oauth2.{OAuth2Constants, OAuth2Info}
+import no.uio.musit.time.dateTimeNow
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
@@ -53,15 +53,18 @@ class DataportenAuthenticator @Inject() (
 
   private val logger = Logger(classOf[DataportenAuthenticator])
 
+  private type DataportenToken = BearerToken
+  private type AuthResponse = Future[Either[Result, UserSession]]
+
   // Reading in necessary OAuth2 configs
   val authUrl = conf.underlying.as[String](authUrlConfKey)
   val tokenUrl = conf.underlying.as[String](tokenUrlConfKey)
   val callbackUrl = conf.underlying.as[String](callbackUrlConfKey)
   val userInfoUrl = conf.underlying.as[String](userInfoApiConfKey)
+  val clientSecret = conf.underlying.as[String](clientSecretConfKey)
   val clientId = conf.underlying.getAs[String](clientIdConfKey).flatMap { str =>
     ClientId.validate(str).toOption.map(ClientId.apply)
   }
-  val clientSecret = conf.underlying.as[String](clientSecretConfKey)
 
   private def validate[A, B](
     res: WSResponse
@@ -89,8 +92,6 @@ class DataportenAuthenticator @Inject() (
         MusitInternalError(unexpectedResponseCode.format(ko))
     }
   }
-
-  private type AuthResponse = Future[Either[Result, UserSession]]
 
   /**
    * Helper method to extract request parameters from the callback requests from
@@ -189,21 +190,21 @@ class DataportenAuthenticator @Inject() (
    * send redirect response to the provider login form.
    *
    * 2. When the provider login dialog is completed, the provider will send a
-   *    "code" to the configured callback URL. In our case the authentication
-   *    endpoint.
+   * "code" to the configured callback URL. In our case the authentication
+   * endpoint.
    *
    * 3. We then attempt to extract the given "code", and use it to request a new
-   *    "access token" from the provider. Which is received in an OAuth2Info
-   *    response.
+   * "access token" from the provider. Which is received in an OAuth2Info
+   * response.
    *
    * 4. Once we have the "access token" we try to fetch the user info from the
-   *    provider.
+   * provider.
    *
    * 5. With both the OAuth2Info and UserInfo, we can now update the user session
-   *    with the information we've received.
+   * with the information we've received.
    *
    * 6. We can finally return our generated SessionUUID as the token clients
-   *    should use as the Bearer token in the HTTP Authorization header.
+   * should use as the Bearer token in the HTTP Authorization header.
    *
    * If any single one of the steps above should fail, the process will result
    * in an "Unauthorized" response.
@@ -221,7 +222,7 @@ class DataportenAuthenticator @Inject() (
           extractParam(State).flatMap(s => SessionUUID.validate(s).toOption).map { sid =>
             val procRes = for {
               maybeSession <- MusitResultT(authResolver.userSession(sid))
-              userInfo <- MusitResultT(userInfo(oauthInfo.accessToken))
+              userInfo <- MusitResultT(userInfoDataporten(oauthInfo.accessToken))
               _ <- MusitResultT(authResolver.saveUserInfo(userInfo))
             } yield maybeSession.map(_.postInit(oauthInfo, userInfo))
 
@@ -259,15 +260,14 @@ class DataportenAuthenticator @Inject() (
     }
 
   /**
-   * Retrieve the UserInfo from the Dataporten OAuth2 service.
+   * Method for fetching UserInfo data from Dataporten service.
    *
-   * TODO: Token should be SessionUUID and session should be looked up.
-   * TODO: Need to fetch dataporten token to call userInfo
-   *
-   * @param token the BearerToken to use when performing the request
-   * @return Will eventually return the UserInfo wrapped in a MusitResult
+   * @param token DataportenToken
+   * @return eventually a MusitResult[UserInfo]
    */
-  override def userInfo(token: BearerToken): Future[MusitResult[UserInfo]] = {
+  private def userInfoDataporten(
+    token: DataportenToken
+  ): Future[MusitResult[UserInfo]] = {
     ws.url(userInfoUrl).withHeaders(token.asHeader).get().map { response =>
       validate(response) { res =>
         // The user info part of the message is always under the "user" key.
@@ -284,6 +284,50 @@ class DataportenAuthenticator @Inject() (
         }
       }
     }
+  }
+
+  /**
+   * Find the UserInfo associated with the given UserSession
+   *
+   * @param session UserSession
+   * @return eventually a MusitResult[UserInfo]
+   */
+  private def userInfoFromSession(session: UserSession): Future[MusitResult[UserInfo]] =
+    session.userId.map { uid =>
+      authResolver.userInfo(uid).map(_.flatMap {
+        case Some(ui) =>
+          MusitSuccess(ui)
+
+        case None =>
+          val msg = s"Bad state. No user info for session ${session.uuid} exists."
+          logger.error(msg)
+          MusitInternalError(msg)
+      })
+    }.getOrElse {
+      Future.successful(MusitValidationError("Session has no oauth2 token."))
+    }
+
+  /**
+   * Retrieve the UserInfo from the Dataporten OAuth2 service.
+   *
+   * TODO: Token should be SessionUUID and session should be looked up.
+   * TODO: Need to fetch dataporten token to call userInfo
+   *
+   * @param token the BearerToken to use when performing the request
+   * @return Will eventually return the UserInfo wrapped in a MusitResult
+   */
+  override def userInfo(token: BearerToken): Future[MusitResult[UserInfo]] = {
+    val sessionUUID = SessionUUID.fromBearerToken(token)
+    (for {
+      maybeSession <- MusitResultT(authResolver.userSession(sessionUUID))
+      userInfo <- maybeSession.map { session =>
+        MusitResultT(userInfoFromSession(session))
+      }.getOrElse {
+        val msg = s"There is no session with ID $sessionUUID"
+        logger.warn(msg)
+        MusitResultT(Future.successful[MusitResult[UserInfo]](MusitValidationError(msg)))
+      }
+    } yield userInfo).value
   }
 
   /**
@@ -308,6 +352,30 @@ class DataportenAuthenticator @Inject() (
     }.getOrElse {
       Future.successful(MusitSuccess(Seq.empty))
     }
+  }
+
+  /**
+   * Invalidates/Terminates the UserSession associated with the given token.
+   *
+   * @param token BearerToken
+   * @return a MusitResult[Unit] wrapped in a Future.
+   */
+  override def invalidate(token: BearerToken): Future[MusitResult[Unit]] = {
+    val sid = SessionUUID.fromBearerToken(token)
+    MusitResultT(authResolver.userSession(sid)).flatMap {
+      case Some(session) =>
+        val u = session.copy(
+          lastActive = Option(dateTimeNow),
+          isLoggedIn = false
+        )
+        MusitResultT(authResolver.updateSession(u))
+
+      case None =>
+        val msg = s"There is no session with ID $sid"
+        logger.warn(msg)
+        MusitResultT(Future.successful[MusitResult[Unit]](MusitValidationError(msg)))
+
+    }.value
   }
 
 }

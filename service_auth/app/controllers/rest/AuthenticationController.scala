@@ -20,11 +20,13 @@
 package controllers.rest
 
 import com.google.inject.Inject
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.security.{Authenticator, BearerToken}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.Action
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Json
 
 /**
  * This controller will expose login and logout functionality for the MUSIT
@@ -47,15 +49,19 @@ class AuthenticationController @Inject() (
       case Left(res) => res
       case Right(userSession) =>
         logger.debug(s"Initialized new UserSesssion with id ${userSession.uuid}")
-        Redirect("/musit").withHeaders(
-          BearerToken.fromMusitUUID(userSession.uuid).asHeader
-        )
+        Redirect("/musit").withHeaders(userSession.uuid.asBearerToken.asHeader)
     }
   }
 
+  /**
+   * Marks the UserSession associated with the bearer token in the request as
+   * logged out.
+   */
   def logout = MusitSecureAction().async { implicit request =>
-    // TODO invalidate the user token and set flag indicating user is not active
-    ???
+    authService.invalidate(request.token).map {
+      case MusitSuccess(()) => Ok
+      case err: MusitError => InternalServerError(Json.obj("message" -> err.message))
+    }
   }
 
 }

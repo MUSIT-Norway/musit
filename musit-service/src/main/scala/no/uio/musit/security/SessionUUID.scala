@@ -47,4 +47,8 @@ object SessionUUID extends MusitUUIDOps[SessionUUID] {
 
   override def generate() = SessionUUID(UUID.randomUUID())
 
+  def fromBearerToken(token: BearerToken): SessionUUID = {
+    unsafeFromString(token.underlying)
+  }
+
 }

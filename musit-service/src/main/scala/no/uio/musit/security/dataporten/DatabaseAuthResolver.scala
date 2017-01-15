@@ -62,7 +62,7 @@ class DatabaseAuthResolver @Inject() (
     }
   }
 
-  override def getUserInfo(
+  override def userInfo(
     userId: ActorId
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserInfo]]] = {
     db.run(usrInfoTable.filter(_.uuid === userId).result.headOption).map { mt =>

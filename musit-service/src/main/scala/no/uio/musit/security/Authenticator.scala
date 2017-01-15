@@ -58,4 +58,12 @@ trait Authenticator {
    */
   def groups(userInfo: UserInfo): Future[MusitResult[Seq[GroupInfo]]]
 
+  /**
+   * Invalidates/Terminates the UserSession associated with the provided token.
+   *
+   * @param token BearerToken
+   * @return a MusitResult[Unit] wrapped in a Future.
+   */
+  def invalidate(token: BearerToken): Future[MusitResult[Unit]]
+
 }

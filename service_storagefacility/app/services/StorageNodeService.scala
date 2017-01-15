@@ -20,7 +20,6 @@
 package services
 
 import com.google.inject.Inject
-import models.datetime.dateTimeNow
 import models.event.dto.DtoConverters
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
@@ -30,6 +29,7 @@ import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.caching.LocalObjectDao

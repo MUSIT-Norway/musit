@@ -19,7 +19,7 @@
 
 package repositories.dao.event
 
-import models.event.EventTypeRegistry.TopLevelEvents.{ControlEventType, MoveNodeType, MoveObjectType, ObservationEventType}
+import models.event.EventTypeRegistry.TopLevelEvents._
 import models.event.dto._
 import models.event.{ActorRole, EventType, ObjectRole, PlaceRole}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}

@@ -28,6 +28,7 @@ import play.api.mvc._
 
 import scala.concurrent._
 
+// $COVERAGE-OFF$
 @Singleton
 class ErrorHandler extends HttpErrorHandler {
 
@@ -54,3 +55,4 @@ class ErrorHandler extends HttpErrorHandler {
     )
   }
 }
+// $COVERAGE-ON$

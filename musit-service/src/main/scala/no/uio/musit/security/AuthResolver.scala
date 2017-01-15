@@ -55,7 +55,7 @@ trait AuthResolver {
    * @param ec     ExecutionContext
    * @return MusitResult of an Option of UserInfo
    */
-  def getUserInfo(
+  def userInfo(
     userId: ActorId
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserInfo]]]
 

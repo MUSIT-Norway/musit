@@ -25,21 +25,6 @@ name := """musit"""
 
 version := "0.1"
 
-
-val baseDockerSettings = Seq(
-  maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
-  packageSummary in Docker := "A Microservice for Musit Norway",
-  packageDescription in Docker := "A Microservice for Musit Norway",
-  dockerExposedPorts in Docker := Seq(8080)
-)
-
-val scoverageSettings = Seq(
-  coverageExcludedPackages := "<empty>;controllers.javascript;views.*;router",
-  coverageExcludedFiles := "",
-  coverageMinimum := 80,
-  coverageFailOnMinimum := false
-)
-
 val noPublish = Seq(
   publish := {},
   publishLocal := {}
@@ -108,12 +93,7 @@ lazy val serviceAuth = (
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(libraryDependencies += Netty.reactiveStreamsHttp)
     settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(
-      baseDockerSettings ++ Seq(
-        packageName in Docker := "musit_service_auth"
-      )
-    )
+    settings(packageName in Docker := "musit_service_auth")
 ) dependsOn(musitService, musitTest % Test)
 
 lazy val serviceBarcode = (
@@ -122,46 +102,28 @@ lazy val serviceBarcode = (
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(libraryDependencies += zxing)
     settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(
-      baseDockerSettings ++ Seq(
-        packageName in Docker := "musit_service_barcode"
-      )
-    )
+    settings(packageName in Docker := "musit_service_barcode")
 ) dependsOn(musitService, musitTest % Test)
 
 lazy val serviceThingAggregate = (
   PlayProject("service_thing_aggregate")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(
-      baseDockerSettings ++ Seq(
-        packageName in Docker := "musit_service_thing_aggregate"
-      )
-    )
+    settings(packageName in Docker := "musit_service_thing_aggregate")
 ) dependsOn(musitService, musitTest % Test)
 
 lazy val serviceActor = (
   PlayProject("service_actor")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(baseDockerSettings ++ Seq(
-      packageName in Docker := "musit_service_actor")
-    )
+    settings(packageName in Docker := "musit_service_actor")
 ) dependsOn(musitService, musitTest % Test)
 
 lazy val serviceGeoLocation = (
   PlayProject("service_geo_location")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(
-      baseDockerSettings ++ Seq(
-        packageName in Docker := "musit_service_geo_location"
-      )
-    )
+    settings(packageName in Docker := "musit_service_geo_location")
 ) dependsOn(musitService, musitTest % Test)
 
 lazy val serviceStoragefacility = (
@@ -169,10 +131,5 @@ lazy val serviceStoragefacility = (
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings(libraryDependencies ++= enumeratumDeps)
     settings(routesGenerator := InjectedRoutesGenerator)
-    settings(scoverageSettings: _*)
-    settings(
-      baseDockerSettings ++ Seq(
-        packageName in Docker := "musit_service_storagefacility"
-      )
-    )
+    settings(packageName in Docker := "musit_service_storagefacility")
 ) dependsOn(musitService, musitTest % Test)

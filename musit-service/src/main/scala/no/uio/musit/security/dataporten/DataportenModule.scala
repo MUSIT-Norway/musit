@@ -23,6 +23,7 @@ import com.google.inject.AbstractModule
 import net.codingwell.scalaguice.ScalaModule
 import no.uio.musit.security.{AuthResolver, Authenticator}
 
+// $COVERAGE-OFF$
 class DataportenModule extends AbstractModule with ScalaModule {
 
   def configure(): Unit = {
@@ -31,3 +32,4 @@ class DataportenModule extends AbstractModule with ScalaModule {
   }
 
 }
+// $COVERAGE-ON$

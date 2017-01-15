@@ -69,7 +69,8 @@ object CommonSettings {
       "-Xmax-classfile-name", "100" // This will limit the classname generation to 100 characters.
     ),
     // Configuring the scoverage plugin.
-    coverageExcludedPackages := "<empty>;controllers.javascript;controllers.web;views.*;router;no.uio.musit.test",
+    coverageExcludedPackages := "<empty>;router;controllers.javascript;" +
+      "controllers.web;views.*;no.uio.musit.test;migration",
     coverageExcludedFiles := "",
     coverageMinimum := 80,
     coverageFailOnMinimum := false,

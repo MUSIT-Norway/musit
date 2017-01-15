@@ -23,14 +23,14 @@ import javax.inject.Inject
 
 import akka.stream.Materializer
 import play.api.http.{HeaderNames, Status}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class NoCacheFilter @Inject() (
     implicit
-    val mat: Materializer,
-    ec: ExecutionContext
+    val mat: Materializer
 ) extends Filter {
 
   def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
