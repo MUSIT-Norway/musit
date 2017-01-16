@@ -6,7 +6,6 @@ services:
         ports:
             - "80:80"
         links:
-            - backing
             - webpack
             - auth
 
@@ -15,17 +14,6 @@ services:
             context: "../../frontend"
         environment:
           - REACT_APP_USE_DATAPORTEN
-
-    backing:
-        build:
-          context: "../../backing"
-        environment:
-          - CLIENT_ID
-          - CLIENT_SECRET
-          - CALLBACK_URL
-          - JWT_SECRET
-        ports:
-          - "3030:3030"
 
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
