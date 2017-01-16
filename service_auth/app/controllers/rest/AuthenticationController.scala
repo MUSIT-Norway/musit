@@ -49,7 +49,10 @@ class AuthenticationController @Inject() (
       case Left(res) => res
       case Right(userSession) =>
         logger.debug(s"Initialized new UserSesssion with id ${userSession.uuid}")
-        Redirect("/").withHeaders(userSession.uuid.asBearerToken.asHeader)
+        Redirect(
+          url = "/",
+          queryString = Map("_at" -> Seq(s"${userSession.uuid.asString}"))
+        )
     }
   }
 
