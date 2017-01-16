@@ -57,6 +57,7 @@ services:
           - "7074:7070"
         environment:
           - MUSIT_SECURITY_MODULE
+          - CALLBACK_URL
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
           - APPLICATION_SECRET
