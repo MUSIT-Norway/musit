@@ -27,7 +27,7 @@ import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.test.MusitSpecWithServerPerSuite
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import org.joda.time.DateTime
 import play.api.libs.json._
 import play.api.test.Helpers._
@@ -68,12 +68,12 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   val mid = MuseumId(99)
 
-  val readToken = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
-  val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestWrite")
-  val writeId = ActorId(UUID.fromString("a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a"))
-  val adminToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestAdmin")
-  val adminId = ActorId(UUID.fromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
-  val godToken = BearerToken(fakeAccessTokenPrefix + "superuser")
+  val readToken = BearerToken(FakeUsers.testUserToken)
+  val writeToken = BearerToken(FakeUsers.testWriteToken)
+  val writeId = ActorId.unsafeFromString(FakeUsers.testWriteId)
+  val adminToken = BearerToken(FakeUsers.testAdminToken)
+  val adminId = ActorId.unsafeFromString(FakeUsers.testAdminId)
+  val godToken = BearerToken(FakeUsers.superUserToken)
 
   // TODO: add override def beforeTests to bootstrap a re-usable structure to
   // avoid boilerplate bootstrapping in all the tests.
@@ -1115,7 +1115,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "successfully move some nodes and fail for others when museumId is invalid" in {
         val anotherMid = MuseumId(4)
-        val anotherToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserNhmAdmin")
+        val anotherToken = BearerToken(FakeUsers.nhmAdminToken)
 
         val json1 = storageUnitJson("Move me1", StorageNodeDatabaseId(34))
         val res1 = wsUrl(StorageNodesUrl(mid))

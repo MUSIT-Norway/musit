@@ -20,7 +20,7 @@
 package services
 
 import no.uio.musit.models.{EventId, MuseumId}
-import no.uio.musit.security.{AuthenticatedUser, UserInfo}
+import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import utils.testhelpers.{EventGenerators, NodeGenerators}
 
@@ -29,6 +29,7 @@ class EventServiceSpec extends MusitSpecWithAppPerSuite
     with EventGenerators {
 
   implicit val dummyUser = AuthenticatedUser(
+    session = UserSession(uuid = SessionUUID.generate()),
     userInfo = UserInfo(
       id = defaultActorId,
       secondaryIds = Some(Seq("vader@starwars.com")),

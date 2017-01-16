@@ -66,7 +66,180 @@ class DataportenAuthenticator @Inject() (
     ClientId.validate(str).toOption.map(ClientId.apply)
   }
 
-  private def validate[A, B](
+  /**
+   * Starts the OAuth2 authentication process. Here's an explanation of how this
+   * process works:
+   *
+   * 1. The first request in the OAuth2 process is a general "authorization"
+   * request to the OAuth2 provider. This will trigger a new UserSession to be
+   * initialised in the database that is backing the AuthResolver. Then it will
+   * send redirect response to the provider login form.
+   *
+   * 2. When the provider login dialog is completed, the provider will send a
+   * "code" to the configured callback URL. In our case the authentication
+   * endpoint.
+   *
+   * 3. We then attempt to extract the given "code", and use it to request a new
+   * "access token" from the provider. Which is received in an OAuth2Info
+   * response.
+   *
+   * 4. Once we have the "access token" we try to fetch the user info from the
+   * provider.
+   *
+   * 5. With both the OAuth2Info and UserInfo, we can now update the user session
+   * with the information we've received.
+   *
+   * 6. We can finally return our generated SessionUUID as the token clients
+   * should use as the Bearer token in the HTTP Authorization header.
+   *
+   * If any single one of the steps above should fail, the process will result
+   * in an "Unauthorized" response.
+   *
+   * @param req The current request.
+   * @tparam A The type of the request body.
+   * @return Either a Result or the active UserSession
+   */
+  override def authenticate[A]()(implicit req: Request[A]): AuthResponse =
+    handleAuthResponse { code =>
+      logger.debug(s"Got code $code. Trying to fetch access token from Dataporten...")
+      getToken(code).flatMap {
+        case Right(oauthInfo) =>
+          // Extract the OAuth2 state from the request
+          extractParam(State).flatMap(s => SessionUUID.validate(s).toOption).map { sid =>
+            val procRes = for {
+              maybeSession <- MusitResultT(authResolver.userSession(sid))
+              userInfo <- MusitResultT(userInfoDataporten(oauthInfo.accessToken))
+              _ <- MusitResultT(authResolver.saveUserInfo(userInfo))
+            } yield maybeSession.map(_.postInit(oauthInfo, userInfo))
+
+            procRes.value.flatMap {
+              case MusitSuccess(maybeSession) =>
+                logger.debug(s"Found session in DB: $maybeSession")
+                maybeSession.map { session =>
+                  // Update the user session with the Oauth2Info and UserInfo.
+                  authResolver.updateSession(session).map {
+                    case MusitSuccess(()) => Right(session)
+                    case err: MusitError =>
+                      logger.error(err.message)
+                      Left(Results.Unauthorized)
+                  }
+                }.getOrElse {
+                  logger.error(s"The OAuth2 state $sid did not match any " +
+                    s"initialised sessions. This could indicate attempts to spoof" +
+                    s"the OAuth2 process.")
+                  Future.successful(Left(Results.Unauthorized))
+                }
+
+              case err: MusitError =>
+                logger.error(err.message)
+                Future.successful(Left(Results.Unauthorized))
+
+            }
+          }.getOrElse {
+            logger.error("Bad state value received from Dataporten. This could "
+              + "indicate attempts to spoof the OAuth2 process.")
+            Future.successful(Left(Results.Unauthorized))
+          }
+
+        case Left(res) => Future.successful(Left(res))
+      }
+    }
+
+  /**
+   * Method to "touch" the UserSession whenever a User interacts with a service.
+   *
+   * @param token BearerToken
+   * @return eventually it returns the updated MusitResult[UserSession]
+   */
+  def touch(token: BearerToken): Future[MusitResult[UserSession]] = {
+    val sid = SessionUUID.fromBearerToken(token)
+    updateSession(token) { session =>
+      val u = session.copy(
+        lastActive = Option(dateTimeNow)
+      // TODO: Update expiry
+      )
+      MusitResultT(authResolver.updateSession(u)).map(_ => u)
+    }
+  }
+
+  /**
+   * Invalidates/Terminates the UserSession associated with the given token.
+   *
+   * @param token BearerToken
+   * @return a MusitResult[Unit] wrapped in a Future.
+   */
+  override def invalidate(token: BearerToken): Future[MusitResult[Unit]] = {
+    val sid = SessionUUID.fromBearerToken(token)
+    updateSession(token) { session =>
+      val u = session.copy(
+        lastActive = Option(dateTimeNow),
+        isLoggedIn = false
+      )
+      MusitResultT(authResolver.updateSession(u))
+    }
+  }
+
+  /**
+   * Retrieve the UserInfo from the Dataporten OAuth2 service.
+   *
+   * @param token the BearerToken to use when performing the request
+   * @return Will eventually return the UserInfo wrapped in a MusitResult
+   */
+  override def userInfo(token: BearerToken): Future[MusitResult[UserInfo]] = {
+    val sessionUUID = SessionUUID.fromBearerToken(token)
+    (for {
+      maybeSession <- MusitResultT(authResolver.userSession(sessionUUID))
+      userInfo <- maybeSession.map { session =>
+        MusitResultT(userInfoFromSession(session))
+      }.getOrElse {
+        val msg = s"There is no session with ID $sessionUUID"
+        logger.warn(msg)
+        MusitResultT(Future.successful[MusitResult[UserInfo]](MusitValidationError(msg)))
+      }
+    } yield userInfo).value
+  }
+
+  /**
+   * Method for retrieving the users GroupInfo from the AuthService based
+   * on the UserInfo found.
+   *
+   * @param userInfo the UserInfo found by calling the userInfo method above.
+   * @return Will eventually return a Seq of GroupInfo
+   */
+  override def groups(userInfo: UserInfo): Future[MusitSuccess[Seq[GroupInfo]]] = {
+
+    def stripPrefix(s: String): String = s.reverse.takeWhile(_ != ':').reverse.trim
+
+    userInfo.secondaryIds.map { sids =>
+      Future.sequence {
+        sids.map(stripPrefix).filter(_.contains("@")).map { sid =>
+          Email.fromString(sid).map { email =>
+            authResolver.findGroupInfoByFeideEmail(email).map(_.getOrElse(Seq.empty))
+          }.getOrElse(Future.successful(Seq.empty))
+        }
+      }.map(t => MusitSuccess(t.flatten))
+    }.getOrElse {
+      Future.successful(MusitSuccess(Seq.empty))
+    }
+  }
+
+  private def updateSession[A](
+    token: BearerToken
+  )(update: UserSession => MusitResultT[Future, A]): Future[MusitResult[A]] = {
+    val sid = SessionUUID.fromBearerToken(token)
+    MusitResultT(authResolver.userSession(sid)).flatMap {
+      case Some(session) =>
+        update(session)
+
+      case None =>
+        val msg = s"There is no session with ID $sid"
+        logger.warn(msg)
+        MusitResultT(Future.successful[MusitResult[A]](MusitValidationError(msg)))
+
+    }.value
+  }
+
+  private def validateWSResponse[A, B](
     res: WSResponse
   )(f: WSResponse => MusitResult[A]): MusitResult[A] = {
     res.status match {
@@ -181,85 +354,6 @@ class DataportenAuthenticator @Inject() (
   }
 
   /**
-   * Starts the OAuth2 authentication process. Here's an explanation of how this
-   * process works:
-   *
-   * 1. The first request in the OAuth2 process is a general "authorization"
-   * request to the OAuth2 provider. This will trigger a new UserSession to be
-   * initialised in the database that is backing the AuthResolver. Then it will
-   * send redirect response to the provider login form.
-   *
-   * 2. When the provider login dialog is completed, the provider will send a
-   * "code" to the configured callback URL. In our case the authentication
-   * endpoint.
-   *
-   * 3. We then attempt to extract the given "code", and use it to request a new
-   * "access token" from the provider. Which is received in an OAuth2Info
-   * response.
-   *
-   * 4. Once we have the "access token" we try to fetch the user info from the
-   * provider.
-   *
-   * 5. With both the OAuth2Info and UserInfo, we can now update the user session
-   * with the information we've received.
-   *
-   * 6. We can finally return our generated SessionUUID as the token clients
-   * should use as the Bearer token in the HTTP Authorization header.
-   *
-   * If any single one of the steps above should fail, the process will result
-   * in an "Unauthorized" response.
-   *
-   * @param req The current request.
-   * @tparam A The type of the request body.
-   * @return Either a Result or the active UserSession
-   */
-  override def authenticate[A]()(implicit req: Request[A]): AuthResponse =
-    handleAuthResponse { code =>
-      logger.debug(s"Got code $code. Trying to fetch access token from Dataporten...")
-      getToken(code).flatMap {
-        case Right(oauthInfo) =>
-          // Extract the OAuth2 state from the request
-          extractParam(State).flatMap(s => SessionUUID.validate(s).toOption).map { sid =>
-            val procRes = for {
-              maybeSession <- MusitResultT(authResolver.userSession(sid))
-              userInfo <- MusitResultT(userInfoDataporten(oauthInfo.accessToken))
-              _ <- MusitResultT(authResolver.saveUserInfo(userInfo))
-            } yield maybeSession.map(_.postInit(oauthInfo, userInfo))
-
-            procRes.value.flatMap {
-              case MusitSuccess(maybeSession) =>
-                logger.debug(s"Found session in DB: $maybeSession")
-                maybeSession.map { session =>
-                  // Update the user session with the Oauth2Info and UserInfo.
-                  authResolver.updateSession(session).map {
-                    case MusitSuccess(()) => Right(session)
-                    case err: MusitError =>
-                      logger.error(err.message)
-                      Left(Results.Unauthorized)
-                  }
-                }.getOrElse {
-                  logger.error(s"The OAuth2 state $sid did not match any " +
-                    s"initialised sessions. This could indicate attempts to spoof" +
-                    s"the OAuth2 process.")
-                  Future.successful(Left(Results.Unauthorized))
-                }
-
-              case err: MusitError =>
-                logger.error(err.message)
-                Future.successful(Left(Results.Unauthorized))
-
-            }
-          }.getOrElse {
-            logger.error("Bad state value received from Dataporten. This could "
-              + "indicate attempts to spoof the OAuth2 process.")
-            Future.successful(Left(Results.Unauthorized))
-          }
-
-        case Left(res) => Future.successful(Left(res))
-      }
-    }
-
-  /**
    * Method for fetching UserInfo data from Dataporten service.
    *
    * @param token DataportenToken
@@ -269,7 +363,7 @@ class DataportenAuthenticator @Inject() (
     token: DataportenToken
   ): Future[MusitResult[UserInfo]] = {
     ws.url(userInfoUrl).withHeaders(token.asHeader).get().map { response =>
-      validate(response) { res =>
+      validateWSResponse(response) { res =>
         // The user info part of the message is always under the "user" key.
         // So we get it explicitly to deserialize to an UserInfo instance.
         val usrInfoJson = (response.json \ userInfoJsonKey).as[JsObject]
@@ -306,77 +400,6 @@ class DataportenAuthenticator @Inject() (
     }.getOrElse {
       Future.successful(MusitValidationError("Session has no oauth2 token."))
     }
-
-  /**
-   * Retrieve the UserInfo from the Dataporten OAuth2 service.
-   *
-   * TODO: Token should be SessionUUID and session should be looked up.
-   * TODO: Need to fetch dataporten token to call userInfo
-   *
-   * @param token the BearerToken to use when performing the request
-   * @return Will eventually return the UserInfo wrapped in a MusitResult
-   */
-  override def userInfo(token: BearerToken): Future[MusitResult[UserInfo]] = {
-    val sessionUUID = SessionUUID.fromBearerToken(token)
-    (for {
-      maybeSession <- MusitResultT(authResolver.userSession(sessionUUID))
-      userInfo <- maybeSession.map { session =>
-        MusitResultT(userInfoFromSession(session))
-      }.getOrElse {
-        val msg = s"There is no session with ID $sessionUUID"
-        logger.warn(msg)
-        MusitResultT(Future.successful[MusitResult[UserInfo]](MusitValidationError(msg)))
-      }
-    } yield userInfo).value
-  }
-
-  /**
-   * Method for retrieving the users GroupInfo from the AuthService based
-   * on the UserInfo found.
-   *
-   * @param userInfo the UserInfo found by calling the userInfo method above.
-   * @return Will eventually return a Seq of GroupInfo
-   */
-  override def groups(userInfo: UserInfo): Future[MusitSuccess[Seq[GroupInfo]]] = {
-
-    def stripPrefix(s: String): String = s.reverse.takeWhile(_ != ':').reverse.trim
-
-    userInfo.secondaryIds.map { sids =>
-      Future.sequence {
-        sids.map(stripPrefix).filter(_.contains("@")).map { sid =>
-          Email.fromString(sid).map { email =>
-            authResolver.findGroupInfoByFeideEmail(email).map(_.getOrElse(Seq.empty))
-          }.getOrElse(Future.successful(Seq.empty))
-        }
-      }.map(t => MusitSuccess(t.flatten))
-    }.getOrElse {
-      Future.successful(MusitSuccess(Seq.empty))
-    }
-  }
-
-  /**
-   * Invalidates/Terminates the UserSession associated with the given token.
-   *
-   * @param token BearerToken
-   * @return a MusitResult[Unit] wrapped in a Future.
-   */
-  override def invalidate(token: BearerToken): Future[MusitResult[Unit]] = {
-    val sid = SessionUUID.fromBearerToken(token)
-    MusitResultT(authResolver.userSession(sid)).flatMap {
-      case Some(session) =>
-        val u = session.copy(
-          lastActive = Option(dateTimeNow),
-          isLoggedIn = false
-        )
-        MusitResultT(authResolver.updateSession(u))
-
-      case None =>
-        val msg = s"There is no session with ID $sid"
-        logger.warn(msg)
-        MusitResultT(Future.successful[MusitResult[Unit]](MusitValidationError(msg)))
-
-    }.value
-  }
 
 }
 

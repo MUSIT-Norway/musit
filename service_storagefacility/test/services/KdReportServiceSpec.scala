@@ -20,13 +20,14 @@
 package services
 
 import models.report.KdReport
-import no.uio.musit.security.{AuthenticatedUser, UserInfo}
+import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import utils.testhelpers.NodeGenerators
 
 class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
   implicit val dummyUser = AuthenticatedUser(
+    session = UserSession(uuid = SessionUUID.generate()),
     userInfo = UserInfo(
       id = defaultUserId,
       secondaryIds = Some(Seq("vader@starwars.com")),

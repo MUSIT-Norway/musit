@@ -20,12 +20,11 @@
 package no.uio.musit.service
 
 import no.uio.musit.models.ActorId
-import no.uio.musit.security.{BearerToken, EncryptedToken}
 import no.uio.musit.security.Permissions._
 import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.security.fake.FakeAuthenticator
-import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.security.{BearerToken, EncryptedToken}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithAppPerSuite}
 import play.api.mvc.Results._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -65,8 +64,8 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
 
   val unauthAction = new Dummy().MusitAdminAction()(request => Ok)
 
-  val superUserId = ActorId.unsafeFromString("896125d3-0563-46b6-a7c5-51f3f899ff0a")
-  val superUserToken = BearerToken(fakeAccessTokenPrefix + "superuser")
+  val superUserId = ActorId.unsafeFromString(FakeUsers.superUserId)
+  val superUserToken = BearerToken(FakeUsers.superUserToken)
 
   " A MusitAdminAction" when {
 
@@ -108,8 +107,8 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return HTTP Forbidden user has insufficient access rights" in {
-        val uid = ActorId.unsafeFromString("3655615b-e385-4833-b414-9957ea225e58")
-        val tok = BearerToken(fakeAccessTokenPrefix + "normal")
+        val uid = ActorId.unsafeFromString(FakeUsers.normalUserId)
+        val tok = BearerToken(FakeUsers.normalUserToken)
 
         val res = call(authAction(uid, tok), request("/").withHeaders(tok.asHeader))
 
@@ -121,8 +120,8 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
     "used with permissions on a controller" should {
 
       "return Forbidden if user has insufficient access rights" in {
-        val uid = ActorId.unsafeFromString("5aa63499-6491-4917-b577-3b161c75d489")
-        val tok = BearerToken(fakeAccessTokenPrefix + "dbcoord")
+        val uid = ActorId.unsafeFromString(FakeUsers.dbCoordId)
+        val tok = BearerToken(FakeUsers.dbCoordToken)
 
         val req = request("/").withHeaders(tok.asHeader)
         val res = call(authActionWithPerms(uid, tok, GodMode), req)

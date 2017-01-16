@@ -83,12 +83,13 @@ trait MusitActions {
       val museum = museumId.flatMap(Museum.fromMuseumId)
       maybeToken.map { token =>
         val res = for {
+          session <- MusitResultT(authService.touch(token))
           userInfo <- MusitResultT(authService.userInfo(token))
           groups <- MusitResultT(authService.groups(userInfo))
         } yield {
           logger.debug(s"Got Groups\n${groups.map(_.name).mkString(", ")}")
-
-          val authUser = AuthenticatedUser(userInfo, groups)
+          // TODO: Update AuthenticatedUser with UserSession information.
+          val authUser = AuthenticatedUser(session, userInfo, groups)
 
           authorize(token, userInfo, authUser, museum)
         }

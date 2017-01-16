@@ -24,6 +24,8 @@ import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security._
 import no.uio.musit.security.fake.FakeAuthenticator.FakeUserDetails
+import no.uio.musit.time.dateTimeNow
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Request, Result, Results}
 
@@ -125,6 +127,28 @@ class FakeAuthenticator extends Authenticator {
     Left(Results.NotImplemented(
       Json.obj("message" -> "authenticate is not implemented for fake security")
     ))
+  }
+
+  /**
+   * Method to "touch" the UserSession whenever a User interacts with a service.
+   * This implementation is completely faked, and should only be used for
+   * testing purposes.
+   *
+   * @param token BearerToken
+   * @return eventually it returns the updated MusitResult[UserSession]
+   */
+  def touch(token: BearerToken): Future[MusitResult[UserSession]] = {
+    userInfo(token).map(_.map { ui =>
+      UserSession(
+        uuid = SessionUUID.fromBearerToken(token),
+        oauthToken = Option(token),
+        userId = Option(ui.id),
+        loginTime = None,
+        lastActive = Option(dateTimeNow),
+        isLoggedIn = true,
+        tokenExpiry = None
+      )
+    })
   }
 
   /**

@@ -27,9 +27,9 @@ import models.event.observation.Observation
 import no.uio.musit.models.{ActorId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.test.MusitSpecWithServerPerSuite
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
+import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.test.Helpers._
-import play.api.libs.json.{JsArray, JsNull, JsObject, Json}
 import utils.testhelpers.StorageNodeJsonGenerator._
 import utils.testhelpers.{EventJsonGenerator, _}
 
@@ -39,9 +39,9 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   val mid = MuseumId(99)
 
-  val fakeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestWrite")
-  val userId = ActorId(UUID.fromString("a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a"))
-  val godToken = BearerToken(fakeAccessTokenPrefix + "superuser")
+  val fakeToken = BearerToken(FakeUsers.testWriteToken)
+  val userId = ActorId.unsafeFromString(FakeUsers.testWriteId)
+  val godToken = BearerToken(FakeUsers.superUserToken)
 
   override def beforeTests(): Unit = {
     Try {
@@ -80,7 +80,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "not allow users without WRITE access to register a new control" in {
-      val token = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
+      val token = BearerToken(FakeUsers.testUserToken)
       val badUserId = ActorId(UUID.fromString("8efd41bb-bc58-4bbf-ac95-eea21ba9db81"))
       val json = Json.parse(EventJsonGenerator.controlJson(badUserId, 20))
       wsUrl(ControlsUrl(mid, 2))
@@ -105,7 +105,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "not allow access to control if user doesn't have READ permission" in {
-      val token = BearerToken(fakeAccessTokenPrefix + "musitTestUserNhmRead")
+      val token = BearerToken(FakeUsers.nhmReadToken)
       val ctrlId = 2L
       wsUrl(ControlUrl(mid, 2, ctrlId))
         .withHeaders(token.asHeader)
@@ -161,7 +161,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "not allow users without WRITE access to register a new observation" in {
-      val token = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
+      val token = BearerToken(FakeUsers.testUserToken)
       val badUserId = ActorId(UUID.fromString("8efd41bb-bc58-4bbf-ac95-eea21ba9db81"))
 
       val json = Json.parse(EventJsonGenerator.observationJson(badUserId, 20))
@@ -187,7 +187,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "not allow access to observation if user doesn't have READ permission" in {
-      val token = BearerToken(fakeAccessTokenPrefix + "musitTestUserNhmRead")
+      val token = BearerToken(FakeUsers.nhmReadToken)
       val obsId = 20L
       wsUrl(ObservationUrl(mid, 2, obsId))
         .withHeaders(token.asHeader)
@@ -217,7 +217,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "not allow access to controls and observations if user doesn't have READ " +
       "permission" in {
-        val token = BearerToken(fakeAccessTokenPrefix + "musitTestUserNhmRead")
+        val token = BearerToken(FakeUsers.nhmReadToken)
         val ctrlId = 2
         wsUrl(CtrlObsForNodeUrl(mid, 2))
           .withHeaders(token.asHeader)

@@ -340,14 +340,14 @@
       "name": "Gjestebruker",
       "email": "foo@bar.bas" ,
       "groups": ["3ce7692d-2101-45a4-955b-0ca861540cd9"],
-      "accessToken": "fake-token-zab-xy-guest"
+      "accessToken": "3136d121-3ec3-4ae1-893c-ed5755243e27"
     },
     {
       "userid": "3655615b-e385-4833-b414-9957ea225e58",
       "name": "Normalbruker",
       "email": "foo@bar.bas" ,
       "groups": ["c81c314c-0675-4cd1-8956-c96a7163825b"],
-      "accessToken": "fake-token-zab-xy-normal"
+      "accessToken": "5447f41c-b30b-44c4-8b3f-fda7e1dde949"
     },
     {
       "userid": "896125d3-0563-46b6-a7c5-51f3f899ff0a",
@@ -357,21 +357,14 @@
         "c0f20097-e803-4d1f-9d86-7b36bcfaec19",
         "2d503a2e-2211-45dd-a99f-fe1a38b5f2a2"
       ],
-      "accessToken": "fake-token-zab-xy-superuser"
+      "accessToken": "94890490-f3b9-4233-a39d-c2613303f2d2"
     },
     {
       "userid": "5aa63499-6491-4917-b577-3b161c75d489",
       "name": "Fake Test Database Coordinator",
       "email": "foo@bar.bas",
       "groups": ["869cc344-5515-49c0-a7a5-79e371f4e64b"],
-      "accessToken": "fake-token-zab-xy-dbcoord"
-    },
-    {
-      "userid": "34e74d46-d45c-49dc-ace7-587b0ff40646",
-      "name": "Stein A. Olsen",
-      "email": "foo@bar.bas",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-stein"
+      "accessToken": "d8fb33c3-f2b4-4d2a-a24a-90fbfb9ecc5e"
     },
     {
       "userid": "8efd41bb-bc58-4bbf-ac95-eea21ba9db81",
@@ -383,125 +376,70 @@
         "f311dd04-89b8-48a4-b4cd-68092f76ebab",
         "b923b5df-54d3-4724-9386-c1273561f1a1"
       ],
-      "accessToken": "fake-token-zab-xy-musitTestUser"
+      "accessToken": "b1b1ae9a-b4cc-403f-924b-ca2b867f8732"
     },
     {
       "userid": "caef058a-16d7-400f-9f73-3736477c6b44",
       "name": "Fake Musit Test User TEST Read",
       "email": "foo@bar.bas",
       "groups": ["2d503a2e-2211-45dd-a99f-fe1a38b5f2a2"],
-      "accessToken": "fake-token-zab-xy-musitTestUserTestRead"
+      "accessToken": "710c30ed-8777-4778-b3a3-873f7a8c5d81"
     },
     {
       "userid": "a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a",
       "name": "Fake Musit Test User TEST Write",
       "email": "foo@bar.bas",
       "groups": ["c81c314c-0675-4cd1-8956-c96a7163825b"],
-      "accessToken": "fake-token-zab-xy-musitTestUserTestWrite"
+      "accessToken": "239d84b2-07f7-4594-b42c-f2fc23cf55d3"
     },
     {
       "userid": "d63ab290-2fab-42d2-9b57-2475dfbd0b3c",
       "name": "Fake Musit Test User TEST Admin",
       "email": "foo@bar.bas",
       "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-musitTestUserTestAdmin"
+      "accessToken": "5fb13ef2-4e81-4600-892b-6579cb17508c"
     },
     {
       "userid": "ddb4dc62-8c14-4bac-aafd-0401f619b0ac",
       "name": "Fake Musit Test User NHM Read",
       "email": "foo@bar.bas",
       "groups": ["92e3b487-c962-43d9-a2ea-b8a7bed1b67a"],
-      "accessToken": "fake-token-zab-xy-musitTestUserNhmRead"
+      "accessToken": "54aa85c8-6212-4381-8d22-1d342cd8a26e"
     },
     {
       "userid": "d2bad684-d41e-4b9f-b813-70a75ea1728a",
       "name": "Fake Musit Test User NHM Write",
       "email": "foo@bar.bas",
       "groups": ["f311dd04-89b8-48a4-b4cd-68092f76ebab"],
-      "accessToken": "fake-token-zab-xy-musitTestUserNhmWrite"
+      "accessToken": "4f925018-2213-4319-b05a-518c1ef3d09b"
     },
     {
       "userid": "84e47cd0-a9de-4513-9318-1dec4bac5433",
       "name": "Fake Musit Test User NHM Admin",
       "email": "foo@bar.bas",
       "groups": ["5aa16994-92b3-45df-adfa-7f9fdf54ce34"],
-      "accessToken": "fake-token-zab-xy-musitTestUserNhmAdmin"
+      "accessToken": "e36ead79-1d28-4adf-9e9c-23d003c1e6d4"
     },
-
     {
       "userid": "690674c7-57ac-45d3-8f63-a764520ebe3f",
       "name": "Fake Musit Test User VM Read",
       "email": "foo@bar.bas",
       "groups": ["690674c7-57ac-45d3-8f63-a764520ebe3f"],
-      "accessToken": "fake-token-zab-xy-musitTestUserVmRead"
+      "accessToken": "0652095b-58e4-4a01-b006-d71c0081365d"
     },
     {
       "userid": "da673d83-342d-4f2c-b3bf-6136304e7131",
       "name": "Fake Musit Test User VM Write",
       "email": "foo@bar.bas",
       "groups": ["b4beaefb-d124-4f10-874d-ef59ffa1bb3b"],
-      "accessToken": "fake-token-zab-xy-musitTestUserVmWrite"
+      "accessToken": "c66d676f-9762-455a-8182-a8ff2ada0e98"
     },
     {
       "userid": "0967e7d7-a003-4fa5-88b2-55a0df0d8ed8",
       "name": "Fake Musit Test User VM Admin",
       "email": "foo@bar.bas",
       "groups": ["cd9ea5bf-7972-45c2-a0fd-b7e75fc2e5db"],
-      "accessToken": "fake-token-zab-xy-musitTestUserVmAdmin"
-    },
-    {
-      "userid": "dd457c4e-668e-41c5-8820-168f816a531b",
-      "name": "Dawn Williams",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-DawnWilliams"
-    },
-    {
-      "userid": "ca04b20e-5094-4b02-8b72-05ec629e7cb4",
-      "name": "Espen Uleberg",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-EspenUleberg"
-    },
-    {
-      "userid": "54c2e6f8-53f6-46be-b029-6f01b4b97231",
-      "name": "Heini Emilia Rämä",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-HeiniEmilia"
-    },
-    {
-      "userid": "71899f45-08da-48ef-b4c3-0f519d27157f",
-      "name": "Karstein Hårsaker",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-Karstein"
-    },
-    {
-      "userid": "064c9dff-9956-4f4e-b3f7-ed77b6e5bc62",
-      "name": "Marielle Bergh",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-MarielleBergh"
-    },
-    {
-      "userid": "e5bc8090-705d-40be-bcfa-2b351e7f2339",
-      "name": "Wenche Brun",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-WencheBrun"
-    },
-    {
-      "userid": "6eb49c1b-82c7-478b-85e4-9d69d5a50057",
-      "name": "Susan Matland",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-SusanMatland"
-    },
-    {
-      "userid": "86626c72-2da2-4fa5-969b-8226a4141dcf",
-      "name": "Kjell Gunnar Mobekk",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-KjellGunnarMobekk"
-    },
-    {
-      "userid": "4acad74e-eb4d-4632-be84-7ada5fef1074",
-      "name": "Line Arild Sjo",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149"],
-      "accessToken": "fake-token-zab-xy-LineArildSjo"
+      "accessToken": "c1127f6d-58e4-475f-a5e7-a200717c3016"
     }
   ]
 }

@@ -42,6 +42,22 @@ trait Authenticator {
   def authenticate[A]()(implicit req: Request[A]): Future[Either[Result, UserSession]]
 
   /**
+   * Method to "touch" the UserSession whenever a User interacts with a service.
+   *
+   * @param token BearerToken
+   * @return eventually it returns the updated MusitResult[UserSession]
+   */
+  def touch(token: BearerToken): Future[MusitResult[UserSession]]
+
+  /**
+   * Invalidates/Terminates the UserSession associated with the provided token.
+   *
+   * @param token BearerToken
+   * @return a MusitResult[Unit] wrapped in a Future.
+   */
+  def invalidate(token: BearerToken): Future[MusitResult[Unit]]
+
+  /**
    * Method for retrieving the UserInfo from the AuthService.
    *
    * @param token the BearerToken to use when performing the request
@@ -57,13 +73,5 @@ trait Authenticator {
    * @return Will eventually return a Seq of GroupInfo
    */
   def groups(userInfo: UserInfo): Future[MusitResult[Seq[GroupInfo]]]
-
-  /**
-   * Invalidates/Terminates the UserSession associated with the provided token.
-   *
-   * @param token BearerToken
-   * @return a MusitResult[Unit] wrapped in a Future.
-   */
-  def invalidate(token: BearerToken): Future[MusitResult[Unit]]
 
 }

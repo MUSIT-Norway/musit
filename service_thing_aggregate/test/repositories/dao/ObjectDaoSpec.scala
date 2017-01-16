@@ -22,7 +22,7 @@ package repositories.dao
 import java.util.UUID
 
 import no.uio.musit.models._
-import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
+import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.Inspectors.forAll
 
@@ -42,9 +42,17 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
     oldSchemaNames = Seq(OldDbSchemas.Archeology)
   ))
 
+  val dummyUid = ActorId.generate()
+
   implicit val dummyUser = AuthenticatedUser(
+    session = UserSession(
+      uuid = SessionUUID.generate(),
+      oauthToken = Option(BearerToken(UUID.randomUUID().toString)),
+      userId = Option(dummyUid),
+      isLoggedIn = true
+    ),
     userInfo = UserInfo(
-      id = ActorId.generate(),
+      id = dummyUid,
       secondaryIds = Some(Seq("vader@starwars.com")),
       name = Some("Darth Vader"),
       email = None,

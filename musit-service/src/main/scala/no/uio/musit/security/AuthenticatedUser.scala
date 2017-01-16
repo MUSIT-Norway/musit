@@ -26,6 +26,7 @@ import no.uio.musit.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
 import play.api.Logger
 
 case class AuthenticatedUser(
+    session: UserSession,
     userInfo: UserInfo,
     groups: Seq[GroupInfo]
 ) {

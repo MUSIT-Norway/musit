@@ -23,15 +23,13 @@ import java.util.UUID
 
 import no.uio.musit.models.ActorId
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.test.MusitSpecWithServerPerSuite
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.http.Status
 import play.api.libs.json.{JsArray, JsValue, Json}
 
 class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-  val fakeUserId = "musitTestUser"
-  val fakeToken = BearerToken(fakeAccessTokenPrefix + fakeUserId)
+  val fakeToken = BearerToken(FakeUsers.testUserToken)
 
   val andersAuthId = ActorId(UUID.fromString("12345678-adb2-4b49-bce3-320ddfe6c90f"))
   val andersAppId = ActorId(UUID.fromString("41ede78c-a6f6-4744-adad-02c25fb1c97c"))

@@ -102,7 +102,6 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     logger.debug(s"Using old path: $op and new path: $np. " +
       s"Performing update with LIKE: $pathFilter")
 
-    // TODO: This should be changed to use the Slick DSL
     sql"""
          UPDATE "MUSARK_STORAGE"."STORAGE_NODE"
          SET "NODE_PATH" = replace("NODE_PATH", ${op}, ${np})
