@@ -34,7 +34,7 @@ case class UserSession(
     tokenExpiry: Option[Long] = None
 ) {
 
-  def postInit(oauthInfo: OAuth2Info, userInfo: UserInfo): UserSession = {
+  def afterInit(oauthInfo: OAuth2Info, userInfo: UserInfo): UserSession = {
     val now = dateTimeNow
     this.copy(
       oauthToken = Option(oauthInfo.accessToken),

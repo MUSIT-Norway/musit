@@ -110,7 +110,7 @@ class DataportenAuthenticator @Inject() (
               maybeSession <- MusitResultT(authResolver.userSession(sid))
               userInfo <- MusitResultT(userInfoDataporten(oauthInfo.accessToken))
               _ <- MusitResultT(authResolver.saveUserInfo(userInfo))
-            } yield maybeSession.map(_.postInit(oauthInfo, userInfo))
+            } yield maybeSession.map(_.afterInit(oauthInfo, userInfo))
 
             procRes.value.flatMap {
               case MusitSuccess(maybeSession) =>

@@ -88,7 +88,7 @@ class DatabaseAuthResolver @Inject() (
     implicit
     ec: ExecutionContext
   ): Future[MusitResult[SessionUUID]] = {
-    // Initialize a new UserSession with a generated SessionUUID
+    logger.debug("Initialize a new UserSession with a generated SessionUUID")
     sessionInit(UserSession.initialize())
   }
 
@@ -121,7 +121,7 @@ class DatabaseAuthResolver @Inject() (
   override def updateSession(
     userSession: UserSession
   )(implicit ec: ExecutionContext): Future[MusitResult[Unit]] = {
-    db.run(usrSessionTable.update(userSession)).map {
+    db.run(usrSessionTable.filter(_.uuid === userSession.uuid).update(userSession)).map {
       case numUpdated: Int if numUpdated == 1 => MusitSuccess(())
       case numUpdated =>
         val msg = s"Unexpected number of rows [$numUpdated] were affected " +

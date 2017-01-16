@@ -25,7 +25,7 @@
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>
-        %coloredLevel - %logger{15} - [%d{yyyy-MM-dd_HH:mm:ss.SSS}] - %message%n%xException
+        [%d{yyyy-MM-dd_HH:mm:ss.SSS}] [storagefacility] %coloredLevel - %logger{15} - %message%n%xException
       </pattern>
     </encoder>
   </appender>
