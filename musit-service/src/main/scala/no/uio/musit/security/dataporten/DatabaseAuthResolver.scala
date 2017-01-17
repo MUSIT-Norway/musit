@@ -89,7 +89,7 @@ class DatabaseAuthResolver @Inject() (
     ec: ExecutionContext
   ): Future[MusitResult[SessionUUID]] = {
     logger.debug("Initialize a new UserSession with a generated SessionUUID")
-    sessionInit(UserSession.initialize())
+    sessionInit(UserSession.prepare())
   }
 
   private[dataporten] def sessionInit(

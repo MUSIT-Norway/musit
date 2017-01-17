@@ -34,7 +34,19 @@ case class UserSession(
     tokenExpiry: Option[Long] = None
 ) {
 
-  def afterInit(oauthInfo: OAuth2Info, userInfo: UserInfo): UserSession = {
+  def touch(timeoutMillis: Long): UserSession = {
+    val now = dateTimeNow
+    copy(
+      lastActive = Option(now),
+      tokenExpiry = Option(now.plus(timeoutMillis).getMillis)
+    )
+  }
+
+  def activate(
+    oauthInfo: OAuth2Info,
+    userInfo: UserInfo,
+    timeoutMillis: Long
+  ): UserSession = {
     val now = dateTimeNow
     this.copy(
       oauthToken = Option(oauthInfo.accessToken),
@@ -42,7 +54,7 @@ case class UserSession(
       loginTime = Option(now),
       lastActive = Option(now),
       isLoggedIn = true,
-      tokenExpiry = oauthInfo.expiresIn
+      tokenExpiry = Option(now.plus(timeoutMillis).getMillis)
     )
   }
 
@@ -50,6 +62,6 @@ case class UserSession(
 
 object UserSession {
 
-  def initialize(): UserSession = UserSession(SessionUUID.generate())
+  def prepare(): UserSession = UserSession(SessionUUID.generate())
 
 }

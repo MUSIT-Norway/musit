@@ -19,6 +19,7 @@
 
 package no.uio.musit.service
 
+import no.uio.musit.MusitResults.{MusitError, MusitNotAuthenticated, MusitNotAuthorized, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.MuseumId
@@ -88,14 +89,22 @@ trait MusitActions {
           groups <- MusitResultT(authService.groups(userInfo))
         } yield {
           logger.debug(s"Got Groups\n${groups.map(_.name).mkString(", ")}")
-          // TODO: Update AuthenticatedUser with UserSession information.
           val authUser = AuthenticatedUser(session, userInfo, groups)
-
           authorize(token, userInfo, authUser, museum)
         }
+        res.value.map {
+          case MusitSuccess(actionResult) =>
+            actionResult
 
-        res.value.map(_.getOrElse(Left(Unauthorized)))
+          case MusitNotAuthenticated(msg) =>
+            Left(Unauthorized(Json.obj("message" -> msg)))
 
+          case MusitNotAuthorized() =>
+            Left(Forbidden)
+
+          case _ =>
+            Left(Unauthorized)
+        }
       }.getOrElse {
         Future.successful(Left(Unauthorized))
       }
