@@ -74,7 +74,7 @@ class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
     "when working with UserSession data" should {
 
       "initialize an empty UserSession and return the SessionUUID" in {
-        val res = resolver.sessionInit(UserSession(uuid = sessionUUID)).futureValue
+        val res = resolver.upsertUserSession(UserSession(uuid = sessionUUID)).futureValue
         res.isSuccess mustBe true
       }
 

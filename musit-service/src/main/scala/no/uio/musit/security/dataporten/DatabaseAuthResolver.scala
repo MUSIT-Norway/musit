@@ -84,18 +84,10 @@ class DatabaseAuthResolver @Inject() (
 
   }
 
-  override def sessionInit()(
-    implicit
-    ec: ExecutionContext
-  ): Future[MusitResult[SessionUUID]] = {
-    logger.debug("Initialize a new UserSession with a generated SessionUUID")
-    sessionInit(UserSession.prepare())
-  }
-
-  private[dataporten] def sessionInit(
+  override def upsertUserSession(
     session: UserSession
   )(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]] = {
-    val cmd = usrSessionTable += session
+    val cmd = usrSessionTable.insertOrUpdate(session)
 
     db.run(cmd).map(_ => MusitSuccess(session.uuid)).recover {
       case NonFatal(ex) =>
@@ -108,7 +100,9 @@ class DatabaseAuthResolver @Inject() (
   override def userSession(
     sessionUUID: SessionUUID
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserSession]]] = {
-    val query = usrSessionTable.filter(_.uuid === sessionUUID)
+    val query = usrSessionTable.filter { us =>
+      us.uuid === sessionUUID
+    }
 
     db.run(query.result.headOption).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>

@@ -21,10 +21,13 @@ package no.uio.musit.security
 
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models.{ActorId, Email}
+import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthResolver {
+
+  private val logger = Logger(classOf[AuthResolver])
 
   /**
    * Locate the GroupInfos where the provided feide Email is a member.
@@ -62,7 +65,14 @@ trait AuthResolver {
   /**
    * Prepares a new persistent user session
    */
-  def sessionInit()(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]]
+  def sessionInit()(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]] = {
+    logger.debug("Initialize a new UserSession with a generated SessionUUID")
+    upsertUserSession(UserSession.prepare())
+  }
+
+  def upsertUserSession(
+    session: UserSession
+  )(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]]
 
   /**
    * Fetch the UserSession with the given SessionUUID
