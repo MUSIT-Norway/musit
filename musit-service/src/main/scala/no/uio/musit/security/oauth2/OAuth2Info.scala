@@ -17,29 +17,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models.datetime
+package no.uio.musit.security.oauth2
 
-import java.time.{ZoneId, ZoneOffset}
+import no.uio.musit.security.BearerToken
+import play.api.libs.json.{Reads, __}
+import play.api.libs.functional.syntax._
 
-import org.scalatest.{MustMatchers, WordSpec}
-import Implicits._
+case class OAuth2Info(
+  accessToken: BearerToken,
+  tokenType: Option[String] = None,
+  expiresIn: Option[Long] = None,
+  refreshToken: Option[String] = None,
+  params: Option[Map[String, String]] = None
+)
 
-class DateTimeImplicitsSpec extends WordSpec with MustMatchers {
+object OAuth2Info extends OAuth2Constants {
 
-  "Converting between DateTime and java.sql.Timezone" should {
-    "result in correct values" in {
-
-      val dt1 = dateTimeNow
-      val ts = dateTimeToJTimestamp(dt1)
-
-      val zdt = ts.toInstant.atZone(ZoneId.ofOffset("UTC", ZoneOffset.ofHours(1)))
-
-      val dt2 = jSqlTimestampToDateTime(ts)
-
-      dt2 mustBe dt1
-      zdt.getDayOfYear mustBe dt1.getDayOfYear
-      zdt.getHour mustBe dt1.hourOfDay().get() + 1
-    }
-  }
+  implicit val reads: Reads[OAuth2Info] = (
+    (__ \ AccessToken).read[BearerToken] and
+    (__ \ TokenType).readNullable[String] and
+    (__ \ ExpiresIn).readNullable[Long] and
+    (__ \ RefreshToken).readNullable[String]
+  )((accessToken, tokenType, expiresIn, refreshToken) =>
+      OAuth2Info(accessToken, tokenType, expiresIn, refreshToken))
 
 }

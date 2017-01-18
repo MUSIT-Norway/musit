@@ -117,8 +117,9 @@ object MusitResults {
    * required. Typically this will in an Action or at least near the controller
    * or service implementation.
    */
-  case class MusitNotAuthenticated() extends MusitError {
-    override val message: String = "Requires authentication"
+  case class MusitNotAuthenticated(
+      message: String = "Requires authentication"
+  ) extends MusitError {
     override val isSuccess: Boolean = false
   }
 
@@ -130,4 +131,10 @@ object MusitResults {
     override val isSuccess: Boolean = false
   }
 
+  /**
+   * In case of a general error situation that needs handling.
+   */
+  case class MusitGeneralError(message: String) extends MusitError {
+    override val isSuccess: Boolean = false
+  }
 }

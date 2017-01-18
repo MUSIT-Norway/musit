@@ -38,7 +38,7 @@ class UserInfoDao @Inject() (
 
   import driver.api._
 
-  private def userInfoFromTuple(tuple: UserInfoTableType): UserInfo = {
+  private def userInfoFromTuple(tuple: UserInfoDBTuple): UserInfo = {
     UserInfo(
       id = tuple._1,
       secondaryIds = tuple._2.map(sec => Seq(sec.value)),

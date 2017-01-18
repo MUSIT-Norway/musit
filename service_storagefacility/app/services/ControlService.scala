@@ -20,14 +20,14 @@
 package services
 
 import com.google.inject.Inject
-import models.datetime.dateTimeNow
 import models.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import models.event.control.Control
 import models.event.dto.BaseEventDto
 import models.event.dto.DtoConverters.CtrlConverters
+import no.uio.musit.MusitResults._
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.MusitResults._
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.event.EventDao

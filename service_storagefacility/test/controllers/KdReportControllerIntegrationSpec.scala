@@ -24,8 +24,7 @@ import models.storage.{StorageNode, StorageType}
 import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator._
-import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
@@ -35,11 +34,6 @@ import utils.testhelpers._
 import scala.util.Try
 
 class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   def verifyNode[T <: StorageNode](
     response: WSResponse,
@@ -70,10 +64,10 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
   // Will be properly initialised in beforeTests method. So any value should do.
   var buildingId: StorageNodeDatabaseId = StorageNodeDatabaseId(9)
 
-  val readToken = BearerToken(fakeAccessTokenPrefix + "musitTestUser")
-  val writeToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestWrite")
-  val adminToken = BearerToken(fakeAccessTokenPrefix + "musitTestUserTestAdmin")
-  val godToken = BearerToken(fakeAccessTokenPrefix + "superuser")
+  val readToken = BearerToken(FakeUsers.testUserToken)
+  val writeToken = BearerToken(FakeUsers.testWriteToken)
+  val adminToken = BearerToken(FakeUsers.testAdminToken)
+  val godToken = BearerToken(FakeUsers.superUserToken)
 
   override def beforeTests(): Unit = {
     Try {

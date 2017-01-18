@@ -6,7 +6,6 @@ services:
       ports:
           - "80:80"
       links:
-          - backing
           - thingaggregate
           - actor
           - geolocation
@@ -18,17 +17,6 @@ services:
         shm_size: 4G
         ports:
           - "1521:1521"
-
-    backing:
-        build:
-          context: "../../backing"
-        environment:
-          - CLIENT_ID
-          - CLIENT_SECRET
-          - CALLBACK_URL
-          - JWT_SECRET
-        ports:
-          - "8080:8080"
 
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
@@ -82,6 +70,7 @@ services:
           - "7074:7070"
         environment:
           - MUSIT_SECURITY_MODULE
+          - CALLBACK_URL
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
           - APPLICATION_SECRET

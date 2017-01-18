@@ -69,7 +69,8 @@ object CommonSettings {
       "-Xmax-classfile-name", "100" // This will limit the classname generation to 100 characters.
     ),
     // Configuring the scoverage plugin.
-    coverageExcludedPackages := "<empty>;controllers.javascript;controllers.web;views.*;router;no.uio.musit.test",
+    coverageExcludedPackages := "<empty>;router;controllers.javascript;" +
+      "controllers.web;views.*;no.uio.musit.test;migration",
     coverageExcludedFiles := "",
     coverageMinimum := 80,
     coverageFailOnMinimum := false,
@@ -88,6 +89,13 @@ object CommonSettings {
           .setPreference(FormatXml, false)
           .setPreference(SpacesAroundMultiImports, false)
       ))
+      .settings(
+        // Setting timezone for testing to UTC, because h2 doesn't support
+        // timezones very well, and it will always default to UTC regardless.
+        // For production environments we're using the timezone configured at
+        // OS level for each running service.
+        javaOptions in Test += "-Duser.timezone=UTC"
+      )
       .settings(dependencyOverrides += ScalaTest.scalatest)
       .configs(IntegrationTest)
 
@@ -102,10 +110,19 @@ object CommonSettings {
       .settings(dependencyOverrides += "com.typesafe.play" %% "play-logback" % Dependencies.PlayFrameWork.version)
       .settings(Seq(
         PlayKeys.playOmnidoc := false,
-        buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, buildInfoBuildNumber),
+        buildInfoKeys := Seq[BuildInfoKey](
+          name,
+          version,
+          scalaVersion,
+          sbtVersion,
+          buildInfoBuildNumber
+        ),
         buildInfoPackage := "no.uio.musit.service",
-        buildInfoOptions += BuildInfoOption.ToJson,
-        javaOptions in Test ++= Seq("-Dconfig.file=conf/application.test.conf", "-Dlogger.resource=logback-test.xml"),
+        buildInfoOptions ++= Seq(BuildInfoOption.ToJson, BuildInfoOption.BuildTime),
+        javaOptions in Test ++= Seq(
+          "-Dconfig.file=conf/application.test.conf",
+          "-Dlogger.resource=logback-test.xml"
+        ),
         maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
         packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
         packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",

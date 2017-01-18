@@ -26,14 +26,8 @@ import no.uio.musit.security.Permissions
 import no.uio.musit.MusitResults.MusitDbError
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.time.{Millis, Seconds, Span}
 
 class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   val dao = fromInstanceCache[AuthDao]
 

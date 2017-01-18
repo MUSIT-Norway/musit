@@ -19,7 +19,7 @@
 
 package models.event.dto
 
-import models.datetime.Implicits._
+import no.uio.musit.time.Implicits._
 import models.event.EventTypeRegistry._
 import CtrlSubEvents._
 import ObsSubEvents._

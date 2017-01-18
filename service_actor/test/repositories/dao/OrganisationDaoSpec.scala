@@ -22,16 +22,10 @@ package repositories.dao
 import models.Organisation
 import no.uio.musit.models.OrgId
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 
 class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
 
   val orgDao: OrganisationDao = fromInstanceCache[OrganisationDao]
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   "OrganisationDao" when {
 

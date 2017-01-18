@@ -20,6 +20,8 @@
 package no.uio.musit.security
 
 import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.security.oauth2.OAuth2Info
+import play.api.mvc.{Request, Result}
 
 import scala.concurrent.Future
 
@@ -29,6 +31,31 @@ import scala.concurrent.Future
  * requests. Any of these services may or may not return
  */
 trait Authenticator {
+
+  /**
+   * Starts the OAuth2 authentication process.
+   *
+   * @param req The current request.
+   * @tparam A The type of the request body.
+   * @return Either a Result or the active UserSession
+   */
+  def authenticate[A]()(implicit req: Request[A]): Future[Either[Result, UserSession]]
+
+  /**
+   * Method to "touch" the UserSession whenever a User interacts with a service.
+   *
+   * @param token BearerToken
+   * @return eventually it returns the updated MusitResult[UserSession]
+   */
+  def touch(token: BearerToken): Future[MusitResult[UserSession]]
+
+  /**
+   * Invalidates/Terminates the UserSession associated with the provided token.
+   *
+   * @param token BearerToken
+   * @return a MusitResult[Unit] wrapped in a Future.
+   */
+  def invalidate(token: BearerToken): Future[MusitResult[Unit]]
 
   /**
    * Method for retrieving the UserInfo from the AuthService.

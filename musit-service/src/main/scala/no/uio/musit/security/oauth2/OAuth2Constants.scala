@@ -17,19 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models
+package no.uio.musit.security.oauth2
 
-import org.joda.time.{DateTime, DateTimeZone}
+trait OAuth2Constants {
 
-package object datetime {
-
-  /**
-   * We should always be explicit about the timezone we work with. Otherwise,
-   * we risk ending up using the underlying OS timezone settings, which may
-   * vary depending on where the application is running.
-   */
-  val DefaultTimezone = DateTimeZone.UTC
-
-  def dateTimeNow = DateTime.now(DefaultTimezone)
+  val ClientID = "client_id"
+  val ClientSecret = "client_secret"
+  val RedirectURI = "redirect_uri"
+  val Scope = "scope"
+  val ResponseType = "response_type"
+  val State = "state"
+  val GrantType = "grant_type"
+  val AuthorizationCode = "authorization_code"
+  val AccessToken = "access_token"
+  val Error = "error"
+  val Code = "code"
+  val TokenType = "token_type"
+  val ExpiresIn = "expires_in"
+  val Expires = "expires"
+  val RefreshToken = "refresh_token"
+  val AccessDenied = "access_denied"
 
 }

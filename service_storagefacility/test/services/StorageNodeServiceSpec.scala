@@ -25,20 +25,15 @@ import models.event.move.{MoveNode, MoveObject}
 import models.storage.StorageUnit
 import models.{Interval, Move}
 import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeDatabaseId}
-import no.uio.musit.security.{AuthenticatedUser, UserInfo}
+import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
-import org.scalatest.time.{Millis, Seconds, Span}
 import utils.testhelpers.NodeGenerators
 
 class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
-
   implicit val dummyUser = AuthenticatedUser(
+    session = UserSession(uuid = SessionUUID.generate()),
     userInfo = UserInfo(
       id = defaultUserId,
       secondaryIds = Some(Seq("vader@starwars.com")),

@@ -22,7 +22,6 @@ package repositories.dao
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 
 /**
  * ¡¡¡This spec relies on objects being inserted in the evolution script under
@@ -31,11 +30,6 @@ import org.scalatest.time.{Millis, Seconds, Span}
  * references in comparison to the proper schema!!!
  */
 class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   val statsDao = fromInstanceCache[StorageStatsDao]
 

@@ -23,20 +23,13 @@ import java.util.UUID
 
 import no.uio.musit.models.{MuseumNo, ObjectId, SubNo}
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator
-import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.libs.json.JsArray
 import play.api.test.Helpers._
 
 class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
-
-  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
+  val fakeToken = BearerToken(FakeUsers.testUserToken)
 
   val archeologyCollection = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
   val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
@@ -109,7 +102,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         (thirdPnames.last \ "name").as[String] mustBe "Forskningens hus"
       }
 
-      "find objects for archeology and numismatics collections with a similar museumNo" in {
+      "find objects for archeology and numismatics with a similar museumNo" in {
         val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
           "collectionIds" -> s"$archeologyCollection,$numismaticsCollection",
           "museumNo" -> "555",

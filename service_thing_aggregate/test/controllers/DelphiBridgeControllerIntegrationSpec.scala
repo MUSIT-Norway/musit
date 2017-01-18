@@ -20,20 +20,13 @@
 package controllers
 
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator
-import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.libs.json.{JsArray, JsNumber, Json}
 import play.api.test.Helpers._
 
 class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
-
-  val fakeToken = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
+  val fakeToken = BearerToken(FakeUsers.testUserToken)
 
   val archeologyCollection = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
   val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"

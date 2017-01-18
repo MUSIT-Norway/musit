@@ -309,6 +309,7 @@ final class StorageController @Inject() (
       val failed = mru.filter(_._2.isFailure).map(_._1.underlying)
 
       if (success.isEmpty) {
+        logger.info("")
         BadRequest(Json.obj("message" -> "Nothing was moved"))
       } else {
         logger.debug(s"Moved: ${success.mkString("[", ", ", "]")}, " +

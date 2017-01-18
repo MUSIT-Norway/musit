@@ -21,6 +21,7 @@ package no.uio.musit.service
 
 import play.api.mvc.QueryStringBindable
 
+// $COVERAGE-OFF$
 class BindableOf[T](
     bindIt: Option[String] => Option[Either[String, T]]
 ) extends QueryStringBindable[T] {
@@ -33,3 +34,4 @@ class BindableOf[T](
   override def unbind(key: String, mf: T): String =
     throw new NotImplementedError()
 }
+// $COVERAGE-ON$

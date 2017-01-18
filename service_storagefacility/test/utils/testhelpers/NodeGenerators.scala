@@ -19,7 +19,7 @@
 
 package utils.testhelpers
 
-import models.datetime.dateTimeNow
+import no.uio.musit.time.dateTimeNow
 import models.storage._
 import models.Interval
 import no.uio.musit.models._

@@ -21,8 +21,7 @@ package controllers
 
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
@@ -32,13 +31,7 @@ import scala.concurrent.Future
 
 class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
-
-  val fakeUserId = "musitTestUser"
-  val fakeToken = BearerToken(fakeAccessTokenPrefix + fakeUserId)
+  val fakeToken = BearerToken(FakeUsers.testUserToken)
 
   def postOrganization(json: JsValue): Future[WSResponse] = {
     wsUrl("/v1/organization").withHeaders(fakeToken.asHeader).post(json)
@@ -101,7 +94,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "successfully update organization" in {
-      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
+      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com") // scalastyle:ignore
       val res1 = postOrganization(addJson).futureValue
       res1.status mustBe Status.CREATED
 
@@ -132,7 +125,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "not update organization with illegal input" in {
-      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com")
+      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com") // scalastyle:ignore
       val res1 = postOrganization(addJson).futureValue
       res1.status mustBe Status.CREATED
       val id = (res1.json \ "id").as[Long]
@@ -147,7 +140,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "successfully delete organization" in {
-      val crJson = orgJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com")
+      val crJson = orgJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com") // scalastyle:ignore
       val res1 = postOrganization(crJson).futureValue
       res1.status mustBe Status.CREATED
       val id = (res1.json \ "id").as[Long]

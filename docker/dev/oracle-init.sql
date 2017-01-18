@@ -51,6 +51,20 @@ CREATE TABLE MUSARK_AUTH.USER_INFO (
   PRIMARY KEY (user_uuid)
 );
 
+-- Table for keeping tabs on a users authenticated activity. "user_uuid" is not
+-- set as a foreign key deliberately. This allows us to prepare the session with
+-- a unique ID before we've received the access token from Dataporten.
+CREATE TABLE MUSARK_AUTH.USER_SESSION (
+  session_uuid     VARCHAR2(36)      NOT NULL,
+  token            VARCHAR2(36),
+  user_uuid        VARCHAR2(36),
+  login_time       TIMESTAMP WITH TIME ZONE,
+  last_active      TIMESTAMP WITH TIME ZONE,
+  is_logged_in     INTEGER DEFAULT 0 NOT NULL,
+  token_expires_in NUMBER(20),
+  PRIMARY KEY (session_uuid)
+);
+
 
 -- Actor tables
 CREATE TABLE MUSIT_MAPPING.ACTOR (

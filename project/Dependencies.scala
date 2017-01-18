@@ -47,23 +47,6 @@ object Dependencies {
     val reactiveStreamsHttp = "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8"
   }
 
-  object Silhouette {
-    val silhouetteVersion = "4.0.0"
-    val silhouette = "com.mohiva" %% "play-silhouette" % silhouetteVersion
-    val silhouetteBcrypt = "com.mohiva" %% "play-silhouette-password-bcrypt" % silhouetteVersion
-    val silhouetteCrypto = "com.mohiva" %% "play-silhouette-crypto-jca" % silhouetteVersion
-    val silhouettePersistence = "com.mohiva" %% "play-silhouette-persistence" % silhouetteVersion
-    val silhouetteTestkit = "com.mohiva" %% "play-silhouette-testkit" % silhouetteVersion % Test
-
-    val allDeps = Seq(
-      silhouette,
-      silhouetteBcrypt,
-      silhouetteCrypto,
-      silhouettePersistence,
-      silhouetteTestkit
-    )
-  }
-
   object Logging {
     val logbackVersion = "1.1.7"
     val slf4jVersion = "1.7.21"
@@ -87,10 +70,12 @@ object Dependencies {
     val scalatestplus = scalatestplusSpec % Test
   }
 
+  val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % Test
+
   val iheartFicus = "com.iheart" %% "ficus" % "1.2.3"
   val scalaGuice = "net.codingwell" %% "scala-guice" % "4.1.0"
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
-  val h2database = "com.h2database" % "h2" % "1.4.192"
+  val h2database = "com.h2database" % "h2" % "1.4.193"
   val zxing = "com.google.zxing" % "core" % "3.3.0"
 
   // Oracle specifics
@@ -112,7 +97,8 @@ object Dependencies {
   val testablePlayDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     ScalaTest.scalatest,
     ScalaTest.scalatestplus,
-    ScalaTest.scalactic
+    ScalaTest.scalactic,
+    scalaMock
   )
 
 
@@ -129,6 +115,7 @@ object Dependencies {
     playWithPersistenceDependencies ++ Seq(
       ScalaTest.scalatest,
       ScalaTest.scalatestplus,
-      ScalaTest.scalactic
+      ScalaTest.scalactic,
+      scalaMock
     )
 }

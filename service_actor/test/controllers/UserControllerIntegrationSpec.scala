@@ -20,19 +20,12 @@
 package controllers
 
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.http.Status
 
 class UserControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
-
-  val token = (uname: String) => BearerToken(fakeAccessTokenPrefix + uname)
+  val token = BearerToken(FakeUsers.fakeGuestToken)
 
   "The UserController" must {
 
@@ -42,7 +35,7 @@ class UserControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "get actor with matching dataportenId" in {
       val res = wsUrl("/v1/dataporten/currentUser")
-        .withHeaders(token("guest").asHeader)
+        .withHeaders(token.asHeader)
         .get().futureValue
 
       res.status mustBe Status.OK

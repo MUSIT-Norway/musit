@@ -19,7 +19,9 @@
 
 package no.uio.musit.security
 
+import no.uio.musit.models.MusitUUID
 import play.api.http.HeaderNames.AUTHORIZATION
+import play.api.libs.json.{Reads, __}
 import play.api.mvc.Request
 
 import scala.util.Try
@@ -37,7 +39,13 @@ case class BearerToken(underlying: String) extends AnyVal {
 
 object BearerToken {
 
+  implicit val reads: Reads[BearerToken] = __.read[String].map(BearerToken.apply)
+
   val prefix = "Bearer "
+
+  def fromMusitUUID(uuid: MusitUUID): BearerToken = {
+    BearerToken(uuid.underlying.toString)
+  }
 
   /**
    * Function to assist in extracting the BearerToken from incoming requests.

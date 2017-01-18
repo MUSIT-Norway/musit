@@ -20,9 +20,7 @@
 package controllers
 
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
-import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.http.Status
 import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
@@ -32,13 +30,7 @@ import scala.concurrent.Future
 
 class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
-
-  val fakeUserId = "musitTestUser"
-  val fakeToken = BearerToken(fakeAccessTokenPrefix + fakeUserId)
+  val fakeToken = BearerToken(FakeUsers.testUserToken)
 
   def postOrganizationAddress(orgId: Int, json: JsValue): Future[WSResponse] = {
     wsUrl(s"/v1/organization/$orgId/address")

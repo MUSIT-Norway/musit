@@ -17,12 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package no.uio.musit.security.dataporten
+package no.uio.musit
 
-object DataportenProvider {
+import org.joda.time.{DateTime, DateTimeZone}
 
-  val API = "https://auth.dataporten.no/userinfo?access_token=%s"
+package object time {
 
-  val GetProfileError = "[Dataporten][%s] Error retrieving profile information. " +
-    "Error message: %s, doc URL: %s"
+  /**
+   * We should always be explicit about the timezone we work with. Otherwise,
+   * we risk ending up using the underlying OS timezone settings, which may
+   * vary depending on where the application is running.
+   */
+  val DefaultTimezone = DateTimeZone.UTC
+
+  def dateTimeNow = DateTime.now(DefaultTimezone)
+
 }

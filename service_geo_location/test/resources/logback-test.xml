@@ -25,18 +25,18 @@
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>
-        %coloredLevel - %logger{15} - [%d{yyyy-MM-dd_HH:mm:ss.SSS}] - %message%n%xException
+        [%d{yyyy-MM-dd_HH:mm:ss.SSS}] [geo_location] %coloredLevel - %logger{15} - %message%n%xException
       </pattern>
     </encoder>
   </appender>
 
-  <logger name="akka" level="WARN"/>
+  <logger name="akka" level="ERROR"/>
   <logger name="slick.jdbc" level="WARN"/>
 
-  <logger name="no.uio.musit" level="INFO"/>
-  <logger name="controllers" level="INFO"/>
-  <logger name="services" level="INFO"/>
-  <logger name="models" level="INFO"/>
+  <logger name="no.uio.musit" level="ERROR"/>
+  <logger name="controllers" level="ERROR"/>
+  <logger name="services" level="ERROR"/>
+  <logger name="models" level="ERROR"/>
 
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>

@@ -20,17 +20,11 @@
 package repositories.dao.storage
 
 import no.uio.musit.models.{ActorId, GroupId, Museums, StorageNodeDatabaseId}
-import no.uio.musit.security.{AuthenticatedUser, GroupInfo, Permissions, UserInfo}
+import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
 import repositories.dao.MigrationDao
 
 class MigrationDaoSpec extends MusitSpecWithAppPerSuite {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   val migrationDao = fromInstanceCache[MigrationDao]
   val nodeDao = fromInstanceCache[StorageUnitDao]
@@ -38,6 +32,7 @@ class MigrationDaoSpec extends MusitSpecWithAppPerSuite {
   "MigrationDao" should {
     "successfully set STORAGENODE_UUID for nodes that doesn't have one" in {
       implicit val dummyUser = AuthenticatedUser(
+        session = UserSession(uuid = SessionUUID.generate()),
         userInfo = UserInfo(
           id = ActorId.generate(),
           secondaryIds = Some(Seq("vader@starwars.com")),

@@ -17,13 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package models.datetime
+package no.uio.musit.time
 
 import java.sql.{Date => JSqlDate, Timestamp => JSqlTimestamp}
 
 import org.joda.time.DateTime
 
-object Implicits {
+trait DateTimeImplicits {
 
   implicit def dateTimeToJSqlDate(dt: DateTime): JSqlDate =
     new JSqlDate(dt.getMillis)
@@ -54,3 +54,5 @@ object Implicits {
   ): Option[DateTime] = mjst.map(jSqlTimestampToDateTime)
 
 }
+
+object Implicits extends DateTimeImplicits

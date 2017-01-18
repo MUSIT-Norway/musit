@@ -20,20 +20,13 @@
 package controllers
 
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator
-import no.uio.musit.test.MusitSpecWithServerPerSuite
-import org.scalatest.time.{Millis, Seconds, Span}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.test.Helpers._
 
 class StatsControllerSpec extends MusitSpecWithServerPerSuite {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
-
-  val fakeToken1 = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "musitTestUser")
-  val fakeToken2 = BearerToken(FakeAuthenticator.fakeAccessTokenPrefix + "superuser")
+  val fakeToken1 = BearerToken(FakeUsers.testUserToken)
+  val fakeToken2 = BearerToken(FakeUsers.superUserToken)
 
   "Calling the stats endpoint" should {
     "return stats for a node including objects per collection" in {

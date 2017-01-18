@@ -25,15 +25,9 @@ import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
-import org.scalatest.time.{Millis, Seconds, Span}
 import utils.testhelpers.NodeGenerators
 
 class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
-
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
-  )
 
   "StorageUnitDao" should {
 
