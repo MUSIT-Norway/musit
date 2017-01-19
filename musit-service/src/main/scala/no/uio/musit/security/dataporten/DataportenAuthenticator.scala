@@ -191,7 +191,6 @@ class DataportenAuthenticator @Inject() (
     token: BearerToken,
     maybeSession: Option[UserSession]
   ): MusitResultT[Future, UserSession] = {
-    logger.warn(s"Delphi application authenticating using Dataporten token")
     val now = dateTimeNow
     maybeSession.map { s =>
       // So...we have a session. To identify if the request comes from a Delphi
@@ -203,7 +202,7 @@ class DataportenAuthenticator @Inject() (
       // we do nothing more.
       val expired = s.tokenExpiry.exists(now.isAfter)
       if (s.loginTime.isEmpty && (!s.isLoggedIn || expired)) {
-        logger.debug(s"Resetting invalidated Delphi session.")
+        logger.warn(s"Resetting invalidated Delphi session.")
         val us = s.copy(
           lastActive = Option(now),
           isLoggedIn = true,
@@ -214,6 +213,7 @@ class DataportenAuthenticator @Inject() (
         MusitResultT(Future.successful[MusitResult[UserSession]](MusitSuccess(s)))
       }
     }.getOrElse {
+      logger.warn(s"Delphi application authenticating using Dataporten token.")
       for {
         // We need to validate the token in Dataporten by calling the userInfo service.
         userInfo <- MusitResultT(userInfoDataporten(token))
