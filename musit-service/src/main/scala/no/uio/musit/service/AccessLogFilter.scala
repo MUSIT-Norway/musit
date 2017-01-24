@@ -38,13 +38,12 @@ class AccessLogFilter @Inject() (implicit val mat: Materializer) extends Filter 
 
     val startTime = System.currentTimeMillis
 
+    logger.debug(s"Incoming request entering access log filter...")
+    logger.debug(s"With request headers:\n${rh.headers.toSimpleMap.mkString("\n")}")
+
     nextFilter(rh).map { response =>
       val endTime = System.currentTimeMillis
       val procTime = endTime - startTime
-
-      logger.debug(
-        s"Request contained following headers:\n${rh.headers.toSimpleMap.mkString("\n")}"
-      )
 
       logger.info(
         s"${rh.remoteAddress} - ${response.header.status} - " +
