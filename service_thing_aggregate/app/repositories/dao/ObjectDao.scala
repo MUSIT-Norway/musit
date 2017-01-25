@@ -302,8 +302,7 @@ class ObjectDao @Inject() (
         WHERE lo."MUSEUM_ID" = ${mid.underlying}
         AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
         AND mt."OBJECT_ID" = lo."OBJECT_ID"
-        AND mt."IS_DELETED" = 0
-        #${collectionFilter(collections)}
+        AND mt."IS_DELETED" = 0 #${collectionFilter(collections)}
       """.as[Int].head
 
     db.run(count).map(MusitSuccess.apply).recover {
@@ -335,8 +334,7 @@ class ObjectDao @Inject() (
     val offset = (page - 1) * limit
     val query =
       sql"""
-        SELECT /*+DRIVING_SITE(mt)*/
-          mt."OBJECT_ID",
+        SELECT /*+DRIVING_SITE(mt)*/ mt."OBJECT_ID",
           mt."MUSEUMID",
           mt."MUSEUMNO",
           mt."MUSEUMNOASNUMBER",
@@ -352,13 +350,12 @@ class ObjectDao @Inject() (
         WHERE lo."MUSEUM_ID" = ${mid.underlying}
         AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
         AND mt."OBJECT_ID" = lo."OBJECT_ID"
-        AND mt."IS_DELETED" = 0
-        #${collectionFilter(collections)}
+        AND mt."IS_DELETED" = 0 #${collectionFilter(collections)}
         ORDER BY
-          mt.MUSEUMNOASNUMBER ASC,
-          lower(mt.MUSEUMNO) ASC,
-          mt.SUBNOASNUMBER ASC,
-          lower(mt.SUBNO) ASC
+          mt."MUSEUMNOASNUMBER" ASC,
+          LOWER(mt."MUSEUMNO") ASC,
+          mt."SUBNOASNUMBER" ASC,
+          LOWER(mt."SUBNO") ASC
         OFFSET ${offset} ROWS
         FETCH NEXT ${limit} ROWS ONLY
       """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])] // scalastyle:ignore

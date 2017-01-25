@@ -30,8 +30,8 @@ object Dependencies {
   )
 
   object PlayFrameWork {
-    val version = "2.5.10"
-    val playSlickVersion = "2.0.0"
+    val version = "2.5.12"
+    val playSlickVersion = "2.0.2"
 
     val slick_play = "com.typesafe.play" %% "play-slick" % playSlickVersion
     val slick_play_ev = "com.typesafe.play" %% "play-slick-evolutions" % playSlickVersion
@@ -72,7 +72,7 @@ object Dependencies {
 
   val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % Test
 
-  val iheartFicus = "com.iheart" %% "ficus" % "1.2.3"
+  val iheartFicus = "com.iheart" %% "ficus" % "1.4.0"
   val scalaGuice = "net.codingwell" %% "scala-guice" % "4.1.0"
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
   val h2database = "com.h2database" % "h2" % "1.4.193"
@@ -83,7 +83,7 @@ object Dependencies {
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 
   val enumeratumDeps: Seq[ModuleID] = {
-    val enumeratumVersion = "1.4.10"
+    val enumeratumVersion = "1.5.6"
     val libs = Seq("enumeratum", "enumeratum-play", "enumeratum-play-json")
     libs.map("com.beachape" %% _ % enumeratumVersion)
   }
