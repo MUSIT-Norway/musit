@@ -316,6 +316,15 @@ class ObjectDao @Inject() (
   /**
    * Fetch all objects for the given arguments.
    *
+   * You may notice that the below query doesn't have any ORDER BY clause.
+   * This is intentional since executing an ORDER BY over a database link,
+   * where the remote database is set to be the DRIVING_SITE, tend to be very
+   * slow.
+   *
+   * Instead the result set is already sorted in the view being accessed
+   * through the database link. That means we the result set we receive is
+   * already sorted, and removes a heavy computational process when querying.
+   *
    * @param mid
    * @param nodeId
    * @param collections
@@ -334,7 +343,7 @@ class ObjectDao @Inject() (
     val offset = (page - 1) * limit
     val query =
       sql"""
-        SELECT /*+DRIVING_SITE(mt)*/ mt."OBJECT_ID",
+        SELECT /*+ FIRST_ROWS DRIVING_SITE(mt) */ mt."OBJECT_ID",
           mt."MUSEUMID",
           mt."MUSEUMNO",
           mt."MUSEUMNOASNUMBER",
@@ -348,24 +357,20 @@ class ObjectDao @Inject() (
           mt."NEW_COLLECTION_ID"
         FROM "MUSARK_STORAGE"."LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
         WHERE lo."MUSEUM_ID" = ${mid.underlying}
+        AND mt."MUSEUMID" = ${mid.underlying}
         AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
         AND mt."OBJECT_ID" = lo."OBJECT_ID"
         AND mt."IS_DELETED" = 0 #${collectionFilter(collections)}
-        ORDER BY
-          mt."MUSEUMNOASNUMBER" ASC,
-          LOWER(mt."MUSEUMNO") ASC,
-          mt."SUBNOASNUMBER" ASC,
-          LOWER(mt."SUBNO") ASC
         OFFSET ${offset} ROWS
         FETCH NEXT ${limit} ROWS ONLY
       """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])] // scalastyle:ignore
 
     db.run(query).map { r =>
-      logger.debug(s"Got objects as tuples: ${r.mkString("\n", "\n", "")}")
-      MusitSuccess(r.map { t =>
+      val res = r.map { t =>
         (t._1.map(ObjectId.apply), MuseumId.fromInt(t._2), t._3, t._4, t._5,
           t._6, t._7, t._8, t._9, t._10, t._11, t._12)
-      })
+      }
+      MusitSuccess(res)
     }
   }
 
@@ -415,7 +420,7 @@ class ObjectDao @Inject() (
       o.isDeleted === false &&
         o.oldSchema === oldSchema &&
         (o.oldObjId inSet oldIds)
-    }.map(_.id)
+    }.sortBy(_.id).map(_.id)
 
     db.run(query.result).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
