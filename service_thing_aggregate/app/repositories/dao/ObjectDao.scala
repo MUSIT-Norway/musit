@@ -281,6 +281,17 @@ class ObjectDao @Inject() (
     s"""AND mt."NEW_COLLECTION_ID" in $in"""
   }
 
+  private def pagingClause(page: Int, limit: Int): String = {
+    val offset = (page - 1) * limit
+
+    // MUSARK-787:
+    // In Oracle, using bind variables for both OFFSET and FETCH NEXT in
+    // prepared statements over DB links causes the DRIVING_SITE hint to be
+    // dropped. An immediate, and significant, boost in performance is gained
+    // when using "fixed" values for these.
+    s"""OFFSET $offset ROWS FETCH NEXT $limit ROWS ONLY"""
+  }
+
   /**
    * Count all objects in a node matching the given arguments.
    *
@@ -340,14 +351,6 @@ class ObjectDao @Inject() (
     page: Int,
     limit: Int
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectRow]]] = {
-    val offset = (page - 1) * limit
-
-    // MUSARK-787:
-    // In Oracle, using bind variables for both OFFSET and FETCH NEXT in
-    // prepared statements over DB links causes the DRIVING_SITE hint to be
-    // dropped. An immediate, and significant, boost in performance is gained
-    // when using "fixed" values for these.
-    val pagingClause = s"""OFFSET $offset ROWS FETCH NEXT $limit ROWS ONLY"""
 
     val query =
       sql"""
@@ -369,7 +372,12 @@ class ObjectDao @Inject() (
         AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
         AND mt."OBJECT_ID" = lo."OBJECT_ID"
         AND mt."IS_DELETED" = 0 #${collectionFilter(collections)}
-        #${pagingClause}
+        ORDER BY
+          mt."MUSEUMNOASNUMBER" ASC,
+          LOWER(mt."MUSEUMNO") ASC,
+          mt."SUBNOASNUMBER" ASC,
+          LOWER(mt."SUBNO") ASC
+        #${pagingClause(page, limit)}
       """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])] // scalastyle:ignore
 
     db.run(query).map { r =>
