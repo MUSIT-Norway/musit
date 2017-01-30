@@ -341,6 +341,14 @@ class ObjectDao @Inject() (
     limit: Int
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectRow]]] = {
     val offset = (page - 1) * limit
+
+    // MUSARK-787:
+    // In Oracle, using bind variables for both OFFSET and FETCH NEXT in
+    // prepared statements over DB links causes the DRIVING_SITE hint to be
+    // dropped. An immediate, and significant, boost in performance is gained
+    // when using "fixed" values for these.
+    val pagingClause = s"""OFFSET $offset ROWS FETCH NEXT $limit ROWS ONLY"""
+
     val query =
       sql"""
         SELECT /*+ FIRST_ROWS DRIVING_SITE(mt) */ mt."OBJECT_ID",
@@ -361,8 +369,7 @@ class ObjectDao @Inject() (
         AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
         AND mt."OBJECT_ID" = lo."OBJECT_ID"
         AND mt."IS_DELETED" = 0 #${collectionFilter(collections)}
-        OFFSET ${offset} ROWS
-        FETCH NEXT ${limit} ROWS ONLY
+        #${pagingClause}
       """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])] // scalastyle:ignore
 
     db.run(query).map { r =>
@@ -462,12 +469,15 @@ class ObjectDao @Inject() (
     oldBarcode: Long,
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    val query = objTable.filter { o =>
+    val cids = collections.flatMap(_.schemaIds).distinct
+
+    val q1 = objTable.filter { o =>
       o.oldBarcode === oldBarcode &&
         o.museumId === museumId &&
-        o.isDeleted === false &&
-        (o.newCollectionId inSet collections.flatMap(_.schemaIds).distinct)
+        o.isDeleted === false
     }
+    // If use has god mode, look in all collections.
+    val query = if (currUsr.hasGodMode) q1 else q1.filter(_.newCollectionId inSet cids)
 
     db.run(query.result).map { res =>
       MusitSuccess(res.map(MusitObject.fromTuple))
