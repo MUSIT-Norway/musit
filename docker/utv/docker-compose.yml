@@ -50,6 +50,11 @@ services:
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
           - APPLICATION_SECRET
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
 
     auth:
         image: musit_service_auth:0.1-SNAPSHOT
@@ -67,8 +72,6 @@ services:
           - SLICK_DB_URL
           - SLICK_DB_USER
           - SLICK_DB_PASSWORD
-        links:
-          - actor
 
     storagefacility:
         image: musit_service_storagefacility:0.1-SNAPSHOT
