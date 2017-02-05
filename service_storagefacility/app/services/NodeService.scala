@@ -282,6 +282,16 @@ trait NodeService {
     }
   }
 
+  /**
+   * Deals with the shared logic for registering a Move event.
+   *
+   * @param event
+   * @param eventuallyMaybeCurrent
+   * @param eventuallyMaybeTo
+   * @param mv
+   * @tparam E
+   * @return
+   */
   private[services] def move[E <: MoveEvent](
     event: E,
     eventuallyMaybeCurrent: Future[Option[GenericStorageNode]],
@@ -296,8 +306,16 @@ trait NodeService {
 
     eventuallyExistence.flatMap {
       case (maybeCurr: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
-        maybeTo.map(to => mv(maybeCurr, to)).getOrElse {
-          Future.successful(MusitValidationError("Could not find to node."))
+        if (maybeCurr.flatMap(_.id) != maybeTo.flatMap(_.id)) {
+          maybeTo.map { to =>
+            mv(maybeCurr, to)
+          }.getOrElse {
+            Future.successful(MusitValidationError("Could not find destination node."))
+          }
+        } else {
+          Future.successful {
+            MusitValidationError("Current node and destination are the same.")
+          }
         }
     }
   }

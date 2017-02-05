@@ -52,8 +52,6 @@ class ObservationFromToDao @Inject() (
    * TODO: Document me!
    */
   def getObservationFromTo(id: EventId): Future[Option[ObservationFromToDto]] =
-    db.run(
-      obsFromToTable.filter(event => event.id === id).result.headOption
-    )
+    db.run(obsFromToTable.filter(event => event.id === id).result.headOption)
 
 }

@@ -293,6 +293,10 @@ final class StorageController @Inject() (
   /**
    * Helper function to encapsulate shared logic in both the different move
    * endpoints.
+   *
+   * NOTE: This operation depends on sequential execution of the underlying
+   * move service. If there are many things being moved, this will be slow and
+   * may harm the stability of the system.
    */
   private def move[A <: MoveEvent](
     events: Seq[A]
@@ -324,7 +328,10 @@ final class StorageController @Inject() (
   }
 
   /**
-   * TODO: Document me!
+   * Moves one or more nodes from one parent node to another. Upholding the
+   * rules of the node hierarchy. The response contains a list of the nodes
+   * that were moved successfully, and the nodes that did not get moved for
+   * some reason.
    */
   def moveNode(
     mid: Int
@@ -344,7 +351,9 @@ final class StorageController @Inject() (
   }
 
   /**
-   * TODO: Document me!
+   * Moves one or more objects to a node in the hierarchy. The response includes
+   * a list of successfully moved objects, and the objects that failed for some
+   * reason.
    */
   def moveObject(
     mid: Int
@@ -354,7 +363,21 @@ final class StorageController @Inject() (
     request.body.validate[Move[ObjectId]] match {
       case JsSuccess(cmd, _) =>
         val events = MoveObject.fromCommand(request.user.id, cmd)
-        move(events)((id, evt) => service.moveObject(mid, id, evt))
+        service.moveObjects(mid, cmd.destination, events).map {
+          case MusitSuccess(oids) =>
+            // Only oids in events were successfull, the others were not moved.
+            val failed = cmd.items.filterNot(oids.contains)
+            Ok(Json.obj(
+              "moved" -> oids.map(_.underlying),
+              "failed" -> failed.map(_.underlying)
+            ))
+
+          case MusitValidationError(msg, _, _) =>
+            BadRequest(Json.obj("message" -> msg))
+
+          case err: MusitError =>
+            InternalServerError(Json.obj("message" -> err.message))
+        }
 
       case JsError(error) =>
         logger.warn(s"Error parsing JSON:" +

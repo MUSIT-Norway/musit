@@ -23,6 +23,7 @@ import com.google.inject.Inject
 import models.event.dto.{EventDto, LocalObject}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.SharedTables
 
 import scala.concurrent.Future
@@ -36,7 +37,7 @@ class LocalObjectDao @Inject() (
   private def upsert(lo: LocalObject): DBIO[Int] =
     localObjectsTable.insertOrUpdate(lo)
 
-  def cacheLatestMove(mid: MuseumId, eventId: EventId, moveEvent: EventDto): DBIO[Int] = {
+  def storeLatestMove(mid: MuseumId, eventId: EventId, moveEvent: EventDto): DBIO[Int] = {
     val relObj = moveEvent.relatedObjects.headOption
     val relPlc = moveEvent.relatedPlaces.headOption
 
@@ -56,6 +57,28 @@ class LocalObjectDao @Inject() (
     }.map(_.currentLocationId).max.result
 
     db.run(query)
+  }
+
+  /**
+   * Returns the LocalObject instance associated with the given objectIds
+   *
+   * @param objectIds Seq of ObjectIds to get current location for.
+   * @return Eventually returns a Map of ObjectIds and StorageNodeDatabaseId
+   */
+  def currentLocations(
+    objectIds: Seq[ObjectId]
+  ): Future[Map[ObjectId, Option[StorageNodeDatabaseId]]] = {
+    val query = localObjectsTable.filter { locObj =>
+      locObj.objectId inSet objectIds
+    }.result
+
+    db.run(query).map { l =>
+      objectIds.foldLeft(Map.empty[ObjectId, Option[StorageNodeDatabaseId]]) {
+        case (res, oid) =>
+          val maybeNodeId = l.find(_.objectId == oid).map(_.currentLocationId)
+          res ++ Map(oid -> maybeNodeId)
+      }
+    }
   }
 
 }
