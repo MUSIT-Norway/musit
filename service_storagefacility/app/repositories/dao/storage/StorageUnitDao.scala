@@ -118,6 +118,26 @@ class StorageUnitDao @Inject() (
   }
 
   /**
+   * Fetches the node data for provided database ids
+   *
+   * @param mid
+   * @param ids
+   * @return
+   */
+  def getNodesByIds(
+    mid: MuseumId,
+    ids: Seq[StorageNodeDatabaseId]
+  ): Future[Seq[GenericStorageNode]] = {
+    val query = storageNodeTable.filter { sn =>
+      sn.museumId === mid &&
+        sn.isDeleted === false &&
+        (sn.id inSet ids)
+    }.result
+
+    db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
+  }
+
+  /**
    * TODO: Document me!!!
    */
   def getStorageTypesInPath(

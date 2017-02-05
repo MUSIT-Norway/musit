@@ -35,8 +35,10 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.{ColumnTypeMappers, EventTables}
 import EventRelationTypes.PartialEventRelation
 import repositories.dao.caching.LocalObjectDao
+import slick.dbio.Effect.All
 import slick.dbio.SequenceAction
 
+import scala.collection.immutable.IndexedSeq
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
@@ -170,35 +172,32 @@ class EventDao @Inject() (
     val partOfParent = partialRelation.filter(_ => isPartsRelation).map(_.idFrom)
     val insertBase = buildInsertAction(event, partOfParent)
 
-    val insertWithChildren =
-      for {
-        // Execute the insert of the base event
-        theEventId <- insertBase
-        // Insert the children
-        _ <- insertChildrenAction(mid, theEventId, event.relatedSubEvents)
-        // Insert the event relations
-        _ <- {
-          partialRelation.filterNot(_ => isPartsRelation).map { pel =>
-            relationDao.insertRelationAction(pel.toFullLink(theEventId))
-          }.getOrElse(DBIO.successful[Int](0))
+    for {
+      // Execute the insert of the base event
+      theEventId <- insertBase
+      // Insert the children
+      _ <- insertChildrenAction(mid, theEventId, event.relatedSubEvents)
+      // Insert the event relations
+      _ <- {
+        partialRelation.filterNot(_ => isPartsRelation).map { pel =>
+          relationDao.insertRelationAction(pel.toFullLink(theEventId))
+        }.getOrElse(DBIO.successful[Int](0))
+      }
+      // Insert any related actor relations
+      _ <- insertRelatedActors(theEventId, event.relatedActors)
+      // Insert any related objects relations
+      _ <- {
+        if (MoveObjectType.id == event.eventTypeId) {
+          localObjectDao.storeLatestMove(mid, theEventId, event).andThen(
+            insertRelatedObjects(theEventId, event.relatedObjects)
+          )
+        } else {
+          insertRelatedObjectsAsPlaces(mid, theEventId, event.relatedObjects)
         }
-        // Insert any related actor relations
-        _ <- insertRelatedActors(theEventId, event.relatedActors)
-        // Insert any related objects relations
-        _ <- {
-          if (MoveObjectType.id == event.eventTypeId) {
-            localObjectDao.cacheLatestMove(mid, theEventId, event).andThen(
-              insertRelatedObjects(theEventId, event.relatedObjects)
-            )
-          } else {
-            insertRelatedObjectsAsPlaces(mid, theEventId, event.relatedObjects)
-          }
-        }
-        // Insert any related place relations
-        _ <- insertRelatedPlaces(theEventId, event.relatedPlaces)
-      } yield theEventId
-
-    insertWithChildren.transactionally
+      }
+      // Insert any related place relations
+      _ <- insertRelatedPlaces(theEventId, event.relatedPlaces)
+    } yield theEventId
   }
 
   /**
@@ -206,7 +205,12 @@ class EventDao @Inject() (
    */
   def insertEvent(mid: MuseumId, event: EventDto): Future[EventId] = {
     val action = insertEventAction(mid, event, None)
-    db.run(action)
+    db.run(action.transactionally)
+  }
+
+  def insertEvents(mid: MuseumId, events: Seq[EventDto]): Future[Seq[EventId]] = {
+    val actions = DBIO.sequence(events.map(e => insertEventAction(mid, e, None)))
+    db.run(actions.transactionally)
   }
 
   /**
@@ -216,7 +220,7 @@ class EventDao @Inject() (
     mid: MuseumId,
     parentEventId: EventId,
     children: Seq[RelatedEvents]
-  ) = {
+  ): SequenceAction[IndexedSeq[EventId], IndexedSeq[IndexedSeq[EventId]], All] = {
     val actions = children.map { relatedEvents =>
       val relActions = relatedEvents.events.map { subEvent =>
         insertEventAction(

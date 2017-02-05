@@ -740,7 +740,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveJson = Json.parse(
           s"""{
               |  "doneBy": "${adminId.asString}",
-              |  "destination": 4,
+              |  "destination": 5,
               |  "items": [$id2]
               |}""".stripMargin
         )

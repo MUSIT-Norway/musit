@@ -252,6 +252,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
     "successfully move an object with a previous location" in {
       val oid = ObjectId(8)
+      val dest = StorageNodeDatabaseId(23)
 
       val loc1 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc1.isSuccess mustBe true
@@ -267,9 +268,10 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = Some(StorageNodeDatabaseId(6)),
-        to = StorageNodeDatabaseId(23)
+        to = dest
       )
-      val res = service.moveObject(defaultMuseumId, oid, event).futureValue
+
+      val res = service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue
       res.isSuccess mustBe true
 
       val loc2 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
@@ -278,8 +280,39 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       loc2.get.get.id mustBe Some(StorageNodeDatabaseId(23))
     }
 
+    "not register a move when current location and destination are the same" in {
+      val oid = ObjectId(8)
+      val dest = StorageNodeDatabaseId(23)
+
+      val loc1 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
+      loc1.isSuccess mustBe true
+      loc1.get must not be None
+      loc1.get.get.id mustBe Some(StorageNodeDatabaseId(23))
+
+      val event = MoveObject(
+        id = None,
+        doneBy = Some(defaultUserId),
+        doneDate = DateTime.now,
+        affectedThing = Some(oid),
+        registeredBy = Some(defaultUserId),
+        registeredDate = Some(DateTime.now),
+        eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        from = Some(dest),
+        to = dest
+      )
+
+      val res = service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue
+      res.isFailure mustBe true
+
+      val loc2 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
+      loc2.isSuccess mustBe true
+      loc2.get must not be None
+      loc2.get.get mustBe loc1.get.get
+    }
+
     "successfully move an object with no previous location" in {
       val oid = ObjectId(22)
+      val dest = StorageNodeDatabaseId(23)
       val event = MoveObject(
         id = None,
         doneBy = Some(defaultUserId),
@@ -289,9 +322,9 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         from = None,
-        to = StorageNodeDatabaseId(23)
+        to = dest
       )
-      val res = service.moveObject(defaultMuseumId, oid, event).futureValue
+      val res = service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue
       res.isSuccess mustBe true
 
       val loc = service.currentObjectLocation(defaultMuseumId, oid).futureValue
@@ -405,25 +438,8 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       val currLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
       currLoc.isSuccess mustBe true
       currLoc.get.get.id.get.underlying mustBe 5
-      currLoc.get.get.path.toString must include(currLoc.get.get.id.get.underlying.toString)
-
-      val moveObject = Move[ObjectId](StorageNodeDatabaseId(4), Seq(oid))
-      val moveSeq = MoveObject.fromCommand(aid, moveObject)
-      service.moveObject(defaultMuseumId, oid, moveSeq.head).futureValue
-      val newCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
-      newCurrLoc.isSuccess mustBe true
-      newCurrLoc.get.get.id.get.underlying mustBe 4
-      newCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
-
-      val anotherMid = MuseumId(4)
-      val moveSameObject = Move[ObjectId](StorageNodeDatabaseId(3), Seq(oid))
-      val moveSameSeq = MoveObject.fromCommand(aid, moveSameObject)
-      service.moveObject(anotherMid, oid, moveSameSeq.head).futureValue
-      val sameCurrLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
-      sameCurrLoc.isSuccess mustBe true
-      sameCurrLoc.get.get.id.get.underlying mustBe 4
-      sameCurrLoc.get.get.path.toString must include(newCurrLoc.get.get.id.get.underlying.toString)
-
+      val currIdStr = currLoc.get.get.id.get.underlying.toString
+      currLoc.get.get.path.toString must include(currIdStr)
     }
 
     "find the relevant rooms when searching with a valid MuseumId" in {

@@ -483,7 +483,23 @@ class StorageNodeService @Inject() (
     val dto = DtoConverters.MoveConverters.moveToDto(event)
     eventDao.insertEvent(mid, dto).flatMap(eventId => f(eventId)).recover {
       case NonFatal(ex) =>
-        val msg = s"An exception occured trying to move $id"
+        val msg = s"An exception occurred trying to move $id"
+        logger.error(msg, ex)
+        MusitInternalError(msg)
+    }
+  }
+
+  private def persistMoveEvents(
+    mid: MuseumId,
+    events: Seq[MoveEvent]
+  )(
+    f: Seq[EventId] => Future[MusitResult[Seq[ObjectId]]]
+  ): Future[MusitResult[Seq[ObjectId]]] = {
+    val dtos = events.map(DtoConverters.MoveConverters.moveToDto)
+    eventDao.insertEvents(mid, dtos).flatMap(ids => f(ids)).recover {
+      case NonFatal(ex) =>
+        val msg = "An exception occurred registering a batch move with ids: " +
+          s" ${events.map(_.id.getOrElse("<empty>")).mkString(", ")}"
         logger.error(msg, ex)
         MusitInternalError(msg)
     }
@@ -533,27 +549,56 @@ class StorageNodeService @Inject() (
   }
 
   /**
-   * TODO: Document me!
+   * Moves a batch of objects from their current locations to another node in
+   * the storage facility. Note that there are no integrity checks here. The
+   * objects are assumed to exist, and will be placed in the node regardless if
+   * the exist or not.
+   *
+   * @param mid MuseumId
+   * @param destination StorageNodeDatabaseId to place the objects
+   * @param moveEvents A collection of MoveObject events.
+   * @param currUsr the currently authenticated user.
+   * @return A MusitResult with a collection of ObjectIds that were moved.
    */
-  def moveObject(
+  def moveObjects(
     mid: MuseumId,
-    objectId: ObjectId,
-    event: MoveObject
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    val eventuallyMaybeCurrent = localObjectDao.currentLocation(objectId)
-      .flatMap(_.map(id => unitDao.getNodeById(mid, id))
-        .getOrElse(Future.successful(None)))
+    destination: StorageNodeDatabaseId,
+    moveEvents: Seq[MoveObject]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectId]]] = {
+    val objIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get) // scalastyle:ignore
+    // Check if destination node exists
+    val eventuallyEvents = for {
+      maybeTo <- unitDao.getById(mid, destination)
+      if maybeTo.nonEmpty
+      locTuples <- localObjectDao.currentLocations(objIds)
+      currNodes <- unitDao.getNodesByIds(mid, locTuples.values.flatten.toSeq)
+    } yield {
+      // Do not register move event if destination is the same as current location
+      val oids = locTuples.filterNot { t =>
+        val isSame = t._2.contains(destination)
+        if (isSame) logger.debug(s"Object ${t._1} is already in node $destination")
+        isSame
+      }.keys.toVector
 
-    move(event, eventuallyMaybeCurrent, unitDao.getNodeById(mid, event.to)) {
-      case (maybeCurr, to) =>
-        val theEvent = event.copy(from = maybeCurr.flatMap(_.id))
+      moveEvents.filter(_.affectedThing.exists(i => oids.contains(i))).map { e =>
+        // We can call get here because the filter above will guarantee its
+        // going to present.
+        val id = e.affectedThing.get // scalastyle:ignore
+        e.copy(from = locTuples.get(id).flatten)
+      }
+    }
 
-        logger.debug(s"Going to move object $objectId from" +
-          s" ${maybeCurr.map(_.path).getOrElse("NA")} to ${to.path}")
-
-        persistMoveEvent(mid, objectId, theEvent) { eventId =>
-          Future.successful(MusitSuccess(eventId))
+    eventuallyEvents.flatMap { events =>
+      if (events.nonEmpty) {
+        persistMoveEvents(mid, events) { eventIds =>
+          // Again, this is safe because we wouldn't have gotten here unless the
+          // objectId was present.
+          val movedIds = events.map(_.affectedThing.get) // scalastyle:ignore
+          Future.successful(MusitSuccess(movedIds))
         }
+      } else {
+        Future.successful(MusitValidationError("No move events to exexcute"))
+      }
     }
   }
 
