@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import models.event.dto.DtoConverters
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
-import models.{FacilityLocation, LocationHistory}
+import models.{FacilityLocation, LocationHistory, ObjectsLocation}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -489,9 +489,9 @@ class StorageNodeService @Inject() (
     }
   }
 
-  private def persistMoveEvents(
+  private def persistMoveEvents[E <: MoveEvent](
     mid: MuseumId,
-    events: Seq[MoveEvent]
+    events: Seq[E]
   )(
     f: Seq[EventId] => Future[MusitResult[Seq[ObjectId]]]
   ): Future[MusitResult[Seq[ObjectId]]] = {
@@ -565,40 +565,18 @@ class StorageNodeService @Inject() (
     destination: StorageNodeDatabaseId,
     moveEvents: Seq[MoveObject]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectId]]] = {
+    // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
     val objIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get) // scalastyle:ignore
-    // Check if destination node exists
-    val eventuallyEvents = for {
-      maybeTo <- unitDao.getById(mid, destination)
-      if maybeTo.nonEmpty
-      locTuples <- localObjectDao.currentLocations(objIds)
-      currNodes <- unitDao.getNodesByIds(mid, locTuples.values.flatten.toSeq)
-    } yield {
-      // Do not register move event if destination is the same as current location
-      val oids = locTuples.filterNot { t =>
-        val isSame = t._2.contains(destination)
-        if (isSame) logger.debug(s"Object ${t._1} is already in node $destination")
-        isSame
-      }.keys.toVector
+    val currentLoc = localObjectDao.currentLocations(objIds)
 
-      moveEvents.filter(_.affectedThing.exists(i => oids.contains(i))).map { e =>
-        // We can call get here because the filter above will guarantee its
-        // going to present.
-        val id = e.affectedThing.get // scalastyle:ignore
-        e.copy(from = locTuples.get(id).flatten)
-      }
-    }
-
-    eventuallyEvents.flatMap { events =>
-      if (events.nonEmpty) {
+    moveBatch(mid, destination, objIds, currentLoc, moveEvents) {
+      case (_, _, events) =>
         persistMoveEvents(mid, events) { eventIds =>
-          // Again, this is safe because we wouldn't have gotten here unless the
-          // objectId was present.
+          // Again the get on affectedThing is safe since we're guaranteed its
+          // presence at this point.
           val movedIds = events.map(_.affectedThing.get) // scalastyle:ignore
           Future.successful(MusitSuccess(movedIds))
         }
-      } else {
-        Future.successful(MusitValidationError("No move events to exexcute"))
-      }
     }
   }
 
@@ -658,13 +636,35 @@ class StorageNodeService @Inject() (
    */
   def currentObjectLocation(
     mid: MuseumId,
-    oid: Long
+    oid: ObjectId
   ): Future[MusitResult[Option[StorageNode]]] = {
     val currentNodeId = localObjectDao.currentLocation(oid)
     currentNodeId.flatMap { optCurrentNodeId =>
       optCurrentNodeId.map { id =>
         getNodeById(mid, id)
       }.getOrElse(Future.successful(MusitSuccess(None)))
+    }
+  }
+
+  /**
+   *
+   * @param mid
+   * @param oids
+   * @return
+   */
+  def currentObjectLocations(
+    mid: MuseumId,
+    oids: Seq[ObjectId]
+  ): Future[MusitResult[Seq[ObjectsLocation]]] = {
+    localObjectDao.currentLocations(oids).flatMap { objNodeMap =>
+      val nodeIds = objNodeMap.values.flatten.toSeq.distinct
+      unitDao.getNodesByIds(mid, nodeIds).map { nodes =>
+        val ol = nodes.map { node =>
+          val objects = objNodeMap.filter(_._2 == node.id).keys.toSeq
+          ObjectsLocation(node, objects)
+        }
+        MusitSuccess(ol)
+      }
     }
   }
 

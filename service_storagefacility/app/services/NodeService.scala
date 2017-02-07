@@ -22,7 +22,7 @@ package services
 import java.util.NoSuchElementException
 
 import models.event.envreq.EnvRequirement
-import models.event.move.MoveEvent
+import models.event.move._
 import models.storage.StorageType._
 import models.storage._
 import no.uio.musit.MusitResults._
@@ -36,6 +36,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.storage.StorageUnitDao
 
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 trait NodeService {
@@ -317,6 +318,60 @@ trait NodeService {
             MusitValidationError("Current node and destination are the same.")
           }
         }
+    }
+  }
+
+  type CurrLocType[ID] = Map[ID, Option[StorageNodeDatabaseId]]
+
+  private def filterAndEnrich[ID <: MusitId, E <: MoveEvent](
+    current: CurrLocType[ID],
+    ids: Vector[ID],
+    moveEvents: Seq[E]
+  )(implicit ctId: ClassTag[ID], ctEvt: ClassTag[E]): Seq[E] = {
+    moveEvents.filter(_.affectedThing.exists(ids.contains)).map { e =>
+      val currId = e.affectedThing.get.asInstanceOf[ID] // scalastyle:ignore
+      val id = current.get(currId).flatten
+      // need to match on type to be able to access the copy function.
+      val copied = e match {
+        case obj: MoveObject => obj.copy(from = id)
+        case nde: MoveNode => nde.copy(from = id)
+      }
+      // Don't like this hack...type-erasure forced this
+      copied.asInstanceOf[E]
+    }
+  }
+
+  private[services] def moveBatch[ID <: MusitId, E <: MoveEvent](
+    mid: MuseumId,
+    destination: StorageNodeDatabaseId,
+    affectedIds: Seq[ID],
+    eventuallyCurrentMap: Future[CurrLocType[ID]],
+    moveEvents: Seq[E]
+  )(
+    mv: (GenericStorageNode, CurrLocType[ID], Seq[E]) => Future[MusitResult[Seq[ID]]]
+  )(implicit ctId: ClassTag[ID], ctEvt: ClassTag[E]): Future[MusitResult[Seq[ID]]] = {
+    val eventuallyEvents = for {
+      maybeTo <- unitDao.getNodeById(mid, destination)
+      // only continue if we have found the destination node
+      if maybeTo.nonEmpty
+      current <- eventuallyCurrentMap
+    } yield {
+      val ids = current.filterNot { t =>
+        val isSame = t._2.contains(destination)
+        if (isSame) logger.debug(s"${t._1} is already in node $destination")
+        isSame
+      }.keys.toVector
+
+      val filtered = filterAndEnrich(current, ids, moveEvents)
+
+      // Calling get on maybeTo should be safe, since we abort the for-comprehension
+      // if it's nonEmpty
+      (maybeTo.get, current, filtered) // scalastyle:ignore
+    }
+
+    eventuallyEvents.flatMap {
+      case (to, current, events) if events.nonEmpty => mv(to, current, events)
+      case _ => Future.successful(MusitValidationError("No move events to execute"))
     }
   }
 }
