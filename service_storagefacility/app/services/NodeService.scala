@@ -336,7 +336,8 @@ trait NodeService {
         case obj: MoveObject => obj.copy(from = id)
         case nde: MoveNode => nde.copy(from = id)
       }
-      // Don't like this hack...type-erasure forced this
+      // Don't like this explicit type casting. Type-erasure forced this, but
+      // it would be nice to find away around it.
       copied.asInstanceOf[E]
     }
   }
@@ -364,8 +365,8 @@ trait NodeService {
 
       val filtered = filterAndEnrich(current, ids, moveEvents)
 
-      // Calling get on maybeTo should be safe, since we abort the for-comprehension
-      // if it's nonEmpty
+      // Calling get on maybeTo should be safe, since we abort the
+      // for-comprehension if it's nonEmpty
       (maybeTo.get, current, filtered) // scalastyle:ignore
     }
 
