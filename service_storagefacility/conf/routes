@@ -39,6 +39,7 @@ GET           /v1/museum/:mid/storagenodes/:nodeId/observations/:eventId        
 # ~~~~
 GET           /v1/museum/:mid/storagenodes/objects/:oid/locations               controllers.StorageController.objectLocationHistory(mid: Int, oid: Long, limit: Int ?= 50)
 GET           /v1/museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.StorageController.currentObjectLocation(mid: Int, oid: Long)
+GET           /v1/museum/:mid/storagenodes/objects/currentlocations             controllers.StorageController.currentObjectLocations(mid: Int)
 
 # General endpoints
 ### TODO: Find better name for endpoint

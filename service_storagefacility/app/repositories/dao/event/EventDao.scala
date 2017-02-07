@@ -53,9 +53,10 @@ import scala.reflect.ClassTag
     - one for EnvRequirement
     - etc...
 
-    This partitioning would have been easy to spot if the impl had followed  a
-    top-down approach. Where the first "implementation" of the persistence layer
-    would've had to be a "repository" trait for each of the main types.
+    This correct abstraction would have been easy to spot if the impl had
+    followed  a top-down approach. Where the first "implementation" of the
+    persistence layer would've had to be a "repository" trait for each of the
+    main types.
  */
 
 /**
@@ -157,6 +158,12 @@ class EventDao @Inject() (
    * sub-events. PartialEventLink is used if the event is inserted as a
    * subElement of a parent element. The id of the parent element is then in
    * the partialEventLink.
+   *
+   * WARNING: This function is recursive with the possibility of triggering an
+   * infinite loop. Due to the event DTO model being way to generic and its
+   * abstraction incorrectly (for storage facility) represented as recursive,
+   * there is a possibility for building an structure that references itself.
+   * This will cause an infinite loop and eventually a stack overflow.
    */
   private[this] def insertEventAction(
     mid: MuseumId,
@@ -208,6 +215,13 @@ class EventDao @Inject() (
     db.run(action.transactionally)
   }
 
+  /**
+   * Allows batch insertion of multiple events wrapped in 1 transaction.
+   *
+   * @param mid MuseumId
+   * @param events collection of EventDto instances to insert
+   * @return Eventually returns a list of EventIds for the inserted events.
+   */
   def insertEvents(mid: MuseumId, events: Seq[EventDto]): Future[Seq[EventId]] = {
     val actions = DBIO.sequence(events.map(e => insertEventAction(mid, e, None)))
     db.run(actions.transactionally)

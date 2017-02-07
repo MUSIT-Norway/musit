@@ -68,11 +68,17 @@ class LocalObjectDao @Inject() (
   def currentLocations(
     objectIds: Seq[ObjectId]
   ): Future[Map[ObjectId, Option[StorageNodeDatabaseId]]] = {
-    val query = localObjectsTable.filter { locObj =>
-      locObj.objectId inSet objectIds
-    }.result
+    type QLocQuery = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, Seq]
 
-    db.run(query).map { l =>
+    def buildQuery(ids: Seq[ObjectId]) = localObjectsTable.filter(_.objectId inSet ids)
+
+    val q = objectIds.grouped(500).foldLeft[(Int, QLocQuery)]((0, localObjectsTable)) {
+      case (qry, ids) =>
+        if (qry._1 == 0) (1, buildQuery(ids))
+        else (qry._1 + 1, qry._2 unionAll buildQuery(ids))
+    }
+
+    db.run(q._2.result).map { l =>
       objectIds.foldLeft(Map.empty[ObjectId, Option[StorageNodeDatabaseId]]) {
         case (res, oid) =>
           val maybeNodeId = l.find(_.objectId == oid).map(_.currentLocationId)

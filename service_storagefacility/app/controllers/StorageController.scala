@@ -389,7 +389,7 @@ final class StorageController @Inject() (
   /**
    * Endpoint for retrieving the {{{limit}}} number of past move events.
    *
-   * @param mid      : MuseumId
+   * @param mid      MuseumId
    * @param objectId the objectId to get move history for.
    * @param limit    Int indicating the number of results to return.
    * @return A JSON array with the {{{limit}}} number of move events.
@@ -408,6 +408,13 @@ final class StorageController @Inject() (
     }
   }
 
+  /**
+   * Get the current location for a an ObjectId.
+   *
+   * @param mid MuseumId
+   * @param oid Long (must be a valid ObjectId)
+   * @return a JSON response with the StorageNode where the object is located.
+   */
   def currentObjectLocation(
     mid: Int,
     oid: Long
@@ -421,9 +428,38 @@ final class StorageController @Inject() (
         }
 
       case err: MusitError =>
-        logger.error("An unexpected error occured when trying to read " +
+        logger.error("An unexpected error occurred when trying to read " +
           s" currentLocation for object $oid. Message was: ${err.message}")
         InternalServerError(Json.obj("message" -> err.message))
+    }
+  }
+
+  /**
+   * Get the current location for a list of ObjectIds
+   *
+   * @param mid MuseumId
+   * @return A JSON response with a list of StorageNodes.
+   */
+  def currentObjectLocations(
+    mid: Int
+  ) = MusitSecureAction(mid, Read).async(parse.json) { implicit request =>
+    request.body.validate[Seq[ObjectId]] match {
+      case JsSuccess(ids, _) =>
+        service.currentObjectLocations(mid, ids).map {
+          case MusitSuccess(objectsLocations) =>
+            Ok(Json.toJson(objectsLocations))
+
+          case err: MusitError =>
+            logger.error("An unexpected error occurred when trying to get " +
+              s"current location for a list of ${ids.size} objectIds. " +
+              s"Message was: ${err.message}")
+            InternalServerError(Json.obj("message" -> err.message))
+        }
+
+      case JsError(error) =>
+        logger.warn(s"Error parsing JSON:" +
+          s"\n${Json.prettyPrint(JsError.toJson(error))}")
+        Future.successful(BadRequest(JsError.toJson(error)))
     }
   }
 
