@@ -6,7 +6,7 @@
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>
-        [%d{yyyy-MM-dd_HH:mm:ss.SSS}] [thing_aggregate] %coloredLevel - %logger{15} - %message%n%xException
+        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [thing_aggregate] %coloredLevel - %logger{15} - %message%n%xException
       </pattern>
     </encoder>
   </appender>
@@ -19,7 +19,7 @@
     <file>logs/service-thingaggregate.log</file>
     <encoder>
       <pattern>
-        [%d{yyyy-MM-dd_HH:mm:ss.SSS}] [thing_aggregate] [%level] - %logger - %message%n%xException
+        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [thing_aggregate] [%level] - %logger - %message%n%xException
       </pattern>
     </encoder>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
