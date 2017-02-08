@@ -345,7 +345,7 @@ class StorageUnitDao @Inject() (
     oldPath: NodePath,
     newPath: NodePath
   ): Future[MusitResult[Int]] = {
-    db.run(updatePaths(oldPath, newPath)).map {
+    db.run(updatePathsAction(oldPath, newPath).transactionally).map {
       case res: Int if res != 0 =>
         logger.debug(s"Successfully updated path for $res nodes")
         MusitSuccess(res)
@@ -357,6 +357,26 @@ class StorageUnitDao @Inject() (
     }.recover {
       case NonFatal(ex) =>
         val msg = s"Unexpected error when updating paths for unit $id sub-tree"
+        logger.error(msg, ex)
+        MusitDbError(msg)
+    }
+  }
+
+  def batchUpdateLocation(
+    nodes: Seq[StorageNode],
+    newParent: StorageNode
+  ): Future[MusitResult[Unit]] = {
+    val a1 = DBIO.sequence(nodes.map(n => updatePartOfAction(n.id.get, newParent.id)))
+    val a2 = DBIO.sequence {
+      nodes.map(n => updatePathsAction(n.path, newParent.path.appendChild(n.id.get)))
+    }
+
+    db.run(a2.andThen(a1).transactionally).map { _ =>
+      logger.debug(s"Successfully updated node locations for ${nodes.size} nodes")
+      MusitSuccess(())
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"Unexpected error when updating location for ${nodes.size} nodes."
         logger.error(msg, ex)
         MusitDbError(msg)
     }
@@ -423,12 +443,9 @@ class StorageUnitDao @Inject() (
     id: StorageNodeDatabaseId,
     partOf: Option[StorageNodeDatabaseId]
   ): Future[MusitResult[Int]] = {
-    val filter = storageNodeTable.filter(n =>
-      n.id === id && n.isDeleted === false)
-    val q = for { n <- filter } yield n.isPartOf
-    val query = q.update(partOf)
+    val query = updatePartOfAction(id, partOf)
 
-    db.run(query).map {
+    db.run(query.transactionally).map {
       case res: Int if res == 1 =>
         MusitSuccess(res)
 

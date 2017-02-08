@@ -91,7 +91,17 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     }.map(_.path).update(path)
   }
 
-  protected[dao] def updatePaths(
+  protected[dao] def updatePartOfAction(
+    id: StorageNodeDatabaseId,
+    partOf: Option[StorageNodeDatabaseId]
+  ): DBIO[Int] = {
+    val filter = storageNodeTable.filter(n =>
+      n.id === id && n.isDeleted === false)
+    val q = for { n <- filter } yield n.isPartOf
+    q.update(partOf)
+  }
+
+  protected[dao] def updatePathsAction(
     oldParent: NodePath,
     newParent: NodePath
   ): DBIO[Int] = {
@@ -106,7 +116,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
          UPDATE "MUSARK_STORAGE"."STORAGE_NODE"
          SET "NODE_PATH" = replace("NODE_PATH", ${op}, ${np})
          WHERE "NODE_PATH" LIKE ${pathFilter}
-       """.asUpdate.transactionally
+       """.asUpdate
   }
 
   /**

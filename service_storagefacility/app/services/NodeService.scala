@@ -46,6 +46,14 @@ trait NodeService {
   val unitDao: StorageUnitDao
   val envReqService: EnvironmentRequirementService
 
+  // A couple of type aliases to reduce the length of some function args.
+  type NodeInsertIO[A] = (MuseumId, A) => Future[StorageNodeDatabaseId]
+  type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
+  type NodeUpdateIO[A] = (StorageNodeDatabaseId, NodePath) => Future[MusitResult[Unit]]
+  type GetNodeIO[A] = (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
+  type CopyNode[A <: StorageNode] = (A, Option[EnvironmentRequirement], Option[Seq[NamedPathElement]]) => A // scalastyle:ignore
+  type CurrLocType[ID] = Map[ID, Option[StorageNodeDatabaseId]]
+
   /**
    * Saves the provided environment requirements as an Event.
    */
@@ -150,7 +158,7 @@ trait NodeService {
         logger.trace(s"Validating destination for ${node.storageType.entryName}...")
         // Identify the type of node we want to place in the hierarchy, and
         // validate if the destination location is valid for the given type.
-        node.storageType match {
+        val res = node.storageType match {
           case RootType =>
             RootNode.isValidLocation(dest)
 
@@ -169,19 +177,46 @@ trait NodeService {
           case StorageUnitType =>
             StorageUnit.isValidLocation(maybeDestId, idTypeTuples)
         }
+
+        if (!res) {
+          logger.warn(s"Cannot move node ${node.id} to ${dest.path} because " +
+            "it is not a allowed")
+        }
+
+        res
       }
     } else {
-      logger.warn(s"destination $dest is not allowed because it's a child" +
-        s" of ${node.path}")
+      logger.warn(s"destination ($dest) is not allowed for ${node.id} because " +
+        s"it is a child of ${node.path}.")
       Future.successful(false)
     }
   }
 
-  // A couple of type aliases to reduce the length of some function args.
-  type NodeInsertIO[A] = (MuseumId, A) => Future[StorageNodeDatabaseId]
-  type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
-  type NodeUpdateIO[A] = (StorageNodeDatabaseId, NodePath) => Future[MusitResult[Unit]]
-  type GetNodeIO[A] = (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
+  /**
+   * Validates nodes to be moved to see if the destination is valid considering
+   * the type of each node. Any invalid moves will be filtered away, and the
+   * valid ones are returned.
+   *
+   * @param mid MuseumId
+   * @param nodes the nodes to validate
+   * @param dest the destination node path
+   * @return
+   */
+  private[services] def filterInvalidPosition(
+    mid: MuseumId,
+    dest: NodePath,
+    nodes: Future[Seq[GenericStorageNode]]
+  ): Future[Seq[GenericStorageNode]] = {
+    nodes.flatMap { theNodes =>
+      Future.sequence {
+        theNodes.map { node =>
+          isValidPosition(mid, node, dest).map { isValid =>
+            if (isValid) Some(node) else None
+          }
+        }
+      }.map(_.filter(_.isDefined).map(_.get))
+    }
+  }
 
   private val futureFilterErr = "Future.filter predicate is not satisfied"
 
@@ -250,8 +285,6 @@ trait NodeService {
     }
   }
 
-  type CopyNode[A <: StorageNode] = (A, Option[EnvironmentRequirement], Option[Seq[NamedPathElement]]) => A // scalastyle:ignore
-
   /**
    * Helper function that applies the common logic for fetching a storage node.
    *
@@ -283,46 +316,6 @@ trait NodeService {
     }
   }
 
-  /**
-   * Deals with the shared logic for registering a Move event.
-   *
-   * @param event
-   * @param eventuallyMaybeCurrent
-   * @param eventuallyMaybeTo
-   * @param mv
-   * @tparam E
-   * @return
-   */
-  private[services] def move[E <: MoveEvent](
-    event: E,
-    eventuallyMaybeCurrent: Future[Option[GenericStorageNode]],
-    eventuallyMaybeTo: Future[Option[GenericStorageNode]]
-  )(
-    mv: (Option[GenericStorageNode], GenericStorageNode) => Future[MusitResult[EventId]]
-  ): Future[MusitResult[EventId]] = {
-    val eventuallyExistence = for {
-      maybeCurrent <- eventuallyMaybeCurrent
-      maybeTo <- eventuallyMaybeTo
-    } yield (maybeCurrent, maybeTo)
-
-    eventuallyExistence.flatMap {
-      case (maybeCurr: Option[GenericStorageNode], maybeTo: Option[GenericStorageNode]) =>
-        if (maybeCurr.flatMap(_.id) != maybeTo.flatMap(_.id)) {
-          maybeTo.map { to =>
-            mv(maybeCurr, to)
-          }.getOrElse {
-            Future.successful(MusitValidationError("Could not find destination node."))
-          }
-        } else {
-          Future.successful {
-            MusitValidationError("Current node and destination are the same.")
-          }
-        }
-    }
-  }
-
-  type CurrLocType[ID] = Map[ID, Option[StorageNodeDatabaseId]]
-
   private def filterAndEnrich[ID <: MusitId, E <: MoveEvent](
     current: CurrLocType[ID],
     ids: Vector[ID],
@@ -336,6 +329,9 @@ trait NodeService {
         case obj: MoveObject => obj.copy(from = id)
         case nde: MoveNode => nde.copy(from = id)
       }
+
+      logger.debug(s"Copied from: ${copied.from} to: ${copied.to}")
+
       // Don't like this explicit type casting. Type-erasure forced this, but
       // it would be nice to find away around it.
       copied.asInstanceOf[E]
