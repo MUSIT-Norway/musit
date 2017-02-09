@@ -238,7 +238,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val event = MoveNode.fromCommand(defaultUserId, move).head
 
-      val m = service.moveNode(defaultMuseumId, unit1.id.get, event).futureValue
+      val m = service.moveNodes(defaultMuseumId, building2.id.get, Seq(event)).futureValue
       m.isSuccess mustBe true
 
       mostChildren.map { c =>

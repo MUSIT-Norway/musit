@@ -291,43 +291,6 @@ final class StorageController @Inject() (
   }
 
   /**
-   * Helper function to encapsulate shared logic in both the different move
-   * endpoints.
-   *
-   * NOTE: This operation depends on sequential execution of the underlying
-   * move service. If there are many things being moved, this will be slow and
-   * may harm the stability of the system.
-   */
-  private def move[A <: MoveEvent](
-    events: Seq[A]
-  )(mv: (MusitId, A) => Future[MusitResult[EventId]]): Future[Result] = {
-    Future.sequence {
-      events.map { e =>
-        // We know the affected thing will have an ID since we populated it
-        // from the Move command
-        val id = e.affectedThing.get
-        mv(id, e).map(res => (id, res))
-      }
-    }.map { mru =>
-      val success = mru.filter(_._2.isSuccess).map(_._1.underlying)
-      val failed = mru.filter(_._2.isFailure).map(_._1.underlying)
-
-      if (success.isEmpty) {
-        logger.info("")
-        BadRequest(Json.obj("message" -> "Nothing was moved"))
-      } else {
-        logger.debug(s"Moved: ${success.mkString("[", ", ", "]")}, " +
-          s"failed: ${failed.mkString("[", ", ", "]")}")
-        Ok(Json.obj(
-          "moved" -> success,
-          "failed" -> failed
-        ))
-      }
-
-    }
-  }
-
-  /**
    * Moves one or more nodes from one parent node to another. Upholding the
    * rules of the node hierarchy. The response contains a list of the nodes
    * that were moved successfully, and the nodes that did not get moved for
@@ -341,7 +304,20 @@ final class StorageController @Inject() (
     request.body.validate[Move[StorageNodeDatabaseId]] match {
       case JsSuccess(cmd, _) =>
         val events = MoveNode.fromCommand(request.user.id, cmd)
-        move(events)((id, evt) => service.moveNode(mid, id, evt))
+        service.moveNodes(mid, cmd.destination, events).map {
+          case MusitSuccess(nids) =>
+            val failed = cmd.items.filterNot(nids.contains)
+            Ok(Json.obj(
+              "moved" -> nids.map(_.underlying),
+              "failed" -> failed.map(_.underlying)
+            ))
+
+          case MusitValidationError(msg, _, _) =>
+            BadRequest(Json.obj("message" -> msg))
+
+          case err: MusitError =>
+            InternalServerError(Json.obj("messsage" -> err.message))
+        }
 
       case JsError(error) =>
         logger.warn(s"Error parsing JSON:" +

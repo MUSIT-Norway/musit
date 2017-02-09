@@ -2,7 +2,7 @@
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>
-        %level - %logger{15} - [%d{yyyy-MM-dd_HH:mm:ss.SSS}] - %message%n%xException
+        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [musit-service] %coloredLevel - %logger{15} - %message%n%xException
       </pattern>
     </encoder>
   </appender>

@@ -489,14 +489,14 @@ class StorageNodeService @Inject() (
     }
   }
 
-  private def persistMoveEvents[E <: MoveEvent](
+  private def persistMoveEvents[ID <: MusitId, E <: MoveEvent](
     mid: MuseumId,
     events: Seq[E]
   )(
-    f: Seq[EventId] => Future[MusitResult[Seq[ObjectId]]]
-  ): Future[MusitResult[Seq[ObjectId]]] = {
+    f: Seq[EventId] => MusitResult[Seq[ID]]
+  ): Future[MusitResult[Seq[ID]]] = {
     val dtos = events.map(DtoConverters.MoveConverters.moveToDto)
-    eventDao.insertEvents(mid, dtos).flatMap(ids => f(ids)).recover {
+    eventDao.insertEvents(mid, dtos).map(ids => f(ids)).recover {
       case NonFatal(ex) =>
         val msg = "An exception occurred registering a batch move with ids: " +
           s" ${events.map(_.id.getOrElse("<empty>")).mkString(", ")}"
@@ -505,46 +505,54 @@ class StorageNodeService @Inject() (
     }
   }
 
-  /**
-   * TODO: This is a mess...refactor me when time allows
-   */
-  def moveNode(
+  def moveNodes(
     mid: MuseumId,
-    id: StorageNodeDatabaseId,
-    event: MoveNode
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    move(event, unitDao.getNodeById(mid, id), unitDao.getNodeById(mid, event.to)) {
-      case (maybeCurr, to) =>
-        maybeCurr.map { curr =>
-          logger.debug(s"Moving node [${curr.id}, ${curr.name}, " +
-            s"${curr.storageType.entryName}, ${curr.path}] " +
-            s"to destination [${to.id}, ${to.storageType.entryName}, ${to.name}, " +
-            s"${to.path}]")
-          isValidPosition(mid, curr, to.path).flatMap { isValid =>
-            if (!isValid) {
-              val invMsg = s"Attempted to move node $id to invalid location ${to.path}"
-              logger.warn(invMsg)
-              Future.successful(MusitValidationError(invMsg))
-            } else {
-              val theEvent = event.copy(from = curr.id)
+    destination: StorageNodeDatabaseId,
+    moveEvents: Seq[MoveNode]
+  )(
+    implicit
+    currUsr: AuthenticatedUser
+  ): Future[MusitResult[Seq[StorageNodeDatabaseId]]] = {
+    // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
+    val nodeIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get) // scalastyle:ignore
+    val affectedNodes = unitDao.getNodesByIds(mid, nodeIds)
+    val currLoc = affectedNodes.map(_.map(n => (n.id.get, n.isPartOf)).toMap)
 
-              logger.debug(s"Going to move node $id from ${curr.path} to ${to.path}")
+    logger.debug(s"Preparing to move nodes to $destination")
 
-              unitDao.updateSubTreePath(id, curr.path, to.path.appendChild(id)).flatMap {
-                // scalastyle:ignore
-                case MusitSuccess(numUpdated) =>
-                  persistMoveEvent(mid, id, theEvent) { eventId =>
-                    unitDao.updatePartOf(id, Some(event.to)).map { updRes =>
-                      logger.debug(s"Update partOf result $updRes")
-                      MusitSuccess(eventId)
-                    }
-                  }
+    moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
+      case (to, curr, events) =>
+        logger.debug(s"Destination node is ${to.id} with path ${to.path}")
+        logger.debug(s"Filtering away invalid placement of nodes in $destination.")
+        // Filter away nodes that didn't pass first round of validation
+        val nodesToMove = affectedNodes.map { nodes =>
+          nodes.filter(n => events.exists(_.affectedThing.contains(n.id.get)))
+        }
 
-                case err: MusitError => Future.successful(err)
-              }
+        // Filter away nodes with invalid positions and process the ones remaining
+        filterInvalidPosition(mid, to.path, nodesToMove).flatMap { validNodes =>
+          if (validNodes.nonEmpty) {
+            logger.debug(s"Will move ${validNodes.size} to $destination.")
+            // Remove events for which moving the node was identified as invalid.
+            val validEvents = events.filter(e => validNodes.exists(_.id == e.affectedThing))
+            val moveIds = validNodes.flatMap(_.id)
+
+            for {
+              // Update the NodePath and partOf for all nodes to be moved.
+              resLocUpd <- unitDao.batchUpdateLocation(validNodes, to)
+              if resLocUpd.isSuccess
+              // If the above update succeeded, we store the move events.
+              mvRes <- persistMoveEvents(mid, validEvents)(_ => MusitSuccess(moveIds))
+            } yield {
+              logger.debug(s"Successfully moved ${validNodes.size} nodes to $destination")
+              mvRes
+            }
+          } else {
+            Future.successful {
+              MusitValidationError("No valid commands were found. No nodes were moved.")
             }
           }
-        }.getOrElse(Future.successful(MusitValidationError(s"Node $id was not found")))
+        }
     }
   }
 
@@ -574,8 +582,7 @@ class StorageNodeService @Inject() (
         persistMoveEvents(mid, events) { eventIds =>
           // Again the get on affectedThing is safe since we're guaranteed its
           // presence at this point.
-          val movedIds = events.map(_.affectedThing.get) // scalastyle:ignore
-          Future.successful(MusitSuccess(movedIds))
+          MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
         }
     }
   }
