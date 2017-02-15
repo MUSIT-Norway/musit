@@ -3,6 +3,7 @@
 # ~~~~
 
 GET           /service/storagefacility/buildinfo                                controllers.Application.buildInfo
+GET           /service/storagefacility/healthcheck                              controllers.HealthCheckController.healthCheck
 
 # StorageNode endpoints
 # ~~~~
