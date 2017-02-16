@@ -20,22 +20,18 @@
 package no.uio.musit.healthcheck
 
 import com.google.inject.{Inject, Singleton}
+import no.uio.musit.healthcheck.HealthCheckDao.HealthCheckName
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class HealthCheckDao @Inject() (
-    val dbConfigProvider: DatabaseConfigProvider
-)(
-    implicit
-    ec: ExecutionContext
-) extends HasDatabaseConfigProvider[JdbcProfile] with HealthCheck {
+class HealthCheckDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)(
+    implicit ec: ExecutionContext)
+    extends HasDatabaseConfigProvider[JdbcProfile] with HealthCheck {
 
   import driver.api._
-
-  val CheckName = "Database"
 
   override def healthCheck(): Future[HealthCheckStatus] = {
     val checkConnectionQuery = sql"""select 1 from dual""".as[Int]
@@ -44,27 +40,32 @@ class HealthCheckDao @Inject() (
     db.run(checkConnectionQuery).map {
       case Vector(1) =>
         HealthCheckStatus(
-          CheckName,
+          name = HealthCheckName,
           available = true,
           responseTime = stopWatch.elapsed(),
-          None
+          message = None
         )
       case r =>
         HealthCheckStatus(
-          CheckName,
+          name = HealthCheckName,
           available = false,
           responseTime = stopWatch.elapsed(),
-          Some(s"Unexpected result from health check query. Result: $r")
+          message = Some(s"Unexpected result from health check query. Result: $r")
         )
     }.recover {
       case e: Exception =>
         HealthCheckStatus(
-          CheckName,
+          name = HealthCheckName,
           available = false,
           responseTime = stopWatch.elapsed(),
-          Some(s"Unexpected result from health check query. Reason: ${e.getMessage}")
+          message = Some("Unexpected result from health check query. " +
+            s"Reason: ${e.getMessage}")
         )
     }
   }
 
+}
+
+object HealthCheckDao {
+  val HealthCheckName = "database.connectivity"
 }
