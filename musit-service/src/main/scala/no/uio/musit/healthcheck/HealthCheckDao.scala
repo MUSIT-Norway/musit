@@ -22,13 +22,13 @@ package no.uio.musit.healthcheck
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.healthcheck.HealthCheckDao.HealthCheckName
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 @Singleton
-class HealthCheckDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)(
-    implicit ec: ExecutionContext)
+class HealthCheckDao @Inject() (val dbConfigProvider: DatabaseConfigProvider)
     extends HasDatabaseConfigProvider[JdbcProfile] with HealthCheck {
 
   import driver.api._
