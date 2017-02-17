@@ -128,22 +128,22 @@ object StorageNode {
  * used for services where a list of storage nodes need to be returned.
  */
 case class GenericStorageNode(
-    id: Option[StorageNodeDatabaseId],
-    nodeId: Option[StorageNodeId],
-    name: String,
-    area: Option[Double],
-    areaTo: Option[Double],
-    isPartOf: Option[StorageNodeDatabaseId],
-    height: Option[Double],
-    heightTo: Option[Double],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    path: NodePath,
-    environmentRequirement: Option[EnvironmentRequirement],
-    storageType: StorageType,
-    updatedBy: Option[ActorId],
-    updatedDate: Option[DateTime],
-    pathNames: Option[Seq[NamedPathElement]] = None
+  id: Option[StorageNodeDatabaseId],
+  nodeId: Option[StorageNodeId],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[StorageNodeDatabaseId],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  path: NodePath,
+  environmentRequirement: Option[EnvironmentRequirement],
+  storageType: StorageType,
+  updatedBy: Option[ActorId],
+  updatedDate: Option[DateTime],
+  pathNames: Option[Seq[NamedPathElement]] = None
 ) extends StorageNode
 
 object GenericStorageNode {
