@@ -276,8 +276,9 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       val loc2 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
       loc2.isSuccess mustBe true
-      loc2.get must not be None
+      loc2.get must not be empty
       loc2.get.get.id mustBe Some(StorageNodeDatabaseId(23))
+      loc2.get.get.pathNames must not be empty
     }
 
     "not register a move when current location and destination are the same" in {
