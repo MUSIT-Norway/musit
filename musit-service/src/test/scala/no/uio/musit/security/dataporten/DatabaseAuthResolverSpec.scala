@@ -62,6 +62,24 @@ class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
         res.get mustBe Some(userInfo)
       }
 
+      "convert email fields to lower case when storing UserInfo" in {
+        val ui = UserInfo(
+          id = ActorId.generate(),
+          secondaryIds = Option(Seq(email.toUpperCase)),
+          name = Option("Darth Vader"),
+          email = Option(Email("darth.vader@deathstar.io")),
+          picture = None
+        )
+
+        resolver.saveUserInfo(ui).futureValue.isSuccess mustBe true
+
+        val res = resolver.userInfo(ui.id).futureValue
+        res.isSuccess mustBe true
+        res.get.isDefined mustBe true
+        res.get.get.secondaryIds must not be empty
+        res.get.get.secondaryIds.get.head mustBe email.toLowerCase
+      }
+
       "update existing UserInfo" in {
         val upd = userInfo.copy(name = Some("Darth Anakin Vader"))
         resolver.saveUserInfo(upd).futureValue.isSuccess mustBe true
