@@ -49,7 +49,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
   implicit lazy val emailMapper: BaseColumnType[Email] =
     MappedColumnType.base[Email, String](
       email => email.value,
-      str => Email(str)
+      str => Email.fromString(str)
     )
 
   implicit lazy val collectionIdMapper: BaseColumnType[CollectionUUID] =

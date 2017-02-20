@@ -33,9 +33,9 @@ case class UserInfo(
 
   def feideUser: Option[Email] = {
     secondaryIds.flatMap(_.find { sid =>
-      sid.startsWith("feide") || sid.contains("@")
+      sid.toLowerCase.startsWith("feide") || sid.contains("@")
     }.map { fid =>
-      Email(fid.reverse.takeWhile(_ != ':').reverse.trim)
+      Email.fromString(fid.reverse.takeWhile(_ != ':').reverse.trim)
     })
   }
 
@@ -55,7 +55,7 @@ object UserInfo {
       userInfo.id,
       userInfo.feideUser,
       userInfo.name,
-      userInfo.email,
+      userInfo.email.map(e => Email.fromString(e.value)),
       userInfo.picture
     )
   }

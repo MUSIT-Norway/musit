@@ -25,20 +25,26 @@ import play.api.libs.json.Reads._
 
 case class Email(value: String) extends AnyVal {
 
-  def startsWith(str: String): Boolean = value.startsWith(str)
+  def startsWith(str: String): Boolean = {
+    value.toLowerCase.startsWith(str.toLowerCase)
+  }
 
 }
 
 object Email {
 
-  def fromString(str: String): Option[Email] = {
+  def validate(str: String): Option[Email] = {
     Constraints.emailAddress(str) match {
-      case Valid => Option(Email(str))
+      case Valid => Option(Email.fromString(str))
       case Invalid(errs) => None
     }
   }
 
-  implicit val reads: Reads[Email] = __.read[String](email).map(Email.apply)
+  def fromString(str: String): Email = Email(str.toLowerCase)
+
+  implicit val reads: Reads[Email] = {
+    __.read[String](email).map(s => Email(s.toLowerCase))
+  }
 
   implicit val writes: Writes[Email] = Writes(oid => JsString(oid.value))
 

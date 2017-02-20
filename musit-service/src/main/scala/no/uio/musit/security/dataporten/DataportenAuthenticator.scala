@@ -300,7 +300,7 @@ class DataportenAuthenticator @Inject() (
     userInfo.secondaryIds.map { sids =>
       Future.sequence {
         sids.map(stripPrefix).filter(_.contains("@")).map { sid =>
-          Email.fromString(sid).map { email =>
+          Email.validate(sid).map { email =>
             authResolver.findGroupInfoByFeideEmail(email).map(_.getOrElse(Seq.empty))
           }.getOrElse(Future.successful(Seq.empty))
         }

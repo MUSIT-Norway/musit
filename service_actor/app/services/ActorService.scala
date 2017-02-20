@@ -102,7 +102,7 @@ class ActorService @Inject() (
     // Merge duplicate actors into the appropriate user in the users list
     val merged = users.map(Person.fromUserInfo).map { p =>
       dupes.find(_.dataportenUser.exists { prefix =>
-        p.dataportenUser.exists(_.startsWith(prefix))
+        p.dataportenUser.exists(du => du.toLowerCase.startsWith(prefix.toLowerCase))
       }).map { a =>
         p.copy(applicationId = a.applicationId)
       }.getOrElse(p)
