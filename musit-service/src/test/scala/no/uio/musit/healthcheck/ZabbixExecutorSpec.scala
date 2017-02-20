@@ -47,17 +47,19 @@ class ZabbixExecutorSpec extends MusitSpec with BeforeAndAfterEach {
   "ZabbixExecutor" when {
     "write results to file" in {
       val folder = createTempFolder()
-      val executor: ZabbixExecutor = createExecutor(folder)
+      val zibbixFile = ZabbixFile(folder, "musit-health.json")
 
+      val executor: ZabbixExecutor = createExecutor(zibbixFile)
       val result = executor.executeHealthChecks().futureValue
 
-      val res = Json.parse(new FileInputStream(s"$folder/musit-health.json"))
+      val res = Json.parse(new FileInputStream(zibbixFile.ensureWritableFile()))
       (res \ "noop").as[Boolean] mustBe true
     }
 
     "write result over old file" in {
       val folder = createTempFolder()
-      val executor: ZabbixExecutor = createExecutor(folder)
+      val zibbixFile = ZabbixFile(folder, "musit-health.json")
+      val executor: ZabbixExecutor = createExecutor(zibbixFile)
       val currentTime = DateTime.now()
       val latestUpdated = currentTime.plusHours(1).getMillis
 
@@ -67,16 +69,16 @@ class ZabbixExecutorSpec extends MusitSpec with BeforeAndAfterEach {
       DateTimeUtils.setCurrentMillisFixed(latestUpdated)
       executor.executeHealthChecks().futureValue
 
-      val res = Json.parse(new FileInputStream(s"$folder/musit-health.json"))
+      val res = Json.parse(new FileInputStream(zibbixFile.ensureWritableFile()))
       (res \ "updated").as[Long] mustBe latestUpdated
     }
   }
 
-  def createExecutor(folder: String) = {
+  def createExecutor(zabbixFile: ZabbixFile) = {
     val executor = new ZabbixExecutor(
       zabbixMeta = meta,
       healthChecks = Set(new NoopHealthCheck()),
-      zabbaxFilePath = folder,
+      zabbaxFile = zabbixFile,
       actorSystem = actorSystem
     )
     executor.close()

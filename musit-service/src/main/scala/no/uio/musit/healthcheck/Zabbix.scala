@@ -19,6 +19,9 @@
 
 package no.uio.musit.healthcheck
 
+import java.io.File
+import java.nio.file.Files
+
 import org.joda.time.DateTime
 import play.api.libs.json._
 
@@ -35,6 +38,15 @@ case class ZabbixMeta(
   url: String,
   hostGroup: String
 )
+
+case class ZabbixFile(dir: String, name: String) {
+  def ensureWritableFile(): File = {
+    Files.createDirectories(new File(dir).toPath)
+    val zabbixFile = new File(dir, name)
+    zabbixFile.createNewFile()
+    zabbixFile
+  }
+}
 
 case class Zabbix(
     meta: ZabbixMeta,

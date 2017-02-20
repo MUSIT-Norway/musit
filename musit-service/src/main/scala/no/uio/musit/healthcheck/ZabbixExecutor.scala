@@ -20,12 +20,15 @@
 package no.uio.musit.healthcheck
 
 import java.io.{Closeable, File, FileWriter}
+import java.nio.file.{Files, Path, Paths}
 
 import akka.actor.ActorSystem
 import no.uio.musit.healthcheck.ZabbixExecutor.using
 import org.joda.time.DateTime
+import play.api.Mode.Mode
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
+import play.api.{Configuration, Logger, Mode}
 
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
@@ -33,14 +36,22 @@ import scala.concurrent.duration.DurationLong
 class ZabbixExecutor(
     zabbixMeta: ZabbixMeta,
     healthChecks: Set[HealthCheck],
-    zabbaxFilePath: String,
+    zabbaxFile: ZabbixFile,
     actorSystem: ActorSystem
 ) {
+
+  val logger = Logger(classOf[ZabbixExecutor])
+
+  logger.info("Setting up health check in interval")
 
   val scheduler = actorSystem.scheduler.schedule(
     initialDelay = 10 seconds,
     interval = 4 minutes
-  ) { executeHealthChecks() }
+  ) {
+    executeHealthChecks().onFailure {
+      case t => logger.warn("Failed to execute health check", t)
+    }
+  }
 
   def close(): Unit = {
     scheduler.cancel()
@@ -57,8 +68,7 @@ class ZabbixExecutor(
   }
 
   private def writeToFile(z: Zabbix): Unit = {
-    val f = new File(zabbaxFilePath + "/musit-health.json")
-    f.createNewFile()
+    val f = zabbaxFile.ensureWritableFile()
     using(new FileWriter(f, false)) {
       w => w.write(Json.prettyPrint(z.toJson))
     }
@@ -70,5 +80,49 @@ object ZabbixExecutor {
 
   def using[A <: Closeable, B](resource: A)(f: A => B): B =
     try f(resource) finally resource.close()
+
+  def apply(
+    buildInfoName: String,
+    healthCheckEndpoint: String,
+    healthChecks: Set[HealthCheck],
+    actorSystem: ActorSystem,
+    environmentMode: Mode,
+    configuration: Configuration
+  ): ZabbixExecutor = {
+    val zabbixFilePath = environmentMode match {
+      case Mode.Dev => "./target/"
+      case _ => "/opt/docker/zabbix/"
+    }
+    Files.createDirectories(new File(zabbixFilePath).toPath)
+
+    def resolveStringConfiguration(key: String) =
+      configuration.getString(key).toRight(key).right
+
+    val meta = for {
+      env <- resolveStringConfiguration("musit.env")
+      baseUrl <- resolveStringConfiguration("musit.baseUrl")
+      hostname <- resolveStringConfiguration("docker.hostname")
+    } yield (
+      ZabbixFile(zabbixFilePath, s"musit-$buildInfoName-$env-health.json"),
+      ZabbixMeta(
+        s"musit-$buildInfoName-$env",
+        s"$hostname-$buildInfoName",
+        s"$baseUrl/$healthCheckEndpoint",
+        "musit-developer"
+      )
+    )
+
+    meta match {
+      case Right((p, m)) =>
+        new ZabbixExecutor(
+          zabbixMeta = m,
+          healthChecks = healthChecks,
+          zabbaxFile = p,
+          actorSystem = actorSystem
+        )
+      case Left(key) =>
+        throw new IllegalStateException(s"Missing configuration with key '$key'")
+    }
+  }
 
 }
