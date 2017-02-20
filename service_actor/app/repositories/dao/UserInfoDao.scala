@@ -68,8 +68,8 @@ class UserInfoDao @Inject() (
   }
 
   def getByName(searchString: String): Future[Seq[UserInfo]] = {
-    val likeArg = searchString.toUpperCase
-    val query = usrInfoTable.filter(_.name.toUpperCase like s"%$likeArg%").sortBy(_.name)
+    val likeArg = searchString.toLowerCase
+    val query = usrInfoTable.filter(_.name.toLowerCase like s"%$likeArg%").sortBy(_.name)
     db.run(query.result.map(_.map(userInfoFromTuple))).recover {
       case NonFatal(ex) =>
         logger.error(s"An error occurred searching for UserInfo with $searchString", ex)
