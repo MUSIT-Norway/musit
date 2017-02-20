@@ -19,14 +19,37 @@
 
 package modules
 
-import com.google.inject.AbstractModule
+import akka.actor.ActorSystem
+import com.google.inject._
 import net.codingwell.scalaguice.{ScalaModule, ScalaMultibinder}
-import no.uio.musit.healthcheck.{HealthCheck, HealthCheckDao}
+import no.uio.musit.healthcheck.{HealthCheck, HealthCheckDao, ZabbixExecutor}
+import no.uio.musit.service.BuildInfo
+import play.api.{Configuration, Environment}
 
 class HealthCheckModule extends AbstractModule with ScalaModule {
   override def configure(): Unit = {
     val healthChecks = ScalaMultibinder.newSetBinder[HealthCheck](binder)
     healthChecks.addBinding.to[HealthCheckDao]
+
+    bind[ZabbixExecutor].toProvider(classOf[ZabbixExecutorProvider]).asEagerSingleton()
   }
+
+}
+
+class ZabbixExecutorProvider @Inject() (
+    environment: Environment,
+    configuration: Configuration,
+    healthChecks: Set[HealthCheck],
+    actorSystem: ActorSystem
+) extends Provider[ZabbixExecutor] {
+
+  override def get() = ZabbixExecutor(
+    BuildInfo.name,
+    "api/storagefacility/service/storagefacility/healthcheck",
+    healthChecks,
+    actorSystem,
+    environment.mode,
+    configuration
+  )
 
 }
