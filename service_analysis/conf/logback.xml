@@ -1,0 +1,71 @@
+<!--
+  ~ MUSIT is a museum database to archive natural and cultural history data.
+  ~ Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation; either version 2 of the License,
+  ~ or any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along
+  ~ with this program; if not, write to the Free Software Foundation, Inc.,
+  ~ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+  -->
+
+<configuration>
+
+  <conversionRule conversionWord="coloredLevel"
+                  converterClass="play.api.libs.logback.ColoredLevel"/>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>
+        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [analysis] %coloredLevel - %logger{15} - %message%n%xException
+      </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="STDOUT"/>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/service-analysis.log</file>
+    <encoder>
+      <pattern>
+        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [analysis] [%level] - %logger - %message%n%xException
+      </pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/service-analysis.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <!-- keep 30 days' worth of history -->
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="FILE" />
+  </appender>
+
+  <logger name="ch.qos.logback" level="ERROR"/>
+  <logger name="logger" level="ERROR"/>
+  <logger name="slick.jdbc" level="WARN"/>
+
+  <logger name="no.uio.musit" level="INFO"/>
+  <logger name="controllers" level="DEBUG"/>
+  <logger name="services" level="DEBUG"/>
+  <logger name="models" level="INFO"/>
+  <logger name="repositories" level="DEBUG"/>
+  <logger name="accesslog" level="INFO"/>
+
+  <root level="ERROR">
+    <appender-ref ref="ASYNCSTDOUT"/>
+    <appender-ref ref="ASYNCFILE"/>
+  </root>
+
+</configuration>
