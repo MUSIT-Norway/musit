@@ -45,7 +45,7 @@ class ZabbixExecutorProvider @Inject() (
 
   override def get() = ZabbixExecutor(
     BuildInfo.name,
-    "api/barcode/service/barcode/healthcheck",
+    s"api/barcode/routes.HealthCheckController.healthCheck().url",
     healthChecks,
     actorSystem,
     environment.mode,

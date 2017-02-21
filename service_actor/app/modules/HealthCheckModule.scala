@@ -21,6 +21,7 @@ package modules
 
 import akka.actor.ActorSystem
 import com.google.inject.{AbstractModule, Inject, Provider}
+import controllers.routes
 import net.codingwell.scalaguice.{ScalaModule, ScalaMultibinder}
 import no.uio.musit.healthcheck.{HealthCheck, HealthCheckDao, ZabbixExecutor}
 import no.uio.musit.service.BuildInfo
@@ -45,7 +46,7 @@ class ZabbixExecutorProvider @Inject() (
 
   override def get() = ZabbixExecutor(
     BuildInfo.name,
-    "api/actor/service/actor/healthcheck",
+    s"api/actor/${routes.HealthCheckController.healthCheck().url}",
     healthChecks,
     actorSystem,
     environment.mode,
