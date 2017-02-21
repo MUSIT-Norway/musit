@@ -19,11 +19,13 @@
 
 package no.uio.musit.healthcheck
 
-import java.io.{Closeable, File, FileWriter}
+import java.io.File
 import java.nio.file.Files
 
 import akka.actor.ActorSystem
-import no.uio.musit.healthcheck.ZabbixExecutor.using
+import akka.stream.{ActorMaterializer, IOResult}
+import akka.stream.scaladsl.{FileIO, Flow, Keep, Source}
+import akka.util.ByteString
 import org.joda.time.DateTime
 import play.api.Mode.Mode
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -44,6 +46,9 @@ class ZabbixExecutor(
 
   logger.info("Setting up health check in interval")
 
+  implicit val system = actorSystem
+  implicit val materializer = ActorMaterializer()
+
   val scheduler = actorSystem.scheduler.schedule(
     initialDelay = 10 seconds,
     interval = 4 minutes
@@ -57,29 +62,28 @@ class ZabbixExecutor(
     scheduler.cancel()
   }
 
-  def executeHealthChecks(): Future[Unit] = {
+  def executeHealthChecks(): Future[IOResult] = {
     Future.sequence(healthChecks.map(_.healthCheck()))
       .map(hc => Zabbix(
         meta = zabbixMeta,
         updated = DateTime.now(),
         healthChecks = hc
       ))
-      .map(z => writeToFile(z))
+      .flatMap(z => writeToFile(z))
   }
 
-  private def writeToFile(z: Zabbix): Unit = {
-    val f = zabbaxFile.ensureWritableFile()
-    using(new FileWriter(f, false)) {
-      w => w.write(Json.prettyPrint(z.toJson))
-    }
+  private def writeToFile(z: Zabbix): Future[IOResult] = {
+    val sink = Flow[String]
+      .map(s => ByteString(s))
+      .toMat(FileIO.toPath(zabbaxFile.ensureWritableFile().toPath))(Keep.right)
+
+    Source.fromFuture(Future.successful(Json.prettyPrint(z.toJson)))
+      .runWith(sink)
   }
 
 }
 
 object ZabbixExecutor {
-
-  def using[A <: Closeable, B](resource: A)(f: A => B): B =
-    try f(resource) finally resource.close()
 
   def apply(
     buildInfoName: String,
