@@ -26,6 +26,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 @Singleton
 class HealthCheckDao @Inject() (val dbConfigProvider: DatabaseConfigProvider)
@@ -53,7 +54,7 @@ class HealthCheckDao @Inject() (val dbConfigProvider: DatabaseConfigProvider)
           message = Some(s"Unexpected result from health check query. Result: $r")
         )
     }.recover {
-      case e: Exception =>
+      case NonFatal(e) =>
         HealthCheckStatus(
           name = HealthCheckName,
           available = false,
