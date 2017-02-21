@@ -20,7 +20,7 @@
 package no.uio.musit.healthcheck
 
 import java.io.{Closeable, File, FileWriter}
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.Files
 
 import akka.actor.ActorSystem
 import no.uio.musit.healthcheck.ZabbixExecutor.using
@@ -101,7 +101,7 @@ object ZabbixExecutor {
     val meta = for {
       env <- resolveStringConfiguration("musit.env")
       baseUrl <- resolveStringConfiguration("musit.baseUrl")
-      hostname <- resolveStringConfiguration("docker.hostname")
+      hostname <- resolveStringConfiguration("musit.docker.hostname")
     } yield (
       ZabbixFile(zabbixFilePath, s"musit-$buildInfoName-$env-health.json"),
       ZabbixMeta(
