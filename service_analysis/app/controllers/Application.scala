@@ -19,6 +19,7 @@
 
 package controllers
 
+import no.uio.musit.service.BuildInfo
 import play.api.mvc._
 
 class Application extends Controller {
