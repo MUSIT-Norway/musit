@@ -23,7 +23,7 @@ import java.io.File
 import java.nio.file.Files
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, IOResult}
+import akka.stream.{IOResult, Materializer}
 import akka.stream.scaladsl.{FileIO, Flow, Keep, Source}
 import akka.util.ByteString
 import org.joda.time.DateTime
@@ -39,7 +39,8 @@ class ZabbixExecutor(
     zabbixMeta: ZabbixMeta,
     healthChecks: Set[HealthCheck],
     zabbaxFile: ZabbixFile,
-    actorSystem: ActorSystem
+    actorSystem: ActorSystem,
+    materializer: Materializer
 ) {
 
   val logger = Logger(classOf[ZabbixExecutor])
@@ -47,7 +48,7 @@ class ZabbixExecutor(
   logger.info("Setting up health check in interval")
 
   implicit val system = actorSystem
-  implicit val materializer = ActorMaterializer()
+  implicit val mat = materializer
 
   val scheduler = actorSystem.scheduler.schedule(
     initialDelay = 10 seconds,
@@ -89,10 +90,9 @@ object ZabbixExecutor {
     buildInfoName: String,
     healthCheckEndpoint: String,
     healthChecks: Set[HealthCheck],
-    actorSystem: ActorSystem,
     environmentMode: Mode,
     configuration: Configuration
-  ): ZabbixExecutor = {
+  )(implicit actorSystem: ActorSystem, materializer: Materializer): ZabbixExecutor = {
     val zabbixFilePath = environmentMode match {
       case Mode.Dev => "./target/"
       case _ => "/opt/docker/zabbix/"
@@ -122,7 +122,8 @@ object ZabbixExecutor {
           zabbixMeta = m,
           healthChecks = healthChecks,
           zabbaxFile = p,
-          actorSystem = actorSystem
+          actorSystem = actorSystem,
+          materializer = materializer
         )
       case Left(key) =>
         throw new IllegalStateException(s"Missing configuration with key '$key'")

@@ -20,6 +20,7 @@
 package modules
 
 import akka.actor.ActorSystem
+import akka.stream.Materializer
 import com.google.inject.{AbstractModule, Inject, Provider}
 import controllers.routes
 import net.codingwell.scalaguice.{ScalaModule, ScalaMultibinder}
@@ -38,17 +39,18 @@ class HealthCheckModule extends AbstractModule with ScalaModule {
 }
 
 class ZabbixExecutorProvider @Inject() (
+    implicit
     environment: Environment,
     configuration: Configuration,
     healthChecks: Set[HealthCheck],
-    actorSystem: ActorSystem
+    actorSystem: ActorSystem,
+    materializer: Materializer
 ) extends Provider[ZabbixExecutor] {
 
   override def get() = ZabbixExecutor(
     BuildInfo.name,
     s"api/thingaggregate/${routes.HealthCheckController.healthCheck().url}",
     healthChecks,
-    actorSystem,
     environment.mode,
     configuration
   )

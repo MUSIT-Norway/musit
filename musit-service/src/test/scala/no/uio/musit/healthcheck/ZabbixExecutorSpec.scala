@@ -23,6 +23,7 @@ import java.io.FileInputStream
 import java.nio.file.{Files, Paths}
 
 import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import no.uio.musit.test.MusitSpec
 import org.joda.time.{DateTime, DateTimeUtils}
 import org.scalatest.BeforeAndAfterEach
@@ -36,7 +37,9 @@ class ZabbixExecutorSpec extends MusitSpec with BeforeAndAfterEach {
     DateTimeUtils.setCurrentMillisSystem()
   }
 
-  val actorSystem = ActorSystem("ZabbixExecutorSpec")
+  implicit val actorSystem = ActorSystem("ZabbixExecutorSpec")
+  implicit val materializer = ActorMaterializer()
+
   val meta = ZabbixMeta(
     name = "musit-dev",
     instance = "localhost",
@@ -79,7 +82,8 @@ class ZabbixExecutorSpec extends MusitSpec with BeforeAndAfterEach {
       zabbixMeta = meta,
       healthChecks = Set(new NoopHealthCheck()),
       zabbaxFile = zabbixFile,
-      actorSystem = actorSystem
+      actorSystem = actorSystem,
+      materializer = materializer
     )
     executor.close()
     executor
