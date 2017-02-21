@@ -48,9 +48,9 @@ class ActorDao @Inject() (
   }
 
   def getByName(searchString: String): Future[Seq[Person]] = {
-    val likeArg = searchString.toUpperCase
+    val likeArg = searchString.toLowerCase
     val query = actorTable.filter { a =>
-      a.fn.toUpperCase like s"%$likeArg%"
+      a.fn.toLowerCase like s"%$likeArg%"
     }.sortBy(_.fn)
 
     db.run(query.result)

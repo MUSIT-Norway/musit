@@ -665,12 +665,16 @@ class StorageNodeService @Inject() (
   ): Future[MusitResult[Seq[ObjectsLocation]]] = {
     localObjectDao.currentLocations(oids).flatMap { objNodeMap =>
       val nodeIds = objNodeMap.values.flatten.toSeq.distinct
-      unitDao.getNodesByIds(mid, nodeIds).map { nodes =>
-        val ol = nodes.map { node =>
-          val objects = objNodeMap.filter(_._2 == node.id).keys.toSeq
-          ObjectsLocation(node, objects)
-        }
-        MusitSuccess(ol)
+      unitDao.getNodesByIds(mid, nodeIds).flatMap { nodes =>
+        Future.sequence {
+          nodes.map { node =>
+            unitDao.namesForPath(node.path).map { namedPath =>
+              val objects = objNodeMap.filter(_._2 == node.id).keys.toSeq
+              // Copy node and set path to it
+              ObjectsLocation(node.copy(pathNames = Option(namedPath)), objects)
+            }
+          }
+        }.map(MusitSuccess.apply)
       }
     }
   }

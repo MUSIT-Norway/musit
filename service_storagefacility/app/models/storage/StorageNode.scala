@@ -125,29 +125,26 @@ object StorageNode {
 
 /**
  * Used to represent the common denominator for all storage nodes. Typically
- * used for services where a list of storage nodes need to be returned. A key
- * difference to the other StorageNode types is the lack of a
- * {{{Seq[NamedPathElement]}}}.
+ * used for services where a list of storage nodes need to be returned.
  */
 case class GenericStorageNode(
-    id: Option[StorageNodeDatabaseId],
-    nodeId: Option[StorageNodeId],
-    name: String,
-    area: Option[Double],
-    areaTo: Option[Double],
-    isPartOf: Option[StorageNodeDatabaseId],
-    height: Option[Double],
-    heightTo: Option[Double],
-    groupRead: Option[String],
-    groupWrite: Option[String],
-    path: NodePath,
-    environmentRequirement: Option[EnvironmentRequirement],
-    storageType: StorageType,
-    updatedBy: Option[ActorId],
-    updatedDate: Option[DateTime]
-) extends StorageNode {
-  val pathNames: Option[Seq[NamedPathElement]] = None
-}
+  id: Option[StorageNodeDatabaseId],
+  nodeId: Option[StorageNodeId],
+  name: String,
+  area: Option[Double],
+  areaTo: Option[Double],
+  isPartOf: Option[StorageNodeDatabaseId],
+  height: Option[Double],
+  heightTo: Option[Double],
+  groupRead: Option[String],
+  groupWrite: Option[String],
+  path: NodePath,
+  environmentRequirement: Option[EnvironmentRequirement],
+  storageType: StorageType,
+  updatedBy: Option[ActorId],
+  updatedDate: Option[DateTime],
+  pathNames: Option[Seq[NamedPathElement]] = None
+) extends StorageNode
 
 object GenericStorageNode {
 
@@ -166,7 +163,8 @@ object GenericStorageNode {
     (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
     (__ \ "type").format[StorageType] and
     (__ \ "updatedBy").formatNullable[ActorId] and
-    (__ \ "updatedDate").formatNullable[DateTime]
+    (__ \ "updatedDate").formatNullable[DateTime] and
+    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]]
   )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
 
 }

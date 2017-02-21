@@ -69,7 +69,7 @@ class GroupController @Inject() (
 
     request.body.validate[UserAuthAdd] match {
       case JsSuccess(uad, _) =>
-        Email.fromString(uad.email).map { feideEmail =>
+        Email.validate(uad.email).map { feideEmail =>
           GroupId.validate(groupId).toOption.map(GroupId.apply).map { gid =>
             dao.addUserToGroup(feideEmail, gid, uad.collections).map {
               case MusitSuccess(()) => Created
@@ -132,7 +132,7 @@ class GroupController @Inject() (
   def groupsForUser(
     email: String
   ) = MusitSecureAction().async { implicit request =>
-    Email.fromString(email).map { feideEmail =>
+    Email.validate(email).map { feideEmail =>
       dao.findGroupInfoFor(feideEmail).map {
         case MusitSuccess(grps) => if (grps.nonEmpty) Ok(Json.toJson(grps)) else NoContent
         case err: MusitError => serverError(err.message)
@@ -196,7 +196,7 @@ class GroupController @Inject() (
     groupId: String,
     email: String
   ) = MusitAdminAction(MusitAdmin).async { implicit request =>
-    Email.fromString(email).map { feideEmail =>
+    Email.validate(email).map { feideEmail =>
       GroupId.validate(groupId).toOption.map(GroupId.apply).map { gid =>
         dao.removeUserFromGroup(feideEmail, gid).map {
           case MusitSuccess(numDel) =>

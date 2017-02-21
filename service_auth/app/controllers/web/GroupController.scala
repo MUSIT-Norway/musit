@@ -110,7 +110,7 @@ class GroupController @Inject() (
   ) = MusitAdminAction().async { implicit request =>
     val encTok = EncryptedToken.fromBearerToken(request.token)
 
-    Email.fromString(email).map { feideEmail =>
+    Email.validate(email).map { feideEmail =>
       GroupId.validate(gid).toOption.map(GroupId.apply).map { gid =>
         dao.removeUserFromGroup(feideEmail, gid).map {
           case MusitSuccess(int) =>
@@ -381,7 +381,7 @@ class GroupController @Inject() (
   ) = MusitAdminAction().async { implicit request =>
     val encTok = EncryptedToken.fromBearerToken(request.token)
 
-    Email.fromString(email).map { feideEmail =>
+    Email.validate(email).map { feideEmail =>
       GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
         CollectionUUID.validate(cid).toOption.map(CollectionUUID.apply).map { colId =>
           dao.revokeCollectionFor(feideEmail, groupId, colId).map {
@@ -411,7 +411,7 @@ class GroupController @Inject() (
   ) = MusitAdminAction().async { implicit request =>
     val encTok = EncryptedToken.fromBearerToken(request.token)
 
-    Email.fromString(email).map { feideEmail =>
+    Email.validate(email).map { feideEmail =>
       GroupId.validate(gid).toOption.map(GroupId.apply).map { groupId =>
         CollectionUUID.validate(cid).toOption.map(CollectionUUID.apply).map { colId =>
           dao.addUserToGroup(feideEmail, groupId, Option(Seq(colId))).map {
