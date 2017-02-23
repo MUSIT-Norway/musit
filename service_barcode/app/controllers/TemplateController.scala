@@ -67,12 +67,6 @@ class TemplateController @Inject() (
           case Label5 =>
             views.html.label5(labelData, bf, Label5, isPreview = true)
 
-          case Avery5160 =>
-            views.html.avery5160(labelData, bf, Avery5160, isPreview = true)
-
-          case Herma9650 =>
-            views.html.herma9650(labelData, bf, Herma9650, isPreview = true)
-
         }.map { view =>
           Ok(view)
         }.getOrElse {
@@ -111,12 +105,6 @@ class TemplateController @Inject() (
 
             case Label5 =>
               views.html.label5(data, bf, Label5)
-
-            case Avery5160 =>
-              views.html.avery5160(data, bf, Avery5160)
-
-            case Herma9650 =>
-              views.html.herma9650(data, bf, Herma9650)
 
           }.map { view =>
             Ok(view)
