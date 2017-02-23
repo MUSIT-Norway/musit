@@ -29,7 +29,10 @@ import no.uio.musit.time.DateTimeImplicits
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
+import slick.ast._
 import slick.driver.JdbcProfile
+import slick.lifted._
+import FunctionSymbolExtensionMethods._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -46,9 +49,16 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       str => ActorId.unsafeFromString(str)
     )
 
+  // Implicit that extends Email typed columns with a toLowerCase method
+  implicit class EmailColumnExtensionMethods[P1](val c: Rep[Email]) {
+    implicit def emailTypedType = implicitly[TypedType[Email]]
+
+    def toLowerCase(implicit tt: TypedType[Email]) = Library.LCase.column[Email](c.toNode)
+  }
+
   implicit lazy val emailMapper: BaseColumnType[Email] =
     MappedColumnType.base[Email, String](
-      email => email.value,
+      email => email.value.toLowerCase,
       str => Email.fromString(str)
     )
 
@@ -138,7 +148,9 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
 
   }
 
-  type UserInfoDBTuple = ((ActorId, Option[Email], Option[String], Option[Email], Option[String])) // scalastyle:ignore
+  type UserInfoDBTuple = ((ActorId, Option[Email], Option[String], Option[Email], Option[String]))
+
+  // scalastyle:ignore
 
   class UserInfoTable(
       val tag: Tag
