@@ -19,11 +19,14 @@
 
 package utils.testhelpers
 
-import no.uio.musit.time.dateTimeNow
-import models.storage._
 import models.Interval
+import models.storage._
+import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.functional.Implicits._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithApp
+import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Application
 import repositories.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
@@ -57,24 +60,24 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   private def createAndFetchNode[A <: StorageNode](
     node: A,
-    insert: (MuseumId, A) => Future[StorageNodeDatabaseId],
-    get: (MuseumId, StorageNodeDatabaseId) => Future[Option[A]]
+    insert: (MuseumId, A) => Future[MusitResult[StorageNodeDatabaseId]],
+    get: (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
   ): A = {
     Await.result({
-      for {
-        nodeId <- insert(defaultMuseumId, node)
-        nodeRes <- get(defaultMuseumId, nodeId)
+      (for {
+        nodeId <- MusitResultT(insert(defaultMuseumId, node))
+        nodeRes <- MusitResultT(get(defaultMuseumId, nodeId))
       } yield {
-        nodeRes.get
-      }
-    }, 5 seconds)
+        nodeRes
+      }).value
+    }, 5 seconds).get.get
   }
 
   lazy val defaultRoot: Root = {
     val theRoot: Root = Root(
       nodeId = StorageNodeId.generateAsOpt()
     )
-    val id = Await.result(addRoot(theRoot), 5 seconds)
+    val id = Await.result(addRoot(theRoot), 5 seconds).get
     theRoot.copy(id = Some(id))
   }
 
@@ -107,21 +110,21 @@ trait NodeGenerators extends NodeTypeInitializers {
 
   def bootstrapBaseStructure(museumId: MuseumId = defaultMuseumId): BaseStructureIds = {
     Await.result(
-      awaitable = for {
-      rid <- storageUnitDao.insertRoot(museumId, Root(
-        nodeId = StorageNodeId.generateAsOpt(),
-        updatedBy = Some(defaultUserId),
-        updatedDate = Some(DateTime.now)
-      ))
-      _ <- storageUnitDao.setRootPath(rid, NodePath(s",${rid.underlying},"))
-      oid <- organisationDao.insert(museumId, createOrganisation(partOf = Some(rid)))
-      _ <- organisationDao.setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},")) // scalastyle:ignore
-      bid <- buildingDao.insert(museumId, createBuilding(partOf = Some(oid)))
-      _ <- buildingDao.setPath(bid, NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},")) // scalastyle:ignore
-    } yield (rid, oid, bid),
+      awaitable = (for {
+        rid <- MusitResultT(storageUnitDao.insertRoot(museumId, Root(
+          nodeId = StorageNodeId.generateAsOpt(),
+          updatedBy = Some(defaultUserId),
+          updatedDate = Some(DateTime.now)
+        )))
+        _ <- MusitResultT(storageUnitDao.setRootPath(rid, NodePath(s",${rid.underlying},"))) // scalastyle:ignore
+        oid <- MusitResultT(organisationDao.insert(museumId, createOrganisation(partOf = Some(rid)))) // scalastyle:ignore
+        _ <- MusitResultT(organisationDao.setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},"))) // scalastyle:ignore
+        bid <- MusitResultT(buildingDao.insert(museumId, createBuilding(partOf = Some(oid))).map(res => res)) // scalastyle:ignore
+        _ <- MusitResultT(buildingDao.setPath(bid, NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},"))) // scalastyle:ignore
+      } yield (rid, oid, bid)).value,
 
       atMost = 15 seconds
-    )
+    ).get
   }
 
   def addRoot(r: RootNode) = storageUnitDao.insertRoot(defaultMuseumId, r)
@@ -148,7 +151,7 @@ trait NodeGenerators extends NodeTypeInitializers {
           )
       }
     }
-    Await.result(eventuallyInserted, 10 seconds)
+    Await.result(eventuallyInserted, 10 seconds).map(_.get)
   }
 }
 

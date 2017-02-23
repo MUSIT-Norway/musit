@@ -19,8 +19,6 @@
 
 package services
 
-import java.util.NoSuchElementException
-
 import models.event.envreq.EnvRequirement
 import models.event.move._
 import models.storage.StorageType._
@@ -47,7 +45,7 @@ trait NodeService {
   val envReqService: EnvironmentRequirementService
 
   // A couple of type aliases to reduce the length of some function args.
-  type NodeInsertIO[A] = (MuseumId, A) => Future[StorageNodeDatabaseId]
+  type NodeInsertIO[A] = (MuseumId, A) => Future[MusitResult[StorageNodeDatabaseId]]
   type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
   type NodeUpdateIO[A] = (StorageNodeDatabaseId, NodePath) => Future[MusitResult[Unit]]
   type GetNodeIO[A] = (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
@@ -88,9 +86,9 @@ trait NodeService {
   private[services] def findPath(
     mid: MuseumId,
     maybeId: Option[StorageNodeDatabaseId]
-  ): Future[Option[NodePath]] = {
+  ): Future[MusitResult[Option[NodePath]]] = {
     maybeId.map(id => unitDao.getPathById(mid, id))
-      .getOrElse(Future.successful(None))
+      .getOrElse(Future.successful(MusitSuccess(None)))
   }
 
   /**
@@ -103,11 +101,25 @@ trait NodeService {
   private[services] def findPathAndNames(
     mid: MuseumId,
     maybeId: Option[StorageNodeDatabaseId]
-  ): Future[(NodePath, Seq[NamedPathElement])] = {
-    findPath(mid, maybeId).flatMap { maybePath =>
-      maybePath.map(p => unitDao.namesForPath(p).map(names => (p, names)))
-        .getOrElse(Future.successful((NodePath.empty, Seq.empty)))
+  ): Future[MusitResult[(NodePath, Seq[NamedPathElement])]] = {
+
+    def findNodes(
+      maybePath: Option[NodePath]
+    ): Future[MusitResult[(NodePath, Seq[NamedPathElement])]] = {
+      maybePath.map { p =>
+        unitDao.namesForPath(p).map {
+          case MusitSuccess(names) => MusitSuccess((p, names))
+          case err: MusitError => err
+        }
+      }.getOrElse(Future.successful(MusitSuccess((NodePath.empty, Seq()))))
     }
+
+    val res = for {
+      maybePath <- MusitResultT(findPath(mid, maybeId))
+      nodes <- MusitResultT(findNodes(maybePath))
+    } yield nodes
+
+    res.value
   }
 
   /**
@@ -143,11 +155,11 @@ trait NodeService {
    * @tparam T the specific StorageNode type
    * @return a Future of Boolean indicating valid or invalid positioning
    */
-  private[services] def isValidPosition[T <: StorageNode](
+  private[services] def validatePosition[T <: StorageNode](
     mid: MuseumId,
     node: T,
     dest: NodePath
-  ): Future[Boolean] = {
+  ): Future[MusitResult[Unit]] = {
     if (!dest.childOf(node.path)) {
       val maybeDestId = dest.asIdSeq.lastOption
       // Get the StorageType for the elements in the destination path so we can
@@ -180,15 +192,17 @@ trait NodeService {
 
         if (!res) {
           logger.warn(s"Cannot move node ${node.id} to ${dest.path} because " +
-            "it is not a allowed")
+            "it is not allowed")
+          MusitValidationError("Illegal move")
+        } else {
+          MusitSuccess(())
         }
 
-        res
       }
     } else {
       logger.warn(s"destination ($dest) is not allowed for ${node.id} because " +
         s"it is a child of ${node.path}.")
-      Future.successful(false)
+      Future.successful(MusitValidationError("Illegal destination"))
     }
   }
 
@@ -205,17 +219,16 @@ trait NodeService {
   private[services] def filterInvalidPosition(
     mid: MuseumId,
     dest: NodePath,
-    nodes: Future[Seq[GenericStorageNode]]
+    nodes: Seq[GenericStorageNode]
   ): Future[Seq[GenericStorageNode]] = {
-    nodes.flatMap { theNodes =>
-      Future.sequence {
-        theNodes.map { node =>
-          isValidPosition(mid, node, dest).map { isValid =>
-            if (isValid) Some(node) else None
-          }
+    Future.sequence {
+      nodes.map { node =>
+        validatePosition(mid, node, dest).map {
+          case MusitSuccess(_) => Some(node)
+          case _ => None
         }
-      }.map(_.filter(_.isDefined).map(_.get))
-    }
+      }
+    }.map(_.filter(_.isDefined).map(_.get))
   }
 
   private val futureFilterErr = "Future.filter predicate is not satisfied"
@@ -238,22 +251,30 @@ trait NodeService {
     updateWithPath: NodeUpdateIO[T],
     getNode: GetNodeIO[T]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[T]]] = {
+
+    def saveEnvReqForNode(
+      node: T,
+      nodeId: StorageNodeDatabaseId
+    ): Future[MusitResult[Option[EnvironmentRequirement]]] =
+      node.environmentRequirement
+        .map(er => saveEnvReq(mid, nodeId, er)).getOrElse(Future.successful(None))
+        .map(MusitSuccess.apply)
+
     val res = for {
-      maybePath <- findPath(mid, node.isPartOf)
-      isValidDest <- isValidPosition(mid, node, maybePath.getOrElse(NodePath.empty))
+      maybePath <- MusitResultT(findPath(mid, node.isPartOf))
+      _ <- MusitResultT(validatePosition(mid, node, maybePath.getOrElse(NodePath.empty)))
       // Call the insert function to persist the node if the path is valid.
-      if isValidDest
-      nodeId <- insert(mid, node)
-      pathUpdated <- updateWithPath(nodeId, maybePath.getOrElse(NodePath.empty).appendChild(nodeId)) // scalastyle:ignore
-      _ <- node.environmentRequirement.map(er => saveEnvReq(mid, nodeId, er)).getOrElse(Future.successful(None)) // scalastyle:ignore
-      theNode <- getNode(mid, nodeId)
+      nodeId <- MusitResultT(insert(mid, node))
+      _ <- MusitResultT(updateWithPath(nodeId, maybePath.getOrElse(NodePath.empty).appendChild(nodeId))) // scalastyle:ignore
+      _ <- MusitResultT(saveEnvReqForNode(node, nodeId))
+      theNode <- MusitResultT(getNode(mid, nodeId))
     } yield {
       logger.debug(s"Successfully added node ${node.name} of type" +
         s" ${node.storageType} to ${maybePath.getOrElse(NodePath.empty)}")
       theNode
     }
 
-    res.recover {
+    res.value.recover {
       // TODO: Use custom defined exception in if guard in above for-comprehension.
       case nse: NoSuchElementException if nse.getMessage.contains(futureFilterErr) =>
         val msg = s"Invalid destination for ${node.name} of type ${node.storageType}"
@@ -271,17 +292,13 @@ trait NodeService {
   private[services] def getEnvReq(
     mid: MuseumId,
     id: StorageNodeDatabaseId
-  ): Future[Option[EnvironmentRequirement]] = {
-    envReqService.findLatestForNodeId(mid, id).map {
-      case MusitSuccess(maybeEnvRequirement) => maybeEnvRequirement
-      case _ => None
-
-    }.recover {
+  ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
+    envReqService.findLatestForNodeId(mid, id).recover {
       case NonFatal(ex) =>
         // If we fail fetching the envreq event, we'll return None.
         logger.warn("Something went wrong trying to locate latest " +
           s"environment requirement data for unit $id", ex)
-        None
+        MusitSuccess(None)
     }
   }
 
@@ -298,22 +315,22 @@ trait NodeService {
   private[services] def nodeById[A <: StorageNode](
     mid: MuseumId,
     id: StorageNodeDatabaseId,
-    eventuallyMaybeNode: Future[Option[A]]
+    eventuallyMaybeNode: Future[MusitResult[Option[A]]]
   )(cp: CopyNode[A]): Future[MusitResult[Option[A]]] = {
     val eventuallyMaybeEnvReq = getEnvReq(mid, id)
-    for {
-      maybeNode <- eventuallyMaybeNode
-      maybeEnvReq <- eventuallyMaybeEnvReq
-      namedPathElems <- maybeNode.map { node =>
+    (for {
+      maybeNode <- MusitResultT(eventuallyMaybeNode)
+      maybeEnvReq <- MusitResultT(eventuallyMaybeEnvReq)
+      namedPathElems <- MusitResultT(maybeNode.map { node =>
         unitDao.namesForPath(node.path)
-      }.getOrElse(Future.successful(Seq.empty))
+      }.getOrElse(Future.successful(MusitSuccess(Seq.empty))))
     } yield {
       val maybePathElems = {
         if (namedPathElems.nonEmpty) Some(namedPathElems)
         else None
       }
-      MusitSuccess(maybeNode.map(n => cp(n, maybeEnvReq, maybePathElems)))
-    }
+      maybeNode.map(n => cp(n, maybeEnvReq, maybePathElems))
+    }).value
   }
 
   private def filterAndEnrich[ID <: MusitId, E <: MoveEvent](
@@ -342,7 +359,7 @@ trait NodeService {
     mid: MuseumId,
     destination: StorageNodeDatabaseId,
     affectedIds: Seq[ID],
-    eventuallyCurrentMap: Future[CurrLocType[ID]],
+    current: CurrLocType[ID],
     moveEvents: Seq[E]
   )(
     mv: (GenericStorageNode, CurrLocType[ID], Seq[E]) => Future[MusitResult[Seq[ID]]]
@@ -351,7 +368,6 @@ trait NodeService {
       maybeTo <- unitDao.getNodeById(mid, destination)
       // only continue if we have found the destination node
       if maybeTo.nonEmpty
-      current <- eventuallyCurrentMap
     } yield {
       val ids = current.filterNot { t =>
         val isSame = t._2.contains(destination)

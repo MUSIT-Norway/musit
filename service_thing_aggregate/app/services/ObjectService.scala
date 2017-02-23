@@ -91,7 +91,7 @@ class ObjectService @Inject() (
     objDao.findByOldBarcode(mid, oldBarcode, collections).flatMap {
       case MusitSuccess(objs) =>
         Future.sequence(objs.map(getCurrentLocation(mid, _)))
-          .map(MusitSuccess(_))
+          .map(MusitSuccess.apply)
           .recover {
             case NonFatal(ex) =>
               val msg = s"An error occured when executing object search by old barcode"

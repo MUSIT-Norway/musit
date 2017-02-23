@@ -22,8 +22,8 @@ package repositories.dao.storage
 import com.google.inject.{Inject, Singleton}
 import models.storage.Building
 import models.storage.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -55,7 +55,10 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(mid: MuseumId, id: StorageNodeDatabaseId): Future[Option[Building]] = {
+  def getById(
+    mid: MuseumId,
+    id: StorageNodeDatabaseId
+  ): Future[MusitResult[Option[Building]]] = {
     val action = for {
       maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
@@ -65,9 +68,14 @@ class BuildingDao @Inject() (
         maybeBuildingDto.map(b => ExtendedStorageNode(u, b)))
     }
     // Execute the query
-    db.run(action).map(_.map { unitBuildingTuple =>
-      StorageNodeDto.toBuilding(unitBuildingTuple)
-    })
+    db.run(action)
+      .map(res => MusitSuccess(res.map(StorageNodeDto.toBuilding)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to query by id museumID $mid and storageNodeId $id"
+          logger.warn(msg)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -122,7 +130,10 @@ class BuildingDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(mid: MuseumId, building: Building): Future[StorageNodeDatabaseId] = {
+  def insert(
+    mid: MuseumId,
+    building: Building
+  ): Future[MusitResult[StorageNodeDatabaseId]] = {
     val extendedDto = StorageNodeDto.fromBuilding(mid, building)
     val query = for {
       nodeId <- insertNodeAction(extendedDto.storageUnitDto)
@@ -133,6 +144,13 @@ class BuildingDao @Inject() (
     }
 
     db.run(query.transactionally)
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to insert building with museumId $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
 }

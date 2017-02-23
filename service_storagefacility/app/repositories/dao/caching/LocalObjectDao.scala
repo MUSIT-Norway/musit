@@ -21,12 +21,14 @@ package repositories.dao.caching
 
 import com.google.inject.Inject
 import models.event.dto.{EventDto, LocalObject}
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.SharedTables
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 class LocalObjectDao @Inject() (
     val dbConfigProvider: DatabaseConfigProvider
@@ -67,7 +69,7 @@ class LocalObjectDao @Inject() (
    */
   def currentLocations(
     objectIds: Seq[ObjectId]
-  ): Future[Map[ObjectId, Option[StorageNodeDatabaseId]]] = {
+  ): Future[MusitResult[Map[ObjectId, Option[StorageNodeDatabaseId]]]] = {
     type QLocQuery = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, Seq]
 
     def buildQuery(ids: Seq[ObjectId]) = localObjectsTable.filter(_.objectId inSet ids)
@@ -84,7 +86,12 @@ class LocalObjectDao @Inject() (
           val maybeNodeId = l.find(_.objectId == oid).map(_.currentLocationId)
           res ++ Map(oid -> maybeNodeId)
       }
-    }
+    }.map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          MusitDbError("Unable to get current location", Some(ex))
+      }
+
   }
 
 }
