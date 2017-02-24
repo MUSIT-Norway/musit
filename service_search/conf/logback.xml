@@ -25,7 +25,7 @@
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>
-        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [geo_location] %coloredLevel - %logger{15} - %message%n%xException
+        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [search] %coloredLevel - %logger{15} - %message%n%xException
       </pattern>
     </encoder>
   </appender>
@@ -38,7 +38,7 @@
     <file>logs/service-geolocation.log</file>
     <encoder>
       <pattern>
-        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [geo_location] [%level] - %logger - %message%n%xException
+        [%d{yyyy-MM-dd HH:mm:ss.SSS}] [search] [%level] - %logger - %message%n%xException
       </pattern>
     </encoder>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -62,7 +62,7 @@
   <logger name="models" level="INFO"/>
   <logger name="accesslog" level="INFO"/>
 
-  <root level="ERROR">
+  <root level="INFO">
     <appender-ref ref="ASYNCSTDOUT"/>
     <appender-ref ref="ASYNCFILE"/>
   </root>
