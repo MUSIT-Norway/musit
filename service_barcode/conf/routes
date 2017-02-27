@@ -8,6 +8,7 @@
 # So to access these services, all request URI's need to start with "/service_barcode"
 
 GET         /service/barcode/buildinfo            controllers.Application.buildInfo
+GET         /service/barcode/healthcheck          controllers.HealthCheckController.healthCheck
 
 # Endpoint for generating a 2D barcode (DataMatrix or QR)
 # ~~~~

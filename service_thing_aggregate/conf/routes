@@ -3,6 +3,7 @@
 # ~~~~
 
 GET        /service/thingaggregate/buildinfo                  controllers.Application.buildInfo
+GET        /service/thingaggregate/healthcheck                controllers.HealthCheckController.healthCheck
 
 
 # Routes that require access to both objects and nodes

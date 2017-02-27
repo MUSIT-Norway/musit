@@ -23,6 +23,9 @@ export SLICK_DB_PASSWORD=musit
 # Also you will need to set up an application in Dataporten to get access to a
 # Callback URL, Client ID and Client secret.
 # ------------------------------------------------------------------------
+export MUSIT_ENV="dev"
+export MUSIT_BASE_URL="http://localhost"
+export DOCKET_HOSTNAME=$(hostname)
 export MUSIT_SECURITY_MODULE="no.uio.musit.security.dataporten.DataportenModule"
 export CALLBACK_URL="http://musit-test:8888/api/auth/rest/authenticate"
 export CLIENT_ID="ccee5f45-6f32-4315-9a89-9e6ad98a8186"
