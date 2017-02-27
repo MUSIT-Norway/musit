@@ -21,7 +21,7 @@ package repository
 
 import com.google.inject.Inject
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import play.api.http.{ContentTypes, HeaderNames}
+import play.api.http.{ContentTypes, HeaderNames, Status}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSClient
@@ -55,8 +55,8 @@ class ElasticsearchClient @Inject() (cfg: Configuration, ws: WSClient) {
       .withQueryString("refresh" -> refresh.toString)
       .put(doc)
       .map(r => r.status match {
-        case 200 => MusitSuccess(r.json)
-        case 201 => MusitSuccess(r.json)
+        case Status.OK => MusitSuccess(r.json)
+        case Status.CREATED => MusitSuccess(r.json)
         case httpCode => MusitDbError(s"Unexpected return code $httpCode")
       })
   }
@@ -69,8 +69,8 @@ class ElasticsearchClient @Inject() (cfg: Configuration, ws: WSClient) {
     client(index, documentType, id)
       .get()
       .map(r => r.status match {
-        case 200 => MusitSuccess(Some(r.json))
-        case 404 => MusitSuccess(None)
+        case Status.OK => MusitSuccess(Some(r.json))
+        case Status.NOT_FOUND => MusitSuccess(None)
         case httpCode => MusitDbError(s"Unexpected return code $httpCode")
       })
   }
@@ -87,7 +87,7 @@ class ElasticsearchClient @Inject() (cfg: Configuration, ws: WSClient) {
       .withQueryString("q" -> query)
       .get()
       .map(r => r.status match {
-        case 200 => MusitSuccess(r.json)
+        case Status.OK => MusitSuccess(r.json)
         case httpCode => MusitDbError(s"Unexpected return code $httpCode")
       })
   }
