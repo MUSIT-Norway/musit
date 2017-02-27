@@ -20,7 +20,7 @@
 package repository
 
 import no.uio.musit.MusitResults.MusitSuccess
-import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.scalatest.BeforeAndAfter
 import play.api.libs.json._
 
@@ -30,7 +30,7 @@ class ElasticsearchClientSpec extends MusitSpecWithAppPerSuite with BeforeAndAft
   val index = "es-spec"
 
   "ElasticsearchClient" should {
-    "insert document into index" in {
+    "insert document into index" taggedAs ElasticsearchContainer in {
       val doc = TestUser("Ola", " Nordmann", 42)
 
       val result = client.insertDocument(index, "test", "1", Json.toJson(doc)).futureValue
@@ -39,7 +39,7 @@ class ElasticsearchClientSpec extends MusitSpecWithAppPerSuite with BeforeAndAft
       (result.get \ "_version").as[Int] mustBe 1
     }
 
-    "update existing document into index" in {
+    "update existing document into index" taggedAs ElasticsearchContainer in {
       val docV1 = TestUser("Ola", "Nordmann", 42)
       val docV2 = TestUser("Ola", "Nordmann", 43)
 
@@ -54,7 +54,7 @@ class ElasticsearchClientSpec extends MusitSpecWithAppPerSuite with BeforeAndAft
       (secondResult.get \ "_version").as[Int] mustBe 2
     }
 
-    "retrieve inserted document" in {
+    "retrieve inserted document" taggedAs ElasticsearchContainer in {
       val doc = TestUser("Ola", "Nordmann", 42)
 
       val result = client.insertDocument(index, "test", "1", Json.toJson(doc)).futureValue
@@ -66,14 +66,14 @@ class ElasticsearchClientSpec extends MusitSpecWithAppPerSuite with BeforeAndAft
       (document.get.get \ "_source").get.as[TestUser] mustBe doc
     }
 
-    "retrieve non existing document" in {
+    "retrieve non existing document" taggedAs ElasticsearchContainer in {
       val document = client.getDocument(index, "test", "42").futureValue
       document mustBe a[MusitSuccess[_]]
 
       document.get mustBe empty
     }
 
-    "search for documents" in {
+    "search for documents" taggedAs ElasticsearchContainer in {
       client.insertDocument(index, "test", "1",
         Json.toJson(TestUser("Ola", "Nordmann", 42)), refresh = true).futureValue
       client.insertDocument(index, "test", "2",
