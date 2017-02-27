@@ -75,16 +75,16 @@ class ElasticsearchClientSpec extends MusitSpecWithAppPerSuite with BeforeAndAft
 
     "search for documents" in {
       client.insertDocument(index, "test", "1",
-        Json.toJson(TestUser("Ola", "Nordmann", 42)), true).futureValue
+        Json.toJson(TestUser("Ola", "Nordmann", 42)), refresh = true).futureValue
       client.insertDocument(index, "test", "2",
-        Json.toJson(TestUser("Kari", "Nordmann", 32)), true).futureValue
+        Json.toJson(TestUser("Kari", "Nordmann", 32)), refresh = true).futureValue
       client.insertDocument(index, "test", "3",
-        Json.toJson(TestUser("Pal", "Svendsen", 45)), true).futureValue
+        Json.toJson(TestUser("Pal", "Svendsen", 45)), refresh = true).futureValue
 
-      val result = client.doSearch("lastName:Nordmann", None, None).futureValue
+      val result = client.doSearch("lastName:Nordmann", Some(index), None).futureValue
 
       result mustBe a[MusitSuccess[_]]
-      println(Json.prettyPrint(result.get)) //todo improve asserts
+      (result.get \ "hits" \ "total").as[Int] mustBe 2
     }
 
   }
@@ -104,7 +104,7 @@ class ElasticsearchClientSpec extends MusitSpecWithAppPerSuite with BeforeAndAft
   }
 
   after {
-    client.client("_all").delete().futureValue
+    client.client(index).delete().futureValue
   }
 }
 
