@@ -32,7 +32,7 @@ class UserService {
    * @param user the current AuthenticatedUser.
    * @return a Future Person representation of the current user.
    */
-  def currenUserAsActor(user: AuthenticatedUser): Future[Person] = {
+  def currentUserAsActor(user: AuthenticatedUser): Future[Person] = {
     Future.successful(Person.fromAuthUser(user))
   }
 }
