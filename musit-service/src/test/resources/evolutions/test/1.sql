@@ -54,6 +54,7 @@ CREATE TABLE MUSARK_AUTH.USER_SESSION (
   last_active      TIMESTAMP, -- WITH TIME ZONE,
   is_logged_in     INTEGER DEFAULT 0 NOT NULL,
   token_expires_in NUMBER(20),
+  client           VARCHAR2(20),
   PRIMARY KEY (session_uuid)
 );
 
