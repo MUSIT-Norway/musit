@@ -177,6 +177,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
     val lastActive = column[Option[DateTime]]("LAST_ACTIVE")
     val isLoggedIn = column[Boolean]("IS_LOGGED_IN")
     val tokenExpiry = column[Option[Long]]("TOKEN_EXPIRES_IN")
+    val client = column[Option[String]]("CLIENT")
 
     val create = (
       uuid: SessionUUID,
@@ -185,7 +186,8 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       loginTimestamp: Option[DateTime],
       lastActiveTimestamp: Option[DateTime],
       loggedIn: Boolean,
-      expiration: Option[Long]
+      expiration: Option[Long],
+      client: Option[String]
     ) =>
       UserSession(
         uuid = uuid,
@@ -194,7 +196,8 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
         loginTime = loginTimestamp,
         lastActive = lastActiveTimestamp,
         isLoggedIn = loggedIn,
-        tokenExpiry = expiration
+        tokenExpiry = expiration,
+        client = client
       )
 
     val destroy = (us: UserSession) =>
@@ -205,10 +208,11 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
         us.loginTime,
         us.lastActive,
         us.isLoggedIn,
-        us.tokenExpiry
+        us.tokenExpiry,
+        us.client
       ))
 
-    override def * = (uuid, token, userUuid, loginTime, lastActive, isLoggedIn, tokenExpiry) <> (create.tupled, destroy) // scalastyle:ignore
+    override def * = (uuid, token, userUuid, loginTime, lastActive, isLoggedIn, tokenExpiry, client) <> (create.tupled, destroy) // scalastyle:ignore
 
   }
 

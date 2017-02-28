@@ -116,11 +116,12 @@ class FakeAuthenticator extends Authenticator {
    * Fake authenticate implementation that "logs" in a user based on the data
    * found in the fake_security.json
    *
+   * @param client the client making the auth request
    * @param req The current request.
    * @tparam A The type of the request body.
    * @return Either a Result or the active UserSession
    */
-  override def authenticate[A]()(
+  override def authenticate[A](client: Option[String])(
     implicit
     req: Request[A]
   ): Future[Either[Result, UserSession]] = Future.successful {

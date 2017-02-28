@@ -65,9 +65,11 @@ trait AuthResolver {
   /**
    * Prepares a new persistent user session
    */
-  def sessionInit()(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]] = {
+  def sessionInit(
+    client: Option[String]
+  )(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]] = {
     logger.debug("Initialize a new UserSession with a generated SessionUUID")
-    upsertUserSession(UserSession.prepare())
+    upsertUserSession(UserSession.prepare(client))
   }
 
   def upsertUserSession(
