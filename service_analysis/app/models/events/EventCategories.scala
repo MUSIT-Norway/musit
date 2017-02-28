@@ -3,6 +3,13 @@ package models.events
 import enumeratum._
 import play.api.libs.json._
 
+/**
+ * All analysis events belong to some category. The Category type is the
+ * root type for further specifying these Categories. It consists of a single
+ * ID value to be able to disambiguate when (de)serializing to/from JSON.
+ *
+ * @param id An integer identifier used for disambiguation.
+ */
 sealed abstract class Category(val id: Int) extends EnumEntry
 
 object Category {
@@ -22,6 +29,9 @@ object Category {
 
 }
 
+/**
+ * Enumeration of different event categories.
+ */
 object EventCategories extends Enum[Category] {
 
   val values = findValues

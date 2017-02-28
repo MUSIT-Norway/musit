@@ -1,7 +1,7 @@
 package models.events
 
 import models.events.EventResults._
-import models.events.EventTypeRegistry.EventType
+import models.events.EventTypes.EventTypeId
 import no.uio.musit.models.{ActorId, EventId}
 import org.joda.time.DateTime
 import play.api.libs.json._
@@ -12,7 +12,7 @@ import play.api.libs.json._
  */
 case class AnalysisEvent(
   id: Option[EventId],
-  eventType: EventType,
+  eventTypeId: EventTypeId,
   eventDate: Option[DateTime],
   registeredBy: Option[ActorId],
   registeredDate: Option[DateTime],
@@ -22,7 +22,7 @@ case class AnalysisEvent(
 
 object AnalysisEvent {
 
-  val jsFormat: Format[AnalysisEvent] = Json.format[AnalysisEvent]
+  implicit val jsFormat: Format[AnalysisEvent] = Json.format[AnalysisEvent]
 
 }
 

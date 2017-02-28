@@ -19,7 +19,8 @@
 
 package repositories.dao
 
-import models.events.{Category, EventCategories, EventTypeId}
+import models.events.EventTypes.EventTypeId
+import models.events.{Category, EventCategories}
 import no.uio.musit.models.{ActorId, EventId}
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}

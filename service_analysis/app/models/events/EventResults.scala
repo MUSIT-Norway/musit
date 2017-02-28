@@ -8,6 +8,10 @@ object EventResults {
     val resultTypeId: Int
   }
 
+  /**
+   * Represents the base Result type defining which fields should be present
+   * in _all_ result types.
+   */
   sealed trait Result {
     val extRef: Option[Seq[String]]
     val comment: Option[String]
@@ -37,6 +41,13 @@ object EventResults {
 
   }
 
+  /**
+   * Most analysis' will have this form of result. It provides a set of the most
+   * commonly used fields to register different forms of results.
+   *
+   * @param extRef A list of references to external systems.
+   * @param comment A comment field that may contain a hand written result
+   */
   case class GeneralResult(
     extRef: Option[Seq[String]],
     comment: Option[String]
@@ -48,6 +59,15 @@ object EventResults {
     val format: Format[GeneralResult] = Json.format[GeneralResult]
   }
 
+  /**
+   * Events in the Dating category, that require some form of age result, will
+   * typically be of this result type. It contains the common field, as well as
+   * the age field.
+   *
+   * @param extRef A list of references to external systems.
+   * @param comment A comment field that may contain a hand written result
+   * @param age The result containing the specific dating result.
+   */
   case class DatingResult(
     extRef: Option[Seq[String]],
     comment: Option[String],
