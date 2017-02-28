@@ -21,12 +21,12 @@ package controllers.rest
 
 import com.google.inject.Inject
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import no.uio.musit.security.{Authenticator, BearerToken}
+import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
-import play.api.Logger
-import play.api.mvc.Action
+import play.api.{Configuration, Logger}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
+import play.api.mvc.Action
 
 /**
  * This controller will expose login and logout functionality for the MUSIT
@@ -35,22 +35,29 @@ import play.api.libs.json.Json
  */
 class AuthenticationController @Inject() (
     implicit
+    val conf: Configuration,
     val authService: Authenticator
 ) extends MusitController {
 
   val logger = Logger(classOf[AuthenticationController])
 
+  val delphiCallback = conf.getString("musit.delphi.callback")
+
   /**
-   * Handles OAuth2 authentication flow against the configured
-   * Authenticator service.
+   * Handles OAuth2 authentication flow against the configured Authenticator service.
    */
-  def authenticate = Action.async { implicit request =>
-    authService.authenticate().map {
+  def authenticate(client: Option[String] = None) = Action.async { implicit request =>
+    authService.authenticate(client).map {
       case Left(res) => res
       case Right(userSession) =>
         logger.debug(s"Initialized new UserSesssion with id ${userSession.uuid}")
+        val callbackUrl = userSession.client.flatMap {
+          case Authenticator.ClientDelphi => delphiCallback
+          case _ => None
+        }.getOrElse("/")
+
         Redirect(
-          url = "/",
+          url = callbackUrl,
           queryString = Map("_at" -> Seq(s"${userSession.uuid.asString}"))
         )
     }

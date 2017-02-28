@@ -31,7 +31,8 @@ case class UserSession(
     loginTime: Option[DateTime] = None,
     lastActive: Option[DateTime] = None,
     isLoggedIn: Boolean = false,
-    tokenExpiry: Option[Long] = None
+    tokenExpiry: Option[Long] = None,
+    client: Option[String] = None
 ) {
 
   def touch(timeoutMillis: Long): UserSession = {
@@ -62,6 +63,7 @@ case class UserSession(
 
 object UserSession {
 
-  def prepare(): UserSession = UserSession(SessionUUID.generate())
+  def prepare(client: Option[String]): UserSession =
+    UserSession(uuid = SessionUUID.generate(), client = client.map(_.toLowerCase))
 
 }

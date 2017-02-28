@@ -99,12 +99,15 @@ class DataportenAuthenticator @Inject() (
    * If any single one of the steps above should fail, the process will result
    * in an "Unauthorized" response.
    *
+   * @param client The client app making the authenticate request
    * @param req The current request.
    * @tparam A The type of the request body.
    * @return Either a Result or the active UserSession
    */
-  override def authenticate[A]()(implicit req: Request[A]): AuthResponse =
-    handleAuthResponse { code =>
+  override def authenticate[A](
+    client: Option[String]
+  )(implicit req: Request[A]): AuthResponse =
+    handleAuthResponse(client) { code =>
       logger.debug(s"Got code $code. Trying to fetch access token from Dataporten...")
       getToken(code).flatMap {
         case Right(oauthInfo) =>
@@ -395,8 +398,8 @@ class DataportenAuthenticator @Inject() (
   /**
    * Initialize a new persistent user session.
    */
-  private def initSession(): AuthResponse = {
-    authResolver.sessionInit().map {
+  private def initSession(client: Option[String]): AuthResponse = {
+    authResolver.sessionInit(client).map {
       case MusitSuccess(sessionId) =>
         // Set the request params for the Dataporten authorization service.
         val params = Map(
@@ -425,7 +428,7 @@ class DataportenAuthenticator @Inject() (
   /**
    * Helper function to process the authorization response from Dataporten.
    */
-  private def handleAuthResponse[A](
+  private def handleAuthResponse[A](client: Option[String])(
     f: String => AuthResponse
   )(implicit req: Request[A]): AuthResponse = {
     // First check if request contains an Error
@@ -444,7 +447,7 @@ class DataportenAuthenticator @Inject() (
 
         case None =>
           logger.debug("Initializing OAuth2 process with Dataporten.")
-          initSession()
+          initSession(client)
       }
     }
   }
