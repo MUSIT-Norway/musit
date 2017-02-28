@@ -34,7 +34,10 @@
 }
 
 .top {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
+  -ms-flex-item-align: start;
   align-self: flex-start;
 }
 

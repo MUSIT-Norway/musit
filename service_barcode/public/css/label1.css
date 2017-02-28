@@ -34,15 +34,20 @@
 }
 
 .top {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
   height: 30mm;
 }
 
 .codeImage {
+  -ms-flex-item-align: start;
   align-self: flex-start;
 }
 
 .name {
+  -ms-flex-item-align: center;
+  -ms-grid-row-align: center;
   align-self: center;
   margin-right: 5px;
   height: auto;

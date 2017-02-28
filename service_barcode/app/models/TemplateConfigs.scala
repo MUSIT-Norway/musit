@@ -28,9 +28,7 @@ object TemplateConfigs {
     Label2,
     Label3,
     Label4,
-    Label5,
-    Avery5160,
-    Herma9650
+    Label5
   )
 
   sealed trait TemplateConfig {
@@ -55,8 +53,6 @@ object TemplateConfigs {
         case Label3.templateId => Some(Label3)
         case Label4.templateId => Some(Label4)
         case Label5.templateId => Some(Label5)
-        case Avery5160.templateId => Some(Avery5160)
-        case Herma9650.templateId => Some(Herma9650)
         case _ => None
       }
     }
@@ -105,24 +101,6 @@ object TemplateConfigs {
     override val labelHeight: Millimeters = Millimeters(27)
     override val rowsPerPage: Int = 11
     override val colsPerPage: Int = 1
-  }
-
-  case object Avery5160 extends TemplateConfig {
-    override val templateId: Int = 6
-    override val name: String = "Avery 25mm x96mm"
-    override val labelWidth: Millimeters = Millimeters(25.198)
-    override val labelHeight: Millimeters = Millimeters(96)
-    override val rowsPerPage: Int = 30
-    override val colsPerPage: Int = 3
-  }
-
-  case object Herma9650 extends TemplateConfig {
-    override val templateId: Int = 7
-    override val name: String = "Herma 37.7mm x 20.7mm"
-    override val labelWidth: Millimeters = Millimeters(37.792)
-    override val labelHeight: Millimeters = Millimeters(20.709)
-    override val rowsPerPage: Int = 5
-    override val colsPerPage: Int = 2
   }
 
 }
