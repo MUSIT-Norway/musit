@@ -3,6 +3,7 @@
 # ~~~~
 
 GET         /service/auth/buildinfo                                     controllers.Application.buildInfo
+GET         /service/auth/healthcheck                                   controllers.HealthCheckController.healthCheck
 
 
 # WEB endpoints

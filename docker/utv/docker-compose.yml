@@ -18,6 +18,9 @@ services:
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
@@ -32,6 +35,9 @@ services:
     actor:
         image: musit_service_actor:0.1-SNAPSHOT
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
@@ -46,6 +52,9 @@ services:
     geolocation:
         image: musit_service_geo_location:0.1-SNAPSHOT
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
@@ -61,6 +70,9 @@ services:
         ports:
           - "7074:7070"
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - CALLBACK_URL
           - DATAPORTEN_CLIENT_ID
@@ -76,6 +88,9 @@ services:
     storagefacility:
         image: musit_service_storagefacility:0.1-SNAPSHOT
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
@@ -90,6 +105,9 @@ services:
     barcode:
         image: musit_service_barcode:0.1-SNAPSHOT
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
