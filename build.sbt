@@ -138,6 +138,7 @@ lazy val serviceStoragefacility = (
 lazy val serviceAnalysis = (
   PlayProject("service_analysis")
     settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(libraryDependencies ++= enumeratumDeps)
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(packageName in Docker := "musit_service_analysis")
   ) dependsOn(musitService, musitTest % Test)

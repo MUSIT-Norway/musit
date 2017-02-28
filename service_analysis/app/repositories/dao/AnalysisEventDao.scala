@@ -1,24 +1,50 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package repositories.dao
 
-class AnalysisEventDao {
+import com.google.inject.{Inject, Singleton}
+import models.events.AnalysisEvent
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.models.EventId
+import play.api.Logger
+import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.json._
+
+import scala.concurrent.Future
+import scala.util.control.NonFatal
+
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+@Singleton
+class AnalysisEventDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
+) extends Tables {
+
+  val logger = Logger(classOf[AnalysisEventDao])
+
+  import driver.api._
+
+  def insert[A <: AnalysisEvent](
+    event: A
+  )(implicit w: Writes[A]): Future[MusitResult[EventId]] = {
+    val action = eventTable returning eventTable.map(_.id) += asTuple(event)
+
+    db.run(action).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An unexpected error occurred inserting an analysis event"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  def findById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
+    val query = eventTable.filter(_.id === id)
+    db.run(query.result.headOption).map { res =>
+      MusitSuccess(res.flatMap(asEvent))
+    }.recover {
+      case NonFatal(ex) =>
+        val msg = s"An unexpected error occurred fetching event $id"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
 
 }

@@ -63,7 +63,7 @@ object StorageNode {
       "expected position"
   }
 
-  private val tpe = "type"
+  private[this] val tpe = "type"
 
   implicit val reads: Reads[StorageNode] = Reads { jsv =>
     (jsv \ tpe).as[String] match {
