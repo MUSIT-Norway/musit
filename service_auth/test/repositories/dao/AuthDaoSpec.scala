@@ -233,6 +233,15 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         res.isSuccess mustBe true
         res.get.size mustBe 3
       }
+
+      "return all the groups for a user stored with UPPER_CASE email" in {
+        val email = Email("foobar@baz.com")
+
+        val res = dao.findGroupInfoFor(email).futureValue
+
+        res.isSuccess mustBe true
+        res.get.size mustBe 1
+      }
     }
 
     "finding all the users in a group" should {

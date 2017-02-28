@@ -20,7 +20,6 @@
 package no.uio.musit.security
 
 import no.uio.musit.MusitResults.MusitResult
-import no.uio.musit.security.oauth2.OAuth2Info
 import play.api.mvc.{Request, Result}
 
 import scala.concurrent.Future
@@ -35,11 +34,14 @@ trait Authenticator {
   /**
    * Starts the OAuth2 authentication process.
    *
+   * @param client A String representing the client performing the request.
    * @param req The current request.
    * @tparam A The type of the request body.
    * @return Either a Result or the active UserSession
    */
-  def authenticate[A]()(implicit req: Request[A]): Future[Either[Result, UserSession]]
+  def authenticate[A](
+    client: Option[String]
+  )(implicit req: Request[A]): Future[Either[Result, UserSession]]
 
   /**
    * Method to "touch" the UserSession whenever a User interacts with a service.
@@ -73,5 +75,12 @@ trait Authenticator {
    * @return Will eventually return a Seq of GroupInfo
    */
   def groups(userInfo: UserInfo): Future[MusitResult[Seq[GroupInfo]]]
+
+}
+
+object Authenticator {
+
+  val ClientWeb = "web"
+  val ClientDelphi = "delphi"
 
 }

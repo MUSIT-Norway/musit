@@ -25,6 +25,9 @@ services:
         ports:
           - "7070:7070"
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
@@ -43,6 +46,9 @@ services:
         ports:
           - "7072:7070"
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
@@ -61,6 +67,9 @@ services:
         ports:
           - "7073:7070"
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
@@ -78,6 +87,9 @@ services:
         ports:
           - "7074:7070"
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - CALLBACK_URL
           - DATAPORTEN_CLIENT_ID
@@ -97,6 +109,9 @@ services:
         ports:
           - "7075:7070"
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET
@@ -115,6 +130,9 @@ services:
         ports:
           - "7076:7070"
         environment:
+          - MUSIT_ENV
+          - MUSIT_BASE_URL
+          - DOCKER_HOSTNAME
           - MUSIT_SECURITY_MODULE
           - DATAPORTEN_CLIENT_ID
           - DATAPORTEN_CLIENT_SECRET

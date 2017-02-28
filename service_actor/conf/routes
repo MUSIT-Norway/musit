@@ -4,6 +4,7 @@
 
 # Setup endpoints
 GET           /service/actor/buildinfo                   controllers.Application.buildInfo
+GET           /service/actor/healthcheck                 controllers.HealthCheckController.healthCheck
 
 GET           /v1/dataporten/currentUser                 controllers.UserController.currentUser
 

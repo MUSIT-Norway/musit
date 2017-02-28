@@ -41,7 +41,7 @@ class DatabaseAuthResolver @Inject() (
   override def findGroupInfoByFeideEmail(
     feideEmail: Email
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
-    findGroupInfoBy(usrGrpTable.filter(_.feideEmail === feideEmail)).recover {
+    findGroupInfoBy(usrGrpTable.filter(_.feideEmail.toLowerCase === feideEmail)).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred when trying to find Groups for user $feideEmail"
         logger.error(msg, ex)
@@ -100,9 +100,7 @@ class DatabaseAuthResolver @Inject() (
   override def userSession(
     sessionUUID: SessionUUID
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserSession]]] = {
-    val query = usrSessionTable.filter { us =>
-      us.uuid === sessionUUID
-    }
+    val query = usrSessionTable.filter(_.uuid === sessionUUID)
 
     db.run(query.result.headOption).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>

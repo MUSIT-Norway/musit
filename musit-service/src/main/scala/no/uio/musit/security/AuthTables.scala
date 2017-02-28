@@ -29,7 +29,10 @@ import no.uio.musit.time.DateTimeImplicits
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
+import slick.ast._
 import slick.driver.JdbcProfile
+import slick.lifted._
+import FunctionSymbolExtensionMethods._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -46,9 +49,16 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       str => ActorId.unsafeFromString(str)
     )
 
+  // Implicit that extends Email typed columns with a toLowerCase method
+  implicit class EmailColumnExtensionMethods[P1](val c: Rep[Email]) {
+    implicit def emailTypedType = implicitly[TypedType[Email]]
+
+    def toLowerCase(implicit tt: TypedType[Email]) = Library.LCase.column[Email](c.toNode)
+  }
+
   implicit lazy val emailMapper: BaseColumnType[Email] =
     MappedColumnType.base[Email, String](
-      email => email.value,
+      email => email.value.toLowerCase,
       str => Email.fromString(str)
     )
 
@@ -138,7 +148,9 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
 
   }
 
-  type UserInfoDBTuple = ((ActorId, Option[Email], Option[String], Option[Email], Option[String])) // scalastyle:ignore
+  type UserInfoDBTuple = ((ActorId, Option[Email], Option[String], Option[Email], Option[String]))
+
+  // scalastyle:ignore
 
   class UserInfoTable(
       val tag: Tag
@@ -165,6 +177,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
     val lastActive = column[Option[DateTime]]("LAST_ACTIVE")
     val isLoggedIn = column[Boolean]("IS_LOGGED_IN")
     val tokenExpiry = column[Option[Long]]("TOKEN_EXPIRES_IN")
+    val client = column[Option[String]]("CLIENT")
 
     val create = (
       uuid: SessionUUID,
@@ -173,7 +186,8 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       loginTimestamp: Option[DateTime],
       lastActiveTimestamp: Option[DateTime],
       loggedIn: Boolean,
-      expiration: Option[Long]
+      expiration: Option[Long],
+      client: Option[String]
     ) =>
       UserSession(
         uuid = uuid,
@@ -182,7 +196,8 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
         loginTime = loginTimestamp,
         lastActive = lastActiveTimestamp,
         isLoggedIn = loggedIn,
-        tokenExpiry = expiration
+        tokenExpiry = expiration,
+        client = client
       )
 
     val destroy = (us: UserSession) =>
@@ -193,10 +208,11 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
         us.loginTime,
         us.lastActive,
         us.isLoggedIn,
-        us.tokenExpiry
+        us.tokenExpiry,
+        us.client
       ))
 
-    override def * = (uuid, token, userUuid, loginTime, lastActive, isLoggedIn, tokenExpiry) <> (create.tupled, destroy) // scalastyle:ignore
+    override def * = (uuid, token, userUuid, loginTime, lastActive, isLoggedIn, tokenExpiry, client) <> (create.tupled, destroy) // scalastyle:ignore
 
   }
 

@@ -22,15 +22,14 @@ package no.uio.musit.security.dataporten
 import java.util.UUID
 
 import no.uio.musit.models.{ActorId, Email}
-import no.uio.musit.security.{BearerToken, SessionUUID}
-import no.uio.musit.security.oauth2.OAuth2Info
+import no.uio.musit.security.{Authenticator, BearerToken, SessionUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalamock.scalatest.MockFactory
 import play.api.Configuration
 import play.api.http.{DefaultWriteables, Writeable}
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSAPI, WSRequest, WSResponse}
-import play.api.mvc.{Result, Results}
+import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
@@ -66,7 +65,7 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
 
       implicit val fakeRequest = FakeRequest("GET", "/authenticate")
 
-      val futRes = authenticator.authenticate()
+      val futRes = authenticator.authenticate(Some(Authenticator.ClientWeb))
       val res = futRes.futureValue
       res.isLeft mustBe true
       res.left.get mustBe a[Result]
@@ -128,7 +127,7 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
         )
       ).atLeastTwice()
 
-      val futRes = authenticator.authenticate()
+      val futRes = authenticator.authenticate(Some(Authenticator.ClientWeb))
 
       val res = futRes.futureValue
       res.isRight mustBe true

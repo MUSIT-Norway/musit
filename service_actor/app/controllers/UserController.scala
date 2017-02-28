@@ -33,6 +33,6 @@ class UserController @Inject() (
 
   def currentUser = MusitSecureAction().async { request =>
     val authUser = request.user
-    userService.currenUserAsActor(authUser).map(p => Ok(Json.toJson(p)))
+    userService.currentUserAsActor(authUser).map(p => Ok(Json.toJson(p)))
   }
 }

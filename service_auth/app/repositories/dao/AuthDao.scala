@@ -102,7 +102,9 @@ class AuthDao @Inject() (
    * @return A collection of GroupInfo belonging to the given feide-email
    */
   def findGroupInfoFor(feideEmail: Email): Future[MusitResult[Seq[GroupInfo]]] = {
-    findGroupInfoBy(usrGrpTable.filter(_.feideEmail === feideEmail)).recover {
+    findGroupInfoBy(usrGrpTable.filter { ug =>
+      ug.feideEmail.toLowerCase === feideEmail
+    }).recover {
       case NonFatal(ex) =>
         handleError(s"An error occurred trying find GroupInfo for user $feideEmail", ex)
     }
@@ -119,7 +121,7 @@ class AuthDao @Inject() (
     groupId: GroupId
   ): Future[MusitResult[Seq[MuseumCollection]]] = {
     val q = usrGrpTable.filter { ug =>
-      ug.feideEmail === feideEmail && ug.groupId === groupId
+      ug.feideEmail.toLowerCase === feideEmail && ug.groupId === groupId
     }
     val query = for {
       (ug, c) <- q join musColTable on (_.collectionId === _.uuid)
@@ -149,7 +151,7 @@ class AuthDao @Inject() (
     collectionId: CollectionUUID
   ): Future[MusitResult[Int]] = {
     val q = usrGrpTable.filter { ug =>
-      ug.feideEmail === feideEmail &&
+      ug.feideEmail.toLowerCase === feideEmail &&
         ug.groupId === groupId &&
         ug.collectionId === collectionId
     }.delete
@@ -304,7 +306,7 @@ class AuthDao @Inject() (
     grpId: GroupId
   ): Future[MusitResult[Int]] = {
     val action = usrGrpTable.filter { ug =>
-      ug.feideEmail === feideEmail && ug.groupId === grpId
+      ug.feideEmail.toLowerCase === feideEmail && ug.groupId === grpId
     }.delete
 
     db.run(action).map {
