@@ -1,8 +1,10 @@
 package models.events
 
+import no.uio.musit.models.ActorId
+import org.joda.time.DateTime
 import play.api.libs.json._
 
-object EventResults {
+object AnalysisResults {
 
   trait ResultTypeCompanion {
     val resultTypeId: Int
@@ -12,23 +14,26 @@ object EventResults {
    * Represents the base Result type defining which fields should be present
    * in _all_ result types.
    */
-  sealed trait Result {
+  sealed trait AnalysisResult {
+    val registeredBy: Option[ActorId]
+    val registeredDate: Option[DateTime]
+    //    val restriction: Option[Restriction]
     val extRef: Option[Seq[String]]
     val comment: Option[String]
   }
 
-  object Result {
+  object AnalysisResult {
 
     private[this] val tpe = "resType"
 
-    implicit val reads: Reads[Result] = Reads { jsv =>
+    implicit val reads: Reads[AnalysisResult] = Reads { jsv =>
       (jsv \ tpe).validate[Int].flatMap {
         case GeneralResult.resultTypeId => GeneralResult.format.reads(jsv)
         case DatingResult.resultTypeId => DatingResult.format.reads(jsv)
       }
     }
 
-    implicit val writes: Writes[Result] = Writes {
+    implicit val writes: Writes[AnalysisResult] = Writes {
       case genRes: GeneralResult =>
         GeneralResult.format.writes(genRes).as[JsObject] ++
           Json.obj(tpe -> GeneralResult.resultTypeId)
@@ -49,9 +54,11 @@ object EventResults {
    * @param comment A comment field that may contain a hand written result
    */
   case class GeneralResult(
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
     extRef: Option[Seq[String]],
     comment: Option[String]
-  ) extends Result
+  ) extends AnalysisResult
 
   object GeneralResult extends ResultTypeCompanion {
     override val resultTypeId = 1
@@ -69,10 +76,12 @@ object EventResults {
    * @param age The result containing the specific dating result.
    */
   case class DatingResult(
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
     extRef: Option[Seq[String]],
     comment: Option[String],
     age: Option[String]
-  ) extends Result
+  ) extends AnalysisResult
 
   object DatingResult extends ResultTypeCompanion {
     override val resultTypeId = 2

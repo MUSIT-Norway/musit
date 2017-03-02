@@ -42,13 +42,13 @@ object EventCategories extends Enum[Category] {
 
   case object AgeIndividual extends Category(1)
 
-  case object Dating extends Category(2)
+  case object Chemical extends Category(2)
 
-  case object Chemical extends Category(3)
+  case object ChromosomeCount extends Category(3)
 
-  case object ChromosomeCount extends Category(4)
+  case object Colour extends Category(4)
 
-  case object Colour extends Category(5)
+  case object Dating extends Category(5)
 
   case object Genetic extends Category(6)
 
@@ -60,26 +60,26 @@ object EventCategories extends Enum[Category] {
 
   case object LossOnIgnition extends Category(10)
 
-  //  case object MacroFossil extends Category(11)
-  //
-  //  case object MicroFossil extends Category(12)
-  //
-  //  case object Morphologic extends Category(13)
-  //
-  //  case object Osteological extends Category(14)
-  //
-  //  case object Protein extends Category(15)
-  //
-  //  case object Sediment extends Category(16)
+  case object MacroFossil extends Category(11)
+
+  case object MicroFossil extends Category(12)
+
+  case object Morphologic extends Category(13)
+
+  case object Osteological extends Category(14)
+
+  case object Protein extends Category(15)
+
+  case object Sediment extends Category(16)
 
   case object SpeciesIdentification extends Category(17)
 
-  //  case object TextileFiber extends Category(18)
-  //
-  //  case object UseWear extends Category(19)
-  //
-  //  case object Video extends Category(20)
-  //
-  //  case object WoodAnatomy extends Category(21)
+  case object TextileFiber extends Category(18)
+
+  case object UseWear extends Category(19)
+
+  case object Video extends Category(20)
+
+  case object WoodAnatomy extends Category(21)
 
 }

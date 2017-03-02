@@ -1,27 +1,8 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package repositories.dao
 
-import models.events.EventTypes.EventTypeId
+import models.events.AnalysisTypeId
 import models.events.{Category, EventCategories}
-import no.uio.musit.models.{ActorId, EventId}
+import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}
 import slick.driver.JdbcProfile
@@ -37,16 +18,22 @@ trait ColumnTypeMappers {
       longId => EventId(longId)
     )
 
-  implicit lazy val eventTypeIdMapper: BaseColumnType[EventTypeId] =
-    MappedColumnType.base[EventTypeId, String](
+  implicit lazy val eventTypeIdMapper: BaseColumnType[AnalysisTypeId] =
+    MappedColumnType.base[AnalysisTypeId, String](
       etid => etid.asString,
-      strId => EventTypeId.unsafeFromString(strId)
+      strId => AnalysisTypeId.unsafeFromString(strId)
     )
 
   implicit val actorIdMapper: BaseColumnType[ActorId] =
     MappedColumnType.base[ActorId, String](
       aid => aid.asString,
       strId => ActorId.unsafeFromString(strId)
+    )
+
+  implicit val objectUuidMapper: BaseColumnType[ObjectUUID] =
+    MappedColumnType.base[ObjectUUID, String](
+      oid => oid.asString,
+      strId => ObjectUUID.unsafeFromString(strId)
     )
 
   implicit val categoryMapper: BaseColumnType[Category] =
