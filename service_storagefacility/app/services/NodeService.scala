@@ -96,7 +96,7 @@ trait NodeService {
    *
    * @param mid     MuseumId
    * @param maybeId Option[StorageNodeId]
-   * @return Future[(NodePath, Seq[NamedPathElement])]
+   * @return {{{Future[MusitResult[(NodePath, Seq[NamedPathElement])]]}}}
    */
   private[services] def findPathAndNames(
     mid: MuseumId,
@@ -383,7 +383,7 @@ trait NodeService {
     }
 
     eventuallyEvents.flatMap {
-      case (to, current, events) if events.nonEmpty => mv(to, current, events)
+      case (to, curr, events) if events.nonEmpty => mv(to, curr, events)
       case _ => Future.successful(MusitValidationError("No move events to execute"))
     }
   }

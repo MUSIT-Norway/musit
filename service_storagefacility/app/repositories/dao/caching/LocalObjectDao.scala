@@ -86,11 +86,10 @@ class LocalObjectDao @Inject() (
           val maybeNodeId = l.find(_.objectId == oid).map(_.currentLocationId)
           res ++ Map(oid -> maybeNodeId)
       }
-    }.map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          MusitDbError("Unable to get current location", Some(ex))
-      }
+    }.map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        MusitDbError("Unable to get current location", Some(ex))
+    }
 
   }
 

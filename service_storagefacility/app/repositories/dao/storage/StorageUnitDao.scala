@@ -88,9 +88,9 @@ class StorageUnitDao @Inject() (
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
   def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
-    db.run(
-      localObjectsTable.filter(_.currentLocationId === nodeId).length.result
-    ).map(MusitSuccess.apply).recover {
+    val q = localObjectsTable.filter(_.currentLocationId === nodeId).length
+
+    db.run(q.result).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting number direct objects in $nodeId"
         logger.error(msg, ex)
@@ -168,8 +168,9 @@ class StorageUnitDao @Inject() (
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
         sn.id.inSet(ids)
-    }.map(res => (res.id, res.storageType, res.path)).sortBy(_._3.asc).result
-    db.run(query).map(_.map(tuple => tuple._1 -> tuple._2))
+    }.map(res => (res.id, res.storageType, res.path)).sortBy(_._3.asc)
+
+    db.run(query.result).map(_.map(tuple => tuple._1 -> tuple._2))
   }
 
   /**
@@ -359,7 +360,8 @@ class StorageUnitDao @Inject() (
    */
   def setPath(id: StorageNodeDatabaseId, path: NodePath): Future[MusitResult[Unit]] = {
     db.run(updatePathAction(id, path)).map {
-      case res: Int if res == 1 => MusitSuccess(())
+      case res: Int if res == 1 =>
+        MusitSuccess(())
 
       case res: Int =>
         val msg = wrongNumUpdatedRows(id, res)
@@ -385,6 +387,7 @@ class StorageUnitDao @Inject() (
       case res: Int if res != 0 =>
         logger.debug(s"Successfully updated path for $res nodes")
         MusitSuccess(res)
+
       case _ =>
         val msg = s"Did not update any paths starting with $oldPath"
         logger.error(msg)

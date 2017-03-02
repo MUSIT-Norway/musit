@@ -44,9 +44,10 @@ class BuildingDao @Inject() (
 
   val logger = Logger(classOf[BuildingDao])
 
-  private def updateAction(id: StorageNodeDatabaseId, building: BuildingDto): DBIO[Int] = {
-    buildingTable.filter(_.id === id).update(building)
-  }
+  private def updateAction(
+    id: StorageNodeDatabaseId,
+    building: BuildingDto
+  ): DBIO[Int] = buildingTable.filter(_.id === id).update(building)
 
   private def insertAction(buildingDto: BuildingDto): DBIO[Int] = {
     buildingTable += buildingDto
@@ -89,7 +90,10 @@ class BuildingDao @Inject() (
     val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(mid, id, extendedBuildingDto.storageUnitDto)
-      buildingsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedBuildingDto.extension) else DBIO.successful[Int](0) // scalastyle:ignore
+      buildingsUpdated <- {
+        if (unitsUpdated > 0) updateAction(id, extendedBuildingDto.extension)
+        else DBIO.successful[Int](0)
+      }
     } yield buildingsUpdated
 
     db.run(action.transactionally).map {
@@ -118,7 +122,8 @@ class BuildingDao @Inject() (
    */
   def setPath(id: StorageNodeDatabaseId, path: NodePath): Future[MusitResult[Unit]] = {
     db.run(updatePathAction(id, path)).map {
-      case res: Int if res == 1 => MusitSuccess(())
+      case res: Int if res == 1 =>
+        MusitSuccess(())
 
       case res: Int =>
         val msg = wrongNumUpdatedRows(id, res)
@@ -143,14 +148,12 @@ class BuildingDao @Inject() (
       nodeId
     }
 
-    db.run(query.transactionally)
-      .map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Unable to insert building with museumId $mid"
-          logger.warn(msg, ex)
-          MusitDbError(msg, Some(ex))
-      }
+    db.run(query.transactionally).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"Unable to insert building with museumId $mid"
+        logger.warn(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
   }
 
 }

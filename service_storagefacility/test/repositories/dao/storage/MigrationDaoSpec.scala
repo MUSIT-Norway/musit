@@ -19,8 +19,6 @@
 
 package repositories.dao.storage
 
-import models.storage.StorageUnit
-import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.{ActorId, GroupId, Museums, StorageNodeDatabaseId}
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite

@@ -45,9 +45,7 @@ class OrganisationDao @Inject() (
   val logger = Logger(classOf[OrganisationDao])
 
   private def updateAction(id: StorageNodeDatabaseId, org: OrganisationDto): DBIO[Int] = {
-    organisationTable.filter { ot =>
-      ot.id === id
-    }.update(org)
+    organisationTable.filter(_.id === id).update(org)
   }
 
   private def insertAction(organisationDto: OrganisationDto): DBIO[Int] = {
@@ -66,14 +64,11 @@ class OrganisationDao @Inject() (
       maybeOrgDto <- organisationTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
-      maybeUnitDto.flatMap(u =>
-        maybeOrgDto.map(o => ExtendedStorageNode(u, o)))
+      maybeUnitDto.flatMap(u => maybeOrgDto.map(o => ExtendedStorageNode(u, o)))
     }
     // Execute the query
     db.run(action)
-      .map(res => MusitSuccess(res.map { unitOrgTuple =>
-        StorageNodeDto.toOrganisation(unitOrgTuple)
-      }))
+      .map(res => MusitSuccess(res.map(StorageNodeDto.toOrganisation)))
       .recover {
         case NonFatal(ex) =>
           val msg = s"Unable to get organisation for museumId $mid and storage node $id"
@@ -93,7 +88,10 @@ class OrganisationDao @Inject() (
     val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(mid, id, extendedOrgDto.storageUnitDto)
-      orgsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension) else DBIO.successful[Int](0) // scalastyle:ignore
+      orgsUpdated <- {
+        if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension)
+        else DBIO.successful[Int](0)
+      }
     } yield orgsUpdated
 
     db.run(action.transactionally).map {
