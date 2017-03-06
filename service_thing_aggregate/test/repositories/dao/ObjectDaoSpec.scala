@@ -39,7 +39,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
   val allCollections = Seq(MuseumCollection(
     uuid = CollectionUUID(UUID.fromString("925748d6-bf49-4733-afd1-0e127d639f18")),
     name = Some("Arkeologi"),
-    oldSchemaNames = Seq(OldDbSchemas.Archeology)
+    oldSchemaNames = Seq(MuseumCollections.Archeology)
   ))
 
   val dummyUid = ActorId.generate()

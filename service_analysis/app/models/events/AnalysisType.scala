@@ -2,7 +2,7 @@ package models.events
 
 import java.util.UUID
 
-import no.uio.musit.models.{MusitUUID, MusitUUIDOps}
+import no.uio.musit.models.{CollectionUUID, MusitUUID, MusitUUIDOps}
 import play.api.libs.json._
 
 case class AnalysisTypeId(underlying: UUID) extends MusitUUID
@@ -31,6 +31,7 @@ case class AnalysisType(
   category: Category,
   name: String,
   shortName: Option[String] = None,
+  collections: Seq[CollectionUUID],
   extraAttributes: Option[Map[String, String]] = None
 )
 

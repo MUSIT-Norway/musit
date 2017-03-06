@@ -1,8 +1,8 @@
 package repositories.dao
 
 import models.events.EventCategories.Dating
+import no.uio.musit.models.MuseumCollections.Entomology
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-
 import org.scalatest.Inspectors.forAll
 
 class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite {
@@ -31,6 +31,21 @@ class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite {
       forAll(ats) { a =>
         a.category mustBe Dating
         a.extraAttributes mustBe Some(Map("age" -> "String"))
+      }
+    }
+
+    "return all analysis types for a specific collection" in {
+      val entoUUID = Entomology.uuid // scalastyle:ignore
+
+      val res = dao.allForCollection(entoUUID).futureValue
+
+      res.isSuccess mustBe true
+      val ats = res.get
+
+      ats.size mustBe 28
+
+      forAll(ats) { t =>
+        (t.collections.contains(entoUUID) || t.collections.isEmpty) mustBe true
       }
     }
   }

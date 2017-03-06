@@ -1,6 +1,6 @@
 package repositories.dao
 
-import models.events.AnalysisResults.{AnalysisResult, DatingResult, GeneralResult}
+import models.events.AnalysisResults.{AnalysisResult, DatingResult, GenericResult}
 import models.events.{Analysis, AnalysisCollection, AnalysisTypeId}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
@@ -49,7 +49,7 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
 
     "inserting analysis events" should {
       "return the EventId allocated to a single analysis" in {
-        val res = Some(GeneralResult(
+        val res = Some(GenericResult(
           registeredBy = Some(dummyActorId),
           registeredDate = Some(dateTimeNow),
           extRef = Some(Seq("foo", "bar", "fizz")),
@@ -97,7 +97,7 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return the analysis event that matches the given id" in {
-        val gr = Some(GeneralResult(
+        val gr = Some(GenericResult(
           registeredBy = Some(dummyActorId),
           registeredDate = Some(dateTimeNow),
           extRef = Some(Seq("shizzle", "in", "the", "drizzle")),

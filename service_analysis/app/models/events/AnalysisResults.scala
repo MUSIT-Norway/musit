@@ -28,15 +28,15 @@ object AnalysisResults {
 
     implicit val reads: Reads[AnalysisResult] = Reads { jsv =>
       (jsv \ tpe).validate[Int].flatMap {
-        case GeneralResult.resultTypeId => GeneralResult.format.reads(jsv)
+        case GenericResult.resultTypeId => GenericResult.format.reads(jsv)
         case DatingResult.resultTypeId => DatingResult.format.reads(jsv)
       }
     }
 
     implicit val writes: Writes[AnalysisResult] = Writes {
-      case genRes: GeneralResult =>
-        GeneralResult.format.writes(genRes).as[JsObject] ++
-          Json.obj(tpe -> GeneralResult.resultTypeId)
+      case genRes: GenericResult =>
+        GenericResult.format.writes(genRes).as[JsObject] ++
+          Json.obj(tpe -> GenericResult.resultTypeId)
 
       case dteRes: DatingResult =>
         DatingResult.format.writes(dteRes).as[JsObject] ++
@@ -53,17 +53,17 @@ object AnalysisResults {
    * @param extRef A list of references to external systems.
    * @param comment A comment field that may contain a hand written result
    */
-  case class GeneralResult(
+  case class GenericResult(
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     extRef: Option[Seq[String]],
     comment: Option[String]
   ) extends AnalysisResult
 
-  object GeneralResult extends ResultTypeCompanion {
+  object GenericResult extends ResultTypeCompanion {
     override val resultTypeId = 1
 
-    val format: Format[GeneralResult] = Json.format[GeneralResult]
+    val format: Format[GenericResult] = Json.format[GenericResult]
   }
 
   /**

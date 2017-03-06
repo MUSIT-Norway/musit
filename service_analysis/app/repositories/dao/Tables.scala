@@ -4,7 +4,7 @@ import java.sql.{Timestamp => JSqlTimestamp}
 
 import models.events.AnalysisResults.AnalysisResult
 import models.events.{AnalysisEvent, AnalysisType, AnalysisTypeId, Category}
-import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
+import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json}
@@ -23,7 +23,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   val resultTable = TableQuery[AnalysisResultTable]
 
   // scalastyle:off line.size.limit
-  type EventTypeRow = (AnalysisTypeId, Category, String, Option[String], Option[JsValue])
+  type EventTypeRow = (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
   type EventRow = (Option[EventId], AnalysisTypeId, Option[JSqlTimestamp], Option[ActorId], Option[JSqlTimestamp], Option[EventId], Option[ObjectUUID], Option[String], JsValue)
   type ResultRow = (Option[Long], EventId, Option[ActorId], Option[JSqlTimestamp], JsValue)
   // scalastyle:on line.size.limit
@@ -39,11 +39,12 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val category = column[Category]("CATEGORY")
     val name = column[String]("NAME")
     val shortName = column[Option[String]]("SHORT_NAME")
+    val collections = column[Option[String]]("COLLECTIONS")
     // TODO: Need col to tag if used by Zoology, Botanics, Archeology or Ethnography?
     val attributes = column[Option[JsValue]]("ATTRIBUTES")
 
     // scalastyle:off method.name
-    def * = (typeId, category, name, shortName, attributes)
+    def * = (typeId, category, name, shortName, collections, attributes)
     // scalastyle:on method.name
   }
 
@@ -87,6 +88,14 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     // scalastyle:on method.name
   }
 
+  private def parseCollectionUUIDCol(colStr: Option[String]): Seq[CollectionUUID] = {
+    colStr.map { str =>
+      str.stripPrefix(",").stripSuffix(",").split(",").toSeq.map { uuidStr =>
+        CollectionUUID.unsafeFromString(uuidStr)
+      }
+    }.getOrElse(Seq.empty[CollectionUUID])
+  }
+
   /**
    * Converts an EventTypeRow tuple to an instance of AnalysisType.
    *
@@ -99,7 +108,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       category = t._2,
       name = t._3,
       shortName = t._4,
-      extraAttributes = t._5.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt)
+      collections = parseCollectionUUIDCol(t._5),
+      extraAttributes = t._6.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt)
     )
   }
 

@@ -1,7 +1,6 @@
 package repositories.dao
 
-import models.events.AnalysisTypeId
-import models.events.{Category, EventCategories}
+import models.events.{AnalysisTypeId, Category, EventCategories}
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}

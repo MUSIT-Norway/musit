@@ -1,5 +1,5 @@
 package models
 
-class SampleObject {
+case class SampleObject() {
 
 }
