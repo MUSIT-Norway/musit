@@ -114,7 +114,9 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
     "successfully list root nodes" in {
       val nodes = storageUnitDao.findRootNodes(defaultMuseumId).futureValue
-      nodes.foreach { n =>
+
+      nodes mustBe a[MusitSuccess[_]]
+      nodes.get.foreach { n =>
         n.storageType.entryName must startWith("Root")
       }
     }
@@ -122,15 +124,19 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     "fail to list root nodes when museumId is wrong" in {
       val mid = MuseumId(5)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
-      nodes.size mustBe 0
-      nodes.foreach(_.storageType mustBe StorageType.RootType)
+
+      nodes mustBe a[MusitSuccess[_]]
+      nodes.get.size mustBe 0
+      nodes.get.foreach(_.storageType mustBe StorageType.RootType)
     }
 
     "fail to list root nodes with museumId that does not exists" in {
       val mid = MuseumId(55)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
-      nodes.size mustBe 0
-      nodes.foreach(_.storageType mustBe StorageType.RootType)
+
+      nodes mustBe a[MusitSuccess[_]]
+      nodes.get.size mustBe 0
+      nodes.get.foreach(_.storageType mustBe StorageType.RootType)
     }
 
     "successfully mark a node as deleted" in {
@@ -278,33 +284,41 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
       val tuples = storageUnitDao.getStorageTypesInPath(defaultMuseumId, su1Path).futureValue // scalastyle:ignore
 
-      tuples must contain theSameElementsInOrderAs expected
+      tuples.get must contain theSameElementsInOrderAs expected
     }
 
     "successfully get a node when searching for name and not if it's wrong museumId" in {
       val mid = MuseumId(5)
       val getNodeName = storageUnitDao.getStorageNodeByName(mid, "Foo", 1, 25).futureValue
-      getNodeName.size mustBe 3
-      getNodeName.head.name must include("Foo")
-      getNodeName.lift(2).get.name must include("Foo")
+
+      getNodeName mustBe a[MusitSuccess[_]]
+      getNodeName.get.size mustBe 3
+      getNodeName.get.head.name must include("Foo")
+      getNodeName.get.lift(2).get.name must include("Foo")
 
       val anotherMid = MuseumId(4)
       val notGetNodeName = storageUnitDao.getStorageNodeByName(anotherMid, "Foo", 1, 25).futureValue // scalastyle:ignore
-      notGetNodeName.size mustBe 0
+
+      notGetNodeName mustBe a[MusitSuccess[_]]
+      notGetNodeName.get.size mustBe 0
     }
 
     "fail when searching for name without invalid criteria" in {
       // scalastyle:ignore
       val mid = MuseumId(5)
       val getNodeName = storageUnitDao.getStorageNodeByName(mid, "", 1, 25).futureValue
-      getNodeName.size mustBe 0
+
+      getNodeName mustBe a[MusitSuccess[_]]
+      getNodeName.get.size mustBe 0
 
       val tooFewLettersInSearchStr = storageUnitDao.getStorageNodeByName(mid, "", 1, 25).futureValue // scalastyle:ignore
-      tooFewLettersInSearchStr.size mustBe 0
+      tooFewLettersInSearchStr mustBe a[MusitSuccess[_]]
+      tooFewLettersInSearchStr.get.size mustBe 0
 
       val anotherMid = MuseumId(4)
       val noNodeName = storageUnitDao.getStorageNodeByName(anotherMid, "Foo", 1, 25).futureValue // scalastyle:ignore
-      noNodeName.size mustBe 0
+      noNodeName mustBe a[MusitSuccess[_]]
+      noNodeName.get.size mustBe 0
     }
   }
 

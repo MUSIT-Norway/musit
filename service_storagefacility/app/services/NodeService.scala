@@ -143,6 +143,46 @@ trait NodeService {
     }.getOrElse(Future.successful(false))
   }
 
+  private[this] def validateMoveLocation[T <: StorageNode](
+    idTypeTuples: Seq[(StorageNodeDatabaseId, StorageType)],
+    maybeDestId: Option[StorageNodeDatabaseId],
+    node: T,
+    dest: NodePath
+  ): Future[MusitResult[Unit]] = Future.successful {
+    logger.debug(s"Found types for node IDs in destination path" +
+      s": ${idTypeTuples.mkString(", ")}")
+    logger.trace(s"Validating destination for ${node.storageType.entryName}...")
+    // Identify the type of node we want to place in the hierarchy, and
+    // validate if the destination location is valid for the given type.
+    val res = node.storageType match {
+      case RootType =>
+        RootNode.isValidLocation(dest)
+
+      case RootLoanType =>
+        RootNode.isValidLocation(dest)
+
+      case OrganisationType =>
+        Organisation.isValidLocation(maybeDestId, idTypeTuples)
+
+      case BuildingType =>
+        Building.isValidLocation(maybeDestId, idTypeTuples)
+
+      case RoomType =>
+        Room.isValidLocation(maybeDestId, idTypeTuples)
+
+      case StorageUnitType =>
+        StorageUnit.isValidLocation(maybeDestId, idTypeTuples)
+    }
+
+    if (!res) {
+      logger.warn(s"Cannot move node ${node.id} to ${dest.path} because " +
+        "it is not allowed")
+      MusitValidationError("Illegal move")
+    } else {
+      MusitSuccess(())
+    }
+  }
+
   /**
    * This function helps to validate that the relevant rules about the node
    * hierarchy are enforced. All operations that involves positioning a node
@@ -164,41 +204,10 @@ trait NodeService {
       val maybeDestId = dest.asIdSeq.lastOption
       // Get the StorageType for the elements in the destination path so we can
       // use it to verify that nodes are placed on a valid location
-      unitDao.getStorageTypesInPath(mid, dest).map { idTypeTuples =>
-        logger.debug(s"Found types for node IDs in destination path" +
-          s": ${idTypeTuples.mkString(", ")}")
-        logger.trace(s"Validating destination for ${node.storageType.entryName}...")
-        // Identify the type of node we want to place in the hierarchy, and
-        // validate if the destination location is valid for the given type.
-        val res = node.storageType match {
-          case RootType =>
-            RootNode.isValidLocation(dest)
-
-          case RootLoanType =>
-            RootNode.isValidLocation(dest)
-
-          case OrganisationType =>
-            Organisation.isValidLocation(maybeDestId, idTypeTuples)
-
-          case BuildingType =>
-            Building.isValidLocation(maybeDestId, idTypeTuples)
-
-          case RoomType =>
-            Room.isValidLocation(maybeDestId, idTypeTuples)
-
-          case StorageUnitType =>
-            StorageUnit.isValidLocation(maybeDestId, idTypeTuples)
-        }
-
-        if (!res) {
-          logger.warn(s"Cannot move node ${node.id} to ${dest.path} because " +
-            "it is not allowed")
-          MusitValidationError("Illegal move")
-        } else {
-          MusitSuccess(())
-        }
-
-      }
+      (for {
+        idTypeTuples <- MusitResultT(unitDao.getStorageTypesInPath(mid, dest))
+        res <- MusitResultT(validateMoveLocation(idTypeTuples, maybeDestId, node, dest))
+      } yield res).value
     } else {
       logger.warn(s"destination ($dest) is not allowed for ${node.id} because " +
         s"it is a child of ${node.path}.")
@@ -364,11 +373,8 @@ trait NodeService {
   )(
     mv: (GenericStorageNode, CurrLocType[ID], Seq[E]) => Future[MusitResult[Seq[ID]]]
   )(implicit ctId: ClassTag[ID], ctEvt: ClassTag[E]): Future[MusitResult[Seq[ID]]] = {
-    val eventuallyEvents = for {
-      maybeTo <- unitDao.getNodeById(mid, destination)
-      // only continue if we have found the destination node
-      if maybeTo.nonEmpty
-    } yield {
+
+    def filteredEvents(): Future[MusitResult[Seq[E]]] = {
       val ids = current.filterNot { t =>
         val isSame = t._2.contains(destination)
         if (isSame) logger.debug(s"${t._1} is already in node $destination")
@@ -377,14 +383,19 @@ trait NodeService {
 
       val filtered = filterAndEnrich(current, ids, moveEvents)
 
-      // Calling get on maybeTo should be safe, since we abort the
-      // for-comprehension if it's nonEmpty
-      (maybeTo.get, current, filtered) // scalastyle:ignore
+      if (filtered.nonEmpty) Future.successful(MusitSuccess(filtered))
+      else Future.successful(MusitValidationError("No move events to execute"))
     }
 
-    eventuallyEvents.flatMap {
-      case (to, curr, events) if events.nonEmpty => mv(to, curr, events)
-      case _ => Future.successful(MusitValidationError("No move events to execute"))
-    }
+    val eventuallyEvents = for {
+      maybeTo <- MusitResultT(unitDao.getNodeById(mid, destination))
+      to <- MusitResultT(Future.successful(MusitResult.getOrError(
+        maybeTo, MusitValidationError("Didn't find the node")
+      )))
+      events <- MusitResultT(filteredEvents())
+      moved <- MusitResultT(mv(to, current, events))
+    } yield moved
+
+    eventuallyEvents.value
   }
 }

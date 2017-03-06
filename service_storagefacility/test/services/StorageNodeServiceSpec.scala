@@ -229,9 +229,9 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       // Get children of storage unit 1
       val pr = service.getChildren(defaultMuseumId, unit1.id.get, 1, 10).futureValue
-      val children = pr.matches
+      val children = pr.get.matches
       val grandChildren = children.flatMap { c =>
-        service.getChildren(defaultMuseumId, c.id.get, 1, 10).futureValue.matches
+        service.getChildren(defaultMuseumId, c.id.get, 1, 10).futureValue.get.matches
       }
       val mostChildren = children ++ grandChildren
 

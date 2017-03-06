@@ -21,13 +21,13 @@ package controllers
 
 import com.google.inject.Inject
 import models.Move
-import models.event.move.{MoveEvent, MoveNode, MoveObject}
+import models.event.move.{MoveNode, MoveObject}
 import models.storage._
+import no.uio.musit.MusitResults._
 import no.uio.musit.models._
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
-import no.uio.musit.MusitResults._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -126,7 +126,18 @@ final class StorageController @Inject() (
    * TODO: Document me!
    */
   def root(mid: Int) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.rootNodes(mid).map { roots => Ok(Json.toJson[Seq[StorageNode]](roots))
+    service.rootNodes(mid).map {
+      case MusitSuccess(roots) =>
+        Ok(Json.toJson[Seq[StorageNode]](roots))
+
+      case musitError: MusitError =>
+        musitError match {
+          case MusitValidationError(message, exp, act) =>
+            BadRequest(Json.obj("message" -> message))
+
+          case internal: MusitError =>
+            InternalServerError(Json.obj("message" -> internal.message))
+        }
     }
   }
 
@@ -139,11 +150,14 @@ final class StorageController @Inject() (
     page: Int,
     limit: Int
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.getChildren(mid, id, page, limit).map { nodes =>
-      Ok(Json.obj(
-        "totalMatches" -> nodes.totalMatches,
-        "matches" -> Json.toJson[Seq[GenericStorageNode]](nodes.matches)
-      ))
+    service.getChildren(mid, id, page, limit).map {
+      case MusitSuccess(nodes) =>
+        Ok(Json.obj(
+          "totalMatches" -> nodes.totalMatches,
+          "matches" -> Json.toJson[Seq[GenericStorageNode]](nodes.matches)
+        ))
+      case musitError: MusitError =>
+        InternalServerError(Json.obj("message" -> musitError.message))
     }
   }
 
@@ -448,11 +462,17 @@ final class StorageController @Inject() (
     searchStr match {
       case Some(criteria) if criteria.length >= 3 =>
         service.searchByName(mid, criteria, page, limit).map {
-          case MusitSuccess(mr) => Ok(Json.toJson(mr))
-          case r: MusitError => InternalServerError(Json.obj("message" -> r.message))
+          case MusitSuccess(mr) =>
+            Ok(Json.toJson(mr))
+
+          case validationError: MusitValidationError =>
+            BadRequest(Json.obj("message" -> validationError.message))
+
+          case r: MusitError =>
+            InternalServerError(Json.obj("message" -> r.message))
         }
 
-      case Some(criteria) =>
+      case Some(_) =>
         Future.successful(BadRequest(Json.obj(
           "message" -> s"Search requires at least three characters"
         )))

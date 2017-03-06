@@ -423,8 +423,12 @@ class StorageNodeService @Inject() (
   /**
    * TODO: Document me!
    */
-  def rootNodes(mid: MuseumId): Future[Seq[RootNode]] = {
-    unitDao.findRootNodes(mid).map(_.sortBy(_.storageType.displayOrder))
+  def rootNodes(mid: MuseumId): Future[MusitResult[Seq[RootNode]]] = {
+    (for {
+      rootNodes <- MusitResultT(unitDao.findRootNodes(mid))
+      sortedNodes = rootNodes.sortBy(_.storageType.displayOrder)
+    } yield sortedNodes).value
+
   }
 
   /**
@@ -435,7 +439,7 @@ class StorageNodeService @Inject() (
     id: StorageNodeDatabaseId,
     page: Int,
     limit: Int
-  ): Future[PagedResult[GenericStorageNode]] = {
+  ): Future[MusitResult[PagedResult[GenericStorageNode]]] = {
     unitDao.getChildren(mid, id, page, limit)
   }
 
@@ -716,9 +720,7 @@ class StorageNodeService @Inject() (
     limit: Int
   ): Future[MusitResult[Seq[GenericStorageNode]]] = {
     if (searchStr.length > 2) {
-      unitDao.getStorageNodeByName(mid, searchStr, page, limit).map { sn =>
-        MusitSuccess(sn)
-      }
+      unitDao.getStorageNodeByName(mid, searchStr, page, limit)
     } else {
       Future.successful {
         MusitValidationError(
