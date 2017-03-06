@@ -84,7 +84,7 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
 
     "fetching analysis events" should {
       "allow for fetching all child events for an analysis collection" in {
-        val children = dao.findByCol(EventId(2)).futureValue
+        val children = dao.listChildren(EventId(2)).futureValue
         children.isSuccess mustBe true
         children.get.size mustBe 3
 

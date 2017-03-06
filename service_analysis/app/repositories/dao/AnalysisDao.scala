@@ -119,7 +119,7 @@ class AnalysisDao @Inject() (
    * @param id The analysis container to find children for.
    * @return eventually a result with a list of analysis events and their results
    */
-  def findByCol(id: EventId): Future[MusitResult[Seq[Analysis]]] = {
+  def listChildren(id: EventId): Future[MusitResult[Seq[Analysis]]] = {
     val q = analysisTable.filter(_.partOf === id).result.map { res =>
       res.flatMap { r =>
         // TODO: Add results to the events
