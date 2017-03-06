@@ -2,41 +2,65 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.SampleObject
-import no.uio.musit.MusitResults.MusitResult
-import no.uio.musit.models.{ObjectId, ObjectUUID}
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.models.ObjectUUID
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 @Singleton
-class SampleObjectDao @Inject() (
-    val dbConfigProvider: DatabaseConfigProvider
+class SampleObjectDao @Inject()(
+  val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
   val logger = Logger(classOf[SampleObjectDao])
 
   import driver.api._
 
-  def insert(so: SampleObject): Future[MusitResult[ObjectId]] = {
+  def insert(so: SampleObject): Future[MusitResult[ObjectUUID]] = {
+    val soTuple = asSampleObjectTuple(so)
+    val action = sampleObjTable returning sampleObjTable.map(_.id) += soTuple
 
-    ???
+    db.run(action.transactionally).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An unexpected error occurred inserting a sample object"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
   }
 
   def update(so: SampleObject): Future[MusitResult[Int]] = {
-    ???
-  }
+    val action = sampleObjTable.update(asSampleObjectTuple(so))
 
-  def findById(id: ObjectId): Future[MusitResult[Option[SampleObject]]] = {
-    ???
+    db.run(action).map {
+      case res: Int if res == 1 => MusitSuccess(res)
+      case res: Int if 1 > res => MusitDbError("Nothing was updated")
+      case res: Int if 1 < res => MusitDbError(s"Too many rows were updated: $res")
+    }
   }
 
   def findByUUID(uuid: ObjectUUID): Future[MusitResult[Option[SampleObject]]] = {
-    ???
+    val q = sampleObjTable.filter(_.id === uuid).result.headOption
+
+    db.run(q).map(sor => MusitSuccess(sor.map(fromSampleObjectRow))).recover {
+      case NonFatal(ex) =>
+        val msg = s"An unexpected error occurred fetching sample object $uuid"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
   }
 
   def listForParentObject(parent: ObjectUUID): Future[MusitResult[Seq[SampleObject]]] = {
-    ???
+    val q = sampleObjTable.filter(_.parentId === parent).result
+
+    db.run(q).map(_.map(fromSampleObjectRow)).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An unexpected error occurred fetching child samples for $parent"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
   }
 
 }

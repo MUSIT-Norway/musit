@@ -23,6 +23,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   val analysisTypeTable = TableQuery[AnalysisTypeTable]
   val analysisTable = TableQuery[AnalysisTable]
   val resultTable = TableQuery[AnalysisResultTable]
+  val sampleObjTable = TableQuery[SampleObjectTable]
 
   // scalastyle:off line.size.limit
   type EventTypeRow = (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
@@ -213,7 +214,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     )
   }
 
-  
+
   /**
    * Converts a SampleObjectRow tuple into an instance of SampleObject
    *
