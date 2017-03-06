@@ -14,5 +14,4 @@ class SampleObjectController @Inject() (
 
   val logger = Logger(classOf[SampleObjectController])
 
-
 }

@@ -196,7 +196,6 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   protected[dao] def fromResultRow(tuple: ResultRow): Option[AnalysisResult] =
     Json.fromJson[AnalysisResult](tuple._5).asOpt
 
-
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (
       so.objectId.getOrElse(ObjectUUID.generate()),
@@ -213,7 +212,6 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       so.updatedDate
     )
   }
-
 
   /**
    * Converts a SampleObjectRow tuple into an instance of SampleObject

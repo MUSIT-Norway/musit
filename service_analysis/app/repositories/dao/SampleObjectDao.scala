@@ -6,13 +6,14 @@ import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.ObjectUUID
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 @Singleton
-class SampleObjectDao @Inject()(
-  val dbConfigProvider: DatabaseConfigProvider
+class SampleObjectDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
   val logger = Logger(classOf[SampleObjectDao])
@@ -21,9 +22,9 @@ class SampleObjectDao @Inject()(
 
   def insert(so: SampleObject): Future[MusitResult[ObjectUUID]] = {
     val soTuple = asSampleObjectTuple(so)
-    val action = sampleObjTable returning sampleObjTable.map(_.id) += soTuple
+    val action = sampleObjTable += soTuple
 
-    db.run(action.transactionally).map(MusitSuccess.apply).recover {
+    db.run(action.transactionally).map(_ => MusitSuccess(soTuple._1)).recover {
       case NonFatal(ex) =>
         val msg = s"An unexpected error occurred inserting a sample object"
         logger.error(msg, ex)
@@ -32,9 +33,9 @@ class SampleObjectDao @Inject()(
   }
 
   def update(so: SampleObject): Future[MusitResult[Int]] = {
-    val action = sampleObjTable.update(asSampleObjectTuple(so))
+    val a = sampleObjTable.filter(_.id === so.objectId).update(asSampleObjectTuple(so))
 
-    db.run(action).map {
+    db.run(a.transactionally).map {
       case res: Int if res == 1 => MusitSuccess(res)
       case res: Int if 1 > res => MusitDbError("Nothing was updated")
       case res: Int if 1 < res => MusitDbError(s"Too many rows were updated: $res")
