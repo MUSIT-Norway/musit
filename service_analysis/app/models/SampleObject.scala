@@ -1,12 +1,12 @@
 package models
 
 import models.SampleStatuses.SampleStatus
-import no.uio.musit.models.{ActorId, MuseumId, ObjectId}
+import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
 import org.joda.time.DateTime
 
 case class SampleObject(
-  objectId: Option[ObjectId],
-  parentObjectId: ObjectId,
+  objectId: Option[ObjectUUID],
+  parentObjectId: Option[ObjectUUID],
   isCollectionObject: Boolean,
   museumId: MuseumId,
   status: SampleStatus,

@@ -7,16 +7,20 @@ import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models.{CollectionUUID, EventId, ObjectUUID}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
+import play.api.Logger
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsSuccess, Json, Writes}
 import services.AnalysisService
 
 import scala.concurrent.Future
 
 @Singleton
-class AnalysisController @Inject()(
-  val authService: Authenticator,
-  val analysisService: AnalysisService
+class AnalysisController @Inject() (
+    val authService: Authenticator,
+    val analysisService: AnalysisService
 ) extends MusitController {
+
+  val logger = Logger(classOf[AnalysisController])
 
   lazy val internalErr = (msg: String) => InternalServerError(Json.obj("message" -> msg))
 

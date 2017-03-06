@@ -5,6 +5,7 @@ import models.events.AnalysisResults.AnalysisResult
 import models.events.{Analysis, AnalysisCollection, AnalysisType, Category}
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models.{CollectionUUID, EventId, ObjectUUID}
+import play.api.Logger
 import repositories.dao.{AnalysisDao, AnalysisTypeDao}
 
 import scala.concurrent.Future
@@ -13,6 +14,8 @@ class AnalysisService @Inject() (
     val analysisDao: AnalysisDao,
     val typeDao: AnalysisTypeDao
 ) {
+
+  val logger = Logger(classOf[AnalysisService])
 
   def getAllTypes: Future[MusitResult[Seq[AnalysisType]]] = typeDao.all
 

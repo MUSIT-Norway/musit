@@ -1,7 +1,9 @@
 package repositories.dao
 
+import models.SampleStatuses
+import models.SampleStatuses.SampleStatus
 import models.events.{AnalysisTypeId, Category, EventCategories}
-import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
+import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID}
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}
 import slick.driver.JdbcProfile
@@ -23,22 +25,34 @@ trait ColumnTypeMappers {
       strId => AnalysisTypeId.unsafeFromString(strId)
     )
 
-  implicit val actorIdMapper: BaseColumnType[ActorId] =
+  implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =
+    MappedColumnType.base[MuseumId, Int](
+      mid => mid.underlying,
+      intId => MuseumId.fromInt(intId)
+    )
+
+  implicit lazy val actorIdMapper: BaseColumnType[ActorId] =
     MappedColumnType.base[ActorId, String](
       aid => aid.asString,
       strId => ActorId.unsafeFromString(strId)
     )
 
-  implicit val objectUuidMapper: BaseColumnType[ObjectUUID] =
+  implicit lazy val objectUuidMapper: BaseColumnType[ObjectUUID] =
     MappedColumnType.base[ObjectUUID, String](
       oid => oid.asString,
       strId => ObjectUUID.unsafeFromString(strId)
     )
 
-  implicit val categoryMapper: BaseColumnType[Category] =
+  implicit lazy val categoryMapper: BaseColumnType[Category] =
     MappedColumnType.base[Category, Int](
       cat => cat.id,
       catId => EventCategories.unsafeFromId(catId)
+    )
+
+  implicit lazy val sampleStatusMapper: BaseColumnType[SampleStatus] =
+    MappedColumnType.base[SampleStatus, Int](
+      ssid => ssid.identity,
+      intId => SampleStatus.unsafeFromInt(intId)
     )
 
   implicit lazy val jsonMapper: BaseColumnType[JsValue] =

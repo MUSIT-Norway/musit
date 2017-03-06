@@ -2,6 +2,8 @@ package repositories.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
+import models.SampleObject
+import models.SampleStatuses.SampleStatus
 import models.events.AnalysisResults.AnalysisResult
 import models.events.{AnalysisEvent, AnalysisType, AnalysisTypeId, Category}
 import no.uio.musit.models._
@@ -26,6 +28,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   type EventTypeRow = (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
   type EventRow = (Option[EventId], AnalysisTypeId, Option[JSqlTimestamp], Option[ActorId], Option[JSqlTimestamp], Option[EventId], Option[ObjectUUID], Option[String], JsValue)
   type ResultRow = (Option[Long], EventId, Option[ActorId], Option[JSqlTimestamp], JsValue)
+  type SampleObjectRow = (ObjectUUID, Option[ObjectUUID], Boolean, MuseumId, SampleStatus, ActorId, JSqlTimestamp, Option[String], Option[String], Option[String], Option[ActorId], Option[JSqlTimestamp])
   // scalastyle:on line.size.limit
 
   /**
@@ -86,6 +89,29 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     // scalastyle:off method.name
     def * = (id.?, eventId, registeredBy, registeredDate, resultJson)
     // scalastyle:on method.name
+  }
+
+  class SampleObjectTable(
+      val tag: Tag
+  ) extends Table[SampleObjectRow](tag, Some(SchemaName), SampleObjectTableName) {
+
+    val id = column[ObjectUUID]("SAMPLE_UUID", O.PrimaryKey)
+    val parentId = column[Option[ObjectUUID]]("PARENT_OBJECT_UUID")
+    val isCollectionObject = column[Boolean]("IS_COLLECTION_OBJECT")
+    val museumId = column[MuseumId]("MUSEUM_ID")
+    val status = column[SampleStatus]("STATUS")
+    val responsible = column[ActorId]("RESPONSIBLE_ACTOR_ID")
+    val createdDate = column[JSqlTimestamp]("CREATED_DATE")
+    val sampleNumber = column[Option[String]]("SAMPLE_NUMBER")
+    val externalId = column[Option[String]]("EXTERNAL_ID")
+    val note = column[Option[String]]("NOTE")
+    val updatedBy = column[Option[ActorId]]("UPDATED_BY")
+    val updatedDate = column[Option[JSqlTimestamp]]("UPDATED_DATE")
+
+    // scalastyle:off method.name line.size.limit
+    def * = (id, parentId, isCollectionObject, museumId, status, responsible, createdDate, sampleNumber, externalId, note, updatedBy, updatedDate)
+    // scalastyle:off method.name line.size.limit
+
   }
 
   private def parseCollectionUUIDCol(colStr: Option[String]): Seq[CollectionUUID] = {
@@ -168,5 +194,46 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    */
   protected[dao] def fromResultRow(tuple: ResultRow): Option[AnalysisResult] =
     Json.fromJson[AnalysisResult](tuple._5).asOpt
+
+
+  protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
+    (
+      so.objectId.getOrElse(ObjectUUID.generate()),
+      so.parentObjectId,
+      so.isCollectionObject,
+      so.museumId,
+      so.status,
+      so.responsible,
+      so.createdDate,
+      so.sampleNumber,
+      so.externalId,
+      so.note,
+      so.updatedBy,
+      so.updatedDate
+    )
+  }
+
+  
+  /**
+   * Converts a SampleObjectRow tuple into an instance of SampleObject
+   *
+   * @param tuple the SampleObjectRow to convert
+   * @return an instance of SampleObject
+   */
+  protected[dao] def fromSampleObjectRow(tuple: SampleObjectRow): SampleObject =
+    SampleObject(
+      objectId = Option(tuple._1),
+      parentObjectId = tuple._2,
+      isCollectionObject = tuple._3,
+      museumId = tuple._4,
+      status = tuple._5,
+      responsible = tuple._6,
+      createdDate = tuple._7,
+      sampleNumber = tuple._8,
+      externalId = tuple._9,
+      note = tuple._10,
+      updatedBy = tuple._11,
+      updatedDate = tuple._12
+    )
 
 }
