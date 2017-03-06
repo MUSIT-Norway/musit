@@ -21,7 +21,15 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   sample_uuid          VARCHAR2(36)      NOT NULL,
   parent_object_uuid   VARCHAR2(36),
   is_collection_object INTEGER DEFAULT 0 NOT NULL,
-  --   special attribs
+  museumId             INTEGER           NOT NULL,
+  status               INTEGER DEFAULT 1 NOT NULL,
+  responsible_actor_id VARCHAR2(36) NOT NULL,
+  created_date         TIMESTAMP NOT NULL,
+  sample_number        VARCHAR2(100),
+  external_id          VARCHAR2(100),
+  note                 VARCHAR2(250),
+  updated_by           VARCHAR2(36),
+  updated_date         TIMESTAMP,
   PRIMARY KEY (sample_uuid)
 );
 
@@ -55,13 +63,6 @@ CREATE TABLE MUSARK_ANALYSIS.EVENT (
   note            VARCHAR2(500),
   event_json      CLOB,
   PRIMARY KEY (event_id)
-);
-
-CREATE TABLE MUSARK_ANALYSIS.EVENT_OBJECTS (
-  event_id  NUMBER(20)   NOT NULL,
-  object_id VARCHAR2(36) NOT NULL,
-  PRIMARY KEY (event_id, object_id),
-  FOREIGN KEY (event_id) REFERENCES MUSARK_ANALYSIS.EVENT (event_id)
 );
 
 CREATE TABLE MUSARK_ANALYSIS.RESULT (
