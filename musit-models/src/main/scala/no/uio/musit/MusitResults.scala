@@ -54,6 +54,18 @@ object MusitResults {
 
   }
 
+  object MusitResult {
+
+    /**
+     * Helper function to create a MusitResult based on the option
+     * value. It will return MusitSuccess if it's present and a provided
+     * MusitError if not.
+     */
+    def getOrError[T](opt: Option[T], err: MusitError) =
+      opt.map(MusitSuccess.apply).getOrElse(err)
+
+  }
+
   /**
    * Use this to as return type when operations is successful
    */

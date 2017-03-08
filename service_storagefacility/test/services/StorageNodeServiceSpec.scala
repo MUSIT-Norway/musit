@@ -24,7 +24,8 @@ import models.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import models.event.move.{MoveNode, MoveObject}
 import models.storage.StorageUnit
 import models.{Interval, Move}
-import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeDatabaseId}
+import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
+import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
@@ -118,13 +119,16 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
       inserted.updatedDate.get.year().get() mustBe DateTime.now().year().get()
 
       val res = storageUnitDao.getById(defaultMuseumId, inserted.id.get).futureValue
-      res must not be None
-      res.get.storageType mustBe su.storageType
-      res.get.name mustBe su.name
 
-      val upd = res.get.copy(name = "UggaBugga", areaTo = Some(4.0))
+      res mustBe a[MusitSuccess[_]]
+      res.get must not be None
+      res.get.get.storageType mustBe su.storageType
+      res.get.get.name mustBe su.name
 
-      val updRes = service.updateStorageUnit(defaultMuseumId, res.get.id.get, upd).futureValue
+      val upd = res.get.get.copy(name = "UggaBugga", areaTo = Some(4.0))
+
+      val updRes = service.updateStorageUnit(defaultMuseumId, res.get.get.id.get, upd).futureValue // scalastyle:ignore
+      updRes mustBe a[MusitSuccess[_]]
       updRes.isSuccess mustBe true
       updRes.get must not be None
       updRes.get.get.name mustBe "UggaBugga"
@@ -225,9 +229,9 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
 
       // Get children of storage unit 1
       val pr = service.getChildren(defaultMuseumId, unit1.id.get, 1, 10).futureValue
-      val children = pr.matches
+      val children = pr.get.matches
       val grandChildren = children.flatMap { c =>
-        service.getChildren(defaultMuseumId, c.id.get, 1, 10).futureValue.matches
+        service.getChildren(defaultMuseumId, c.id.get, 1, 10).futureValue.get.matches
       }
       val mostChildren = children ++ grandChildren
 
@@ -436,7 +440,7 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     "get current location for an object" in {
       val oid = ObjectId(2)
       val aid = ActorId.generate()
-      val currLoc = service.currentObjectLocation(defaultMuseumId, 2).futureValue
+      val currLoc = service.currentObjectLocation(defaultMuseumId, ObjectId(2)).futureValue
       currLoc.isSuccess mustBe true
       currLoc.get.get.id.get.underlying mustBe 5
       val currIdStr = currLoc.get.get.id.get.underlying.toString
@@ -501,11 +505,18 @@ class StorageNodeServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerator
     val unit2 = u2.get.get
 
     "not be valid when the destination is a child of the current node" in {
-      service.isValidPosition(defaultMuseumId, room1, unit2.path).futureValue mustBe false
+      val result = service.validatePosition(defaultMuseumId, room1, unit2.path).futureValue
+      result mustBe MusitValidationError("Illegal destination")
+    }
+
+    "not be valid when the destination is an empty node" in {
+      val result = service.validatePosition(defaultMuseumId, room1, NodePath.empty).futureValue
+      result mustBe MusitValidationError("Illegal move")
     }
 
     "be valid when the destination is not a child of the current node" in {
-      service.isValidPosition(defaultMuseumId, unit1, room3.path).futureValue mustBe true
+      val result = service.validatePosition(defaultMuseumId, unit1, room3.path).futureValue
+      result mustBe MusitSuccess(())
     }
 
   }

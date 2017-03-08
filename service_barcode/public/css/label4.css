@@ -34,14 +34,21 @@
 }
 
 .top {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
   align-items: flex-start;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
 .codeImage {
   margin-top: 1.5mm;
   margin-left: 4mm;
+  -ms-flex-item-align: start;
   align-self: flex-start;
 }
 
