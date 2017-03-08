@@ -58,8 +58,10 @@ class MigrationDaoSpec extends MusitSpecWithAppPerSuite {
       for (id <- 7L to 16L) {
         val nid = StorageNodeDatabaseId(id)
         val r = nodeDao.getById(99, nid).futureValue
-        r.isDefined mustBe true
-        r.get.nodeId must not be None
+
+        r.isSuccess mustBe true
+        r.get.isDefined mustBe true
+        r.get.get.nodeId must not be None
       }
     }
   }

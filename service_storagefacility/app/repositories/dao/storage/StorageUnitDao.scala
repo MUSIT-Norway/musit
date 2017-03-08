@@ -23,6 +23,8 @@ import com.google.inject.{Inject, Singleton}
 import models.storage._
 import models.storage.dto.{StorageNodeDto, StorageUnitDto}
 import no.uio.musit.MusitResults._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import no.uio.musit.time.dateTimeNow
@@ -88,9 +90,9 @@ class StorageUnitDao @Inject() (
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
   def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
-    db.run(
-      localObjectsTable.filter(_.currentLocationId === nodeId).length.result
-    ).map(MusitSuccess.apply).recover {
+    val q = localObjectsTable.filter(_.currentLocationId === nodeId).length
+
+    db.run(q.result).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting number direct objects in $nodeId"
         logger.error(msg, ex)
@@ -101,9 +103,19 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(mid: MuseumId, id: StorageNodeDatabaseId): Future[Option[StorageUnit]] = {
+  def getById(
+    mid: MuseumId,
+    id: StorageNodeDatabaseId
+  ): Future[MusitResult[Option[StorageUnit]]] = {
     val query = getUnitByIdAction(mid, id)
-    db.run(query).map(_.map(StorageNodeDto.toStorageUnit))
+    db.run(query)
+      .map(res => MusitSuccess(res.map(StorageNodeDto.toStorageUnit)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get storage unit with museimId $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -112,9 +124,16 @@ class StorageUnitDao @Inject() (
   def getNodeById(
     mid: MuseumId,
     id: StorageNodeDatabaseId
-  ): Future[Option[GenericStorageNode]] = {
+  ): Future[MusitResult[Option[GenericStorageNode]]] = {
     val query = getNodeByIdAction(mid, id)
     db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
+      .map(MusitSuccess.apply).recover {
+        case NonFatal(ex) => {
+          val msg = s"Unable to get nodes by id for museumId $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+        }
+      }
   }
 
   /**
@@ -127,14 +146,23 @@ class StorageUnitDao @Inject() (
   def getNodesByIds(
     mid: MuseumId,
     ids: Seq[StorageNodeDatabaseId]
-  ): Future[Seq[GenericStorageNode]] = {
+  ): Future[MusitResult[Seq[GenericStorageNode]]] = {
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
         sn.isDeleted === false &&
         (sn.id inSet ids)
     }.result
 
-    db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
+    db.run(query)
+      .map(_.map(StorageNodeDto.toGenericStorageNode))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) => {
+          val msg = s"Unable to get nodes by id for museumId $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+        }
+      }
   }
 
   /**
@@ -144,13 +172,20 @@ class StorageUnitDao @Inject() (
     mid: MuseumId,
     path: NodePath,
     limit: Option[Int] = None
-  ): Future[Seq[(StorageNodeDatabaseId, StorageType)]] = {
+  ): Future[MusitResult[Seq[(StorageNodeDatabaseId, StorageType)]]] = {
     val ids = limit.map(l => path.asIdSeq.take(l)).getOrElse(path.asIdSeq)
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
         sn.id.inSet(ids)
-    }.map(res => (res.id, res.storageType, res.path)).sortBy(_._3.asc).result
-    db.run(query).map(_.map(tuple => tuple._1 -> tuple._2))
+    }.map(res => (res.id, res.storageType, res.path)).sortBy(_._3.asc)
+
+    db.run(query.result).map(_.map(tuple => tuple._1 -> tuple._2))
+      .map(MusitSuccess.apply).recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get nodes by id for museumId $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -158,7 +193,7 @@ class StorageUnitDao @Inject() (
    *
    * @return a Future collection of Root nodes.
    */
-  def findRootNodes(mid: MuseumId): Future[Seq[RootNode]] = {
+  def findRootNodes(mid: MuseumId): Future[MusitResult[Seq[RootNode]]] = {
     val query = storageNodeTable.filter { root =>
       root.museumId === mid &&
         root.isDeleted === false &&
@@ -166,7 +201,12 @@ class StorageUnitDao @Inject() (
         (root.storageType === rootNodeType || root.storageType === rootLoanType)
     }.result
 
-    db.run(query).map(_.map(StorageNodeDto.toRootNode))
+    db.run(query).map(_.map(StorageNodeDto.toRootNode)).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"Unable to find rood nodes for museumId $mid"
+        logger.warn(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
   }
 
   /**
@@ -193,15 +233,13 @@ class StorageUnitDao @Inject() (
     id: StorageNodeDatabaseId,
     page: Int,
     limit: Int
-  ): Future[PagedResult[GenericStorageNode]] = {
+  ): Future[MusitResult[PagedResult[GenericStorageNode]]] = {
     implicit val tupleToResult = StorageNodeDto.storageUnitTupleGetResult
 
     val offset = (page - 1) * limit
-
     val query = storageNodeTable.filter { node =>
       node.museumId === mid && node.isPartOf === id && node.isDeleted === false
     }
-
     val sortedQuery =
       sql"""
          SELECT sn.STORAGE_NODE_ID, sn.STORAGE_NODE_UUID, sn.STORAGE_NODE_NAME,
@@ -222,14 +260,24 @@ class StorageUnitDao @Inject() (
          OFFSET ${offset} ROWS
          FETCH NEXT ${limit} ROWS ONLY
       """.as[StorageUnitDto]
-
-    val matches = db.run(sortedQuery).map(_.map(StorageNodeDto.toGenericStorageNode))
-    val total = db.run(query.length.result)
-
-    for {
-      mat <- matches
-      tot <- total
-    } yield PagedResult(tot, mat)
+    val matches: Future[MusitResult[Vector[GenericStorageNode]]] = db.run(sortedQuery)
+      .map(_.map(StorageNodeDto.toGenericStorageNode)).map(MusitSuccess.apply).recover {
+        case NonFatal(t) =>
+          val msg = s"Unexpected error when fetching children"
+          logger.warn(msg, t)
+          MusitDbError(msg, Some(t))
+      }
+    val total: Future[MusitResult[Int]] = db.run(query.length.result)
+      .map(MusitSuccess.apply).recover {
+        case NonFatal(t) =>
+          val msg = s"Unexpected error when fetching total children"
+          logger.warn(msg, t)
+          MusitDbError(msg, Some(t))
+      }
+    (for {
+      mat <- MusitResultT(matches)
+      tot <- MusitResultT(total)
+    } yield PagedResult(tot, mat)).value
   }
 
   /**
@@ -277,18 +325,35 @@ class StorageUnitDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(mid: MuseumId, storageUnit: StorageUnit): Future[StorageNodeDatabaseId] = {
+  def insert(
+    mid: MuseumId,
+    storageUnit: StorageUnit
+  ): Future[MusitResult[StorageNodeDatabaseId]] = {
     val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
     db.run(insertNodeAction(dto))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to insert storage unit for museumId: $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
    * TODO: Document me!!!
    */
-  def insertRoot(mid: MuseumId, root: RootNode): Future[StorageNodeDatabaseId] = {
+  def insertRoot(
+    mid: MuseumId, root: RootNode
+  ): Future[MusitResult[StorageNodeDatabaseId]] = {
     logger.debug("Inserting root node...")
     val dto = StorageNodeDto.fromRootNode(mid, root).asStorageUnitDto(mid)
     db.run(insertNodeAction(dto))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          MusitDbError("Unable to insert root", Some(ex))
+      }
   }
 
   /**
@@ -323,7 +388,8 @@ class StorageUnitDao @Inject() (
    */
   def setPath(id: StorageNodeDatabaseId, path: NodePath): Future[MusitResult[Unit]] = {
     db.run(updatePathAction(id, path)).map {
-      case res: Int if res == 1 => MusitSuccess(())
+      case res: Int if res == 1 =>
+        MusitSuccess(())
 
       case res: Int =>
         val msg = wrongNumUpdatedRows(id, res)
@@ -349,6 +415,7 @@ class StorageUnitDao @Inject() (
       case res: Int if res != 0 =>
         logger.debug(s"Successfully updated path for $res nodes")
         MusitSuccess(res)
+
       case _ =>
         val msg = s"Did not update any paths starting with $oldPath"
         logger.error(msg)
@@ -407,8 +474,18 @@ class StorageUnitDao @Inject() (
    * @param id StorageNodeId to get the NodePath for
    * @return NodePath
    */
-  def getPathById(mid: MuseumId, id: StorageNodeDatabaseId): Future[Option[NodePath]] = {
+  def getPathById(
+    mid: MuseumId,
+    id: StorageNodeDatabaseId
+  ): Future[MusitResult[Option[NodePath]]] = {
     db.run(getPathByIdAction(mid, id))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get path for museumId $mid and storage node $id"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -463,8 +540,15 @@ class StorageUnitDao @Inject() (
    * @param nodePath NodePath to find names for
    * @return A Seq[NamedPathElement]
    */
-  def namesForPath(nodePath: NodePath): Future[Seq[NamedPathElement]] = {
+  def namesForPath(nodePath: NodePath): Future[MusitResult[Seq[NamedPathElement]]] = {
     db.run(namesForPathAction(nodePath))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get node paths for $nodePath"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -480,12 +564,20 @@ class StorageUnitDao @Inject() (
     searchString: String,
     page: Int,
     limit: Int
-  ): Future[Seq[GenericStorageNode]] = {
+  ): Future[MusitResult[Seq[GenericStorageNode]]] = {
     if (searchString.length > 2) {
       val query = getStorageNodeByNameAction(mid, searchString, page, limit)
       db.run(query).map(_.map(StorageNodeDto.toGenericStorageNode))
+        .map(MusitSuccess.apply).recover {
+          case NonFatal(ex) =>
+            val msg =
+              s"Unable to get storagenoe bt name '$searchString' for museum: $mid"
+            logger.warn(msg, ex)
+            MusitDbError(msg, Some(ex))
+
+        }
     } else {
-      Future.successful(Seq.empty)
+      Future.successful(MusitSuccess(Seq.empty))
     }
   }
 

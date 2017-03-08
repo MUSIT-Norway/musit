@@ -22,14 +22,15 @@ package repositories.dao.storage
 import com.google.inject.{Inject, Singleton}
 import models.storage.Organisation
 import models.storage.dto.{ExtendedStorageNode, OrganisationDto, StorageNodeDto}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.StorageTables
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 /**
  * TODO: Document me!!!
@@ -44,9 +45,7 @@ class OrganisationDao @Inject() (
   val logger = Logger(classOf[OrganisationDao])
 
   private def updateAction(id: StorageNodeDatabaseId, org: OrganisationDto): DBIO[Int] = {
-    organisationTable.filter { ot =>
-      ot.id === id
-    }.update(org)
+    organisationTable.filter(_.id === id).update(org)
   }
 
   private def insertAction(organisationDto: OrganisationDto): DBIO[Int] = {
@@ -56,19 +55,26 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def getById(mid: MuseumId, id: StorageNodeDatabaseId): Future[Option[Organisation]] = {
+  def getById(
+    mid: MuseumId,
+    id: StorageNodeDatabaseId
+  ): Future[MusitResult[Option[Organisation]]] = {
     val action = for {
       maybeUnitDto <- getUnitByIdAction(mid, id)
       maybeOrgDto <- organisationTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
-      maybeUnitDto.flatMap(u =>
-        maybeOrgDto.map(o => ExtendedStorageNode(u, o)))
+      maybeUnitDto.flatMap(u => maybeOrgDto.map(o => ExtendedStorageNode(u, o)))
     }
     // Execute the query
-    db.run(action).map(_.map { unitOrgTuple =>
-      StorageNodeDto.toOrganisation(unitOrgTuple)
-    })
+    db.run(action)
+      .map(res => MusitSuccess(res.map(StorageNodeDto.toOrganisation)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get organisation for museumId $mid and storage node $id"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -82,7 +88,10 @@ class OrganisationDao @Inject() (
     val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(mid, id, extendedOrgDto.storageUnitDto)
-      orgsUpdated <- if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension) else DBIO.successful[Int](0) // scalastyle:ignore
+      orgsUpdated <- {
+        if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension)
+        else DBIO.successful[Int](0)
+      }
     } yield orgsUpdated
 
     db.run(action.transactionally).map {
@@ -116,7 +125,10 @@ class OrganisationDao @Inject() (
   /**
    * TODO: Document me!!!
    */
-  def insert(mid: MuseumId, organisation: Organisation): Future[StorageNodeDatabaseId] = {
+  def insert(
+    mid: MuseumId,
+    organisation: Organisation
+  ): Future[MusitResult[StorageNodeDatabaseId]] = {
     val extendedDto = StorageNodeDto.fromOrganisation(mid, organisation)
     val query = for {
       nodeId <- insertNodeAction(extendedDto.storageUnitDto)
@@ -127,6 +139,13 @@ class OrganisationDao @Inject() (
     }
 
     db.run(query.transactionally)
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to insert organisation for museumId $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
 }
