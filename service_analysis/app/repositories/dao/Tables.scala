@@ -5,7 +5,7 @@ import java.sql.{Timestamp => JSqlTimestamp}
 import models.SampleObject
 import models.SampleStatuses.SampleStatus
 import models.events.AnalysisResults.AnalysisResult
-import models.events.{AnalysisEvent, AnalysisType, AnalysisTypeId, Category}
+import models.events._
 import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import play.api.db.slick.HasDatabaseConfigProvider
@@ -30,6 +30,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   type EventRow = (Option[EventId], AnalysisTypeId, Option[JSqlTimestamp], Option[ActorId], Option[JSqlTimestamp], Option[EventId], Option[ObjectUUID], Option[String], JsValue)
   type ResultRow = (Option[Long], EventId, Option[ActorId], Option[JSqlTimestamp], JsValue)
   type SampleObjectRow = (ObjectUUID, Option[ObjectUUID], Boolean, MuseumId, SampleStatus, ActorId, JSqlTimestamp, Option[String], Option[String], Option[String], Option[ActorId], Option[JSqlTimestamp])
+
   // scalastyle:on line.size.limit
 
   /**
@@ -49,6 +50,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
     // scalastyle:off method.name
     def * = (typeId, category, name, shortName, collections, attributes)
+
     // scalastyle:on method.name
   }
 
@@ -71,6 +73,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
     // scalastyle:off method.name line.size.limit
     def * = (id.?, typeId, eventDate, registeredBy, registeredDate, partOf, objectUuid, note, eventJson)
+
     // scalastyle:on method.name line.size.limit
   }
 
@@ -89,6 +92,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
     // scalastyle:off method.name
     def * = (id.?, eventId, registeredBy, registeredDate, resultJson)
+
     // scalastyle:on method.name
   }
 
@@ -103,14 +107,15 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val status = column[SampleStatus]("STATUS")
     val responsible = column[ActorId]("RESPONSIBLE_ACTOR_ID")
     val createdDate = column[JSqlTimestamp]("CREATED_DATE")
-    val sampleNumber = column[Option[String]]("SAMPLE_NUMBER")
+    val sampleId = column[Option[String]]("SAMPLE_ID")
     val externalId = column[Option[String]]("EXTERNAL_ID")
     val note = column[Option[String]]("NOTE")
     val updatedBy = column[Option[ActorId]]("UPDATED_BY")
     val updatedDate = column[Option[JSqlTimestamp]]("UPDATED_DATE")
 
     // scalastyle:off method.name line.size.limit
-    def * = (id, parentId, isCollectionObject, museumId, status, responsible, createdDate, sampleNumber, externalId, note, updatedBy, updatedDate)
+    def * = (id, parentId, isCollectionObject, museumId, status, responsible, createdDate, sampleId, externalId, note, updatedBy, updatedDate)
+
     // scalastyle:off method.name line.size.limit
 
   }
@@ -168,7 +173,10 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    * @return an Option of AnalysisEvent.
    */
   protected[dao] def fromAnalysisRow(tuple: EventRow): Option[AnalysisEvent] =
-    Json.fromJson[AnalysisEvent](tuple._9).asOpt
+    Json.fromJson[AnalysisEvent](tuple._9).asOpt.map {
+      case a: Analysis => a.copy(id = tuple._1)
+      case ac: AnalysisCollection => ac.copy(id = tuple._1)
+    }
 
   /**
    * Converts an AnalysisResult into a ResultRow tuple.
@@ -205,7 +213,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       so.status,
       so.responsible,
       so.createdDate,
-      so.sampleNumber,
+      so.sampleId,
       so.externalId,
       so.note,
       so.updatedBy,
@@ -228,7 +236,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       status = tuple._5,
       responsible = tuple._6,
       createdDate = tuple._7,
-      sampleNumber = tuple._8,
+      sampleId = tuple._8,
       externalId = tuple._9,
       note = tuple._10,
       updatedBy = tuple._11,

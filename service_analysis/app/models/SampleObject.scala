@@ -12,7 +12,7 @@ case class SampleObject(
   status: SampleStatus,
   responsible: ActorId,
   createdDate: DateTime,
-  sampleNumber: Option[String],
+  sampleId: Option[String],
   externalId: Option[String],
   note: Option[String],
   updatedBy: Option[ActorId],

@@ -5,6 +5,8 @@ import models.events.AnalysisResults.AnalysisResult
 import models.events.{Analysis, AnalysisCollection, AnalysisType, Category}
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models.{CollectionUUID, EventId, ObjectUUID}
+import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import repositories.dao.{AnalysisDao, AnalysisTypeDao}
 
@@ -27,15 +29,35 @@ class AnalysisService @Inject() (
     typeDao.allForCollection(id)
   }
 
-  def add(a: Analysis): Future[MusitResult[EventId]] = {
-    analysisDao.insert(a)
+  def add(
+    a: Analysis
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
+    val analysis = a.copy(
+      registeredBy = Some(currUser.id),
+      registeredDate = Some(dateTimeNow)
+    )
+    analysisDao.insert(analysis)
   }
 
-  def add(ac: AnalysisCollection): Future[MusitResult[EventId]] = {
-    analysisDao.insertCol(ac)
+  def add(
+    ac: AnalysisCollection
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
+    val now = Some(dateTimeNow)
+    val acol = ac.copy(
+      registeredBy = Some(currUser.id),
+      registeredDate = now,
+      events = ac.events.map(_.copy(
+        registeredBy = Some(currUser.id),
+        registeredDate = now
+      ))
+    )
+    analysisDao.insertCol(acol)
   }
 
-  def addResult(eid: EventId, res: AnalysisResult): Future[MusitResult[Long]] = {
+  def addResult(
+    eid: EventId,
+    res: AnalysisResult
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Long]] = {
     analysisDao.insertResult(eid, res)
   }
 

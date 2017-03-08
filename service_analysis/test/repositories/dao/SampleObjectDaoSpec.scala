@@ -25,7 +25,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
       status = SampleStatuses.Ok,
       responsible = ActorId.generate(),
       createdDate = now,
-      sampleNumber = None,
+      sampleId = None,
       externalId = None,
       note = Some("This is a sample note"),
       updatedBy = None,
@@ -101,7 +101,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
       val so1 = generateSample(oid, None)
       dao.insert(so1).futureValue.isSuccess mustBe true
 
-      val so2 = so1.copy(sampleNumber = Some("FOO-1"))
+      val so2 = so1.copy(sampleId = Some("FOO-1"))
 
       val res1 = dao.update(so2).futureValue
       res1.isSuccess mustBe true
@@ -111,7 +111,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
       res2.isSuccess mustBe true
       res2.get must not be empty
       res2.get.get.objectId mustBe Some(oid)
-      res2.get.get.sampleNumber mustBe Some("FOO-1")
+      res2.get.get.sampleId mustBe Some("FOO-1")
     }
 
   }

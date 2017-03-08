@@ -2,17 +2,19 @@ package controllers
 
 import com.google.inject.{Inject, Singleton}
 import models.events.AnalysisResults.AnalysisResult
-import models.events.{Analysis, AnalysisCollection, EventCategories}
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import models.events.{Analysis, AnalysisCollection, EventCategories, SaveAnalysisCollection}
+import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{CollectionUUID, EventId, ObjectUUID}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsError, JsSuccess, Json, Writes}
+import play.api.libs.json._
+import play.api.mvc.Result
 import services.AnalysisService
 
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 @Singleton
 class AnalysisController @Inject() (
@@ -67,8 +69,11 @@ class AnalysisController @Inject() (
   def getAnalysisById(id: Long) = MusitSecureAction().async { implicit request =>
     val eventId = EventId.fromLong(id)
     analysisService.findById(eventId).map {
-      case MusitSuccess(analysis) => Ok(Json.toJson(analysis))
-      case err: MusitError => internalErr(err.message)
+      case MusitSuccess(maybeAnalysis) =>
+        maybeAnalysis.map(a => Ok(Json.toJson(a))).getOrElse(NotFound)
+
+      case err: MusitError =>
+        internalErr(err.message)
     }
   }
 
@@ -91,11 +96,13 @@ class AnalysisController @Inject() (
     }
   }
 
-  def saveAnalysis() = MusitSecureAction().async(parse.json) { implicit request =>
-    request.body.validate[Analysis] match {
-      case JsSuccess(analysis, _) =>
-        analysisService.add(analysis).map {
-          case MusitSuccess(eid) => Created
+  private def saveRequest[A, ID](
+    save: A => Future[MusitResult[ID]]
+  )(implicit req: MusitRequest[JsValue], r: Reads[A]) = {
+    req.body.validate[A] match {
+      case JsSuccess(at, _) =>
+        save(at).map {
+          case MusitSuccess(id) => Created
           case err: MusitError => internalErr(err.message)
         }
 
@@ -104,31 +111,18 @@ class AnalysisController @Inject() (
     }
   }
 
-  def saveAnalysisCollection() =
+  def saveAnalysis(isBatch: Boolean) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      request.body.validate[AnalysisCollection] match {
-        case JsSuccess(acol, _) =>
-          analysisService.add(acol).map {
-            case MusitSuccess(eid) => Created
-            case err: MusitError => internalErr(err.message)
-          }
-
-        case err: JsError =>
-          Future.successful(BadRequest(JsError.toJson(err)))
+      implicit val currUser = implicitly(request.user)
+      if (isBatch) saveRequest[SaveAnalysisCollection, EventId] { sac =>
+        analysisService.add(sac.asAnalyisCollection)
       }
+      else saveRequest[Analysis, EventId](analysisService.add)
     }
 
   def saveResult(id: Long) = MusitSecureAction().async(parse.json) { implicit request =>
+    implicit val currUser = implicitly(request.user)
     val eventId = EventId.fromLong(id)
-    request.body.validate[AnalysisResult] match {
-      case JsSuccess(result, _) =>
-        analysisService.addResult(eventId, result).map {
-          case MusitSuccess(eid) => Created
-          case err: MusitError => internalErr(err.message)
-        }
-
-      case err: JsError =>
-        Future.successful(BadRequest(JsError.toJson(err)))
-    }
+    saveRequest[AnalysisResult, Long](r => analysisService.addResult(eventId, r))
   }
 }

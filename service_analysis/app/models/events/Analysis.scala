@@ -2,6 +2,7 @@ package models.events
 
 import models.events.AnalysisResults._
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
+import no.uio.musit.security.AuthenticatedUser
 import org.joda.time.DateTime
 import play.api.libs.json._
 
@@ -67,7 +68,9 @@ object Analysis {
 }
 
 /**
- * ...
+ * Represents a "batch" of analysis "events" of the same type.
+ * Each "event" will be persisted as a separate analysis, with a reference
+ * to the AnalysisCollection in the Analysis.partOf attribute.
  */
 case class AnalysisCollection(
     id: Option[EventId],
@@ -86,6 +89,42 @@ case class AnalysisCollection(
 
 object AnalysisCollection {
 
-  implicit val format: Format[AnalysisCollection] = Json.format[AnalysisCollection]
+  implicit val writes: Writes[AnalysisCollection] = Json.writes[AnalysisCollection]
+
+}
+
+case class SaveAnalysisCollection(
+    analysisTypeId: AnalysisTypeId,
+    eventDate: Option[DateTime],
+    note: Option[String],
+    objectIds: Seq[ObjectUUID]
+) {
+  def asAnalyisCollection: AnalysisCollection = {
+    AnalysisCollection(
+      id = None,
+      analysisTypeId = this.analysisTypeId,
+      eventDate = this.eventDate,
+      registeredBy = None,
+      registeredDate = None,
+      events = this.objectIds.map { oid =>
+        Analysis(
+          id = None,
+          analysisTypeId = this.analysisTypeId,
+          eventDate = this.eventDate,
+          registeredBy = None,
+          registeredDate = None,
+          objectId = Option(oid),
+          partOf = None,
+          note = this.note,
+          result = None
+        )
+      }
+    )
+  }
+}
+
+object SaveAnalysisCollection {
+
+  implicit val reads: Reads[SaveAnalysisCollection] = Json.reads[SaveAnalysisCollection]
 
 }

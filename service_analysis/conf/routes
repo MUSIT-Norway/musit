@@ -2,4 +2,18 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET        /service/analysis/buildinfo        controllers.Application.buildInfo
+GET         /service/analyses/buildinfo                 controllers.Application.buildInfo
+
+# TODO: Where to put museumId and for which services?
+
+# AnalysisType endpoints
+GET         /analyses/types                             controllers.AnalysisController.getAllAnalysisTypes
+GET         /analyses/types/:id                         controllers.AnalysisController.getAnalysisById(id: Long)
+GET         /analyses/types/categories/:id              controllers.AnalysisController.getAnalysisTypesForCategory(id: Int)
+GET         /analyses/types/musemcollections/:id        controllers.AnalysisController.getAnalysisTypesForCollection(id: String)
+
+# Analysis endpoints
+POST        /analyses                                   controllers.AnalysisController.saveAnalysis(isBatch: Boolean = false)
+GET         /analyses/:id                               controllers.AnalysisController.getAnalysisById(id: Long)
+GET         /analyses/:id/children                      controllers.AnalysisController.getChildAnalyses(id: Long)
+GET         /analyses/objects/:id                       controllers.AnalysisController.getAnalysisForObject(id: String)

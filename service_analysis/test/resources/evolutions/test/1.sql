@@ -25,7 +25,7 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   status               INTEGER DEFAULT 1 NOT NULL,
   responsible_actor_id VARCHAR2(36)      NOT NULL,
   created_date         TIMESTAMP         NOT NULL,
-  sample_number        VARCHAR2(100),
+  sample_id            VARCHAR2(100),
   external_id          VARCHAR2(100),
   note                 VARCHAR2(250),
   updated_by           VARCHAR2(36),
@@ -34,13 +34,13 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
 );
 
 -- Keeps track of which analysis'/objects are sent to a lab in batch
-CREATE TABLE MUSARK_ANALYSIS.SHIPMENT (
-  shipment_uuid VARCHAR2(36)   NOT NULL,
-  to_actor      VARCHAR2(36)   NOT NULL,
-  description   VARCHAR2(200)  NOT NULL,
-  items         VARCHAR2(1000) NOT NULL,
-  PRIMARY KEY (shipment_uuid)
-);
+-- CREATE TABLE MUSARK_ANALYSIS.SHIPMENT (
+--   shipment_uuid VARCHAR2(36)   NOT NULL,
+--   to_actor      VARCHAR2(36)   NOT NULL,
+--   description   VARCHAR2(200)  NOT NULL,
+--   items         VARCHAR2(1000) NOT NULL,
+--   PRIMARY KEY (shipment_uuid)
+-- );
 
 CREATE TABLE MUSARK_ANALYSIS.EVENT_TYPE (
   type_id     VARCHAR2(36)  NOT NULL,
