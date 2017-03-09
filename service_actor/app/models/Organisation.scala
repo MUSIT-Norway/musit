@@ -30,7 +30,9 @@ case class Organisation(
   fn: String,
   nickname: String,
   tel: String,
-  web: String
+  web: String,
+  synonyms: Seq[String],
+  serviceTags:Seq[String]
 )
 
 object Organisation {

@@ -47,6 +47,13 @@ class MusitSearchSpec extends WordSpec with MustMatchers {
       MusitSearch.parseSearch("") mustBe MusitSearch.empty
     }
 
+    "tada" in {
+      val search = MusitSearch.parseSearch("[baz, foo=bar]")
+
+      search.searchStrings mustBe List("baz")
+      search.searchMap mustBe Map("foo" -> "bar")
+    }
+
   }
 
 }

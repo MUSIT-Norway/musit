@@ -39,7 +39,9 @@ class OrganisationService @Inject() (val orgDao: OrganisationDao) {
 
   def find(search: MusitSearch): Future[Seq[Organisation]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
-    orgDao.getByName(searchString)
+    search.searchMap.get("tags").map { t =>
+      orgDao.getByNameAndTags(searchString, t)
+    }.getOrElse(orgDao.getByName(searchString))
   }
 
   def create(org: Organisation): Future[Organisation] = {

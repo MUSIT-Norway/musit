@@ -42,6 +42,14 @@ class OrganisationDao @Inject() (
     db.run(orgTable.filter(_.id === id).result.headOption)
   }
 
+
+  def getByNameAndTags(searchName: String,tags: String): Future[Seq[Organisation]] = {
+    val query = orgTable.filter { org =>
+      org.serviceTags === tags && (org.fn like s"%$searchName%") || (org.nickname like s"%$searchName%")
+    }
+    db.run(query.result)
+  }
+
   def getByName(searchString: String): Future[Seq[Organisation]] = {
     val query = orgTable.filter { org =>
       (org.fn like s"%$searchString%") || (org.nickname like s"%$searchString%")
@@ -81,14 +89,18 @@ class OrganisationDao @Inject() (
     val nickname = column[String]("NICKNAME")
     val tel = column[String]("TEL")
     val web = column[String]("WEB")
+    val synonyms =column[String]("SYNONYMS"),
+    val serviceTags  =column[String]("SERVICE_TAGS")
 
     val create = (
       id: Option[OrgId],
       fn: String,
       nickname: String,
       tel: String,
-      web: String
-    ) => Organisation(id, fn, nickname, tel, web)
+      web: String,
+      synonyms: Seq[String],
+      serviceTags: Seq[String]
+    ) => Organisation(id, fn, nickname, tel, web, synonyms,serviceTags)
 
     val destroy = (org: Organisation) =>
       Some((org.id, org.fn, org.nickname, org.tel, org.web))

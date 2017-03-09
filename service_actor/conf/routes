@@ -27,4 +27,3 @@ PUT           /v1/organization/:orgId/address/:id        controllers.Organisatio
 GET           /v1/organization/:orgId/address/:id        controllers.OrganisationAddressController.get(orgId: Long, id: Long)
 DELETE        /v1/organization/:orgId/address/:id        controllers.OrganisationAddressController.delete(orgId: Long, id: Long)
 
-
