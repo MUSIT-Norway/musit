@@ -50,7 +50,7 @@ class ActorDao @Inject() (
   def getByName(mid: MuseumId, searchString: String): Future[Seq[Person]] = {
     val likeArg = searchString.toLowerCase
     val query = actorTable.filter { a =>
-      (a.fn.toLowerCase like s"%$likeArg%") && a.museumId === mid.underlying
+      (a.fn.toLowerCase like s"%$likeArg%") && a.museumId === mid
     }.sortBy(_.fn)
 
     db.run(query.result)
@@ -79,7 +79,7 @@ class ActorDao @Inject() (
     val oldPk = column[Option[Int]]("LOKAL_PK")
     val oldTableId = column[Option[Int]]("TABELLID")
     val oldSchemaName = column[Option[String]]("OLD_SCHEMANAME")
-    val museumId = column[Option[Int]]("MUSEUM_ID")
+    val museumId = column[Option[MuseumId]]("MUSEUM_ID")
     val applicationId = column[Option[ActorId]]("APPLICATION_UUID")
 
     val create = (
