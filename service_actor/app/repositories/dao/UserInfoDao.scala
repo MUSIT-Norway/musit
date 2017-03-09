@@ -20,7 +20,7 @@
 package repositories.dao
 
 import com.google.inject.Inject
-import no.uio.musit.models.{ActorId, MuseumId}
+import no.uio.musit.models.ActorId
 import no.uio.musit.security.{AuthTables, UserInfo}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
