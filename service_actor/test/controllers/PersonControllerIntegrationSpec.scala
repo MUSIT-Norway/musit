@@ -58,7 +58,7 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "search on person" in {
-      val res = wsUrl("/v1/person?museumId=0&search=[And]")
+      val res = wsUrl("/v1/person?museumId=99&search=[And]")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
       res.status mustBe Status.OK
@@ -68,7 +68,7 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "search on person case insensitive" in {
-      val res = wsUrl("/v1/person?museumId=0&search=[and]")
+      val res = wsUrl("/v1/person?museumId=99&search=[and]")
         .withHeaders(fakeToken.asHeader)
         .get().futureValue
       res.status mustBe Status.OK

@@ -21,7 +21,7 @@ package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.Person
-import no.uio.musit.models.{ActorId, DatabaseId}
+import no.uio.musit.models.{ActorId, DatabaseId, MuseumId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 
@@ -47,10 +47,10 @@ class ActorDao @Inject() (
     db.run(query.result.headOption)
   }
 
-  def getByName(searchString: String): Future[Seq[Person]] = {
+  def getByName(mid: MuseumId, searchString: String): Future[Seq[Person]] = {
     val likeArg = searchString.toLowerCase
     val query = actorTable.filter { a =>
-      a.fn.toLowerCase like s"%$likeArg%"
+      (a.fn.toLowerCase like s"%$likeArg%") && a.museumId === mid.underlying
     }.sortBy(_.fn)
 
     db.run(query.result)

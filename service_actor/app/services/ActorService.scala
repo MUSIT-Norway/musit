@@ -21,7 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.Person
-import no.uio.musit.models.ActorId
+import no.uio.musit.models.{ActorId, MuseumId}
 import no.uio.musit.security.UserInfo
 import no.uio.musit.service.MusitSearch
 import play.api.Logger
@@ -79,10 +79,10 @@ class ActorService @Inject() (
    * @param search MusitSearch
    * @return A collection of Person objects.
    */
-  def findByName(search: MusitSearch): Future[Seq[Person]] = {
+  def findByName(mid: MuseumId, search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
     val users = usrInfDao.getByName(searchString)
-    val actors = actorDao.getByName(searchString)
+    val actors = actorDao.getByName(mid, searchString)
 
     for {
       u <- users
