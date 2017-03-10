@@ -101,7 +101,6 @@ object Dependencies {
     scalaMock
   )
 
-
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     PlayFrameWork.slick_play,
     PlayFrameWork.slick_play_ev,

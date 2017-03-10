@@ -18,14 +18,13 @@
  */
 
 import Dependencies.ScalaTest
-import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.SbtNativePackager.autoImport._
+import com.typesafe.sbt.{SbtNativePackager, SbtScalariform}
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
-import com.typesafe.sbt.SbtScalariform
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-import play.sbt.PlayImport.PlayKeys
 import play.sbt.Play
+import play.sbt.PlayImport.PlayKeys
 import sbt.Keys._
 import sbt._
 import sbtbuildinfo.BuildInfoPlugin
@@ -80,6 +79,11 @@ object CommonSettings {
     sources in (Compile,doc) := Seq.empty
   )
 
+  lazy val AllTests = config("allTests") extend Test
+  lazy val ContainerTests = config("containerTests") extend Test
+  def testArg(key: String, value: String ) =
+    Tests.Argument(TestFrameworks.ScalaTest, key, value)
+
   // scalastyle:off
   def BaseProject(projName: String): Project =
     Project(projName, file(projName))
@@ -106,6 +110,14 @@ object CommonSettings {
         BuildInfoPlugin,
         SbtNativePackager,
         DockerPlugin
+      )
+      .configs(AllTests, ContainerTests)
+      .settings(
+        inConfig(ContainerTests)(Defaults.testTasks),
+        inConfig(AllTests)(Defaults.testTasks),
+        testOptions in Test := Seq(testArg("-l", "musit.ElasticsearchContainer")), // exclude
+        testOptions in ContainerTests := Seq(testArg("-n", "musit.ElasticsearchContainer")), // include
+        testOptions in AllTests := Seq()
       )
       .settings(dependencyOverrides += "com.typesafe.play" %% "play-logback" % Dependencies.PlayFrameWork.version)
       .settings(Seq(

@@ -19,7 +19,6 @@
 
 import CommonSettings._
 import Dependencies._
-import scoverage.ScoverageKeys._
 
 name := """musit"""
 
@@ -39,7 +38,8 @@ lazy val root = project in file(".") settings noPublish aggregate(
   serviceThingAggregate,
   serviceActor,
   serviceGeoLocation,
-  serviceStoragefacility
+  serviceStoragefacility,
+  serviceSearch
 )
 
 // ======================================================================
@@ -133,3 +133,10 @@ lazy val serviceStoragefacility = (
     settings(routesGenerator := InjectedRoutesGenerator)
     settings(packageName in Docker := "musit_service_storagefacility")
 ) dependsOn(musitService, musitTest % Test)
+
+lazy val serviceSearch = (
+  PlayProject("service_search")
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings(routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_search")
+) dependsOn (musitService, musitTest % Test)

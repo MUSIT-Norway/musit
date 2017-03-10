@@ -18,6 +18,11 @@ services:
         ports:
           - "1521:1521"
 
+    elasticsearch:
+        image: elasticsearch:5.2.1
+        ports:
+          - "9200:9200"
+
     thingaggregate:
         image: musit_service_thing_aggregate:0.1-SNAPSHOT
         ports:
@@ -143,3 +148,21 @@ services:
           - SLICK_DB_PASSWORD
         links:
           - db
+
+    search:
+        image: musit_service_search:0.1-SNAPSHOT
+        ports:
+          - "7077:7070"
+        environment:
+          - MUSIT_SECURITY_MODULE
+          - DATAPORTEN_CLIENT_ID
+          - DATAPORTEN_CLIENT_SECRET
+          - APPLICATION_SECRET
+          - EVOLUTION_ENABLED
+          - SLICK_DRIVER
+          - SLICK_DB_DRIVER
+          - SLICK_DB_URL
+          - SLICK_DB_USER
+          - SLICK_DB_PASSWORD
+        links:
+          - elasticsearch
