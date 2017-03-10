@@ -41,10 +41,10 @@ class PersonController @Inject() (
   def search(
     museumId: Int,
     search: Option[MusitSearch]
-  ) = MusitSecureAction().async { request =>
+  ) = MusitSecureAction(museumId).async { request =>
     search match {
       case Some(criteria) =>
-        service.findByName(criteria).map(persons => Ok(Json.toJson(persons)))
+        service.findByName(museumId, criteria).map(persons => Ok(Json.toJson(persons)))
 
       case None =>
         Future.successful(
