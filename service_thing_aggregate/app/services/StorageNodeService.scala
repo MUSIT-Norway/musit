@@ -20,7 +20,6 @@
 package services
 
 import com.google.inject.Inject
-import controllers.SimpleNode
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.models.Museums.Museum
 import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
@@ -93,7 +92,9 @@ class StorageNodeService @Inject() (
     }
   }
 
-  def nodesOutsideMuseum(museumId: MuseumId): Future[MusitResult[Seq[SimpleNode]]] = {
+  def nodesOutsideMuseum(
+    museumId: MuseumId
+  ): Future[MusitResult[Seq[(StorageNodeDatabaseId, String)]]] = {
     nodeDao.getRootLoanNodes(museumId).flatMap {
       case MusitSuccess(rids) =>
         logger.debug(s"Found ${rids.size} external Root nodes: ${rids.mkString(", ")}")

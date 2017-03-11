@@ -20,7 +20,6 @@
 package repositories.dao
 
 import com.google.inject.Inject
-import controllers.SimpleNode
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models._
 import play.api.Logger
@@ -30,8 +29,8 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class StorageNodeDao @Inject() (
-    val dbConfigProvider: DatabaseConfigProvider
+class StorageNodeDao @Inject()(
+  val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
   private val logger = Logger(classOf[StorageNodeDao])
@@ -126,7 +125,7 @@ class StorageNodeDao @Inject() (
   def listAllChildrenFor(
     museumId: MuseumId,
     ids: Seq[StorageNodeDatabaseId]
-  ): Future[MusitResult[Seq[SimpleNode]]] = {
+  ): Future[MusitResult[Seq[(StorageNodeDatabaseId, String)]]] = {
     val q1 = (likePath: String) => nodeTable.filter { n =>
       n.museumId === museumId && (SimpleLiteral[String]("NODE_PATH") like likePath)
     }
