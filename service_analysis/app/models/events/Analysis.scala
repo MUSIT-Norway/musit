@@ -1,8 +1,8 @@
 package models.events
 
 import models.events.AnalysisResults._
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
-import no.uio.musit.security.AuthenticatedUser
 import org.joda.time.DateTime
 import play.api.libs.json._
 
@@ -10,7 +10,7 @@ import play.api.libs.json._
  * Describes the least common denominator for analysis events. Different
  * implementations may contain more fields than this trait.
  */
-trait AnalysisEvent {
+sealed trait AnalysisEvent {
   val id: Option[EventId]
   val analysisTypeId: AnalysisTypeId
   val eventDate: Option[DateTime]
@@ -19,27 +19,79 @@ trait AnalysisEvent {
   val partOf: Option[EventId]
   val objectId: Option[ObjectUUID]
   val note: Option[String]
+
+  /**
+   * Returns an AnalysisEvent that contains a result.
+   */
+  def withResult(res: Option[AnalysisResult]): AnalysisEvent = {
+    this match {
+      case a: Analysis => a.copy(result = res)
+      case ac: AnalysisCollection => ac
+    }
+  }
+
+  /**
+   * Returns an Option of an AnalysisEvent with a result. If the AnalysisEvent
+   * type is Analysis, the Option will be Some(Analysis), otherwise None
+   */
+  def withResultAsOpt(res: Option[AnalysisResult]): Option[Analysis] =
+    this match {
+      case a: Analysis => Some(a.copy(result = res))
+      case ac: AnalysisCollection => None
+    }
 }
 
-object AnalysisEvent {
+object AnalysisEvent extends WithDateTimeFormatters {
 
+  private val mustBeTypeMsg = "Type must be either Analysis or AnalysisCollection"
+
+  // key for type discriminator used in JSON formatters
+  private val tpe = "type"
+
+  /**
+   * The implicit Reads for all AnalysisEvent implementations. It ensures that
+   * the JSON message aligns with one of the types defined in the AnalysisEvent
+   * ADT. If not the parsing will (and should) fail.
+   */
   implicit val reads: Reads[AnalysisEvent] = Reads { jsv =>
-    jsv.transform((__ \ "result").json.prune).flatMap(_.validate[Analysis])
+    implicit val ar = Analysis.reads
+    implicit val acr = AnalysisCollection.reads
+
+    (jsv \ tpe).validateOpt[String] match {
+      case JsSuccess(maybeType, path) =>
+        maybeType.map {
+          case Analysis.discriminator =>
+            jsv.validate[Analysis]
+
+          case AnalysisCollection.discriminator =>
+            jsv.validate[AnalysisCollection]
+
+          case unknown =>
+            JsError(path, s"$unknown is not a valid type. $mustBeTypeMsg")
+
+        }.getOrElse {
+          JsError(path, mustBeTypeMsg)
+        }
+
+      case err: JsError =>
+        err
+    }
   }
 
+  /**
+   * Implicit Writes for AnalaysisEvent implementations. Ensures that each type
+   * is written with their specific type discriminator. This ensure that the
+   * JSON message is readable on the other end.
+   */
   implicit val writes: Writes[AnalysisEvent] = Writes {
     case a: Analysis =>
-      val aa = a.copy(result = None)
-      Json.format.writes(aa)
+      Analysis.writes.writes(a).as[JsObject] ++
+        Json.obj(tpe -> Analysis.discriminator)
 
     case c: AnalysisCollection =>
-      Json.format.writes(c)
-  }
-
-  def withResult(ae: AnalysisEvent, res: Option[AnalysisResult]): Analysis = {
-    ae match {
-      case a: Analysis => a.copy(result = res)
-    }
+      implicit val aw = Analysis.writes
+      AnalysisCollection.writes.writes(c).as[JsObject] ++
+        Json.obj(tpe -> AnalysisCollection.discriminator)
   }
 
 }
@@ -61,9 +113,12 @@ case class Analysis(
   result: Option[AnalysisResult]
 ) extends AnalysisEvent
 
-object Analysis {
+object Analysis extends WithDateTimeFormatters {
+  val discriminator = "Analysis"
 
-  implicit val format: Format[Analysis] = Json.format[Analysis]
+  // The below formatters cannot be implicit due to undesirable implicit ambiguities
+  val reads: Reads[Analysis] = Json.reads[Analysis]
+  val writes: Writes[Analysis] = Json.writes[Analysis]
 
 }
 
@@ -85,46 +140,19 @@ case class AnalysisCollection(
   val objectId: Option[ObjectUUID] = None
   val note: Option[String] = None
 
-}
-
-object AnalysisCollection {
-
-  implicit val writes: Writes[AnalysisCollection] = Json.writes[AnalysisCollection]
+  def withoutChildren = copy(events = Seq.empty)
 
 }
 
-case class SaveAnalysisCollection(
-    analysisTypeId: AnalysisTypeId,
-    eventDate: Option[DateTime],
-    note: Option[String],
-    objectIds: Seq[ObjectUUID]
-) {
-  def asAnalyisCollection: AnalysisCollection = {
-    AnalysisCollection(
-      id = None,
-      analysisTypeId = this.analysisTypeId,
-      eventDate = this.eventDate,
-      registeredBy = None,
-      registeredDate = None,
-      events = this.objectIds.map { oid =>
-        Analysis(
-          id = None,
-          analysisTypeId = this.analysisTypeId,
-          eventDate = this.eventDate,
-          registeredBy = None,
-          registeredDate = None,
-          objectId = Option(oid),
-          partOf = None,
-          note = this.note,
-          result = None
-        )
-      }
-    )
-  }
-}
+object AnalysisCollection extends WithDateTimeFormatters {
+  val discriminator = "AnalysisCollection"
 
-object SaveAnalysisCollection {
+  // The below formatters cannot be implicit due to undesirable implicit ambiguities
+  def reads(implicit r: Reads[Analysis]): Reads[AnalysisCollection] =
+    Json.reads[AnalysisCollection]
 
-  implicit val reads: Reads[SaveAnalysisCollection] = Json.reads[SaveAnalysisCollection]
+  def writes(implicit w: Writes[Analysis]): Writes[AnalysisCollection] =
+    Json.writes[AnalysisCollection]
 
 }
+

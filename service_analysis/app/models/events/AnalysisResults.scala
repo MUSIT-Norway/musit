@@ -1,13 +1,14 @@
 package models.events
 
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ActorId
 import org.joda.time.DateTime
 import play.api.libs.json._
 
 object AnalysisResults {
 
-  trait ResultTypeCompanion {
-    val resultTypeId: Int
+  trait ResultTypeCompanion extends WithDateTimeFormatters {
+    val resultType: String
   }
 
   /**
@@ -20,27 +21,41 @@ object AnalysisResults {
     //    val restriction: Option[Restriction]
     val extRef: Option[Seq[String]]
     val comment: Option[String]
+
+    def withtRegisteredDate(d: Option[DateTime]): AnalysisResult = {
+      this match {
+        case gr: GenericResult => gr.copy(registeredDate = d)
+        case dr: DatingResult => dr.copy(registeredDate = d)
+      }
+    }
+
+    def withRegisteredBy(a: Option[ActorId]): AnalysisResult = {
+      this match {
+        case gr: GenericResult => gr.copy(registeredBy = a)
+        case dr: DatingResult => dr.copy(registeredBy = a)
+      }
+    }
   }
 
-  object AnalysisResult {
+  object AnalysisResult extends WithDateTimeFormatters {
 
-    private[this] val tpe = "resType"
+    private[this] val tpe = "type"
 
     implicit val reads: Reads[AnalysisResult] = Reads { jsv =>
-      (jsv \ tpe).validate[Int].flatMap {
-        case GenericResult.resultTypeId => GenericResult.format.reads(jsv)
-        case DatingResult.resultTypeId => DatingResult.format.reads(jsv)
+      (jsv \ tpe).validate[String].flatMap {
+        case GenericResult.resultType => GenericResult.format.reads(jsv)
+        case DatingResult.resultType => DatingResult.format.reads(jsv)
       }
     }
 
     implicit val writes: Writes[AnalysisResult] = Writes {
       case genRes: GenericResult =>
         GenericResult.format.writes(genRes).as[JsObject] ++
-          Json.obj(tpe -> GenericResult.resultTypeId)
+          Json.obj(tpe -> GenericResult.resultType)
 
       case dteRes: DatingResult =>
         DatingResult.format.writes(dteRes).as[JsObject] ++
-          Json.obj(tpe -> DatingResult.resultTypeId)
+          Json.obj(tpe -> DatingResult.resultType)
 
     }
 
@@ -61,7 +76,7 @@ object AnalysisResults {
   ) extends AnalysisResult
 
   object GenericResult extends ResultTypeCompanion {
-    override val resultTypeId = 1
+    override val resultType = "GenericResult"
 
     val format: Format[GenericResult] = Json.format[GenericResult]
   }
@@ -84,7 +99,7 @@ object AnalysisResults {
   ) extends AnalysisResult
 
   object DatingResult extends ResultTypeCompanion {
-    override val resultTypeId = 2
+    override val resultType = "DatingResult"
 
     val format: Format[DatingResult] = Json.format[DatingResult]
   }

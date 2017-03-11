@@ -2,7 +2,7 @@ package services
 
 import com.google.inject.Inject
 import models.events.AnalysisResults.AnalysisResult
-import models.events.{Analysis, AnalysisCollection, AnalysisType, Category}
+import models.events._
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models.{CollectionUUID, EventId, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
@@ -29,7 +29,17 @@ class AnalysisService @Inject() (
     typeDao.allForCollection(id)
   }
 
-  def add(
+  def add(ae: AnalysisEvent)(
+    implicit
+    currUser: AuthenticatedUser
+  ): Future[MusitResult[EventId]] = {
+    ae match {
+      case a: Analysis => addAnalysis(a)
+      case ac: AnalysisCollection => addAnalysisCollection(ac)
+    }
+  }
+
+  def addAnalysis(
     a: Analysis
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val analysis = a.copy(
@@ -39,7 +49,7 @@ class AnalysisService @Inject() (
     analysisDao.insert(analysis)
   }
 
-  def add(
+  def addAnalysisCollection(
     ac: AnalysisCollection
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val now = Some(dateTimeNow)
@@ -58,10 +68,12 @@ class AnalysisService @Inject() (
     eid: EventId,
     res: AnalysisResult
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[Long]] = {
-    analysisDao.insertResult(eid, res)
+    val now = Some(dateTimeNow)
+    val ar = res.withRegisteredBy(Some(currUser.id)).withtRegisteredDate(now)
+    analysisDao.insertResult(eid, ar)
   }
 
-  def findById(id: EventId): Future[MusitResult[Option[Analysis]]] = {
+  def findById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
     analysisDao.findById(id)
   }
 
@@ -69,7 +81,7 @@ class AnalysisService @Inject() (
     analysisDao.listChildren(id)
   }
 
-  def findByObject(oid: ObjectUUID): Future[MusitResult[Seq[Analysis]]] = {
+  def findByObject(oid: ObjectUUID): Future[MusitResult[Seq[AnalysisEvent]]] = {
     analysisDao.findByObjectUUID(oid)
   }
 

@@ -19,7 +19,7 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
   val oid2 = ObjectUUID.generate()
   val oid3 = ObjectUUID.generate()
 
-  def dummyAnalysisWithRes(
+  def dummyAnalysis(
     oid: Option[ObjectUUID],
     res: Option[AnalysisResult] = None
   ): Analysis = {
@@ -37,11 +37,11 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
     )
   }
 
-  def saveAnalysisWithResult(
+  def saveAnalysis(
     oid: Option[ObjectUUID],
     res: Option[AnalysisResult]
   ): MusitResult[EventId] = {
-    val a = dummyAnalysisWithRes(oid, res)
+    val a = dummyAnalysis(oid, res)
     dao.insert(a).futureValue
   }
 
@@ -56,15 +56,15 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
           comment = Some("This is a result comment")
         ))
 
-        saveAnalysisWithResult(Some(oid1), res) mustBe MusitSuccess(EventId(1))
+        saveAnalysis(Some(oid1), res) mustBe MusitSuccess(EventId(1))
       }
 
       "return the EventId allocated for an analysis collection" in {
         val now = Some(dateTimeNow)
 
-        val e1 = dummyAnalysisWithRes(Some(oid1))
-        val e2 = dummyAnalysisWithRes(Some(oid2))
-        val e3 = dummyAnalysisWithRes(Some(oid3))
+        val e1 = dummyAnalysis(Some(oid1))
+        val e2 = dummyAnalysis(Some(oid2))
+        val e3 = dummyAnalysis(Some(oid3))
 
         val ac = AnalysisCollection(
           id = None,
@@ -83,7 +83,38 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
     }
 
     "fetching analysis events" should {
-      "allow for fetching all child events for an analysis collection" in {
+
+      "return an analysis collection with children" in {
+        val res = dao.findById(EventId(2)).futureValue
+
+        res.isSuccess mustBe true
+        res.get must not be empty
+        res.get.get mustBe an[AnalysisCollection]
+        val ac = res.get.get.asInstanceOf[AnalysisCollection]
+        ac.events must not be empty
+        ac.analysisTypeId mustBe dummyAnalysisTypeId
+        ac.partOf mustBe empty
+      }
+
+      "return each child in a collection separately by fetching them with their IDs" in {
+        val res1 = dao.findById(EventId(3)).futureValue
+        val res2 = dao.findById(EventId(4)).futureValue
+        val res3 = dao.findById(EventId(5)).futureValue
+
+        res1.isSuccess mustBe true
+        res2.isSuccess mustBe true
+        res3.isSuccess mustBe true
+
+        res1.get must not be empty
+        res2.get must not be empty
+        res3.get must not be empty
+
+        res1.get.get.partOf mustBe Some(EventId(2))
+        res2.get.get.partOf mustBe Some(EventId(2))
+        res3.get.get.partOf mustBe Some(EventId(2))
+      }
+
+      "list all child events for an analysis collection" in {
         val children = dao.listChildren(EventId(2)).futureValue
         children.isSuccess mustBe true
         children.get.size mustBe 3
@@ -104,15 +135,17 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
           comment = None
         ))
 
-        val mra = saveAnalysisWithResult(Some(oid2), gr)
+        val mra = saveAnalysis(Some(oid2), gr)
         mra.isSuccess mustBe true
 
         val res = dao.findById(mra.get).futureValue
         res.isSuccess mustBe true
         res.get must not be empty
-        res.get.get.registeredBy mustBe Some(dummyActorId)
-        res.get.get.analysisTypeId mustBe dummyAnalysisTypeId
-        res.get.get.result mustBe gr
+        res.get.get mustBe an[Analysis]
+        val a = res.get.get.asInstanceOf[Analysis]
+        a.registeredBy mustBe Some(dummyActorId)
+        a.analysisTypeId mustBe dummyAnalysisTypeId
+        a.result mustBe gr
       }
 
       "return the an analysis event with a dating result" in {
@@ -124,15 +157,17 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
           age = Some("Ancient stuff")
         ))
 
-        val mra = saveAnalysisWithResult(Some(oid2), dr)
+        val mra = saveAnalysis(Some(oid2), dr)
         mra.isSuccess mustBe true
 
         val res = dao.findById(mra.get).futureValue
         res.isSuccess mustBe true
         res.get must not be empty
-        res.get.get.registeredBy mustBe Some(dummyActorId)
-        res.get.get.analysisTypeId mustBe dummyAnalysisTypeId
-        res.get.get.result mustBe dr
+        res.get.get mustBe an[Analysis]
+        val a = res.get.get.asInstanceOf[Analysis]
+        a.registeredBy mustBe Some(dummyActorId)
+        a.analysisTypeId mustBe dummyAnalysisTypeId
+        a.result mustBe dr
       }
 
       "return all analysis events for a given object" in {

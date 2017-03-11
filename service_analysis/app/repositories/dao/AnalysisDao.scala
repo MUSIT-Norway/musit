@@ -8,6 +8,9 @@ import no.uio.musit.models.{EventId, ObjectUUID}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Json
+import slick.dbio.DBIOAction
+import slick.dbio.Effect.All
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -33,20 +36,55 @@ class AnalysisDao @Inject() (
 
   private def insertAnalysisWithResultAction(a: Analysis): DBIO[EventId] = {
     for {
-      id <- insertAnalysisAction(asAnalysisTuple(a))
+      id <- insertAnalysisAction(asEventTuple(a))
       _ <- a.result.map(r => insertResultAction(asResultTuple(id, r))).getOrElse(noaction)
     } yield id
   }
 
+  private def insertChildEventsAction(
+    pid: EventId,
+    events: Seq[Analysis]
+  ): DBIO[Seq[EventId]] = {
+    val batch = events.map { e =>
+      insertAnalysisWithResultAction(e.copy(partOf = Some(pid)))
+    }
+    DBIO.sequence(batch)
+  }
+
   private def findByIdAction(id: EventId): DBIO[Option[AnalysisEvent]] = {
     analysisTable.filter(_.id === id).result.headOption.map { res =>
-      res.flatMap(fromAnalysisRow)
+      res.flatMap(fromEventRow)
     }
   }
 
-  private def resultForEventId(id: EventId): DBIO[Option[AnalysisResult]] = {
+  private def resultForEventIdAction(id: EventId): DBIO[Option[AnalysisResult]] = {
     resultTable.filter(_.eventId === id).result.headOption.map { res =>
       res.flatMap(fromResultRow)
+    }
+  }
+
+  private def listChildrenAction(parentId: EventId): DBIO[Seq[Analysis]] = {
+    val query = analysisTable.filter(_.partOf === parentId) joinLeft
+      resultTable on (_.id === _.eventId)
+
+    query.result.map { res =>
+      res.map { row =>
+        fromEventRow(row._1)
+          .flatMap(_.withResultAsOpt(fromResultRow(row._2))).get
+      }
+    }
+  }
+
+  private def listForObjectAction(oid: ObjectUUID): DBIO[Seq[AnalysisEvent]] = {
+    val query = analysisTable.filter(_.objectUuid === oid) joinLeft
+      resultTable on (_.id === _.eventId)
+
+    query.result.map { res =>
+      res.flatMap { row =>
+        fromEventRow(row._1).map { ue =>
+          ue.withResultAsOpt(fromResultRow(row._2)).getOrElse(ue)
+        }
+      }
     }
   }
 
@@ -77,10 +115,8 @@ class AnalysisDao @Inject() (
    */
   def insertCol(ac: AnalysisCollection): Future[MusitResult[EventId]] = {
     val action = for {
-      id <- insertAnalysisAction(asAnalysisTuple(ac))
-      _ <- DBIO.sequence {
-        ac.events.map(a => insertAnalysisWithResultAction(a.copy(partOf = Option(id))))
-      }
+      id <- insertAnalysisAction(asEventTuple(ac.withoutChildren))
+      eids <- insertChildEventsAction(id, ac.events)
     } yield id
 
     db.run(action.transactionally).map(MusitSuccess.apply).recover {
@@ -95,14 +131,18 @@ class AnalysisDao @Inject() (
    * Locates a specific Analysis event by its EventId.
    *
    * @param id the EventId to look for.
-   * @return eventually returns a MusitResult that might contain the Analysis.
+   * @return eventually returns a MusitResult that might contain the AnalysisEvent.
    */
-  def findById(id: EventId): Future[MusitResult[Option[Analysis]]] = {
+  def findById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
     val query = for {
       maybeEvent <- findByIdAction(id)
-      maybeRes <- resultForEventId(id)
+      maybeRes <- resultForEventIdAction(id)
+      children <- listChildrenAction(id)
     } yield {
-      maybeEvent.map(e => AnalysisEvent.withResult(e, maybeRes))
+      maybeEvent.map {
+        case a: Analysis => a.withResult(maybeRes)
+        case ac: AnalysisCollection => ac.copy(events = children)
+      }
     }
 
     db.run(query).map(MusitSuccess.apply).recover {
@@ -116,18 +156,13 @@ class AnalysisDao @Inject() (
   /**
    * Find all analysis events that are _part of_ an analysis container.
    *
+   * Children can _only_ be of type {{{Analysis}}}.
+   *
    * @param id The analysis container to find children for.
    * @return eventually a result with a list of analysis events and their results
    */
   def listChildren(id: EventId): Future[MusitResult[Seq[Analysis]]] = {
-    val q = analysisTable.filter(_.partOf === id).result.map { res =>
-      res.flatMap { r =>
-        // TODO: Add results to the events
-        fromAnalysisRow(r).map(e => AnalysisEvent.withResult(e, None))
-      }
-    }
-
-    db.run(q).map(MusitSuccess.apply).recover {
+    db.run(listChildrenAction(id)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An unexpected error occurred fetching events partOf $id"
         logger.error(msg, ex)
@@ -141,15 +176,8 @@ class AnalysisDao @Inject() (
    * @param oid The ObjectUUID to find analysis' for
    * @return eventually a result with a list of analysis events and their results
    */
-  def findByObjectUUID(oid: ObjectUUID): Future[MusitResult[Seq[Analysis]]] = {
-    val q = analysisTable.filter(_.objectUuid === oid).result.map { res =>
-      res.flatMap { r =>
-        // TODO: Add results to the events
-        fromAnalysisRow(r).map(e => AnalysisEvent.withResult(e, None))
-      }
-    }
-
-    db.run(q).map(MusitSuccess.apply).recover {
+  def findByObjectUUID(oid: ObjectUUID): Future[MusitResult[Seq[AnalysisEvent]]] = {
+    db.run(listForObjectAction(oid)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An unexpected error occurred fetching events for object $oid"
         logger.error(msg, ex)

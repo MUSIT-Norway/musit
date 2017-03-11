@@ -13,7 +13,8 @@ GET         /analyses/types/categories/:id              controllers.AnalysisCont
 GET         /analyses/types/musemcollections/:id        controllers.AnalysisController.getAnalysisTypesForCollection(id: String)
 
 # Analysis endpoints
-POST        /analyses                                   controllers.AnalysisController.saveAnalysis(isBatch: Boolean = false)
+POST        /analyses                                   controllers.AnalysisController.saveAnalysisEvent
 GET         /analyses/:id                               controllers.AnalysisController.getAnalysisById(id: Long)
 GET         /analyses/:id/children                      controllers.AnalysisController.getChildAnalyses(id: Long)
+POST        /analyses/:id/results                       controllers.AnalysisController.saveResult(id: Long)
 GET         /analyses/objects/:id                       controllers.AnalysisController.getAnalysisForObject(id: String)

@@ -152,7 +152,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    * @param event the event to convert to a tuple
    * @return an EventRow tuple
    */
-  protected[dao] def asAnalysisTuple(event: AnalysisEvent): EventRow = {
+  protected[dao] def asEventTuple(event: AnalysisEvent): EventRow = {
     (
       None,
       event.analysisTypeId,
@@ -172,7 +172,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    * @param tuple EventRow
    * @return an Option of AnalysisEvent.
    */
-  protected[dao] def fromAnalysisRow(tuple: EventRow): Option[AnalysisEvent] =
+  protected[dao] def fromEventRow(tuple: EventRow): Option[AnalysisEvent] =
     Json.fromJson[AnalysisEvent](tuple._9).asOpt.map {
       case a: Analysis => a.copy(id = tuple._1)
       case ac: AnalysisCollection => ac.copy(id = tuple._1)
@@ -203,6 +203,11 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    */
   protected[dao] def fromResultRow(tuple: ResultRow): Option[AnalysisResult] =
     Json.fromJson[AnalysisResult](tuple._5).asOpt
+
+  protected[dao] def fromResultRow(
+    maybeTuple: Option[ResultRow]
+  ): Option[AnalysisResult] =
+    maybeTuple.flatMap(fromResultRow)
 
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (
