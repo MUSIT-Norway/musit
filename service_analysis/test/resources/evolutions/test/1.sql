@@ -28,6 +28,8 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   sample_id            VARCHAR2(100),
   external_id          VARCHAR2(100),
   note                 VARCHAR2(250),
+  registered_by   VARCHAR2(36) NOT NULL,
+  registered_date TIMESTAMP    NOT NULL,
   updated_by           VARCHAR2(36),
   updated_date         TIMESTAMP,
   PRIMARY KEY (sample_uuid)

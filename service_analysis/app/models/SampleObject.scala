@@ -3,6 +3,7 @@ package models
 import models.SampleStatuses.SampleStatus
 import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
 import org.joda.time.DateTime
+import play.api.libs.json.{Format, Json}
 
 case class SampleObject(
   objectId: Option[ObjectUUID],
@@ -16,10 +17,14 @@ case class SampleObject(
   sampleId: Option[String],
   externalId: Option[String],
   note: Option[String],
+  registeredBy: Option[ActorId],
+  registeredDate: Option[DateTime],
   updatedBy: Option[ActorId],
   updatedDate: Option[DateTime]
 )
 
 object SampleObject {
+
+  implicit val format: Format[SampleObject] = Json.format[SampleObject]
 
 }

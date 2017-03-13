@@ -29,7 +29,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   type EventTypeRow = (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
   type EventRow = (Option[EventId], AnalysisTypeId, Option[JSqlTimestamp], Option[ActorId], Option[JSqlTimestamp], Option[EventId], Option[ObjectUUID], Option[String], JsValue)
   type ResultRow = (Option[Long], EventId, Option[ActorId], Option[JSqlTimestamp], JsValue)
-  type SampleObjectRow = (ObjectUUID, Option[ObjectUUID], Boolean, MuseumId, SampleStatus, ActorId, JSqlTimestamp, Option[String], Option[String], Option[String], Option[ActorId], Option[JSqlTimestamp])
+  type SampleObjectRow = (ObjectUUID, Option[ObjectUUID], Boolean, MuseumId, SampleStatus, ActorId, JSqlTimestamp, Option[String], Option[String], Option[String], Option[ActorId], Option[JSqlTimestamp], Option[ActorId], Option[JSqlTimestamp])
 
   // scalastyle:on line.size.limit
 
@@ -110,11 +110,13 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val sampleId = column[Option[String]]("SAMPLE_ID")
     val externalId = column[Option[String]]("EXTERNAL_ID")
     val note = column[Option[String]]("NOTE")
+    val registeredBy = column[Option[ActorId]]("REGISTERED_BY")
+    val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
     val updatedBy = column[Option[ActorId]]("UPDATED_BY")
     val updatedDate = column[Option[JSqlTimestamp]]("UPDATED_DATE")
 
     // scalastyle:off method.name line.size.limit
-    def * = (id, parentId, isCollectionObject, museumId, status, responsible, createdDate, sampleId, externalId, note, updatedBy, updatedDate)
+    def * = (id, parentId, isCollectionObject, museumId, status, responsible, createdDate, sampleId, externalId, note, registeredBy, registeredDate, updatedBy, updatedDate)
 
     // scalastyle:off method.name line.size.limit
 
@@ -221,6 +223,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       so.sampleId,
       so.externalId,
       so.note,
+      so.registeredBy,
+      so.registeredDate,
       so.updatedBy,
       so.updatedDate
     )
@@ -244,8 +248,10 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       sampleId = tuple._8,
       externalId = tuple._9,
       note = tuple._10,
-      updatedBy = tuple._11,
-      updatedDate = tuple._12
+      registeredBy = tuple._11,
+      registeredDate = tuple._12,
+      updatedBy = tuple._13,
+      updatedDate = tuple._14
     )
 
 }

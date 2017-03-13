@@ -28,6 +28,8 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
       sampleId = None,
       externalId = None,
       note = Some("This is a sample note"),
+      registeredBy = ActorId.generateAsOpt(),
+      registeredDate = Some(now),
       updatedBy = None,
       updatedDate = None
     )
