@@ -29,8 +29,8 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class StorageNodeDao @Inject()(
-  val dbConfigProvider: DatabaseConfigProvider
+class StorageNodeDao @Inject() (
+    val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
   private val logger = Logger(classOf[StorageNodeDao])
