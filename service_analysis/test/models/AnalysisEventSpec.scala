@@ -2,12 +2,16 @@ package models
 
 import models.events.AnalysisResults.GenericResult
 import models.events._
+import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
+import no.uio.musit.test.matchers.DateTimeMatchers
 import org.joda.time.DateTime
 import org.scalatest.{MustMatchers, WordSpec}
 import play.api.libs.json._
 
-class AnalysisEventSpec extends WordSpec with MustMatchers {
+class AnalysisEventSpec extends WordSpec
+    with MustMatchers
+    with DateTimeMatchers {
 
   val dummyEventId = EventId(1L)
   val dummyAnalysisTypeId = AnalysisTypeId.generate()
@@ -57,13 +61,14 @@ class AnalysisEventSpec extends WordSpec with MustMatchers {
       (js \ "type").as[String] mustBe Analysis.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
       (js \ "analysisTypeId").as[String] mustBe dummyAnalysisTypeId.asString
-      (js \ "eventDate").as[DateTime] mustBe dummyDate
+      (js \ "eventDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
-      (js \ "registeredDate").as[DateTime] mustBe dummyDate
+      (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
       (js \ "partOf").asOpt[Long] mustBe None
       (js \ "note").as[String] mustBe dummyNote
+      (js \ "result" \ "type").as[String] mustBe GenericResult.resultType
       (js \ "result" \ "registeredBy").as[String] mustBe dummyActor.asString
-      (js \ "result" \ "registeredDate").as[DateTime] mustBe dummyDate
+      (js \ "result" \ "registeredDate").as[DateTime] mustApproximate dummyDate
       (js \ "result" \ "extRef" \ 0).as[String] mustBe dummyNote
       (js \ "result" \ "comment").as[String] mustBe dummyNote
     }
@@ -75,9 +80,9 @@ class AnalysisEventSpec extends WordSpec with MustMatchers {
 
       (js \ "type").as[String] mustBe AnalysisCollection.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
-      (js \ "eventDate").as[DateTime] mustBe dummyDate
+      (js \ "eventDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
-      (js \ "registeredDate").as[DateTime] mustBe dummyDate
+      (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
       (js \ "events").as[JsArray].value.size mustBe 2
       (js \ "events" \ 0 \ "type").as[String] mustBe Analysis.discriminator
       (js \ "events" \ 1 \ "type").as[String] mustBe Analysis.discriminator

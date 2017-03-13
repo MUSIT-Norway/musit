@@ -6,9 +6,10 @@ import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.DateTimeMatchers
 import org.scalatest.Inspectors.forAll
 
-class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
+class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
 
   val dao: AnalysisDao = fromInstanceCache[AnalysisDao]
 
@@ -128,14 +129,14 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return the analysis event that matches the given id" in {
-        val gr = Some(GenericResult(
+        val gr = GenericResult(
           registeredBy = Some(dummyActorId),
           registeredDate = Some(dateTimeNow),
           extRef = Some(Seq("shizzle", "in", "the", "drizzle")),
           comment = None
-        ))
+        )
 
-        val mra = saveAnalysis(Some(oid2), gr)
+        val mra = saveAnalysis(Some(oid2), Some(gr))
         mra.isSuccess mustBe true
 
         val res = dao.findById(mra.get).futureValue
@@ -145,29 +146,38 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite {
         val a = res.get.get.asInstanceOf[Analysis]
         a.registeredBy mustBe Some(dummyActorId)
         a.analysisTypeId mustBe dummyAnalysisTypeId
-        a.result mustBe gr
+        a.result must not be empty
+        a.result.get.comment mustBe gr.comment
+        a.result.get.extRef mustBe gr.extRef
+        a.result.get.registeredBy mustBe gr.registeredBy
       }
 
       "return the an analysis event with a dating result" in {
-        val dr = Some(DatingResult(
+        val dr = DatingResult(
           registeredBy = Some(dummyActorId),
           registeredDate = Some(dateTimeNow),
           extRef = None,
           comment = None,
           age = Some("Ancient stuff")
-        ))
+        )
 
-        val mra = saveAnalysis(Some(oid2), dr)
+        val mra = saveAnalysis(Some(oid2), Some(dr))
         mra.isSuccess mustBe true
 
         val res = dao.findById(mra.get).futureValue
         res.isSuccess mustBe true
         res.get must not be empty
         res.get.get mustBe an[Analysis]
-        val a = res.get.get.asInstanceOf[Analysis]
-        a.registeredBy mustBe Some(dummyActorId)
-        a.analysisTypeId mustBe dummyAnalysisTypeId
-        a.result mustBe dr
+        val analysis = res.get.get.asInstanceOf[Analysis]
+        analysis.registeredBy mustBe Some(dummyActorId)
+        analysis.analysisTypeId mustBe dummyAnalysisTypeId
+        analysis.result must not be empty
+        analysis.result.get mustBe a[DatingResult]
+        val datingResult = analysis.result.get.asInstanceOf[DatingResult]
+        datingResult.comment mustBe dr.comment
+        datingResult.extRef mustBe dr.extRef
+        datingResult.registeredBy mustBe dr.registeredBy
+        datingResult.age mustBe dr.age
       }
 
       "return all analysis events for a given object" in {

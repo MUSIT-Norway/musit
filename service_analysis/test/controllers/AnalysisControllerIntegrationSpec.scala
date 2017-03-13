@@ -325,7 +325,39 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
         (res.json \ "result" \ "comment").as[String] mustBe "See references"
       }
 
-      "saving a new result for an analysis" in {
+      "save a new result for an analysis" in {
+        val js = createGenericResultJSON(
+          extRef = Some(Seq("abc", "xyz")),
+          comment = Some("A new result was added")
+        )
+
+        val res = wsUrl(saveResultUrl(2L))
+          .withHeaders(token.asHeader)
+          .post(js)
+          .futureValue
+
+        res.status mustBe CREATED
+
+        // Test is pending until the result handling is sorted out
+        pending
+      }
+
+      "include the new result when fetching the analysis" in {
+        // We can assume the ID is 2 since we've only created 1 analysis before this
+        val res = wsUrl(getAnalysisUrl(2L))
+          .withHeaders(token.asHeader)
+          .get()
+          .futureValue
+
+        res.status mustBe OK
+        (res.json \ "id").as[Long] mustBe 2L
+        (res.json \ "result").asOpt[JsObject] must not be empty
+        (res.json \ "result" \ "extRef").as[JsArray].value.size mustBe 2
+        (res.json \ "result" \ "extRef" \ 0).as[String] mustBe "abc"
+        (res.json \ "result" \ "extRef" \ 1).as[String] mustBe "xyz"
+        (res.json \ "result" \ "comment").as[String] mustBe "A new result was added"
+
+        // Test is pending until the result handling is sorted out
         pending
       }
 
