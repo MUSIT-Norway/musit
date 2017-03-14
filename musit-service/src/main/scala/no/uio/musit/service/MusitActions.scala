@@ -19,7 +19,7 @@
 
 package no.uio.musit.service
 
-import no.uio.musit.MusitResults.{MusitError, MusitNotAuthenticated, MusitNotAuthorized, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitNotAuthenticated, MusitNotAuthorized, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.MuseumId
@@ -35,29 +35,29 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
+/**
+ * Every request that is successfully authenticated against dataporten, will
+ * be transformed into a MusitRequest. It contains information necessary for
+ * calculating authorisation and filtering of data.
+ *
+ * @param user    The authenticated user.
+ * @param token   A valid BearerToken
+ * @param museum  An optional Museum derived from an incoming MuseumId
+ * @param request The incoming request
+ * @tparam A Body content type of the incoming request
+ */
+case class MusitRequest[A](
+  user: AuthenticatedUser,
+  token: BearerToken,
+  museum: Option[Museum],
+  request: Request[A]
+) extends WrappedRequest[A](request)
+
 trait MusitActions {
 
   private val logger = Logger(classOf[MusitActions])
 
   def authService: Authenticator
-
-  /**
-   * Every request that is successfully authenticated against dataporten, will
-   * be transformed into a MusitRequest. It contains information necessary for
-   * calculating authorisation and filtering of data.
-   *
-   * @param user    The authenticated user.
-   * @param token   A valid BearerToken
-   * @param museum  An optional Museum derived from an incoming MuseumId
-   * @param request The incoming request
-   * @tparam A Body content type of the incoming request
-   */
-  case class MusitRequest[A](
-    user: AuthenticatedUser,
-    token: BearerToken,
-    museum: Option[Museum],
-    request: Request[A]
-  ) extends WrappedRequest[A](request)
 
   type MusitActionResult[T] = Either[Result, MusitRequest[T]]
   type MusitActionResultF[T] = Future[MusitActionResult[T]]

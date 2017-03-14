@@ -3,7 +3,7 @@ package repositories.dao
 import com.google.inject.{Inject, Singleton}
 import models.SampleObject
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.ObjectUUID
+import no.uio.musit.models.{MuseumId, ObjectUUID}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -59,6 +59,17 @@ class SampleObjectDao @Inject() (
     db.run(q).map(_.map(fromSampleObjectRow)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An unexpected error occurred fetching child samples for $parent"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  def listForMuseum(mid: MuseumId): Future[MusitResult[Seq[SampleObject]]] = {
+    val q = sampleObjTable.filter(_.museumId === mid).result
+
+    db.run(q).map(_.map(fromSampleObjectRow)).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An unexpected error occurred fetching samples for Museum $mid"
         logger.error(msg, ex)
         MusitDbError(msg, Option(ex))
     }

@@ -2,8 +2,10 @@ package services
 
 import com.google.inject.Inject
 import models.SampleObject
-import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
-import no.uio.musit.models.ObjectUUID
+import no.uio.musit.MusitResults._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.models.{MuseumId, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
@@ -33,15 +35,37 @@ class SampleObjectService @Inject() (
     oid: ObjectUUID,
     so: SampleObject
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[SampleObject]]] = {
-    val sobj = so.copy(
-      updatedBy = Some(currUser.id),
-      updatedDate = Some(dateTimeNow)
-    )
-
-    soDao.update(sobj).flatMap {
-      case MusitSuccess(nu) => soDao.findByUUID(oid)
-      case err: MusitError => Future.successful(err)
+    def enrich(orig: SampleObject) = {
+      so.copy(
+        objectId = Some(oid),
+        registeredBy = orig.registeredBy,
+        registeredDate = orig.registeredDate,
+        updatedBy = Some(currUser.id),
+        updatedDate = Some(dateTimeNow)
+      )
     }
+
+    val updatedRes = for {
+      orig <- MusitResultT(findById(oid, MusitEmpty))
+      _ <- MusitResultT(soDao.update(enrich(orig)))
+      upd <- MusitResultT(
+        findById(oid, MusitInternalError(s"Couldn't find sample $oid after update"))
+      )
+    } yield upd
+
+    // Need to do some tricks to align the shapes again.
+    updatedRes.value.map {
+      case MusitSuccess(updatedObj) => MusitSuccess(Option(updatedObj))
+      case MusitEmpty => MusitSuccess(None)
+      case err: MusitError => err
+    }
+  }
+
+  private def findById(
+    oid: ObjectUUID,
+    notFound: MusitError
+  ): Future[MusitResult[SampleObject]] = {
+    findById(oid).map(_.flatMap(_.map(MusitSuccess.apply).getOrElse(notFound)))
   }
 
   def findById(oid: ObjectUUID): Future[MusitResult[Option[SampleObject]]] = {
@@ -50,6 +74,10 @@ class SampleObjectService @Inject() (
 
   def findForParent(oid: ObjectUUID): Future[MusitResult[Seq[SampleObject]]] = {
     soDao.listForParentObject(oid)
+  }
+
+  def findForMuseum(mid: MuseumId): Future[MusitResult[Seq[SampleObject]]] = {
+    soDao.listForMuseum(mid)
   }
 
 }

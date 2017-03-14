@@ -129,32 +129,32 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
     }
   }
 
-  val baseUrl = "/analyses"
+  val baseUrl = (mid: Int) => s"/$mid/analyses"
 
-  val typesUrl = s"$baseUrl/types"
-  val typeIdUrl = (id: Long) => s"$typesUrl/$id"
-  val typeCatUrl = (id: Int) => s"$typesUrl/categories/$id"
-  val typeColUrl = (id: String) => s"$typesUrl/musemcollections/$id"
+  val typesUrl = (mid: Int) => s"${baseUrl(mid)}/types"
+  val typeIdUrl = (mid: Int) => (id: Long) => s"${typesUrl(mid)}/$id"
+  val typeCatUrl = (mid: Int) => (id: Int) => s"${typesUrl(mid)}/categories/$id"
+  val typeColUrl = (mid: Int) => (id: String) => s"${typesUrl(mid)}/musemcollections/$id"
 
   val addAnalysisUrl = baseUrl
-  val getAnalysisUrl = (id: Long) => s"$baseUrl/$id"
-  val getChildrenUrl = (id: Long) => s"${getAnalysisUrl(id)}/children"
-  val saveResultUrl = (id: Long) => s"${getAnalysisUrl(id)}/results"
-  val getForObjectUrl = (oid: String) => s"$baseUrl/objects/$oid"
+  val getAnalysisUrl = (mid: Int) => (id: Long) => s"${baseUrl(mid)}/$id"
+  val getChildrenUrl = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/children"
+  val saveResultUrl = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/results"
+  val getForObjectUrl = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/objects/$oid"
 
   def saveAnalysis(ajs: JsValue): WSResponse = {
-    wsUrl(addAnalysisUrl)
+    wsUrl(addAnalysisUrl(mid))
       .withHeaders(token.asHeader)
       .post(ajs)
       .futureValue
   }
 
-  "Running the analysis service" when {
+  "Using the analysis controller" when {
 
     "fetching analysis types" should {
 
       "return all event types" in {
-        val res = wsUrl(typesUrl)
+        val res = wsUrl(typesUrl(mid))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -165,7 +165,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
 
       "return all event types in an analysis category" in {
         val catId = EventCategories.Dating.id
-        val res = wsUrl(typeCatUrl(catId))
+        val res = wsUrl(typeCatUrl(mid)(catId))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -176,7 +176,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
 
       "return all event types related to a museum collection" in {
         val cid = MuseumCollections.Entomology.uuid
-        val res = wsUrl(typeColUrl(cid.asString))
+        val res = wsUrl(typeColUrl(mid)(cid.asString))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -205,7 +205,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
         saveAnalysis(ajs).status mustBe CREATED
 
         // We can assume the ID is 2 since we've only created 1 analysis before this
-        val res = wsUrl(getAnalysisUrl(2L))
+        val res = wsUrl(getAnalysisUrl(mid)(2L))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -223,7 +223,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
       }
 
       "return 404 NotFound if the ID can't be found" in {
-        wsUrl(getAnalysisUrl(100L))
+        wsUrl(getAnalysisUrl(mid)(100L))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -255,7 +255,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
           .withMinuteOfHour(23)
           .withSecondOfMinute(44)
 
-        val res = wsUrl(getAnalysisUrl(3L))
+        val res = wsUrl(getAnalysisUrl(mid)(3L))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -276,7 +276,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
         // the 3rd event was the above AnalysisCollection. Meaning the event ID
         // given to the AnalysisCollection should be 3L. Children should get ID's
         // from 4L to 8L.
-        val res = wsUrl(getChildrenUrl(3L))
+        val res = wsUrl(getChildrenUrl(mid)(3L))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -286,7 +286,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
       }
 
       "get all analyses related to an object" in {
-        val res = wsUrl(getForObjectUrl(dummyObjectId.asString))
+        val res = wsUrl(getForObjectUrl(mid)(dummyObjectId.asString))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -301,7 +301,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
           comment = Some("See references")
         )
 
-        val res = wsUrl(saveResultUrl(2L))
+        val res = wsUrl(saveResultUrl(mid)(2L))
           .withHeaders(token.asHeader)
           .post(js)
           .futureValue
@@ -311,7 +311,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
 
       "include the saved result when fetching the analysis" in {
         // We can assume the ID is 2 since we've only created 1 analysis before this
-        val res = wsUrl(getAnalysisUrl(2L))
+        val res = wsUrl(getAnalysisUrl(mid)(2L))
           .withHeaders(token.asHeader)
           .get()
           .futureValue

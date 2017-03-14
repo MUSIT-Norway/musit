@@ -12,7 +12,7 @@ object SampleStatuses {
 
     def fromInt(i: Int): Option[SampleStatus] = {
       i match {
-        case Ok.identity => Some(Ok)
+        case Intact.identity => Some(Intact)
         case Destroyed.identity => Some(Destroyed)
         case Contaminated.identity => Some(Contaminated)
         case Prepared.identity => Some(Prepared)
@@ -29,7 +29,7 @@ object SampleStatuses {
 
     implicit val reads: Reads[SampleStatus] = Reads { jsv =>
       jsv.validate[Int] match {
-        case JsSuccess(Ok.identity, _) => JsSuccess(Ok)
+        case JsSuccess(Intact.identity, _) => JsSuccess(Intact)
         case JsSuccess(Destroyed.identity, _) => JsSuccess(Destroyed)
         case JsSuccess(Contaminated.identity, _) => JsSuccess(Contaminated)
         case JsSuccess(Prepared.identity, _) => JsSuccess(Prepared)
@@ -41,7 +41,7 @@ object SampleStatuses {
     implicit val writes: Writes[SampleStatus] = Writes(ss => JsNumber(ss.identity))
   }
 
-  case object Ok extends SampleStatus {
+  case object Intact extends SampleStatus {
     override val identity = 1
   }
 

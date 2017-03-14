@@ -22,7 +22,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
       parentObjectId = parentId,
       isCollectionObject = isColObj,
       museumId = Museums.Test.id,
-      status = SampleStatuses.Ok,
+      status = SampleStatuses.Intact,
       responsible = ActorId.generate(),
       createdDate = now,
       sampleId = None,
