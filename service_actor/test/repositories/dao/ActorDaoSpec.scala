@@ -57,7 +57,7 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return empty list if the search string is not found" in {
-        actorDao.getByName("Andlkjlkj").futureValue.isEmpty mustBe true
+        actorDao.getByName(99, "Andlkjlkj").futureValue.isEmpty mustBe true
       }
 
       "get person details" in {
