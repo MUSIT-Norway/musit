@@ -2,7 +2,11 @@ package repositories.shared.dao
 
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
+import java.sql.{Timestamp => JSqlTimestamp}
+import models.events._
 import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID}
+import no.uio.musit.time.Implicits.{dateTimeToJTimestamp, jSqlTimestampToDateTime}
+import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}
 import slick.driver.JdbcProfile
@@ -52,6 +56,18 @@ trait ColumnTypeMappers {
     MappedColumnType.base[SampleStatus, Int](
       ssid => ssid.identity,
       intId => SampleStatus.unsafeFromInt(intId)
+    )
+
+  implicit lazy val loanTypeMapper: BaseColumnType[LoanType] =
+    MappedColumnType.base[LoanType, Long](
+      loanType => loanType.id,
+      longId => LoanEventTypes.unsafeFromId(longId)
+    )
+
+  implicit lazy val dateTimeMapper: BaseColumnType[DateTime] =
+    MappedColumnType.base[DateTime, JSqlTimestamp](
+      dt => dateTimeToJTimestamp(dt),
+      jst => jSqlTimestampToDateTime(jst)
     )
 
   implicit lazy val jsonMapper: BaseColumnType[JsValue] =
