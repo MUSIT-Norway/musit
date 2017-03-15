@@ -37,7 +37,13 @@ class SampleObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite
       "museumId" -> Museums.Test.id.underlying,
       "status" -> status.identity,
       "responsible" -> responsibleActor.asString,
-      "createdDate" -> Json.toJson(createdDate)
+      "createdDate" -> Json.toJson(createdDate),
+      "sampleType" -> "wood slize",
+      "sampleSubType" -> "age rings",
+      "size" -> 12.0,
+      "sizeUnit" -> "cm3",
+      "container" -> "box",
+      "storageMedium" -> "alcohol"
     )
     val js2 = maybeId.map(i => js1 ++ Json.obj("objectId" -> i.asString)).getOrElse(js1)
     val js3 = maybeParent.map(i => js2 ++ Json.obj("parentObjectId" -> i)).getOrElse(js2)

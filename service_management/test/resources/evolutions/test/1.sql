@@ -2,21 +2,6 @@
 
 CREATE SCHEMA IF NOT EXISTS MUSARK_ANALYSIS;
 
--- CREATE SEQUENCE MUSARK_ANALYSIS.EVENT_TYPE_SEQ
--- START WITH 1
--- INCREMENT BY 1
--- NOCACHE;
---
--- CREATE TABLE MUSARK_ANALYSIS.EVENT_TYPE (
---   id            INTEGER MUSARK_ANALYSIS.EVENT_TYPE_SEQ.NEXTVAL,
---   event_type_id VARCHAR2(36)  NOT NULL, -- UUID
---   name          VARCHAR2(100) NOT NULL,
---   short_name    VARCHAR2(50),
---   attributes    CLOB,
---   PRIMARY KEY (event_type_id)
--- );
-
-
 CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   sample_uuid          VARCHAR2(36)      NOT NULL,
   parent_object_uuid   VARCHAR2(36),
@@ -27,9 +12,15 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   created_date         TIMESTAMP         NOT NULL,
   sample_id            VARCHAR2(100),
   external_id          VARCHAR2(100),
+  sample_type          VARCHAR2(100),
+  sample_sub_type      VARCHAR2(100),
+  sample_size          NUMBER,
+  sample_size_unit     VARCHAR2(10),
+  sample_container     VARCHAR2(100),
+  storage_medium       VARCHAR2(100),
   note                 VARCHAR2(250),
-  registered_by   VARCHAR2(36) NOT NULL,
-  registered_date TIMESTAMP    NOT NULL,
+  registered_by        VARCHAR2(36)      NOT NULL,
+  registered_date      TIMESTAMP         NOT NULL,
   updated_by           VARCHAR2(36),
   updated_date         TIMESTAMP,
   PRIMARY KEY (sample_uuid)
