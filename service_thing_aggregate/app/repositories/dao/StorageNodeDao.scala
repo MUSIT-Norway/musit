@@ -20,7 +20,6 @@
 package repositories.dao
 
 import com.google.inject.Inject
-import controllers.SimpleNode
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models._
 import play.api.Logger
@@ -126,7 +125,7 @@ class StorageNodeDao @Inject() (
   def listAllChildrenFor(
     museumId: MuseumId,
     ids: Seq[StorageNodeDatabaseId]
-  ): Future[MusitResult[Seq[SimpleNode]]] = {
+  ): Future[MusitResult[Seq[(StorageNodeDatabaseId, String)]]] = {
     val q1 = (likePath: String) => nodeTable.filter { n =>
       n.museumId === museumId && (SimpleLiteral[String]("NODE_PATH") like likePath)
     }

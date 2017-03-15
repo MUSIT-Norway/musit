@@ -1,145 +1,165 @@
 version: "2"
 services:
-    nginx:
-      build:
-          context: "./nginx"
-      ports:
-          - "80:80"
-      links:
-          - thingaggregate
-          - actor
-          - geolocation
-          - storagefacility
-          - auth
+  nginx:
+    build:
+      context: "./nginx"
+    ports:
+      - "80:80"
+    links:
+      - thingaggregate
+      - actor
+      - geolocation
+      - storagefacility
+      - auth
+      - barcode
+      - analysis
 
-    db:
-        image: musitproject/oracle-12c:testdata
-        shm_size: 4G
-        ports:
-          - "1521:1521"
+  db:
+    image: musitproject/oracle-12c:testdata
+    shm_size: 4G
+    ports:
+      - "1521:1521"
 
-    thingaggregate:
-        image: musit_service_thing_aggregate:0.1-SNAPSHOT
-        ports:
-          - "7070:7070"
-        environment:
-          - MUSIT_ENV
-          - MUSIT_BASE_URL
-          - DOCKER_HOSTNAME
-          - MUSIT_SECURITY_MODULE
-          - DATAPORTEN_CLIENT_ID
-          - DATAPORTEN_CLIENT_SECRET
-          - APPLICATION_SECRET
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
+  thingaggregate:
+    image: musit_service_thing_aggregate:0.1-SNAPSHOT
+    ports:
+      - "7070:7070"
+    environment:
+      - MUSIT_ENV
+      - MUSIT_BASE_URL
+      - DOCKER_HOSTNAME
+      - MUSIT_SECURITY_MODULE
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - APPLICATION_SECRET
+      - EVOLUTION_ENABLED
+      - SLICK_DRIVER
+      - SLICK_DB_DRIVER
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+    links:
+      - db
 
-    actor:
-        image: musit_service_actor:0.1-SNAPSHOT
-        ports:
-          - "7072:7070"
-        environment:
-          - MUSIT_ENV
-          - MUSIT_BASE_URL
-          - DOCKER_HOSTNAME
-          - MUSIT_SECURITY_MODULE
-          - DATAPORTEN_CLIENT_ID
-          - DATAPORTEN_CLIENT_SECRET
-          - APPLICATION_SECRET
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
+  actor:
+    image: musit_service_actor:0.1-SNAPSHOT
+    ports:
+      - "7072:7070"
+    environment:
+      - MUSIT_ENV
+      - MUSIT_BASE_URL
+      - DOCKER_HOSTNAME
+      - MUSIT_SECURITY_MODULE
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - APPLICATION_SECRET
+      - EVOLUTION_ENABLED
+      - SLICK_DRIVER
+      - SLICK_DB_DRIVER
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+    links:
+      - db
 
-    geolocation:
-        image: musit_service_geo_location:0.1-SNAPSHOT
-        ports:
-          - "7073:7070"
-        environment:
-          - MUSIT_ENV
-          - MUSIT_BASE_URL
-          - DOCKER_HOSTNAME
-          - MUSIT_SECURITY_MODULE
-          - DATAPORTEN_CLIENT_ID
-          - DATAPORTEN_CLIENT_SECRET
-          - APPLICATION_SECRET
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
+  geolocation:
+    image: musit_service_geo_location:0.1-SNAPSHOT
+    ports:
+      - "7073:7070"
+    environment:
+      - MUSIT_ENV
+      - MUSIT_BASE_URL
+      - DOCKER_HOSTNAME
+      - MUSIT_SECURITY_MODULE
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - APPLICATION_SECRET
+      - SLICK_DRIVER
+      - SLICK_DB_DRIVER
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+    links:
+      - db
 
-    auth:
-        image: musit_service_auth:0.1-SNAPSHOT
-        ports:
-          - "7074:7070"
-        environment:
-          - MUSIT_ENV
-          - MUSIT_BASE_URL
-          - DOCKER_HOSTNAME
-          - MUSIT_SECURITY_MODULE
-          - CALLBACK_URL
-          - DATAPORTEN_CLIENT_ID
-          - DATAPORTEN_CLIENT_SECRET
-          - APPLICATION_SECRET
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
+  auth:
+    image: musit_service_auth:0.1-SNAPSHOT
+    ports:
+      - "7074:7070"
+    environment:
+      - MUSIT_ENV
+      - MUSIT_BASE_URL
+      - DOCKER_HOSTNAME
+      - MUSIT_SECURITY_MODULE
+      - CALLBACK_URL
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - APPLICATION_SECRET
+      - EVOLUTION_ENABLED
+      - SLICK_DRIVER
+      - SLICK_DB_DRIVER
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+    links:
+      - db
 
-    storagefacility:
-        image: musit_service_storagefacility:0.1-SNAPSHOT
-        ports:
-          - "7075:7070"
-        environment:
-          - MUSIT_ENV
-          - MUSIT_BASE_URL
-          - DOCKER_HOSTNAME
-          - MUSIT_SECURITY_MODULE
-          - DATAPORTEN_CLIENT_ID
-          - DATAPORTEN_CLIENT_SECRET
-          - APPLICATION_SECRET
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
+  storagefacility:
+    image: musit_service_storagefacility:0.1-SNAPSHOT
+    ports:
+      - "7075:7070"
+    environment:
+      - MUSIT_ENV
+      - MUSIT_BASE_URL
+      - DOCKER_HOSTNAME
+      - MUSIT_SECURITY_MODULE
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - APPLICATION_SECRET
+      - EVOLUTION_ENABLED
+      - SLICK_DRIVER
+      - SLICK_DB_DRIVER
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+    links:
+      - db
 
-    barcode:
-        image: musit_service_barcode:0.1-SNAPSHOT
-        ports:
-          - "7076:7070"
-        environment:
-          - MUSIT_ENV
-          - MUSIT_BASE_URL
-          - DOCKER_HOSTNAME
-          - MUSIT_SECURITY_MODULE
-          - DATAPORTEN_CLIENT_ID
-          - DATAPORTEN_CLIENT_SECRET
-          - APPLICATION_SECRET
-          - EVOLUTION_ENABLED
-          - SLICK_DRIVER
-          - SLICK_DB_DRIVER
-          - SLICK_DB_URL
-          - SLICK_DB_USER
-          - SLICK_DB_PASSWORD
-        links:
-          - db
+  barcode:
+    image: musit_service_barcode:0.1-SNAPSHOT
+    ports:
+      - "7076:7070"
+    environment:
+      - MUSIT_ENV
+      - MUSIT_BASE_URL
+      - DOCKER_HOSTNAME
+      - MUSIT_SECURITY_MODULE
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - APPLICATION_SECRET
+      - EVOLUTION_ENABLED
+      - SLICK_DRIVER
+      - SLICK_DB_DRIVER
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+    links:
+      - db
+
+  analysis:
+    image: musit_service_analysis:0.1-SNAPSHOT
+    ports:
+      - "7077:7070"
+    environment:
+      - MUSIT_SECURITY_MODULE
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - APPLICATION_SECRET
+      - EVOLUTION_ENABLED
+      - SLICK_DRIVER
+      - SLICK_DB_DRIVER
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+    links:
+      - db

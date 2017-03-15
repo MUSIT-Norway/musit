@@ -22,7 +22,7 @@ package no.uio.musit.security
 import java.sql.{Timestamp => JSqlTimestamp}
 
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
-import no.uio.musit.models.OldDbSchemas.OldSchema
+import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.time.DateTimeImplicits
@@ -86,10 +86,10 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       i => Permission.fromInt(i)
     )
 
-  implicit lazy val oldSchemaMapper: BaseColumnType[Seq[OldSchema]] =
-    MappedColumnType.base[Seq[OldSchema], String](
+  implicit lazy val oldSchemaMapper: BaseColumnType[Seq[Collection]] =
+    MappedColumnType.base[Seq[Collection], String](
       seqSchemas => seqSchemas.map(_.id).mkString("[", ",", "]"),
-      str => OldDbSchemas.fromJsonString(str)
+      str => MuseumCollections.fromJsonString(str)
     )
 
   implicit lazy val sessionIdMapper: BaseColumnType[SessionUUID] =
@@ -134,7 +134,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
 
   }
 
-  type CollectionDBTuple = ((CollectionUUID, Option[String], Seq[OldSchema]))
+  type CollectionDBTuple = ((CollectionUUID, Option[String], Seq[Collection]))
 
   class MuseumCollectionTable(
       val tag: Tag
@@ -142,7 +142,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
 
     val uuid = column[CollectionUUID]("COLLECTION_UUID", O.PrimaryKey)
     val name = column[Option[String]]("COLLECTION_NAME")
-    val schemaIds = column[Seq[OldSchema]]("COLLECTION_SCHEMA_IDENTIFIERS")
+    val schemaIds = column[Seq[Collection]]("COLLECTION_SCHEMA_IDENTIFIERS")
 
     override def * = (uuid, name, schemaIds) // scalastyle:ignore
 
