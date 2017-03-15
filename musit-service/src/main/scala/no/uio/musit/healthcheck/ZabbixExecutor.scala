@@ -94,8 +94,8 @@ object ZabbixExecutor {
     configuration: Configuration
   )(implicit actorSystem: ActorSystem, materializer: Materializer): ZabbixExecutor = {
     val zabbixFilePath = environmentMode match {
-      case Mode.Dev => "./target/"
-      case _ => "/opt/docker/zabbix/"
+      case Mode.Prod => "/opt/docker/zabbix/"
+      case _ => "./target/"
     }
     Files.createDirectories(new File(zabbixFilePath).toPath)
 
