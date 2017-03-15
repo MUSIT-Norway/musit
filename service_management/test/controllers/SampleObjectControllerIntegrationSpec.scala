@@ -8,6 +8,7 @@ import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import org.joda.time.DateTime
 import org.scalatest.Inspectors.forAll
 import play.api.libs.json._
+import play.api.libs.json.Reads._
 import play.api.test.Helpers._
 
 class SampleObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite
@@ -52,12 +53,22 @@ class SampleObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite
     expectedExtId: Option[String] = None,
     expectedNote: Option[String] = None,
     js: JsValue
-  ) = {
+  ): Unit = {
     (js \ "isCollectionObject").as[Boolean] mustBe expIsColObj
     (js \ "parentObjectId").asOpt[String] mustBe expectedParent
     (js \ "sampleId").asOpt[String] mustBe expectedSampleId
     (js \ "externalId").asOpt[String] mustBe expectedExtId
     (js \ "note").asOpt[String] mustBe expectedNote
+  }
+
+  def validateSampleObject(expected: JsValue, actual: JsValue): Unit = {
+    val isExpColObj = (expected \ "isCollectionObject").as[Boolean]
+    val expParent = (expected \ "parentObjectId").asOpt[String]
+    val expSampleId = (expected \ "sampleId").asOpt[String]
+    val expExtId = (expected \ "externalId").asOpt[String]
+    val expNote = (expected \ "note").asOpt[String]
+
+    validateSampleObject(isExpColObj, expParent, expSampleId, expExtId, expNote, actual)
   }
 
   val baseUrl = (mid: Int) => s"/$mid/samples"
@@ -67,13 +78,24 @@ class SampleObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite
   val getUrl = updateUrl
   val childrenUrl = (mid: Int) => (oid: String) => s"${getUrl(mid)(oid)}/children"
 
-
   def getAllForTestMuseum = {
     val res = wsUrl(forMuseumUrl(mid)).withHeaders(token.asHeader).get().futureValue
     res.status mustBe OK
     res
   }
 
+  def updateJson[A](
+    js: JsValue,
+    updatePath: JsPath,
+    value: A
+  )(implicit f: Format[A]): JsObject = {
+    val trans = updatePath.json.update(__.read[A].map(_ => Json.toJson(value)))
+
+    js.transform(trans) match {
+      case JsSuccess(jso, _) => jso
+      case err: JsError => throw JsResultException(err.errors)
+    }
+  }
 
   "Invoking the sample object controller API" should {
 
@@ -130,6 +152,23 @@ class SampleObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite
       res.status mustBe OK
 
       res.json mustBe expJs
+    }
+
+    "update a specific sample object" in {
+      val all = getAllForTestMuseum
+
+      val expJs = (all.json \ 2).as[JsObject]
+      val objectId = (expJs \ "objectId").as[String]
+
+      val ujs = updateJson[String](expJs, __ \ "note", "Updated note")
+
+      val res = wsUrl(updateUrl(mid)(objectId))
+        .withHeaders(token.asHeader)
+        .put(ujs)
+        .futureValue
+
+      res.status mustBe OK
+      validateSampleObject(ujs, res.json)
     }
 
   }
