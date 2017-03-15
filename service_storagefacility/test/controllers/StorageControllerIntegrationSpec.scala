@@ -48,7 +48,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       expId: Long,
       expPartOf: Option[Long] = None
   )(implicit manifest: Manifest[T]): T = {
-    val storageNode = parseAndVerifyResponse[T](response)
+    val storageNode = parseAndVerifyResponse[T](response).value
     // verifying common attributes across all storage node types
     storageNode.id mustBe Some(StorageNodeDatabaseId(expId))
     storageNode.storageType mustBe expStorageType
@@ -59,11 +59,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     storageNode
   }
 
-  def parseAndVerifyResponse[T](response: WSResponse): T = {
+  def parseAndVerifyResponse[T](response: WSResponse): Option[T] = {
     val json   = Json.parse(response.body)
     val parsed = json.validate[StorageNode]
     parsed.isSuccess mustBe true
-    parsed.get.asInstanceOf[T]
+    parsed.asOpt.map(_.asInstanceOf[T])
   }
 
   val mid = MuseumId(99)
@@ -92,12 +92,12 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
               .withHeaders(godToken.asHeader)
               .post(rootJson(s"root-$i"))
               .futureValue
-            val root = parseAndVerifyResponse[Root](res)
+            val root = parseAndVerifyResponse[Root](res).value
             root mustBe a[Root]
             root.id.isEmpty must not be true
-            root.id.get mustBe StorageNodeDatabaseId(i.toLong)
+            root.id.value mustBe StorageNodeDatabaseId(i.toLong)
             root.storageType mustBe StorageType.RootType
-            val rootId = root.id.get
+            val rootId = root.id.value
             root.path mustBe NodePath(s",${rootId.underlying},")
             addedNodes += root
           }
@@ -127,7 +127,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         organisation mustBe an[Organisation]
         organisation.path mustBe NodePath(",1,22,")
         organisation.updatedBy mustBe Some(adminId)
-        organisation.updatedDate.get.year() mustBe DateTime.now().year()
+        organisation.updatedDate.value.year() mustBe DateTime.now().year()
       }
 
       "successfully create a building node" in {
@@ -147,8 +147,8 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         building mustBe a[Building]
         building.path mustBe NodePath(",1,22,23,")
-        building.updatedBy.get mustBe adminId
-        building.updatedDate.get.year() mustBe DateTime.now().year()
+        building.updatedBy.value mustBe adminId
+        building.updatedDate.value.year() mustBe DateTime.now().year()
       }
 
       "successfully create a room node" in {
@@ -168,8 +168,8 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         room mustBe a[Room]
         room.path mustBe NodePath(",1,22,23,24,")
-        room.updatedBy.get mustBe adminId
-        room.updatedDate.get.year() mustBe DateTime.now().year()
+        room.updatedBy.value mustBe adminId
+        room.updatedDate.value.year() mustBe DateTime.now().year()
       }
 
       "successfully create a storage unit node" in {
@@ -189,8 +189,8 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         )
         su mustBe a[StorageUnit]
         su.path mustBe NodePath(",1,22,23,24,25,")
-        su.updatedBy.get mustBe adminId
-        su.updatedDate.get.year() mustBe DateTime.now().year()
+        su.updatedBy.value mustBe adminId
+        su.updatedDate.value.year() mustBe DateTime.now().year()
       }
 
       "not allow creating a storage node with a name over 100 chars" in {
@@ -325,7 +325,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           )
         }
 
-        val updRes = wsUrl(StorageNodeUrl(mid, su.id.get))
+        val updRes = wsUrl(StorageNodeUrl(mid, su.id.value))
           .withHeaders(adminToken.asHeader)
           .put(updatedJson)
           .futureValue
@@ -334,7 +334,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           updRes,
           StorageUnitType,
           "My Shelf2b",
-          su.id.get,
+          su.id.value,
           Some(24)
         )
 
@@ -342,7 +342,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated.path mustBe NodePath(",1,22,23,24,26,")
         updated.areaTo mustBe Some(.8)
         updated.heightTo mustBe Some(.8)
-        updated.updatedBy.get mustBe adminId
+        updated.updatedBy.value mustBe adminId
       }
 
       "successfully update a room" in {
@@ -372,7 +372,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           )
         }
 
-        val updRes = wsUrl(StorageNodeUrl(mid, room.id.get))
+        val updRes = wsUrl(StorageNodeUrl(mid, room.id.value))
           .withHeaders(adminToken.asHeader)
           .put(updatedJson)
           .futureValue
@@ -381,7 +381,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           updRes,
           RoomType,
           "My Room2b",
-          room.id.get,
+          room.id.value,
           Some(23)
         )
 
@@ -395,7 +395,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           NamedPathElement(StorageNodeDatabaseId(23), "My Building1"),
           NamedPathElement(StorageNodeDatabaseId(27), "My Room2b")
         )
-        updated.updatedBy.get mustBe adminId
+        updated.updatedBy.value mustBe adminId
       }
 
       "successfully update a building with environment requirements" in {
@@ -424,7 +424,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           )
         }
 
-        val updRes = wsUrl(StorageNodeUrl(mid, building.id.get))
+        val updRes = wsUrl(StorageNodeUrl(mid, building.id.value))
           .withHeaders(adminToken.asHeader)
           .put(updatedJson)
           .futureValue
@@ -433,7 +433,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           updRes,
           BuildingType,
           "My Building2",
-          building.id.get,
+          building.id.value,
           Some(22)
         )
 
@@ -441,8 +441,8 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         updated.path mustBe NodePath(",1,22,28,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
         updated.environmentRequirement.isEmpty must not be true
-        updated.environmentRequirement.get.cleaning mustBe Some("Filthy")
-        updated.updatedBy.get mustBe adminId
+        updated.environmentRequirement.value.cleaning mustBe Some("Filthy")
+        updated.updatedBy.value mustBe adminId
 
       }
 
@@ -472,7 +472,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         }
 
-        val updRes = wsUrl(StorageNodeUrl(mid, organisation.id.get))
+        val updRes = wsUrl(StorageNodeUrl(mid, organisation.id.value))
           .withHeaders(adminToken.asHeader)
           .put(updatedJson)
           .futureValue
@@ -481,14 +481,14 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           updRes,
           OrganisationType,
           "My Organisation2",
-          organisation.id.get,
+          organisation.id.value,
           organisation.isPartOf
         )
 
         updated mustBe an[Organisation]
         updated.path mustBe NodePath(",1,29,")
         updated.address mustBe Some("Fjære Åker Øya 21, 2341 Huttiheita, Norge")
-        updated.updatedBy.get mustBe adminId
+        updated.updatedBy.value mustBe adminId
       }
 
       "respond with 404 when trying to update a node that doesn't exist" in {
@@ -529,13 +529,13 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         created mustBe a[StorageUnit]
 
-        val rmRes = wsUrl(StorageNodeUrl(mid, created.id.get))
+        val rmRes = wsUrl(StorageNodeUrl(mid, created.id.value))
           .withHeaders(adminToken.asHeader)
           .delete()
           .futureValue
         rmRes.status mustBe OK
 
-        val notFound = wsUrl(StorageNodeUrl(mid, created.id.get))
+        val notFound = wsUrl(StorageNodeUrl(mid, created.id.value))
           .withHeaders(readToken.asHeader)
           .get()
           .futureValue
@@ -590,12 +590,12 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         created mustBe a[StorageUnit]
         created.path mustBe NodePath(",1,22,23,24,31,")
 
-        val moveMeId = created.id.get.underlying
+        val moveMeId = created.id.value.underlying
         val moveJson = Json.parse(
           s"""{
               |  "doneBy": "${adminId.asString}",
               |  "destination": 26,
-              |  "items": [${created.id.get.underlying}]
+              |  "items": [${created.id.value.underlying}]
               |}""".stripMargin
         )
 
@@ -964,13 +964,13 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, id))
           .withHeaders(readToken.asHeader)
-          .get
+          .get()
           .futureValue
         notExistsRes.status mustBe BAD_REQUEST
         val wrongMid = MuseumId(4)
         val wrongRes = wsUrl(StorageNodeUrl(wrongMid, id))
           .withHeaders(readToken.asHeader)
-          .get
+          .get()
           .futureValue
         wrongRes.status mustBe NOT_FOUND
         // have to fill in later when auth-object is implemented.
@@ -988,13 +988,13 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, id))
           .withHeaders(readToken.asHeader)
-          .get
+          .get()
           .futureValue
         notExistsRes.status mustBe BAD_REQUEST
         val wrongMid = MuseumId(4)
         val wrongRes = wsUrl(StorageNodeUrl(wrongMid, id))
           .withHeaders(readToken.asHeader)
-          .get
+          .get()
           .futureValue
         wrongRes.status mustBe NOT_FOUND
         // have to fill in later when auth-object is implemented.
@@ -1012,13 +1012,13 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, id))
           .withHeaders(readToken.asHeader)
-          .get
+          .get()
           .futureValue
         notExistsRes.status mustBe BAD_REQUEST
         val wrongMid = MuseumId(4)
         val wrongRes = wsUrl(StorageNodeUrl(wrongMid, id))
           .withHeaders(readToken.asHeader)
-          .get
+          .get()
           .futureValue
         wrongRes.status mustBe NOT_FOUND
       }
@@ -1034,13 +1034,13 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val notExistsMid = MuseumId(44)
         val notExistsRes = wsUrl(StorageNodeUrl(notExistsMid, id))
           .withHeaders(readToken.asHeader)
-          .get
+          .get()
           .futureValue
         notExistsRes.status mustBe BAD_REQUEST
         val wrongMid = MuseumId(4)
         val wrongRes = wsUrl(StorageNodeUrl(wrongMid, id))
           .withHeaders(readToken.asHeader)
-          .get
+          .get()
           .futureValue
         wrongRes.status mustBe NOT_FOUND
       }
@@ -1076,7 +1076,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         notExistsupdRes.status mustBe BAD_REQUEST
 
         val checkOldRes =
-          wsUrl(StorageNodeUrl(mid, id)).withHeaders(readToken.asHeader).get.futureValue
+          wsUrl(StorageNodeUrl(mid, id))
+            .withHeaders(readToken.asHeader)
+            .get()
+            .futureValue
         checkOldRes.status mustBe OK
         checkOldRes.json mustBe response.json
       }
@@ -1111,7 +1114,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         notExistsupdRes.status mustBe BAD_REQUEST
 
         val checkOldRes =
-          wsUrl(StorageNodeUrl(mid, id)).withHeaders(readToken.asHeader).get.futureValue
+          wsUrl(StorageNodeUrl(mid, id))
+            .withHeaders(readToken.asHeader)
+            .get()
+            .futureValue
         checkOldRes.status mustBe OK
         checkOldRes.json mustBe response.json
       }
@@ -1145,7 +1151,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         notExistsupdRes.status mustBe BAD_REQUEST
 
         val checkOldRes =
-          wsUrl(StorageNodeUrl(mid, id)).withHeaders(readToken.asHeader).get.futureValue
+          wsUrl(StorageNodeUrl(mid, id))
+            .withHeaders(readToken.asHeader)
+            .get()
+            .futureValue
         checkOldRes.status mustBe OK
         checkOldRes.json mustBe response.json
       }
@@ -1179,14 +1188,20 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         notExistsupdRes.status mustBe BAD_REQUEST
 
         val checkOldRes =
-          wsUrl(StorageNodeUrl(mid, id)).withHeaders(readToken.asHeader).get.futureValue
+          wsUrl(StorageNodeUrl(mid, id))
+            .withHeaders(readToken.asHeader)
+            .get()
+            .futureValue
         checkOldRes.status mustBe OK
         checkOldRes.json mustBe response.json
       }
 
       "respond with 403 when trying to update a node using wrong MuseumId" in {
         val res =
-          wsUrl(StorageNodeUrl(mid, 32)).withHeaders(readToken.asHeader).get.futureValue
+          wsUrl(StorageNodeUrl(mid, 32))
+            .withHeaders(readToken.asHeader)
+            .get()
+            .futureValue
         res.status mustBe OK
         val wrongMid = MuseumId(5)
         val err = wsUrl(StorageNodeUrl(wrongMid, 32))

@@ -46,7 +46,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
   }
 
   def getOrganization(id: Long): Future[WSResponse] = {
-    wsUrl(s"/v1/organization/$id").withHeaders(fakeToken.asHeader).get
+    wsUrl(s"/v1/organization/$id").withHeaders(fakeToken.asHeader).get()
   }
 
   "The OrganizationController" must {

@@ -31,14 +31,15 @@ import no.uio.musit.models.{ActorId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
-import play.api.libs.json.{JsArray, JsObject, Json}
+import org.scalatest.Inside
+import play.api.libs.json.{JsArray, JsObject, JsSuccess, Json}
 import play.api.test.Helpers._
 import utils.testhelpers.StorageNodeJsonGenerator._
 import utils.testhelpers.{EventJsonGenerator, _}
 
 import scala.util.Try
 
-class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
+class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with Inside {
 
   val mid = MuseumId(99)
 
@@ -105,11 +106,10 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       res.status mustBe OK
 
       val ctrlRes = res.json.validate[Control]
-      ctrlRes.isSuccess mustBe true
-
-      val ctrl = ctrlRes.get
-
-      ctrl.eventType.registeredEventId mustBe ControlEventType.id
+      inside(ctrlRes) {
+        case JsSuccess(ctrl, _) =>
+          ctrl.eventType.registeredEventId mustBe ControlEventType.id
+      }
     }
 
     "not allow access to control if user doesn't have READ permission" in {
@@ -190,11 +190,11 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       res.status mustBe OK
 
       val obsRes = res.json.validate[Observation]
-      obsRes.isSuccess mustBe true
 
-      val obs = obsRes.get
-
-      obs.eventType.registeredEventId mustBe ObservationEventType.id
+      inside(obsRes) {
+        case JsSuccess(obs, _) =>
+          obs.eventType.registeredEventId mustBe ObservationEventType.id
+      }
     }
 
     "not allow access to observation if user doesn't have READ permission" in {
