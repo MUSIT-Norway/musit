@@ -4,10 +4,11 @@ import models.analysis.{SampleObject, SampleStatuses}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import org.joda.time.DateTime
 import org.scalatest.Inspectors.forAll
 
-class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
+class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val dao: SampleObjectDao = fromInstanceCache[SampleObjectDao]
 
@@ -47,8 +48,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
       val oid = ObjectUUID.generate()
       val so  = generateSample(oid, None)
       val res = dao.insert(so).futureValue
-      res.isSuccess mustBe true
-      res.get mustBe oid
+      res.successValue mustBe oid
     }
 
     "find the SampleObject with the given UUID" in {
@@ -58,9 +58,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
       dao.insert(sol).futureValue.isSuccess mustBe true
 
       val res = dao.findByUUID(oid).futureValue
-      res.isSuccess mustBe true
-      res.get must not be empty
-      res.get.get.objectId mustBe Some(oid)
+      res.successValue.value.objectId mustBe Some(oid)
     }
 
     "return None if no SampleObjects with the given UUID exists" in {
@@ -86,10 +84,9 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
       val res = dao.listForParentObject(parentId).futureValue
 
-      res.isSuccess mustBe true
-      res.get.size mustBe 3
+      res.successValue.size mustBe 3
 
-      forAll(res.get) { c =>
+      forAll(res.successValue) { c =>
         c.parentObjectId mustBe Some(parentId)
         c.objectId must not be empty
         c.objectId must contain oneOf (childId1, childId2, childId3)
@@ -97,11 +94,9 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
     }
 
     "not return an empty list if there are no derived objects" in {
-
       val res = dao.listForParentObject(ObjectUUID.generate()).futureValue
 
-      res.isSuccess mustBe true
-      res.get mustBe empty
+      res.successValue mustBe empty
     }
 
     "successfully update a SampleObject" in {
@@ -112,14 +107,11 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
       val so2 = so1.copy(sampleId = Some("FOO-1"))
 
       val res1 = dao.update(so2).futureValue
-      res1.isSuccess mustBe true
-      res1.get mustBe 1L
+      res1.successValue mustBe 1L
 
       val res2 = dao.findByUUID(oid).futureValue
-      res2.isSuccess mustBe true
-      res2.get must not be empty
-      res2.get.get.objectId mustBe Some(oid)
-      res2.get.get.sampleId mustBe Some("FOO-1")
+      res2.successValue.value.objectId mustBe Some(oid)
+      res2.successValue.value.sampleId mustBe Some("FOO-1")
     }
 
   }

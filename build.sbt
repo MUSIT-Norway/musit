@@ -38,7 +38,7 @@ lazy val musitTest = (
         ScalaTest.scalactic
       ) ++ playDependencies
     )
-)
+) dependsOn(musitModels)
 
 lazy val musitModels = (
   BaseProject("musit-models")
