@@ -38,11 +38,11 @@ package object analysis {
       jsr: JsResult[A]
   )(
       save: A => Future[MusitResult[ID]]
-  )(implicit req: MusitRequest[JsValue], ec: ExecutionContext): Future[Result] = {
+  )(implicit req: MusitRequest[JsValue], writes: Writes[ID], ec: ExecutionContext): Future[Result] = {
     jsr match {
       case JsSuccess(at, _) =>
         save(at).map {
-          case MusitSuccess(id) => Results.Created
+          case MusitSuccess(id) => Results.Created(Json.toJson(id))
           case err: MusitError  => internalErr(err)
         }
 
