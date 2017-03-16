@@ -20,7 +20,7 @@
 package controllers
 
 import com.google.inject.Inject
-import models.Move
+import models.{MoveNodesCmd, MoveObjectsCmd}
 import models.event.move.{MoveNode, MoveObject}
 import models.storage._
 import no.uio.musit.MusitResults._
@@ -329,7 +329,7 @@ final class StorageController @Inject()(
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
-    request.body.validate[Move[StorageNodeDatabaseId]] match {
+    request.body.validate[MoveNodesCmd] match {
       case JsSuccess(cmd, _) =>
         val events = MoveNode.fromCommand(request.user.id, cmd)
         service.moveNodes(mid, cmd.destination, events).map {
@@ -368,7 +368,7 @@ final class StorageController @Inject()(
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
-    request.body.validate[Move[ObjectId]] match {
+    request.body.validate[MoveObjectsCmd] match {
       case JsSuccess(cmd, _) =>
         val events = MoveObject.fromCommand(request.user.id, cmd)
         service.moveObjects(mid, cmd.destination, events).map {
@@ -378,7 +378,7 @@ final class StorageController @Inject()(
             Ok(
               Json.obj(
                 "moved"  -> oids.map(_.underlying),
-                "failed" -> failed.map(_.underlying)
+                "failed" -> failed.map(_.id.underlying)
               )
             )
 

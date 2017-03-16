@@ -19,7 +19,8 @@
 
 package models.event.move
 
-import models.Move
+import models.ObjectTypes.{CollectionObject, Node, ObjectType}
+import models.{DelphiMove, MoveNodesCmd, MoveObjectsCmd}
 import no.uio.musit.time.dateTimeNow
 import models.event.EventTypeRegistry.TopLevelEvents.{MoveNodeType, MoveObjectType}
 import models.event.{EventType, MusitEvent}
@@ -27,6 +28,7 @@ import no.uio.musit.models.{ActorId, EventId, ObjectId, StorageNodeDatabaseId}
 import org.joda.time.DateTime
 
 sealed trait MoveEvent extends MusitEvent {
+  val objectType: ObjectType
   val from: Option[StorageNodeDatabaseId]
   val to: StorageNodeDatabaseId
 }
@@ -39,13 +41,32 @@ case class MoveObject(
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     eventType: EventType,
+    objectType: ObjectType,
     from: Option[StorageNodeDatabaseId],
     to: StorageNodeDatabaseId
 ) extends MoveEvent
 
 object MoveObject {
 
-  def fromCommand(currUserId: ActorId, cmd: Move[ObjectId]): Seq[MoveObject] = {
+  def fromCommand(currUserId: ActorId, cmd: MoveObjectsCmd): Seq[MoveObject] = {
+    cmd.items.map { movables =>
+      val now = dateTimeNow
+      MoveObject(
+        id = None,
+        doneBy = Option(currUserId),
+        doneDate = now,
+        affectedThing = Option(movables.id),
+        registeredBy = Option(currUserId),
+        registeredDate = Option(now),
+        eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        objectType = movables.tpe,
+        from = None,
+        to = cmd.destination
+      )
+    }
+  }
+
+  def fromDelphiCommand(currUserId: ActorId, cmd: DelphiMove): Seq[MoveObject] = {
     cmd.items.map { objectId =>
       val now = dateTimeNow
       MoveObject(
@@ -56,6 +77,7 @@ object MoveObject {
         registeredBy = Option(currUserId),
         registeredDate = Option(now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        objectType = CollectionObject,
         from = None,
         to = cmd.destination
       )
@@ -73,13 +95,17 @@ case class MoveNode(
     eventType: EventType,
     from: Option[StorageNodeDatabaseId],
     to: StorageNodeDatabaseId
-) extends MoveEvent
+) extends MoveEvent {
+
+  override val objectType: ObjectType = Node
+
+}
 
 object MoveNode {
 
   def fromCommand(
       currUserId: ActorId,
-      cmd: Move[StorageNodeDatabaseId]
+      cmd: MoveNodesCmd
   ): Seq[MoveNode] = cmd.items.map { nodeId =>
     val now = dateTimeNow
     MoveNode(

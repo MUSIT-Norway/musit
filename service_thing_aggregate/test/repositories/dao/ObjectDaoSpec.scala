@@ -24,13 +24,14 @@ import java.util.UUID
 import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.Inspectors.forAll
 
 /**
  * NOTE: Test data for these tests are loaded in the evolution scripts in the
  * src/test/resources directory.
  */
-class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
+class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val dao: ObjectDao = fromInstanceCache[ObjectDao]
 
@@ -80,8 +81,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
       def wildcard(arg: String, expected: String) = {
         val res = dao.classifyValue(Some(arg))
-        res must not be None
-        res.get.v mustBe expected
+        res.value.v mustBe expected
       }
 
       "replace '%' with the escape character" in {
@@ -124,8 +124,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 10
+        res.successValue.matches.length mustBe 10
 
         val res2 = dao
           .search(
@@ -138,8 +137,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res2.isSuccess mustBe true
-        res2.get.matches.length mustBe 1
+          .successValue
+        res2.matches.length mustBe 1
       }
 
       "handle paging correctly" in {
@@ -154,12 +153,11 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res1.isSuccess mustBe true
-        val seq1 = res1.get
-        seq1.matches.length mustBe 3
-        seq1.matches.head.subNo mustBe Some(SubNo("10a"))
-        seq1.matches.tail.head.subNo mustBe Some(SubNo("11"))
-        seq1.matches.last.subNo mustBe Some(SubNo("12"))
+          .successValue
+        res1.matches.length mustBe 3
+        res1.matches.head.subNo mustBe Some(SubNo("10a"))
+        res1.matches.tail.head.subNo mustBe Some(SubNo("11"))
+        res1.matches.last.subNo mustBe Some(SubNo("12"))
 
         val res2 = dao
           .search(
@@ -172,12 +170,11 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res2.isSuccess mustBe true
-        val seq2 = res2.get
-        seq2.matches.length mustBe 3
-        seq2.matches.head.subNo mustBe Some(SubNo("13"))
-        seq2.matches.tail.head.subNo mustBe Some(SubNo("14"))
-        seq2.matches.last.subNo mustBe Some(SubNo("15"))
+          .successValue
+        res2.matches.length mustBe 3
+        res2.matches.head.subNo mustBe Some(SubNo("13"))
+        res2.matches.tail.head.subNo mustBe Some(SubNo("14"))
+        res2.matches.last.subNo mustBe Some(SubNo("15"))
 
         val res3 = dao
           .search(
@@ -190,16 +187,16 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        val seq3 = res3.get
+          .successValue
 
-        seq3.matches.length mustBe 3
-        seq3.matches.head.subNo mustBe Some(SubNo("16"))
-        seq3.matches.tail.head.subNo mustBe Some(SubNo("17"))
-        seq3.matches.last.subNo mustBe Some(SubNo("1a"))
+        res3.matches.length mustBe 3
+        res3.matches.head.subNo mustBe Some(SubNo("16"))
+        res3.matches.tail.head.subNo mustBe Some(SubNo("17"))
+        res3.matches.last.subNo mustBe Some(SubNo("1a"))
 
-        seq1.matches must not contain seq2.matches
-        seq1.matches must not contain seq3.matches
-        seq2.matches must not contain seq3.matches
+        res1.matches must not contain res2.matches
+        res1.matches must not contain res3.matches
+        res2.matches must not contain res3.matches
       }
 
       "allow search where museumNo has only digits" in {
@@ -214,14 +211,13 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        val seq = res.get
+          .successValue
 
-        seq.matches.length mustBe 4
-        seq.matches.head.subNo mustBe Some(SubNo("34"))
-        seq.matches(1).subNo mustBe Some(SubNo("34A"))
-        seq.matches(2).subNo mustBe Some(SubNo("34B"))
-        seq.matches(3).subNo mustBe Some(SubNo("35"))
+        res.matches.length mustBe 4
+        res.matches.head.subNo mustBe Some(SubNo("34"))
+        res.matches(1).subNo mustBe Some(SubNo("34A"))
+        res.matches(2).subNo mustBe Some(SubNo("34B"))
+        res.matches(3).subNo mustBe Some(SubNo("35"))
       }
 
       "allow wildcard search on museumNo" in {
@@ -236,16 +232,15 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        val seq = res.get
+          .successValue
 
-        seq.matches.length mustBe 6
-        seq.matches.head.subNo mustBe Some(SubNo("34A"))
-        seq.matches(1).subNo mustBe Some(SubNo("34B"))
-        seq.matches(2).subNo mustBe Some(SubNo("34C"))
-        seq.matches(3).museumNo mustBe MuseumNo("C555A")
-        seq.matches(4).museumNo mustBe MuseumNo("C555B")
-        seq.matches(5).museumNo mustBe MuseumNo("C555C")
+        res.matches.length mustBe 6
+        res.matches.head.subNo mustBe Some(SubNo("34A"))
+        res.matches(1).subNo mustBe Some(SubNo("34B"))
+        res.matches(2).subNo mustBe Some(SubNo("34C"))
+        res.matches(3).museumNo mustBe MuseumNo("C555A")
+        res.matches(4).museumNo mustBe MuseumNo("C555B")
+        res.matches(5).museumNo mustBe MuseumNo("C555C")
       }
 
       "return 0 results when attempting SQL-injection" in {
@@ -260,8 +255,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 0
+          .successValue
+        res.matches.length mustBe 0
       }
 
       "find objects using museumNo, subNo with wildcard and term" in {
@@ -277,13 +272,12 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections // scalastyle:ignore
           )
           .futureValue
-        res.isSuccess mustBe true
-        val seq = res.get
+          .successValue
 
-        seq.matches.length mustBe 3
-        seq.matches.head.subNo mustBe Some(SubNo("34A"))
-        seq.matches(1).subNo mustBe Some(SubNo("34B"))
-        seq.matches(2).subNo mustBe Some(SubNo("34C"))
+        res.matches.length mustBe 3
+        res.matches.head.subNo mustBe Some(SubNo("34A"))
+        res.matches(1).subNo mustBe Some(SubNo("34B"))
+        res.matches(2).subNo mustBe Some(SubNo("34C"))
       }
 
       "find objects using museumNo with wildcard" in {
@@ -298,10 +292,10 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 2
-        res.get.matches.head.museumNo mustBe MuseumNo("C888_A")
-        res.get.matches.last.museumNo mustBe MuseumNo("C888_B")
+          .successValue
+        res.matches.length mustBe 2
+        res.matches.head.museumNo mustBe MuseumNo("C888_A")
+        res.matches.last.museumNo mustBe MuseumNo("C888_B")
       }
 
       "treat '%' like an ordinary character in equality comparison" in {
@@ -316,9 +310,9 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 1 //We should find C81%A and *not* C81%XA
-        res.get.matches.head.museumNo mustBe MuseumNo("C81%A")
+          .successValue
+        res.matches.length mustBe 1 //We should find C81%A and *not* C81%XA
+        res.matches.head.museumNo mustBe MuseumNo("C81%A")
       }
 
       "treat '%' like an ordinary character in like comparison" in {
@@ -333,9 +327,9 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 1
-        res.get.matches.head.museumNo mustBe MuseumNo("C81%A")
+          .successValue
+        res.matches.length mustBe 1
+        res.matches.head.museumNo mustBe MuseumNo("C81%A")
       }
 
       "treat '-' like an ordinary character in equality comparison" in {
@@ -350,9 +344,9 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 1
-        res.get.matches.head.museumNo mustBe MuseumNo("C81-A")
+          .successValue
+        res.matches.length mustBe 1
+        res.matches.head.museumNo mustBe MuseumNo("C81-A")
       }
 
       "treat '-' like an ordinary character in like comparison" in {
@@ -367,9 +361,9 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 1
-        res.get.matches.head.museumNo mustBe MuseumNo("C81-A")
+          .successValue
+        res.matches.length mustBe 1
+        res.matches.head.museumNo mustBe MuseumNo("C81-A")
       }
 
       "treat the escape character like an ordinary character equality comparison" in {
@@ -384,9 +378,9 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 1
-        res.get.matches.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")
+          .successValue
+        res.matches.length mustBe 1
+        res.matches.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")
       }
 
       "treat the escape character like an ordinary character like comparison" in {
@@ -401,9 +395,9 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             allCollections
           )
           .futureValue
-        res.isSuccess mustBe true
-        res.get.matches.length mustBe 1
-        res.get.matches.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")
+          .successValue
+        res.matches.length mustBe 1
+        res.matches.head.museumNo mustBe MuseumNo(s"C81${escapeChar}A")
       }
 
     }
@@ -419,9 +413,9 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             limit = 10
           )
           .futureValue
-        mr.isSuccess mustBe true
-        mr.get.totalMatches mustBe 3
-        mr.get.matches match {
+          .successValue
+        mr.totalMatches mustBe 3
+        mr.matches match {
           case Vector(first, second, third) =>
             first.id mustBe ObjectId(2)
             first.museumNo mustBe MuseumNo("C666")
@@ -453,10 +447,10 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             limit = 10
           )
           .futureValue
+          .successValue
 
-        mr.isSuccess mustBe true
-        mr.get.totalMatches mustBe 3
-        forAll(mr.get.matches) { m =>
+        mr.totalMatches mustBe 3
+        forAll(mr.matches) { m =>
           Seq(m.id) must contain oneOf (ObjectId(48), ObjectId(49), ObjectId(50))
           m.museumNo mustBe MuseumNo("K123")
           m.subNo mustBe None
@@ -476,8 +470,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             limit = 10
           )
           .futureValue
-        mr.isSuccess mustBe true
-        mr.get.totalMatches mustBe 0
+          .successValue
+        mr.totalMatches mustBe 0
       }
 
       "return a an empty vector when museum doesn't exist" in {
@@ -490,8 +484,8 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             limit = 10
           )
           .futureValue
-        mr.isSuccess mustBe true
-        mr.get.totalMatches mustBe 0
+          .successValue
+        mr.totalMatches mustBe 0
       }
 
       "return only the number of objects per page specified in limit" in {
@@ -504,27 +498,24 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite {
             limit = 10
           )
           .futureValue
-        mr.isSuccess mustBe true
-        mr.get.totalMatches mustBe 32
-        mr.get.matches.size mustBe 10
+          .successValue
+        mr.totalMatches mustBe 32
+        mr.matches.size mustBe 10
       }
     }
 
     "finding the location of an object using an old objectId and schema" should {
       "return the object" in {
-        val res = dao.findByOldId(111L, "USD_ARK_GJENSTAND_O").futureValue
-        res.isSuccess mustBe true
-        res.get must not be None
-        val obj = res.get.get
-        obj.id mustBe ObjectId(12L)
-        obj.museumId mustBe mid
-        obj.term mustBe "Fin øks"
+        val res =
+          dao.findByOldId(111L, "USD_ARK_GJENSTAND_O").futureValue.successValue.value
+        res.id mustBe ObjectId(12L)
+        res.museumId mustBe mid
+        res.term mustBe "Fin øks"
       }
 
       "return None if not found" in {
-        val res = dao.findByOldId(333L, "USD_ARK_GJENSTAND_O").futureValue
-        res.isSuccess mustBe true
-        res.get mustBe None
+        val res = dao.findByOldId(333L, "USD_ARK_GJENSTAND_O").futureValue.successValue
+        res mustBe None
       }
 
     }

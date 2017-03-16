@@ -20,6 +20,7 @@
 package repositories.dao.caching
 
 import com.google.inject.Inject
+import models.ObjectTypes.CollectionObject
 import models.event.dto.{EventDto, LocalObject}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
@@ -42,10 +43,13 @@ class LocalObjectDao @Inject()(
   def storeLatestMove(mid: MuseumId, eventId: EventId, moveEvent: EventDto): DBIO[Int] = {
     val relObj = moveEvent.relatedObjects.headOption
     val relPlc = moveEvent.relatedPlaces.headOption
+    val objTpe = moveEvent.valueString.getOrElse(CollectionObject.name)
 
     relObj.flatMap { obj =>
       relPlc.map { place =>
-        upsert(LocalObject(obj.objectId, eventId, place.placeId, mid))
+        upsert(
+          LocalObject(obj.objectId, eventId, place.placeId, mid, objTpe)
+        )
       }
     }.getOrElse(
       throw new AssertionError(

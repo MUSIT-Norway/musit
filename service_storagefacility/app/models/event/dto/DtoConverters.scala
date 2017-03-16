@@ -35,6 +35,7 @@ import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import EventRoleActor._
 import EventRoleObject._
 import EventRolePlace._
+import models.ObjectTypes.{CollectionObject, ObjectType}
 
 object DtoConverters {
 
@@ -674,7 +675,8 @@ object DtoConverters {
         note = None,
         eventTypeId = move.eventType.registeredEventId,
         relPlaces = Seq(PlaceRole(1, move.to)),
-        maybeLong = move.from
+        maybeLong = move.from,
+        maybeStr = Option(move.objectType.name)
       )
     }
 
@@ -700,6 +702,8 @@ object DtoConverters {
             registeredBy = dto.registeredBy,
             registeredDate = dto.registeredDate,
             eventType = eventType,
+            objectType =
+              ObjectType.fromOptString(dto.valueString).getOrElse(CollectionObject),
             from = from,
             to = to
         )

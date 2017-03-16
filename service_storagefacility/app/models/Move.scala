@@ -19,25 +19,39 @@
 
 package models
 
+import models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class Move[A](
+case class MoveNodesCmd(
     destination: StorageNodeDatabaseId,
-    items: Seq[A]
+    items: Seq[StorageNodeDatabaseId]
 )
 
-object Move {
+object MoveNodesCmd {
+  implicit val reads: Reads[MoveNodesCmd] = Json.reads[MoveNodesCmd]
+}
 
-  implicit val storageNodeIdFormat: Format[Move[StorageNodeDatabaseId]] = (
-    (__ \ "destination").format[StorageNodeDatabaseId] and
-      (__ \ "items").format[Seq[StorageNodeDatabaseId]]
-  )((snid, items) => Move(snid, items), m => (m.destination, m.items))
+case class DelphiMove(
+    destination: StorageNodeDatabaseId,
+    items: Seq[ObjectId]
+)
 
-  implicit val objectIdFormat: Format[Move[ObjectId]] = (
-    (__ \ "destination").format[StorageNodeDatabaseId] and
-      (__ \ "items").format[Seq[ObjectId]]
-  )((snid, items) => Move(snid, items), m => (m.destination, m.items))
+object DelphiMove {
+  implicit val reads: Reads[DelphiMove] = Json.reads[DelphiMove]
+}
 
+case class MoveableObject(id: ObjectId, tpe: ObjectType)
+
+object MoveableObject {
+  implicit val reads: Reads[MoveableObject] = Json.reads[MoveableObject]
+}
+
+case class MoveObjectsCmd(
+    destination: StorageNodeDatabaseId,
+    items: Seq[MoveableObject]
+)
+
+object MoveObjectsCmd {
+  implicit val reads: Reads[MoveObjectsCmd] = Json.reads[MoveObjectsCmd]
 }

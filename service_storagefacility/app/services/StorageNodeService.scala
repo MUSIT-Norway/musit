@@ -572,23 +572,30 @@ class StorageNodeService @Inject()(
       moveEvents: Seq[MoveObject]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectId]]] = {
     // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
-    val objIds     = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get) // scalastyle:ignore
+    val objIdsAndTypes = moveEvents
+      .filter(_.affectedThing.nonEmpty)
+      .map(a => a.affectedThing.get -> a.objectType)
+      .toMap
+
+    val objIds     = objIdsAndTypes.keys.toSeq
     val currentLoc = localObjectDao.currentLocations(objIds)
 
+    // format: off
     val res = for {
       currentLoc <- MusitResultT(localObjectDao.currentLocations(objIds))
       movedObjects <- MusitResultT(
-                       moveBatch(mid, destination, objIds, currentLoc, moveEvents) { // scalastyle:ignore
-                         case (_, _, events) =>
-                           persistMoveEvents(mid, events) { eventIds =>
-                             // Again the get on affectedThing is safe since we're guaranteed its
-                             // presence at this point.
-                             MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
-                           }
-                       }
-                     )
+        moveBatch(mid, destination, objIds, currentLoc, moveEvents) {
+           case (_, _, events) =>
+             persistMoveEvents(mid, events) { eventIds =>
+               // Again the get on affectedThing is safe since we're guaranteed its
+               // presence at this point.
+               MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
+             }
+        }
+      )
 
     } yield movedObjects
+    // format: on
 
     res.value
   }
