@@ -30,7 +30,7 @@ object Dependencies {
   )
 
   object PlayFrameWork {
-    val version          = "2.5.12"
+    val version          = play.core.PlayVersion.current // from plugin.sbt
     val playSlickVersion = "2.1.0"
 
     val slick_play    = "com.typesafe.play" %% "play-slick"            % playSlickVersion
