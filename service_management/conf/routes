@@ -7,21 +7,21 @@ GET         /service/analyses/buildinfo                      controllers.Applica
 # TODO: Where to put museumId and for which services?
 
 # AnalysisType endpoints
-GET         /:mid/analyses/types                             controllers.AnalysisController.getAllAnalysisTypes(mid: Int)
-GET         /:mid/analyses/types/:id                         controllers.AnalysisController.getAnalysisById(mid: Int, id: Long)
-GET         /:mid/analyses/types/categories/:id              controllers.AnalysisController.getAnalysisTypesForCategory(mid: Int, id: Int)
-GET         /:mid/analyses/types/musemcollections/:id        controllers.AnalysisController.getAnalysisTypesForCollection(mid: Int, id: String)
+GET         /:mid/analyses/types                             controllers.analysis.AnalysisController.getAllAnalysisTypes(mid: Int)
+GET         /:mid/analyses/types/:id                         controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
+GET         /:mid/analyses/types/categories/:id              controllers.analysis.AnalysisController.getAnalysisTypesForCategory(mid: Int, id: Int)
+GET         /:mid/analyses/types/musemcollections/:id        controllers.analysis.AnalysisController.getAnalysisTypesForCollection(mid: Int, id: String)
 
 # Analysis endpoints
-POST        /:mid/analyses                                   controllers.AnalysisController.saveAnalysisEvent(mid: Int)
-GET         /:mid/analyses/:id                               controllers.AnalysisController.getAnalysisById(mid: Int, id: Long)
-GET         /:mid/analyses/:id/children                      controllers.AnalysisController.getChildAnalyses(mid: Int, id: Long)
-POST        /:mid/analyses/:id/results                       controllers.AnalysisController.saveResult(mid: Int, id: Long)
-GET         /:mid/analyses/objects/:id                       controllers.AnalysisController.getAnalysisForObject(mid: Int, id: String)
+POST        /:mid/analyses                                   controllers.analysis.AnalysisController.saveAnalysisEvent(mid: Int)
+GET         /:mid/analyses/:id                               controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
+GET         /:mid/analyses/:id/children                      controllers.analysis.AnalysisController.getChildAnalyses(mid: Int, id: Long)
+POST        /:mid/analyses/:id/results                       controllers.analysis.AnalysisController.saveResult(mid: Int, id: Long)
+GET         /:mid/analyses/objects/:id                       controllers.analysis.AnalysisController.getAnalysisForObject(mid: Int, id: String)
 
 # Sample objects
-POST        /:mid/samples                                    controllers.SampleObjectController.save(mid: Int)
-GET         /:mid/samples                                    controllers.SampleObjectController.getForMuseum(mid: Int)
-PUT         /:mid/samples/:id                                controllers.SampleObjectController.update(mid: Int, id: String)
-GET         /:mid/samples/:id                                controllers.SampleObjectController.getById(mid: Int, id: String)
-GET         /:mid/samples/:parentId/children                 controllers.SampleObjectController.getForParentObject(mid: Int, parentId: String)
+POST        /:mid/samples                                    controllers.analysis.SampleObjectController.save(mid: Int)
+GET         /:mid/samples                                    controllers.analysis.SampleObjectController.getForMuseum(mid: Int)
+PUT         /:mid/samples/:id                                controllers.analysis.SampleObjectController.update(mid: Int, id: String)
+GET         /:mid/samples/:id                                controllers.analysis.SampleObjectController.getById(mid: Int, id: String)
+GET         /:mid/samples/:parentId/children                 controllers.analysis.SampleObjectController.getForParentObject(mid: Int, parentId: String)
