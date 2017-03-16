@@ -27,11 +27,11 @@ import play.api.data.Forms._
 import play.api.libs.json.{Format, Json, Reads}
 
 case class Group(
-  id: GroupId,
-  name: String,
-  permission: Permission,
-  museumId: MuseumId,
-  description: Option[String]
+    id: GroupId,
+    name: String,
+    permission: Permission,
+    museumId: MuseumId,
+    description: Option[String]
 )
 
 object Group {
@@ -43,10 +43,10 @@ object Group {
 }
 
 case class GroupAdd(
-  name: String,
-  permission: Permission,
-  museumId: MuseumId,
-  description: Option[String]
+    name: String,
+    permission: Permission,
+    museumId: MuseumId,
+    description: Option[String]
 )
 
 object GroupAdd {
@@ -61,12 +61,11 @@ object GroupAdd {
 
   val groupAddForm = Form(
     mapping(
-      "name" -> text(minLength = 3),
-      "permission" -> number.verifying(Permission.fromInt(_) != Unspecified),
-      "museum" -> number.verifying(m => Museum.fromMuseumId(MuseumId(m)).nonEmpty),
+      "name"        -> text(minLength = 3),
+      "permission"  -> number.verifying(Permission.fromInt(_) != Unspecified),
+      "museum"      -> number.verifying(m => Museum.fromMuseumId(MuseumId(m)).nonEmpty),
       "description" -> optional(text)
     )(applyForm)(unapplyForm)
   )
 
 }
-

@@ -30,7 +30,7 @@ import scala.concurrent.Future
 /**
  * TODO: Document me!!!
  */
-class OrganisationAddressService @Inject() (val adrDao: AddressDao) {
+class OrganisationAddressService @Inject()(val adrDao: AddressDao) {
 
   def all(organizationId: OrgId): Future[Seq[OrganisationAddress]] = {
     adrDao.allFor(organizationId)

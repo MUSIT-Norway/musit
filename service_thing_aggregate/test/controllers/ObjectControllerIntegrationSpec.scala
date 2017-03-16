@@ -31,7 +31,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
   val fakeToken = BearerToken(FakeUsers.testUserToken)
 
-  val archeologyCollection = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
+  val archeologyCollection  = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
   val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
 
   var url = (mid: Int) => s"/museum/$mid/objects/search"
@@ -42,14 +42,18 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "find objects in the archeology collection with a specific museumNo" in {
 
-        val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
-          "collectionIds" -> archeologyCollection,
-          "museumNo" -> "C666",
-          "subNo" -> "",
-          "term" -> "",
-          "page" -> "1",
-          "limit" -> "3"
-        ).get().futureValue
+        val res = wsUrl(url(99))
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString(
+            "collectionIds" -> archeologyCollection,
+            "museumNo"      -> "C666",
+            "subNo"         -> "",
+            "term"          -> "",
+            "page"          -> "1",
+            "limit"         -> "3"
+          )
+          .get()
+          .futureValue
 
         res.status mustBe OK
 
@@ -103,14 +107,18 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "find objects for archeology and numismatics with a similar museumNo" in {
-        val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
-          "collectionIds" -> s"$archeologyCollection,$numismaticsCollection",
-          "museumNo" -> "555",
-          "subNo" -> "",
-          "term" -> "",
-          "page" -> "1",
-          "limit" -> "10"
-        ).get().futureValue
+        val res = wsUrl(url(99))
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString(
+            "collectionIds" -> s"$archeologyCollection,$numismaticsCollection",
+            "museumNo"      -> "555",
+            "subNo"         -> "",
+            "term"          -> "",
+            "page"          -> "1",
+            "limit"         -> "10"
+          )
+          .get()
+          .futureValue
 
         res.status mustBe OK
 
@@ -127,25 +135,34 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "not allow searching for objects if user doesn't have read access" in {
-        val res = wsUrl(url(6)).withHeaders(fakeToken.asHeader).withQueryString(
-          "collectionIds" -> "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-          "museumNo" -> "FOO6565",
-          "subNo" -> "",
-          "term" -> "",
-          "page" -> "1",
-          "limit" -> "3"
-        ).get().futureValue.status mustBe FORBIDDEN
+        val res = wsUrl(url(6))
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString(
+            "collectionIds" -> "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+            "museumNo"      -> "FOO6565",
+            "subNo"         -> "",
+            "term"          -> "",
+            "page"          -> "1",
+            "limit"         -> "3"
+          )
+          .get()
+          .futureValue
+          .status mustBe FORBIDDEN
       }
 
       "not allow searching in a collection without access" in {
-        val res = wsUrl(url(99)).withHeaders(fakeToken.asHeader).withQueryString(
-          "collectionIds" -> s"$numismaticsCollection,${UUID.randomUUID().toString}",
-          "museumNo" -> "L234",
-          "subNo" -> "",
-          "term" -> "",
-          "page" -> "1",
-          "limit" -> "10"
-        ).get().futureValue
+        val res = wsUrl(url(99))
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString(
+            "collectionIds" -> s"$numismaticsCollection,${UUID.randomUUID().toString}",
+            "museumNo"      -> "L234",
+            "subNo"         -> "",
+            "term"          -> "",
+            "page"          -> "1",
+            "limit"         -> "10"
+          )
+          .get()
+          .futureValue
 
         res.status mustBe FORBIDDEN
       }
@@ -155,15 +172,16 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "return objects for nodeId that exists" in {
         val nodeId = 4
-        val mid = 99
+        val mid    = 99
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe OK
 
         val matches = response.json
-        val obj = (matches \ "matches").as[JsArray].value.head
+        val obj     = (matches \ "matches").as[JsArray].value.head
 
         (obj \ "id").as[ObjectId] mustBe ObjectId(2)
         (obj \ "term").as[String] mustBe "Sverd"
@@ -173,11 +191,12 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "return objects for nodeId that has mainObjectId" in {
         val nodeId = 7
-        val mid = 99
+        val mid    = 99
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe OK
 
         val objects = (response.json \ "matches").as[JsArray].value
@@ -190,15 +209,16 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "return the number of results per page specified in the limit argument" in {
         val nodeId = 6
-        val mid = 99
+        val mid    = 99
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString(
             "collectionIds" -> archeologyCollection,
-            "page" -> "1",
-            "limit" -> "5"
+            "page"          -> "1",
+            "limit"         -> "5"
           )
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe OK
 
         (response.json \ "matches").as[JsArray].value.size mustBe 5
@@ -207,15 +227,16 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "return the last page of objects with a specified limit and page size" in {
         val nodeId = 6
-        val mid = 99
+        val mid    = 99
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString(
             "collectionIds" -> archeologyCollection,
-            "page" -> "4",
-            "limit" -> "10"
+            "page"          -> "4",
+            "limit"         -> "10"
           )
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe OK
 
         (response.json \ "matches").as[JsArray].value.size mustBe 2
@@ -224,74 +245,81 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       "respond with 404 for nodeId that does not exist" in {
         val nodeId = 99999
-        val mid = 99
+        val mid    = 99
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe NOT_FOUND
         (response.json \ "message").as[String] must endWith(s"$nodeId")
       }
 
       "respond with 400 if the request URI is missing nodeId " in {
         val nodeId = None
-        val mid = 99
+        val mid    = 99
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe BAD_REQUEST
       }
 
       "respond with 400 if the museumId is invalid" in {
         val nodeId = 99999
-        val mid = 555
+        val mid    = 555
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe BAD_REQUEST
         (response.json \ "message").as[String] must include(s"$mid")
       }
 
       "respond with 400 if the museumId is missing from the request URI" in {
         val nodeId = 3
-        val mid = None
+        val mid    = None
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe BAD_REQUEST
       }
 
       "respond with 400 if the museumId isn't a valid number" in {
         val nodeId = 3
-        val mid = "blæBlæBlæ"
+        val mid    = "blæBlæBlæ"
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe BAD_REQUEST
       }
 
       "respond with 403 if the user doesn't have read access to the museum" in {
         val nodeId = 99999
-        val mid = 6
+        val mid    = 6
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe FORBIDDEN
       }
 
       "respond with 403 if the user doesn't have access to the collection" in {
-        val nodeId = 345
-        val mid = 99
+        val nodeId     = 345
+        val mid        = 99
         val collection = UUID.randomUUID().toString
         val response = wsUrl(s"/museum/$mid/node/$nodeId/objects")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> collection)
-          .get().futureValue
+          .get()
+          .futureValue
         response.status mustBe FORBIDDEN
       }
     }
@@ -299,12 +327,13 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     "scanning barcodes" should {
       "find an object when calling the scan service with an old barcode" in {
         val oldBarcode = "1111111111"
-        val mid = 99
+        val mid        = 99
         val res = wsUrl(s"/museum/$mid/scan")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("oldBarcode" -> oldBarcode)
           .withQueryString("collectionIds" -> archeologyCollection)
-          .get().futureValue
+          .get()
+          .futureValue
 
         res.status mustBe OK
         val objects = res.json.as[JsArray].value
@@ -317,4 +346,3 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
   }
 
 }
-

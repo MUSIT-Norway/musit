@@ -24,4 +24,3 @@ trait DateTimeMatchers {
 }
 
 object DateTimeMatchers extends DateTimeMatchers
-

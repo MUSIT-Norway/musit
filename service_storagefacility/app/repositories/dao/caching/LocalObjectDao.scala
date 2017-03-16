@@ -30,7 +30,7 @@ import repositories.dao.SharedTables
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class LocalObjectDao @Inject() (
+class LocalObjectDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends SharedTables {
 
@@ -48,8 +48,10 @@ class LocalObjectDao @Inject() (
         upsert(LocalObject(obj.objectId, eventId, place.placeId, mid))
       }
     }.getOrElse(
-      throw new AssertionError("A MoveObject event requires both the " +
-        "'affectedThing' and 'to' attributes set")
+      throw new AssertionError(
+        "A MoveObject event requires both the " +
+          "'affectedThing' and 'to' attributes set"
+      )
     )
   }
 
@@ -68,7 +70,7 @@ class LocalObjectDao @Inject() (
    * @return Eventually returns a Map of ObjectIds and StorageNodeDatabaseId
    */
   def currentLocations(
-    objectIds: Seq[ObjectId]
+      objectIds: Seq[ObjectId]
   ): Future[MusitResult[Map[ObjectId, Option[StorageNodeDatabaseId]]]] = {
     type QLocQuery = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, Seq]
 
@@ -80,16 +82,19 @@ class LocalObjectDao @Inject() (
         else (qry._1 + 1, qry._2 unionAll buildQuery(ids))
     }
 
-    db.run(q._2.result).map { l =>
-      objectIds.foldLeft(Map.empty[ObjectId, Option[StorageNodeDatabaseId]]) {
-        case (res, oid) =>
-          val maybeNodeId = l.find(_.objectId == oid).map(_.currentLocationId)
-          res ++ Map(oid -> maybeNodeId)
+    db.run(q._2.result)
+      .map { l =>
+        objectIds.foldLeft(Map.empty[ObjectId, Option[StorageNodeDatabaseId]]) {
+          case (res, oid) =>
+            val maybeNodeId = l.find(_.objectId == oid).map(_.currentLocationId)
+            res ++ Map(oid -> maybeNodeId)
+        }
       }
-    }.map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        MusitDbError("Unable to get current location", Some(ex))
-    }
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          MusitDbError("Unable to get current location", Some(ex))
+      }
 
   }
 

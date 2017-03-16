@@ -49,14 +49,14 @@ object DtoConverters {
   implicit def maybeLongToBool(mi: Option[Long]): Boolean = mi.contains(1L)
 
   def fromMapObsSub[E](
-    m: Map[EventTypeId, ObservationSubEvent],
-    id: EventTypeId
+      m: Map[EventTypeId, ObservationSubEvent],
+      id: EventTypeId
   )(implicit ct: Manifest[E]): Option[E] =
     m.get(id).map(_.asInstanceOf[E])
 
   def fromMapCtrlSub[E](
-    m: Map[EventTypeId, ControlSubEvent],
-    id: EventTypeId
+      m: Map[EventTypeId, ControlSubEvent],
+      id: EventTypeId
   )(implicit ct: Manifest[E]): Option[E] =
     m.get(id).map(_.asInstanceOf[E])
 
@@ -64,8 +64,8 @@ object DtoConverters {
    * Converts a pair of values to an Interval.
    */
   def toInterval[A](
-    base: Option[A],
-    tolerance: Option[Int]
+      base: Option[A],
+      tolerance: Option[Int]
   ): Option[Interval[A]] = base.map(b => Interval[A](b, tolerance))
 
   /**
@@ -74,14 +74,14 @@ object DtoConverters {
    */
   // scalastyle:off parameter.number
   private[this] def toBaseDto[T <: MusitEvent](
-    base: T,
-    eventTypeId: EventTypeId,
-    note: Option[String],
-    maybeStr: Option[String] = None,
-    maybeLong: Option[Long] = None,
-    maybeDouble: Option[Double] = None,
-    relEvents: Seq[RelatedEvents] = Seq.empty,
-    relPlaces: Seq[PlaceRole] = Seq.empty
+      base: T,
+      eventTypeId: EventTypeId,
+      note: Option[String],
+      maybeStr: Option[String] = None,
+      maybeLong: Option[Long] = None,
+      maybeDouble: Option[Double] = None,
+      relEvents: Seq[RelatedEvents] = Seq.empty,
+      relPlaces: Seq[PlaceRole] = Seq.empty
   ): BaseEventDto = {
     val affectedThing = base.affectedThing.map(id => ObjectRole(1, id))
 
@@ -92,9 +92,13 @@ object DtoConverters {
       eventDate = base.doneDate,
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
-      relatedActors = base.doneBy.map(ar => fromActorRole(ActorRole(1, ar.underlying))).toSeq,
-      relatedObjects = affectedThing.map(or => fromObjectRole(or, base.eventType.registeredEventId)).toSeq,
-      relatedPlaces = relPlaces.map(pr => fromPlaceRole(pr, base.eventType.registeredEventId)),
+      relatedActors =
+        base.doneBy.map(ar => fromActorRole(ActorRole(1, ar.underlying))).toSeq,
+      relatedObjects = affectedThing
+        .map(or => fromObjectRole(or, base.eventType.registeredEventId))
+        .toSeq,
+      relatedPlaces =
+        relPlaces.map(pr => fromPlaceRole(pr, base.eventType.registeredEventId)),
       note = note,
       relatedSubEvents = relEvents,
       partOf = None,
@@ -115,26 +119,26 @@ object DtoConverters {
    * `releatedEvents` property with an empty collection.
    */
   private[this] def toBaseDtoNoChildren[T <: MusitEvent](
-    base: T,
-    eventTypeId: EventTypeId,
-    note: Option[String],
-    maybeStr: Option[String] = None,
-    maybeLong: Option[Long] = None,
-    maybeDouble: Option[Double] = None
+      base: T,
+      eventTypeId: EventTypeId,
+      note: Option[String],
+      maybeStr: Option[String] = None,
+      maybeLong: Option[Long] = None,
+      maybeDouble: Option[Double] = None
   ): BaseEventDto = {
     toBaseDto[T](base, eventTypeId, note, maybeStr, maybeLong, maybeDouble)
   }
 
   // scalastyle:off parameter.number
   private[this] def toExtendedDto[A <: MusitEvent, B <: DtoExtension](
-    base: A,
-    eventTypeId: EventTypeId,
-    note: Option[String],
-    maybeStr: Option[String] = None,
-    maybeLong: Option[Long] = None,
-    maybeDouble: Option[Double] = None,
-    relPlaces: Seq[PlaceRole] = Seq.empty,
-    ext: B
+      base: A,
+      eventTypeId: EventTypeId,
+      note: Option[String],
+      maybeStr: Option[String] = None,
+      maybeLong: Option[Long] = None,
+      maybeDouble: Option[Double] = None,
+      relPlaces: Seq[PlaceRole] = Seq.empty,
+      ext: B
   ): ExtendedDto = {
     val affectedThing = base.affectedThing.map(id => ObjectRole(1, id))
 
@@ -145,9 +149,13 @@ object DtoConverters {
       eventDate = base.doneDate,
       // For the following related* fields, we do not yet know the ID to set.
       // So they are initialised with the eventId property to None.
-      relatedActors = base.doneBy.map(ar => fromActorRole(ActorRole(1, ar.underlying))).toSeq,
-      relatedObjects = affectedThing.map(or => fromObjectRole(or, base.eventType.registeredEventId)).toSeq,
-      relatedPlaces = relPlaces.map(pr => fromPlaceRole(pr, base.eventType.registeredEventId)),
+      relatedActors =
+        base.doneBy.map(ar => fromActorRole(ActorRole(1, ar.underlying))).toSeq,
+      relatedObjects = affectedThing
+        .map(or => fromObjectRole(or, base.eventType.registeredEventId))
+        .toSeq,
+      relatedPlaces =
+        relPlaces.map(pr => fromPlaceRole(pr, base.eventType.registeredEventId)),
       note = note,
       relatedSubEvents = Seq.empty[RelatedEvents],
       partOf = None,
@@ -190,46 +198,71 @@ object DtoConverters {
   object CtrlConverters {
 
     def controlToDto(ctrl: Control): BaseEventDto = {
-      val regBy = ctrl.registeredBy
-      val regDate = ctrl.registeredDate
+      val regBy         = ctrl.registeredBy
+      val regDate       = ctrl.registeredDate
       val affectedThing = ctrl.affectedThing.map(id => ObjectRole(1, id))
       val relEvt = Seq(
         RelatedEvents(
           relation = EventRelations.PartsOfRelation,
           events = {
-          val parent = ctrl.id
-          val parts = Seq.newBuilder[EventDto]
-          // scalastyle:off line.size.limit
-          ctrl.alcohol.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlAlcoholType.id, ObsAlcoholType.id)
+            val parent = ctrl.id
+            val parts  = Seq.newBuilder[EventDto]
+            // scalastyle:off line.size.limit
+            ctrl.alcohol.map { c =>
+              parts += ctrlSubEventToDto(ctrl, c, CtrlAlcoholType.id, ObsAlcoholType.id)
+            }
+            ctrl.cleaning.map { c =>
+              parts += ctrlSubEventToDto(
+                ctrl,
+                c,
+                CtrlCleaningType.id,
+                ObsCleaningType.id
+              )
+            }
+            ctrl.gas.map { c =>
+              parts += ctrlSubEventToDto(ctrl, c, CtrlGasType.id, ObsGasType.id)
+            }
+            ctrl.hypoxicAir.map { c =>
+              parts += ctrlSubEventToDto(
+                ctrl,
+                c,
+                CtrlHypoxicAirType.id,
+                ObsHypoxicAirType.id
+              )
+            }
+            ctrl.lightingCondition.map { c =>
+              parts += ctrlSubEventToDto(
+                ctrl,
+                c,
+                CtrlLightingType.id,
+                ObsLightingType.id
+              )
+            }
+            ctrl.mold.map { c =>
+              parts += ctrlSubEventToDto(ctrl, c, CtrlMoldType.id, ObsMoldType.id)
+            }
+            ctrl.pest.map { c =>
+              parts += ctrlSubEventToDto(ctrl, c, CtrlPestType.id, ObsPestType.id)
+            }
+            ctrl.relativeHumidity.map { c =>
+              parts += ctrlSubEventToDto(
+                ctrl,
+                c,
+                CtrlHumidityType.id,
+                ObsHumidityType.id
+              )
+            }
+            ctrl.temperature.map { c =>
+              parts += ctrlSubEventToDto(
+                ctrl,
+                c,
+                CtrlTemperatureType.id,
+                ObsTemperatureType.id
+              )
+            }
+            // scalastyle:on line.size.limit
+            parts.result()
           }
-          ctrl.cleaning.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlCleaningType.id, ObsCleaningType.id)
-          }
-          ctrl.gas.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlGasType.id, ObsGasType.id)
-          }
-          ctrl.hypoxicAir.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlHypoxicAirType.id, ObsHypoxicAirType.id)
-          }
-          ctrl.lightingCondition.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlLightingType.id, ObsLightingType.id)
-          }
-          ctrl.mold.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlMoldType.id, ObsMoldType.id)
-          }
-          ctrl.pest.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlPestType.id, ObsPestType.id)
-          }
-          ctrl.relativeHumidity.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlHumidityType.id, ObsHumidityType.id)
-          }
-          ctrl.temperature.map { c =>
-            parts += ctrlSubEventToDto(ctrl, c, CtrlTemperatureType.id, ObsTemperatureType.id)
-          }
-          // scalastyle:on line.size.limit
-          parts.result()
-        }
         )
       )
       toBaseDto(
@@ -253,7 +286,8 @@ object DtoConverters {
         id = dto.id,
         doneDate = dto.eventDate,
         doneBy = dto.relatedActors.map(_.actorId).headOption,
-        affectedThing = dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
+        affectedThing =
+          dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
         registeredBy = dto.registeredBy,
         registeredDate = dto.registeredDate,
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
@@ -261,20 +295,22 @@ object DtoConverters {
         cleaning = fromMapCtrlSub[ControlCleaning](p, CtrlCleaningType.id),
         gas = fromMapCtrlSub[ControlGas](p, CtrlGasType.id),
         hypoxicAir = fromMapCtrlSub[ControlHypoxicAir](p, CtrlHypoxicAirType.id),
-        lightingCondition = fromMapCtrlSub[ControlLightingCondition](p, CtrlLightingType.id),
+        lightingCondition =
+          fromMapCtrlSub[ControlLightingCondition](p, CtrlLightingType.id),
         mold = fromMapCtrlSub[ControlMold](p, CtrlMoldType.id),
         pest = fromMapCtrlSub[ControlPest](p, CtrlPestType.id),
-        relativeHumidity = fromMapCtrlSub[ControlRelativeHumidity](p, CtrlHumidityType.id),
+        relativeHumidity =
+          fromMapCtrlSub[ControlRelativeHumidity](p, CtrlHumidityType.id),
         temperature = fromMapCtrlSub[ControlTemperature](p, CtrlTemperatureType.id)
-      // scalastyle:on line.size.limit
+        // scalastyle:on line.size.limit
       )
     }
 
     def ctrlSubEventToDto[A <: MusitEvent](
-      owner: A,
-      subCtrl: ControlSubEvent,
-      ctrlSubEventTypeId: EventTypeId,
-      obsSubEventTypeId: EventTypeId
+        owner: A,
+        subCtrl: ControlSubEvent,
+        ctrlSubEventTypeId: EventTypeId,
+        obsSubEventTypeId: EventTypeId
     ): EventDto = {
       val relations = subCtrl.observation.map { ose =>
         Seq(
@@ -301,8 +337,7 @@ object DtoConverters {
       val ok = dto.valueLong
       val motivates = {
         dto.relatedSubEvents.headOption.flatMap { re =>
-          re.events.headOption.map(ose =>
-            ObsConverters.obsSubEventFromDto(ose))
+          re.events.headOption.map(ose => ObsConverters.obsSubEventFromDto(ose))
         }
       }
 
@@ -320,7 +355,10 @@ object DtoConverters {
           ControlHypoxicAir(ok, motivates.map(_.asInstanceOf[ObservationHypoxicAir]))
 
         case CtrlLightingType =>
-          ControlLightingCondition(ok, motivates.map(_.asInstanceOf[ObservationLightingCondition]))
+          ControlLightingCondition(
+            ok,
+            motivates.map(_.asInstanceOf[ObservationLightingCondition])
+          )
 
         case CtrlMoldType =>
           ControlMold(ok, motivates.map(_.asInstanceOf[ObservationMold]))
@@ -329,7 +367,10 @@ object DtoConverters {
           ControlPest(ok, motivates.map(_.asInstanceOf[ObservationPest]))
 
         case CtrlHumidityType =>
-          ControlRelativeHumidity(ok, motivates.map(_.asInstanceOf[ObservationRelativeHumidity]))
+          ControlRelativeHumidity(
+            ok,
+            motivates.map(_.asInstanceOf[ObservationRelativeHumidity])
+          )
 
         case CtrlTemperatureType =>
           ControlTemperature(ok, motivates.map(_.asInstanceOf[ObservationTemperature]))
@@ -347,25 +388,41 @@ object DtoConverters {
         RelatedEvents(
           relation = EventRelations.PartsOfRelation,
           events = {
-          val parent = obs.id
-          val parts = Seq.newBuilder[EventDto]
-          // scalastyle:off line.size.limit
-          obs.alcohol.map(o => parts += obsSubEventToDto(obs, ObsAlcoholType.id, o))
-          obs.cleaning.map(o => parts += obsSubEventToDto(obs, ObsCleaningType.id, o))
-          obs.gas.map(o => parts += obsSubEventToDto(obs, ObsGasType.id, o))
-          obs.hypoxicAir.map(o => parts += obsSubEventToDto(obs, ObsHypoxicAirType.id, o))
-          obs.lightingCondition.map(o => parts += obsSubEventToDto(obs, ObsLightingType.id, o))
-          obs.mold.map(o => parts += obsSubEventToDto(obs, ObsMoldType.id, o))
-          obs.pest.map(o => parts += obsSubEventToDto(obs, ObsPestType.id, o))
-          obs.relativeHumidity.map(o => parts += obsSubEventToDto(obs, ObsHumidityType.id, o))
-          obs.temperature.map(o => parts += obsSubEventToDto(obs, ObsTemperatureType.id, o))
-          obs.theftProtection.map(o => parts += obsSubEventToDto(obs, ObsTheftType.id, o))
-          obs.fireProtection.map(o => parts += obsSubEventToDto(obs, ObsFireType.id, o))
-          obs.perimeterSecurity.map(o => parts += obsSubEventToDto(obs, ObsPerimeterType.id, o))
-          obs.waterDamageAssessment.map(o => parts += obsSubEventToDto(obs, ObsWaterDamageType.id, o))
-          // scalastyle:on line.size.limit
-          parts.result()
-        }
+            val parent = obs.id
+            val parts  = Seq.newBuilder[EventDto]
+            // scalastyle:off line.size.limit
+            obs.alcohol.map(o => parts += obsSubEventToDto(obs, ObsAlcoholType.id, o))
+            obs.cleaning.map(o => parts += obsSubEventToDto(obs, ObsCleaningType.id, o))
+            obs.gas.map(o => parts += obsSubEventToDto(obs, ObsGasType.id, o))
+            obs.hypoxicAir.map(
+              o => parts += obsSubEventToDto(obs, ObsHypoxicAirType.id, o)
+            )
+            obs.lightingCondition.map(
+              o => parts += obsSubEventToDto(obs, ObsLightingType.id, o)
+            )
+            obs.mold.map(o => parts += obsSubEventToDto(obs, ObsMoldType.id, o))
+            obs.pest.map(o => parts += obsSubEventToDto(obs, ObsPestType.id, o))
+            obs.relativeHumidity.map(
+              o => parts += obsSubEventToDto(obs, ObsHumidityType.id, o)
+            )
+            obs.temperature.map(
+              o => parts += obsSubEventToDto(obs, ObsTemperatureType.id, o)
+            )
+            obs.theftProtection.map(
+              o => parts += obsSubEventToDto(obs, ObsTheftType.id, o)
+            )
+            obs.fireProtection.map(
+              o => parts += obsSubEventToDto(obs, ObsFireType.id, o)
+            )
+            obs.perimeterSecurity.map(
+              o => parts += obsSubEventToDto(obs, ObsPerimeterType.id, o)
+            )
+            obs.waterDamageAssessment.map(
+              o => parts += obsSubEventToDto(obs, ObsWaterDamageType.id, o)
+            )
+            // scalastyle:on line.size.limit
+            parts.result()
+          }
         )
       )
       toBaseDto(
@@ -388,7 +445,8 @@ object DtoConverters {
         id = dto.id,
         doneDate = dto.eventDate,
         doneBy = dto.relatedActors.map(_.actorId).headOption,
-        affectedThing = dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
+        affectedThing =
+          dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
         registeredBy = dto.registeredBy,
         registeredDate = dto.registeredDate,
         eventType = EventType.fromEventTypeId(dto.eventTypeId),
@@ -396,24 +454,28 @@ object DtoConverters {
         cleaning = fromMapObsSub[ObservationCleaning](p, ObsCleaningType.id),
         gas = fromMapObsSub[ObservationGas](p, ObsGasType.id),
         hypoxicAir = fromMapObsSub[ObservationHypoxicAir](p, ObsHypoxicAirType.id),
-        lightingCondition = fromMapObsSub[ObservationLightingCondition](p, ObsLightingType.id),
+        lightingCondition =
+          fromMapObsSub[ObservationLightingCondition](p, ObsLightingType.id),
         mold = fromMapObsSub[ObservationMold](p, ObsMoldType.id),
         pest = fromMapObsSub[ObservationPest](p, ObsPestType.id),
-        relativeHumidity = fromMapObsSub[ObservationRelativeHumidity](p, ObsHumidityType.id),
+        relativeHumidity =
+          fromMapObsSub[ObservationRelativeHumidity](p, ObsHumidityType.id),
         temperature = fromMapObsSub[ObservationTemperature](p, ObsTemperatureType.id),
         theftProtection = fromMapObsSub[ObservationTheftProtection](p, ObsTheftType.id),
         fireProtection = fromMapObsSub[ObservationFireProtection](p, ObsFireType.id),
-        perimeterSecurity = fromMapObsSub[ObservationPerimeterSecurity](p, ObsPerimeterType.id),
-        waterDamageAssessment = fromMapObsSub[ObservationWaterDamageAssessment](p, ObsWaterDamageType.id)
+        perimeterSecurity =
+          fromMapObsSub[ObservationPerimeterSecurity](p, ObsPerimeterType.id),
+        waterDamageAssessment =
+          fromMapObsSub[ObservationWaterDamageAssessment](p, ObsWaterDamageType.id)
       )
       // scalastyle:on line.size.limit
     }
 
     // scalastyle:off cyclomatic.complexity method.length line.size.limit
     def obsSubEventToDto[A <: MusitEvent, T <: ObservationSubEvent](
-      owner: A,
-      subEventTypeId: EventTypeId,
-      subObs: T
+        owner: A,
+        subEventTypeId: EventTypeId,
+        subObs: T
     ): EventDto = {
       subObs match {
         case obs: ObservationFromTo =>
@@ -447,10 +509,20 @@ object DtoConverters {
           toBaseDtoNoChildren(owner, ObsFireType.id, obs.note, obs.fireProtection)
 
         case obs: ObservationWaterDamageAssessment =>
-          toBaseDtoNoChildren(owner, ObsWaterDamageType.id, obs.note, obs.waterDamageAssessment)
+          toBaseDtoNoChildren(
+            owner,
+            ObsWaterDamageType.id,
+            obs.note,
+            obs.waterDamageAssessment
+          )
 
         case obs: ObservationPerimeterSecurity =>
-          toBaseDtoNoChildren(owner, ObsPerimeterType.id, obs.note, obs.perimeterSecurity)
+          toBaseDtoNoChildren(
+            owner,
+            ObsPerimeterType.id,
+            obs.note,
+            obs.perimeterSecurity
+          )
 
         case obs: ObservationPest =>
           toExtendedDto(
@@ -511,7 +583,7 @@ object DtoConverters {
         case ObsPestType =>
           val extDto = dto.asInstanceOf[ExtendedDto]
           val tmpDto = extDto.extension.asInstanceOf[ObservationPestDto]
-          val lc = tmpDto.lifeCycles.map(LifeCyleConverters.lifecycleFromDto)
+          val lc     = tmpDto.lifeCycles.map(LifeCyleConverters.lifecycleFromDto)
           ObservationPest(dto.note, dto.valueString, lc)
 
         case ObsHumidityType =>
@@ -568,15 +640,16 @@ object DtoConverters {
     def envReqFromDto(dto: ExtendedDto): EnvRequirement = {
       val envReqDto = dto.extension.asInstanceOf[EnvRequirementDto]
 
-      val temp = toInterval(envReqDto.temperature, envReqDto.tempTolerance)
+      val temp     = toInterval(envReqDto.temperature, envReqDto.tempTolerance)
       val humidity = toInterval(envReqDto.airHumidity, envReqDto.airHumTolerance)
-      val hypoxic = toInterval(envReqDto.hypoxicAir, envReqDto.hypoxicTolerance)
+      val hypoxic  = toInterval(envReqDto.hypoxicAir, envReqDto.hypoxicTolerance)
 
       EnvRequirement(
         id = dto.id,
         doneDate = dto.eventDate,
         doneBy = dto.relatedActors.map(_.actorId).headOption,
-        affectedThing = dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
+        affectedThing =
+          dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption,
         note = dto.note,
         registeredBy = dto.registeredBy,
         registeredDate = dto.registeredDate,
@@ -606,45 +679,51 @@ object DtoConverters {
     }
 
     def moveFromDto[A <: MoveEvent](
-      dto: BaseEventDto
+        dto: BaseEventDto
     )(init: (EventType, Option[StorageNodeDatabaseId], StorageNodeDatabaseId) => A): A = {
       val eventType = EventType.fromEventTypeId(dto.eventTypeId)
-      val from = dto.valueLong
-      val to = dto.relatedPlaces.head.placeId
+      val from      = dto.valueLong
+      val to        = dto.relatedPlaces.head.placeId
       init(eventType, from, to)
     }
 
     def moveObjectToDto(mo: MoveObject): BaseEventDto = moveToDto(mo)
 
     def moveObjectFromDto(dto: BaseEventDto): MoveObject =
-      moveFromDto(dto)((eventType, from, to) =>
-        MoveObject(
-          id = dto.id,
-          doneDate = dto.eventDate,
-          doneBy = dto.relatedActors.map(_.actorId).headOption,
-          affectedThing = dto.relatedObjects.map(e => ObjectId(e.objectId)).headOption,
-          registeredBy = dto.registeredBy,
-          registeredDate = dto.registeredDate,
-          eventType = eventType,
-          from = from,
-          to = to
-        ))
+      moveFromDto(dto)(
+        (eventType, from, to) =>
+          MoveObject(
+            id = dto.id,
+            doneDate = dto.eventDate,
+            doneBy = dto.relatedActors.map(_.actorId).headOption,
+            affectedThing = dto.relatedObjects.map(e => ObjectId(e.objectId)).headOption,
+            registeredBy = dto.registeredBy,
+            registeredDate = dto.registeredDate,
+            eventType = eventType,
+            from = from,
+            to = to
+        )
+      )
 
     def moveNodeToDto(mo: MoveNode): BaseEventDto = moveToDto(mo)
 
     def moveNodeFromDto(dto: BaseEventDto): MoveNode =
-      moveFromDto(dto)((eventType, from, to) =>
-        MoveNode(
-          id = dto.id,
-          doneDate = dto.eventDate,
-          doneBy = dto.relatedActors.map(_.actorId).headOption,
-          affectedThing = dto.relatedObjects.map(e => StorageNodeDatabaseId(e.objectId)).headOption, // scalastyle:ignore
-          registeredBy = dto.registeredBy,
-          registeredDate = dto.registeredDate,
-          eventType = eventType,
-          from = from,
-          to = to
-        ))
+      moveFromDto(dto)(
+        (eventType, from, to) =>
+          MoveNode(
+            id = dto.id,
+            doneDate = dto.eventDate,
+            doneBy = dto.relatedActors.map(_.actorId).headOption,
+            affectedThing = dto.relatedObjects
+              .map(e => StorageNodeDatabaseId(e.objectId))
+              .headOption, // scalastyle:ignore
+            registeredBy = dto.registeredBy,
+            registeredDate = dto.registeredDate,
+            eventType = eventType,
+            from = from,
+            to = to
+        )
+      )
   }
 
 }

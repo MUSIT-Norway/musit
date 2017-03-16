@@ -23,21 +23,36 @@ import no.uio.musit.models._
 import play.api.libs.json.Json
 
 case class MusitObject(
-  id: ObjectId,
-  museumId: MuseumId,
-  museumNo: MuseumNo,
-  subNo: Option[SubNo],
-  term: String,
-  currentLocationId: Option[Long] = None,
-  path: Option[NodePath] = None,
-  pathNames: Option[Seq[NamedPathElement]] = None,
-  mainObjectId: Option[Long]
+    id: ObjectId,
+    museumId: MuseumId,
+    museumNo: MuseumNo,
+    subNo: Option[SubNo],
+    term: String,
+    currentLocationId: Option[Long] = None,
+    path: Option[NodePath] = None,
+    pathNames: Option[Seq[NamedPathElement]] = None,
+    mainObjectId: Option[Long]
 )
 
 object MusitObject {
   implicit val format = Json.format[MusitObject]
 
-  type ObjTuple = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])) // scalastyle:ignore
+  type ObjTuple = (
+      (
+          Option[ObjectId],
+          MuseumId,
+          String,
+          Option[Long],
+          Option[String],
+          Option[Long],
+          Option[Long],
+          Boolean,
+          String,
+          Option[String],
+          Option[Long],
+          Option[Int]
+      )
+  ) // scalastyle:ignore
 
   def fromTuple(t: ObjTuple): MusitObject = {
     MusitObject(
@@ -51,4 +66,3 @@ object MusitObject {
   }
 
 }
-

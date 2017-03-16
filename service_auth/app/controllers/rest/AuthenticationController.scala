@@ -33,9 +33,8 @@ import play.api.mvc.Action
  * system. It will handle the interaction with Dataporten to perform the OAuth2
  * authentication flow.
  */
-class AuthenticationController @Inject() (
-    implicit
-    val conf: Configuration,
+class AuthenticationController @Inject()(
+    implicit val conf: Configuration,
     val authService: Authenticator
 ) extends MusitController {
 
@@ -53,7 +52,7 @@ class AuthenticationController @Inject() (
         logger.debug(s"Initialized new UserSesssion with id ${userSession.uuid}")
         val callbackUrl = userSession.client.flatMap {
           case Authenticator.ClientDelphi => delphiCallback
-          case _ => None
+          case _                          => None
         }.getOrElse("/")
 
         Redirect(
@@ -70,7 +69,7 @@ class AuthenticationController @Inject() (
   def logout = MusitSecureAction().async { implicit request =>
     authService.invalidate(request.token).map {
       case MusitSuccess(()) => Ok
-      case err: MusitError => InternalServerError(Json.obj("message" -> err.message))
+      case err: MusitError  => InternalServerError(Json.obj("message" -> err.message))
     }
   }
 

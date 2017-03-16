@@ -1,6 +1,10 @@
 package repositories.analysis.dao
 
-import models.analysis.events.AnalysisResults.{AnalysisResult, DatingResult, GenericResult}
+import models.analysis.events.AnalysisResults.{
+  AnalysisResult,
+  DatingResult,
+  GenericResult
+}
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
@@ -13,7 +17,7 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
 
   val dao: AnalysisDao = fromInstanceCache[AnalysisDao]
 
-  val dummyActorId = ActorId.generate()
+  val dummyActorId        = ActorId.generate()
   val dummyAnalysisTypeId = AnalysisTypeId.generate()
 
   val oid1 = ObjectUUID.generate()
@@ -21,8 +25,8 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
   val oid3 = ObjectUUID.generate()
 
   def dummyAnalysis(
-    oid: Option[ObjectUUID],
-    res: Option[AnalysisResult] = None
+      oid: Option[ObjectUUID],
+      res: Option[AnalysisResult] = None
   ): Analysis = {
     val now = Some(dateTimeNow)
     Analysis(
@@ -39,8 +43,8 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
   }
 
   def saveAnalysis(
-    oid: Option[ObjectUUID],
-    res: Option[AnalysisResult]
+      oid: Option[ObjectUUID],
+      res: Option[AnalysisResult]
   ): MusitResult[EventId] = {
     val a = dummyAnalysis(oid, res)
     dao.insert(a).futureValue
@@ -50,12 +54,14 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
 
     "inserting analysis events" should {
       "return the EventId allocated to a single analysis" in {
-        val res = Some(GenericResult(
-          registeredBy = Some(dummyActorId),
-          registeredDate = Some(dateTimeNow),
-          extRef = Some(Seq("foo", "bar", "fizz")),
-          comment = Some("This is a result comment")
-        ))
+        val res = Some(
+          GenericResult(
+            registeredBy = Some(dummyActorId),
+            registeredDate = Some(dateTimeNow),
+            extRef = Some(Seq("foo", "bar", "fizz")),
+            comment = Some("This is a result comment")
+          )
+        )
 
         saveAnalysis(Some(oid1), res) mustBe MusitSuccess(EventId(1))
       }

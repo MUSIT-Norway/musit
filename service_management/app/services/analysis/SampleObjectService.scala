@@ -14,14 +14,14 @@ import repositories.analysis.dao.SampleObjectDao
 
 import scala.concurrent.Future
 
-class SampleObjectService @Inject() (
+class SampleObjectService @Inject()(
     val soDao: SampleObjectDao
 ) {
 
   val logger = Logger(classOf[SampleObjectService])
 
   def add(
-    so: SampleObject
+      so: SampleObject
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[ObjectUUID]] = {
     val sobj = so.copy(
       objectId = ObjectUUID.generateAsOpt(),
@@ -32,8 +32,8 @@ class SampleObjectService @Inject() (
   }
 
   def update(
-    oid: ObjectUUID,
-    so: SampleObject
+      oid: ObjectUUID,
+      so: SampleObject
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[SampleObject]]] = {
     def enrich(orig: SampleObject) = {
       so.copy(
@@ -47,23 +47,26 @@ class SampleObjectService @Inject() (
 
     val updatedRes = for {
       orig <- MusitResultT(findById(oid, MusitEmpty))
-      _ <- MusitResultT(soDao.update(enrich(orig)))
+      _    <- MusitResultT(soDao.update(enrich(orig)))
       upd <- MusitResultT(
-        findById(oid, MusitInternalError(s"Couldn't find sample $oid after update"))
-      )
+              findById(
+                oid,
+                MusitInternalError(s"Couldn't find sample $oid after update")
+              )
+            )
     } yield upd
 
     // Need to do some tricks to align the shapes again.
     updatedRes.value.map {
       case MusitSuccess(updatedObj) => MusitSuccess(Option(updatedObj))
-      case MusitEmpty => MusitSuccess(None)
-      case err: MusitError => err
+      case MusitEmpty               => MusitSuccess(None)
+      case err: MusitError          => err
     }
   }
 
   private def findById(
-    oid: ObjectUUID,
-    notFound: MusitError
+      oid: ObjectUUID,
+      notFound: MusitError
   ): Future[MusitResult[SampleObject]] = {
     findById(oid).map(_.flatMap(_.map(MusitSuccess.apply).getOrElse(notFound)))
   }

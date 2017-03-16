@@ -32,15 +32,15 @@ sealed trait MoveEvent extends MusitEvent {
 }
 
 case class MoveObject(
-  id: Option[EventId],
-  doneBy: Option[ActorId],
-  doneDate: DateTime,
-  affectedThing: Option[ObjectId],
-  registeredBy: Option[ActorId],
-  registeredDate: Option[DateTime],
-  eventType: EventType,
-  from: Option[StorageNodeDatabaseId],
-  to: StorageNodeDatabaseId
+    id: Option[EventId],
+    doneBy: Option[ActorId],
+    doneDate: DateTime,
+    affectedThing: Option[ObjectId],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    eventType: EventType,
+    from: Option[StorageNodeDatabaseId],
+    to: StorageNodeDatabaseId
 ) extends MoveEvent
 
 object MoveObject {
@@ -64,22 +64,22 @@ object MoveObject {
 }
 
 case class MoveNode(
-  id: Option[EventId],
-  doneBy: Option[ActorId],
-  doneDate: DateTime,
-  affectedThing: Option[StorageNodeDatabaseId],
-  registeredBy: Option[ActorId],
-  registeredDate: Option[DateTime],
-  eventType: EventType,
-  from: Option[StorageNodeDatabaseId],
-  to: StorageNodeDatabaseId
+    id: Option[EventId],
+    doneBy: Option[ActorId],
+    doneDate: DateTime,
+    affectedThing: Option[StorageNodeDatabaseId],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    eventType: EventType,
+    from: Option[StorageNodeDatabaseId],
+    to: StorageNodeDatabaseId
 ) extends MoveEvent
 
 object MoveNode {
 
   def fromCommand(
-    currUserId: ActorId,
-    cmd: Move[StorageNodeDatabaseId]
+      currUserId: ActorId,
+      cmd: Move[StorageNodeDatabaseId]
   ): Seq[MoveNode] = cmd.items.map { nodeId =>
     val now = dateTimeNow
     MoveNode(

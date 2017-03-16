@@ -74,7 +74,8 @@ object SaveCommands {
 
   object SaveAnalysisCollection extends WithDateTimeFormatters {
 
-    implicit val reads: Reads[SaveAnalysisCollection] = Json.reads[SaveAnalysisCollection]
+    implicit val reads: Reads[SaveAnalysisCollection] =
+      Json.reads[SaveAnalysisCollection]
 
   }
 

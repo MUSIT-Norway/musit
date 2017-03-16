@@ -57,27 +57,29 @@ object EventTypeRegistry {
    * the TopLevelEvent type.
    */
   sealed abstract class TopLevelEvent(
-    override val id: EventTypeId,
-    override val entryName: String
-  ) extends EnumEntry with EventTypeEntry
+      override val id: EventTypeId,
+      override val entryName: String
+  ) extends EnumEntry
+      with EventTypeEntry
 
   /**
    * All events that typically appears below the root of an event structure
    * should be a SubEvent.
    */
   sealed abstract class SubEventType(
-    override val id: EventTypeId,
-    override val entryName: String
-  ) extends EnumEntry with EventTypeEntry
+      override val id: EventTypeId,
+      override val entryName: String
+  ) extends EnumEntry
+      with EventTypeEntry
 
   sealed abstract class CtrlSubEventType(
-    val evtId: EventTypeId,
-    val eName: String
+      val evtId: EventTypeId,
+      val eName: String
   ) extends SubEventType(evtId, eName)
 
   sealed abstract class ObsSubEventType(
-    val evtId: EventTypeId,
-    val eName: String
+      val evtId: EventTypeId,
+      val eName: String
   ) extends SubEventType(evtId, eName)
 
   object TopLevelEvents extends Enum[TopLevelEvent] {
@@ -91,20 +93,16 @@ object EventTypeRegistry {
     /**
      * This event type describes an event that moves an object from A to B.
      */
-    case object MoveObjectType
-      extends TopLevelEvent(EventTypeId(1), "MoveObject")
+    case object MoveObjectType extends TopLevelEvent(EventTypeId(1), "MoveObject")
 
-    case object MoveNodeType
-      extends TopLevelEvent(EventTypeId(2), "MovePlace")
+    case object MoveNodeType extends TopLevelEvent(EventTypeId(2), "MovePlace")
 
     case object EnvRequirementEventType
-      extends TopLevelEvent(EventTypeId(3), "EnvRequirement")
+        extends TopLevelEvent(EventTypeId(3), "EnvRequirement")
 
-    case object ControlEventType
-      extends TopLevelEvent(EventTypeId(4), "Control")
+    case object ControlEventType extends TopLevelEvent(EventTypeId(4), "Control")
 
-    case object ObservationEventType
-      extends TopLevelEvent(EventTypeId(5), "Observation")
+    case object ObservationEventType extends TopLevelEvent(EventTypeId(5), "Observation")
 
   }
 
@@ -118,31 +116,28 @@ object EventTypeRegistry {
     def unsafeFromId(id: EventTypeId): CtrlSubEventType = fromId(id).get
 
     case object CtrlAlcoholType
-      extends CtrlSubEventType(EventTypeId(6), "ControlAlcohol")
+        extends CtrlSubEventType(EventTypeId(6), "ControlAlcohol")
 
     case object CtrlCleaningType
-      extends CtrlSubEventType(EventTypeId(7), "ControlCleaning")
+        extends CtrlSubEventType(EventTypeId(7), "ControlCleaning")
 
-    case object CtrlGasType
-      extends CtrlSubEventType(EventTypeId(8), "ControlGas")
+    case object CtrlGasType extends CtrlSubEventType(EventTypeId(8), "ControlGas")
 
     case object CtrlHypoxicAirType
-      extends CtrlSubEventType(EventTypeId(9), "ControlHypoxicAir")
+        extends CtrlSubEventType(EventTypeId(9), "ControlHypoxicAir")
 
     case object CtrlLightingType
-      extends CtrlSubEventType(EventTypeId(10), "ControlLightingCondition")
+        extends CtrlSubEventType(EventTypeId(10), "ControlLightingCondition")
 
-    case object CtrlMoldType
-      extends CtrlSubEventType(EventTypeId(11), "ControlMold")
+    case object CtrlMoldType extends CtrlSubEventType(EventTypeId(11), "ControlMold")
 
-    case object CtrlPestType
-      extends CtrlSubEventType(EventTypeId(12), "ControlPest")
+    case object CtrlPestType extends CtrlSubEventType(EventTypeId(12), "ControlPest")
 
     case object CtrlHumidityType
-      extends CtrlSubEventType(EventTypeId(13), "ControlRelativeHumidity")
+        extends CtrlSubEventType(EventTypeId(13), "ControlRelativeHumidity")
 
     case object CtrlTemperatureType
-      extends CtrlSubEventType(EventTypeId(14), "ControlTemperature")
+        extends CtrlSubEventType(EventTypeId(14), "ControlTemperature")
 
   }
 
@@ -155,55 +150,54 @@ object EventTypeRegistry {
     def unsafeFromId(id: EventTypeId): ObsSubEventType = fromId(id).get
 
     case object ObsAlcoholType
-      extends ObsSubEventType(EventTypeId(15), "ObservationAlcohol")
+        extends ObsSubEventType(EventTypeId(15), "ObservationAlcohol")
 
     case object ObsCleaningType
-      extends ObsSubEventType(EventTypeId(16), "ObservationCleaning")
+        extends ObsSubEventType(EventTypeId(16), "ObservationCleaning")
 
     case object ObsFireType
-      extends ObsSubEventType(EventTypeId(17), "ObservationFireProtection")
+        extends ObsSubEventType(EventTypeId(17), "ObservationFireProtection")
 
-    case object ObsGasType
-      extends ObsSubEventType(EventTypeId(18), "ObservationGas")
+    case object ObsGasType extends ObsSubEventType(EventTypeId(18), "ObservationGas")
 
     case object ObsHypoxicAirType
-      extends ObsSubEventType(EventTypeId(19), "ObservationHypoxicAir")
+        extends ObsSubEventType(EventTypeId(19), "ObservationHypoxicAir")
 
     case object ObsLightingType
-      extends ObsSubEventType(EventTypeId(20), "ObservationLightingCondition")
+        extends ObsSubEventType(EventTypeId(20), "ObservationLightingCondition")
 
-    case object ObsMoldType
-      extends ObsSubEventType(EventTypeId(21), "ObservationMold")
+    case object ObsMoldType extends ObsSubEventType(EventTypeId(21), "ObservationMold")
 
     case object ObsPerimeterType
-      extends ObsSubEventType(EventTypeId(22), "ObservationPerimeterSecurity")
+        extends ObsSubEventType(EventTypeId(22), "ObservationPerimeterSecurity")
 
     case object ObsHumidityType
-      extends ObsSubEventType(EventTypeId(23), "ObservationRelativeHumidity")
+        extends ObsSubEventType(EventTypeId(23), "ObservationRelativeHumidity")
 
-    case object ObsPestType
-      extends ObsSubEventType(EventTypeId(24), "ObservationPest")
+    case object ObsPestType extends ObsSubEventType(EventTypeId(24), "ObservationPest")
 
     case object ObsTemperatureType
-      extends ObsSubEventType(EventTypeId(25), "ObservationTemperature")
+        extends ObsSubEventType(EventTypeId(25), "ObservationTemperature")
 
     case object ObsTheftType
-      extends ObsSubEventType(EventTypeId(26), "ObservationTheftProtection")
+        extends ObsSubEventType(EventTypeId(26), "ObservationTheftProtection")
 
     case object ObsWaterDamageType
-      extends ObsSubEventType(EventTypeId(27), "ObservationWaterDamageAssessment")
+        extends ObsSubEventType(EventTypeId(27), "ObservationWaterDamageAssessment")
 
   }
 
   def unsafeFromId(id: EventTypeId): EventTypeEntry = {
-    CtrlSubEvents.fromId(id)
+    CtrlSubEvents
+      .fromId(id)
       .orElse(ObsSubEvents.fromId(id))
       .orElse(TopLevelEvents.fromId(id))
       .get
   }
 
   def withNameInsensitiveOption(name: String): Option[EventTypeEntry] = {
-    TopLevelEvents.withNameInsensitiveOption(name)
+    TopLevelEvents
+      .withNameInsensitiveOption(name)
       .orElse(CtrlSubEvents.withNameInsensitiveOption(name))
       .orElse(ObsSubEvents.withNameInsensitiveOption(name))
   }
@@ -219,7 +213,8 @@ object EventTypeRegistry {
    * @return an Option[SubEvent]
    */
   def subEventWithNameOption(n: String): Option[SubEventType] = {
-    CtrlSubEvents.withNameInsensitiveOption(n)
+    CtrlSubEvents
+      .withNameInsensitiveOption(n)
       .orElse(ObsSubEvents.withNameInsensitiveOption(n))
   }
 
@@ -233,11 +228,11 @@ object EventTypeRegistry {
    * @return An Option[T]
    */
   def typedWithNameOption[T <: SubEventType](
-    n: String
+      n: String
   )(implicit ct: ClassTag[T]): Option[T] = {
     subEventWithNameOption(n).flatMap {
       case se: T => Some(se)
-      case _ => None
+      case _     => None
     }
   }
 
@@ -251,15 +246,19 @@ object EventTypeRegistry {
    * @throws NoSuchElementException   if no SubEventType was found at all.
    */
   def unsafeSubFromId[T <: SubEventType](id: EventTypeId)(implicit ct: ClassTag[T]): T = {
-    CtrlSubEvents.fromId(id).orElse(ObsSubEvents.fromId(id)).map {
-      case sub: T => sub
-      case bad =>
-        val expStr = ct.toString
-        val expected = expStr.substring(expStr.lastIndexOf("$") + 1)
-        throw new IllegalArgumentException(
-          s"event type ${bad.entryName} is not a valid $expected"
-        )
-    }.get
+    CtrlSubEvents
+      .fromId(id)
+      .orElse(ObsSubEvents.fromId(id))
+      .map {
+        case sub: T => sub
+        case bad =>
+          val expStr   = ct.toString
+          val expected = expStr.substring(expStr.lastIndexOf("$") + 1)
+          throw new IllegalArgumentException(
+            s"event type ${bad.entryName} is not a valid $expected"
+          )
+      }
+      .get
   }
 
 }

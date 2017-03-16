@@ -29,8 +29,7 @@ import slick.driver.JdbcProfile
  * Working with some of the DAOs require implicit mappers to/from strongly
  * typed value types/classes.
  */
-trait ColumnTypeMappers {
-  self: HasDatabaseConfig[JdbcProfile] =>
+trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   import driver.api._
 

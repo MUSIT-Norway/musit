@@ -37,23 +37,24 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
+class DataportenAuthenticatorSpec
+    extends MusitSpecWithAppPerSuite
     with MockFactory
     with DefaultWriteables {
 
-  val conf = fromInstanceCache[Configuration]
+  val conf     = fromInstanceCache[Configuration]
   val resolver = fromInstanceCache[DatabaseAuthResolver]
 
-  val mockWS = mock[WSAPI]
-  val mockWSRequest = mock[WSRequest]
+  val mockWS         = mock[WSAPI]
+  val mockWSRequest  = mock[WSRequest]
   val mockWSResponse = mock[WSResponse]
 
   val authenticator = new DataportenAuthenticator(conf, resolver, mockWS)
 
-  val userId = ActorId.generate()
+  val userId    = ActorId.generate()
   val userIdSec = Email("vader@deathstar.io")
-  val name = "Darth Vader"
-  val email = Email("darth.vader@deathstar.io")
+  val name      = "Darth Vader"
+  val email     = Email("darth.vader@deathstar.io")
 
   type FormDataType = Map[String, Seq[String]]
 
@@ -66,7 +67,7 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
       implicit val fakeRequest = FakeRequest("GET", "/authenticate")
 
       val futRes = authenticator.authenticate(Some(Authenticator.ClientWeb))
-      val res = futRes.futureValue
+      val res    = futRes.futureValue
       res.isLeft mustBe true
       res.left.get mustBe a[Result]
 
@@ -78,15 +79,15 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
     }
 
     "fetch an access token and update the UserSession when receiving a code" in {
-      val code = UUID.randomUUID().toString
-      val token = BearerToken(UUID.randomUUID().toString)
+      val code      = UUID.randomUUID().toString
+      val token     = BearerToken(UUID.randomUUID().toString)
       val expiresIn = (2 hours).toMillis
       implicit val fakeRequest = FakeRequest(
         method = "POST",
         path = s"/authenticate?code=$code&state=$sessionId"
       )
       val expQueryParams = Map(
-        "code" -> Seq(code),
+        "code"  -> Seq(code),
         "state" -> Seq(sessionId)
       )
 
@@ -102,12 +103,15 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
 
       (mockWSResponse.json _)
         .expects()
-        .returning(Json.obj(
-          "access_token" -> token.underlying,
-          "expiresIn" -> expiresIn
-        ))
+        .returning(
+          Json.obj(
+            "access_token" -> token.underlying,
+            "expiresIn"    -> expiresIn
+          )
+        )
 
-      (mockWS.url _).expects("https://auth.dataporten.no/userinfo")
+      (mockWS.url _)
+        .expects("https://auth.dataporten.no/userinfo")
         .returning(mockWSRequest)
 
       (mockWSRequest.withHeaders _).expects(*).returning(mockWSRequest)
@@ -115,17 +119,20 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
       // This is a known bug: https://youtrack.jetbrains.com/issue/SCL-10183
       (mockWSRequest.get _).expects().returning(Future.successful(mockWSResponse))
       (mockWSResponse.status _).expects().returning(OK)
-      (mockWSResponse.json _).expects().returning(
-        Json.obj(
-          "audience" -> "b98123fe-3a25-44b9-8e26-75819d8aa5da",
-          "user" -> Json.obj(
-            "userid" -> userId.asString,
-            "userid_sec" -> Json.arr(userIdSec.value),
-            "name" -> name,
-            "email" -> email.value
+      (mockWSResponse.json _)
+        .expects()
+        .returning(
+          Json.obj(
+            "audience" -> "b98123fe-3a25-44b9-8e26-75819d8aa5da",
+            "user" -> Json.obj(
+              "userid"     -> userId.asString,
+              "userid_sec" -> Json.arr(userIdSec.value),
+              "name"       -> name,
+              "email"      -> email.value
+            )
           )
         )
-      ).atLeastTwice()
+        .atLeastTwice()
 
       val futRes = authenticator.authenticate(Some(Authenticator.ClientWeb))
 

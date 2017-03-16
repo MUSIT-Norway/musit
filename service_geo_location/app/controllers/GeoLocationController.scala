@@ -29,7 +29,7 @@ import services.GeoLocationService
 
 import scala.util.control.NonFatal
 
-class GeoLocationController @Inject() (
+class GeoLocationController @Inject()(
     val authService: Authenticator,
     val geoLocService: GeoLocationService
 ) extends MusitController {
@@ -41,18 +41,20 @@ class GeoLocationController @Inject() (
    * kartverket.no
    */
   def searchExternal(
-    search: Option[String]
+      search: Option[String]
   ) = MusitSecureAction().async { implicit request =>
     val expression = search.getOrElse("")
-    geoLocService.searchGeoNorway(expression).map { location =>
-      Ok(Json.toJson(location))
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = "An error occurred when searching for address"
-        logger.error(msg, ex)
-        InternalServerError(Json.obj("message" -> msg))
-    }
+    geoLocService
+      .searchGeoNorway(expression)
+      .map { location =>
+        Ok(Json.toJson(location))
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = "An error occurred when searching for address"
+          logger.error(msg, ex)
+          InternalServerError(Json.obj("message" -> msg))
+      }
   }
 
 }
-

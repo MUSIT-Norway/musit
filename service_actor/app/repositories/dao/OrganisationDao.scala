@@ -30,9 +30,10 @@ import slick.driver.JdbcProfile
 import scala.concurrent.Future
 
 @Singleton
-class OrganisationDao @Inject() (
+class OrganisationDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends HasDatabaseConfigProvider[JdbcProfile]
+    with ColumnTypeMappers {
 
   import driver.api._
 
@@ -64,7 +65,7 @@ class OrganisationDao @Inject() (
     db.run(query).map {
       case upd: Int if upd == 0 => MusitSuccess(None)
       case upd: Int if upd == 1 => MusitSuccess(Some(upd))
-      case upd: Int if upd > 1 => MusitDbError("Too many records were updated")
+      case upd: Int if upd > 1  => MusitDbError("Too many records were updated")
     }
   }
 
@@ -76,18 +77,18 @@ class OrganisationDao @Inject() (
       tag: Tag
   ) extends Table[Organisation](tag, Some(SchemaName), OrgTableName) {
 
-    val id = column[Option[OrgId]]("ORG_ID", O.PrimaryKey, O.AutoInc)
-    val fn = column[String]("FULL_NAME")
+    val id       = column[Option[OrgId]]("ORG_ID", O.PrimaryKey, O.AutoInc)
+    val fn       = column[String]("FULL_NAME")
     val nickname = column[String]("NICKNAME")
-    val tel = column[String]("TEL")
-    val web = column[String]("WEB")
+    val tel      = column[String]("TEL")
+    val web      = column[String]("WEB")
 
     val create = (
-      id: Option[OrgId],
-      fn: String,
-      nickname: String,
-      tel: String,
-      web: String
+        id: Option[OrgId],
+        fn: String,
+        nickname: String,
+        tel: String,
+        web: String
     ) => Organisation(id, fn, nickname, tel, web)
 
     val destroy = (org: Organisation) =>

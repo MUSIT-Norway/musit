@@ -9,16 +9,14 @@ import org.joda.time.DateTime
 import org.scalatest.{MustMatchers, WordSpec}
 import play.api.libs.json._
 
-class AnalysisEventSpec extends WordSpec
-    with MustMatchers
-    with DateTimeMatchers {
+class AnalysisEventSpec extends WordSpec with MustMatchers with DateTimeMatchers {
 
-  val dummyEventId = EventId(1L)
+  val dummyEventId        = EventId(1L)
   val dummyAnalysisTypeId = AnalysisTypeId.generate()
-  val dummyDate = DateTime.now
-  val dummyActor = ActorId.generate()
-  val dummyObject = ObjectUUID.generate()
-  val dummyNote = "Foo bar"
+  val dummyDate           = DateTime.now
+  val dummyActor          = ActorId.generate()
+  val dummyObject         = ObjectUUID.generate()
+  val dummyNote           = "Foo bar"
 
   def createAnalysis() =
     Analysis(
@@ -30,12 +28,14 @@ class AnalysisEventSpec extends WordSpec
       objectId = Some(dummyObject),
       partOf = None,
       note = Some(dummyNote),
-      result = Some(GenericResult(
-        registeredBy = Some(dummyActor),
-        registeredDate = Some(dummyDate),
-        extRef = Some(Seq(dummyNote)),
-        comment = Some(dummyNote)
-      ))
+      result = Some(
+        GenericResult(
+          registeredBy = Some(dummyActor),
+          registeredDate = Some(dummyDate),
+          extRef = Some(Seq(dummyNote)),
+          comment = Some(dummyNote)
+        )
+      )
     )
 
   def createAnalysisCollection() =
@@ -89,7 +89,7 @@ class AnalysisEventSpec extends WordSpec
     }
 
     "fail deserializing an Analysis if the discriminator isn't present" in {
-      val a = createAnalysis()
+      val a  = createAnalysis()
       val js = Json.toJson(a)
 
       val noTypeJs = js.transform((__ \ "type").json.prune).get
@@ -101,7 +101,7 @@ class AnalysisEventSpec extends WordSpec
     }
 
     "fail deserializing an AnalysisCollection if the discriminator isn't present" in {
-      val a = createAnalysisCollection()
+      val a  = createAnalysisCollection()
       val js = Json.toJson(a)
 
       val noTypeJs = js.transform((__ \ "type").json.prune).get

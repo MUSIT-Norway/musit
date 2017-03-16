@@ -25,8 +25,7 @@ import no.uio.musit.models.{ActorId, DatabaseId, MuseumId, OrgId}
 import play.api.db.slick.HasDatabaseConfig
 import slick.driver.JdbcProfile
 
-trait ColumnTypeMappers {
-  self: HasDatabaseConfig[JdbcProfile] =>
+trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   import driver.api._
 

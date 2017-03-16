@@ -33,22 +33,22 @@ import scala.concurrent.Future
 /**
  * TODO: Document me!!!
  */
-class KdReportService @Inject() (val dao: KdReportDao) {
+class KdReportService @Inject()(val dao: KdReportDao) {
 
   def getReport(mid: MuseumId): Future[MusitResult[KdReport]] = {
-    val totArea = MusitResultT(dao.getReportTotalArea(mid))
-    val areaPerimeter = MusitResultT(dao.getAreaPerimeterSecurity(mid))
-    val areaTheft = MusitResultT(dao.getAreaTheftProtection(mid))
-    val areaFire = MusitResultT(dao.getAreaFireProtectiony(mid))
+    val totArea         = MusitResultT(dao.getReportTotalArea(mid))
+    val areaPerimeter   = MusitResultT(dao.getAreaPerimeterSecurity(mid))
+    val areaTheft       = MusitResultT(dao.getAreaTheftProtection(mid))
+    val areaFire        = MusitResultT(dao.getAreaFireProtectiony(mid))
     val areaWaterDamage = MusitResultT(dao.getAreaWaterDamageAssessment(mid))
     val areaContingency = MusitResultT(dao.getAreaRoutinesAndContingencyPlan(mid))
 
     val report = for {
-      area <- totArea
-      perimeter <- areaPerimeter
-      theft <- areaTheft
-      fire <- areaFire
-      water <- areaWaterDamage
+      area        <- totArea
+      perimeter   <- areaPerimeter
+      theft       <- areaTheft
+      fire        <- areaFire
+      water       <- areaWaterDamage
       contingency <- areaContingency
     } yield {
       KdReport(

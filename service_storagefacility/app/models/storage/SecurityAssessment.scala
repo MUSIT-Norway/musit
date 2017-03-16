@@ -23,11 +23,11 @@ import play.api.libs.json.{Format, Json}
 
 // FIXME Fields are required according to requirements
 case class SecurityAssessment(
-  perimeter: Option[Boolean],
-  theftProtection: Option[Boolean],
-  fireProtection: Option[Boolean],
-  waterDamage: Option[Boolean],
-  routinesAndContingencyPlan: Option[Boolean]
+    perimeter: Option[Boolean],
+    theftProtection: Option[Boolean],
+    fireProtection: Option[Boolean],
+    waterDamage: Option[Boolean],
+    routinesAndContingencyPlan: Option[Boolean]
 )
 
 object SecurityAssessment {

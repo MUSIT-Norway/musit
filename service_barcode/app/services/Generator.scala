@@ -34,8 +34,7 @@ import play.api.Logger
 import scala.concurrent.Future
 import scala.util.Try
 
-trait Generator {
-  self =>
+trait Generator { self =>
 
   private val logger = Logger(this.getClass)
 
@@ -51,39 +50,40 @@ trait Generator {
    * not be a problem.
    */
   protected def generate(
-    value: String,
-    format: BarcodeFormat,
-    hints: Map[EncodeHintType, Any] = Map.empty
-  ): Try[Source[ByteString, Future[IOResult]]] = Try {
-    val writer = new MultiFormatWriter
-    // We need to implicitly convert hints from Scala to Java Map before encoding
-    import scala.collection.JavaConversions._
-    val matrix = writer.encode(value, format.zxingFormat, width, height, hints)
+      value: String,
+      format: BarcodeFormat,
+      hints: Map[EncodeHintType, Any] = Map.empty
+  ): Try[Source[ByteString, Future[IOResult]]] =
+    Try {
+      val writer = new MultiFormatWriter
+      // We need to implicitly convert hints from Scala to Java Map before encoding
+      import scala.collection.JavaConversions._
+      val matrix = writer.encode(value, format.zxingFormat, width, height, hints)
 
-    logger.debug(s"matrix height: ${matrix.getHeight}  width: ${matrix.getWidth}")
+      logger.debug(s"matrix height: ${matrix.getHeight}  width: ${matrix.getWidth}")
 
-    // "draw" the pixels (as black or white)
-    val pixels = Array.newBuilder[Int]
-    for (i <- 0 until matrix.getWidth) {
-      for (j <- 0 until matrix.getHeight) {
-        val blackOrWhite = if (matrix.get(i, j)) black else white
-        pixels += blackOrWhite
+      // "draw" the pixels (as black or white)
+      val pixels = Array.newBuilder[Int]
+      for (i <- 0 until matrix.getWidth) {
+        for (j <- 0 until matrix.getHeight) {
+          val blackOrWhite = if (matrix.get(i, j)) black else white
+          pixels += blackOrWhite
+        }
       }
+
+      // create an empty image
+      val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+      // Add the pixels to the image
+      img.setRGB(0, 0, width, height, pixels.result(), 0, width)
+
+      val baos = new ByteArrayOutputStream()
+      ImageIO.write(img, "png", baos)
+      StreamConverters.fromInputStream(() => new ByteArrayInputStream(baos.toByteArray))
+    }.recover {
+      case ex: Throwable =>
+        logger.warn(s"Unable to generate ${format.zxingFormat.name()}", ex)
+        throw ex // scalastyle:ignore
     }
-
-    // create an empty image
-    val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-    // Add the pixels to the image
-    img.setRGB(0, 0, width, height, pixels.result(), 0, width)
-
-    val baos = new ByteArrayOutputStream()
-    ImageIO.write(img, "png", baos)
-    StreamConverters.fromInputStream(() => new ByteArrayInputStream(baos.toByteArray))
-  }.recover {
-    case ex: Throwable =>
-      logger.warn(s"Unable to generate ${format.zxingFormat.name()}", ex)
-      throw ex // scalastyle:ignore
-  }
 
   /**
    * Generates an image of a barcode format based on the given input.
@@ -99,9 +99,9 @@ object Generator {
 
   def generatorFor(bf: BarcodeFormat): Option[Generator] = {
     bf match {
-      case QrCode => Some(QrGenerator)
+      case QrCode     => Some(QrGenerator)
       case DataMatrix => Some(DataMatrixGenerator)
-      case _ => None
+      case _          => None
     }
   }
 

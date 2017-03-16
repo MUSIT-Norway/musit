@@ -12,8 +12,7 @@ import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}
 import slick.driver.JdbcProfile
 
-trait ColumnTypeMappers {
-  self: HasDatabaseConfig[JdbcProfile] =>
+trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   import driver.api._
 

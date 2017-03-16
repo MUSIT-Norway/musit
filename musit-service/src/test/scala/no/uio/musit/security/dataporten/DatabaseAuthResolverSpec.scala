@@ -32,10 +32,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
 
   // Wire up the dependencies
-  val config = fromInstanceCache[DatabaseConfigProvider]
+  val config   = fromInstanceCache[DatabaseConfigProvider]
   val resolver = new DatabaseAuthResolver(config)
 
-  val uuid = ActorId.generate()
+  val uuid  = ActorId.generate()
   val email = "dv@deathstar.io"
 
   val sessionUUID = SessionUUID.generate()

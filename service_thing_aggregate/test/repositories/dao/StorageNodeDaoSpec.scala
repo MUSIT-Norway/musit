@@ -33,7 +33,7 @@ class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
       "return false" in {
         dao.nodeExists(MuseumId(99), StorageNodeDatabaseId(9999)).futureValue match {
           case MusitSuccess(false) =>
-          case _ => fail("it should not exist")
+          case _                   => fail("it should not exist")
         }
       }
     }
@@ -42,7 +42,7 @@ class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
       "return true" in {
         dao.nodeExists(MuseumId(99), StorageNodeDatabaseId(4)).futureValue match {
           case MusitSuccess(true) =>
-          case _ => fail("it should exist")
+          case _                  => fail("it should exist")
         }
       }
     }
@@ -51,7 +51,7 @@ class StorageNodeDaoSpec extends MusitSpecWithAppPerSuite {
       "return true" in {
         dao.nodeExists(MuseumId(55), StorageNodeDatabaseId(4)).futureValue match {
           case MusitSuccess(false) =>
-          case _ => fail("it should not exist")
+          case _                   => fail("it should not exist")
         }
       }
     }

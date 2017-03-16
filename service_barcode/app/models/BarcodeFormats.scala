@@ -35,7 +35,7 @@ object BarcodeFormats {
 
     def fromInt(i: Int): Option[BarcodeFormat] = {
       i match {
-        case QrCode.code => Some(QrCode)
+        case QrCode.code     => Some(QrCode)
         case DataMatrix.code => Some(DataMatrix)
         case _ =>
           logger.warn(s"Barcode format $i is currently not supported")
@@ -46,12 +46,12 @@ object BarcodeFormats {
   }
 
   case object QrCode extends BarcodeFormat {
-    override val code: Int = 1
+    override val code: Int                = 1
     override val zxingFormat: ZxingFormat = ZxingFormat.QR_CODE
   }
 
   case object DataMatrix extends BarcodeFormat {
-    override val code: Int = 2
+    override val code: Int                = 2
     override val zxingFormat: ZxingFormat = ZxingFormat.DATA_MATRIX
   }
 

@@ -6,27 +6,27 @@ import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json, Reads}
 
 case class SampleObject(
-  objectId: Option[ObjectUUID],
-  parentObjectId: Option[ObjectUUID],
-  isCollectionObject: Boolean,
-  museumId: MuseumId,
-  status: SampleStatus,
-  responsible: ActorId,
-  createdDate: DateTime,
-  // TODO: Add auto generated sample ID
-  sampleId: Option[String],
-  externalId: Option[String],
-  sampleType: Option[String],
-  sampleSubType: Option[String],
-  size: Option[Double],
-  sizeUnit: Option[String],
-  container: Option[String],
-  storageMedium: Option[String],
-  note: Option[String],
-  registeredBy: Option[ActorId],
-  registeredDate: Option[DateTime],
-  updatedBy: Option[ActorId],
-  updatedDate: Option[DateTime]
+    objectId: Option[ObjectUUID],
+    parentObjectId: Option[ObjectUUID],
+    isCollectionObject: Boolean,
+    museumId: MuseumId,
+    status: SampleStatus,
+    responsible: ActorId,
+    createdDate: DateTime,
+    // TODO: Add auto generated sample ID
+    sampleId: Option[String],
+    externalId: Option[String],
+    sampleType: Option[String],
+    sampleSubType: Option[String],
+    size: Option[Double],
+    sizeUnit: Option[String],
+    container: Option[String],
+    storageMedium: Option[String],
+    note: Option[String],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedDate: Option[DateTime]
 )
 
 object SampleObject {

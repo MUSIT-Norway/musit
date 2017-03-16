@@ -14,7 +14,7 @@ import services.analysis.SampleObjectService
 import scala.concurrent.Future
 
 @Singleton
-class SampleObjectController @Inject() (
+class SampleObjectController @Inject()(
     val authService: Authenticator,
     val soService: SampleObjectService
 ) extends MusitController {
@@ -25,40 +25,46 @@ class SampleObjectController @Inject() (
     MusitSecureAction().async { implicit request =>
       soService.findForMuseum(mid).map {
         case MusitSuccess(objects) => listAsPlayResult(objects)
-        case err: MusitError => internalErr(err)
+        case err: MusitError       => internalErr(err)
       }
     }
 
   def getById(mid: MuseumId, uuid: String) =
     MusitSecureAction().async { implicit request =>
-      ObjectUUID.fromString(uuid).map { oid =>
-        soService.findById(oid).map {
-          case MusitSuccess(maybeObject) =>
-            maybeObject.map(so => Ok(Json.toJson(so))).getOrElse(NotFound)
+      ObjectUUID
+        .fromString(uuid)
+        .map { oid =>
+          soService.findById(oid).map {
+            case MusitSuccess(maybeObject) =>
+              maybeObject.map(so => Ok(Json.toJson(so))).getOrElse(NotFound)
 
-          case err: MusitError => internalErr(err)
+            case err: MusitError => internalErr(err)
 
+          }
         }
-      }.getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
+        .getOrElse {
+          Future.successful {
+            BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
+          }
         }
-      }
     }
 
   def getForParentObject(mid: MuseumId, uuid: String) =
     MusitSecureAction().async { implicit request =>
-      ObjectUUID.fromString(uuid).map { oid =>
-        soService.findForParent(oid).map {
-          case MusitSuccess(objects) => listAsPlayResult(objects)
-          case err: MusitError => internalErr(err)
+      ObjectUUID
+        .fromString(uuid)
+        .map { oid =>
+          soService.findForParent(oid).map {
+            case MusitSuccess(objects) => listAsPlayResult(objects)
+            case err: MusitError       => internalErr(err)
 
+          }
         }
-      }.getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
+        .getOrElse {
+          Future.successful {
+            BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
+          }
         }
-      }
     }
 
   def save(mid: MuseumId) =
@@ -73,25 +79,28 @@ class SampleObjectController @Inject() (
   def update(mid: MuseumId, uuid: String) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
-      ObjectUUID.fromString(uuid).map { oid =>
-        request.body.validate[SaveSampleObject] match {
-          case JsSuccess(saveSampleObject, _) =>
-            soService.update(oid, saveSampleObject.asSampleObject).map {
-              case MusitSuccess(mso) =>
-                mso.map(u => Ok(Json.toJson(u))).getOrElse(NotFound)
+      ObjectUUID
+        .fromString(uuid)
+        .map { oid =>
+          request.body.validate[SaveSampleObject] match {
+            case JsSuccess(saveSampleObject, _) =>
+              soService.update(oid, saveSampleObject.asSampleObject).map {
+                case MusitSuccess(mso) =>
+                  mso.map(u => Ok(Json.toJson(u))).getOrElse(NotFound)
 
-              case err: MusitError =>
-                internalErr(err)
-            }
+                case err: MusitError =>
+                  internalErr(err)
+              }
 
-          case err: JsError =>
-            Future.successful(BadRequest(JsError.toJson(err)))
+            case err: JsError =>
+              Future.successful(BadRequest(JsError.toJson(err)))
+          }
         }
-      }.getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
-        )
-      }
+        .getOrElse {
+          Future.successful(
+            BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
+          )
+        }
 
     }
 

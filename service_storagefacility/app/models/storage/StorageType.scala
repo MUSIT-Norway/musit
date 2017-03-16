@@ -50,32 +50,32 @@ object StorageType extends Enum[StorageType] with PlayJsonEnum[StorageType] {
 
   case object RootType extends StorageType {
     override val storageTypeName: String = "Root"
-    override val displayOrder = 1
+    override val displayOrder            = 1
   }
 
   case object RootLoanType extends StorageType {
     override val storageTypeName: String = "RootLoan"
-    override val displayOrder = 2
+    override val displayOrder            = 2
   }
 
   case object OrganisationType extends StorageType {
     override val storageTypeName: String = "Organisation"
-    override val displayOrder = 3
+    override val displayOrder            = 3
   }
 
   case object BuildingType extends StorageType {
     override val storageTypeName: String = "Building"
-    override val displayOrder = 4
+    override val displayOrder            = 4
   }
 
   case object RoomType extends StorageType {
     override val storageTypeName: String = "Room"
-    override val displayOrder = 5
+    override val displayOrder            = 5
   }
 
   case object StorageUnitType extends StorageType {
     override val storageTypeName: String = "StorageUnit"
-    override val displayOrder = 6
+    override val displayOrder            = 6
   }
 
 }

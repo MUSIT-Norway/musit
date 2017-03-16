@@ -51,11 +51,11 @@ object EventRelations {
 
   // The following two constants are used in the base event table to describe
   // relationship between events and sub-events.
-  val PartsOfRelation = EventRelation(1, "parts", "part_of")
+  val PartsOfRelation   = EventRelation(1, "parts", "part_of")
   val MotivatesRelation = EventRelation(2, "motivates", "motivated_by")
 
   private val relations = Map(
-    PartsOfRelation.id -> PartsOfRelation,
+    PartsOfRelation.id   -> PartsOfRelation,
     MotivatesRelation.id -> MotivatesRelation
   )
 
@@ -74,15 +74,15 @@ object EventRelations {
 // =============================================================================
 
 case class EventRoleActor(
-  eventId: Option[EventId],
-  roleId: Int,
-  actorId: ActorId
+    eventId: Option[EventId],
+    roleId: Int,
+    actorId: ActorId
 )
 
 object EventRoleActor {
   def fromActorRole(
-    actRole: ActorRole,
-    eventId: Option[Long] = None
+      actRole: ActorRole,
+      eventId: Option[Long] = None
   ): EventRoleActor =
     EventRoleActor(eventId, actRole.roleId, actRole.actorId)
 
@@ -91,18 +91,18 @@ object EventRoleActor {
 }
 
 case class EventRoleObject(
-  eventId: Option[EventId],
-  roleId: Int,
-  objectId: ObjectId,
-  eventTypeId: EventTypeId
+    eventId: Option[EventId],
+    roleId: Int,
+    objectId: ObjectId,
+    eventTypeId: EventTypeId
 )
 
 object EventRoleObject {
 
   def fromObjectRole(
-    objRole: ObjectRole,
-    eventTypeId: EventTypeId,
-    eventId: Option[Long] = None
+      objRole: ObjectRole,
+      eventTypeId: EventTypeId,
+      eventId: Option[Long] = None
   ): EventRoleObject =
     EventRoleObject(eventId, objRole.roleId, objRole.objectId, eventTypeId)
 
@@ -111,18 +111,18 @@ object EventRoleObject {
 }
 
 case class EventRolePlace(
-  eventId: Option[EventId],
-  roleId: Int,
-  placeId: StorageNodeDatabaseId,
-  eventTypeId: EventTypeId
+    eventId: Option[EventId],
+    roleId: Int,
+    placeId: StorageNodeDatabaseId,
+    eventTypeId: EventTypeId
 )
 
 object EventRolePlace {
 
   def fromPlaceRole(
-    placeRole: PlaceRole,
-    eventTypeId: EventTypeId,
-    eventId: Option[Long] = None
+      placeRole: PlaceRole,
+      eventTypeId: EventTypeId,
+      eventId: Option[Long] = None
   ): EventRolePlace =
     EventRolePlace(eventId, placeRole.roleId, placeRole.nodeId, eventTypeId)
 

@@ -12,7 +12,7 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 @Singleton
-class AnalysisTypeDao @Inject() (
+class AnalysisTypeDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
@@ -24,31 +24,35 @@ class AnalysisTypeDao @Inject() (
    * Returns all analysis types from the database.
    */
   def all: Future[MusitResult[Seq[AnalysisType]]] = {
-    db.run(analysisTypeTable.result).map { res =>
-      val ats = res.map(fromAnalysisTypeRow)
-      MusitSuccess(ats)
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = "A problem occurred fetching all analysis types from the DB"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(analysisTypeTable.result)
+      .map { res =>
+        val ats = res.map(fromAnalysisTypeRow)
+        MusitSuccess(ats)
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = "A problem occurred fetching all analysis types from the DB"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
   /**
    * Returns all analysis types within the given Category.
    */
   def allForCategory(c: Category): Future[MusitResult[Seq[AnalysisType]]] = {
-    db.run(analysisTypeTable.filter(_.category === c).result).map { res =>
-      val ats = res.map(fromAnalysisTypeRow)
-      MusitSuccess(ats)
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = s"A problem occurred fetching analysis types for category " +
-          s"${c.entryName} from the DB"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(analysisTypeTable.filter(_.category === c).result)
+      .map { res =>
+        val ats = res.map(fromAnalysisTypeRow)
+        MusitSuccess(ats)
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"A problem occurred fetching analysis types for category " +
+            s"${c.entryName} from the DB"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
   /**
@@ -60,16 +64,18 @@ class AnalysisTypeDao @Inject() (
       at.collections.isEmpty || (at.collections like s"%,${cid.asString},%")
     }
 
-    db.run(q.result).map { res =>
-      val ats = res.map(fromAnalysisTypeRow)
-      MusitSuccess(ats)
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = s"A problem occurred fetching analysis types for collection " +
-          s"$cid from the DB"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(q.result)
+      .map { res =>
+        val ats = res.map(fromAnalysisTypeRow)
+        MusitSuccess(ats)
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"A problem occurred fetching analysis types for collection " +
+            s"$cid from the DB"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
 }

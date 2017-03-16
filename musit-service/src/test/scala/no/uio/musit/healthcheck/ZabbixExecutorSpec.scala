@@ -37,7 +37,7 @@ class ZabbixExecutorSpec extends MusitSpec with BeforeAndAfterEach {
     DateTimeUtils.setCurrentMillisSystem()
   }
 
-  implicit val actorSystem = ActorSystem("ZabbixExecutorSpec")
+  implicit val actorSystem  = ActorSystem("ZabbixExecutorSpec")
   implicit val materializer = ActorMaterializer()
 
   val meta = ZabbixMeta(
@@ -49,22 +49,22 @@ class ZabbixExecutorSpec extends MusitSpec with BeforeAndAfterEach {
 
   "ZabbixExecutor" when {
     "write results to file" in {
-      val folder = createTempFolder()
+      val folder     = createTempFolder()
       val zibbixFile = ZabbixFile(folder, "musit-health.json")
 
       val executor: ZabbixExecutor = createExecutor(zibbixFile)
-      val result = executor.executeHealthChecks().futureValue
+      val result                   = executor.executeHealthChecks().futureValue
 
       val res = Json.parse(new FileInputStream(zibbixFile.ensureWritableFile()))
       (res \ "noop").as[Boolean] mustBe true
     }
 
     "write result over old file" in {
-      val folder = createTempFolder()
-      val zibbixFile = ZabbixFile(folder, "musit-health.json")
+      val folder                   = createTempFolder()
+      val zibbixFile               = ZabbixFile(folder, "musit-health.json")
       val executor: ZabbixExecutor = createExecutor(zibbixFile)
-      val currentTime = DateTime.now()
-      val latestUpdated = currentTime.plusHours(1).getMillis
+      val currentTime              = DateTime.now()
+      val latestUpdated            = currentTime.plusHours(1).getMillis
 
       DateTimeUtils.setCurrentMillisFixed(currentTime.getMillis)
       executor.executeHealthChecks().futureValue
@@ -91,8 +91,8 @@ class ZabbixExecutorSpec extends MusitSpec with BeforeAndAfterEach {
 
   def createTempFolder(): String = {
     val tempFolderName = s"scalatest-${System.currentTimeMillis()}"
-    val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
-    val directory = Files.createTempDirectory(tmpDir, tempFolderName)
+    val tmpDir         = Paths.get(System.getProperty("java.io.tmpdir"))
+    val directory      = Files.createTempDirectory(tmpDir, tempFolderName)
 
     directory.toString
   }

@@ -27,33 +27,36 @@ import play.api.mvc.{Action, Controller}
 import controllers.web
 
 @Singleton
-class Init @Inject() (
+class Init @Inject()(
     val crypto: MusitCrypto
 ) extends Controller {
 
   val logger = Logger(classOf[Init])
 
   def init = Action(parse.urlFormEncoded) { implicit request =>
-    request.body.get("_at").flatMap { tokSeq =>
-      tokSeq.headOption.map { tokStr =>
-        logger.trace(s"Plain text token: $tokStr")
+    request.body
+      .get("_at")
+      .flatMap { tokSeq =>
+        tokSeq.headOption.map { tokStr =>
+          logger.trace(s"Plain text token: $tokStr")
 
-        val token = crypto.encryptAES(tokStr)
+          val token = crypto.encryptAES(tokStr)
 
-        logger.trace(s"Encrypted token: $token")
+          logger.trace(s"Encrypted token: $token")
 
-        logger.debug(
-          s"Redirecting to: ${web.routes.Dashboard.index().absoluteURL()}"
-        )
+          logger.debug(
+            s"Redirecting to: ${web.routes.Dashboard.index().absoluteURL()}"
+          )
 
-        Redirect(
-          url = web.routes.Dashboard.index().absoluteURL(),
-          queryString = Map("_at" -> Seq(token))
-        )
+          Redirect(
+            url = web.routes.Dashboard.index().absoluteURL(),
+            queryString = Map("_at" -> Seq(token))
+          )
+        }
       }
-    }.getOrElse {
-      Unauthorized(Json.obj("message" -> "Access denied."))
-    }
+      .getOrElse {
+        Unauthorized(Json.obj("message" -> "Access denied."))
+      }
   }
 
 }
