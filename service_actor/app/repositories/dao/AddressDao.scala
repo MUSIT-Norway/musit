@@ -25,7 +25,7 @@ import no.uio.musit.models.{DatabaseId, OrgId}
 import no.uio.musit.MusitResults._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 
@@ -35,7 +35,7 @@ class AddressDao @Inject()(
 ) extends HasDatabaseConfigProvider[JdbcProfile]
     with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   private val orgAdrTable = TableQuery[OrganisationAddressTable]
 

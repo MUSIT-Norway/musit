@@ -40,7 +40,7 @@ class OrganisationDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends StorageTables {
 
-  import driver.api._
+  import profile.api._
 
   val logger = Logger(classOf[OrganisationDao])
 

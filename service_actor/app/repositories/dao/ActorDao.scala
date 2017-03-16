@@ -23,7 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.Person
 import no.uio.musit.models.{ActorId, DatabaseId, MuseumId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 
@@ -33,7 +33,7 @@ class ActorDao @Inject()(
 ) extends HasDatabaseConfigProvider[JdbcProfile]
     with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   private val actorTable = TableQuery[ActorTable]
 

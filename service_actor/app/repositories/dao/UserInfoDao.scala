@@ -25,7 +25,7 @@ import no.uio.musit.security.{AuthTables, UserInfo}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -37,7 +37,7 @@ class UserInfoDao @Inject()(
 
   val logger = Logger(classOf[UserInfoDao])
 
-  import driver.api._
+  import profile.api._
 
   private def userInfoFromTuple(tuple: UserInfoDBTuple): UserInfo = {
     UserInfo(

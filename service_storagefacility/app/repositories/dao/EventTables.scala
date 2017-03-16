@@ -31,7 +31,7 @@ import repositories.dao.event.EventRelationTypes.EventRelationDto
  */
 private[dao] trait EventTables extends BaseDao with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   val obsFromToTable       = TableQuery[ObservationFromToTable]
   val eventBaseTable       = TableQuery[EventBaseTable]

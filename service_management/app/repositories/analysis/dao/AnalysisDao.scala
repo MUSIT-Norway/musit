@@ -19,7 +19,7 @@ class AnalysisDao @Inject()(
 
   val logger = Logger(classOf[AnalysisDao])
 
-  import driver.api._
+  import profile.api._
 
   private val noaction: DBIO[Unit] = DBIO.successful(())
 

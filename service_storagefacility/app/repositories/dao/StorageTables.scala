@@ -31,7 +31,7 @@ private[dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
 
   private val logger = Logger(classOf[StorageTables])
 
-  import driver.api._
+  import profile.api._
 
   protected def wrongNumUpdatedRows(id: StorageNodeDatabaseId, numRowsUpdated: Int) =
     s"Wrong amount of rows ($numRowsUpdated) updated for node $id"

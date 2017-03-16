@@ -40,7 +40,7 @@ class MigrationDao @Inject()(
 
   val logger = Logger(classOf[MigrationDao])
 
-  import driver.api._
+  import profile.api._
 
   /**
    * It will set a UUID to all storage nodes that are doesn't have one.

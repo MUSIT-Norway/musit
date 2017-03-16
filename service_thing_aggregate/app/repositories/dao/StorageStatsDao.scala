@@ -36,7 +36,7 @@ class StorageStatsDao @Inject()(
 
   val logger = Logger(classOf[StorageStatsDao])
 
-  import driver.api._
+  import profile.api._
 
   private def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
     nodeTable.filter { sn =>

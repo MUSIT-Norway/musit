@@ -21,11 +21,11 @@ package repositories.dao
 
 import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfigProvider
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   // Type aliases representing rows for the different tables
   type ObjectRow = (

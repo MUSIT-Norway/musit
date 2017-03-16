@@ -33,7 +33,7 @@ class ObservationPestDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
-  import driver.api._
+  import profile.api._
 
   /**
    * The insertAction and getObservation are somewhat more complex than
