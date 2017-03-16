@@ -1,4 +1,4 @@
-package repositories.analysis.dao
+package repositories.shared.dao
 
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}

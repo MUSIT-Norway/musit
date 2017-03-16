@@ -10,6 +10,7 @@ import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json}
+import repositories.shared.dao.ColumnTypeMappers
 import slick.driver.JdbcProfile
 
 /**
