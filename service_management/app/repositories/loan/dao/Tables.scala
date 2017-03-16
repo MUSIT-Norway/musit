@@ -20,12 +20,22 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
   import driver.api._
 
-  val loanTable = TableQuery[LoanEventTable]
+  val loanTable       = TableQuery[LoanEventTable]
   val activeLoanTable = TableQuery[ActiveLoanTable]
   val lentObjectTable = TableQuery[LentObjectTable]
 
   // scalastyle:off line.size.limit
-  type LoanEventRow = (Option[EventId], LoanType, Option[JSqlTimestamp], Option[ActorId], Option[JSqlTimestamp], Option[EventId], Option[ObjectUUID], Option[String], JsValue)
+  type LoanEventRow = (
+      Option[EventId],
+      LoanType,
+      Option[JSqlTimestamp],
+      Option[ActorId],
+      Option[JSqlTimestamp],
+      Option[EventId],
+      Option[ObjectUUID],
+      Option[String],
+      JsValue
+  )
   type ActiveLoanRow = (Option[Long], MuseumId, ObjectUUID, EventId, DateTime)
   type LentObjectRow = (Option[Long], EventId, ObjectUUID)
   // scalastyle:on line.size.limit
@@ -34,18 +44,29 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[LoanEventRow](tag, Some(SchemaName), LoanEventTableName) {
 
-    val id = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
-    val typeId = column[LoanType]("TYPE_ID")
-    val eventDate = column[Option[JSqlTimestamp]]("EVENT_DATE")
-    val registeredBy = column[Option[ActorId]]("REGISTERED_BY")
+    val id             = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
+    val typeId         = column[LoanType]("TYPE_ID")
+    val eventDate      = column[Option[JSqlTimestamp]]("EVENT_DATE")
+    val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
-    val partOf = column[Option[EventId]]("PART_OF")
-    val objectUuid = column[Option[ObjectUUID]]("OBJECT_UUID")
-    val note = column[Option[String]]("NOTE")
-    val eventJson = column[JsValue]("EVENT_JSON")
+    val partOf         = column[Option[EventId]]("PART_OF")
+    val objectUuid     = column[Option[ObjectUUID]]("OBJECT_UUID")
+    val note           = column[Option[String]]("NOTE")
+    val eventJson      = column[JsValue]("EVENT_JSON")
 
     // scalastyle:off method.name line.size.limit
-    override def * = (id.?, typeId, eventDate, registeredBy, registeredDate, partOf, objectUuid, note, eventJson)
+    override def * =
+      (
+        id.?,
+        typeId,
+        eventDate,
+        registeredBy,
+        registeredDate,
+        partOf,
+        objectUuid,
+        note,
+        eventJson
+      )
 
     // scalastyle:on method.name line.size.limit
   }
@@ -54,10 +75,10 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[ActiveLoanRow](tag, Some(SchemaName), ActiveLoanTableName) {
 
-    val id = column[Long]("ACTIVE_LOAN_ID", O.PrimaryKey, O.AutoInc)
-    val museumId = column[MuseumId]("MUSEUM_ID")
+    val id         = column[Long]("ACTIVE_LOAN_ID", O.PrimaryKey, O.AutoInc)
+    val museumId   = column[MuseumId]("MUSEUM_ID")
     val objectUuid = column[ObjectUUID]("OBJECT_UUID")
-    val eventId = column[EventId]("EVENT_ID")
+    val eventId    = column[EventId]("EVENT_ID")
     val returnDate = column[DateTime]("RETURN_DATE")
 
     // scalastyle:off method.name line.size.limit
@@ -70,8 +91,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[LentObjectRow](tag, Some(SchemaName), LentObjectTableName) {
 
-    val id = column[Long]("ACTIVE_LOAN_ID", O.PrimaryKey, O.AutoInc)
-    val eventId = column[EventId]("EVENT_ID")
+    val id         = column[Long]("ACTIVE_LOAN_ID", O.PrimaryKey, O.AutoInc)
+    val eventId    = column[EventId]("EVENT_ID")
     val objectUuid = column[ObjectUUID]("OBJECT_UUID")
 
     // scalastyle:off method.name line.size.limit

@@ -1,4 +1,3 @@
-
 package models.loan
 
 import enumeratum._
@@ -26,8 +25,7 @@ object LoanEventTypes extends Enum[LoanType] {
 
   def unsafeFromId(id: Long): LoanType = fromId(id).get
 
-  case object LentObjectsType extends LoanType(2, "LentObjects")
-
+  case object LentObjectsType     extends LoanType(2, "LentObjects")
   case object ReturnedObjectsType extends LoanType(3, "ReturnedObjects")
 
 }

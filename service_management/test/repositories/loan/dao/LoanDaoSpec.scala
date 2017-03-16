@@ -1,4 +1,3 @@
-
 package repositories.loan.dao
 
 import models.loan.LoanEventTypes.{LentObjectsType, ReturnedObjectsType}
@@ -61,7 +60,7 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite {
     "receives returned object event" should {
       "insert returned event" in {
         val lentObj = lentObject()
-        val retObj = retObject().copy(objects = lentObj.objects)
+        val retObj  = retObject().copy(objects = lentObj.objects)
 
         loanDao.insertLentObjectEvent(mid, lentObj).futureValue
         val res = loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
@@ -71,14 +70,14 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite {
 
       "insert returned event when no active loan is present" in {
         val retObj = retObject()
-        val res = loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
+        val res    = loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
 
         res mustBe a[MusitSuccess[_]]
       }
 
       "remove object from active loans" in {
         val lentObj = lentObject()
-        val retObj = retObject().copy(objects = lentObj.objects)
+        val retObj  = retObject().copy(objects = lentObj.objects)
 
         loanDao.insertLentObjectEvent(mid, lentObj).futureValue
         loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
@@ -92,11 +91,11 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite {
     "find events " should {
       "related to object" in {
         val lentObj = lentObject()
-        val retObj = retObject().copy(objects = lentObj.objects)
+        val retObj  = retObject().copy(objects = lentObj.objects)
 
         loanDao.insertLentObjectEvent(mid, lentObj).futureValue
         loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
-        val events = loanDao.findEventForObject(lentObj.objects.head).futureValue
+        val events     = loanDao.findEventForObject(lentObj.objects.head).futureValue
         val eventTypes = events.get.map(_.getClass)
 
         eventTypes must contain allOf (classOf[LentObject], classOf[ReturnedObject])

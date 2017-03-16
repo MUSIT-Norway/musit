@@ -1,4 +1,3 @@
-
 package repositories.loan.dao
 
 import com.google.inject.{Inject, Singleton}
@@ -16,7 +15,7 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 @Singleton
-class LoanDao @Inject() (
+class LoanDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
@@ -33,7 +32,10 @@ class LoanDao @Inject() (
   }
 
   private def insertActiveLoanRows(
-    mid: MuseumId, eid: EventId, returnDate: DateTime, objs: Seq[ObjectUUID]
+      mid: MuseumId,
+      eid: EventId,
+      returnDate: DateTime,
+      objs: Seq[ObjectUUID]
   ) = {
     val actions = objs.map(o => insertActiveLoanRow((None, mid, o, eid, returnDate)))
     DBIO.sequence(actions)
@@ -57,11 +59,11 @@ class LoanDao @Inject() (
   }
 
   def insertReturnedObjectEvent(
-    mid: MuseumId,
-    retEvt: ReturnedObject
+      mid: MuseumId,
+      retEvt: ReturnedObject
   ): Future[MusitResult[EventId]] = {
     val actions = for {
-      _ <- deleteActiveLoanRows(retEvt.objects)
+      _  <- deleteActiveLoanRows(retEvt.objects)
       id <- insertEventRow(asEventRowTuple(retEvt))
     } yield id
     db.run(actions.transactionally).map(MusitSuccess.apply).recover {
@@ -73,13 +75,13 @@ class LoanDao @Inject() (
   }
 
   def insertLentObjectEvent(
-    mid: MuseumId,
-    lentObject: LentObject
+      mid: MuseumId,
+      lentObject: LentObject
   ): Future[MusitResult[EventId]] = {
     val actions = for {
       id <- insertEventRow(asEventRowTuple(lentObject))
-      _ <- insertLentObjects(id, lentObject.objects)
-      _ <- insertActiveLoanRows(mid, id, lentObject.returnDate, lentObject.objects)
+      _  <- insertLentObjects(id, lentObject.objects)
+      _  <- insertActiveLoanRows(mid, id, lentObject.returnDate, lentObject.objects)
     } yield id
     db.run(actions.transactionally).map(MusitSuccess.apply).recover {
       case NonFatal(t) =>
@@ -90,12 +92,12 @@ class LoanDao @Inject() (
   }
 
   def findExpectedReturnedObjects(
-    mid: MuseumId
+      mid: MuseumId
   ): Future[MusitResult[Seq[(ObjectUUID, DateTime)]]] = {
-    val action = activeLoanTable.filter(r => r.museumId === mid &&
-      r.returnDate < dateTimeNow)
-      .sortBy(_.returnDate)
-      .map(r => r.objectUuid -> r.returnDate)
+    val action = activeLoanTable.filter { r =>
+      r.museumId === mid &&
+      r.returnDate < dateTimeNow
+    }.sortBy(_.returnDate).map(r => r.objectUuid -> r.returnDate)
 
     db.run(action.result).map(MusitSuccess.apply).recover {
       case NonFatal(t) =>
@@ -106,14 +108,23 @@ class LoanDao @Inject() (
   }
 
   def findEventForObject(objectUUID: ObjectUUID): Future[MusitResult[Seq[LoanEvent]]] = {
-    val query = loanTable.join(lentObjectTable).filter {
-      case (lt, lo) => lt.objectUuid === objectUUID || lo.objectUuid === objectUUID
-    }.sortBy(_._1.eventDate)
+    val query = loanTable
+      .join(lentObjectTable)
+      .filter {
+        case (lt, lo) => lt.objectUuid === objectUUID || lo.objectUuid === objectUUID
+      }
+      .sortBy(_._1.eventDate)
       .map(res => res._1.typeId -> res._1.eventJson)
 
-    db.run(query.result).map(res => res.map(evt => evt._1 match {
-      case LentObjectsType => evt._2.as[LentObject]
-      case ReturnedObjectsType => evt._2.as[ReturnedObject]
-    })).map(MusitSuccess.apply)
+    db.run(query.result)
+      .map { res =>
+        res.map { evt =>
+          evt._1 match {
+            case LentObjectsType     => evt._2.as[LentObject]
+            case ReturnedObjectsType => evt._2.as[ReturnedObject]
+          }
+        }
+      }
+      .map(MusitSuccess.apply)
   }
 }
