@@ -26,7 +26,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import services.UserService
 
-class UserController @Inject() (
+class UserController @Inject()(
     val authService: Authenticator,
     val userService: UserService
 ) extends MusitController {

@@ -33,18 +33,18 @@ object MusitResults {
 
     def map[B](f: A => B): MusitResult[B] = this match {
       case MusitSuccess(success) => MusitSuccess(f(success))
-      case err: MusitError => err
+      case err: MusitError       => err
     }
 
     def flatMap[B](f: A => MusitResult[B]): MusitResult[B] = this match {
       case MusitSuccess(success) => f(success)
-      case err: MusitError => err
+      case err: MusitError       => err
     }
 
     def flatten[B](implicit ev: A <:< MusitResult[B]): MusitResult[B] = {
       this match {
         case MusitSuccess(success) => success
-        case err: MusitError => err
+        case err: MusitError       => err
       }
     }
 
@@ -92,7 +92,7 @@ object MusitResults {
    * here as a MusitError type.
    */
   case object MusitEmpty extends MusitError {
-    override val message: String = "empty"
+    override val message: String    = "empty"
     override val isSuccess: Boolean = false
   }
 
@@ -139,7 +139,7 @@ object MusitResults {
    * Use this error type whenever some level of authorization is required.
    */
   case class MusitNotAuthorized() extends MusitError {
-    override val message: String = "Requires authorization"
+    override val message: String    = "Requires authorization"
     override val isSuccess: Boolean = false
   }
 

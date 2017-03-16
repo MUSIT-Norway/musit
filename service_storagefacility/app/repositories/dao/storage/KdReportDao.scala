@@ -31,7 +31,7 @@ import repositories.dao.StorageTables
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class KdReportDao @Inject() (
+class KdReportDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends StorageTables {
 
@@ -44,95 +44,82 @@ class KdReportDao @Inject() (
       sn.storageType === roomType && sn.museumId === mid && sn.isDeleted === false
     }.map(_.area)
 
-    db.run(query.sum.result)
-      .map(res => MusitSuccess(res.getOrElse(0.0)))
-      .recover {
-        case NonFatal(e) =>
-          MusitDbError("Error occurred while retrieving objects", Some(e))
-      }
+    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
+      case NonFatal(e) =>
+        MusitDbError("Error occurred while retrieving objects", Some(e))
+    }
   }
 
   def getAreaPerimeterSecurity(mid: MuseumId): Future[MusitResult[Double]] = {
     val query = for {
       sn <- storageNodeTable.filter(sn => sn.museumId === mid && sn.isDeleted === false)
-      r <- roomTable.filter(r => sn.id === r.id && r.perimeterSecurity === true)
+      r  <- roomTable.filter(r => sn.id === r.id && r.perimeterSecurity === true)
     } yield {
       sn.area
     }
-    db.run(query.sum.result)
-      .map(res => MusitSuccess(res.getOrElse(0.0)))
-      .recover {
-        case NonFatal(e) =>
-          MusitDbError("Error occurred while retrieving areaPerimeterSecurity", Some(e))
-      }
+    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
+      case NonFatal(e) =>
+        MusitDbError("Error occurred while retrieving areaPerimeterSecurity", Some(e))
+    }
   }
 
   def getAreaTheftProtection(mid: MuseumId): Future[MusitResult[Double]] = {
     val query = for {
       sn <- storageNodeTable.filter(sn => sn.museumId === mid && sn.isDeleted === false)
-      r <- roomTable.filter(r => sn.id === r.id && r.theftProtection === true)
+      r  <- roomTable.filter(r => sn.id === r.id && r.theftProtection === true)
     } yield {
       sn.area
     }
-    db.run(query.sum.result)
-      .map(res => MusitSuccess(res.getOrElse(0.0)))
-      .recover {
-        case NonFatal(e) =>
-          MusitDbError("Error occurred while retrieving AreaTheftProtection", Some(e))
-      }
+    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
+      case NonFatal(e) =>
+        MusitDbError("Error occurred while retrieving AreaTheftProtection", Some(e))
+    }
   }
 
   def getAreaFireProtectiony(mid: MuseumId): Future[MusitResult[Double]] = {
     val query = for {
       sn <- storageNodeTable.filter(sn => sn.museumId === mid && sn.isDeleted === false)
-      r <- roomTable.filter(r => sn.id === r.id && r.fireProtection === true)
+      r  <- roomTable.filter(r => sn.id === r.id && r.fireProtection === true)
     } yield {
       sn.area
     }
-    db.run(query.sum.result)
-      .map(res => MusitSuccess(res.getOrElse(0.0)))
-      .recover {
-        case NonFatal(e) =>
-          MusitDbError("Error occurred while retrieving AreaFireProtection", Some(e))
-      }
+    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
+      case NonFatal(e) =>
+        MusitDbError("Error occurred while retrieving AreaFireProtection", Some(e))
+    }
   }
 
   def getAreaWaterDamageAssessment(mid: MuseumId): Future[MusitResult[Double]] = {
     val query = for {
       sn <- storageNodeTable.filter(sn => sn.museumId === mid && sn.isDeleted === false)
-      r <- roomTable.filter(r => sn.id === r.id && r.waterDamage === true)
+      r  <- roomTable.filter(r => sn.id === r.id && r.waterDamage === true)
     } yield {
       sn.area
     }
     val action = query.sum.result
-    db.run(action)
-      .map(res => MusitSuccess(res.getOrElse(0.0)))
-      .recover {
-        case NonFatal(e) =>
-          MusitDbError(
-            message = "Error occurred while retrieving areaWaterDamageAssessment",
-            ex = Some(e)
-          )
-      }
+    db.run(action).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
+      case NonFatal(e) =>
+        MusitDbError(
+          message = "Error occurred while retrieving areaWaterDamageAssessment",
+          ex = Some(e)
+        )
+    }
   }
 
   def getAreaRoutinesAndContingencyPlan(mid: MuseumId): Future[MusitResult[Double]] = {
     val query = for {
       sn <- storageNodeTable.filter(sn => sn.museumId === mid && sn.isDeleted === false)
-      r <- roomTable.filter(r => sn.id === r.id && r.routinesAndContingency === true)
+      r  <- roomTable.filter(r => sn.id === r.id && r.routinesAndContingency === true)
     } yield {
       sn.area
     }
-    db.run(query.sum.result)
-      .map(res => MusitSuccess(res.getOrElse(0.0)))
-      .recover {
-        case NonFatal(e) =>
-          MusitDbError(
-            message = "Error occurred while retrieving AreaRoutinesAndContingencyPlan",
-            ex = Some(e)
-          )
-      }
+    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
+      case NonFatal(e) =>
+        MusitDbError(
+          message = "Error occurred while retrieving AreaRoutinesAndContingencyPlan",
+          ex = Some(e)
+        )
+    }
   }
 
 }
-

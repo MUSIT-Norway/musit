@@ -22,8 +22,6 @@ import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.SbtNativePackager.autoImport._
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
-import com.typesafe.sbt.SbtScalariform
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import play.sbt.PlayImport.PlayKeys
 import play.sbt.Play
 import sbt.Keys._
@@ -58,15 +56,17 @@ object CommonSettings {
       "-Ywarn-dead-code", // Warn when dead code is identified.
       "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
       "-Ywarn-nullary-override", // Warn when non-nullary overrides nullary, e.g. def foo() over def foo.
-      "-Ywarn-numeric-widen", // Warn when numerics are widened.
+      "-Ywarn-numeric-widen",    // Warn when numerics are widened.
       // For advanced language features
       "-language:implicitConversions",
       "-language:higherKinds",
       "-language:existentials",
       "-language:postfixOps",
       "-target:jvm-1.8",
-      "-encoding", "UTF-8",
-      "-Xmax-classfile-name", "100" // This will limit the classname generation to 100 characters.
+      "-encoding",
+      "UTF-8",
+      "-Xmax-classfile-name",
+      "100" // This will limit the classname generation to 100 characters.
     ),
     // Configuring the scoverage plugin.
     coverageExcludedPackages := "<empty>;router;controllers.javascript;" +
@@ -77,18 +77,13 @@ object CommonSettings {
     // Disable scaladoc
     publishArtifact in (Compile, packageDoc) := false,
     publishArtifact in packageDoc := false,
-    sources in (Compile,doc) := Seq.empty
+    sources in (Compile, doc) := Seq.empty
   )
 
   // scalastyle:off
   def BaseProject(projName: String): Project =
     Project(projName, file(projName))
       .settings(projectSettings: _*)
-      .settings(SbtScalariform.scalariformSettingsWithIt ++ Seq(
-        ScalariformKeys.preferences := ScalariformKeys.preferences.value
-          .setPreference(FormatXml, false)
-          .setPreference(SpacesAroundMultiImports, false)
-      ))
       .settings(
         // Setting timezone for testing to UTC, because h2 doesn't support
         // timezones very well, and it will always default to UTC regardless.
@@ -107,28 +102,32 @@ object CommonSettings {
         SbtNativePackager,
         DockerPlugin
       )
-      .settings(dependencyOverrides += "com.typesafe.play" %% "play-logback" % Dependencies.PlayFrameWork.version)
-      .settings(Seq(
-        PlayKeys.playOmnidoc := false,
-        buildInfoKeys := Seq[BuildInfoKey](
-          name,
-          version,
-          scalaVersion,
-          sbtVersion,
-          buildInfoBuildNumber
-        ),
-        buildInfoPackage := "no.uio.musit.service",
-        buildInfoOptions ++= Seq(BuildInfoOption.ToJson, BuildInfoOption.BuildTime),
-        javaOptions in Test ++= Seq(
-          "-Dconfig.file=conf/application.test.conf",
-          "-Dlogger.resource=logback-test.xml"
-        ),
-        maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
-        packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
-        packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",
-        dockerExposedPorts in Docker := Seq(8080),
-        dockerExposedVolumes in Docker := Seq("/opt/docker/logs"),
-        dockerBaseImage in Docker := "java:8"
-      ))
+      .settings(
+        dependencyOverrides += "com.typesafe.play" %% "play-logback" % Dependencies.PlayFrameWork.version
+      )
+      .settings(
+        Seq(
+          PlayKeys.playOmnidoc := false,
+          buildInfoKeys := Seq[BuildInfoKey](
+            name,
+            version,
+            scalaVersion,
+            sbtVersion,
+            buildInfoBuildNumber
+          ),
+          buildInfoPackage := "no.uio.musit.service",
+          buildInfoOptions ++= Seq(BuildInfoOption.ToJson, BuildInfoOption.BuildTime),
+          javaOptions in Test ++= Seq(
+            "-Dconfig.file=conf/application.test.conf",
+            "-Dlogger.resource=logback-test.xml"
+          ),
+          maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
+          packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
+          packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",
+          dockerExposedPorts in Docker := Seq(8080),
+          dockerExposedVolumes in Docker := Seq("/opt/docker/logs"),
+          dockerBaseImage in Docker := "java:8"
+        )
+      )
 
 }

@@ -29,15 +29,15 @@ import repositories.dao.EventTables
 import scala.concurrent.Future
 
 @Singleton
-class EventObjectsDao @Inject() (
+class EventObjectsDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
   import driver.api._
 
   def insertObjects(
-    eventId: EventId,
-    relatedObjects: Seq[EventRoleObject]
+      eventId: EventId,
+      relatedObjects: Seq[EventRoleObject]
   ): DBIO[Option[Int]] = {
     val relObjects = relatedObjects.map(_.copy(eventId = Some(eventId)))
     eventObjectsTable ++= relObjects
@@ -49,18 +49,18 @@ class EventObjectsDao @Inject() (
   }
 
   def latestEventIdsForObject(
-    objectId: ObjectId,
-    eventTypeId: EventTypeId,
-    limit: Option[Int] = None
+      objectId: ObjectId,
+      eventTypeId: EventTypeId,
+      limit: Option[Int] = None
   ): Future[Seq[EventId]] = {
     val q = eventObjectsTable.filter { erp =>
       erp.objectId === objectId && erp.eventTypeId === eventTypeId
     }.sortBy(_.eventId.desc).map(_.eventId)
 
     val query = limit.map {
-      case l: Int if l > 0 => q.take(l)
+      case l: Int if l > 0   => q.take(l)
       case l: Int if l == -1 => q
-      case l: Int => q.take(50)
+      case l: Int            => q.take(50)
     }.getOrElse(q).result
     db.run(query)
   }

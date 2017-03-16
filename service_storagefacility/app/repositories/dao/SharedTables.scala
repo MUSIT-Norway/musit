@@ -32,40 +32,44 @@ private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
       tag: Tag
   ) extends Table[LocalObject](tag, SchemaName, "LOCAL_OBJECT") {
     // scalastyle:off method.name
-    def * = (
-      objectId,
-      latestMoveId,
-      currentLocationId,
-      museumId
-    ) <> (create.tupled, destroy)
-
-    // scalastyle:on method.name
-
-    val objectId = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
-    val latestMoveId = column[EventId]("LATEST_MOVE_ID")
-    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
-    val museumId = column[MuseumId]("MUSEUM_ID")
-
-    def create = (
-      objectId: ObjectId,
-      latestMoveId: EventId,
-      currentLocationId: StorageNodeDatabaseId,
-      museumId: MuseumId
-    ) =>
-      LocalObject(
+    def * =
+      (
         objectId,
         latestMoveId,
         currentLocationId,
         museumId
+      ) <> (create.tupled, destroy)
+
+    // scalastyle:on method.name
+
+    val objectId          = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
+    val latestMoveId      = column[EventId]("LATEST_MOVE_ID")
+    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
+    val museumId          = column[MuseumId]("MUSEUM_ID")
+
+    def create =
+      (
+          objectId: ObjectId,
+          latestMoveId: EventId,
+          currentLocationId: StorageNodeDatabaseId,
+          museumId: MuseumId
+      ) =>
+        LocalObject(
+          objectId,
+          latestMoveId,
+          currentLocationId,
+          museumId
       )
 
     def destroy(localObject: LocalObject) =
-      Some((
-        localObject.objectId,
-        localObject.latestMoveId,
-        localObject.currentLocationId,
-        localObject.museumId
-      ))
+      Some(
+        (
+          localObject.objectId,
+          localObject.latestMoveId,
+          localObject.currentLocationId,
+          localObject.museumId
+        )
+      )
   }
 
 }

@@ -13,7 +13,7 @@ import repositories.analysis.dao.AnalysisTypeDao
 
 import scala.concurrent.Future
 
-class AnalysisService @Inject() (
+class AnalysisService @Inject()(
     val analysisDao: AnalysisDao,
     val typeDao: AnalysisTypeDao
 ) {
@@ -31,17 +31,16 @@ class AnalysisService @Inject() (
   }
 
   def add(ae: AnalysisEvent)(
-    implicit
-    currUser: AuthenticatedUser
+      implicit currUser: AuthenticatedUser
   ): Future[MusitResult[EventId]] = {
     ae match {
-      case a: Analysis => addAnalysis(a)
+      case a: Analysis            => addAnalysis(a)
       case ac: AnalysisCollection => addAnalysisCollection(ac)
     }
   }
 
   def addAnalysis(
-    a: Analysis
+      a: Analysis
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val analysis = a.copy(
       registeredBy = Some(currUser.id),
@@ -51,26 +50,28 @@ class AnalysisService @Inject() (
   }
 
   def addAnalysisCollection(
-    ac: AnalysisCollection
+      ac: AnalysisCollection
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val now = Some(dateTimeNow)
     val acol = ac.copy(
       registeredBy = Some(currUser.id),
       registeredDate = now,
-      events = ac.events.map(_.copy(
-        registeredBy = Some(currUser.id),
-        registeredDate = now
-      ))
+      events = ac.events.map(
+        _.copy(
+          registeredBy = Some(currUser.id),
+          registeredDate = now
+        )
+      )
     )
     analysisDao.insertCol(acol)
   }
 
   def addResult(
-    eid: EventId,
-    res: AnalysisResult
+      eid: EventId,
+      res: AnalysisResult
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[Long]] = {
     val now = Some(dateTimeNow)
-    val ar = res.withRegisteredBy(Some(currUser.id)).withtRegisteredDate(now)
+    val ar  = res.withRegisteredBy(Some(currUser.id)).withtRegisteredDate(now)
     analysisDao.insertResult(eid, ar)
   }
 

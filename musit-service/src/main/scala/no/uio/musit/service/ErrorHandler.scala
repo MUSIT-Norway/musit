@@ -35,9 +35,9 @@ class ErrorHandler extends HttpErrorHandler {
   val logger = Logger(classOf[ErrorHandler])
 
   def onClientError(
-    request: RequestHeader,
-    statusCode: Int,
-    message: String
+      request: RequestHeader,
+      statusCode: Int,
+      message: String
   ): Future[Result] = {
     logger.warn(s"ErrorHandler - Client error ($statusCode): $message")
     Future.successful(
@@ -46,8 +46,8 @@ class ErrorHandler extends HttpErrorHandler {
   }
 
   def onServerError(
-    request: RequestHeader,
-    exception: Throwable
+      request: RequestHeader,
+      exception: Throwable
   ): Future[Result] = {
     logger.error("ErrorHandler - Server error", exception)
     Future.successful(

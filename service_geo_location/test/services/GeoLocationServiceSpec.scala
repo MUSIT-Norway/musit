@@ -44,9 +44,9 @@ class GeoLocationServiceSpec extends MusitSpecWithAppPerSuite {
         res must not be empty
         res.find { a =>
           a.street == "Kirkegata" &&
-            a.streetNo == "11 E" &&
-            a.place == "HØNEFOSS" &&
-            a.zip == "3510"
+          a.streetNo == "11 E" &&
+          a.place == "HØNEFOSS" &&
+          a.zip == "3510"
         } must not be None
 
       }

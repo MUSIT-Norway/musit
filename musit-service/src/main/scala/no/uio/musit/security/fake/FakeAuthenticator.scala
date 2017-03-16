@@ -38,18 +38,16 @@ class FakeAuthenticator extends Authenticator {
   private val fakeFile = "/fake_security.json"
 
   val config = Json.parse(
-    Source.fromInputStream(getClass.getResourceAsStream(fakeFile))
-    .getLines()
-    .mkString
+    Source.fromInputStream(getClass.getResourceAsStream(fakeFile)).getLines().mkString
   )
 
   private case class FakeGroup(
-    id: GroupId,
-    name: String,
-    permission: Permission,
-    museumId: MuseumId,
-    description: Option[String],
-    collections: Seq[CollectionUUID]
+      id: GroupId,
+      name: String,
+      permission: Permission,
+      museumId: MuseumId,
+      description: Option[String],
+      collections: Seq[CollectionUUID]
   )
 
   private implicit val formatFakeGroup = Json.format[FakeGroup]
@@ -70,14 +68,18 @@ class FakeAuthenticator extends Authenticator {
   }
 
   private lazy val fakeUsers: Map[BearerToken, FakeUserDetails] = {
-    (config \ "users").as[JsArray].value.map { usrJs =>
-      val token = BearerToken((usrJs \ "accessToken").as[String])
-      val usrGrps = (usrJs \ "groups").as[Seq[GroupId]]
-      val usrInfo = usrJs.as[UserInfo]
-      val userGroups = allGroups.filter(g => usrGrps.contains(g.id))
+    (config \ "users")
+      .as[JsArray]
+      .value
+      .map { usrJs =>
+        val token      = BearerToken((usrJs \ "accessToken").as[String])
+        val usrGrps    = (usrJs \ "groups").as[Seq[GroupId]]
+        val usrInfo    = usrJs.as[UserInfo]
+        val userGroups = allGroups.filter(g => usrGrps.contains(g.id))
 
-      (token, FakeUserDetails(usrInfo, userGroups))
-    }.toMap
+        (token, FakeUserDetails(usrInfo, userGroups))
+      }
+      .toMap
   }
 
   /**
@@ -88,11 +90,14 @@ class FakeAuthenticator extends Authenticator {
    */
   override def userInfo(token: BearerToken): Future[MusitResult[UserInfo]] = {
     Future.successful {
-      fakeUsers.get(token).map { fud =>
-        MusitSuccess(fud.info)
-      }.getOrElse {
-        MusitNotAuthenticated()
-      }
+      fakeUsers
+        .get(token)
+        .map { fud =>
+          MusitSuccess(fud.info)
+        }
+        .getOrElse {
+          MusitNotAuthenticated()
+        }
     }
   }
 
@@ -106,9 +111,7 @@ class FakeAuthenticator extends Authenticator {
   override def groups(userInfo: UserInfo): Future[MusitResult[Seq[GroupInfo]]] =
     Future.successful {
       MusitSuccess(
-        fakeUsers.find(_._2.info.id == userInfo.id)
-          .map(_._2.groups)
-          .getOrElse(Seq.empty)
+        fakeUsers.find(_._2.info.id == userInfo.id).map(_._2.groups).getOrElse(Seq.empty)
       )
     }
 
@@ -122,12 +125,13 @@ class FakeAuthenticator extends Authenticator {
    * @return Either a Result or the active UserSession
    */
   override def authenticate[A](client: Option[String])(
-    implicit
-    req: Request[A]
+      implicit req: Request[A]
   ): Future[Either[Result, UserSession]] = Future.successful {
-    Left(Results.NotImplemented(
-      Json.obj("message" -> "authenticate is not implemented for fake security")
-    ))
+    Left(
+      Results.NotImplemented(
+        Json.obj("message" -> "authenticate is not implemented for fake security")
+      )
+    )
   }
 
   /**

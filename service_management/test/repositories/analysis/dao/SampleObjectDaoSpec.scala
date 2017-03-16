@@ -12,9 +12,9 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
   val dao: SampleObjectDao = fromInstanceCache[SampleObjectDao]
 
   def generateSample(
-    id: ObjectUUID,
-    parentId: Option[ObjectUUID],
-    isColObj: Boolean = false
+      id: ObjectUUID,
+      parentId: Option[ObjectUUID],
+      isColObj: Boolean = false
   ): SampleObject = {
     val now = DateTime.now
     SampleObject(
@@ -45,7 +45,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite {
 
     "return the object UUID of the inserted SampleObject" in {
       val oid = ObjectUUID.generate()
-      val so = generateSample(oid, None)
+      val so  = generateSample(oid, None)
       val res = dao.insert(so).futureValue
       res.isSuccess mustBe true
       res.get mustBe oid

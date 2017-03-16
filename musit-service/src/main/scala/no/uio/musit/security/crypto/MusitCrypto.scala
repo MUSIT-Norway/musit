@@ -38,7 +38,7 @@ import play.api.libs.crypto.CryptoException
  * and modified to use the REST endpoints to load data.
  */
 @Singleton
-class MusitCrypto @Inject() (ccp: CryptoConfigParser) {
+class MusitCrypto @Inject()(ccp: CryptoConfigParser) {
 
   val logger = Logger(classOf[MusitCrypto])
 
@@ -61,7 +61,7 @@ class MusitCrypto @Inject() (ccp: CryptoConfigParser) {
     logger.trace(s"Using IV ${Option(cipher.getIV).map(_.mkString)}")
     val enc = Option(cipher.getIV) match {
       case Some(iv) => s"2-${Base64.encodeBase64String(iv ++ encryptedValue)}"
-      case None => s"1-${Base64.encodeBase64String(encryptedValue)}"
+      case None     => s"1-${Base64.encodeBase64String(encryptedValue)}"
     }
     logger.trace(s"Encrypted value is $enc")
     enc
@@ -75,7 +75,7 @@ class MusitCrypto @Inject() (ccp: CryptoConfigParser) {
     messageDigest.update(privateKey.getBytes("utf-8"))
     // max allowed length in bits / (8 bits to a byte)
     val maxAllowedKeyLength = Cipher.getMaxAllowedKeyLength(algorithm) / 8
-    val raw = messageDigest.digest().slice(0, maxAllowedKeyLength)
+    val raw                 = messageDigest.digest().slice(0, maxAllowedKeyLength)
     new SecretKeySpec(raw, algorithm)
   }
 
@@ -86,17 +86,17 @@ class MusitCrypto @Inject() (ccp: CryptoConfigParser) {
   def decryptAES(value: String, privateKey: String): String = {
     logger.trace(s"Decrypting value: $value")
     val seperator = "-"
-    val sepIndex = value.indexOf(seperator)
+    val sepIndex  = value.indexOf(seperator)
     if (sepIndex < 0) {
       logger.trace(s"Using AES V0 decryption")
       decryptAESVersion0(value, privateKey)
     } else {
       val version = value.substring(0, sepIndex)
-      val data = value.substring(sepIndex + 1, value.length())
+      val data    = value.substring(sepIndex + 1, value.length())
       val dec = version match {
         case "1" => decryptAESVersion1(data, privateKey)
         case "2" => decryptAESVersion2(data, privateKey)
-        case _ => throw new CryptoException("Unknown version")
+        case _   => throw new CryptoException("Unknown version")
       }
       logger.trace(s"Decrypted Using AES V$version.")
       logger.trace(s"Got decrypted value: $dec")
@@ -106,7 +106,7 @@ class MusitCrypto @Inject() (ccp: CryptoConfigParser) {
 
   /** Backward compatible AES ECB mode decryption support. */
   private def decryptAESVersion0(value: String, privateKey: String): String = {
-    val raw = privateKey.substring(0, 16).getBytes("utf-8")
+    val raw      = privateKey.substring(0, 16).getBytes("utf-8")
     val skeySpec = new SecretKeySpec(raw, "AES")
     cipher.init(Cipher.DECRYPT_MODE, skeySpec)
     new String(cipher.doFinal(Codecs.hexStringToByte(value)))
@@ -114,7 +114,7 @@ class MusitCrypto @Inject() (ccp: CryptoConfigParser) {
 
   /** V1 decryption algorithm (No IV). */
   private def decryptAESVersion1(value: String, privateKey: String): String = {
-    val data = Base64.decodeBase64(value)
+    val data     = Base64.decodeBase64(value)
     val skeySpec = secretKeyWithSha256(privateKey, "AES")
     cipher.init(Cipher.DECRYPT_MODE, skeySpec)
     new String(cipher.doFinal(data), "utf-8")
@@ -122,11 +122,11 @@ class MusitCrypto @Inject() (ccp: CryptoConfigParser) {
 
   /** V2 decryption algorithm (IV present). */
   private def decryptAESVersion2(value: String, privateKey: String): String = {
-    val data = Base64.decodeBase64(value)
-    val skeySpec = secretKeyWithSha256(privateKey, "AES")
+    val data      = Base64.decodeBase64(value)
+    val skeySpec  = secretKeyWithSha256(privateKey, "AES")
     val blockSize = cipher.getBlockSize
-    val iv = data.slice(0, blockSize)
-    val payload = data.slice(blockSize, data.size)
+    val iv        = data.slice(0, blockSize)
+    val payload   = data.slice(blockSize, data.size)
     cipher.init(Cipher.DECRYPT_MODE, skeySpec, new IvParameterSpec(iv))
     new String(cipher.doFinal(payload), "utf-8")
   }

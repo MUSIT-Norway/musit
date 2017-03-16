@@ -97,7 +97,7 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         )
 
         val resInt = orgDao.update(orgUpd).futureValue
-        val res = orgDao.getById(OrgId(3)).futureValue
+        val res    = orgDao.getById(OrgId(3)).futureValue
         res.get.fn mustBe "Museet i Bar"
         res.get.nickname mustBe "B"
         res.get.tel mustBe "99344321"

@@ -34,8 +34,7 @@ import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
 import repositories.dao.event.EventDao
 
-trait EventGenerators extends EventTypeInitializers {
-  self: MusitSpecWithApp =>
+trait EventGenerators extends EventTypeInitializers { self: MusitSpecWithApp =>
 
   def eventDao: EventDao = fromInstanceCache[EventDao]
 
@@ -222,9 +221,9 @@ trait EventTypeInitializers {
     )
 
   def createMoveObject(
-    objectId: Option[ObjectId] = Some(ObjectId(1)),
-    from: Option[StorageNodeDatabaseId],
-    to: StorageNodeDatabaseId
+      objectId: Option[ObjectId] = Some(ObjectId(1)),
+      from: Option[StorageNodeDatabaseId],
+      to: StorageNodeDatabaseId
   ): MoveObject = {
     MoveObject(
       id = None,
@@ -240,9 +239,9 @@ trait EventTypeInitializers {
   }
 
   def createMoveNode(
-    nodeId: Option[StorageNodeDatabaseId] = Some(StorageNodeDatabaseId(1)),
-    from: Option[StorageNodeDatabaseId],
-    to: StorageNodeDatabaseId
+      nodeId: Option[StorageNodeDatabaseId] = Some(StorageNodeDatabaseId(1)),
+      from: Option[StorageNodeDatabaseId],
+      to: StorageNodeDatabaseId
   ): MoveNode = {
     MoveNode(
       id = None,

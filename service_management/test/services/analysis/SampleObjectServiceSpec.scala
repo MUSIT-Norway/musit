@@ -1,5 +1,3 @@
 package services.analysis
 
-class SampleObjectServiceSpec {
-
-}
+class SampleObjectServiceSpec {}

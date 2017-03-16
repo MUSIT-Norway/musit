@@ -31,7 +31,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-class DelphiBridgeController @Inject() (
+class DelphiBridgeController @Inject()(
     val authService: Authenticator,
     val nodeService: StorageNodeService,
     val objService: ObjectService
@@ -43,21 +43,25 @@ class DelphiBridgeController @Inject() (
    * Returns the StorageNodeDatabaseId and name for an objects current location.
    */
   def currentNode(
-    oldObjectId: Long,
-    schemaName: String
+      oldObjectId: Long,
+      schemaName: String
   ) = MusitSecureAction().async { implicit request =>
     nodeService.currNodeForOldObject(oldObjectId, schemaName)(request.user).map {
       case MusitSuccess(mres) =>
         mres.map { res =>
-          Ok(Json.obj(
-            "nodeId" -> Json.toJson(res._1),
-            "currentLocation" -> res._2
-          ))
+          Ok(
+            Json.obj(
+              "nodeId"          -> Json.toJson(res._1),
+              "currentLocation" -> res._2
+            )
+          )
         }.getOrElse {
-          Ok(Json.obj(
-            "nodeId" -> "",
-            "currentLocation" -> s"Gjenstanden har ingen plassering."
-          ))
+          Ok(
+            Json.obj(
+              "nodeId"          -> "",
+              "currentLocation" -> s"Gjenstanden har ingen plassering."
+            )
+          )
         }
 
       case err: MusitError =>
@@ -72,10 +76,13 @@ class DelphiBridgeController @Inject() (
     nodeService.nodesOutsideMuseum(mid).map {
       case MusitSuccess(res) =>
         val jsSeq = JsArray(
-          res.map(sn => Json.obj(
-            "nodeId" -> Json.toJson(sn._1),
-            "name" -> sn._2
-          ))
+          res.map(
+            sn =>
+              Json.obj(
+                "nodeId" -> Json.toJson(sn._1),
+                "name"   -> sn._2
+            )
+          )
         )
         Ok(jsSeq)
 
@@ -99,7 +106,7 @@ class DelphiBridgeController @Inject() (
       case JsSuccess(trans, _) =>
         objService.findByOldObjectIds(trans.schemaName, trans.oldObjectIds).map {
           case MusitSuccess(res) => Ok(Json.toJson(res))
-          case err: MusitError => InternalServerError(Json.obj("message" -> err.message))
+          case err: MusitError   => InternalServerError(Json.obj("message" -> err.message))
         }
 
       case jsErr: JsError =>

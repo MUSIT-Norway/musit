@@ -37,13 +37,13 @@ object Permissions {
 
     def fromInt(pri: Int): Permission = {
       pri match {
-        case Guest.priority => Guest
-        case Read.priority => Read
-        case Write.priority => Write
-        case Admin.priority => Admin
+        case Guest.priority      => Guest
+        case Read.priority       => Read
+        case Write.priority      => Write
+        case Admin.priority      => Admin
         case MusitAdmin.priority => MusitAdmin
-        case GodMode.priority => GodMode
-        case _ => Unspecified
+        case GodMode.priority    => GodMode
+        case _                   => Unspecified
       }
     }
 

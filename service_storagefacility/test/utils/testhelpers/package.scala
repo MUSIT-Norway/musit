@@ -21,22 +21,28 @@ package utils
 
 package object testhelpers {
 
-  val BaseUrl = "/v1/museum"
-  val StorageNodesUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes"
-  val RootNodeUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/root"
-  val StorageNodeUrl = (mid: Int, node: Long) => s"$BaseUrl/$mid/storagenodes/$node"
+  val BaseUrl            = "/v1/museum"
+  val StorageNodesUrl    = (mid: Int) => s"$BaseUrl/$mid/storagenodes"
+  val RootNodeUrl        = (mid: Int) => s"$BaseUrl/$mid/storagenodes/root"
+  val StorageNodeUrl     = (mid: Int, node: Long) => s"$BaseUrl/$mid/storagenodes/$node"
   val MoveStorageNodeUrl = (mid: Int) => s"${StorageNodesUrl(mid)}/moveNode"
-  val MoveObjectUrl = (mid: Int) => s"${StorageNodesUrl(mid)}/moveObject"
-  val NodeChildrenUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/children"
-  val ObjLocationHistoryUrl = (mid: Int, objectId: Long) => s"${StorageNodesUrl(mid)}/objects/$objectId/locations" // scalastyle:ignore
+  val MoveObjectUrl      = (mid: Int) => s"${StorageNodesUrl(mid)}/moveObject"
+  val NodeChildrenUrl = (mid: Int, node: Long) =>
+    s"${StorageNodeUrl(mid, node)}/children"
+  val ObjLocationHistoryUrl = (mid: Int, objectId: Long) =>
+    s"${StorageNodesUrl(mid)}/objects/$objectId/locations" // scalastyle:ignore
 
   val ControlsUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/controls"
-  val ControlUrl = (mid: Int, node: Long, evt: Long) => s"${ControlsUrl(mid, node)}/$evt"
-  val ObservationsUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/observations" // scalastyle:ignore
-  val ObservationUrl = (mid: Int, node: Long, evt: Long) => s"${ObservationsUrl(mid, node)}/$evt" // scalastyle:ignore
-  val CtrlObsForNodeUrl = (mid: Int, node: Long) => s"${StorageNodeUrl(mid, node)}/events"
+  val ControlUrl  = (mid: Int, node: Long, evt: Long) => s"${ControlsUrl(mid, node)}/$evt"
+  val ObservationsUrl = (mid: Int, node: Long) =>
+    s"${StorageNodeUrl(mid, node)}/observations" // scalastyle:ignore
+  val ObservationUrl = (mid: Int, node: Long, evt: Long) =>
+    s"${ObservationsUrl(mid, node)}/$evt" // scalastyle:ignore
+  val CtrlObsForNodeUrl = (mid: Int, node: Long) =>
+    s"${StorageNodeUrl(mid, node)}/events"
   val KdReportUrl = (mid: Int) => s"$BaseUrl/$mid/storagenodes/report"
-  val ObjCurrentLocationUrl = (mid: Int, objectId: Long) => s"${StorageNodesUrl(mid)}/objects/$objectId/currentlocation" // scalastyle:ignore
+  val ObjCurrentLocationUrl = (mid: Int, objectId: Long) =>
+    s"${StorageNodesUrl(mid)}/objects/$objectId/currentlocation" // scalastyle:ignore
   val StorageNodeSearchName = (mid: Int) => s"${StorageNodesUrl(mid)}/search"
 
   val ScanUrl = (mid: Int) => s"${StorageNodesUrl(mid)}/scan"

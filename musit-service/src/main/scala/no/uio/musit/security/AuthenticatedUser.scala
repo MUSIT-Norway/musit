@@ -53,8 +53,8 @@ case class AuthenticatedUser(
   }
 
   private def authorizeUser(
-    museum: Museum,
-    permissions: Seq[Permission]
+      museum: Museum,
+      permissions: Seq[Permission]
   ): MusitResult[Unit] = {
     val lowest = lowestPermission(permissions)
 
@@ -83,13 +83,13 @@ case class AuthenticatedUser(
   }
 
   def authorize(
-    museum: Museum,
-    permissions: Seq[Permission]
+      museum: Museum,
+      permissions: Seq[Permission]
   ): MusitResult[Unit] = authorizeUser(museum, permissions)
 
   def authorizeAdmin(
-    maybeMuseum: Option[Museum],
-    permissions: Seq[ElevatedPermission]
+      maybeMuseum: Option[Museum],
+      permissions: Seq[ElevatedPermission]
   ): MusitResult[Unit] = {
     maybeMuseum.map { museum =>
       authorizeUser(museum, permissions)

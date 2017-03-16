@@ -17,7 +17,8 @@ object Category {
   implicit val reads: Reads[Category] = Reads { jsv =>
     jsv.validate[Int] match {
       case JsSuccess(value, path) =>
-        EventCategories.fromId(value)
+        EventCategories
+          .fromId(value)
           .map(c => JsSuccess(c, path))
           .getOrElse(JsError(path, ""))
 

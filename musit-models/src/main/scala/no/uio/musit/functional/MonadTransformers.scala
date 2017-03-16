@@ -40,8 +40,12 @@ object MonadTransformers {
     def flatMap[B](f: A => MusitResultT[T, B]): MusitResultT[T, B] = {
       val res: T[MusitResult[B]] = m.flatMap(value) { a =>
         a.map(b => f(b).value).getOrElse {
-          m.pure(MusitInternalError("Unable to map into MusitResult in the " +
-            "MusitResultT transformer"))
+          m.pure(
+            MusitInternalError(
+              "Unable to map into MusitResult in the " +
+                "MusitResultT transformer"
+            )
+          )
         }
       }
       MusitResultT[T, B](res)

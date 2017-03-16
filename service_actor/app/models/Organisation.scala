@@ -26,14 +26,14 @@ import play.api.libs.json.Json
  * Domain Organization
  */
 case class Organisation(
-  id: Option[OrgId],
-  fn: String,
-  nickname: String,
-  tel: String,
-  web: String
+    id: Option[OrgId],
+    fn: String,
+    nickname: String,
+    tel: String,
+    web: String
 )
 
 object Organisation {
-  val tupled = (Organisation.apply _).tupled
+  val tupled          = (Organisation.apply _).tupled
   implicit val format = Json.format[Organisation]
 }

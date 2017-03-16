@@ -19,7 +19,11 @@
 
 package no.uio.musit.service
 
-import no.uio.musit.MusitResults.{MusitNotAuthenticated, MusitNotAuthorized, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitNotAuthenticated,
+  MusitNotAuthorized,
+  MusitSuccess
+}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.MuseumId
@@ -47,10 +51,10 @@ import scala.concurrent.Future
  * @tparam A Body content type of the incoming request
  */
 case class MusitRequest[A](
-  user: AuthenticatedUser,
-  token: BearerToken,
-  museum: Option[Museum],
-  request: Request[A]
+    user: AuthenticatedUser,
+    token: BearerToken,
+    museum: Option[Museum],
+    request: Request[A]
 ) extends WrappedRequest[A](request)
 
 trait MusitActions {
@@ -59,15 +63,21 @@ trait MusitActions {
 
   def authService: Authenticator
 
-  type MusitActionResult[T] = Either[Result, MusitRequest[T]]
+  type MusitActionResult[T]  = Either[Result, MusitRequest[T]]
   type MusitActionResultF[T] = Future[MusitActionResult[T]]
 
-  type AuthFunc[T] = (BearerToken, UserInfo, AuthenticatedUser, Option[Museum]) => MusitActionResult[T] // scalastyle:ignore
+  type AuthFunc[T] = (
+      BearerToken,
+      UserInfo,
+      AuthenticatedUser,
+      Option[Museum]
+  ) => MusitActionResult[T] // scalastyle:ignore
 
   /**
    * The base representation of a MUSIT specific request.
    */
-  abstract class BaseMusitAction extends ActionBuilder[MusitRequest]
+  abstract class BaseMusitAction
+      extends ActionBuilder[MusitRequest]
       with ActionRefiner[Request, MusitRequest] {
 
     override def refine[T](request: Request[T]): MusitActionResultF[T]
@@ -77,16 +87,16 @@ trait MusitActions {
   abstract class BaseSecureAction extends BaseMusitAction {
 
     protected def auth[T](
-      request: Request[T],
-      museumId: Option[MuseumId],
-      maybeToken: Option[BearerToken]
+        request: Request[T],
+        museumId: Option[MuseumId],
+        maybeToken: Option[BearerToken]
     )(authorize: AuthFunc[T]): MusitActionResultF[T] = {
       val museum = museumId.flatMap(Museum.fromMuseumId)
       maybeToken.map { token =>
         val res = for {
-          session <- MusitResultT(authService.touch(token))
+          session  <- MusitResultT(authService.touch(token))
           userInfo <- MusitResultT(authService.userInfo(token))
-          groups <- MusitResultT(authService.groups(userInfo))
+          groups   <- MusitResultT(authService.groups(userInfo))
         } yield {
           logger.debug(s"Got Groups\n${groups.map(_.name).mkString(", ")}")
           val authUser = AuthenticatedUser(session, userInfo, groups)
@@ -130,12 +140,15 @@ trait MusitActions {
       auth(request, museumId, maybeToken) { (token, userInfo, authUser, museum) =>
         museum match {
           case Some(m) =>
-            authUser.authorize(m, permissions).map { empty =>
-              Right(MusitRequest(authUser, token, museum, request))
-            }.getOrElse {
-              logger.debug(s"Action is unauthorized for ${userInfo.id}")
-              Left(Forbidden)
-            }
+            authUser
+              .authorize(m, permissions)
+              .map { empty =>
+                Right(MusitRequest(authUser, token, museum, request))
+              }
+              .getOrElse {
+                logger.debug(s"Action is unauthorized for ${userInfo.id}")
+                Left(Forbidden)
+              }
 
           case None =>
             if (museumId.isDefined) {
@@ -186,20 +199,25 @@ trait MusitAdminActions extends MusitActions {
   ) extends BaseSecureAction {
 
     override def refine[T](request: Request[T]): MusitActionResultF[T] = {
-      val maybeToken = BearerToken.fromRequestHeader(request).orElse(
-        request.getQueryString("_at").map { qs =>
-          val decrypted = crypto.decryptAES(qs)
-          BearerToken(decrypted)
-        }
-      )
+      val maybeToken = BearerToken
+        .fromRequestHeader(request)
+        .orElse(
+          request.getQueryString("_at").map { qs =>
+            val decrypted = crypto.decryptAES(qs)
+            BearerToken(decrypted)
+          }
+        )
 
       auth(request, museumId, maybeToken) { (token, userInfo, authUser, museum) =>
-        authUser.authorizeAdmin(museum, permissions).map { empty =>
-          Right(MusitRequest(authUser, token, museum, request))
-        }.getOrElse {
-          logger.debug(s"Action is unauthorized for ${userInfo.id}")
-          Left(Forbidden)
-        }
+        authUser
+          .authorizeAdmin(museum, permissions)
+          .map { empty =>
+            Right(MusitRequest(authUser, token, museum, request))
+          }
+          .getOrElse {
+            logger.debug(s"Action is unauthorized for ${userInfo.id}")
+            Left(Forbidden)
+          }
       }
     }
   }

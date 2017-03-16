@@ -34,7 +34,7 @@ import repositories.dao.event.EventDao
 
 import scala.concurrent.Future
 
-class ObservationService @Inject() (
+class ObservationService @Inject()(
     val eventDao: EventDao,
     val storageNodeService: StorageNodeService
 ) {
@@ -45,9 +45,9 @@ class ObservationService @Inject() (
    * TODO: Document me!
    */
   def add(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    obs: Observation
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      obs: Observation
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Observation]] = {
     storageNodeService.exists(mid, nodeId).flatMap {
       case MusitSuccess(nodeExists) =>
@@ -107,8 +107,8 @@ class ObservationService @Inject() (
    * TODO: Document me!
    */
   def listFor(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Seq[Observation]]] = {
     eventDao.getEventsForNode(mid, nodeId, ObservationEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>

@@ -13,11 +13,12 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
 
-class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
+class AnalysisControllerIntegrationSpec
+    extends MusitSpecWithServerPerSuite
     with DateTimeMatchers {
 
-  val mid = MuseumId(99)
-  val token = BearerToken(FakeUsers.testAdminToken)
+  val mid     = MuseumId(99)
+  val token   = BearerToken(FakeUsers.testAdminToken)
   val adminId = ActorId.unsafeFromString(FakeUsers.testAdminId)
 
   // test data
@@ -25,13 +26,13 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
   val dummyObjectId = ObjectUUID.generate()
 
   def createSaveAnalysisJSON(
-    eventDate: Option[DateTime],
-    oid: ObjectUUID,
-    note: Option[String] = None
+      eventDate: Option[DateTime],
+      oid: ObjectUUID,
+      note: Option[String] = None
   ): JsValue = {
     val js1 = Json.obj(
       "analysisTypeId" -> cnRatioTypeId,
-      "objectId" -> oid.asString
+      "objectId"       -> oid.asString
     )
     val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
     eventDate.map { d =>
@@ -40,9 +41,9 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
   }
 
   def createSaveAnalysisCollectionJSON(
-    eventDate: Option[DateTime],
-    objects: Seq[ObjectUUID],
-    note: Option[String]
+      eventDate: Option[DateTime],
+      objects: Seq[ObjectUUID],
+      note: Option[String]
   ): JsValue = {
     val js1 = Json.obj("analysisTypeId" -> cnRatioTypeId)
     val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
@@ -54,8 +55,8 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
   }
 
   def createGenericResultJSON(
-    extRef: Option[Seq[String]],
-    comment: Option[String]
+      extRef: Option[Seq[String]],
+      comment: Option[String]
   ): JsValue = {
 
     val js1 = Json.obj("type" -> GenericResult.resultType)
@@ -64,9 +65,9 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
   }
 
   def createDatingResultJSON(
-    extRef: Option[Seq[String]],
-    comment: Option[String],
-    age: Option[String]
+      extRef: Option[Seq[String]],
+      comment: Option[String],
+      age: Option[String]
   ): JsValue = {
     val js1 = Json.obj("type" -> GenericResult.resultType)
     val js2 = comment.map(c => js1 ++ Json.obj("comment" -> c)).getOrElse(js1)
@@ -75,11 +76,11 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
   }
 
   def validateAnalysisType(
-    expectedCategory: Category,
-    expectedName: String,
-    expectedShortName: Option[String],
-    expectedExtraAttributes: Option[Map[String, String]],
-    actual: JsValue
+      expectedCategory: Category,
+      expectedName: String,
+      expectedShortName: Option[String],
+      expectedExtraAttributes: Option[Map[String, String]],
+      actual: JsValue
   ) = {
     (actual \ "id").asOpt[String] must not be empty
     (actual \ "category").as[Int] mustBe expectedCategory.id
@@ -89,13 +90,13 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
   }
 
   def validateAnalysis(
-    expectedId: Long,
-    expectedTypeId: String,
-    expectedEventDate: Option[DateTime],
-    expectedObject: Option[ObjectUUID],
-    expectedParent: Option[Long],
-    expectedNote: Option[String],
-    actual: JsValue
+      expectedId: Long,
+      expectedTypeId: String,
+      expectedEventDate: Option[DateTime],
+      expectedObject: Option[ObjectUUID],
+      expectedParent: Option[Long],
+      expectedNote: Option[String],
+      actual: JsValue
   ) = {
     (actual \ "type").as[String] mustBe Analysis.discriminator
     (actual \ "id").as[Long] mustBe expectedId
@@ -109,12 +110,12 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
   }
 
   def validateAnalysisCollection(
-    expectedId: Long,
-    expectedTypeId: String,
-    expectedEventDate: Option[DateTime],
-    expectedNote: Option[String],
-    numChildren: Int,
-    actual: JsValue
+      expectedId: Long,
+      expectedTypeId: String,
+      expectedEventDate: Option[DateTime],
+      expectedNote: Option[String],
+      numChildren: Int,
+      actual: JsValue
   ) = {
     (actual \ "type").as[String] mustBe AnalysisCollection.discriminator
     (actual \ "id").as[Long] mustBe expectedId
@@ -131,22 +132,19 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
 
   val baseUrl = (mid: Int) => s"/$mid/analyses"
 
-  val typesUrl = (mid: Int) => s"${baseUrl(mid)}/types"
-  val typeIdUrl = (mid: Int) => (id: Long) => s"${typesUrl(mid)}/$id"
+  val typesUrl   = (mid: Int) => s"${baseUrl(mid)}/types"
+  val typeIdUrl  = (mid: Int) => (id: Long) => s"${typesUrl(mid)}/$id"
   val typeCatUrl = (mid: Int) => (id: Int) => s"${typesUrl(mid)}/categories/$id"
   val typeColUrl = (mid: Int) => (id: String) => s"${typesUrl(mid)}/musemcollections/$id"
 
-  val addAnalysisUrl = baseUrl
-  val getAnalysisUrl = (mid: Int) => (id: Long) => s"${baseUrl(mid)}/$id"
-  val getChildrenUrl = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/children"
-  val saveResultUrl = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/results"
+  val addAnalysisUrl  = baseUrl
+  val getAnalysisUrl  = (mid: Int) => (id: Long) => s"${baseUrl(mid)}/$id"
+  val getChildrenUrl  = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/children"
+  val saveResultUrl   = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/results"
   val getForObjectUrl = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/objects/$oid"
 
   def saveAnalysis(ajs: JsValue): WSResponse = {
-    wsUrl(addAnalysisUrl(mid))
-      .withHeaders(token.asHeader)
-      .post(ajs)
-      .futureValue
+    wsUrl(addAnalysisUrl(mid)).withHeaders(token.asHeader).post(ajs).futureValue
   }
 
   "Using the analysis controller" when {
@@ -154,10 +152,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
     "fetching analysis types" should {
 
       "return all event types" in {
-        val res = wsUrl(typesUrl(mid))
-          .withHeaders(token.asHeader)
-          .get()
-          .futureValue
+        val res = wsUrl(typesUrl(mid)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 107
@@ -165,10 +160,8 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
 
       "return all event types in an analysis category" in {
         val catId = EventCategories.Dating.id
-        val res = wsUrl(typeCatUrl(mid)(catId))
-          .withHeaders(token.asHeader)
-          .get()
-          .futureValue
+        val res =
+          wsUrl(typeCatUrl(mid)(catId)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 8
@@ -191,24 +184,22 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
 
       "save new analysis data" in {
         val edate = DateTime.now
-        val ajs = createSaveAnalysisJSON(Some(edate), dummyObjectId)
+        val ajs   = createSaveAnalysisJSON(Some(edate), dummyObjectId)
 
         saveAnalysis(ajs).status mustBe CREATED
       }
 
       "get an analysis with a specific Id" in {
         val edate = DateTime.now
-        val oid = ObjectUUID.generate()
-        val note = Some("Foobar")
-        val ajs = createSaveAnalysisJSON(Some(edate), oid, note)
+        val oid   = ObjectUUID.generate()
+        val note  = Some("Foobar")
+        val ajs   = createSaveAnalysisJSON(Some(edate), oid, note)
 
         saveAnalysis(ajs).status mustBe CREATED
 
         // We can assume the ID is 2 since we've only created 1 analysis before this
-        val res = wsUrl(getAnalysisUrl(mid)(2L))
-          .withHeaders(token.asHeader)
-          .get()
-          .futureValue
+        val res =
+          wsUrl(getAnalysisUrl(mid)(2L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         validateAnalysis(
@@ -241,7 +232,7 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
 
         val note = Some("Foobar")
         val oids = (1 to 4).map(_ => ObjectUUID.generate()) :+ dummyObjectId
-        val js = createSaveAnalysisCollectionJSON(Some(edate), oids, note)
+        val js   = createSaveAnalysisCollectionJSON(Some(edate), oids, note)
 
         saveAnalysis(js).status mustBe CREATED
       }
@@ -255,10 +246,8 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
           .withMinuteOfHour(23)
           .withSecondOfMinute(44)
 
-        val res = wsUrl(getAnalysisUrl(mid)(3L))
-          .withHeaders(token.asHeader)
-          .get()
-          .futureValue
+        val res =
+          wsUrl(getAnalysisUrl(mid)(3L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         validateAnalysisCollection(
@@ -276,10 +265,8 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
         // the 3rd event was the above AnalysisCollection. Meaning the event ID
         // given to the AnalysisCollection should be 3L. Children should get ID's
         // from 4L to 8L.
-        val res = wsUrl(getChildrenUrl(mid)(3L))
-          .withHeaders(token.asHeader)
-          .get()
-          .futureValue
+        val res =
+          wsUrl(getChildrenUrl(mid)(3L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 5
@@ -301,20 +288,16 @@ class AnalysisControllerIntegrationSpec extends MusitSpecWithServerPerSuite
           comment = Some("See references")
         )
 
-        val res = wsUrl(saveResultUrl(mid)(2L))
-          .withHeaders(token.asHeader)
-          .post(js)
-          .futureValue
+        val res =
+          wsUrl(saveResultUrl(mid)(2L)).withHeaders(token.asHeader).post(js).futureValue
 
         res.status mustBe CREATED
       }
 
       "include the saved result when fetching the analysis" in {
         // We can assume the ID is 2 since we've only created 1 analysis before this
-        val res = wsUrl(getAnalysisUrl(mid)(2L))
-          .withHeaders(token.asHeader)
-          .get()
-          .futureValue
+        val res =
+          wsUrl(getAnalysisUrl(mid)(2L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         (res.json \ "id").as[Long] mustBe 2L

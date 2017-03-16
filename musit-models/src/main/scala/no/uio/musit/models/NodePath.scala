@@ -27,6 +27,7 @@ import play.api.libs.json._
  * Trait defining the shape of a NodePath
  */
 trait NodePath {
+
   /**
    * The actual path value
    */
@@ -61,7 +62,8 @@ trait NodePath {
    * @return Seq[StorageNodeId]
    */
   def asIdSeq: Seq[StorageNodeDatabaseId] = {
-    path.stripPrefix(",")
+    path
+      .stripPrefix(",")
       .stripSuffix(",")
       .split(",")
       .map(_.trim())
@@ -124,11 +126,7 @@ object NodePath {
     if (path != empty.path) {
       // Consciously using regular try catch here!
       try {
-        p2.trim
-          .stripPrefix(",")
-          .stripSuffix(",")
-          .split(",")
-          .foreach(s => s.toLong)
+        p2.trim.stripPrefix(",").stripSuffix(",").split(",").foreach(s => s.toLong)
       } catch {
         case nfex: NumberFormatException =>
           logger.error(s"Path $path contained illegal value.")

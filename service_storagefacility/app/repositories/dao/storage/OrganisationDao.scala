@@ -36,7 +36,7 @@ import scala.util.control.NonFatal
  * TODO: Document me!!!
  */
 @Singleton
-class OrganisationDao @Inject() (
+class OrganisationDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends StorageTables {
 
@@ -56,12 +56,12 @@ class OrganisationDao @Inject() (
    * TODO: Document me!!!
    */
   def getById(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId
+      mid: MuseumId,
+      id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Organisation]]] = {
     val action = for {
       maybeUnitDto <- getUnitByIdAction(mid, id)
-      maybeOrgDto <- organisationTable.filter(_.id === id).result.headOption
+      maybeOrgDto  <- organisationTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
       maybeUnitDto.flatMap(u => maybeOrgDto.map(o => ExtendedStorageNode(u, o)))
@@ -81,9 +81,9 @@ class OrganisationDao @Inject() (
    * TODO: Document me!!!
    */
   def update(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId,
-    organisation: Organisation
+      mid: MuseumId,
+      id: StorageNodeDatabaseId,
+      organisation: Organisation
   ): Future[MusitResult[Option[Int]]] = {
     val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
     val action = for {
@@ -126,27 +126,24 @@ class OrganisationDao @Inject() (
    * TODO: Document me!!!
    */
   def insert(
-    mid: MuseumId,
-    organisation: Organisation
+      mid: MuseumId,
+      organisation: Organisation
   ): Future[MusitResult[StorageNodeDatabaseId]] = {
     val extendedDto = StorageNodeDto.fromOrganisation(mid, organisation)
     val query = for {
-      nodeId <- insertNodeAction(extendedDto.storageUnitDto)
+      nodeId    <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
-      n <- insertAction(extWithId)
+      n         <- insertAction(extWithId)
     } yield {
       nodeId
     }
 
-    db.run(query.transactionally)
-      .map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Unable to insert organisation for museumId $mid"
-          logger.warn(msg, ex)
-          MusitDbError(msg, Some(ex))
-      }
+    db.run(query.transactionally).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"Unable to insert organisation for museumId $mid"
+        logger.warn(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
   }
 
 }
-

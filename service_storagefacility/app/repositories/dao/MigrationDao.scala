@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
  * This Dao should _NOT_ be used by any other class than the boostrapping
  * {{{migration.UUIDVerifier}}} class.
  */
-class MigrationDao @Inject() (
+class MigrationDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends StorageTables {
 
@@ -59,7 +59,7 @@ class MigrationDao @Inject() (
       Future.sequence {
         nodes.map { n =>
           val uuid = StorageNodeId.generateAsOpt()
-          val q2 = storageNodeTable.filter(_.id === n.id).map(_.uuid).update(uuid)
+          val q2   = storageNodeTable.filter(_.id === n.id).map(_.uuid).update(uuid)
           db.run(q2)
         }
       }.map { allRes =>

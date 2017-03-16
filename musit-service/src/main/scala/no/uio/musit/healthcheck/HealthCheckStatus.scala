@@ -30,10 +30,10 @@ import play.api.libs.json.{Format, Json}
  * @param message Optional message
  */
 case class HealthCheckStatus(
-  name: String,
-  available: Boolean,
-  responseTime: Long,
-  message: Option[String]
+    name: String,
+    available: Boolean,
+    responseTime: Long,
+    message: Option[String]
 )
 
 object HealthCheckStatus {

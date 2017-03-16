@@ -35,7 +35,7 @@ object Email {
 
   def validate(str: String): Option[Email] = {
     Constraints.emailAddress(str) match {
-      case Valid => Option(Email.fromString(str))
+      case Valid         => Option(Email.fromString(str))
       case Invalid(errs) => None
     }
   }

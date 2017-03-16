@@ -25,7 +25,7 @@ sealed trait AnalysisEvent {
    */
   def withResult(res: Option[AnalysisResult]): AnalysisEvent = {
     this match {
-      case a: Analysis => a.copy(result = res)
+      case a: Analysis            => a.copy(result = res)
       case ac: AnalysisCollection => ac
     }
   }
@@ -36,7 +36,7 @@ sealed trait AnalysisEvent {
    */
   def withResultAsOpt(res: Option[AnalysisResult]): Option[Analysis] =
     this match {
-      case a: Analysis => Some(a.copy(result = res))
+      case a: Analysis            => Some(a.copy(result = res))
       case ac: AnalysisCollection => None
     }
 }
@@ -54,7 +54,7 @@ object AnalysisEvent extends WithDateTimeFormatters {
    * ADT. If not the parsing will (and should) fail.
    */
   implicit val reads: Reads[AnalysisEvent] = Reads { jsv =>
-    implicit val ar = Analysis.reads
+    implicit val ar  = Analysis.reads
     implicit val acr = AnalysisCollection.reads
 
     (jsv \ tpe).validateOpt[String] match {
@@ -101,23 +101,23 @@ object AnalysisEvent extends WithDateTimeFormatters {
  * The specific event types are encoded as {{{EventTypeId}}}.
  */
 case class Analysis(
-  id: Option[EventId],
-  analysisTypeId: AnalysisTypeId,
-  eventDate: Option[DateTime],
-  registeredBy: Option[ActorId],
-  registeredDate: Option[DateTime],
-  objectId: Option[ObjectUUID],
-  //  actors: Option[Seq[ActorRelation]],
-  partOf: Option[EventId],
-  note: Option[String],
-  result: Option[AnalysisResult]
+    id: Option[EventId],
+    analysisTypeId: AnalysisTypeId,
+    eventDate: Option[DateTime],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    objectId: Option[ObjectUUID],
+    //  actors: Option[Seq[ActorRelation]],
+    partOf: Option[EventId],
+    note: Option[String],
+    result: Option[AnalysisResult]
 ) extends AnalysisEvent
 
 object Analysis extends WithDateTimeFormatters {
   val discriminator = "Analysis"
 
   // The below formatters cannot be implicit due to undesirable implicit ambiguities
-  val reads: Reads[Analysis] = Json.reads[Analysis]
+  val reads: Reads[Analysis]   = Json.reads[Analysis]
   val writes: Writes[Analysis] = Json.writes[Analysis]
 
 }
@@ -136,9 +136,9 @@ case class AnalysisCollection(
     events: Seq[Analysis]
 ) extends AnalysisEvent {
 
-  val partOf: Option[EventId] = None
+  val partOf: Option[EventId]      = None
   val objectId: Option[ObjectUUID] = None
-  val note: Option[String] = None
+  val note: Option[String]         = None
 
   def withoutChildren = copy(events = Seq.empty)
 
@@ -155,4 +155,3 @@ object AnalysisCollection extends WithDateTimeFormatters {
     Json.writes[AnalysisCollection]
 
 }
-

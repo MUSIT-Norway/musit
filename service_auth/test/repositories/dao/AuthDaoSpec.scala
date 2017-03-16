@@ -168,7 +168,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "deleting a group" should {
       "successfully remove a group" in {
-        val id = addedGroupIds.result().head
+        val id  = addedGroupIds.result().head
         val res = dao.deleteGroup(id).futureValue
         res.isSuccess mustBe true
         res.get mustBe 1
@@ -199,7 +199,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
     "deleting a UserGroup relation" should {
       "successfully remove the row" in {
         val email = Email("foo2@bar.com")
-        val gid = addedGroupIds.result().last
+        val gid   = addedGroupIds.result().last
         dao.addUserToGroup(email, gid, None).futureValue.isSuccess mustBe true
 
         val res = dao.removeUserFromGroup(email, gid).futureValue
@@ -209,7 +209,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
       "not remove anything if the userId doesn't exist" in {
         val email = Email("asdf@asdf.net")
-        val gid = addedGroupIds.result().last
+        val gid   = addedGroupIds.result().last
 
         val res = dao.removeUserFromGroup(email, gid).futureValue
         res.isSuccess mustBe true
@@ -220,9 +220,9 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
     "finding all the groups for a user" should {
       "return all the groups the user is part of" in {
         val email = Email("bar@foo.com")
-        val gid1 = addedGroupIds.result().tail.head
-        val gid2 = addedGroupIds.result().tail.tail.head
-        val gid3 = addedGroupIds.result().last
+        val gid1  = addedGroupIds.result().tail.head
+        val gid2  = addedGroupIds.result().tail.tail.head
+        val gid3  = addedGroupIds.result().last
 
         dao.addUserToGroup(email, gid1, None).futureValue.isSuccess mustBe true
         dao.addUserToGroup(email, gid2, None).futureValue.isSuccess mustBe true

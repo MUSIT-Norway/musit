@@ -28,7 +28,7 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
 
   val fakeToken = BearerToken(FakeUsers.testUserToken)
 
-  val archeologyCollection = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
+  val archeologyCollection  = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
   val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
 
   "The DelphiBridgeController" when {
@@ -41,7 +41,8 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         val res = wsUrl(s"/delphi/objects/111")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("schemaName" -> "USD_ARK_GJENSTAND_O")
-          .get.futureValue
+          .get
+          .futureValue
 
         res.status mustBe OK
         (res.json \ "nodeId").as[Int] mustBe 6
@@ -63,7 +64,8 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
 
         val res = wsUrl(s"/delphi/museum/99/nodes/external")
           .withHeaders(fakeToken.asHeader)
-          .get.futureValue
+          .get
+          .futureValue
 
         res.status mustBe OK
         val rl = res.json.as[JsArray].value.toList
@@ -78,7 +80,7 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         val expected = (11 to 20).toList
 
         val in = Json.obj(
-          "schemaName" -> "USD_ARK_GJENSTAND_O",
+          "schemaName"   -> "USD_ARK_GJENSTAND_O",
           "oldObjectIds" -> JsArray((110 to 120).map(i => JsNumber(i)))
         )
 

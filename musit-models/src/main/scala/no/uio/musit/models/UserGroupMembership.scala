@@ -20,18 +20,18 @@
 package no.uio.musit.models
 
 case class UserGroupMembership(
-  id: Option[Int] = None,
-  feideEmail: Email,
-  groupId: GroupId,
-  collection: Option[CollectionUUID]
+    id: Option[Int] = None,
+    feideEmail: Email,
+    groupId: GroupId,
+    collection: Option[CollectionUUID]
 )
 
 object UserGroupMembership {
 
   def applyMulti(
-    email: Email,
-    grpId: GroupId,
-    maybeCollections: Option[Seq[CollectionUUID]]
+      email: Email,
+      grpId: GroupId,
+      maybeCollections: Option[Seq[CollectionUUID]]
   ): Seq[UserGroupMembership] = {
     maybeCollections.map { cids =>
       if (cids.nonEmpty) {
@@ -43,18 +43,22 @@ object UserGroupMembership {
           )
         }
       } else {
-        Seq(UserGroupMembership(
+        Seq(
+          UserGroupMembership(
+            feideEmail = email,
+            groupId = grpId,
+            collection = None
+          )
+        )
+      }
+    }.getOrElse {
+      Seq(
+        UserGroupMembership(
           feideEmail = email,
           groupId = grpId,
           collection = None
-        ))
-      }
-    }.getOrElse {
-      Seq(UserGroupMembership(
-        feideEmail = email,
-        groupId = grpId,
-        collection = None
-      ))
+        )
+      )
     }
   }
 

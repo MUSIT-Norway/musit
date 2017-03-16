@@ -128,43 +128,45 @@ object StorageNode {
  * used for services where a list of storage nodes need to be returned.
  */
 case class GenericStorageNode(
-  id: Option[StorageNodeDatabaseId],
-  nodeId: Option[StorageNodeId],
-  name: String,
-  area: Option[Double],
-  areaTo: Option[Double],
-  isPartOf: Option[StorageNodeDatabaseId],
-  height: Option[Double],
-  heightTo: Option[Double],
-  groupRead: Option[String],
-  groupWrite: Option[String],
-  path: NodePath,
-  environmentRequirement: Option[EnvironmentRequirement],
-  storageType: StorageType,
-  updatedBy: Option[ActorId],
-  updatedDate: Option[DateTime],
-  pathNames: Option[Seq[NamedPathElement]] = None
+    id: Option[StorageNodeDatabaseId],
+    nodeId: Option[StorageNodeId],
+    name: String,
+    area: Option[Double],
+    areaTo: Option[Double],
+    isPartOf: Option[StorageNodeDatabaseId],
+    height: Option[Double],
+    heightTo: Option[Double],
+    groupRead: Option[String],
+    groupWrite: Option[String],
+    path: NodePath,
+    environmentRequirement: Option[EnvironmentRequirement],
+    storageType: StorageType,
+    updatedBy: Option[ActorId],
+    updatedDate: Option[DateTime],
+    pathNames: Option[Seq[NamedPathElement]] = None
 ) extends StorageNode
 
 object GenericStorageNode {
 
   implicit val formats: Format[GenericStorageNode] = (
     (__ \ "id").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "nodeId").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxCharsFormat(100)) and
-    (__ \ "area").formatNullable[Double] and
-    (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "height").formatNullable[Double] and
-    (__ \ "heightTo").formatNullable[Double] and
-    (__ \ "groupRead").formatNullable[String] and
-    (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "type").format[StorageType] and
-    (__ \ "updatedBy").formatNullable[ActorId] and
-    (__ \ "updatedDate").formatNullable[DateTime] and
-    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]]
+      (__ \ "nodeId").formatNullable[StorageNodeId] and
+      (__ \ "name").format[String](maxCharsFormat(100)) and
+      (__ \ "area").formatNullable[Double] and
+      (__ \ "areaTo").formatNullable[Double] and
+      (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
+      (__ \ "height").formatNullable[Double] and
+      (__ \ "heightTo").formatNullable[Double] and
+      (__ \ "groupRead").formatNullable[String] and
+      (__ \ "groupWrite").formatNullable[String] and
+      (__ \ "path")
+        .formatNullable[NodePath]
+        .inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+      (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+      (__ \ "type").format[StorageType] and
+      (__ \ "updatedBy").formatNullable[ActorId] and
+      (__ \ "updatedDate").formatNullable[DateTime] and
+      (__ \ "pathNames").formatNullable[Seq[NamedPathElement]]
   )(GenericStorageNode.apply, unlift(GenericStorageNode.unapply))
 
 }
@@ -174,18 +176,18 @@ object GenericStorageNode {
  * have _at least_ one root node.
  */
 sealed trait RootNode extends StorageNode {
-  val area: Option[Double] = None
-  val areaTo: Option[Double] = None
-  val isPartOf: Option[StorageNodeDatabaseId] = None
-  val height: Option[Double] = None
-  val heightTo: Option[Double] = None
-  val groupRead: Option[String] = None
-  val groupWrite: Option[String] = None
+  val area: Option[Double]                     = None
+  val areaTo: Option[Double]                   = None
+  val isPartOf: Option[StorageNodeDatabaseId]  = None
+  val height: Option[Double]                   = None
+  val heightTo: Option[Double]                 = None
+  val groupRead: Option[String]                = None
+  val groupWrite: Option[String]               = None
   val pathNames: Option[Seq[NamedPathElement]] = None
 
   def setUpdated(
-    by: Option[ActorId] = None,
-    date: Option[DateTime] = None
+      by: Option[ActorId] = None,
+      date: Option[DateTime] = None
   ): RootNode
 }
 
@@ -237,8 +239,8 @@ case class Root(
   val storageType: StorageType = StorageType.RootType
 
   def setUpdated(
-    by: Option[ActorId] = None,
-    date: Option[DateTime] = None
+      by: Option[ActorId] = None,
+      date: Option[DateTime] = None
   ): RootNode = this.copy(updatedBy = by, updatedDate = date)
 }
 
@@ -248,12 +250,14 @@ object Root {
 
   implicit val formats: Format[Root] = (
     (__ \ "id").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "nodeId").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxCharsFormat(100)) and
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
-    (__ \ "updatedBy").formatNullable[ActorId] and
-    (__ \ "updatedDate").formatNullable[DateTime]
+      (__ \ "nodeId").formatNullable[StorageNodeId] and
+      (__ \ "name").format[String](maxCharsFormat(100)) and
+      (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+      (__ \ "path")
+        .formatNullable[NodePath]
+        .inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+      (__ \ "updatedBy").formatNullable[ActorId] and
+      (__ \ "updatedDate").formatNullable[DateTime]
   )(Root.apply, unlift(Root.unapply))
 
 }
@@ -275,8 +279,8 @@ case class RootLoan(
   val storageType: StorageType = StorageType.RootLoanType
 
   def setUpdated(
-    by: Option[ActorId] = None,
-    date: Option[DateTime] = None
+      by: Option[ActorId] = None,
+      date: Option[DateTime] = None
   ): RootNode = this.copy(updatedBy = by, updatedDate = date)
 }
 
@@ -286,12 +290,14 @@ object RootLoan {
 
   implicit val formats: Format[RootLoan] = (
     (__ \ "id").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "nodeId").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxCharsFormat(100)) and
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
-    (__ \ "updatedBy").formatNullable[ActorId] and
-    (__ \ "updatedDate").formatNullable[DateTime]
+      (__ \ "nodeId").formatNullable[StorageNodeId] and
+      (__ \ "name").format[String](maxCharsFormat(100)) and
+      (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+      (__ \ "path")
+        .formatNullable[NodePath]
+        .inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+      (__ \ "updatedBy").formatNullable[ActorId] and
+      (__ \ "updatedDate").formatNullable[DateTime]
   )(RootLoan.apply, unlift(RootLoan.unapply))
 
 }
@@ -328,33 +334,35 @@ object StorageUnit {
 
   implicit val formats: Format[StorageUnit] = (
     (__ \ "id").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "nodeId").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxCharsFormat(100)) and
-    (__ \ "area").formatNullable[Double] and
-    (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "height").formatNullable[Double] and
-    (__ \ "heightTo").formatNullable[Double] and
-    (__ \ "groupRead").formatNullable[String] and
-    (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
-    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "updatedBy").formatNullable[ActorId] and
-    (__ \ "updatedDate").formatNullable[DateTime]
+      (__ \ "nodeId").formatNullable[StorageNodeId] and
+      (__ \ "name").format[String](maxCharsFormat(100)) and
+      (__ \ "area").formatNullable[Double] and
+      (__ \ "areaTo").formatNullable[Double] and
+      (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
+      (__ \ "height").formatNullable[Double] and
+      (__ \ "heightTo").formatNullable[Double] and
+      (__ \ "groupRead").formatNullable[String] and
+      (__ \ "groupWrite").formatNullable[String] and
+      (__ \ "path")
+        .formatNullable[NodePath]
+        .inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+      (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
+      (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+      (__ \ "updatedBy").formatNullable[ActorId] and
+      (__ \ "updatedDate").formatNullable[DateTime]
   )(StorageUnit.apply, unlift(StorageUnit.unapply))
 
   /**
    * A StorageUnit node can only be placed _after_ the 3 required top-nodes.
    */
   def isValidLocation(
-    maybeDestId: Option[StorageNodeDatabaseId],
-    pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
+      maybeDestId: Option[StorageNodeDatabaseId],
+      pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
       pathTypes.toList match {
-        case Nil => false
-        case root :: Nil => false
+        case Nil                => false
+        case root :: Nil        => false
         case root :: org :: Nil => false
         case root :: org :: tail =>
           val exists = tail.exists(_._1 == destId)
@@ -398,35 +406,37 @@ object Room {
 
   implicit val formats: Format[Room] = (
     (__ \ "id").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "nodeId").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxCharsFormat(100)) and
-    (__ \ "area").formatNullable[Double] and
-    (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "height").formatNullable[Double] and
-    (__ \ "heightTo").formatNullable[Double] and
-    (__ \ "groupRead").formatNullable[String] and
-    (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
-    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "securityAssessment").format[SecurityAssessment] and
-    (__ \ "environmentAssessment").format[EnvironmentAssessment] and
-    (__ \ "updatedBy").formatNullable[ActorId] and
-    (__ \ "updatedDate").formatNullable[DateTime]
+      (__ \ "nodeId").formatNullable[StorageNodeId] and
+      (__ \ "name").format[String](maxCharsFormat(100)) and
+      (__ \ "area").formatNullable[Double] and
+      (__ \ "areaTo").formatNullable[Double] and
+      (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
+      (__ \ "height").formatNullable[Double] and
+      (__ \ "heightTo").formatNullable[Double] and
+      (__ \ "groupRead").formatNullable[String] and
+      (__ \ "groupWrite").formatNullable[String] and
+      (__ \ "path")
+        .formatNullable[NodePath]
+        .inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+      (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
+      (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+      (__ \ "securityAssessment").format[SecurityAssessment] and
+      (__ \ "environmentAssessment").format[EnvironmentAssessment] and
+      (__ \ "updatedBy").formatNullable[ActorId] and
+      (__ \ "updatedDate").formatNullable[DateTime]
   )(Room.apply, unlift(Room.unapply))
 
   /**
    * A Room node can only be placed _after_ the 3 required top-nodes.
    */
   def isValidLocation(
-    maybeDestId: Option[StorageNodeDatabaseId],
-    pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
+      maybeDestId: Option[StorageNodeDatabaseId],
+      pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
       pathTypes.toList match {
-        case Nil => false
-        case root :: Nil => false
+        case Nil                => false
+        case root :: Nil        => false
         case root :: org :: Nil => false
         case root :: org :: tail =>
           val exists = tail.exists(_._1 == destId)
@@ -468,21 +478,24 @@ object Building {
 
   implicit val formats: Format[Building] = (
     (__ \ "id").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "nodeId").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxCharsFormat(100)) and
-    (__ \ "area").formatNullable[Double] and
-    (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "height").formatNullable[Double] and
-    (__ \ "heightTo").formatNullable[Double] and
-    (__ \ "groupRead").formatNullable[String] and
-    (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
-    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and // scalastyle:ignore
-    (__ \ "updatedBy").formatNullable[ActorId] and
-    (__ \ "updatedDate").formatNullable[DateTime]
+      (__ \ "nodeId").formatNullable[StorageNodeId] and
+      (__ \ "name").format[String](maxCharsFormat(100)) and
+      (__ \ "area").formatNullable[Double] and
+      (__ \ "areaTo").formatNullable[Double] and
+      (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
+      (__ \ "height").formatNullable[Double] and
+      (__ \ "heightTo").formatNullable[Double] and
+      (__ \ "groupRead").formatNullable[String] and
+      (__ \ "groupWrite").formatNullable[String] and
+      (__ \ "path")
+        .formatNullable[NodePath]
+        .inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+      (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
+      (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+      (__ \ "address")
+        .formatNullable[String](Format(maxLength[String](100), StringWrites)) and
+      (__ \ "updatedBy").formatNullable[ActorId] and
+      (__ \ "updatedDate").formatNullable[DateTime]
   )(Building.apply, unlift(Building.unapply))
 
   /**
@@ -490,12 +503,12 @@ object Building {
    * after the first required building node.
    */
   def isValidLocation(
-    maybeDestId: Option[StorageNodeDatabaseId],
-    pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
+      maybeDestId: Option[StorageNodeDatabaseId],
+      pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
       pathTypes.toList match {
-        case Nil => false
+        case Nil         => false
         case root :: Nil => false
         case root :: tail =>
           val exists = tail.exists(_._1 == destId)
@@ -538,34 +551,37 @@ object Organisation {
 
   implicit val formats: Format[Organisation] = (
     (__ \ "id").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "nodeId").formatNullable[StorageNodeId] and
-    (__ \ "name").format[String](maxCharsFormat(100)) and
-    (__ \ "area").formatNullable[Double] and
-    (__ \ "areaTo").formatNullable[Double] and
-    (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
-    (__ \ "height").formatNullable[Double] and
-    (__ \ "heightTo").formatNullable[Double] and
-    (__ \ "groupRead").formatNullable[String] and
-    (__ \ "groupWrite").formatNullable[String] and
-    (__ \ "path").formatNullable[NodePath].inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and // scalastyle:ignore
-    (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
-    (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
-    (__ \ "address").formatNullable[String](Format(maxLength[String](100), StringWrites)) and // scalastyle:ignore
-    (__ \ "updatedBy").formatNullable[ActorId] and
-    (__ \ "updatedDate").formatNullable[DateTime]
+      (__ \ "nodeId").formatNullable[StorageNodeId] and
+      (__ \ "name").format[String](maxCharsFormat(100)) and
+      (__ \ "area").formatNullable[Double] and
+      (__ \ "areaTo").formatNullable[Double] and
+      (__ \ "isPartOf").formatNullable[StorageNodeDatabaseId] and
+      (__ \ "height").formatNullable[Double] and
+      (__ \ "heightTo").formatNullable[Double] and
+      (__ \ "groupRead").formatNullable[String] and
+      (__ \ "groupWrite").formatNullable[String] and
+      (__ \ "path")
+        .formatNullable[NodePath]
+        .inmap[NodePath](_.getOrElse(NodePath.empty), Option.apply) and
+      (__ \ "pathNames").formatNullable[Seq[NamedPathElement]] and
+      (__ \ "environmentRequirement").formatNullable[EnvironmentRequirement] and
+      (__ \ "address")
+        .formatNullable[String](Format(maxLength[String](100), StringWrites)) and
+      (__ \ "updatedBy").formatNullable[ActorId] and
+      (__ \ "updatedDate").formatNullable[DateTime]
   )(Organisation.apply, unlift(Organisation.unapply))
 
   /**
    * An StorageUnit node can only be placed _after_ the 3 required top-nodes.
    */
   def isValidLocation(
-    maybeDestId: Option[StorageNodeDatabaseId],
-    pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
+      maybeDestId: Option[StorageNodeDatabaseId],
+      pathTypes: Seq[(StorageNodeDatabaseId, StorageType)]
   ): Boolean = {
     maybeDestId.exists { destId =>
       pathTypes.toList match {
-        case Nil => false
-        case root :: Nil => destId == root._1
+        case Nil                => false
+        case root :: Nil        => destId == root._1
         case root :: org :: Nil => false
         case root :: org :: tail =>
           val exists = tail.exists(_._1 == destId)

@@ -29,7 +29,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class StorageNodeDao @Inject() (
+class StorageNodeDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
@@ -38,8 +38,8 @@ class StorageNodeDao @Inject() (
   import driver.api._
 
   def getPathById(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId
+      mid: MuseumId,
+      id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[(StorageNodeDatabaseId, NodePath)]]] = {
     val q = nodeTable.filter { n =>
       n.museumId === mid && n.id === id
@@ -54,12 +54,12 @@ class StorageNodeDao @Inject() (
   }
 
   def nodeExists(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Boolean]] = {
     val query = nodeTable.filter { sn =>
       sn.museumId === mid &&
-        sn.id === nodeId
+      sn.id === nodeId
     }.length.result
     db.run(query).map(res => MusitSuccess(res == 1)).recover {
       case NonFatal(ex) =>
@@ -70,8 +70,8 @@ class StorageNodeDao @Inject() (
   }
 
   def currentLocation(
-    mid: MuseumId,
-    objectId: ObjectId
+      mid: MuseumId,
+      objectId: ObjectId
   ): Future[Option[(StorageNodeDatabaseId, NodePath)]] = {
     val findLocalObjectAction = locObjTable.filter { lo =>
       lo.museumId === mid && lo.objectId === objectId
@@ -84,7 +84,7 @@ class StorageNodeDao @Inject() (
 
     val query = for {
       maybeNodeId <- findLocalObjectAction
-      maybePath <- findPathAction(maybeNodeId)
+      maybePath   <- findPathAction(maybeNodeId)
     } yield maybeNodeId.flatMap(nid => maybePath.map(p => (nid, p)))
 
     db.run(query).recover {
@@ -108,7 +108,7 @@ class StorageNodeDao @Inject() (
   }
 
   def getRootLoanNodes(
-    museumId: MuseumId
+      museumId: MuseumId
   ): Future[MusitResult[Seq[StorageNodeDatabaseId]]] = {
     val query = nodeTable.filter { n =>
       n.museumId === museumId && n.storageType === "RootLoan"
@@ -123,30 +123,34 @@ class StorageNodeDao @Inject() (
   }
 
   def listAllChildrenFor(
-    museumId: MuseumId,
-    ids: Seq[StorageNodeDatabaseId]
+      museumId: MuseumId,
+      ids: Seq[StorageNodeDatabaseId]
   ): Future[MusitResult[Seq[(StorageNodeDatabaseId, String)]]] = {
-    val q1 = (likePath: String) => nodeTable.filter { n =>
-      n.museumId === museumId && (SimpleLiteral[String]("NODE_PATH") like likePath)
+    val q1 = (likePath: String) =>
+      nodeTable.filter { n =>
+        n.museumId === museumId && (SimpleLiteral[String]("NODE_PATH") like likePath)
     }
 
-    val query = ids.map(id => s",${id.underlying},%")
+    val query = ids
+      .map(id => s",${id.underlying},%")
       .map(q1)
       .reduce((query, queryPart) => query union queryPart)
       .map(n => (n.id, n.name))
       .sortBy(_._2.asc)
 
-    db.run(query.result).map { res =>
-      MusitSuccess(
-        res.map(r => (r._1, r._2))
-      )
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = s"Error occurred reading children for RootLoan " +
-          s"nodes ${ids.mkString(", ")}"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(query.result)
+      .map { res =>
+        MusitSuccess(
+          res.map(r => (r._1, r._2))
+        )
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Error occurred reading children for RootLoan " +
+            s"nodes ${ids.mkString(", ")}"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
 }

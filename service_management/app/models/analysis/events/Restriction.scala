@@ -10,6 +10,6 @@ import org.joda.time.DateTime
  * typically when the study is published, will the results be publicly available.
  */
 case class Restriction(
-  by: ActorId,
-  expirationDate: DateTime
+    by: ActorId,
+    expirationDate: DateTime
 )

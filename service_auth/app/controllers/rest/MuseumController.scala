@@ -28,9 +28,8 @@ import no.uio.musit.service.MusitAdminController
 import play.api.libs.json.Json
 
 @Singleton
-class MuseumController @Inject() (
-    implicit
-    val authService: Authenticator,
+class MuseumController @Inject()(
+    implicit val authService: Authenticator,
     val crypto: MusitCrypto
 ) extends MusitAdminController {
 

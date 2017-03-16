@@ -30,9 +30,10 @@ import slick.driver.JdbcProfile
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class UserInfoDao @Inject() (
+class UserInfoDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with AuthTables {
+) extends HasDatabaseConfigProvider[JdbcProfile]
+    with AuthTables {
 
   val logger = Logger(classOf[UserInfoDao])
 
@@ -49,13 +50,15 @@ class UserInfoDao @Inject() (
   }
 
   def getById(id: ActorId): Future[Option[UserInfo]] = {
-    db.run(usrInfoTable.filter(_.uuid === id).result.headOption).map { musr =>
-      musr.map(userInfoFromTuple)
-    }.recover {
-      case NonFatal(ex) =>
-        logger.error(s"An error occurred reading UserInfo for $id", ex)
-        None
-    }
+    db.run(usrInfoTable.filter(_.uuid === id).result.headOption)
+      .map { musr =>
+        musr.map(userInfoFromTuple)
+      }
+      .recover {
+        case NonFatal(ex) =>
+          logger.error(s"An error occurred reading UserInfo for $id", ex)
+          None
+      }
   }
 
   def listBy(ids: Set[ActorId]): Future[Seq[UserInfo]] = {
@@ -69,7 +72,7 @@ class UserInfoDao @Inject() (
 
   def getByName(searchString: String): Future[Seq[UserInfo]] = {
     val likeArg = searchString.toLowerCase
-    val query = usrInfoTable.filter(_.name.toLowerCase like s"%$likeArg%").sortBy(_.name)
+    val query   = usrInfoTable.filter(_.name.toLowerCase like s"%$likeArg%").sortBy(_.name)
     db.run(query.result.map(_.map(userInfoFromTuple))).recover {
       case NonFatal(ex) =>
         logger.error(s"An error occurred searching for UserInfo with $searchString", ex)

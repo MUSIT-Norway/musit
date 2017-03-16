@@ -45,20 +45,20 @@ sealed trait EventDto {
  * The EventDto contains attributes that are common across _all_ event types.
  */
 case class BaseEventDto(
-  id: Option[EventId],
-  eventTypeId: EventTypeId,
-  eventDate: JSqlTimestamp,
-  relatedActors: Seq[EventRoleActor],
-  relatedObjects: Seq[EventRoleObject],
-  relatedPlaces: Seq[EventRolePlace],
-  note: Option[String],
-  relatedSubEvents: Seq[RelatedEvents],
-  partOf: Option[EventId],
-  valueLong: Option[Long] = None,
-  valueString: Option[String] = None,
-  valueDouble: Option[Double] = None,
-  registeredBy: Option[ActorId],
-  registeredDate: Option[JSqlTimestamp]
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventDate: JSqlTimestamp,
+    relatedActors: Seq[EventRoleActor],
+    relatedObjects: Seq[EventRoleObject],
+    relatedPlaces: Seq[EventRolePlace],
+    note: Option[String],
+    relatedSubEvents: Seq[RelatedEvents],
+    partOf: Option[EventId],
+    valueLong: Option[Long] = None,
+    valueString: Option[String] = None,
+    valueDouble: Option[Double] = None,
+    registeredBy: Option[ActorId],
+    registeredDate: Option[JSqlTimestamp]
 ) extends EventDto
 
 sealed trait DtoExtension
@@ -134,39 +134,38 @@ object ExtendedDto {
  * Dto to handle environment requirements.
  */
 case class EnvRequirementDto(
-  id: Option[EventId],
-  temperature: Option[Double],
-  tempTolerance: Option[Int],
-  airHumidity: Option[Double],
-  airHumTolerance: Option[Int],
-  hypoxicAir: Option[Double],
-  hypoxicTolerance: Option[Int],
-  cleaning: Option[String],
-  light: Option[String]
+    id: Option[EventId],
+    temperature: Option[Double],
+    tempTolerance: Option[Int],
+    airHumidity: Option[Double],
+    airHumTolerance: Option[Int],
+    hypoxicAir: Option[Double],
+    hypoxicTolerance: Option[Int],
+    cleaning: Option[String],
+    light: Option[String]
 ) extends DtoExtension
 
 /**
  * Dto that handles observation events with from and to attributes.
  */
 case class ObservationFromToDto(
-  id: Option[EventId],
-  from: Option[Double],
-  to: Option[Double]
+    id: Option[EventId],
+    from: Option[Double],
+    to: Option[Double]
 ) extends DtoExtension
 
 /**
  * Dto to handle observation events related to pest control.
  */
 case class ObservationPestDto(
-  lifeCycles: Seq[LifecycleDto]
+    lifeCycles: Seq[LifecycleDto]
 ) extends DtoExtension
 
 /**
  * Dto to handle pest life-cycles for an ObservationPestDto
  */
 case class LifecycleDto(
-  eventId: Option[EventId],
-  stage: Option[String],
-  quantity: Option[Int]
+    eventId: Option[EventId],
+    stage: Option[String],
+    quantity: Option[Int]
 )
-

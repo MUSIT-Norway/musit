@@ -34,9 +34,8 @@ class UserControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "get actor with matching dataportenId" in {
-      val res = wsUrl("/v1/dataporten/currentUser")
-        .withHeaders(token.asHeader)
-        .get().futureValue
+      val res =
+        wsUrl("/v1/dataporten/currentUser").withHeaders(token.asHeader).get().futureValue
 
       res.status mustBe Status.OK
       (res.json \ "fn").as[String] mustBe "Gjestebruker"
