@@ -148,10 +148,11 @@ private[dao] trait EventTables extends BaseDao with ColumnTypeMappers {
       val tag: Tag
   ) extends Table[ObservationFromToDto](tag, SchemaName, "OBSERVATION_FROM_TO") {
 
-    def * = (id, from, to) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (id, from, to) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
-    val id = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)
-
+    val id   = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)
     val from = column[Option[Double]]("VALUE_FROM")
     val to   = column[Option[Double]]("VALUE_TO")
 
@@ -166,7 +167,9 @@ private[dao] trait EventTables extends BaseDao with ColumnTypeMappers {
   class LifeCycleTable(
       val tag: Tag
   ) extends Table[LifecycleDto](tag, SchemaName, "OBSERVATION_PEST_LIFECYCLE") {
-    def * = (eventId, stage, quantity) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (eventId, stage, quantity) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
     val eventId  = column[Option[EventId]]("EVENT_ID")
     val stage    = column[Option[String]]("STAGE")
@@ -200,8 +203,7 @@ private[dao] trait EventTables extends BaseDao with ColumnTypeMappers {
 
     // scalastyle:on method.name
 
-    val id = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)
-
+    val id                        = column[Option[EventId]]("EVENT_ID", O.PrimaryKey)
     val temp                      = column[Option[Double]]("TEMPERATURE")
     val tempTolerance             = column[Option[Int]]("TEMP_TOLERANCE")
     val relativeHumidity          = column[Option[Double]]("REL_HUMIDITY")
@@ -255,8 +257,9 @@ private[dao] trait EventTables extends BaseDao with ColumnTypeMappers {
       tag: Tag
   ) extends Table[EventRoleObject](tag, SchemaName, "EVENT_ROLE_OBJECT") {
 
-    def * =
-      (eventId.?, roleId, objectId, eventTypeId) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (eventId.?, roleId, objectId, eventTypeId) <> (create.tupled, destroy)
+    // scalastyle:off method.name
 
     val eventId     = column[EventId]("EVENT_ID")
     val roleId      = column[Int]("ROLE_ID")
@@ -291,8 +294,9 @@ private[dao] trait EventTables extends BaseDao with ColumnTypeMappers {
   class EventPlacesAsObjectsTable(
       val tag: Tag
   ) extends Table[EventRolePlace](tag, SchemaName, "EVENT_ROLE_PLACE_AS_OBJECT") {
-    def * =
-      (eventId.?, roleId, placeId, eventTypeId) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (eventId.?, roleId, placeId, eventTypeId) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
     val eventId     = column[EventId]("EVENT_ID")
     val roleId      = column[Int]("ROLE_ID")
@@ -328,8 +332,9 @@ private[dao] trait EventTables extends BaseDao with ColumnTypeMappers {
       tag: Tag
   ) extends Table[EventRolePlace](tag, SchemaName, "EVENT_ROLE_PLACE") {
 
-    def * =
-      (eventId.?, roleId, placeId, eventTypeId) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (eventId.?, roleId, placeId, eventTypeId) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
     val eventId     = column[EventId]("EVENT_ID")
     val roleId      = column[Int]("ROLE_ID")
@@ -364,8 +369,9 @@ private[dao] trait EventTables extends BaseDao with ColumnTypeMappers {
   class EventActorsTable(
       tag: Tag
   ) extends Table[EventRoleActor](tag, SchemaName, "EVENT_ROLE_ACTOR") {
-
-    def * = (eventId.?, roleId, actorId) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (eventId.?, roleId, actorId) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
     val eventId = column[EventId]("EVENT_ID")
     val roleId  = column[Int]("ROLE_ID")
