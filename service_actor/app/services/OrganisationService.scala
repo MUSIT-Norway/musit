@@ -31,7 +31,7 @@ import scala.concurrent.Future
 /**
  * TODO: Document me!
  */
-class OrganisationService @Inject() (val orgDao: OrganisationDao) {
+class OrganisationService @Inject()(val orgDao: OrganisationDao) {
 
   def find(id: OrgId): Future[Option[Organisation]] = {
     orgDao.getById(id)

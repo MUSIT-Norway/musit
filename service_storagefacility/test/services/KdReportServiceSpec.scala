@@ -38,12 +38,12 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     groups = Seq.empty
   )
 
-  val service: StorageNodeService = fromInstanceCache[StorageNodeService]
+  val service: StorageNodeService    = fromInstanceCache[StorageNodeService]
   val reportService: KdReportService = fromInstanceCache[KdReportService]
 
   "The KdReportService" should {
 
-    val baseNodes = bootstrapBaseStructure()
+    val baseNodes  = bootstrapBaseStructure()
     val buildingId = baseNodes._3
 
     val room1 = createRoomWithDifferentArea(

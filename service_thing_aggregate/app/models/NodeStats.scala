@@ -29,9 +29,9 @@ object CollectionStats {
 }
 
 case class NodeStats(
-  numNodes: Int = 0,
-  numObjects: Int = 0,
-  totalObjects: Int = 0
+    numNodes: Int = 0,
+    numObjects: Int = 0,
+    totalObjects: Int = 0
 )
 
 object NodeStats {

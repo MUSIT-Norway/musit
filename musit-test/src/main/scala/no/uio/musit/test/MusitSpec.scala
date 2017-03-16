@@ -79,7 +79,8 @@ trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with OneAppPerSuite {
  * application. Use this trait to have 1 server start/stop per test in a
  * *Spec.scala file.
  */
-trait MusitSpecWithServerPerTest extends MusitSpecWithApp
+trait MusitSpecWithServerPerTest
+    extends MusitSpecWithApp
     with Network
     with OneServerPerTest {
 
@@ -96,7 +97,8 @@ trait MusitSpecWithServerPerTest extends MusitSpecWithApp
  * application. Use this trait to have 1 server start/stop per  *Spec.scala
  * file. This is also to be used when bundling specs in a bigger Suite of tests.
  */
-trait MusitSpecWithServerPerSuite extends MusitSpecWithApp
+trait MusitSpecWithServerPerSuite
+    extends MusitSpecWithApp
     with Network
     with SuiteMixin
     with ServerProvider { this: Suite =>
@@ -121,11 +123,11 @@ trait MusitSpecWithServerPerSuite extends MusitSpecWithApp
 
     try {
       val newConfigMap = args.configMap +
-        ("org.scalatestplus.play.app" -> app) +
+        ("org.scalatestplus.play.app"  -> app) +
         ("org.scalatestplus.play.port" -> port)
 
       val newArgs = args.copy(configMap = newConfigMap)
-      val status = super.run(testName, newArgs)
+      val status  = super.run(testName, newArgs)
       status.whenCompleted { _ =>
         afterTests()
         testServer.stop()

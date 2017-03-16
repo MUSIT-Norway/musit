@@ -37,7 +37,8 @@ class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       "return a list of results matching the query paramter" in {
         val res = wsUrl(queryParam("Paal Bergsvei 56, Rykkinn"))
           .withHeaders(fakeToken.asHeader)
-          .get().futureValue
+          .get()
+          .futureValue
 
         res.status mustBe Status.OK
 
@@ -51,9 +52,8 @@ class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
 
       "not return any data if the address doesn't exist" in {
-        val res = wsUrl(queryParam("nykt"))
-          .withHeaders(fakeToken.asHeader)
-          .get().futureValue
+        val res =
+          wsUrl(queryParam("nykt")).withHeaders(fakeToken.asHeader).get().futureValue
 
         res.status mustBe Status.OK
         res.json.as[JsArray].value mustBe empty
@@ -62,7 +62,8 @@ class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       "pad with leading 0 for results where zip is a 3 digit integer" in {
         val res = wsUrl(queryParam("oslo gate 20, oslo"))
           .withHeaders(fakeToken.asHeader)
-          .get().futureValue
+          .get()
+          .futureValue
 
         res.status mustBe Status.OK
 

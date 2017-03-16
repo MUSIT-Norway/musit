@@ -40,7 +40,7 @@ trait Authenticator {
    * @return Either a Result or the active UserSession
    */
   def authenticate[A](
-    client: Option[String]
+      client: Option[String]
   )(implicit req: Request[A]): Future[Either[Result, UserSession]]
 
   /**
@@ -80,7 +80,7 @@ trait Authenticator {
 
 object Authenticator {
 
-  val ClientWeb = "web"
+  val ClientWeb    = "web"
   val ClientDelphi = "delphi"
 
 }

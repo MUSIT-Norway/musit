@@ -34,25 +34,25 @@ import services.{ObjectService, StorageNodeService}
 
 import scala.concurrent.Future
 
-class ObjectController @Inject() (
+class ObjectController @Inject()(
     val authService: Authenticator,
     val conf: Configuration,
     val objService: ObjectService,
     val nodeService: StorageNodeService
 ) extends MusitController {
 
-  val maxLimitConfKey = "musit.objects.search.max-limit"
+  val maxLimitConfKey     = "musit.objects.search.max-limit"
   val defaultLimitConfKey = "musit.objects.search.default-limit"
 
   val logger = Logger(classOf[ObjectController])
 
-  private val maxLimit = conf.getInt(maxLimitConfKey).getOrElse(100)
+  private val maxLimit     = conf.getInt(maxLimitConfKey).getOrElse(100)
   private val defaultLimit = conf.getInt(defaultLimitConfKey).getOrElse(25)
 
   private def calcLimit(l: Int): Int = l match {
     case lim: Int if lim > maxLimit => maxLimit
-    case lim: Int if lim < 0 => defaultLimit
-    case lim: Int => lim
+    case lim: Int if lim < 0        => defaultLimit
+    case lim: Int                   => lim
   }
 
   /**
@@ -70,21 +70,25 @@ class ObjectController @Inject() (
    * @return A JSON containing the objects that were found.
    */
   def search(
-    mid: Int,
-    collectionIds: String,
-    page: Int,
-    limit: Int = defaultLimit,
-    museumNo: Option[String],
-    subNo: Option[String],
-    term: Option[String]
+      mid: Int,
+      collectionIds: String,
+      page: Int,
+      limit: Int = defaultLimit,
+      museumNo: Option[String],
+      subNo: Option[String],
+      term: Option[String]
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     parseCollectionIdsParam(mid, collectionIds)(request.user) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
         if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
-          Future.successful(BadRequest(Json.obj(
-            "messages" -> "at least one of museumNo, subNo or term must be specified."
-          )))
+          Future.successful(
+            BadRequest(
+              Json.obj(
+                "messages" -> "at least one of museumNo, subNo or term must be specified."
+              )
+            )
+          )
         } else {
           val mno = museumNo.map(MuseumNo.apply)
           val sno = subNo.map(SubNo.apply)
@@ -114,9 +118,9 @@ class ObjectController @Inject() (
    * @return A list of objects that share the same main object ID.
    */
   def findMainObjectChildren(
-    mid: Int,
-    mainObjectId: Long,
-    collectionIds: String
+      mid: Int,
+      mainObjectId: Long,
+      collectionIds: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     parseCollectionIdsParam(mid, collectionIds)(request.user) match {
       case Left(res) => Future.successful(res)
@@ -149,11 +153,11 @@ class ObjectController @Inject() (
    * @return A list of objects located in the given node.
    */
   def getObjects(
-    mid: Int,
-    nodeId: Long,
-    collectionIds: String,
-    page: Int,
-    limit: Int = defaultLimit
+      mid: Int,
+      nodeId: Long,
+      collectionIds: String,
+      page: Int,
+      limit: Int = defaultLimit
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     parseCollectionIdsParam(mid, collectionIds)(request.user) match {
       case Left(res) => Future.successful(res)
@@ -162,10 +166,12 @@ class ObjectController @Inject() (
           case MusitSuccess(true) =>
             objService.findObjects(mid, nodeId, cids, page, limit)(request.user).map {
               case MusitSuccess(pagedObjects) =>
-                Ok(Json.obj(
-                  "totalMatches" -> pagedObjects.totalMatches,
-                  "matches" -> Json.toJson(pagedObjects.matches)
-                ))
+                Ok(
+                  Json.obj(
+                    "totalMatches" -> pagedObjects.totalMatches,
+                    "matches"      -> Json.toJson(pagedObjects.matches)
+                  )
+                )
 
               case MusitDbError(msg, ex) =>
                 logger.error(msg, ex.orNull)
@@ -176,9 +182,13 @@ class ObjectController @Inject() (
             }
 
           case MusitSuccess(false) =>
-            Future.successful(NotFound(Json.obj(
-              "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
-            )))
+            Future.successful(
+              NotFound(
+                Json.obj(
+                  "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
+                )
+              )
+            )
 
           case MusitDbError(msg, ex) =>
             logger.error(msg, ex.orNull)
@@ -191,9 +201,9 @@ class ObjectController @Inject() (
   }
 
   def scanForOldBarcode(
-    mid: MuseumId,
-    oldBarcode: Long,
-    collectionIds: String
+      mid: MuseumId,
+      oldBarcode: Long,
+      collectionIds: String
   ) = MusitSecureAction(mid, Read).async { request =>
     parseCollectionIdsParam(mid, collectionIds)(request.user) match {
       case Left(res) => Future.successful(res)

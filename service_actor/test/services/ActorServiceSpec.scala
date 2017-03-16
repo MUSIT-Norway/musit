@@ -55,7 +55,7 @@ class ActorServiceSpec extends MusitSpecWithAppPerSuite {
 
     "merge duplicate entries in a Person list into a list of UserInfo" in {
       val persons = generatePersonSeq
-      val users = generateUserInfos
+      val users   = generateUserInfos
 
       val res = service.merge(users, persons).sortBy { p =>
         // isolate the number part of the ID

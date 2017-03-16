@@ -6,8 +6,8 @@ package models.analysis
  * And which analysis' are to be performed on the items in the shipment.
  */
 case class Shipment[A](
-  to: String,
-  description: Option[String],
-  content: Seq[A]
+    to: String,
+    description: Option[String],
+    content: Seq[A]
 // TODO: Proabably need to add some Actor information.
 )

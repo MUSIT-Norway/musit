@@ -30,14 +30,14 @@ import services.OrganisationService
 
 import scala.concurrent.Future
 
-class OrganisationController @Inject() (
+class OrganisationController @Inject()(
     val authService: Authenticator,
     val orgService: OrganisationService
 ) extends MusitController {
 
   def search(
-    museumId: Int,
-    search: Option[MusitSearch]
+      museumId: Int,
+      search: Option[MusitSearch]
   ) = MusitSecureAction().async { request =>
     search match {
       case Some(criteria) =>

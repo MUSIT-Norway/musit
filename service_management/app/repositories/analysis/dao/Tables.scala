@@ -22,15 +22,48 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   import driver.api._
 
   val analysisTypeTable = TableQuery[AnalysisTypeTable]
-  val analysisTable = TableQuery[AnalysisTable]
-  val resultTable = TableQuery[AnalysisResultTable]
-  val sampleObjTable = TableQuery[SampleObjectTable]
+  val analysisTable     = TableQuery[AnalysisTable]
+  val resultTable       = TableQuery[AnalysisResultTable]
+  val sampleObjTable    = TableQuery[SampleObjectTable]
 
   // scalastyle:off line.size.limit
-  type EventTypeRow = (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
-  type EventRow = (Option[EventId], AnalysisTypeId, Option[JSqlTimestamp], Option[ActorId], Option[JSqlTimestamp], Option[EventId], Option[ObjectUUID], Option[String], JsValue)
-  type ResultRow = (Option[Long], EventId, Option[ActorId], Option[JSqlTimestamp], JsValue)
-  type SampleObjectRow = (ObjectUUID, Option[ObjectUUID], Boolean, MuseumId, SampleStatus, ActorId, JSqlTimestamp, Option[String], Option[String], Option[String], Option[String], Option[Double], Option[String], Option[String], Option[String], Option[String], Option[ActorId], Option[JSqlTimestamp], Option[ActorId], Option[JSqlTimestamp])
+  type EventTypeRow =
+    (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
+  type EventRow = (
+      Option[EventId],
+      AnalysisTypeId,
+      Option[JSqlTimestamp],
+      Option[ActorId],
+      Option[JSqlTimestamp],
+      Option[EventId],
+      Option[ObjectUUID],
+      Option[String],
+      JsValue
+  )
+  type ResultRow =
+    (Option[Long], EventId, Option[ActorId], Option[JSqlTimestamp], JsValue)
+  type SampleObjectRow = (
+      ObjectUUID,
+      Option[ObjectUUID],
+      Boolean,
+      MuseumId,
+      SampleStatus,
+      ActorId,
+      JSqlTimestamp,
+      Option[String],
+      Option[String],
+      Option[String],
+      Option[String],
+      Option[Double],
+      Option[String],
+      Option[String],
+      Option[String],
+      Option[String],
+      Option[ActorId],
+      Option[JSqlTimestamp],
+      Option[ActorId],
+      Option[JSqlTimestamp]
+  )
 
   // scalastyle:on line.size.limit
 
@@ -41,10 +74,10 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[EventTypeRow](tag, Some(SchemaName), AnalysisEventTypeTableName) {
 
-    val typeId = column[AnalysisTypeId]("TYPE_ID", O.PrimaryKey)
-    val category = column[Category]("CATEGORY")
-    val name = column[String]("NAME")
-    val shortName = column[Option[String]]("SHORT_NAME")
+    val typeId      = column[AnalysisTypeId]("TYPE_ID", O.PrimaryKey)
+    val category    = column[Category]("CATEGORY")
+    val name        = column[String]("NAME")
+    val shortName   = column[Option[String]]("SHORT_NAME")
     val collections = column[Option[String]]("COLLECTIONS")
     // TODO: Need col to tag if used by Zoology, Botanics, Archeology or Ethnography?
     val attributes = column[Option[JsValue]]("ATTRIBUTES")
@@ -62,18 +95,29 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[EventRow](tag, Some(SchemaName), AnalysisEventTableName) {
 
-    val id = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
-    val typeId = column[AnalysisTypeId]("TYPE_ID")
-    val eventDate = column[Option[JSqlTimestamp]]("EVENT_DATE")
-    val registeredBy = column[Option[ActorId]]("REGISTERED_BY")
+    val id             = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
+    val typeId         = column[AnalysisTypeId]("TYPE_ID")
+    val eventDate      = column[Option[JSqlTimestamp]]("EVENT_DATE")
+    val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
-    val partOf = column[Option[EventId]]("PART_OF")
-    val objectUuid = column[Option[ObjectUUID]]("OBJECT_UUID")
-    val note = column[Option[String]]("NOTE")
-    val eventJson = column[JsValue]("EVENT_JSON")
+    val partOf         = column[Option[EventId]]("PART_OF")
+    val objectUuid     = column[Option[ObjectUUID]]("OBJECT_UUID")
+    val note           = column[Option[String]]("NOTE")
+    val eventJson      = column[JsValue]("EVENT_JSON")
 
     // scalastyle:off method.name line.size.limit
-    def * = (id.?, typeId, eventDate, registeredBy, registeredDate, partOf, objectUuid, note, eventJson)
+    def * =
+      (
+        id.?,
+        typeId,
+        eventDate,
+        registeredBy,
+        registeredDate,
+        partOf,
+        objectUuid,
+        note,
+        eventJson
+      )
 
     // scalastyle:on method.name line.size.limit
   }
@@ -85,11 +129,11 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[ResultRow](tag, Some(SchemaName), AnalysisResultTableName) {
 
-    val id = column[Long]("RESULT_ID", O.PrimaryKey, O.AutoInc)
-    val eventId = column[EventId]("EVENT_ID")
-    val registeredBy = column[Option[ActorId]]("REGISTERED_BY")
+    val id             = column[Long]("RESULT_ID", O.PrimaryKey, O.AutoInc)
+    val eventId        = column[EventId]("EVENT_ID")
+    val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
-    val resultJson = column[JsValue]("RESULT_JSON")
+    val resultJson     = column[JsValue]("RESULT_JSON")
 
     // scalastyle:off method.name
     def * = (id.?, eventId, registeredBy, registeredDate, resultJson)
@@ -101,29 +145,51 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[SampleObjectRow](tag, Some(SchemaName), SampleObjectTableName) {
 
-    val id = column[ObjectUUID]("SAMPLE_UUID", O.PrimaryKey)
-    val parentId = column[Option[ObjectUUID]]("PARENT_OBJECT_UUID")
+    val id                 = column[ObjectUUID]("SAMPLE_UUID", O.PrimaryKey)
+    val parentId           = column[Option[ObjectUUID]]("PARENT_OBJECT_UUID")
     val isCollectionObject = column[Boolean]("IS_COLLECTION_OBJECT")
-    val museumId = column[MuseumId]("MUSEUM_ID")
-    val status = column[SampleStatus]("STATUS")
-    val responsible = column[ActorId]("RESPONSIBLE_ACTOR_ID")
-    val createdDate = column[JSqlTimestamp]("CREATED_DATE")
-    val sampleId = column[Option[String]]("SAMPLE_ID")
-    val externalId = column[Option[String]]("EXTERNAL_ID")
-    val sampleType = column[Option[String]]("SAMPLE_TYPE")
-    val sampleSubType = column[Option[String]]("SAMPLE_SUB_TYPE")
-    val size = column[Option[Double]]("SAMPLE_SIZE")
-    val sizeUnit = column[Option[String]]("SAMPLE_SIZE_UNIT")
-    val container = column[Option[String]]("SAMPLE_CONTAINER")
-    val storageMedium = column[Option[String]]("STORAGE_MEDIUM")
-    val note = column[Option[String]]("NOTE")
-    val registeredBy = column[Option[ActorId]]("REGISTERED_BY")
-    val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
-    val updatedBy = column[Option[ActorId]]("UPDATED_BY")
-    val updatedDate = column[Option[JSqlTimestamp]]("UPDATED_DATE")
+    val museumId           = column[MuseumId]("MUSEUM_ID")
+    val status             = column[SampleStatus]("STATUS")
+    val responsible        = column[ActorId]("RESPONSIBLE_ACTOR_ID")
+    val createdDate        = column[JSqlTimestamp]("CREATED_DATE")
+    val sampleId           = column[Option[String]]("SAMPLE_ID")
+    val externalId         = column[Option[String]]("EXTERNAL_ID")
+    val sampleType         = column[Option[String]]("SAMPLE_TYPE")
+    val sampleSubType      = column[Option[String]]("SAMPLE_SUB_TYPE")
+    val size               = column[Option[Double]]("SAMPLE_SIZE")
+    val sizeUnit           = column[Option[String]]("SAMPLE_SIZE_UNIT")
+    val container          = column[Option[String]]("SAMPLE_CONTAINER")
+    val storageMedium      = column[Option[String]]("STORAGE_MEDIUM")
+    val note               = column[Option[String]]("NOTE")
+    val registeredBy       = column[Option[ActorId]]("REGISTERED_BY")
+    val registeredDate     = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
+    val updatedBy          = column[Option[ActorId]]("UPDATED_BY")
+    val updatedDate        = column[Option[JSqlTimestamp]]("UPDATED_DATE")
 
     // scalastyle:off method.name line.size.limit
-    def * = (id, parentId, isCollectionObject, museumId, status, responsible, createdDate, sampleId, externalId, sampleType, sampleSubType, size, sizeUnit, container, storageMedium, note, registeredBy, registeredDate, updatedBy, updatedDate)
+    def * =
+      (
+        id,
+        parentId,
+        isCollectionObject,
+        museumId,
+        status,
+        responsible,
+        createdDate,
+        sampleId,
+        externalId,
+        sampleType,
+        sampleSubType,
+        size,
+        sizeUnit,
+        container,
+        storageMedium,
+        note,
+        registeredBy,
+        registeredDate,
+        updatedBy,
+        updatedDate
+      )
 
     // scalastyle:off method.name line.size.limit
 
@@ -183,7 +249,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    */
   protected[dao] def fromEventRow(tuple: EventRow): Option[AnalysisEvent] =
     Json.fromJson[AnalysisEvent](tuple._9).asOpt.map {
-      case a: Analysis => a.copy(id = tuple._1)
+      case a: Analysis            => a.copy(id = tuple._1)
       case ac: AnalysisCollection => ac.copy(id = tuple._1)
     }
 
@@ -214,7 +280,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     Json.fromJson[AnalysisResult](tuple._5).asOpt
 
   protected[dao] def fromResultRow(
-    maybeTuple: Option[ResultRow]
+      maybeTuple: Option[ResultRow]
   ): Option[AnalysisResult] =
     maybeTuple.flatMap(fromResultRow)
 

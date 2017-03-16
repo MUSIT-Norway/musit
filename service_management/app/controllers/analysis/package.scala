@@ -23,8 +23,7 @@ package object analysis {
    * @return a {{{play.api.mvc.Results}}}.
    */
   private[analysis] def listAsPlayResult[A](types: Seq[A])(
-    implicit
-    w: Writes[A]
+      implicit w: Writes[A]
   ) = {
     if (types.nonEmpty) Results.Ok(Json.toJson(types))
     else Results.NoContent
@@ -36,17 +35,15 @@ package object analysis {
    * completes successfully.
    */
   private[analysis] def saveRequest[A, ID](
-    jsr: JsResult[A]
+      jsr: JsResult[A]
   )(
-    save: A => Future[MusitResult[ID]]
-  )(implicit
-    req: MusitRequest[JsValue],
-    ec: ExecutionContext): Future[Result] = {
+      save: A => Future[MusitResult[ID]]
+  )(implicit req: MusitRequest[JsValue], ec: ExecutionContext): Future[Result] = {
     jsr match {
       case JsSuccess(at, _) =>
         save(at).map {
           case MusitSuccess(id) => Results.Created
-          case err: MusitError => internalErr(err)
+          case err: MusitError  => internalErr(err)
         }
 
       case err: JsError =>

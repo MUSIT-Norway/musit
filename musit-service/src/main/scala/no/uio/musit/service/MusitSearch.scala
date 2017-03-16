@@ -56,4 +56,3 @@ object MusitSearch {
   implicit val queryBinder =
     new BindableOf[MusitSearch](_.map(v => Right(parseSearch(v.trim))))
 }
-

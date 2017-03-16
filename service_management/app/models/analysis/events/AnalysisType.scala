@@ -27,12 +27,12 @@ object AnalysisTypeId extends MusitUUIDOps[AnalysisTypeId] {
 }
 
 case class AnalysisType(
-  id: AnalysisTypeId,
-  category: Category,
-  name: String,
-  shortName: Option[String] = None,
-  collections: Seq[CollectionUUID],
-  extraAttributes: Option[Map[String, String]] = None
+    id: AnalysisTypeId,
+    category: Category,
+    name: String,
+    shortName: Option[String] = None,
+    collections: Seq[CollectionUUID],
+    extraAttributes: Option[Map[String, String]] = None
 )
 
 object AnalysisType {

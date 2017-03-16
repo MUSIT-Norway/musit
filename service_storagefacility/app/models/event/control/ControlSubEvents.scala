@@ -43,10 +43,10 @@ object ControlSubEvents {
    * @return a play.api.libs.json.Format[A]
    */
   private def jsFormat[A <: ControlSubEvent, B <: ObservationSubEvent](
-    apply: (Boolean, Option[B]) => A
+      apply: (Boolean, Option[B]) => A
   )(implicit obsFormat: Format[B]): Format[A] = Format(
     fjs = Reads[A] { jsv =>
-      val ok = (jsv \ "ok").as[Boolean]
+      val ok       = (jsv \ "ok").as[Boolean]
       val maybeObs = (jsv \ "observation").asOpt[B]
 
       if (ok && maybeObs.isDefined) {
@@ -65,8 +65,8 @@ object ControlSubEvents {
   )
 
   case class ControlAlcohol(
-    ok: Boolean,
-    observation: Option[ObservationAlcohol]
+      ok: Boolean,
+      observation: Option[ObservationAlcohol]
   ) extends ControlSubEvent
 
   object ControlAlcohol {
@@ -75,8 +75,8 @@ object ControlSubEvents {
   }
 
   case class ControlCleaning(
-    ok: Boolean,
-    observation: Option[ObservationCleaning]
+      ok: Boolean,
+      observation: Option[ObservationCleaning]
   ) extends ControlSubEvent
 
   object ControlCleaning {
@@ -85,8 +85,8 @@ object ControlSubEvents {
   }
 
   case class ControlGas(
-    ok: Boolean,
-    observation: Option[ObservationGas]
+      ok: Boolean,
+      observation: Option[ObservationGas]
   ) extends ControlSubEvent
 
   object ControlGas {
@@ -95,8 +95,8 @@ object ControlSubEvents {
   }
 
   case class ControlHypoxicAir(
-    ok: Boolean,
-    observation: Option[ObservationHypoxicAir]
+      ok: Boolean,
+      observation: Option[ObservationHypoxicAir]
   ) extends ControlSubEvent
 
   object ControlHypoxicAir {
@@ -105,8 +105,8 @@ object ControlSubEvents {
   }
 
   case class ControlLightingCondition(
-    ok: Boolean,
-    observation: Option[ObservationLightingCondition]
+      ok: Boolean,
+      observation: Option[ObservationLightingCondition]
   ) extends ControlSubEvent
 
   object ControlLightingCondition {
@@ -117,8 +117,8 @@ object ControlSubEvents {
   }
 
   case class ControlMold(
-    ok: Boolean,
-    observation: Option[ObservationMold]
+      ok: Boolean,
+      observation: Option[ObservationMold]
   ) extends ControlSubEvent
 
   object ControlMold {
@@ -127,8 +127,8 @@ object ControlSubEvents {
   }
 
   case class ControlPest(
-    ok: Boolean,
-    observation: Option[ObservationPest]
+      ok: Boolean,
+      observation: Option[ObservationPest]
   ) extends ControlSubEvent
 
   object ControlPest {
@@ -137,8 +137,8 @@ object ControlSubEvents {
   }
 
   case class ControlRelativeHumidity(
-    ok: Boolean,
-    observation: Option[ObservationRelativeHumidity]
+      ok: Boolean,
+      observation: Option[ObservationRelativeHumidity]
   ) extends ControlSubEvent
 
   object ControlRelativeHumidity {
@@ -149,8 +149,8 @@ object ControlSubEvents {
   }
 
   case class ControlTemperature(
-    ok: Boolean,
-    observation: Option[ObservationTemperature]
+      ok: Boolean,
+      observation: Option[ObservationTemperature]
   ) extends ControlSubEvent
 
   object ControlTemperature {

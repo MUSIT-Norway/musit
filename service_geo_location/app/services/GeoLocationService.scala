@@ -29,7 +29,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-class GeoLocationService @Inject() (config: Configuration, ws: WSClient) {
+class GeoLocationService @Inject()(config: Configuration, ws: WSClient) {
 
   val logger = Logger(classOf[GeoLocationService])
 
@@ -49,9 +49,13 @@ class GeoLocationService @Inject() (config: Configuration, ws: WSClient) {
             logger.debug(s"Got $numRes address results.")
             val jsArr = (response.json \ "adresser").as[JsArray].value
             jsArr.foldLeft(List.empty[Address]) { (state, ajs) =>
-              Json.fromJson[GeoNorwayAddress](ajs).asOpt.map { gna =>
-                state :+ GeoNorwayAddress.asAddress(gna)
-              }.getOrElse(state)
+              Json
+                .fromJson[GeoNorwayAddress](ajs)
+                .asOpt
+                .map { gna =>
+                  state :+ GeoNorwayAddress.asAddress(gna)
+                }
+                .getOrElse(state)
             }
 
           case _ =>
@@ -65,6 +69,6 @@ class GeoLocationService @Inject() (config: Configuration, ws: WSClient) {
 
 object GeoLocationService {
   val HitsPerResultKey = "musit.geoLocation.geoNorway.hitsPerResult"
-  val SearchURL = "http://ws.geonorge.no/AdresseWS/adresse/sok"
+  val SearchURL        = "http://ws.geonorge.no/AdresseWS/adresse/sok"
 
 }

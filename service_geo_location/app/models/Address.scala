@@ -22,10 +22,10 @@ package models
 import play.api.libs.json.Json
 
 case class Address(
-  street: String,
-  streetNo: String,
-  place: String,
-  zip: String
+    street: String,
+    streetNo: String,
+    place: String,
+    zip: String
 )
 
 object Address {

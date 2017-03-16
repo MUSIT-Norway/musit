@@ -34,7 +34,7 @@ import repositories.dao.event.EventDao
 
 import scala.concurrent.Future
 
-class ControlService @Inject() (
+class ControlService @Inject()(
     val eventDao: EventDao,
     val storageNodeService: StorageNodeService
 ) {
@@ -50,9 +50,9 @@ class ControlService @Inject() (
    * @return
    */
   def add(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    ctrl: Control
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      ctrl: Control
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Control]] = {
     storageNodeService.exists(mid, nodeId).flatMap {
       case MusitSuccess(nodeExists) =>
@@ -110,8 +110,8 @@ class ControlService @Inject() (
   }
 
   def listFor(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Seq[Control]]] = {
     eventDao.getEventsForNode(mid, nodeId, ControlEventType).map { dtos =>
       MusitSuccess(dtos.map { dto =>

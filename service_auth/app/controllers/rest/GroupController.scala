@@ -36,9 +36,8 @@ import repositories.dao.AuthDao
 import scala.concurrent.Future
 
 @Singleton
-class GroupController @Inject() (
-    implicit
-    val authService: Authenticator,
+class GroupController @Inject()(
+    implicit val authService: Authenticator,
     val crypto: MusitCrypto,
     val dao: AuthDao
 ) extends MusitAdminController {
@@ -49,13 +48,13 @@ class GroupController @Inject() (
     InternalServerError(Json.obj("message" -> msg))
 
   def addGroup(
-    mid: Int
+      mid: Int
   ) = MusitAdminAction(mid, MusitAdmin).async(parse.json) { implicit request =>
     request.body.validate[GroupAdd] match {
       case JsSuccess(ga, _) =>
         dao.addGroup(ga).map {
           case MusitSuccess(grp) => Created(Json.toJson(grp))
-          case err: MusitError => serverError(err.message)
+          case err: MusitError   => serverError(err.message)
         }
 
       case err: JsError =>
@@ -64,27 +63,34 @@ class GroupController @Inject() (
   }
 
   def addUserToGroup(
-    groupId: String
+      groupId: String
   ) = MusitSecureAction(MusitAdmin).async(parse.json) { implicit request =>
-
     request.body.validate[UserAuthAdd] match {
       case JsSuccess(uad, _) =>
-        Email.validate(uad.email).map { feideEmail =>
-          GroupId.validate(groupId).toOption.map(GroupId.apply).map { gid =>
-            dao.addUserToGroup(feideEmail, gid, uad.collections).map {
-              case MusitSuccess(()) => Created
-              case err: MusitError => serverError(err.message)
-            }
-          }.getOrElse {
+        Email
+          .validate(uad.email)
+          .map { feideEmail =>
+            GroupId
+              .validate(groupId)
+              .toOption
+              .map(GroupId.apply)
+              .map { gid =>
+                dao.addUserToGroup(feideEmail, gid, uad.collections).map {
+                  case MusitSuccess(()) => Created
+                  case err: MusitError  => serverError(err.message)
+                }
+              }
+              .getOrElse {
+                Future.successful {
+                  BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+                }
+              }
+          }
+          .getOrElse {
             Future.successful {
-              BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+              BadRequest(Json.obj("message" -> s"Invalid email ${uad.email}"))
             }
           }
-        }.getOrElse {
-          Future.successful {
-            BadRequest(Json.obj("message" -> s"Invalid email ${uad.email}"))
-          }
-        }
 
       case jserr: JsError =>
         Future.successful(BadRequest(JsError.toJson(jserr)))
@@ -92,133 +98,161 @@ class GroupController @Inject() (
   }
 
   def getGroup(groupId: String) = MusitSecureAction().async { implicit request =>
-    GroupId.validate(groupId).toOption.map { gid =>
-      dao.findGroupById(gid).map {
-        case MusitSuccess(grp) => Ok(Json.toJson(grp))
-        case err: MusitError => serverError(err.message)
+    GroupId
+      .validate(groupId)
+      .toOption
+      .map { gid =>
+        dao.findGroupById(gid).map {
+          case MusitSuccess(grp) => Ok(Json.toJson(grp))
+          case err: MusitError   => serverError(err.message)
+        }
       }
-    }.getOrElse {
-      Future.successful {
-        BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+        }
       }
-    }
   }
 
   def allGroup = MusitSecureAction().async { implicit request =>
     dao.allGroups.map {
       case MusitSuccess(grps) => if (grps.nonEmpty) Ok(Json.toJson(grps)) else NoContent
-      case err: MusitError => serverError(err.message)
+      case err: MusitError    => serverError(err.message)
     }
   }
 
   def usersInGroup(
-    groupId: String
+      groupId: String
   ) = MusitAdminAction(MusitAdmin).async { implicit request =>
-    GroupId.validate(groupId).toOption.map { gid =>
-      dao.findUsersInGroup(gid).map {
-        case MusitSuccess(usrs) =>
-          if (usrs.nonEmpty) Ok(Json.toJson(usrs)) else NoContent
+    GroupId
+      .validate(groupId)
+      .toOption
+      .map { gid =>
+        dao.findUsersInGroup(gid).map {
+          case MusitSuccess(usrs) =>
+            if (usrs.nonEmpty) Ok(Json.toJson(usrs)) else NoContent
 
-        case err: MusitError =>
-          serverError(err.message)
+          case err: MusitError =>
+            serverError(err.message)
+        }
       }
-    }.getOrElse {
-      Future.successful {
-        BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+        }
       }
-    }
   }
 
   def groupsForUser(
-    email: String
+      email: String
   ) = MusitSecureAction().async { implicit request =>
-    Email.validate(email).map { feideEmail =>
-      dao.findGroupInfoFor(feideEmail).map {
-        case MusitSuccess(grps) => if (grps.nonEmpty) Ok(Json.toJson(grps)) else NoContent
-        case err: MusitError => serverError(err.message)
+    Email
+      .validate(email)
+      .map { feideEmail =>
+        dao.findGroupInfoFor(feideEmail).map {
+          case MusitSuccess(grps) =>
+            if (grps.nonEmpty) Ok(Json.toJson(grps)) else NoContent
+          case err: MusitError => serverError(err.message)
+        }
       }
-    }.getOrElse {
-      Future.successful {
-        BadRequest(Json.obj("message" -> s"Invalid email $email"))
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid email $email"))
+        }
       }
-    }
   }
 
   def updateGroup(
-    groupId: String
+      groupId: String
   ) = MusitAdminAction(MusitAdmin).async(parse.json) { implicit request =>
-    GroupId.validate(groupId).toOption.map { gid =>
-      request.body.validate[Group] match {
-        case JsSuccess(grp, _) =>
-          dao.updateGroup(grp).map {
-            case MusitSuccess(mg) =>
-              mg.map(g => Ok(Json.toJson(g))).getOrElse {
-                Ok(Json.obj("message" -> "Group was not updated"))
-              }
+    GroupId
+      .validate(groupId)
+      .toOption
+      .map { gid =>
+        request.body.validate[Group] match {
+          case JsSuccess(grp, _) =>
+            dao.updateGroup(grp).map {
+              case MusitSuccess(mg) =>
+                mg.map(g => Ok(Json.toJson(g))).getOrElse {
+                  Ok(Json.obj("message" -> "Group was not updated"))
+                }
 
-            case err: MusitError =>
-              serverError(err.message)
-          }
+              case err: MusitError =>
+                serverError(err.message)
+            }
 
-        case jsErr: JsError =>
-          Future.successful(BadRequest(JsError.toJson(jsErr)))
+          case jsErr: JsError =>
+            Future.successful(BadRequest(JsError.toJson(jsErr)))
+        }
       }
-    }.getOrElse {
-      Future.successful {
-        BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+        }
       }
-    }
   }
 
   def removeGroup(
-    groupId: String
+      groupId: String
   ) = MusitAdminAction(MusitAdmin).async { implicit request =>
-    GroupId.validate(groupId).toOption.map { gid =>
-      dao.deleteGroup(gid).map {
-        case MusitSuccess(numDel) =>
-          val msg = {
-            if (numDel == 1) s"Group $groupId was removed"
-            else s"Group $groupId was not removed"
-          }
-          Ok(Json.obj("message" -> msg))
-
-        case err: MusitError =>
-          serverError(err.message)
-      }
-    }.getOrElse {
-      Future.successful {
-        BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
-      }
-    }
-  }
-
-  def removeUserFromGroup(
-    groupId: String,
-    email: String
-  ) = MusitAdminAction(MusitAdmin).async { implicit request =>
-    Email.validate(email).map { feideEmail =>
-      GroupId.validate(groupId).toOption.map(GroupId.apply).map { gid =>
-        dao.removeUserFromGroup(feideEmail, gid).map {
+    GroupId
+      .validate(groupId)
+      .toOption
+      .map { gid =>
+        dao.deleteGroup(gid).map {
           case MusitSuccess(numDel) =>
             val msg = {
-              if (numDel == 1) s"User $email was removed from group $groupId"
-              else s"User $email was not removed from group $groupId"
+              if (numDel == 1) s"Group $groupId was removed"
+              else s"Group $groupId was not removed"
             }
             Ok(Json.obj("message" -> msg))
 
           case err: MusitError =>
             serverError(err.message)
         }
-      }.getOrElse {
+      }
+      .getOrElse {
         Future.successful {
           BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
         }
       }
-    }.getOrElse {
-      Future.successful {
-        BadRequest(Json.obj("message" -> s"Invalid email $email"))
+  }
+
+  def removeUserFromGroup(
+      groupId: String,
+      email: String
+  ) = MusitAdminAction(MusitAdmin).async { implicit request =>
+    Email
+      .validate(email)
+      .map { feideEmail =>
+        GroupId
+          .validate(groupId)
+          .toOption
+          .map(GroupId.apply)
+          .map { gid =>
+            dao.removeUserFromGroup(feideEmail, gid).map {
+              case MusitSuccess(numDel) =>
+                val msg = {
+                  if (numDel == 1) s"User $email was removed from group $groupId"
+                  else s"User $email was not removed from group $groupId"
+                }
+                Ok(Json.obj("message" -> msg))
+
+              case err: MusitError =>
+                serverError(err.message)
+            }
+          }
+          .getOrElse {
+            Future.successful {
+              BadRequest(Json.obj("message" -> s"Invalid UUID for $groupId"))
+            }
+          }
       }
-    }
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid email $email"))
+        }
+      }
   }
 
 }

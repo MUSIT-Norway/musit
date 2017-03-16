@@ -44,9 +44,9 @@ case class UserSession(
   }
 
   def activate(
-    oauthInfo: OAuth2Info,
-    userInfo: UserInfo,
-    timeoutMillis: Long
+      oauthInfo: OAuth2Info,
+      userInfo: UserInfo,
+      timeoutMillis: Long
   ): UserSession = {
     val now = dateTimeNow
     this.copy(

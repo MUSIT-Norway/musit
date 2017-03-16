@@ -45,12 +45,12 @@ case class EnvRequirement(
   def similar(er: EnvRequirement): Boolean = {
     // Compare the basic similarities of the environment requirements
     affectedThing == er.affectedThing &&
-      temperature == er.temperature &&
-      airHumidity == er.airHumidity &&
-      hypoxicAir == er.hypoxicAir &&
-      cleaning == er.cleaning &&
-      light == er.light &&
-      note == er.note
+    temperature == er.temperature &&
+    airHumidity == er.airHumidity &&
+    hypoxicAir == er.hypoxicAir &&
+    cleaning == er.cleaning &&
+    light == er.light &&
+    note == er.note
   }
 
 }
@@ -67,10 +67,10 @@ object EnvRequirement {
    * @return an EnvRequirement instance
    */
   def toEnvRequirementEvent(
-    doneBy: ActorId,
-    affectedNodeId: StorageNodeDatabaseId,
-    now: DateTime,
-    er: EnvironmentRequirement
+      doneBy: ActorId,
+      affectedNodeId: StorageNodeDatabaseId,
+      now: DateTime,
+      er: EnvironmentRequirement
   ): EnvRequirement = {
     EnvRequirement(
       id = None,

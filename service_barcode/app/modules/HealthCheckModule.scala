@@ -37,9 +37,8 @@ class HealthCheckModule extends AbstractModule with ScalaModule {
 
 }
 
-class ZabbixExecutorProvider @Inject() (
-    implicit
-    environment: Environment,
+class ZabbixExecutorProvider @Inject()(
+    implicit environment: Environment,
     configuration: Configuration,
     healthChecks: Set[HealthCheck],
     actorSystem: ActorSystem,

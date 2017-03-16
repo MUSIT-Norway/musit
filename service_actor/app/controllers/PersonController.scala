@@ -31,7 +31,7 @@ import services.ActorService
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class PersonController @Inject() (
+class PersonController @Inject()(
     val authService: Authenticator,
     val service: ActorService
 ) extends MusitController {
@@ -39,8 +39,8 @@ class PersonController @Inject() (
   val logger = Logger(classOf[PersonController])
 
   def search(
-    museumId: Int,
-    search: Option[MusitSearch]
+      museumId: Int,
+      search: Option[MusitSearch]
   ) = MusitSecureAction(museumId).async { request =>
     search match {
       case Some(criteria) =>

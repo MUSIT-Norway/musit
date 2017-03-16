@@ -33,8 +33,8 @@ class AccessLogFilterSpec extends MusitSpecWithAppPerSuite {
   "The AccessLogFilter" should {
 
     """should set a "Processing-Time" header""" in {
-      val filter = new AccessLogFilter()
-      val result = filter(request => Future.successful(Ok))(FakeRequest())
+      val filter  = new AccessLogFilter()
+      val result  = filter(request => Future.successful(Ok))(FakeRequest())
       val headers = result.futureValue.header.headers
       headers.get("Processing-Time") must not be None
     }

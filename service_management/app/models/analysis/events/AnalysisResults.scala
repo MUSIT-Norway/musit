@@ -25,14 +25,14 @@ object AnalysisResults {
     def withtRegisteredDate(d: Option[DateTime]): AnalysisResult = {
       this match {
         case gr: GenericResult => gr.copy(registeredDate = d)
-        case dr: DatingResult => dr.copy(registeredDate = d)
+        case dr: DatingResult  => dr.copy(registeredDate = d)
       }
     }
 
     def withRegisteredBy(a: Option[ActorId]): AnalysisResult = {
       this match {
         case gr: GenericResult => gr.copy(registeredBy = a)
-        case dr: DatingResult => dr.copy(registeredBy = a)
+        case dr: DatingResult  => dr.copy(registeredBy = a)
       }
     }
   }
@@ -44,7 +44,7 @@ object AnalysisResults {
     implicit val reads: Reads[AnalysisResult] = Reads { jsv =>
       (jsv \ tpe).validate[String].flatMap {
         case GenericResult.resultType => GenericResult.format.reads(jsv)
-        case DatingResult.resultType => DatingResult.format.reads(jsv)
+        case DatingResult.resultType  => DatingResult.format.reads(jsv)
       }
     }
 
@@ -69,10 +69,10 @@ object AnalysisResults {
    * @param comment A comment field that may contain a hand written result
    */
   case class GenericResult(
-    registeredBy: Option[ActorId],
-    registeredDate: Option[DateTime],
-    extRef: Option[Seq[String]],
-    comment: Option[String]
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime],
+      extRef: Option[Seq[String]],
+      comment: Option[String]
   ) extends AnalysisResult
 
   object GenericResult extends ResultTypeCompanion {
@@ -91,11 +91,11 @@ object AnalysisResults {
    * @param age The result containing the specific dating result.
    */
   case class DatingResult(
-    registeredBy: Option[ActorId],
-    registeredDate: Option[DateTime],
-    extRef: Option[Seq[String]],
-    comment: Option[String],
-    age: Option[String]
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime],
+      extRef: Option[Seq[String]],
+      comment: Option[String],
+      age: Option[String]
   ) extends AnalysisResult
 
   object DatingResult extends ResultTypeCompanion {

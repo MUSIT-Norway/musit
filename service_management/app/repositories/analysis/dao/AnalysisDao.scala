@@ -13,7 +13,7 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 @Singleton
-class AnalysisDao @Inject() (
+class AnalysisDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
@@ -34,13 +34,15 @@ class AnalysisDao @Inject() (
   private def insertAnalysisWithResultAction(a: Analysis): DBIO[EventId] = {
     for {
       id <- insertAnalysisAction(asEventTuple(a))
-      _ <- a.result.map(r => insertResultAction(asResultTuple(id, r))).getOrElse(noaction)
+      _ <- a.result
+            .map(r => insertResultAction(asResultTuple(id, r)))
+            .getOrElse(noaction)
     } yield id
   }
 
   private def insertChildEventsAction(
-    pid: EventId,
-    events: Seq[Analysis]
+      pid: EventId,
+      events: Seq[Analysis]
   ): DBIO[Seq[EventId]] = {
     val batch = events.map { e =>
       insertAnalysisWithResultAction(e.copy(partOf = Some(pid)))
@@ -66,8 +68,7 @@ class AnalysisDao @Inject() (
 
     query.result.map { res =>
       res.map { row =>
-        fromEventRow(row._1)
-          .flatMap(_.withResultAsOpt(fromResultRow(row._2))).get
+        fromEventRow(row._1).flatMap(_.withResultAsOpt(fromResultRow(row._2))).get
       }
     }
   }
@@ -112,7 +113,7 @@ class AnalysisDao @Inject() (
    */
   def insertCol(ac: AnalysisCollection): Future[MusitResult[EventId]] = {
     val action = for {
-      id <- insertAnalysisAction(asEventTuple(ac.withoutChildren))
+      id   <- insertAnalysisAction(asEventTuple(ac.withoutChildren))
       eids <- insertChildEventsAction(id, ac.events)
     } yield id
 
@@ -133,11 +134,11 @@ class AnalysisDao @Inject() (
   def findById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
     val query = for {
       maybeEvent <- findByIdAction(id)
-      maybeRes <- resultForEventIdAction(id)
-      children <- listChildrenAction(id)
+      maybeRes   <- resultForEventIdAction(id)
+      children   <- listChildrenAction(id)
     } yield {
       maybeEvent.map {
-        case a: Analysis => a.withResult(maybeRes)
+        case a: Analysis            => a.withResult(maybeRes)
         case ac: AnalysisCollection => ac.copy(events = children)
       }
     }

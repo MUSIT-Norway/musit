@@ -28,7 +28,7 @@ class StrictFormattersSpec extends WordSpec with MustMatchers {
   val maxChars = 20
 
   val shortString = "This is a String"
-  val longString = "This is a much longer String that should fail."
+  val longString  = "This is a much longer String that should fail."
 
   "Converting a String to JSON" should {
     "successfully generate a JsString when the String is shorter than max" in {

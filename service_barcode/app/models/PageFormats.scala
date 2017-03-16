@@ -27,7 +27,7 @@ object PageFormats {
   }
 
   case object A4 extends PageFormat {
-    override val width = Millimeters(210D)
+    override val width  = Millimeters(210D)
     override val height = Millimeters(297D)
   }
 

@@ -64,22 +64,25 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     "return bad request when no search criteria is specified" in {
       val res = wsUrl("/v1/organization?museumId=0")
         .withHeaders(fakeToken.asHeader)
-        .get().futureValue
+        .get()
+        .futureValue
       res.status mustBe Status.BAD_REQUEST
     }
 
     "successfully search for organization" in {
       val res = wsUrl("/v1/organization?museumId=0&search=[KHM]")
         .withHeaders(fakeToken.asHeader)
-        .get().futureValue
+        .get()
+        .futureValue
       val orgs = res.json.as[JsArray].value
       orgs.length mustBe 1
-      (orgs.head \ "fn").as[String] mustBe "Kulturhistorisk museum - Universitetet i Oslo"
+      (orgs.head \ "fn")
+        .as[String] mustBe "Kulturhistorisk museum - Universitetet i Oslo"
     }
 
     "successfully create organization" in {
       val reqBody = orgJson(None, "Foo Bar", "FB", "12345678", "http://www.foo.bar")
-      val res = postOrganization(reqBody).futureValue
+      val res     = postOrganization(reqBody).futureValue
       res.status mustBe Status.CREATED
 
       (res.json \ "fn").as[String] mustBe "Foo Bar"
@@ -94,24 +97,30 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "successfully update organization" in {
-      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com") // scalastyle:ignore
+      val addJson = orgJson(
+        None,
+        "Foo Barcode",
+        "FB",
+        "22334455",
+        "http://www.foo.barcode.com"
+      ) // scalastyle:ignore
       val res1 = postOrganization(addJson).futureValue
       res1.status mustBe Status.CREATED
 
       val id1 = (res1.json \ "id").as[Long]
       val updJson = Json.obj(
-        "id" -> id1,
-        "fn" -> "Foo Barcode 123",
+        "id"       -> id1,
+        "fn"       -> "Foo Barcode 123",
         "nickname" -> "FB 123",
-        "tel" -> "12345123",
-        "web" -> "http://www.foo123.bar"
+        "tel"      -> "12345123",
+        "web"      -> "http://www.foo123.bar"
       )
 
       val res2 = putOrganization(id1, updJson).futureValue
       res2.status mustBe Status.OK
       (res2.json \ "message").as[String] mustBe "Record was updated!"
 
-      val res3 = getOrganization(id1).futureValue
+      val res3       = getOrganization(id1).futureValue
       val updOrgJson = res3.json.as[JsObject]
 
       updJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet) mustBe empty
@@ -125,7 +134,13 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "not update organization with illegal input" in {
-      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com") // scalastyle:ignore
+      val addJson = orgJson(
+        None,
+        "Foo Barcode",
+        "FB",
+        "22334455",
+        "http://www.foo.barcode.com"
+      ) // scalastyle:ignore
       val res1 = postOrganization(addJson).futureValue
       res1.status mustBe Status.CREATED
       val id = (res1.json \ "id").as[Long]
@@ -140,7 +155,13 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "successfully delete organization" in {
-      val crJson = orgJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com") // scalastyle:ignore
+      val crJson = orgJson(
+        None,
+        "Foo Barcode999",
+        "FB",
+        "22334499",
+        "http://www.foo.barcode999.com"
+      ) // scalastyle:ignore
       val res1 = postOrganization(crJson).futureValue
       res1.status mustBe Status.CREATED
       val id = (res1.json \ "id").as[Long]

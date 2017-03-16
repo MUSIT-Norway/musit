@@ -37,7 +37,7 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
 
   class Dummy extends MusitAdminActions {
     override val authService = new FakeAuthenticator
-    override val crypto = musitCrypto
+    override val crypto      = musitCrypto
   }
 
   val request = (uri: String) => FakeRequest(GET, uri)
@@ -51,9 +51,9 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
   }
 
   def authActionWithPerms(
-    userId: ActorId,
-    token: BearerToken,
-    perms: ElevatedPermission*
+      userId: ActorId,
+      token: BearerToken,
+      perms: ElevatedPermission*
   ) = {
     new Dummy().MusitAdminAction(perms: _*) { request =>
       request.token mustBe token
@@ -64,7 +64,7 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
 
   val unauthAction = new Dummy().MusitAdminAction()(request => Ok)
 
-  val superUserId = ActorId.unsafeFromString(FakeUsers.superUserId)
+  val superUserId    = ActorId.unsafeFromString(FakeUsers.superUserId)
   val superUserToken = BearerToken(FakeUsers.superUserToken)
 
   " A MusitAdminAction" when {
@@ -90,8 +90,8 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
         val encToken = EncryptedToken.fromBearerToken(superUserToken)
 
         val action = authAction(superUserId, superUserToken)
-        val req = request(s"/param?_at=${encToken.urlEncoded}")
-        val res = call(action, req)
+        val req    = request(s"/param?_at=${encToken.urlEncoded}")
+        val res    = call(action, req)
 
         status(res) mustEqual OK
         contentAsString(res) must include(superUserId.asString)
@@ -99,8 +99,8 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
 
       "return OK if the request has a valid bearer token in the Auth header" in {
         val action = authAction(superUserId, superUserToken)
-        val req = request("/").withHeaders(superUserToken.asHeader)
-        val res = call(action, req)
+        val req    = request("/").withHeaders(superUserToken.asHeader)
+        val res    = call(action, req)
 
         status(res) mustEqual OK
         contentAsString(res) must include(superUserId.asString)

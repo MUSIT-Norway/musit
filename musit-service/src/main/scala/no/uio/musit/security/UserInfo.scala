@@ -64,10 +64,10 @@ object UserInfo {
 
   implicit val format: Format[UserInfo] = (
     (__ \ "userid").format[ActorId] and
-    (__ \ "userid_sec").formatNullable[Seq[String]] and
-    (__ \ "name").formatNullable[String] and
-    (__ \ "email").formatNullable[Email] and
-    (__ \ "profilephoto").formatNullable[String]
+      (__ \ "userid_sec").formatNullable[Seq[String]] and
+      (__ \ "name").formatNullable[String] and
+      (__ \ "email").formatNullable[Email] and
+      (__ \ "profilephoto").formatNullable[String]
   )(UserInfo.apply, unlift(UserInfo.unapply))
 
 }

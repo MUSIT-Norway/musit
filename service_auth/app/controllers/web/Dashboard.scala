@@ -25,9 +25,8 @@ import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.service.MusitAdminController
 import play.api.Logger
 
-class Dashboard @Inject() (
-    implicit
-    val authService: Authenticator,
+class Dashboard @Inject()(
+    implicit val authService: Authenticator,
     val crypto: MusitCrypto
 ) extends MusitAdminController {
 

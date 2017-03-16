@@ -33,10 +33,10 @@ import play.api.libs.json._
  * @param hostGroup The group that zabbix can send notifications to.
  */
 case class ZabbixMeta(
-  name: String,
-  instance: String,
-  url: String,
-  hostGroup: String
+    name: String,
+    instance: String,
+    url: String,
+    hostGroup: String
 )
 
 case class ZabbixFile(dir: String, name: String) {
@@ -57,10 +57,10 @@ case class Zabbix(
   def toJson = {
     val metaJson = Map(
       "zabbix-name" -> JsString(meta.name),
-      "instance" -> JsString(meta.instance),
-      "url" -> JsString(meta.url),
-      "host-group" -> JsString(meta.hostGroup),
-      "updated" -> JsNumber(updated.getMillis) //todo: timezone?
+      "instance"    -> JsString(meta.instance),
+      "url"         -> JsString(meta.url),
+      "host-group"  -> JsString(meta.hostGroup),
+      "updated"     -> JsNumber(updated.getMillis) //todo: timezone?
     )
     val checksJson = healthChecks.map(hc => hc.name -> JsBoolean(hc.available)).toMap
     JsObject(metaJson ++ checksJson)

@@ -44,11 +44,11 @@ object GroupInfo {
 
   implicit val formats: Format[GroupInfo] = (
     (__ \ "id").format[GroupId] and
-    (__ \ "name").format[String] and
-    (__ \ "permission").format[Permission] and
-    (__ \ "museumId").format[MuseumId] and
-    (__ \ "description").formatNullable[String] and
-    (__ \ "collections").format[Seq[MuseumCollection]]
+      (__ \ "name").format[String] and
+      (__ \ "permission").format[Permission] and
+      (__ \ "museumId").format[MuseumId] and
+      (__ \ "description").formatNullable[String] and
+      (__ \ "collections").format[Seq[MuseumCollection]]
   )(GroupInfo.apply, unlift(GroupInfo.unapply))
 
   def fromTuple(t: (GroupId, String, Permission, MuseumId, Option[String])): GroupInfo = {

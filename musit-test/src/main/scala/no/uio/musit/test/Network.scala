@@ -31,7 +31,7 @@ trait Network {
   def generatePort: Int = {
     Try {
       val portnum = Helpers.testServerPort + Random.nextInt(500)
-      val socket = new JServerSocket(portnum)
+      val socket  = new JServerSocket(portnum)
       socket.close()
       portnum
     }.recover {

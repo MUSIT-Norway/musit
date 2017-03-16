@@ -21,11 +21,11 @@ package repositories
 
 package object dao {
 
-  val SchemaName = "MUSARK_ACTOR"
+  val SchemaName        = "MUSARK_ACTOR"
   val MappingSchemaName = "MUSIT_MAPPING"
 
-  val ActorTableName = "ACTOR"
-  val OrgTableName = "ORGANIZATION"
+  val ActorTableName  = "ACTOR"
+  val OrgTableName    = "ORGANIZATION"
   val OrgAdrTableName = "ORGANIZATION_ADDRESS"
 
 }

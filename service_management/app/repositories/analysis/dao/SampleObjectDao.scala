@@ -12,7 +12,7 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 @Singleton
-class SampleObjectDao @Inject() (
+class SampleObjectDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
@@ -22,7 +22,7 @@ class SampleObjectDao @Inject() (
 
   def insert(so: SampleObject): Future[MusitResult[ObjectUUID]] = {
     val soTuple = asSampleObjectTuple(so)
-    val action = sampleObjTable += soTuple
+    val action  = sampleObjTable += soTuple
 
     db.run(action.transactionally).map(_ => MusitSuccess(soTuple._1)).recover {
       case NonFatal(ex) =>
@@ -37,8 +37,8 @@ class SampleObjectDao @Inject() (
 
     db.run(a.transactionally).map {
       case res: Int if res == 1 => MusitSuccess(res)
-      case res: Int if 1 > res => MusitDbError("Nothing was updated")
-      case res: Int if 1 < res => MusitDbError(s"Too many rows were updated: $res")
+      case res: Int if 1 > res  => MusitDbError("Nothing was updated")
+      case res: Int if 1 < res  => MusitDbError(s"Too many rows were updated: $res")
     }
   }
 

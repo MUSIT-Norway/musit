@@ -36,8 +36,7 @@ import FunctionSymbolExtensionMethods._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
-    with DateTimeImplicits {
+trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImplicits {
 
   private val logger = Logger(classOf[AuthTables])
 
@@ -53,7 +52,8 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
   implicit class EmailColumnExtensionMethods[P1](val c: Rep[Email]) {
     implicit def emailTypedType = implicitly[TypedType[Email]]
 
-    def toLowerCase(implicit tt: TypedType[Email]) = Library.LCase.column[Email](c.toNode)
+    def toLowerCase(implicit tt: TypedType[Email]) =
+      Library.LCase.column[Email](c.toNode)
   }
 
   implicit lazy val emailMapper: BaseColumnType[Email] =
@@ -112,10 +112,10 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
 
   val schema = "MUSARK_AUTH"
 
-  val grpTable = TableQuery[GroupTable]
-  val usrGrpTable = TableQuery[UserGroupTable]
-  val usrInfoTable = TableQuery[UserInfoTable]
-  val musColTable = TableQuery[MuseumCollectionTable]
+  val grpTable        = TableQuery[GroupTable]
+  val usrGrpTable     = TableQuery[UserGroupTable]
+  val usrInfoTable    = TableQuery[UserInfoTable]
+  val musColTable     = TableQuery[MuseumCollectionTable]
   val usrSessionTable = TableQuery[UserSessionTable]
 
   type GroupDBTuple = ((GroupId, String, Permission, MuseumId, Option[String]))
@@ -124,10 +124,10 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       val tag: Tag
   ) extends Table[GroupDBTuple](tag, Some(schema), "AUTH_GROUP") {
 
-    val id = column[GroupId]("GROUP_UUID", O.PrimaryKey)
-    val name = column[String]("GROUP_NAME")
-    val permission = column[Permission]("GROUP_PERMISSION")
-    val museumId = column[MuseumId]("GROUP_MUSEUMID")
+    val id          = column[GroupId]("GROUP_UUID", O.PrimaryKey)
+    val name        = column[String]("GROUP_NAME")
+    val permission  = column[Permission]("GROUP_PERMISSION")
+    val museumId    = column[MuseumId]("GROUP_MUSEUMID")
     val description = column[Option[String]]("GROUP_DESCRIPTION")
 
     override def * = (id, name, permission, museumId, description) // scalastyle:ignore
@@ -140,15 +140,16 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       val tag: Tag
   ) extends Table[CollectionDBTuple](tag, Some(schema), "MUSEUM_COLLECTION") {
 
-    val uuid = column[CollectionUUID]("COLLECTION_UUID", O.PrimaryKey)
-    val name = column[Option[String]]("COLLECTION_NAME")
+    val uuid      = column[CollectionUUID]("COLLECTION_UUID", O.PrimaryKey)
+    val name      = column[Option[String]]("COLLECTION_NAME")
     val schemaIds = column[Seq[Collection]]("COLLECTION_SCHEMA_IDENTIFIERS")
 
     override def * = (uuid, name, schemaIds) // scalastyle:ignore
 
   }
 
-  type UserInfoDBTuple = ((ActorId, Option[Email], Option[String], Option[Email], Option[String]))
+  type UserInfoDBTuple =
+    ((ActorId, Option[Email], Option[String], Option[Email], Option[String]))
 
   // scalastyle:ignore
 
@@ -156,10 +157,10 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       val tag: Tag
   ) extends Table[UserInfoDBTuple](tag, Some(schema), "USER_INFO") {
 
-    val uuid = column[ActorId]("USER_UUID", O.PrimaryKey)
-    val secId = column[Option[Email]]("SECONDARY_ID")
-    val name = column[Option[String]]("NAME")
-    val email = column[Option[Email]]("EMAIL")
+    val uuid    = column[ActorId]("USER_UUID", O.PrimaryKey)
+    val secId   = column[Option[Email]]("SECONDARY_ID")
+    val name    = column[Option[String]]("NAME")
+    val email   = column[Option[Email]]("EMAIL")
     val picture = column[Option[String]]("PICTURE")
 
     override def * = (uuid, secId, name, email, picture) // scalastyle:ignore
@@ -170,24 +171,24 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       val tag: Tag
   ) extends Table[UserSession](tag, Some(schema), "USER_SESSION") {
 
-    val uuid = column[SessionUUID]("SESSION_UUID", O.PrimaryKey)
-    val token = column[Option[BearerToken]]("TOKEN")
-    val userUuid = column[Option[ActorId]]("USER_UUID")
-    val loginTime = column[Option[DateTime]]("LOGIN_TIME")
-    val lastActive = column[Option[DateTime]]("LAST_ACTIVE")
-    val isLoggedIn = column[Boolean]("IS_LOGGED_IN")
+    val uuid        = column[SessionUUID]("SESSION_UUID", O.PrimaryKey)
+    val token       = column[Option[BearerToken]]("TOKEN")
+    val userUuid    = column[Option[ActorId]]("USER_UUID")
+    val loginTime   = column[Option[DateTime]]("LOGIN_TIME")
+    val lastActive  = column[Option[DateTime]]("LAST_ACTIVE")
+    val isLoggedIn  = column[Boolean]("IS_LOGGED_IN")
     val tokenExpiry = column[Option[Long]]("TOKEN_EXPIRES_IN")
-    val client = column[Option[String]]("CLIENT")
+    val client      = column[Option[String]]("CLIENT")
 
     val create = (
-      uuid: SessionUUID,
-      accessToken: Option[BearerToken],
-      userId: Option[ActorId],
-      loginTimestamp: Option[DateTime],
-      lastActiveTimestamp: Option[DateTime],
-      loggedIn: Boolean,
-      expiration: Option[Long],
-      client: Option[String]
+        uuid: SessionUUID,
+        accessToken: Option[BearerToken],
+        userId: Option[ActorId],
+        loginTimestamp: Option[DateTime],
+        lastActiveTimestamp: Option[DateTime],
+        loggedIn: Boolean,
+        expiration: Option[Long],
+        client: Option[String]
     ) =>
       UserSession(
         uuid = uuid,
@@ -198,21 +199,24 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
         isLoggedIn = loggedIn,
         tokenExpiry = expiration,
         client = client
-      )
+    )
 
     val destroy = (us: UserSession) =>
-      Some((
-        us.uuid,
-        us.oauthToken,
-        us.userId,
-        us.loginTime,
-        us.lastActive,
-        us.isLoggedIn,
-        us.tokenExpiry,
-        us.client
-      ))
+      Some(
+        (
+          us.uuid,
+          us.oauthToken,
+          us.userId,
+          us.loginTime,
+          us.lastActive,
+          us.isLoggedIn,
+          us.tokenExpiry,
+          us.client
+        )
+    )
 
-    override def * = (uuid, token, userUuid, loginTime, lastActive, isLoggedIn, tokenExpiry, client) <> (create.tupled, destroy) // scalastyle:ignore
+    override def * =
+      (uuid, token, userUuid, loginTime, lastActive, isLoggedIn, tokenExpiry, client) <> (create.tupled, destroy) // scalastyle:ignore
 
   }
 
@@ -220,22 +224,23 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
       val tag: Tag
   ) extends Table[UserGroupMembership](tag, Some(schema), "USER_AUTH_GROUP") {
 
-    val id = column[Option[Int]]("UAG_ID", O.PrimaryKey, O.AutoInc)
-    val feideEmail = column[Email]("USER_FEIDE_EMAIL")
-    val groupId = column[GroupId]("GROUP_UUID")
+    val id           = column[Option[Int]]("UAG_ID", O.PrimaryKey, O.AutoInc)
+    val feideEmail   = column[Email]("USER_FEIDE_EMAIL")
+    val groupId      = column[GroupId]("GROUP_UUID")
     val collectionId = column[Option[CollectionUUID]]("COLLECTION_UUID")
 
     val create = (
-      id: Option[Int],
-      feideEmail: Email,
-      groupId: GroupId,
-      collection: Option[CollectionUUID]
+        id: Option[Int],
+        feideEmail: Email,
+        groupId: GroupId,
+        collection: Option[CollectionUUID]
     ) => UserGroupMembership(id, feideEmail, groupId, collection)
 
     val destroy = (ugm: UserGroupMembership) =>
       Some((ugm.id, ugm.feideEmail, ugm.groupId, ugm.collection))
 
-    override def * = (id, feideEmail, groupId, collectionId) <> (create.tupled, destroy) // scalastyle:ignore
+    override def * =
+      (id, feideEmail, groupId, collectionId) <> (create.tupled, destroy) // scalastyle:ignore
   }
 
   type GrpColTuples = Seq[(GroupDBTuple, CollectionDBTuple)]
@@ -250,7 +255,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
    * @return A Future MusitResult containing collection of GroupInfos
    */
   def findGroupInfoBy(
-    q: Query[UserGroupTable, UserGroupMembership, Seq]
+      q: Query[UserGroupTable, UserGroupMembership, Seq]
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
     val q1 = q join grpTable on (_.groupId === _.id)
     val q2 = q1 join musColTable on { (ugg, col) =>
@@ -266,7 +271,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile]
   }
 
   def convertColGrpTuple(
-    tuple: (GroupDBTuple, CollectionDBTuple)
+      tuple: (GroupDBTuple, CollectionDBTuple)
   ): (GroupInfo, MuseumCollection) = {
     (GroupInfo.fromTuple(tuple._1), MuseumCollection.fromTuple(tuple._2))
   }

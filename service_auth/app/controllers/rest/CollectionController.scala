@@ -31,9 +31,8 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import repositories.dao.AuthDao
 
-class CollectionController @Inject() (
-    implicit
-    val authService: Authenticator,
+class CollectionController @Inject()(
+    implicit val authService: Authenticator,
     val crypto: MusitCrypto,
     val dao: AuthDao
 ) extends MusitAdminController {
@@ -49,12 +48,12 @@ class CollectionController @Inject() (
   def getAllCollections = MusitSecureAction().async { implicit request =>
     dao.allCollections.map {
       case MusitSuccess(cols) => if (cols.nonEmpty) Ok(Json.toJson(cols)) else NoContent
-      case err: MusitError => serverError(err.message)
+      case err: MusitError    => serverError(err.message)
     }
   }
 
   def getCollection(
-    colId: String
+      colId: String
   ) = MusitSecureAction().async { implicit request =>
     ???
   }
@@ -65,13 +64,13 @@ class CollectionController @Inject() (
     }
 
   def updateCollection(
-    colId: String
+      colId: String
   ) = MusitAdminAction(MusitAdmin).async(parse.json) { implicit request =>
     ???
   }
 
   def removeCollection(
-    colId: String
+      colId: String
   ) = MusitAdminAction(GodMode).async { implicit request =>
     ???
   }

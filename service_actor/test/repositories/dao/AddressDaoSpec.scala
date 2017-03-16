@@ -26,7 +26,7 @@ import org.scalatest.BeforeAndAfterAll
 
 class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
-  val adrDao: AddressDao = fromInstanceCache[AddressDao]
+  val adrDao: AddressDao      = fromInstanceCache[AddressDao]
   val orgDao: OrganisationDao = fromInstanceCache[OrganisationDao]
 
   override def beforeAll(): Unit = {

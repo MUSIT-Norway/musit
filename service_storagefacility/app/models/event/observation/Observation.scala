@@ -27,26 +27,26 @@ import org.joda.time.DateTime
 import play.api.libs.json.{Format, _}
 
 case class Observation(
-  id: Option[EventId],
-  doneBy: Option[ActorId],
-  doneDate: DateTime,
-  affectedThing: Option[StorageNodeDatabaseId],
-  registeredBy: Option[ActorId],
-  registeredDate: Option[DateTime],
-  eventType: EventType,
-  alcohol: Option[ObservationAlcohol] = None,
-  cleaning: Option[ObservationCleaning] = None,
-  gas: Option[ObservationGas] = None,
-  hypoxicAir: Option[ObservationHypoxicAir] = None,
-  lightingCondition: Option[ObservationLightingCondition] = None,
-  mold: Option[ObservationMold] = None,
-  pest: Option[ObservationPest] = None,
-  relativeHumidity: Option[ObservationRelativeHumidity] = None,
-  temperature: Option[ObservationTemperature] = None,
-  theftProtection: Option[ObservationTheftProtection] = None,
-  fireProtection: Option[ObservationFireProtection] = None,
-  perimeterSecurity: Option[ObservationPerimeterSecurity] = None,
-  waterDamageAssessment: Option[ObservationWaterDamageAssessment] = None
+    id: Option[EventId],
+    doneBy: Option[ActorId],
+    doneDate: DateTime,
+    affectedThing: Option[StorageNodeDatabaseId],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    eventType: EventType,
+    alcohol: Option[ObservationAlcohol] = None,
+    cleaning: Option[ObservationCleaning] = None,
+    gas: Option[ObservationGas] = None,
+    hypoxicAir: Option[ObservationHypoxicAir] = None,
+    lightingCondition: Option[ObservationLightingCondition] = None,
+    mold: Option[ObservationMold] = None,
+    pest: Option[ObservationPest] = None,
+    relativeHumidity: Option[ObservationRelativeHumidity] = None,
+    temperature: Option[ObservationTemperature] = None,
+    theftProtection: Option[ObservationTheftProtection] = None,
+    fireProtection: Option[ObservationFireProtection] = None,
+    perimeterSecurity: Option[ObservationPerimeterSecurity] = None,
+    waterDamageAssessment: Option[ObservationWaterDamageAssessment] = None
 ) extends MusitEvent
 
 object Observation extends WithDateTimeFormatters {

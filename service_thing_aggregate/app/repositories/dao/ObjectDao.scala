@@ -37,7 +37,7 @@ import scala.util.control.NonFatal
 /**
  * Dao intended for searching through objects
  */
-class ObjectDao @Inject() (
+class ObjectDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
@@ -170,11 +170,11 @@ class ObjectDao @Inject() (
    * @return
    */
   private[dao] def searchQuery(
-    mid: MuseumId,
-    museumNo: Option[MuseumNo],
-    subNo: Option[SubNo],
-    term: Option[String],
-    collections: Seq[MuseumCollection]
+      mid: MuseumId,
+      museumNo: Option[MuseumNo],
+      subNo: Option[SubNo],
+      term: Option[String],
+      collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): QObjectTable = {
     logger.debug(s"Performing search in collections: ${collections.mkString(", ")}")
 
@@ -213,22 +213,22 @@ class ObjectDao @Inject() (
    * @return
    */
   def search(
-    mid: MuseumId,
-    page: Int,
-    limit: Int,
-    museumNo: Option[MuseumNo],
-    subNo: Option[SubNo],
-    term: Option[String],
-    collections: Seq[MuseumCollection]
+      mid: MuseumId,
+      page: Int,
+      limit: Int,
+      museumNo: Option[MuseumNo],
+      subNo: Option[SubNo],
+      term: Option[String],
+      collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
     val offset = (page - 1) * limit
-    val query = searchQuery(mid, museumNo, subNo, term, collections)
+    val query  = searchQuery(mid, museumNo, subNo, term, collections)
 
-    val totalMatches = db.run(query.length.result)
+    val totalMatches   = db.run(query.length.result)
     val matchedResults = db.run(query.drop(offset).take(limit).result)
 
     (for {
-      total <- totalMatches
+      total   <- totalMatches
       matches <- matchedResults
     } yield {
       MusitSuccess(
@@ -251,9 +251,9 @@ class ObjectDao @Inject() (
    * @return
    */
   def findMainObjectChildren(
-    mid: MuseumId,
-    mainObjectId: ObjectId,
-    collections: Seq[MuseumCollection]
+      mid: MuseumId,
+      mainObjectId: ObjectId,
+      collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     val q = objTable.filter { o =>
       o.mainObjectId === mainObjectId.underlying && o.isDeleted === false
@@ -275,11 +275,13 @@ class ObjectDao @Inject() (
   type QLocObj = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, scala.Seq]
 
   private def collectionFilter(
-    collections: Seq[MuseumCollection]
-  )(implicit currUsr: AuthenticatedUser) = if (currUsr.hasGodMode) "" else {
-    val in = collections.flatMap(_.schemaIds).mkString("(", ",", ")")
-    s"""AND mt."NEW_COLLECTION_ID" in $in"""
-  }
+      collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser) =
+    if (currUsr.hasGodMode) ""
+    else {
+      val in = collections.flatMap(_.schemaIds).mkString("(", ",", ")")
+      s"""AND mt."NEW_COLLECTION_ID" in $in"""
+    }
 
   private def pagingClause(page: Int, limit: Int): String = {
     val offset = (page - 1) * limit
@@ -302,9 +304,9 @@ class ObjectDao @Inject() (
    * @return
    */
   private def countObjects(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    collections: Seq[MuseumCollection]
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Int]] = {
     val count =
       sql"""
@@ -324,6 +326,7 @@ class ObjectDao @Inject() (
     }
   }
 
+  // scalastyle:off line.size.limit method.length
   /**
    * Fetch all objects for the given arguments.
    *
@@ -345,13 +348,13 @@ class ObjectDao @Inject() (
    * @return
    */
   private def objectsFor(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    collections: Seq[MuseumCollection],
-    page: Int,
-    limit: Int
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      collections: Seq[MuseumCollection],
+      page: Int,
+      limit: Int
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectRow]]] = {
-
+    // format: off
     val query =
       sql"""
         SELECT /*+ FIRST_ROWS DRIVING_SITE(mt) */ mt."OBJECT_ID",
@@ -378,7 +381,7 @@ class ObjectDao @Inject() (
           mt."SUBNOASNUMBER" ASC,
           LOWER(mt."SUBNO") ASC
         #${pagingClause(page, limit)}
-      """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])] // scalastyle:ignore
+      """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])]
 
     db.run(query).map { r =>
       val res = r.map { t =>
@@ -387,7 +390,9 @@ class ObjectDao @Inject() (
       }
       MusitSuccess(res)
     }
+    // format:on
   }
+  // scalastyle:on line.size.limit method.length
 
   /**
    * Fetch all objects matching the given criteria.
@@ -401,11 +406,11 @@ class ObjectDao @Inject() (
    * @return
    */
   def pagedObjects(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    collections: Seq[MuseumCollection],
-    page: Int,
-    limit: Int
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      collections: Seq[MuseumCollection],
+      page: Int,
+      limit: Int
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[PagedResult[MusitObject]]] =
     (for {
       tot <- MusitResultT(countObjects(mid, nodeId, collections))
@@ -428,13 +433,13 @@ class ObjectDao @Inject() (
    * @return
    */
   def findObjectIdsForOld(
-    oldSchema: String,
-    oldIds: Seq[Long]
+      oldSchema: String,
+      oldIds: Seq[Long]
   ): Future[MusitResult[Seq[ObjectId]]] = {
     val query = objTable.filter { o =>
       o.isDeleted === false &&
-        o.oldSchema === oldSchema &&
-        (o.oldObjId inSet oldIds)
+      o.oldSchema === oldSchema &&
+      (o.oldObjId inSet oldIds)
     }.sortBy(_.id).map(_.id)
 
     db.run(query.result).map(MusitSuccess.apply).recover {
@@ -453,47 +458,51 @@ class ObjectDao @Inject() (
    * @return
    */
   def findByOldId(
-    oldId: Long,
-    oldSchema: String
+      oldId: Long,
+      oldSchema: String
   ): Future[MusitResult[Option[MusitObject]]] = {
     val query = objTable.filter { o =>
       o.oldObjId === oldId &&
-        o.isDeleted === false &&
-        o.oldSchema === oldSchema
+      o.isDeleted === false &&
+      o.oldSchema === oldSchema
     }
 
-    db.run(query.result.headOption).map { res =>
-      MusitSuccess(res.map(MusitObject.fromTuple))
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = s"Error while locating object with old object ID $oldId"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(query.result.headOption)
+      .map { res =>
+        MusitSuccess(res.map(MusitObject.fromTuple))
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Error while locating object with old object ID $oldId"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
   def findByOldBarcode(
-    museumId: MuseumId,
-    oldBarcode: Long,
-    collections: Seq[MuseumCollection]
+      museumId: MuseumId,
+      oldBarcode: Long,
+      collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     val cids = collections.flatMap(_.schemaIds).distinct
 
     val q1 = objTable.filter { o =>
       o.oldBarcode === oldBarcode &&
-        o.museumId === museumId &&
-        o.isDeleted === false
+      o.museumId === museumId &&
+      o.isDeleted === false
     }
     // If use has god mode, look in all collections.
     val query = if (currUsr.hasGodMode) q1 else q1.filter(_.newCollectionId inSet cids)
 
-    db.run(query.result).map { res =>
-      MusitSuccess(res.map(MusitObject.fromTuple))
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = s"Error while locating object with old barcode $oldBarcode"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(query.result)
+      .map { res =>
+        MusitSuccess(res.map(MusitObject.fromTuple))
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Error while locating object with old barcode $oldBarcode"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 }

@@ -25,7 +25,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.MigrationDao
 
-class UUIDVerifier @Inject() (
+class UUIDVerifier @Inject()(
     val dao: MigrationDao
 ) {
 

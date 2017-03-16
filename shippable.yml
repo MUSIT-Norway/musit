@@ -36,8 +36,8 @@ build:
   ci:
     - echo "Building and running tests..."
     - sbt -mem 2048 scalastyle clean coverage test coverageReport
-    # Check if the scalariform modified any files during the build. If yes, fail the build.
-    - git diff --exit-code || (echo "ERROR Scalariform check failed, see differences above."; false)
+    # Check if the code formatting modified any files during the build. If yes, fail the build.
+    - git diff --exit-code || (echo "ERROR Code contained files that were not properly formatted, see differences above."; false)
     # Aggregate the coverage report
     - sbt coverageAggregate
     # Do not publish coverage to codacy if the build is a PR from a forked repo.
