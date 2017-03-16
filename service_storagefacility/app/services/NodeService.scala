@@ -26,6 +26,7 @@ import models.storage._
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.models.NodePath.{empty => EmptyPath}
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
@@ -45,16 +46,16 @@ trait NodeService {
   val envReqService: EnvironmentRequirementService
 
   // A couple of type aliases to reduce the length of some function args.
+  // format: off
+  // scalastyle:off line.size.limit
   type NodeInsertIO[A] = (MuseumId, A) => Future[MusitResult[StorageNodeDatabaseId]]
-  type SetEnvReq[A]    = (A, Option[EnvironmentRequirement]) => A
+  type SetEnvReq[A] = (A, Option[EnvironmentRequirement]) => A
   type NodeUpdateIO[A] = (StorageNodeDatabaseId, NodePath) => Future[MusitResult[Unit]]
-  type GetNodeIO[A]    = (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
-  type CopyNode[A <: StorageNode] = (
-      A,
-      Option[EnvironmentRequirement],
-      Option[Seq[NamedPathElement]]
-  ) => A // scalastyle:ignore
+  type GetNodeIO[A] = (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
+  type CopyNode[A <: StorageNode] = (A, Option[EnvironmentRequirement], Option[Seq[NamedPathElement]]) => A
   type CurrLocType[ID] = Map[ID, Option[StorageNodeDatabaseId]]
+  // format: on
+  // scalastyle:on line.size.limit
 
   /**
    * Saves the provided environment requirements as an Event.
@@ -120,7 +121,7 @@ trait NodeService {
           case MusitSuccess(names) => MusitSuccess((p, names))
           case err: MusitError     => err
         }
-      }.getOrElse(Future.successful(MusitSuccess((NodePath.empty, Seq()))))
+      }.getOrElse(Future.successful(MusitSuccess((EmptyPath, Seq()))))
     }
 
     val res = for {
@@ -218,8 +219,8 @@ trait NodeService {
       // Get the StorageType for the elements in the destination path so we can
       // use it to verify that nodes are placed on a valid location
       (for {
-        idTypeTuples <- MusitResultT(unitDao.getStorageTypesInPath(mid, dest))
-        res          <- MusitResultT(validateMoveLocation(idTypeTuples, maybeDestId, node, dest))
+        tuples <- MusitResultT(unitDao.getStorageTypesInPath(mid, dest))
+        res    <- MusitResultT(validateMoveLocation(tuples, maybeDestId, node, dest))
       } yield res).value
     } else {
       logger.warn(
@@ -235,9 +236,9 @@ trait NodeService {
    * the type of each node. Any invalid moves will be filtered away, and the
    * valid ones are returned.
    *
-   * @param mid MuseumId
+   * @param mid   MuseumId
    * @param nodes the nodes to validate
-   * @param dest the destination node path
+   * @param dest  the destination node path
    * @return
    */
   private[services] def filterInvalidPosition(
@@ -257,6 +258,7 @@ trait NodeService {
 
   private val futureFilterErr = "Future.filter predicate is not satisfied"
 
+  // scalastyle:off method.length
   /**
    * Helper function that wraps the process of inserting a new StorageNode.
    *
@@ -286,22 +288,19 @@ trait NodeService {
         .map(MusitSuccess.apply)
 
     val res = for {
-      maybePath <- MusitResultT(findPath(mid, node.isPartOf))
-      _         <- MusitResultT(validatePosition(mid, node, maybePath.getOrElse(NodePath.empty)))
+      mPath <- MusitResultT(findPath(mid, node.isPartOf))
+      _     <- MusitResultT(validatePosition(mid, node, mPath.getOrElse(EmptyPath)))
       // Call the insert function to persist the node if the path is valid.
       nodeId <- MusitResultT(insert(mid, node))
       _ <- MusitResultT(
-            updateWithPath(
-              nodeId,
-              maybePath.getOrElse(NodePath.empty).appendChild(nodeId)
-            )
-          ) // scalastyle:ignore
+            updateWithPath(nodeId, mPath.getOrElse(EmptyPath).appendChild(nodeId))
+          )
       _       <- MusitResultT(saveEnvReqForNode(node, nodeId))
       theNode <- MusitResultT(getNode(mid, nodeId))
     } yield {
       logger.debug(
         s"Successfully added node ${node.name} of type" +
-          s" ${node.storageType} to ${maybePath.getOrElse(NodePath.empty)}"
+          s" ${node.storageType} to ${mPath.getOrElse(EmptyPath)}"
       )
       theNode
     }
@@ -320,6 +319,8 @@ trait NodeService {
         MusitInternalError(msg)
     }
   }
+
+  // scalastyle:on method.length
 
   private[services] def getEnvReq(
       mid: MuseumId,
@@ -374,8 +375,9 @@ trait NodeService {
       moveEvents: Seq[E]
   )(implicit ctId: ClassTag[ID], ctEvt: ClassTag[E]): Seq[E] = {
     moveEvents.filter(_.affectedThing.exists(ids.contains)).map { e =>
-      val currId = e.affectedThing.get.asInstanceOf[ID] // scalastyle:ignore
-      val id     = current.get(currId).flatten
+      val currId = e.affectedThing.get.asInstanceOf[ID]
+      // scalastyle:ignore
+      val id = current.get(currId).flatten
       // need to match on type to be able to access the copy function.
       val copied = e match {
         case obj: MoveObject => obj.copy(from = id)
@@ -418,8 +420,8 @@ trait NodeService {
       to <- MusitResultT(
              Future.successful(
                MusitResult.getOrError(
-                 maybeTo,
-                 MusitValidationError("Didn't find the node")
+                 opt = maybeTo,
+                 err = MusitValidationError("Didn't find the node")
                )
              )
            )

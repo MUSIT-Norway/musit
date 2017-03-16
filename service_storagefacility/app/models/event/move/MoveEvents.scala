@@ -59,7 +59,7 @@ object MoveObject {
         registeredBy = Option(currUserId),
         registeredDate = Option(now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
-        objectType = movables.tpe,
+        objectType = movables.objectType,
         from = None,
         to = cmd.destination
       )

@@ -19,11 +19,12 @@
 
 package services
 
+import models.ObjectTypes.CollectionObject
 import models.event.EventType
 import models.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import models.event.move.{MoveNode, MoveObject}
 import models.storage.StorageUnit
-import models.{Interval, Move}
+import models.{Interval, MoveNodesCmd}
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
@@ -213,7 +214,7 @@ class StorageNodeServiceSpec
       }
       val mostChildren = children ++ grandChildren
 
-      val move = Move[StorageNodeDatabaseId](
+      val move = MoveNodesCmd(
         destination = building2.id.value,
         items = Seq(unit1.id.value)
       )
@@ -248,6 +249,7 @@ class StorageNodeServiceSpec
         registeredBy = Some(defaultUserId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        objectType = CollectionObject,
         from = Some(StorageNodeDatabaseId(6)),
         to = dest
       )
@@ -275,6 +277,7 @@ class StorageNodeServiceSpec
         registeredBy = Some(defaultUserId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        objectType = CollectionObject,
         from = Some(dest),
         to = dest
       )
@@ -297,6 +300,7 @@ class StorageNodeServiceSpec
         registeredBy = Some(defaultUserId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        objectType = CollectionObject,
         from = None,
         to = dest
       )

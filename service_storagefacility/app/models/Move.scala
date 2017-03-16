@@ -41,7 +41,7 @@ object DelphiMove {
   implicit val reads: Reads[DelphiMove] = Json.reads[DelphiMove]
 }
 
-case class MoveableObject(id: ObjectId, tpe: ObjectType)
+case class MoveableObject(id: ObjectId, objectType: ObjectType)
 
 object MoveableObject {
   implicit val reads: Reads[MoveableObject] = Json.reads[MoveableObject]
