@@ -1,6 +1,6 @@
+package models.loan.event
 
-package models.events
-
+import models.loan.LoanType
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}

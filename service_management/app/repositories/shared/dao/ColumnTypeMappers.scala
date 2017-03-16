@@ -3,7 +3,8 @@ package repositories.shared.dao
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
 import java.sql.{Timestamp => JSqlTimestamp}
-import models.events._
+
+import models.loan.{LoanEventTypes, LoanType}
 import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID}
 import no.uio.musit.time.Implicits.{dateTimeToJTimestamp, jSqlTimestampToDateTime}
 import org.joda.time.DateTime

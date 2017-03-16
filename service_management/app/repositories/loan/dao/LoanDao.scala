@@ -1,16 +1,16 @@
 
-package repositories.dao
+package repositories.loan.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.events.LoanEventTypes.{LentObjectsType, ReturnedObjectsType}
-import models.events._
+import models.loan.LoanEventTypes.{LentObjectsType, ReturnedObjectsType}
+import models.loan.event.{LentObject, LoanEvent, ReturnedObject}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal

@@ -1,8 +1,8 @@
 
-package repositories.dao
+package repositories.loan.dao
 
-import models.events.LoanEventTypes.{LentObjectsType, ReturnedObjectsType}
-import models.events._
+import models.loan.LoanEventTypes.{LentObjectsType, ReturnedObjectsType}
+import models.loan.event.{LentObject, ReturnedObject}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite

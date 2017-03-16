@@ -1,5 +1,5 @@
 
-package models.events
+package models.loan
 
 import enumeratum._
 import play.api.libs.json.{Json, Reads, Writes, __}
