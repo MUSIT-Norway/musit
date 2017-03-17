@@ -35,7 +35,7 @@ class EnvRequirementDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
-  import driver.api._
+  import profile.api._
 
   /**
    * TODO: Document me!

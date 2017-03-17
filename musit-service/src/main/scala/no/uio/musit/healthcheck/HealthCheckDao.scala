@@ -23,7 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import no.uio.musit.healthcheck.HealthCheckDao.HealthCheckName
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -33,7 +33,7 @@ class HealthCheckDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     extends HasDatabaseConfigProvider[JdbcProfile]
     with HealthCheck {
 
-  import driver.api._
+  import profile.api._
 
   override def healthCheck(): Future[HealthCheckStatus] = {
     val checkConnectionQuery = sql"""select 1 from dual""".as[Int]

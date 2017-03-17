@@ -46,7 +46,7 @@ class StorageUnitDao @Inject()(
 ) extends StorageTables
     with SharedTables {
 
-  import driver.api._
+  import profile.api._
 
   val logger = Logger(classOf[StorageUnitDao])
 

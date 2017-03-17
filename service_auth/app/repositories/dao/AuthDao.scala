@@ -36,7 +36,7 @@ class AuthDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends AuthTables {
 
-  import driver.api._
+  import profile.api._
 
   val logger = Logger(classOf[AuthDao])
 

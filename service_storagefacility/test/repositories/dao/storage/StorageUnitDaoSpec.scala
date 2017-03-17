@@ -24,10 +24,14 @@ import models.storage.{Root, RootLoan, StorageType}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import org.joda.time.DateTime
 import utils.testhelpers.NodeGenerators
 
-class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
+class StorageUnitDaoSpec
+    extends MusitSpecWithAppPerSuite
+    with NodeGenerators
+    with MusitResultValues {
 
   "StorageUnitDao" should {
 
@@ -58,7 +62,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         val r     = createRootLoan(s"rootLoan$i")
         val insId = storageUnitDao.insertRoot(anotherMid, r).futureValue
 
-        insId mustBe MusitSuccess(StorageNodeDatabaseId(i.toLong))
+        insId.successValue mustBe StorageNodeDatabaseId(i.toLong)
       }
     }
 
@@ -67,58 +71,47 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val insId = storageUnitDao
         .insert(defaultMuseumId, createStorageUnit(path = path))
         .futureValue // scalastyle:ignore
-      insId mustBe a[MusitSuccess[_]]
-      insId.get mustBe a[StorageNodeDatabaseId]
+      insId.successValue mustBe a[StorageNodeDatabaseId]
     }
 
     "successfully fetch a storage unit" in {
       val mid   = MuseumId(5)
       val su    = createStorageUnit()
       val insId = storageUnitDao.insert(mid, su).futureValue
-      insId mustBe a[MusitSuccess[_]]
-      insId.get mustBe a[StorageNodeDatabaseId]
+      insId.successValue mustBe a[StorageNodeDatabaseId]
 
       val res = storageUnitDao.getById(mid, insId.get).futureValue
 
-      res mustBe a[MusitSuccess[_]]
-      res.get must not be None
-      res.get.get.storageType mustBe su.storageType
-      res.get.get.name mustBe su.name
+      res.successValue.value.storageType mustBe su.storageType
+      res.successValue.value.name mustBe su.name
     }
 
     "successfully update a storage unit and fetch as StorageNode" in {
       val mid   = MuseumId(5)
       val su    = createStorageUnit()
       val insId = storageUnitDao.insert(mid, su).futureValue
-      insId mustBe a[MusitSuccess[_]]
-      insId.get mustBe a[StorageNodeDatabaseId]
+      insId.successValue mustBe a[StorageNodeDatabaseId]
 
       val res = storageUnitDao.getById(mid, insId.get).futureValue
 
-      res mustBe a[MusitSuccess[_]]
-      res.get must not be None
-      res.get.get.storageType mustBe su.storageType
-      res.get.get.name mustBe su.name
+      res.successValue.value.storageType mustBe su.storageType
+      res.successValue.value.name mustBe su.name
 
-      val upd = res.get.get.copy(name = "UggaBugga", areaTo = Some(4.0))
+      val upd = res.successValue.value.copy(name = "UggaBugga", areaTo = Some(4.0))
 
-      val updRes = storageUnitDao.update(mid, res.get.get.id.get, upd).futureValue
-      updRes mustBe a[MusitSuccess[_]]
-      updRes.get must not be None
-      updRes.get.get mustBe 1
+      val updRes =
+        storageUnitDao.update(mid, res.successValue.value.id.get, upd).futureValue
+      updRes.successValue.value mustBe 1
 
       val again = storageUnitDao.getById(mid, insId.get).futureValue
-      again mustBe a[MusitSuccess[_]]
-      again.get must not be None
-      again.get.get.name mustBe "UggaBugga"
-      again.get.get.areaTo mustBe Some(4.0)
+      again.successValue.value.name mustBe "UggaBugga"
+      again.successValue.value.areaTo mustBe Some(4.0)
     }
 
     "successfully list root nodes" in {
       val nodes = storageUnitDao.findRootNodes(defaultMuseumId).futureValue
 
-      nodes mustBe a[MusitSuccess[_]]
-      nodes.get.foreach { n =>
+      nodes.successValue.foreach { n =>
         n.storageType.entryName must startWith("Root")
       }
     }
@@ -127,35 +120,31 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val mid   = MuseumId(5)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
 
-      nodes mustBe a[MusitSuccess[_]]
-      nodes.get.size mustBe 0
-      nodes.get.foreach(_.storageType mustBe StorageType.RootType)
+      nodes.successValue.size mustBe 0
+      nodes.successValue.foreach(_.storageType mustBe StorageType.RootType)
     }
 
     "fail to list root nodes with museumId that does not exists" in {
       val mid   = MuseumId(55)
       val nodes = storageUnitDao.findRootNodes(mid).futureValue
 
-      nodes mustBe a[MusitSuccess[_]]
-      nodes.get.size mustBe 0
-      nodes.get.foreach(_.storageType mustBe StorageType.RootType)
+      nodes.successValue.size mustBe 0
+      nodes.successValue.foreach(_.storageType mustBe StorageType.RootType)
     }
 
     "successfully mark a node as deleted" in {
       val su    = createStorageUnit()
       val insId = storageUnitDao.insert(defaultMuseumId, su).futureValue
-      insId mustBe a[MusitSuccess[_]]
-      insId.get mustBe a[StorageNodeDatabaseId]
+      insId.successValue mustBe a[StorageNodeDatabaseId]
 
       val deleted = storageUnitDao
-        .markAsDeleted(defaultUserId, defaultMuseumId, insId.get)
+        .markAsDeleted(defaultUserId, defaultMuseumId, insId.successValue)
         .futureValue // scalastyle:ignore
 
-      deleted.isSuccess mustBe true
-      deleted.get mustBe 1
+      deleted.successValue mustBe 1
 
       val res = storageUnitDao.getById(defaultMuseumId, insId.get).futureValue
-      res.get mustBe None
+      res.successValue mustBe None
     }
 
     "successfully fetch the named path elements for a storage node" in {
@@ -165,8 +154,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         path = path1
       ).copy(name = "node1")
       val insId1 = storageUnitDao.insert(defaultMuseumId, su1).futureValue
-      insId1 mustBe a[MusitSuccess[_]]
-      insId1.get mustBe StorageNodeDatabaseId(28)
+      insId1.successValue mustBe StorageNodeDatabaseId(28)
 
       val path2 = path1.appendChild(StorageNodeDatabaseId(29))
       val su2 = createStorageUnit(
@@ -174,81 +162,70 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         path = path2
       ).copy(name = "node2")
       val insId2 = storageUnitDao.insert(defaultMuseumId, su2).futureValue
-      insId2.get mustBe StorageNodeDatabaseId(29)
+      insId2.successValue mustBe StorageNodeDatabaseId(29)
 
       val res = storageUnitDao.namesForPath(path2).futureValue
-      res mustBe a[MusitSuccess[_]]
-      res.get must not be empty
-      res.get.size mustBe 3
-      res.get.head.nodeId mustBe StorageNodeDatabaseId(18)
-      res.get.head.name mustBe "root18"
-      res.get.tail.head.nodeId mustBe StorageNodeDatabaseId(28)
-      res.get.tail.head.name mustBe "node1"
-      res.get.last.nodeId mustBe StorageNodeDatabaseId(29)
-      res.get.last.name mustBe "node2"
+      res.successValue.size mustBe 3
+      res.successValue.head.nodeId mustBe StorageNodeDatabaseId(18)
+      res.successValue.head.name mustBe "root18"
+      res.successValue.tail.head.nodeId mustBe StorageNodeDatabaseId(28)
+      res.successValue.tail.head.name mustBe "node1"
+      res.successValue.last.nodeId mustBe StorageNodeDatabaseId(29)
+      res.successValue.last.name mustBe "node2"
     }
 
     "fail to fetch a storage unit with wrong museumId" in {
       val mid   = MuseumId(5)
       val su    = createStorageUnit()
       val insId = storageUnitDao.insert(mid, su).futureValue
-      insId mustBe a[MusitSuccess[_]]
-      insId.get mustBe a[StorageNodeDatabaseId]
+      insId.successValue mustBe a[StorageNodeDatabaseId]
 
       val wrongMid = MuseumId(4)
       val res      = storageUnitDao.getById(mid, insId.get).futureValue
 
-      res mustBe a[MusitSuccess[_]]
-      res.get must not be None
-      res.get.get.storageType mustBe su.storageType
-      res.get.get.name mustBe su.name
+      res.successValue.value.storageType mustBe su.storageType
+      res.successValue.value.name mustBe su.name
     }
 
     "fail to update a storage unit when museumId is wrong" in {
       val mid   = MuseumId(5)
       val su    = createStorageUnit()
       val insId = storageUnitDao.insert(mid, su).futureValue
-      insId mustBe a[MusitSuccess[_]]
-      insId.get mustBe a[StorageNodeDatabaseId]
+      insId.successValue mustBe a[StorageNodeDatabaseId]
 
       val res = storageUnitDao.getById(mid, insId.get).futureValue
 
-      res mustBe a[MusitSuccess[_]]
-      res.get must not be None
-      res.get.get.storageType mustBe su.storageType
-      res.get.get.name must include("FooUnit")
-      res.get.get.name mustBe su.name
-      res.get.get.areaTo mustBe Some(2.0)
+      res.successValue.value.storageType mustBe su.storageType
+      res.successValue.value.name must include("FooUnit")
+      res.successValue.value.name mustBe su.name
+      res.successValue.value.areaTo mustBe Some(2.0)
 
-      val upd = res.get.get.copy(name = "UggaBugga", areaTo = Some(4.0))
+      val upd = res.successValue.value.copy(name = "UggaBugga", areaTo = Some(4.0))
 
       val anotherMid = MuseumId(4)
-      val updRes     = storageUnitDao.update(anotherMid, res.get.get.id.get, upd).futureValue
-      updRes.isSuccess mustBe true
-      updRes.get mustBe None
+      val updRes =
+        storageUnitDao.update(anotherMid, res.successValue.value.id.get, upd).futureValue
+      updRes.successValue mustBe None
 
       val again = storageUnitDao.getById(mid, insId.get).futureValue
 
-      again mustBe a[MusitSuccess[_]]
-      again.get must not be None
-      again.get.get.name mustBe "FooUnit"
-      again.get.get.areaTo mustBe Some(2.0)
+      again.successValue.value.name mustBe "FooUnit"
+      again.successValue.value.areaTo mustBe Some(2.0)
     }
 
     "fail to mark a node as deleted when museumId is wrong" in {
       val su    = createStorageUnit()
       val insId = storageUnitDao.insert(defaultMuseumId, su).futureValue
-      insId mustBe a[MusitSuccess[_]]
-      insId.get mustBe a[StorageNodeDatabaseId]
+      insId.successValue mustBe a[StorageNodeDatabaseId]
 
       val anotherMid = MuseumId(4)
       val deleted = storageUnitDao
-        .markAsDeleted(defaultUserId, anotherMid, insId.get)
+        .markAsDeleted(defaultUserId, anotherMid, insId.successValue)
         .futureValue // scalastyle:ignore
       deleted.isFailure mustBe true
 
-      val res = storageUnitDao.getById(defaultMuseumId, insId.get).futureValue
-      res.get.get.id mustBe Some(insId.get)
+      val res = storageUnitDao.getById(defaultMuseumId, insId.successValue).futureValue
+      res.successValue.value.id mustBe Some(insId.get)
     }
 
     "fetch tuples of StorageNodeId and StorageType for a NodePath" in {
@@ -281,18 +258,18 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val suId = storageUnitDao.insert(defaultMuseumId, su1).futureValue
 
       val expected = Seq(
-        StorageNodeDatabaseId(1) -> RootType,
-        organisationId.get       -> OrganisationType,
-        buildingId.get           -> BuildingType,
-        roomId.get               -> RoomType,
-        suId.get                 -> StorageUnitType
+        StorageNodeDatabaseId(1)    -> RootType,
+        organisationId.successValue -> OrganisationType,
+        buildingId.successValue     -> BuildingType,
+        roomId.successValue         -> RoomType,
+        suId.successValue           -> StorageUnitType
       )
 
       val tuples = storageUnitDao
         .getStorageTypesInPath(defaultMuseumId, su1Path)
         .futureValue // scalastyle:ignore
 
-      tuples.get must contain theSameElementsInOrderAs expected
+      tuples.successValue must contain theSameElementsInOrderAs expected
     }
 
     "successfully get a node when searching for name and not if it's wrong museumId" in {
@@ -300,10 +277,9 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val getNodeName =
         storageUnitDao.getStorageNodeByName(mid, "Foo", 1, 25).futureValue
 
-      getNodeName mustBe a[MusitSuccess[_]]
-      getNodeName.get.size mustBe 3
-      getNodeName.get.head.name must include("Foo")
-      getNodeName.get.lift(2).get.name must include("Foo")
+      getNodeName.successValue.size mustBe 3
+      getNodeName.successValue.head.name must include("Foo")
+      getNodeName.successValue.lift(2).value.name must include("Foo")
 
       val anotherMid = MuseumId(4)
       val notGetNodeName = storageUnitDao
@@ -311,7 +287,7 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         .futureValue // scalastyle:ignore
 
       notGetNodeName mustBe a[MusitSuccess[_]]
-      notGetNodeName.get.size mustBe 0
+      notGetNodeName.successValue.size mustBe 0
     }
 
     "fail when searching for name without invalid criteria" in {
@@ -319,21 +295,18 @@ class StorageUnitDaoSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
       val mid         = MuseumId(5)
       val getNodeName = storageUnitDao.getStorageNodeByName(mid, "", 1, 25).futureValue
 
-      getNodeName mustBe a[MusitSuccess[_]]
-      getNodeName.get.size mustBe 0
+      getNodeName.successValue.size mustBe 0
 
       val tooFewLettersInSearchStr = storageUnitDao
         .getStorageNodeByName(mid, "", 1, 25)
         .futureValue // scalastyle:ignore
-      tooFewLettersInSearchStr mustBe a[MusitSuccess[_]]
-      tooFewLettersInSearchStr.get.size mustBe 0
+      tooFewLettersInSearchStr.successValue.size mustBe 0
 
       val anotherMid = MuseumId(4)
       val noNodeName = storageUnitDao
         .getStorageNodeByName(anotherMid, "Foo", 1, 25)
         .futureValue // scalastyle:ignore
-      noNodeName mustBe a[MusitSuccess[_]]
-      noNodeName.get.size mustBe 0
+      noNodeName.successValue.size mustBe 0
     }
   }
 

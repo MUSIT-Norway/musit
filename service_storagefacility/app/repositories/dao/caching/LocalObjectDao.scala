@@ -34,7 +34,7 @@ class LocalObjectDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends SharedTables {
 
-  import driver.api._
+  import profile.api._
 
   private def upsert(lo: LocalObject): DBIO[Int] =
     localObjectsTable.insertOrUpdate(lo)

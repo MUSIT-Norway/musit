@@ -25,6 +25,7 @@ import no.uio.musit.models.{ActorId, Email}
 import no.uio.musit.security.{Authenticator, BearerToken, SessionUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.{Inside, OptionValues}
 import play.api.Configuration
 import play.api.http.{DefaultWriteables, Writeable}
 import play.api.libs.json.Json
@@ -33,14 +34,15 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class DataportenAuthenticatorSpec
     extends MusitSpecWithAppPerSuite
     with MockFactory
-    with DefaultWriteables {
+    with DefaultWriteables
+    with OptionValues
+    with Inside {
 
   val conf     = fromInstanceCache[Configuration]
   val resolver = fromInstanceCache[DatabaseAuthResolver]
@@ -68,14 +70,14 @@ class DataportenAuthenticatorSpec
 
       val futRes = authenticator.authenticate(Some(Authenticator.ClientWeb))
       val res    = futRes.futureValue
-      res.isLeft mustBe true
-      res.left.get mustBe a[Result]
 
-      val redirectLoc = redirectLocation(futRes.map(_.left.get))
-      redirectLoc must not be None
-
-      sessionId = redirectLoc.get.substring(redirectLoc.get.lastIndexOf('=') + 1)
-      SessionUUID.validate(sessionId).isSuccess mustBe true
+      inside(res) {
+        case Left(left) =>
+          left mustBe a[Result]
+          val redirectLoc = redirectLocation(Future.successful(left))
+          sessionId = redirectLoc.value.substring(redirectLoc.value.lastIndexOf('=') + 1)
+          SessionUUID.validate(sessionId).isSuccess mustBe true
+      }
     }
 
     "fetch an access token and update the UserSession when receiving a code" in {
@@ -139,14 +141,15 @@ class DataportenAuthenticatorSpec
       val res = futRes.futureValue
       res.isRight mustBe true
 
-      val session = res.right.get
-
-      session.uuid mustBe SessionUUID.unsafeFromString(sessionId)
-      session.isLoggedIn mustBe true
-      session.lastActive must not be None
-      session.oauthToken mustBe Some(token)
-      session.userId mustBe Some(userId)
-      session.loginTime must not be None
+      inside(res) {
+        case Right(session) =>
+          session.uuid mustBe SessionUUID.unsafeFromString(sessionId)
+          session.isLoggedIn mustBe true
+          session.lastActive must not be None
+          session.oauthToken mustBe Some(token)
+          session.userId mustBe Some(userId)
+          session.loginTime must not be None
+      }
     }
 
   }
