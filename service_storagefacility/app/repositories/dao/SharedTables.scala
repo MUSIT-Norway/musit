@@ -19,8 +19,8 @@
 
 package repositories.dao
 
-import models.ObjectTypes.ObjectType
 import models.event.dto.LocalObject
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 
 private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
@@ -48,7 +48,7 @@ private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
     val latestMoveId      = column[EventId]("LATEST_MOVE_ID")
     val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
     val museumId          = column[MuseumId]("MUSEUM_ID")
-    val objectType        = column[String]("OBJECT_TYPE")
+    val objectType        = column[Option[String]]("OBJECT_TYPE")
 
     def create =
       (
@@ -56,14 +56,14 @@ private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
           latestMoveId: EventId,
           currentLocationId: StorageNodeDatabaseId,
           museumId: MuseumId,
-          objectType: String
+          objectType: Option[String]
       ) =>
         LocalObject(
           objectId = objectId,
           latestMoveId = latestMoveId,
           currentLocationId = currentLocationId,
           museumId = museumId,
-          objectType = objectType
+          objectType = objectType.getOrElse(CollectionObject.name)
       )
 
     def destroy(localObject: LocalObject) =
@@ -73,7 +73,7 @@ private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
           localObject.latestMoveId,
           localObject.currentLocationId,
           localObject.museumId,
-          localObject.objectType
+          Option(localObject.objectType)
         )
       )
   }

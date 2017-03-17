@@ -19,7 +19,7 @@
 
 package utils.testhelpers
 
-import models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import models.event.EventType
 import models.event.EventTypeRegistry.TopLevelEvents._
 import models.event.control.Control

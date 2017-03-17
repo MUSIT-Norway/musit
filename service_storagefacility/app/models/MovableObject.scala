@@ -1,6 +1,6 @@
 package models
 
-import models.ObjectTypes.ObjectType
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.ObjectId
 import play.api.libs.json.{Format, Json}
 

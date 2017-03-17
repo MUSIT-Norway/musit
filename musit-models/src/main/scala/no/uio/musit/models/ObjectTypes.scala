@@ -1,4 +1,4 @@
-package models
+package no.uio.musit.models
 
 import play.api.libs.json._
 

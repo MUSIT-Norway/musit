@@ -35,7 +35,7 @@ import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import EventRoleActor._
 import EventRoleObject._
 import EventRolePlace._
-import models.ObjectTypes.{CollectionObject, ObjectType}
+import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 
 object DtoConverters {
 

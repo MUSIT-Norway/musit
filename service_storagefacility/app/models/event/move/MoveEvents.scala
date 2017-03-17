@@ -1,6 +1,6 @@
 package models.event.move
 
-import models.ObjectTypes.{CollectionObject, Node, ObjectType}
+import no.uio.musit.models.ObjectTypes.{CollectionObject, Node, ObjectType}
 import models.Move._
 import no.uio.musit.time.dateTimeNow
 import models.event.EventTypeRegistry.TopLevelEvents.{MoveNodeType, MoveObjectType}

@@ -20,7 +20,7 @@
 package repositories.dao.caching
 
 import com.google.inject.Inject
-import models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import models.event.dto.{EventDto, LocalObject}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
