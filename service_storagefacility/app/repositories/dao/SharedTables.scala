@@ -25,7 +25,7 @@ import no.uio.musit.models._
 
 private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   val localObjectsTable = TableQuery[LocalObjectsTable]
 

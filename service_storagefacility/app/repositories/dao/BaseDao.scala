@@ -20,6 +20,6 @@
 package repositories.dao
 
 import play.api.db.slick.HasDatabaseConfigProvider
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 private[dao] trait BaseDao extends HasDatabaseConfigProvider[JdbcProfile]

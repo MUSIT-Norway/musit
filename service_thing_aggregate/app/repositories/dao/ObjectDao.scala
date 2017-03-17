@@ -43,7 +43,7 @@ class ObjectDao @Inject()(
 
   val logger = Logger(classOf[ObjectDao])
 
-  import driver.api._
+  import profile.api._
 
   // Needs to be the same as Slicks no-escape-char value!
   // (Default second parameter value to the like function)

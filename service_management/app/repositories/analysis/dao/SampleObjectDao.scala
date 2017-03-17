@@ -18,7 +18,7 @@ class SampleObjectDao @Inject()(
 
   val logger = Logger(classOf[SampleObjectDao])
 
-  import driver.api._
+  import profile.api._
 
   def insert(so: SampleObject): Future[MusitResult[ObjectUUID]] = {
     val soTuple = asSampleObjectTuple(so)

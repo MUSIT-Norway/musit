@@ -36,7 +36,7 @@ class StorageNodeDao @Inject()(
 
   private val logger = Logger(classOf[StorageNodeDao])
 
-  import driver.api._
+  import profile.api._
 
   def getPathById(
       mid: MuseumId,

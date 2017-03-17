@@ -28,7 +28,7 @@ resolvers += Resolver.sonatypeRepo("releases")
 addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0-M15-1")
 
 // The Play plugin
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.12")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.13")
 
 // Formatting and style checking
 addSbtPlugin("com.geirsson"   % "sbt-scalafmt"           % "0.6.3")
