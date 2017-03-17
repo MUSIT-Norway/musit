@@ -38,8 +38,8 @@ GET           /v1/museum/:mid/storagenodes/:nodeId/observations/:eventId        
 
 # Object related endpoints
 # ~~~~
-GET           /v1/museum/:mid/storagenodes/objects/:oid/locations               controllers.StorageController.objectLocationHistory(mid: Int, oid: Long, limit: Int ?= 50)
-GET           /v1/museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.StorageController.currentObjectLocation(mid: Int, oid: Long)
+GET           /v1/museum/:mid/storagenodes/objects/:oid/locations               controllers.StorageController.objectLocationHistory(mid: Int, oid: Long, objectType: String = "collection", limit: Int ?= 50)
+GET           /v1/museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.StorageController.currentObjectLocation(mid: Int, oid: Long, objectType: String = "collection")
 POST          /v1/museum/:mid/storagenodes/objects/currentlocations             controllers.StorageController.currentObjectLocations(mid: Int)
 
 # General endpoints

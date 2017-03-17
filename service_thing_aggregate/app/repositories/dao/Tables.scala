@@ -28,38 +28,13 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   import profile.api._
 
   // Type aliases representing rows for the different tables
-  type ObjectRow = (
-      (
-          Option[ObjectId],
-          MuseumId,
-          String,
-          Option[Long],
-          Option[String],
-          Option[Long],
-          Option[Long],
-          Boolean,
-          String,
-          Option[String],
-          Option[Long],
-          Option[Int]
-      )
-  ) // scalastyle:ignore
-  type LocalObjectRow = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId))
-  type StorageNodeRow = (
-      Option[StorageNodeDatabaseId],
-      String,
-      String,
-      Option[Double],
-      Option[Double],
-      Option[StorageNodeDatabaseId],
-      Option[Double],
-      Option[Double],
-      Option[String],
-      Option[String],
-      Boolean,
-      MuseumId,
-      NodePath
-  ) // scalastyle:ignore
+  // format: off
+  // scalastyle:off line.size.limit
+  type ObjectRow = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int]))
+  type LocalObjectRow = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId, Option[String]))
+  type StorageNodeRow = ((Option[StorageNodeDatabaseId], String, String, Option[Double], Option[Double], Option[StorageNodeDatabaseId], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath))
+  // format: on
+  // scalastyle:on line.size.limit
 
   val objTable    = TableQuery[ObjectTable]
   val locObjTable = TableQuery[LocalObjectsTable]
@@ -87,6 +62,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       oldObjId,
       newCollectionId
     )
+
     // scalastyle:on method.name
 
     val id               = column[ObjectId]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
@@ -116,7 +92,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       objectId,
       latestMoveId,
       currentLocationId,
-      museumId
+      museumId,
+      objectType
     )
 
     // scalastyle:on method.name
@@ -125,6 +102,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val latestMoveId      = column[EventId]("LATEST_MOVE_ID")
     val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
     val museumId          = column[MuseumId]("MUSEUM_ID")
+    val objectType        = column[Option[String]]("OBJECT_TYPE")
   }
 
   /**
@@ -152,6 +130,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
     // scalastyle:on method.name
 
+    // scalastyle:off line.size.limit
     val id          = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
     val storageType = column[String]("STORAGE_TYPE")
     val name        = column[String]("STORAGE_NODE_NAME")
@@ -165,5 +144,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val isDeleted   = column[Boolean]("IS_DELETED")
     val museumId    = column[MuseumId]("MUSEUM_ID")
     val path        = column[NodePath]("NODE_PATH")
+    // scalastyle:on line.size.limit
   }
+
 }

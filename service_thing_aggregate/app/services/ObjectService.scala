@@ -60,7 +60,10 @@ class ObjectService @Inject()(
    * @param obj         The MusitObject to look for
    * @return The augmented object with path, pathNames and currentLocationId
    */
-  private def getCurrentLocation(mid: MuseumId, obj: MusitObject): Future[MusitObject] =
+  private def getCurrentLocation(
+      mid: MuseumId,
+      obj: MusitObject
+  ): Future[MusitObject] =
     nodeDao.currentLocation(mid, obj.id).flatMap {
       case Some(nodeIdAndPath) =>
         nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>

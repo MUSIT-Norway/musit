@@ -9,6 +9,7 @@ CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
   latest_move_id      NUMBER(20),
   current_location_id INTEGER,
   museum_id           INTEGER    NOT NULL,
+  object_type         VARCHAR(50) DEFAULT 'collection', -- possible values can be 'collection', or 'sample'
   PRIMARY KEY (object_id)
 );
 
