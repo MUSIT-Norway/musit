@@ -31,12 +31,13 @@ import scala.concurrent.Future
 
 class GeoLocationService @Inject()(config: Configuration, ws: WSClient) {
 
-  val logger = Logger(classOf[GeoLocationService])
+  val logger    = Logger(classOf[GeoLocationService])
+  val searchUrl = config.getString("musit.geoLocation.url").getOrElse(DefaultSearchUrl)
 
   def searchGeoNorway(expr: String): Future[Seq[Address]] = {
     val maxRes = config.getInt(HitsPerResultKey).getOrElse(10)
 
-    ws.url(SearchURL)
+    ws.url(searchUrl)
       .withQueryString(
         "sokestreng" -> expr,
         "antPerSide" -> s"$maxRes"
@@ -69,6 +70,6 @@ class GeoLocationService @Inject()(config: Configuration, ws: WSClient) {
 
 object GeoLocationService {
   val HitsPerResultKey = "musit.geoLocation.geoNorway.hitsPerResult"
-  val SearchURL        = "http://ws.geonorge.no/AdresseWS/adresse/sok"
+  val DefaultSearchUrl = "http://ws.geonorge.no/AdresseWS/adresse/sok"
 
 }
