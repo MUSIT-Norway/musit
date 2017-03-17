@@ -24,7 +24,8 @@ import models.event.EventType
 import models.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import models.event.move.{MoveNode, MoveObject}
 import models.storage.StorageUnit
-import models.{Interval, MoveNodesCmd}
+import models.Interval
+import models.Move.MoveNodesCmd
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}

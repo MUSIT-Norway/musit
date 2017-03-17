@@ -833,7 +833,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         (move.json \ "moved")
           .as[JsArray]
           .value
-          .map(_.as[Int]) must contain allOf (id1, id2, id3)
+          .map(jso => (jso \ "id").as[Int]) must contain allOf (id1, id2, id3)
       }
 
       "successfully move a single object" in {
@@ -858,7 +858,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .put(moveJson)
           .futureValue
         move.status mustBe OK
-        (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
+        (move.json \ "moved")
+          .as[JsArray]
+          .value
+          .map(jso => (jso \ "id").as[Int])
+          .head mustBe id2
       }
 
       "successfully fetch the location history for a given object" in {
@@ -913,7 +917,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .put(moveJson)
           .futureValue
         move.status mustBe OK
-        (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
+        (move.json \ "moved")
+          .as[JsArray]
+          .value
+          .map(jso => (jso \ "id").as[Int])
+          .head mustBe id2
 
         val currentLocation = wsUrl(ObjCurrentLocationUrl(mid, 2))
           .withHeaders(readToken.asHeader)
