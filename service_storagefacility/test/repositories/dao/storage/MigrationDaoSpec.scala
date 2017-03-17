@@ -22,9 +22,10 @@ package repositories.dao.storage
 import no.uio.musit.models.{ActorId, GroupId, Museums, StorageNodeDatabaseId}
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import repositories.dao.MigrationDao
 
-class MigrationDaoSpec extends MusitSpecWithAppPerSuite {
+class MigrationDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val migrationDao = fromInstanceCache[MigrationDao]
   val nodeDao      = fromInstanceCache[StorageUnitDao]
@@ -54,16 +55,13 @@ class MigrationDaoSpec extends MusitSpecWithAppPerSuite {
 
       val res = migrationDao.generateUUIDWhereEmpty.futureValue
 
-      res.isSuccess mustBe true
-      res.get mustBe 10
+      res.successValue mustBe 10
 
       for (id <- 7L to 16L) {
         val nid = StorageNodeDatabaseId(id)
         val r   = nodeDao.getById(99, nid).futureValue
 
-        r.isSuccess mustBe true
-        r.get.isDefined mustBe true
-        r.get.get.nodeId must not be None
+        r.successValue.value.nodeId must not be None
       }
     }
   }

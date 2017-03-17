@@ -22,8 +22,9 @@ package repositories.dao
 import models.Organisation
 import no.uio.musit.models.OrgId
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 
-class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
+class OrganisationDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val orgDao: OrganisationDao = fromInstanceCache[OrganisationDao]
 
@@ -45,11 +46,11 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
           web = "www.khm.uio.no"
         )
         val res = orgDao.getById(oid).futureValue
-        expected.id mustBe res.get.id
-        expected.fn mustBe res.get.fn
-        expected.nickname mustBe res.get.nickname
-        expected.tel mustBe res.get.tel
-        expected.web mustBe res.get.web
+        expected.id mustBe res.value.id
+        expected.fn mustBe res.value.fn
+        expected.nickname mustBe res.value.nickname
+        expected.tel mustBe res.value.tel
+        expected.web mustBe res.value.web
       }
 
       "return None if the Id is 0 (zero)" in {
@@ -98,10 +99,10 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
 
         val resInt = orgDao.update(orgUpd).futureValue
         val res    = orgDao.getById(OrgId(3)).futureValue
-        res.get.fn mustBe "Museet i Bar"
-        res.get.nickname mustBe "B"
-        res.get.tel mustBe "99344321"
-        res.get.web mustBe "www.bar.no"
+        res.value.fn mustBe "Museet i Bar"
+        res.value.nickname mustBe "B"
+        res.value.tel mustBe "99344321"
+        res.value.web mustBe "www.bar.no"
       }
 
       "not update organization with invalid id" in {
@@ -113,8 +114,7 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
           web = "www.bar.no"
         )
         val res = orgDao.update(orgUpd).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe None
+        res.successValue mustBe None
       }
 
       "succeed when deleting organization" in {
