@@ -18,7 +18,7 @@ class AnalysisTypeDao @Inject()(
 
   val logger = Logger(classOf[AnalysisTypeDao])
 
-  import driver.api._
+  import profile.api._
 
   /**
    * Returns all analysis types from the database.

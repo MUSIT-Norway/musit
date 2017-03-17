@@ -5,11 +5,11 @@ import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
 import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID}
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
-  import driver.api._
+  import profile.api._
 
   implicit lazy val eventIdMapper: BaseColumnType[EventId] =
     MappedColumnType.base[EventId, Long](

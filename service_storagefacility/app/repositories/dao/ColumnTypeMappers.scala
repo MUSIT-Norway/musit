@@ -25,7 +25,7 @@ import models.event.EventTypeId
 import models.storage.StorageType
 import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfig
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 /**
  * Working with some of the DAOs require implicit mappers to/from strongly
@@ -33,7 +33,7 @@ import slick.driver.JdbcProfile
  */
 trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
-  import driver.api._
+  import profile.api._
 
   implicit lazy val storageNodeDbIdMapper: BaseColumnType[StorageNodeDatabaseId] =
     MappedColumnType.base[StorageNodeDatabaseId, Long](

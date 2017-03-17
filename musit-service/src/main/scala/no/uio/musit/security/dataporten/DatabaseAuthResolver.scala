@@ -35,7 +35,7 @@ class DatabaseAuthResolver @Inject()(
 ) extends AuthTables
     with AuthResolver {
 
-  import driver.api._
+  import profile.api._
 
   val logger = Logger(classOf[DatabaseAuthResolver])
 

@@ -30,17 +30,16 @@ object Dependencies {
   )
 
   object PlayFrameWork {
-    val version          = "2.5.12"
-    val playSlickVersion = "2.0.2"
+    val version          = play.core.PlayVersion.current // from plugin.sbt
+    val playSlickVersion = "2.1.0"
 
-    val slick_play    = "com.typesafe.play"  %% "play-slick"            % playSlickVersion
-    val slick_play_ev = "com.typesafe.play"  %% "play-slick-evolutions" % playSlickVersion
-    val slick_ext     = "com.typesafe.slick" %% "slick-extensions"      % "3.1.0"
-    val jdbc          = "com.typesafe.play"  %% "play-jdbc"             % version
-    val cache         = "com.typesafe.play"  %% "play-cache"            % version
-    val ws            = "com.typesafe.play"  %% "play-ws"               % version
-    val json          = "com.typesafe.play"  %% "play-json"             % version
-    val logback       = "com.typesafe.play"  %% "play-logback"          % version
+    val slick_play    = "com.typesafe.play" %% "play-slick"            % playSlickVersion
+    val slick_play_ev = "com.typesafe.play" %% "play-slick-evolutions" % playSlickVersion
+    val jdbc          = "com.typesafe.play" %% "play-jdbc"             % version
+    val cache         = "com.typesafe.play" %% "play-cache"            % version
+    val ws            = "com.typesafe.play" %% "play-ws"               % version
+    val json          = "com.typesafe.play" %% "play-json"             % version
+    val logback       = "com.typesafe.play" %% "play-logback"          % version
   }
 
   object Netty {
@@ -104,7 +103,6 @@ object Dependencies {
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     PlayFrameWork.slick_play,
     PlayFrameWork.slick_play_ev,
-    PlayFrameWork.slick_ext,
     postgresql,
     h2database,
     oracle

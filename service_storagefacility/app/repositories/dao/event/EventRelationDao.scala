@@ -36,7 +36,7 @@ class EventRelationDao @Inject()(
 
   private val logger = Logger(classOf[EventRelationDao])
 
-  import driver.api._
+  import profile.api._
 
   def insertRelationAction(relation: FullEventRelation): DBIO[Int] = {
     insertEventRelationDtoAction(relation.toNormalizedEventLinkDto)

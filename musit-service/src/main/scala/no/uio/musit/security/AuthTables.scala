@@ -30,7 +30,7 @@ import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.ast._
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 import slick.lifted._
 import FunctionSymbolExtensionMethods._
 
@@ -40,7 +40,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
 
   private val logger = Logger(classOf[AuthTables])
 
-  import driver.api._
+  import profile.api._
 
   implicit lazy val actorIdMapper: BaseColumnType[ActorId] =
     MappedColumnType.base[ActorId, String](

@@ -32,7 +32,7 @@ class EventActorsDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
-  import driver.api._
+  import profile.api._
 
   def insertActors(
       eventId: EventId,

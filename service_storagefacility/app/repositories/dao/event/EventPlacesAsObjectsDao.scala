@@ -37,7 +37,7 @@ class EventPlacesAsObjectsDao @Inject()(
 
   val logger = Logger(classOf[EventPlacesAsObjectsDao])
 
-  import driver.api._
+  import profile.api._
 
   def insertObjects(
       eventId: EventId,
