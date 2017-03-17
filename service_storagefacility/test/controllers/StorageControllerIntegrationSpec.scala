@@ -19,19 +19,16 @@
 
 package controllers
 
-import java.util.UUID
-
 import models.storage.StorageType._
 import models.storage._
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import org.joda.time.DateTime
 import play.api.libs.json._
-import play.api.test.Helpers._
 import play.api.libs.ws.WSResponse
+import play.api.test.Helpers._
 import utils.testhelpers.StorageNodeJsonGenerator._
 import utils.testhelpers._
 
@@ -593,10 +590,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveMeId = created.id.value.underlying
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 26,
-              |  "items": [${created.id.value.underlying}]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 26,
+             |  "items": [${created.id.value.underlying}]
+             |}""".stripMargin
         )
 
         val moveRes = wsUrl(MoveStorageNodeUrl(mid))
@@ -625,10 +622,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       "fail when trying to move a node to an invalid destination" in {
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 31,
-              |  "items": [24]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 31,
+             |  "items": [24]
+             |}""".stripMargin
         )
         wsUrl(MoveStorageNodeUrl(mid))
           .withHeaders(writeToken.asHeader)
@@ -664,10 +661,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 26,
-              |  "items": [$id1, $id2, $id3]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 26,
+             |  "items": [$id1, $id2, $id3]
+             |}""".stripMargin
         )
 
         val move = wsUrl(MoveStorageNodeUrl(mid))
@@ -743,10 +740,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 1,
-              |  "items": [$id1, $id2, $id3]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 1,
+             |  "items": [$id1, $id2, $id3]
+             |}""".stripMargin
         )
         wsUrl(MoveStorageNodeUrl(mid))
           .withHeaders(writeToken.asHeader)
@@ -779,10 +776,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val verifyIds = directChildIds ++ subChildrenIds
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 25,
-              |  "items": [26]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 25,
+             |  "items": [26]
+             |}""".stripMargin
         )
 
         val moveRes = wsUrl(MoveStorageNodeUrl(mid))
@@ -813,10 +810,19 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 6,
-              |  "items": [$id1, $id2, $id3]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 6,
+             |  "items": [{
+             |    "id": $id1,
+             |    "objectType": "collection"
+             |  },{
+             |    "id": $id2,
+             |    "objectType": "collection"
+             |  },{
+             |    "id": $id3,
+             |    "objectType": "collection"
+             |  }]
+             |}""".stripMargin
         )
 
         val move = wsUrl(MoveObjectUrl(mid))
@@ -827,7 +833,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         (move.json \ "moved")
           .as[JsArray]
           .value
-          .map(_.as[Int]) must contain allOf (id1, id2, id3)
+          .map(jso => (jso \ "id").as[Int]) must contain allOf (id1, id2, id3)
       }
 
       "successfully move a single object" in {
@@ -839,17 +845,24 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 4,
-              |  "items": [$id2]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 4,
+             |  "items": [{
+             |    "id": $id2,
+             |    "objectType": "collection"
+             |  }]
+             |}""".stripMargin
         )
         val move = wsUrl(MoveObjectUrl(mid))
           .withHeaders(writeToken.asHeader)
           .put(moveJson)
           .futureValue
         move.status mustBe OK
-        (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
+        (move.json \ "moved")
+          .as[JsArray]
+          .value
+          .map(jso => (jso \ "id").as[Int])
+          .head mustBe id2
       }
 
       "successfully fetch the location history for a given object" in {
@@ -890,10 +903,13 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 5,
-              |  "items": [$id2]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 5,
+             |  "items": [{
+             |    "id": $id2,
+             |    "objectType": "collection"
+             |  }]
+             |}""".stripMargin
         )
 
         val move = wsUrl(MoveObjectUrl(mid))
@@ -901,7 +917,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .put(moveJson)
           .futureValue
         move.status mustBe OK
-        (move.json \ "moved").as[JsArray].value.head.as[Long] mustBe id2
+        (move.json \ "moved")
+          .as[JsArray]
+          .value
+          .map(jso => (jso \ "id").as[Int])
+          .head mustBe id2
 
         val currentLocation = wsUrl(ObjCurrentLocationUrl(mid, 2))
           .withHeaders(readToken.asHeader)
@@ -1297,10 +1317,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val moveMeId = (res1.json \ "id").as[Long]
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 30,
-              |  "items": [$moveMeId]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 30,
+             |  "items": [$moveMeId]
+             |}""".stripMargin
         )
 
         val wrongMid = MuseumId(4)
@@ -1365,10 +1385,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
         val moveJson = Json.parse(
           s"""{
-              |  "doneBy": "${adminId.asString}",
-              |  "destination": 40,
-              |  "items": [$id1, $id2, $id3]
-              |}""".stripMargin
+             |  "doneBy": "${adminId.asString}",
+             |  "destination": 40,
+             |  "items": [$id1, $id2, $id3]
+             |}""".stripMargin
         )
 
         val move = wsUrl(MoveStorageNodeUrl(mid))

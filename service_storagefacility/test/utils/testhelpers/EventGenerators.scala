@@ -19,6 +19,7 @@
 
 package utils.testhelpers
 
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import models.event.EventType
 import models.event.EventTypeRegistry.TopLevelEvents._
 import models.event.control.Control
@@ -233,6 +234,7 @@ trait EventTypeInitializers {
       doneBy = Some(defaultActorId),
       affectedThing = objectId,
       eventType = EventType.fromEventTypeId(MoveObjectType.id),
+      objectType = CollectionObject,
       from = from,
       to = to
     )

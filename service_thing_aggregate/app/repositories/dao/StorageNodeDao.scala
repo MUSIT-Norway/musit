@@ -21,6 +21,7 @@ package repositories.dao
 
 import com.google.inject.Inject
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -74,7 +75,9 @@ class StorageNodeDao @Inject()(
       objectId: ObjectId
   ): Future[Option[(StorageNodeDatabaseId, NodePath)]] = {
     val findLocalObjectAction = locObjTable.filter { lo =>
-      lo.museumId === mid && lo.objectId === objectId
+      lo.museumId === mid &&
+      lo.objectId === objectId &&
+      lo.objectType === CollectionObject.name
     }.map(_.currentLocationId).result.headOption
 
     val findPathAction = (maybeId: Option[StorageNodeDatabaseId]) =>

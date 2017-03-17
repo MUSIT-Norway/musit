@@ -25,5 +25,6 @@ case class LocalObject(
     objectId: ObjectId,
     latestMoveId: EventId,
     currentLocationId: StorageNodeDatabaseId,
-    museumId: MuseumId
+    museumId: MuseumId,
+    objectType: String
 )

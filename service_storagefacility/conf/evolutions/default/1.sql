@@ -109,6 +109,7 @@ CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
   latest_move_id      NUMBER(20) NOT NULL,
   current_location_id NUMBER(20) NOT NULL,
   museum_id           INTEGER    NOT NULL,
+  object_type         VARCHAR(50) DEFAULT 'collection', -- possible values can be 'collection', or 'sample'
   PRIMARY KEY (object_id),
   FOREIGN KEY (latest_move_id) REFERENCES MUSARK_STORAGE.EVENT (event_id),
   FOREIGN KEY (current_location_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE (storage_node_id)
