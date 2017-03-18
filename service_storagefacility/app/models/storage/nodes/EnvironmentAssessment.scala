@@ -17,26 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package models.storage.nodes
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import play.api.libs.json.{Format, Json}
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
+// FIXME Fields are required according to requirements
+case class EnvironmentAssessment(
+    relativeHumidity: Option[Boolean],
+    temperature: Option[Boolean],
+    lightingCondition: Option[Boolean],
+    preventiveConservation: Option[Boolean]
+)
 
-  val logger = Logger(classOf[UUIDVerifier])
+object EnvironmentAssessment {
 
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
+  lazy val empty = EnvironmentAssessment(None, None, None, None)
 
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
-  }
-
+  implicit val format: Format[EnvironmentAssessment] =
+    Json.format[EnvironmentAssessment]
 }

@@ -17,26 +17,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package repositories.storage.old_dao.event
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import com.google.inject.{Inject, Singleton}
+import models.storage.event.dto.EventRoleActor
+import no.uio.musit.models.EventId
+import play.api.db.slick.DatabaseConfigProvider
+import repositories.storage.old_dao.EventTables
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
+import scala.concurrent.Future
 
-  val logger = Logger(classOf[UUIDVerifier])
+@Singleton
+class EventActorsDao @Inject()(
+    val dbConfigProvider: DatabaseConfigProvider
+) extends EventTables {
 
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
+  import profile.api._
 
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
+  def insertActors(
+      eventId: EventId,
+      relatedActors: Seq[EventRoleActor]
+  ): DBIO[Option[Int]] = {
+    val relActors = relatedActors.map(_.copy(eventId = Some(eventId)))
+    eventActorsTable ++= relActors
+  }
+
+  def getRelatedActors(eventId: EventId): Future[Seq[EventRoleActor]] = {
+    val query = eventActorsTable.filter(evt => evt.eventId === eventId)
+    db.run(query.result)
   }
 
 }

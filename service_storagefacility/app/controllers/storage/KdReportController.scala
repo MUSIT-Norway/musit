@@ -17,26 +17,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package controllers.storage
 
 import com.google.inject.Inject
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
+import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.Read
+import no.uio.musit.service.MusitController
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import play.api.libs.json.Json
+import services.KdReportService
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
+class KdReportController @Inject()(
+    val authService: Authenticator,
+    val kdReportService: KdReportService
+) extends MusitController {
 
-  val logger = Logger(classOf[UUIDVerifier])
+  def getReport(mid: Int) = MusitSecureAction(mid, Read).async { implicit request =>
+    kdReportService.getReport(mid).map {
+      case MusitSuccess(reports) =>
+        Ok(Json.toJson(reports))
 
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
-
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
+      case err: MusitError =>
+        InternalServerError(Json.obj("message" -> err.message))
+    }
   }
-
 }

@@ -20,17 +20,17 @@
 package services
 
 import com.google.inject.Inject
-import models.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
-import models.event.dto.BaseEventDto
-import models.event.dto.DtoConverters.ObsConverters
-import models.event.observation.Observation
+import models.storage.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
+import models.storage.event.dto.BaseEventDto
+import models.storage.event.dto.DtoConverters.ObsConverters
+import models.storage.event.observation.Observation
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.event.EventDao
+import repositories.storage.old_dao.event.EventDao
 
 import scala.concurrent.Future
 

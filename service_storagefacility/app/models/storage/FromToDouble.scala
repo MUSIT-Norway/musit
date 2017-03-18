@@ -17,26 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package models.storage
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, _}
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
+case class FromToDouble(from: Option[Double], to: Option[Double])
 
-  val logger = Logger(classOf[UUIDVerifier])
-
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
-
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
-  }
+object FromToDouble {
+  implicit val formats: Format[FromToDouble] = (
+    (__ \ "from").formatNullable[Double] and
+      (__ \ "to").formatNullable[Double]
+  )(FromToDouble.apply, unlift(FromToDouble.unapply))
 
 }

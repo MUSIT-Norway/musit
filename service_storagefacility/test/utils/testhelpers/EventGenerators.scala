@@ -19,21 +19,21 @@
 
 package utils.testhelpers
 
+import models.storage.event.EventType
+import models.storage.event.EventTypeRegistry.TopLevelEvents._
+import models.storage.event.control.Control
+import models.storage.event.control.ControlSubEvents._
+import models.storage.event.dto.DtoConverters
+import models.storage.event.envreq.EnvRequirement
+import models.storage.event.move.{MoveNode, MoveObject}
+import models.storage.event.observation.Observation
+import models.storage.event.observation.ObservationSubEvents._
+import models.storage.{FromToDouble, Interval, LifeCycle}
 import no.uio.musit.models.ObjectTypes.CollectionObject
-import models.event.EventType
-import models.event.EventTypeRegistry.TopLevelEvents._
-import models.event.control.Control
-import models.event.control.ControlSubEvents._
-import models.event.dto.DtoConverters
-import models.event.envreq.EnvRequirement
-import models.event.move.{MoveNode, MoveObject}
-import models.event.observation.Observation
-import models.event.observation.ObservationSubEvents._
-import models.{FromToDouble, Interval, LifeCycle}
 import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
-import repositories.dao.event.EventDao
+import repositories.storage.old_dao.event.EventDao
 
 trait EventGenerators extends EventTypeInitializers { self: MusitSpecWithApp =>
 

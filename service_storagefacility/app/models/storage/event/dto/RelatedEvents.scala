@@ -17,26 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package models.storage.event.dto
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
-
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
-
-  val logger = Logger(classOf[UUIDVerifier])
-
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
-
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
-  }
-
-}
+/**
+ * Events related (via relation) to a given event.
+ */
+case class RelatedEvents(relation: EventRelation, events: Seq[EventDto])

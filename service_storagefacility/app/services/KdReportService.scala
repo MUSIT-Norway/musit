@@ -25,8 +25,8 @@ import no.uio.musit.models.MuseumId
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.storage.KdReportDao
 import no.uio.musit.functional.Implicits._
+import repositories.storage.old_dao.nodes.KdReportDao
 
 import scala.concurrent.Future
 

@@ -20,12 +20,12 @@
 package services
 
 import no.uio.musit.models.ObjectTypes.CollectionObject
-import models.event.EventType
-import models.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
-import models.event.move.{MoveNode, MoveObject}
-import models.storage.StorageUnit
-import models.Interval
-import models.Move.MoveNodesCmd
+import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
+import models.storage.event.move.{MoveNode, MoveObject}
+import models.storage.Move.MoveNodesCmd
+import models.storage.Interval
+import models.storage.event.EventType
+import models.storage.nodes.StorageUnit
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}

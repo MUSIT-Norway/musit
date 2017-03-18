@@ -17,26 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package models.storage
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import models.storage.nodes.StorageNode
+import no.uio.musit.models.ObjectId
+import play.api.libs.json.{Json, Writes}
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
+case class ObjectsLocation(node: StorageNode, objectIds: Seq[ObjectId])
 
-  val logger = Logger(classOf[UUIDVerifier])
+object ObjectsLocation {
 
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
-
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
-  }
+  implicit val writes: Writes[ObjectsLocation] = Json.writes[ObjectsLocation]
 
 }

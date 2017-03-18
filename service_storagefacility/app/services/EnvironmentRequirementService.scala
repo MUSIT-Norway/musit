@@ -20,17 +20,17 @@
 package services
 
 import com.google.inject.Inject
-import models.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
-import models.event.dto.DtoConverters.EnvReqConverters
-import models.event.dto.{EventDto, ExtendedDto}
-import models.event.envreq.EnvRequirement
-import models.storage.EnvironmentRequirement
+import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
+import models.storage.event.dto.DtoConverters.EnvReqConverters
+import models.storage.event.dto.{EventDto, ExtendedDto}
+import models.storage.event.envreq.EnvRequirement
+import models.storage.nodes.EnvironmentRequirement
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.event.{EnvRequirementDao, EventDao}
+import repositories.storage.old_dao.event.{EnvRequirementDao, EventDao}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal

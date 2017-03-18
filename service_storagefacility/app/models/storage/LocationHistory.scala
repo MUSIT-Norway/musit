@@ -17,26 +17,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package models.storage
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import no.uio.musit.formatters.WithDateTimeFormatters
+import no.uio.musit.models.{ActorId, NamedPathElement, NodePath}
+import org.joda.time.DateTime
+import play.api.libs.json.{Json, Writes}
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
+/**
+ *
+ */
+case class LocationHistory(
+    registeredBy: ActorId,
+    registeredDate: DateTime,
+    doneBy: Option[ActorId],
+    doneDate: DateTime,
+    from: FacilityLocation,
+    to: FacilityLocation
+)
 
-  val logger = Logger(classOf[UUIDVerifier])
+object LocationHistory extends WithDateTimeFormatters {
+  implicit val writes: Writes[LocationHistory] = Json.writes[LocationHistory]
+}
 
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
+/**
+ *
+ */
+case class FacilityLocation(
+    path: NodePath,
+    pathNames: Seq[NamedPathElement]
+)
 
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
-  }
-
+object FacilityLocation {
+  implicit val writes: Writes[FacilityLocation] = Json.writes[FacilityLocation]
 }

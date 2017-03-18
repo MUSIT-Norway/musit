@@ -17,26 +17,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package models.storage.event
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import no.uio.musit.models.{ActorId, ObjectId, StorageNodeDatabaseId}
+import play.api.libs.json.{Format, Json}
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
+// TODO: A better name for these
 
-  val logger = Logger(classOf[UUIDVerifier])
+case class ActorRole(roleId: Int, actorId: ActorId)
 
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
+object ActorRole {
+  implicit val format: Format[ActorRole] = Json.format[ActorRole]
+}
 
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
-  }
+case class ObjectRole(roleId: Int, objectId: ObjectId)
 
+object ObjectRole {
+  implicit val format: Format[ObjectRole] = Json.format[ObjectRole]
+}
+
+case class PlaceRole(roleId: Int, nodeId: StorageNodeDatabaseId)
+
+object PlaceRole {
+  implicit val format: Format[PlaceRole] = Json.format[PlaceRole]
 }

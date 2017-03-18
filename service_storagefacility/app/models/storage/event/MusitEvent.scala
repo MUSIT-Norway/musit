@@ -17,26 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package models.storage.event
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import no.uio.musit.models.{ActorId, EventId, MusitId}
+import org.joda.time.DateTime
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
-
-  val logger = Logger(classOf[UUIDVerifier])
-
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
-
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
-  }
-
+/**
+ * Top level representation of _all_ event types with definitions for the
+ * shared attributes they all contain.
+ */
+trait MusitEvent {
+  val id: Option[EventId]
+  val doneBy: Option[ActorId]
+  val doneDate: DateTime
+  val affectedThing: Option[MusitId]
+  val registeredBy: Option[ActorId]
+  val registeredDate: Option[DateTime]
+  val eventType: EventType
 }
+
+/**
+ * Helps to identify events that are only valid in a "sub-event" context.
+ */
+trait MusitSubEvent

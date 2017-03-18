@@ -17,26 +17,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package migration
+package models.storage.event
 
-import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import play.api.data.validation.ValidationError
+import play.api.libs.json._
 
-class UUIDVerifier @Inject()(
-    val dao: MigrationDao
-) {
+case class EventType(name: String) extends AnyVal {
 
-  val logger = Logger(classOf[UUIDVerifier])
+  def registeredEventId: EventTypeId =
+    EventTypeRegistry.withNameInsensitive(name).id
 
-  dao.generateUUIDWhereEmpty.foreach {
-    case MusitSuccess(numGenerated) =>
-      logger.info(s"Generated UUIDs for $numGenerated storage nodes")
+}
 
-    case err: MusitError =>
-      logger.error("An error occurred generating UUIDs for storage nodes")
+object EventType {
+
+  def fromEventTypeId(id: EventTypeId): EventType =
+    EventType(EventTypeRegistry.unsafeFromId(id).name)
+
+  def fromInt(i: Int): EventType = fromEventTypeId(EventTypeId(i))
+
+  implicit val reads: Reads[EventType] =
+    __.read[String]
+      .filter(ValidationError("Unsupported event type")) { et =>
+        EventTypeRegistry.withNameInsensitiveOption(et).isDefined
+      }
+      .map(EventType.apply)
+
+  implicit val writes: Writes[EventType] = Writes { et =>
+    JsString(et.name)
   }
 
 }

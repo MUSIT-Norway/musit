@@ -1,10 +1,10 @@
 package services
 
 import com.google.inject.Inject
-import models.event.dto.DtoConverters
-import models.event.move.{MoveEvent, MoveNode, MoveObject}
-import models.storage._
-import models.{FacilityLocation, LocationHistory, ObjectsLocation}
+import models.storage.event.dto.DtoConverters
+import models.storage.event.move.{MoveEvent, MoveNode, MoveObject}
+import models.storage.nodes._
+import models.storage.{FacilityLocation, LocationHistory, ObjectsLocation}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -13,9 +13,14 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.caching.LocalObjectDao
-import repositories.dao.event.EventDao
-import repositories.dao.storage._
+import repositories.storage.old_dao.caching.LocalObjectDao
+import repositories.storage.old_dao.event.EventDao
+import repositories.storage.old_dao.nodes.{
+  BuildingDao,
+  OrganisationDao,
+  RoomDao,
+  StorageUnitDao
+}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -566,12 +571,12 @@ class StorageNodeService @Inject()(
       currentLoc <- MusitResultT(localObjectDao.currentLocations(objIds))
       movedObjects <- MusitResultT(
         moveBatch(mid, destination, objIds, currentLoc, moveEvents) {
-           case (_, _, events) =>
-             persistMoveEvents(mid, events) { eventIds =>
-               // Again the get on affectedThing is safe since we're guaranteed its
-               // presence at this point.
-               MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
-             }
+          case (_, _, events) =>
+            persistMoveEvents(mid, events) { eventIds =>
+              // Again the get on affectedThing is safe since we're guaranteed its
+              // presence at this point.
+              MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
+            }
         }
       )
 

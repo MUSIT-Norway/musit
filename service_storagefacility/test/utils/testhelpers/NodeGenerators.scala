@@ -19,8 +19,8 @@
 
 package utils.testhelpers
 
-import models.Interval
-import models.storage._
+import models.storage.Interval
+import models.storage.nodes._
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.functional.Implicits._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -29,7 +29,12 @@ import no.uio.musit.test.MusitSpecWithApp
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Application
-import repositories.dao.storage.{BuildingDao, OrganisationDao, RoomDao, StorageUnitDao}
+import repositories.storage.old_dao.nodes.{
+  BuildingDao,
+  OrganisationDao,
+  RoomDao,
+  StorageUnitDao
+}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
