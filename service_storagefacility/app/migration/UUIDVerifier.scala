@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.MigrationDao
+import repositories.storage.dao.MigrationDao
 
 class UUIDVerifier @Inject()(
     val dao: MigrationDao

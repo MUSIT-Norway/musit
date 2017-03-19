@@ -13,7 +13,7 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.nodes.StorageUnitDao
+import repositories.storage.dao.nodes.StorageUnitDao
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag

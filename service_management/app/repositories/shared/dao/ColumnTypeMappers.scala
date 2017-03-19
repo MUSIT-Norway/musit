@@ -1,8 +1,12 @@
 package repositories.shared.dao
 
+import java.sql.{Timestamp => JSqlTimestamp}
+
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
 import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID}
+import no.uio.musit.time.DefaultTimezone
+import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}
 import slick.jdbc.JdbcProfile
@@ -57,5 +61,11 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
     MappedColumnType.base[JsValue, String](
       jsv => Json.prettyPrint(jsv),
       str => Json.parse(str)
+    )
+
+  implicit val dateTimeMapper: BaseColumnType[DateTime] =
+    MappedColumnType.base[DateTime, JSqlTimestamp](
+      dt => new JSqlTimestamp(dt.getMillis),
+      jt => new DateTime(jt, DefaultTimezone)
     )
 }

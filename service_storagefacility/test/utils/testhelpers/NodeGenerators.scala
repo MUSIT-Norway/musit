@@ -29,12 +29,13 @@ import no.uio.musit.test.MusitSpecWithApp
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Application
-import repositories.storage.old_dao.nodes.{
+import repositories.storage.dao.nodes.{
   BuildingDao,
   OrganisationDao,
   RoomDao,
   StorageUnitDao
 }
+import repositories.storage.dao.nodes.{OrganisationDao, RoomDao, StorageUnitDao}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

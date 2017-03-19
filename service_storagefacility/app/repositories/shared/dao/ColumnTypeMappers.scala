@@ -17,14 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao
+package repositories.shared.dao
 
 import java.util.UUID
+import java.sql.{Timestamp => JSqlTimestamp}
 
 import models.storage.event.EventTypeId
 import models.storage.nodes.StorageType
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
+import no.uio.musit.time.DefaultTimezone
+import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfig
+import play.api.libs.json.{JsValue, Json}
 import slick.jdbc.JdbcProfile
 
 /**
@@ -35,7 +40,7 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   import profile.api._
 
-  implicit lazy val storageNodeDbIdMapper: BaseColumnType[StorageNodeDatabaseId] =
+  implicit val storageNodeDbIdMapper: BaseColumnType[StorageNodeDatabaseId] =
     MappedColumnType.base[StorageNodeDatabaseId, Long](
       snid => snid.underlying,
       longId => StorageNodeDatabaseId(longId)
@@ -47,13 +52,19 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       strId => StorageNodeId(UUID.fromString(strId))
     )
 
-  implicit lazy val objectIdMapper: BaseColumnType[ObjectId] =
+  implicit val objectIdMapper: BaseColumnType[ObjectId] =
     MappedColumnType.base[ObjectId, Long](
       oid => oid.underlying,
       longId => ObjectId(longId)
     )
 
-  implicit lazy val eventIdMapper: BaseColumnType[EventId] =
+  implicit val objectUuidMapper: BaseColumnType[ObjectUUID] =
+    MappedColumnType.base[ObjectUUID, String](
+      oid => oid.asString,
+      strId => ObjectUUID.unsafeFromString(strId)
+    )
+
+  implicit val eventIdMapper: BaseColumnType[EventId] =
     MappedColumnType.base[EventId, Long](
       eid => eid.underlying,
       longId => EventId(longId)
@@ -65,27 +76,45 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       strId => ActorId(UUID.fromString(strId))
     )
 
-  implicit lazy val storageTypeMapper =
+  implicit val storageTypeMapper =
     MappedColumnType.base[StorageType, String](
       storageType => storageType.entryName,
       string => StorageType.withName(string)
     )
 
-  implicit lazy val eventTypeIdMapper: BaseColumnType[EventTypeId] =
+  implicit val eventTypeIdMapper: BaseColumnType[EventTypeId] =
     MappedColumnType.base[EventTypeId, Int](
       eventTypeId => eventTypeId.underlying,
       id => EventTypeId(id)
     )
 
-  implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =
+  implicit val objTypeMapper: BaseColumnType[ObjectType] =
+    MappedColumnType.base[ObjectType, String](
+      tpe => tpe.name,
+      str => ObjectType.unsafeFromString(str)
+    )
+
+  implicit val museumIdMapper: BaseColumnType[MuseumId] =
     MappedColumnType.base[MuseumId, Int](
       museumId => museumId.underlying,
       id => MuseumId(id)
     )
 
-  implicit lazy val nodePathMapper: BaseColumnType[NodePath] =
+  implicit val nodePathMapper: BaseColumnType[NodePath] =
     MappedColumnType.base[NodePath, String](
       nodePath => nodePath.path,
       pathStr => NodePath(pathStr)
+    )
+
+  implicit val dateTimeMapper: BaseColumnType[DateTime] =
+    MappedColumnType.base[DateTime, JSqlTimestamp](
+      dt => new JSqlTimestamp(dt.getMillis),
+      jt => new DateTime(jt, DefaultTimezone)
+    )
+
+  implicit val jsonMapper: BaseColumnType[JsValue] =
+    MappedColumnType.base[JsValue, String](
+      jsv => Json.prettyPrint(jsv),
+      str => Json.parse(str)
     )
 }

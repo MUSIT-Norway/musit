@@ -17,14 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao.storage
+package repositories.storage.dao
 
 import no.uio.musit.models.{ActorId, GroupId, Museums, StorageNodeDatabaseId}
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
-import repositories.storage.old_dao.MigrationDao
-import repositories.storage.old_dao.nodes.StorageUnitDao
+import repositories.storage.dao.nodes.StorageUnitDao
 
 class MigrationDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 

@@ -17,35 +17,39 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao.nodes
+package repositories.storage.dao.nodes
 
 import com.google.inject.{Inject, Singleton}
-import models.storage.nodes.Room
-import models.storage.nodes.dto.{ExtendedStorageNode, RoomDto, StorageNodeDto}
+import models.storage.nodes.Organisation
+import models.storage.nodes.dto.{ExtendedStorageNode, OrganisationDto, StorageNodeDto}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.StorageTables
+import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
+/**
+ * TODO: Document me!!!
+ */
 @Singleton
-class RoomDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
-) extends StorageTables {
+class OrganisationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
+    extends StorageTables {
 
   import profile.api._
 
-  val logger = Logger(classOf[RoomDao])
+  val logger = Logger(classOf[OrganisationDao])
 
-  private def updateAction(id: StorageNodeDatabaseId, room: RoomDto): DBIO[Int] = {
-    roomTable.filter(_.id === id).update(room)
+  private def updateAction(id: StorageNodeDatabaseId, org: OrganisationDto): DBIO[Int] = {
+    organisationTable.filter(_.id === id).update(org)
   }
 
-  private def insertAction(roomDto: RoomDto): DBIO[Int] = roomTable += roomDto
+  private def insertAction(organisationDto: OrganisationDto): DBIO[Int] = {
+    organisationTable += organisationDto
+  }
 
   /**
    * TODO: Document me!!!
@@ -53,20 +57,23 @@ class RoomDao @Inject()(
   def getById(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  ): Future[MusitResult[Option[Room]]] = {
+  ): Future[MusitResult[Option[Organisation]]] = {
     val action = for {
-      maybeUnitDto <- getUnitByIdAction(mid, id)
-      maybeRoomDto <- roomTable.filter(_.id === id).result.headOption
+      maybeUnitDto <- getNonRootByIdAction(mid, id)
+      maybeOrgDto  <- organisationTable.filter(_.id === id).result.headOption
     } yield {
-      maybeUnitDto.flatMap(u => maybeRoomDto.map(r => ExtendedStorageNode(u, r)))
+      // Map the results into an ExtendedStorageNode type
+      maybeUnitDto.flatMap(u => maybeOrgDto.map(o => ExtendedStorageNode(u, o)))
     }
-    db.run(action).map(res => MusitSuccess(res.map(StorageNodeDto.toRoom))).recover {
-      case NonFatal(ex) =>
-        val msg = s"Unable to get room for museumId $mid and storageId $id"
-        logger.warn(msg, ex)
-        MusitDbError(msg, Some(ex))
-    }
-
+    // Execute the query
+    db.run(action)
+      .map(res => MusitSuccess(res.map(StorageNodeDto.toOrganisation)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get organisation for museumId $mid and storage node $id"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -75,16 +82,16 @@ class RoomDao @Inject()(
   def update(
       mid: MuseumId,
       id: StorageNodeDatabaseId,
-      room: Room
+      organisation: Organisation
   ): Future[MusitResult[Option[Int]]] = {
-    val roomDto = StorageNodeDto.fromRoom(mid, room, Some(id))
+    val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
     val action = for {
-      unitsUpdated <- updateNodeAction(mid, id, roomDto.storageUnitDto)
-      roomsUpdated <- {
-        if (unitsUpdated > 0) updateAction(id, roomDto.extension)
+      unitsUpdated <- updateNodeAction(mid, id, extendedOrgDto.storageUnitDto)
+      orgsUpdated <- {
+        if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension)
         else DBIO.successful[Int](0)
       }
-    } yield roomsUpdated
+    } yield orgsUpdated
 
     db.run(action.transactionally).map {
       case res: Int if res == 1 => MusitSuccess(Some(res))
@@ -97,7 +104,7 @@ class RoomDao @Inject()(
   }
 
   /**
-   * Set the path for the given StoragNodeId
+   * Updates the path for the given StoragNodeId
    *
    * @param id   the StorageNodeId to update
    * @param path the NodePath to set
@@ -105,8 +112,7 @@ class RoomDao @Inject()(
    */
   def setPath(id: StorageNodeDatabaseId, path: NodePath): Future[MusitResult[Unit]] = {
     db.run(updatePathAction(id, path)).map {
-      case res: Int if res == 1 =>
-        MusitSuccess(())
+      case res: Int if res == 1 => MusitSuccess(())
 
       case res: Int =>
         val msg = wrongNumUpdatedRows(id, res)
@@ -118,17 +124,22 @@ class RoomDao @Inject()(
   /**
    * TODO: Document me!!!
    */
-  def insert(mid: MuseumId, room: Room): Future[MusitResult[StorageNodeDatabaseId]] = {
-    val extendedDto = StorageNodeDto.fromRoom(mid, room)
-    val action = for {
+  def insert(
+      mid: MuseumId,
+      organisation: Organisation
+  ): Future[MusitResult[StorageNodeDatabaseId]] = {
+    val extendedDto = StorageNodeDto.fromOrganisation(mid, organisation)
+    val query = for {
       nodeId    <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
-      inserted  <- insertAction(extWithId)
-    } yield nodeId
+      n         <- insertAction(extWithId)
+    } yield {
+      nodeId
+    }
 
-    db.run(action.transactionally).map(MusitSuccess.apply).recover {
+    db.run(query.transactionally).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
-        val msg = s"Unable to insert room with museumId $mid"
+        val msg = s"Unable to insert organisation for museumId $mid"
         logger.warn(msg, ex)
         MusitDbError(msg, Some(ex))
     }

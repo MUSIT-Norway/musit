@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao.storage
+package repositories.storage.dao.nodes
 
 import models.storage.nodes.StorageType._
 import models.storage.nodes.{Root, RootLoan, StorageType}

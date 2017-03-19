@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao
+package repositories.storage.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
@@ -25,9 +25,14 @@ import models.storage.nodes.StorageType
 import models.storage.nodes.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
 import no.uio.musit.models._
 import play.api.Logger
+import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.shared.dao.ColumnTypeMappers
+import slick.jdbc.JdbcProfile
 
-private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
+private[dao] trait StorageTables
+    extends HasDatabaseConfigProvider[JdbcProfile]
+    with ColumnTypeMappers {
 
   private val logger = Logger(classOf[StorageTables])
 
@@ -52,7 +57,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
    *
    * Only returns non-root nodes
    */
-  protected[old_dao] def getUnitByIdAction(
+  protected[dao] def getNonRootByIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
@@ -64,7 +69,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     }.result.headOption
   }
 
-  protected[old_dao] def getNodeByIdAction(
+  protected[dao] def getNodeByIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
@@ -73,7 +78,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     }.result.headOption
   }
 
-  protected[old_dao] def getPathByIdAction(
+  protected[dao] def getPathByIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): DBIO[Option[NodePath]] = {
@@ -82,7 +87,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     }.map(_.path).result.headOption
   }
 
-  protected[old_dao] def updatePathAction(
+  protected[dao] def updatePathAction(
       id: StorageNodeDatabaseId,
       path: NodePath
   ): DBIO[Int] = {
@@ -91,7 +96,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     }.map(_.path).update(path)
   }
 
-  protected[old_dao] def updatePartOfAction(
+  protected[dao] def updatePartOfAction(
       id: StorageNodeDatabaseId,
       partOf: Option[StorageNodeDatabaseId]
   ): DBIO[Int] = {
@@ -100,7 +105,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     q.update(partOf)
   }
 
-  protected[old_dao] def updatePathsAction(
+  protected[dao] def updatePathsAction(
       oldParent: NodePath,
       newParent: NodePath
   ): DBIO[Int] = {
@@ -127,7 +132,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
    * @param nodePath NodePath to get names for
    * @return A {{{DBIO[Seq[NamedPathElement]]}}}
    */
-  protected[old_dao] def namesForPathAction(
+  protected[dao] def namesForPathAction(
       nodePath: NodePath
   ): DBIO[Seq[NamedPathElement]] = {
     storageNodeTable.filter { sn =>
@@ -138,7 +143,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
   /**
    * TODO: Document me!!!
    */
-  protected[old_dao] def insertNodeAction(
+  protected[dao] def insertNodeAction(
       dto: StorageUnitDto
   ): DBIO[StorageNodeDatabaseId] = {
     val nid        = dto.nodeId.getOrElse(StorageNodeId.generate())
@@ -149,7 +154,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
   /**
    * TODO: Document me!!!
    */
-  protected[old_dao] def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
+  protected[dao] def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
     storageNodeTable.filter { sn =>
       sn.isPartOf === id && sn.isDeleted === false
     }.length.result
@@ -158,7 +163,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
   /**
    * TODO: Document me!!!
    */
-  protected[old_dao] def updateNodeAction(
+  protected[dao] def updateNodeAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId,
       storageUnit: StorageUnitDto
@@ -171,7 +176,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     }.update(storageUnit)
   }
 
-  protected[old_dao] def getStorageNodeByNameAction(
+  protected[dao] def getStorageNodeByNameAction(
       mid: MuseumId,
       searchString: String,
       page: Int,
@@ -189,9 +194,9 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
   /**
    * TODO: Document me!!!
    */
-  private[old_dao] class StorageNodeTable(
+  private[dao] class StorageNodeTable(
       val tag: Tag
-  ) extends Table[StorageUnitDto](tag, SchemaName, "STORAGE_NODE") {
+  ) extends Table[StorageUnitDto](tag, SchemaName, StorageNodeTable) {
     // scalastyle:off method.name
     def * =
       (
@@ -216,6 +221,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
 
     // scalastyle:on method.name
 
+    // scalastyle:off line.size.limit
     val id          = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
     val uuid        = column[Option[StorageNodeId]]("STORAGE_NODE_UUID")
     val storageType = column[StorageType]("STORAGE_TYPE")
@@ -233,6 +239,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     val path        = column[NodePath]("NODE_PATH")
     val updatedBy   = column[Option[ActorId]]("UPDATED_BY")
     val updatedDate = column[Option[JSqlTimestamp]]("UPDATED_DATE")
+    // scalastyle:on line.size.limit
 
     def create =
       (
@@ -298,9 +305,9 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
       )
   }
 
-  private[old_dao] class RoomTable(
+  private[dao] class RoomTable(
       val tag: Tag
-  ) extends Table[RoomDto](tag, SchemaName, "ROOM") {
+  ) extends Table[RoomDto](tag, SchemaName, RoomTable) {
     // scalastyle:off method.name
     def * =
       (
@@ -318,6 +325,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
 
     // scalastyle:on method.name
 
+    // scalastyle:off line.size.limit
     val id                     = column[Option[StorageNodeDatabaseId]]("STORAGE_NODE_ID", O.PrimaryKey)
     val perimeterSecurity      = column[Option[Boolean]]("PERIMETER_SECURITY")
     val theftProtection        = column[Option[Boolean]]("THEFT_PROTECTION")
@@ -328,6 +336,7 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
     val temperatureAssessment  = column[Option[Boolean]]("TEMPERATURE_ASSESSMENT")
     val lighting               = column[Option[Boolean]]("LIGHTING_CONDITION")
     val preventiveConservation = column[Option[Boolean]]("PREVENTIVE_CONSERVATION")
+    // scalastyle:on line.size.limit
 
     def create =
       (
@@ -372,11 +381,13 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
       )
   }
 
-  private[old_dao] class BuildingTable(
+  private[dao] class BuildingTable(
       val tag: Tag
-  ) extends Table[BuildingDto](tag, SchemaName, "BUILDING") {
+  ) extends Table[BuildingDto](tag, SchemaName, BuildingTable) {
 
-    def * = (id.?, address) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (id.?, address) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
     val id      = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey)
     val address = column[Option[String]]("POSTAL_ADDRESS")
@@ -392,11 +403,13 @@ private[old_dao] trait StorageTables extends BaseDao with ColumnTypeMappers {
       Some((building.id, building.address))
   }
 
-  private[old_dao] class OrganisationTable(
+  private[dao] class OrganisationTable(
       val tag: Tag
-  ) extends Table[OrganisationDto](tag, SchemaName, "ORGANISATION") {
+  ) extends Table[OrganisationDto](tag, SchemaName, OrganisationTable) {
 
-    def * = (id, address) <> (create.tupled, destroy) // scalastyle:ignore
+    // scalastyle:off method.name
+    def * = (id, address) <> (create.tupled, destroy)
+    // scalastyle:on method.name
 
     val id      = column[Option[StorageNodeDatabaseId]]("STORAGE_NODE_ID", O.PrimaryKey)
     val address = column[Option[String]]("POSTAL_ADDRESS")

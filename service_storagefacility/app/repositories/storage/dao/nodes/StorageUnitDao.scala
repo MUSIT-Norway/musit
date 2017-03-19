@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao.nodes
+package repositories.storage.dao.nodes
 
 import com.google.inject.{Inject, Singleton}
 import models.storage.nodes._
@@ -31,7 +31,7 @@ import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.{SharedTables, StorageTables}
+import repositories.storage.dao.{SharedTables, StorageTables}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -41,9 +41,8 @@ import scala.util.control.NonFatal
  */
 // TODO: Change public API methods to use MusitResult[A]
 @Singleton
-class StorageUnitDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
-) extends StorageTables
+class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
+    extends StorageTables
     with SharedTables {
 
   import profile.api._
@@ -107,7 +106,7 @@ class StorageUnitDao @Inject()(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageUnit]]] = {
-    val query = getUnitByIdAction(mid, id)
+    val query = getNonRootByIdAction(mid, id)
     db.run(query)
       .map(res => MusitSuccess(res.map(StorageNodeDto.toStorageUnit)))
       .recover {

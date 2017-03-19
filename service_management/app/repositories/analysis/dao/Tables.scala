@@ -1,13 +1,11 @@
 package repositories.analysis.dao
 
-import java.sql.{Timestamp => JSqlTimestamp}
-
 import models.analysis.SampleObject
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
 import no.uio.musit.models._
-import no.uio.musit.time.Implicits._
+import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json}
 import repositories.shared.dao.ColumnTypeMappers
@@ -26,22 +24,21 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   val resultTable       = TableQuery[AnalysisResultTable]
   val sampleObjTable    = TableQuery[SampleObjectTable]
 
-  // scalastyle:off line.size.limit
   type EventTypeRow =
     (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
   type EventRow = (
       Option[EventId],
       AnalysisTypeId,
-      Option[JSqlTimestamp],
+      Option[DateTime],
       Option[ActorId],
-      Option[JSqlTimestamp],
+      Option[DateTime],
       Option[EventId],
       Option[ObjectUUID],
       Option[String],
       JsValue
   )
   type ResultRow =
-    (Option[Long], EventId, Option[ActorId], Option[JSqlTimestamp], JsValue)
+    (Option[Long], EventId, Option[ActorId], Option[DateTime], JsValue)
   type SampleObjectRow = (
       ObjectUUID,
       Option[ObjectUUID],
@@ -49,7 +46,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       MuseumId,
       SampleStatus,
       ActorId,
-      JSqlTimestamp,
+      DateTime,
       Option[String],
       Option[String],
       Option[String],
@@ -60,9 +57,9 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       Option[String],
       Option[String],
       Option[ActorId],
-      Option[JSqlTimestamp],
+      Option[DateTime],
       Option[ActorId],
-      Option[JSqlTimestamp]
+      Option[DateTime]
   )
 
   // scalastyle:on line.size.limit
@@ -97,15 +94,15 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
     val id             = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
     val typeId         = column[AnalysisTypeId]("TYPE_ID")
-    val eventDate      = column[Option[JSqlTimestamp]]("EVENT_DATE")
+    val eventDate      = column[Option[DateTime]]("EVENT_DATE")
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
-    val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
+    val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
     val partOf         = column[Option[EventId]]("PART_OF")
     val objectUuid     = column[Option[ObjectUUID]]("OBJECT_UUID")
     val note           = column[Option[String]]("NOTE")
     val eventJson      = column[JsValue]("EVENT_JSON")
 
-    // scalastyle:off method.name line.size.limit
+    // scalastyle:off method.name
     def * =
       (
         id.?,
@@ -119,7 +116,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
         eventJson
       )
 
-    // scalastyle:on method.name line.size.limit
+    // scalastyle:on method.name
   }
 
   /**
@@ -132,7 +129,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val id             = column[Long]("RESULT_ID", O.PrimaryKey, O.AutoInc)
     val eventId        = column[EventId]("EVENT_ID")
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
-    val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
+    val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
     val resultJson     = column[JsValue]("RESULT_JSON")
 
     // scalastyle:off method.name
@@ -151,7 +148,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val museumId           = column[MuseumId]("MUSEUM_ID")
     val status             = column[SampleStatus]("STATUS")
     val responsible        = column[ActorId]("RESPONSIBLE_ACTOR_ID")
-    val createdDate        = column[JSqlTimestamp]("CREATED_DATE")
+    val createdDate        = column[DateTime]("CREATED_DATE")
     val sampleId           = column[Option[String]]("SAMPLE_ID")
     val externalId         = column[Option[String]]("EXTERNAL_ID")
     val sampleType         = column[Option[String]]("SAMPLE_TYPE")
@@ -162,9 +159,9 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val storageMedium      = column[Option[String]]("STORAGE_MEDIUM")
     val note               = column[Option[String]]("NOTE")
     val registeredBy       = column[Option[ActorId]]("REGISTERED_BY")
-    val registeredDate     = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
+    val registeredDate     = column[Option[DateTime]]("REGISTERED_DATE")
     val updatedBy          = column[Option[ActorId]]("UPDATED_BY")
-    val updatedDate        = column[Option[JSqlTimestamp]]("UPDATED_DATE")
+    val updatedDate        = column[Option[DateTime]]("UPDATED_DATE")
 
     // scalastyle:off method.name line.size.limit
     def * =

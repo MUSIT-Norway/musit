@@ -26,7 +26,7 @@ import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import no.uio.musit.functional.Implicits._
-import repositories.storage.old_dao.nodes.KdReportDao
+import repositories.storage.dao.nodes.KdReportDao
 
 import scala.concurrent.Future
 

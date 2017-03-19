@@ -17,13 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao
+package repositories.storage.dao
 
 import models.storage.event.dto.LocalObject
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
+import play.api.db.slick.HasDatabaseConfigProvider
+import repositories.shared.dao.ColumnTypeMappers
+import slick.jdbc.JdbcProfile
 
-private[old_dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
+private[dao] trait SharedTables
+    extends HasDatabaseConfigProvider[JdbcProfile]
+    with ColumnTypeMappers {
 
   import profile.api._
 

@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao
+package repositories.storage.dao
 
 import com.google.inject.Inject
 import models.storage.nodes.dto.StorageNodeDto
@@ -31,12 +31,11 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 /**
- * This Dao should _NOT_ be used by any other class than the boostrapping
+ * This Dao should _NOT_ be used by any other class than the bootstrapping
  * {{{migration.UUIDVerifier}}} class.
  */
-class MigrationDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
-) extends StorageTables {
+class MigrationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
+    extends StorageTables {
 
   val logger = Logger(classOf[MigrationDao])
 

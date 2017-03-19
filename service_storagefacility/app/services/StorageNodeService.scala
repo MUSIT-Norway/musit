@@ -13,14 +13,15 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.caching.LocalObjectDao
-import repositories.storage.old_dao.event.EventDao
-import repositories.storage.old_dao.nodes.{
+import repositories.storage.dao.LocalObjectDao
+import repositories.storage.dao.nodes.{
   BuildingDao,
   OrganisationDao,
   RoomDao,
   StorageUnitDao
 }
+import repositories.storage.old_dao.event.EventDao
+import repositories.storage.dao.nodes.{OrganisationDao, RoomDao, StorageUnitDao}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal

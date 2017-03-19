@@ -32,9 +32,10 @@ import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.caching.LocalObjectDao
+import repositories.shared.dao.ColumnTypeMappers
+import repositories.storage.dao.LocalObjectDao
 import repositories.storage.old_dao.event.EventRelationTypes.PartialEventRelation
-import repositories.storage.old_dao.{ColumnTypeMappers, EventTables}
+import repositories.storage.old_dao.EventTables
 import slick.dbio.Effect.All
 import slick.dbio.SequenceAction
 
@@ -621,7 +622,7 @@ class EventDao @Inject()(
   /**
    * Fetch events of a given TopLevelEvent type for the given StorageNodeId
    *
-   * @param mid       : MuseumId
+   * @param mid       MuseumId
    * @param id        StorageNodeId to get events for
    * @param eventType TopLevelEvent type to fetch
    * @tparam A type argument specifying the type of TopLevelEvent to fetch

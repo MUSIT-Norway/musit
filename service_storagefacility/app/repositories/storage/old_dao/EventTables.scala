@@ -24,12 +24,17 @@ import java.sql.{Timestamp => JSqlTimestamp}
 import models.storage.event.EventTypeId
 import models.storage.event.dto._
 import no.uio.musit.models.{ActorId, EventId, ObjectId, StorageNodeDatabaseId}
+import play.api.db.slick.HasDatabaseConfigProvider
+import repositories.shared.dao.ColumnTypeMappers
 import repositories.storage.old_dao.event.EventRelationTypes.EventRelationDto
+import slick.jdbc.JdbcProfile
 
 /**
  * Tables definitions that are required across DAO implementations.
  */
-private[old_dao] trait EventTables extends BaseDao with ColumnTypeMappers {
+private[old_dao] trait EventTables
+    extends HasDatabaseConfigProvider[JdbcProfile]
+    with ColumnTypeMappers {
 
   import profile.api._
 

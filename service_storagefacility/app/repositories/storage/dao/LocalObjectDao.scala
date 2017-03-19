@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao.caching
+package repositories.storage.dao
 
 import com.google.inject.Inject
 import models.storage.event.dto.{EventDto, LocalObject}
@@ -26,14 +26,12 @@ import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.SharedTables
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class LocalObjectDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
-) extends SharedTables {
+class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
+    extends SharedTables {
 
   import profile.api._
 

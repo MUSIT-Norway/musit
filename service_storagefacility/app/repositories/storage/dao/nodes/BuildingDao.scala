@@ -17,17 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao.nodes
+package repositories.storage.dao.nodes
 
 import com.google.inject.{Inject, Singleton}
-import models.storage.nodes.Organisation
-import models.storage.nodes.dto.{ExtendedStorageNode, OrganisationDto, StorageNodeDto}
+import models.storage.nodes.Building
+import models.storage.nodes.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.StorageTables
+import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -36,20 +36,20 @@ import scala.util.control.NonFatal
  * TODO: Document me!!!
  */
 @Singleton
-class OrganisationDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
-) extends StorageTables {
+class BuildingDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
+    extends StorageTables {
 
   import profile.api._
 
-  val logger = Logger(classOf[OrganisationDao])
+  val logger = Logger(classOf[BuildingDao])
 
-  private def updateAction(id: StorageNodeDatabaseId, org: OrganisationDto): DBIO[Int] = {
-    organisationTable.filter(_.id === id).update(org)
-  }
+  private def updateAction(
+      id: StorageNodeDatabaseId,
+      building: BuildingDto
+  ): DBIO[Int] = buildingTable.filter(_.id === id).update(building)
 
-  private def insertAction(organisationDto: OrganisationDto): DBIO[Int] = {
-    organisationTable += organisationDto
+  private def insertAction(buildingDto: BuildingDto): DBIO[Int] = {
+    buildingTable += buildingDto
   }
 
   /**
@@ -58,23 +58,21 @@ class OrganisationDao @Inject()(
   def getById(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  ): Future[MusitResult[Option[Organisation]]] = {
+  ): Future[MusitResult[Option[Building]]] = {
     val action = for {
-      maybeUnitDto <- getUnitByIdAction(mid, id)
-      maybeOrgDto  <- organisationTable.filter(_.id === id).result.headOption
+      maybeUnitDto     <- getNonRootByIdAction(mid, id)
+      maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
-      maybeUnitDto.flatMap(u => maybeOrgDto.map(o => ExtendedStorageNode(u, o)))
+      maybeUnitDto.flatMap(u => maybeBuildingDto.map(b => ExtendedStorageNode(u, b)))
     }
     // Execute the query
-    db.run(action)
-      .map(res => MusitSuccess(res.map(StorageNodeDto.toOrganisation)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Unable to get organisation for museumId $mid and storage node $id"
-          logger.warn(msg, ex)
-          MusitDbError(msg, Some(ex))
-      }
+    db.run(action).map(res => MusitSuccess(res.map(StorageNodeDto.toBuilding))).recover {
+      case NonFatal(ex) =>
+        val msg = s"Unable to query by id museumID $mid and storageNodeId $id"
+        logger.warn(msg)
+        MusitDbError(msg, Some(ex))
+    }
   }
 
   /**
@@ -83,25 +81,34 @@ class OrganisationDao @Inject()(
   def update(
       mid: MuseumId,
       id: StorageNodeDatabaseId,
-      organisation: Organisation
+      building: Building
   ): Future[MusitResult[Option[Int]]] = {
-    val extendedOrgDto = StorageNodeDto.fromOrganisation(mid, organisation, Some(id))
+    val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
     val action = for {
-      unitsUpdated <- updateNodeAction(mid, id, extendedOrgDto.storageUnitDto)
-      orgsUpdated <- {
-        if (unitsUpdated > 0) updateAction(id, extendedOrgDto.extension)
+      unitsUpdated <- updateNodeAction(mid, id, extendedBuildingDto.storageUnitDto)
+      buildingsUpdated <- {
+        if (unitsUpdated > 0) updateAction(id, extendedBuildingDto.extension)
         else DBIO.successful[Int](0)
       }
-    } yield orgsUpdated
+    } yield buildingsUpdated
 
-    db.run(action.transactionally).map {
-      case res: Int if res == 1 => MusitSuccess(Some(res))
-      case res: Int if res == 0 => MusitSuccess(None)
-      case res: Int =>
-        val msg = wrongNumUpdatedRows(id, res)
-        logger.warn(msg)
-        MusitDbError(msg)
-    }
+    db.run(action.transactionally)
+      .map {
+        case res: Int if res == 1 => MusitSuccess(Some(res))
+        case res: Int if res == 0 => MusitSuccess(None)
+        case res: Int =>
+          val msg = wrongNumUpdatedRows(id, res)
+          logger.warn(msg)
+          MusitDbError(msg)
+
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"There was an error updating building $id"
+          logger.debug(s"Using $id, building has ID ${building.id}")
+          logger.error(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -113,7 +120,8 @@ class OrganisationDao @Inject()(
    */
   def setPath(id: StorageNodeDatabaseId, path: NodePath): Future[MusitResult[Unit]] = {
     db.run(updatePathAction(id, path)).map {
-      case res: Int if res == 1 => MusitSuccess(())
+      case res: Int if res == 1 =>
+        MusitSuccess(())
 
       case res: Int =>
         val msg = wrongNumUpdatedRows(id, res)
@@ -127,9 +135,9 @@ class OrganisationDao @Inject()(
    */
   def insert(
       mid: MuseumId,
-      organisation: Organisation
+      building: Building
   ): Future[MusitResult[StorageNodeDatabaseId]] = {
-    val extendedDto = StorageNodeDto.fromOrganisation(mid, organisation)
+    val extendedDto = StorageNodeDto.fromBuilding(mid, building)
     val query = for {
       nodeId    <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
@@ -140,7 +148,7 @@ class OrganisationDao @Inject()(
 
     db.run(query.transactionally).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
-        val msg = s"Unable to insert organisation for museumId $mid"
+        val msg = s"Unable to insert building with museumId $mid"
         logger.warn(msg, ex)
         MusitDbError(msg, Some(ex))
     }

@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.old_dao.nodes
+package repositories.storage.dao.nodes
 
 import com.google.inject.Inject
 import models.storage.nodes.StorageType
@@ -26,14 +26,13 @@ import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.MuseumId
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.old_dao.StorageTables
+import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class KdReportDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
-) extends StorageTables {
+class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
+    extends StorageTables {
 
   import profile.api._
 
