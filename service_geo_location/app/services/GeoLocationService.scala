@@ -21,26 +21,30 @@ package services
 
 import com.google.inject.Inject
 import models.{Address, GeoNorwayAddress}
-import play.api.{Configuration, Logger}
+import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
-import GeoLocationService._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.{Configuration, Logger}
 
 import scala.concurrent.Future
 
+case class GeoLocationConfig(url: String, hitsPerResult: Int)
+
 class GeoLocationService @Inject()(config: Configuration, ws: WSClient) {
 
-  val logger    = Logger(classOf[GeoLocationService])
-  val searchUrl = config.getString("musit.geoLocation.url").getOrElse("")
+  val logger = Logger(classOf[GeoLocationService])
+
+  val geoLocationConfig =
+    config.underlying.as[GeoLocationConfig]("musit.geoLocation.geoNorway")
 
   def searchGeoNorway(expr: String): Future[Seq[Address]] = {
-    val maxRes = config.getInt(HitsPerResultKey).getOrElse(10)
 
-    ws.url(searchUrl)
+    ws.url(geoLocationConfig.url)
       .withQueryString(
         "sokestreng" -> expr,
-        "antPerSide" -> s"$maxRes"
+        "antPerSide" -> s"${geoLocationConfig.hitsPerResult}"
       )
       .get()
       .map { response =>
@@ -65,10 +69,5 @@ class GeoLocationService @Inject()(config: Configuration, ws: WSClient) {
         }
       }
   }
-
-}
-
-object GeoLocationService {
-  val HitsPerResultKey = "musit.geoLocation.geoNorway.hitsPerResult"
 
 }

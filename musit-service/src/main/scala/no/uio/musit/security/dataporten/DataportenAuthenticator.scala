@@ -20,6 +20,10 @@
 package no.uio.musit.security.dataporten
 
 import com.google.inject.Inject
+import com.typesafe.config.Config
+import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+import net.ceedubs.ficus.readers.ValueReader
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -37,6 +41,16 @@ import play.api.{Configuration, Logger}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
+case class DataportenAuthenticatorConfig(
+    sessionTimeout: FiniteDuration,
+    authorizationURL: String,
+    accessTokenURL: String,
+    userApiURL: String,
+    callbackURL: String,
+    clientId: Option[ClientId],
+    clientSecret: String
+)
 
 /**
  * Service for communicating with Dataporten
@@ -57,19 +71,12 @@ class DataportenAuthenticator @Inject()(
   private type DataportenToken = BearerToken
   private type AuthResponse    = Future[Either[Result, UserSession]]
 
-  private val defaultSessionTimeout = (2 hours).toMillis
-
-  // Reading in necessary OAuth2 configs
-  val authUrl      = conf.getString(authUrlConfKey).getOrElse("")
-  val tokenUrl     = conf.getString(tokenUrlConfKey).getOrElse("")
-  val callbackUrl  = conf.getString(callbackUrlConfKey).getOrElse("")
-  val userInfoUrl  = conf.getString(userInfoApiConfKey).getOrElse("")
-  val clientSecret = conf.getString(clientSecretConfKey).getOrElse("")
-  val clientId = conf.getString(clientIdConfKey).flatMap { str =>
-    ClientId.validate(str).toOption.map(ClientId.apply)
+  implicit val clientIdReader = new ValueReader[Option[ClientId]] {
+    def read(config: Config, path: String): Option[ClientId] = {
+      ClientId.validate(config.getString(path)).toOption.map(ClientId.apply)
+    }
   }
-  val sessionTimeout =
-    conf.getMilliseconds(sessionTimeoutConfKey).getOrElse(defaultSessionTimeout)
+  val config = conf.underlying.as[DataportenAuthenticatorConfig]("musit.dataporten")
 
   /**
    * Starts the OAuth2 authentication process. Here's an explanation of how this
@@ -101,7 +108,7 @@ class DataportenAuthenticator @Inject()(
    * in an "Unauthorized" response.
    *
    * @param client The client app making the authenticate request
-   * @param req The current request.
+   * @param req    The current request.
    * @tparam A The type of the request body.
    * @return Either a Result or the active UserSession
    */
@@ -121,7 +128,9 @@ class DataportenAuthenticator @Inject()(
                 userInfo     <- MusitResultT(userInfoDataporten(oauthInfo.accessToken))
                 _            <- MusitResultT(authResolver.saveUserInfo(userInfo))
               } yield {
-                maybeSession.map(_.activate(oauthInfo, userInfo, sessionTimeout))
+                maybeSession.map(
+                  _.activate(oauthInfo, userInfo, config.sessionTimeout.toMillis)
+                )
               }
 
               procRes.value.flatMap {
@@ -180,7 +189,7 @@ class DataportenAuthenticator @Inject()(
                    val now = dateTimeNow
                    // Check if the session has expired
                    if (now.isBefore(expiration)) {
-                     val u = session.touch(sessionTimeout)
+                     val u = session.touch(config.sessionTimeout.toMillis)
                      MusitResultT(authResolver.updateSession(u)).map(_ => u)
                    } else {
                      val msg = "Session has expired. Invalidating session."
@@ -218,7 +227,7 @@ class DataportenAuthenticator @Inject()(
         val us = s.copy(
           lastActive = Option(now),
           isLoggedIn = true,
-          tokenExpiry = Option(now.plus(sessionTimeout).getMillis)
+          tokenExpiry = Option(now.plus(config.sessionTimeout.toMillis).getMillis)
         )
         MusitResultT(authResolver.upsertUserSession(us)).map(_ => us)
       } else {
@@ -243,13 +252,14 @@ class DataportenAuthenticator @Inject()(
             userId = Option(userInfo.id),
             lastActive = Option(now),
             isLoggedIn = true,
-            tokenExpiry = Option(now.plus(sessionTimeout).getMillis)
+            tokenExpiry = Option(now.plus(config.sessionTimeout.toMillis).getMillis)
           )
           MusitResultT(authResolver.upsertUserSession(s)).map(_ => s)
         }
       } yield session
     }
   }
+
   //======================= Remove until here ==================================
 
   private def invalidateWithError[A](
@@ -357,7 +367,7 @@ class DataportenAuthenticator @Inject()(
         // If the audience doesn't equal the clientId, the user isn't authorized
         val audience = (res.json \ "audience").as[ClientId]
         val usr      = (res.json \ "user" \ "userid").as[String]
-        if (clientId.contains(audience)) {
+        if (config.clientId.contains(audience)) {
           f(res)
         } else {
           logger.warn(s"Access attempt with wrong clientId $audience by user $usr")
@@ -389,14 +399,14 @@ class DataportenAuthenticator @Inject()(
       oauthCode: String
   )(implicit req: RequestHeader): Future[Either[Result, OAuth2Info]] = {
     val params = Map(
-      ClientID     -> Seq(clientId.map(_.asString).getOrElse("")),
-      ClientSecret -> Seq(clientSecret),
+      ClientID     -> Seq(config.clientId.map(_.asString).getOrElse("")),
+      ClientSecret -> Seq(config.clientSecret),
       GrantType    -> Seq(AuthorizationCode),
       Code         -> Seq(oauthCode),
-      RedirectURI  -> Seq(callbackUrl)
+      RedirectURI  -> Seq(config.callbackURL)
     )
 
-    ws.url(tokenUrl).post(params).map { response =>
+    ws.url(config.accessTokenURL).post(params).map { response =>
       response.json.validate[OAuth2Info] match {
         case err: JsError =>
           val msg = "Invalid JSON response from Dataporten"
@@ -418,8 +428,8 @@ class DataportenAuthenticator @Inject()(
       case MusitSuccess(sessionId) =>
         // Set the request params for the Dataporten authorization service.
         val params = Map(
-          ClientID     -> Seq(clientId.map(_.asString).getOrElse("")),
-          RedirectURI  -> Seq(callbackUrl),
+          ClientID     -> Seq(config.clientId.map(_.asString).getOrElse("")),
+          RedirectURI  -> Seq(config.callbackURL),
           ResponseType -> Seq(Code),
           // Note that the OAuth2 "state" parameter is set to the sessionId
           // that was assigned when initializing the session. This allows
@@ -429,12 +439,12 @@ class DataportenAuthenticator @Inject()(
         )
 
         logger.trace(
-          s"Using auth URL: $authUrl with params " +
+          s"Using auth URL: ${config.authorizationURL} with params " +
             s"${params.map(p => s"${p._1}=${p._2.head}").mkString("?", "&", "")}"
         )
 
         // Redirecting to the configured auth URL to get the one-time code.
-        Left(Results.Redirect(authUrl, params))
+        Left(Results.Redirect(config.authorizationURL, params))
 
       case err: MusitError =>
         logger.error(s"An error occurred initialising the UserSession. ${err.message}")
@@ -478,7 +488,7 @@ class DataportenAuthenticator @Inject()(
   private def userInfoDataporten(
       token: DataportenToken
   ): Future[MusitResult[UserInfo]] = {
-    ws.url(userInfoUrl).withHeaders(token.asHeader).get().map { response =>
+    ws.url(config.userApiURL).withHeaders(token.asHeader).get().map { response =>
       validateWSResponse(response) { res =>
         // The user info part of the message is always under the "user" key.
         // So we get it explicitly to deserialize to an UserInfo instance.
@@ -522,15 +532,6 @@ class DataportenAuthenticator @Inject()(
 }
 
 object DataportenAuthenticator {
-  val sessionTimeoutConfKey = "musit.dataporten.sessionTimeout"
-  val authUrlConfKey        = "musit.dataporten.authorizationURL"
-  val tokenUrlConfKey       = "musit.dataporten.accessTokenURL"
-  val userInfoApiConfKey    = "musit.dataporten.userApiURL"
-  val callbackUrlConfKey    = "musit.dataporten.callbackURL"
-
-  val clientIdConfKey     = "musit.dataporten.clientId"
-  val clientSecretConfKey = "musit.dataporten.clientSecret"
-
   val userInfoJsonKey = "user"
 
   val unexpectedResponseCode = s"Unexpected response code from dataporten: %i"
