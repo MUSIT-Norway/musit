@@ -10,6 +10,7 @@ import no.uio.musit.models.ObjectTypes.{CollectionObject, Node, ObjectType}
 import no.uio.musit.models.{ActorId, EventId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
+import play.api.libs.json.{Format, Json}
 
 sealed trait MoveEvent extends MusitEvent {
   val objectType: ObjectType
@@ -31,6 +32,8 @@ case class MoveObject(
 ) extends MoveEvent
 
 object MoveObject {
+
+  implicit val format: Format[MoveObject] = Json.format[MoveObject]
 
   def fromCommand(currUserId: ActorId, cmd: ObjectMoveCmd[_]): Seq[MoveObject] = {
     cmd match {
@@ -99,6 +102,8 @@ case class MoveNode(
 }
 
 object MoveNode {
+
+  implicit val format: Format[MoveNode] = Json.format[MoveNode]
 
   def fromCommand(
       currUserId: ActorId,
