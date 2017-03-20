@@ -11,8 +11,6 @@ echo "##########################################################################
 # ------------------------------------------------------------------------
 export EVOLUTION_ENABLED=false
 export APPLICATION_SECRET=dummyAppSecret
-export SLICK_DRIVER=slick.jdbc.OracleProfile$
-export SLICK_DB_DRIVER=oracle.jdbc.OracleDriver
 export SLICK_DB_URL=jdbc:oracle:thin:@db:1521:orcl
 export SLICK_DB_USER=musit
 export SLICK_DB_PASSWORD=musit
