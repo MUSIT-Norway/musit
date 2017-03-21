@@ -67,6 +67,18 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     }
   }
 
+  def exists(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Boolean]] = {
+    val query = storageNodeTable.filter { su =>
+      su.museumId === mid && su.uuid === id && su.isDeleted === false
+    }.exists.result
+
+    db.run(query).map(found => MusitSuccess(found)).recover {
+      case NonFatal(ex) =>
+        logger.error("Non fatal exception when checking for node existence", ex)
+        MusitDbError("Checking if node exists caused an exception", Option(ex))
+    }
+  }
+
   /**
    * Count of *all* children of this node, irrespective of access rights to
    * the children

@@ -21,6 +21,8 @@ package no.uio.musit.functional
 
 import no.uio.musit.MusitResults.{MusitInternalError, MusitResult}
 
+import scala.concurrent.Future
+
 object MonadTransformers {
 
   /**
@@ -42,13 +44,20 @@ object MonadTransformers {
         a.map(b => f(b).value).getOrElse {
           m.pure(
             MusitInternalError(
-              "Unable to map into MusitResult in the " +
-                "MusitResultT transformer"
+              "Unable to map into MusitResult in the MusitResultT transformer"
             )
           )
         }
       }
       MusitResultT[T, B](res)
+    }
+
+  }
+
+  object MusitResultT {
+
+    def successful[A](res: MusitResult[A]): MusitResultT[Future, A] = {
+      MusitResultT(Future.successful(res))
     }
 
   }

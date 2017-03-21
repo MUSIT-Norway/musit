@@ -1,7 +1,7 @@
 package services.storage
 
 import com.google.inject.Inject
-import models.storage.event.control.Control
+import models.storage.event.observation.Observation
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.functional.Implicits.futureMonad
@@ -9,40 +9,42 @@ import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
-import repositories.storage.dao.events.ControlDao
+import repositories.storage.dao.events.ObservationDao
 
 import scala.concurrent.Future
 
-class ControlService @Inject()(
-    val controlDao: ControlDao,
+class ObservationService @Inject()(
+    val observationDao: ObservationDao,
     val nodeService: StorageNodeService
 ) {
 
-  val logger = Logger(classOf[ControlService])
+  val logger = Logger(classOf[ObservationService])
 
   def add(
       mid: MuseumId,
       nodeId: StorageNodeId,
-      ctrl: Control
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Control]] = {
+      obs: Observation
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Observation]] = {
     nodeService.exists(mid, nodeId).flatMap {
       case MusitSuccess(nodeExists) =>
         if (nodeExists) {
-          val c = ctrl.copy(
+          val o = obs.copy(
             affectedThing = Some(nodeId),
             registeredBy = Some(currUsr.id),
             registeredDate = Some(dateTimeNow)
           )
           (for {
-            eid        <- MusitResultT(controlDao.insert(mid, c))
-            maybeAdded <- MusitResultT(controlDao.findById(mid, eid))
+            eid        <- MusitResultT(observationDao.insert(mid, o))
+            maybeAdded <- MusitResultT(observationDao.findById(mid, eid))
             added <- MusitResultT
                       .successful(maybeAdded.map(MusitSuccess.apply).getOrElse {
                         logger.error(
-                          s"An unexpected error occurred when trying to fetch a " +
-                            s"control event that was added with eventId $eid"
+                          s"An unexpected error occurred when trying to fetch an " +
+                            s"observation event that was added with eventId $eid"
                         )
-                        MusitInternalError("Could not locate the control that was added")
+                        MusitInternalError(
+                          "Could not locate the observation that was added"
+                        )
                       })
           } yield added).value
 
@@ -56,14 +58,15 @@ class ControlService @Inject()(
     }
   }
 
-  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Control]]] = {
-    controlDao.findById(mid, id)
+  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Observation]]] = {
+    observationDao.findById(mid, id)
   }
 
   def listFor(
       mid: MuseumId,
       nodeId: StorageNodeId
-  ): Future[MusitResult[Seq[Control]]] = {
-    controlDao.list(mid, nodeId)
+  ): Future[MusitResult[Seq[Observation]]] = {
+    observationDao.list(mid, nodeId)
   }
+
 }
