@@ -1,22 +1,3 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package no.uio.musit.security.dataporten
 
 import com.google.inject.Inject
@@ -32,10 +13,11 @@ import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
 import no.uio.musit.security.oauth2.{OAuth2Constants, OAuth2Info}
 import no.uio.musit.time.dateTimeNow
+import no.uio.musit.ws.ViaProxy
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
-import play.api.libs.ws.{WSAPI, WSResponse}
+import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.mvc.{Request, RequestHeader, Result, Results}
 import play.api.{Configuration, Logger}
 
@@ -60,11 +42,12 @@ case class DataportenAuthenticatorConfig(
  * @param ws           Play! WebService client
  */
 class DataportenAuthenticator @Inject()(
-    conf: Configuration,
     authResolver: AuthResolver,
-    ws: WSAPI
-) extends Authenticator
-    with OAuth2Constants {
+    ws: WSClient
+)(implicit conf: Configuration)
+    extends Authenticator
+    with OAuth2Constants
+    with ViaProxy {
 
   private val logger = Logger(classOf[DataportenAuthenticator])
 
@@ -406,7 +389,7 @@ class DataportenAuthenticator @Inject()(
       RedirectURI  -> Seq(config.callbackURL)
     )
 
-    ws.url(config.accessTokenURL).post(params).map { response =>
+    ws.url(config.accessTokenURL).viaProxy().post(params).map { response =>
       response.json.validate[OAuth2Info] match {
         case err: JsError =>
           val msg = "Invalid JSON response from Dataporten"
@@ -488,21 +471,22 @@ class DataportenAuthenticator @Inject()(
   private def userInfoDataporten(
       token: DataportenToken
   ): Future[MusitResult[UserInfo]] = {
-    ws.url(config.userApiURL).withHeaders(token.asHeader).get().map { response =>
-      validateWSResponse(response) { res =>
-        // The user info part of the message is always under the "user" key.
-        // So we get it explicitly to deserialize to an UserInfo instance.
-        val usrInfoJson = (response.json \ userInfoJsonKey).as[JsObject]
-        usrInfoJson.validate[UserInfo] match {
-          case JsSuccess(userInfo, _) =>
-            MusitSuccess(userInfo)
+    ws.url(config.userApiURL).viaProxy().withHeaders(token.asHeader).get().map {
+      response =>
+        validateWSResponse(response) { res =>
+          // The user info part of the message is always under the "user" key.
+          // So we get it explicitly to deserialize to an UserInfo instance.
+          val usrInfoJson = (response.json \ userInfoJsonKey).as[JsObject]
+          usrInfoJson.validate[UserInfo] match {
+            case JsSuccess(userInfo, _) =>
+              MusitSuccess(userInfo)
 
-          case err: JsError =>
-            val prettyError = Json.prettyPrint(JsError.toJson(err))
-            logger.error(unableToParse.format(prettyError))
-            MusitInternalError(unableToParse.format(prettyError))
+            case err: JsError =>
+              val prettyError = Json.prettyPrint(JsError.toJson(err))
+              logger.error(unableToParse.format(prettyError))
+              MusitInternalError(unableToParse.format(prettyError))
+          }
         }
-      }
     }
   }
 
