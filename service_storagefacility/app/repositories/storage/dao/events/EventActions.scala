@@ -68,7 +68,7 @@ trait EventActions { self: EventTables =>
       (e.museumId.isEmpty || e.museumId === mid) &&
       e.eventTypeId === eventTypeId &&
       e.affectedUuid === nodeId.asString
-    }.sortBy(_.registeredDate.desc)
+    }.sortBy(_.eventId.desc)
 
     limit.map {
       case lim: Int if lim == -1 => q

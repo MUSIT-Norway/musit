@@ -1,13 +1,10 @@
 package services.storage
 
 import com.google.inject.Inject
-import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
-import models.storage.event.dto.DtoConverters.EnvReqConverters
-import models.storage.event.dto.{EventDto, ExtendedDto}
 import models.storage.event.envreq.EnvRequirement
 import models.storage.nodes.EnvironmentRequirement
 import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId, StorageNodeId}
+import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import repositories.storage.dao.events.EnvReqDao
@@ -20,10 +17,6 @@ class EnvironmentRequirementService @Inject()(
 ) {
 
   val logger = Logger(classOf[EnvironmentRequirementService])
-
-  private val unexpectedType = MusitInternalError(
-    "Unexpected DTO type. Expected ExtendedDto with event type EnvRequirement"
-  )
 
   /**
    * Helper method that will fetch the latest environment requirement event for
@@ -117,7 +110,7 @@ class EnvironmentRequirementService @Inject()(
       mid: MuseumId,
       nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvRequirement]]] = {
-    envReqDao.latestByNodeId(mid, nodeId, EnvRequirementEventType.id)
+    envReqDao.latestForNodeId(mid, nodeId)
   }
 
   /**
@@ -131,24 +124,11 @@ class EnvironmentRequirementService @Inject()(
       mid: MuseumId,
       nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
-    envReqDao.latestByNodeId(mid, nodeId, EnvRequirementEventType.id).map { result =>
-      convertResult(result).map { maybeEvt =>
+    envReqDao.latestForNodeId(mid, nodeId).map { result =>
+      result.map { maybeEvt =>
         maybeEvt.map(EnvRequirement.fromEnvRequirementEvent)
       }
     }
-  }
-
-  private def convertResult(result: MusitResult[Option[EventDto]]) = {
-    result.flatMap(_.map {
-      case ext: ExtendedDto =>
-        MusitSuccess(
-          Option(EnvReqConverters.envReqFromDto(ext))
-        )
-
-      case _ =>
-        unexpectedType
-
-    }.getOrElse(MusitSuccess(None)))
   }
 
 }

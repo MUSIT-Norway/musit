@@ -3,7 +3,7 @@ package repositories.storage.dao.events
 import com.google.inject.{Inject, Singleton}
 import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import models.storage.event.envreq.EnvRequirement
-import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -11,6 +11,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.EventTables
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 @Singleton
 class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
@@ -18,6 +19,8 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     with EventActions {
 
   val logger = Logger(classOf[EnvReqDao])
+
+  import profile.api._
 
   /**
    * Writes a new EnvRequirement to the database table
@@ -65,14 +68,31 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       limit
     )(fromRow[EnvRequirement])
 
+  /**
+   * Tries to find the latest EnvRequirement event for the given nodeId.
+   *
+   * @param mid the MuseumId associated with the nodeId and EnvRequirement
+   * @param nodeId the nodeId to find EnvRequirement for
+   * @return the EnvRequirement that might be found
+   */
   def latestForNodeId(
       mid: MuseumId,
       nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvRequirement]]] = {
-    storageEventTable.filter { e =>
-      e.eventTypeId === EnvRequirementEventType.id
+    val query = for {
+      eid <- storageEventTable.filter { e =>
+              e.eventTypeId === EnvRequirementEventType.id &&
+              e.affectedUuid === nodeId
+            }.map(_.eventId).max.result
+      me <- storageEventTable.filter(_.eventId === eid).result.headOption
+    } yield me.flatMap(fromRow[EnvRequirement])
+
+    db.run(query).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = ""
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
     }
-    ???
   }
 
 }
