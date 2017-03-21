@@ -32,7 +32,10 @@ class AnalysisControllerIntegrationSpec
   ): JsValue = {
     val js1 = Json.obj(
       "analysisTypeId" -> cnRatioTypeId,
-      "objectId"       -> oid.asString
+      "objectId"       -> oid.asString,
+      "responsible"    -> adminId.asString,
+      "administrator"  -> adminId.asString,
+      "completedBy"    -> adminId.asString
     )
     val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
     eventDate.map { d =>
