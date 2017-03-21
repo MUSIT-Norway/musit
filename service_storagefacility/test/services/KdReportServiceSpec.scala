@@ -23,6 +23,7 @@ import models.report.KdReport
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import services.old.{KdReportService, StorageNodeService}
 import utils.testhelpers.NodeGenerators
 
 class KdReportServiceSpec

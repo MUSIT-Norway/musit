@@ -17,15 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package services.old
 
 import com.google.inject.Inject
 import models.report.KdReport
-import no.uio.musit.models.MuseumId
 import no.uio.musit.MusitResults.MusitResult
-import no.uio.musit.functional.MonadTransformers.MusitResultT
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import no.uio.musit.functional.Implicits._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.models.MuseumId
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.nodes.KdReportDao
 
 import scala.concurrent.Future

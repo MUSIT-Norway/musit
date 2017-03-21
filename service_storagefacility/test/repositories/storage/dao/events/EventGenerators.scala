@@ -1,19 +1,15 @@
 package repositories.storage.dao.events
 
-import models.storage.{FromToDouble, LifeCycle}
+import models.storage.{FromToDouble, Interval, LifeCycle}
 import models.storage.event.EventType
-import models.storage.event.EventTypeRegistry.TopLevelEvents.{
-  ControlEventType,
-  MoveNodeType,
-  MoveObjectType,
-  ObservationEventType
-}
+import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import models.storage.event.control.Control
 import models.storage.event.control.ControlAttributes._
 import models.storage.event.move.{MoveNode, MoveObject}
 import models.storage.event.observation.Observation
 import models.storage.event.observation.ObservationAttributes._
-import no.uio.musit.models.{ActorId, ObjectTypes, ObjectUUID, StorageNodeId}
+import models.storage.event.envreq.EnvRequirement
+import no.uio.musit.models._
 import org.joda.time.DateTime
 
 trait EventGenerators {
@@ -61,6 +57,24 @@ trait EventGenerators {
     )
   }
 
+  def createEnvRequirement(storageNodeId: Option[StorageNodeId] = None) = {
+    EnvRequirement(
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      note = Some("This is an envreq note"),
+      registeredBy = Some(defaultActorId),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = storageNodeId,
+      eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
+      temperature = Some(Interval(20, Some(5))),
+      airHumidity = Some(Interval(60.0, Some(10))),
+      hypoxicAir = Some(Interval(0, Some(15))),
+      cleaning = Some("keep it clean, dude"),
+      light = Some("dim")
+    )
+  }
+
   def createControl(storageNodeId: Option[StorageNodeId] = None) = {
     Control(
       id = None,
@@ -68,7 +82,7 @@ trait EventGenerators {
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
-      affectedThing = Some(defaultNodeId),
+      affectedThing = storageNodeId,
       eventType = EventType.fromEventTypeId(ControlEventType.id),
       temperature = Some(createTemperatureControl()),
       alcohol = Some(createAlcoholControl()),

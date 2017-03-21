@@ -32,6 +32,7 @@ import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import org.joda.time.DateTime
+import services.old.StorageNodeService
 import utils.testhelpers.NodeGenerators
 
 class StorageNodeServiceSpec

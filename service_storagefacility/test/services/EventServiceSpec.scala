@@ -23,6 +23,7 @@ import no.uio.musit.models.{EventId, MuseumId}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import services.old.{ControlService, ObservationService, StorageNodeService}
 import utils.testhelpers.{EventGenerators, NodeGenerators}
 
 class EventServiceSpec

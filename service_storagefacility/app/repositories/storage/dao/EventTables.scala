@@ -1,7 +1,5 @@
 package repositories.storage.dao
 
-import java.util.UUID
-
 import models.storage.event.EventTypeId
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, EventId, MuseumId}

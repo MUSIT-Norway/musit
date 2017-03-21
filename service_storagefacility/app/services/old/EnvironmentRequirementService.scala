@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package services.old
 
 import com.google.inject.Inject
 import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
@@ -25,9 +25,9 @@ import models.storage.event.dto.DtoConverters.EnvReqConverters
 import models.storage.event.dto.{EventDto, ExtendedDto}
 import models.storage.event.old.envreq.EnvRequirement
 import models.storage.nodes.EnvironmentRequirement
+import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.old_dao.event.{EnvRequirementDao, EventDao}

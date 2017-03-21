@@ -65,4 +65,14 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       limit
     )(fromRow[EnvRequirement])
 
+  def latestForNodeId(
+      mid: MuseumId,
+      nodeId: StorageNodeId
+  ): Future[MusitResult[Option[EnvRequirement]]] = {
+    storageEventTable.filter { e =>
+      e.eventTypeId === EnvRequirementEventType.id
+    }
+    ???
+  }
+
 }
