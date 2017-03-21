@@ -2,7 +2,7 @@ package services
 
 import com.google.inject.Inject
 import models.storage.event.dto.DtoConverters
-import models.storage.event.move.{MoveEvent, MoveNode, MoveObject}
+import models.storage.event.old.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage.nodes._
 import models.storage.{FacilityLocation, LocationHistory, ObjectsLocation}
 import no.uio.musit.MusitResults._
@@ -21,7 +21,6 @@ import repositories.storage.dao.nodes.{
   StorageUnitDao
 }
 import repositories.storage.old_dao.event.EventDao
-import repositories.storage.dao.nodes.{OrganisationDao, RoomDao, StorageUnitDao}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal

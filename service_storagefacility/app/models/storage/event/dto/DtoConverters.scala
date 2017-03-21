@@ -23,15 +23,17 @@ import models.storage.event.EventTypeRegistry.CtrlSubEvents._
 import models.storage.event.EventTypeRegistry.ObsSubEvents._
 import models.storage.event.EventTypeRegistry._
 import models.storage.event._
-import models.storage.event.control.ControlSubEvents._
+import models.storage.event.old.control.ControlSubEvents._
 import models.storage.event.control._
 import models.storage.event.dto.EventRoleActor._
 import models.storage.event.dto.EventRoleObject._
 import models.storage.event.dto.EventRolePlace._
-import models.storage.event.envreq.EnvRequirement
-import models.storage.event.move.{MoveEvent, MoveNode, MoveObject}
-import models.storage.event.observation.ObservationSubEvents._
+import models.storage.event.old.observation.ObservationSubEvents._
 import models.storage.event.observation._
+import models.storage.event.old.control.Control
+import models.storage.event.old.envreq.EnvRequirement
+import models.storage.event.old.move.{MoveEvent, MoveNode, MoveObject}
+import models.storage.event.old.observation.Observation
 import models.storage.{FromToDouble, Interval, LifeCycle}
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
@@ -74,7 +76,7 @@ object DtoConverters {
    * types.
    */
   // scalastyle:off parameter.number
-  private[this] def toBaseDto[T <: MusitEvent](
+  private[this] def toBaseDto[T <: MusitEvent_Old](
       base: T,
       eventTypeId: EventTypeId,
       note: Option[String],
@@ -119,7 +121,7 @@ object DtoConverters {
    * types. Differs from the above function in that it will initialise the
    * `releatedEvents` property with an empty collection.
    */
-  private[this] def toBaseDtoNoChildren[T <: MusitEvent](
+  private[this] def toBaseDtoNoChildren[T <: MusitEvent_Old](
       base: T,
       eventTypeId: EventTypeId,
       note: Option[String],
@@ -131,7 +133,7 @@ object DtoConverters {
   }
 
   // scalastyle:off parameter.number
-  private[this] def toExtendedDto[A <: MusitEvent, B <: DtoExtension](
+  private[this] def toExtendedDto[A <: MusitEvent_Old, B <: DtoExtension](
       base: A,
       eventTypeId: EventTypeId,
       note: Option[String],
@@ -285,7 +287,7 @@ object DtoConverters {
       )
     }
 
-    def ctrlSubEventToDto[A <: MusitEvent](
+    def ctrlSubEventToDto[A <: MusitEvent_Old](
         owner: A,
         subCtrl: ControlSubEvent,
         ctrlSubEventTypeId: EventTypeId,
@@ -447,7 +449,7 @@ object DtoConverters {
     }
 
     // scalastyle:off cyclomatic.complexity method.length line.size.limit
-    def obsSubEventToDto[A <: MusitEvent, T <: ObservationSubEvent](
+    def obsSubEventToDto[A <: MusitEvent_Old, T <: ObservationSubEvent](
         owner: A,
         subEventTypeId: EventTypeId,
         subObs: T

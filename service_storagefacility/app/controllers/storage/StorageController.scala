@@ -1,8 +1,8 @@
 package controllers.storage
 
 import com.google.inject.Inject
-import models.storage.Move.{DelphiMove, MoveNodesCmd, MoveObjectsCmd}
-import models.storage.event.move.{MoveNode, MoveObject}
+import models.storage.Move_Old.{DelphiMove, MoveNodesCmd, MoveObjectsCmd}
+import models.storage.event.old.move._
 import models.storage.nodes._
 import no.uio.musit.MusitResults._
 import no.uio.musit.models._

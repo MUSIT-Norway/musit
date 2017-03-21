@@ -25,8 +25,8 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   ControlEventType,
   ObservationEventType
 }
-import models.storage.event.control.Control
-import models.storage.event.observation.Observation
+import models.storage.event.old.control.Control
+import models.storage.event.old.observation.Observation
 import no.uio.musit.models.{ActorId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}

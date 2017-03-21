@@ -39,6 +39,7 @@
   <logger name="models" level="ERROR"/>
   <logger name="migration" level="ERROR"/>
   <logger name="repositories" level="ERROR"/>
+  <!--<logger name="repositories.storage.dao" level="DEBUG"/>-->
 
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>

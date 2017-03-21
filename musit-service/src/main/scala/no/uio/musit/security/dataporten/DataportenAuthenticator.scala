@@ -71,6 +71,7 @@ class DataportenAuthenticator @Inject()(
   val sessionTimeout =
     conf.getMilliseconds(sessionTimeoutConfKey).getOrElse(defaultSessionTimeout)
 
+  // scalastyle:off method.length
   /**
    * Starts the OAuth2 authentication process. Here's an explanation of how this
    * process works:
@@ -161,6 +162,7 @@ class DataportenAuthenticator @Inject()(
         case Left(res) => Future.successful(Left(res))
       }
     }
+  // scalastyle:on method.length
 
   /**
    * Method to "touch" the UserSession whenever a User interacts with a service.

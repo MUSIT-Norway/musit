@@ -1,7 +1,8 @@
 package services
 
-import models.storage.event.envreq.EnvRequirement
 import models.storage.event.move._
+import models.storage.event.old.envreq.EnvRequirement
+import models.storage.event.old.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage.nodes.StorageType._
 import models.storage.nodes._
 import no.uio.musit.MusitResults._

@@ -25,7 +25,7 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import models.storage.event.EventTypeRegistry._
 import models.storage.event.dto.DtoConverters.MoveConverters
 import models.storage.event.dto._
-import models.storage.event.move.MoveObject
+import models.storage.event.old.move.MoveObject
 import models.storage.event.{EventTypeId, EventTypeRegistry}
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}

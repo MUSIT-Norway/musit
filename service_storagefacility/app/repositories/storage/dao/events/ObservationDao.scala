@@ -7,6 +7,7 @@ import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.EventTables
 
 import scala.concurrent.Future
@@ -29,7 +30,7 @@ class ObservationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       obs: Observation
   ): Future[MusitResult[EventId]] =
-    insertEvent[Observation](mid, obs)(asRow)
+    insertEvent[Observation](mid, obs)(asRow[Observation])
 
   /**
    * Find the Observation with the given EventId
@@ -42,7 +43,7 @@ class ObservationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       id: EventId
   ): Future[MusitResult[Option[Observation]]] =
-    findEventById[Observation](mid, id)(fromRow)
+    findEventById[Observation](mid, id)(fromRow[Observation])
 
   /**
    * List all Observation events for the given nodeId.
@@ -62,6 +63,6 @@ class ObservationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       nodeId,
       ObservationEventType.id,
       limit
-    )(fromRow)
+    )(fromRow[Observation])
 
 }

@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import models.storage.event.dto.DtoConverters.EnvReqConverters
 import models.storage.event.dto.{EventDto, ExtendedDto}
-import models.storage.event.envreq.EnvRequirement
+import models.storage.event.old.envreq.EnvRequirement
 import models.storage.nodes.EnvironmentRequirement
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser

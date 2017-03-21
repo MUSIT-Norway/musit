@@ -1,6 +1,6 @@
 package repositories.storage.dao.events
 
-import models.storage.event.{EventTypeId, MusitEvent}
+import models.storage.event.{EventTypeId, EventTypeRegistry, MusitEvent}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, MusitUUID, ObjectTypes}
 import play.api.Logger
@@ -33,7 +33,7 @@ trait EventActions { self: EventTables =>
       e.registeredBy,
       e.registeredDate,
       None,
-      None, // ctrl.affectedThing <- refactor to StorageNodeId which is an UUID
+      e.affectedThing.map(_.asString),
       Some(ObjectTypes.Node),
       None,
       Json.toJson[A](e)
@@ -77,7 +77,7 @@ trait EventActions { self: EventTables =>
     }.getOrElse(q).result
   }
 
-  def insertEvent[A <: MusitEvent](
+  protected def insertEvent[A <: MusitEvent](
       mid: MuseumId,
       e: A
   )(
@@ -93,7 +93,7 @@ trait EventActions { self: EventTables =>
     }
   }
 
-  def findEventById[A <: MusitEvent](
+  protected def findEventById[A <: MusitEvent](
       mid: MuseumId,
       id: EventId
   )(
@@ -110,7 +110,7 @@ trait EventActions { self: EventTables =>
       }
   }
 
-  def listEvents[A <: MusitEvent, ID <: MusitUUID](
+  protected def listEvents[A <: MusitEvent, ID <: MusitUUID](
       mid: MuseumId,
       id: ID,
       eventTypeId: EventTypeId,
@@ -120,12 +120,19 @@ trait EventActions { self: EventTables =>
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[A]]] = {
     val q = listEventsAction(mid, id, eventTypeId, limit)
 
-    db.run(q).map(res => MusitSuccess(res.flatMap(r => convertFromRow(r)))).recover {
-      case NonFatal(ex) =>
-        val msg = ""
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(q)
+      .map { res =>
+        logger.debug(
+          s"Found ${res.size} rows of ${EventTypeRegistry.unsafeFromId(eventTypeId)}"
+        )
+        MusitSuccess(res.flatMap(r => convertFromRow(r)))
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = ""
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
 }

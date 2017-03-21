@@ -20,8 +20,8 @@
 package controllers.storage
 
 import com.google.inject.{Inject, Singleton}
-import models.storage.event.control.Control
-import models.storage.event.observation.Observation
+import models.storage.event.old.control.Control
+import models.storage.event.old.observation.Observation
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._

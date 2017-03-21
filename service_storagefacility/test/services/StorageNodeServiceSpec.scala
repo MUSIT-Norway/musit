@@ -21,10 +21,10 @@ package services
 
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
-import models.storage.event.move.{MoveNode, MoveObject}
-import models.storage.Move.MoveNodesCmd
+import models.storage.Move_Old.MoveNodesCmd
 import models.storage.Interval
 import models.storage.event.EventType
+import models.storage.event.old.move.{MoveNode, MoveObject}
 import models.storage.nodes.StorageUnit
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.models._

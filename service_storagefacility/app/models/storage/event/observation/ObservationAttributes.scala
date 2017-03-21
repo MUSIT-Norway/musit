@@ -1,39 +1,19 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package models.storage.event.observation
 
-import models.storage.event.MusitSubEvent
 import models.storage.{FromToDouble, LifeCycle}
 import no.uio.musit.formatters.StrictFormatters._
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-object ObservationSubEvents {
+object ObservationAttributes {
 
   // TODO: Document me!!!
-  sealed trait ObservationSubEvent extends MusitSubEvent {
+  sealed trait ObservationAttribute {
     val note: Option[String]
   }
 
   // TODO: Document me!!!
-  sealed trait ObservationFromTo extends ObservationSubEvent {
+  sealed trait ObservationFromTo extends ObservationAttribute {
     val range: FromToDouble
   }
 
@@ -76,7 +56,7 @@ object ObservationSubEvents {
   case class ObservationLightingCondition(
       note: Option[String],
       lightingCondition: Option[String]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationLightingCondition {
     implicit val formats: Format[ObservationLightingCondition] = (
@@ -88,7 +68,7 @@ object ObservationSubEvents {
   case class ObservationCleaning(
       note: Option[String],
       cleaning: Option[String]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationCleaning {
     implicit val formats: Format[ObservationCleaning] = (
@@ -100,7 +80,7 @@ object ObservationSubEvents {
   case class ObservationGas(
       note: Option[String],
       gas: Option[String]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationGas {
     implicit val formats: Format[ObservationGas] = (
@@ -112,7 +92,7 @@ object ObservationSubEvents {
   case class ObservationMold(
       note: Option[String],
       mold: Option[String]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationMold {
     implicit val formats: Format[ObservationMold] = (
@@ -124,7 +104,7 @@ object ObservationSubEvents {
   case class ObservationTheftProtection(
       note: Option[String],
       theftProtection: Option[String]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationTheftProtection {
     implicit val formats: Format[ObservationTheftProtection] = (
@@ -136,7 +116,7 @@ object ObservationSubEvents {
   case class ObservationFireProtection(
       note: Option[String],
       fireProtection: Option[String]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationFireProtection {
     implicit val formats: Format[ObservationFireProtection] = (
@@ -148,7 +128,7 @@ object ObservationSubEvents {
   case class ObservationPerimeterSecurity(
       note: Option[String],
       perimeterSecurity: Option[String]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationPerimeterSecurity {
     implicit val formats: Format[ObservationPerimeterSecurity] = (
@@ -160,7 +140,7 @@ object ObservationSubEvents {
   case class ObservationWaterDamageAssessment(
       note: Option[String],
       waterDamageAssessment: Option[String]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationWaterDamageAssessment {
     implicit val formats: Format[ObservationWaterDamageAssessment] = (
@@ -176,7 +156,7 @@ object ObservationSubEvents {
       note: Option[String],
       identification: Option[String],
       lifecycles: Seq[LifeCycle]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationPest {
     implicit val formats: Format[ObservationPest] = (
@@ -190,7 +170,7 @@ object ObservationSubEvents {
       note: Option[String],
       condition: Option[String],
       volume: Option[Double]
-  ) extends ObservationSubEvent
+  ) extends ObservationAttribute
 
   object ObservationAlcohol {
     implicit val formats: Format[ObservationAlcohol] = (

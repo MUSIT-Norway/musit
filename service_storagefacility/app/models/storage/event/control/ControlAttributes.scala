@@ -1,34 +1,14 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package models.storage.event.control
 
-import models.storage.event.MusitSubEvent
-import models.storage.event.observation.ObservationSubEvents._
+import models.storage.event.observation.ObservationAttributes._
 import play.api.libs.json._
 
-object ControlSubEvents {
+object ControlAttributes {
 
   // TODO: Document me!!!
-  sealed trait ControlSubEvent extends MusitSubEvent {
+  sealed trait ControlAttribute {
     val ok: Boolean
-    val observation: Option[ObservationSubEvent]
+    val observation: Option[ObservationAttribute]
   }
 
   /**
@@ -41,7 +21,7 @@ object ControlSubEvents {
    * @tparam B the type of ObservationSubEvent that belongs to A
    * @return a play.api.libs.json.Format[A]
    */
-  private def jsFormat[A <: ControlSubEvent, B <: ObservationSubEvent](
+  private def jsFormat[A <: ControlAttribute, B <: ObservationAttribute](
       apply: (Boolean, Option[B]) => A
   )(implicit obsFormat: Format[B]): Format[A] = Format(
     fjs = Reads[A] { jsv =>
@@ -66,7 +46,7 @@ object ControlSubEvents {
   case class ControlAlcohol(
       ok: Boolean,
       observation: Option[ObservationAlcohol]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlAlcohol {
     implicit val formats: Format[ControlAlcohol] =
@@ -76,7 +56,7 @@ object ControlSubEvents {
   case class ControlCleaning(
       ok: Boolean,
       observation: Option[ObservationCleaning]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlCleaning {
     implicit val formats: Format[ControlCleaning] =
@@ -86,7 +66,7 @@ object ControlSubEvents {
   case class ControlGas(
       ok: Boolean,
       observation: Option[ObservationGas]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlGas {
     implicit val formats: Format[ControlGas] =
@@ -96,7 +76,7 @@ object ControlSubEvents {
   case class ControlHypoxicAir(
       ok: Boolean,
       observation: Option[ObservationHypoxicAir]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlHypoxicAir {
     implicit val formats: Format[ControlHypoxicAir] =
@@ -106,7 +86,7 @@ object ControlSubEvents {
   case class ControlLightingCondition(
       ok: Boolean,
       observation: Option[ObservationLightingCondition]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlLightingCondition {
     implicit val formats: Format[ControlLightingCondition] =
@@ -118,7 +98,7 @@ object ControlSubEvents {
   case class ControlMold(
       ok: Boolean,
       observation: Option[ObservationMold]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlMold {
     implicit val formats: Format[ControlMold] =
@@ -128,7 +108,7 @@ object ControlSubEvents {
   case class ControlPest(
       ok: Boolean,
       observation: Option[ObservationPest]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlPest {
     implicit val formats: Format[ControlPest] =
@@ -138,7 +118,7 @@ object ControlSubEvents {
   case class ControlRelativeHumidity(
       ok: Boolean,
       observation: Option[ObservationRelativeHumidity]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlRelativeHumidity {
     implicit val formats: Format[ControlRelativeHumidity] =
@@ -150,7 +130,7 @@ object ControlSubEvents {
   case class ControlTemperature(
       ok: Boolean,
       observation: Option[ObservationTemperature]
-  ) extends ControlSubEvent
+  ) extends ControlAttribute
 
   object ControlTemperature {
     implicit val formats: Format[ControlTemperature] =

@@ -21,9 +21,9 @@ package services
 
 import com.google.inject.Inject
 import models.storage.event.EventTypeRegistry.TopLevelEvents.ControlEventType
-import models.storage.event.control.Control
 import models.storage.event.dto.BaseEventDto
 import models.storage.event.dto.DtoConverters.CtrlConverters
+import models.storage.event.old.control.Control
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser

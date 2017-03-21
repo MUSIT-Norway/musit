@@ -7,6 +7,7 @@ import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.EventTables
 
 import scala.concurrent.Future
@@ -29,27 +30,27 @@ class ControlDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       ctrl: Control
   ): Future[MusitResult[EventId]] =
-    insertEvent[Control](mid, ctrl)(asRow)
+    insertEvent[Control](mid, ctrl)(asRow[Control])
 
   /**
    * Find the Control with the given EventId
    *
    * @param mid the MuseumId associated with the event
-   * @param id the ID to lookup
+   * @param id  the ID to lookup
    * @return the Control that might be found
    */
   def findById(
       mid: MuseumId,
       id: EventId
   ): Future[MusitResult[Option[Control]]] =
-    findEventById[Control](mid, id)(fromRow)
+    findEventById[Control](mid, id)(fromRow[Control])
 
   /**
    * List all Control events for the given nodeId.
    *
-   * @param mid the MuseumId associated with the nodeId and Controls
+   * @param mid    the MuseumId associated with the nodeId and Controls
    * @param nodeId the nodeId to find Controls for
-   * @param limit the number of results to return, defaults to all.
+   * @param limit  the number of results to return, defaults to all.
    * @return a list of Controls
    */
   def list(
@@ -62,6 +63,6 @@ class ControlDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       nodeId,
       ControlEventType.id,
       limit
-    )(fromRow)
+    )(fromRow[Control])
 
 }

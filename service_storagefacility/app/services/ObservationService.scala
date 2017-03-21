@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import models.storage.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
 import models.storage.event.dto.BaseEventDto
 import models.storage.event.dto.DtoConverters.ObsConverters
-import models.storage.event.observation.Observation
+import models.storage.event.old.observation.Observation
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.AuthenticatedUser
