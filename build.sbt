@@ -1,22 +1,3 @@
-/*
- *  MUSIT is a museum database to archive natural and cultural history data.
- *  Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License,
- *  or any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 import CommonSettings._
 import Dependencies._
 import scoverage.ScoverageKeys._
@@ -30,7 +11,7 @@ val noPublish = Seq(
   publishLocal := {}
 )
 
-lazy val root = project in file(".") settings noPublish aggregate(
+lazy val root = project in file(".") settings noPublish aggregate (
   musitTest,
   musitModels,
   musitService,
@@ -39,7 +20,8 @@ lazy val root = project in file(".") settings noPublish aggregate(
   serviceThingAggregate,
   serviceActor,
   serviceGeoLocation,
-  serviceStoragefacility
+  serviceStoragefacility,
+  serviceManagement
 )
 
 // ======================================================================
@@ -49,19 +31,19 @@ lazy val root = project in file(".") settings noPublish aggregate(
 lazy val musitTest = (
   BaseProject("musit-test")
     settings noPublish
-    settings(
+    settings (
       libraryDependencies ++= Seq[ModuleID](
         ScalaTest.scalatestSpec,
         ScalaTest.scalatestplusSpec,
         ScalaTest.scalactic
       ) ++ playDependencies
     )
-)
+) dependsOn (musitModels)
 
 lazy val musitModels = (
   BaseProject("musit-models")
     settings noPublish
-    settings(
+    settings (
       libraryDependencies ++= Seq[ModuleID](
         ScalaTest.scalatestSpec,
         ScalaTest.scalatestplusSpec,
@@ -74,14 +56,14 @@ lazy val musitModels = (
 lazy val musitService = (
   BaseProject("musit-service")
     settings noPublish
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (
       libraryDependencies ++= Seq[ModuleID](
         scalaGuice,
         iheartFicus
       )
     )
-) dependsOn(musitModels, musitTest % "it,test")
+) dependsOn (musitModels, musitTest % "it,test")
 
 // ======================================================================
 // The MUSIT services
@@ -90,46 +72,54 @@ lazy val musitService = (
 lazy val serviceAuth = (
   PlayProject("service_auth")
     settings noPublish
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(libraryDependencies += Netty.reactiveStreamsHttp)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(packageName in Docker := "musit_service_auth")
-) dependsOn(musitService, musitTest % Test)
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (libraryDependencies += Netty.reactiveStreamsHttp)
+    settings (routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_auth")
+) dependsOn (musitService, musitTest % Test)
 
 lazy val serviceBarcode = (
   PlayProject("service_barcode")
     settings noPublish
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(libraryDependencies += zxing)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(packageName in Docker := "musit_service_barcode")
-) dependsOn(musitService, musitTest % Test)
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (libraryDependencies += zxing)
+    settings (routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_barcode")
+) dependsOn (musitService, musitTest % Test)
 
 lazy val serviceThingAggregate = (
   PlayProject("service_thing_aggregate")
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(packageName in Docker := "musit_service_thing_aggregate")
-) dependsOn(musitService, musitTest % Test)
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_thing_aggregate")
+) dependsOn (musitService, musitTest % Test)
 
 lazy val serviceActor = (
   PlayProject("service_actor")
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(packageName in Docker := "musit_service_actor")
-) dependsOn(musitService, musitTest % Test)
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_actor")
+) dependsOn (musitService, musitTest % Test)
 
 lazy val serviceGeoLocation = (
   PlayProject("service_geo_location")
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(packageName in Docker := "musit_service_geo_location")
-) dependsOn(musitService, musitTest % Test)
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_geo_location")
+) dependsOn (musitService, musitTest % Test)
 
 lazy val serviceStoragefacility = (
   PlayProject("service_storagefacility")
-    settings(libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings(libraryDependencies ++= enumeratumDeps)
-    settings(routesGenerator := InjectedRoutesGenerator)
-    settings(packageName in Docker := "musit_service_storagefacility")
-) dependsOn(musitService, musitTest % Test)
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (libraryDependencies ++= enumeratumDeps)
+    settings (routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_storagefacility")
+) dependsOn (musitService, musitTest % Test)
+
+lazy val serviceManagement = (
+  PlayProject("service_management")
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (libraryDependencies ++= enumeratumDeps)
+    settings (routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_management")
+) dependsOn (musitService, musitTest % Test)

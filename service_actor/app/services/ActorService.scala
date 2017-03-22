@@ -21,7 +21,7 @@ package services
 
 import com.google.inject.Inject
 import models.Person
-import no.uio.musit.models.ActorId
+import no.uio.musit.models.{ActorId, MuseumId}
 import no.uio.musit.security.UserInfo
 import no.uio.musit.service.MusitSearch
 import play.api.Logger
@@ -30,7 +30,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-class ActorService @Inject() (
+class ActorService @Inject()(
     val actorDao: ActorDao,
     val usrInfDao: UserInfoDao
 ) {
@@ -45,7 +45,7 @@ class ActorService @Inject() (
    */
   def findByActorId(id: ActorId): Future[Option[Person]] = {
     val userInfoPerson = usrInfDao.getById(id)
-    val actor = actorDao.getByActorId(id)
+    val actor          = actorDao.getByActorId(id)
 
     for {
       uip <- userInfoPerson
@@ -64,7 +64,7 @@ class ActorService @Inject() (
    * @return A collection of Person objects.
    */
   def findDetails(ids: Set[ActorId]): Future[Seq[Person]] = {
-    val users = usrInfDao.listBy(ids)
+    val users  = usrInfDao.listBy(ids)
     val actors = actorDao.listBy(ids)
 
     for {
@@ -79,10 +79,10 @@ class ActorService @Inject() (
    * @param search MusitSearch
    * @return A collection of Person objects.
    */
-  def findByName(search: MusitSearch): Future[Seq[Person]] = {
+  def findByName(mid: MuseumId, search: MusitSearch): Future[Seq[Person]] = {
     val searchString = search.searchStrings.reduce(_ + " " + _)
-    val users = usrInfDao.getByName(searchString)
-    val actors = actorDao.getByName(searchString)
+    val users        = usrInfDao.getByName(searchString)
+    val actors       = actorDao.getByName(mid, searchString)
 
     for {
       u <- users
@@ -101,11 +101,14 @@ class ActorService @Inject() (
     val nodup = actors.filterNot(duplicateFilter)
     // Merge duplicate actors into the appropriate user in the users list
     val merged = users.map(Person.fromUserInfo).map { p =>
-      dupes.find(_.dataportenUser.exists { prefix =>
-        p.dataportenUser.exists(du => du.toLowerCase.startsWith(prefix.toLowerCase))
-      }).map { a =>
-        p.copy(applicationId = a.applicationId)
-      }.getOrElse(p)
+      dupes
+        .find(_.dataportenUser.exists { prefix =>
+          p.dataportenUser.exists(du => du.toLowerCase.startsWith(prefix.toLowerCase))
+        })
+        .map { a =>
+          p.copy(applicationId = a.applicationId)
+        }
+        .getOrElse(p)
     }
     // Return a union of the de-duped actors list and the users list
     nodup.union(merged)

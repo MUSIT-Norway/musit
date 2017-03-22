@@ -63,7 +63,7 @@ import scala.reflect.ClassTag
  * TODO: Document me!!!
  */
 @Singleton
-class EventDao @Inject() (
+class EventDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider,
     val relationDao: EventRelationDao,
     val obsFromToDao: ObservationFromToDao,
@@ -74,9 +74,10 @@ class EventDao @Inject() (
     val placesDao: EventPlacesDao,
     val placesAsObjDao: EventPlacesAsObjectsDao,
     val localObjectDao: LocalObjectDao
-) extends EventTables with ColumnTypeMappers {
+) extends EventTables
+    with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   private val logger = Logger(classOf[EventDao])
 
@@ -95,8 +96,8 @@ class EventDao @Inject() (
    * Helper to build up the correct insert action depending on Dto type.
    */
   private def buildInsertAction(
-    event: EventDto,
-    parentId: Option[EventId]
+      event: EventDto,
+      parentId: Option[EventId]
   ): DBIO[EventId] = {
     event match {
       case simple: BaseEventDto =>
@@ -121,35 +122,35 @@ class EventDao @Inject() (
   }
 
   private[this] def insertRelatedType[A: ClassTag](
-    eventId: EventId,
-    relType: Seq[A]
+      eventId: EventId,
+      relType: Seq[A]
   )(insert: (EventId, Seq[A]) => DBIO[Option[Int]]): DBIO[Option[Int]] = {
     if (relType.nonEmpty) insert(eventId, relType)
     else DBIO.successful[Option[Int]](None)
   }
 
   private[this] def insertRelatedActors(
-    eventId: EventId,
-    actors: Seq[EventRoleActor]
+      eventId: EventId,
+      actors: Seq[EventRoleActor]
   ): DBIO[Option[Int]] =
     insertRelatedType(eventId, actors)(actorsDao.insertActors)
 
   private[this] def insertRelatedObjects(
-    eventId: EventId,
-    objects: Seq[EventRoleObject]
+      eventId: EventId,
+      objects: Seq[EventRoleObject]
   ): DBIO[Option[Int]] =
     insertRelatedType(eventId, objects)(objectsDao.insertObjects)
 
   private[this] def insertRelatedPlaces(
-    eventId: EventId,
-    places: Seq[EventRolePlace]
+      eventId: EventId,
+      places: Seq[EventRolePlace]
   ): DBIO[Option[Int]] =
     insertRelatedType(eventId, places)(placesDao.insertPlaces)
 
   private[this] def insertRelatedObjectsAsPlaces(
-    mid: MuseumId,
-    eventId: EventId,
-    objPlaces: Seq[EventRoleObject]
+      mid: MuseumId,
+      eventId: EventId,
+      objPlaces: Seq[EventRoleObject]
   ): DBIO[Option[Int]] =
     insertRelatedType(eventId, objPlaces)(placesAsObjDao.insertObjects)
 
@@ -166,9 +167,9 @@ class EventDao @Inject() (
    * This will cause an infinite loop and eventually a stack overflow.
    */
   private[this] def insertEventAction(
-    mid: MuseumId,
-    event: EventDto,
-    partialRelation: Option[PartialEventRelation]
+      mid: MuseumId,
+      event: EventDto,
+      partialRelation: Option[PartialEventRelation]
   ): DBIO[EventId] = {
 
     // We want partOfParent to be Some(parentId) if event has a parent and that
@@ -177,7 +178,7 @@ class EventDao @Inject() (
       per.relation == EventRelations.PartsOfRelation
     }
     val partOfParent = partialRelation.filter(_ => isPartsRelation).map(_.idFrom)
-    val insertBase = buildInsertAction(event, partOfParent)
+    val insertBase   = buildInsertAction(event, partOfParent)
 
     for {
       // Execute the insert of the base event
@@ -186,18 +187,23 @@ class EventDao @Inject() (
       _ <- insertChildrenAction(mid, theEventId, event.relatedSubEvents)
       // Insert the event relations
       _ <- {
-        partialRelation.filterNot(_ => isPartsRelation).map { pel =>
-          relationDao.insertRelationAction(pel.toFullLink(theEventId))
-        }.getOrElse(DBIO.successful[Int](0))
+        partialRelation
+          .filterNot(_ => isPartsRelation)
+          .map { pel =>
+            relationDao.insertRelationAction(pel.toFullLink(theEventId))
+          }
+          .getOrElse(DBIO.successful[Int](0))
       }
       // Insert any related actor relations
       _ <- insertRelatedActors(theEventId, event.relatedActors)
       // Insert any related objects relations
       _ <- {
         if (MoveObjectType.id == event.eventTypeId) {
-          localObjectDao.storeLatestMove(mid, theEventId, event).andThen(
-            insertRelatedObjects(theEventId, event.relatedObjects)
-          )
+          localObjectDao
+            .storeLatestMove(mid, theEventId, event)
+            .andThen(
+              insertRelatedObjects(theEventId, event.relatedObjects)
+            )
         } else {
           insertRelatedObjectsAsPlaces(mid, theEventId, event.relatedObjects)
         }
@@ -231,9 +237,9 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    */
   private def insertChildrenAction(
-    mid: MuseumId,
-    parentEventId: EventId,
-    children: Seq[RelatedEvents]
+      mid: MuseumId,
+      parentEventId: EventId,
+      children: Seq[RelatedEvents]
   ): SequenceAction[IndexedSeq[EventId], IndexedSeq[IndexedSeq[EventId]], All] = {
     val actions = children.map { relatedEvents =>
       val relActions = relatedEvents.events.map { subEvent =>
@@ -253,9 +259,9 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    */
   def getBaseEvent(
-    mid: MuseumId,
-    id: EventId,
-    eventTypeId: Option[EventTypeId] = None
+      mid: MuseumId,
+      id: EventId,
+      eventTypeId: Option[EventTypeId] = None
   ): Future[Option[BaseEventDto]] = {
 
     val action = {
@@ -269,7 +275,7 @@ class EventDao @Inject() (
 
     for {
       maybeBase <- futureBaseEvent
-      actors <- actorsDao.getRelatedActors(id)
+      actors    <- actorsDao.getRelatedActors(id)
       objects <- {
         maybeBase.map { dto =>
           // Only cases where the event is a MoveObject event is the
@@ -302,7 +308,7 @@ class EventDao @Inject() (
 
     val base: BaseEventDto = dto match {
       case b: BaseEventDto => b
-      case e: ExtendedDto => e.baseEventDto
+      case e: ExtendedDto  => e.baseEventDto
     }
 
     // TODO: Change to use safe operations for each event type
@@ -347,8 +353,8 @@ class EventDao @Inject() (
   }
 
   private def initCompleteDto(
-    baseEventDto: BaseEventDto,
-    relatedSubEvents: Seq[RelatedEvents]
+      baseEventDto: BaseEventDto,
+      relatedSubEvents: Seq[RelatedEvents]
   ): Future[MusitResult[Option[EventDto]]] = {
     val related = relatedSubEvents.map { subs =>
       val futureSubEvents = Future.traverse(subs.events)(re => enrichDto(re))
@@ -361,16 +367,18 @@ class EventDao @Inject() (
   }
 
   private def getFullEvent(
-    baseEventDto: BaseEventDto,
-    recursive: Boolean
+      baseEventDto: BaseEventDto,
+      recursive: Boolean
   ): Future[MusitResult[Option[EventDto]]] = {
 
     EventTypeRegistry.unsafeFromId(baseEventDto.eventTypeId) match {
       case EnvRequirementEventType =>
         envReqDao.getEnvRequirement(baseEventDto.id.get).map { mer =>
-          MusitSuccess(Option(
-            mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
-          ))
+          MusitSuccess(
+            Option(
+              mer.map(er => ExtendedDto(baseEventDto, er)).getOrElse(baseEventDto)
+            )
+          )
         }
 
       case MoveObjectType | MoveNodeType =>
@@ -401,10 +409,10 @@ class EventDao @Inject() (
    * @return The Dto containing the event data.
    */
   def getEvent(
-    mid: MuseumId,
-    id: EventId,
-    eventTypeId: Option[EventTypeId] = None,
-    recursive: Boolean = true
+      mid: MuseumId,
+      id: EventId,
+      eventTypeId: Option[EventTypeId] = None,
+      recursive: Boolean = true
   ): Future[MusitResult[Option[EventDto]]] = {
     getBaseEvent(mid, id, eventTypeId).flatMap { maybeDto =>
       maybeDto.map { base =>
@@ -424,9 +432,9 @@ class EventDao @Inject() (
    * @param eventTypeId
    */
   def latestByNodeId(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId,
-    eventTypeId: EventTypeId
+      mid: MuseumId,
+      id: StorageNodeDatabaseId,
+      eventTypeId: EventTypeId
   ): Future[MusitResult[Option[EventDto]]] = {
     for {
       maybeEventId <- placesAsObjDao.latestEventIdFor(mid, id, eventTypeId)
@@ -459,24 +467,30 @@ class EventDao @Inject() (
    * TODO: Document me!
    */
   private def getEventsFromDtos(
-    eventDtos: Future[Seq[BaseEventDto]],
-    recursive: Boolean
+      eventDtos: Future[Seq[BaseEventDto]],
+      recursive: Boolean
   ): Future[Seq[EventDto]] = {
     eventDtos.flatMap { subEventDtos =>
-      Future.traverse(subEventDtos) { subEventDto =>
-        getFullEvent(subEventDto, recursive)
-      }.map { results =>
-        // We remove the failed futures and return only the successful ones.
-        // NOTE: We're discarding useful information about failure here.
-        results.filter(_.isSuccess).map {
-          case MusitSuccess(maybeSuccess) =>
-            maybeSuccess
+      Future
+        .traverse(subEventDtos) { subEventDto =>
+          getFullEvent(subEventDto, recursive)
+        }
+        .map { results =>
+          // We remove the failed futures and return only the successful ones.
+          // NOTE: We're discarding useful information about failure here.
+          results
+            .filter(_.isSuccess)
+            .map {
+              case MusitSuccess(maybeSuccess) =>
+                maybeSuccess
 
-          case notPossible =>
-            throw new IllegalStateException("Encountered impossible state")
+              case notPossible =>
+                throw new IllegalStateException("Encountered impossible state")
 
-        }.filter(_.isDefined).map(_.get)
-      }
+            }
+            .filter(_.isDefined)
+            .map(_.get)
+        }
     }
   }
 
@@ -484,8 +498,8 @@ class EventDao @Inject() (
    * Fetch the parts/partOf relation
    */
   private def getPartEvents(
-    parentId: EventId,
-    recursive: Boolean
+      parentId: EventId,
+      recursive: Boolean
   ): Future[RelatedEvents] = {
     val futureSubEventDtos = getSubEventDtos(parentId)
     //Create a parts-relation of the these subEvents
@@ -498,8 +512,8 @@ class EventDao @Inject() (
    * The "other" relations, those stored in the event_relation_event table
    */
   private def getOtherRelatedEvents(
-    parentId: EventId,
-    recursive: Boolean
+      parentId: EventId,
+      recursive: Boolean
   ): Future[Seq[RelatedEvents]] = {
 
     def transform(group: Seq[(Int, BaseEventDto)]): Future[Seq[EventDto]] = {
@@ -507,24 +521,31 @@ class EventDao @Inject() (
       //Collapse the inner musitresults...
       Future.traverse(grpdEvents)(identity).map { results =>
         // NOTE: We're discarding useful information about failure here.
-        results.filter(_.isSuccess).map {
-          case MusitSuccess(maybeSuccess) =>
-            maybeSuccess
+        results
+          .filter(_.isSuccess)
+          .map {
+            case MusitSuccess(maybeSuccess) =>
+              maybeSuccess
 
-          case notPossible =>
-            throw new IllegalStateException("Encountered impossible state")
+            case notPossible =>
+              throw new IllegalStateException("Encountered impossible state")
 
-        }.filter(_.isDefined).map(_.get)
+          }
+          .filter(_.isDefined)
+          .map(_.get)
       }
     }
 
     val futureRelatedDtos = relationDao.getRelatedEvents(parentId)
 
     futureRelatedDtos.flatMap { relatedDtos =>
-      val groups = relatedDtos.groupBy(_._1).map {
-        case (relationId, related) =>
-          (relationId, transform(related))
-      }.toSeq
+      val groups = relatedDtos
+        .groupBy(_._1)
+        .map {
+          case (relationId, related) =>
+            (relationId, transform(related))
+        }
+        .toSeq
 
       Future.traverse(groups) {
         case (relId, futureEvents) =>
@@ -542,10 +563,10 @@ class EventDao @Inject() (
    * TODO: Document me!!!
    */
   def getSubEvents(
-    parentId: EventId,
-    recursive: Boolean
+      parentId: EventId,
+      recursive: Boolean
   ): Future[Seq[RelatedEvents]] = {
-    val futurePartsEvents = getPartEvents(parentId, recursive)
+    val futurePartsEvents        = getPartEvents(parentId, recursive)
     val futureOtherRelatedEvents = getOtherRelatedEvents(parentId, recursive)
 
     //Now we simply need to join the parts-events and the other related events
@@ -567,10 +588,10 @@ class EventDao @Inject() (
    * for a given StorageNodeId.
    */
   private def eventsForNode[EType <: TopLevelEvent, Res](
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    eventType: EType,
-    limit: Option[Int] = None
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      eventType: EType,
+      limit: Option[Int] = None
   )(success: EventDto => Res): Future[Seq[Res]] = {
     val futureEventIds = placesAsObjDao.latestEventIdsForNode(
       mid,
@@ -581,14 +602,18 @@ class EventDao @Inject() (
 
     futureEventIds.flatMap { ids =>
       Future.traverse(ids)(eId => getEvent(mid, eId, Some(eventType.id))).map { res =>
-        res.filter(_.isSuccess).map {
-          case MusitSuccess(maybeSuccess) =>
-            maybeSuccess.map(dto => success(dto))
+        res
+          .filter(_.isSuccess)
+          .map {
+            case MusitSuccess(maybeSuccess) =>
+              maybeSuccess.map(dto => success(dto))
 
-          case impossible =>
-            throw new IllegalStateException("Encountered impossible state")
+            case impossible =>
+              throw new IllegalStateException("Encountered impossible state")
 
-        }.filter(_.isDefined).map(_.get)
+          }
+          .filter(_.isDefined)
+          .map(_.get)
       }
     }
   }
@@ -603,9 +628,9 @@ class EventDao @Inject() (
    * @return A Future of a collection of EventDtos
    */
   def getEventsForNode[A <: TopLevelEvent](
-    mid: MuseumId,
-    id: StorageNodeDatabaseId,
-    eventType: A
+      mid: MuseumId,
+      id: StorageNodeDatabaseId,
+      eventType: A
   ): Future[Seq[EventDto]] = eventsForNode(mid, id, eventType)(dto => dto)
 
   /**
@@ -620,10 +645,10 @@ class EventDao @Inject() (
    * @return
    */
   private def eventsForObject[EType <: TopLevelEvent, Res](
-    mid: MuseumId,
-    objectId: ObjectId,
-    eventType: EType,
-    limit: Option[Int] = None
+      mid: MuseumId,
+      objectId: ObjectId,
+      eventType: EType,
+      limit: Option[Int] = None
   )(success: EventDto => Res): Future[Seq[Res]] = {
     val futureEventIds = objectsDao.latestEventIdsForObject(
       objectId = objectId,
@@ -633,14 +658,18 @@ class EventDao @Inject() (
 
     futureEventIds.flatMap { ids =>
       Future.traverse(ids)(eId => getEvent(mid, eId, Some(eventType.id))).map { res =>
-        res.filter(_.isSuccess).map {
-          case MusitSuccess(maybeSuccess) =>
-            maybeSuccess.map(dto => success(dto))
+        res
+          .filter(_.isSuccess)
+          .map {
+            case MusitSuccess(maybeSuccess) =>
+              maybeSuccess.map(dto => success(dto))
 
-          case impossible =>
-            throw new IllegalStateException("Encountered impossible state")
+            case impossible =>
+              throw new IllegalStateException("Encountered impossible state")
 
-        }.filter(_.isDefined).map(_.get)
+          }
+          .filter(_.isDefined)
+          .map(_.get)
       }
     }
   }
@@ -654,9 +683,9 @@ class EventDao @Inject() (
    * @return A Future of a collection of MoveNode events.
    */
   def getObjectLocationHistory(
-    mid: MuseumId,
-    objectId: ObjectId,
-    limit: Option[Int]
+      mid: MuseumId,
+      objectId: ObjectId,
+      limit: Option[Int]
   ): Future[Seq[MoveObject]] = {
     eventsForObject(mid, objectId, MoveObjectType, limit) { dto =>
       MoveConverters.moveObjectFromDto(dto.asInstanceOf[BaseEventDto])

@@ -32,11 +32,11 @@ import scala.concurrent.Future
  * TODO: Document me!
  */
 @Singleton
-class ObservationFromToDao @Inject() (
+class ObservationFromToDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
-  import driver.api._
+  import profile.api._
 
   val logger = Logger(classOf[ObservationFromToDao])
 

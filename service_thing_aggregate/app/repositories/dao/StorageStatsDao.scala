@@ -30,13 +30,13 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 @Singleton
-class StorageStatsDao @Inject() (
+class StorageStatsDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends Tables {
 
   val logger = Logger(classOf[StorageStatsDao])
 
-  import driver.api._
+  import profile.api._
 
   private def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
     nodeTable.filter { sn =>
@@ -81,15 +81,17 @@ class StorageStatsDao @Inject() (
         AND lo."OBJECT_ID" = mt."OBJECT_ID"
       """.as[Int].head
 
-    db.run(query).map { vi =>
-      logger.debug(s"Num objects in path $path is $vi")
-      MusitSuccess.apply(vi)
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = s"An error occurred counting total objects for nodes in path $path"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(query)
+      .map { vi =>
+        logger.debug(s"Num objects in path $path is $vi")
+        MusitSuccess.apply(vi)
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"An error occurred counting total objects for nodes in path $path"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
   /**
@@ -113,14 +115,16 @@ class StorageStatsDao @Inject() (
       """.as[Int].head
     }
 
-    db.run(query).map { vi =>
-      logger.debug(s"Num objects in node $nodeId is $vi")
-      MusitSuccess.apply(vi)
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = s"An error occurred counting number direct objects in $nodeId"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(query)
+      .map { vi =>
+        logger.debug(s"Num objects in node $nodeId is $vi")
+        MusitSuccess.apply(vi)
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"An error occurred counting number direct objects in $nodeId"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 }

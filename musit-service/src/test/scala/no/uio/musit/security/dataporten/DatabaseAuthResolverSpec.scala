@@ -24,18 +24,19 @@ import java.util.UUID
 import no.uio.musit.models.{ActorId, Email}
 import no.uio.musit.security.{BearerToken, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
+class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   // Wire up the dependencies
-  val config = fromInstanceCache[DatabaseConfigProvider]
+  val config   = fromInstanceCache[DatabaseConfigProvider]
   val resolver = new DatabaseAuthResolver(config)
 
-  val uuid = ActorId.generate()
+  val uuid  = ActorId.generate()
   val email = "dv@deathstar.io"
 
   val sessionUUID = SessionUUID.generate()
@@ -58,8 +59,7 @@ class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
 
       "find a UserInfo by " in {
         val res = resolver.userInfo(uuid).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe Some(userInfo)
+        res.successValue mustBe Some(userInfo)
       }
 
       "convert email fields to lower case when storing UserInfo" in {
@@ -74,18 +74,15 @@ class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
         resolver.saveUserInfo(ui).futureValue.isSuccess mustBe true
 
         val res = resolver.userInfo(ui.id).futureValue
-        res.isSuccess mustBe true
-        res.get.isDefined mustBe true
-        res.get.get.secondaryIds must not be empty
-        res.get.get.secondaryIds.get.head mustBe email.toLowerCase
+        res.successValue.isDefined mustBe true
+        res.successValue.value.secondaryIds.value.head mustBe email.toLowerCase
       }
 
       "update existing UserInfo" in {
         val upd = userInfo.copy(name = Some("Darth Anakin Vader"))
-        resolver.saveUserInfo(upd).futureValue.isSuccess mustBe true
+        resolver.saveUserInfo(upd).futureValue.successValue
         val res = resolver.userInfo(uuid).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe Some(upd)
+        res.successValue mustBe Some(upd)
       }
     }
 
@@ -98,9 +95,7 @@ class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
 
       "find and update an UserSession" in {
         val sessionRes = resolver.userSession(sessionUUID).futureValue
-        sessionRes.isSuccess mustBe true
-        sessionRes.get must not be None
-        val session = sessionRes.get.get
+        val session    = sessionRes.successValue.value
         session.uuid mustBe sessionUUID
 
         val currDateTime = DateTime.now
@@ -114,11 +109,10 @@ class DatabaseAuthResolverSpec extends MusitSpecWithAppPerSuite {
           tokenExpiry = Some(DateTime.now.plusHours(4).getMillis)
         )
 
-        resolver.updateSession(upd).futureValue.isSuccess mustBe true
+        resolver.updateSession(upd).futureValue.successValue
 
         val res = resolver.userSession(sessionUUID).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe Some(upd)
+        res.successValue mustBe Some(upd)
       }
 
     }

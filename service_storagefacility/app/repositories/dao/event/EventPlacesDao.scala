@@ -28,15 +28,15 @@ import repositories.dao.EventTables
 import scala.concurrent.Future
 
 @Singleton
-class EventPlacesDao @Inject() (
+class EventPlacesDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
-  import driver.api._
+  import profile.api._
 
   def insertPlaces(
-    eventId: EventId,
-    relatedPlaces: Seq[EventRolePlace]
+      eventId: EventId,
+      relatedPlaces: Seq[EventRolePlace]
   ): DBIO[Option[Int]] = {
     val relPlaces = relatedPlaces.map(_.copy(eventId = Some(eventId)))
     eventPlacesTable ++= relPlaces

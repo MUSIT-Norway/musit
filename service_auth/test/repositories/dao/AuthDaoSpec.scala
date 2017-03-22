@@ -25,9 +25,13 @@ import no.uio.musit.models.Museums.Test
 import no.uio.musit.security.Permissions
 import no.uio.musit.MusitResults.MusitDbError
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.BeforeAndAfterAll
 
-class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
+class AuthDaoSpec
+    extends MusitSpecWithAppPerSuite
+    with BeforeAndAfterAll
+    with MusitResultValues {
 
   val dao = fromInstanceCache[AuthDao]
 
@@ -39,8 +43,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       val grp = GroupAdd(s"test$i", Permissions.Write, Test.id, Some(s"test group $i"))
       val res = dao.addGroup(grp).futureValue
 
-      res.isSuccess mustBe true
-      addedGroupIds += res.get.id
+      addedGroupIds += res.successValue.id
     }
   }
 
@@ -51,13 +54,11 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         val grp = GroupAdd("test6", Permissions.Read, Test.id, Some("test group 6"))
         val res = dao.addGroup(grp).futureValue
 
-        res.isSuccess mustBe true
+        addedGroupIds += res.successValue.id
 
-        addedGroupIds += res.get.id
-
-        res.get.name mustBe "test6"
-        res.get.permission mustBe Permissions.Read
-        res.get.description mustBe Some("test group 6")
+        res.successValue.name mustBe "test6"
+        res.successValue.permission mustBe Permissions.Read
+        res.successValue.description mustBe Some("test group 6")
       }
 
       "succeed when description isn't set" in {
@@ -66,11 +67,11 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
         res.isSuccess mustBe true
 
-        addedGroupIds += res.get.id
+        addedGroupIds += res.successValue.id
 
-        res.get.name mustBe "test7"
-        res.get.permission mustBe Permissions.Write
-        res.get.description mustBe None
+        res.successValue.name mustBe "test7"
+        res.successValue.permission mustBe Permissions.Write
+        res.successValue.description mustBe None
       }
 
       "fail if the name is null" in {
@@ -104,10 +105,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
         val res = dao.findGroupById(id).futureValue
 
-        res.isSuccess mustBe true
-        res.get must not be None
-
-        val grp = res.get.get
+        val grp = res.successValue.value
         grp.name mustBe "test1"
         grp.permission mustBe Permissions.Write
         grp.description mustBe Some("test group 1")
@@ -116,8 +114,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
       "not return any data when id doesn't exist" in {
         val res = dao.findGroupById(GroupId.generate()).futureValue
 
-        res.isSuccess mustBe true
-        res.get mustBe None
+        res.successValue mustBe None
       }
     }
 
@@ -126,20 +123,15 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         val id = addedGroupIds.result().last
 
         val ug = dao.findGroupById(id).futureValue
-        ug.isSuccess mustBe true
-        ug.get must not be None
 
-        val updGrp = ug.get.get.copy(
+        val updGrp = ug.successValue.value.copy(
           permission = Permissions.Admin,
           description = Some("test group 7")
         )
 
         val res = dao.updateGroup(updGrp).futureValue
 
-        res.isSuccess mustBe true
-        res.get must not be None
-
-        val grp = res.get.get
+        val grp = res.successValue.value
         grp.id mustBe id
         grp.name mustBe updGrp.name
         grp.permission mustBe Permissions.Admin
@@ -150,10 +142,8 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         val id = addedGroupIds.result().last
 
         val ug = dao.findGroupById(id).futureValue
-        ug.isSuccess mustBe true
-        ug.get must not be None
 
-        val updGrp = ug.get.get.copy(permission = null) // scalastyle:ignore
+        val updGrp = ug.successValue.value.copy(permission = null) // scalastyle:ignore
 
         dao.updateGroup(updGrp).futureValue match {
           case MusitDbError(msg, ex) =>
@@ -168,16 +158,14 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
     "deleting a group" should {
       "successfully remove a group" in {
-        val id = addedGroupIds.result().head
+        val id  = addedGroupIds.result().head
         val res = dao.deleteGroup(id).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe 1
+        res.successValue mustBe 1
       }
 
       "not remove any groups if GroupId doesn't exist" in {
         val res = dao.deleteGroup(GroupId.generate()).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe 0
+        res.successValue mustBe 0
       }
     }
 
@@ -187,7 +175,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
       "successfully add a new UserGroup row" in {
         val grpId = addedGroupIds.result().tail.head
-        dao.addUserToGroup(email, grpId, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, grpId, None).futureValue.successValue
       }
 
       "not allow duplicate UserGroup entries" in {
@@ -199,39 +187,36 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
     "deleting a UserGroup relation" should {
       "successfully remove the row" in {
         val email = Email("foo2@bar.com")
-        val gid = addedGroupIds.result().last
+        val gid   = addedGroupIds.result().last
         dao.addUserToGroup(email, gid, None).futureValue.isSuccess mustBe true
 
         val res = dao.removeUserFromGroup(email, gid).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe 1
+        res.successValue mustBe 1
       }
 
       "not remove anything if the userId doesn't exist" in {
         val email = Email("asdf@asdf.net")
-        val gid = addedGroupIds.result().last
+        val gid   = addedGroupIds.result().last
 
         val res = dao.removeUserFromGroup(email, gid).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe 0
+        res.successValue mustBe 0
       }
     }
 
     "finding all the groups for a user" should {
       "return all the groups the user is part of" in {
         val email = Email("bar@foo.com")
-        val gid1 = addedGroupIds.result().tail.head
-        val gid2 = addedGroupIds.result().tail.tail.head
-        val gid3 = addedGroupIds.result().last
+        val gid1  = addedGroupIds.result().tail.head
+        val gid2  = addedGroupIds.result().tail.tail.head
+        val gid3  = addedGroupIds.result().last
 
-        dao.addUserToGroup(email, gid1, None).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email, gid2, None).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email, gid3, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email, gid1, None).futureValue.successValue
+        dao.addUserToGroup(email, gid2, None).futureValue.successValue
+        dao.addUserToGroup(email, gid3, None).futureValue.successValue
 
         val res = dao.findGroupInfoFor(email).futureValue
 
-        res.isSuccess mustBe true
-        res.get.size mustBe 3
+        res.successValue.size mustBe 3
       }
 
       "return all the groups for a user stored with UPPER_CASE email" in {
@@ -239,8 +224,7 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
         val res = dao.findGroupInfoFor(email).futureValue
 
-        res.isSuccess mustBe true
-        res.get.size mustBe 1
+        res.successValue.size mustBe 1
       }
     }
 
@@ -252,14 +236,14 @@ class AuthDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
 
         val grp1 = addedGroupIds.result().reverse.tail.tail.head
 
-        dao.addUserToGroup(email1, grp1, None).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email2, grp1, None).futureValue.isSuccess mustBe true
-        dao.addUserToGroup(email3, grp1, None).futureValue.isSuccess mustBe true
+        dao.addUserToGroup(email1, grp1, None).futureValue.successValue
+        dao.addUserToGroup(email2, grp1, None).futureValue.successValue
+        dao.addUserToGroup(email3, grp1, None).futureValue.successValue
 
         val res = dao.findUsersInGroup(grp1).futureValue
-        res.isSuccess mustBe true
-        res.get.size mustBe 3
-        res.get.sortBy(_.value) mustBe Seq(email1, email2, email3).sortBy(_.value)
+        res.successValue.size mustBe 3
+        res.successValue.sortBy(_.value) mustBe
+          Seq(email1, email2, email3).sortBy(_.value)
       }
     }
   }

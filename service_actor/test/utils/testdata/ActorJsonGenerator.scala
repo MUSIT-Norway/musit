@@ -5,12 +5,12 @@ import play.api.libs.json.{JsValue, Json}
 object ActorJsonGenerator {
 
   def orgJson(
-    id: Option[Long],
-    name: String,
-    tel: String,
-    web: String,
-    synonyms: Option[Seq[String]],
-    serviceTags: Option[Seq[String]]
+      id: Option[Long],
+      name: String,
+      tel: String,
+      web: String,
+      synonyms: Option[Seq[String]],
+      serviceTags: Option[Seq[String]]
   ): JsValue = {
     Json.parse(
       s"""{

@@ -20,7 +20,6 @@
 package services
 
 import com.google.inject.Inject
-import controllers.SimpleNode
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.models.Museums.Museum
 import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
@@ -31,7 +30,7 @@ import repositories.dao.{ObjectDao, StorageNodeDao}
 
 import scala.concurrent.Future
 
-class StorageNodeService @Inject() (
+class StorageNodeService @Inject()(
     val nodeDao: StorageNodeDao,
     val objDao: ObjectDao
 ) {
@@ -46,8 +45,8 @@ class StorageNodeService @Inject() (
    * @return
    */
   def nodeExists(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId
   ): Future[MusitResult[Boolean]] = nodeDao.nodeExists(mid, nodeId)
 
   /**
@@ -57,11 +56,10 @@ class StorageNodeService @Inject() (
    * @return
    */
   def currNodeForOldObject(
-    oldObjectId: Long,
-    oldSchemaName: String
+      oldObjectId: Long,
+      oldSchemaName: String
   )(
-    implicit
-    currUsr: AuthenticatedUser
+      implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[Option[(StorageNodeDatabaseId, String)]]] = {
     // Look up object using it's old object ID and the old DB schema name.
     objDao.findByOldId(oldObjectId, oldSchemaName).flatMap {
@@ -93,7 +91,9 @@ class StorageNodeService @Inject() (
     }
   }
 
-  def nodesOutsideMuseum(museumId: MuseumId): Future[MusitResult[Seq[SimpleNode]]] = {
+  def nodesOutsideMuseum(
+      museumId: MuseumId
+  ): Future[MusitResult[Seq[(StorageNodeDatabaseId, String)]]] = {
     nodeDao.getRootLoanNodes(museumId).flatMap {
       case MusitSuccess(rids) =>
         logger.debug(s"Found ${rids.size} external Root nodes: ${rids.mkString(", ")}")

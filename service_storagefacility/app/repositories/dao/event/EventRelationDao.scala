@@ -30,21 +30,23 @@ import repositories.dao.event.EventRelationTypes.{EventRelationDto, FullEventRel
 import scala.concurrent.Future
 
 @Singleton
-class EventRelationDao @Inject() (
+class EventRelationDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
   private val logger = Logger(classOf[EventRelationDao])
 
-  import driver.api._
+  import profile.api._
 
   def insertRelationAction(relation: FullEventRelation): DBIO[Int] = {
     insertEventRelationDtoAction(relation.toNormalizedEventLinkDto)
   }
 
   def insertEventRelationDtoAction(relation: EventRelationDto): DBIO[Int] = {
-    logger.debug(s"inserting relation with relationId: ${relation.relationId}" +
-      s" from: ${relation.idFrom} to: ${relation.idTo}")
+    logger.debug(
+      s"inserting relation with relationId: ${relation.relationId}" +
+        s" from: ${relation.idFrom} to: ${relation.idTo}"
+    )
 
     eventRelTable += relation
   }

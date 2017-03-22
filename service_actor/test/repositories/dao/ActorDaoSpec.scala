@@ -29,7 +29,7 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
 
   val actorDao: ActorDao = fromInstanceCache[ActorDao]
 
-  val andersAndAppId = ActorId(UUID.fromString("41ede78c-a6f6-4744-adad-02c25fb1c97c"))
+  val andersAndAppId  = ActorId(UUID.fromString("41ede78c-a6f6-4744-adad-02c25fb1c97c"))
   val kalleKaninAppId = ActorId(UUID.fromString("5224f873-5fe1-44ec-9aaf-b9313db410c6"))
 
   "ActorDao" when {
@@ -57,11 +57,11 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "return empty list if the search string is not found" in {
-        actorDao.getByName("Andlkjlkj").futureValue.isEmpty mustBe true
+        actorDao.getByName(99, "Andlkjlkj").futureValue.isEmpty mustBe true
       }
 
       "get person details" in {
-        val ids = Set(andersAndAppId, kalleKaninAppId, ActorId.generate())
+        val ids     = Set(andersAndAppId, kalleKaninAppId, ActorId.generate())
         val persons = actorDao.listBy(ids).futureValue
         persons.length mustBe 2
         persons.head.fn mustBe "And, Arne1"
@@ -69,8 +69,10 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "not find an actor if the Id from dataporten is unknown" in {
-        actorDao.getByDataportenId(ActorId(UUID.randomUUID()))
-          .futureValue.isDefined mustBe false
+        actorDao
+          .getByDataportenId(ActorId(UUID.randomUUID()))
+          .futureValue
+          .isDefined mustBe false
       }
     }
   }

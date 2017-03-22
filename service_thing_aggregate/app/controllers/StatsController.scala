@@ -29,7 +29,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import services.StatsService
 
-class StatsController @Inject() (
+class StatsController @Inject()(
     val authService: Authenticator,
     val service: StatsService
 ) extends MusitController {
@@ -40,8 +40,8 @@ class StatsController @Inject() (
    * TODO: Document me!
    */
   def stats(
-    mid: Int,
-    nodeId: Long
+      mid: Int,
+      nodeId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     service.nodeStats(mid, nodeId)(request.user).map {
       case MusitSuccess(maybeStats) =>
@@ -52,8 +52,10 @@ class StatsController @Inject() (
         }
 
       case err: MusitError =>
-        logger.error("An unexpected error occured when trying to read " +
-          s"node stats for $nodeId. Message was: ${err.message}")
+        logger.error(
+          "An unexpected error occured when trying to read " +
+            s"node stats for $nodeId. Message was: ${err.message}"
+        )
         InternalServerError(Json.obj("message" -> err.message))
     }
   }

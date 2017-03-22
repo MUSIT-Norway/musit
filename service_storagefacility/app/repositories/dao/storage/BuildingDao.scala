@@ -36,17 +36,17 @@ import scala.util.control.NonFatal
  * TODO: Document me!!!
  */
 @Singleton
-class BuildingDao @Inject() (
+class BuildingDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends StorageTables {
 
-  import driver.api._
+  import profile.api._
 
   val logger = Logger(classOf[BuildingDao])
 
   private def updateAction(
-    id: StorageNodeDatabaseId,
-    building: BuildingDto
+      id: StorageNodeDatabaseId,
+      building: BuildingDto
   ): DBIO[Int] = buildingTable.filter(_.id === id).update(building)
 
   private def insertAction(buildingDto: BuildingDto): DBIO[Int] = {
@@ -57,35 +57,32 @@ class BuildingDao @Inject() (
    * TODO: Document me!!!
    */
   def getById(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId
+      mid: MuseumId,
+      id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Building]]] = {
     val action = for {
-      maybeUnitDto <- getUnitByIdAction(mid, id)
+      maybeUnitDto     <- getUnitByIdAction(mid, id)
       maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
-      maybeUnitDto.flatMap(u =>
-        maybeBuildingDto.map(b => ExtendedStorageNode(u, b)))
+      maybeUnitDto.flatMap(u => maybeBuildingDto.map(b => ExtendedStorageNode(u, b)))
     }
     // Execute the query
-    db.run(action)
-      .map(res => MusitSuccess(res.map(StorageNodeDto.toBuilding)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Unable to query by id museumID $mid and storageNodeId $id"
-          logger.warn(msg)
-          MusitDbError(msg, Some(ex))
-      }
+    db.run(action).map(res => MusitSuccess(res.map(StorageNodeDto.toBuilding))).recover {
+      case NonFatal(ex) =>
+        val msg = s"Unable to query by id museumID $mid and storageNodeId $id"
+        logger.warn(msg)
+        MusitDbError(msg, Some(ex))
+    }
   }
 
   /**
    * TODO: Document me!!!
    */
   def update(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId,
-    building: Building
+      mid: MuseumId,
+      id: StorageNodeDatabaseId,
+      building: Building
   ): Future[MusitResult[Option[Int]]] = {
     val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
     val action = for {
@@ -96,21 +93,23 @@ class BuildingDao @Inject() (
       }
     } yield buildingsUpdated
 
-    db.run(action.transactionally).map {
-      case res: Int if res == 1 => MusitSuccess(Some(res))
-      case res: Int if res == 0 => MusitSuccess(None)
-      case res: Int =>
-        val msg = wrongNumUpdatedRows(id, res)
-        logger.warn(msg)
-        MusitDbError(msg)
+    db.run(action.transactionally)
+      .map {
+        case res: Int if res == 1 => MusitSuccess(Some(res))
+        case res: Int if res == 0 => MusitSuccess(None)
+        case res: Int =>
+          val msg = wrongNumUpdatedRows(id, res)
+          logger.warn(msg)
+          MusitDbError(msg)
 
-    }.recover {
-      case NonFatal(ex) =>
-        val msg = s"There was an error updating building $id"
-        logger.debug(s"Using $id, building has ID ${building.id}")
-        logger.error(msg, ex)
-        MusitDbError(msg, Some(ex))
-    }
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"There was an error updating building $id"
+          logger.debug(s"Using $id, building has ID ${building.id}")
+          logger.error(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
   }
 
   /**
@@ -136,14 +135,14 @@ class BuildingDao @Inject() (
    * TODO: Document me!!!
    */
   def insert(
-    mid: MuseumId,
-    building: Building
+      mid: MuseumId,
+      building: Building
   ): Future[MusitResult[StorageNodeDatabaseId]] = {
     val extendedDto = StorageNodeDto.fromBuilding(mid, building)
     val query = for {
-      nodeId <- insertNodeAction(extendedDto.storageUnitDto)
+      nodeId    <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
-      n <- insertAction(extWithId)
+      n         <- insertAction(extWithId)
     } yield {
       nodeId
     }
@@ -157,4 +156,3 @@ class BuildingDao @Inject() (
   }
 
 }
-

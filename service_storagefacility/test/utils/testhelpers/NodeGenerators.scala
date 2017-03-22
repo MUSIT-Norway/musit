@@ -35,8 +35,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-trait NodeGenerators extends NodeTypeInitializers {
-  self: MusitSpecWithApp =>
+trait NodeGenerators extends NodeTypeInitializers { self: MusitSpecWithApp =>
 
   def buildingDao: BuildingDao = {
     val instance = Application.instanceCache[BuildingDao]
@@ -59,18 +58,21 @@ trait NodeGenerators extends NodeTypeInitializers {
   }
 
   private def createAndFetchNode[A <: StorageNode](
-    node: A,
-    insert: (MuseumId, A) => Future[MusitResult[StorageNodeDatabaseId]],
-    get: (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
+      node: A,
+      insert: (MuseumId, A) => Future[MusitResult[StorageNodeDatabaseId]],
+      get: (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
   ): A = {
-    Await.result({
-      (for {
-        nodeId <- MusitResultT(insert(defaultMuseumId, node))
-        nodeRes <- MusitResultT(get(defaultMuseumId, nodeId))
-      } yield {
-        nodeRes
-      }).value
-    }, 5 seconds).get.get
+    Await
+      .result({
+        (for {
+          nodeId  <- MusitResultT(insert(defaultMuseumId, node))
+          nodeRes <- MusitResultT(get(defaultMuseumId, nodeId))
+        } yield {
+          nodeRes
+        }).value
+      }, 5 seconds)
+      .get
+      .get
   }
 
   lazy val defaultRoot: Root = {
@@ -106,25 +108,52 @@ trait NodeGenerators extends NodeTypeInitializers {
     )
   }
 
-  type BaseStructureIds = (StorageNodeDatabaseId, StorageNodeDatabaseId, StorageNodeDatabaseId) // scalastyle:ignore
+  type BaseStructureIds = (
+      StorageNodeDatabaseId,
+      StorageNodeDatabaseId,
+      StorageNodeDatabaseId
+  ) // scalastyle:ignore
 
   def bootstrapBaseStructure(museumId: MuseumId = defaultMuseumId): BaseStructureIds = {
-    Await.result(
-      awaitable = (for {
-        rid <- MusitResultT(storageUnitDao.insertRoot(museumId, Root(
-          nodeId = StorageNodeId.generateAsOpt(),
-          updatedBy = Some(defaultUserId),
-          updatedDate = Some(DateTime.now)
-        )))
-        _ <- MusitResultT(storageUnitDao.setRootPath(rid, NodePath(s",${rid.underlying},"))) // scalastyle:ignore
-        oid <- MusitResultT(organisationDao.insert(museumId, createOrganisation(partOf = Some(rid)))) // scalastyle:ignore
-        _ <- MusitResultT(organisationDao.setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},"))) // scalastyle:ignore
-        bid <- MusitResultT(buildingDao.insert(museumId, createBuilding(partOf = Some(oid))).map(res => res)) // scalastyle:ignore
-        _ <- MusitResultT(buildingDao.setPath(bid, NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},"))) // scalastyle:ignore
-      } yield (rid, oid, bid)).value,
-
-      atMost = 15 seconds
-    ).get
+    Await
+      .result(
+        awaitable = (for {
+          rid <- MusitResultT(
+                  storageUnitDao.insertRoot(
+                    museumId,
+                    Root(
+                      nodeId = StorageNodeId.generateAsOpt(),
+                      updatedBy = Some(defaultUserId),
+                      updatedDate = Some(DateTime.now)
+                    )
+                  )
+                )
+          _ <- MusitResultT(
+                storageUnitDao.setRootPath(rid, NodePath(s",${rid.underlying},"))
+              ) // scalastyle:ignore
+          oid <- MusitResultT(
+                  organisationDao
+                    .insert(museumId, createOrganisation(partOf = Some(rid)))
+                ) // scalastyle:ignore
+          _ <- MusitResultT(
+                organisationDao
+                  .setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},"))
+              ) // scalastyle:ignore
+          bid <- MusitResultT(
+                  buildingDao
+                    .insert(museumId, createBuilding(partOf = Some(oid)))
+                    .map(res => res)
+                ) // scalastyle:ignore
+          _ <- MusitResultT(
+                buildingDao.setPath(
+                  bid,
+                  NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},")
+                )
+              ) // scalastyle:ignore
+        } yield (rid, oid, bid)).value,
+        atMost = 15 seconds
+      )
+      .get
   }
 
   def addRoot(r: RootNode) = storageUnitDao.insertRoot(defaultMuseumId, r)
@@ -141,10 +170,10 @@ trait NodeGenerators extends NodeTypeInitializers {
     val eventuallyInserted = Future.sequence {
       nodes.filterNot(_.isInstanceOf[GenericStorageNode]).map {
         case su: StorageUnit => addStorageUnit(su)
-        case r: Room => addRoom(r)
-        case b: Building => addBuilding(b)
+        case r: Room         => addRoom(r)
+        case b: Building     => addBuilding(b)
         case o: Organisation => addOrganisation(o)
-        case r: Root => addRoot(r)
+        case r: Root         => addRoot(r)
         case notCorrect =>
           throw new IllegalArgumentException(
             s"${notCorrect.getClass} is not supported"
@@ -158,15 +187,15 @@ trait NodeGenerators extends NodeTypeInitializers {
 trait NodeTypeInitializers {
 
   val defaultMuseumId = MuseumId(99)
-  val defaultUserId = ActorId.generate()
+  val defaultUserId   = ActorId.generate()
 
   def initEnvironmentRequirement(
-    temp: Option[Interval[Double]] = Some(Interval[Double](20.0, Some(25))),
-    humid: Option[Interval[Double]] = Some(Interval[Double](60.7, Some(70))),
-    hypoxic: Option[Interval[Double]] = Some(Interval[Double](12.0, Some(20))),
-    cleaning: Option[String] = Some("Keep it clean!"),
-    lighting: Option[String] = Some("Dempet belysning"),
-    comment: Option[String] = Some("Kommentar for environment requirement.")
+      temp: Option[Interval[Double]] = Some(Interval[Double](20.0, Some(25))),
+      humid: Option[Interval[Double]] = Some(Interval[Double](60.7, Some(70))),
+      hypoxic: Option[Interval[Double]] = Some(Interval[Double](12.0, Some(20))),
+      cleaning: Option[String] = Some("Keep it clean!"),
+      lighting: Option[String] = Some("Dempet belysning"),
+      comment: Option[String] = Some("Kommentar for environment requirement.")
   ): EnvironmentRequirement = {
     EnvironmentRequirement(
       temperature = temp,
@@ -182,9 +211,9 @@ trait NodeTypeInitializers {
     initEnvironmentRequirement()
 
   def createOrganisation(
-    name: String = "FooBarOrg",
-    partOf: Option[StorageNodeDatabaseId] = None,
-    path: NodePath = NodePath.empty
+      name: String = "FooBarOrg",
+      partOf: Option[StorageNodeDatabaseId] = None,
+      path: NodePath = NodePath.empty
   ): Organisation = {
     Organisation(
       id = None,
@@ -206,9 +235,9 @@ trait NodeTypeInitializers {
   }
 
   def createBuilding(
-    name: String = "FooBarBuilding",
-    partOf: Option[StorageNodeDatabaseId] = None,
-    path: NodePath = NodePath.empty
+      name: String = "FooBarBuilding",
+      partOf: Option[StorageNodeDatabaseId] = None,
+      path: NodePath = NodePath.empty
   ): Building = {
     Building(
       id = None,
@@ -230,9 +259,9 @@ trait NodeTypeInitializers {
   }
 
   def createRoom(
-    name: String = "FooRoom",
-    partOf: Option[StorageNodeDatabaseId] = None,
-    path: NodePath = NodePath.empty
+      name: String = "FooRoom",
+      partOf: Option[StorageNodeDatabaseId] = None,
+      path: NodePath = NodePath.empty
   ): Room = {
     Room(
       id = None,
@@ -266,9 +295,9 @@ trait NodeTypeInitializers {
   }
 
   def createStorageUnit(
-    name: String = "FooUnit",
-    partOf: Option[StorageNodeDatabaseId] = None,
-    path: NodePath = NodePath.empty
+      name: String = "FooUnit",
+      partOf: Option[StorageNodeDatabaseId] = None,
+      path: NodePath = NodePath.empty
   ): StorageUnit = {
     StorageUnit(
       id = None,
@@ -289,13 +318,13 @@ trait NodeTypeInitializers {
   }
 
   def createRoomWithDifferentArea(
-    area: Double,
-    perimeter: Boolean = false,
-    theftProtection: Boolean = false,
-    fireProtection: Boolean = false,
-    waterDamage: Boolean = false,
-    routinesAndContingencyPlan: Boolean = false,
-    partOf: Option[StorageNodeDatabaseId] = None
+      area: Double,
+      perimeter: Boolean = false,
+      theftProtection: Boolean = false,
+      fireProtection: Boolean = false,
+      waterDamage: Boolean = false,
+      routinesAndContingencyPlan: Boolean = false,
+      partOf: Option[StorageNodeDatabaseId] = None
   ): Room = {
     createRoom(partOf = partOf).copy(
       id = None,

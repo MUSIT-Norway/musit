@@ -32,7 +32,7 @@ import repositories.dao.{StorageNodeDao, StorageStatsDao}
 
 import scala.concurrent.Future
 
-class StatsService @Inject() (
+class StatsService @Inject()(
     val nodeDao: StorageNodeDao,
     val statsDao: StorageStatsDao
 ) {
@@ -40,18 +40,18 @@ class StatsService @Inject() (
   val logger = Logger(classOf[StatsService])
 
   def nodeStats(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[NodeStats]]] = {
     MusitResultT(nodeDao.getPathById(mid, nodeId)).flatMap { maybeNode =>
       maybeNode.map { node =>
-        val totalF = MusitResultT(statsDao.numObjectsInPath(node._2))
-        val directF = MusitResultT(statsDao.numObjectsInNode(node._1))
+        val totalF     = MusitResultT(statsDao.numObjectsInPath(node._2))
+        val directF    = MusitResultT(statsDao.numObjectsInNode(node._1))
         val nodeCountF = MusitResultT(statsDao.numChildren(node._1))
 
         for {
-          total <- totalF
-          direct <- directF
+          total     <- totalF
+          direct    <- directF
           nodeCount <- nodeCountF
         } yield {
           Option(NodeStats(nodeCount, direct, total))

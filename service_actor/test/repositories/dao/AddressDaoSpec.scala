@@ -22,11 +22,15 @@ package repositories.dao
 import models.{Organisation, OrganisationAddress}
 import no.uio.musit.models.{DatabaseId, OrgId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.BeforeAndAfterAll
 
-class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
+class AddressDaoSpec
+    extends MusitSpecWithAppPerSuite
+    with BeforeAndAfterAll
+    with MusitResultValues {
 
-  val adrDao: AddressDao = fromInstanceCache[AddressDao]
+  val adrDao: AddressDao      = fromInstanceCache[AddressDao]
   val orgDao: OrganisationDao = fromInstanceCache[OrganisationDao]
 
   override def beforeAll(): Unit = {
@@ -105,19 +109,17 @@ class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         )
 
         val resInt = adrDao.update(orgAddrUpd).futureValue
-        resInt.isSuccess mustBe true
-        resInt.get mustBe Some(1)
+        resInt.successValue mustBe Some(1)
         val res = adrDao.getById(DatabaseId(3)).futureValue
-        res must not be None
-        res.get.id mustBe Some(DatabaseId(3))
-        res.get.organizationId mustBe Some(OrgId(2))
-        res.get.addressType mustBe "WORK3"
-        res.get.streetAddress mustBe "Adressen3"
-        res.get.locality mustBe "Bergen3"
-        res.get.postalCode mustBe "0133"
-        res.get.countryName mustBe "Norway3"
-        res.get.latitude mustBe 60.11
-        res.get.longitude mustBe 11.60
+        res.value.id mustBe Some(DatabaseId(3))
+        res.value.organizationId mustBe Some(OrgId(2))
+        res.value.addressType mustBe "WORK3"
+        res.value.streetAddress mustBe "Adressen3"
+        res.value.locality mustBe "Bergen3"
+        res.value.postalCode mustBe "0133"
+        res.value.countryName mustBe "Norway3"
+        res.value.latitude mustBe 60.11
+        res.value.longitude mustBe 11.60
       }
 
       "not update organisation address with invalid id" in {
@@ -133,8 +135,7 @@ class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
           longitude = 11.60
         )
         val res = adrDao.update(orgAddrUpd).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe None
+        res.successValue mustBe None
       }
 
       "not update organisation address with missing id" in {
@@ -150,8 +151,7 @@ class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
           longitude = 11.60
         )
         val res = adrDao.update(orgAddrUpd).futureValue
-        res.isSuccess mustBe true
-        res.get mustBe None
+        res.successValue mustBe None
       }
 
       "not update organisation address with invalid organisation id" in {

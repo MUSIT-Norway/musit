@@ -23,16 +23,15 @@ import java.util.UUID
 
 import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfig
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 /**
  * Working with some of the DAOs require implicit mappers to/from strongly
  * typed value types/classes.
  */
-trait ColumnTypeMappers {
-  self: HasDatabaseConfig[JdbcProfile] =>
+trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
-  import driver.api._
+  import profile.api._
 
   implicit lazy val storageNodeIdMapper: BaseColumnType[StorageNodeDatabaseId] =
     MappedColumnType.base[StorageNodeDatabaseId, Long](

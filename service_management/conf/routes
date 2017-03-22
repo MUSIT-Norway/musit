@@ -1,0 +1,27 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET         /service/analyses/buildinfo                      controllers.Application.buildInfo
+
+# TODO: Where to put museumId and for which services?
+
+# AnalysisType endpoints
+GET         /:mid/analyses/types                             controllers.analysis.AnalysisController.getAllAnalysisTypes(mid: Int)
+GET         /:mid/analyses/types/:id                         controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
+GET         /:mid/analyses/types/categories/:id              controllers.analysis.AnalysisController.getAnalysisTypesForCategory(mid: Int, id: Int)
+GET         /:mid/analyses/types/musemcollections/:id        controllers.analysis.AnalysisController.getAnalysisTypesForCollection(mid: Int, id: String)
+
+# Analysis endpoints
+POST        /:mid/analyses                                   controllers.analysis.AnalysisController.saveAnalysisEvent(mid: Int)
+GET         /:mid/analyses/:id                               controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
+GET         /:mid/analyses/:id/children                      controllers.analysis.AnalysisController.getChildAnalyses(mid: Int, id: Long)
+POST        /:mid/analyses/:id/results                       controllers.analysis.AnalysisController.saveResult(mid: Int, id: Long)
+GET         /:mid/analyses/objects/:id                       controllers.analysis.AnalysisController.getAnalysisForObject(mid: Int, id: String)
+
+# Sample objects
+POST        /:mid/samples                                    controllers.analysis.SampleObjectController.save(mid: Int)
+GET         /:mid/samples                                    controllers.analysis.SampleObjectController.getForMuseum(mid: Int)
+PUT         /:mid/samples/:id                                controllers.analysis.SampleObjectController.update(mid: Int, id: String)
+GET         /:mid/samples/:id                                controllers.analysis.SampleObjectController.getById(mid: Int, id: String)
+GET         /:mid/samples/:parentId/children                 controllers.analysis.SampleObjectController.getForParentObject(mid: Int, parentId: String)

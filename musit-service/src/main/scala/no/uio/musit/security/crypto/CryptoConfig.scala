@@ -28,13 +28,14 @@ import play.api._
  */
 
 case class CryptoConfig(
-  secret: String,
-  aesTransformation: String = "AES/CTR/NoPadding"
+    secret: String,
+    aesTransformation: String = "AES/CTR/NoPadding"
 )
 
 // scalastyle:off
 @Singleton
-class CryptoConfigParser @Inject() (environment: Environment, config: Configuration) extends Provider[CryptoConfig] {
+class CryptoConfigParser @Inject()(environment: Environment, config: Configuration)
+    extends Provider[CryptoConfig] {
 
   lazy val get = {
 
@@ -65,8 +66,12 @@ class CryptoConfigParser @Inject() (environment: Environment, config: Configurat
      */
     val secret = config.getString("play.crypto.secret") match {
       case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
-        logger.error("The application secret has not been set, and we are in prod mode. Your application is not secure.")
-        logger.error("To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
+        logger.error(
+          "The application secret has not been set, and we are in prod mode. Your application is not secure."
+        )
+        logger.error(
+          "To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret"
+        )
         throw new PlayException("Configuration error", "Application secret not set")
       case Some("changeme") | Some(Blank()) | None =>
         val appConfLocation = environment.resource("application.conf")
@@ -76,7 +81,9 @@ class CryptoConfigParser @Inject() (environment: Environment, config: Configurat
           "she sells sea shells on the sea shore"
         )(_.toString)
         val md5Secret = DigestUtils.md5Hex(secret)
-        logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
+        logger.debug(
+          s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}"
+        )
         md5Secret
       case Some(s) => s
     }
@@ -85,7 +92,7 @@ class CryptoConfigParser @Inject() (environment: Environment, config: Configurat
 
     CryptoConfig(secret, transformation)
   }
-  private val Blank = """\s*""".r
+  private val Blank  = """\s*""".r
   private val logger = Logger(classOf[CryptoConfigParser])
 }
 // scalastyle:on

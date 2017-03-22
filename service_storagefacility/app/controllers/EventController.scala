@@ -34,7 +34,7 @@ import services.{ControlService, ObservationService}
 import scala.concurrent.Future
 
 @Singleton
-class EventController @Inject() (
+class EventController @Inject()(
     val authService: Authenticator,
     val controlService: ControlService,
     val observationService: ObservationService
@@ -47,8 +47,8 @@ class EventController @Inject() (
    * the given nodeId.
    */
   def addControl(
-    mid: Int,
-    nodeId: Long
+      mid: Int,
+      nodeId: Long
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     request.body.validate[Control] match {
       case JsSuccess(ctrl, jsPath) =>
@@ -69,8 +69,8 @@ class EventController @Inject() (
    * the given nodeId.
    */
   def addObservation(
-    mid: Int,
-    nodeId: Long
+      mid: Int,
+      nodeId: Long
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
     request.body.validate[Observation] match {
       case JsSuccess(obs, jsPath) =>
@@ -91,9 +91,9 @@ class EventController @Inject() (
    * equal to the provided nodeId.
    */
   def getControl(
-    mid: Int,
-    nodeId: Long,
-    eventId: Long
+      mid: Int,
+      nodeId: Long,
+      eventId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     controlService.findBy(mid, eventId).map {
       case MusitSuccess(maybeControl) =>
@@ -113,9 +113,9 @@ class EventController @Inject() (
    * id is equal to the provided nodeId.
    */
   def getObservation(
-    mid: Int,
-    nodeId: Long,
-    eventId: Long
+      mid: Int,
+      nodeId: Long,
+      eventId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     observationService.findBy(mid, eventId).map {
       case MusitSuccess(maybeObservation) =>
@@ -133,8 +133,8 @@ class EventController @Inject() (
    * Lists all Controls for the given nodeId
    */
   def listControls(
-    mid: Int,
-    nodeId: Long
+      mid: Int,
+      nodeId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     controlService.listFor(mid, nodeId).map {
       case MusitSuccess(controls) =>
@@ -149,8 +149,8 @@ class EventController @Inject() (
    * Lists all Observations for the given nodeId
    */
   def listObservations(
-    mid: Int,
-    nodeId: Long
+      mid: Int,
+      nodeId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     observationService.listFor(mid, nodeId).map {
       case MusitSuccess(observations) =>
@@ -166,17 +166,17 @@ class EventController @Inject() (
    * the given nodeId.
    */
   def listEventsForNode(
-    mid: Int,
-    nodeId: Long
+      mid: Int,
+      nodeId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     val eventuallyCtrls = controlService.listFor(mid, nodeId)
-    val eventyallyObs = observationService.listFor(mid, nodeId)
+    val eventyallyObs   = observationService.listFor(mid, nodeId)
     for {
       ctrlRes <- eventuallyCtrls
-      obsRes <- eventyallyObs
+      obsRes  <- eventyallyObs
     } yield {
       val sortedRes = for {
-        controls <- ctrlRes
+        controls     <- ctrlRes
         observations <- obsRes
       } yield {
         controls.union(observations).sortBy(_.doneDate.getMillis)
@@ -185,12 +185,14 @@ class EventController @Inject() (
       sortedRes match {
         case MusitSuccess(sorted) =>
           val jsObjects = sorted.map {
-            case ctrl: Control => Json.toJson(ctrl)
+            case ctrl: Control    => Json.toJson(ctrl)
             case obs: Observation => Json.toJson(obs)
-            case _ => JsNull
+            case _                => JsNull
           }
-          logger.debug(s"Going to return sorted JSON:" +
-            s"\n${Json.prettyPrint(JsArray(jsObjects))}")
+          logger.debug(
+            s"Going to return sorted JSON:" +
+              s"\n${Json.prettyPrint(JsArray(jsObjects))}"
+          )
           Ok(JsArray(jsObjects))
 
         case err: MusitError =>

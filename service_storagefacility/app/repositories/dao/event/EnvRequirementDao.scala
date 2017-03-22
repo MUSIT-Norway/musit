@@ -31,11 +31,11 @@ import scala.concurrent.Future
  * TODO: Document me!
  */
 @Singleton
-class EnvRequirementDao @Inject() (
+class EnvRequirementDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
-  import driver.api._
+  import profile.api._
 
   /**
    * TODO: Document me!
@@ -50,4 +50,3 @@ class EnvRequirementDao @Inject() (
     db.run(envReqTable.filter(event => event.id === id).result.headOption)
 
 }
-

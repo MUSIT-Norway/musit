@@ -38,19 +38,19 @@ trait DateTimeImplicits {
     new DateTime(jst, DefaultTimezone)
 
   implicit def optDateTimeToJSqlDate(
-    mdt: Option[DateTime]
+      mdt: Option[DateTime]
   ): Option[JSqlDate] = mdt.map(dateTimeToJSqlDate)
 
   implicit def optDateTimeToJSqlTimestamp(
-    mdt: Option[DateTime]
+      mdt: Option[DateTime]
   ): Option[JSqlTimestamp] = mdt.map(dateTimeToJTimestamp)
 
   implicit def optJSqlDateToDateTime(
-    mjsd: Option[JSqlDate]
+      mjsd: Option[JSqlDate]
   ): Option[DateTime] = mjsd.map(jSqlDateToDateTime)
 
   implicit def optJSqlTimestampToDateTime(
-    mjst: Option[JSqlTimestamp]
+      mjst: Option[JSqlTimestamp]
   ): Option[DateTime] = mjst.map(jSqlTimestampToDateTime)
 
 }

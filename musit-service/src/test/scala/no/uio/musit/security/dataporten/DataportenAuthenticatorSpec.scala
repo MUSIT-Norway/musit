@@ -25,6 +25,7 @@ import no.uio.musit.models.{ActorId, Email}
 import no.uio.musit.security.{Authenticator, BearerToken, SessionUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.{Inside, OptionValues}
 import play.api.Configuration
 import play.api.http.{DefaultWriteables, Writeable}
 import play.api.libs.json.Json
@@ -33,27 +34,29 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
+class DataportenAuthenticatorSpec
+    extends MusitSpecWithAppPerSuite
     with MockFactory
-    with DefaultWriteables {
+    with DefaultWriteables
+    with OptionValues
+    with Inside {
 
-  val conf = fromInstanceCache[Configuration]
+  val conf     = fromInstanceCache[Configuration]
   val resolver = fromInstanceCache[DatabaseAuthResolver]
 
-  val mockWS = mock[WSAPI]
-  val mockWSRequest = mock[WSRequest]
+  val mockWS         = mock[WSAPI]
+  val mockWSRequest  = mock[WSRequest]
   val mockWSResponse = mock[WSResponse]
 
   val authenticator = new DataportenAuthenticator(conf, resolver, mockWS)
 
-  val userId = ActorId.generate()
+  val userId    = ActorId.generate()
   val userIdSec = Email("vader@deathstar.io")
-  val name = "Darth Vader"
-  val email = Email("darth.vader@deathstar.io")
+  val name      = "Darth Vader"
+  val email     = Email("darth.vader@deathstar.io")
 
   type FormDataType = Map[String, Seq[String]]
 
@@ -66,27 +69,27 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
       implicit val fakeRequest = FakeRequest("GET", "/authenticate")
 
       val futRes = authenticator.authenticate(Some(Authenticator.ClientWeb))
-      val res = futRes.futureValue
-      res.isLeft mustBe true
-      res.left.get mustBe a[Result]
+      val res    = futRes.futureValue
 
-      val redirectLoc = redirectLocation(futRes.map(_.left.get))
-      redirectLoc must not be None
-
-      sessionId = redirectLoc.get.substring(redirectLoc.get.lastIndexOf('=') + 1)
-      SessionUUID.validate(sessionId).isSuccess mustBe true
+      inside(res) {
+        case Left(left) =>
+          left mustBe a[Result]
+          val redirectLoc = redirectLocation(Future.successful(left))
+          sessionId = redirectLoc.value.substring(redirectLoc.value.lastIndexOf('=') + 1)
+          SessionUUID.validate(sessionId).isSuccess mustBe true
+      }
     }
 
     "fetch an access token and update the UserSession when receiving a code" in {
-      val code = UUID.randomUUID().toString
-      val token = BearerToken(UUID.randomUUID().toString)
+      val code      = UUID.randomUUID().toString
+      val token     = BearerToken(UUID.randomUUID().toString)
       val expiresIn = (2 hours).toMillis
       implicit val fakeRequest = FakeRequest(
         method = "POST",
         path = s"/authenticate?code=$code&state=$sessionId"
       )
       val expQueryParams = Map(
-        "code" -> Seq(code),
+        "code"  -> Seq(code),
         "state" -> Seq(sessionId)
       )
 
@@ -102,12 +105,15 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
 
       (mockWSResponse.json _)
         .expects()
-        .returning(Json.obj(
-          "access_token" -> token.underlying,
-          "expiresIn" -> expiresIn
-        ))
+        .returning(
+          Json.obj(
+            "access_token" -> token.underlying,
+            "expiresIn"    -> expiresIn
+          )
+        )
 
-      (mockWS.url _).expects("https://auth.dataporten.no/userinfo")
+      (mockWS.url _)
+        .expects("https://auth.dataporten.no/userinfo")
         .returning(mockWSRequest)
 
       (mockWSRequest.withHeaders _).expects(*).returning(mockWSRequest)
@@ -115,31 +121,35 @@ class DataportenAuthenticatorSpec extends MusitSpecWithAppPerSuite
       // This is a known bug: https://youtrack.jetbrains.com/issue/SCL-10183
       (mockWSRequest.get _).expects().returning(Future.successful(mockWSResponse))
       (mockWSResponse.status _).expects().returning(OK)
-      (mockWSResponse.json _).expects().returning(
-        Json.obj(
-          "audience" -> "b98123fe-3a25-44b9-8e26-75819d8aa5da",
-          "user" -> Json.obj(
-            "userid" -> userId.asString,
-            "userid_sec" -> Json.arr(userIdSec.value),
-            "name" -> name,
-            "email" -> email.value
+      (mockWSResponse.json _)
+        .expects()
+        .returning(
+          Json.obj(
+            "audience" -> "b98123fe-3a25-44b9-8e26-75819d8aa5da",
+            "user" -> Json.obj(
+              "userid"     -> userId.asString,
+              "userid_sec" -> Json.arr(userIdSec.value),
+              "name"       -> name,
+              "email"      -> email.value
+            )
           )
         )
-      ).atLeastTwice()
+        .atLeastTwice()
 
       val futRes = authenticator.authenticate(Some(Authenticator.ClientWeb))
 
       val res = futRes.futureValue
       res.isRight mustBe true
 
-      val session = res.right.get
-
-      session.uuid mustBe SessionUUID.unsafeFromString(sessionId)
-      session.isLoggedIn mustBe true
-      session.lastActive must not be None
-      session.oauthToken mustBe Some(token)
-      session.userId mustBe Some(userId)
-      session.loginTime must not be None
+      inside(res) {
+        case Right(session) =>
+          session.uuid mustBe SessionUUID.unsafeFromString(sessionId)
+          session.isLoggedIn mustBe true
+          session.lastActive must not be None
+          session.oauthToken mustBe Some(token)
+          session.userId mustBe Some(userId)
+          session.loginTime must not be None
+      }
     }
 
   }

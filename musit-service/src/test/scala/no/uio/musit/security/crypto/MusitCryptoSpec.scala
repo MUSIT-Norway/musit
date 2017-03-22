@@ -29,15 +29,15 @@ class MusitCryptoSpec extends MusitSpecWithAppPerSuite {
 
     "successfully encrypt a token" in {
       val orig = "27b9c7bc-06c3-4cc5-8c83-b34125377dd6"
-      val res = crypto.encryptAES(orig)
+      val res  = crypto.encryptAES(orig)
       res must not be orig
       res must not include " "
     }
 
     "successfully decrypt an encrypted token" in {
       val orig = "27b9c7bc-06c3-4cc5-8c83-b34125377dd6"
-      val enc = crypto.encryptAES(orig)
-      val res = crypto.decryptAES(enc)
+      val enc  = crypto.encryptAES(orig)
+      val res  = crypto.decryptAES(enc)
 
       res mustBe orig
     }

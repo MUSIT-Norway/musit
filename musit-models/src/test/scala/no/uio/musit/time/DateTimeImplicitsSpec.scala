@@ -30,7 +30,7 @@ class DateTimeImplicitsSpec extends WordSpec with MustMatchers {
     "result in correct values" in {
 
       val dt1 = dateTimeNow
-      val ts = dateTimeToJTimestamp(dt1)
+      val ts  = dateTimeToJTimestamp(dt1)
 
       val zdt = ts.toInstant.atZone(ZoneId.ofOffset("UTC", ZoneOffset.ofHours(1)))
 

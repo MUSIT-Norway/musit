@@ -22,9 +22,13 @@ package services
 import models.report.KdReport
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import utils.testhelpers.NodeGenerators
 
-class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
+class KdReportServiceSpec
+    extends MusitSpecWithAppPerSuite
+    with NodeGenerators
+    with MusitResultValues {
 
   implicit val dummyUser = AuthenticatedUser(
     session = UserSession(uuid = SessionUUID.generate()),
@@ -38,12 +42,12 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
     groups = Seq.empty
   )
 
-  val service: StorageNodeService = fromInstanceCache[StorageNodeService]
+  val service: StorageNodeService    = fromInstanceCache[StorageNodeService]
   val reportService: KdReportService = fromInstanceCache[KdReportService]
 
   "The KdReportService" should {
 
-    val baseNodes = bootstrapBaseStructure()
+    val baseNodes  = bootstrapBaseStructure()
     val buildingId = baseNodes._3
 
     val room1 = createRoomWithDifferentArea(
@@ -77,8 +81,6 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
 
     "successfully get a report on storageNode Room" in {
       val report = reportService.getReport(defaultMuseumId).futureValue
-      report.isSuccess mustBe true
-      val reportRes = report.get
 
       val expected = KdReport(
         totalArea = 117.6,
@@ -89,19 +91,15 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         routinesAndContingencyPlan = 115.6
       )
 
-      reportRes mustBe expected
+      report.successValue mustBe expected
     }
 
     "not include deleted room nodes in the report" in {
-      val cId = deleteMe.get.get.id.get
+      val cId = deleteMe.successValue.value.id.value
 
       val res = service.deleteNode(defaultMuseumId, cId).futureValue
-      res.isSuccess mustBe true
 
       val reportAfterDelete = reportService.getReport(defaultMuseumId).futureValue
-      reportAfterDelete.isSuccess mustBe true
-      val reportAfterDeleteRes = reportAfterDelete.get
-
       val expected = KdReport(
         totalArea = 110.1,
         perimeterSecurity = 9.5,
@@ -110,7 +108,7 @@ class KdReportServiceSpec extends MusitSpecWithAppPerSuite with NodeGenerators {
         waterDamageAssessment = 100.6,
         routinesAndContingencyPlan = 108.1
       )
-      reportAfterDeleteRes mustBe expected
+      reportAfterDelete.successValue mustBe expected
     }
   }
 }

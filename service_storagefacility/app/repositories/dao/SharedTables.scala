@@ -20,11 +20,12 @@
 package repositories.dao
 
 import models.event.dto.LocalObject
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 
 private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   val localObjectsTable = TableQuery[LocalObjectsTable]
 
@@ -32,40 +33,49 @@ private[dao] trait SharedTables extends BaseDao with ColumnTypeMappers {
       tag: Tag
   ) extends Table[LocalObject](tag, SchemaName, "LOCAL_OBJECT") {
     // scalastyle:off method.name
-    def * = (
-      objectId,
-      latestMoveId,
-      currentLocationId,
-      museumId
-    ) <> (create.tupled, destroy)
-
-    // scalastyle:on method.name
-
-    val objectId = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
-    val latestMoveId = column[EventId]("LATEST_MOVE_ID")
-    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
-    val museumId = column[MuseumId]("MUSEUM_ID")
-
-    def create = (
-      objectId: ObjectId,
-      latestMoveId: EventId,
-      currentLocationId: StorageNodeDatabaseId,
-      museumId: MuseumId
-    ) =>
-      LocalObject(
+    def * =
+      (
         objectId,
         latestMoveId,
         currentLocationId,
-        museumId
+        museumId,
+        objectType
+      ) <> (create.tupled, destroy)
+
+    // scalastyle:on method.name
+
+    val objectId          = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
+    val latestMoveId      = column[EventId]("LATEST_MOVE_ID")
+    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
+    val museumId          = column[MuseumId]("MUSEUM_ID")
+    val objectType        = column[Option[String]]("OBJECT_TYPE")
+
+    def create =
+      (
+          objectId: ObjectId,
+          latestMoveId: EventId,
+          currentLocationId: StorageNodeDatabaseId,
+          museumId: MuseumId,
+          objectType: Option[String]
+      ) =>
+        LocalObject(
+          objectId = objectId,
+          latestMoveId = latestMoveId,
+          currentLocationId = currentLocationId,
+          museumId = museumId,
+          objectType = objectType.getOrElse(CollectionObject.name)
       )
 
     def destroy(localObject: LocalObject) =
-      Some((
-        localObject.objectId,
-        localObject.latestMoveId,
-        localObject.currentLocationId,
-        localObject.museumId
-      ))
+      Some(
+        (
+          localObject.objectId,
+          localObject.latestMoveId,
+          localObject.currentLocationId,
+          localObject.museumId,
+          Option(localObject.objectType)
+        )
+      )
   }
 
 }

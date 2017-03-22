@@ -30,7 +30,7 @@ import services.OrganisationAddressService
 
 import scala.concurrent.Future
 
-class OrganisationAddressController @Inject() (
+class OrganisationAddressController @Inject()(
     val authService: Authenticator,
     val orgAdrService: OrganisationAddressService
 ) extends MusitController {

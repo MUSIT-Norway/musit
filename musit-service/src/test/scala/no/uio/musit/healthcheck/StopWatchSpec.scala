@@ -40,7 +40,7 @@ class StopWatchSpec extends MusitSpec {
     "elapsed is called" should {
       "calculate from the first tick" in {
         val ticker = new ListTicker(List(2, 44))
-        val sw = StopWatch(ticker)
+        val sw     = StopWatch(ticker)
 
         sw.elapsed() mustBe 42
       }
@@ -48,4 +48,3 @@ class StopWatchSpec extends MusitSpec {
   }
 
 }
-

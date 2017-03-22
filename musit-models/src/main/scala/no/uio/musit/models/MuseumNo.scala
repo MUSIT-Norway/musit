@@ -56,13 +56,13 @@ trait MuseumNumber {
 case class MuseumNo(value: String) extends MuseumNumber
 
 object MuseumNo {
-  implicit val reads: Reads[MuseumNo] = __.read[String].map(MuseumNo.apply)
+  implicit val reads: Reads[MuseumNo]   = __.read[String].map(MuseumNo.apply)
   implicit val writes: Writes[MuseumNo] = Writes(mn => JsString(mn.value))
 }
 
 case class SubNo(value: String) extends MuseumNumber
 
 object SubNo {
-  implicit val reads: Reads[SubNo] = __.read[String].map(SubNo.apply)
+  implicit val reads: Reads[SubNo]   = __.read[String].map(SubNo.apply)
   implicit val writes: Writes[SubNo] = Writes(mn => JsString(mn.value))
 }

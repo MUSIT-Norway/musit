@@ -30,17 +30,16 @@ object Dependencies {
   )
 
   object PlayFrameWork {
-    val version = "2.5.12"
-    val playSlickVersion = "2.0.2"
+    val version          = play.core.PlayVersion.current // from plugin.sbt
+    val playSlickVersion = "2.1.0"
 
-    val slick_play = "com.typesafe.play" %% "play-slick" % playSlickVersion
+    val slick_play    = "com.typesafe.play" %% "play-slick"            % playSlickVersion
     val slick_play_ev = "com.typesafe.play" %% "play-slick-evolutions" % playSlickVersion
-    val slick_ext = "com.typesafe.slick" %% "slick-extensions" % "3.1.0"
-    val jdbc = "com.typesafe.play" %% "play-jdbc" % version
-    val cache = "com.typesafe.play" %% "play-cache" % version
-    val ws = "com.typesafe.play" %% "play-ws" % version
-    val json = "com.typesafe.play" %% "play-json" % version
-    val logback = "com.typesafe.play" %% "play-logback" % version
+    val jdbc          = "com.typesafe.play" %% "play-jdbc"             % version
+    val cache         = "com.typesafe.play" %% "play-cache"            % version
+    val ws            = "com.typesafe.play" %% "play-ws"               % version
+    val json          = "com.typesafe.play" %% "play-json"             % version
+    val logback       = "com.typesafe.play" %% "play-logback"          % version
   }
 
   object Netty {
@@ -49,42 +48,42 @@ object Dependencies {
 
   object Logging {
     val logbackVersion = "1.1.7"
-    val slf4jVersion = "1.7.21"
-    val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
-    val slf4jLibs = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j")
-    val slf4j = slf4jLibs.map("org.slf4j" % _ % slf4jVersion)
-    val slf4jApi = "org.slf4j" % slf4jLibs.head % slf4jVersion
-    val loggingDeps = slf4j ++ Seq(logback)
+    val slf4jVersion   = "1.7.21"
+    val logback        = "ch.qos.logback" % "logback-classic" % logbackVersion
+    val slf4jLibs      = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j")
+    val slf4j          = slf4jLibs.map("org.slf4j" % _ % slf4jVersion)
+    val slf4jApi       = "org.slf4j" % slf4jLibs.head % slf4jVersion
+    val loggingDeps    = slf4j ++ Seq(logback)
   }
 
   object ScalaTest {
-    val scalaTestVersion = "2.2.6" // "3.0.0"
+    val scalaTestVersion     = "2.2.6" // "3.0.0"
     val scalaTestPlusVersion = "1.5.1" // "2.0.0-M1"
 
     var scalatestSpec = "org.scalatest" %% "scalatest" % scalaTestVersion
-    val scalactic = "org.scalactic" %% "scalactic" % scalaTestVersion
+    val scalactic     = "org.scalactic" %% "scalactic" % scalaTestVersion
 
     val scalatestplusSpec = "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusVersion
 
-    val scalatest = scalatestSpec % Test
+    val scalatest     = scalatestSpec     % Test
     val scalatestplus = scalatestplusSpec % Test
   }
 
   val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % Test
 
-  val iheartFicus = "com.iheart" %% "ficus" % "1.4.0"
-  val scalaGuice = "net.codingwell" %% "scala-guice" % "4.1.0"
-  val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
-  val h2database = "com.h2database" % "h2" % "1.4.193"
-  val zxing = "com.google.zxing" % "core" % "3.3.0"
+  val iheartFicus = "com.iheart"       %% "ficus"       % "1.4.0"
+  val scalaGuice  = "net.codingwell"   %% "scala-guice" % "4.1.0"
+  val postgresql  = "org.postgresql"   % "postgresql"   % "9.4-1201-jdbc41"
+  val h2database  = "com.h2database"   % "h2"           % "1.4.193"
+  val zxing       = "com.google.zxing" % "core"         % "3.3.0"
 
   // Oracle specifics
-  def dir = new java.io.File(".").getCanonicalPath
+  def dir    = new java.io.File(".").getCanonicalPath
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 
   val enumeratumDeps: Seq[ModuleID] = {
     val enumeratumVersion = "1.5.6"
-    val libs = Seq("enumeratum", "enumeratum-play", "enumeratum-play-json")
+    val libs              = Seq("enumeratum", "enumeratum-play", "enumeratum-play-json")
     libs.map("com.beachape" %% _ % enumeratumVersion)
   }
 
@@ -101,11 +100,9 @@ object Dependencies {
     scalaMock
   )
 
-
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     PlayFrameWork.slick_play,
     PlayFrameWork.slick_play_ev,
-    PlayFrameWork.slick_ext,
     postgresql,
     h2database,
     oracle

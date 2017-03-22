@@ -20,15 +20,15 @@
 package no.uio.musit.formatters
 
 import no.uio.musit.formatters.StrictFormatters.maxCharsFormat
-import org.scalatest.{MustMatchers, WordSpec}
-import play.api.libs.json.{JsString, Json}
+import org.scalatest.{Inside, MustMatchers, WordSpec}
+import play.api.libs.json.{JsString, JsSuccess, Json}
 
-class StrictFormattersSpec extends WordSpec with MustMatchers {
+class StrictFormattersSpec extends WordSpec with MustMatchers with Inside {
 
   val maxChars = 20
 
   val shortString = "This is a String"
-  val longString = "This is a much longer String that should fail."
+  val longString  = "This is a much longer String that should fail."
 
   "Converting a String to JSON" should {
     "successfully generate a JsString when the String is shorter than max" in {
@@ -45,8 +45,10 @@ class StrictFormattersSpec extends WordSpec with MustMatchers {
       val js = JsString(shortString)
 
       val res = js.validate[String](maxCharsFormat(20))
-      res.isSuccess mustBe true
-      res.get mustBe shortString
+
+      inside(res) {
+        case JsSuccess(str, _) => str mustBe shortString
+      }
     }
 
     "fail when the value is too long" in {

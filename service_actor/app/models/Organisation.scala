@@ -35,7 +35,8 @@ object WordList {
     WordList(words)
   }
 
-  def fromOptDbString(mstr: Option[String]): Option[WordList] = mstr.map(WordList.fromDbString)
+  def fromOptDbString(mstr: Option[String]): Option[WordList] =
+    mstr.map(WordList.fromDbString)
 
   implicit def wordListConverter(strSeq: Seq[String]): WordList = {
     WordList(strSeq)
@@ -59,15 +60,15 @@ object WordList {
  * Domain Organization
  */
 case class Organisation(
-  id: Option[OrgId],
-  fn: String,
-  tel: String,
-  web: String,
-  synonyms: Option[WordList],
-  serviceTags: Option[WordList]
+    id: Option[OrgId],
+    fn: String,
+    tel: String,
+    web: String,
+    synonyms: Option[WordList],
+    serviceTags: Option[WordList]
 )
 
 object Organisation {
-  val tupled = (Organisation.apply _).tupled
+  val tupled          = (Organisation.apply _).tupled
   implicit val format = Json.format[Organisation]
 }

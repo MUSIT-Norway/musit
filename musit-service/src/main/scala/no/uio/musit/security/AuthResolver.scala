@@ -37,7 +37,7 @@ trait AuthResolver {
    * @return A MusitResult with a Seq of GroupInfo where the user is a member.
    */
   def findGroupInfoByFeideEmail(
-    email: Email
+      email: Email
   )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]]
 
   /**
@@ -48,7 +48,7 @@ trait AuthResolver {
    * @return a MusitResult[Unit].
    */
   def saveUserInfo(
-    userInfo: UserInfo
+      userInfo: UserInfo
   )(implicit ec: ExecutionContext): Future[MusitResult[Unit]]
 
   /**
@@ -59,21 +59,21 @@ trait AuthResolver {
    * @return MusitResult of an Option of UserInfo
    */
   def userInfo(
-    userId: ActorId
+      userId: ActorId
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserInfo]]]
 
   /**
    * Prepares a new persistent user session
    */
   def sessionInit(
-    client: Option[String]
+      client: Option[String]
   )(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]] = {
     logger.debug("Initialize a new UserSession with a generated SessionUUID")
     upsertUserSession(UserSession.prepare(client))
   }
 
   def upsertUserSession(
-    session: UserSession
+      session: UserSession
   )(implicit ec: ExecutionContext): Future[MusitResult[SessionUUID]]
 
   /**
@@ -84,7 +84,7 @@ trait AuthResolver {
    * @return MusitResult containing the located UserSession
    */
   def userSession(
-    sessionUUID: SessionUUID
+      sessionUUID: SessionUUID
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[UserSession]]]
 
   /**
@@ -95,7 +95,7 @@ trait AuthResolver {
    * @return a MusitResult[Unit]
    */
   def updateSession(
-    userSession: UserSession
+      userSession: UserSession
   )(implicit ec: ExecutionContext): Future[MusitResult[Unit]]
 
 }

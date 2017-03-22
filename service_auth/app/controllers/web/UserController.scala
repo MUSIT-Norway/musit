@@ -27,9 +27,8 @@ import no.uio.musit.service.MusitAdminController
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.dao.AuthDao
 
-class UserController @Inject() (
-    implicit
-    val authService: Authenticator,
+class UserController @Inject()(
+    implicit val authService: Authenticator,
     val crypto: MusitCrypto,
     val dao: AuthDao
 ) extends MusitAdminController {
@@ -38,7 +37,7 @@ class UserController @Inject() (
     val encTok = EncryptedToken.fromBearerToken(request.token)
     dao.allUsers.map {
       case MusitSuccess(usrs) => Ok(views.html.users(encTok, usrs))
-      case err: MusitError => InternalServerError(views.html.error(encTok, err.message))
+      case err: MusitError    => InternalServerError(views.html.error(encTok, err.message))
     }
   }
 

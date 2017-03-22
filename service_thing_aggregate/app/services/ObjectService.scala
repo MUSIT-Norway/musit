@@ -31,7 +31,7 @@ import repositories.dao.{ObjectDao, StorageNodeDao}
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class ObjectService @Inject() (
+class ObjectService @Inject()(
     val objDao: ObjectDao,
     val nodeDao: StorageNodeDao
 ) {
@@ -47,8 +47,8 @@ class ObjectService @Inject() (
    * @return A list containing the _new_ ObjectIds for the objects.
    */
   def findByOldObjectIds(
-    oldSchema: String,
-    oldObjectIds: Seq[Long]
+      oldSchema: String,
+      oldObjectIds: Seq[Long]
   ): Future[MusitResult[Seq[ObjectId]]] = {
     objDao.findObjectIdsForOld(oldSchema, oldObjectIds)
   }
@@ -60,7 +60,10 @@ class ObjectService @Inject() (
    * @param obj         The MusitObject to look for
    * @return The augmented object with path, pathNames and currentLocationId
    */
-  private def getCurrentLocation(mid: MuseumId, obj: MusitObject): Future[MusitObject] =
+  private def getCurrentLocation(
+      mid: MuseumId,
+      obj: MusitObject
+  ): Future[MusitObject] =
     nodeDao.currentLocation(mid, obj.id).flatMap {
       case Some(nodeIdAndPath) =>
         nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
@@ -84,13 +87,14 @@ class ObjectService @Inject() (
    * @return A list of objects that share tha same bare code
    */
   def findByOldBarcode(
-    mid: MuseumId,
-    oldBarcode: Long,
-    collections: Seq[MuseumCollection]
+      mid: MuseumId,
+      oldBarcode: Long,
+      collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     objDao.findByOldBarcode(mid, oldBarcode, collections).flatMap {
       case MusitSuccess(objs) =>
-        Future.sequence(objs.map(getCurrentLocation(mid, _)))
+        Future
+          .sequence(objs.map(getCurrentLocation(mid, _)))
           .map(MusitSuccess.apply)
           .recover {
             case NonFatal(ex) =>
@@ -113,9 +117,9 @@ class ObjectService @Inject() (
    * @return A list of objects that share the same main object ID.
    */
   def findMainObjectChildren(
-    mid: MuseumId,
-    mainObjectId: ObjectId,
-    collectionIds: Seq[MuseumCollection]
+      mid: MuseumId,
+      mainObjectId: ObjectId,
+      collectionIds: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     objDao.findMainObjectChildren(mid, mainObjectId, collectionIds)
   }
@@ -132,11 +136,11 @@ class ObjectService @Inject() (
    * @return A list of objects matching the given criteria.
    */
   def findObjects(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    collectionIds: Seq[MuseumCollection],
-    page: Int,
-    limit: Int
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      collectionIds: Seq[MuseumCollection],
+      page: Int,
+      limit: Int
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[PagedResult[MusitObject]]] = {
     objDao.pagedObjects(mid, nodeId, collectionIds, page, limit)
   }
@@ -155,21 +159,23 @@ class ObjectService @Inject() (
    * @return A list of search results matching the given criteria.
    */
   def search(
-    mid: MuseumId,
-    collectionIds: Seq[MuseumCollection],
-    page: Int,
-    limit: Int,
-    museumNo: Option[MuseumNo],
-    subNo: Option[SubNo],
-    term: Option[String]
+      mid: MuseumId,
+      collectionIds: Seq[MuseumCollection],
+      page: Int,
+      limit: Int,
+      museumNo: Option[MuseumNo],
+      subNo: Option[SubNo],
+      term: Option[String]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
     objDao.search(mid, page, limit, museumNo, subNo, term, collectionIds).flatMap {
       case MusitSuccess(searchResult) =>
         // We found some objects...now we need to find the current location for each.
-        Future.sequence(searchResult.matches.map(getCurrentLocation(mid, _)))
+        Future
+          .sequence(searchResult.matches.map(getCurrentLocation(mid, _)))
           .map { objects =>
             MusitSuccess(searchResult.copy(matches = objects))
-          }.recover {
+          }
+          .recover {
             case NonFatal(ex) =>
               val msg = s"An error occured when executing object search"
               logger.error(msg, ex)

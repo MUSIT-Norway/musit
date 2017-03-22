@@ -37,9 +37,11 @@ object EventType {
   def fromInt(i: Int): EventType = fromEventTypeId(EventTypeId(i))
 
   implicit val reads: Reads[EventType] =
-    __.read[String].filter(ValidationError("Unsupported event type")) { et =>
-      EventTypeRegistry.withNameInsensitiveOption(et).isDefined
-    }.map(EventType.apply)
+    __.read[String]
+      .filter(ValidationError("Unsupported event type")) { et =>
+        EventTypeRegistry.withNameInsensitiveOption(et).isDefined
+      }
+      .map(EventType.apply)
 
   implicit val writes: Writes[EventType] = Writes { et =>
     JsString(et.name)

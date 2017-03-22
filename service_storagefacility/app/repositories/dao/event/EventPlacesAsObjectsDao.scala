@@ -31,17 +31,17 @@ import repositories.dao.EventTables
 import scala.concurrent.Future
 
 @Singleton
-class EventPlacesAsObjectsDao @Inject() (
+class EventPlacesAsObjectsDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
   val logger = Logger(classOf[EventPlacesAsObjectsDao])
 
-  import driver.api._
+  import profile.api._
 
   def insertObjects(
-    eventId: EventId,
-    relatedObjects: Seq[EventRoleObject]
+      eventId: EventId,
+      relatedObjects: Seq[EventRoleObject]
   ): DBIO[Option[Int]] = {
     val relObjectsAsPlaces = relatedObjects.map { ero =>
       EventRolePlace(Some(eventId), ero.roleId, ero.objectId, ero.eventTypeId)
@@ -60,9 +60,9 @@ class EventPlacesAsObjectsDao @Inject() (
   }
 
   def latestEventIdFor(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    eventTypeId: EventTypeId
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      eventTypeId: EventTypeId
   ): Future[Option[EventId]] = {
     val queryMax = placesAsObjectsTable.filter { erp =>
       erp.placeId === nodeId && erp.eventTypeId === eventTypeId
@@ -72,19 +72,19 @@ class EventPlacesAsObjectsDao @Inject() (
   }
 
   def latestEventIdsForNode(
-    mid: MuseumId,
-    nodeId: StorageNodeDatabaseId,
-    eventTypeId: EventTypeId,
-    limit: Option[Int] = None
+      mid: MuseumId,
+      nodeId: StorageNodeDatabaseId,
+      eventTypeId: EventTypeId,
+      limit: Option[Int] = None
   ): Future[Seq[EventId]] = {
     val q = placesAsObjectsTable.filter { erp =>
       erp.placeId === nodeId && erp.eventTypeId === eventTypeId
     }.sortBy(_.eventId.desc).map(_.eventId)
 
     val query = limit.map {
-      case l: Int if l > 0 => q.take(l)
+      case l: Int if l > 0   => q.take(l)
       case l: Int if l == -1 => q
-      case l: Int => q.take(50)
+      case l: Int            => q.take(50)
     }.getOrElse(q).result
     db.run(query)
   }

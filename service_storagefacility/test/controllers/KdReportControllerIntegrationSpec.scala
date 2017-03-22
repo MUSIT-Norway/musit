@@ -23,8 +23,8 @@ import models.storage.StorageType._
 import models.storage.{StorageNode, StorageType}
 import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
-import no.uio.musit.security.fake.FakeAuthenticator._
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
+import org.scalatest.Inside
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
@@ -33,16 +33,16 @@ import utils.testhelpers._
 
 import scala.util.Try
 
-class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
+class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite with Inside {
 
   def verifyNode[T <: StorageNode](
-    response: WSResponse,
-    expStorageType: StorageType,
-    expName: String,
-    expId: Long,
-    expPartOf: Option[Long] = None
+      response: WSResponse,
+      expStorageType: StorageType,
+      expName: String,
+      expId: Long,
+      expPartOf: Option[Long] = None
   )(implicit manifest: Manifest[T]): T = {
-    val storageNode = parseAndVerifyResponse[T](response)
+    val storageNode = parseAndVerifyResponse[T](response).value
     storageNode.id mustBe Some(StorageNodeDatabaseId(expId))
     storageNode.storageType mustBe expStorageType
     storageNode.isPartOf mustBe expPartOf.map(StorageNodeDatabaseId.apply)
@@ -52,11 +52,10 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     storageNode
   }
 
-  def parseAndVerifyResponse[T](response: WSResponse): T = {
-    val json = Json.parse(response.body)
+  def parseAndVerifyResponse[T](response: WSResponse): Option[T] = {
+    val json   = Json.parse(response.body)
     val parsed = json.validate[StorageNode]
-    parsed.isSuccess mustBe true
-    parsed.get.asInstanceOf[T]
+    parsed.asOpt.map(_.asInstanceOf[T])
   }
 
   val mid = MuseumId(99)
@@ -64,28 +63,31 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
   // Will be properly initialised in beforeTests method. So any value should do.
   var buildingId: StorageNodeDatabaseId = StorageNodeDatabaseId(9)
 
-  val readToken = BearerToken(FakeUsers.testUserToken)
+  val readToken  = BearerToken(FakeUsers.testUserToken)
   val writeToken = BearerToken(FakeUsers.testWriteToken)
   val adminToken = BearerToken(FakeUsers.testAdminToken)
-  val godToken = BearerToken(FakeUsers.superUserToken)
+  val godToken   = BearerToken(FakeUsers.superUserToken)
 
   override def beforeTests(): Unit = {
     Try {
       val root = wsUrl(RootNodeUrl(mid))
         .withHeaders(godToken.asHeader)
-        .post(rootJson("daRoot")).futureValue
+        .post(rootJson("daRoot"))
+        .futureValue
 
       val rootId = (root.json \ "id").asOpt[StorageNodeDatabaseId]
 
       val org = wsUrl(StorageNodesUrl(mid))
         .withHeaders(godToken.asHeader)
-        .post(organisationJson("Hanky", rootId)).futureValue
+        .post(organisationJson("Hanky", rootId))
+        .futureValue
 
       val orgId = (org.json \ "id").as[StorageNodeDatabaseId]
 
       val building = wsUrl(StorageNodesUrl(mid))
         .withHeaders(godToken.asHeader)
-        .post(buildingJson("Panky", orgId)).futureValue
+        .post(buildingJson("Panky", orgId))
+        .futureValue
 
       buildingId = (building.json \ "id").as[StorageNodeDatabaseId]
     }.recover {
@@ -103,18 +105,19 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val js1 = roomJson("r00m", Some(StorageNodeDatabaseId(buildingId)))
         val res1 = wsUrl(StorageNodesUrl(mid))
           .withHeaders(adminToken.asHeader)
-          .post(js1).futureValue
+          .post(js1)
+          .futureValue
         res1.status mustBe CREATED
 
         val js2 = roomJson("rUUm", Some(StorageNodeDatabaseId(buildingId)))
         val res2 = wsUrl(StorageNodesUrl(mid))
           .withHeaders(adminToken.asHeader)
-          .post(js2).futureValue
+          .post(js2)
+          .futureValue
         res2.status mustBe CREATED
 
-        val report = wsUrl(KdReportUrl(mid))
-          .withHeaders(readToken.asHeader)
-          .get.futureValue
+        val report =
+          wsUrl(KdReportUrl(mid)).withHeaders(readToken.asHeader).get().futureValue
 
         (report.json \ "totalArea").as[Double] mustBe 41
         (report.json \ "perimeterSecurity").as[Double] mustBe 41
@@ -129,18 +132,19 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val js1 = roomJson("RooM", Some(StorageNodeDatabaseId(buildingId)))
         val res1 = wsUrl(StorageNodesUrl(mid))
           .withHeaders(adminToken.asHeader)
-          .post(js1).futureValue
+          .post(js1)
+          .futureValue
         res1.status mustBe CREATED
 
         val js2 = roomJson("RuuM", Some(StorageNodeDatabaseId(buildingId)))
         val res2 = wsUrl(StorageNodesUrl(mid))
           .withHeaders(adminToken.asHeader)
-          .post(js2).futureValue
+          .post(js2)
+          .futureValue
         res2.status mustBe CREATED
 
-        val repAfterIns2 = wsUrl(KdReportUrl(mid))
-          .withHeaders(readToken.asHeader)
-          .get.futureValue
+        val repAfterIns2 =
+          wsUrl(KdReportUrl(mid)).withHeaders(readToken.asHeader).get().futureValue
 
         (repAfterIns2.json \ "totalArea").as[Double] mustBe 82
         (repAfterIns2.json \ "perimeterSecurity").as[Double] mustBe 82
@@ -152,10 +156,10 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val roomId = (res1.json \ "id").as[Long]
         val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId))
           .withHeaders(adminToken.asHeader)
-          .delete().futureValue
-        val repAfterDel1 = wsUrl(KdReportUrl(mid))
-          .withHeaders(readToken.asHeader)
-          .get.futureValue
+          .delete()
+          .futureValue
+        val repAfterDel1 =
+          wsUrl(KdReportUrl(mid)).withHeaders(readToken.asHeader).get().futureValue
 
         (repAfterDel1.json \ "totalArea").as[Double] mustBe 61.5
         (repAfterDel1.json \ "perimeterSecurity").as[Double] mustBe 61.5
@@ -168,7 +172,9 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       "not allow getting the report without READ permission to the museum" in {
         wsUrl(KdReportUrl(6))
           .withHeaders(readToken.asHeader)
-          .get.futureValue.status mustBe FORBIDDEN
+          .get()
+          .futureValue
+          .status mustBe FORBIDDEN
       }
 
     }

@@ -28,7 +28,7 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-class AccessLogFilter @Inject() (implicit val mat: Materializer) extends Filter {
+class AccessLogFilter @Inject()(implicit val mat: Materializer) extends Filter {
 
   val logger = Logger("accesslog")
 
@@ -42,7 +42,7 @@ class AccessLogFilter @Inject() (implicit val mat: Materializer) extends Filter 
     logger.debug(s"With request headers:\n${rh.headers.toSimpleMap.mkString("\n")}")
 
     nextFilter(rh).map { response =>
-      val endTime = System.currentTimeMillis
+      val endTime  = System.currentTimeMillis
       val procTime = endTime - startTime
 
       logger.info(

@@ -29,11 +29,11 @@ import repositories.dao.EventTables
 import scala.concurrent.Future
 
 @Singleton
-class ObservationPestDao @Inject() (
+class ObservationPestDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends EventTables {
 
-  import driver.api._
+  import profile.api._
 
   /**
    * The insertAction and getObservation are somewhat more complex than
@@ -55,7 +55,7 @@ class ObservationPestDao @Inject() (
   def getObservation(eventId: EventId): Future[Option[ObservationPestDto]] =
     db.run(lifeCycleTable.filter(lifeCycle => lifeCycle.eventId === eventId).result)
       .map {
-        case Nil => None
+        case Nil        => None
         case lifeCycles => Some(ObservationPestDto(lifeCycles))
       }
 

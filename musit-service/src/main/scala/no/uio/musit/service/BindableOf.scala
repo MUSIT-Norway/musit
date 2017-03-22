@@ -27,8 +27,8 @@ class BindableOf[T](
 ) extends QueryStringBindable[T] {
 
   override def bind(
-    key: String,
-    data: Map[String, Seq[String]]
+      key: String,
+      data: Map[String, Seq[String]]
   ): Option[Either[String, T]] = bindIt(data.get(key).flatMap(_.headOption))
 
   override def unbind(key: String, mf: T): String =

@@ -25,16 +25,17 @@ import no.uio.musit.models.{DatabaseId, OrgId}
 import no.uio.musit.MusitResults._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 
 @Singleton
-class AddressDao @Inject() (
+class AddressDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+) extends HasDatabaseConfigProvider[JdbcProfile]
+    with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   private val orgAdrTable = TableQuery[OrganisationAddressTable]
 
@@ -60,7 +61,7 @@ class AddressDao @Inject() (
     db.run(query).map {
       case upd: Int if upd == 0 => MusitSuccess(None)
       case upd: Int if upd == 1 => MusitSuccess(Some(upd))
-      case upd: Int if upd > 1 => MusitDbError("Too many records were updated")
+      case upd: Int if upd > 1  => MusitDbError("Too many records were updated")
     }
   }
 
@@ -72,63 +73,67 @@ class AddressDao @Inject() (
       tag: Tag
   ) extends Table[OrganisationAddress](tag, Some(SchemaName), OrgAdrTableName) {
 
-    val id = column[Option[DatabaseId]]("ORGADDRESSID", O.PrimaryKey, O.AutoInc)
+    val id             = column[Option[DatabaseId]]("ORGADDRESSID", O.PrimaryKey, O.AutoInc)
     val organizationId = column[Option[OrgId]]("ORG_ID")
-    val addressType = column[String]("ADDRESS_TYPE")
-    val streetAddress = column[String]("STREET_ADDRESS")
-    val locality = column[String]("LOCALITY")
-    val postalCode = column[String]("POSTAL_CODE")
-    val countryName = column[String]("COUNTRY_NAME")
-    val latitude = column[Double]("LATITUDE")
-    val longitude = column[Double]("LONGITUDE")
+    val addressType    = column[String]("ADDRESS_TYPE")
+    val streetAddress  = column[String]("STREET_ADDRESS")
+    val locality       = column[String]("LOCALITY")
+    val postalCode     = column[String]("POSTAL_CODE")
+    val countryName    = column[String]("COUNTRY_NAME")
+    val latitude       = column[Double]("LATITUDE")
+    val longitude      = column[Double]("LONGITUDE")
 
     val create = (
-      id: Option[DatabaseId],
-      organizationId: Option[OrgId],
-      addressType: String,
-      streetAddress: String,
-      locality: String,
-      postalCode: String,
-      countryName: String,
-      latitude: Double,
-      longitude: Double
-    ) => OrganisationAddress(
-      id = id,
-      organizationId = organizationId,
-      addressType = addressType,
-      streetAddress = streetAddress,
-      locality = locality,
-      postalCode = postalCode,
-      countryName = countryName,
-      latitude = latitude,
-      longitude = longitude
+        id: Option[DatabaseId],
+        organizationId: Option[OrgId],
+        addressType: String,
+        streetAddress: String,
+        locality: String,
+        postalCode: String,
+        countryName: String,
+        latitude: Double,
+        longitude: Double
+    ) =>
+      OrganisationAddress(
+        id = id,
+        organizationId = organizationId,
+        addressType = addressType,
+        streetAddress = streetAddress,
+        locality = locality,
+        postalCode = postalCode,
+        countryName = countryName,
+        latitude = latitude,
+        longitude = longitude
     )
 
     val destroy = (addr: OrganisationAddress) =>
-      Some((
-        addr.id,
-        addr.organizationId,
-        addr.addressType,
-        addr.streetAddress,
-        addr.locality,
-        addr.postalCode,
-        addr.countryName,
-        addr.latitude,
-        addr.longitude
-      ))
+      Some(
+        (
+          addr.id,
+          addr.organizationId,
+          addr.addressType,
+          addr.streetAddress,
+          addr.locality,
+          addr.postalCode,
+          addr.countryName,
+          addr.latitude,
+          addr.longitude
+        )
+    )
 
     // scalastyle:off method.name
-    def * = (
-      id,
-      organizationId,
-      addressType,
-      streetAddress,
-      locality,
-      postalCode,
-      countryName,
-      latitude,
-      longitude
-    ) <> (create.tupled, destroy)
+    def * =
+      (
+        id,
+        organizationId,
+        addressType,
+        streetAddress,
+        locality,
+        postalCode,
+        countryName,
+        latitude,
+        longitude
+      ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
   }

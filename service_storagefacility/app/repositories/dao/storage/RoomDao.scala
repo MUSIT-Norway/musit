@@ -33,11 +33,11 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 @Singleton
-class RoomDao @Inject() (
+class RoomDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends StorageTables {
 
-  import driver.api._
+  import profile.api._
 
   val logger = Logger(classOf[RoomDao])
 
@@ -51,8 +51,8 @@ class RoomDao @Inject() (
    * TODO: Document me!!!
    */
   def getById(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId
+      mid: MuseumId,
+      id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Room]]] = {
     val action = for {
       maybeUnitDto <- getUnitByIdAction(mid, id)
@@ -60,14 +60,12 @@ class RoomDao @Inject() (
     } yield {
       maybeUnitDto.flatMap(u => maybeRoomDto.map(r => ExtendedStorageNode(u, r)))
     }
-    db.run(action)
-      .map(res => MusitSuccess(res.map(StorageNodeDto.toRoom)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Unable to get room for museumId $mid and storageId $id"
-          logger.warn(msg, ex)
-          MusitDbError(msg, Some(ex))
-      }
+    db.run(action).map(res => MusitSuccess(res.map(StorageNodeDto.toRoom))).recover {
+      case NonFatal(ex) =>
+        val msg = s"Unable to get room for museumId $mid and storageId $id"
+        logger.warn(msg, ex)
+        MusitDbError(msg, Some(ex))
+    }
 
   }
 
@@ -75,9 +73,9 @@ class RoomDao @Inject() (
    * TODO: Document me!!!
    */
   def update(
-    mid: MuseumId,
-    id: StorageNodeDatabaseId,
-    room: Room
+      mid: MuseumId,
+      id: StorageNodeDatabaseId,
+      room: Room
   ): Future[MusitResult[Option[Int]]] = {
     val roomDto = StorageNodeDto.fromRoom(mid, room, Some(id))
     val action = for {
@@ -123,9 +121,9 @@ class RoomDao @Inject() (
   def insert(mid: MuseumId, room: Room): Future[MusitResult[StorageNodeDatabaseId]] = {
     val extendedDto = StorageNodeDto.fromRoom(mid, room)
     val action = for {
-      nodeId <- insertNodeAction(extendedDto.storageUnitDto)
+      nodeId    <- insertNodeAction(extendedDto.storageUnitDto)
       extWithId <- DBIO.successful(extendedDto.extension.copy(id = Some(nodeId)))
-      inserted <- insertAction(extWithId)
+      inserted  <- insertAction(extWithId)
     } yield nodeId
 
     db.run(action.transactionally).map(MusitSuccess.apply).recover {

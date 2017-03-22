@@ -29,30 +29,32 @@ import play.api.libs.json.{Format, Json}
  * specified museum collections in the form of CollectionUUID's.
  */
 case class UserAuthAdd(
-  email: String,
-  groupId: String,
-  collections: Option[List[CollectionUUID]]
+    email: String,
+    groupId: String,
+    collections: Option[List[CollectionUUID]]
 )
 
 object UserAuthAdd {
   implicit val formats: Format[UserAuthAdd] = Json.format[UserAuthAdd]
 
   def applyForm(
-    email: String,
-    groupId: String,
-    collections: Option[List[CollectionUUID]]
+      email: String,
+      groupId: String,
+      collections: Option[List[CollectionUUID]]
   ) = UserAuthAdd(email, groupId, collections)
 
   def unapplyForm(uga: UserAuthAdd) = Some((uga.email, uga.groupId, uga.collections))
 
   val userAuthForm = Form(
     mapping(
-      "email" -> email,
+      "email"   -> email,
       "groupId" -> text.verifying(id => GroupId.validate(id).isSuccess),
-      "collections" -> optional(list(uuid).transform[List[CollectionUUID]](
-        _.map(CollectionUUID.apply),
-        _.map(_.underlying)
-      ))
+      "collections" -> optional(
+        list(uuid).transform[List[CollectionUUID]](
+          _.map(CollectionUUID.apply),
+          _.map(_.underlying)
+        )
+      )
     )(applyForm)(unapplyForm)
   )
 }
