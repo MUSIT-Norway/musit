@@ -358,6 +358,7 @@ class ObjectDao @Inject()(
     val query =
       sql"""
         SELECT /*+ FIRST_ROWS DRIVING_SITE(mt) */ mt."OBJECT_ID",
+          mt."MUSITTHING_UUID",
           mt."MUSEUMID",
           mt."MUSEUMNO",
           mt."MUSEUMNOASNUMBER",
@@ -381,12 +382,13 @@ class ObjectDao @Inject()(
           mt."SUBNOASNUMBER" ASC,
           LOWER(mt."SUBNO") ASC
         #${pagingClause(page, limit)}
-      """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])]
+      """.as[(Option[Long], Option[String], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])]
 
     db.run(query).map { r =>
       val res = r.map { t =>
-        (t._1.map(ObjectId.apply), MuseumId.fromInt(t._2), t._3, t._4, t._5,
-          t._6, t._7, t._8, t._9, t._10, t._11, t._12)
+        (t._1.map(ObjectId.apply), t._2.map(ObjectUUID.unsafeFromString),
+          MuseumId.fromInt(t._3), t._4, t._5, t._6, t._7, t._8, t._9, t._10,
+          t._11, t._12, t._13)
       }
       MusitSuccess(res)
     }

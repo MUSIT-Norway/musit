@@ -30,6 +30,7 @@ export CLIENT_ID="ccee5f45-6f32-4315-9a89-9e6ad98a8186"
 export CLIENT_SECRET="d01c882a-b24c-4ebf-9035-381a9a8cd74e"
 export DATAPORTEN_CLIENT_ID=$CLIENT_ID
 export DATAPORTEN_CLIENT_SECRET=$CLIENT_SECRET
+export DATAPORTEN_SESSION_TIMEOUT="4 hours"
 
 # ------------------------------------------------------------------------
 # Start the deployment process...

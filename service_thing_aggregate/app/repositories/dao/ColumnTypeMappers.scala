@@ -33,19 +33,25 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   import profile.api._
 
-  implicit lazy val storageNodeIdMapper: BaseColumnType[StorageNodeDatabaseId] =
+  implicit val storageNodeIdMapper: BaseColumnType[StorageNodeDatabaseId] =
     MappedColumnType.base[StorageNodeDatabaseId, Long](
       snid => snid.underlying,
       longId => StorageNodeDatabaseId(longId)
     )
 
-  implicit lazy val objectIdMapper: BaseColumnType[ObjectId] =
+  implicit val objectIdMapper: BaseColumnType[ObjectId] =
     MappedColumnType.base[ObjectId, Long](
       oid => oid.underlying,
       longId => ObjectId(longId)
     )
 
-  implicit lazy val eventIdMapper: BaseColumnType[EventId] =
+  implicit val objectUuidMapper: BaseColumnType[ObjectUUID] =
+    MappedColumnType.base[ObjectUUID, String](
+      oid => oid.asString,
+      str => ObjectUUID.unsafeFromString(str)
+    )
+
+  implicit val eventIdMapper: BaseColumnType[EventId] =
     MappedColumnType.base[EventId, Long](
       eid => eid.underlying,
       longId => EventId(longId)
@@ -57,25 +63,25 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       strId => ActorId(UUID.fromString(strId))
     )
 
-  implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =
+  implicit val museumIdMapper: BaseColumnType[MuseumId] =
     MappedColumnType.base[MuseumId, Int](
       museumId => museumId.underlying,
       id => MuseumId(id)
     )
 
-  implicit lazy val nodePathMapper: BaseColumnType[NodePath] =
+  implicit val nodePathMapper: BaseColumnType[NodePath] =
     MappedColumnType.base[NodePath, String](
       nodePath => nodePath.path,
       pathStr => NodePath(pathStr)
     )
 
-  implicit lazy val museumNoMapper: BaseColumnType[MuseumNo] =
+  implicit val museumNoMapper: BaseColumnType[MuseumNo] =
     MappedColumnType.base[MuseumNo, String](
       museumNo => museumNo.value,
       noStr => MuseumNo(noStr)
     )
 
-  implicit lazy val subNoMapper: BaseColumnType[SubNo] =
+  implicit val subNoMapper: BaseColumnType[SubNo] =
     MappedColumnType.base[SubNo, String](
       subNo => subNo.value,
       noStr => SubNo(noStr)
