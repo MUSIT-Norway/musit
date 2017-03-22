@@ -389,18 +389,21 @@ class DataportenAuthenticator @Inject()(
       RedirectURI  -> Seq(config.callbackURL)
     )
 
-    ws.url(config.accessTokenURL).viaProxy().post(params).map { response =>
-      response.json.validate[OAuth2Info] match {
-        case err: JsError =>
-          val msg = "Invalid JSON response from Dataporten"
-          logger.warn(s"$msg: ${Json.prettyPrint(JsError.toJson(err))}")
-          Left(Results.InternalServerError(Json.obj("message" -> msg)))
+    ws.url(config.accessTokenURL)
+      .viaProxy()
+      .post(params)
+      .map(
+        _.json.validate[OAuth2Info] match {
+          case err: JsError =>
+            val msg = "Invalid JSON response from Dataporten"
+            logger.warn(s"$msg: ${Json.prettyPrint(JsError.toJson(err))}")
+            Left(Results.InternalServerError(Json.obj("message" -> msg)))
 
-        case JsSuccess(oi, _) =>
-          logger.debug("Successfully retrieved an access token from Dataporten")
-          Right(oi)
-      }
-    }
+          case JsSuccess(oi, _) =>
+            logger.debug("Successfully retrieved an access token from Dataporten")
+            Right(oi)
+        }
+      )
   }
 
   /**
