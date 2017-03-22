@@ -30,7 +30,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   // Type aliases representing rows for the different tables
   // format: off
   // scalastyle:off line.size.limit
-  type ObjectRow = ((Option[ObjectId], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int]))
+  type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int]))
   type LocalObjectRow = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId, Option[String]))
   type StorageNodeRow = ((Option[StorageNodeDatabaseId], String, String, Option[Double], Option[Double], Option[StorageNodeDatabaseId], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath))
   // format: on
@@ -50,6 +50,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     // scalastyle:off method.name
     def * = (
       id.?,
+      uuid,
       museumId,
       museumNo,
       museumNoAsNumber,
@@ -66,6 +67,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     // scalastyle:on method.name
 
     val id               = column[ObjectId]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
+    val uuid             = column[Option[ObjectUUID]]("MUSITTHING_UUID")
     val museumId         = column[MuseumId]("MUSEUMID")
     val museumNo         = column[String]("MUSEUMNO")
     val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")

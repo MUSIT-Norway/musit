@@ -8,6 +8,7 @@ import models.{FacilityLocation, LocationHistory, ObjectsLocation}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
@@ -607,6 +608,8 @@ class StorageNodeService @Inject()(
             registeredDate = e.registeredDate.get,
             doneBy = e.doneBy,
             doneDate = e.doneDate,
+            id = e.affectedThing.get,
+            objectType = e.objectType,
             from = FacilityLocation(
               path = from._1,
               pathNames = from._2
@@ -640,9 +643,10 @@ class StorageNodeService @Inject()(
    */
   def currentObjectLocation(
       mid: MuseumId,
-      oid: ObjectId
+      oid: ObjectId,
+      tpe: ObjectType
   ): Future[MusitResult[Option[StorageNode]]] = {
-    val currentNodeId = localObjectDao.currentLocation(oid)
+    val currentNodeId = localObjectDao.currentLocation(oid, tpe)
     currentNodeId.flatMap { optCurrentNodeId =>
       optCurrentNodeId.map { id =>
         getNodeById(mid, id)

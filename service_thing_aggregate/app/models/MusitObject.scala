@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 
 case class MusitObject(
     id: ObjectId,
+    uuid: Option[ObjectUUID],
     museumId: MuseumId,
     museumNo: MuseumNo,
     subNo: Option[SubNo],
@@ -40,6 +41,7 @@ object MusitObject {
   type ObjTuple = (
       (
           Option[ObjectId],
+          Option[ObjectUUID],
           MuseumId,
           String,
           Option[Long],
@@ -57,11 +59,12 @@ object MusitObject {
   def fromTuple(t: ObjTuple): MusitObject = {
     MusitObject(
       id = t._1.get, // scalastyle:ignore
-      museumId = t._2,
-      museumNo = MuseumNo(t._3),
-      subNo = t._5.map(SubNo.apply),
-      mainObjectId = t._7,
-      term = t._9
+      uuid = t._2,
+      museumId = t._3,
+      museumNo = MuseumNo(t._4),
+      subNo = t._6.map(SubNo.apply),
+      mainObjectId = t._8,
+      term = t._10
     )
   }
 
