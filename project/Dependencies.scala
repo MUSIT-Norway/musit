@@ -90,7 +90,8 @@ object Dependencies {
   val playDependencies: Seq[ModuleID] = Seq(
     PlayFrameWork.cache,
     PlayFrameWork.ws,
-    PlayFrameWork.json
+    PlayFrameWork.json,
+    iheartFicus
   ) ++ Logging.loggingDeps
 
   val testablePlayDependencies: Seq[ModuleID] = playDependencies ++ Seq(

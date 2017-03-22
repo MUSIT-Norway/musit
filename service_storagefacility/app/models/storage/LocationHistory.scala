@@ -20,6 +20,7 @@
 package models.storage
 
 import no.uio.musit.formatters.WithDateTimeFormatters
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, NamedPathElement, NodePath}
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, Writes}
@@ -32,6 +33,8 @@ case class LocationHistory(
     registeredDate: DateTime,
     doneBy: Option[ActorId],
     doneDate: DateTime,
+    id: Long,
+    objectType: ObjectType,
     from: FacilityLocation,
     to: FacilityLocation
 )

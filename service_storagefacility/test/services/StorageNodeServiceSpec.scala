@@ -241,7 +241,8 @@ class StorageNodeServiceSpec
       val oid  = ObjectId(8)
       val dest = StorageNodeDatabaseId(23)
 
-      val loc1 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
+      val loc1 =
+        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
       loc1.successValue.value.id mustBe Some(StorageNodeDatabaseId(6))
 
       val event = MoveObject(
@@ -260,7 +261,8 @@ class StorageNodeServiceSpec
       val res =
         service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue.successValue
 
-      val loc2 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
+      val loc2 =
+        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
       loc2.successValue.value.id mustBe Some(StorageNodeDatabaseId(23))
       loc2.successValue.value.pathNames must not be empty
     }
@@ -269,7 +271,8 @@ class StorageNodeServiceSpec
       val oid  = ObjectId(8)
       val dest = StorageNodeDatabaseId(23)
 
-      val loc1 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
+      val loc1 =
+        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
       loc1.successValue.value.id mustBe Some(StorageNodeDatabaseId(23))
 
       val event = MoveObject(
@@ -288,7 +291,8 @@ class StorageNodeServiceSpec
       val res = service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue
       res.isFailure mustBe true
 
-      val loc2 = service.currentObjectLocation(defaultMuseumId, oid).futureValue
+      val loc2 =
+        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
       loc2.successValue.value mustBe loc1.successValue.value
     }
 
@@ -310,7 +314,8 @@ class StorageNodeServiceSpec
       val res =
         service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue.successValue
 
-      val loc = service.currentObjectLocation(defaultMuseumId, oid).futureValue
+      val loc =
+        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
       loc.successValue.value.id mustBe Some(StorageNodeDatabaseId(23))
     }
 
@@ -401,8 +406,9 @@ class StorageNodeServiceSpec
     "get current location for an object" in {
       val oid = ObjectId(2)
       val aid = ActorId.generate()
-      val currLoc =
-        service.currentObjectLocation(defaultMuseumId, ObjectId(2)).futureValue
+      val currLoc = service
+        .currentObjectLocation(defaultMuseumId, ObjectId(2), CollectionObject)
+        .futureValue
       currLoc.successValue.value.id.value.underlying mustBe 5
       val currIdStr = currLoc.successValue.value.id.value.underlying.toString
       currLoc.successValue.value.path.toString must include(currIdStr)

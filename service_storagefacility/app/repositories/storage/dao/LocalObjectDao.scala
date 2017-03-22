@@ -57,9 +57,13 @@ class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     )
   }
 
-  def currentLocation(objectId: ObjectId): Future[Option[StorageNodeDatabaseId]] = {
+  def currentLocation(
+      objectId: ObjectId,
+      objectType: ObjectType
+  ): Future[Option[StorageNodeDatabaseId]] = {
     val query = localObjectsTable.filter { locObj =>
-      locObj.objectId === objectId
+      locObj.objectId === objectId &&
+      (locObj.objectType === objectType.name || locObj.objectType.isEmpty)
     }.map(_.currentLocationId).max.result
 
     db.run(query)

@@ -45,8 +45,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       Boolean,
       MuseumId,
       SampleStatus,
-      ActorId,
-      DateTime,
+      Option[ActorId],
+      Option[DateTime],
       Option[String],
       Option[String],
       Option[String],
@@ -147,8 +147,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val isCollectionObject = column[Boolean]("IS_COLLECTION_OBJECT")
     val museumId           = column[MuseumId]("MUSEUM_ID")
     val status             = column[SampleStatus]("STATUS")
-    val responsible        = column[ActorId]("RESPONSIBLE_ACTOR_ID")
-    val createdDate        = column[DateTime]("CREATED_DATE")
+    val responsible        = column[Option[ActorId]]("RESPONSIBLE_ACTOR_ID")
+    val createdDate        = column[Option[DateTime]]("CREATED_DATE")
     val sampleId           = column[Option[String]]("SAMPLE_ID")
     val externalId         = column[Option[String]]("EXTERNAL_ID")
     val sampleType         = column[Option[String]]("SAMPLE_TYPE")
