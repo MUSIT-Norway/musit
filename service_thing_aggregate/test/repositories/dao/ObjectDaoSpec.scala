@@ -414,7 +414,9 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
           )
           .futureValue
           .successValue
+
         mr.totalMatches mustBe 3
+
         mr.matches match {
           case Vector(first, second, third) =>
             first.id mustBe ObjectId(2)

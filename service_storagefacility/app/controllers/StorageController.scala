@@ -6,6 +6,7 @@ import models.Move.{DelphiMove, MoveNodesCmd, MoveObjectsCmd, ObjectMoveCmd}
 import models.event.move.{MoveNode, MoveObject}
 import models.storage._
 import no.uio.musit.MusitResults._
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, Authenticator}
 import no.uio.musit.security.Permissions._
@@ -431,21 +432,32 @@ final class StorageController @Inject()(
       oid: Long,
       objectType: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.currentObjectLocation(mid, oid).map {
-      case MusitSuccess(optCurrLoc) =>
-        optCurrLoc.map { currLoc =>
-          Ok(Json.toJson(currLoc))
-        }.getOrElse {
-          NotFound(Json.obj("message" -> s"Could not find objectId $oid in museum $mid"))
-        }
+    ObjectType
+      .fromString(objectType)
+      .map { ot =>
+        service.currentObjectLocation(mid, oid, ot).map {
+          case MusitSuccess(optCurrLoc) =>
+            optCurrLoc.map { currLoc =>
+              Ok(Json.toJson(currLoc))
+            }.getOrElse {
+              NotFound(
+                Json.obj("message" -> s"Could not find objectId $oid in museum $mid")
+              )
+            }
 
-      case err: MusitError =>
-        logger.error(
-          "An unexpected error occurred when trying to read " +
-            s" currentLocation for object $oid. Message was: ${err.message}"
+          case err: MusitError =>
+            logger.error(
+              "An unexpected error occurred when trying to read " +
+                s"currentLocation for object $oid. Message was: ${err.message}"
+            )
+            InternalServerError(Json.obj("message" -> err.message))
+        }
+      }
+      .getOrElse {
+        Future.successful(
+          BadRequest(Json.obj("message" -> s"Not a valid object type $objectType"))
         )
-        InternalServerError(Json.obj("message" -> err.message))
-    }
+      }
   }
 
   /**
@@ -454,6 +466,8 @@ final class StorageController @Inject()(
    * @param mid MuseumId
    * @return A JSON response with a list of StorageNodes.
    */
+  // TODO: Need to change input from Seq[ObjectId] to Seq[MovableObject] to support
+  // picklists with different object types.
   def currentObjectLocations(
       mid: Int
   ) = MusitSecureAction(mid, Read).async(parse.json) { implicit request =>
