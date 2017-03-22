@@ -47,5 +47,4 @@ trait ColumnTypeMappers {
       did => did.underlying,
       longId => DatabaseId(longId)
     )
-
 }

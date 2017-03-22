@@ -7,17 +7,19 @@ object ActorJsonGenerator {
   def orgJson(
     id: Option[Long],
     name: String,
-    nickname: String,
     tel: String,
-    web: String
+    web: String,
+    synonyms: Option[Seq[String]],
+    serviceTags: Option[Seq[String]]
   ): JsValue = {
     Json.parse(
       s"""{
           |  "id" : ${id.orNull},
           |  "fn" : "$name",
-          |  "nickname" : "$nickname",
           |  "tel" : "$tel",
-          |  "web" : "$web"
+          |  "web" : "$web",
+          |  "synonyms" :  ["$synonyms"]
+          |  "serviceTags" : ["$serviceTags"]
           |}
       """.stripMargin
     )

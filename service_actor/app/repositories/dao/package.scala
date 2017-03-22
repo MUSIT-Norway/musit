@@ -25,7 +25,7 @@ package object dao {
   val MappingSchemaName = "MUSIT_MAPPING"
 
   val ActorTableName = "ACTOR"
-  val OrgTableName = "ORGANIZATION"
-  val OrgAdrTableName = "ORGANIZATION_ADDRESS"
+  val OrgTableName = "ORGANISATION"
+  val OrgAdrTableName = "ORGANISATION_ADDRESS"
 
 }

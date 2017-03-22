@@ -33,9 +33,10 @@ class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
     val org = Organisation(
       id = Some(OrgId(2)),
       fn = "Kulturhistorisk museum - Universitetet i Oslo",
-      nickname = "KHM",
       tel = "22 85 19 00",
-      web = "www.khm.uio.no"
+      web = "www.khm.uio.no",
+      synonyms = Some(Seq("KHM")),
+      serviceTags = Some(Seq("storage_facility"))
     )
     orgDao.insert(org).futureValue must not be None
   }
@@ -86,9 +87,10 @@ class AddressDaoSpec extends MusitSpecWithAppPerSuite with BeforeAndAfterAll {
         val orgUpd = Organisation(
           id = Some(OrgId(3)),
           fn = "Museet i Bar",
-          nickname = "B",
           tel = "99344321",
-          web = "www.bar.no"
+          web = "www.bar.no",
+          synonyms = Some(Seq("KHM")),
+          serviceTags = Some(Seq("storage_facility"))
         )
         val orgAddrUpd = OrganisationAddress(
           id = Some(DatabaseId(3)),

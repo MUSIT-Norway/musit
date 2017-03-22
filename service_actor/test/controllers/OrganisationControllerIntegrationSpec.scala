@@ -78,14 +78,17 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "successfully create organization" in {
-      val reqBody = orgJson(None, "Foo Bar", "FB", "12345678", "http://www.foo.bar")
+      val reqBody = orgJson(None, "Foo Bar", "12345678", "http://www.foo.bar",
+        Some(Seq("FooCode")),
+        Some(Seq("storage_facility")))
       val res = postOrganization(reqBody).futureValue
       res.status mustBe Status.CREATED
 
       (res.json \ "fn").as[String] mustBe "Foo Bar"
-      (res.json \ "nickname").as[String] mustBe "FB"
       (res.json \ "tel").as[String] mustBe "12345678"
       (res.json \ "web").as[String] mustBe "http://www.foo.bar"
+     // (res.json \ "synonyms").as[String] mustBe "FooCode"
+     // (res.json \ "serviceTags").as[String] mustBe "storage_facility"
     }
 
     "not create organization with illegal input" in {
@@ -94,7 +97,9 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "successfully update organization" in {
-      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com") // scalastyle:ignore
+      val addJson = orgJson(None, "Foo Barcode", "22334455",
+        "http://www.foo.barcode.com", Some(Seq("FooCode")),
+        Some(Seq("storage_facility"))) // scalastyle:ignore
       val res1 = postOrganization(addJson).futureValue
       res1.status mustBe Status.CREATED
 
@@ -102,9 +107,10 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       val updJson = Json.obj(
         "id" -> id1,
         "fn" -> "Foo Barcode 123",
-        "nickname" -> "FB 123",
         "tel" -> "12345123",
-        "web" -> "http://www.foo123.bar"
+        "web" -> "http://www.foo123.bar",
+        "synonyms" -> "FooCode",
+        "serviceTags" -> "storage_facility"
       )
 
       val res2 = putOrganization(id1, updJson).futureValue
@@ -119,13 +125,14 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
 
       (res3.json \ "id").as[Int] mustBe id1
       (res3.json \ "fn").as[String] mustBe "Foo Barcode 123"
-      (res3.json \ "nickname").as[String] mustBe "FB 123"
       (res3.json \ "tel").as[String] mustBe "12345123"
       (res3.json \ "web").as[String] mustBe "http://www.foo123.bar"
     }
 
     "not update organization with illegal input" in {
-      val addJson = orgJson(None, "Foo Barcode", "FB", "22334455", "http://www.foo.barcode.com") // scalastyle:ignore
+      val addJson = orgJson(None, "Foo Barcode", "22334455", "http://www.foo.barcode.com",
+        Some(Seq("FooCode")),
+        Some(Seq("storage_facility"))) // scalastyle:ignore
       val res1 = postOrganization(addJson).futureValue
       res1.status mustBe Status.CREATED
       val id = (res1.json \ "id").as[Long]
@@ -140,7 +147,9 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "successfully delete organization" in {
-      val crJson = orgJson(None, "Foo Barcode999", "FB", "22334499", "http://www.foo.barcode999.com") // scalastyle:ignore
+      val crJson = orgJson(None, "Foo Barcode999", "22334499",
+        "http://www.foo.barcode999.com", Some(Seq("FooCode")),
+        Some(Seq("storage_facility"))) // scalastyle:ignore
       val res1 = postOrganization(crJson).futureValue
       res1.status mustBe Status.CREATED
       val id = (res1.json \ "id").as[Long]

@@ -2,7 +2,7 @@ package models
 
 import no.uio.musit.service.{BindableOf, Indices}
 
-case class OrgSearch (searchMap: Map[String, String], searchStrings: List[String])
+case class OrgSearch(searchMap: Map[String, String], searchStrings: List[String])
 
 object OrgSearch {
 

@@ -40,14 +40,14 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         val expected = Organisation(
           id = Some(oid),
           fn = "Kulturhistorisk museum - Universitetet i Oslo",
-          nickname = "KHM",
           tel = "22 85 19 00",
-          web = "www.khm.uio.no"
+          web = "www.khm.uio.no",
+          synonyms = Some(Seq("KHM")),
+          serviceTags = Some(Seq("storage_facility"))
         )
         val res = orgDao.getById(oid).futureValue
         expected.id mustBe res.get.id
         expected.fn mustBe res.get.fn
-        expected.nickname mustBe res.get.nickname
         expected.tel mustBe res.get.tel
         expected.web mustBe res.get.web
       }
@@ -59,6 +59,12 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
       "return empty list if the search string is not found" in {
         orgDao.getByName("Andlkjlkj").futureValue mustBe empty
       }
+
+      "return list if the serviceTags is storage_facility" in {
+        val res = orgDao.getByNameAndTags("kulturhis", "storage_facility").futureValue
+        res.size must be > 0
+        res.size mustBe 8
+      }
     }
 
     "modifying organization" should {
@@ -67,9 +73,10 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         val org = Organisation(
           id = None,
           fn = "Testmuseet i Bergen",
-          nickname = "TM",
           tel = "99887766",
-          "www.tmib.no"
+          web = "www.tmib.no",
+          synonyms = Some(Seq("UM")),
+          serviceTags = Some(Seq("storage_facility"))
         )
         val res = orgDao.insert(org).futureValue
         res.fn mustBe "Testmuseet i Bergen"
@@ -80,9 +87,10 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         val org1 = Organisation(
           id = None,
           fn = "Museet i Foobar",
-          nickname = "FB",
           tel = "12344321",
-          web = "www.foob.no"
+          web = "www.foob.no",
+          synonyms = Some(Seq("Foo")),
+          serviceTags = Some(Seq("storage_facility"))
         )
         val res1 = orgDao.insert(org1).futureValue
         res1.fn mustBe "Museet i Foobar"
@@ -91,15 +99,15 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         val orgUpd = Organisation(
           id = Some(OrgId(3)),
           fn = "Museet i Bar",
-          nickname = "B",
           tel = "99344321",
-          web = "www.bar.no"
+          web = "www.bar.no",
+          synonyms = Some(Seq("MusBar")),
+          serviceTags = Some(Seq("storage_facility"))
         )
 
         val resInt = orgDao.update(orgUpd).futureValue
         val res = orgDao.getById(OrgId(3)).futureValue
         res.get.fn mustBe "Museet i Bar"
-        res.get.nickname mustBe "B"
         res.get.tel mustBe "99344321"
         res.get.web mustBe "www.bar.no"
       }
@@ -108,9 +116,10 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         val orgUpd = Organisation(
           id = Some(OrgId(999991)),
           fn = "Museet i Bar99",
-          nickname = "B",
           tel = "99344321",
-          web = "www.bar.no"
+          web = "www.bar.no",
+          synonyms = Some(Seq("MusBar99", "MusBar")),
+          serviceTags = Some(Seq("storage_facility"))
         )
         val res = orgDao.update(orgUpd).futureValue
         res.isSuccess mustBe true
