@@ -530,7 +530,7 @@ class StorageNodeService @Inject()(
     val nodeIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get)
 
     val res = for {
-      affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
+      affectedNodes <- MusitResultT(unitDao.getNodesByDatabaseIds(mid, nodeIds))
       currLoc = affectedNodes.map(n => (n.id.get, n.isPartOf)).toMap
       moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
                 case (to, curr, events) =>
@@ -700,7 +700,7 @@ class StorageNodeService @Inject()(
         val nodeIds = objNodeMap.values.flatten.toSeq.distinct
 
         val res = for {
-          nodes  <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
+          nodes  <- MusitResultT(unitDao.getNodesByDatabaseIds(mid, nodeIds))
           objLoc <- MusitResultT(findObjectLocations(objNodeMap, nodes))
         } yield objLoc
         res.value

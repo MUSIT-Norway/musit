@@ -43,30 +43,35 @@ trait NodeService {
    */
   private[services] def saveEnvReq(
       mid: MuseumId,
-      nodeId: StorageNodeId,
+      nodeId: StorageNodeDatabaseId,
       envReq: EnvironmentRequirement
   )(implicit currUsr: AuthenticatedUser): Future[Option[EnvironmentRequirement]] = {
-    unitDao.getById(mid, nodeId).flatMap { mayBeNode =>
-      mayBeNode.map { _ =>
-        val now = dateTimeNow
-        val er  = EnvRequirement.toEnvRequirementEvent(currUsr.id, nodeId, now, envReq)
+    unitDao.getByDatabaseId(mid, nodeId).flatMap {
+      case MusitSuccess(maybeNode) =>
+        maybeNode.map { node =>
+          val nid = node.nodeId.get // Safe because it's always set from DB
+          val now = dateTimeNow
+          val er  = EnvRequirement.toEnvRequirementEvent(currUsr.id, nid, now, envReq)
 
-        envReqService.add(mid, er).map {
-          case MusitSuccess(success) =>
-            logger.debug(
-              "Successfully wrote environment requirement data " +
-                s"for node $nodeId"
-            )
-            Some(EnvRequirement.fromEnvRequirementEvent(er))
+          envReqService.add(mid, er).map {
+            case MusitSuccess(success) =>
+              logger.debug(
+                "Successfully wrote environment requirement data " +
+                  s"for node $nodeId"
+              )
+              Some(EnvRequirement.fromEnvRequirementEvent(er))
 
-          case err: MusitError =>
-            logger.error(
-              "Something went wrong while storing the environment " +
-                s"requirements for node $nodeId"
-            )
-            None
-        }
-      }.getOrElse(Future.successful(None))
+            case err: MusitError =>
+              logger.error(
+                "Something went wrong while storing the environment " +
+                  s"requirements for node $nodeId"
+              )
+              None
+          }
+        }.getOrElse(Future.successful(None))
+
+      case _ =>
+        Future.successful(None)
     }
   }
 
@@ -261,7 +266,7 @@ trait NodeService {
 
     def saveEnvReqForNode(
         node: T,
-        nodeId: StorageNodeId
+        nodeId: StorageNodeDatabaseId
     ): Future[MusitResult[Option[EnvironmentRequirement]]] =
       node.environmentRequirement
         .map(er => saveEnvReq(mid, nodeId, er))
@@ -276,13 +281,8 @@ trait NodeService {
       _ <- MusitResultT(
             updateWithPath(nodeDbId, mPath.getOrElse(EmptyPath).appendChild(nodeDbId))
           )
+      _       <- MusitResultT(saveEnvReqForNode(node, nodeDbId))
       theNode <- MusitResultT(getNode(mid, nodeDbId))
-      nodeId <- MusitResultT.successful(
-                 theNode
-                   .flatMap(_.nodeId.map(MusitSuccess.apply))
-                   .getOrElse(MusitValidationError("Node did not contain UUID"))
-               )
-      _ <- MusitResultT(saveEnvReqForNode(node, nodeId))
     } yield {
       logger.debug(
         s"Successfully added node ${node.name} of type" +

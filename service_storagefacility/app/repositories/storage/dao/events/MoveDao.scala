@@ -28,6 +28,7 @@ class MoveDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    *
    * @param mid       the MuseumId associated with the event
    * @param moveEvent the MoveEvent to save
+   * @tparam A the type of MoveEvent to save
    * @return the EventId given the event
    */
   def insert[A <: MoveEvent](
@@ -38,6 +39,26 @@ class MoveDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       case mn: MoveNode   => insertEvent[MoveNode](mid, mn)(asRow[MoveNode])
       case mo: MoveObject => insertEvent[MoveObject](mid, mo)(asRow[MoveObject])
     }
+
+  /**
+   * Add several move events in one transactional batch.
+   *
+   * @param mid the MuseumId associated with the event
+   * @param moveEvents the MoveEvents to save
+   * @tparam A the type of MoveEvents to save
+   * @return the EventIds given to the saved events
+   */
+  def batchInsert[A <: MoveEvent](
+      mid: MuseumId,
+      moveEvents: Seq[A]
+  ): Future[MusitResult[Seq[EventId]]] = {
+    insertBatch(mid, moveEvents) { (mid, row) =>
+      row match {
+        case mo: MoveObject => asRow[MoveObject](mid, mo)
+        case mn: MoveNode   => asRow[MoveNode](mid, mn)
+      }
+    }
+  }
 
   /**
    * Find the MoveEvent with the given EventId

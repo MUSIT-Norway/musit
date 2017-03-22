@@ -171,7 +171,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    * @param ids
    * @return
    */
-  def getNodesByIds(
+  def getNodesByDatabaseIds(
       mid: MuseumId,
       ids: Seq[StorageNodeDatabaseId]
   ): Future[MusitResult[Seq[GenericStorageNode]]] = {
@@ -179,6 +179,28 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       sn.museumId === mid &&
       sn.isDeleted === false &&
       (sn.id inSet ids)
+    }.result
+
+    db.run(query)
+      .map(_.map(StorageNodeDto.toGenericStorageNode))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) => {
+          val msg = s"Unable to get nodes by id for museumId $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+        }
+      }
+  }
+
+  def getNodesByIds(
+      mid: MuseumId,
+      ids: Seq[StorageNodeId]
+  ): Future[MusitResult[Seq[GenericStorageNode]]] = {
+    val query = storageNodeTable.filter { sn =>
+      sn.museumId === mid &&
+      sn.isDeleted === false &&
+      (sn.uuid inSet ids)
     }.result
 
     db.run(query)

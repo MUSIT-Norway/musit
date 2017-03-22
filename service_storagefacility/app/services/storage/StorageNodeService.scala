@@ -1,13 +1,17 @@
 package services.storage
 
 import com.google.inject.Inject
+import models.storage.event.move.{MoveEvent, MoveNode}
 import models.storage.nodes._
-import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.storage.dao.events.MoveDao
 import repositories.storage.dao.nodes.{
   BuildingDao,
   OrganisationDao,
@@ -16,12 +20,14 @@ import repositories.storage.dao.nodes.{
 }
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 class StorageNodeService @Inject()(
     val unitDao: StorageUnitDao,
     val roomDao: RoomDao,
     val buildingDao: BuildingDao,
     val orgDao: OrganisationDao,
+    val moveDao: MoveDao,
     val envReqService: EnvironmentRequirementService
 ) extends NodeService {
 
@@ -389,5 +395,84 @@ class StorageNodeService @Inject()(
       case None =>
         Future.successful(MusitSuccess(None))
     }
+  }
+
+  /**
+   * Helper to encapsulate shared logic between the public move methods.
+   */
+  private def persistMoveEvents[ID <: MusitId, E <: MoveEvent](
+      mid: MuseumId,
+      events: Seq[E]
+  )(
+      f: Seq[EventId] => MusitResult[Seq[ID]]
+  ): Future[MusitResult[Seq[ID]]] = {
+    moveDao.batchInsert(mid, events).map(ids => f(ids)).recover {
+      case NonFatal(ex) =>
+        val msg = "An exception occurred registering a batch move with ids: " +
+          s" ${events.map(_.id.getOrElse("<empty>")).mkString(", ")}"
+        logger.error(msg, ex)
+        MusitInternalError(msg)
+    }
+  }
+
+  private def moveBatchNodes(
+      mid: MuseumId,
+      affectedNodes: Seq[GenericStorageNode],
+      to: GenericStorageNode,
+      curr: CurrLocType[StorageNodeDatabaseId],
+      events: Seq[MoveNode]
+  ): Future[MusitResult[Seq[StorageNodeDatabaseId]]] = {
+    logger.debug(s"Destination node is ${to.id} with path ${to.path}")
+    logger.debug(s"Filtering away invalid placement of nodes in ${to.id}.")
+    // Filter away nodes that didn't pass first round of validation
+    val nodesToMove =
+      affectedNodes.filter(n => events.exists(_.affectedThing.contains(n.nodeId.get)))
+    // Filter away nodes with invalid positions and process the ones remaining
+    filterInvalidPosition(mid, to.path, nodesToMove).flatMap { validNodes =>
+      if (validNodes.nonEmpty) {
+        logger.debug(s"Will move ${validNodes.size} to ${to.id}.")
+        // Remove events for which moving the node was identified as invalid.
+        val validEvents = events.filter(e => validNodes.exists(_.id == e.affectedThing))
+
+        for {
+          // Update the NodePath and partOf for all nodes to be moved.
+          resLocUpd <- unitDao.batchUpdateLocation(validNodes, to)
+          if resLocUpd.isSuccess
+          // If the above update succeeded, we store the move events.
+          mvRes <- persistMoveEvents(mid, validEvents)(
+                    _ => MusitSuccess(validNodes.flatMap(_.id))
+                  ) // scalastyle:ignore
+        } yield {
+          logger.debug(s"Successfully moved ${validNodes.size} nodes to ${to.id}")
+          mvRes
+        }
+      } else {
+        Future.successful {
+          MusitValidationError("No valid commands were found. No nodes were moved.")
+        }
+      }
+    }
+  }
+
+  def moveNodes(
+      mid: MuseumId,
+      destination: StorageNodeDatabaseId,
+      moveEvents: Seq[MoveNode]
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): Future[MusitResult[Seq[StorageNodeDatabaseId]]] = {
+    // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
+    val nodeIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get)
+
+    val res = for {
+      affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
+      currLoc = affectedNodes.map(n => (n.id.get, n.isPartOf)).toMap
+      moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
+                case (to, curr, events) =>
+                  moveBatchNodes(mid, affectedNodes, to, curr, events)
+              })
+    } yield moved
+
+    res.value
   }
 }

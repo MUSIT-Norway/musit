@@ -85,7 +85,24 @@ trait EventActions { self: EventTables =>
   )(implicit ec: ExecutionContext): Future[MusitResult[EventId]] = {
     val row = convertToRow(mid, e)
 
-    db.run(insertAction(row)).map(MusitSuccess.apply).recover {
+    db.run(insertAction(row).transactionally).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = ""
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  protected def insertBatch[A <: MusitEvent](
+      mid: MuseumId,
+      e: Seq[A]
+  )(
+      convertToRow: (MuseumId, A) => EventRow
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[EventId]]] = {
+    val rows    = e.map(r => convertToRow(mid, r))
+    val actions = DBIO.sequence(rows.map(r => insertAction(r)))
+
+    db.run(actions.transactionally).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = ""
         logger.error(msg, ex)
