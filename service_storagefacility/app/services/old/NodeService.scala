@@ -46,7 +46,7 @@ trait NodeService {
       nodeId: StorageNodeDatabaseId,
       envReq: EnvironmentRequirement
   )(implicit currUsr: AuthenticatedUser): Future[Option[EnvironmentRequirement]] = {
-    unitDao.getById(mid, nodeId).flatMap { mayBeNode =>
+    unitDao.getByDatabaseId(mid, nodeId).flatMap { mayBeNode =>
       mayBeNode.map { _ =>
         val now = dateTimeNow
         val er  = EnvRequirement.toEnvRequirementEvent(currUsr.id, nodeId, now, envReq)

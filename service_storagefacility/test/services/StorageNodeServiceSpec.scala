@@ -117,7 +117,8 @@ class StorageNodeServiceSpec
       inserted.updatedBy.value mustBe defaultUserId
       inserted.updatedDate.value.year().get() mustBe DateTime.now().year().get()
 
-      val res = storageUnitDao.getById(defaultMuseumId, inserted.id.get).futureValue
+      val res =
+        storageUnitDao.getByDatabaseId(defaultMuseumId, inserted.id.get).futureValue
 
       res.successValue.value.storageType mustBe su.storageType
       res.successValue.value.name mustBe su.name

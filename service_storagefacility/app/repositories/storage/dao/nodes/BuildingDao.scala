@@ -60,7 +60,7 @@ class BuildingDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Building]]] = {
     val action = for {
-      maybeUnitDto     <- getNonRootByIdAction(mid, id)
+      maybeUnitDto     <- getNonRootByDatabaseIdAction(mid, id)
       maybeBuildingDto <- buildingTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type

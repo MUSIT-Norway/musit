@@ -43,7 +43,7 @@ trait NodeService {
    */
   private[services] def saveEnvReq(
       mid: MuseumId,
-      nodeId: StorageNodeDatabaseId,
+      nodeId: StorageNodeId,
       envReq: EnvironmentRequirement
   )(implicit currUsr: AuthenticatedUser): Future[Option[EnvironmentRequirement]] = {
     unitDao.getById(mid, nodeId).flatMap { mayBeNode =>
@@ -261,7 +261,7 @@ trait NodeService {
 
     def saveEnvReqForNode(
         node: T,
-        nodeId: StorageNodeDatabaseId
+        nodeId: StorageNodeId
     ): Future[MusitResult[Option[EnvironmentRequirement]]] =
       node.environmentRequirement
         .map(er => saveEnvReq(mid, nodeId, er))
@@ -276,8 +276,8 @@ trait NodeService {
       _ <- MusitResultT(
             updateWithPath(nodeId, mPath.getOrElse(EmptyPath).appendChild(nodeId))
           )
-      _       <- MusitResultT(saveEnvReqForNode(node, nodeId))
       theNode <- MusitResultT(getNode(mid, nodeId))
+      _       <- MusitResultT(saveEnvReqForNode(node, theNode))
     } yield {
       logger.debug(
         s"Successfully added node ${node.name} of type" +
@@ -305,7 +305,7 @@ trait NodeService {
 
   private[services] def getEnvReq(
       mid: MuseumId,
-      id: StorageNodeDatabaseId
+      id: StorageNodeId
   ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
     envReqService.findLatestForNodeId(mid, id).recover {
       case NonFatal(ex) =>

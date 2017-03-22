@@ -80,7 +80,7 @@ class StorageUnitDaoSpec
       val insId = storageUnitDao.insert(mid, su).futureValue
       insId.successValue mustBe a[StorageNodeDatabaseId]
 
-      val res = storageUnitDao.getById(mid, insId.get).futureValue
+      val res = storageUnitDao.getByDatabaseId(mid, insId.get).futureValue
 
       res.successValue.value.storageType mustBe su.storageType
       res.successValue.value.name mustBe su.name
@@ -92,7 +92,7 @@ class StorageUnitDaoSpec
       val insId = storageUnitDao.insert(mid, su).futureValue
       insId.successValue mustBe a[StorageNodeDatabaseId]
 
-      val res = storageUnitDao.getById(mid, insId.get).futureValue
+      val res = storageUnitDao.getByDatabaseId(mid, insId.get).futureValue
 
       res.successValue.value.storageType mustBe su.storageType
       res.successValue.value.name mustBe su.name
@@ -103,7 +103,7 @@ class StorageUnitDaoSpec
         storageUnitDao.update(mid, res.successValue.value.id.get, upd).futureValue
       updRes.successValue.value mustBe 1
 
-      val again = storageUnitDao.getById(mid, insId.get).futureValue
+      val again = storageUnitDao.getByDatabaseId(mid, insId.get).futureValue
       again.successValue.value.name mustBe "UggaBugga"
       again.successValue.value.areaTo mustBe Some(4.0)
     }
@@ -143,7 +143,7 @@ class StorageUnitDaoSpec
 
       deleted.successValue mustBe 1
 
-      val res = storageUnitDao.getById(defaultMuseumId, insId.get).futureValue
+      val res = storageUnitDao.getByDatabaseId(defaultMuseumId, insId.get).futureValue
       res.successValue mustBe None
     }
 
@@ -181,7 +181,7 @@ class StorageUnitDaoSpec
       insId.successValue mustBe a[StorageNodeDatabaseId]
 
       val wrongMid = MuseumId(4)
-      val res      = storageUnitDao.getById(mid, insId.get).futureValue
+      val res      = storageUnitDao.getByDatabaseId(mid, insId.get).futureValue
 
       res.successValue.value.storageType mustBe su.storageType
       res.successValue.value.name mustBe su.name
@@ -193,7 +193,7 @@ class StorageUnitDaoSpec
       val insId = storageUnitDao.insert(mid, su).futureValue
       insId.successValue mustBe a[StorageNodeDatabaseId]
 
-      val res = storageUnitDao.getById(mid, insId.get).futureValue
+      val res = storageUnitDao.getByDatabaseId(mid, insId.get).futureValue
 
       res.successValue.value.storageType mustBe su.storageType
       res.successValue.value.name must include("FooUnit")
@@ -207,7 +207,7 @@ class StorageUnitDaoSpec
         storageUnitDao.update(anotherMid, res.successValue.value.id.get, upd).futureValue
       updRes.successValue mustBe None
 
-      val again = storageUnitDao.getById(mid, insId.get).futureValue
+      val again = storageUnitDao.getByDatabaseId(mid, insId.get).futureValue
 
       again.successValue.value.name mustBe "FooUnit"
       again.successValue.value.areaTo mustBe Some(2.0)
@@ -224,7 +224,8 @@ class StorageUnitDaoSpec
         .futureValue // scalastyle:ignore
       deleted.isFailure mustBe true
 
-      val res = storageUnitDao.getById(defaultMuseumId, insId.successValue).futureValue
+      val res =
+        storageUnitDao.getByDatabaseId(defaultMuseumId, insId.successValue).futureValue
       res.successValue.value.id mustBe Some(insId.get)
     }
 

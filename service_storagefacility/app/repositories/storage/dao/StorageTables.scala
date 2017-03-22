@@ -57,7 +57,7 @@ private[dao] trait StorageTables
    *
    * Only returns non-root nodes
    */
-  protected[dao] def getNonRootByIdAction(
+  protected[dao] def getNonRootByDatabaseIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
@@ -69,12 +69,33 @@ private[dao] trait StorageTables
     }.result.headOption
   }
 
-  protected[dao] def getNodeByIdAction(
+  protected[dao] def getNonRootByIdAction(
+      mid: MuseumId,
+      id: StorageNodeId
+  ): DBIO[Option[StorageUnitDto]] = {
+    storageNodeTable.filter { sn =>
+      sn.museumId === mid &&
+      sn.uuid === id &&
+      sn.isDeleted === false &&
+      sn.storageType =!= rootNodeType
+    }.result.headOption
+  }
+
+  protected[dao] def getNodeByDatabaseIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid && sn.id === id && sn.isDeleted === false
+    }.result.headOption
+  }
+
+  protected[dao] def getNodeByIdAction(
+      mid: MuseumId,
+      id: StorageNodeId
+  ): DBIO[Option[StorageUnitDto]] = {
+    storageNodeTable.filter { sn =>
+      sn.museumId === mid && sn.uuid === id && sn.isDeleted === false
     }.result.headOption
   }
 

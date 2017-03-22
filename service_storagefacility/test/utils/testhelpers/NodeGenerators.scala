@@ -110,7 +110,7 @@ trait NodeGenerators extends NodeTypeInitializers { self: MusitSpecWithApp =>
     createAndFetchNode(
       createStorageUnit(path = NodePath(",123,")),
       storageUnitDao.insert,
-      storageUnitDao.getById
+      storageUnitDao.getByDatabaseId
     )
   }
 

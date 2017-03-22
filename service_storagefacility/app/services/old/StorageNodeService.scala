@@ -284,7 +284,7 @@ class StorageNodeService @Inject()(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageUnit]]] = {
-    val eventuallyUnit = unitDao.getById(mid, id)
+    val eventuallyUnit = unitDao.getByDatabaseId(mid, id)
     nodeById(mid, id, eventuallyUnit) { (n, maybeReq, maybeNames) =>
       n.copy(
         environmentRequirement = maybeReq,
@@ -444,7 +444,7 @@ class StorageNodeService @Inject()(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Int]]] = {
-    unitDao.getById(mid, id).map(_.getOrElse(None)).flatMap {
+    unitDao.getByDatabaseId(mid, id).map(_.getOrElse(None)).flatMap {
       case Some(node) =>
         isEmpty(node).flatMap { empty =>
           if (empty) {

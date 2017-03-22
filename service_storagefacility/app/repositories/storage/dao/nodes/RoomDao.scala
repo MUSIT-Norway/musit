@@ -54,7 +54,7 @@ class RoomDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Room]]] = {
     val action = for {
-      maybeUnitDto <- getNonRootByIdAction(mid, id)
+      maybeUnitDto <- getNonRootByDatabaseIdAction(mid, id)
       maybeRoomDto <- roomTable.filter(_.id === id).result.headOption
     } yield {
       maybeUnitDto.flatMap(u => maybeRoomDto.map(r => ExtendedStorageNode(u, r)))

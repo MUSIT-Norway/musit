@@ -114,9 +114,24 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   /**
    * TODO: Document me!!!
    */
-  def getById(
+  def getByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
+  ): Future[MusitResult[Option[StorageUnit]]] = {
+    val query = getNonRootByDatabaseIdAction(mid, id)
+    db.run(query)
+      .map(res => MusitSuccess(res.map(StorageNodeDto.toStorageUnit)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get storage unit with museimId $mid"
+          logger.warn(msg, ex)
+          MusitDbError(msg, Some(ex))
+      }
+  }
+
+  def getById(
+      mid: MuseumId,
+      id: StorageNodeId
   ): Future[MusitResult[Option[StorageUnit]]] = {
     val query = getNonRootByIdAction(mid, id)
     db.run(query)
@@ -136,7 +151,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[GenericStorageNode]]] = {
-    val query = getNodeByIdAction(mid, id)
+    val query = getNodeByDatabaseIdAction(mid, id)
     db.run(query)
       .map(_.map(StorageNodeDto.toGenericStorageNode))
       .map(MusitSuccess.apply)

@@ -59,7 +59,7 @@ class OrganisationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[Organisation]]] = {
     val action = for {
-      maybeUnitDto <- getNonRootByIdAction(mid, id)
+      maybeUnitDto <- getNonRootByDatabaseIdAction(mid, id)
       maybeOrgDto  <- organisationTable.filter(_.id === id).result.headOption
     } yield {
       // Map the results into an ExtendedStorageNode type
