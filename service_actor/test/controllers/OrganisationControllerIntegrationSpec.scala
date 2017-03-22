@@ -95,8 +95,8 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       (res.json \ "fn").as[String] mustBe "Foo Bar"
       (res.json \ "tel").as[String] mustBe "12345678"
       (res.json \ "web").as[String] mustBe "http://www.foo.bar"
-      // (res.json \ "synonyms").as[String] mustBe "FooCode"
-      // (res.json \ "serviceTags").as[String] mustBe "storage_facility"
+      (res.json \ "synonyms").as[Seq[String]] mustBe Seq("FooCode")
+      (res.json \ "serviceTags").as[Seq[String]] mustBe Seq("storage_facility")
     }
 
     "not create organization with illegal input" in {
@@ -122,13 +122,13 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         "fn"          -> "Foo Barcode 123",
         "tel"         -> "12345123",
         "web"         -> "http://www.foo123.bar",
-        "synonyms"    -> "FooCode",
-        "serviceTags" -> "storage_facility"
+        "synonyms"    -> Seq("FooCode"),
+        "serviceTags" -> Seq("storage_facility")
       )
 
       val res2 = putOrganization(id1, updJson).futureValue
       res2.status mustBe Status.OK
-      (res2.json \ "message").as[String] mustBe "Record was updated!"
+      (res2.json \ "message").as[String] mustBe "1 records were updated!"
 
       val res3       = getOrganization(id1).futureValue
       val updOrgJson = res3.json.as[JsObject]
@@ -140,6 +140,8 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       (res3.json \ "fn").as[String] mustBe "Foo Barcode 123"
       (res3.json \ "tel").as[String] mustBe "12345123"
       (res3.json \ "web").as[String] mustBe "http://www.foo123.bar"
+      (res3.json \ "synonyms").as[Seq[String]] mustBe Seq("FooCode")
+      (res3.json \ "serviceTags").as[Seq[String]] mustBe Seq("storage_facility")
     }
 
     "not update organization with illegal input" in {

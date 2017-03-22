@@ -40,7 +40,7 @@ class AddressDao @Inject()(
   private val orgAdrTable = TableQuery[OrganisationAddressTable]
 
   def allFor(id: OrgId): Future[Seq[OrganisationAddress]] = {
-    db.run(orgAdrTable.filter(_.organizationId === id).result)
+    db.run(orgAdrTable.filter(_.organisationId === id).result)
   }
 
   def getById(id: DatabaseId): Future[Option[OrganisationAddress]] = {
@@ -74,7 +74,7 @@ class AddressDao @Inject()(
   ) extends Table[OrganisationAddress](tag, Some(SchemaName), OrgAdrTableName) {
 
     val id             = column[Option[DatabaseId]]("ORGADDRESSID", O.PrimaryKey, O.AutoInc)
-    val organizationId = column[Option[OrgId]]("ORG_ID")
+    val organisationId = column[Option[OrgId]]("ORG_ID")
     val addressType    = column[String]("ADDRESS_TYPE")
     val streetAddress  = column[String]("STREET_ADDRESS")
     val locality       = column[String]("LOCALITY")
@@ -85,7 +85,7 @@ class AddressDao @Inject()(
 
     val create = (
         id: Option[DatabaseId],
-        organizationId: Option[OrgId],
+        organisationId: Option[OrgId],
         addressType: String,
         streetAddress: String,
         locality: String,
@@ -96,7 +96,7 @@ class AddressDao @Inject()(
     ) =>
       OrganisationAddress(
         id = id,
-        organizationId = organizationId,
+        organisationId = organisationId,
         addressType = addressType,
         streetAddress = streetAddress,
         locality = locality,
@@ -110,7 +110,7 @@ class AddressDao @Inject()(
       Some(
         (
           addr.id,
-          addr.organizationId,
+          addr.organisationId,
           addr.addressType,
           addr.streetAddress,
           addr.locality,
@@ -125,7 +125,7 @@ class AddressDao @Inject()(
     def * =
       (
         id,
-        organizationId,
+        organisationId,
         addressType,
         streetAddress,
         locality,

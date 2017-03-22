@@ -1,6 +1,6 @@
 package utils.testdata
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsString, JsValue, Json}
 
 object ActorJsonGenerator {
 
@@ -12,17 +12,17 @@ object ActorJsonGenerator {
       synonyms: Option[Seq[String]],
       serviceTags: Option[Seq[String]]
   ): JsValue = {
-    Json.parse(
-      s"""{
-          |  "id" : ${id.orNull},
-          |  "fn" : "$name",
-          |  "tel" : "$tel",
-          |  "web" : "$web",
-          |  "synonyms" :  ["$synonyms"]
-          |  "serviceTags" : ["$serviceTags"]
-          |}
-      """.stripMargin
+    val js1 = Json.obj(
+      "fn"  -> name,
+      "tel" -> tel,
+      "web" -> web
     )
+
+    // format: off
+    val js2 = id.map(i => js1 ++ Json.obj("id" -> i)).getOrElse(js1)
+    val js3 = synonyms.map(s => js2 ++ Json.obj("synonyms" -> s)).getOrElse(js2)
+    serviceTags.map(s => js3 ++ Json.obj("serviceTags" -> s)).getOrElse(js3)
+    // format: on
   }
 
   def orgIllegalJson: JsValue = {

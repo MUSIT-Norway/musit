@@ -31,7 +31,7 @@ case class WordList(underlying: Seq[String]) {
 object WordList {
 
   def fromDbString(str: String): WordList = {
-    val words = str.stripPrefix("|").stripSuffix("|").split("|")
+    val words = str.stripPrefix("|").stripSuffix("|").split("\\|")
     WordList(words)
   }
 
