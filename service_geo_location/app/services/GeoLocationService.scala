@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import models.{Address, GeoNorwayAddress}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-import no.uio.musit.ws.ViaProxy
+import no.uio.musit.ws.ViaProxy.viaProxy
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
@@ -14,8 +14,7 @@ import scala.concurrent.Future
 
 case class GeoLocationConfig(url: String, hitsPerResult: Int)
 
-class GeoLocationService @Inject()(ws: WSClient)(implicit config: Configuration)
-    extends ViaProxy {
+class GeoLocationService @Inject()(ws: WSClient)(implicit config: Configuration) {
 
   val logger = Logger(classOf[GeoLocationService])
 
@@ -25,7 +24,7 @@ class GeoLocationService @Inject()(ws: WSClient)(implicit config: Configuration)
   def searchGeoNorway(expr: String): Future[Seq[Address]] = {
 
     ws.url(geoLocationConfig.url)
-      .viaProxy()
+      .viaProxy
       .withQueryString(
         "sokestreng" -> expr,
         "antPerSide" -> s"${geoLocationConfig.hitsPerResult}"

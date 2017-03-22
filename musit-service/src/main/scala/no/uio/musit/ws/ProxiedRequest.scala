@@ -14,7 +14,7 @@ class ProxiedRequest(req: WSRequest, config: Configuration) {
   } yield
     DefaultWSProxyServer(host = host, port = port, principal = user, password = password)
 
-  implicit def viaProxy(): WSRequest = proxy.map(req.withProxyServer).getOrElse(req)
+  def viaProxy: WSRequest = proxy.map(req.withProxyServer).getOrElse(req)
 
 }
 
@@ -33,3 +33,5 @@ trait ViaProxy {
     new ProxiedRequest(req, config)
 
 }
+
+object ViaProxy extends ViaProxy

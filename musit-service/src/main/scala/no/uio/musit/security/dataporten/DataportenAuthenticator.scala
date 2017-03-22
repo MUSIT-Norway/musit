@@ -13,7 +13,7 @@ import no.uio.musit.security._
 import no.uio.musit.security.dataporten.DataportenAuthenticator._
 import no.uio.musit.security.oauth2.{OAuth2Constants, OAuth2Info}
 import no.uio.musit.time.dateTimeNow
-import no.uio.musit.ws.ViaProxy
+import no.uio.musit.ws.ViaProxy.viaProxy
 import play.api.http.Status
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
@@ -46,8 +46,7 @@ class DataportenAuthenticator @Inject()(
     ws: WSClient
 )(implicit conf: Configuration)
     extends Authenticator
-    with OAuth2Constants
-    with ViaProxy {
+    with OAuth2Constants {
 
   private val logger = Logger(classOf[DataportenAuthenticator])
 
@@ -390,7 +389,7 @@ class DataportenAuthenticator @Inject()(
     )
 
     ws.url(config.accessTokenURL)
-      .viaProxy()
+      .viaProxy
       .post(params)
       .map(
         _.json.validate[OAuth2Info] match {
@@ -474,7 +473,7 @@ class DataportenAuthenticator @Inject()(
   private def userInfoDataporten(
       token: DataportenToken
   ): Future[MusitResult[UserInfo]] = {
-    ws.url(config.userApiURL).viaProxy().withHeaders(token.asHeader).get().map {
+    ws.url(config.userApiURL).viaProxy.withHeaders(token.asHeader).get().map {
       response =>
         validateWSResponse(response) { res =>
           // The user info part of the message is always under the "user" key.
