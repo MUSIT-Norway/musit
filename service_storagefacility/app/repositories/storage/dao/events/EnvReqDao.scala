@@ -80,11 +80,13 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvRequirement]]] = {
     val query = for {
-      eid <- storageEventTable.filter { e =>
-              e.eventTypeId === EnvRequirementEventType.id &&
-              e.affectedUuid === nodeId
-            }.map(_.eventId).max.result
-      me <- storageEventTable.filter(_.eventId === eid).result.headOption
+      maybeEid <- storageEventTable.filter { e =>
+                   e.eventTypeId === EnvRequirementEventType.id &&
+                   e.affectedUuid === nodeId.asString
+                 }.map(_.eventId).max.result
+      me <- maybeEid
+             .map(eid => storageEventTable.filter(_.eventId === eid).result.headOption)
+             .getOrElse(DBIO.successful[Option[EventRow]](None))
     } yield me.flatMap(fromRow[EnvRequirement])
 
     db.run(query).map(MusitSuccess.apply).recover {

@@ -272,12 +272,17 @@ trait NodeService {
       mPath <- MusitResultT(findPath(mid, node.isPartOf))
       _     <- MusitResultT(validatePosition(mid, node, mPath.getOrElse(EmptyPath)))
       // Call the insert function to persist the node if the path is valid.
-      nodeId <- MusitResultT(insert(mid, node))
+      nodeDbId <- MusitResultT(insert(mid, node))
       _ <- MusitResultT(
-            updateWithPath(nodeId, mPath.getOrElse(EmptyPath).appendChild(nodeId))
+            updateWithPath(nodeDbId, mPath.getOrElse(EmptyPath).appendChild(nodeDbId))
           )
-      theNode <- MusitResultT(getNode(mid, nodeId))
-      _       <- MusitResultT(saveEnvReqForNode(node, theNode))
+      theNode <- MusitResultT(getNode(mid, nodeDbId))
+      nodeId <- MusitResultT.successful(
+                 theNode
+                   .flatMap(_.nodeId.map(MusitSuccess.apply))
+                   .getOrElse(MusitValidationError("Node did not contain UUID"))
+               )
+      _ <- MusitResultT(saveEnvReqForNode(node, nodeId))
     } yield {
       logger.debug(
         s"Successfully added node ${node.name} of type" +
@@ -323,21 +328,23 @@ trait NodeService {
    * Helper function that applies the common logic for fetching a storage node.
    *
    * @param mid
-   * @param id
    * @param eventuallyMaybeNode
    * @param cp
    * @tparam A
    * @return
    */
-  private[services] def nodeById[A <: StorageNode](
+  private[services] def getNode[A <: StorageNode](
       mid: MuseumId,
-      id: StorageNodeDatabaseId,
       eventuallyMaybeNode: Future[MusitResult[Option[A]]]
   )(cp: CopyNode[A]): Future[MusitResult[Option[A]]] = {
-    val eventuallyMaybeEnvReq = getEnvReq(mid, id)
     (for {
-      maybeNode   <- MusitResultT(eventuallyMaybeNode)
-      maybeEnvReq <- MusitResultT(eventuallyMaybeEnvReq)
+      maybeNode <- MusitResultT(eventuallyMaybeNode)
+      nodeId <- MusitResultT.successful(
+                 maybeNode
+                   .flatMap(_.nodeId.map(MusitSuccess.apply))
+                   .getOrElse(MusitValidationError("Node did not contain UUID"))
+               )
+      maybeEnvReq <- MusitResultT(getEnvReq(mid, nodeId))
       namedPathElems <- MusitResultT(maybeNode.map { node =>
                          unitDao.namesForPath(node.path)
                        }.getOrElse(Future.successful(MusitSuccess(Seq.empty))))

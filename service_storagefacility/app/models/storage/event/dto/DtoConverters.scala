@@ -24,12 +24,10 @@ import models.storage.event.EventTypeRegistry.ObsSubEvents._
 import models.storage.event.EventTypeRegistry._
 import models.storage.event._
 import models.storage.event.old.control.ControlSubEvents._
-import models.storage.event.control._
 import models.storage.event.dto.EventRoleActor._
 import models.storage.event.dto.EventRoleObject._
 import models.storage.event.dto.EventRolePlace._
 import models.storage.event.old.observation.ObservationSubEvents._
-import models.storage.event.observation._
 import models.storage.event.old.control.Control
 import models.storage.event.old.envreq.EnvRequirement
 import models.storage.event.old.move.{MoveEvent, MoveNode, MoveObject}

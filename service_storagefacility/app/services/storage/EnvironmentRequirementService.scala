@@ -7,6 +7,7 @@ import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.events.EnvReqDao
 
 import scala.concurrent.Future

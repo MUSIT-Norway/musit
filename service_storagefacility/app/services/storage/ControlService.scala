@@ -3,11 +3,13 @@ package services.storage
 import com.google.inject.Inject
 import models.storage.event.control.Control
 import no.uio.musit.MusitResults._
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.events.ControlDao
 
 import scala.concurrent.Future

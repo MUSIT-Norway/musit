@@ -56,7 +56,18 @@ object MonadTransformers {
 
   object MusitResultT {
 
-    def successful[A](res: MusitResult[A]): MusitResultT[Future, A] = {
+    /**
+     * Returns a MusitResultT[Future, A] where the Future is successfully
+     * evaluated with the given MusitResult[A] argument.
+     *
+     * @param res the MusitResult to wrap
+     * @param m an implicitly provided Monad[Future]
+     * @tparam A the type we want to access inside the transformer functions
+     * @return {{{MusitResultT[Future, A]}}}
+     */
+    def successful[A](
+        res: MusitResult[A]
+    )(implicit m: Monad[Future]): MusitResultT[Future, A] = {
       MusitResultT(Future.successful(res))
     }
 
