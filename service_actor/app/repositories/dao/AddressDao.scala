@@ -43,8 +43,10 @@ class AddressDao @Inject()(
     db.run(orgAdrTable.filter(_.organisationId === id).result)
   }
 
-  def getById(id: DatabaseId): Future[Option[OrganisationAddress]] = {
-    db.run(orgAdrTable.filter(_.id === id).result.headOption)
+  def getById(orgId: OrgId, id: DatabaseId): Future[Option[OrganisationAddress]] = {
+    db.run(orgAdrTable.filter { a =>
+      a.id === id && a.organisationId === orgId
+    }.result.headOption)
   }
 
   def insert(address: OrganisationAddress): Future[OrganisationAddress] = {

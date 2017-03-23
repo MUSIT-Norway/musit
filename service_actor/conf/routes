@@ -16,14 +16,14 @@ GET           /v1/person/:id                             controllers.PersonContr
 ## Organization routes, the new actor
 GET           /v1/organisation                           controllers.OrganisationController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
 POST          /v1/organisation                           controllers.OrganisationController.add
-PUT           /v1/organisation/:orgId                    controllers.OrganisationController.update(orgId: Long)
 GET           /v1/organisation/:orgId                    controllers.OrganisationController.get(orgId: Long)
+PUT           /v1/organisation/:orgId                    controllers.OrganisationController.update(orgId: Long)
 DELETE        /v1/organisation/:orgId                    controllers.OrganisationController.delete(orgId: Long)
 
 ## OrganizationAddress routes, the new actor
 GET           /v1/organisation/:orgId/address            controllers.OrganisationAddressController.listForOrg(orgId: Long)
 POST          /v1/organisation/:orgId/address            controllers.OrganisationAddressController.add(orgId: Long)
-PUT           /v1/organisation/:orgId/address/:id        controllers.OrganisationAddressController.update(orgId: Long, id: Long)
 GET           /v1/organisation/:orgId/address/:id        controllers.OrganisationAddressController.get(orgId: Long, id: Long)
+PUT           /v1/organisation/:orgId/address/:id        controllers.OrganisationAddressController.update(orgId: Long, id: Long)
 DELETE        /v1/organisation/:orgId/address/:id        controllers.OrganisationAddressController.delete(orgId: Long, id: Long)
 

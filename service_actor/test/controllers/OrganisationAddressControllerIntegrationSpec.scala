@@ -43,6 +43,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
+
       res.status mustBe Status.OK
       val addr = res.json
       (addr \ "id").as[Int] mustBe 1
@@ -80,7 +81,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
 
     "update address" in {
       val reqBody = orgAddressJson.as[JsObject] ++ Json.obj(
-        "id"             -> 2,
+        "id"             -> 20,
         "organisationId" -> 1,
         "streetAddress"  -> "Foo street 3",
         "locality"       -> "Bar place",
@@ -90,7 +91,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
         "longitude"      -> 12
       )
 
-      val res = wsUrl("/v1/organisation/1/address/2")
+      val res = wsUrl("/v1/organisation/1/address/20")
         .withHeaders(fakeToken.asHeader)
         .put(reqBody)
         .futureValue
@@ -127,7 +128,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
     }
 
     "delete address" in {
-      val res = wsUrl("/v1/organisation/1/address/2")
+      val res = wsUrl("/v1/organisation/1/address/20")
         .withHeaders(fakeToken.asHeader)
         .delete()
         .futureValue

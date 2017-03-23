@@ -110,7 +110,7 @@ class AddressDaoSpec
 
         val resInt = adrDao.update(orgAddrUpd).futureValue
         resInt.successValue mustBe Some(1)
-        val res = adrDao.getById(DatabaseId(22)).futureValue
+        val res = adrDao.getById(OrgId(1), DatabaseId(22)).futureValue
         res.value.id mustBe Some(DatabaseId(22))
         res.value.organisationId mustBe Some(OrgId(1))
         res.value.addressType mustBe "WORK3"
@@ -178,7 +178,7 @@ class AddressDaoSpec
     "deleting organisation addresses" should {
       "succeed when deleting organisation address" in {
         adrDao.delete(DatabaseId(22)).futureValue mustBe 1
-        adrDao.getById(DatabaseId(22)).futureValue mustBe None
+        adrDao.getById(OrgId(1), DatabaseId(22)).futureValue mustBe None
       }
 
       "not be able to delete organisation address with invalid id" in {
