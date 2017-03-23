@@ -1,27 +1,31 @@
 @media only screen {
   html, body {
     /* Printer label dimensions */
-    background: rgb(204,204,204);
+    background: rgb(204, 204, 204);
     margin: 0;
     padding: 0;
     border-collapse: collapse;
+    height: 25mm;
+    width: 52mm;
+    page-break-after: avoid;
   }
 
   .labelsContainer {
     display: block;
     background: white;
-    height: 26mm;
+    height: 25mm;
     width: 52mm;
     margin: 10px;
     padding: 0;
     page-break-after: always;
-    box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+    box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
   }
 }
+
 @page {
   /* Printer label dimensions */
   background: white;
-  size: 52mm 26mm;
+  size: 52mm 25mm;
   margin: 0;
   padding: 0;
   border-collapse: collapse;
@@ -35,8 +39,9 @@
     padding: 0;
     border-collapse: collapse;
   }
+
   .labelsContainer {
-    height: 26mm;
+    height: 25mm;
     width: 52mm;
     margin: 0;
     padding: 0;
@@ -52,8 +57,9 @@
 .label {
   /* 52x26mm labels without padding on paper */
   width: 52mm;
-  height: 26mm;
-  padding: 0;
+  height: 25mm;
+
+  padding: 0 2mm 0 0; /* right */
   margin: 0;
 
   float: left;
@@ -62,19 +68,23 @@
   overflow: hidden;
 
   background-color: white;
-  outline: 1px dotted;
 }
 
 .top {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  height: 30mm;
+  height: 20mm;
 }
 
 .codeImage {
   -ms-flex-item-align: start;
   align-self: flex-start;
+}
+
+.codeImage img {
+  height: 20mm;
+  width: 20mm;
 }
 
 .name {
@@ -83,7 +93,8 @@
   align-self: center;
   margin-right: 5px;
   height: auto;
-  max-height: 25mm;
+  max-height: 20mm;
+  font-size: 3mm;
   overflow: hidden;
 }
 
