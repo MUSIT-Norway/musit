@@ -125,9 +125,12 @@ trait NodeService {
    * @return a Future[Boolean] that is true if node is empty, else false
    */
   private[services] def isEmpty(node: StorageNode): Future[Boolean] = {
-    node.id.map { nodeId =>
-      val eventuallyTotal = MusitResultT(unitDao.numObjectsInNode(nodeId))
-      val eventuallyNode  = MusitResultT(unitDao.numChildren(nodeId))
+    val n = for {
+      dbid <- node.id
+      nid  <- node.nodeId
+    } yield {
+      val eventuallyNode  = MusitResultT(unitDao.numChildren(dbid))
+      val eventuallyTotal = MusitResultT(unitDao.numObjectsInNode(nid))
 
       val emptyNode = for {
         total     <- eventuallyTotal
@@ -135,8 +138,9 @@ trait NodeService {
       } yield (total + nodeCount) == 0
 
       emptyNode.value.map(_.toOption.getOrElse(false))
+    }
 
-    }.getOrElse(Future.successful(false))
+    n.getOrElse(Future.successful(false))
   }
 
   private[this] def validateMoveLocation[T <: StorageNode](
@@ -357,7 +361,7 @@ trait NodeService {
     }).value
   }
 
-  private def filterAndEnrich[ID <: MusitId, E <: MoveEvent](
+  private def filterAndEnrich[ID <: MusitUUID, E <: MoveEvent](
       current: CurrLocType[ID],
       ids: Vector[ID],
       moveEvents: Seq[E]
@@ -380,7 +384,7 @@ trait NodeService {
     }
   }
 
-  private[services] def moveBatch[ID <: MusitId, E <: MoveEvent](
+  private[services] def moveBatch[ID <: MusitUUID, E <: MoveEvent](
       mid: MuseumId,
       destination: StorageNodeId,
       affected: Seq[ID],
@@ -404,7 +408,7 @@ trait NodeService {
     }
 
     val eventuallyEvents = for {
-      maybeTo <- MusitResultT(unitDao.getNodeByDatabaseId(mid, destination))
+      maybeTo <- MusitResultT(unitDao.getNodeById(mid, destination))
       to <- MusitResultT(
              Future.successful(
                MusitResult.getOrError(

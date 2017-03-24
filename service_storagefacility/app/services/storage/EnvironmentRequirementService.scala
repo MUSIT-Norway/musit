@@ -3,7 +3,12 @@ package services.storage
 import com.google.inject.Inject
 import models.storage.event.envreq.EnvRequirement
 import models.storage.nodes.EnvironmentRequirement
-import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitInternalError,
+  MusitResult,
+  MusitSuccess
+}
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -88,6 +93,9 @@ class EnvironmentRequirementService @Inject()(
                 }
               }
             }
+
+          case err: MusitError =>
+            Future.successful(err)
         }
       }
     }

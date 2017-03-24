@@ -120,9 +120,12 @@ trait NodeService {
    * @return a Future[Boolean] that is true if node is empty, else false
    */
   private[services] def isEmpty(node: StorageNode): Future[Boolean] = {
-    node.id.map { nodeId =>
-      val eventuallyTotal = MusitResultT(unitDao.numObjectsInNode(nodeId))
-      val eventuallyNode  = MusitResultT(unitDao.numChildren(nodeId))
+    val n = for {
+      dbid <- node.id
+      nid  <- node.nodeId
+    } yield {
+      val eventuallyNode  = MusitResultT(unitDao.numChildren(dbid))
+      val eventuallyTotal = MusitResultT(unitDao.numObjectsInNode(nid))
 
       val emptyNode = for {
         total     <- eventuallyTotal
@@ -130,8 +133,9 @@ trait NodeService {
       } yield (total + nodeCount) == 0
 
       emptyNode.value.map(_.toOption.getOrElse(false))
+    }
 
-    }.getOrElse(Future.successful(false))
+    n.getOrElse(Future.successful(false))
   }
 
   private[this] def validateMoveLocation[T <: StorageNode](

@@ -29,7 +29,6 @@ import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
-import services.ObservationService
 import services.old.{ControlService, ObservationService}
 
 import scala.concurrent.Future

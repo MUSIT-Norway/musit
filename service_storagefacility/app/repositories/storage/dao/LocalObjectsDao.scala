@@ -12,6 +12,7 @@ import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.shared.dao.DbErrorHandlers
 
 import scala.concurrent.Future

@@ -408,7 +408,7 @@ class StorageNodeService @Inject()(
   )(
       f: Seq[EventId] => MusitResult[Seq[ID]]
   ): Future[MusitResult[Seq[ID]]] = {
-    moveDao.batchInsert(mid, events).map(ids => f(ids)).recover {
+    moveDao.batchInsert(mid, events).map(_.flatMap(ids => f(ids))).recover {
       case NonFatal(ex) =>
         val msg = "An exception occurred registering a batch move with ids: " +
           s" ${events.map(_.id.getOrElse("<empty>")).mkString(", ")}"
@@ -421,9 +421,8 @@ class StorageNodeService @Inject()(
       mid: MuseumId,
       affectedNodes: Seq[GenericStorageNode],
       to: GenericStorageNode,
-      curr: CurrLocType[StorageNodeDatabaseId],
       events: Seq[MoveNode]
-  ): Future[MusitResult[Seq[StorageNodeDatabaseId]]] = {
+  ): Future[MusitResult[Seq[StorageNodeId]]] = {
     logger.debug(s"Destination node is ${to.id} with path ${to.path}")
     logger.debug(s"Filtering away invalid placement of nodes in ${to.id}.")
     // Filter away nodes that didn't pass first round of validation
@@ -456,27 +455,30 @@ class StorageNodeService @Inject()(
     }
   }
 
-  def moveNodes(
-      mid: MuseumId,
-      destination: StorageNodeDatabaseId,
-      moveEvents: Seq[MoveNode]
-  )(
-      implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Seq[StorageNodeDatabaseId]]] = {
-    // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
-    val nodeIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get)
-
-    val res = for {
-      affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
-      currLoc = affectedNodes.map(n => (n.nodeId.get, n.isPartOf)).toMap
-      moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
-                case (to, curr, events) =>
-                  moveBatchNodes(mid, affectedNodes, to, curr, events)
-              })
-    } yield moved
-
-    res.value
-  }
+//  def moveNodes(
+//      mid: MuseumId,
+//      destination: StorageNodeId,
+//      moveEvents: Seq[MoveNode]
+//  )(
+//      implicit currUsr: AuthenticatedUser
+//  ): Future[MusitResult[Seq[StorageNodeId]]] = {
+//    // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
+//    val nodeIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get)
+//
+//    val res = for {
+//      affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
+//      // FIXME: n.isPartOf is a StorageNodeDatabaseId, and should be StorageNodeId
+//      currLoc: Map[StorageNodeId, Option[StorageNodeId]] = affectedNodes
+//        .map(n => (n.nodeId.get, /*n.isPartOf)*/ ???))
+//        .toMap
+//      moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
+//                case (to, _, events) =>
+//                  moveBatchNodes(mid, affectedNodes, to, events)
+//              })
+//    } yield moved
+//
+//    res.value
+//  }
 
   /**
    * Moves a batch of objects from their current locations to another node in
@@ -485,14 +487,14 @@ class StorageNodeService @Inject()(
    * the exist or not.
    *
    * @param mid         MuseumId
-   * @param destination StorageNodeDatabaseId to place the objects
+   * @param destination StorageNodeId to place the objects
    * @param moveEvents  A collection of MoveObject events.
    * @param currUsr     the currently authenticated user.
-   * @return A MusitResult with a collection of ObjectIds that were moved.
+   * @return A MusitResult with a collection of ObjectUUIDs that were moved.
    */
   def moveObjects(
       mid: MuseumId,
-      destination: StorageNodeDatabaseId,
+      destination: StorageNodeId,
       moveEvents: Seq[MoveObject]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectUUID]]] = {
     // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.

@@ -92,7 +92,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    * @param nodeId StorageNodeId to count objects for.
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
-  def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
+  def numObjectsInNode(nodeId: StorageNodeId): Future[MusitResult[Int]] = {
     val q = localObjectsTable.filter(_.currentLocationId === nodeId).length
 
     db.run(q.result)
