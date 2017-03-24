@@ -3,27 +3,28 @@
 # ~~~~
 
 # Setup endpoints
-GET           /service/actor/buildinfo                   controllers.Application.buildInfo
-GET           /service/actor/healthcheck                 controllers.HealthCheckController.healthCheck
+GET           /service/actor/buildinfo                controllers.Application.buildInfo
+GET           /service/actor/healthcheck              controllers.HealthCheckController.healthCheck
 
-GET           /v1/dataporten/currentUser                 controllers.UserController.currentUser
+GET           /dataporten/currentUser                 controllers.UserController.currentUser
 
 ## Mapping routes, TODO: Remove these endpoints when database is migrated.
-GET           /v1/person                                 controllers.PersonController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
-POST          /v1/person/details                         controllers.PersonController.details
-GET           /v1/person/:id                             controllers.PersonController.get(id: String)
+GET           /person                                 controllers.PersonController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
+POST          /person/details                         controllers.PersonController.details
+GET           /person/:id                             controllers.PersonController.get(id: String)
 
 ## Organization routes, the new actor
-GET           /v1/organisation                           controllers.OrganisationController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
-POST          /v1/organisation                           controllers.OrganisationController.add
-GET           /v1/organisation/:orgId                    controllers.OrganisationController.get(orgId: Long)
-PUT           /v1/organisation/:orgId                    controllers.OrganisationController.update(orgId: Long)
-DELETE        /v1/organisation/:orgId                    controllers.OrganisationController.delete(orgId: Long)
+GET           /organisation                           controllers.OrganisationController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
+POST          /organisation                           controllers.OrganisationController.add
+GET           /organisation/:orgId                    controllers.OrganisationController.get(orgId: Long)
+PUT           /organisation/:orgId                    controllers.OrganisationController.update(orgId: Long)
+DELETE        /organisation/:orgId                    controllers.OrganisationController.delete(orgId: Long)
 
 ## OrganizationAddress routes, the new actor
-GET           /v1/organisation/:orgId/address            controllers.OrganisationAddressController.listForOrg(orgId: Long)
-POST          /v1/organisation/:orgId/address            controllers.OrganisationAddressController.add(orgId: Long)
-GET           /v1/organisation/:orgId/address/:id        controllers.OrganisationAddressController.get(orgId: Long, id: Long)
-PUT           /v1/organisation/:orgId/address/:id        controllers.OrganisationAddressController.update(orgId: Long, id: Long)
-DELETE        /v1/organisation/:orgId/address/:id        controllers.OrganisationAddressController.delete(orgId: Long, id: Long)
+GET           /organisation/:orgId/address            controllers.OrganisationAddressController.listForOrg(orgId: Long)
+POST          /organisation/:orgId/address            controllers.OrganisationAddressController.add(orgId: Long)
+GET           /organisation/:orgId/address/:id        controllers.OrganisationAddressController.get(orgId: Long, id: Long)
+PUT           /organisation/:orgId/address/:id        controllers.OrganisationAddressController.update(orgId: Long, id: Long)
+DELETE        /organisation/:orgId/address/:id        controllers.OrganisationAddressController.delete(orgId: Long, id: Long)
+
 
