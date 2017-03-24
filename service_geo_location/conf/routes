@@ -3,7 +3,7 @@
 # ~~~~
 
 # Setup endpoints
-GET        /service/geolocation/buildinfo        controllers.Application.buildInfo
-GET        /service/geolocation/healthcheck      controllers.HealthCheckController.healthCheck
+GET        /service/geolocation/buildinfo          controllers.Application.buildInfo
+GET        /service/geolocation/healthcheck        controllers.HealthCheckController.healthCheck
 
-GET        /v1/address                           controllers.GeoLocationController.searchExternal(search: Option[String] ?= None)
+GET        /address                                controllers.GeoLocationController.searchExternal(search: Option[String] ?= None)
