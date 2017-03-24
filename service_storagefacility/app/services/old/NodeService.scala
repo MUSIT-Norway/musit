@@ -397,7 +397,7 @@ trait NodeService {
     }
 
     val eventuallyEvents = for {
-      maybeTo <- MusitResultT(unitDao.getNodeById(mid, destination))
+      maybeTo <- MusitResultT(unitDao.getNodeByDatabaseId(mid, destination))
       to <- MusitResultT(
              Future.successful(
                MusitResult.getOrError(

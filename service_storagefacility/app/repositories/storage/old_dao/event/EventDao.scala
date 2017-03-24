@@ -33,9 +33,8 @@ import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.shared.dao.ColumnTypeMappers
-import repositories.storage.dao.LocalObjectDao
 import repositories.storage.old_dao.event.EventRelationTypes.PartialEventRelation
-import repositories.storage.old_dao.EventTables
+import repositories.storage.old_dao.{EventTables, LocalObjectDao}
 import slick.dbio.Effect.All
 import slick.dbio.SequenceAction
 

@@ -80,6 +80,16 @@ CREATE TABLE MUSARK_STORAGE.NEW_EVENT (
   PRIMARY KEY (event_id)
 );
 
+CREATE TABLE MUSARK_STORAGE.NEW_LOCAL_OBJECT (
+  object_uuid         VARCHAR2(36) NOT NULL,
+  latest_move_id      NUMBER(20) NOT NULL,
+  current_location_id VARCHAR2(36) NOT NULL,
+  museum_id           INTEGER    NOT NULL,
+  object_type         VARCHAR(50) DEFAULT 'collection', -- possible values can be 'collection', or 'sample'
+  PRIMARY KEY (object_uuid),
+  FOREIGN KEY (current_location_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE (storage_node_id)
+);
+
 -- ===========================================================================
 -- Event specific tables.
 --

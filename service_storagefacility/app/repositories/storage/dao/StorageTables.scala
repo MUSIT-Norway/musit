@@ -27,12 +27,13 @@ import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.ColumnTypeMappers
+import repositories.shared.dao.{ColumnTypeMappers, DbErrorHandlers}
 import slick.jdbc.JdbcProfile
 
 private[dao] trait StorageTables
     extends HasDatabaseConfigProvider[JdbcProfile]
-    with ColumnTypeMappers {
+    with ColumnTypeMappers
+    with DbErrorHandlers {
 
   private val logger = Logger(classOf[StorageTables])
 

@@ -1,19 +1,19 @@
 package repositories.storage.dao.events
 
 import models.storage.event.{EventTypeId, EventTypeRegistry, MusitEvent}
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, MusitUUID, ObjectTypes}
 import play.api.Logger
 import play.api.libs.json.{Json, Reads, Writes}
+import repositories.shared.dao.DbErrorHandlers
 import repositories.storage.dao.EventTables
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
 
 /**
  * Common DB actions for all event types.
  */
-trait EventActions { self: EventTables =>
+trait EventActions extends DbErrorHandlers { self: EventTables =>
 
   import profile.api._
 
@@ -85,12 +85,9 @@ trait EventActions { self: EventTables =>
   )(implicit ec: ExecutionContext): Future[MusitResult[EventId]] = {
     val row = convertToRow(mid, e)
 
-    db.run(insertAction(row).transactionally).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = ""
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(insertAction(row).transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An error occurred trying to add event ${e.eventType}"))
   }
 
   protected def insertBatch[A <: MusitEvent](
@@ -102,12 +99,9 @@ trait EventActions { self: EventTables =>
     val rows    = e.map(r => convertToRow(mid, r))
     val actions = DBIO.sequence(rows.map(r => insertAction(r)))
 
-    db.run(actions.transactionally).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = ""
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(actions.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An error occurred trying to add a batch of events"))
   }
 
   protected def findEventById[A <: MusitEvent](
@@ -118,13 +112,7 @@ trait EventActions { self: EventTables =>
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[A]]] = {
     db.run(findByIdAction(mid, id))
       .map(res => MusitSuccess(res.flatMap(convertFromRow)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = ""
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-
-      }
+      .recover(nonFatal(s"An error occurred trying to locate event $id"))
   }
 
   protected def listEvents[A <: MusitEvent, ID <: MusitUUID](
@@ -144,12 +132,11 @@ trait EventActions { self: EventTables =>
         )
         MusitSuccess(res.flatMap(r => convertFromRow(r)))
       }
-      .recover {
-        case NonFatal(ex) =>
-          val msg = ""
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(
+        nonFatal(
+          s"An error occurred trying to locate events of type $eventTypeId for $id"
+        )
+      )
   }
 
 }

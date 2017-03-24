@@ -17,21 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package repositories.storage.dao
+package repositories.storage.old_dao
 
 import com.google.inject.Inject
 import models.storage.event.dto.{EventDto, LocalObject}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
-import play.api.db.slick.DatabaseConfigProvider
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.shared.dao.ColumnTypeMappers
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
+// TODO: Remove me once data is migrated from old to new structure
 class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends SharedTables {
+    extends HasDatabaseConfigProvider[JdbcProfile]
+    with ColumnTypeMappers {
 
   import profile.api._
 
@@ -102,6 +106,57 @@ class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
           MusitDbError("Unable to get current location", Some(ex))
       }
 
+  }
+
+  val localObjectsTable = TableQuery[LocalObjectsTable]
+
+  class LocalObjectsTable(
+      tag: Tag
+  ) extends Table[LocalObject](tag, SchemaName, "LOCAL_OBJECT") {
+    // scalastyle:off method.name
+    def * =
+      (
+        objectId,
+        latestMoveId,
+        currentLocationId,
+        museumId,
+        objectType
+      ) <> (create.tupled, destroy)
+
+    // scalastyle:on method.name
+
+    val objectId          = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
+    val latestMoveId      = column[EventId]("LATEST_MOVE_ID")
+    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
+    val museumId          = column[MuseumId]("MUSEUM_ID")
+    val objectType        = column[Option[String]]("OBJECT_TYPE")
+
+    def create =
+      (
+          objectId: ObjectId,
+          latestMoveId: EventId,
+          currentLocationId: StorageNodeDatabaseId,
+          museumId: MuseumId,
+          objectType: Option[String]
+      ) =>
+        LocalObject(
+          objectId = objectId,
+          latestMoveId = latestMoveId,
+          currentLocationId = currentLocationId,
+          museumId = museumId,
+          objectType = objectType.getOrElse(CollectionObject.name)
+      )
+
+    def destroy(localObject: LocalObject) =
+      Some(
+        (
+          localObject.objectId,
+          localObject.latestMoveId,
+          localObject.currentLocationId,
+          localObject.museumId,
+          Option(localObject.objectType)
+        )
+      )
   }
 
 }

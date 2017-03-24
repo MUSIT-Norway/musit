@@ -30,7 +30,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 @Singleton
 class RoomDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
@@ -59,12 +58,9 @@ class RoomDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     } yield {
       maybeUnitDto.flatMap(u => maybeRoomDto.map(r => ExtendedStorageNode(u, r)))
     }
-    db.run(action).map(res => MusitSuccess(res.map(StorageNodeDto.toRoom))).recover {
-      case NonFatal(ex) =>
-        val msg = s"Unable to get room for museumId $mid and storageId $id"
-        logger.warn(msg, ex)
-        MusitDbError(msg, Some(ex))
-    }
+    db.run(action)
+      .map(res => MusitSuccess(res.map(StorageNodeDto.toRoom)))
+      .recover(nonFatal(s"Unable to get room for museumId $mid and storageId $id"))
 
   }
 
@@ -125,12 +121,9 @@ class RoomDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       inserted  <- insertAction(extWithId)
     } yield nodeId
 
-    db.run(action.transactionally).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = s"Unable to insert room with museumId $mid"
-        logger.warn(msg, ex)
-        MusitDbError(msg, Some(ex))
-    }
+    db.run(action.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"Unable to insert room with museumId $mid"))
   }
 
 }

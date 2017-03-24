@@ -3,7 +3,7 @@ package repositories.storage.dao.events
 import com.google.inject.{Inject, Singleton}
 import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import models.storage.event.envreq.EnvRequirement
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -11,7 +11,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.EventTables
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 @Singleton
 class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
@@ -71,7 +70,7 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   /**
    * Tries to find the latest EnvRequirement event for the given nodeId.
    *
-   * @param mid the MuseumId associated with the nodeId and EnvRequirement
+   * @param mid    the MuseumId associated with the nodeId and EnvRequirement
    * @param nodeId the nodeId to find EnvRequirement for
    * @return the EnvRequirement that might be found
    */
@@ -89,12 +88,9 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
              .getOrElse(DBIO.successful[Option[EventRow]](None))
     } yield me.flatMap(fromRow[EnvRequirement])
 
-    db.run(query).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = ""
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(query)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"Unable to get latest EnvRequirement for $nodeId"))
   }
 
 }

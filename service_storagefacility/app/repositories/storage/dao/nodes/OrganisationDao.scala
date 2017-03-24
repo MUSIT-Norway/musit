@@ -30,7 +30,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 /**
  * TODO: Document me!!!
@@ -68,12 +67,9 @@ class OrganisationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     // Execute the query
     db.run(action)
       .map(res => MusitSuccess(res.map(StorageNodeDto.toOrganisation)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Unable to get organisation for museumId $mid and storage node $id"
-          logger.warn(msg, ex)
-          MusitDbError(msg, Some(ex))
-      }
+      .recover(
+        nonFatal(s"Unable to get organisation for museumId $mid and storage node $id")
+      )
   }
 
   /**
@@ -137,12 +133,9 @@ class OrganisationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       nodeId
     }
 
-    db.run(query.transactionally).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = s"Unable to insert organisation for museumId $mid"
-        logger.warn(msg, ex)
-        MusitDbError(msg, Some(ex))
-    }
+    db.run(query.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"Unable to insert organisation for museumId $mid"))
   }
 
 }

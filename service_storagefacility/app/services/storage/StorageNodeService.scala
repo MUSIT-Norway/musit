@@ -1,7 +1,7 @@
 package services.storage
 
 import com.google.inject.Inject
-import models.storage.event.move.{MoveEvent, MoveNode}
+import models.storage.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage.nodes._
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -11,6 +11,7 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.storage.dao.LocalObjectsDao
 import repositories.storage.dao.events.MoveDao
 import repositories.storage.dao.nodes.{
   BuildingDao,
@@ -28,6 +29,7 @@ class StorageNodeService @Inject()(
     val buildingDao: BuildingDao,
     val orgDao: OrganisationDao,
     val moveDao: MoveDao,
+    val locObjDao: LocalObjectsDao,
     val envReqService: EnvironmentRequirementService
 ) extends NodeService {
 
@@ -400,7 +402,7 @@ class StorageNodeService @Inject()(
   /**
    * Helper to encapsulate shared logic between the public move methods.
    */
-  private def persistMoveEvents[ID <: MusitId, E <: MoveEvent](
+  private def persistMoveEvents[ID <: MusitUUID, E <: MoveEvent](
       mid: MuseumId,
       events: Seq[E]
   )(
@@ -440,7 +442,7 @@ class StorageNodeService @Inject()(
           if resLocUpd.isSuccess
           // If the above update succeeded, we store the move events.
           mvRes <- persistMoveEvents(mid, validEvents)(
-                    _ => MusitSuccess(validNodes.flatMap(_.id))
+                    _ => MusitSuccess(validNodes.flatMap(_.nodeId))
                   ) // scalastyle:ignore
         } yield {
           logger.debug(s"Successfully moved ${validNodes.size} nodes to ${to.id}")
@@ -466,12 +468,58 @@ class StorageNodeService @Inject()(
 
     val res = for {
       affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
-      currLoc = affectedNodes.map(n => (n.id.get, n.isPartOf)).toMap
+      currLoc = affectedNodes.map(n => (n.nodeId.get, n.isPartOf)).toMap
       moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
                 case (to, curr, events) =>
                   moveBatchNodes(mid, affectedNodes, to, curr, events)
               })
     } yield moved
+
+    res.value
+  }
+
+  /**
+   * Moves a batch of objects from their current locations to another node in
+   * the storage facility. Note that there are no integrity checks here. The
+   * objects are assumed to exist, and will be placed in the node regardless if
+   * the exist or not.
+   *
+   * @param mid         MuseumId
+   * @param destination StorageNodeDatabaseId to place the objects
+   * @param moveEvents  A collection of MoveObject events.
+   * @param currUsr     the currently authenticated user.
+   * @return A MusitResult with a collection of ObjectIds that were moved.
+   */
+  def moveObjects(
+      mid: MuseumId,
+      destination: StorageNodeDatabaseId,
+      moveEvents: Seq[MoveObject]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectUUID]]] = {
+    // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
+    val objIdsAndTypes = moveEvents
+      .filter(_.affectedThing.nonEmpty)
+      .map(a => a.affectedThing.get -> a.objectType)
+      .toMap
+
+    val objIds            = objIdsAndTypes.keys.toSeq
+    val eventuallyCurrLoc = locObjDao.currentLocations(objIds)
+
+    // format: off
+    val res = for {
+      currLoc <- MusitResultT(eventuallyCurrLoc)
+      movedObjects <- MusitResultT(
+        moveBatch(mid, destination, objIds, currLoc, moveEvents) {
+          case (_, _, events) =>
+            persistMoveEvents(mid, events) { eventIds =>
+              // Again the get on affectedThing is safe since we're guaranteed its
+              // presence at this point.
+              MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
+            }
+        }
+      )
+
+    } yield movedObjects
+    // format: on
 
     res.value
   }

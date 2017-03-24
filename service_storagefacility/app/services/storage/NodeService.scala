@@ -34,7 +34,7 @@ trait NodeService {
   type NodeUpdateIO[A] = (StorageNodeDatabaseId, NodePath) => Future[MusitResult[Unit]]
   type GetNodeIO[A] = (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
   type CopyNode[A <: StorageNode] = (A, Option[EnvironmentRequirement], Option[Seq[NamedPathElement]]) => A
-  type CurrLocType[ID] = Map[ID, Option[StorageNodeDatabaseId]]
+  type CurrLocType[ID] = Map[ID, Option[StorageNodeId]]
   // format: on
   // scalastyle:on line.size.limit
 
@@ -382,7 +382,7 @@ trait NodeService {
 
   private[services] def moveBatch[ID <: MusitId, E <: MoveEvent](
       mid: MuseumId,
-      destination: StorageNodeDatabaseId,
+      destination: StorageNodeId,
       affected: Seq[ID],
       current: CurrLocType[ID],
       moveEvents: Seq[E]
@@ -404,7 +404,7 @@ trait NodeService {
     }
 
     val eventuallyEvents = for {
-      maybeTo <- MusitResultT(unitDao.getNodeById(mid, destination))
+      maybeTo <- MusitResultT(unitDao.getNodeByDatabaseId(mid, destination))
       to <- MusitResultT(
              Future.successful(
                MusitResult.getOrError(

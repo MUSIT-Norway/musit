@@ -22,14 +22,13 @@ package repositories.storage.dao.nodes
 import com.google.inject.Inject
 import models.storage.nodes.StorageType
 import models.storage.nodes.StorageType.RoomType
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.MuseumId
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     extends StorageTables {
@@ -43,10 +42,9 @@ class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       sn.storageType === roomType && sn.museumId === mid && sn.isDeleted === false
     }.map(_.area)
 
-    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
-      case NonFatal(e) =>
-        MusitDbError("Error occurred while retrieving objects", Some(e))
-    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover(nonFatal("Error occurred while retrieving objects"))
   }
 
   def getAreaPerimeterSecurity(mid: MuseumId): Future[MusitResult[Double]] = {
@@ -56,10 +54,9 @@ class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     } yield {
       sn.area
     }
-    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
-      case NonFatal(e) =>
-        MusitDbError("Error occurred while retrieving areaPerimeterSecurity", Some(e))
-    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover(nonFatal("Error occurred while retrieving areaPerimeterSecurity"))
   }
 
   def getAreaTheftProtection(mid: MuseumId): Future[MusitResult[Double]] = {
@@ -69,10 +66,9 @@ class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     } yield {
       sn.area
     }
-    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
-      case NonFatal(e) =>
-        MusitDbError("Error occurred while retrieving AreaTheftProtection", Some(e))
-    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover(nonFatal("Error occurred while retrieving AreaTheftProtection"))
   }
 
   def getAreaFireProtectiony(mid: MuseumId): Future[MusitResult[Double]] = {
@@ -82,10 +78,9 @@ class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     } yield {
       sn.area
     }
-    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
-      case NonFatal(e) =>
-        MusitDbError("Error occurred while retrieving AreaFireProtection", Some(e))
-    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover(nonFatal("Error occurred while retrieving AreaFireProtection"))
   }
 
   def getAreaWaterDamageAssessment(mid: MuseumId): Future[MusitResult[Double]] = {
@@ -96,13 +91,9 @@ class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       sn.area
     }
     val action = query.sum.result
-    db.run(action).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
-      case NonFatal(e) =>
-        MusitDbError(
-          message = "Error occurred while retrieving areaWaterDamageAssessment",
-          ex = Some(e)
-        )
-    }
+    db.run(action)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover(nonFatal("Error occurred while retrieving areaWaterDamageAssessment"))
   }
 
   def getAreaRoutinesAndContingencyPlan(mid: MuseumId): Future[MusitResult[Double]] = {
@@ -112,13 +103,11 @@ class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     } yield {
       sn.area
     }
-    db.run(query.sum.result).map(res => MusitSuccess(res.getOrElse(0.0))).recover {
-      case NonFatal(e) =>
-        MusitDbError(
-          message = "Error occurred while retrieving AreaRoutinesAndContingencyPlan",
-          ex = Some(e)
-        )
-    }
+    db.run(query.sum.result)
+      .map(res => MusitSuccess(res.getOrElse(0.0)))
+      .recover(
+        nonFatal("Error occurred while retrieving AreaRoutinesAndContingencyPlan")
+      )
   }
 
 }

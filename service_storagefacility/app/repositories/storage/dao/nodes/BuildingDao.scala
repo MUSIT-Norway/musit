@@ -30,7 +30,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 /**
  * TODO: Document me!!!
@@ -67,12 +66,9 @@ class BuildingDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       maybeUnitDto.flatMap(u => maybeBuildingDto.map(b => ExtendedStorageNode(u, b)))
     }
     // Execute the query
-    db.run(action).map(res => MusitSuccess(res.map(StorageNodeDto.toBuilding))).recover {
-      case NonFatal(ex) =>
-        val msg = s"Unable to query by id museumID $mid and storageNodeId $id"
-        logger.warn(msg)
-        MusitDbError(msg, Some(ex))
-    }
+    db.run(action)
+      .map(res => MusitSuccess(res.map(StorageNodeDto.toBuilding)))
+      .recover(nonFatal(s"Unable to query by id museumID $mid and storageNodeId $id"))
   }
 
   /**
@@ -102,13 +98,7 @@ class BuildingDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
           MusitDbError(msg)
 
       }
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"There was an error updating building $id"
-          logger.debug(s"Using $id, building has ID ${building.id}")
-          logger.error(msg, ex)
-          MusitDbError(msg, Some(ex))
-      }
+      .recover(nonFatal(s"There was an error updating building $id"))
   }
 
   /**
@@ -146,12 +136,9 @@ class BuildingDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       nodeId
     }
 
-    db.run(query.transactionally).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = s"Unable to insert building with museumId $mid"
-        logger.warn(msg, ex)
-        MusitDbError(msg, Some(ex))
-    }
+    db.run(query.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"Unable to insert building with museumId $mid"))
   }
 
 }
