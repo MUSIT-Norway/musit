@@ -21,7 +21,7 @@ package utils
 
 package object testhelpers {
 
-  val BaseUrl            = "/v1/museum"
+  val BaseUrl            = "/museum"
   val StorageNodesUrl    = (mid: Int) => s"$BaseUrl/$mid/storagenodes"
   val RootNodeUrl        = (mid: Int) => s"$BaseUrl/$mid/storagenodes/root"
   val StorageNodeUrl     = (mid: Int, node: Long) => s"$BaseUrl/$mid/storagenodes/$node"
