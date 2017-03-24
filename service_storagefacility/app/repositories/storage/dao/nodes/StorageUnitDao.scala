@@ -148,6 +148,25 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       .recover(nonFatal(s"Unable to get nodes by id for museumId $mid"))
   }
 
+  def getParentsForNodes(
+      mid: MuseumId,
+      ids: Seq[StorageNodeId]
+  ): Future[MusitResult[Map[StorageNodeId, Option[StorageNodeId]]]] = {
+    val query = for {
+      (child, parent) <- storageNodeTable joinLeft storageNodeTable on { (c, p) =>
+                          c.museumId === mid && (c.uuid inSet ids) && c.isPartOf === p.id
+                        }
+    } yield {
+      // It's safe to do a get on child.uuid here, because it wouldn't have been
+      // found if it wasn't set. Besides it's _really_ a required column.
+      child.uuid.get -> parent.flatMap(_.uuid)
+    }
+
+    db.run(query.result)
+      .map(res => MusitSuccess(res.toMap))
+      .recover(nonFatal("Unexpected error occurred fetching parent nodes."))
+  }
+
   /**
    * Fetches the node data for provided database ids
    *

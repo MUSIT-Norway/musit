@@ -19,7 +19,6 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   area_to           NUMBER,
   is_storage_unit   VARCHAR(1)   DEFAULT '1',
   is_part_of        NUMBER(20),
-  parent_node       VARCHAR2(36), -- The UUID of the parent node
   height            NUMBER,
   height_to         NUMBER,
   node_path         VARCHAR(1000)            NOT NULL,

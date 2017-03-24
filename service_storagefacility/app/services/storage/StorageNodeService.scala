@@ -440,9 +440,9 @@ class StorageNodeService @Inject()(
           resLocUpd <- unitDao.batchUpdateLocation(validNodes, to)
           if resLocUpd.isSuccess
           // If the above update succeeded, we store the move events.
-          mvRes <- persistMoveEvents(mid, validEvents)(
-                    _ => MusitSuccess(validNodes.flatMap(_.nodeId))
-                  ) // scalastyle:ignore
+          mvRes <- persistMoveEvents(mid, validEvents) { _ =>
+                    MusitSuccess(validNodes.flatMap(_.nodeId))
+                  }
         } yield {
           logger.debug(s"Successfully moved ${validNodes.size} nodes to ${to.id}")
           mvRes
@@ -455,30 +455,31 @@ class StorageNodeService @Inject()(
     }
   }
 
-//  def moveNodes(
-//      mid: MuseumId,
-//      destination: StorageNodeId,
-//      moveEvents: Seq[MoveNode]
-//  )(
-//      implicit currUsr: AuthenticatedUser
-//  ): Future[MusitResult[Seq[StorageNodeId]]] = {
-//    // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
-//    val nodeIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get)
-//
-//    val res = for {
-//      affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
-//      // FIXME: n.isPartOf is a StorageNodeDatabaseId, and should be StorageNodeId
-//      currLoc: Map[StorageNodeId, Option[StorageNodeId]] = affectedNodes
-//        .map(n => (n.nodeId.get, /*n.isPartOf)*/ ???))
-//        .toMap
-//      moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
-//                case (to, _, events) =>
-//                  moveBatchNodes(mid, affectedNodes, to, events)
-//              })
-//    } yield moved
-//
-//    res.value
-//  }
+  def moveNodes(
+      mid: MuseumId,
+      destination: StorageNodeId,
+      moveEvents: Seq[MoveNode]
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): Future[MusitResult[Seq[StorageNodeId]]] = {
+    // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
+    val nodeIds = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get)
+
+    val res = for {
+      affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
+      withParents <- MusitResultT(
+                      unitDao.getParentsForNodes(mid, affectedNodes.map(_.nodeId.get))
+                    )
+      moved <- MusitResultT(
+                moveBatch(mid, destination, nodeIds, withParents, moveEvents) {
+                  case (to, _, events) =>
+                    moveBatchNodes(mid, affectedNodes, to, events)
+                }
+              )
+    } yield moved
+
+    res.value
+  }
 
   /**
    * Moves a batch of objects from their current locations to another node in

@@ -17,13 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package services.old
 
 import models.report.KdReport
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
-import services.old.{KdReportService, StorageNodeService}
 import utils.testhelpers.NodeGenerators
 
 class KdReportServiceSpec

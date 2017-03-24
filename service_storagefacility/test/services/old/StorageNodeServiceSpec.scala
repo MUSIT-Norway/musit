@@ -17,22 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package services
+package services.old
 
-import no.uio.musit.models.ObjectTypes.CollectionObject
-import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
-import models.storage.Move_Old.MoveNodesCmd
 import models.storage.Interval
+import models.storage.Move_Old.MoveNodesCmd
 import models.storage.event.EventType
+import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import models.storage.event.old.move.{MoveNode, MoveObject}
 import models.storage.nodes.StorageUnit
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import org.joda.time.DateTime
-import services.old.StorageNodeService
 import utils.testhelpers.NodeGenerators
 
 class StorageNodeServiceSpec
