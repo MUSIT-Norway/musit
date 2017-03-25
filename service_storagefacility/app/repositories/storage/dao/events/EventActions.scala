@@ -105,7 +105,12 @@ trait EventActions extends DbErrorHandlers { self: EventTables =>
 
     db.run(actions.transactionally)
       .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An error occurred trying to add a batch of events"))
+      .recover(
+        nonFatal(
+          "An exception occurred registering a batch move with ids: " +
+            s" ${e.map(_.id.getOrElse("<empty>")).mkString(", ")}"
+        )
+      )
   }
 
   protected def findEventById[A <: MusitEvent](

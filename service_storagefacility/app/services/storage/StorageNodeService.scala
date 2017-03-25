@@ -23,7 +23,6 @@ import repositories.storage.dao.nodes.{
 }
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 class StorageNodeService @Inject()(
     val unitDao: StorageUnitDao,
@@ -424,13 +423,7 @@ class StorageNodeService @Inject()(
   )(
       f: Seq[EventId] => MusitResult[Seq[ID]]
   ): Future[MusitResult[Seq[ID]]] = {
-    moveDao.batchInsert(mid, events).map(_.flatMap(ids => f(ids))).recover {
-      case NonFatal(ex) =>
-        val msg = "An exception occurred registering a batch move with ids: " +
-          s" ${events.map(_.id.getOrElse("<empty>")).mkString(", ")}"
-        logger.error(msg, ex)
-        MusitInternalError(msg)
-    }
+    moveDao.batchInsert(mid, events).map(_.flatMap(ids => f(ids)))
   }
 
   private def moveBatchNodes(
@@ -529,14 +522,14 @@ class StorageNodeService @Inject()(
       movedObjects <- MusitResultT(
         moveBatch(mid, destination, objIds, currLoc, moveEvents) {
           case (_, _, events) =>
-            persistMoveEvents(mid, events) { eventIds =>
+            persistMoveEvents(mid, events) { _ =>
               // Again the get on affectedThing is safe since we're guaranteed its
               // presence at this point.
               MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
             }
         }
       )
-
+      // TODO: Need to store the new current location for the different objects
     } yield movedObjects
     // format: on
 
