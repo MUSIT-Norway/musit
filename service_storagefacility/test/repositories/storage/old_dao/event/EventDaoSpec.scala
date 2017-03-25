@@ -26,14 +26,14 @@ import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.Inspectors._
-import utils.testhelpers.{EventGenerators, NodeGenerators}
+import utils.testhelpers.{EventGenerators_Old, NodeGenerators}
 
 /**
  * Test specs for the EventDao.
  */
 class EventDaoSpec
     extends MusitSpecWithAppPerSuite
-    with EventGenerators
+    with EventGenerators_Old
     with NodeGenerators
     with MusitResultValues {
 

@@ -78,7 +78,7 @@ trait NodeService {
       maybeId: Option[StorageNodeDatabaseId]
   ): Future[MusitResult[Option[NodePath]]] = {
     maybeId
-      .map(id => unitDao.getPathById(mid, id))
+      .map(id => unitDao.getPathByDatabaseId(mid, id))
       .getOrElse(Future.successful(MusitSuccess(None)))
   }
 

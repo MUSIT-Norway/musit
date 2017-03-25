@@ -28,7 +28,13 @@ case class Observation(
     fireProtection: Option[ObservationFireProtection] = None,
     perimeterSecurity: Option[ObservationPerimeterSecurity] = None,
     waterDamageAssessment: Option[ObservationWaterDamageAssessment] = None
-) extends MusitEvent
+) extends MusitEvent {
+
+  override type T = Observation
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+}
 
 object Observation extends WithDateTimeFormatters {
   implicit val format: Format[Observation] = Json.format[Observation]

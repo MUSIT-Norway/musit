@@ -11,6 +11,7 @@ import no.uio.musit.MusitResults.{
 }
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.events.EnvReqDao
@@ -68,7 +69,10 @@ class EnvironmentRequirementService @Inject()(
       mid: MuseumId,
       er: EnvRequirement
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EnvRequirement]] = {
-    val envReq = er.copy(registeredBy = Option(currUsr.id))
+    val envReq = er.copy(
+      registeredBy = Option(currUsr.id),
+      registeredDate = Some(dateTimeNow)
+    )
 
     compareWithLatest(mid, envReq).flatMap { sameEr =>
       sameEr.map { er =>

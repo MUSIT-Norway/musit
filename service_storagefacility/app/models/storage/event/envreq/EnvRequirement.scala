@@ -24,6 +24,10 @@ case class EnvRequirement(
     light: Option[String]
 ) extends MusitEvent {
 
+  override type T = EnvRequirement
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
   def similar(er: EnvRequirement): Boolean = {
     // Compare the basic similarities of the environment requirements
     affectedThing == er.affectedThing &&

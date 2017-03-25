@@ -27,7 +27,13 @@ case class Control(
     pest: Option[ControlPest] = None,
     relativeHumidity: Option[ControlRelativeHumidity] = None,
     temperature: Option[ControlTemperature] = None
-) extends MusitEvent
+) extends MusitEvent {
+
+  override type T = Control
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+}
 
 object Control extends WithDateTimeFormatters {
   implicit val format: Format[Control] = Json.format[Control]

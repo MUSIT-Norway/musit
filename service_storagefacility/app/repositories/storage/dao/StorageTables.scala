@@ -100,14 +100,25 @@ private[dao] trait StorageTables
     }.result.headOption
   }
 
-  protected[dao] def getPathByIdAction(
+  protected[dao] def getPathByDatabaseIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  ): DBIO[Option[NodePath]] = {
-    storageNodeTable.filter { sn =>
-      sn.museumId === mid && sn.id === id
-    }.map(_.path).result.headOption
-  }
+  ): DBIO[Option[NodePath]] =
+    storageNodeTable
+      .filter(sn => sn.museumId === mid && sn.id === id)
+      .map(_.path)
+      .result
+      .headOption
+
+  protected[dao] def getPathByIdAction(
+      mid: MuseumId,
+      id: StorageNodeId
+  ): DBIO[Option[NodePath]] =
+    storageNodeTable
+      .filter(sn => sn.museumId === mid && sn.uuid === id)
+      .map(_.path)
+      .result
+      .headOption
 
   protected[dao] def updatePathAction(
       id: StorageNodeDatabaseId,

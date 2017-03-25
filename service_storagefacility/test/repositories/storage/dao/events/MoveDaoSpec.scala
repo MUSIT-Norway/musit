@@ -8,9 +8,11 @@ import models.storage.event.move.{MoveNode, MoveObject}
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import utils.testhelpers.{BaseDummyData, EventGenerators}
 
 class MoveDaoSpec
     extends MusitSpecWithAppPerSuite
+    with BaseDummyData
     with EventGenerators
     with MusitResultValues {
 

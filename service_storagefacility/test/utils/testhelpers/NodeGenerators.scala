@@ -35,13 +35,13 @@ import repositories.storage.dao.nodes.{
   RoomDao,
   StorageUnitDao
 }
-import repositories.storage.dao.nodes.{OrganisationDao, RoomDao, StorageUnitDao}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-trait NodeGenerators extends NodeTypeInitializers { self: MusitSpecWithApp =>
+trait NodeGenerators extends NodeTypeInitializers with BaseDummyData {
+  self: MusitSpecWithApp =>
 
   def buildingDao: BuildingDao = {
     val instance = Application.instanceCache[BuildingDao]
@@ -68,17 +68,15 @@ trait NodeGenerators extends NodeTypeInitializers { self: MusitSpecWithApp =>
       insert: (MuseumId, A) => Future[MusitResult[StorageNodeDatabaseId]],
       get: (MuseumId, StorageNodeDatabaseId) => Future[MusitResult[Option[A]]]
   ): A = {
-    Await
-      .result({
+    Await.result(
+      awaitable = {
         (for {
           nodeId  <- MusitResultT(insert(defaultMuseumId, node))
           nodeRes <- MusitResultT(get(defaultMuseumId, nodeId))
-        } yield {
-          nodeRes
-        }).value
-      }, 5 seconds)
-      .get
-      .get
+        } yield nodeRes).value.map(_.get.get)
+      },
+      atMost = 5 seconds
+    )
   }
 
   lazy val defaultRoot: Root = {
@@ -114,52 +112,115 @@ trait NodeGenerators extends NodeTypeInitializers { self: MusitSpecWithApp =>
     )
   }
 
-  type BaseStructureIds = (
-      StorageNodeDatabaseId,
-      StorageNodeDatabaseId,
-      StorageNodeDatabaseId
-  ) // scalastyle:ignore
+  type NodeIdsAndUUIDs = Map[StorageNodeDatabaseId, StorageNodeId]
 
-  def bootstrapBaseStructure(museumId: MuseumId = defaultMuseumId): BaseStructureIds = {
-    Await
-      .result(
-        awaitable = (for {
-          rid <- MusitResultT(
-                  storageUnitDao.insertRoot(
-                    museumId,
-                    Root(
-                      nodeId = StorageNodeId.generateAsOpt(),
-                      updatedBy = Some(defaultUserId),
-                      updatedDate = Some(DateTime.now)
-                    )
-                  )
+  def rootAddAndGet(
+      mid: MuseumId,
+      root: RootNode
+  ): MusitResultT[Future, (StorageNodeDatabaseId, StorageNodeId)] = {
+    for {
+      id <- MusitResultT(storageUnitDao.insertRoot(mid, root))
+      _  <- MusitResultT(storageUnitDao.setRootPath(id, NodePath.empty.appendChild(id)))
+      uuid <- MusitResultT(
+               storageUnitDao.findRootNode(id).map(_.map(_.flatMap(_.nodeId).get))
+             )
+    } yield (id, uuid)
+  }
+
+  def orgAddAndGet(
+      mid: MuseumId,
+      org: Organisation,
+      parents: StorageNodeDatabaseId*
+  ): MusitResultT[Future, (StorageNodeDatabaseId, StorageNodeId)] = {
+    for {
+      id <- MusitResultT(organisationDao.insert(mid, org))
+      _ <- MusitResultT(
+            organisationDao
+              .setPath(id, NodePath.empty.appendChildren(parents: _*).appendChild(id))
+          )
+      uuid <- MusitResultT(
+               organisationDao.getById(mid, id).map(_.map(_.flatMap(_.nodeId).get))
+             )
+    } yield (id, uuid)
+  }
+
+  def buildingAddAndGet(
+      mid: MuseumId,
+      bld: Building,
+      parents: StorageNodeDatabaseId*
+  ): MusitResultT[Future, (StorageNodeDatabaseId, StorageNodeId)] = {
+    for {
+      id <- MusitResultT(buildingDao.insert(mid, bld))
+      _ <- MusitResultT(
+            buildingDao
+              .setPath(id, NodePath.empty.appendChildren(parents: _*).appendChild(id))
+          )
+      uuid <- MusitResultT(
+               buildingDao.getById(mid, id).map(_.map(_.flatMap(_.nodeId).get))
+             )
+    } yield (id, uuid)
+  }
+
+  def roomAddAndGet(
+      mid: MuseumId,
+      r: Room,
+      parents: StorageNodeDatabaseId*
+  ): MusitResultT[Future, (StorageNodeDatabaseId, StorageNodeId)] = {
+    for {
+      id <- MusitResultT(roomDao.insert(mid, r))
+      _ <- MusitResultT(
+            roomDao
+              .setPath(id, NodePath.empty.appendChildren(parents: _*).appendChild(id))
+          )
+      uuid <- MusitResultT(
+               buildingDao.getById(mid, id).map(_.map(_.flatMap(_.nodeId).get))
+             )
+    } yield (id, uuid)
+  }
+
+  def unitAddAndGet(
+      mid: MuseumId,
+      u: StorageUnit,
+      parents: StorageNodeDatabaseId*
+  ): MusitResultT[Future, (StorageNodeDatabaseId, StorageNodeId)] = {
+    for {
+      id <- MusitResultT(storageUnitDao.insert(mid, u))
+      _ <- MusitResultT(
+            storageUnitDao
+              .setPath(id, NodePath.empty.appendChildren(parents: _*).appendChild(id))
+          )
+      uuid <- MusitResultT(
+               storageUnitDao
+                 .getByDatabaseId(mid, id)
+                 .map(_.map(_.flatMap(_.nodeId).get))
+             )
+    } yield (id, uuid)
+  }
+
+  def bootstrapBaseStructure(mid: MuseumId = defaultMuseumId): NodeIdsAndUUIDs = {
+    // format: off
+    Await.result(
+      awaitable = (for {
+        rid <- rootAddAndGet(
+                mid,
+                Root(
+                  nodeId = StorageNodeId.generateAsOpt(),
+                  updatedBy = Some(defaultActorId),
+                  updatedDate = Some(DateTime.now)
                 )
-          _ <- MusitResultT(
-                storageUnitDao.setRootPath(rid, NodePath(s",${rid.underlying},"))
-              ) // scalastyle:ignore
-          oid <- MusitResultT(
-                  organisationDao
-                    .insert(museumId, createOrganisation(partOf = Some(rid)))
-                ) // scalastyle:ignore
-          _ <- MusitResultT(
-                organisationDao
-                  .setPath(oid, NodePath(s",${rid.underlying},${oid.underlying},"))
-              ) // scalastyle:ignore
-          bid <- MusitResultT(
-                  buildingDao
-                    .insert(museumId, createBuilding(partOf = Some(oid)))
-                    .map(res => res)
-                ) // scalastyle:ignore
-          _ <- MusitResultT(
-                buildingDao.setPath(
-                  bid,
-                  NodePath(s",${rid.underlying},${oid.underlying},${bid.underlying},")
-                )
-              ) // scalastyle:ignore
-        } yield (rid, oid, bid)).value,
-        atMost = 15 seconds
-      )
-      .get
+              )
+        oid <- orgAddAndGet(mid, createOrganisation(partOf = Some(rid._1)), rid._1)
+        bid <- buildingAddAndGet(mid, createBuilding(partOf = Some(oid._1)), rid._1, oid._1) // scalastyle:ignore
+      } yield {
+        val b = Map.newBuilder[StorageNodeDatabaseId, StorageNodeId]
+        b += rid
+        b += oid
+        b += bid
+        b.result
+      }).value,
+      atMost = 15 seconds
+    ).get
+    // format: on
   }
 
   def addRoot(r: RootNode) = storageUnitDao.insertRoot(defaultMuseumId, r)
@@ -190,10 +251,7 @@ trait NodeGenerators extends NodeTypeInitializers { self: MusitSpecWithApp =>
   }
 }
 
-trait NodeTypeInitializers {
-
-  val defaultMuseumId = MuseumId(99)
-  val defaultUserId   = ActorId.generate()
+trait NodeTypeInitializers { self: BaseDummyData =>
 
   def initEnvironmentRequirement(
       temp: Option[Interval[Double]] = Some(Interval[Double](20.0, Some(25))),
@@ -235,7 +293,7 @@ trait NodeTypeInitializers {
       path = path,
       environmentRequirement = None,
       address = Some("FooBar Gate 8, 111 Oslo, Norge"),
-      updatedBy = Some(defaultUserId),
+      updatedBy = Some(defaultActorId),
       updatedDate = Some(dateTimeNow)
     )
   }
@@ -259,7 +317,7 @@ trait NodeTypeInitializers {
       path = path,
       environmentRequirement = Some(defaultEnvironmentRequirement),
       address = Some("FooBar Gate 8, 111 Oslo, Norge"),
-      updatedBy = Some(defaultUserId),
+      updatedBy = Some(defaultActorId),
       updatedDate = Some(dateTimeNow)
     )
   }
@@ -295,7 +353,7 @@ trait NodeTypeInitializers {
         temperature = Some(true),
         preventiveConservation = Some(false)
       ),
-      updatedBy = Some(defaultUserId),
+      updatedBy = Some(defaultActorId),
       updatedDate = Some(dateTimeNow)
     )
   }
@@ -318,7 +376,7 @@ trait NodeTypeInitializers {
       groupWrite = None,
       path = path,
       environmentRequirement = Some(defaultEnvironmentRequirement),
-      updatedBy = Some(defaultUserId),
+      updatedBy = Some(defaultActorId),
       updatedDate = Some(dateTimeNow)
     )
   }

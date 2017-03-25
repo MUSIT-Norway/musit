@@ -4,7 +4,12 @@ import com.google.inject.Inject
 import models.storage.event.dto.DtoConverters
 import models.storage.event.old.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage.nodes._
-import models.storage.{FacilityLocation, LocationHistory, ObjectsLocation}
+import models.storage.{
+  FacilityLocation,
+  LocationHistory,
+  LocationHistory_Old,
+  ObjectsLocation
+}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -597,9 +602,9 @@ class StorageNodeService @Inject()(
       mid: MuseumId,
       oid: ObjectId,
       limit: Option[Int]
-  ): Future[MusitResult[Seq[LocationHistory]]] = {
+  ): Future[MusitResult[Seq[LocationHistory_Old]]] = {
     val res = eventDao.getObjectLocationHistory(mid, oid, limit).flatMap { events =>
-      events.foldLeft(Future.successful(List.empty[LocationHistory])) { (lhl, e) =>
+      events.foldLeft(Future.successful(List.empty[LocationHistory_Old])) { (lhl, e) =>
         val fromTuple = findPathAndNames(mid, e.from)
         val toTuple   = findPathAndNames(mid, Option(e.to))
 
@@ -607,7 +612,7 @@ class StorageNodeService @Inject()(
           from <- MusitResultT(fromTuple)
           to   <- MusitResultT(toTuple)
         } yield {
-          LocationHistory(
+          LocationHistory_Old(
             // registered by and date is required on Event, so they must be there.
             registeredBy = e.registeredBy.get,
             registeredDate = e.registeredDate.get,

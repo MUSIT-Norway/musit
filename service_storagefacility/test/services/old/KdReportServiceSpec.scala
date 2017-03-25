@@ -20,7 +20,6 @@
 package services.old
 
 import models.report.KdReport
-import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import utils.testhelpers.NodeGenerators
@@ -30,25 +29,13 @@ class KdReportServiceSpec
     with NodeGenerators
     with MusitResultValues {
 
-  implicit val dummyUser = AuthenticatedUser(
-    session = UserSession(uuid = SessionUUID.generate()),
-    userInfo = UserInfo(
-      id = defaultUserId,
-      secondaryIds = Some(Seq("vader@starwars.com")),
-      name = Some("Darth Vader"),
-      email = None,
-      picture = None
-    ),
-    groups = Seq.empty
-  )
-
   val service: StorageNodeService    = fromInstanceCache[StorageNodeService]
   val reportService: KdReportService = fromInstanceCache[KdReportService]
 
   "The KdReportService" should {
 
     val baseNodes  = bootstrapBaseStructure()
-    val buildingId = baseNodes._3
+    val buildingId = baseNodes.last._1
 
     val room1 = createRoomWithDifferentArea(
       area = 1,

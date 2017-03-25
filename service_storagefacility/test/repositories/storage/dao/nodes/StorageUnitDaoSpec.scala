@@ -40,14 +40,14 @@ class StorageUnitDaoSpec
       def createRoot(name: String): Root = Root(
         nodeId = StorageNodeId.generateAsOpt(),
         name = name,
-        updatedBy = Some(defaultUserId),
+        updatedBy = Some(defaultActorId),
         updatedDate = Some(DateTime.now())
       )
 
       def createRootLoan(name: String): RootLoan = RootLoan(
         nodeId = StorageNodeId.generateAsOpt(),
         name = name,
-        updatedBy = Some(defaultUserId),
+        updatedBy = Some(defaultActorId),
         updatedDate = Some(DateTime.now())
       )
 
@@ -138,7 +138,7 @@ class StorageUnitDaoSpec
       insId.successValue mustBe a[StorageNodeDatabaseId]
 
       val deleted = storageUnitDao
-        .markAsDeleted(defaultUserId, defaultMuseumId, insId.successValue)
+        .markAsDeleted(defaultActorId, defaultMuseumId, insId.successValue)
         .futureValue // scalastyle:ignore
 
       deleted.successValue mustBe 1
@@ -220,7 +220,7 @@ class StorageUnitDaoSpec
 
       val anotherMid = MuseumId(4)
       val deleted = storageUnitDao
-        .markAsDeleted(defaultUserId, anotherMid, insId.successValue)
+        .markAsDeleted(defaultActorId, anotherMid, insId.successValue)
         .futureValue // scalastyle:ignore
       deleted.isFailure mustBe true
 

@@ -5,9 +5,11 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.ObservationEventTyp
 import no.uio.musit.models.{EventId, MuseumId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import utils.testhelpers.{BaseDummyData, EventGenerators}
 
 class ObservationDaoSpec
     extends MusitSpecWithAppPerSuite
+    with BaseDummyData
     with EventGenerators
     with MusitResultValues {
 

@@ -1,72 +1,92 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package utils.testhelpers
 
 import models.storage.event.EventType
 import models.storage.event.EventTypeRegistry.TopLevelEvents._
-import models.storage.event.old.control.ControlSubEvents._
-import models.storage.event.dto.DtoConverters
-import models.storage.event.old.observation.ObservationSubEvents._
-import models.storage.event.old.control.Control
-import models.storage.event.old.envreq.EnvRequirement
-import models.storage.event.old.move.{MoveNode, MoveObject}
-import models.storage.event.old.observation.Observation
-import models.storage.{FromToDouble, Interval, LifeCycle}
-import no.uio.musit.models.ObjectTypes.CollectionObject
-import no.uio.musit.models.{ActorId, MuseumId, ObjectId, StorageNodeDatabaseId}
-import no.uio.musit.test.MusitSpecWithApp
-import org.joda.time.DateTime
-import repositories.storage.old_dao.event.EventDao
-
-trait EventGenerators extends EventTypeInitializers { self: MusitSpecWithApp =>
-
-  def eventDao: EventDao = fromInstanceCache[EventDao]
-
-  def addControl(mid: MuseumId, ctrl: Control) = {
-    val ctrlAsDto = DtoConverters.CtrlConverters.controlToDto(ctrl)
-    eventDao.insertEvent(mid, ctrlAsDto)
-  }
-
-  def addObservation(mid: MuseumId, obs: Observation) = {
-    val obsAsDto = DtoConverters.ObsConverters.observationToDto(obs)
-    eventDao.insertEvent(mid, obsAsDto)
-  }
-
-  def addEnvRequirement(mid: MuseumId, envReq: EnvRequirement) = {
-    val erAsDto = DtoConverters.EnvReqConverters.envReqToDto(envReq)
-    eventDao.insertEvent(mid, erAsDto)
-  }
+import models.storage.event.control.Control
+import models.storage.event.control.ControlAttributes.{
+  ControlAlcohol,
+  ControlCleaning,
+  ControlPest,
+  ControlTemperature
 }
+import models.storage.event.envreq.EnvRequirement
+import models.storage.event.move.{MoveNode, MoveObject}
+import models.storage.event.observation.Observation
+import models.storage.event.observation.ObservationAttributes._
+import models.storage.{FromToDouble, Interval, LifeCycle}
+import no.uio.musit.models.{ObjectTypes, ObjectUUID, StorageNodeId}
+import org.joda.time.DateTime
 
-trait EventTypeInitializers {
+trait EventGenerators { self: BaseDummyData =>
 
-  val defaultActorId = ActorId.generate()
+  val defaultObjectUUID = ObjectUUID.generate()
+  val defaultNodeId     = StorageNodeId.generate()
+  val firstNodeId       = StorageNodeId.generate()
+  val secondNodeId      = StorageNodeId.generate()
 
-  def createControl(storageNodeId: Option[StorageNodeDatabaseId] = None) = {
+  def createMoveObject(
+      objectId: Option[ObjectUUID] = Some(defaultObjectUUID),
+      from: Option[StorageNodeId],
+      to: StorageNodeId
+  ): MoveObject = {
+    MoveObject(
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      registeredBy = Some(defaultActorId),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = objectId,
+      eventType = EventType.fromEventTypeId(MoveObjectType.id),
+      objectType = ObjectTypes.CollectionObject,
+      from = from,
+      to = to
+    )
+  }
+
+  def createMoveNode(
+      nodeId: Option[StorageNodeId] = Some(defaultNodeId),
+      from: Option[StorageNodeId],
+      to: StorageNodeId
+  ): MoveNode = {
+    MoveNode(
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      registeredBy = Some(defaultActorId),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = nodeId,
+      eventType = EventType.fromEventTypeId(MoveNodeType.id),
+      from = from,
+      to = to
+    )
+  }
+
+  def createEnvRequirement(affectedNodeId: Option[StorageNodeId] = None) = {
+    EnvRequirement(
+      id = None,
+      doneDate = DateTime.now.minusDays(1),
+      note = Some("This is an envreq note"),
+      registeredBy = Some(defaultActorId),
+      registeredDate = Some(DateTime.now),
+      doneBy = Some(defaultActorId),
+      affectedThing = affectedNodeId,
+      eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
+      temperature = Some(Interval(20, Some(5))),
+      airHumidity = Some(Interval(60.0, Some(10))),
+      hypoxicAir = Some(Interval(0, Some(15))),
+      cleaning = Some("keep it clean, dude"),
+      light = Some("dim")
+    )
+  }
+
+  def createControl(affectedNodeId: Option[StorageNodeId] = None) = {
     Control(
       id = None,
       doneDate = DateTime.now.minusDays(1),
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
-      affectedThing = storageNodeId,
+      affectedThing = affectedNodeId,
       eventType = EventType.fromEventTypeId(ControlEventType.id),
       temperature = Some(createTemperatureControl()),
       alcohol = Some(createAlcoholControl()),
@@ -75,14 +95,14 @@ trait EventTypeInitializers {
     )
   }
 
-  def createObservation(storageNodeId: Option[StorageNodeDatabaseId] = None) = {
+  def createObservation(affectedNodeId: Option[StorageNodeId] = None) = {
     Observation(
       id = None,
       doneDate = DateTime.now.minusDays(1),
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
-      affectedThing = storageNodeId,
+      affectedThing = affectedNodeId,
       eventType = EventType.fromEventTypeId(ObservationEventType.id),
       alcohol = Some(createAlcoholObservation),
       cleaning = Some(createCleaningObservation),
@@ -97,24 +117,6 @@ trait EventTypeInitializers {
       fireProtection = Some(createFireObservation),
       perimeterSecurity = Some(createPerimeterObservation),
       waterDamageAssessment = Some(createWaterDmgObservation)
-    )
-  }
-
-  def createEnvRequirement(storageNodeId: Option[StorageNodeDatabaseId] = None) = {
-    EnvRequirement(
-      id = None,
-      doneDate = DateTime.now.minusDays(1),
-      note = Some("This is an envreq note"),
-      registeredBy = Some(defaultActorId),
-      registeredDate = Some(DateTime.now),
-      doneBy = Some(defaultActorId),
-      affectedThing = storageNodeId,
-      eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
-      temperature = Some(Interval(20, Some(5))),
-      airHumidity = Some(Interval(60.0, Some(10))),
-      hypoxicAir = Some(Interval(0, Some(15))),
-      cleaning = Some("keep it clean, dude"),
-      light = Some("dim")
     )
   }
 
@@ -221,40 +223,4 @@ trait EventTypeInitializers {
       )
     )
 
-  def createMoveObject(
-      objectId: Option[ObjectId] = Some(ObjectId(1)),
-      from: Option[StorageNodeDatabaseId],
-      to: StorageNodeDatabaseId
-  ): MoveObject = {
-    MoveObject(
-      id = None,
-      doneDate = DateTime.now.minusDays(1),
-      registeredBy = Some(defaultActorId),
-      registeredDate = Some(DateTime.now),
-      doneBy = Some(defaultActorId),
-      affectedThing = objectId,
-      eventType = EventType.fromEventTypeId(MoveObjectType.id),
-      objectType = CollectionObject,
-      from = from,
-      to = to
-    )
-  }
-
-  def createMoveNode(
-      nodeId: Option[StorageNodeDatabaseId] = Some(StorageNodeDatabaseId(1)),
-      from: Option[StorageNodeDatabaseId],
-      to: StorageNodeDatabaseId
-  ): MoveNode = {
-    MoveNode(
-      id = None,
-      doneDate = DateTime.now.minusDays(1),
-      registeredBy = Some(defaultActorId),
-      registeredDate = Some(DateTime.now),
-      doneBy = Some(defaultActorId),
-      affectedThing = nodeId,
-      eventType = EventType.fromEventTypeId(MoveNodeType.id),
-      from = from,
-      to = to
-    )
-  }
 }

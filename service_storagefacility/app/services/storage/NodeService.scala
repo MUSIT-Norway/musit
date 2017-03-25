@@ -78,12 +78,12 @@ trait NodeService {
   /**
    * Find the NodePath for the given storageNodeId.
    */
-  private[services] def findPath(
+  private[services] def findPathByDatabaseId(
       mid: MuseumId,
       maybeId: Option[StorageNodeDatabaseId]
   ): Future[MusitResult[Option[NodePath]]] = {
     maybeId
-      .map(id => unitDao.getPathById(mid, id))
+      .map(id => unitDao.getPathByDatabaseId(mid, id))
       .getOrElse(Future.successful(MusitSuccess(None)))
   }
 
@@ -94,7 +94,7 @@ trait NodeService {
    * @param maybeId Option[StorageNodeId]
    * @return {{{Future[MusitResult[(NodePath, Seq[NamedPathElement])]]}}}
    */
-  private[services] def findPathAndNames(
+  private[services] def findPathAndNamesByDatabaseId(
       mid: MuseumId,
       maybeId: Option[StorageNodeDatabaseId]
   ): Future[MusitResult[(NodePath, Seq[NamedPathElement])]] = {
@@ -111,7 +111,40 @@ trait NodeService {
     }
 
     val res = for {
-      maybePath <- MusitResultT(findPath(mid, maybeId))
+      maybePath <- MusitResultT(findPathByDatabaseId(mid, maybeId))
+      nodes     <- MusitResultT(findNodes(maybePath))
+    } yield nodes
+
+    res.value
+  }
+
+  private[services] def findPathById(
+      mid: MuseumId,
+      maybeId: Option[StorageNodeId]
+  ): Future[MusitResult[Option[NodePath]]] = {
+    maybeId
+      .map(id => unitDao.getPathById(mid, id))
+      .getOrElse(Future.successful(MusitSuccess(None)))
+  }
+
+  private[services] def findPathAndNamesById(
+      mid: MuseumId,
+      maybeId: Option[StorageNodeId]
+  ): Future[MusitResult[(NodePath, Seq[NamedPathElement])]] = {
+
+    def findNodes(
+        maybePath: Option[NodePath]
+    ): Future[MusitResult[(NodePath, Seq[NamedPathElement])]] = {
+      maybePath.map { p =>
+        unitDao.namesForPath(p).map {
+          case MusitSuccess(names) => MusitSuccess((p, names))
+          case err: MusitError     => err
+        }
+      }.getOrElse(Future.successful(MusitSuccess((EmptyPath, Seq()))))
+    }
+
+    val res = for {
+      maybePath <- MusitResultT(findPathById(mid, maybeId))
       nodes     <- MusitResultT(findNodes(maybePath))
     } yield nodes
 
@@ -278,7 +311,7 @@ trait NodeService {
         .map(MusitSuccess.apply)
 
     val res = for {
-      mPath <- MusitResultT(findPath(mid, node.isPartOf))
+      mPath <- MusitResultT(findPathByDatabaseId(mid, node.isPartOf))
       _     <- MusitResultT(validatePosition(mid, node, mPath.getOrElse(EmptyPath)))
       // Call the insert function to persist the node if the path is valid.
       nodeDbId <- MusitResultT(insert(mid, node))

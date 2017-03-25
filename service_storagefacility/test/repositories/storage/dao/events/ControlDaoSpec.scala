@@ -5,9 +5,11 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import utils.testhelpers.{BaseDummyData, EventGenerators}
 
 class ControlDaoSpec
     extends MusitSpecWithAppPerSuite
+    with BaseDummyData
     with EventGenerators
     with MusitResultValues {
 

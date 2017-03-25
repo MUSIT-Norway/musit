@@ -41,9 +41,13 @@ trait EventActions extends DbErrorHandlers { self: EventTables =>
 
   protected def fromRow[A <: MusitEvent](
       row: EventRow
-  )(implicit jsr: Reads[A]): Option[A] = Json.fromJson[A](row._11).asOpt
+  )(implicit jsr: Reads[A]): Option[A#T] = {
+    // The asInstanceOf can probably be made better with a better function
+    // definition of the withId function
+    Json.fromJson[A](row._11).asOpt.map(_.withId(row._1))
+  }
 
-  /** Action for inserting a new row in the evnet table */
+  /** Action for inserting a new row in the event table */
   protected def insertAction(event: EventRow): DBIO[EventId] =
     storageEventTable returning storageEventTable.map(_.eventId) += event
 

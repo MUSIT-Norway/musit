@@ -35,6 +35,7 @@ import repositories.storage.dao.{SharedTables, StorageTables}
 
 import scala.concurrent.Future
 
+// scalastyle:off number.of.methods
 /**
  * TODO: Document me!!!
  */
@@ -152,18 +153,17 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       ids: Seq[StorageNodeId]
   ): Future[MusitResult[Map[StorageNodeId, Option[StorageNodeId]]]] = {
+    val q1 = storageNodeTable.filter(n => n.museumId === mid && (n.uuid inSet ids))
     val query = for {
-      (child, parent) <- storageNodeTable joinLeft storageNodeTable on { (c, p) =>
-                          c.museumId === mid && (c.uuid inSet ids) && c.isPartOf === p.id
-                        }
+      (child, parent) <- q1 joinLeft storageNodeTable on (_.isPartOf === _.id)
     } yield {
       // It's safe to do a get on child.uuid here, because it wouldn't have been
       // found if it wasn't set. Besides it's _really_ a required column.
-      child.uuid.get -> parent.flatMap(_.uuid)
+      child.uuid -> parent.flatMap(_.uuid)
     }
 
     db.run(query.result)
-      .map(res => MusitSuccess(res.toMap))
+      .map(res => MusitSuccess(res.map(r => r._1.get -> r._2).toMap))
       .recover(nonFatal("Unexpected error occurred fetching parent nodes."))
   }
 
@@ -296,6 +296,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
          OFFSET ${offset} ROWS
          FETCH NEXT ${limit} ROWS ONLY
       """.as[StorageUnitDto]
+
     val matches: Future[MusitResult[Vector[GenericStorageNode]]] = db
       .run(sortedQuery)
       .map(_.map(StorageNodeDto.toGenericStorageNode))
@@ -496,9 +497,18 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    * @param id StorageNodeId to get the NodePath for
    * @return NodePath
    */
-  def getPathById(
+  def getPathByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
+  ): Future[MusitResult[Option[NodePath]]] = {
+    db.run(getPathByDatabaseIdAction(mid, id))
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"Unable to get path for museumId $mid and storage node $id"))
+  }
+
+  def getPathById(
+      mid: MuseumId,
+      id: StorageNodeId
   ): Future[MusitResult[Option[NodePath]]] = {
     db.run(getPathByIdAction(mid, id))
       .map(MusitSuccess.apply)
@@ -592,3 +602,4 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   }
 
 }
+// scalastyle:on number.of.methods

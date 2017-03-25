@@ -28,7 +28,6 @@ import models.storage.nodes.StorageUnit
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
-import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import org.joda.time.DateTime
@@ -39,34 +38,20 @@ class StorageNodeServiceSpec
     with NodeGenerators
     with MusitResultValues {
 
-  implicit val dummyUser = AuthenticatedUser(
-    session = UserSession(uuid = SessionUUID.generate()),
-    userInfo = UserInfo(
-      id = defaultUserId,
-      secondaryIds = Some(Seq("vader@starwars.com")),
-      name = Some("Darth Vader"),
-      email = None,
-      picture = None
-    ),
-    groups = Seq.empty
-  )
-
   val service: StorageNodeService = fromInstanceCache[StorageNodeService]
 
   "Using the StorageNodeService API" must {
 
     // Initialize base data
     val baseIds    = bootstrapBaseStructure()
-    val rootId     = baseIds._1
-    val orgId      = baseIds._2
-    val buildingId = baseIds._3
+    val rootId     = baseIds.head._1
+    val orgId      = baseIds.tail.head._1
+    val buildingId = baseIds.last._1
 
     "successfully create a new room node with environment requirements" in {
-      // Setup new room data, without the partOf relation, which is not
-      // interesting in this particular test.
       val room = createRoom(partOf = Some(buildingId))
       val ins  = service.addRoom(defaultMuseumId, room).futureValue
-      ins.successValue.value.updatedBy.value mustBe defaultUserId
+      ins.successValue.value.updatedBy.value mustBe defaultActorId
       ins.successValue.value.updatedDate.value
         .year()
         .get() mustBe DateTime.now().year().get()
@@ -88,7 +73,7 @@ class StorageNodeServiceSpec
       val inserted = ins.successValue.value
       inserted.id must not be None
       inserted.environmentRequirement.value mustBe defaultEnvironmentRequirement
-      inserted.updatedBy.value mustBe defaultUserId
+      inserted.updatedBy.value mustBe defaultActorId
       inserted.updatedDate.value.year().get() mustBe DateTime.now().year().get()
 
       val someEnvReq = Some(
@@ -103,7 +88,7 @@ class StorageNodeServiceSpec
       val updated = res.successValue.value
       updated.id mustBe inserted.id
       updated.environmentRequirement mustBe someEnvReq
-      updated.updatedBy.value mustBe defaultUserId
+      updated.updatedBy.value mustBe defaultActorId
       updated.updatedDate.value.year().get() mustBe DateTime.now().year().get()
     }
 
@@ -113,7 +98,7 @@ class StorageNodeServiceSpec
 
       val inserted = ins.successValue.value
       inserted.id must not be None
-      inserted.updatedBy.value mustBe defaultUserId
+      inserted.updatedBy.value mustBe defaultActorId
       inserted.updatedDate.value.year().get() mustBe DateTime.now().year().get()
 
       val res =
@@ -134,7 +119,7 @@ class StorageNodeServiceSpec
       val again = service.getNodeById(defaultMuseumId, inserted.id.get).futureValue
       again.successValue.value.name mustBe "UggaBugga"
       again.successValue.value.areaTo mustBe Some(4.0)
-      again.successValue.value.updatedBy.value mustBe defaultUserId
+      again.successValue.value.updatedBy.value mustBe defaultActorId
       again.successValue.value.updatedDate.value
         .year()
         .get() mustBe DateTime.now().year().get()
@@ -221,7 +206,7 @@ class StorageNodeServiceSpec
         items = Seq(unit1.id.value)
       )
 
-      val event = MoveNode.fromCommand(defaultUserId, move).head
+      val event = MoveNode.fromCommand(defaultActorId, move).head
 
       service
         .moveNodes(defaultMuseumId, building2.id.value, Seq(event))
@@ -246,10 +231,10 @@ class StorageNodeServiceSpec
 
       val event = MoveObject(
         id = None,
-        doneBy = Some(defaultUserId),
+        doneBy = Some(defaultActorId),
         doneDate = DateTime.now,
         affectedThing = Some(oid),
-        registeredBy = Some(defaultUserId),
+        registeredBy = Some(defaultActorId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         objectType = CollectionObject,
@@ -276,10 +261,10 @@ class StorageNodeServiceSpec
 
       val event = MoveObject(
         id = None,
-        doneBy = Some(defaultUserId),
+        doneBy = Some(defaultActorId),
         doneDate = DateTime.now,
         affectedThing = Some(oid),
-        registeredBy = Some(defaultUserId),
+        registeredBy = Some(defaultActorId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         objectType = CollectionObject,
@@ -300,10 +285,10 @@ class StorageNodeServiceSpec
       val dest = StorageNodeDatabaseId(23)
       val event = MoveObject(
         id = None,
-        doneBy = Some(defaultUserId),
+        doneBy = Some(defaultActorId),
         doneDate = DateTime.now,
         affectedThing = Some(oid),
-        registeredBy = Some(defaultUserId),
+        registeredBy = Some(defaultActorId),
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         objectType = CollectionObject,
@@ -327,7 +312,7 @@ class StorageNodeServiceSpec
 
       val stillAv = service.getNodeById(defaultMuseumId, inserted.id.get).futureValue
       stillAv.successValue.value.id mustBe inserted.id
-      stillAv.successValue.value.updatedBy.value mustBe defaultUserId
+      stillAv.successValue.value.updatedBy.value mustBe defaultActorId
     }
 
     "not update a storage unit when using the wrong museumId" in {
@@ -354,7 +339,7 @@ class StorageNodeServiceSpec
       val getAgain = again.successValue.value
       getAgain.name must include("FooUnit")
       getAgain.areaTo mustBe Some(2.0)
-      getAgain.updatedBy mustBe Some(defaultUserId)
+      getAgain.updatedBy mustBe Some(defaultActorId)
     }
 
     "not update a building or environment requirements when using wrong museumID" in {
@@ -380,7 +365,7 @@ class StorageNodeServiceSpec
 
       val orig = service.getBuildingById(defaultMuseumId, inserted.id.get).futureValue
       orig.successValue.value.address.value must include("Foo")
-      orig.successValue.value.updatedBy mustBe Some(defaultUserId)
+      orig.successValue.value.updatedBy mustBe Some(defaultActorId)
     }
 
     "not update a room when using wrong museumId" in {
@@ -399,7 +384,7 @@ class StorageNodeServiceSpec
 
       val orig = service.getRoomById(defaultMuseumId, inserted.id.value).futureValue
       orig.successValue.value.securityAssessment.waterDamage mustBe Some(false)
-      orig.successValue.value.updatedBy mustBe Some(defaultUserId)
+      orig.successValue.value.updatedBy mustBe Some(defaultActorId)
     }
 
     "get current location for an object" in {
@@ -439,31 +424,19 @@ class StorageNodeServiceSpec
 
   "Validating a storage node destination" should {
     val baseIds    = bootstrapBaseStructure()
-    val rootId     = baseIds._1
-    val orgId      = baseIds._2
-    val buildingId = baseIds._3
+    val rootId     = baseIds.head._1
+    val orgId      = baseIds.tail.head._1
+    val buildingId = baseIds.last._1
     // Bootstrap some test strucutures
-    val r1 =
-      service.addRoom(defaultMuseumId, createRoom(partOf = Some(buildingId))).futureValue
-    val room1 = r1.successValue.value
-
-    val r2 =
-      service.addRoom(defaultMuseumId, createRoom(partOf = Some(buildingId))).futureValue
-    val room2 = r2.successValue.value
-
-    val r3 =
-      service.addRoom(defaultMuseumId, createRoom(partOf = Some(buildingId))).futureValue
-    val room3 = r3.successValue.value
-
-    val u1 = service
-      .addStorageUnit(defaultMuseumId, createStorageUnit(partOf = room1.id))
-      .futureValue
-    val unit1 = u1.successValue.value
-
-    val u2 = service
-      .addStorageUnit(defaultMuseumId, createStorageUnit(partOf = room1.id))
-      .futureValue
-    val unit2 = u2.successValue.value
+    // scalastyle:off
+    // format: off
+    val room1 = service.addRoom(defaultMuseumId, createRoom(partOf = Some(buildingId))).futureValue.successValue.value
+    val room2 = service.addRoom(defaultMuseumId, createRoom(partOf = Some(buildingId))).futureValue.successValue.value
+    val room3 = service.addRoom(defaultMuseumId, createRoom(partOf = Some(buildingId))).futureValue.successValue.value
+    val unit1 = service.addStorageUnit(defaultMuseumId, createStorageUnit(partOf = room1.id)).futureValue.successValue.value
+    val unit2 = service.addStorageUnit(defaultMuseumId, createStorageUnit(partOf = room1.id)).futureValue.successValue.value
+    // scalastyle:on
+    // format: on
 
     "not be valid when the destination is a child of the current node" in {
       val result =

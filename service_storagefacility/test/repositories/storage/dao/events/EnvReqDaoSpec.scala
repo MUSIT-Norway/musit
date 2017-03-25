@@ -3,9 +3,11 @@ package repositories.storage.dao.events
 import no.uio.musit.models.{EventId, MuseumId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import utils.testhelpers.{BaseDummyData, EventGenerators}
 
 class EnvReqDaoSpec
     extends MusitSpecWithAppPerSuite
+    with BaseDummyData
     with EventGenerators
     with MusitResultValues {
 

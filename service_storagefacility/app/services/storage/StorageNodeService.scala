@@ -1,11 +1,13 @@
 package services.storage
 
 import com.google.inject.Inject
+import models.storage.{FacilityLocation, LocationHistory}
 import models.storage.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage.nodes._
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
@@ -293,56 +295,70 @@ class StorageNodeService @Inject()(
     }
   }
 
-  def getNodeById(
+  def disambiguateAndGet(
+      mid: MuseumId,
+      maybeIdType: Option[(StorageNodeDatabaseId, StorageType)]
+  ): Future[MusitResult[Option[StorageNode]]] = {
+    maybeIdType.map { idt =>
+      disambiguateAndGet(mid, idt._1, Some(idt._2))
+    }.getOrElse {
+      Future.successful(MusitValidationError("No StorageNodeDatabaseId available."))
+    }
+  }
+
+  def disambiguateAndGet(
+      mid: MuseumId,
+      id: StorageNodeDatabaseId,
+      maybeType: Option[StorageType]
+  ): Future[MusitResult[Option[StorageNode]]] = {
+    logger.debug(s"Disambiguating StorageType $maybeType")
+    maybeType.map {
+      case StorageType.RootType =>
+        unitDao.findRootNode(id)
+
+      case StorageType.RootLoanType =>
+        unitDao.findRootNode(id)
+
+      case StorageType.OrganisationType =>
+        getOrganisationById(mid, id)
+
+      case StorageType.BuildingType =>
+        getBuildingById(mid, id)
+
+      case StorageType.RoomType =>
+        getRoomById(mid, id)
+
+      case StorageType.StorageUnitType =>
+        getStorageUnitById(mid, id)
+
+    }.getOrElse {
+      logger.warn(s"Could not resolve StorageType $maybeType")
+      Future.successful(MusitSuccess(None))
+    }
+  }
+
+  def getNodeByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   ): Future[MusitResult[Option[StorageNode]]] = {
     unitDao.getStorageTypeFor(mid, id).flatMap { res =>
-      res.map { maybeType =>
-        logger.debug(s"Disambiguating StorageType $maybeType")
-
-        maybeType.map {
-          case StorageType.RootType =>
-            unitDao.findRootNode(id)
-
-          case StorageType.RootLoanType =>
-            unitDao.findRootNode(id)
-
-          case StorageType.OrganisationType =>
-            getOrganisationById(mid, id)
-
-          case StorageType.BuildingType =>
-            getBuildingById(mid, id)
-
-          case StorageType.RoomType =>
-            getRoomById(mid, id)
-
-          case StorageType.StorageUnitType =>
-            getStorageUnitById(mid, id)
-
-        }.getOrElse {
-          logger.warn(s"Could not resolve StorageType $maybeType")
-          Future.successful(MusitSuccess(None))
-        }
-      }.getOrElse {
+      res.map(maybeType => disambiguateAndGet(mid, id, maybeType)).getOrElse {
         logger.debug(s"Node $id not found")
         Future.successful(MusitSuccess(None))
       }
     }
   }
 
-  def getNodeByStorageNodeId(
+  def getNodeById(
       mid: MuseumId,
       uuid: StorageNodeId
   ): Future[MusitResult[Option[StorageNode]]] = {
-    (for {
-      tuple <- MusitResultT(unitDao.getStorageTypeFor(mid, uuid))
-      node <- tuple.map(t => MusitResultT(getNodeById(mid, t._1))).getOrElse {
-               MusitResultT(
-                 Future.successful[MusitResult[Option[StorageNode]]](MusitSuccess(None))
-               )
-             }
-    } yield node).value
+    unitDao.getStorageTypeFor(mid, uuid).flatMap { res =>
+      res.map(maybeIdType => disambiguateAndGet(mid, maybeIdType)).getOrElse {
+        logger.debug(s"Node with UUID $uuid not found")
+        Future.successful(MusitSuccess(None))
+      }
+    }
   }
 
   def getNodeByOldBarcode(
@@ -351,7 +367,7 @@ class StorageNodeService @Inject()(
   ): Future[MusitResult[Option[StorageNode]]] = {
     (for {
       tuple <- MusitResultT(unitDao.getStorageTypeFor(mid, oldBarcode))
-      node <- tuple.map(t => MusitResultT(getNodeById(mid, t._1))).getOrElse {
+      node <- tuple.map(t => MusitResultT(getNodeByDatabaseId(mid, t._1))).getOrElse {
                MusitResultT(
                  Future.successful[MusitResult[Option[StorageNode]]](MusitSuccess(None))
                )
@@ -526,4 +542,56 @@ class StorageNodeService @Inject()(
 
     res.value
   }
+
+  private def toLocHistory(mid: MuseumId, mo: MoveObject) = {
+    val fromTuple = findPathAndNamesById(mid, mo.from)
+    val toTuple   = findPathAndNamesById(mid, Option(mo.to))
+
+    val lh = for {
+      from <- MusitResultT(fromTuple)
+      to   <- MusitResultT(toTuple)
+    } yield {
+      LocationHistory.fromMoveObject(
+        moveObject = mo,
+        from = FacilityLocation.fromTuple(from),
+        to = FacilityLocation.fromTuple(to)
+      )
+    }
+    lh.value
+  }
+
+  def objectLocationHistory(
+      mid: MuseumId,
+      oid: ObjectUUID,
+      limit: Option[Int]
+  ): Future[MusitResult[Seq[LocationHistory]]] = {
+    moveDao.listForObject(mid, oid, limit).flatMap {
+      case MusitSuccess(events) =>
+        events
+          .foldLeft(Future.successful(List.empty[LocationHistory])) { (lhl, e) =>
+            toLocHistory(mid, e).flatMap(_.map(lh => lhl.map(_ :+ lh)).getOrElse(lhl))
+          }
+          .map(MusitSuccess.apply)
+
+      case err: MusitError =>
+        Future.successful(err)
+    }
+  }
+
+  def currentObjectLocation(
+      mid: MuseumId,
+      oid: ObjectUUID,
+      tpe: ObjectType
+  ): Future[MusitResult[Option[StorageNode]]] = {
+    locObjDao.currentLocation(oid, tpe).flatMap {
+      case MusitSuccess(maybeNodeId) =>
+        maybeNodeId.map(id => getNodeById(mid, id)).getOrElse {
+          Future.successful(MusitSuccess(None))
+        }
+
+      case err: MusitError =>
+        Future.successful(err)
+    }
+  }
+
 }

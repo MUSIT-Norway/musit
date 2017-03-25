@@ -20,56 +20,41 @@
 package services.old
 
 import no.uio.musit.models.{EventId, MuseumId}
-import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
-import utils.testhelpers.{EventGenerators, NodeGenerators}
+import utils.testhelpers.{EventGenerators_Old, NodeGenerators}
 
 class EventServiceSpec
     extends MusitSpecWithAppPerSuite
     with NodeGenerators
-    with EventGenerators
+    with EventGenerators_Old
     with MusitResultValues {
 
-  implicit val dummyUser = AuthenticatedUser(
-    session = UserSession(uuid = SessionUUID.generate()),
-    userInfo = UserInfo(
-      id = defaultActorId,
-      secondaryIds = Some(Seq("vader@starwars.com")),
-      name = Some("Darth Vader"),
-      email = None,
-      picture = None
-    ),
-    groups = Seq.empty
-  )
-
-  val controlService: ControlService         = fromInstanceCache[ControlService]
-  val obsService: ObservationService         = fromInstanceCache[ObservationService]
-  val storageNodeService: StorageNodeService = fromInstanceCache[StorageNodeService]
-
-  // This is mutable to allow keeping track of the last inserted eventId.
-  private var latestEventId: Long = _
+  val controlService: ControlService = fromInstanceCache[ControlService]
+  val obsService: ObservationService = fromInstanceCache[ObservationService]
 
   "Processing events" should {
     "successfully insert a new Control" in {
-      val c  = createControl(defaultBuilding.id)
+      val c = createControl(defaultBuilding.id)
+
       val ce = controlService.add(defaultMuseumId, defaultBuilding.id.get, c).futureValue
       ce.successValue.id.value mustBe EventId(1)
-      latestEventId = ce.successValue.id.value
-      latestEventId mustBe 1L
     }
 
     "fail when inserting a Control with wrong museumId" in {
       val anotherMid = MuseumId(4)
       val ctrl       = createControl(defaultBuilding.id)
-      val res        = controlService.add(anotherMid, defaultBuilding.id.get, ctrl).futureValue
+
+      val res = controlService.add(anotherMid, defaultBuilding.id.get, ctrl).futureValue
       res.isSuccess mustBe false
       res.isFailure mustBe true
     }
 
     "successfully insert a new Observation" in {
-      val obs    = createObservation(defaultBuilding.id)
-      val res    = obsService.add(defaultMuseumId, defaultBuilding.id.get, obs).futureValue
+      val obs = createObservation(defaultBuilding.id)
+
+      val res = obsService.add(defaultMuseumId, defaultBuilding.id.get, obs).futureValue
+
       val theObs = res.successValue
       theObs.id.value mustBe EventId(9)
 
@@ -86,15 +71,13 @@ class EventServiceSpec
       theObs.fireProtection mustBe obs.fireProtection
       theObs.theftProtection mustBe obs.theftProtection
       theObs.waterDamageAssessment mustBe obs.waterDamageAssessment
-
-      latestEventId = res.successValue.id.value
-      latestEventId mustBe 9L
     }
 
     "fail when inserting a Observation with wrong museumId" in {
       val anotherMid = MuseumId(4)
       val obs        = createObservation(defaultBuilding.id)
-      val res        = obsService.add(anotherMid, defaultBuilding.id.get, obs).futureValue
+
+      val res = obsService.add(anotherMid, defaultBuilding.id.get, obs).futureValue
       res.isSuccess mustBe false
       res.isFailure mustBe true
     }

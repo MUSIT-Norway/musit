@@ -1,11 +1,11 @@
 package models.storage.event.move
 
 import models.storage.Move._
-import models.storage.event.{EventType, MusitEvent}
 import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   MoveNodeType,
   MoveObjectType
 }
+import models.storage.event.{EventType, MusitEvent}
 import no.uio.musit.models.ObjectTypes.{Node, ObjectType}
 import no.uio.musit.models._
 import no.uio.musit.time.dateTimeNow
@@ -29,7 +29,13 @@ case class MoveObject(
     objectType: ObjectType,
     from: Option[StorageNodeId],
     to: StorageNodeId
-) extends MoveEvent
+) extends MoveEvent {
+
+  override type T = MoveObject
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+}
 
 object MoveObject {
 
@@ -69,7 +75,11 @@ case class MoveNode(
     to: StorageNodeId
 ) extends MoveEvent {
 
+  override type T = MoveNode
+
   override val objectType: ObjectType = Node
+
+  override def withId(id: Option[EventId]) = copy(id = id)
 
 }
 
