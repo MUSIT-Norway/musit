@@ -36,7 +36,7 @@
   <logger name="no.uio.musit" level="ERROR"/>
   <logger name="controllers" level="ERROR"/>
   <logger name="services" level="ERROR"/>
-  <logger name="models" level="ERROR"/>
+  <logger name="models" level="DEBUG"/>
   <logger name="repositories" level="ERROR"/>
 
   <root level="ERROR">
