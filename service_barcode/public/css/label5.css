@@ -30,10 +30,10 @@
 
 .name {
   margin: 7mm 10mm 0;
-  font-size: x-large;
-  height: 11mm;
-  line-height: 11mm;
-  white-space: nowrap;
+  font-size: larger;
+  height: 13mm;
+  line-height: 6mm;
+  white-space: pre-line;
   text-overflow: ellipsis;
   overflow: hidden;
 }
