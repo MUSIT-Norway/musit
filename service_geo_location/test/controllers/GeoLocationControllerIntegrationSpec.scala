@@ -28,7 +28,7 @@ import scala.language.postfixOps
 
 class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
-  val queryParam = (adr: String) => s"/v1/address?search=$adr"
+  val queryParam = (adr: String) => s"/address?search=$adr"
 
   val fakeToken = BearerToken(FakeUsers.testUserToken)
 
