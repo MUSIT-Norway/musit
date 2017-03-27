@@ -64,8 +64,6 @@ services:
 
   auth:
     image: musit_service_auth:0.1-SNAPSHOT
-    ports:
-      - "7074:7070"
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
