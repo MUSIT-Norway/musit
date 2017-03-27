@@ -20,7 +20,7 @@
 package repositories.dao.caching
 
 import com.google.inject.Inject
-import no.uio.musit.models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import models.event.dto.{EventDto, LocalObject}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
@@ -59,9 +59,13 @@ class LocalObjectDao @Inject()(
     )
   }
 
-  def currentLocation(objectId: ObjectId): Future[Option[StorageNodeDatabaseId]] = {
+  def currentLocation(
+      objectId: ObjectId,
+      objectType: ObjectType
+  ): Future[Option[StorageNodeDatabaseId]] = {
     val query = localObjectsTable.filter { locObj =>
-      locObj.objectId === objectId
+      locObj.objectId === objectId &&
+      (locObj.objectType === objectType.name || locObj.objectType.isEmpty)
     }.map(_.currentLocationId).max.result
 
     db.run(query)
