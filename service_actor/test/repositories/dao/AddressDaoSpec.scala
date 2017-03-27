@@ -88,14 +88,6 @@ class AddressDaoSpec
         res1.postalCode mustBe "0122"
         res1.id mustBe Some(DatabaseId(22))
 
-        /* val orgUpd = Organisation(
-          id = Some(OrgId(3)),
-          fn = "Museet i Bar",
-          tel = "99344321",
-          web = "www.bar.no",
-          synonyms = Some(Seq("KHM")),
-          serviceTags = Some(Seq("storage_facility"))
-        )*/
         val orgAddrUpd = OrganisationAddress(
           id = Some(DatabaseId(22)),
           organisationId = Some(OrgId(1)),
