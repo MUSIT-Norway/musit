@@ -10,6 +10,8 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import utils.testhelpers.{BaseDummyData, EventGenerators}
 
+import org.scalatest.Inspectors.forAll
+
 class MoveDaoSpec
     extends MusitSpecWithAppPerSuite
     with BaseDummyData
@@ -67,6 +69,25 @@ class MoveDaoSpec
         events.size mustBe 2
       }
 
+      "move a batch of objects" in {
+        val mid = MuseumId(2)
+
+        val oid1 = ObjectUUID.generateAsOpt()
+        val oid2 = ObjectUUID.generateAsOpt()
+        val oid3 = ObjectUUID.generateAsOpt()
+        val oid4 = ObjectUUID.generateAsOpt()
+
+        val mo1 = createMoveObject(oid1, Some(secondNodeId), defaultNodeId)
+        val mo2 = createMoveObject(oid2, Some(secondNodeId), defaultNodeId)
+        val mo3 = createMoveObject(oid3, Some(secondNodeId), defaultNodeId)
+        val mo4 = createMoveObject(oid4, Some(secondNodeId), defaultNodeId)
+
+        val res =
+          dao.batchInsertObjects(mid, Seq(mo1, mo2, mo3, mo4)).futureValue.successValue
+
+        res must contain allOf (EventId(3L), EventId(4L), EventId(5L), EventId(6L))
+      }
+
     }
 
     "working with nodes" should {
@@ -78,7 +99,7 @@ class MoveDaoSpec
           to = secondNodeId
         )
 
-        dao.insert(mid, moveNode).futureValue.successValue mustBe EventId(3L)
+        dao.insert(mid, moveNode).futureValue.successValue mustBe EventId(7L)
       }
 
       "return a MoveNode event with a specific id" in {
@@ -89,7 +110,7 @@ class MoveDaoSpec
         )
 
         val eid = dao.insert(mid, moveNode).futureValue.successValue
-        eid mustBe EventId(4L)
+        eid mustBe EventId(8L)
 
         val res = dao.findById(mid, eid).futureValue.successValue
 
@@ -114,6 +135,25 @@ class MoveDaoSpec
 
         val events = res.successValue
         events.size mustBe 2
+      }
+
+      "move a batch of objects" in {
+        val mid = MuseumId(2)
+
+        val n1 = StorageNodeId.generateAsOpt()
+        val n2 = StorageNodeId.generateAsOpt()
+        val n3 = StorageNodeId.generateAsOpt()
+        val n4 = StorageNodeId.generateAsOpt()
+
+        val mo1 = createMoveNode(n1, Some(secondNodeId), defaultNodeId)
+        val mo2 = createMoveNode(n2, Some(secondNodeId), defaultNodeId)
+        val mo3 = createMoveNode(n3, Some(secondNodeId), defaultNodeId)
+        val mo4 = createMoveNode(n4, Some(secondNodeId), defaultNodeId)
+
+        val res =
+          dao.batchInsertNodes(mid, Seq(mo1, mo2, mo3, mo4)).futureValue.successValue
+
+        res must contain allOf (EventId(9L), EventId(10L), EventId(11L), EventId(12L))
       }
 
     }

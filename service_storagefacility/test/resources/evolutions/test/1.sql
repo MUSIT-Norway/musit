@@ -86,8 +86,8 @@ CREATE TABLE MUSARK_STORAGE.NEW_LOCAL_OBJECT (
   current_location_id VARCHAR2(36) NOT NULL,
   museum_id           INTEGER      NOT NULL,
   object_type         VARCHAR(50) DEFAULT 'collection', -- possible values can be 'collection', or 'sample'
-  PRIMARY KEY (object_uuid),
-  FOREIGN KEY (current_location_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE (storage_node_uuid)
+  PRIMARY KEY (object_uuid)
+  -- We do not enforce foreign key constraints here to make testing easier.
 );
 
 -- ===========================================================================

@@ -113,6 +113,32 @@ trait EventActions extends DbErrorHandlers { self: EventTables =>
       )
   }
 
+  protected def insertBatchAnd[A <: MusitEvent, T](
+      mid: MuseumId,
+      e: Seq[A]
+  )(
+      convertToRow: (MuseumId, A) => EventRow
+  )(
+      additional: (A, EventId) => DBIO[T]
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[EventId]]] = {
+    val actions = DBIO.sequence(e.map { r =>
+      val row = convertToRow(mid, r)
+      for {
+        eid <- insertAction(row)
+        _   <- additional(r, eid)
+      } yield eid
+    })
+
+    db.run(actions.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(
+        nonFatal(
+          "An exception occurred registering a batch move with ids: " +
+            s" ${e.map(_.id.getOrElse("<empty>")).mkString(", ")}"
+        )
+      )
+  }
+
   protected def findEventById[A <: MusitEvent](
       mid: MuseumId,
       id: EventId

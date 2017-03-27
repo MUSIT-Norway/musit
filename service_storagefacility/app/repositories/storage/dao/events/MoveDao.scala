@@ -1,6 +1,7 @@
 package repositories.storage.dao.events
 
 import com.google.inject.{Inject, Singleton}
+import models.storage.event.EventTypeId
 import models.storage.event.EventTypeRegistry.TopLevelEvents
 import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   MoveNodeType,
@@ -8,17 +9,21 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
 }
 import models.storage.event.move._
 import no.uio.musit.MusitResults.MusitResult
-import no.uio.musit.models.{EventId, MuseumId, ObjectUUID, StorageNodeId}
+import no.uio.musit.models._
+import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao.EventTables
+import play.api.libs.json.JsValue
+import repositories.storage.dao.{EventTables, LocalObjectsDao}
 
 import scala.concurrent.Future
 
 @Singleton
-class MoveDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends EventTables
+class MoveDao @Inject()(
+    val dbConfigProvider: DatabaseConfigProvider,
+    val localObjectsDao: LocalObjectsDao
+) extends EventTables
     with EventActions {
 
   val logger = Logger(classOf[MoveDao])
@@ -44,19 +49,23 @@ class MoveDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    * Add several move events in one transactional batch.
    *
    * @param mid the MuseumId associated with the event
-   * @param moveEvents the MoveEvents to save
-   * @tparam A the type of MoveEvents to save
+   * @param moveEvents the MoveNode events to save
    * @return the EventIds given to the saved events
    */
-  def batchInsert[A <: MoveEvent](
+  def batchInsertNodes(
       mid: MuseumId,
-      moveEvents: Seq[A]
+      moveEvents: Seq[MoveNode]
   ): Future[MusitResult[Seq[EventId]]] = {
-    insertBatch(mid, moveEvents) { (mid, row) =>
-      row match {
-        case mo: MoveObject => asRow[MoveObject](mid, mo)
-        case mn: MoveNode   => asRow[MoveNode](mid, mn)
-      }
+    insertBatch[MoveNode](mid, moveEvents)((mid, row) => asRow[MoveNode](mid, row))
+  }
+
+  def batchInsertObjects(
+      mid: MuseumId,
+      moveEvents: Seq[MoveObject]
+  ): Future[MusitResult[Seq[EventId]]] = {
+    insertBatchAnd(mid, moveEvents)((mid, row) => asRow[MoveObject](mid, row)) {
+      case (event, eid) =>
+        localObjectsDao.storeLatestMoveAction(mid, eid, event)
     }
   }
 

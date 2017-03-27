@@ -421,9 +421,11 @@ class StorageNodeService @Inject()(
       mid: MuseumId,
       events: Seq[E]
   )(
+      batchInsert: (MuseumId, Seq[E]) => Future[MusitResult[Seq[EventId]]]
+  )(
       f: Seq[EventId] => MusitResult[Seq[ID]]
   ): Future[MusitResult[Seq[ID]]] = {
-    moveDao.batchInsert(mid, events).map(_.flatMap(ids => f(ids)))
+    batchInsert(mid, events).map(_.flatMap(ids => f(ids)))
   }
 
   private def moveBatchNodes(
@@ -449,7 +451,7 @@ class StorageNodeService @Inject()(
           resLocUpd <- unitDao.batchUpdateLocation(validNodes, to)
           if resLocUpd.isSuccess
           // If the above update succeeded, we store the move events.
-          mvRes <- persistMoveEvents(mid, validEvents) { _ =>
+          mvRes <- persistMoveEvents(mid, validEvents)(moveDao.batchInsertNodes) { _ =>
                     MusitSuccess(validNodes.flatMap(_.nodeId))
                   }
         } yield {
@@ -522,7 +524,7 @@ class StorageNodeService @Inject()(
       movedObjects <- MusitResultT(
         moveBatch(mid, destination, objIds, currLoc, moveEvents) {
           case (_, _, events) =>
-            persistMoveEvents(mid, events) { _ =>
+            persistMoveEvents(mid, events)(moveDao.batchInsertObjects) { _ =>
               // Again the get on affectedThing is safe since we're guaranteed its
               // presence at this point.
               MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
