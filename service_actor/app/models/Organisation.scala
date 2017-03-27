@@ -20,7 +20,41 @@
 package models
 
 import no.uio.musit.models.OrgId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads, Writes}
+
+case class WordList(underlying: Seq[String]) {
+
+  def asDbString = underlying.mkString("|", "|", "|")
+
+}
+
+object WordList {
+
+  def fromDbString(str: String): WordList = {
+    val words = str.stripPrefix("|").stripSuffix("|").split("\\|")
+    WordList(words)
+  }
+
+  def fromOptDbString(mstr: Option[String]): Option[WordList] =
+    mstr.map(WordList.fromDbString)
+
+  implicit def wordListConverter(strSeq: Seq[String]): WordList = {
+    WordList(strSeq)
+  }
+
+  implicit def wordListAsSeq(wl: WordList): Seq[String] = {
+    wl.underlying
+  }
+
+  implicit val reads: Reads[WordList] = Reads { jsv =>
+    jsv.validate[Seq[String]].map(WordList.apply)
+  }
+
+  implicit val writes: Writes[WordList] = Writes { wl =>
+    Json.toJson(wl.underlying)
+  }
+
+}
 
 /**
  * Domain Organization
@@ -28,9 +62,10 @@ import play.api.libs.json.Json
 case class Organisation(
     id: Option[OrgId],
     fn: String,
-    nickname: String,
     tel: String,
-    web: String
+    web: String,
+    synonyms: Option[WordList],
+    serviceTags: Option[WordList]
 )
 
 object Organisation {
