@@ -71,6 +71,9 @@ class TemplateController @Inject()(
               case Label5 =>
                 views.html.label5(labelData, bf, Label5, isPreview = true)
 
+              case LabelPrinter =>
+                views.html.label_printer(labelData, bf, LabelPrinter, isPreview = true)
+
             }
             .map { view =>
               Ok(view)
@@ -116,6 +119,9 @@ class TemplateController @Inject()(
 
                 case Label5 =>
                   views.html.label5(data, bf, Label5)
+
+                case LabelPrinter =>
+                  views.html.label_printer(data, bf, LabelPrinter)
 
               }
               .map { view =>

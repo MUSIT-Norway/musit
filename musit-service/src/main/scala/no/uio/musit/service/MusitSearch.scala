@@ -19,11 +19,14 @@
 
 package no.uio.musit.service
 
-case class MusitSearch(searchMap: Map[String, String], searchStrings: List[String])
+case class MusitSearch(
+    searchMap: Map[String, String] = Map.empty,
+    searchStrings: List[String] = List.empty
+)
 
 object MusitSearch {
 
-  val empty = MusitSearch(Map.empty, List.empty)
+  val empty = MusitSearch()
 
   @throws(classOf[IllegalArgumentException])
   def parseParams(p: List[String]): Map[String, String] =

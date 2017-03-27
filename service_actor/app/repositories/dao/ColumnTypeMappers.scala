@@ -46,7 +46,6 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       did => did.underlying,
       longId => DatabaseId(longId)
     )
-
   implicit val museumIdMapper: BaseColumnType[MuseumId] =
     MappedColumnType.base[MuseumId, Int](
       mid => mid.underlying,

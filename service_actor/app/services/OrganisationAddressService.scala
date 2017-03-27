@@ -36,12 +36,12 @@ class OrganisationAddressService @Inject()(val adrDao: AddressDao) {
     adrDao.allFor(organizationId)
   }
 
-  def find(id: DatabaseId): Future[Option[OrganisationAddress]] = {
-    adrDao.getById(id)
+  def find(orgId: OrgId, id: DatabaseId): Future[Option[OrganisationAddress]] = {
+    adrDao.getById(orgId, id)
   }
 
-  def create(address: OrganisationAddress): Future[OrganisationAddress] = {
-    adrDao.insert(address)
+  def create(orgId: OrgId, address: OrganisationAddress): Future[OrganisationAddress] = {
+    adrDao.insert(address.copy(organisationId = Some(orgId)))
   }
 
   def update(address: OrganisationAddress): Future[MusitResult[Option[Int]]] = {

@@ -20,9 +20,9 @@
 package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.Organisation
-import no.uio.musit.models.OrgId
+import models.{Organisation, WordList}
 import no.uio.musit.MusitResults._
+import no.uio.musit.models.OrgId
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.jdbc.JdbcProfile
@@ -43,9 +43,18 @@ class OrganisationDao @Inject()(
     db.run(orgTable.filter(_.id === id).result.headOption)
   }
 
+  def getByNameAndTags(searchName: String, tag: String): Future[Seq[Organisation]] = {
+    val query = orgTable.filter { org =>
+      (org.serviceTags like s"%|$tag|%") &&
+      ((org.fn like s"%$searchName%") ||
+      (org.synonyms like s"%|$searchName|%"))
+    }
+    db.run(query.result)
+  }
+
   def getByName(searchString: String): Future[Seq[Organisation]] = {
     val query = orgTable.filter { org =>
-      (org.fn like s"%$searchString%") || (org.nickname like s"%$searchString%")
+      (org.fn like s"%$searchString%") || (org.synonyms like s"%|$searchString|%")
     }
     db.run(query.result)
   }
@@ -77,25 +86,44 @@ class OrganisationDao @Inject()(
       tag: Tag
   ) extends Table[Organisation](tag, Some(SchemaName), OrgTableName) {
 
-    val id       = column[Option[OrgId]]("ORG_ID", O.PrimaryKey, O.AutoInc)
-    val fn       = column[String]("FULL_NAME")
-    val nickname = column[String]("NICKNAME")
-    val tel      = column[String]("TEL")
-    val web      = column[String]("WEB")
+    val id          = column[Option[OrgId]]("ORG_ID", O.PrimaryKey, O.AutoInc)
+    val fn          = column[String]("FULL_NAME")
+    val tel         = column[String]("TEL")
+    val web         = column[String]("WEB")
+    val synonyms    = column[Option[String]]("SYNONYMS")
+    val serviceTags = column[Option[String]]("SERVICE_TAGS")
 
     val create = (
         id: Option[OrgId],
         fn: String,
-        nickname: String,
         tel: String,
-        web: String
-    ) => Organisation(id, fn, nickname, tel, web)
+        web: String,
+        synonyms: Option[String],
+        serviceTags: Option[String]
+    ) =>
+      Organisation(
+        id,
+        fn,
+        tel,
+        web,
+        WordList.fromOptDbString(synonyms),
+        WordList.fromOptDbString(serviceTags)
+    )
 
     val destroy = (org: Organisation) =>
-      Some((org.id, org.fn, org.nickname, org.tel, org.web))
+      Option(
+        (
+          org.id,
+          org.fn,
+          org.tel,
+          org.web,
+          org.synonyms.map(_.asDbString),
+          org.serviceTags.map(_.asDbString)
+        )
+    )
 
     // scalastyle:off method.name
-    def * = (id, fn, nickname, tel, web) <> (create.tupled, destroy)
+    def * = (id, fn, tel, web, synonyms, serviceTags) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
   }

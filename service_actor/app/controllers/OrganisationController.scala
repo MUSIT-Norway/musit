@@ -52,11 +52,11 @@ class OrganisationController @Inject()(
 
   def get(id: Long) = MusitSecureAction().async { request =>
     orgService.find(id).map {
-      case Some(person) =>
-        Ok(Json.toJson(person))
+      case Some(org) =>
+        Ok(Json.toJson(org))
 
       case None =>
-        NotFound(Json.obj("message" -> s"Did not find object with id: $id"))
+        NotFound(Json.obj("message" -> s"Did not find organisation with id: $id"))
     }
   }
 
@@ -77,7 +77,7 @@ class OrganisationController @Inject()(
           case MusitSuccess(upd) =>
             upd match {
               case Some(updated) =>
-                Ok(Json.obj("message" -> "Record was updated!"))
+                Ok(Json.obj("message" -> s"$updated records were updated!"))
               case None =>
                 Ok(Json.obj("message" -> "No records were updated!"))
             }
