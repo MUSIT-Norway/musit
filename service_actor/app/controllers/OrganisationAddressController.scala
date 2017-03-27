@@ -24,6 +24,7 @@ import models.OrganisationAddress
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import services.OrganisationAddressService
@@ -35,14 +36,16 @@ class OrganisationAddressController @Inject()(
     val orgAdrService: OrganisationAddressService
 ) extends MusitController {
 
-  def listForOrg(organizationId: Long) =
+  val logger = Logger(classOf[OrganisationAddressController])
+
+  def listForOrg(organisationId: Long) =
     MusitSecureAction().async { implicit request =>
-      orgAdrService.all(organizationId).map(addr => Ok(Json.toJson(addr)))
+      orgAdrService.all(organisationId).map(addr => Ok(Json.toJson(addr)))
     }
 
-  def get(organizationId: Long, id: Long) =
+  def get(organisationId: Long, id: Long) =
     MusitSecureAction().async { implicit request =>
-      orgAdrService.find(id).map {
+      orgAdrService.find(organisationId, id).map {
         case Some(addr) =>
           Ok(Json.toJson(addr))
 
@@ -51,11 +54,11 @@ class OrganisationAddressController @Inject()(
       }
     }
 
-  def add(organizationId: Long) =
+  def add(organisationId: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
       request.body.validate[OrganisationAddress] match {
         case s: JsSuccess[OrganisationAddress] =>
-          orgAdrService.create(s.get).map { newAddr =>
+          orgAdrService.create(organisationId, s.get).map { newAddr =>
             Created(Json.toJson(newAddr))
           }
 
@@ -64,7 +67,7 @@ class OrganisationAddressController @Inject()(
       }
     }
 
-  def update(organizationId: Long, id: Long) =
+  def update(organisationId: Long, id: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
       request.body.validate[OrganisationAddress] match {
         case s: JsSuccess[OrganisationAddress] =>
@@ -86,7 +89,7 @@ class OrganisationAddressController @Inject()(
       }
     }
 
-  def delete(organizationId: Long, id: Long) =
+  def delete(organisationId: Long, id: Long) =
     MusitSecureAction().async { implicit request =>
       orgAdrService.remove(id).map { noDeleted =>
         Ok(Json.obj("message" -> s"Deleted $noDeleted record(s)."))

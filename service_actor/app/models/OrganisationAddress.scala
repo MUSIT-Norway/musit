@@ -27,7 +27,7 @@ import play.api.libs.json.Json
  */
 case class OrganisationAddress(
     id: Option[DatabaseId],
-    organizationId: Option[OrgId],
+    organisationId: Option[OrgId],
     addressType: String,
     streetAddress: String,
     locality: String,
