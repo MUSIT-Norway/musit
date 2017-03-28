@@ -26,7 +26,7 @@ import models.storage.event.EventTypeRegistry._
 import models.storage.event.dto.DtoConverters.MoveConverters
 import models.storage.event.dto._
 import models.storage.event.old.move.MoveObject
-import models.storage.event.{EventTypeId, EventTypeRegistry}
+import models.storage.event.{EventTypeId, EventTypeRegistry, MusitEvent_Old}
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import play.api.Logger
@@ -65,15 +65,15 @@ import scala.reflect.ClassTag
 @Singleton
 class EventDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider,
-    val relationDao: EventRelationDao,
-    val obsFromToDao: ObservationFromToDao,
-    val obsPestDao: ObservationPestDao,
-    val envReqDao: EnvRequirementDao,
-    val actorsDao: EventActorsDao,
-    val objectsDao: EventObjectsDao,
-    val placesDao: EventPlacesDao,
-    val placesAsObjDao: EventPlacesAsObjectsDao,
-    val localObjectDao: LocalObjectDao
+    relationDao: EventRelationDao,
+    obsFromToDao: ObservationFromToDao,
+    obsPestDao: ObservationPestDao,
+    envReqDao: EnvRequirementDao,
+    actorsDao: EventActorsDao,
+    objectsDao: EventObjectsDao,
+    placesDao: EventPlacesDao,
+    placesAsObjDao: EventPlacesAsObjectsDao,
+    localObjectDao: LocalObjectDao
 ) extends EventTables
     with ColumnTypeMappers {
 
@@ -574,6 +574,33 @@ class EventDao @Inject()(
       futureOtherRelatedEvents.map { extraRelatedEvents =>
         if (partEvents.events.isEmpty) extraRelatedEvents
         else partEvents +: extraRelatedEvents
+      }
+    }
+  }
+
+  /**
+   * Function used for migration of data from old event table(s) to new.
+   */
+  def getAllEvents[A <: TopLevelEvent, Res <: MusitEvent_Old](
+      mid: MuseumId,
+      eventType: A
+  )(success: EventDto => Res): Future[Seq[Res]] = {
+    val getIds = eventBaseTable.filter(_.eventTypeId === eventType.id).map(_.id).result
+
+    db.run(getIds).flatMap { ids =>
+      Future.traverse(ids)(eid => getEvent(mid, eid, Some(eventType.id))).map { res =>
+        res
+          .filter(_.isSuccess)
+          .map {
+            case MusitSuccess(ms) =>
+              ms.map(dto => success(dto))
+
+            case err: MusitError =>
+              logger.error(err.message)
+              throw new IllegalStateException("Impossible state") // scalastyle:ignore
+          }
+          .filter(_.isDefined)
+          .map(_.get)
       }
     }
   }

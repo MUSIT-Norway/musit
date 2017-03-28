@@ -1,7 +1,6 @@
 package repositories.storage.dao.events
 
 import com.google.inject.{Inject, Singleton}
-import models.storage.event.EventTypeId
 import models.storage.event.EventTypeRegistry.TopLevelEvents
 import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   MoveNodeType,
@@ -10,11 +9,9 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
 import models.storage.event.move._
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models._
-import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.JsValue
 import repositories.storage.dao.{EventTables, LocalObjectsDao}
 
 import scala.concurrent.Future
@@ -48,7 +45,7 @@ class MoveDao @Inject()(
   /**
    * Add several move events in one transactional batch.
    *
-   * @param mid the MuseumId associated with the event
+   * @param mid        the MuseumId associated with the event
    * @param moveEvents the MoveNode events to save
    * @return the EventIds given to the saved events
    */
