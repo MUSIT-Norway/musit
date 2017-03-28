@@ -1,7 +1,7 @@
 package services.storage
 
 import models.storage.event.envreq.EnvRequirement
-import no.uio.musit.models.EventId
+import no.uio.musit.models.{EventId, MuseumId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import utils.testhelpers.{BaseDummyData, EventGenerators, NodeGenerators}
@@ -38,8 +38,6 @@ class EnvironmentRequirementServiceSpec
     }
 
     "fail when inserting a EnvRequirement with the wrong museumId" in {
-      //      val anotherMid = MuseumId(4)
-      //      service.add(anotherMid, er).futureValue.isFailure mustBe true
       /*
         TODO:
         Currently this service doesn't check for validity of the node that the
@@ -54,7 +52,12 @@ class EnvironmentRequirementServiceSpec
         the node has already been determined. Perhaps it should even take the node as
         argument to be 100% sure of the validity.
        */
-      pending
+      val anotherMid = MuseumId(4)
+      val res        = service.add(anotherMid, er).futureValue
+
+      println(res)
+
+      res.isFailure mustBe true
     }
 
     "find an EnvRequirement with a specific Id" in {
@@ -64,7 +67,7 @@ class EnvironmentRequirementServiceSpec
     }
 
     "find the latest EnvironmentRequirement for a given node" in {
-      val res = service.findLatestForNodeId(defaultMuseumId, nodeId).futureValue
+      val res = service.findLatestForNodeId(nodeId).futureValue
 
       val r = res.successValue.value
       r.cleaning mustBe er.cleaning

@@ -1,7 +1,7 @@
 package services.storage
 
-import models.storage.Interval
-import models.storage.Move.MoveNodesCmd
+import models.storage.{Interval, MovableObject}
+import models.storage.Move.{MoveNodesCmd, MoveObjectsCmd}
 import models.storage.event.EventType
 import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import models.storage.event.move.{MoveNode, MoveObject}
@@ -142,6 +142,106 @@ class StorageNodeServiceSpec
       res.successValue.value mustBe -1
     }
 
+    "not mark a node as deleted when wrong museumId is used" in {
+      val su  = createStorageUnit(partOf = Some(buildingId))
+      val ins = saveUnit(su)
+
+      val wrongMid = MuseumId(4)
+
+      service.deleteNode(wrongMid, ins.id.value).futureValue
+
+      val res = service
+        .getNodeById(defaultMuseumId, ins.nodeId.value)
+        .futureValue
+        .successValue
+        .value
+      res.id mustBe ins.id
+      res.updatedBy mustBe Some(defaultActorId)
+    }
+
+    "not update a storage unit when using the wrong museumId" in {
+      val wrongMid = MuseumId(4)
+      val su       = createStorageUnit(partOf = Some(buildingId))
+      val ins      = saveUnit(su)
+      val upd      = ins.copy(name = "UggaBugga", areaTo = Some(4.0))
+
+      service
+        .updateStorageUnit(wrongMid, ins.id.value, upd)
+        .futureValue
+        .successValue mustBe None
+    }
+
+    "not update a building or environment requirements when using wrong museumID" in {
+      val wrongMid = MuseumId(4)
+      val b        = createBuilding(partOf = Some(orgId))
+      val ins      = saveBuilding(b)
+      val someEnvReq = Some(
+        initEnvironmentRequirement(
+          hypoxic = Some(Interval[Double](44.4, Some(55)))
+        )
+      )
+      val upd = ins.copy(
+        environmentRequirement = someEnvReq,
+        address = Some("BortIStaurOgVeggAddress")
+      )
+
+      service
+        .updateBuilding(wrongMid, ins.id.value, upd)
+        .futureValue
+        .successValue mustBe None
+
+      val res = service.getBuildingById(defaultMuseumId, ins.id.get).futureValue
+      res.successValue.value.address mustBe b.address
+      res.successValue.value.updatedDate mustBe b.updatedDate
+      res.successValue.value.updatedBy mustBe b.updatedBy
+      res.successValue.value.environmentRequirement mustBe b.environmentRequirement
+    }
+
+    "not update a room when using wrong museumId" in {
+      val wrongMid = MuseumId(4)
+      val room     = createRoom(partOf = Some(buildingId))
+      val ins      = saveRoom(room)
+      val secAss   = ins.securityAssessment.copy(waterDamage = Some(true))
+      val upd      = ins.copy(securityAssessment = secAss)
+
+      service
+        .updateRoom(wrongMid, ins.id.value, upd)
+        .futureValue
+        .successValue mustBe None
+
+      val res = service.getRoomById(defaultMuseumId, ins.id.get).futureValue
+      res.successValue.value.securityAssessment mustBe room.securityAssessment
+      res.successValue.value.updatedDate mustBe room.updatedDate
+      res.successValue.value.updatedBy mustBe room.updatedBy
+      res.successValue.value.environmentRequirement mustBe room.environmentRequirement
+    }
+
+    "find the relevant rooms when searching with a valid MuseumId" in {
+      val searchRoom =
+        service.searchByName(defaultMuseumId, "FooRoom", 1, 25).futureValue
+      searchRoom.successValue.head.name mustBe "FooRoom"
+      searchRoom.successValue.size mustBe 5
+    }
+
+    "not find any rooms when searching with the wrong MuseumId" in {
+      service
+        .searchByName(MuseumId(4), "FooRoom", 1, 25)
+        .futureValue
+        .successValue
+        .size mustBe 0
+    }
+
+    "fail when searching for a room with no search criteria" in {
+      service.searchByName(defaultMuseumId, "", 1, 25).futureValue.isSuccess mustBe false
+    }
+
+    "fail when searching for a room with less than 3 characters" in {
+      service
+        .searchByName(defaultMuseumId, "Fo", 1, 25)
+        .futureValue
+        .isSuccess mustBe false
+    }
+
     "successfully move a node and all its children" in {
       // Prepare some nodes
       val b1 = saveBuilding(createBuilding(name = "Building1", partOf = Some(orgId)))
@@ -181,25 +281,11 @@ class StorageNodeServiceSpec
       val oid  = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
       val dest = insertedNodeIds(StorageNodeDatabaseId(20))
 
-      val loc1 =
-        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
-      loc1.successValue.value.id mustBe Some(StorageNodeDatabaseId(5))
-
-      val event = MoveObject(
-        id = None,
-        doneBy = Some(defaultActorId),
-        doneDate = DateTime.now,
-        affectedThing = Some(oid),
-        registeredBy = Some(defaultActorId),
-        registeredDate = Some(DateTime.now),
-        eventType = EventType.fromEventTypeId(MoveObjectType.id),
-        objectType = CollectionObject,
-        from = StorageNodeId.fromString("01134afe-b262-434b-a71f-8f697bc75e56"),
-        to = dest
-      )
+      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
+      val events = MoveObject.fromCommand(defaultActorId, cmd)
 
       val res =
-        service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue.successValue
+        service.moveObjects(defaultMuseumId, dest, events).futureValue.successValue
 
       val loc2 =
         service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
@@ -208,48 +294,57 @@ class StorageNodeServiceSpec
     }
 
     "not register a move when current location and destination are the same" in {
-      pending
+      val oid  = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
+      val dest = insertedNodeIds(StorageNodeDatabaseId(20))
+
+      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
+      val events = MoveObject.fromCommand(defaultActorId, cmd)
+
+      service
+        .moveObjects(defaultMuseumId, dest, events)
+        .futureValue
+        .isFailure mustBe true
+
+      service
+        .currentObjectLocation(defaultMuseumId, oid, CollectionObject)
+        .futureValue
+        .successValue
+        .value
+        .nodeId mustBe Some(dest)
     }
 
     "successfully move an object with no previous location" in {
-      pending
-    }
+      val oid  = ObjectUUID.generate()
+      val dest = buildingUUID
 
-    "not mark a node as deleted when wrong museumId is used" in {
-      pending
-    }
+      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
+      val events = MoveObject.fromCommand(defaultActorId, cmd)
 
-    "not update a storage unit when using the wrong museumId" in {
-      pending
-    }
+      service
+        .moveObjects(defaultMuseumId, dest, events)
+        .futureValue
+        .isSuccess mustBe true
 
-    "not update a building or environment requirements when using wrong museumID" in {
-      pending
-    }
-
-    "not update a room when using wrong museumId" in {
-      pending
+      service
+        .currentObjectLocation(defaultMuseumId, oid, CollectionObject)
+        .futureValue
+        .successValue
+        .value
+        .nodeId mustBe Some(dest)
     }
 
     "get current location for an object" in {
-      pending
+      val oid = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
+      val loc = insertedNodeIds(StorageNodeDatabaseId(20))
+
+      service
+        .currentObjectLocation(defaultMuseumId, oid, CollectionObject)
+        .futureValue
+        .successValue
+        .value
+        .nodeId mustBe Some(loc)
     }
 
-    "find the relevant rooms when searching with a valid MuseumId" in {
-      pending
-    }
-
-    "not find any rooms when searching with the wrong MuseumId" in {
-      pending
-    }
-
-    "fail when searching for a room with no search criteria" in {
-      pending
-    }
-
-    "fail when searching for a room with less than 3 characters" in {
-      pending
-    }
   }
 
   "Validating a storage node destination" should {

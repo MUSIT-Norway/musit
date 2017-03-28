@@ -70,12 +70,10 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   /**
    * Tries to find the latest EnvRequirement event for the given nodeId.
    *
-   * @param mid    the MuseumId associated with the nodeId and EnvRequirement
    * @param nodeId the nodeId to find EnvRequirement for
    * @return the EnvRequirement that might be found
    */
   def latestForNodeId(
-      mid: MuseumId,
       nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvRequirement]]] = {
     val query = for {

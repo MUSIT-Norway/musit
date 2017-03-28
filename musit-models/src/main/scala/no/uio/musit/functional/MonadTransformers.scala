@@ -44,7 +44,8 @@ object MonadTransformers {
         a.map(b => f(b).value).getOrElse {
           m.pure(
             MusitInternalError(
-              "Unable to map into MusitResult in the MusitResultT transformer"
+              s"Unable to map into MusitResult in the MusitResultT transformer " +
+                s"because of $a"
             )
           )
         }

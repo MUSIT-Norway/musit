@@ -3,12 +3,7 @@ package services.storage
 import com.google.inject.Inject
 import models.storage.event.envreq.EnvRequirement
 import models.storage.nodes.EnvironmentRequirement
-import no.uio.musit.MusitResults.{
-  MusitError,
-  MusitInternalError,
-  MusitResult,
-  MusitSuccess
-}
+import no.uio.musit.MusitResults._
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
@@ -37,11 +32,10 @@ class EnvironmentRequirementService @Inject()(
    * @return A Future containing an Option of the EnvRequirement that was found.
    */
   private def compareWithLatest(
-      mid: MuseumId,
       envReq: EnvRequirement
   ): Future[Option[EnvRequirement]] = {
     envReq.affectedThing.map { snid =>
-      latestForNodeId(mid, snid)
+      latestForNodeId(snid)
         .map(_.map { mer =>
           if (mer.exists(_.similar(envReq))) mer
           else None
@@ -74,13 +68,22 @@ class EnvironmentRequirementService @Inject()(
       registeredDate = Some(dateTimeNow)
     )
 
-    compareWithLatest(mid, envReq).flatMap { sameEr =>
+    compareWithLatest(envReq).flatMap { sameEr =>
       sameEr.map { er =>
-        logger.debug(
-          "Did not add new EnvRequirement event because it was " +
-            "similar as the previous entry"
-        )
-        Future.successful(MusitSuccess(er))
+        /*
+          Note: This whole thing that we're not persisting env requirement data
+          if they haven't changed since previous registration seems a bit dubious
+          to me. In effect, we're not allowed to register useful facts about the
+          current environment status. Namely that the status is unchanged since
+          the previous registration. Which indicates environment stability.
+          Another byproduct is that we lose the history of _who_ did the latest
+          check, and when. Leaving us with gaps in the event history of the
+          environment requirement status.
+         */
+        val msg = "Did not add new EnvRequirement event because the node was " +
+          s"not found for given $mid, or the the previous entry was the same."
+        logger.debug(msg)
+        Future.successful(MusitValidationError(msg))
       }.getOrElse {
         envReqDao.insert(mid, envReq).flatMap {
           case MusitSuccess(eventId) =>
@@ -120,10 +123,9 @@ class EnvironmentRequirementService @Inject()(
    * @return {{{Future[MusitResult[Option[EnvRequirement]]]}}}
    */
   private def latestForNodeId(
-      mid: MuseumId,
       nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvRequirement]]] = {
-    envReqDao.latestForNodeId(mid, nodeId)
+    envReqDao.latestForNodeId(nodeId)
   }
 
   /**
@@ -134,14 +136,9 @@ class EnvironmentRequirementService @Inject()(
    * @return {{{Future[MusitResult[Option[EnvironmentRequirement]]]}}}
    */
   def findLatestForNodeId(
-      mid: MuseumId,
       nodeId: StorageNodeId
   ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
-    envReqDao.latestForNodeId(mid, nodeId).map { result =>
-      result.map { maybeEvt =>
-        maybeEvt.map(EnvRequirement.fromEnvRequirementEvent)
-      }
-    }
+    latestForNodeId(nodeId).map(_.map(_.map(EnvRequirement.fromEnvRequirementEvent)))
   }
 
 }

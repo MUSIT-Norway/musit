@@ -295,12 +295,18 @@ class StorageNodeServiceSpec
         from = None,
         to = dest
       )
-      val res =
-        service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue.successValue
 
-      val loc =
-        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
-      loc.successValue.value.id mustBe Some(StorageNodeDatabaseId(23))
+      service
+        .moveObjects(defaultMuseumId, dest, Seq(event))
+        .futureValue
+        .isSuccess mustBe true
+
+      service
+        .currentObjectLocation(defaultMuseumId, oid, CollectionObject)
+        .futureValue
+        .successValue
+        .value
+        .id mustBe Some(StorageNodeDatabaseId(23))
     }
 
     "not mark a node as deleted when wrong museumId is used" in {

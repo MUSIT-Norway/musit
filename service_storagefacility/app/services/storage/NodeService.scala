@@ -346,10 +346,9 @@ trait NodeService {
   // scalastyle:on method.length
 
   private[services] def getEnvReq(
-      mid: MuseumId,
       id: StorageNodeId
   ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
-    envReqService.findLatestForNodeId(mid, id).recover {
+    envReqService.findLatestForNodeId(id).recover {
       case NonFatal(ex) =>
         // If we fail fetching the envreq event, we'll return None.
         logger.warn(
@@ -364,11 +363,11 @@ trait NodeService {
   /**
    * Helper function that applies the common logic for fetching a storage node.
    *
-   * @param mid
-   * @param eventuallyMaybeNode
-   * @param cp
-   * @tparam A
-   * @return
+   * @param mid MuseumId to look for a node in
+   * @param eventuallyMaybeNode a future of an option that contains the found node
+   * @param cp function to apply envreq and path to the found node
+   * @tparam A The type of node to look for.
+   * @return Eventually a result of the potentially found node
    */
   private[services] def getNode[A <: StorageNode](
       mid: MuseumId,
@@ -381,7 +380,7 @@ trait NodeService {
                    .flatMap(_.nodeId.map(MusitSuccess.apply))
                    .getOrElse(MusitValidationError("Node did not contain UUID"))
                )
-      maybeEnvReq <- MusitResultT(getEnvReq(mid, nodeId))
+      maybeEnvReq <- MusitResultT(getEnvReq(nodeId))
       namedPathElems <- MusitResultT(maybeNode.map { node =>
                          unitDao.namesForPath(node.path)
                        }.getOrElse(Future.successful(MusitSuccess(Seq.empty))))

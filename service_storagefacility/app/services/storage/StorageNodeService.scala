@@ -47,6 +47,23 @@ class StorageNodeService @Inject()(
     unitDao.exists(mid, id)
   }
 
+  def searchByName(
+      mid: MuseumId,
+      searchStr: String,
+      page: Int,
+      limit: Int
+  ): Future[MusitResult[Seq[GenericStorageNode]]] = {
+    if (searchStr.length > 2) {
+      unitDao.getStorageNodeByName(mid, searchStr, page, limit)
+    } else {
+      Future.successful {
+        MusitValidationError(
+          s"Not enough letters in search string $searchStr to look up node by name."
+        )
+      }
+    }
+  }
+
   def addRoot(
       mid: MuseumId,
       root: RootNode
@@ -151,9 +168,7 @@ class StorageNodeService @Inject()(
                   .map(er => saveEnvReq(mid, id, er))
                   .getOrElse(Future.successful(None))
             node <- getStorageUnitById(mid, id)
-          } yield {
-            node
-          }
+          } yield node
         }.getOrElse(Future.successful(MusitSuccess(None)))
 
       case err: MusitError =>
@@ -531,7 +546,6 @@ class StorageNodeService @Inject()(
             }
         }
       )
-      // TODO: Need to store the new current location for the different objects
     } yield movedObjects
     // format: on
 
