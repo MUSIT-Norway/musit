@@ -481,6 +481,33 @@ class ObjectDao @Inject()(
       }
   }
 
+  def findByUUID(
+    museumId: MuseumId,
+    objectUUID: ObjectUUID,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MusitObject]]] = {
+    val cids = collections.flatMap(_.schemaIds).distinct
+
+    val q1 = objTable.filter { o =>
+      o.uuid === objectUUID &&
+      o.museumId === museumId &&
+      o.isDeleted === false
+    }
+    // If use has god mode, look in all collections.
+    val query = if (currUsr.hasGodMode) q1 else q1.filter(_.newCollectionId inSet cids)
+
+    db.run(query.result.headOption)
+      .map {
+        res => MusitSuccess(res.map(MusitObject.fromTuple))
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Error while locating object with old barcode $objectUUID"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+  }
+
   def findByOldBarcode(
       museumId: MuseumId,
       oldBarcode: Long,

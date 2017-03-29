@@ -45,6 +45,14 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     )
   )
 
+  val lavCollections = Seq(
+    MuseumCollection(
+      uuid = CollectionUUID(UUID.fromString("fcb4c598-8b05-4095-ac00-ce66247be38a")),
+      name = Some("Lichen"),
+      oldSchemaNames = Seq(MuseumCollections.Lichen)
+    )
+  )
+
   val dummyUid = ActorId.generate()
 
   implicit val dummyUser = AuthenticatedUser(
@@ -522,5 +530,15 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
     }
 
+    "finding object by uuid" should {
+      "return the object" in {
+        val uuid = ObjectUUID.unsafeFromString("dcd37cb7-34ae-484e-a2c0-a1b1925e9b68")
+        val mid = MuseumId(99)
+        val res =
+          dao.findByUUID(mid, uuid, lavCollections).futureValue.successValue.value
+        res.id mustBe ObjectId(51)
+        res.term mustBe "Kartlav"
+      }
+    }
   }
 }

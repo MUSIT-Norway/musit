@@ -343,6 +343,22 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         (objects.head \ "subNo").as[String] mustBe "34"
       }
     }
+
+    "finding object by uuid" should {
+      "locate the object" in {
+        val uuid = "d43e3c5a-8244-4497-bd15-29c844ff8745"
+        val mid = 99
+        val res = wsUrl(s"/museum/$mid/objects/$uuid")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get()
+          .futureValue
+        res.status mustBe OK
+        val obj = res.json
+        (obj \ "id").as[Int] mustBe 3
+        (obj \ "term").as[String] mustBe "Sommerfugl"
+      }
+    }
   }
 
 }
