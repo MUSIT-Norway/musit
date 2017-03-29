@@ -126,7 +126,7 @@ class StorageNodeServiceSpec
       val updRes = service
         .updateStorageUnit(defaultMuseumId, res.successValue.value.id.value, upd)
         .futureValue // scalastyle:ignore
-      updRes mustBe a[MusitSuccess[_]]
+
       updRes.successValue.value.name mustBe "UggaBugga"
       updRes.successValue.value.areaTo mustBe Some(4.0)
 

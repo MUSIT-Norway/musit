@@ -376,7 +376,6 @@ trait NodeService {
   private[services] def moveBatch[ID <: MusitId, E <: MoveEvent](
       mid: MuseumId,
       destination: StorageNodeDatabaseId,
-      affected: Seq[ID],
       current: CurrLocType[ID],
       moveEvents: Seq[E]
   )(

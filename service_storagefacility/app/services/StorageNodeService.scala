@@ -527,7 +527,7 @@ class StorageNodeService @Inject()(
     val res = for {
       affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
       currLoc = affectedNodes.map(n => (n.id.get, n.isPartOf)).toMap
-      moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
+      moved <- MusitResultT(moveBatch(mid, destination, currLoc, moveEvents) {
                 case (to, curr, events) =>
                   moveBatchNodes(mid, affectedNodes, to, curr, events)
               })
@@ -559,14 +559,13 @@ class StorageNodeService @Inject()(
       .map(a => a.affectedThing.get -> a.objectType)
       .toMap
 
-    val objIds     = objIdsAndTypes.keys.toSeq
-    val currentLoc = localObjectDao.currentLocations(objIds)
+    val objIds = objIdsAndTypes.keys.toSeq
 
     // format: off
     val res = for {
       currentLoc <- MusitResultT(localObjectDao.currentLocations(objIds))
       movedObjects <- MusitResultT(
-        moveBatch(mid, destination, objIds, currentLoc, moveEvents) {
+        moveBatch(mid, destination, currentLoc, moveEvents) {
            case (_, _, events) =>
              persistMoveEvents(mid, events) { eventIds =>
                // Again the get on affectedThing is safe since we're guaranteed its
