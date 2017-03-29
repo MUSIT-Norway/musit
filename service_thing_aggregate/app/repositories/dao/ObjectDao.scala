@@ -470,12 +470,37 @@ class ObjectDao @Inject()(
     }
 
     db.run(query.result.headOption)
-      .map { res =>
-        MusitSuccess(res.map(MusitObject.fromTuple))
-      }
+      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
       .recover {
         case NonFatal(ex) =>
           val msg = s"Error while locating object with old object ID $oldId"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+  }
+
+  def findByUUID(
+    museumId: MuseumId,
+    objectUUID: ObjectUUID,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MusitObject]]] = {
+    val cids = collections.flatMap(_.schemaIds).distinct
+
+    val queryAllCollections = objTable.filter { o =>
+      o.uuid === objectUUID &&
+      o.museumId === museumId &&
+      o.isDeleted === false
+    }
+
+    val query =
+      if (currUsr.hasGodMode) queryAllCollections
+      else queryAllCollections.filter(_.newCollectionId inSet cids)
+
+    db.run(query.result.headOption)
+      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Error while locating object with uuid $objectUUID"
           logger.error(msg, ex)
           MusitDbError(msg, Option(ex))
       }
@@ -488,18 +513,18 @@ class ObjectDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     val cids = collections.flatMap(_.schemaIds).distinct
 
-    val q1 = objTable.filter { o =>
+    val queryAllCollections = objTable.filter { o =>
       o.oldBarcode === oldBarcode &&
       o.museumId === museumId &&
       o.isDeleted === false
     }
-    // If use has god mode, look in all collections.
-    val query = if (currUsr.hasGodMode) q1 else q1.filter(_.newCollectionId inSet cids)
+
+    val query =
+      if (currUsr.hasGodMode) queryAllCollections
+      else queryAllCollections.filter(_.newCollectionId inSet cids)
 
     db.run(query.result)
-      .map { res =>
-        MusitSuccess(res.map(MusitObject.fromTuple))
-      }
+      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
       .recover {
         case NonFatal(ex) =>
           val msg = s"Error while locating object with old barcode $oldBarcode"

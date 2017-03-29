@@ -22,7 +22,7 @@ package controllers
 import com.google.inject.Inject
 import models.ObjectSearchResult
 import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitSuccess}
-import no.uio.musit.models.{MuseumId, MuseumNo, SubNo}
+import no.uio.musit.models.{MuseumId, MuseumNo, ObjectUUID, SubNo}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
@@ -219,6 +219,38 @@ class ObjectController @Inject()(
           case r: MusitError =>
             InternalServerError(Json.obj("message" -> r.message))
         }
+    }
+  }
+
+  def findObjectByUUID(
+    mid: MuseumId,
+    objectUUID: String,
+    collectionIds: String
+  ) = MusitSecureAction(mid, Read).async { request =>
+    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      case Left(res) => Future.successful(res)
+      case Right(cids) =>
+        ObjectUUID
+          .fromString(objectUUID)
+          .map { uuid =>
+            objService.findByUUID(mid, uuid, cids)(request.user).map {
+              case MusitSuccess(maybeObject) =>
+                maybeObject.fold(
+                  NotFound(Json.obj("message" -> s"Did not find object UUID $objectUUID"))
+                )(obj => Ok(Json.toJson(obj)))
+
+              case MusitDbError(msg, ex) =>
+                logger.error(msg, ex.orNull)
+                InternalServerError(Json.obj("message" -> msg))
+
+              case r: MusitError =>
+                InternalServerError(Json.obj("message" -> r.message))
+            }
+          }.getOrElse(
+            Future.successful(
+              BadRequest(Json.obj("message" -> s"Invalid object UUID $objectUUID"))
+            )
+          )
     }
   }
 }
