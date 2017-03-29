@@ -466,21 +466,19 @@ final class StorageController @Inject()(
    * @param mid MuseumId
    * @return A JSON response with a list of StorageNodes.
    */
-  // TODO: Need to change input from Seq[ObjectId] to Seq[MovableObject] to support
-  // picklists with different object types.
   def currentObjectLocations(
       mid: Int
   ) = MusitSecureAction(mid, Read).async(parse.json) { implicit request =>
-    request.body.validate[Seq[ObjectId]] match {
-      case JsSuccess(ids, _) =>
-        service.currentObjectLocations(mid, ids).map {
+    request.body.validate[Seq[MovableObject]] match {
+      case JsSuccess(objs, _) =>
+        service.currentObjectLocations(mid, objs).map {
           case MusitSuccess(objectsLocations) =>
             Ok(Json.toJson(objectsLocations))
 
           case err: MusitError =>
             logger.error(
               "An unexpected error occurred when trying to get " +
-                s"current location for a list of ${ids.size} objectIds. " +
+                s"current location for a list of ${objs.size} objectIds. " +
                 s"Message was: ${err.message}"
             )
             InternalServerError(Json.obj("message" -> err.message))

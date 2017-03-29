@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import models.event.dto.DtoConverters
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
-import models.{FacilityLocation, LocationHistory, ObjectsLocation}
+import models.{FacilityLocation, LocationHistory, MovableObject, ObjectsLocation}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -661,11 +661,11 @@ class StorageNodeService @Inject()(
    */
   def currentObjectLocations(
       mid: MuseumId,
-      oids: Seq[ObjectId]
+      oids: Seq[MovableObject]
   ): Future[MusitResult[Seq[ObjectsLocation]]] = {
 
     def findObjectLocations(
-        objNodeMap: Map[ObjectId, Option[StorageNodeDatabaseId]],
+        objNodeMap: Map[MovableObject, Option[StorageNodeDatabaseId]],
         nodes: Seq[GenericStorageNode]
     ): Future[MusitResult[Seq[ObjectsLocation]]] = {
       nodes
@@ -673,7 +673,7 @@ class StorageNodeService @Inject()(
           case (ols, node) =>
             unitDao.namesForPath(node.path).flatMap {
               case MusitSuccess(namedPaths) =>
-                val objects = objNodeMap.filter(_._2 == node.id).keys.toSeq
+                val objects = objNodeMap.filter(_._2 == node.id).keys.map(_.id).toSeq
                 // Copy node and set path to it
                 ols.map { objLoc =>
                   objLoc :+ Future.successful(
@@ -689,7 +689,7 @@ class StorageNodeService @Inject()(
         .map(MusitSuccess.apply)
     }
 
-    localObjectDao.currentLocations(oids).flatMap {
+    localObjectDao.currentLocationsForMovableObjects(oids).flatMap {
       case MusitSuccess(objNodeMap) =>
         val nodeIds = objNodeMap.values.flatten.toSeq.distinct
 
