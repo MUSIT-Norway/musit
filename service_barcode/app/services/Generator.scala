@@ -64,9 +64,9 @@ trait Generator { self =>
 
       // "draw" the pixels (as black or white)
       val pixels = Array.newBuilder[Int]
-      for (i <- 0 until matrix.getWidth) {
-        for (j <- 0 until matrix.getHeight) {
-          val blackOrWhite = if (matrix.get(i, j)) black else white
+      for (y <- 0 until matrix.getHeight) {
+        for (x <- 0 until matrix.getWidth) {
+          val blackOrWhite = if (matrix.get(x, y)) black else white
           pixels += blackOrWhite
         }
       }

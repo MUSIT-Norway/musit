@@ -76,6 +76,7 @@ object Dependencies {
   val postgresql  = "org.postgresql"   % "postgresql"   % "9.4-1201-jdbc41"
   val h2database  = "com.h2database"   % "h2"           % "1.4.193"
   val zxing       = "com.google.zxing" % "core"         % "3.3.0"
+  val zxingClient = "com.google.zxing" % "javase"       % "3.3.0" % Test
 
   // Oracle specifics
   def dir    = new java.io.File(".").getCanonicalPath
