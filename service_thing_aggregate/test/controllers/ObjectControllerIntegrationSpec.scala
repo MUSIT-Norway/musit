@@ -344,8 +344,8 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
     }
 
-    "finding object by uuid" should {
-      "locate the object" in {
+    "searching for an object using UUID that exist" should {
+      "successfully return the object" in {
         val uuid = "d43e3c5a-8244-4497-bd15-29c844ff8745"
         val mid = 99
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
@@ -357,6 +357,32 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         val obj = res.json
         (obj \ "id").as[Int] mustBe 3
         (obj \ "term").as[String] mustBe "Sommerfugl"
+      }
+    }
+
+    "searching for an object using UUID that does not exist" should {
+      "return not found" in {
+        val uuid = "00000000-8244-4497-bd15-29c844ff8745"
+        val mid = 99
+        val res = wsUrl(s"/museum/$mid/objects/$uuid")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get()
+          .futureValue
+        res.status mustBe NOT_FOUND
+      }
+    }
+
+    "searching for an object using UUID in wrong collection" should {
+      "return not found" in {
+        val uuid = "d43e3c5a-8244-4497-bd15-29c844ff8745"
+        val mid = 99
+        val res = wsUrl(s"/museum/$mid/objects/$uuid")
+          .withHeaders(fakeToken.asHeader)
+          .withQueryString("collectionIds" -> numismaticsCollection)
+          .get()
+          .futureValue
+        res.status mustBe NOT_FOUND
       }
     }
   }

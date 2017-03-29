@@ -234,8 +234,10 @@ class ObjectController @Inject()(
           .fromString(objectUUID)
           .map { uuid =>
             objService.findByUUID(mid, uuid, cids)(request.user).map {
-              case MusitSuccess(obj) =>
-                Ok(Json.toJson(obj))
+              case MusitSuccess(maybeObject) =>
+                maybeObject.fold(
+                  NotFound(Json.obj("message" -> s"Did not find object UUID $objectUUID"))
+                )(obj => Ok(Json.toJson(obj)))
 
               case MusitDbError(msg, ex) =>
                 logger.error(msg, ex.orNull)
