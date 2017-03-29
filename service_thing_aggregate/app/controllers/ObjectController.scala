@@ -234,8 +234,8 @@ class ObjectController @Inject()(
           .fromString(objectUUID)
           .map { uuid =>
             objService.findByUUID(mid, uuid, cids)(request.user).map {
-              case MusitSuccess(objects) =>
-                Ok(Json.toJson(objects))
+              case MusitSuccess(obj) =>
+                Ok(Json.toJson(obj))
 
               case MusitDbError(msg, ex) =>
                 logger.error(msg, ex.orNull)
