@@ -10,17 +10,6 @@ import models.storage.event.envreq.EnvRequirement
 import models.storage.event.move._
 import models.storage.event.observation.Observation
 import models.storage.event.observation.ObservationAttributes._
-import models.storage.event.old.control.ControlSubEvents.{
-  ControlAlcohol => OldCtrlAlcohol,
-  ControlCleaning => OldCtrlCleaning,
-  ControlGas => OldCtrlCleaning,
-  ControlHypoxicAir => OldCtrlHypoxic,
-  ControlLightingCondition => OldCtrlLight,
-  ControlMold => OldCtrlMold,
-  ControlPest => OldCtrlPest,
-  ControlRelativeHumidity => OldCtrlHum,
-  ControlTemperature => OldCtrlTemp
-}
 import models.storage.event.old.control.{Control => OldControl}
 import models.storage.event.old.envreq.{EnvRequirement => OldEnvReq}
 import models.storage.event.old.move.{
