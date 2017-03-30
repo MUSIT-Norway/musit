@@ -33,19 +33,19 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
   val fakeToken = BearerToken(FakeUsers.testUserToken)
 
   def postOrganization(json: JsValue): Future[WSResponse] = {
-    wsUrl("/v1/organisation").withHeaders(fakeToken.asHeader).post(json)
+    wsUrl("/organisation").withHeaders(fakeToken.asHeader).post(json)
   }
 
   def putOrganization(id: Long, json: JsValue): Future[WSResponse] = {
-    wsUrl(s"/v1/organisation/$id").withHeaders(fakeToken.asHeader).put(json)
+    wsUrl(s"/organisation/$id").withHeaders(fakeToken.asHeader).put(json)
   }
 
   def deleteOrganization(id: Long): Future[WSResponse] = {
-    wsUrl(s"/v1/organisation/$id").withHeaders(fakeToken.asHeader).delete
+    wsUrl(s"/organisation/$id").withHeaders(fakeToken.asHeader).delete
   }
 
   def getOrganization(id: Long): Future[WSResponse] = {
-    wsUrl(s"/v1/organisation/$id").withHeaders(fakeToken.asHeader).get
+    wsUrl(s"/organisation/$id").withHeaders(fakeToken.asHeader).get
   }
 
   "The OrganizationController" must {
@@ -61,7 +61,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "return bad request when no search criteria is specified" in {
-      val res = wsUrl("/v1/organisation?museumId=0")
+      val res = wsUrl("/organisation?museumId=0")
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
@@ -69,7 +69,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     }
 
     "successfully search for organisation" in {
-      val res = wsUrl("/v1/organisation?museumId=0&search=[KHM]")
+      val res = wsUrl("/organisation?museumId=0&search=[KHM]")
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue

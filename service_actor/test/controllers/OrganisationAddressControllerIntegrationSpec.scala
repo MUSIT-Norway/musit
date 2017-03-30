@@ -33,13 +33,13 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
   val fakeToken = BearerToken(FakeUsers.testUserToken)
 
   def postOrganizationAddress(orgId: Int, json: JsValue): Future[WSResponse] = {
-    wsUrl(s"/v1/organisation/$orgId/address").withHeaders(fakeToken.asHeader).post(json)
+    wsUrl(s"/organisation/$orgId/address").withHeaders(fakeToken.asHeader).post(json)
   }
 
   "The OrganisationAddressController" must {
 
     "get by id" in {
-      val res = wsUrl("/v1/organisation/1/address/1")
+      val res = wsUrl("/organisation/1/address/1")
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
@@ -50,14 +50,14 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
       (addr \ "organisationId").as[Int] mustBe 1
     }
     "negative get by id" in {
-      val res = wsUrl("/v1/organisation/1/address/999")
+      val res = wsUrl("/organisation/1/address/999")
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
       (res.json \ "message").as[String] mustBe "Did not find object with id: 999"
     }
     "get all addresses for an organisation" in {
-      val res = wsUrl("/v1/organisation/1/address")
+      val res = wsUrl("/organisation/1/address")
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
@@ -91,7 +91,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
         "longitude"      -> 12
       )
 
-      val res = wsUrl("/v1/organisation/1/address/20")
+      val res = wsUrl("/organisation/1/address/20")
         .withHeaders(fakeToken.asHeader)
         .put(reqBody)
         .futureValue
@@ -100,7 +100,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
 
     "not update address with illegal id" in {
       val reqBody = orgAddressJson.as[JsObject] ++ Json.obj("id" -> 999)
-      val res = wsUrl("/v1/organisation/1/address/999")
+      val res = wsUrl("/organisation/1/address/999")
         .withHeaders(fakeToken.asHeader)
         .put(reqBody)
         .futureValue
@@ -120,7 +120,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
         "latitude"       -> 0.0,
         "longitude"      -> 0.0
       )
-      val res = wsUrl("/v1/organisation/1/address/2")
+      val res = wsUrl("/organisation/1/address/2")
         .withHeaders(fakeToken.asHeader)
         .put(reqBody)
         .futureValue
@@ -128,7 +128,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
     }
 
     "delete address" in {
-      val res = wsUrl("/v1/organisation/1/address/20")
+      val res = wsUrl("/organisation/1/address/20")
         .withHeaders(fakeToken.asHeader)
         .delete()
         .futureValue

@@ -11,6 +11,7 @@ GET        /service/thingaggregate/healthcheck                controllers.Health
 GET        /museum/:mid/node/:nodeId/objects                  controllers.ObjectController.getObjects(mid: Int, nodeId: Long, collectionIds: String, page: Int ?=1, limit: Int ?=25)
 GET        /museum/:mid/objects/:mainObjectId/children        controllers.ObjectController.findMainObjectChildren(mid: Int, mainObjectId: Long, collectionIds: String)
 GET        /museum/:mid/objects/search                        controllers.ObjectController.search(mid: Int, collectionIds: String, page: Int ?=1, limit: Int ?=25, museumNo: Option[String] ?= None, subNo: Option[String] ?= None, term: Option[String] ?= None)
+GET        /museum/:mid/objects/:objectUUID                   controllers.ObjectController.findObjectByUUID(mid: Int, objectUUID: String, collectionIds: String)
 GET        /museum/:mid/storagenodes/:nodeId/stats            controllers.StatsController.stats(mid: Int, nodeId: Long)
 
 # Delphi bridge services. Only to be used by the Delphi clients.
