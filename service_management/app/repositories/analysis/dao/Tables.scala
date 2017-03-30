@@ -147,9 +147,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[SampleObjectRow](tag, Some(SchemaName), SampleObjectTableName) {
 
-    val id       = column[ObjectUUID]("SAMPLE_UUID", O.PrimaryKey)
-    val parentId = column[Option[ObjectUUID]]("PARENT_OBJECT_UUID")
-    //val isCollectionObject = column[Boolean]("IS_COLLECTION_OBJECT")
+    val id               = column[ObjectUUID]("SAMPLE_UUID", O.PrimaryKey)
+    val parentId         = column[Option[ObjectUUID]]("PARENT_OBJECT_UUID")
     val parentObjectType = column[ObjectType]("PARENT_OBJECT_TYPE")
     val isExtracted      = column[Boolean]("IS_EXTRACTED")
     val museumId         = column[MuseumId]("MUSEUM_ID")

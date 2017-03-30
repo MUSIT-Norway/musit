@@ -5,7 +5,6 @@ CREATE SCHEMA IF NOT EXISTS MUSARK_ANALYSIS;
 CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   sample_uuid          VARCHAR2(36)      NOT NULL,
   parent_object_uuid   VARCHAR2(36),
-  --is_collection_object INTEGER DEFAULT 0        NOT NULL,
   parent_object_type VARCHAR2(36),
   is_extracted      INTEGER DEFAULT 0 NOT NULL,
   museum_id            INTEGER           NOT NULL,

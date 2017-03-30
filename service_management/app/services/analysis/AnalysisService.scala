@@ -70,17 +70,6 @@ class AnalysisService @Inject()(
     analysisDao.insertCol(acol)
   }
 
-  /* def addSampleCreated(
-      sc: SampleCreated
-  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    val now = Some(dateTimeNow)
-    val scre = sc.copy(
-      registeredBy = Some(currUser.id),
-      registeredDate = now
-    )
-    analysisDao.insertSampleCreated(scre)
-  }*/
-
   def addResult(
       eid: EventId,
       res: AnalysisResult
