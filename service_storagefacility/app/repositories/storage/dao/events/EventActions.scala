@@ -105,7 +105,7 @@ trait EventActions extends DbErrorHandlers { self: EventTables =>
     val row = convertToRow(mid, e)
     val action = for {
       eid <- insertAction(row)
-      _   <- additional(mid, eid)
+      _   <- additional(e, eid)
     } yield eid
 
     db.run(action.transactionally)

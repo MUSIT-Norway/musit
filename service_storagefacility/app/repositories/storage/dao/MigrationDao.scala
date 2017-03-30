@@ -19,12 +19,11 @@
 
 package repositories.storage.dao
 
-import com.google.inject.Inject
+import com.google.inject.{Inject, Singleton}
 import no.uio.musit.models._
 import play.api.Logger
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import repositories.shared.dao.{ColumnTypeMappers, DbErrorHandlers}
-import slick.jdbc.JdbcProfile
+import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
@@ -32,6 +31,7 @@ import scala.concurrent.Future
  * This Dao should _NOT_ be used by any other class than the bootstrapping
  * {{{migration.UUIDVerifier}}} class.
  */
+@Singleton
 class MigrationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     extends StorageTables {
 

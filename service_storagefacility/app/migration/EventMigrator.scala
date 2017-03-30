@@ -1,6 +1,6 @@
 package migration
 
-import com.google.inject.Singleton
+import com.google.inject.{Inject, Singleton}
 import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import models.storage.event.MusitEvent
 import models.storage.event.control.Control
@@ -42,8 +42,11 @@ import repositories.storage.old_dao.{LocalObjectDao => OldLocObjDao}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-private[migration] trait TypeMappers[T <: MusitEvent] {
+import scala.util.control.NonFatal
+
+private[migration] trait TypeMappers {
 
   type ConvertRes = Seq[(EventId, (MusitEvent, MuseumId))]
 
@@ -111,7 +114,7 @@ private[migration] trait SubObservationMappers {
 }
 
 private[migration] trait ObservationMappers
-    extends TypeMappers[Observation]
+    extends TypeMappers
     with SubObservationMappers {
 
   def convertObs: Future[ConvertRes] =
@@ -146,14 +149,12 @@ private[migration] trait ObservationMappers
         perimeterSecurity = convertOldObsSecurity(old.perimeterSecurity),
         waterDamageAssessment = convertOldObsWater(old.waterDamageAssessment)
       )
-      old.id.get -> (obs, idMid._2)
+      (old.id.get, (obs, idMid._2))
     }
   }
 }
 
-private[migration] trait ControlMappers
-    extends TypeMappers[Control]
-    with SubObservationMappers {
+private[migration] trait ControlMappers extends TypeMappers with SubObservationMappers {
 
   def convertCtrl: Future[ConvertRes] =
     oldEventDao
@@ -201,12 +202,12 @@ private[migration] trait ControlMappers
           ControlTemperature(c.ok, convertOldObsTemp(c.observation))
         }
       )
-      old.id.get -> (ctrl, idMid._2)
+      (old.id.get, (ctrl, idMid._2))
     }
   }
 }
 
-private[migration] trait EnvReqMappers extends TypeMappers[EnvRequirement] {
+private[migration] trait EnvReqMappers extends TypeMappers {
 
   def convertEnvReq: Future[ConvertRes] =
     oldEventDao
@@ -234,12 +235,12 @@ private[migration] trait EnvReqMappers extends TypeMappers[EnvRequirement] {
         light = old.light
       )
 
-      old.id.get -> (er, idMid._2)
+      (old.id.get, (er, idMid._2))
     }
   }
 }
 
-private[migration] trait MoveNodeMappers extends TypeMappers[MoveNode] {
+private[migration] trait MoveNodeMappers extends TypeMappers {
 
   val migrationDao: MigrationDao
 
@@ -265,13 +266,13 @@ private[migration] trait MoveNodeMappers extends TypeMappers[MoveNode] {
         to = nodeIdMap(old.to)._1
       )
 
-      old.id.get -> (mn, idMid._2)
+      (old.id.get, (mn, idMid._2))
     }
   }
 
 }
 
-private[migration] trait MoveObjectMappers extends TypeMappers[MoveObject] {
+private[migration] trait MoveObjectMappers extends TypeMappers {
 
   val migrationDao: MigrationDao
 
@@ -307,14 +308,14 @@ private[migration] trait MoveObjectMappers extends TypeMappers[MoveObject] {
         to = nodeIdMap(old.to)._1
       )
 
-      old.id.get -> (mn, idMid._2)
+      (old.id.get, (mn, idMid._2))
     }
   }
 }
 
 // scalastyle:off
 @Singleton
-final class EventMigrator(
+final class EventMigrator @Inject()(
     val oldEventDao: EventDao,
     val migrationDao: MigrationDao,
     oldLocObjDao: OldLocObjDao,
@@ -339,7 +340,7 @@ final class EventMigrator(
       If the amount of data is too big, we might get memory issues doing the
       migration
    */
-  def migrateAll(): Unit = {
+  def migrateAll(): Future[Int] = {
 
     Future
       .sequence(
@@ -347,7 +348,7 @@ final class EventMigrator(
       )
       .map(_.flatten)
       .flatMap { newEvents =>
-        logger.info(s"Going to insert ${newEvents.size} into the new event table")
+        logger.info(s"Going to insert ${newEvents.size} events into the new event table")
         Future.sequence {
           newEvents.sortBy(_._1.underlying).map { om =>
             val mid = om._2._2
@@ -364,8 +365,14 @@ final class EventMigrator(
           _.foldLeft(0)((success, mres) => mres.map(_ => success + 1).getOrElse(success))
         )
       }
-      .foreach { numSuccess =>
+      .map { numSuccess =>
         logger.info(s"Successfully wrote $numSuccess events to the new event table")
+        numSuccess
+      }
+      .recover {
+        case NonFatal(ex) =>
+          logger.error("This should not happen", ex)
+          throw ex
       }
   }
 

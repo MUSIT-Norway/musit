@@ -6,7 +6,7 @@ class DataMigrationModule extends AbstractModule {
 
   def configure() = {
 
-//    bind(classOf[EventMigrator]).asEagerSingleton()
+    bind(classOf[EventMigrator]).asEagerSingleton()
 
   }
 
