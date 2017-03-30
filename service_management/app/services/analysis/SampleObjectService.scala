@@ -8,7 +8,6 @@ import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{MuseumId, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
-import no.uio.musit.time
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

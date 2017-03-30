@@ -8,7 +8,6 @@ import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSess
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.time
-import org.joda.time.DateTime
 
 class SampleObjectServiceSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
