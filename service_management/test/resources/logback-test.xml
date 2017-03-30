@@ -13,7 +13,7 @@
 
   <logger name="play" level="WARN"/>
   <logger name="akka" level="ERROR"/>
-  <logger name="slick.jdbc" level="WARN"/>
+  <logger name="slick.jdbc" level="DEBUG"/>
 
   <logger name="Application" level="ERROR"/>
   <logger name="no.uio.musit" level="ERROR"/>

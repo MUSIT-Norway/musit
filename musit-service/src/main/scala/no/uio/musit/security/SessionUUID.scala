@@ -39,12 +39,6 @@ object SessionUUID extends MusitUUIDOps[SessionUUID] {
 
   override implicit def fromUUID(uuid: UUID): SessionUUID = SessionUUID(uuid)
 
-  /**
-   * Unsafe converter from String to SessionUUID
-   */
-  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
-  def unsafeFromString(str: String): SessionUUID = UUID.fromString(str)
-
   override def generate() = SessionUUID(UUID.randomUUID())
 
   def fromBearerToken(token: BearerToken): SessionUUID = {

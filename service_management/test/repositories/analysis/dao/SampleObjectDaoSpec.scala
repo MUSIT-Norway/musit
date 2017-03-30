@@ -1,8 +1,10 @@
 package repositories.analysis.dao
 
+import models.analysis.events.SampleCreated
 import models.analysis.{SampleObject, SampleStatuses}
 import no.uio.musit.MusitResults.MusitSuccess
-import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
+import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
+import no.uio.musit.models.{ActorId, EventId, Museums, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import org.joda.time.DateTime
@@ -12,16 +14,20 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
 
   val dao: SampleObjectDao = fromInstanceCache[SampleObjectDao]
 
+  val defaultActorId = ActorId.generate()
+
   def generateSample(
       id: ObjectUUID,
       parentId: Option[ObjectUUID],
-      isColObj: Boolean = false
+      parentobjType: ObjectType,
+      isExtracted: Boolean = false
   ): SampleObject = {
     val now = DateTime.now
     SampleObject(
       objectId = Some(id),
       parentObjectId = parentId,
-      isCollectionObject = isColObj,
+      parentObjectType = parentobjType,
+      isExtracted = isExtracted,
       museumId = Museums.Test.id,
       status = SampleStatuses.Intact,
       responsible = ActorId.generateAsOpt(),
@@ -42,18 +48,36 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
     )
   }
 
+  def generateSampleEvent(
+      eventDate: Option[DateTime] = None,
+      registeredBy: Option[ActorId] = Some(defaultActorId),
+      registeredDate: Option[DateTime] = None,
+      objectId: Option[ObjectUUID] = ObjectUUID.generateAsOpt(),
+      sampleObjectId: Option[ObjectUUID] = ObjectUUID.generateAsOpt()
+  ): SampleCreated = {
+    val now = DateTime.now
+    SampleCreated(
+      id = None,
+      eventDate = eventDate,
+      registeredBy = registeredBy,
+      registeredDate = registeredDate,
+      objectId = objectId,
+      sampleObjectId = sampleObjectId
+    )
+  }
+
   "The SampleObjectDao" should {
 
     "return the object UUID of the inserted SampleObject" in {
       val oid = ObjectUUID.generate()
-      val so  = generateSample(oid, None)
+      val so  = generateSample(oid, None, CollectionObject)
       val res = dao.insert(so).futureValue
       res.successValue mustBe oid
     }
 
     "find the SampleObject with the given UUID" in {
       val oid = ObjectUUID.generate()
-      val sol = generateSample(oid, None)
+      val sol = generateSample(oid, None, CollectionObject)
 
       dao.insert(sol).futureValue.isSuccess mustBe true
 
@@ -72,10 +96,13 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val childId2 = ObjectUUID.generate()
       val childId3 = ObjectUUID.generate()
 
-      val parent = generateSample(id = parentId, None)
-      val child1 = generateSample(id = childId1, parentId = Some(parentId))
-      val child2 = generateSample(id = childId2, parentId = Some(parentId))
-      val child3 = generateSample(id = childId3, parentId = Some(parentId))
+      val parent = generateSample(id = parentId, None, CollectionObject)
+      val child1 =
+        generateSample(id = childId1, parentId = Some(parentId), CollectionObject)
+      val child2 =
+        generateSample(id = childId2, parentId = Some(parentId), CollectionObject)
+      val child3 =
+        generateSample(id = childId3, parentId = Some(parentId), CollectionObject)
 
       dao.insert(parent).futureValue.isSuccess mustBe true
       dao.insert(child1).futureValue.isSuccess mustBe true
@@ -101,7 +128,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
 
     "successfully update a SampleObject" in {
       val oid = ObjectUUID.generate()
-      val so1 = generateSample(oid, None)
+      val so1 = generateSample(oid, None, CollectionObject)
       dao.insert(so1).futureValue.isSuccess mustBe true
 
       val so2 = so1.copy(sampleId = Some("FOO-1"))
@@ -112,6 +139,19 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val res2 = dao.findByUUID(oid).futureValue
       res2.successValue.value.objectId mustBe Some(oid)
       res2.successValue.value.sampleId mustBe Some("FOO-1")
+    }
+
+    "return the object UUID of the inserted SampleObject and it's event" in {
+      val oid = ObjectUUID.generate()
+      val so  = generateSample(oid, None, CollectionObject, isExtracted = true)
+      val se = generateSampleEvent(
+        eventDate = so.registeredDate,
+        registeredBy = so.registeredBy,
+        registeredDate = so.registeredDate,
+        objectId = so.parentObjectId,
+        sampleObjectId = so.objectId
+      )
+      dao.insert(so, se).futureValue.successValue mustBe oid
     }
 
   }

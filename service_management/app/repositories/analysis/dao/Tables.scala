@@ -6,6 +6,7 @@ import models.analysis.SampleObject
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import play.api.db.slick.HasDatabaseConfigProvider
@@ -45,6 +46,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   type SampleObjectRow = (
       ObjectUUID,
       Option[ObjectUUID],
+      ObjectType,
       Boolean,
       MuseumId,
       SampleStatus,
@@ -145,33 +147,36 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[SampleObjectRow](tag, Some(SchemaName), SampleObjectTableName) {
 
-    val id                 = column[ObjectUUID]("SAMPLE_UUID", O.PrimaryKey)
-    val parentId           = column[Option[ObjectUUID]]("PARENT_OBJECT_UUID")
-    val isCollectionObject = column[Boolean]("IS_COLLECTION_OBJECT")
-    val museumId           = column[MuseumId]("MUSEUM_ID")
-    val status             = column[SampleStatus]("STATUS")
-    val responsible        = column[Option[ActorId]]("RESPONSIBLE_ACTOR_ID")
-    val createdDate        = column[Option[JSqlTimestamp]]("CREATED_DATE")
-    val sampleId           = column[Option[String]]("SAMPLE_ID")
-    val externalId         = column[Option[String]]("EXTERNAL_ID")
-    val sampleType         = column[Option[String]]("SAMPLE_TYPE")
-    val sampleSubType      = column[Option[String]]("SAMPLE_SUB_TYPE")
-    val size               = column[Option[Double]]("SAMPLE_SIZE")
-    val sizeUnit           = column[Option[String]]("SAMPLE_SIZE_UNIT")
-    val container          = column[Option[String]]("SAMPLE_CONTAINER")
-    val storageMedium      = column[Option[String]]("STORAGE_MEDIUM")
-    val note               = column[Option[String]]("NOTE")
-    val registeredBy       = column[Option[ActorId]]("REGISTERED_BY")
-    val registeredDate     = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
-    val updatedBy          = column[Option[ActorId]]("UPDATED_BY")
-    val updatedDate        = column[Option[JSqlTimestamp]]("UPDATED_DATE")
+    val id       = column[ObjectUUID]("SAMPLE_UUID", O.PrimaryKey)
+    val parentId = column[Option[ObjectUUID]]("PARENT_OBJECT_UUID")
+    //val isCollectionObject = column[Boolean]("IS_COLLECTION_OBJECT")
+    val parentObjectType = column[ObjectType]("PARENT_OBJECT_TYPE")
+    val isExtracted      = column[Boolean]("IS_EXTRACTED")
+    val museumId         = column[MuseumId]("MUSEUM_ID")
+    val status           = column[SampleStatus]("STATUS")
+    val responsible      = column[Option[ActorId]]("RESPONSIBLE_ACTOR_ID")
+    val createdDate      = column[Option[JSqlTimestamp]]("CREATED_DATE")
+    val sampleId         = column[Option[String]]("SAMPLE_ID")
+    val externalId       = column[Option[String]]("EXTERNAL_ID")
+    val sampleType       = column[Option[String]]("SAMPLE_TYPE")
+    val sampleSubType    = column[Option[String]]("SAMPLE_SUB_TYPE")
+    val size             = column[Option[Double]]("SAMPLE_SIZE")
+    val sizeUnit         = column[Option[String]]("SAMPLE_SIZE_UNIT")
+    val container        = column[Option[String]]("SAMPLE_CONTAINER")
+    val storageMedium    = column[Option[String]]("STORAGE_MEDIUM")
+    val note             = column[Option[String]]("NOTE")
+    val registeredBy     = column[Option[ActorId]]("REGISTERED_BY")
+    val registeredDate   = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
+    val updatedBy        = column[Option[ActorId]]("UPDATED_BY")
+    val updatedDate      = column[Option[JSqlTimestamp]]("UPDATED_DATE")
 
     // scalastyle:off method.name line.size.limit
     def * =
       (
         id,
         parentId,
-        isCollectionObject,
+        parentObjectType,
+        isExtracted,
         museumId,
         status,
         responsible,
@@ -251,6 +256,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     Json.fromJson[AnalysisEvent](tuple._9).asOpt.map {
       case a: Analysis            => a.copy(id = tuple._1)
       case ac: AnalysisCollection => ac.copy(id = tuple._1)
+      case sc: SampleCreated      => sc.copy(id = tuple._1)
     }
 
   /**
@@ -288,7 +294,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     (
       so.objectId.getOrElse(ObjectUUID.generate()),
       so.parentObjectId,
-      so.isCollectionObject,
+      so.parentObjectType,
+      so.isExtracted,
       so.museumId,
       so.status,
       so.responsible,
@@ -319,24 +326,25 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     SampleObject(
       objectId = Option(tuple._1),
       parentObjectId = tuple._2,
-      isCollectionObject = tuple._3,
-      museumId = tuple._4,
-      status = tuple._5,
-      responsible = tuple._6,
-      createdDate = tuple._7,
-      sampleId = tuple._8,
-      externalId = tuple._9,
-      sampleType = tuple._10,
-      sampleSubType = tuple._11,
-      size = tuple._12,
-      sizeUnit = tuple._13,
-      container = tuple._14,
-      storageMedium = tuple._15,
-      note = tuple._16,
-      registeredBy = tuple._17,
-      registeredDate = tuple._18,
-      updatedBy = tuple._19,
-      updatedDate = tuple._20
+      parentObjectType = tuple._3,
+      isExtracted = tuple._4,
+      museumId = tuple._5,
+      status = tuple._6,
+      responsible = tuple._7,
+      createdDate = tuple._8,
+      sampleId = tuple._9,
+      externalId = tuple._10,
+      sampleType = tuple._11,
+      sampleSubType = tuple._12,
+      size = tuple._13,
+      sizeUnit = tuple._14,
+      container = tuple._15,
+      storageMedium = tuple._16,
+      note = tuple._17,
+      registeredBy = tuple._18,
+      registeredDate = tuple._19,
+      updatedBy = tuple._20,
+      updatedDate = tuple._21
     )
 
 }

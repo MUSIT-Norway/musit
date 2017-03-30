@@ -14,11 +14,5 @@ object ObjectUUID extends MusitUUIDOps[ObjectUUID] {
 
   override implicit def fromUUID(uuid: UUID): ObjectUUID = ObjectUUID(uuid)
 
-  /**
-   * Unsafe converter from String to ObjectUUID
-   */
-  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
-  def unsafeFromString(str: String): ObjectUUID = UUID.fromString(str)
-
   override def generate() = ObjectUUID(UUID.randomUUID())
 }

@@ -41,6 +41,8 @@ object EventCategories extends Enum[Category] {
 
   def unsafeFromId(id: Int): Category = fromId(id).get
 
+  case object NoCategory extends Category(0)
+
   case object AgeIndividual extends Category(1)
 
   case object Chemical extends Category(2)

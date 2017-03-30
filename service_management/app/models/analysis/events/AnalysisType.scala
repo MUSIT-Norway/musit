@@ -8,6 +8,7 @@ import play.api.libs.json._
 case class AnalysisTypeId(underlying: UUID) extends MusitUUID
 
 object AnalysisTypeId extends MusitUUIDOps[AnalysisTypeId] {
+
   implicit val reads: Reads[AnalysisTypeId] = __.read[String].map { s =>
     AnalysisTypeId(UUID.fromString(s))
   }
@@ -15,12 +16,6 @@ object AnalysisTypeId extends MusitUUIDOps[AnalysisTypeId] {
   implicit val writes: Writes[AnalysisTypeId] = Writes(id => JsString(id.asString))
 
   override implicit def fromUUID(uuid: UUID): AnalysisTypeId = AnalysisTypeId(uuid)
-
-  /**
-   * Unsafe converter from String to CollectionUUID
-   */
-  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
-  def unsafeFromString(str: String): AnalysisTypeId = UUID.fromString(str)
 
   override def generate() = AnalysisTypeId(UUID.randomUUID())
 

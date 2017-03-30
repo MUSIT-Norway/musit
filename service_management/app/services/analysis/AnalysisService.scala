@@ -36,6 +36,10 @@ class AnalysisService @Inject()(
     ae match {
       case a: Analysis            => addAnalysis(a)
       case ac: AnalysisCollection => addAnalysisCollection(ac)
+      case sc: SampleCreated =>
+        throw new IllegalArgumentException(
+          "SampleCreated events should only be handled by the SampleObjectDao"
+        )
     }
   }
 
@@ -65,6 +69,17 @@ class AnalysisService @Inject()(
     )
     analysisDao.insertCol(acol)
   }
+
+  /* def addSampleCreated(
+      sc: SampleCreated
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
+    val now = Some(dateTimeNow)
+    val scre = sc.copy(
+      registeredBy = Some(currUser.id),
+      registeredDate = now
+    )
+    analysisDao.insertSampleCreated(scre)
+  }*/
 
   def addResult(
       eid: EventId,

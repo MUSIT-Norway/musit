@@ -1,6 +1,7 @@
 package models.analysis
 
 import models.analysis.SampleStatuses.SampleStatus
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json, Reads}
@@ -8,7 +9,8 @@ import play.api.libs.json.{Format, Json, Reads}
 case class SampleObject(
     objectId: Option[ObjectUUID],
     parentObjectId: Option[ObjectUUID],
-    isCollectionObject: Boolean,
+    parentObjectType: ObjectType,
+    isExtracted: Boolean,
     museumId: MuseumId,
     status: SampleStatus,
     responsible: Option[ActorId],
@@ -37,7 +39,8 @@ object SampleObject {
 
 case class SaveSampleObject(
     parentObjectId: Option[ObjectUUID],
-    isCollectionObject: Boolean,
+    parentObjectType: ObjectType,
+    isExtracted: Boolean,
     museumId: MuseumId,
     status: SampleStatus,
     responsible: Option[ActorId],
@@ -58,7 +61,8 @@ case class SaveSampleObject(
     SampleObject(
       objectId = None,
       parentObjectId = parentObjectId,
-      isCollectionObject = isCollectionObject,
+      parentObjectType = parentObjectType,
+      isExtracted = isExtracted,
       museumId = museumId,
       status = status,
       responsible = responsible,
