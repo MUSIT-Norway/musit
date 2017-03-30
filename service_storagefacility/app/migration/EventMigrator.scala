@@ -364,21 +364,11 @@ final class EventMigrator(
             val mid = om._2._2
 
             om._2._1 match {
-              case c: Control =>
-                ctlDao.insert(mid, c)
-
-              case o: Observation =>
-                obsDao.insert(mid, o)
-
-              case e: EnvRequirement =>
-                envDao.insert(mid, e)
-
-              case mn: MoveNode =>
-                movDao.insert(mid, mn)
-
-              case mo: MoveObject =>
-                // We need to keep know the new and old eventIds and the event
-                movDao.insert(mid, mo)
+              case c: Control        => ctlDao.insert(mid, c)
+              case o: Observation    => obsDao.insert(mid, o)
+              case e: EnvRequirement => envDao.insert(mid, e)
+              case mn: MoveNode      => movDao.insert(mid, mn)
+              case mo: MoveObject    => movDao.insert(mid, mo)
             }
           }
         }.map(
