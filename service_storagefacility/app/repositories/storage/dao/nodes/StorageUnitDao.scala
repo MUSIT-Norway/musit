@@ -602,4 +602,5 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   }
 
 }
+
 // scalastyle:on number.of.methods

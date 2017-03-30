@@ -94,6 +94,25 @@ trait EventActions extends DbErrorHandlers { self: EventTables =>
       .recover(nonFatal(s"An error occurred trying to add event ${e.eventType}"))
   }
 
+  protected def insertEventAnd[A <: MusitEvent, T](
+      mid: MuseumId,
+      e: A
+  )(
+      convertToRow: (MuseumId, A) => EventRow
+  )(
+      additional: (A, EventId) => DBIO[T]
+  )(implicit ec: ExecutionContext): Future[MusitResult[EventId]] = {
+    val row = convertToRow(mid, e)
+    val action = for {
+      eid <- insertAction(row)
+      _   <- additional(mid, eid)
+    } yield eid
+
+    db.run(action.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An error occurred trying to add event ${e.eventType}"))
+  }
+
   protected def insertBatch[A <: MusitEvent](
       mid: MuseumId,
       e: Seq[A]

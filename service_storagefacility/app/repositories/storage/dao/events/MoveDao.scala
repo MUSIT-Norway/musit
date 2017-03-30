@@ -12,14 +12,14 @@ import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao.{EventTables, LocalObjectsDao}
+import repositories.storage.dao.{EventTables, LocalObjectDao}
 
 import scala.concurrent.Future
 
 @Singleton
 class MoveDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider,
-    val localObjectsDao: LocalObjectsDao
+    val localObjectsDao: LocalObjectDao
 ) extends EventTables
     with EventActions {
 
@@ -38,8 +38,13 @@ class MoveDao @Inject()(
       moveEvent: A
   ): Future[MusitResult[EventId]] =
     moveEvent match {
-      case mn: MoveNode   => insertEvent[MoveNode](mid, mn)(asRow[MoveNode])
-      case mo: MoveObject => insertEvent[MoveObject](mid, mo)(asRow[MoveObject])
+      case mn: MoveNode =>
+        insertEvent(mid, mn)(asRow[MoveNode])
+
+      case mo: MoveObject =>
+        insertEventAnd(mid, mo)(asRow[MoveObject]) { (event, eid) =>
+          localObjectsDao.storeLatestMoveAction(mid, eid, event)
+        }
     }
 
   /**

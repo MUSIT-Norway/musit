@@ -13,7 +13,7 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao.LocalObjectsDao
+import repositories.storage.dao.LocalObjectDao
 import repositories.storage.dao.events.MoveDao
 import repositories.storage.dao.nodes.{
   BuildingDao,
@@ -30,7 +30,7 @@ class StorageNodeService @Inject()(
     val buildingDao: BuildingDao,
     val orgDao: OrganisationDao,
     val moveDao: MoveDao,
-    val locObjDao: LocalObjectsDao,
+    val locObjDao: LocalObjectDao,
     val envReqService: EnvironmentRequirementService
 ) extends NodeService {
 

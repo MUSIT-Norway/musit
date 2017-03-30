@@ -17,11 +17,11 @@ import repositories.shared.dao.DbErrorHandlers
 
 import scala.concurrent.Future
 
-class LocalObjectsDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
+class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     extends SharedTables
     with DbErrorHandlers {
 
-  val logger = Logger(classOf[LocalObjectsDao])
+  val logger = Logger(classOf[LocalObjectDao])
 
   import profile.api._
 
