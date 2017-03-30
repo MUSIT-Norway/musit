@@ -47,7 +47,7 @@ object DataMatrixGenerator extends Generator {
    */
   def write(value: UUID): Option[Source[ByteString, Future[IOResult]]] = {
     val hints = Map[EncodeHintType, Any](
-      EncodeHintType.DATA_MATRIX_SHAPE -> SymbolShapeHint.FORCE_NONE
+      EncodeHintType.DATA_MATRIX_SHAPE -> SymbolShapeHint.FORCE_SQUARE
     )
 
     generate(value.toString, DataMatrix, hints).toOption

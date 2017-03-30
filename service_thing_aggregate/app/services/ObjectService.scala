@@ -53,6 +53,15 @@ class ObjectService @Inject()(
     objDao.findObjectIdsForOld(oldSchema, oldObjectIds)
   }
 
+
+  def findByUUID(
+    mid: MuseumId,
+    objectUUID: ObjectUUID,
+    cids: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MusitObject]]] = {
+    objDao.findByUUID(mid, objectUUID, cids)
+  }
+
   /**
    * A helper method for getting the current location of an object
    *

@@ -82,7 +82,7 @@ lazy val serviceBarcode = (
   PlayProject("service_barcode")
     settings noPublish
     settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings (libraryDependencies += zxing)
+    settings (libraryDependencies ++= Seq(zxing, zxingClient))
     settings (routesGenerator := InjectedRoutesGenerator)
     settings (packageName in Docker := "musit_service_barcode")
 ) dependsOn (musitService, musitTest % Test)

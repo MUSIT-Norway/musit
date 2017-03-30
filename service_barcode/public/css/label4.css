@@ -15,6 +15,7 @@
 }
 
 .top {
+  height: 100%;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -29,8 +30,13 @@
 .codeImage {
   margin-top: 1.5mm;
   margin-left: 4mm;
+  height: calc(100% - 3mm);
   -ms-flex-item-align: start;
   align-self: flex-start;
+}
+
+.codeImage img {
+  height: 100%;
 }
 
 .name {
@@ -45,6 +51,6 @@
 
 .uuid {
   font-size: xx-small;
-  margin-top: -2mm;
-  margin-left: 20mm;
+  margin-top: -5mm;
+  margin-left: 22mm;
 }
