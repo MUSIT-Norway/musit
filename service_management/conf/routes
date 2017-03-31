@@ -8,7 +8,6 @@ GET         /service/analyses/buildinfo                      controllers.Applica
 
 # AnalysisType endpoints
 GET         /:mid/analyses/types                             controllers.analysis.AnalysisController.getAllAnalysisTypes(mid: Int)
-GET         /:mid/analyses/types/:id                         controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
 GET         /:mid/analyses/types/categories/:id              controllers.analysis.AnalysisController.getAnalysisTypesForCategory(mid: Int, id: Int)
 GET         /:mid/analyses/types/musemcollections/:id        controllers.analysis.AnalysisController.getAnalysisTypesForCollection(mid: Int, id: String)
 
