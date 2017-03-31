@@ -99,11 +99,14 @@ trait EventTypeInitializers_Old { self: BaseDummyData =>
     )
   }
 
-  def createEnvRequirement(storageNodeId: Option[StorageNodeDatabaseId] = None) = {
+  def createEnvRequirement(
+      storageNodeId: Option[StorageNodeDatabaseId] = None,
+      note: Option[String] = Some("This is an envreq note")
+  ) = {
     EnvRequirement(
       id = None,
       doneDate = DateTime.now.minusDays(1),
-      note = Some("This is an envreq note"),
+      note = note,
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),

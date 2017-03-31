@@ -20,6 +20,9 @@
 package repositories.storage.dao
 
 import com.google.inject.{Inject, Singleton}
+import migration.MigrationVerification
+import models.storage.event.EventTypeId
+import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -33,7 +36,8 @@ import scala.concurrent.Future
  */
 @Singleton
 class MigrationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends StorageTables {
+    extends StorageTables
+    with EventTables {
 
   val logger = Logger(classOf[MigrationDao])
 
@@ -72,6 +76,25 @@ class MigrationDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   def getAllNodeIds: Future[Map[StorageNodeDatabaseId, (StorageNodeId, MuseumId)]] = {
     val q = storageNodeTable.map(n => (n.id, n.uuid, n.museumId))
     db.run(q.result).map(tuples => tuples.map(t => (t._1, (t._2.get, t._3))).toMap)
+  }
+
+  def countAll(): Future[MigrationVerification] = {
+
+    def countType(et: EventTypeId): DBIO[Int] = {
+      storageEventTable.filter(_.eventTypeId === et).map(_.eventId).length.result
+    }
+
+    val query = for {
+      a <- countType(ControlEventType.id)
+      b <- countType(ObservationEventType.id)
+      c <- countType(EnvRequirementEventType.id)
+      d <- countType(MoveNodeType.id)
+      e <- countType(MoveObjectType.id)
+    } yield {
+      MigrationVerification(a, b, c, d, e)
+    }
+
+    db.run(query)
   }
 
   /**

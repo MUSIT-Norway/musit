@@ -313,6 +313,13 @@ private[migration] trait MoveObjectMappers extends TypeMappers {
   }
 }
 
+/**
+ * This class deals with migration of events and "cached" "local objects"
+ * for the StorageFacility service. The {{{migrateAll()}}} method reads _all_
+ * events of type {{{TopLevelEvent}}} from the old database tables, using the
+ * "old" DAO implementations. Then the events (and local objects) are mapped to
+ * their new representation before being written to the new database tables.
+ */
 // scalastyle:off
 @Singleton
 final class EventMigrator @Inject()(
@@ -341,7 +348,6 @@ final class EventMigrator @Inject()(
       migration
    */
   def migrateAll(): Future[Int] = {
-
     Future
       .sequence(
         Seq(convertCtrl, convertObs, convertEnvReq, convertMoveNode, convertMoveObject)
@@ -375,6 +381,20 @@ final class EventMigrator @Inject()(
           throw ex
       }
   }
+
+  def verify(): Future[MigrationVerification] = migrationDao.countAll()
+
+}
+
+case class MigrationVerification(
+    numControl: Int = 0,
+    numObservation: Int = 0,
+    numEnvRequirement: Int = 0,
+    numMoveNode: Int = 0,
+    numMoveObject: Int = 0
+) {
+
+  val total = numControl + numObservation + numEnvRequirement + numMoveNode + numMoveObject
 
 }
 
