@@ -1539,7 +1539,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .futureValue
 
         res.status mustBe OK
-        (res.json \ "name").as[String] mustBe "No UUID 1"
+        (res.json \ "name").as[String] mustBe "TestRoom 1"
         (res.json \ "type").as[String] mustBe "Room"
       }
 

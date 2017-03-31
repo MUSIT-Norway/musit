@@ -339,7 +339,8 @@ final class EventMigrator @Inject()(
   val logger = Logger(classOf[EventMigrator])
 
   // Blocking operation to fetch the nodeId Map
-  override val nodeIdMap = Await.result(migrationDao.getAllNodeIds, 5 minutes)
+  override val nodeIdMap =
+    Await.result(migrationDao.getAllNodeIds, 5 minutes)
 
   /*
     TODO: Before running with this current implementation, count the number of

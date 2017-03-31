@@ -4,6 +4,7 @@ import models.storage.event.old.move.{
   MoveNode => OldMoveNode,
   MoveObject => OldMoveObject
 }
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
@@ -28,8 +29,7 @@ class EventMigratorSpec
     extends MusitSpecWithAppPerSuite
     with NodeGenerators
     with EventGenerators_Old
-    with MusitResultValues
-    with BeforeAndAfterAll {
+    with MusitResultValues {
 
   val oldEventDao   = fromInstanceCache[EventDao]
   val ctrlDao       = fromInstanceCache[ControlDao]
@@ -55,10 +55,9 @@ class EventMigratorSpec
     mvDao
   )
 
-  var numOldEvents: Int = 0
-
   // scalastyle:off method.length line.size.limit
-  override def beforeAll() = {
+  def bootstrap(): Future[Int] = {
+    val maybeNodeId0 = Option(StorageNodeDatabaseId(4))
     val maybeNodeId1 = Option(StorageNodeDatabaseId(17L))
     val maybeNodeId2 = Option(StorageNodeDatabaseId(10L))
     val maybeNodeId3 = Option(StorageNodeDatabaseId(9L))
@@ -71,20 +70,20 @@ class EventMigratorSpec
         .value
 
     // format: off
-    val ctrls = (1 until 50).map(_ => createControl(maybeNodeId1))
-    val obs = (1 until 50).map(_ => createObservation(maybeNodeId1))
+    val ctrls = (1 to 50).map(_ => createControl(maybeNodeId1))
+    val obs = (1 to 50).map(_ => createObservation(maybeNodeId1))
     val envRes = (1 to 50).map(i => createEnvRequirement(maybeNodeId2, Some(s"Note $i")))
     val mnds =
       (
-        (11 to 16).map(_ => createMoveNode(maybeNodeId1, movableNode.isPartOf, maybeNodeId2.get)),
-        (11 to 16).map(_ => createMoveNode(maybeNodeId1, maybeNodeId2, maybeNodeId3.get))
+        (11 to 15).map(i => createMoveNode(Some(StorageNodeDatabaseId(i.toLong)), maybeNodeId0, maybeNodeId2.get)),
+        (11 to 15).map(i => createMoveNode(Some(StorageNodeDatabaseId(i.toLong)), maybeNodeId2, maybeNodeId3.get))
       )
     val mods =
-      (1 to 25).map(i => createMoveObject(Option(ObjectId(i.toLong)), None, maybeNodeId1.get)) ++
-        (1 to 25).map(i => createMoveObject(Option(ObjectId(i.toLong)), maybeNodeId1, maybeNodeId2.get))
+      (1 to 50).map(i => createMoveObject(Option(ObjectId(i.toLong)), None, maybeNodeId1.get)) ++
+        (1 to 50).map(i => createMoveObject(Option(ObjectId(i.toLong)), maybeNodeId1, maybeNodeId2.get))
     // format: on
 
-    (for {
+    for {
       cs <- Future.sequence(
              ctrls.map(c => ctrlService.add(defaultMuseumId, c.affectedThing.get, c))
            )
@@ -94,35 +93,41 @@ class EventMigratorSpec
       er <- Future.sequence(
              envRes.map(e => envReqService.add(defaultMuseumId, e))
            )
-      m1 <- Future.sequence((mnds._1 ++ mods).map {
+      m1 <- Future.sequence(mnds._1.map {
              case mn: OldMoveNode =>
                nodeService.moveNodes(defaultMuseumId, mn.to, Seq(mn))
+             case _ =>
+               Future.successful(MusitValidationError("Not possible in this case"))
+           })
+      m2 <- Future.sequence(mods.map {
              case mo: OldMoveObject =>
                nodeService.moveObjects(defaultMuseumId, mo.to, Seq(mo))
+             case _ =>
+               Future.successful(MusitValidationError("Not possible in this case"))
            })
-      m2 <- Future.sequence(mnds._2.map {
+      m3 <- Future.sequence(mnds._2.map {
              case mn: OldMoveNode =>
                nodeService.moveNodes(defaultMuseumId, mn.to, Seq(mn))
-             case _ => throw new TestFailedException("Not possible in this case", 0)
+             case _ =>
+               Future.successful(MusitValidationError("Not possible in this case"))
            })
     } yield {
-      val attemptedWrites = cs.size + os.size + er.size + m1.size + m2.size
+      val attemptedWrites = cs.size + os.size + er.size + m1.size + m2.size + m3.size
       val successfulWrites =
         cs.count(_.isSuccess) +
           os.count(_.isSuccess) +
           er.count(_.isSuccess) +
-          m1.count(_.isSuccess) +
+          (m1 ++ m3).count(_.isSuccess) +
           m2.count(_.isSuccess)
       val failedWrites = attemptedWrites - successfulWrites
 
-      if (failedWrites > 0) {
-        fail(s"There were $failedWrites failures when bootstrapping old events.")
-      }
+      println(
+        s"There were $successfulWrites successful insertions and $failedWrites " +
+          s"failures when bootstrapping $attemptedWrites old events."
+      )
 
-      numOldEvents = successfulWrites
-    }).futureValue
-
-    super.beforeAll()
+      successfulWrites
+    }
   }
 
   // scalastyle:on method.length line.size.limit
@@ -130,11 +135,13 @@ class EventMigratorSpec
   "The EventMigrator" should {
 
     s"migrate all old events and local objects to new versions" in {
+      val numOldEvents = bootstrap().futureValue
+
       migrator.migrateAll().futureValue mustBe numOldEvents
 
       val res = migrator.verify().futureValue
-      res mustBe MigrationVerification(49, 49, 50, 12, 50)
-      res.total mustBe 210
+      res mustBe MigrationVerification(50, 50, 50, 10, 100)
+      res.total mustBe 260
     }
 
   }
