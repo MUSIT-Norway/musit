@@ -29,7 +29,8 @@ object TemplateConfigs {
     Label3,
     Label4,
     Label5,
-    LabelPrinter
+    BradyLabelPrinter,
+    TSCLabelPrinter
   )
 
   sealed trait TemplateConfig {
@@ -49,13 +50,14 @@ object TemplateConfigs {
   object TemplateConfig {
     def fromInt(i: Int): Option[TemplateConfig] = {
       i match {
-        case Label1.templateId       => Some(Label1)
-        case Label2.templateId       => Some(Label2)
-        case Label3.templateId       => Some(Label3)
-        case Label4.templateId       => Some(Label4)
-        case Label5.templateId       => Some(Label5)
-        case LabelPrinter.templateId => Some(LabelPrinter)
-        case _                       => None
+        case Label1.templateId            => Some(Label1)
+        case Label2.templateId            => Some(Label2)
+        case Label3.templateId            => Some(Label3)
+        case Label4.templateId            => Some(Label4)
+        case Label5.templateId            => Some(Label5)
+        case BradyLabelPrinter.templateId => Some(BradyLabelPrinter)
+        case TSCLabelPrinter.templateId   => Some(TSCLabelPrinter)
+        case _                            => None
       }
     }
   }
@@ -105,9 +107,18 @@ object TemplateConfigs {
     override val colsPerPage: Int         = 1
   }
 
-  case object LabelPrinter extends TemplateConfig {
+  case object BradyLabelPrinter extends TemplateConfig {
     override val templateId: Int          = 6
-    override val name: String             = "Label Printer"
+    override val name: String             = "BRADY BBP33 (52x27mm)"
+    override val labelWidth: Millimeters  = Millimeters(52)
+    override val labelHeight: Millimeters = Millimeters(26)
+    override val rowsPerPage: Int         = 1
+    override val colsPerPage: Int         = 1
+  }
+
+  case object TSCLabelPrinter extends TemplateConfig {
+    override val templateId: Int          = 7
+    override val name: String             = "TSC ME340 (54x27mm)"
     override val labelWidth: Millimeters  = Millimeters(52)
     override val labelHeight: Millimeters = Millimeters(26)
     override val rowsPerPage: Int         = 1
