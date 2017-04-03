@@ -56,10 +56,10 @@
 
 .label {
   /* 52x26mm labels without padding on paper */
-  width: 52mm;
-  height: 25mm;
+  width: 100%;
+  height: 100%;
 
-  padding: 0 2mm 0 0; /* right */
+  padding: 0;
   margin: 0;
 
   float: left;
@@ -100,6 +100,10 @@
 .uuid {
   display: block;
   font-size: x-small;
+  -ms-flex-item-align: start;
+  -ms-grid-row-align: start;
+  text-align: start;
+  padding-left: 2mm;
 }
 
 .codeImage img {
