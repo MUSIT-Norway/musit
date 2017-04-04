@@ -6,10 +6,13 @@ import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import no.uio.musit.test.matchers.MusitResultValues
+import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time
 
-class SampleObjectServiceSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
+class SampleObjectServiceSpec
+    extends MusitSpecWithAppPerSuite
+    with MusitResultValues
+    with DateTimeMatchers {
 
   val defaultUserId = ActorId.generate()
 
@@ -74,11 +77,18 @@ class SampleObjectServiceSpec extends MusitSpecWithAppPerSuite with MusitResultV
       val oid   = find.successValue.value.parentObjectId
       val event = eventService.findByObject(oid.value).futureValue.successValue
       event.size mustBe 1
-      event.head.analysisTypeId mustBe SampleCreated.sampleEventTypeId
-      event.head.registeredBy mustBe find.successValue.value.registeredBy
-      //event.head.registeredDate mustBe find.successValue.value.registeredDate
-      //event.head.eventDate mustBe find.successValue.value.registeredDate
-      event.head.objectId mustBe find.successValue.value.parentObjectId
+
+      event.toList match {
+        case theHead :: Nil =>
+          theHead.analysisTypeId mustBe SampleCreated.sampleEventTypeId
+          theHead.registeredBy mustBe find.successValue.value.registeredBy
+          theHead.registeredDate mustApproximate find.successValue.value.registeredDate
+          theHead.eventDate mustApproximate find.successValue.value.registeredDate
+          theHead.objectId mustBe find.successValue.value.parentObjectId
+
+        case _ =>
+          fail(s"The list contained ${event.size} elements, expected 1.")
+      }
     }
 
   }

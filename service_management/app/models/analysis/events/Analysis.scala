@@ -106,7 +106,6 @@ object AnalysisEvent extends WithDateTimeFormatters {
         Json.obj(tpe -> AnalysisCollection.discriminator)
 
     case sc: SampleCreated =>
-      implicit val scw = SampleCreated.writes
       SampleCreated.writes.writes(sc).as[JsObject] ++
         Json.obj(tpe -> SampleCreated.discriminator)
   }
@@ -209,10 +208,8 @@ object SampleCreated extends WithDateTimeFormatters {
 
   val discriminator = "SampleCreated"
 
-  def reads(implicit r: Reads[Analysis]): Reads[SampleCreated] =
-    Json.reads[SampleCreated]
+  val reads: Reads[SampleCreated] = Json.reads[SampleCreated]
 
-  def writes(implicit w: Writes[Analysis]): Writes[SampleCreated] =
-    Json.writes[SampleCreated]
+  val writes: Writes[SampleCreated] = Json.writes[SampleCreated]
 
 }
