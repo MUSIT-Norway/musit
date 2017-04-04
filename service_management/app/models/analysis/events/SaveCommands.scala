@@ -13,14 +13,13 @@ object SaveCommands {
 
   case class SaveAnalysis(
       analysisTypeId: AnalysisTypeId,
-      eventDate: Option[DateTime],
+      doneBy: Option[ActorId],
+      doneDate: Option[DateTime],
       note: Option[String],
       objectId: ObjectUUID,
       // TODO: Add field for status
       responsible: Option[ActorId],
       administrator: Option[ActorId],
-      updatedBy: Option[ActorId],
-      updatedDate: Option[DateTime],
       completedBy: Option[ActorId],
       completedDate: Option[DateTime]
   ) extends SaveAnalysisEventCommand {
@@ -29,14 +28,15 @@ object SaveCommands {
       Analysis(
         id = None,
         analysisTypeId = analysisTypeId,
-        eventDate = eventDate,
+        doneBy = doneBy,
+        doneDate = doneDate,
         registeredBy = None,
         registeredDate = None,
         objectId = Some(objectId),
         responsible = responsible,
         administrator = administrator,
-        updatedBy = updatedBy,
-        updatedDate = updatedDate,
+        updatedBy = None,
+        updatedDate = None,
         completedBy = completedBy,
         completedDate = completedDate,
         partOf = None,
@@ -55,12 +55,11 @@ object SaveCommands {
 
   case class SaveAnalysisCollection(
       analysisTypeId: AnalysisTypeId,
-      eventDate: Option[DateTime],
+      doneBy: Option[ActorId],
+      doneDate: Option[DateTime],
       note: Option[String],
       responsible: Option[ActorId],
       administrator: Option[ActorId],
-      updatedBy: Option[ActorId],
-      updatedDate: Option[DateTime],
       completedBy: Option[ActorId],
       completedDate: Option[DateTime],
       // TODO: Add field for status
@@ -70,22 +69,26 @@ object SaveCommands {
     override def asDomain: AnalysisCollection = {
       AnalysisCollection(
         id = None,
-        analysisTypeId = this.analysisTypeId,
-        eventDate = this.eventDate,
+        analysisTypeId = analysisTypeId,
+        doneBy = doneBy,
+        doneDate = doneDate,
         registeredBy = None,
         registeredDate = None,
+        note = note,
+        result = None,
         events = this.objectIds.map { oid =>
           Analysis(
             id = None,
-            analysisTypeId = this.analysisTypeId,
-            eventDate = this.eventDate,
+            analysisTypeId = analysisTypeId,
+            doneBy = doneBy,
+            doneDate = doneDate,
             registeredBy = None,
             registeredDate = None,
             objectId = Option(oid),
             responsible = responsible,
             administrator = administrator,
-            updatedBy = updatedBy,
-            updatedDate = updatedDate,
+            updatedBy = None,
+            updatedDate = None,
             completedBy = completedBy,
             completedDate = completedDate,
             partOf = None,

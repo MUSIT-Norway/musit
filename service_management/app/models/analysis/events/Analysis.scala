@@ -6,14 +6,17 @@ import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json._
 
+import scala.reflect.ClassTag
+
 /**
  * Describes the least common denominator for analysis events. Different
  * implementations may contain more fields than this trait.
  */
-sealed trait AnalysisEvent {
+sealed trait AnalysisEvent { self =>
   val id: Option[EventId]
   val analysisTypeId: AnalysisTypeId
-  val eventDate: Option[DateTime]
+  val doneBy: Option[ActorId]
+  val doneDate: Option[DateTime]
   val partOf: Option[EventId]
   val objectId: Option[ObjectUUID]
   val note: Option[String]
@@ -32,7 +35,7 @@ sealed trait AnalysisEvent {
   def withResult(res: Option[AnalysisResult]): AnalysisEvent = {
     this match {
       case a: Analysis            => a.copy(result = res)
-      case ac: AnalysisCollection => ac
+      case ac: AnalysisCollection => ac.copy(result = res)
       case sc: SampleCreated      => sc
     }
   }
@@ -41,11 +44,13 @@ sealed trait AnalysisEvent {
    * Returns an Option of an AnalysisEvent with a result. If the AnalysisEvent
    * type is Analysis, the Option will be Some(Analysis), otherwise None
    */
-  def withResultAsOpt(res: Option[AnalysisResult]): Option[Analysis] =
+  def withResultAsOpt[A <: AnalysisEvent: ClassTag](
+      res: Option[AnalysisResult]
+  ): Option[A] =
     this match {
-      case a: Analysis            => Some(a.copy(result = res))
-      case ac: AnalysisCollection => None
-      case sc: SampleCreated      => None
+      case a: Analysis            => Option(a.copy(result = res).asInstanceOf[A])
+      case ac: AnalysisCollection => Option(ac.copy(result = res).asInstanceOf[A])
+      case _                      => None
     }
 }
 
@@ -119,7 +124,8 @@ object AnalysisEvent extends WithDateTimeFormatters {
 case class Analysis(
     id: Option[EventId],
     analysisTypeId: AnalysisTypeId,
-    eventDate: Option[DateTime],
+    doneBy: Option[ActorId],
+    doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     responsible: Option[ActorId],
@@ -152,15 +158,17 @@ object Analysis extends WithDateTimeFormatters {
 case class AnalysisCollection(
     id: Option[EventId],
     analysisTypeId: AnalysisTypeId,
-    eventDate: Option[DateTime],
+    doneBy: Option[ActorId],
+    doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
+    note: Option[String],
+    result: Option[AnalysisResult],
     events: Seq[Analysis]
 ) extends AnalysisEvent {
 
   val partOf: Option[EventId]         = None
   val objectId: Option[ObjectUUID]    = None
-  val note: Option[String]            = None
   val responsible: Option[ActorId]    = None
   val administrator: Option[ActorId]  = None
   val updatedBy: Option[ActorId]      = None
@@ -186,7 +194,8 @@ object AnalysisCollection extends WithDateTimeFormatters {
 
 case class SampleCreated(
     id: Option[EventId],
-    eventDate: Option[DateTime],
+    doneBy: Option[ActorId],
+    doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     objectId: Option[ObjectUUID],

@@ -33,7 +33,8 @@ class SampleObjectService @Inject()(
     if (so.isExtracted) {
       val eventObj = SampleCreated(
         id = None,
-        eventDate = sobj.registeredDate,
+        doneBy = sobj.registeredBy,
+        doneDate = sobj.registeredDate,
         registeredBy = sobj.registeredBy,
         registeredDate = sobj.registeredDate,
         objectId = sobj.parentObjectId,

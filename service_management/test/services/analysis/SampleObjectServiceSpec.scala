@@ -7,7 +7,7 @@ import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
-import no.uio.musit.time
+import no.uio.musit.time.dateTimeNow
 
 class SampleObjectServiceSpec
     extends MusitSpecWithAppPerSuite
@@ -28,6 +28,8 @@ class SampleObjectServiceSpec
     groups = Seq.empty
   )
 
+  val dummyActor = ActorId.generate()
+
   val service      = fromInstanceCache[SampleObjectService]
   val eventService = fromInstanceCache[AnalysisService]
 
@@ -37,7 +39,7 @@ class SampleObjectServiceSpec
       parentobjType: ObjectType = CollectionObject,
       isExtracted: Boolean = false
   ): SampleObject = {
-    val now = time.dateTimeNow
+    val now = dateTimeNow
     SampleObject(
       objectId = id,
       parentObjectId = parentId,
@@ -45,7 +47,7 @@ class SampleObjectServiceSpec
       isExtracted = isExtracted,
       museumId = Museums.Test.id,
       status = SampleStatuses.Intact,
-      responsible = ActorId.generateAsOpt(),
+      responsible = Some(dummyActor),
       createdDate = Some(now),
       sampleId = None,
       externalId = None,
@@ -56,7 +58,7 @@ class SampleObjectServiceSpec
       container = Some("box"),
       storageMedium = None,
       note = Some("This is a sample note"),
-      registeredBy = ActorId.generateAsOpt(),
+      registeredBy = Some(dummyActor),
       registeredDate = Some(now),
       updatedBy = None,
       updatedDate = None
@@ -64,32 +66,42 @@ class SampleObjectServiceSpec
   }
 
   "The SampleObjectService " should {
-    "returns the sampleObject that is inserted" in {
+    val parentId                    = ObjectUUID.generate()
+    var addedId: Option[ObjectUUID] = None
+
+    "successfully add a new sample object" in {
       val so =
         generateSampleObject(
           id = None,
-          parentId = ObjectUUID.generateAsOpt(),
+          parentId = Some(parentId),
           isExtracted = true
         )
-      val res  = service.add(so).futureValue
-      val find = service.findById(res.get.underlying).futureValue
-      find.successValue.value.isExtracted mustBe true
-      val oid   = find.successValue.value.parentObjectId
-      val event = eventService.findByObject(oid.value).futureValue.successValue
-      event.size mustBe 1
 
-      event.toList match {
-        case theHead :: Nil =>
-          theHead.analysisTypeId mustBe SampleCreated.sampleEventTypeId
-          theHead.registeredBy mustBe find.successValue.value.registeredBy
-          theHead.registeredDate mustApproximate find.successValue.value.registeredDate
-          theHead.eventDate mustApproximate find.successValue.value.registeredDate
-          theHead.objectId mustBe find.successValue.value.parentObjectId
-
-        case _ =>
-          fail(s"The list contained ${event.size} elements, expected 1.")
-      }
+      val addedRes = service.add(so).futureValue.successValue
+      addedRes mustBe an[ObjectUUID]
+      addedId = Option(addedRes)
     }
 
+    "find the sample by its uuid" in {
+      val found = service.findById(addedId.value).futureValue.successValue.value
+      found.isExtracted mustBe true
+    }
+
+    "find the sample created event for the parent object" in {
+      val sce = eventService.findByObject(parentId).futureValue.successValue
+      sce.size mustBe 1
+      sce.toList match {
+        case theHead :: Nil =>
+          theHead.analysisTypeId mustBe SampleCreated.sampleEventTypeId
+          theHead.doneBy mustBe Some(dummyUser.id)
+          theHead.doneDate mustApproximate Some(dateTimeNow)
+          theHead.registeredBy mustBe Some(dummyUser.id)
+          theHead.registeredDate mustApproximate Some(dateTimeNow)
+          theHead.objectId mustBe Some(parentId)
+
+        case _ =>
+          fail(s"The list contained ${sce.size} elements, expected 1.")
+      }
+    }
   }
 }

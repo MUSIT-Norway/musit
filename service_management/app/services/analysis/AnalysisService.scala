@@ -9,7 +9,6 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import repositories.analysis.dao.{AnalysisDao, AnalysisTypeDao}
-import repositories.analysis.dao.AnalysisTypeDao
 
 import scala.concurrent.Future
 

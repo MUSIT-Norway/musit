@@ -36,10 +36,13 @@ class AnalysisDao @Inject()(
     resultTable returning resultTable.map(_.id) += result
   }
 
-  private def insertAnalysisWithResultAction(a: Analysis): DBIO[EventId] = {
+  private def insertAnalysisWithResultAction(
+      ae: AnalysisEvent,
+      maybeRes: Option[AnalysisResult]
+  ): DBIO[EventId] = {
     for {
-      id <- insertAnalysisAction(asEventTuple(a))
-      _ <- a.result
+      id <- insertAnalysisAction(asEventTuple(ae))
+      _ <- maybeRes
             .map(r => insertResultAction(asResultTuple(id, r)))
             .getOrElse(noaction)
     } yield id
@@ -50,14 +53,14 @@ class AnalysisDao @Inject()(
       events: Seq[Analysis]
   ): DBIO[Seq[EventId]] = {
     val batch = events.map { e =>
-      insertAnalysisWithResultAction(e.copy(partOf = Some(pid)))
+      insertAnalysisWithResultAction(e.copy(partOf = Some(pid)), e.result)
     }
     DBIO.sequence(batch)
   }
 
   private def findByIdAction(id: EventId): DBIO[Option[AnalysisEvent]] = {
     analysisTable.filter(_.id === id).result.headOption.map { res =>
-      res.flatMap(fromEventRow)
+      res.flatMap(toAnalysisEvent)
     }
   }
 
@@ -73,7 +76,9 @@ class AnalysisDao @Inject()(
 
     query.result.map { res =>
       res.map { row =>
-        fromEventRow(row._1).flatMap(_.withResultAsOpt(fromResultRow(row._2))).get
+        toAnalysis(row._1)
+          .flatMap(_.withResultAsOpt[Analysis](fromResultRow(row._2)))
+          .get
       }
     }
   }
@@ -84,8 +89,8 @@ class AnalysisDao @Inject()(
 
     query.result.map { res =>
       res.flatMap { row =>
-        fromEventRow(row._1).map { ue =>
-          ue.withResultAsOpt(fromResultRow(row._2)).getOrElse(ue)
+        toAnalysisEvent(row._1).map { ae =>
+          ae.withResultAsOpt(fromResultRow(row._2)).getOrElse(ae)
         }
       }
     }
@@ -98,7 +103,7 @@ class AnalysisDao @Inject()(
    * @return eventually returns a MusitResult containing the EventId.
    */
   def insert(a: Analysis): Future[MusitResult[EventId]] = {
-    val action = insertAnalysisWithResultAction(a)
+    val action = insertAnalysisWithResultAction(a, a.result)
 
     db.run(action.transactionally).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
@@ -118,7 +123,7 @@ class AnalysisDao @Inject()(
    */
   def insertCol(ac: AnalysisCollection): Future[MusitResult[EventId]] = {
     val action = for {
-      id   <- insertAnalysisAction(asEventTuple(ac.withoutChildren))
+      id   <- insertAnalysisWithResultAction(ac.withoutChildren, ac.result)
       eids <- insertChildEventsAction(id, ac.events)
     } yield id
 

@@ -37,7 +37,8 @@ class AnalysisDaoSpec
     Analysis(
       id = None,
       analysisTypeId = dummyAnalysisTypeId,
-      eventDate = now,
+      doneBy = Some(dummyActorId),
+      doneDate = now,
       registeredBy = Some(dummyActorId),
       registeredDate = now,
       responsible = Some(dummyActorId),
@@ -53,6 +54,24 @@ class AnalysisDaoSpec
     )
   }
 
+  def dummyAnalysisCollection(
+      res: Option[AnalysisResult],
+      analyses: Analysis*
+  ): AnalysisCollection = {
+    val now = Some(dateTimeNow)
+    AnalysisCollection(
+      id = None,
+      analysisTypeId = dummyAnalysisTypeId,
+      doneBy = Some(dummyActorId),
+      doneDate = now,
+      registeredBy = Some(dummyActorId),
+      registeredDate = now,
+      note = Some("An analysis collection"),
+      result = res,
+      events = analyses.toSeq
+    )
+  }
+
   def saveAnalysis(
       oid: Option[ObjectUUID],
       res: Option[AnalysisResult]
@@ -61,7 +80,7 @@ class AnalysisDaoSpec
     dao.insert(a).futureValue
   }
 
-  "AnalysisEventDao" when {
+  "AnalysisDao" when {
 
     "inserting analysis events" should {
       "return the EventId allocated to a single analysis" in {
@@ -80,18 +99,20 @@ class AnalysisDaoSpec
       "return the EventId allocated for an analysis collection" in {
         val now = Some(dateTimeNow)
 
+        val gr = Some(
+          GenericResult(
+            registeredBy = Some(dummyActorId),
+            registeredDate = Some(dateTimeNow),
+            extRef = Some(Seq("foo", "bar", "fizz")),
+            comment = Some("This is a result comment")
+          )
+        )
+
         val e1 = dummyAnalysis(Some(oid1))
         val e2 = dummyAnalysis(Some(oid2))
         val e3 = dummyAnalysis(Some(oid3))
 
-        val ac = AnalysisCollection(
-          id = None,
-          analysisTypeId = dummyAnalysisTypeId,
-          eventDate = now,
-          registeredBy = Some(dummyActorId),
-          registeredDate = now,
-          events = Seq(e1, e2, e3)
-        )
+        val ac = dummyAnalysisCollection(gr, e1, e2, e3)
 
         val res = dao.insertCol(ac).futureValue
 

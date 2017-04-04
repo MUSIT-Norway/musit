@@ -26,7 +26,8 @@ class AnalysisEventSpec
     Analysis(
       id = Some(dummyEventId),
       analysisTypeId = dummyAnalysisTypeId,
-      eventDate = Some(dummyDate),
+      doneBy = Some(dummyActor),
+      doneDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
       responsible = Some(dummyActor),
@@ -52,9 +53,19 @@ class AnalysisEventSpec
     AnalysisCollection(
       id = Some(dummyEventId),
       analysisTypeId = dummyAnalysisTypeId,
-      eventDate = Some(dummyDate),
+      doneBy = Some(dummyActor),
+      doneDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
+      note = Some(dummyNote),
+      result = Some(
+        GenericResult(
+          registeredBy = Some(dummyActor),
+          registeredDate = Some(dummyDate),
+          extRef = Some(Seq(dummyNote)),
+          comment = Some(dummyNote)
+        )
+      ),
       events = Seq(
         createAnalysis(),
         createAnalysis()
@@ -71,7 +82,7 @@ class AnalysisEventSpec
       (js \ "type").as[String] mustBe Analysis.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
       (js \ "analysisTypeId").as[String] mustBe dummyAnalysisTypeId.asString
-      (js \ "eventDate").as[DateTime] mustApproximate dummyDate
+      (js \ "doneDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
       (js \ "partOf").asOpt[Long] mustBe None
@@ -90,9 +101,15 @@ class AnalysisEventSpec
 
       (js \ "type").as[String] mustBe AnalysisCollection.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
-      (js \ "eventDate").as[DateTime] mustApproximate dummyDate
+      (js \ "doneDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
+      (js \ "note").as[String] mustBe dummyNote
+      (js \ "result" \ "type").as[String] mustBe GenericResult.resultType
+      (js \ "result" \ "registeredBy").as[String] mustBe dummyActor.asString
+      (js \ "result" \ "registeredDate").as[DateTime] mustApproximate dummyDate
+      (js \ "result" \ "extRef" \ 0).as[String] mustBe dummyNote
+      (js \ "result" \ "comment").as[String] mustBe dummyNote
       (js \ "events").as[JsArray].value.size mustBe 2
       (js \ "events" \ 0 \ "type").as[String] mustBe Analysis.discriminator
       (js \ "events" \ 1 \ "type").as[String] mustBe Analysis.discriminator

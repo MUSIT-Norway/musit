@@ -49,7 +49,8 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
   }
 
   def generateSampleEvent(
-      eventDate: Option[DateTime] = None,
+      doneBy: Option[ActorId] = None,
+      doneDate: Option[DateTime] = None,
       registeredBy: Option[ActorId] = Some(defaultActorId),
       registeredDate: Option[DateTime] = None,
       objectId: Option[ObjectUUID] = ObjectUUID.generateAsOpt(),
@@ -58,7 +59,8 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
     val now = DateTime.now
     SampleCreated(
       id = None,
-      eventDate = eventDate,
+      doneBy = doneBy,
+      doneDate = doneDate,
       registeredBy = registeredBy,
       registeredDate = registeredDate,
       objectId = objectId,
@@ -145,7 +147,8 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val oid = ObjectUUID.generate()
       val so  = generateSample(oid, None, CollectionObject, isExtracted = true)
       val se = generateSampleEvent(
-        eventDate = so.registeredDate,
+        doneBy = so.registeredBy,
+        doneDate = so.registeredDate,
         registeredBy = so.registeredBy,
         registeredDate = so.registeredDate,
         objectId = so.parentObjectId,
