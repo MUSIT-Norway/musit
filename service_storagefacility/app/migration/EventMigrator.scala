@@ -342,6 +342,8 @@ final class EventMigrator @Inject()(
   override val nodeIdMap =
     Await.result(migrationDao.getAllNodeIds, 5 minutes)
 
+  logger.debug(s"Loaded ${nodeIdMap.size} nodes to internal lookup table...")
+
   /*
     TODO: Before running with this current implementation, count the number of
      existing events in the event table on e.g. the musit-test environment.

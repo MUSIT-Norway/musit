@@ -4,12 +4,10 @@ import models.storage.event.old.move.{
   MoveNode => OldMoveNode,
   MoveObject => OldMoveObject
 }
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
+import no.uio.musit.MusitResults.MusitValidationError
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.exceptions.TestFailedException
 import repositories.storage.dao.MigrationDao
 import repositories.storage.dao.events.{ControlDao, EnvReqDao, MoveDao, ObservationDao}
 import repositories.storage.old_dao.event.EventDao
@@ -121,10 +119,12 @@ class EventMigratorSpec
           m2.count(_.isSuccess)
       val failedWrites = attemptedWrites - successfulWrites
 
+      // scalastyle:off
       println(
         s"There were $successfulWrites successful insertions and $failedWrites " +
           s"failures when bootstrapping $attemptedWrites old events."
       )
+      // scalastyle:on
 
       successfulWrites
     }
