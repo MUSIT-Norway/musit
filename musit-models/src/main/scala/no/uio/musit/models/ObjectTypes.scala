@@ -30,6 +30,12 @@ object ObjectTypes {
 
     implicit val writes: Writes[ObjectType] = Writes(ot => JsString(ot.name))
 
+    @throws(classOf[IllegalArgumentException])
+    def unsafeFromString(str: String): ObjectType = {
+      fromString(str).getOrElse {
+        throw new IllegalArgumentException(s"Unsupported ObjectType $str")
+      }
+    }
   }
 
   case object CollectionObject extends ObjectType("collection")

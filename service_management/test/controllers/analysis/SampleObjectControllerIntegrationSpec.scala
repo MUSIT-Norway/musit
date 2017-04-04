@@ -1,6 +1,7 @@
 package controllers.analysis
 
 import models.analysis.SampleStatuses.{Intact, SampleStatus}
+import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ActorId, MuseumId, Museums, ObjectUUID}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.matchers.DateTimeMatchers
@@ -26,7 +27,8 @@ class SampleObjectControllerIntegrationSpec
   def createSaveJSON(
       maybeId: Option[ObjectUUID] = None,
       maybeParent: Option[ObjectUUID] = None,
-      isColObj: Boolean = true,
+      parentObjectType: ObjectType = CollectionObject,
+      isExtracted: Boolean = true,
       status: SampleStatus = Intact,
       createdDate: DateTime,
       maybeSampleId: Option[String],
@@ -34,17 +36,18 @@ class SampleObjectControllerIntegrationSpec
       maybeNote: Option[String]
   ) = {
     val js1 = Json.obj(
-      "isCollectionObject" -> isColObj,
-      "museumId"           -> Museums.Test.id.underlying,
-      "status"             -> status.identity,
-      "responsible"        -> responsibleActor.asString,
-      "createdDate"        -> Json.toJson(createdDate),
-      "sampleType"         -> "wood slize",
-      "sampleSubType"      -> "age rings",
-      "size"               -> 12.0,
-      "sizeUnit"           -> "cm3",
-      "container"          -> "box",
-      "storageMedium"      -> "alcohol"
+      "parentObjectType" -> parentObjectType,
+      "isExtracted"      -> isExtracted,
+      "museumId"         -> Museums.Test.id.underlying,
+      "status"           -> status.identity,
+      "responsible"      -> responsibleActor.asString,
+      "createdDate"      -> Json.toJson(createdDate),
+      "sampleType"       -> "wood slize",
+      "sampleSubType"    -> "age rings",
+      "size"             -> 12.0,
+      "sizeUnit"         -> "cm3",
+      "container"        -> "box",
+      "storageMedium"    -> "alcohol"
     )
     val js2 = maybeId.map(i => js1 ++ Json.obj("objectId"           -> i.asString)).getOrElse(js1)
     val js3 = maybeParent.map(i => js2 ++ Json.obj("parentObjectId" -> i)).getOrElse(js2)
@@ -54,14 +57,16 @@ class SampleObjectControllerIntegrationSpec
   }
 
   def validateSampleObject(
-      expIsColObj: Boolean = true,
+      parentObjectType: ObjectType = CollectionObject,
+      isExtracted: Boolean = true,
       expectedParent: Option[String] = None,
       expectedSampleId: Option[String] = None,
       expectedExtId: Option[String] = None,
       expectedNote: Option[String] = None,
       js: JsValue
   ): Unit = {
-    (js \ "isCollectionObject").as[Boolean] mustBe expIsColObj
+    (js \ "parentObjectType").as[ObjectType] mustBe parentObjectType
+    (js \ "isExtracted").as[Boolean] mustBe isExtracted
     (js \ "parentObjectId").asOpt[String] mustBe expectedParent
     (js \ "sampleId").asOpt[String] mustBe expectedSampleId
     (js \ "externalId").asOpt[String] mustBe expectedExtId
@@ -69,13 +74,22 @@ class SampleObjectControllerIntegrationSpec
   }
 
   def validateSampleObject(expected: JsValue, actual: JsValue): Unit = {
-    val isExpColObj = (expected \ "isCollectionObject").as[Boolean]
-    val expParent   = (expected \ "parentObjectId").asOpt[String]
-    val expSampleId = (expected \ "sampleId").asOpt[String]
-    val expExtId    = (expected \ "externalId").asOpt[String]
-    val expNote     = (expected \ "note").asOpt[String]
+    val parentObjectType = (expected \ "parentObjectType").as[ObjectType]
+    val isExtracted      = (expected \ "isExtracted").as[Boolean]
+    val expParent        = (expected \ "parentObjectId").asOpt[String]
+    val expSampleId      = (expected \ "sampleId").asOpt[String]
+    val expExtId         = (expected \ "externalId").asOpt[String]
+    val expNote          = (expected \ "note").asOpt[String]
 
-    validateSampleObject(isExpColObj, expParent, expSampleId, expExtId, expNote, actual)
+    validateSampleObject(
+      parentObjectType,
+      isExtracted,
+      expParent,
+      expSampleId,
+      expExtId,
+      expNote,
+      actual
+    )
   }
 
   val baseUrl      = (mid: Int) => s"/$mid/samples"
@@ -128,8 +142,7 @@ class SampleObjectControllerIntegrationSpec
     }
 
     "list all objects for a museum" in {
-      val res = getAllForTestMuseum
-
+      val res     = getAllForTestMuseum
       val objects = res.json.as[JsArray].value
       objects.size mustBe 10
 
