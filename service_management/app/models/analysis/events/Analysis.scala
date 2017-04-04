@@ -33,6 +33,7 @@ sealed trait AnalysisEvent {
     this match {
       case a: Analysis            => a.copy(result = res)
       case ac: AnalysisCollection => ac
+      case sc: SampleCreated      => sc
     }
   }
 
@@ -44,6 +45,7 @@ sealed trait AnalysisEvent {
     this match {
       case a: Analysis            => Some(a.copy(result = res))
       case ac: AnalysisCollection => None
+      case sc: SampleCreated      => None
     }
 }
 
@@ -62,6 +64,7 @@ object AnalysisEvent extends WithDateTimeFormatters {
   implicit val reads: Reads[AnalysisEvent] = Reads { jsv =>
     implicit val ar  = Analysis.reads
     implicit val acr = AnalysisCollection.reads
+    implicit val sc  = SampleCreated.reads
 
     (jsv \ tpe).validateOpt[String] match {
       case JsSuccess(maybeType, path) =>
@@ -71,6 +74,9 @@ object AnalysisEvent extends WithDateTimeFormatters {
 
           case AnalysisCollection.discriminator =>
             jsv.validate[AnalysisCollection]
+
+          case SampleCreated.discriminator =>
+            jsv.validate[SampleCreated]
 
           case unknown =>
             JsError(path, s"$unknown is not a valid type. $mustBeTypeMsg")
@@ -98,6 +104,10 @@ object AnalysisEvent extends WithDateTimeFormatters {
       implicit val aw = Analysis.writes
       AnalysisCollection.writes.writes(c).as[JsObject] ++
         Json.obj(tpe -> AnalysisCollection.discriminator)
+
+    case sc: SampleCreated =>
+      SampleCreated.writes.writes(sc).as[JsObject] ++
+        Json.obj(tpe -> SampleCreated.discriminator)
   }
 
 }
@@ -171,5 +181,35 @@ object AnalysisCollection extends WithDateTimeFormatters {
 
   def writes(implicit w: Writes[Analysis]): Writes[AnalysisCollection] =
     Json.writes[AnalysisCollection]
+
+}
+
+case class SampleCreated(
+    id: Option[EventId],
+    eventDate: Option[DateTime],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    objectId: Option[ObjectUUID],
+    sampleObjectId: Option[ObjectUUID]
+) extends AnalysisEvent {
+  val partOf: Option[EventId]         = None
+  val note: Option[String]            = None
+  val responsible: Option[ActorId]    = None
+  val administrator: Option[ActorId]  = None
+  val updatedBy: Option[ActorId]      = None
+  val updatedDate: Option[DateTime]   = None
+  val completedBy: Option[ActorId]    = None
+  val completedDate: Option[DateTime] = None
+  val analysisTypeId                  = SampleCreated.sampleEventTypeId
+}
+
+object SampleCreated extends WithDateTimeFormatters {
+  val sampleEventTypeId: AnalysisTypeId = AnalysisTypeId.empty
+
+  val discriminator = "SampleCreated"
+
+  val reads: Reads[SampleCreated] = Json.reads[SampleCreated]
+
+  val writes: Writes[SampleCreated] = Json.writes[SampleCreated]
 
 }

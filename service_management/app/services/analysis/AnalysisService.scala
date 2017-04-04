@@ -36,6 +36,10 @@ class AnalysisService @Inject()(
     ae match {
       case a: Analysis            => addAnalysis(a)
       case ac: AnalysisCollection => addAnalysisCollection(ac)
+      case sc: SampleCreated =>
+        throw new IllegalArgumentException(
+          "SampleCreated events should only be handled by the SampleObjectDao"
+        )
     }
   }
 

@@ -4,6 +4,7 @@ import java.sql.{Timestamp => JSqlTimestamp}
 
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID}
 import no.uio.musit.time.DefaultTimezone
 import org.joda.time.DateTime
@@ -31,6 +32,12 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
     MappedColumnType.base[MuseumId, Int](
       mid => mid.underlying,
       intId => MuseumId.fromInt(intId)
+    )
+
+  implicit val objTypeMapper: BaseColumnType[ObjectType] =
+    MappedColumnType.base[ObjectType, String](
+      tpe => tpe.name,
+      str => ObjectType.unsafeFromString(str)
     )
 
   implicit lazy val actorIdMapper: BaseColumnType[ActorId] =

@@ -33,11 +33,5 @@ object GroupId extends MusitUUIDOps[GroupId] {
 
   override implicit def fromUUID(uuid: UUID): GroupId = GroupId(uuid)
 
-  /**
-   * Unsafe converter from String to GroupId
-   */
-  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
-  def unsafeFromString(str: String): GroupId = UUID.fromString(str)
-
   override def generate(): GroupId = GroupId(UUID.randomUUID())
 }

@@ -29,7 +29,8 @@ object TemplateConfigs {
     Label3,
     Label4,
     Label5,
-    LabelPrinter
+    BradyLabelPrinter,
+    TSCLabelPrinter
   )
 
   sealed trait TemplateConfig {
@@ -49,20 +50,21 @@ object TemplateConfigs {
   object TemplateConfig {
     def fromInt(i: Int): Option[TemplateConfig] = {
       i match {
-        case Label1.templateId       => Some(Label1)
-        case Label2.templateId       => Some(Label2)
-        case Label3.templateId       => Some(Label3)
-        case Label4.templateId       => Some(Label4)
-        case Label5.templateId       => Some(Label5)
-        case LabelPrinter.templateId => Some(LabelPrinter)
-        case _                       => None
+        case Label1.templateId            => Some(Label1)
+        case Label2.templateId            => Some(Label2)
+        case Label3.templateId            => Some(Label3)
+        case Label4.templateId            => Some(Label4)
+        case Label5.templateId            => Some(Label5)
+        case BradyLabelPrinter.templateId => Some(BradyLabelPrinter)
+        case TSCLabelPrinter.templateId   => Some(TSCLabelPrinter)
+        case _                            => None
       }
     }
   }
 
   case object Label1 extends TemplateConfig {
     override val templateId: Int          = 1
-    override val name: String             = "Label-1 70mm x 37mm"
+    override val name: String             = "70x37mm (3x8, A4)"
     override val labelWidth: Millimeters  = Millimeters(70)
     override val labelHeight: Millimeters = Millimeters(37)
     override val rowsPerPage: Int         = 8
@@ -71,7 +73,7 @@ object TemplateConfigs {
 
   case object Label2 extends TemplateConfig {
     override val templateId: Int          = 2
-    override val name: String             = "Label-2 105mm x 74mm"
+    override val name: String             = "105x74mm, liggende"
     override val labelWidth: Millimeters  = Millimeters(105)
     override val labelHeight: Millimeters = Millimeters(74)
     override val rowsPerPage: Int         = 4
@@ -80,7 +82,7 @@ object TemplateConfigs {
 
   case object Label3 extends TemplateConfig {
     override val templateId: Int          = 3
-    override val name: String             = "Label-3 74mm x 105mm"
+    override val name: String             = "74x105mm, stående"
     override val labelWidth: Millimeters  = Millimeters(74)
     override val labelHeight: Millimeters = Millimeters(105)
     override val rowsPerPage: Int         = 2
@@ -89,7 +91,7 @@ object TemplateConfigs {
 
   case object Label4 extends TemplateConfig {
     override val templateId: Int          = 4
-    override val name: String             = "Label-4 210mm x 11mm"
+    override val name: String             = "Hylleetikett 11mm"
     override val labelWidth: Millimeters  = Millimeters(210)
     override val labelHeight: Millimeters = Millimeters(11)
     override val rowsPerPage: Int         = 27
@@ -98,16 +100,25 @@ object TemplateConfigs {
 
   case object Label5 extends TemplateConfig {
     override val templateId: Int          = 5
-    override val name: String             = "Label-5 210 x 27mm"
+    override val name: String             = "Hylleetikett 27mm"
     override val labelWidth: Millimeters  = Millimeters(210)
     override val labelHeight: Millimeters = Millimeters(27)
     override val rowsPerPage: Int         = 11
     override val colsPerPage: Int         = 1
   }
 
-  case object LabelPrinter extends TemplateConfig {
+  case object BradyLabelPrinter extends TemplateConfig {
     override val templateId: Int          = 6
-    override val name: String             = "Label Printer"
+    override val name: String             = "BRADY BBP33 (52x27mm)"
+    override val labelWidth: Millimeters  = Millimeters(52)
+    override val labelHeight: Millimeters = Millimeters(26)
+    override val rowsPerPage: Int         = 1
+    override val colsPerPage: Int         = 1
+  }
+
+  case object TSCLabelPrinter extends TemplateConfig {
+    override val templateId: Int          = 7
+    override val name: String             = "TSC ME340 (54x27mm)"
     override val labelWidth: Millimeters  = Millimeters(52)
     override val labelHeight: Millimeters = Millimeters(26)
     override val rowsPerPage: Int         = 1

@@ -2,6 +2,7 @@ package services.analysis
 
 import com.google.inject.Inject
 import models.analysis.SampleObject
+import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -28,7 +29,20 @@ class SampleObjectService @Inject()(
       registeredBy = Some(currUser.id),
       registeredDate = Some(dateTimeNow)
     )
-    soDao.insert(sobj)
+
+    if (so.isExtracted) {
+      val eventObj = SampleCreated(
+        id = None,
+        eventDate = sobj.registeredDate,
+        registeredBy = sobj.registeredBy,
+        registeredDate = sobj.registeredDate,
+        objectId = sobj.parentObjectId,
+        sampleObjectId = sobj.objectId
+      )
+      soDao.insert(sobj, eventObj)
+    } else {
+      soDao.insert(sobj)
+    }
   }
 
   def update(
