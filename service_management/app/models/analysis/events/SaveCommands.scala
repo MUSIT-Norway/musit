@@ -1,15 +1,17 @@
 package models.analysis.events
 
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.{ActorId, ObjectUUID}
+import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, Reads}
 
 object SaveCommands {
 
-  sealed trait SaveAnalysisEventCommand {
+  sealed trait AnalysisEventCommand {
     def asDomain: AnalysisEvent
   }
+
+  sealed trait SaveAnalysisEventCommand extends AnalysisEventCommand
 
   case class SaveAnalysis(
       analysisTypeId: AnalysisTypeId,

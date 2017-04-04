@@ -78,6 +78,47 @@ class AnalysisService @Inject()(
     analysisDao.insertResult(eid, ar)
   }
 
+  def update(ae: AnalysisEvent)(
+      implicit currUser: AuthenticatedUser
+  ): Future[MusitResult[EventId]] = {
+    // Find the AnalysisEvent and update the domain where necessary
+    ae match {
+      case a: Analysis            => updateAnalysis(a)
+      case ac: AnalysisCollection => updateAnalysisCollection(ac)
+      case sc: SampleCreated =>
+        throw new IllegalArgumentException(
+          "SampleCreated events should only be handled by the SampleObjectDao"
+        )
+    }
+  }
+
+  def updateAnalysis(
+      a: Analysis
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
+    val analysis = a.copy(
+      registeredBy = Some(currUser.id),
+      registeredDate = Some(dateTimeNow)
+    )
+    analysisDao.insert(analysis)
+  }
+
+  def updateAnalysisCollection(
+      ac: AnalysisCollection
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
+    val now = Some(dateTimeNow)
+    val acol = ac.copy(
+      registeredBy = Some(currUser.id),
+      registeredDate = now,
+      events = ac.events.map(
+        _.copy(
+          registeredBy = Some(currUser.id),
+          registeredDate = now
+        )
+      )
+    )
+    analysisDao.insertCol(acol)
+  }
+
   def findById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
     analysisDao.findById(id)
   }

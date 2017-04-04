@@ -103,8 +103,9 @@ class AnalysisController @Inject()(
   def saveAnalysisEvent(mid: MuseumId) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
-      val js                = request.body
-      val jsr               = js.validate[SaveAnalysis].orElse(js.validate[SaveAnalysisCollection])
+
+      val js  = request.body
+      val jsr = js.validate[SaveAnalysis].orElse(js.validate[SaveAnalysisCollection])
 
       saveRequest[SaveAnalysisEventCommand, EventId](jsr) { sc =>
         analysisService.add(sc.asDomain)
@@ -114,9 +115,23 @@ class AnalysisController @Inject()(
   def saveResult(mid: MuseumId, id: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
-      val eventId           = EventId.fromLong(id)
-      val jsr               = request.body.validate[AnalysisResult]
+
+      val eventId = EventId.fromLong(id)
+      val jsr     = request.body.validate[AnalysisResult]
 
       saveRequest[AnalysisResult, Long](jsr)(r => analysisService.addResult(eventId, r))
+    }
+
+  def updateAnalysisEvent(mid: MuseumId, eid: Long) =
+    MusitSecureAction().async(parse.json) { implicit request =>
+      implicit val currUser = implicitly(request.user)
+      val eventId           = EventId.fromLong(eid)
+
+      val js  = request.body
+      val jsr = js.validate[SaveAnalysis].orElse(js.validate[SaveAnalysisCollection])
+
+      updateRequest[SaveAnalysisEventCommand, AnalysisEvent](jsr) { sc =>
+        analysisService.update(sc.asDomain)
+      }
     }
 }

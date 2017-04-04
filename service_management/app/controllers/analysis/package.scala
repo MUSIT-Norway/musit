@@ -38,12 +38,40 @@ package object analysis {
       jsr: JsResult[A]
   )(
       save: A => Future[MusitResult[ID]]
-  )(implicit req: MusitRequest[JsValue], writes: Writes[ID], ec: ExecutionContext): Future[Result] = {
+  )(
+      implicit req: MusitRequest[JsValue],
+      writes: Writes[ID],
+      ec: ExecutionContext
+  ): Future[Result] = {
     jsr match {
       case JsSuccess(at, _) =>
         save(at).map {
           case MusitSuccess(id) => Results.Created(Json.toJson(id))
           case err: MusitError  => internalErr(err)
+        }
+
+      case err: JsError =>
+        Future.successful(Results.BadRequest(JsError.toJson(err)))
+    }
+  }
+
+  /**
+   * Function for saving a data type A as a B, then returning B as the result.
+   */
+  private def updateRequest[A, B](
+      jsr: JsResult[A]
+  )(
+      update: A => Future[MusitResult[B]]
+  )(
+      implicit req: MusitRequest[JsValue],
+      writes: Writes[B],
+      ec: ExecutionContext
+  ): Future[Result] = {
+    jsr match {
+      case JsSuccess(at, _) =>
+        update(at).map {
+          case MusitSuccess(b)  => Results.Ok(Json.toJson(b))
+          case merr: MusitError => internalErr(merr)
         }
 
       case err: JsError =>
