@@ -656,12 +656,12 @@ class StorageNodeService @Inject()(
   /**
    *
    * @param mid
-   * @param oids
+   * @param mobjs
    * @return
    */
   def currentObjectLocations(
       mid: MuseumId,
-      oids: Seq[MovableObject]
+      mobjs: Seq[MovableObject]
   ): Future[MusitResult[Seq[ObjectsLocation]]] = {
 
     def findObjectLocations(
@@ -689,7 +689,7 @@ class StorageNodeService @Inject()(
         .map(MusitSuccess.apply)
     }
 
-    localObjectDao.currentLocationsForMovableObjects(oids).flatMap {
+    localObjectDao.currentLocationsForMovableObjects(mobjs).flatMap {
       case MusitSuccess(objNodeMap) =>
         val nodeIds = objNodeMap.values.flatten.toSeq.distinct
 
