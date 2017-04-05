@@ -20,6 +20,7 @@
 package repositories.dao.caching
 
 import com.google.inject.Inject
+import models.MovableObject
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import models.event.dto.{EventDto, LocalObject}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
@@ -104,6 +105,60 @@ class LocalObjectDao @Inject()(
           MusitDbError("Unable to get current location", Some(ex))
       }
 
+  }
+
+  /**
+   * Returns the LocalObject instance associated with the given objectIds
+   *
+   * @param movableObjs Seq of MobableObjects to get current location for.
+   * @return Eventually returns a Map of ObjectIds and StorageNodeDatabaseId
+   */
+  def currentLocationsForMovableObjects(
+      movableObjs: Seq[MovableObject]
+  ): Future[MusitResult[Map[MovableObject, Option[StorageNodeDatabaseId]]]] = {
+    type QLocQuery = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, Seq]
+
+    val typById = movableObjs.groupBy(_.objectType).mapValues(_.map(_.id))
+
+    def buildSingleQuery(tpy: ObjectType, ids: Seq[ObjectId]) =
+      localObjectsTable.filter(
+        loc => loc.objectType === tpy.name && (loc.objectId inSet ids)
+      )
+
+    def buildGroupedQuery(tpy: ObjectType, oids: Seq[ObjectId]) =
+      oids.grouped(500).foldLeft[Option[QLocQuery]](None) {
+        case (qry, ids) =>
+          qry match {
+            case None  => Some(buildSingleQuery(tpy, ids))
+            case other => other.map(_ unionAll buildSingleQuery(tpy, ids))
+          }
+      }
+
+    val query = typById.foldLeft[Option[QLocQuery]](None) {
+      case (qry, (typ, ids)) =>
+        qry match {
+          case None           => buildGroupedQuery(typ, ids)
+          case Some(otherQry) => buildGroupedQuery(typ, ids).map(otherQry unionAll)
+        }
+    }
+
+    query.map { qry =>
+      db.run(qry.result)
+        .map { l =>
+          movableObjs.foldLeft(Map.empty[MovableObject, Option[StorageNodeDatabaseId]]) {
+            case (res, oid) =>
+              val maybeNodeId = l.find { res =>
+                res.objectId == oid.id && res.objectType == oid.objectType.name
+              }.map(_.currentLocationId)
+              res ++ Map(oid -> maybeNodeId)
+          }
+        }
+        .map(MusitSuccess.apply)
+        .recover {
+          case NonFatal(ex) =>
+            MusitDbError("Unable to get current location", Some(ex))
+        }
+    }.getOrElse(Future.successful(MusitSuccess(Map.empty)))
   }
 
 }
