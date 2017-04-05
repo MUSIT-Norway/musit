@@ -1,5 +1,6 @@
 package controllers
 
+import models.analysis.events.SaveCommands.SaveAnalysisEventCommand
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.service.MusitRequest
 import play.api.libs.json._
@@ -58,10 +59,10 @@ package object analysis {
   /**
    * Function for saving a data type A as a B, then returning B as the result.
    */
-  private def updateRequest[A, B](
+  private[analysis] def updateRequest[A, B](
       jsr: JsResult[A]
   )(
-      update: A => Future[MusitResult[B]]
+      update: A => Future[MusitResult[Option[B]]]
   )(
       implicit req: MusitRequest[JsValue],
       writes: Writes[B],

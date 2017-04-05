@@ -28,7 +28,7 @@ class SampleObjectServiceSpec
     groups = Seq.empty
   )
 
-  val dummyActor = ActorId.generate()
+  val dummyActorId = ActorId.generate()
 
   val service      = fromInstanceCache[SampleObjectService]
   val eventService = fromInstanceCache[AnalysisService]
@@ -47,7 +47,7 @@ class SampleObjectServiceSpec
       isExtracted = isExtracted,
       museumId = Museums.Test.id,
       status = SampleStatuses.Intact,
-      responsible = Some(dummyActor),
+      responsible = Some(dummyActorId),
       createdDate = Some(now),
       sampleId = None,
       externalId = None,
@@ -58,7 +58,7 @@ class SampleObjectServiceSpec
       container = Some("box"),
       storageMedium = None,
       note = Some("This is a sample note"),
-      registeredBy = Some(dummyActor),
+      registeredBy = Some(dummyActorId),
       registeredDate = Some(now),
       updatedBy = None,
       updatedDate = None

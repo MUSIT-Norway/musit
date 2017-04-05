@@ -105,11 +105,9 @@ class AnalysisController @Inject()(
       implicit val currUser = implicitly(request.user)
 
       val js  = request.body
-      val jsr = js.validate[SaveAnalysis].orElse(js.validate[SaveAnalysisCollection])
+      val jsr = js.validate[SaveAnalysisEventCommand]
 
-      saveRequest[SaveAnalysisEventCommand, EventId](jsr) { sc =>
-        analysisService.add(sc.asDomain)
-      }
+      saveRequest[SaveAnalysisEventCommand, EventId](jsr)(sc => analysisService.add(sc))
     }
 
   def saveResult(mid: MuseumId, id: Long) =
@@ -128,10 +126,10 @@ class AnalysisController @Inject()(
       val eventId           = EventId.fromLong(eid)
 
       val js  = request.body
-      val jsr = js.validate[SaveAnalysis].orElse(js.validate[SaveAnalysisCollection])
+      val jsr = js.validate[SaveAnalysisEventCommand]
 
       updateRequest[SaveAnalysisEventCommand, AnalysisEvent](jsr) { sc =>
-        analysisService.update(sc.asDomain)
+        analysisService.update(mid, eventId, sc)
       }
     }
 }

@@ -8,7 +8,12 @@ import models.analysis.events.{
   AnalysisEvent,
   SampleCreated
 }
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitDbError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.models.{EventId, ObjectUUID}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -32,8 +37,8 @@ class AnalysisDao @Inject()(
     analysisTable returning analysisTable.map(_.id) += event
   }
 
-  private def insertResultAction(result: ResultRow): DBIO[Long] = {
-    resultTable returning resultTable.map(_.id) += result
+  private def upsertResultAction(id: EventId, result: AnalysisResult): DBIO[Int] = {
+    resultTable.insertOrUpdate(asResultTuple(id, result))
   }
 
   private def insertAnalysisWithResultAction(
@@ -42,9 +47,7 @@ class AnalysisDao @Inject()(
   ): DBIO[EventId] = {
     for {
       id <- insertAnalysisAction(asEventTuple(ae))
-      _ <- maybeRes
-            .map(r => insertResultAction(asResultTuple(id, r)))
-            .getOrElse(noaction)
+      _  <- maybeRes.map(r => upsertResultAction(id, r)).getOrElse(noaction)
     } yield id
   }
 
@@ -56,6 +59,13 @@ class AnalysisDao @Inject()(
       insertAnalysisWithResultAction(e.copy(partOf = Some(pid)), e.result)
     }
     DBIO.sequence(batch)
+  }
+
+  private def updateAction(
+      id: EventId,
+      event: AnalysisEvent
+  ): DBIO[Int] = {
+    analysisTable.filter(_.id === id).update(asEventTuple(event))
   }
 
   private def findByIdAction(id: EventId): DBIO[Option[AnalysisEvent]] = {
@@ -136,6 +146,42 @@ class AnalysisDao @Inject()(
   }
 
   /**
+   * Performs an update action against the DB using the values in the provided
+   * {{{AnalysisEvent}}} argument.
+   *
+   * @param id the EventId associated with the analysis event to update
+   * @param ae the AnalysisEvent to update
+   * @return a result with an option of the updated event
+   */
+  def update(
+      id: EventId,
+      ae: AnalysisEvent
+  ): Future[MusitResult[Option[AnalysisEvent]]] = {
+    val action = updateAction(id, ae).transactionally
+
+    db.run(action)
+      .flatMap { numUpdated =>
+        if (numUpdated == 1) {
+          findById(id)
+        } else {
+          Future.successful {
+            MusitValidationError(
+              message = "Unexpected number of AnalysisEvent rows were updated.",
+              expected = Option(1),
+              actual = Option(numUpdated)
+            )
+          }
+        }
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"An unexpected error occurred inserting an analysis event"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+  }
+
+  /**
    * Locates a specific Analysis event by its EventId.
    *
    * @param id the EventId to look for.
@@ -149,7 +195,7 @@ class AnalysisDao @Inject()(
     } yield {
       maybeEvent.map {
         case a: Analysis            => a.withResult(maybeRes)
-        case ac: AnalysisCollection => ac.copy(events = children)
+        case ac: AnalysisCollection => ac.copy(events = children).withResult(maybeRes)
         case sc: SampleCreated      => sc
       }
     }
@@ -195,21 +241,34 @@ class AnalysisDao @Inject()(
   }
 
   /**
-   * Adds a new result to the analysis with the given EventId.
+   * Adds or updates a result for the analysis with the given EventId.
    *
-   * @param id The EventId of the analysis that has a new result.
+   * @param id  The EventId of the analysis that has a new result.
    * @param res The AnalysisResult to add.
    * @return eventually a result with the database ID of the saved result.
    */
-  def insertResult(id: EventId, res: AnalysisResult): Future[MusitResult[Long]] = {
-    val action = insertResultAction(asResultTuple(id, res))
+  def upsertResult(id: EventId, res: AnalysisResult): Future[MusitResult[Long]] = {
+    val action = upsertResultAction(id, res)
 
-    db.run(action).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = s"An unexpected error occurred inserting a result to analysis $id"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(action.transactionally)
+      .flatMap { numUpdated =>
+        val q = resultTable.filter(_.eventId === id).map(_.id)
+        db.run(q.result.headOption).map {
+          case Some(resId) =>
+            MusitSuccess(resId)
+
+          case None =>
+            MusitValidationError(
+              s"Could not find the result for $id that was just inserted"
+            )
+        }
+      }
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"An unexpected error occurred inserting a result to analysis $id"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
 }

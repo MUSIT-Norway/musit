@@ -236,7 +236,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    */
   protected[dao] def asEventTuple(event: AnalysisEvent): EventRow = {
     (
-      None,
+      event.id,
       event.analysisTypeId,
       event.doneBy,
       event.doneDate,
@@ -264,9 +264,14 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
   protected[dao] def toAnalysis(tuple: EventRow): Option[Analysis] =
     Json.fromJson[AnalysisEvent](tuple._10).asOpt.flatMap {
-      case a: Analysis            => Some(a.copy(id = tuple._1))
-      case ac: AnalysisCollection => None
-      case sc: SampleCreated      => None
+      case a: Analysis => Some(a.copy(id = tuple._1))
+      case _           => None
+    }
+
+  protected[dao] def toAnalysisCollection(tuple: EventRow): Option[AnalysisCollection] =
+    Json.fromJson[AnalysisEvent](tuple._10).asOpt.flatMap {
+      case ac: AnalysisCollection => Some(ac.copy(id = tuple._1))
+      case _                      => None
     }
 
   /**

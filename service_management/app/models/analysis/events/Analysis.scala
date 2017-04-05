@@ -28,6 +28,8 @@ sealed trait AnalysisEvent { self =>
   val updatedDate: Option[DateTime]
   val completedBy: Option[ActorId]
   val completedDate: Option[DateTime]
+  // TODO: val status: Option[???]
+  // TODO: val reason: Option[???]
 
   /**
    * Returns an AnalysisEvent that contains a result.
@@ -36,7 +38,7 @@ sealed trait AnalysisEvent { self =>
     this match {
       case a: Analysis            => a.copy(result = res)
       case ac: AnalysisCollection => ac.copy(result = res)
-      case sc: SampleCreated      => sc
+      case sc                     => sc
     }
   }
 
@@ -135,7 +137,6 @@ case class Analysis(
     completedBy: Option[ActorId],
     completedDate: Option[DateTime],
     objectId: Option[ObjectUUID],
-    //  actors: Option[Seq[ActorRelation]],
     partOf: Option[EventId],
     note: Option[String],
     result: Option[AnalysisResult]
@@ -162,19 +163,19 @@ case class AnalysisCollection(
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
+    responsible: Option[ActorId],
+    administrator: Option[ActorId],
+    updatedBy: Option[ActorId],
+    updatedDate: Option[DateTime],
+    completedBy: Option[ActorId],
+    completedDate: Option[DateTime],
     note: Option[String],
     result: Option[AnalysisResult],
     events: Seq[Analysis]
 ) extends AnalysisEvent {
 
-  val partOf: Option[EventId]         = None
-  val objectId: Option[ObjectUUID]    = None
-  val responsible: Option[ActorId]    = None
-  val administrator: Option[ActorId]  = None
-  val updatedBy: Option[ActorId]      = None
-  val updatedDate: Option[DateTime]   = None
-  val completedBy: Option[ActorId]    = None
-  val completedDate: Option[DateTime] = None
+  val partOf: Option[EventId]      = None
+  val objectId: Option[ObjectUUID] = None
 
   def withoutChildren = copy(events = Seq.empty)
 

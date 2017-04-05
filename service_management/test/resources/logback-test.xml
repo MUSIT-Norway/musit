@@ -13,14 +13,14 @@
 
   <logger name="play" level="WARN"/>
   <logger name="akka" level="ERROR"/>
-  <logger name="slick.jdbc" level="WARN"/>
+  <logger name="slick.jdbc" level="OFF"/>
 
-  <logger name="Application" level="ERROR"/>
-  <logger name="no.uio.musit" level="ERROR"/>
-  <logger name="controllers" level="ERROR"/>
-  <logger name="services" level="ERROR"/>
-  <logger name="models" level="ERROR"/>
-  <logger name="repositories" level="ERROR"/>
+  <logger name="Application" level="OFF"/>
+  <logger name="no.uio.musit" level="OFF"/>
+  <logger name="controllers" level="OFF"/>
+  <logger name="services" level="OFF"/>
+  <logger name="models" level="OFF"/>
+  <logger name="repositories" level="OFF"/>
 
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>
