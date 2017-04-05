@@ -19,8 +19,7 @@ object DateTimeEquivalence {
       b match {
         case p: DateTime =>
           a.getDayOfYear == p.getDayOfYear &&
-            a.getMinuteOfDay == p.getMinuteOfDay &&
-            a.getSecondOfMinute == p.getSecondOfMinute
+            a.getMinuteOfDay == p.getMinuteOfDay
 
         case _ => false
       }
