@@ -118,11 +118,12 @@ class LoanDao @Inject()(
 
     db.run(query.result)
       .map { res =>
-        res.map { evt =>
-          evt._1 match {
-            case LentObjectsType     => evt._2.as[LentObject]
-            case ReturnedObjectsType => evt._2.as[ReturnedObject]
-          }
+        res.map {
+          case (typ, json) =>
+            typ match {
+              case LentObjectsType     => json.as[LentObject]
+              case ReturnedObjectsType => json.as[ReturnedObject]
+            }
         }
       }
       .map(MusitSuccess.apply)
