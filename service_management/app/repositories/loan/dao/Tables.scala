@@ -10,7 +10,7 @@ import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json}
 import repositories.shared.dao.ColumnTypeMappers
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 /**
  * Defines the table definitions needed to work with analysis data.
@@ -18,7 +18,7 @@ import slick.driver.JdbcProfile
  */
 trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   val loanTable       = TableQuery[LoanEventTable]
   val activeLoanTable = TableQuery[ActiveLoanTable]

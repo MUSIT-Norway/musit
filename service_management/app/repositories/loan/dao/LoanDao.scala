@@ -21,7 +21,7 @@ class LoanDao @Inject()(
 
   val logger = Logger(classOf[LoanDao])
 
-  import driver.api._
+  import profile.api._
 
   private def insertEventRow(event: LoanEventRow): DBIO[EventId] = {
     loanTable returning loanTable.map(_.id) += event
