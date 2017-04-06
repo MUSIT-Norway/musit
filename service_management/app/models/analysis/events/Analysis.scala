@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
  * Describes the least common denominator for analysis events. Different
  * implementations may contain more fields than this trait.
  */
-sealed trait AnalysisEvent { self =>
+sealed trait AnalysisEvent {
   val id: Option[EventId]
   val analysisTypeId: AnalysisTypeId
   val doneBy: Option[ActorId]
