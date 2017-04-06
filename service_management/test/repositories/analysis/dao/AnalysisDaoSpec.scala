@@ -1,108 +1,24 @@
 package repositories.analysis.dao
 
-import models.analysis.events.AnalysisResults.{
-  AnalysisResult,
-  DatingResult,
-  GenericResult
-}
-import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId}
+import models.analysis.events.AnalysisResults.{AnalysisResult, DatingResult}
+import models.analysis.events.{Analysis, AnalysisCollection}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
+import no.uio.musit.models.{EventId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
 import org.scalatest.Inspectors.forAll
 import org.scalatest.OptionValues
+import utils.AnalysisGenerators
 
 class AnalysisDaoSpec
     extends MusitSpecWithAppPerSuite
     with DateTimeMatchers
     with MusitResultValues
-    with OptionValues {
+    with OptionValues
+    with AnalysisGenerators {
 
-  val dao: AnalysisDao = fromInstanceCache[AnalysisDao]
-
-  val dummyActorId        = ActorId.generate()
-  val dummyAnalysisTypeId = AnalysisTypeId.generate()
-
-  val oid1 = ObjectUUID.generate()
-  val oid2 = ObjectUUID.generate()
-  val oid3 = ObjectUUID.generate()
-
-  def dummyGenericResult(
-      extRef: Option[Seq[String]] = None,
-      comment: Option[String] = None
-  ): GenericResult = {
-    GenericResult(
-      registeredBy = Some(dummyActorId),
-      registeredDate = Some(dateTimeNow),
-      extRef = extRef,
-      comment = comment
-    )
-  }
-
-  def dummyDatingResult(
-      extRef: Option[Seq[String]] = None,
-      comment: Option[String] = None,
-      age: Option[String] = None
-  ): DatingResult = {
-    DatingResult(
-      registeredBy = Some(dummyActorId),
-      registeredDate = Some(dateTimeNow),
-      extRef = None,
-      comment = None,
-      age = age
-    )
-  }
-
-  def dummyAnalysis(
-      oid: Option[ObjectUUID],
-      res: Option[AnalysisResult] = None
-  ): Analysis = {
-    val now = Some(dateTimeNow)
-    Analysis(
-      id = None,
-      analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorId),
-      doneDate = now,
-      registeredBy = Some(dummyActorId),
-      registeredDate = now,
-      responsible = Some(dummyActorId),
-      administrator = Some(dummyActorId),
-      updatedBy = Some(dummyActorId),
-      updatedDate = now,
-      completedBy = Some(dummyActorId),
-      completedDate = now,
-      partOf = None,
-      objectId = oid,
-      note = Some("This is the first event"),
-      result = res
-    )
-  }
-
-  def dummyAnalysisCollection(
-      res: Option[AnalysisResult],
-      analyses: Analysis*
-  ): AnalysisCollection = {
-    val now = Some(dateTimeNow)
-    AnalysisCollection(
-      id = None,
-      analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorId),
-      doneDate = now,
-      registeredBy = Some(dummyActorId),
-      registeredDate = now,
-      responsible = Some(dummyActorId),
-      administrator = Some(dummyActorId),
-      updatedBy = None,
-      updatedDate = None,
-      completedBy = Some(dummyActorId),
-      completedDate = now,
-      note = Some("An analysis collection"),
-      result = res,
-      events = analyses.toSeq
-    )
-  }
+  private val dao = fromInstanceCache[AnalysisDao]
 
   def saveAnalysis(
       oid: Option[ObjectUUID],
