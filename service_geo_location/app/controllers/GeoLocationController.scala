@@ -48,14 +48,11 @@ class GeoLocationController @Inject()(
     geoLocService
       .searchGeoNorway(expression)
       .map {
-        case MusitSuccess(locations) => {
+        case MusitSuccess(locations) =>
           Ok(Json.toJson(locations))
-        }
 
-        case MusitHttpError(status, msg) => {
-          println("inni map. MusitHttpError")
+        case MusitHttpError(status, msg) =>
           Status(status)
-        }
 
         case err: MusitError =>
           logger.error("InternalServerError: " + s"${err.message}")

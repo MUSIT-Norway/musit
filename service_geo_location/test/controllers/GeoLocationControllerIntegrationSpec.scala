@@ -84,10 +84,6 @@ class GeoLocationControllerIntegrationSpec
         (jsArr.head \ "place").as[String] mustBe "OSLO"
         (jsArr.head \ "zip").as[String] mustBe "0192"
       }
-
-      "return musitHttpError if service not available" in {
-        // todo
-      }
     }
   }
 }
