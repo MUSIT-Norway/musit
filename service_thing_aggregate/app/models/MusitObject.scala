@@ -1,26 +1,8 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package models
 
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Writes}
 
 case class MusitObject(
     id: ObjectId,
@@ -36,7 +18,12 @@ case class MusitObject(
 )
 
 object MusitObject {
-  implicit val format = Json.format[MusitObject]
+  private val baseWrites = Json.writes[MusitObject]
+
+  implicit val reads = Json.reads[MusitObject]
+  implicit val writes = Writes[MusitObject] { mo =>
+    baseWrites.writes(mo) ++ Json.obj("objectType" -> CollectionObject.name)
+  }
 
   type ObjTuple = (
       (

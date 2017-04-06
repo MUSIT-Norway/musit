@@ -8,6 +8,7 @@ import models.storage.{
   FacilityLocation,
   LocationHistory,
   LocationHistory_Old,
+  MovableObject,
   ObjectsLocation
 }
 import no.uio.musit.MusitResults._
@@ -537,7 +538,7 @@ class StorageNodeService @Inject()(
     val res = for {
       affectedNodes <- MusitResultT(unitDao.getNodesByDatabaseIds(mid, nodeIds))
       currLoc = affectedNodes.map(n => (n.id.get, n.isPartOf)).toMap
-      moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
+      moved <- MusitResultT(moveBatch(mid, destination, currLoc, moveEvents) {
                 case (to, curr, events) =>
                   moveBatchNodes(mid, affectedNodes, to, curr, events)
               })
@@ -569,14 +570,13 @@ class StorageNodeService @Inject()(
       .map(a => a.affectedThing.get -> a.objectType)
       .toMap
 
-    val objIds     = objIdsAndTypes.keys.toSeq
-    val currentLoc = localObjectDao.currentLocations(objIds)
+    val objIds = objIdsAndTypes.keys.toSeq
 
     // format: off
     val res = for {
       currentLoc <- MusitResultT(localObjectDao.currentLocations(objIds))
       movedObjects <- MusitResultT(
-        moveBatch(mid, destination, objIds, currentLoc, moveEvents) {
+        moveBatch(mid, destination, currentLoc, moveEvents) {
           case (_, _, events) =>
             persistMoveEvents(mid, events) { eventIds =>
               // Again the get on affectedThing is safe since we're guaranteed its
@@ -667,16 +667,16 @@ class StorageNodeService @Inject()(
   /**
    *
    * @param mid
-   * @param oids
+   * @param mobjs
    * @return
    */
   def currentObjectLocations(
       mid: MuseumId,
-      oids: Seq[ObjectId]
+      mobjs: Seq[MovableObject]
   ): Future[MusitResult[Seq[ObjectsLocation]]] = {
 
     def findObjectLocations(
-        objNodeMap: Map[ObjectId, Option[StorageNodeDatabaseId]],
+        objNodeMap: Map[MovableObject, Option[StorageNodeDatabaseId]],
         nodes: Seq[GenericStorageNode]
     ): Future[MusitResult[Seq[ObjectsLocation]]] = {
       nodes
@@ -684,7 +684,7 @@ class StorageNodeService @Inject()(
           case (ols, node) =>
             unitDao.namesForPath(node.path).flatMap {
               case MusitSuccess(namedPaths) =>
-                val objects = objNodeMap.filter(_._2 == node.id).keys.toSeq
+                val objects = objNodeMap.filter(_._2 == node.id).keys.map(_.id).toSeq
                 // Copy node and set path to it
                 ols.map { objLoc =>
                   objLoc :+ Future.successful(
@@ -700,7 +700,7 @@ class StorageNodeService @Inject()(
         .map(MusitSuccess.apply)
     }
 
-    localObjectDao.currentLocations(oids).flatMap {
+    localObjectDao.currentLocationsForMovableObjects(mobjs).flatMap {
       case MusitSuccess(objNodeMap) =>
         val nodeIds = objNodeMap.values.flatten.toSeq.distinct
 
