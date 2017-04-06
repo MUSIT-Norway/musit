@@ -20,6 +20,7 @@
 package controllers
 
 import com.google.inject.Inject
+import no.uio.musit.MusitResults.{MusitError, MusitHttpError, MusitSuccess}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
@@ -46,8 +47,19 @@ class GeoLocationController @Inject()(
     val expression = search.getOrElse("")
     geoLocService
       .searchGeoNorway(expression)
-      .map { location =>
-        Ok(Json.toJson(location))
+      .map {
+        case MusitSuccess(locations) => {
+          Ok(Json.toJson(locations))
+        }
+
+        case MusitHttpError(status, msg) => {
+          println("inni map. MusitHttpError")
+          Status(status)
+        }
+
+        case err: MusitError =>
+          logger.error("InternalServerError: " + s"${err.message}")
+          InternalServerError(Json.obj("message" -> err.message))
       }
       .recover {
         case NonFatal(ex) =>
