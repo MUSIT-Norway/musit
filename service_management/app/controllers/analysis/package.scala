@@ -1,5 +1,6 @@
 package controllers
 
+import models.analysis.events.SaveCommands.SaveAnalysisEventCommand
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.service.MusitRequest
 import play.api.libs.json._
@@ -52,6 +53,63 @@ package object analysis {
 
       case err: JsError =>
         Future.successful(Results.BadRequest(JsError.toJson(err)))
+    }
+  }
+
+  private def updateRequestFunc[A, B](
+      jsr: JsResult[A]
+  )(
+      update: A => Future[Result]
+  )(
+      implicit req: MusitRequest[JsValue],
+      ec: ExecutionContext
+  ): Future[Result] = {
+    jsr match {
+      case JsSuccess(at, _) =>
+        update(at)
+
+      case err: JsError =>
+        Future.successful(Results.BadRequest(JsError.toJson(err)))
+    }
+  }
+
+  /**
+   * Function for saving a data type A as a B, then returning B as the result.
+   */
+  private[analysis] def updateRequest[A, B](
+      jsr: JsResult[A]
+  )(
+      update: A => Future[MusitResult[B]]
+  )(
+      implicit req: MusitRequest[JsValue],
+      writes: Writes[B],
+      ec: ExecutionContext
+  ): Future[Result] = {
+    updateRequestFunc(jsr) { a =>
+      update(a).map {
+        case MusitSuccess(b)  => Results.Ok(Json.toJson(b))
+        case merr: MusitError => internalErr(merr)
+      }
+    }
+  }
+
+  private[analysis] def updateRequestOpt[A, B](
+      jsr: JsResult[A]
+  )(
+      update: A => Future[MusitResult[Option[B]]]
+  )(
+      implicit req: MusitRequest[JsValue],
+      writes: Writes[B],
+      ec: ExecutionContext
+  ): Future[Result] = {
+    updateRequestFunc(jsr) { a =>
+      update(a).map {
+        case MusitSuccess(b) =>
+          b.map(r => Results.Ok(Json.toJson(r))).getOrElse(Results.NoContent)
+
+        case merr: MusitError =>
+          internalErr(merr)
+      }
     }
   }
 

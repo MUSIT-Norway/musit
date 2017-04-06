@@ -26,7 +26,8 @@ class AnalysisEventSpec
     Analysis(
       id = Some(dummyEventId),
       analysisTypeId = dummyAnalysisTypeId,
-      eventDate = Some(dummyDate),
+      doneBy = Some(dummyActor),
+      doneDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
       responsible = Some(dummyActor),
@@ -52,9 +53,25 @@ class AnalysisEventSpec
     AnalysisCollection(
       id = Some(dummyEventId),
       analysisTypeId = dummyAnalysisTypeId,
-      eventDate = Some(dummyDate),
+      doneBy = Some(dummyActor),
+      doneDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
+      responsible = Some(dummyActor),
+      administrator = Some(dummyActor),
+      updatedBy = Some(dummyActor),
+      updatedDate = Some(dummyDate),
+      completedBy = Some(dummyActor),
+      completedDate = Some(dummyDate),
+      note = Some(dummyNote),
+      result = Some(
+        GenericResult(
+          registeredBy = Some(dummyActor),
+          registeredDate = Some(dummyDate),
+          extRef = Some(Seq(dummyNote)),
+          comment = Some(dummyNote)
+        )
+      ),
       events = Seq(
         createAnalysis(),
         createAnalysis()
@@ -64,14 +81,12 @@ class AnalysisEventSpec
   "AnalysisEvent" should {
 
     "serialize an Analysis instance to JSON" in {
-      val a = createAnalysis()
-
-      val js = Json.toJson(a)
+      val js = Json.toJson(createAnalysis())
 
       (js \ "type").as[String] mustBe Analysis.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
       (js \ "analysisTypeId").as[String] mustBe dummyAnalysisTypeId.asString
-      (js \ "eventDate").as[DateTime] mustApproximate dummyDate
+      (js \ "doneDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
       (js \ "partOf").asOpt[Long] mustBe None
@@ -84,23 +99,34 @@ class AnalysisEventSpec
     }
 
     "serialize an AnalysisCollection instance to JSON" in {
-      val ac = createAnalysisCollection()
-
-      val js = Json.toJson(ac)
+      val js = Json.toJson(createAnalysisCollection())
 
       (js \ "type").as[String] mustBe AnalysisCollection.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
-      (js \ "eventDate").as[DateTime] mustApproximate dummyDate
+      (js \ "analysisTypeId").as[String] mustBe dummyAnalysisTypeId.asString
+      (js \ "doneBy").as[String] mustBe dummyActor.asString
+      (js \ "doneDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
+      (js \ "responsible").as[String] mustBe dummyActor.asString
+      (js \ "administrator").as[String] mustBe dummyActor.asString
+      (js \ "updatedBy").as[String] mustBe dummyActor.asString
+      (js \ "updatedDate").as[DateTime] mustApproximate dummyDate
+      (js \ "completedBy").as[String] mustBe dummyActor.asString
+      (js \ "completedDate").as[DateTime] mustApproximate dummyDate
+      (js \ "note").as[String] mustBe dummyNote
+      (js \ "result" \ "type").as[String] mustBe GenericResult.resultType
+      (js \ "result" \ "registeredBy").as[String] mustBe dummyActor.asString
+      (js \ "result" \ "registeredDate").as[DateTime] mustApproximate dummyDate
+      (js \ "result" \ "extRef" \ 0).as[String] mustBe dummyNote
+      (js \ "result" \ "comment").as[String] mustBe dummyNote
       (js \ "events").as[JsArray].value.size mustBe 2
       (js \ "events" \ 0 \ "type").as[String] mustBe Analysis.discriminator
       (js \ "events" \ 1 \ "type").as[String] mustBe Analysis.discriminator
     }
 
     "fail deserializing an Analysis if the discriminator isn't present" in {
-      val a  = createAnalysis()
-      val js = Json.toJson(a)
+      val js = Json.toJson(createAnalysis())
 
       val transform = js.transform((__ \ "type").json.prune)
       inside(transform) {
@@ -113,8 +139,7 @@ class AnalysisEventSpec
     }
 
     "fail deserializing an AnalysisCollection if the discriminator isn't present" in {
-      val a  = createAnalysisCollection()
-      val js = Json.toJson(a)
+      val js = Json.toJson(createAnalysisCollection())
 
       val transform = js.transform((__ \ "type").json.prune)
       inside(transform) {
