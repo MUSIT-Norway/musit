@@ -19,9 +19,21 @@
 
 package services
 
+import no.uio.musit.MusitResults.MusitHttpError
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
+import org.scalatest.Inside
+import play.api.Configuration
+import play.api.http.Status
+import play.api.mvc.{Action, Results}
+import play.api.routing.sird._
+import play.api.test.WsTestClient
+import play.core.server.Server
 
-class GeoLocationServiceSpec extends MusitSpecWithAppPerSuite {
+class GeoLocationServiceSpec
+    extends MusitSpecWithAppPerSuite
+    with MusitResultValues
+    with Inside {
 
   val service: GeoLocationService = fromInstanceCache[GeoLocationService]
 
@@ -31,18 +43,25 @@ class GeoLocationServiceSpec extends MusitSpecWithAppPerSuite {
 
       "return a list of results that match the query" in {
         val res = service.searchGeoNorway("paal bergs vei 56, RYKKINN").futureValue
-        res must not be empty
-        res.head.street mustBe "Paal Bergs vei"
-        res.head.streetNo mustBe "56"
-        res.head.place mustBe "RYKKINN"
-        res.head.zip mustBe "1348"
+        res.isSuccess mustBe true
+        res.successValue.toList match {
+          case theHead :: tail =>
+            theHead.street mustBe "Paal Bergs vei"
+            theHead.streetNo mustBe "56"
+            theHead.place mustBe "RYKKINN"
+            theHead.zip mustBe "1348"
+
+          case _ =>
+            fail(s"The list contained something wrong.")
+        }
+
       }
 
       "return a list of results that contains street number with house letter" in {
         val res = service.searchGeoNorway("Kirkegata 11, Hønefoss").futureValue
 
-        res must not be empty
-        res.find { a =>
+        res.isSuccess mustBe true
+        res.successValue.toList.find { a =>
           a.street == "Kirkegata" &&
           a.streetNo == "11 E" &&
           a.place == "HØNEFOSS" &&
@@ -51,7 +70,31 @@ class GeoLocationServiceSpec extends MusitSpecWithAppPerSuite {
 
       }
 
+      "return 503 if service not available" in {
+        implicit val conf = Configuration.from(
+          Map(
+            "musit.geoLocation.geoNorway.url"           -> "/geo",
+            "musit.geoLocation.geoNorway.hitsPerResult" -> "4"
+          )
+        )
+        val expMsg = "error message from GeoNorway"
+        Server.withRouter() {
+          case GET(p"/geo") =>
+            Action {
+              Results.ServiceUnavailable(expMsg)
+            }
+        } { implicit port =>
+          WsTestClient.withClient { client =>
+            val address = new GeoLocationService(client).searchGeoNorway("").futureValue
+            address.isFailure mustBe true
+            inside(address) {
+              case MusitHttpError(status, msg) =>
+                status mustBe Status.SERVICE_UNAVAILABLE
+                msg mustBe expMsg
+            }
+          }
+        }
+      }
     }
   }
-
 }
