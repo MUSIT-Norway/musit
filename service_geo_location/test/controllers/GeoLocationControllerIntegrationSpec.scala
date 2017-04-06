@@ -19,14 +19,24 @@
 
 package controllers
 
+import no.uio.musit.MusitResults.{MusitHttpError, MusitSuccess}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
+import org.scalatest.Inside
+import play.api.Configuration
 import play.api.http.Status
 import play.api.libs.json.JsArray
+import play.api.mvc.{Action, Results}
+import play.api.test.WsTestClient
+import play.core.server.Server
+import services.GeoLocationService
+import play.api.routing.sird._
 
 import scala.language.postfixOps
 
-class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
+class GeoLocationControllerIntegrationSpec
+    extends MusitSpecWithServerPerSuite
+    with Inside {
 
   val queryParam = (adr: String) => s"/address?search=$adr"
 
@@ -39,7 +49,6 @@ class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
           .withHeaders(fakeToken.asHeader)
           .get()
           .futureValue
-
         res.status mustBe Status.OK
 
         val jsArr = res.json.as[JsArray].value
@@ -77,5 +86,4 @@ class GeoLocationControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
     }
   }
-
 }
