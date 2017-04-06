@@ -100,10 +100,28 @@ class AnalysisService @Inject()(
   def addResult(
       eid: EventId,
       res: AnalysisResult
-  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Long]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val now = Some(dateTimeNow)
     val ar  = res.withRegisteredBy(Some(currUser.id)).withtRegisteredDate(now)
     analysisDao.upsertResult(eid, ar)
+  }
+
+  /**
+   * Update the AnalysisResult belonging to the given EventId
+   */
+  def updateResult(
+      eid: EventId,
+      res: AnalysisResult
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
+    MusitResultT(analysisDao.findResultFor(eid)).flatMap { orig =>
+      val ar = orig.map { o =>
+        res.withRegisteredBy(o.registeredBy).withtRegisteredDate(o.registeredDate)
+      }.getOrElse {
+        val now = Some(dateTimeNow)
+        res.withRegisteredBy(Some(currUser.id)).withtRegisteredDate(now)
+      }
+      MusitResultT(analysisDao.upsertResult(eid, ar))
+    }.value
   }
 
   /**

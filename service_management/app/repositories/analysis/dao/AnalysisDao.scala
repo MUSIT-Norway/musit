@@ -241,18 +241,35 @@ class AnalysisDao @Inject()(
   }
 
   /**
+   * Usefull method for locating the result for a specific analysis event.
+   *
+   * @param id the EventId of the analysis event to fetch the result for
+   * @return a result that may or may not contain the AnalysisResult
+   */
+  def findResultFor(id: EventId): Future[MusitResult[Option[AnalysisResult]]] = {
+    val q = resultTable.filter(_.eventId === id).result.headOption.map(fromResultRow)
+
+    db.run(q).map(MusitSuccess.apply).recover {
+      case NonFatal(ex) =>
+        val msg = s"An unexpected error occurred looking up result for analysis $id"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
+    }
+  }
+
+  /**
    * Adds or updates a result for the analysis with the given EventId.
    *
    * @param id  The EventId of the analysis that has a new result.
    * @param res The AnalysisResult to add.
-   * @return eventually a result with the database ID of the saved result.
+   * @return eventually a result with the EventId the saved result belongs to.
    */
-  def upsertResult(id: EventId, res: AnalysisResult): Future[MusitResult[Long]] = {
+  def upsertResult(id: EventId, res: AnalysisResult): Future[MusitResult[EventId]] = {
     val action = upsertResultAction(id, res)
 
     db.run(action.transactionally)
       .flatMap { numUpdated =>
-        val q = resultTable.filter(_.eventId === id).map(_.id)
+        val q = resultTable.filter(_.eventId === id).map(_.eventId)
         db.run(q.result.headOption).map {
           case Some(resId) =>
             MusitSuccess(resId)

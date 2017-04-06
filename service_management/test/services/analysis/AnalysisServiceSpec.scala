@@ -1,6 +1,6 @@
 package services.analysis
 
-import models.analysis.events.AnalysisResults.DatingResult
+import models.analysis.events.AnalysisResults.{DatingResult, GenericResult}
 import models.analysis.events.{Analysis, AnalysisCollection}
 import models.analysis.events.EventCategories.Genetic
 import no.uio.musit.models.{ActorId, EventId}
@@ -121,7 +121,7 @@ class AnalysisServiceSpec
         comment = Some("This is a generic result")
       )
 
-      service.addResult(EventId(1L), gr).futureValue.successValue mustBe 1L
+      service.addResult(EventId(1L), gr).futureValue.successValue mustBe EventId(1L)
 
       val ares = service.findById(EventId(1L)).futureValue.successValue.value
 
@@ -142,7 +142,7 @@ class AnalysisServiceSpec
         age = Some("really old")
       )
 
-      service.addResult(EventId(2L), dr).futureValue.successValue mustBe 2L
+      service.addResult(EventId(2L), dr).futureValue.successValue mustBe EventId(2L)
 
       val ares = service.findById(EventId(2L)).futureValue.successValue.value
 
@@ -161,6 +161,52 @@ class AnalysisServiceSpec
 
         case other =>
           fail(s"Expected an ${classOf[AnalysisCollection]} but got ${other.getClass}")
+      }
+    }
+
+    "successfully update the result for an Analysis" in {
+      val eid  = EventId(1L)
+      val orig = service.findById(eid).futureValue.successValue.value
+      orig mustBe an[Analysis]
+
+      val origRes = orig.asInstanceOf[Analysis].result.value
+      origRes mustBe a[GenericResult]
+
+      val upd = origRes.asInstanceOf[GenericResult].copy(comment = Some("updated"))
+
+      service.updateResult(eid, upd).futureValue.isSuccess mustBe true
+
+      val updRes = service.findById(eid).futureValue.successValue.value
+      updRes mustBe an[Analysis]
+      updRes.asInstanceOf[Analysis].result.value match {
+        case gr: GenericResult =>
+          gr mustBe upd
+
+        case err =>
+          fail(s"Expected ${classOf[GenericResult]}, got ${err.getClass}")
+      }
+    }
+
+    "successfully update the result for an AnalysisCollection" in {
+      val eid  = EventId(2L)
+      val orig = service.findById(eid).futureValue.successValue.value
+      orig mustBe an[AnalysisCollection]
+
+      val origRes = orig.asInstanceOf[AnalysisCollection].result.value
+      origRes mustBe a[DatingResult]
+
+      val upd = origRes.asInstanceOf[DatingResult].copy(comment = Some("updated"))
+
+      service.updateResult(eid, upd).futureValue.isSuccess mustBe true
+
+      val updRes = service.findById(eid).futureValue.successValue.value
+      updRes mustBe an[AnalysisCollection]
+      updRes.asInstanceOf[AnalysisCollection].result.value match {
+        case gr: DatingResult =>
+          gr mustBe upd
+
+        case err =>
+          fail(s"Expected ${classOf[GenericResult]}, got ${err.getClass}")
       }
     }
 

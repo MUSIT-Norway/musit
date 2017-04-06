@@ -30,6 +30,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   // scalastyle:off line.size.limit
   type EventTypeRow =
     (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
+
   type EventRow = (
       Option[EventId],
       AnalysisTypeId,
@@ -43,7 +44,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       JsValue
   )
   type ResultRow =
-    (Option[Long], EventId, Option[ActorId], Option[DateTime], JsValue)
+    (EventId, Option[ActorId], Option[DateTime], JsValue)
+
   type SampleObjectRow = (
       ObjectUUID,
       Option[ObjectUUID],
@@ -134,14 +136,13 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[ResultRow](tag, Some(SchemaName), AnalysisResultTableName) {
 
-    val id             = column[Long]("RESULT_ID", O.PrimaryKey, O.AutoInc)
-    val eventId        = column[EventId]("EVENT_ID")
+    val eventId        = column[EventId]("EVENT_ID", O.PrimaryKey)
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
     val resultJson     = column[JsValue]("RESULT_JSON")
 
     // scalastyle:off method.name
-    def * = (id.?, eventId, registeredBy, registeredDate, resultJson)
+    def * = (eventId, registeredBy, registeredDate, resultJson)
 
     // scalastyle:on method.name
   }
@@ -283,7 +284,6 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    */
   protected[dao] def asResultTuple(eid: EventId, res: AnalysisResult): ResultRow = {
     (
-      None,
       eid,
       res.registeredBy,
       res.registeredDate,
@@ -298,7 +298,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
    * @return an Option of the corresponding AnalysisResult
    */
   protected[dao] def fromResultRow(tuple: ResultRow): Option[AnalysisResult] =
-    Json.fromJson[AnalysisResult](tuple._5).asOpt
+    Json.fromJson[AnalysisResult](tuple._4).asOpt
 
   protected[dao] def fromResultRow(
       maybeTuple: Option[ResultRow]

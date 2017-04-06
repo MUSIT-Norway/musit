@@ -56,10 +56,44 @@ package object analysis {
     }
   }
 
+  private def updateRequestFunc[A, B](
+      jsr: JsResult[A]
+  )(
+      update: A => Future[Result]
+  )(
+      implicit req: MusitRequest[JsValue],
+      ec: ExecutionContext
+  ): Future[Result] = {
+    jsr match {
+      case JsSuccess(at, _) =>
+        update(at)
+
+      case err: JsError =>
+        Future.successful(Results.BadRequest(JsError.toJson(err)))
+    }
+  }
+
   /**
    * Function for saving a data type A as a B, then returning B as the result.
    */
   private[analysis] def updateRequest[A, B](
+      jsr: JsResult[A]
+  )(
+      update: A => Future[MusitResult[B]]
+  )(
+      implicit req: MusitRequest[JsValue],
+      writes: Writes[B],
+      ec: ExecutionContext
+  ): Future[Result] = {
+    updateRequestFunc(jsr) { a =>
+      update(a).map {
+        case MusitSuccess(b)  => Results.Ok(Json.toJson(b))
+        case merr: MusitError => internalErr(merr)
+      }
+    }
+  }
+
+  private[analysis] def updateRequestOpt[A, B](
       jsr: JsResult[A]
   )(
       update: A => Future[MusitResult[Option[B]]]
@@ -68,15 +102,14 @@ package object analysis {
       writes: Writes[B],
       ec: ExecutionContext
   ): Future[Result] = {
-    jsr match {
-      case JsSuccess(at, _) =>
-        update(at).map {
-          case MusitSuccess(b)  => Results.Ok(Json.toJson(b))
-          case merr: MusitError => internalErr(merr)
-        }
+    updateRequestFunc(jsr) { a =>
+      update(a).map {
+        case MusitSuccess(b) =>
+          b.map(r => Results.Ok(Json.toJson(r))).getOrElse(Results.NoContent)
 
-      case err: JsError =>
-        Future.successful(Results.BadRequest(JsError.toJson(err)))
+        case merr: MusitError =>
+          internalErr(merr)
+      }
     }
   }
 

@@ -104,31 +104,43 @@ class AnalysisController @Inject()(
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
 
-      val js  = request.body
-      val jsr = js.validate[SaveAnalysisEventCommand]
+      val jsr = request.body.validate[SaveAnalysisEventCommand]
 
       saveRequest[SaveAnalysisEventCommand, EventId](jsr)(sc => analysisService.add(sc))
     }
 
-  def saveResult(mid: MuseumId, id: Long) =
+  def addResult(mid: MuseumId, id: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
 
       val eventId = EventId.fromLong(id)
       val jsr     = request.body.validate[AnalysisResult]
 
-      saveRequest[AnalysisResult, Long](jsr)(r => analysisService.addResult(eventId, r))
+      saveRequest[AnalysisResult, EventId](jsr) { r =>
+        analysisService.addResult(eventId, r)
+      }
+    }
+
+  def updateResult(mid: MuseumId, eid: Long) =
+    MusitSecureAction().async(parse.json) { implicit request =>
+      implicit val currUser = implicitly(request.user)
+
+      val eventId = EventId.fromLong(eid)
+      val jsr     = request.body.validate[AnalysisResult]
+
+      updateRequest[AnalysisResult, EventId](jsr) { r =>
+        analysisService.updateResult(eventId, r)
+      }
     }
 
   def updateAnalysisEvent(mid: MuseumId, eid: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
-      val eventId           = EventId.fromLong(eid)
 
-      val js  = request.body
-      val jsr = js.validate[SaveAnalysisEventCommand]
+      val eventId = EventId.fromLong(eid)
+      val jsr     = request.body.validate[SaveAnalysisEventCommand]
 
-      updateRequest[SaveAnalysisEventCommand, AnalysisEvent](jsr) { sc =>
+      updateRequestOpt[SaveAnalysisEventCommand, AnalysisEvent](jsr) { sc =>
         analysisService.update(mid, eventId, sc)
       }
     }

@@ -311,18 +311,16 @@ class AnalysisControllerIntegrationSpec
         (res.json \ "result" \ "comment").as[String] mustBe "See references"
       }
 
-      "save a new result for an analysis" in {
-        //        val js = createGenericResultJSON(
-        //          extRef = Some(Seq("abc", "xyz")),
-        //          comment = Some("A new result was added")
-        //        )
-        //
-        //        val res = wsUrl(saveResultUrl(2L))
-        //          .withHeaders(token.asHeader)
-        //          .post(js)
-        //          .futureValue
-        //
-        //        res.status mustBe CREATED
+      "update the result for an analysis" in {
+        val js = createGenericResultJSON(
+          extRef = Some(Seq("abc", "xyz")),
+          comment = Some("A new result was added")
+        )
+
+        val res =
+          wsUrl(saveResultUrl(mid)(2L)).withHeaders(token.asHeader).put(js).futureValue
+
+        res.status mustBe OK
 
         // Test is pending until the result handling is sorted out
         pending
