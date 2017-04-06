@@ -1,7 +1,7 @@
 package models.analysis.events
 
-import no.uio.musit.models.ActorId
 import org.joda.time.DateTime
+import play.api.libs.json.{Format, Json}
 
 /**
  * Analysis' performed on sample objects may e.g. be part of a larger study. In
@@ -10,6 +10,18 @@ import org.joda.time.DateTime
  * typically when the study is published, will the results be publicly available.
  */
 case class Restriction(
-    by: ActorId,
-    expirationDate: DateTime
+    by: String,
+    expirationDate: DateTime,
+    reason: Option[String] = None,
+    caseNumbers: Option[Seq[String]] = None,
+    cancelledBy: Option[String] = None,
+    cancelledReason: Option[String] = None
 )
+
+object Restriction {
+
+  implicit val f: Format[Restriction] = Json.format[Restriction]
+
+}
+
+// TODO: Add endpoint for removing restriction on analysis result.

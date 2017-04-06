@@ -6,6 +6,12 @@ import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json, Reads}
 
+/*
+  Missing fields:
+
+  hasRemains: Boolean
+
+ */
 case class SampleObject(
     objectId: Option[ObjectUUID],
     parentObjectId: Option[ObjectUUID],
