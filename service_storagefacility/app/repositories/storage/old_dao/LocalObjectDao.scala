@@ -20,7 +20,7 @@
 package repositories.storage.old_dao
 
 import com.google.inject.Inject
-import models.storage.MovableObject
+import models.storage.MovableObject_Old
 import models.storage.event.dto.{EventDto, LocalObject}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
@@ -116,8 +116,8 @@ class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    * @return Eventually returns a Map of ObjectIds and StorageNodeDatabaseId
    */
   def currentLocationsForMovableObjects(
-      movableObjs: Seq[MovableObject]
-  ): Future[MusitResult[Map[MovableObject, Option[StorageNodeDatabaseId]]]] = {
+      movableObjs: Seq[MovableObject_Old]
+  ): Future[MusitResult[Map[MovableObject_Old, Option[StorageNodeDatabaseId]]]] = {
     type QLocQuery = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, Seq]
 
     val typById = movableObjs.groupBy(_.objectType).mapValues(_.map(_.id))
@@ -147,7 +147,9 @@ class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     query.map { qry =>
       db.run(qry.result)
         .map { l =>
-          movableObjs.foldLeft(Map.empty[MovableObject, Option[StorageNodeDatabaseId]]) {
+          movableObjs.foldLeft(
+            Map.empty[MovableObject_Old, Option[StorageNodeDatabaseId]]
+          ) {
             case (res, oid) =>
               val maybeNodeId = l.find { res =>
                 res.objectId == oid.id && res.objectType == oid.objectType.name
@@ -162,7 +164,7 @@ class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
         }
     }.getOrElse(Future.successful(MusitSuccess(Map.empty)))
   }
-  
+
   val localObjectsTable = TableQuery[LocalObjectsTable]
 
   class LocalObjectsTable(

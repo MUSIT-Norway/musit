@@ -4,13 +4,7 @@ import com.google.inject.Inject
 import models.storage.event.dto.DtoConverters
 import models.storage.event.old.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage.nodes._
-import models.storage.{
-  FacilityLocation,
-  LocationHistory,
-  LocationHistory_Old,
-  MovableObject,
-  ObjectsLocation
-}
+import models.storage._
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -672,11 +666,11 @@ class StorageNodeService @Inject()(
    */
   def currentObjectLocations(
       mid: MuseumId,
-      mobjs: Seq[MovableObject]
+      mobjs: Seq[MovableObject_Old]
   ): Future[MusitResult[Seq[ObjectsLocation]]] = {
 
     def findObjectLocations(
-        objNodeMap: Map[MovableObject, Option[StorageNodeDatabaseId]],
+        objNodeMap: Map[MovableObject_Old, Option[StorageNodeDatabaseId]],
         nodes: Seq[GenericStorageNode]
     ): Future[MusitResult[Seq[ObjectsLocation]]] = {
       nodes

@@ -1,6 +1,7 @@
 package controllers.storage
 
 import com.google.inject.Inject
+import models.storage.MovableObject_Old
 import models.storage.Move_Old.{DelphiMove, MoveNodesCmd, MoveObjectsCmd}
 import models.storage.event.old.move._
 import models.storage.nodes._
@@ -468,7 +469,7 @@ final class StorageController @Inject()(
   def currentObjectLocations(
       mid: Int
   ) = MusitSecureAction(mid, Read).async(parse.json) { implicit request =>
-    request.body.validate[Seq[MovableObject]] match {
+    request.body.validate[Seq[MovableObject_Old]] match {
       case JsSuccess(objs, _) =>
         service.currentObjectLocations(mid, objs).map {
           case MusitSuccess(objectsLocations) =>
