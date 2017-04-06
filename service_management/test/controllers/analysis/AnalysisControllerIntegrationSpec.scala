@@ -298,7 +298,6 @@ class AnalysisControllerIntegrationSpec
       }
 
       "include the saved result when fetching the analysis" in {
-        // We can assume the ID is 2 since we've only created 1 analysis before this
         val res =
           wsUrl(getAnalysisUrl(mid)(2L)).withHeaders(token.asHeader).get().futureValue
 
@@ -321,28 +320,19 @@ class AnalysisControllerIntegrationSpec
           wsUrl(saveResultUrl(mid)(2L)).withHeaders(token.asHeader).put(js).futureValue
 
         res.status mustBe OK
-
-        // Test is pending until the result handling is sorted out
-        pending
       }
 
       "include the new result when fetching the analysis" in {
-        // We can assume the ID is 2 since we've only created 1 analysis before this
-        //        val res = wsUrl(getAnalysisUrl(2L))
-        //          .withHeaders(token.asHeader)
-        //          .get()
-        //          .futureValue
-        //
-        //        res.status mustBe OK
-        //        (res.json \ "id").as[Long] mustBe 2L
-        //        (res.json \ "result").asOpt[JsObject] must not be empty
-        //        (res.json \ "result" \ "extRef").as[JsArray].value.size mustBe 2
-        //        (res.json \ "result" \ "extRef" \ 0).as[String] mustBe "abc"
-        //        (res.json \ "result" \ "extRef" \ 1).as[String] mustBe "xyz"
-        //        (res.json \ "result" \ "comment").as[String] mustBe "A new result was added"
+        val res =
+          wsUrl(getAnalysisUrl(mid)(2L)).withHeaders(token.asHeader).get().futureValue
 
-        // Test is pending until the result handling is sorted out
-        pending
+        res.status mustBe OK
+        (res.json \ "id").as[Long] mustBe 2L
+        (res.json \ "result").asOpt[JsObject] must not be empty
+        (res.json \ "result" \ "extRef").as[JsArray].value.size mustBe 2
+        (res.json \ "result" \ "extRef" \ 0).as[String] mustBe "abc"
+        (res.json \ "result" \ "extRef" \ 1).as[String] mustBe "xyz"
+        (res.json \ "result" \ "comment").as[String] mustBe "A new result was added"
       }
 
     }
