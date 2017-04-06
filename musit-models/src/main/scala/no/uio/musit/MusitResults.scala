@@ -149,4 +149,11 @@ object MusitResults {
   case class MusitGeneralError(message: String) extends MusitError {
     override val isSuccess: Boolean = false
   }
+
+  /**
+   * Use when communication with remote HTTP services fail.
+   */
+  case class MusitHttpError(status: Int, message: String) extends MusitError {
+    override val isSuccess: Boolean = false
+  }
 }

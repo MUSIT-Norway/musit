@@ -14,8 +14,10 @@ GET         /:mid/analyses/types/musemcollections/:id        controllers.analysi
 # Analysis endpoints
 POST        /:mid/analyses                                   controllers.analysis.AnalysisController.saveAnalysisEvent(mid: Int)
 GET         /:mid/analyses/:id                               controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
+PUT         /:mid/analyses/:id                               controllers.analysis.AnalysisController.updateAnalysisEvent(mid: Int, id: Long)
 GET         /:mid/analyses/:id/children                      controllers.analysis.AnalysisController.getChildAnalyses(mid: Int, id: Long)
-POST        /:mid/analyses/:id/results                       controllers.analysis.AnalysisController.saveResult(mid: Int, id: Long)
+POST        /:mid/analyses/:id/results                       controllers.analysis.AnalysisController.addResult(mid: Int, id: Long)
+PUT         /:mid/analyses/:id/results                       controllers.analysis.AnalysisController.updateResult(mid: Int, id: Long)
 GET         /:mid/analyses/objects/:id                       controllers.analysis.AnalysisController.getAnalysisForObject(mid: Int, id: String)
 
 # Sample objects
