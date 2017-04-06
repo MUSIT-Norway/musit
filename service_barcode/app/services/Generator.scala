@@ -58,24 +58,25 @@ trait Generator { self =>
       val writer = new MultiFormatWriter
       // We need to implicitly convert hints from Scala to Java Map before encoding
       import scala.collection.JavaConversions._
-      val matrix = writer.encode(value, format.zxingFormat, width, height, hints)
+      val matrix    = writer.encode(value, format.zxingFormat, width, height, hints)
+      val imgHeight = matrix.getHeight
+      val imgWidth  = matrix.getWidth
 
       logger.debug(s"matrix height: ${matrix.getHeight}  width: ${matrix.getWidth}")
 
       // "draw" the pixels (as black or white)
       val pixels = Array.newBuilder[Int]
-      for (y <- 0 until matrix.getHeight) {
-        for (x <- 0 until matrix.getWidth) {
+      for (y <- 0 until imgHeight) {
+        for (x <- 0 until imgWidth) {
           val blackOrWhite = if (matrix.get(x, y)) black else white
           pixels += blackOrWhite
         }
       }
 
       // create an empty image
-      val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+      val img = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB)
       // Add the pixels to the image
-      img.setRGB(0, 0, width, height, pixels.result(), 0, width)
-
+      img.setRGB(0, 0, imgWidth, imgHeight, pixels.result(), 0, imgWidth)
       val baos = new ByteArrayOutputStream()
       ImageIO.write(img, "png", baos)
       StreamConverters.fromInputStream(() => new ByteArrayInputStream(baos.toByteArray))
