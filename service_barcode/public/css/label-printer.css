@@ -1,0 +1,117 @@
+@media only screen {
+  html, body {
+    /* Printer label dimensions */
+    background: rgb(204, 204, 204);
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+    height: 25mm;
+    width: 52mm;
+    page-break-after: avoid;
+  }
+
+  .labelsContainer {
+    display: block;
+    background: white;
+    height: 25mm;
+    width: 52mm;
+    margin: 10px;
+    padding: 0;
+    page-break-after: always;
+    box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+  }
+}
+
+@page {
+  /* Printer label dimensions */
+  background: white;
+  size: 52mm 25mm;
+  margin: 0;
+  padding: 0;
+  border-collapse: collapse;
+}
+
+@media only print {
+  html, body {
+    /* Printer label dimensions */
+    background: white;
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+  }
+
+  .labelsContainer {
+    height: 25mm;
+    width: 52mm;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0;
+    page-break-after: auto;
+  }
+}
+
+.name {
+  overflow-wrap: break-word;
+}
+
+.label {
+  /* 52x26mm labels without padding on paper */
+  width: 100%;
+  height: 100%;
+
+  padding: 0;
+  margin: 0;
+
+  float: left;
+
+  text-align: center;
+  overflow: hidden;
+
+  background-color: white;
+}
+
+.top {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  height: 20mm;
+}
+
+.codeImage {
+  -ms-flex-item-align: start;
+  align-self: flex-start;
+}
+
+.codeImage img {
+  height: 20mm;
+  width: 20mm;
+}
+
+.name {
+  -ms-flex-item-align: center;
+  -ms-grid-row-align: center;
+  align-self: center;
+  margin-right: 5px;
+  height: auto;
+  max-height: 20mm;
+  overflow: hidden;
+}
+
+.uuid {
+  display: block;
+  font-size: x-small;
+  -ms-flex-item-align: start;
+  -ms-grid-row-align: start;
+  text-align: start;
+  padding-left: 2mm;
+}
+
+.codeImage img {
+  image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+  image-rendering: -moz-crisp-edges;          /* Firefox                        */
+  image-rendering: -o-crisp-edges;            /* Opera                          */
+  image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+  image-rendering: pixelated;                 /* Chrome                         */
+  image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+  -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+}

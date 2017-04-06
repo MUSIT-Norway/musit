@@ -6,10 +6,14 @@ import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import no.uio.musit.test.matchers.DateTimeMatchers
 import org.joda.time.DateTime
-import org.scalatest.{MustMatchers, WordSpec}
+import org.scalatest.{Inside, MustMatchers, WordSpec}
 import play.api.libs.json._
 
-class AnalysisEventSpec extends WordSpec with MustMatchers with DateTimeMatchers {
+class AnalysisEventSpec
+    extends WordSpec
+    with MustMatchers
+    with DateTimeMatchers
+    with Inside {
 
   val dummyEventId        = EventId(1L)
   val dummyAnalysisTypeId = AnalysisTypeId.generate()
@@ -25,6 +29,12 @@ class AnalysisEventSpec extends WordSpec with MustMatchers with DateTimeMatchers
       eventDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
+      responsible = Some(dummyActor),
+      administrator = Some(dummyActor),
+      updatedBy = Some(dummyActor),
+      updatedDate = Some(dummyDate),
+      completedBy = Some(dummyActor),
+      completedDate = Some(dummyDate),
       objectId = Some(dummyObject),
       partOf = None,
       note = Some(dummyNote),
@@ -92,11 +102,13 @@ class AnalysisEventSpec extends WordSpec with MustMatchers with DateTimeMatchers
       val a  = createAnalysis()
       val js = Json.toJson(a)
 
-      val noTypeJs = js.transform((__ \ "type").json.prune).get
-
-      Json.fromJson[AnalysisEvent](noTypeJs) match {
-        case JsSuccess(_, _) => fail("Expected deserialization to fail.")
-        case JsError(errors) => errors.size mustBe 1
+      val transform = js.transform((__ \ "type").json.prune)
+      inside(transform) {
+        case JsSuccess(noTypeJs, _) =>
+          Json.fromJson[AnalysisEvent](noTypeJs) match {
+            case JsSuccess(_, _) => fail("Expected deserialization to fail.")
+            case JsError(errors) => errors.size mustBe 1
+          }
       }
     }
 
@@ -104,11 +116,13 @@ class AnalysisEventSpec extends WordSpec with MustMatchers with DateTimeMatchers
       val a  = createAnalysisCollection()
       val js = Json.toJson(a)
 
-      val noTypeJs = js.transform((__ \ "type").json.prune).get
-
-      Json.fromJson[AnalysisEvent](noTypeJs) match {
-        case JsSuccess(_, _) => fail("Expected deserialization to fail.")
-        case JsError(errors) => errors.size mustBe 1
+      val transform = js.transform((__ \ "type").json.prune)
+      inside(transform) {
+        case JsSuccess(noTypeJs, _) =>
+          Json.fromJson[AnalysisEvent](noTypeJs) match {
+            case JsSuccess(_, _) => fail("Expected deserialization to fail.")
+            case JsError(errors) => errors.size mustBe 1
+          }
       }
     }
 

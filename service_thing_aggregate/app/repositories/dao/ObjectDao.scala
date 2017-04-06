@@ -43,7 +43,7 @@ class ObjectDao @Inject()(
 
   val logger = Logger(classOf[ObjectDao])
 
-  import driver.api._
+  import profile.api._
 
   // Needs to be the same as Slicks no-escape-char value!
   // (Default second parameter value to the like function)
@@ -358,6 +358,7 @@ class ObjectDao @Inject()(
     val query =
       sql"""
         SELECT /*+ FIRST_ROWS DRIVING_SITE(mt) */ mt."OBJECT_ID",
+          mt."MUSITTHING_UUID",
           mt."MUSEUMID",
           mt."MUSEUMNO",
           mt."MUSEUMNOASNUMBER",
@@ -381,12 +382,13 @@ class ObjectDao @Inject()(
           mt."SUBNOASNUMBER" ASC,
           LOWER(mt."SUBNO") ASC
         #${pagingClause(page, limit)}
-      """.as[(Option[Long], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])]
+      """.as[(Option[Long], Option[String], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])]
 
     db.run(query).map { r =>
       val res = r.map { t =>
-        (t._1.map(ObjectId.apply), MuseumId.fromInt(t._2), t._3, t._4, t._5,
-          t._6, t._7, t._8, t._9, t._10, t._11, t._12)
+        (t._1.map(ObjectId.apply), t._2.map(ObjectUUID.unsafeFromString),
+          MuseumId.fromInt(t._3), t._4, t._5, t._6, t._7, t._8, t._9, t._10,
+          t._11, t._12, t._13)
       }
       MusitSuccess(res)
     }
@@ -468,12 +470,37 @@ class ObjectDao @Inject()(
     }
 
     db.run(query.result.headOption)
-      .map { res =>
-        MusitSuccess(res.map(MusitObject.fromTuple))
-      }
+      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
       .recover {
         case NonFatal(ex) =>
           val msg = s"Error while locating object with old object ID $oldId"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+  }
+
+  def findByUUID(
+    museumId: MuseumId,
+    objectUUID: ObjectUUID,
+    collections: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MusitObject]]] = {
+    val cids = collections.flatMap(_.schemaIds).distinct
+
+    val queryAllCollections = objTable.filter { o =>
+      o.uuid === objectUUID &&
+      o.museumId === museumId &&
+      o.isDeleted === false
+    }
+
+    val query =
+      if (currUsr.hasGodMode) queryAllCollections
+      else queryAllCollections.filter(_.newCollectionId inSet cids)
+
+    db.run(query.result.headOption)
+      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Error while locating object with uuid $objectUUID"
           logger.error(msg, ex)
           MusitDbError(msg, Option(ex))
       }
@@ -486,18 +513,18 @@ class ObjectDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     val cids = collections.flatMap(_.schemaIds).distinct
 
-    val q1 = objTable.filter { o =>
+    val queryAllCollections = objTable.filter { o =>
       o.oldBarcode === oldBarcode &&
       o.museumId === museumId &&
       o.isDeleted === false
     }
-    // If use has god mode, look in all collections.
-    val query = if (currUsr.hasGodMode) q1 else q1.filter(_.newCollectionId inSet cids)
+
+    val query =
+      if (currUsr.hasGodMode) queryAllCollections
+      else queryAllCollections.filter(_.newCollectionId inSet cids)
 
     db.run(query.result)
-      .map { res =>
-        MusitSuccess(res.map(MusitObject.fromTuple))
-      }
+      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
       .recover {
         case NonFatal(ex) =>
           val msg = s"Error while locating object with old barcode $oldBarcode"

@@ -41,7 +41,7 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         val res = wsUrl(s"/delphi/objects/111")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("schemaName" -> "USD_ARK_GJENSTAND_O")
-          .get
+          .get()
           .futureValue
 
         res.status mustBe OK
@@ -64,7 +64,7 @@ class DelphiBridgeControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
 
         val res = wsUrl(s"/delphi/museum/99/nodes/external")
           .withHeaders(fakeToken.asHeader)
-          .get
+          .get()
           .futureValue
 
         res.status mustBe OK

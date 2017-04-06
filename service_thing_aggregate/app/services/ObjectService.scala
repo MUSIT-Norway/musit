@@ -53,6 +53,15 @@ class ObjectService @Inject()(
     objDao.findObjectIdsForOld(oldSchema, oldObjectIds)
   }
 
+
+  def findByUUID(
+    mid: MuseumId,
+    objectUUID: ObjectUUID,
+    cids: Seq[MuseumCollection]
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MusitObject]]] = {
+    objDao.findByUUID(mid, objectUUID, cids)
+  }
+
   /**
    * A helper method for getting the current location of an object
    *
@@ -60,7 +69,10 @@ class ObjectService @Inject()(
    * @param obj         The MusitObject to look for
    * @return The augmented object with path, pathNames and currentLocationId
    */
-  private def getCurrentLocation(mid: MuseumId, obj: MusitObject): Future[MusitObject] =
+  private def getCurrentLocation(
+      mid: MuseumId,
+      obj: MusitObject
+  ): Future[MusitObject] =
     nodeDao.currentLocation(mid, obj.id).flatMap {
       case Some(nodeIdAndPath) =>
         nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>

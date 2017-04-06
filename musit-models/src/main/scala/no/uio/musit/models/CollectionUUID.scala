@@ -33,12 +33,6 @@ object CollectionUUID extends MusitUUIDOps[CollectionUUID] {
 
   override implicit def fromUUID(uuid: UUID): CollectionUUID = CollectionUUID(uuid)
 
-  /**
-   * Unsafe converter from String to CollectionUUID
-   */
-  @throws(classOf[IllegalArgumentException]) // scalastyle:ignore
-  def unsafeFromString(str: String): CollectionUUID = UUID.fromString(str)
-
   override def generate() = CollectionUUID(UUID.randomUUID())
 
 }

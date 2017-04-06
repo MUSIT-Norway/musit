@@ -9,11 +9,16 @@ import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.time.dateTimeNow
+import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import org.scalatest.Inspectors.forAll
+import org.scalatest.OptionValues
 
-class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
+class AnalysisDaoSpec
+    extends MusitSpecWithAppPerSuite
+    with DateTimeMatchers
+    with MusitResultValues
+    with OptionValues {
 
   val dao: AnalysisDao = fromInstanceCache[AnalysisDao]
 
@@ -35,6 +40,12 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
       eventDate = now,
       registeredBy = Some(dummyActorId),
       registeredDate = now,
+      responsible = Some(dummyActorId),
+      administrator = Some(dummyActorId),
+      updatedBy = Some(dummyActorId),
+      updatedDate = now,
+      completedBy = Some(dummyActorId),
+      completedDate = now,
       partOf = None,
       objectId = oid,
       note = Some("This is the first event"),
@@ -84,8 +95,7 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
 
         val res = dao.insertCol(ac).futureValue
 
-        res.isSuccess mustBe true
-        res.get mustBe EventId(2)
+        res.successValue mustBe EventId(2)
       }
     }
 
@@ -94,10 +104,8 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
       "return an analysis collection with children" in {
         val res = dao.findById(EventId(2)).futureValue
 
-        res.isSuccess mustBe true
-        res.get must not be empty
-        res.get.get mustBe an[AnalysisCollection]
-        val ac = res.get.get.asInstanceOf[AnalysisCollection]
+        res.successValue.value mustBe an[AnalysisCollection]
+        val ac = res.successValue.value.asInstanceOf[AnalysisCollection]
         ac.events must not be empty
         ac.analysisTypeId mustBe dummyAnalysisTypeId
         ac.partOf mustBe empty
@@ -108,25 +116,16 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
         val res2 = dao.findById(EventId(4)).futureValue
         val res3 = dao.findById(EventId(5)).futureValue
 
-        res1.isSuccess mustBe true
-        res2.isSuccess mustBe true
-        res3.isSuccess mustBe true
-
-        res1.get must not be empty
-        res2.get must not be empty
-        res3.get must not be empty
-
-        res1.get.get.partOf mustBe Some(EventId(2))
-        res2.get.get.partOf mustBe Some(EventId(2))
-        res3.get.get.partOf mustBe Some(EventId(2))
+        res1.successValue.value.partOf mustBe Some(EventId(2))
+        res2.successValue.value.partOf mustBe Some(EventId(2))
+        res3.successValue.value.partOf mustBe Some(EventId(2))
       }
 
       "list all child events for an analysis collection" in {
         val children = dao.listChildren(EventId(2)).futureValue
-        children.isSuccess mustBe true
-        children.get.size mustBe 3
+        children.successValue.size mustBe 3
 
-        forAll(children.get) { child =>
+        forAll(children.successValue) { child =>
           child.result mustBe None
           child.analysisTypeId mustBe dummyAnalysisTypeId
           child.partOf mustBe Some(EventId(2))
@@ -143,19 +142,15 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
         )
 
         val mra = saveAnalysis(Some(oid2), Some(gr))
-        mra.isSuccess mustBe true
 
-        val res = dao.findById(mra.get).futureValue
-        res.isSuccess mustBe true
-        res.get must not be empty
-        res.get.get mustBe an[Analysis]
-        val a = res.get.get.asInstanceOf[Analysis]
+        val res = dao.findById(mra.successValue).futureValue
+        res.successValue.value mustBe an[Analysis]
+        val a = res.successValue.value.asInstanceOf[Analysis]
         a.registeredBy mustBe Some(dummyActorId)
         a.analysisTypeId mustBe dummyAnalysisTypeId
-        a.result must not be empty
-        a.result.get.comment mustBe gr.comment
-        a.result.get.extRef mustBe gr.extRef
-        a.result.get.registeredBy mustBe gr.registeredBy
+        a.result.value.comment mustBe gr.comment
+        a.result.value.extRef mustBe gr.extRef
+        a.result.value.registeredBy mustBe gr.registeredBy
       }
 
       "return the an analysis event with a dating result" in {
@@ -168,18 +163,14 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
         )
 
         val mra = saveAnalysis(Some(oid2), Some(dr))
-        mra.isSuccess mustBe true
 
-        val res = dao.findById(mra.get).futureValue
-        res.isSuccess mustBe true
-        res.get must not be empty
-        res.get.get mustBe an[Analysis]
-        val analysis = res.get.get.asInstanceOf[Analysis]
+        val res = dao.findById(mra.successValue).futureValue
+        res.successValue.value mustBe an[Analysis]
+        val analysis = res.successValue.value.asInstanceOf[Analysis]
         analysis.registeredBy mustBe Some(dummyActorId)
         analysis.analysisTypeId mustBe dummyAnalysisTypeId
-        analysis.result must not be empty
-        analysis.result.get mustBe a[DatingResult]
-        val datingResult = analysis.result.get.asInstanceOf[DatingResult]
+        analysis.result.value mustBe a[DatingResult]
+        val datingResult = analysis.result.value.asInstanceOf[DatingResult]
         datingResult.comment mustBe dr.comment
         datingResult.extRef mustBe dr.extRef
         datingResult.registeredBy mustBe dr.registeredBy
@@ -189,8 +180,7 @@ class AnalysisDaoSpec extends MusitSpecWithAppPerSuite with DateTimeMatchers {
       "return all analysis events for a given object" in {
         val res = dao.findByObjectUUID(oid2).futureValue
 
-        res.isSuccess mustBe true
-        res.get.size mustBe 3
+        res.successValue.size mustBe 3
       }
     }
 

@@ -1,22 +1,3 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package no.uio.musit.security.dataporten
 
 import java.util.UUID
@@ -25,31 +6,33 @@ import no.uio.musit.models.{ActorId, Email}
 import no.uio.musit.security.{Authenticator, BearerToken, SessionUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.{Inside, OptionValues}
 import play.api.Configuration
 import play.api.http.{DefaultWriteables, Writeable}
 import play.api.libs.json.Json
-import play.api.libs.ws.{WSAPI, WSRequest, WSResponse}
+import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class DataportenAuthenticatorSpec
     extends MusitSpecWithAppPerSuite
     with MockFactory
-    with DefaultWriteables {
+    with DefaultWriteables
+    with OptionValues
+    with Inside {
 
-  val conf     = fromInstanceCache[Configuration]
-  val resolver = fromInstanceCache[DatabaseAuthResolver]
+  implicit val conf = fromInstanceCache[Configuration]
+  val resolver      = fromInstanceCache[DatabaseAuthResolver]
 
-  val mockWS         = mock[WSAPI]
+  val mockWS         = mock[WSClient]
   val mockWSRequest  = mock[WSRequest]
   val mockWSResponse = mock[WSResponse]
 
-  val authenticator = new DataportenAuthenticator(conf, resolver, mockWS)
+  val authenticator = new DataportenAuthenticator(resolver, mockWS)
 
   val userId    = ActorId.generate()
   val userIdSec = Email("vader@deathstar.io")
@@ -68,14 +51,14 @@ class DataportenAuthenticatorSpec
 
       val futRes = authenticator.authenticate(Some(Authenticator.ClientWeb))
       val res    = futRes.futureValue
-      res.isLeft mustBe true
-      res.left.get mustBe a[Result]
 
-      val redirectLoc = redirectLocation(futRes.map(_.left.get))
-      redirectLoc must not be None
-
-      sessionId = redirectLoc.get.substring(redirectLoc.get.lastIndexOf('=') + 1)
-      SessionUUID.validate(sessionId).isSuccess mustBe true
+      inside(res) {
+        case Left(left) =>
+          left mustBe a[Result]
+          val redirectLoc = redirectLocation(Future.successful(left))
+          sessionId = redirectLoc.value.substring(redirectLoc.value.lastIndexOf('=') + 1)
+          SessionUUID.validate(sessionId).isSuccess mustBe true
+      }
     }
 
     "fetch an access token and update the UserSession when receiving a code" in {
@@ -139,14 +122,15 @@ class DataportenAuthenticatorSpec
       val res = futRes.futureValue
       res.isRight mustBe true
 
-      val session = res.right.get
-
-      session.uuid mustBe SessionUUID.unsafeFromString(sessionId)
-      session.isLoggedIn mustBe true
-      session.lastActive must not be None
-      session.oauthToken mustBe Some(token)
-      session.userId mustBe Some(userId)
-      session.loginTime must not be None
+      inside(res) {
+        case Right(session) =>
+          session.uuid mustBe SessionUUID.unsafeFromString(sessionId)
+          session.isLoggedIn mustBe true
+          session.lastActive must not be None
+          session.oauthToken mustBe Some(token)
+          session.userId mustBe Some(userId)
+          session.loginTime must not be None
+      }
     }
 
   }

@@ -1,32 +1,14 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package services
 
 import com.google.inject.Inject
 import models.event.dto.DtoConverters
 import models.event.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage._
-import models.{FacilityLocation, LocationHistory, ObjectsLocation}
+import models.{FacilityLocation, LocationHistory, MovableObject, ObjectsLocation}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
@@ -545,7 +527,7 @@ class StorageNodeService @Inject()(
     val res = for {
       affectedNodes <- MusitResultT(unitDao.getNodesByIds(mid, nodeIds))
       currLoc = affectedNodes.map(n => (n.id.get, n.isPartOf)).toMap
-      moved <- MusitResultT(moveBatch(mid, destination, nodeIds, currLoc, moveEvents) {
+      moved <- MusitResultT(moveBatch(mid, destination, currLoc, moveEvents) {
                 case (to, curr, events) =>
                   moveBatchNodes(mid, affectedNodes, to, curr, events)
               })
@@ -572,23 +554,29 @@ class StorageNodeService @Inject()(
       moveEvents: Seq[MoveObject]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[ObjectId]]] = {
     // Calling get on affectedThing, after filtering out nonEmpty ones, is safe.
-    val objIds     = moveEvents.filter(_.affectedThing.nonEmpty).map(_.affectedThing.get) // scalastyle:ignore
-    val currentLoc = localObjectDao.currentLocations(objIds)
+    val objIdsAndTypes = moveEvents
+      .filter(_.affectedThing.nonEmpty)
+      .map(a => a.affectedThing.get -> a.objectType)
+      .toMap
 
+    val objIds = objIdsAndTypes.keys.toSeq
+
+    // format: off
     val res = for {
       currentLoc <- MusitResultT(localObjectDao.currentLocations(objIds))
       movedObjects <- MusitResultT(
-                       moveBatch(mid, destination, objIds, currentLoc, moveEvents) { // scalastyle:ignore
-                         case (_, _, events) =>
-                           persistMoveEvents(mid, events) { eventIds =>
-                             // Again the get on affectedThing is safe since we're guaranteed its
-                             // presence at this point.
-                             MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
-                           }
-                       }
-                     )
+        moveBatch(mid, destination, currentLoc, moveEvents) {
+           case (_, _, events) =>
+             persistMoveEvents(mid, events) { eventIds =>
+               // Again the get on affectedThing is safe since we're guaranteed its
+               // presence at this point.
+               MusitSuccess(events.map(_.affectedThing.get)) // scalastyle:ignore
+             }
+        }
+      )
 
     } yield movedObjects
+    // format: on
 
     res.value
   }
@@ -619,6 +607,8 @@ class StorageNodeService @Inject()(
             registeredDate = e.registeredDate.get,
             doneBy = e.doneBy,
             doneDate = e.doneDate,
+            id = e.affectedThing.get,
+            objectType = e.objectType,
             from = FacilityLocation(
               path = from._1,
               pathNames = from._2
@@ -652,9 +642,10 @@ class StorageNodeService @Inject()(
    */
   def currentObjectLocation(
       mid: MuseumId,
-      oid: ObjectId
+      oid: ObjectId,
+      tpe: ObjectType
   ): Future[MusitResult[Option[StorageNode]]] = {
-    val currentNodeId = localObjectDao.currentLocation(oid)
+    val currentNodeId = localObjectDao.currentLocation(oid, tpe)
     currentNodeId.flatMap { optCurrentNodeId =>
       optCurrentNodeId.map { id =>
         getNodeById(mid, id)
@@ -665,16 +656,16 @@ class StorageNodeService @Inject()(
   /**
    *
    * @param mid
-   * @param oids
+   * @param mobjs
    * @return
    */
   def currentObjectLocations(
       mid: MuseumId,
-      oids: Seq[ObjectId]
+      mobjs: Seq[MovableObject]
   ): Future[MusitResult[Seq[ObjectsLocation]]] = {
 
     def findObjectLocations(
-        objNodeMap: Map[ObjectId, Option[StorageNodeDatabaseId]],
+        objNodeMap: Map[MovableObject, Option[StorageNodeDatabaseId]],
         nodes: Seq[GenericStorageNode]
     ): Future[MusitResult[Seq[ObjectsLocation]]] = {
       nodes
@@ -682,7 +673,7 @@ class StorageNodeService @Inject()(
           case (ols, node) =>
             unitDao.namesForPath(node.path).flatMap {
               case MusitSuccess(namedPaths) =>
-                val objects = objNodeMap.filter(_._2 == node.id).keys.toSeq
+                val objects = objNodeMap.filter(_._2 == node.id).keys.map(_.id).toSeq
                 // Copy node and set path to it
                 ols.map { objLoc =>
                   objLoc :+ Future.successful(
@@ -698,7 +689,7 @@ class StorageNodeService @Inject()(
         .map(MusitSuccess.apply)
     }
 
-    localObjectDao.currentLocations(oids).flatMap {
+    localObjectDao.currentLocationsForMovableObjects(mobjs).flatMap {
       case MusitSuccess(objNodeMap) =>
         val nodeIds = objNodeMap.values.flatten.toSeq.distinct
 

@@ -30,12 +30,12 @@ class UserControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
   "The UserController" must {
 
     "get 401 when not providing a bearer token" in {
-      wsUrl("/v1/dataporten/currentUser").get().futureValue.status mustBe 401
+      wsUrl("/dataporten/currentUser").get().futureValue.status mustBe 401
     }
 
     "get actor with matching dataportenId" in {
       val res =
-        wsUrl("/v1/dataporten/currentUser").withHeaders(token.asHeader).get().futureValue
+        wsUrl("/dataporten/currentUser").withHeaders(token.asHeader).get().futureValue
 
       res.status mustBe Status.OK
       (res.json \ "fn").as[String] mustBe "Gjestebruker"

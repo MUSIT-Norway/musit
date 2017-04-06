@@ -23,11 +23,11 @@ import java.util.UUID
 
 import no.uio.musit.models.{ActorId, DatabaseId, MuseumId, OrgId}
 import play.api.db.slick.HasDatabaseConfig
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
-  import driver.api._
+  import profile.api._
 
   implicit val actorIdMapper: BaseColumnType[ActorId] =
     MappedColumnType.base[ActorId, String](
@@ -46,7 +46,6 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       did => did.underlying,
       longId => DatabaseId(longId)
     )
-
   implicit val museumIdMapper: BaseColumnType[MuseumId] =
     MappedColumnType.base[MuseumId, Int](
       mid => mid.underlying,

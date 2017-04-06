@@ -3,9 +3,10 @@ package repositories.analysis.dao
 import models.analysis.events.EventCategories.Dating
 import no.uio.musit.models.MuseumCollections.Entomology
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.Inspectors.forAll
 
-class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite {
+class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val dao: AnalysisTypeDao = fromInstanceCache[AnalysisTypeDao]
 
@@ -13,9 +14,7 @@ class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite {
     "return all the stored analysis types" in {
       val res = dao.all.futureValue
 
-      res.isSuccess mustBe true
-      val ats = res.get
-
+      val ats = res.successValue
       ats.size mustBe 107
       ats.map(_.category.entryName).distinct.size mustBe 21
     }
@@ -23,9 +22,7 @@ class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite {
     "return all analysis types in the Dating category" in {
       val res = dao.allForCategory(Dating).futureValue
 
-      res.isSuccess mustBe true
-      val ats = res.get
-
+      val ats = res.successValue
       ats.size mustBe 8
 
       forAll(ats) { a =>
@@ -39,9 +36,7 @@ class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite {
 
       val res = dao.allForCollection(entoUUID).futureValue
 
-      res.isSuccess mustBe true
-      val ats = res.get
-
+      val ats = res.successValue
       ats.size mustBe 28
 
       forAll(ats) { t =>

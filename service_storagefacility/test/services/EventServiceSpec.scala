@@ -22,12 +22,14 @@ package services
 import no.uio.musit.models.{EventId, MuseumId}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import utils.testhelpers.{EventGenerators, NodeGenerators}
 
 class EventServiceSpec
     extends MusitSpecWithAppPerSuite
     with NodeGenerators
-    with EventGenerators {
+    with EventGenerators
+    with MusitResultValues {
 
   implicit val dummyUser = AuthenticatedUser(
     session = UserSession(uuid = SessionUUID.generate()),
@@ -52,9 +54,8 @@ class EventServiceSpec
     "successfully insert a new Control" in {
       val c  = createControl(defaultBuilding.id)
       val ce = controlService.add(defaultMuseumId, defaultBuilding.id.get, c).futureValue
-      ce.isSuccess mustBe true
-      ce.get.id.get mustBe EventId(1)
-      latestEventId = ce.get.id.get
+      ce.successValue.id.value mustBe EventId(1)
+      latestEventId = ce.successValue.id.value
       latestEventId mustBe 1L
     }
 
@@ -67,11 +68,10 @@ class EventServiceSpec
     }
 
     "successfully insert a new Observation" in {
-      val obs = createObservation(defaultBuilding.id)
-      val res = obsService.add(defaultMuseumId, defaultBuilding.id.get, obs).futureValue
-      res.isSuccess mustBe true
-      val theObs = res.get
-      theObs.id.get mustBe EventId(9)
+      val obs    = createObservation(defaultBuilding.id)
+      val res    = obsService.add(defaultMuseumId, defaultBuilding.id.get, obs).futureValue
+      val theObs = res.successValue
+      theObs.id.value mustBe EventId(9)
 
       theObs.alcohol mustBe obs.alcohol
       theObs.cleaning mustBe obs.cleaning
@@ -87,7 +87,7 @@ class EventServiceSpec
       theObs.theftProtection mustBe obs.theftProtection
       theObs.waterDamageAssessment mustBe obs.waterDamageAssessment
 
-      latestEventId = res.get.id.get
+      latestEventId = res.successValue.id.value
       latestEventId mustBe 9L
     }
 

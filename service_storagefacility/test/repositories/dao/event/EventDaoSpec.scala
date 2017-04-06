@@ -24,6 +24,7 @@ import models.event.dto._
 import models.event.{ActorRole, EventType, ObjectRole, PlaceRole}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.Inspectors._
 import utils.testhelpers.{EventGenerators, NodeGenerators}
 
@@ -33,7 +34,8 @@ import utils.testhelpers.{EventGenerators, NodeGenerators}
 class EventDaoSpec
     extends MusitSpecWithAppPerSuite
     with EventGenerators
-    with NodeGenerators {
+    with NodeGenerators
+    with MusitResultValues {
 
   // This is mutable to allow keeping track of the last inserted eventId.
   private var latestEventId: EventId = _
@@ -56,10 +58,7 @@ class EventDaoSpec
         val ctrlId = addControl(mid, ctrl).futureValue
         val res    = eventDao.getEvent(mid, latestEventId).futureValue
 
-        res.isFailure must not be true
-        res.get.isEmpty must not be true
-
-        res.get.get match {
+        res.successValue.value match {
           case base: BaseEventDto =>
             val c = DtoConverters.CtrlConverters.controlFromDto(base)
             c.eventType mustBe EventType.fromEventTypeId(ControlEventType.id)
@@ -99,10 +98,7 @@ class EventDaoSpec
         val obsId = addObservation(mid, obs).futureValue
         val res   = eventDao.getEvent(mid, latestEventId).futureValue
 
-        res.isFailure must not be true
-        res.get.isEmpty must not be true
-
-        res.get.get match {
+        res.successValue.value match {
           case base: BaseEventDto =>
             val o = DtoConverters.ObsConverters.observationFromDto(base)
 
@@ -143,10 +139,7 @@ class EventDaoSpec
         val mid = MuseumId(2)
         val res = eventDao.getEvent(mid, latestEventId).futureValue
 
-        res.isFailure must not be true
-        res.get.isEmpty must not be true
-
-        res.get.get match {
+        res.successValue.value match {
           case ext: ExtendedDto =>
             val er = DtoConverters.EnvReqConverters.envReqFromDto(ext)
 
@@ -186,10 +179,8 @@ class EventDaoSpec
       "return the move object event" in {
         val mid = MuseumId(2)
         val res = eventDao.getEvent(mid, latestEventId, recursive = false).futureValue
-        res.isFailure must not be true
-        res.get.isEmpty must not be true
 
-        val theDto = res.get.get
+        val theDto = res.successValue.value
         theDto mustBe a[BaseEventDto]
 
         val br = theDto.asInstanceOf[BaseEventDto]
@@ -224,10 +215,8 @@ class EventDaoSpec
       "return the move node event" in {
         val mid = MuseumId(2)
         val res = eventDao.getEvent(mid, latestEventId, recursive = false).futureValue
-        res.isFailure must not be true
-        res.get.isEmpty must not be true
 
-        val theDto = res.get.get
+        val theDto = res.successValue.value
         theDto mustBe a[BaseEventDto]
 
         val br = theDto.asInstanceOf[BaseEventDto]
@@ -268,7 +257,7 @@ class EventDaoSpec
 
         forAll(controls) { c =>
           c.eventTypeId mustBe ControlEventType.id
-          c.relatedObjects.head.objectId.underlying mustBe defaultBuilding.id.get.underlying
+          c.relatedObjects.head.objectId.underlying mustBe defaultBuilding.id.value.underlying
         }
       }
 
@@ -293,7 +282,7 @@ class EventDaoSpec
 
         forAll(observations) { o =>
           o.eventTypeId mustBe ObservationEventType.id
-          o.relatedObjects.head.objectId.underlying mustBe defaultRoom.id.get.underlying
+          o.relatedObjects.head.objectId.underlying mustBe defaultRoom.id.value.underlying
         }
       }
 

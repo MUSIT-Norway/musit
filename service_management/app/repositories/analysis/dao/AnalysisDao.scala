@@ -2,7 +2,12 @@ package repositories.analysis.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
-import models.analysis.events.{Analysis, AnalysisCollection, AnalysisEvent}
+import models.analysis.events.{
+  Analysis,
+  AnalysisCollection,
+  AnalysisEvent,
+  SampleCreated
+}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, ObjectUUID}
 import play.api.Logger
@@ -19,7 +24,7 @@ class AnalysisDao @Inject()(
 
   val logger = Logger(classOf[AnalysisDao])
 
-  import driver.api._
+  import profile.api._
 
   private val noaction: DBIO[Unit] = DBIO.successful(())
 
@@ -140,6 +145,7 @@ class AnalysisDao @Inject()(
       maybeEvent.map {
         case a: Analysis            => a.withResult(maybeRes)
         case ac: AnalysisCollection => ac.copy(events = children)
+        case sc: SampleCreated      => sc
       }
     }
 

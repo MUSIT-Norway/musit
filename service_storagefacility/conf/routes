@@ -2,46 +2,46 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET           /service/storagefacility/buildinfo                                controllers.Application.buildInfo
-GET           /service/storagefacility/healthcheck                              controllers.HealthCheckController.healthCheck
+GET           /service/storagefacility/buildinfo                             controllers.Application.buildInfo
+GET           /service/storagefacility/healthcheck                           controllers.HealthCheckController.healthCheck
 
 # StorageNode endpoints
 # ~~~~
-POST          /v1/museum/:mid/storagenodes                                      controllers.StorageController.add(mid: Int)
+POST          /museum/:mid/storagenodes                                      controllers.StorageController.add(mid: Int)
 
-POST          /v1/museum/:mid/storagenodes/root                                 controllers.StorageController.addRoot(mid: Int)
-GET           /v1/museum/:mid/storagenodes/root                                 controllers.StorageController.root(mid: Int)
+POST          /museum/:mid/storagenodes/root                                 controllers.StorageController.addRoot(mid: Int)
+GET           /museum/:mid/storagenodes/root                                 controllers.StorageController.root(mid: Int)
 
-GET           /v1/museum/:mid/storagenodes/report                               controllers.KdReportController.getReport(mid: Int)
+GET           /museum/:mid/storagenodes/report                               controllers.KdReportController.getReport(mid: Int)
 
-PUT           /v1/museum/:mid/storagenodes/moveNode                             controllers.StorageController.moveNode(mid: Int)
-PUT           /v1/museum/:mid/storagenodes/moveObject                           controllers.StorageController.moveObject(mid: Int)
+PUT           /museum/:mid/storagenodes/moveNode                             controllers.StorageController.moveNode(mid: Int)
+PUT           /museum/:mid/storagenodes/moveObject                           controllers.StorageController.moveObject(mid: Int)
 
-GET           /v1/museum/:mid/storagenodes/search                               controllers.StorageController.search(mid: Int, searchStr: Option[String], page: Int ?= 1, limit: Int ?=25)
+GET           /museum/:mid/storagenodes/search                               controllers.StorageController.search(mid: Int, searchStr: Option[String], page: Int ?= 1, limit: Int ?=25)
 
-GET           /v1/museum/:mid/storagenodes/scan                                 controllers.StorageController.scan(mid: Int, storageNodeId: Option[String] ?= None, oldBarcode: Option[Long] ?= None)
+GET           /museum/:mid/storagenodes/scan                                 controllers.StorageController.scan(mid: Int, storageNodeId: Option[String] ?= None, oldBarcode: Option[Long] ?= None)
 
-GET           /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.getById(mid: Int, nodeId: Long)
-PUT           /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.update(mid: Int, nodeId: Long)
-DELETE        /v1/museum/:mid/storagenodes/:nodeId                              controllers.StorageController.delete(mid: Int, nodeId: Long)
-GET           /v1/museum/:mid/storagenodes/:nodeId/children                     controllers.StorageController.children(mid: Int, nodeId: Long, page: Int ?= 1, limit: Int ?=25)
+GET           /museum/:mid/storagenodes/:nodeId                              controllers.StorageController.getById(mid: Int, nodeId: Long)
+PUT           /museum/:mid/storagenodes/:nodeId                              controllers.StorageController.update(mid: Int, nodeId: Long)
+DELETE        /museum/:mid/storagenodes/:nodeId                              controllers.StorageController.delete(mid: Int, nodeId: Long)
+GET           /museum/:mid/storagenodes/:nodeId/children                     controllers.StorageController.children(mid: Int, nodeId: Long, page: Int ?= 1, limit: Int ?=25)
 
 # Controls
-POST          /v1/museum/:mid/storagenodes/:nodeId/controls                     controllers.EventController.addControl(mid: Int, nodeId: Long)
-GET           /v1/museum/:mid/storagenodes/:nodeId/controls                     controllers.EventController.listControls(mid: Int, nodeId: Long)
-GET           /v1/museum/:mid/storagenodes/:nodeId/controls/:eventId            controllers.EventController.getControl(mid: Int, nodeId: Long, eventId: Long)
+POST          /museum/:mid/storagenodes/:nodeId/controls                     controllers.EventController.addControl(mid: Int, nodeId: Long)
+GET           /museum/:mid/storagenodes/:nodeId/controls                     controllers.EventController.listControls(mid: Int, nodeId: Long)
+GET           /museum/:mid/storagenodes/:nodeId/controls/:eventId            controllers.EventController.getControl(mid: Int, nodeId: Long, eventId: Long)
 
 # Observations
-POST          /v1/museum/:mid/storagenodes/:nodeId/observations                 controllers.EventController.addObservation(mid: Int, nodeId: Long)
-GET           /v1/museum/:mid/storagenodes/:nodeId/observations                 controllers.EventController.listObservations(mid: Int, nodeId: Long)
-GET           /v1/museum/:mid/storagenodes/:nodeId/observations/:eventId        controllers.EventController.getObservation(mid: Int, nodeId: Long, eventId: Long)
+POST          /museum/:mid/storagenodes/:nodeId/observations                 controllers.EventController.addObservation(mid: Int, nodeId: Long)
+GET           /museum/:mid/storagenodes/:nodeId/observations                 controllers.EventController.listObservations(mid: Int, nodeId: Long)
+GET           /museum/:mid/storagenodes/:nodeId/observations/:eventId        controllers.EventController.getObservation(mid: Int, nodeId: Long, eventId: Long)
 
 # Object related endpoints
 # ~~~~
-GET           /v1/museum/:mid/storagenodes/objects/:oid/locations               controllers.StorageController.objectLocationHistory(mid: Int, oid: Long, limit: Int ?= 50)
-GET           /v1/museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.StorageController.currentObjectLocation(mid: Int, oid: Long)
-POST          /v1/museum/:mid/storagenodes/objects/currentlocations             controllers.StorageController.currentObjectLocations(mid: Int)
+GET           /museum/:mid/storagenodes/objects/:oid/locations               controllers.StorageController.objectLocationHistory(mid: Int, oid: Long, objectType: String = "collection", limit: Int ?= 50)
+GET           /museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.StorageController.currentObjectLocation(mid: Int, oid: Long, objectType: String = "collection")
+POST          /museum/:mid/storagenodes/objects/currentlocations             controllers.StorageController.currentObjectLocations(mid: Int)
 
 # General endpoints
 ### TODO: Find better name for endpoint
-GET           /v1/museum/:mid/storagenodes/:nodeId/events                       controllers.EventController.listEventsForNode(mid: Int, nodeId: Long)
+GET           /museum/:mid/storagenodes/:nodeId/events                       controllers.EventController.listEventsForNode(mid: Int, nodeId: Long)

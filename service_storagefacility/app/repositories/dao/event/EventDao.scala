@@ -77,7 +77,7 @@ class EventDao @Inject()(
 ) extends EventTables
     with ColumnTypeMappers {
 
-  import driver.api._
+  import profile.api._
 
   private val logger = Logger(classOf[EventDao])
 

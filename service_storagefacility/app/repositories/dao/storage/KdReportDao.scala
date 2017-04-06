@@ -35,7 +35,7 @@ class KdReportDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends StorageTables {
 
-  import driver.api._
+  import profile.api._
 
   private val roomType: StorageType = RoomType
 
