@@ -5,9 +5,10 @@ import models.loan.event.{LentObject, ReturnedObject}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.time.dateTimeNow
 
-class LoanDaoSpec extends MusitSpecWithAppPerSuite {
+class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val loanDao = fromInstanceCache[LoanDao]
 
@@ -53,7 +54,7 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite {
 
         val res = loanDao.findExpectedReturnedObjects(mid).futureValue
 
-        res.get.map(_._1) must contain theSameElementsAs evt.objects
+        res.successValue.map(_._1) must contain theSameElementsAs evt.objects
       }
     }
 
@@ -84,7 +85,7 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite {
 
         val res = loanDao.findExpectedReturnedObjects(mid).futureValue
 
-        res.get.map(_._1) must not contain theSameElementsAs(lentObj.objects)
+        res.successValue.map(_._1) must not contain theSameElementsAs(lentObj.objects)
       }
     }
 
@@ -96,7 +97,7 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite {
         loanDao.insertLentObjectEvent(mid, lentObj).futureValue
         loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
         val events     = loanDao.findEventForObject(lentObj.objects.head).futureValue
-        val eventTypes = events.get.map(_.getClass)
+        val eventTypes = events.successValue.map(_.getClass)
 
         eventTypes must contain allOf (classOf[LentObject], classOf[ReturnedObject])
       }
