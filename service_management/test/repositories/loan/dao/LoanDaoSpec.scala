@@ -3,7 +3,7 @@ package repositories.loan.dao
 import models.loan.LoanEventTypes.{LentObjectsType, ReturnedObjectsType}
 import models.loan.event.{LentObject, ReturnedObject}
 import no.uio.musit.MusitResults.MusitSuccess
-import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
+import no.uio.musit.models.{ActorId, ExternalRef, MuseumId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.time.dateTimeNow
@@ -21,7 +21,8 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     partOf = None,
     note = None,
     returnDate = dateTimeNow.plusDays(10),
-    objects = Seq(ObjectUUID.generate())
+    objects = Seq(ObjectUUID.generate()),
+    externalRef = Some(ExternalRef(Seq("ef-10")))
   )
 
   def retObject() = ReturnedObject(
@@ -33,7 +34,8 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     partOf = None,
     note = None,
     returnDate = dateTimeNow,
-    objects = Seq(ObjectUUID.generate())
+    objects = Seq(ObjectUUID.generate()),
+    externalRef = Some(ExternalRef(Seq("ef-11")))
   )
 
   val mid = MuseumId(99)

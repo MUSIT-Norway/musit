@@ -6,7 +6,7 @@ import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
 import models.loan.{LoanEventTypes, LoanType}
 import no.uio.musit.models.ObjectTypes.ObjectType
-import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID}
+import no.uio.musit.models._
 import no.uio.musit.time.Implicits.{dateTimeToJTimestamp, jSqlTimestampToDateTime}
 import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfig
@@ -81,5 +81,11 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
     MappedColumnType.base[JsValue, String](
       jsv => Json.prettyPrint(jsv),
       str => Json.parse(str)
+    )
+
+  implicit lazy val externalREfMapper: BaseColumnType[ExternalRef] =
+    MappedColumnType.base[ExternalRef, String](
+      ref => ref.toDbString,
+      str => ExternalRef(str)
     )
 }
