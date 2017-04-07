@@ -64,7 +64,7 @@ class LoanDao @Inject()(
   ): Future[MusitResult[EventId]] = {
     val actions = for {
       _  <- deleteActiveLoanRows(retEvt.objects)
-      id <- insertEventRow(asEventRowTuple(retEvt))
+      id <- insertEventRow(asEventRowTuple(mid, retEvt))
     } yield id
     db.run(actions.transactionally).map(MusitSuccess.apply).recover {
       case NonFatal(t) =>
@@ -79,7 +79,7 @@ class LoanDao @Inject()(
       lentObject: LentObject
   ): Future[MusitResult[EventId]] = {
     val actions = for {
-      id <- insertEventRow(asEventRowTuple(lentObject))
+      id <- insertEventRow(asEventRowTuple(mid, lentObject))
       _  <- insertLentObjects(id, lentObject.objects)
       _  <- insertActiveLoanRows(mid, id, lentObject.returnDate, lentObject.objects)
     } yield id

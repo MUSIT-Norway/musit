@@ -31,6 +31,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       Option[JSqlTimestamp],
       Option[ActorId],
       Option[JSqlTimestamp],
+      MuseumId,
       Option[EventId],
       Option[ObjectUUID],
       Option[String],
@@ -49,6 +50,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val eventDate      = column[Option[JSqlTimestamp]]("EVENT_DATE")
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
+    val museumId       = column[MuseumId]("MUSEUM_ID")
     val partOf         = column[Option[EventId]]("PART_OF")
     val objectUuid     = column[Option[ObjectUUID]]("OBJECT_UUID")
     val note           = column[Option[String]]("NOTE")
@@ -62,6 +64,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
         eventDate,
         registeredBy,
         registeredDate,
+        museumId,
         partOf,
         objectUuid,
         note,
@@ -109,24 +112,30 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     }.getOrElse(Seq.empty[CollectionUUID])
   }
 
-  private[dao] def asEventRowTuple(lentObject: LentObject): LoanEventRow = (
-    lentObject.id,
-    lentObject.loanType,
-    lentObject.eventDate,
-    lentObject.registeredBy,
-    lentObject.registeredDate,
-    lentObject.partOf,
-    lentObject.objectId,
-    lentObject.note,
-    Json.toJson[LentObject](lentObject)
-  )
+  private[dao] def asEventRowTuple(mid: MuseumId, lentObject: LentObject): LoanEventRow =
+    (
+      lentObject.id,
+      lentObject.loanType,
+      lentObject.eventDate,
+      lentObject.registeredBy,
+      lentObject.registeredDate,
+      mid,
+      lentObject.partOf,
+      lentObject.objectId,
+      lentObject.note,
+      Json.toJson[LentObject](lentObject)
+    )
 
-  private[dao] def asEventRowTuple(returnedObject: ReturnedObject): LoanEventRow = (
+  private[dao] def asEventRowTuple(
+      mid: MuseumId,
+      returnedObject: ReturnedObject
+  ): LoanEventRow = (
     returnedObject.id,
     returnedObject.loanType,
     returnedObject.eventDate,
     returnedObject.registeredBy,
     returnedObject.registeredDate,
+    mid,
     returnedObject.partOf,
     returnedObject.objectId,
     returnedObject.note,

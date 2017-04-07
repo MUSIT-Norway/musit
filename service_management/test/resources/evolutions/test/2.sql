@@ -8,6 +8,7 @@ CREATE TABLE MUSARK_LOAN.LOAN_EVENT (
   event_date      TIMESTAMP    NOT NULL,
   registered_by   VARCHAR2(36) NOT NULL,
   registered_date TIMESTAMP    NOT NULL,
+  museum_id       INTEGER      NOT NULL,
   part_of         NUMBER(20),
   object_uuid     VARCHAR2(36),
   note            VARCHAR2(500),
