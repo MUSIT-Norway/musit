@@ -94,7 +94,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       val tag: Tag
   ) extends Table[LentObjectRow](tag, Some(SchemaName), LentObjectTableName) {
 
-    val id         = column[Long]("ACTIVE_LOAN_ID", O.PrimaryKey, O.AutoInc)
+    val id         = column[Long]("LENT_OBJECT_ID", O.PrimaryKey, O.AutoInc)
     val eventId    = column[EventId]("EVENT_ID")
     val objectUuid = column[ObjectUUID]("OBJECT_UUID")
 
