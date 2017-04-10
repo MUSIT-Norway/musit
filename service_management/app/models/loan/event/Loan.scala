@@ -17,7 +17,7 @@ trait LoanEvent {
   val note: Option[String]
 }
 
-case class LentObject( //todo flip wording
+case class ObjectsLent(
     id: Option[EventId],
     loanType: LoanType,
     eventDate: Option[DateTime],
@@ -32,11 +32,11 @@ case class LentObject( //todo flip wording
   val objectId: Option[ObjectUUID] = None
 }
 
-object LentObject {
-  implicit val format: Format[LentObject] = Json.format[LentObject]
+object ObjectsLent {
+  implicit val format: Format[ObjectsLent] = Json.format[ObjectsLent]
 }
 
-case class ReturnedObject( //todo flip wording
+case class ObjectsReturned(
     id: Option[EventId],
     loanType: LoanType,
     eventDate: Option[DateTime],
@@ -51,6 +51,6 @@ case class ReturnedObject( //todo flip wording
   val objectId: Option[ObjectUUID] = None
 }
 
-object ReturnedObject {
-  implicit val format: Format[ReturnedObject] = Json.format[ReturnedObject]
+object ObjectsReturned {
+  implicit val format: Format[ObjectsReturned] = Json.format[ObjectsReturned]
 }

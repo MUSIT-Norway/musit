@@ -3,7 +3,7 @@ package repositories.loan.dao
 import java.sql.{Timestamp => JSqlTimestamp}
 
 import models.loan.LoanType
-import models.loan.event.{LentObject, ReturnedObject}
+import models.loan.event.{ObjectsLent, ObjectsReturned}
 import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import org.joda.time.DateTime
@@ -107,24 +107,24 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     // scalastyle:on method.name line.size.limit
   }
 
-  private[dao] def asEventRowTuple(mid: MuseumId, lentObject: LentObject): LoanEventRow =
+  private[dao] def asEventRowTuple(mid: MuseumId, ol: ObjectsLent): LoanEventRow =
     (
-      lentObject.id,
-      lentObject.loanType,
-      lentObject.eventDate,
-      lentObject.registeredBy,
-      lentObject.registeredDate,
+      ol.id,
+      ol.loanType,
+      ol.eventDate,
+      ol.registeredBy,
+      ol.registeredDate,
       mid,
-      lentObject.partOf,
-      lentObject.objectId,
-      lentObject.externalRef,
-      lentObject.note,
-      Json.toJson[LentObject](lentObject)
+      ol.partOf,
+      ol.objectId,
+      ol.externalRef,
+      ol.note,
+      Json.toJson[ObjectsLent](ol)
     )
 
   private[dao] def asEventRowTuple(
       mid: MuseumId,
-      returnedObject: ReturnedObject
+      returnedObject: ObjectsReturned
   ): LoanEventRow = (
     returnedObject.id,
     returnedObject.loanType,
@@ -136,6 +136,6 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     returnedObject.objectId,
     returnedObject.externalRef,
     returnedObject.note,
-    Json.toJson[ReturnedObject](returnedObject)
+    Json.toJson[ObjectsReturned](returnedObject)
   )
 }

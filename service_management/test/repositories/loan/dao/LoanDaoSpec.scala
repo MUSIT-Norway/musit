@@ -1,7 +1,7 @@
 package repositories.loan.dao
 
-import models.loan.LoanEventTypes.{LentObjectsType, ReturnedObjectsType}
-import models.loan.event.{LentObject, ReturnedObject}
+import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
+import models.loan.event.{ObjectsLent, ObjectsReturned}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.{ActorId, ExternalRef, MuseumId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -12,9 +12,9 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val loanDao = fromInstanceCache[LoanDao]
 
-  def lentObject() = LentObject(
+  def objectsLent() = ObjectsLent(
     id = None,
-    loanType = LentObjectsType,
+    loanType = ObjectLentType,
     eventDate = Some(dateTimeNow),
     registeredBy = Some(ActorId.generate()),
     registeredDate = Some(dateTimeNow),
@@ -25,9 +25,9 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     externalRef = Some(ExternalRef(Seq("ef-10")))
   )
 
-  def retObject() = ReturnedObject(
+  def objectsReturned() = ObjectsReturned(
     id = None,
-    loanType = ReturnedObjectsType,
+    loanType = ObjectReturnedType,
     eventDate = Some(dateTimeNow),
     registeredBy = Some(ActorId.generate()),
     registeredDate = Some(dateTimeNow),
@@ -45,13 +45,13 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     "receives lent object event" should {
 
       "insert loan event" in {
-        val res = loanDao.insertLentObjectEvent(mid, lentObject()).futureValue
+        val res = loanDao.insertLentObjectEvent(mid, objectsLent()).futureValue
 
         res mustBe a[MusitSuccess[_]]
       }
 
       "find loans that should have been returned" in {
-        val evt = lentObject().copy(returnDate = dateTimeNow.minusDays(1))
+        val evt = objectsLent().copy(returnDate = dateTimeNow.minusDays(1))
         loanDao.insertLentObjectEvent(mid, evt).futureValue
 
         val res = loanDao.findExpectedReturnedObjects(mid).futureValue
@@ -62,46 +62,46 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
     "receives returned object event" should {
       "insert returned event" in {
-        val lentObj = lentObject()
-        val retObj  = retObject().copy(objects = lentObj.objects)
+        val lent = objectsLent()
+        val ret  = objectsReturned().copy(objects = lent.objects)
 
-        loanDao.insertLentObjectEvent(mid, lentObj).futureValue
-        val res = loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
+        loanDao.insertLentObjectEvent(mid, lent).futureValue
+        val res = loanDao.insertReturnedObjectEvent(mid, ret).futureValue
 
         res mustBe a[MusitSuccess[_]]
       }
 
       "insert returned event when no active loan is present" in {
-        val retObj = retObject()
-        val res    = loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
+        val ret = objectsReturned()
+        val res = loanDao.insertReturnedObjectEvent(mid, ret).futureValue
 
         res mustBe a[MusitSuccess[_]]
       }
 
       "remove object from active loans" in {
-        val lentObj = lentObject()
-        val retObj  = retObject().copy(objects = lentObj.objects)
+        val lent = objectsLent()
+        val ret  = objectsReturned().copy(objects = lent.objects)
 
-        loanDao.insertLentObjectEvent(mid, lentObj).futureValue
-        loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
+        loanDao.insertLentObjectEvent(mid, lent).futureValue
+        loanDao.insertReturnedObjectEvent(mid, ret).futureValue
 
         val res = loanDao.findExpectedReturnedObjects(mid).futureValue
 
-        res.successValue.map(_._1) must not contain theSameElementsAs(lentObj.objects)
+        res.successValue.map(_._1) must not contain theSameElementsAs(lent.objects)
       }
     }
 
     "find events " should {
       "related to object" in {
-        val lentObj = lentObject()
-        val retObj  = retObject().copy(objects = lentObj.objects)
+        val lent = objectsLent()
+        val ret  = objectsReturned().copy(objects = lent.objects)
 
-        loanDao.insertLentObjectEvent(mid, lentObj).futureValue
-        loanDao.insertReturnedObjectEvent(mid, retObj).futureValue
-        val events     = loanDao.findEventForObject(lentObj.objects.head).futureValue
+        loanDao.insertLentObjectEvent(mid, lent).futureValue
+        loanDao.insertReturnedObjectEvent(mid, ret).futureValue
+        val events     = loanDao.findEventForObject(lent.objects.head).futureValue
         val eventTypes = events.successValue.map(_.getClass)
 
-        eventTypes must contain allOf (classOf[LentObject], classOf[ReturnedObject])
+        eventTypes must contain allOf (classOf[ObjectsLent], classOf[ObjectsReturned])
       }
     }
 

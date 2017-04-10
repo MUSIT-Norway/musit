@@ -1,8 +1,8 @@
 package repositories.loan.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.loan.LoanEventTypes.{LentObjectsType, ReturnedObjectsType}
-import models.loan.event.{LentObject, LoanEvent, ReturnedObject}
+import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
+import models.loan.event.{ObjectsLent, LoanEvent, ObjectsReturned}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
@@ -60,7 +60,7 @@ class LoanDao @Inject()(
 
   def insertReturnedObjectEvent(
       mid: MuseumId,
-      retEvt: ReturnedObject
+      retEvt: ObjectsReturned
   ): Future[MusitResult[EventId]] = {
     val actions = for {
       _  <- deleteActiveLoanRows(retEvt.objects)
@@ -76,12 +76,12 @@ class LoanDao @Inject()(
 
   def insertLentObjectEvent(
       mid: MuseumId,
-      lentObject: LentObject
+      objectsLent: ObjectsLent
   ): Future[MusitResult[EventId]] = {
     val actions = for {
-      id <- insertEventRow(asEventRowTuple(mid, lentObject))
-      _  <- insertLentObjects(id, lentObject.objects)
-      _  <- insertActiveLoanRows(mid, id, lentObject.returnDate, lentObject.objects)
+      id <- insertEventRow(asEventRowTuple(mid, objectsLent))
+      _  <- insertLentObjects(id, objectsLent.objects)
+      _  <- insertActiveLoanRows(mid, id, objectsLent.returnDate, objectsLent.objects)
     } yield id
     db.run(actions.transactionally).map(MusitSuccess.apply).recover {
       case NonFatal(t) =>
@@ -121,8 +121,8 @@ class LoanDao @Inject()(
         res.map {
           case (typ, json) =>
             typ match {
-              case LentObjectsType     => json.as[LentObject]
-              case ReturnedObjectsType => json.as[ReturnedObject]
+              case ObjectLentType     => json.as[ObjectsLent]
+              case ObjectReturnedType => json.as[ObjectsReturned]
             }
         }
       }

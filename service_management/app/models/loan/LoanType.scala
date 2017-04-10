@@ -25,7 +25,7 @@ object LoanEventTypes extends Enum[LoanType] {
 
   def unsafeFromId(id: Long): LoanType = fromId(id).get
 
-  case object LentObjectsType     extends LoanType(2, "LentObjects")
-  case object ReturnedObjectsType extends LoanType(3, "ReturnedObjects")
+  case object ObjectLentType     extends LoanType(2, "ObjectsLent")
+  case object ObjectReturnedType extends LoanType(3, "ObjectsReturned")
 
 }
