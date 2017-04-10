@@ -24,3 +24,7 @@ GET         /:mid/samples                                    controllers.analysi
 PUT         /:mid/samples/:id                                controllers.analysis.SampleObjectController.update(mid: Int, id: String)
 GET         /:mid/samples/:id                                controllers.analysis.SampleObjectController.getById(mid: Int, id: String)
 GET         /:mid/samples/:parentId/children                 controllers.analysis.SampleObjectController.getForParentObject(mid: Int, parentId: String)
+
+# Loan endpoints
+POST        /:mid/loans                                      controllers.loan.LoanController.createLoan(mid: Int)
+GET         /:mid/loans/active                               controllers.loan.LoanController.findActiveLoan(mid: Int)
