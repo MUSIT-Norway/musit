@@ -107,14 +107,6 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     // scalastyle:on method.name line.size.limit
   }
 
-  private def parseCollectionUUIDCol(colStr: Option[String]): Seq[CollectionUUID] = {
-    colStr.map { str =>
-      str.stripPrefix(",").stripSuffix(",").split(",").toSeq.map { uuidStr =>
-        CollectionUUID.unsafeFromString(uuidStr)
-      }
-    }.getOrElse(Seq.empty[CollectionUUID])
-  }
-
   private[dao] def asEventRowTuple(mid: MuseumId, lentObject: LentObject): LoanEventRow =
     (
       lentObject.id,
