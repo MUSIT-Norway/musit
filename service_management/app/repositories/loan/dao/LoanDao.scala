@@ -2,7 +2,8 @@ package repositories.loan.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
-import models.loan.event.{ObjectsLent, LoanEvent, ObjectsReturned}
+import models.loan.LoanType
+import models.loan.event.{LoanEvent, ObjectsLent, ObjectsReturned}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
@@ -128,4 +129,17 @@ class LoanDao @Inject()(
       }
       .map(MusitSuccess.apply)
   }
+
+  private def activeLoan(mid: MuseumId) =
+    activeLoanTable.filter(_.museumId === mid).map(_.eventId).distinct
+
+  def findActiveLoanEvents(mid: MuseumId): Future[MusitResult[Seq[LoanEvent]]] = {
+    val query = loanTable
+      .filter(_.id in activeLoan(mid))
+      .filter(_.typeId === ObjectLentType.asInstanceOf[LoanType])
+      .sortBy(_.registeredDate.asc)
+
+    db.run(query.result).map(r => r.map(fromLoanEventRow)).map(MusitSuccess.apply)
+  }
+
 }

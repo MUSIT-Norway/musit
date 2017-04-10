@@ -2,8 +2,9 @@ package repositories.loan.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
+import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
 import models.loan.LoanType
-import models.loan.event.{ObjectsLent, ObjectsReturned}
+import models.loan.event.{LoanEvent, ObjectsLent, ObjectsReturned}
 import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import org.joda.time.DateTime
@@ -138,4 +139,14 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     returnedObject.note,
     Json.toJson[ObjectsReturned](returnedObject)
   )
+
+  private[dao] def fromLoanEventRow(tuple: LoanEventRow): LoanEvent = {
+    tuple._2 match {
+      case ObjectLentType =>
+        tuple._11.as[ObjectsLent]
+
+      case ObjectReturnedType =>
+        tuple._11.as[ObjectsReturned]
+    }
+  }
 }

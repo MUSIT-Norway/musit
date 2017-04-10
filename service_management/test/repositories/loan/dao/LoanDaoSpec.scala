@@ -4,11 +4,11 @@ import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
 import models.loan.event.{ObjectsLent, ObjectsReturned}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.{ActorId, ExternalRef, MuseumId, ObjectUUID}
-import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.MusitSpecWithServerPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.time.dateTimeNow
 
-class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
+class LoanDaoSpec extends MusitSpecWithServerPerSuite with MusitResultValues {
 
   val loanDao = fromInstanceCache[LoanDao]
 
@@ -102,6 +102,28 @@ class LoanDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
         val eventTypes = events.successValue.map(_.getClass)
 
         eventTypes must contain allOf (classOf[ObjectsLent], classOf[ObjectsReturned])
+      }
+
+      "return active loan for the given museum" in {
+        val lent = objectsLent()
+        val mid  = MuseumId(999)
+        loanDao.insertLentObjectEvent(mid, lent).futureValue
+
+        val res = loanDao.findActiveLoanEvents(mid).futureValue.successValue
+
+        res must have size 1
+      }
+
+      "not return returned loan for the given museum" in {
+        val lent = objectsLent()
+        val ret  = objectsReturned().copy(objects = lent.objects)
+        val mid  = MuseumId(998)
+        loanDao.insertLentObjectEvent(mid, lent).futureValue
+        loanDao.insertReturnedObjectEvent(mid, ret).futureValue
+
+        val res = loanDao.findActiveLoanEvents(mid).futureValue.successValue
+
+        res mustBe empty
       }
     }
 
