@@ -75,10 +75,4 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       jsv => Json.prettyPrint(jsv),
       str => Json.parse(str)
     )
-
-  implicit val dateTimeMapper: BaseColumnType[DateTime] =
-    MappedColumnType.base[DateTime, JSqlTimestamp](
-      dt => new JSqlTimestamp(dt.getMillis),
-      jt => new DateTime(jt, DefaultTimezone)
-    )
 }
