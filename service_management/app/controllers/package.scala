@@ -1,5 +1,3 @@
-package controllers
-
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.service.MusitRequest
 import play.api.libs.json._
@@ -7,7 +5,7 @@ import play.api.mvc.{Result, Results}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-package object analysis {
+package object controllers {
 
   val internalErrMsg = (msg: String) =>
     Results.InternalServerError(Json.obj("message" -> msg))
@@ -22,7 +20,7 @@ package object analysis {
    * @tparam A the type of data to transform
    * @return a {{{play.api.mvc.Results}}}.
    */
-  private[analysis] def listAsPlayResult[A](types: Seq[A])(
+  private[controllers] def listAsPlayResult[A](types: Seq[A])(
       implicit w: Writes[A]
   ) = {
     if (types.nonEmpty) Results.Ok(Json.toJson(types))
@@ -34,11 +32,15 @@ package object analysis {
    * function. Returns a {{{play.api.mvc.Results.Created}}} if the save function
    * completes successfully.
    */
-  private[analysis] def saveRequest[A, ID](
+  private[controllers] def saveRequest[A, ID](
       jsr: JsResult[A]
   )(
       save: A => Future[MusitResult[ID]]
-  )(implicit req: MusitRequest[JsValue], writes: Writes[ID], ec: ExecutionContext): Future[Result] = {
+  )(
+      implicit req: MusitRequest[JsValue],
+      writes: Writes[ID],
+      ec: ExecutionContext
+  ): Future[Result] = {
     jsr match {
       case JsSuccess(at, _) =>
         save(at).map {
