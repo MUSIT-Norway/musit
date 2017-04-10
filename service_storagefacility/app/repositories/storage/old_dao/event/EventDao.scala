@@ -370,7 +370,6 @@ class EventDao @Inject()(
       baseEventDto: BaseEventDto,
       recursive: Boolean
   ): Future[MusitResult[Option[EventDto]]] = {
-
     EventTypeRegistry.unsafeFromId(baseEventDto.eventTypeId) match {
       case EnvRequirementEventType =>
         envReqDao.getEnvRequirement(baseEventDto.id.get).map { mer =>

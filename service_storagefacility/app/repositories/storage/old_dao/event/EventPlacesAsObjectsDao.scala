@@ -49,13 +49,21 @@ class EventPlacesAsObjectsDao @Inject()(
     placesAsObjectsTable ++= relObjectsAsPlaces
   }
 
-  def getRelatedObjects(mid: MuseumId, eventId: EventId): Future[Seq[EventRoleObject]] = {
-    val query = placesAsObjectsTable.filter(_.eventId === eventId)
-    db.run(query.result).map { places =>
-      logger.debug(s"Found ${places.size} places")
+  def getRelatedObjectsAction(
+      eventId: EventId
+  ): DBIO[Seq[EventRoleObject]] = {
+    placesAsObjectsTable.filter(_.eventId === eventId).result.map { places =>
       places.map { place =>
         EventRoleObject(place.eventId, place.roleId, place.placeId, place.eventTypeId)
       }
+    }
+  }
+
+  def getRelatedObjects(mid: MuseumId, eventId: EventId): Future[Seq[EventRoleObject]] = {
+    val query = getRelatedObjectsAction(eventId)
+    db.run(query).map { objects =>
+      logger.debug(s"Found ${objects.size} places")
+      objects
     }
   }
 

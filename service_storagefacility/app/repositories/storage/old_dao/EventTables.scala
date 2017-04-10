@@ -32,7 +32,7 @@ import slick.jdbc.JdbcProfile
 /**
  * Tables definitions that are required across DAO implementations.
  */
-private[old_dao] trait EventTables
+private[storage] trait EventTables
     extends HasDatabaseConfigProvider[JdbcProfile]
     with ColumnTypeMappers {
 

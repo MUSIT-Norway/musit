@@ -4,6 +4,7 @@ import models.storage.Interval
 import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
 import models.storage.event.{EventType, MusitEvent}
 import models.storage.nodes.EnvironmentRequirement
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
@@ -41,7 +42,7 @@ case class EnvRequirement(
 
 }
 
-object EnvRequirement {
+object EnvRequirement extends WithDateTimeFormatters {
 
   implicit val format: Format[EnvRequirement] = Json.format[EnvRequirement]
 

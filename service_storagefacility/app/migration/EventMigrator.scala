@@ -1,11 +1,14 @@
 package migration
 
+import akka.actor.ActorSystem
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
 import com.google.inject.{Inject, Singleton}
 import models.storage.event.EventTypeRegistry.TopLevelEvents._
-import models.storage.event.MusitEvent
 import models.storage.event.control.Control
 import models.storage.event.control.ControlAttributes._
-import models.storage.event.dto.{BaseEventDto, DtoConverters, ExtendedDto}
+import models.storage.event.dto.BaseEventDto
+import models.storage.event.dto.DtoConverters._
 import models.storage.event.envreq.EnvRequirement
 import models.storage.event.move._
 import models.storage.event.observation.Observation
@@ -32,26 +35,29 @@ import models.storage.event.old.observation.ObservationSubEvents.{
   ObservationWaterDamageAssessment => OldObsWater
 }
 import models.storage.event.old.observation.{Observation => OldObservation}
+import models.storage.event.{EventTypeRegistry, MusitEvent}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 import play.api.Logger
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.MigrationDao
 import repositories.storage.dao.events.{ControlDao, EnvReqDao, MoveDao, ObservationDao}
-import repositories.storage.old_dao.event.EventDao
 import repositories.storage.old_dao.{LocalObjectDao => OldLocObjDao}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 import scala.util.control.NonFatal
 
 private[migration] trait TypeMappers {
 
-  type ConvertRes = Seq[(EventId, (MusitEvent, MuseumId))]
+  val logger = Logger("migration.EventMigrator")
+
+  type ConvertRes = (MuseumId, MusitEvent)
 
   val dummyMuseumId = MuseumId(666)
-  val oldEventDao: EventDao
+
+  val migrationDao: MigrationDao
   val nodeIdMap: Map[StorageNodeDatabaseId, (StorageNodeId, MuseumId)]
 }
 
@@ -117,199 +123,191 @@ private[migration] trait ObservationMappers
     extends TypeMappers
     with SubObservationMappers {
 
-  def convertObs: Future[ConvertRes] =
-    oldEventDao
-      .getAllEvents(dummyMuseumId, ObservationEventType) { dto =>
-        DtoConverters.ObsConverters.observationFromDto(dto.asInstanceOf[BaseEventDto])
+  def convertObs(dto: BaseEventDto): Future[(MuseumId, Observation)] =
+    migrationDao.enrichTopLevelEvent(dto).flatMap { base =>
+      migrationDao.getObsDetails(base).map { old =>
+        mapOldToNew(ObsConverters.observationFromDto(old))
       }
-      .map(old => mapOldToNew(old))
-
-  private def mapOldToNew(observations: Seq[OldObservation]): ConvertRes = {
-    observations.map { old =>
-      val idMid = nodeIdMap(old.affectedThing.get)
-      val obs = Observation(
-        id = None,
-        doneBy = old.doneBy,
-        doneDate = old.doneDate,
-        affectedThing = Option(idMid._1),
-        registeredBy = old.registeredBy,
-        registeredDate = old.registeredDate,
-        eventType = old.eventType,
-        alcohol = convertOldObsAlcohol(old.alcohol),
-        cleaning = convertOldObsCleaning(old.cleaning),
-        gas = convertOldObsGas(old.gas),
-        hypoxicAir = convertOldObsHypoxic(old.hypoxicAir),
-        lightingCondition = convertOldObsLight(old.lightingCondition),
-        mold = convertOldObsMold(old.mold),
-        pest = convertOldObsPest(old.pest),
-        relativeHumidity = convertOldObsRelHum(old.relativeHumidity),
-        temperature = convertOldObsTemp(old.temperature),
-        theftProtection = convertOldObsTheft(old.theftProtection),
-        fireProtection = convertOldObsFire(old.fireProtection),
-        perimeterSecurity = convertOldObsSecurity(old.perimeterSecurity),
-        waterDamageAssessment = convertOldObsWater(old.waterDamageAssessment)
-      )
-      (old.id.get, (obs, idMid._2))
     }
+
+  private def mapOldToNew(old: OldObservation): (MuseumId, Observation) = {
+    logger.debug(s"Mapping old Observation events to new format")
+    val idMid = nodeIdMap(old.affectedThing.get)
+    val obs = Observation(
+      id = None,
+      doneBy = old.doneBy,
+      doneDate = old.doneDate,
+      affectedThing = Option(idMid._1),
+      registeredBy = old.registeredBy,
+      registeredDate = old.registeredDate,
+      eventType = old.eventType,
+      alcohol = convertOldObsAlcohol(old.alcohol),
+      cleaning = convertOldObsCleaning(old.cleaning),
+      gas = convertOldObsGas(old.gas),
+      hypoxicAir = convertOldObsHypoxic(old.hypoxicAir),
+      lightingCondition = convertOldObsLight(old.lightingCondition),
+      mold = convertOldObsMold(old.mold),
+      pest = convertOldObsPest(old.pest),
+      relativeHumidity = convertOldObsRelHum(old.relativeHumidity),
+      temperature = convertOldObsTemp(old.temperature),
+      theftProtection = convertOldObsTheft(old.theftProtection),
+      fireProtection = convertOldObsFire(old.fireProtection),
+      perimeterSecurity = convertOldObsSecurity(old.perimeterSecurity),
+      waterDamageAssessment = convertOldObsWater(old.waterDamageAssessment)
+    )
+    (idMid._2, obs)
   }
 }
 
 private[migration] trait ControlMappers extends TypeMappers with SubObservationMappers {
 
-  def convertCtrl: Future[ConvertRes] =
-    oldEventDao
-      .getAllEvents(dummyMuseumId, ControlEventType) { dto =>
-        DtoConverters.CtrlConverters.controlFromDto(dto.asInstanceOf[BaseEventDto])
+  def convertCtrl(dto: BaseEventDto): Future[(MuseumId, Control)] =
+    migrationDao.enrichTopLevelEvent(dto).flatMap { base =>
+      migrationDao.getCtrlDetails(base).map { old =>
+        mapOldToNew(CtrlConverters.controlFromDto(old))
       }
-      .map(old => mapOldToNew(old))
-
-  private def mapOldToNew(ctrls: Seq[OldControl]): ConvertRes = {
-    ctrls.map { old =>
-      val idMid = nodeIdMap(old.affectedThing.get)
-      val ctrl = Control(
-        id = None,
-        doneBy = old.doneBy,
-        doneDate = old.doneDate,
-        affectedThing = Option(idMid._1),
-        registeredBy = old.registeredBy,
-        registeredDate = old.registeredDate,
-        eventType = old.eventType,
-        alcohol = old.alcohol.map { c =>
-          ControlAlcohol(c.ok, convertOldObsAlcohol(c.observation))
-        },
-        cleaning = old.cleaning.map { c =>
-          ControlCleaning(c.ok, convertOldObsCleaning(c.observation))
-        },
-        gas = old.gas.map { c =>
-          ControlGas(c.ok, convertOldObsGas(c.observation))
-        },
-        hypoxicAir = old.hypoxicAir.map { c =>
-          ControlHypoxicAir(c.ok, convertOldObsHypoxic(c.observation))
-        },
-        lightingCondition = old.lightingCondition.map { c =>
-          ControlLightingCondition(c.ok, convertOldObsLight(c.observation))
-        },
-        mold = old.mold.map { c =>
-          ControlMold(c.ok, convertOldObsMold(c.observation))
-        },
-        pest = old.pest.map { c =>
-          ControlPest(c.ok, convertOldObsPest(c.observation))
-        },
-        relativeHumidity = old.relativeHumidity.map { c =>
-          ControlRelativeHumidity(c.ok, convertOldObsRelHum(c.observation))
-        },
-        temperature = old.temperature.map { c =>
-          ControlTemperature(c.ok, convertOldObsTemp(c.observation))
-        }
-      )
-      (old.id.get, (ctrl, idMid._2))
     }
+
+  private def mapOldToNew(old: OldControl): (MuseumId, Control) = {
+    logger.debug(s"Mapping old Control events to new format")
+    val idMid = nodeIdMap(old.affectedThing.get)
+    val ctrl = Control(
+      id = None,
+      doneBy = old.doneBy,
+      doneDate = old.doneDate,
+      affectedThing = Option(idMid._1),
+      registeredBy = old.registeredBy,
+      registeredDate = old.registeredDate,
+      eventType = old.eventType,
+      alcohol = old.alcohol.map { c =>
+        ControlAlcohol(c.ok, convertOldObsAlcohol(c.observation))
+      },
+      cleaning = old.cleaning.map { c =>
+        ControlCleaning(c.ok, convertOldObsCleaning(c.observation))
+      },
+      gas = old.gas.map { c =>
+        ControlGas(c.ok, convertOldObsGas(c.observation))
+      },
+      hypoxicAir = old.hypoxicAir.map { c =>
+        ControlHypoxicAir(c.ok, convertOldObsHypoxic(c.observation))
+      },
+      lightingCondition = old.lightingCondition.map { c =>
+        ControlLightingCondition(c.ok, convertOldObsLight(c.observation))
+      },
+      mold = old.mold.map { c =>
+        ControlMold(c.ok, convertOldObsMold(c.observation))
+      },
+      pest = old.pest.map { c =>
+        ControlPest(c.ok, convertOldObsPest(c.observation))
+      },
+      relativeHumidity = old.relativeHumidity.map { c =>
+        ControlRelativeHumidity(c.ok, convertOldObsRelHum(c.observation))
+      },
+      temperature = old.temperature.map { c =>
+        ControlTemperature(c.ok, convertOldObsTemp(c.observation))
+      }
+    )
+    (idMid._2, ctrl)
   }
 }
 
 private[migration] trait EnvReqMappers extends TypeMappers {
 
-  def convertEnvReq: Future[ConvertRes] =
-    oldEventDao
-      .getAllEvents(dummyMuseumId, EnvRequirementEventType) { dto =>
-        DtoConverters.EnvReqConverters.envReqFromDto(dto.asInstanceOf[ExtendedDto])
+  def convertEnvReq(dto: BaseEventDto): Future[(MuseumId, EnvRequirement)] = {
+    migrationDao.enrichTopLevelEvent(dto).flatMap { base =>
+      migrationDao.getEnvReqDetails(base).map { ex =>
+        val old = EnvReqConverters.envReqFromDto(ex)
+        mapOldToNew(old)
       }
-      .map(old => mapOldToNew(old))
-
-  private def mapOldToNew(envs: Seq[OldEnvReq]): ConvertRes = {
-    envs.map { old =>
-      val idMid = nodeIdMap(old.affectedThing.get)
-      val er = EnvRequirement(
-        id = None,
-        doneBy = old.doneBy,
-        doneDate = old.doneDate,
-        affectedThing = Option(idMid._1),
-        registeredBy = old.registeredBy,
-        registeredDate = old.registeredDate,
-        note = old.note,
-        eventType = old.eventType,
-        temperature = old.temperature,
-        airHumidity = old.airHumidity,
-        hypoxicAir = old.hypoxicAir,
-        cleaning = old.cleaning,
-        light = old.light
-      )
-
-      (old.id.get, (er, idMid._2))
     }
+  }
+
+  private def mapOldToNew(old: OldEnvReq): (MuseumId, EnvRequirement) = {
+    logger.debug(s"Mapping old EnvRequirement events to new format")
+    val idMid = nodeIdMap(old.affectedThing.get)
+    val er = EnvRequirement(
+      id = None,
+      doneBy = old.doneBy,
+      doneDate = old.doneDate,
+      affectedThing = Option(idMid._1),
+      registeredBy = old.registeredBy,
+      registeredDate = old.registeredDate,
+      note = old.note,
+      eventType = old.eventType,
+      temperature = old.temperature,
+      airHumidity = old.airHumidity,
+      hypoxicAir = old.hypoxicAir,
+      cleaning = old.cleaning,
+      light = old.light
+    )
+    (idMid._2, er)
   }
 }
 
 private[migration] trait MoveNodeMappers extends TypeMappers {
 
-  val migrationDao: MigrationDao
-
-  def convertMoveNode: Future[ConvertRes] =
-    oldEventDao
-      .getAllEvents(dummyMuseumId, MoveNodeType) { dto =>
-        DtoConverters.MoveConverters.moveNodeFromDto(dto.asInstanceOf[BaseEventDto])
-      }
-      .map(old => mapOldToNew(old))
-
-  private def mapOldToNew(moves: Seq[OldMoveNode]): ConvertRes = {
-    moves.map { old =>
-      val idMid = nodeIdMap(old.affectedThing.get)
-      val mn = MoveNode(
-        id = None,
-        doneBy = old.doneBy,
-        doneDate = old.doneDate,
-        affectedThing = Option(idMid._1),
-        registeredBy = old.registeredBy,
-        registeredDate = old.registeredDate,
-        eventType = old.eventType,
-        from = old.from.map(o => nodeIdMap(o)._1),
-        to = nodeIdMap(old.to)._1
-      )
-
-      (old.id.get, (mn, idMid._2))
+  def convertMoveNode(dto: BaseEventDto): Future[(MuseumId, MoveNode)] =
+    migrationDao.enrichTopLevelEvent(dto).map { base =>
+      val old = MoveConverters.moveNodeFromDto(base)
+      mapOldToNew(old)
     }
-  }
 
+  private def mapOldToNew(old: OldMoveNode): (MuseumId, MoveNode) = {
+    logger.debug(s"Mapping old MoveNode events to new format")
+    val idMid = nodeIdMap(old.affectedThing.get)
+    val mn = MoveNode(
+      id = None,
+      doneBy = old.doneBy,
+      doneDate = old.doneDate,
+      affectedThing = Option(idMid._1),
+      registeredBy = old.registeredBy,
+      registeredDate = old.registeredDate,
+      eventType = old.eventType,
+      from = old.from.map(o => nodeIdMap(o)._1),
+      to = nodeIdMap(old.to)._1
+    )
+    (idMid._2, mn)
+  }
 }
 
 private[migration] trait MoveObjectMappers extends TypeMappers {
 
   val migrationDao: MigrationDao
 
-  def convertMoveObject: Future[ConvertRes] =
-    for {
-      old <- oldEventDao.getAllEvents(dummyMuseumId, MoveObjectType) { dto =>
-              DtoConverters.MoveConverters.moveObjectFromDto(
-                dto.asInstanceOf[BaseEventDto]
-              )
-            }
-      affectedNodeIds <- Future.successful(old.flatMap(_.affectedThing))
-      idMap           <- migrationDao.getObjectUUIDsForObjectIds(affectedNodeIds)
-    } yield {
-      mapOldToNew(old, idMap)
+  def convertMoveObject(dto: BaseEventDto): Future[(MuseumId, MoveObject)] = {
+    migrationDao.enrichTopLevelEvent(dto).flatMap { base =>
+      val old = MoveConverters.moveObjectFromDto(base)
+      migrationDao
+        .getObjectUUIDsForObjectIds(old.affectedThing.toSeq)
+        .map(idMap => mapOldToNew(old, idMap))
+        .recover {
+          case NonFatal(ex) =>
+            val msg = s"Failed converting old MoveObject event ${old.id}"
+            logger.error(msg, ex)
+            throw ex
+        }
     }
+  }
 
   private def mapOldToNew(
-      moves: Seq[OldMoveObject],
+      old: OldMoveObject,
       idMap: Map[ObjectId, (ObjectUUID, MuseumId)]
-  ): ConvertRes = {
-    moves.map { old =>
-      val idMid = idMap(old.affectedThing.get)
-      val mn = MoveObject(
-        id = None,
-        doneBy = old.doneBy,
-        doneDate = old.doneDate,
-        affectedThing = Option(idMid._1),
-        registeredBy = old.registeredBy,
-        registeredDate = old.registeredDate,
-        eventType = old.eventType,
-        objectType = CollectionObject,
-        from = old.from.map(o => nodeIdMap(o)._1),
-        to = nodeIdMap(old.to)._1
-      )
-
-      (old.id.get, (mn, idMid._2))
-    }
+  ): (MuseumId, MoveObject) = {
+    logger.debug(s"Mapping old MoveObject events to new format")
+    val idMid = idMap(old.affectedThing.get)
+    val mo = MoveObject(
+      id = None,
+      doneBy = old.doneBy,
+      doneDate = old.doneDate,
+      affectedThing = Option(idMid._1),
+      registeredBy = old.registeredBy,
+      registeredDate = old.registeredDate,
+      eventType = old.eventType,
+      objectType = CollectionObject,
+      from = old.from.map(o => nodeIdMap(o)._1),
+      to = nodeIdMap(old.to)._1
+    )
+    (idMid._2, mo)
   }
 }
 
@@ -323,64 +321,82 @@ private[migration] trait MoveObjectMappers extends TypeMappers {
 // scalastyle:off
 @Singleton
 final class EventMigrator @Inject()(
-    val oldEventDao: EventDao,
     val migrationDao: MigrationDao,
     oldLocObjDao: OldLocObjDao,
     ctlDao: ControlDao,
     obsDao: ObservationDao,
     envDao: EnvReqDao,
-    movDao: MoveDao
+    movDao: MoveDao,
+    materialiser: Materializer,
+    actorSystem: ActorSystem
 ) extends ControlMappers
     with ObservationMappers
     with EnvReqMappers
     with MoveNodeMappers
     with MoveObjectMappers {
 
-  val logger = Logger(classOf[EventMigrator])
+  implicit val sys = actorSystem
+  implicit val mat = materialiser
 
   // Blocking operation to fetch the nodeId Map
-  override val nodeIdMap =
-    Await.result(migrationDao.getAllNodeIds, 5 minutes)
+  override val nodeIdMap = Await.result(migrationDao.getAllNodeIds, 5 minutes)
 
   logger.debug(s"Loaded ${nodeIdMap.size} nodes to internal lookup table...")
 
-  /*
-    TODO: Before running with this current implementation, count the number of
-     existing events in the event table on e.g. the musit-test environment.
-      If the amount of data is too big, we might get memory issues doing the
-      migration
-   */
-  def migrateAll(): Future[Int] = {
-    Future
-      .sequence(
-        Seq(convertCtrl, convertObs, convertEnvReq, convertMoveNode, convertMoveObject)
-      )
-      .map(_.flatten)
-      .flatMap { newEvents =>
-        logger.info(s"Going to insert ${newEvents.size} events into the new event table")
-        Future.sequence {
-          newEvents.sortBy(_._1.underlying).map { om =>
-            val mid = om._2._2
+  // Call the migrateAll function to trigger the migration code
+  migrateAll()
 
-            om._2._1 match {
-              case c: Control        => ctlDao.insert(mid, c)
-              case o: Observation    => obsDao.insert(mid, o)
-              case e: EnvRequirement => envDao.insert(mid, e)
-              case mn: MoveNode      => movDao.insert(mid, mn)
-              case mo: MoveObject    => movDao.insert(mid, mo)
-            }
-          }
-        }.map(
-          _.foldLeft(0)((success, mres) => mres.map(_ => success + 1).getOrElse(success))
-        )
+  def migrateAll(): Future[Int] = {
+    val startTime: FiniteDuration = System.currentTimeMillis() milliseconds
+
+    logger.warn("Starting data migration of old events")
+
+    val stream = migrationDao.getAllBaseEvents.mapResult { base =>
+      EventTypeRegistry.TopLevelEvents.unsafeFromId(base.eventTypeId) match {
+        case MoveObjectType =>
+          convertMoveObject(base).flatMap(t => movDao.insert(t._1, t._2))
+
+        case MoveNodeType =>
+          convertMoveNode(base).flatMap(t => movDao.insert(t._1, t._2))
+
+        case EnvRequirementEventType =>
+          convertEnvReq(base).flatMap(t => envDao.insert(t._1, t._2))
+
+        case ObservationEventType =>
+          convertObs(base).flatMap(t => obsDao.insert(t._1, t._2))
+
+        case ControlEventType =>
+          convertCtrl(base).flatMap(t => ctlDao.insert(t._1, t._2))
       }
-      .map { numSuccess =>
-        logger.info(s"Successfully wrote $numSuccess events to the new event table")
-        numSuccess
+    }
+
+    Source
+      .fromPublisher(stream)
+      .groupedWithin(1000, 5 minutes)
+      .map(n => Future.sequence(n))
+      .runFoldAsync(0) { (acc, fcurr) =>
+        fcurr.map { curr =>
+          curr.foreach {
+            case MusitSuccess(id) =>
+              logger.debug(s"Successfully migrated event $id")
+
+            case err: MusitError =>
+              logger.warn(s"An error was encountered in the stream: ${err.message}")
+          }
+          val batch = acc + curr.count(_.isSuccess)
+          logger.info(s"Successfully migrated $batch events")
+          batch
+        }
+      }
+      .map { numSucceeded =>
+        val endTime: FiniteDuration = System.currentTimeMillis() milliseconds
+        val totalTime               = endTime - startTime
+        logger.warn(s"Migration completed in ${totalTime.toMinutes} minutes")
+        numSucceeded
       }
       .recover {
         case NonFatal(ex) =>
-          logger.error("This should not happen", ex)
+          logger.error("Bad things during data migration", ex)
           throw ex
       }
   }
@@ -398,6 +414,20 @@ case class MigrationVerification(
 ) {
 
   val total = numControl + numObservation + numEnvRequirement + numMoveNode + numMoveObject
+
+  override def toString = {
+    s"""MigrationVerification(
+       |  control events: $numControl
+       |  observation events: $numObservation
+       |  env requirement events: $numEnvRequirement
+       |  move node events: $numMoveNode
+       |  move object events: $numMoveObject
+       |  -------------------------------
+       |  total events: $total
+       |  ===============================
+       |)
+       |""".stripMargin
+  }
 
 }
 

@@ -43,9 +43,13 @@ class EventObjectsDao @Inject()(
     eventObjectsTable ++= relObjects
   }
 
+  def getRelatedObjectsAction(eventId: EventId): DBIO[Seq[EventRoleObject]] = {
+    eventObjectsTable.filter(_.eventId === eventId).result
+  }
+
   def getRelatedObjects(eventId: EventId): Future[Seq[EventRoleObject]] = {
-    val query = eventObjectsTable.filter(_.eventId === eventId)
-    db.run(query.result)
+    val query = getRelatedObjectsAction(eventId)
+    db.run(query)
   }
 
   def latestEventIdsForObject(

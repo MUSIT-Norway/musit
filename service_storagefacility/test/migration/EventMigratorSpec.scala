@@ -1,5 +1,7 @@
 package migration
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import models.storage.event.old.move.{
   MoveNode => OldMoveNode,
   MoveObject => OldMoveObject
@@ -41,16 +43,20 @@ class EventMigratorSpec
   val migrationDao  = fromInstanceCache[MigrationDao]
   val oldLocDao     = fromInstanceCache[OldLocObjDao]
 
+  implicit val as  = ActorSystem()
+  implicit val mat = ActorMaterializer()
+
   // In the test configs, we do not enable the DataMigrationModule. Hence
   // we need to initialise it manually using the constructor.
   val migrator = new EventMigrator(
-    oldEventDao,
     migrationDao,
     oldLocDao,
     ctrlDao,
     obsDao,
     envReqDao,
-    mvDao
+    mvDao,
+    mat,
+    as
   )
 
   // scalastyle:off method.length line.size.limit
@@ -110,23 +116,23 @@ class EventMigratorSpec
                Future.successful(MusitValidationError("Not possible in this case"))
            })
     } yield {
-      val attemptedWrites = cs.size + os.size + er.size + m1.size + m2.size + m3.size
-      val successfulWrites =
+      val attempted = cs.size + os.size + er.size + m1.size + m2.size + m3.size
+      val successfull =
         cs.count(_.isSuccess) +
           os.count(_.isSuccess) +
           er.count(_.isSuccess) +
           (m1 ++ m3).count(_.isSuccess) +
           m2.count(_.isSuccess)
-      val failedWrites = attemptedWrites - successfulWrites
+      val failed = attempted - successfull
 
       // scalastyle:off
       println(
-        s"There were $successfulWrites successful insertions and $failedWrites " +
-          s"failures when bootstrapping $attemptedWrites old events."
+        s"There were $successfull successful insertions and $failed failures " +
+          s"when bootstrapping $attempted old events."
       )
       // scalastyle:on
 
-      successfulWrites
+      successfull
     }
   }
 
@@ -141,7 +147,7 @@ class EventMigratorSpec
 
       val res = migrator.verify().futureValue
       res mustBe MigrationVerification(50, 50, 50, 10, 100)
-      res.total mustBe 260
+      res.total mustBe numOldEvents
     }
 
   }

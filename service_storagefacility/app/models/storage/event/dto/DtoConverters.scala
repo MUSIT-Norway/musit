@@ -36,6 +36,7 @@ import models.storage.{FromToDouble, Interval, LifeCycle}
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.time.Implicits._
+import play.api.Logger
 
 object DtoConverters {
 
@@ -642,6 +643,8 @@ object DtoConverters {
    * Converters for Move events
    */
   object MoveConverters {
+
+    val logger = Logger(this.getClass)
 
     def moveToDto[A <: MoveEvent](move: A): BaseEventDto = {
       toBaseDto(

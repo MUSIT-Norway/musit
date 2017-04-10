@@ -42,9 +42,13 @@ class EventActorsDao @Inject()(
     eventActorsTable ++= relActors
   }
 
+  def getRelatedActorsAction(eventId: EventId): DBIO[Seq[EventRoleActor]] = {
+    eventActorsTable.filter(evt => evt.eventId === eventId).result
+  }
+
   def getRelatedActors(eventId: EventId): Future[Seq[EventRoleActor]] = {
-    val query = eventActorsTable.filter(evt => evt.eventId === eventId)
-    db.run(query.result)
+    val query = getRelatedActorsAction(eventId)
+    db.run(query)
   }
 
 }

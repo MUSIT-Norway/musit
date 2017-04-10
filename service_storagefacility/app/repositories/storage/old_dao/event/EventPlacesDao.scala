@@ -34,6 +34,12 @@ class EventPlacesDao @Inject()(
 
   import profile.api._
 
+  def getRelatedPlacesAction(
+      eventId: EventId
+  ): DBIO[Seq[EventRolePlace]] = {
+    eventPlacesTable.filter(evt => evt.eventId === eventId).result
+  }
+
   def insertPlaces(
       eventId: EventId,
       relatedPlaces: Seq[EventRolePlace]
@@ -43,8 +49,8 @@ class EventPlacesDao @Inject()(
   }
 
   def getRelatedPlaces(mid: MuseumId, eventId: EventId): Future[Seq[EventRolePlace]] = {
-    val query = eventPlacesTable.filter(evt => evt.eventId === eventId)
-    db.run(query.result)
+    val query = getRelatedPlacesAction(eventId)
+    db.run(query)
   }
 
 }

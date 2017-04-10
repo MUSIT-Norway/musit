@@ -27,8 +27,6 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   museum_id         INTEGER                  NOT NULL,
   updated_by        VARCHAR2(36)             NOT NULL,
   updated_date      TIMESTAMP WITH TIME ZONE NOT NULL, -- When the change was received by the system
-  --   latest_move_id NUMBER(20),
-  --   latest_envreq_id NUMBER(20),
   PRIMARY KEY (storage_node_id)
 );
 

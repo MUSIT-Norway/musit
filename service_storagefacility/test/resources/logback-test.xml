@@ -37,9 +37,8 @@
   <logger name="controllers" level="ERROR"/>
   <logger name="services" level="ERROR"/>
   <logger name="models" level="ERROR"/>
-  <logger name="migration" level="ERROR"/>
+  <logger name="migration" level="WARN"/>
   <logger name="repositories" level="ERROR"/>
-  <!--<logger name="repositories.storage.dao" level="DEBUG"/>-->
 
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>
