@@ -372,7 +372,7 @@ final class EventMigrator @Inject()(
 
     Source
       .fromPublisher(stream)
-      .groupedWithin(1000, 5 minutes)
+      .groupedWithin(100, 2 minutes)
       .map(n => Future.sequence(n))
       .runFoldAsync(0) { (acc, fcurr) =>
         fcurr.map { curr =>
