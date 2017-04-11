@@ -6,18 +6,17 @@ trait MusitFakeApplication extends TestConfigs {
 
   def createApplication() = {
     if (notExecutedFromPlayProject) {
-      setProperty("config.file", "/application.test.conf")
-      setProperty("logger.file", "/logback-test.xml")
+      setPropertyIfFileExists("config.file", "/application.test.conf")
+      setPropertyIfFileExists("logger.file", "/logback-test.xml")
     }
     new GuiceApplicationBuilder().configure(slickWithInMemoryH2()).build()
   }
 
   private def notExecutedFromPlayProject =
-    System.getProperty("config.file") == null
+    sys.props.get("config.file").isEmpty
 
-  private def setProperty(p: String, r: String): Unit = {
-    val resource = this.getClass.getResource(r)
-    if (resource != null) System.setProperty(p, resource.getPath)
-  }
+  private def setPropertyIfFileExists(p: String, r: String): Unit =
+    Option(this.getClass.getResource(r))
+      .foreach(res => System.setProperty(p, res.getPath))
 
 }
