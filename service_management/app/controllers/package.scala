@@ -1,4 +1,9 @@
-import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.service.MusitRequest
 import play.api.libs.json._
 import play.api.mvc.{Result, Results}
@@ -7,10 +12,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 package object controllers {
 
-  val internalErrMsg = (msg: String) =>
-    Results.InternalServerError(Json.obj("message" -> msg))
+  val internalErr = (err: MusitError) =>
+    Results.InternalServerError(Json.obj("message" -> err.message))
 
-  val internalErr = (msg: MusitError) => internalErrMsg(msg.message)
+  val badRequestErr = (err: MusitValidationError) =>
+    Results.BadRequest(Json.obj("message" -> err.message))
 
   /**
    * Takes a collection of A's and writes them to a Result with JSON body.
@@ -45,7 +51,9 @@ package object controllers {
       case JsSuccess(at, _) =>
         save(at).map {
           case MusitSuccess(id) => Results.Created(Json.toJson(id))
-          case err: MusitError  => internalErr(err)
+          case err: MusitValidationError =>
+            Results.BadRequest(Json.obj("message" -> err.message))
+          case err: MusitError => internalErr(err)
         }
 
       case err: JsError =>
