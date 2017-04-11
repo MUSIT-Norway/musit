@@ -4,11 +4,13 @@ import com.google.inject.Inject
 import models.{Address, GeoNorwayAddress}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+import no.uio.musit.MusitResults.{MusitHttpError, MusitResult, MusitSuccess}
 import no.uio.musit.ws.ViaProxy.viaProxy
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logger}
+import play.api.http.Status._
 
 import scala.concurrent.Future
 
@@ -21,7 +23,7 @@ class GeoLocationService @Inject()(ws: WSClient)(implicit config: Configuration)
   val geoLocationConfig =
     config.underlying.as[GeoLocationConfig]("musit.geoLocation.geoNorway")
 
-  def searchGeoNorway(expr: String): Future[Seq[Address]] = {
+  def searchGeoNorway(expr: String): Future[MusitResult[Seq[Address]]] = {
 
     ws.url(geoLocationConfig.url)
       .viaProxy
@@ -31,24 +33,39 @@ class GeoLocationService @Inject()(ws: WSClient)(implicit config: Configuration)
       )
       .get()
       .map { response =>
-        logger.debug(s"Got response from geonorge:\n${response.body}")
-        (response.json \ "totaltAntallTreff").asOpt[String].map(_.toInt) match {
-          case Some(numRes) if numRes > 0 =>
-            logger.debug(s"Got $numRes address results.")
-            val jsArr = (response.json \ "adresser").as[JsArray].value
-            jsArr.foldLeft(List.empty[Address]) { (state, ajs) =>
-              Json
-                .fromJson[GeoNorwayAddress](ajs)
-                .asOpt
-                .map { gna =>
-                  state :+ GeoNorwayAddress.asAddress(gna)
-                }
-                .getOrElse(state)
-            }
+        response.status match {
+          case OK =>
+            logger.debug(s"Got response from geonorge:\n${response.body}")
+            val res =
+              (response.json \ "totaltAntallTreff").asOpt[String].map(_.toInt) match {
+                case Some(numRes) if numRes > 0 =>
+                  logger.debug(s"Got $numRes address results.")
+                  val jsArr = (response.json \ "adresser").as[JsArray].value
+                  jsArr.foldLeft(List.empty[Address]) { (state, ajs) =>
+                    Json
+                      .fromJson[GeoNorwayAddress](ajs)
+                      .asOpt
+                      .map { gna =>
+                        state :+ GeoNorwayAddress.asAddress(gna)
+                      }
+                      .getOrElse(state)
+                  }
+
+                case _ =>
+                  logger.debug("Search did not return any results")
+                  Seq.empty
+              }
+
+            MusitSuccess(res)
+
+          case NOT_FOUND =>
+            MusitSuccess(Seq.empty)
 
           case _ =>
-            logger.debug("Search did not return any results")
-            Seq.empty
+            MusitHttpError(
+              status = response.status,
+              message = Option(response.body).getOrElse(response.statusText)
+            )
         }
       }
   }
