@@ -53,9 +53,10 @@ class AuthDao @Inject()(
    */
   def addGroup(g: GroupAdd): Future[MusitResult[Group]] = {
     val gid    = GroupId.generate()
-    val action = grpTable += ((gid, g.name, g.permission, g.museumId, g.description))
+    val action = grpTable +=
+      ((gid, g.name, g.module, g.permission, g.museumId, g.description))
 
-    db.run(action).map(res => MusitSuccess(Group.fromGroupAdd(gid, g))).recover {
+    db.run(action).map(_ => MusitSuccess(Group.fromGroupAdd(gid, g))).recover {
       case NonFatal(ex) =>
         handleError(s"An error occurred inserting new Group ${g.name}", ex)
     }
@@ -72,7 +73,7 @@ class AuthDao @Inject()(
     db.run(query)
       .map { res =>
         MusitSuccess(res.map {
-          case (gid, name, perm, mid, desc) => Group(gid, name, perm, mid, desc)
+          case (gid, name, mod, perm, mid, desc) => Group(gid, name, mod, perm, mid, desc)
         })
       }
       .recover {
@@ -128,7 +129,7 @@ class AuthDao @Inject()(
       ug.feideEmail.toLowerCase === feideEmail && ug.groupId === groupId
     }
     val query = for {
-      (ug, c) <- q join musColTable on (_.collectionId === _.uuid)
+      (_, c) <- q join musColTable on (_.collectionId === _.uuid)
     } yield c
 
     db.run(query.result)
@@ -206,7 +207,7 @@ class AuthDao @Inject()(
     db.run(query.result)
       .map { grps =>
         MusitSuccess(grps.map {
-          case (gid, name, perm, mid, desc) => Group(gid, name, perm, mid, desc)
+          case (gid, name, mod, perm, mid, desc) => Group(gid, name, mod, perm, mid, desc)
         })
       }
       .recover {
@@ -223,7 +224,7 @@ class AuthDao @Inject()(
   def updateGroup(grp: Group): Future[MusitResult[Option[Group]]] = {
     val action = grpTable.filter { g =>
       g.id === grp.id
-    }.update((grp.id, grp.name, grp.permission, grp.museumId, grp.description))
+    }.update((grp.id, grp.name, grp.module, grp.permission, grp.museumId, grp.description))
 
     db.run(action)
       .map {

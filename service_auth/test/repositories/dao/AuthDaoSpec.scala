@@ -20,7 +20,7 @@
 package repositories.dao
 
 import models._
-import no.uio.musit.models.{Email, GroupId}
+import no.uio.musit.models.{Email, GroupId, StorageFacility}
 import no.uio.musit.models.Museums.Test
 import no.uio.musit.security.Permissions
 import no.uio.musit.MusitResults.MusitDbError
@@ -40,7 +40,9 @@ class AuthDaoSpec
   override def beforeAll(): Unit = {
     // add some groups
     for (i <- 1 to 5) {
-      val grp = GroupAdd(s"test$i", Permissions.Write, Test.id, Some(s"test group $i"))
+      val grp = GroupAdd(
+        s"test$i", StorageFacility, Permissions.Write, Test.id, Some(s"test group $i")
+      )
       val res = dao.addGroup(grp).futureValue
 
       addedGroupIds += res.successValue.id
@@ -51,7 +53,9 @@ class AuthDaoSpec
 
     "adding new group data" should {
       "succeed when data is complete" in {
-        val grp = GroupAdd("test6", Permissions.Read, Test.id, Some("test group 6"))
+        val grp = GroupAdd(
+          "test6", StorageFacility, Permissions.Read, Test.id, Some("test group 6")
+        )
         val res = dao.addGroup(grp).futureValue
 
         addedGroupIds += res.successValue.id
@@ -62,7 +66,7 @@ class AuthDaoSpec
       }
 
       "succeed when description isn't set" in {
-        val grp = GroupAdd("test7", Permissions.Write, Test.id, None)
+        val grp = GroupAdd("test7", StorageFacility, Permissions.Write, Test.id, None)
         val res = dao.addGroup(grp).futureValue
 
         res.isSuccess mustBe true
@@ -75,7 +79,7 @@ class AuthDaoSpec
       }
 
       "fail if the name is null" in {
-        val grp = GroupAdd(null, Permissions.Read, Test.id, Some("test group fail")) // scalastyle:ignore
+        val grp = GroupAdd(null, StorageFacility, Permissions.Read, Test.id, Some("test group fail")) // scalastyle:ignore
         dao.addGroup(grp).futureValue match {
           case MusitDbError(msg, ex) =>
             msg must include("An error occurred")
@@ -87,7 +91,7 @@ class AuthDaoSpec
       }
 
       "fail if the permission is null" in {
-        val grp = GroupAdd("testFail", null, Test.id, Some("test group fail")) // scalastyle:ignore
+        val grp = GroupAdd("testFail", StorageFacility, null, Test.id, Some("test group fail")) // scalastyle:ignore
         dao.addGroup(grp).futureValue match {
           case MusitDbError(msg, ex) =>
             msg must include("An error occurred")
