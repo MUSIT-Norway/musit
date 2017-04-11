@@ -2,6 +2,7 @@ package models.loan.event
 
 import models.loan.LoanEventTypes.ObjectLentType
 import no.uio.musit.models.{ExternalRef, ObjectUUID}
+import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
 
@@ -17,7 +18,7 @@ object SaveCommands {
       ObjectsLent(
         id = None,
         loanType = ObjectLentType,
-        eventDate = None,
+        eventDate = Some(dateTimeNow),
         registeredBy = None,
         registeredDate = None,
         partOf = None,

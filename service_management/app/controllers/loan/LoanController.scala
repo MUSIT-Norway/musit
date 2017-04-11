@@ -17,7 +17,8 @@ class LoanController @Inject()(
 
   def createLoan(mid: MuseumId) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      val jsr = request.body.validate[CreateLoanCommand]
+      implicit val currUser = implicitly(request.user)
+      val jsr               = request.body.validate[CreateLoanCommand]
       saveRequest[CreateLoanCommand, Long](jsr) { cmd =>
         loanService.createLoan(mid, cmd.toDomain).map(_.map(_.underlying))
       }
