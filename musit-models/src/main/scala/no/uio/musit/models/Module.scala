@@ -18,7 +18,7 @@ object Module {
   implicit val reads: Reads[Module]   = __.read[Int].map(fromInt)
   implicit val writes: Writes[Module] = Writes{m => JsNumber(m.id)}
 
-  implicit def fromInt(id: Int): Module = id match {
+  def fromInt(id: Int): Module = id match {
     case StorageFacility.id => StorageFacility
     case LoanProcess.id => LoanProcess
   }

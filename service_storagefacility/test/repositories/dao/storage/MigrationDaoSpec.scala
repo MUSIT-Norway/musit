@@ -19,7 +19,7 @@
 
 package repositories.dao.storage
 
-import no.uio.musit.models.{ActorId, GroupId, Museums, StorageNodeDatabaseId}
+import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
@@ -45,6 +45,7 @@ class MigrationDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
           GroupInfo(
             id = GroupId.generate(),
             name = "FooBarGroup",
+            module = StorageFacility,
             permission = Permissions.GodMode,
             museumId = Museums.All.id,
             description = None,
