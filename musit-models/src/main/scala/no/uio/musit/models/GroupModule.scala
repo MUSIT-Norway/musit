@@ -30,6 +30,7 @@ object GroupModule {
   def fromInt(id: Int): Option[GroupModule] = id match {
     case StorageFacility.id => Some(StorageFacility)
     case Loan.id => Some(Loan)
+    case Analysis.id => Some(Analysis)
     case _ => None
   }
 
