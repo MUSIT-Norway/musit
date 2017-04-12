@@ -53,8 +53,7 @@ class AuthDao @Inject()(
    */
   def addGroup(g: GroupAdd): Future[MusitResult[Group]] = {
     val gid    = GroupId.generate()
-    val action = grpTable +=
-      ((gid, g.name, g.module, g.permission, g.museumId, g.description))
+    val action = grpTable += ((gid, g.name, g.module, g.permission, g.museumId, g.description))
 
     db.run(action).map(_ => MusitSuccess(Group.fromGroupAdd(gid, g))).recover {
       case NonFatal(ex) =>
