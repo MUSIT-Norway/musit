@@ -72,7 +72,7 @@ class AuthDao @Inject()(
     db.run(query)
       .map { res =>
         MusitSuccess(res.map {
-          case (gid, name, mod, perm, mid, desc) => Group(gid, name, mod, perm, mid, desc)
+          case (gid, name, module, perm, mid, desc) => Group(gid, name, module, perm, mid, desc)
         })
       }
       .recover {
@@ -206,7 +206,7 @@ class AuthDao @Inject()(
     db.run(query.result)
       .map { grps =>
         MusitSuccess(grps.map {
-          case (gid, name, mod, perm, mid, desc) => Group(gid, name, mod, perm, mid, desc)
+          case (gid, name, module, perm, mid, desc) => Group(gid, name, module, perm, mid, desc)
         })
       }
       .recover {
