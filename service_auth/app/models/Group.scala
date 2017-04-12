@@ -57,8 +57,8 @@ object GroupAdd {
 
   implicit def reads: Reads[GroupAdd] = Json.reads[GroupAdd]
 
-  def applyForm(name: String, m: Int, permInt: Int, mid: Int, maybeDesc: Option[String]) =
-    GroupAdd(name, GroupModule.unsafeFromInt(m), Permission.fromInt(permInt), MuseumId(mid), maybeDesc)
+  def applyForm(name: String, moduleId: Int, permInt: Int, mid: Int, maybeDesc: Option[String]) =
+    GroupAdd(name, GroupModule.unsafeFromInt(moduleId), Permission.fromInt(permInt), MuseumId(mid), maybeDesc)
 
   def unapplyForm(g: GroupAdd) = Some(
     (g.name, g.module.id, g.permission.priority, g.museumId.underlying, g.description)
