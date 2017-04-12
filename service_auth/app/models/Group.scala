@@ -67,7 +67,7 @@ object GroupAdd {
   val groupAddForm = Form(
     mapping(
       "name"        -> text(minLength = 3),
-      "module"      -> number.verifying(id => Try(GroupModule.unsafeFromInt(id)).isSuccess),
+      "module"      -> number.verifying(GroupModule.fromInt(_).nonEmpty),
       "permission"  -> number.verifying(Permission.fromInt(_) != Unspecified),
       "museum"      -> number.verifying(m => Museum.fromMuseumId(MuseumId(m)).nonEmpty),
       "description" -> optional(text)
