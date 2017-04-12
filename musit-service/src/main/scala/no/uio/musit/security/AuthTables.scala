@@ -80,10 +80,10 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
       i => MuseumId.fromInt(i)
     )
 
-  implicit lazy val moduleMapper: BaseColumnType[Module] =
-    MappedColumnType.base[Module, Int](
+  implicit lazy val moduleMapper: BaseColumnType[GroupModule] =
+    MappedColumnType.base[GroupModule, Int](
       m => m.id,
-      i => Module.fromInt(i)
+      i => GroupModule.unsafeFromInt(i)
     )
 
   implicit lazy val permissionMapper: BaseColumnType[Permission] =
@@ -124,7 +124,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
   val musColTable     = TableQuery[MuseumCollectionTable]
   val usrSessionTable = TableQuery[UserSessionTable]
 
-  type GroupDBTuple = ((GroupId, String, Module, Permission, MuseumId, Option[String]))
+  type GroupDBTuple = ((GroupId, String, GroupModule, Permission, MuseumId, Option[String]))
 
   class GroupTable(
       val tag: Tag
@@ -132,7 +132,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
 
     val id          = column[GroupId]("GROUP_UUID", O.PrimaryKey)
     val name        = column[String]("GROUP_NAME")
-    val module      = column[Module]("GROUP_MODULE")
+    val module      = column[GroupModule]("GROUP_MODULE")
     val permission  = column[Permission]("GROUP_PERMISSION")
     val museumId    = column[MuseumId]("GROUP_MUSEUMID")
     val description = column[Option[String]]("GROUP_DESCRIPTION")

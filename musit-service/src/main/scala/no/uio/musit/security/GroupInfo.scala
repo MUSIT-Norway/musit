@@ -20,7 +20,7 @@
 package no.uio.musit.security
 
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.models.{GroupId, Module, MuseumCollection, MuseumId}
+import no.uio.musit.models.{GroupId, GroupModule, MuseumCollection, MuseumId}
 import no.uio.musit.security.Permissions.Permission
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -28,7 +28,7 @@ import play.api.libs.json._
 case class GroupInfo(
     id: GroupId,
     name: String,
-    module: Module,
+    module: GroupModule,
     permission: Permission,
     museumId: MuseumId,
     description: Option[String],
@@ -46,7 +46,7 @@ object GroupInfo {
   implicit val formats: Format[GroupInfo] = (
     (__ \ "id").format[GroupId] and
       (__ \ "name").format[String] and
-      (__ \ "module").format[Module] and
+      (__ \ "module").format[GroupModule] and
       (__ \ "permission").format[Permission] and
       (__ \ "museumId").format[MuseumId] and
       (__ \ "description").formatNullable[String] and
@@ -54,7 +54,7 @@ object GroupInfo {
   )(GroupInfo.apply, unlift(GroupInfo.unapply))
 
   def fromTuple(
-    t: (GroupId, String, Module, Permission, MuseumId, Option[String])
+    t: (GroupId, String, GroupModule, Permission, MuseumId, Option[String])
   ): GroupInfo = {
     GroupInfo(
       id = t._1,

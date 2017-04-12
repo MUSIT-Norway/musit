@@ -44,7 +44,7 @@ class FakeAuthenticator extends Authenticator {
   private case class FakeGroup(
       id: GroupId,
       name: String,
-      module: Module,
+      module: GroupModule,
       permission: Permission,
       museumId: MuseumId,
       description: Option[String],

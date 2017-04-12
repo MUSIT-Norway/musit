@@ -20,7 +20,7 @@
 package models
 
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.models.{GroupId, Module, MuseumId}
+import no.uio.musit.models.{GroupId, GroupModule, MuseumId}
 import no.uio.musit.security.Permissions.{Permission, Unspecified}
 import play.api.data.Form
 import play.api.data.Forms._
@@ -31,7 +31,7 @@ import scala.util.Try
 case class Group(
     id: GroupId,
     name: String,
-    module: Module,
+    module: GroupModule,
     permission: Permission,
     museumId: MuseumId,
     description: Option[String]
@@ -47,7 +47,7 @@ object Group {
 
 case class GroupAdd(
     name: String,
-    module: Module,
+    module: GroupModule,
     permission: Permission,
     museumId: MuseumId,
     description: Option[String]
@@ -58,7 +58,7 @@ object GroupAdd {
   implicit def reads: Reads[GroupAdd] = Json.reads[GroupAdd]
 
   def applyForm(name: String, m: Int, permInt: Int, mid: Int, maybeDesc: Option[String]) =
-    GroupAdd(name, Module.fromInt(m), Permission.fromInt(permInt), MuseumId(mid), maybeDesc)
+    GroupAdd(name, GroupModule.unsafeFromInt(m), Permission.fromInt(permInt), MuseumId(mid), maybeDesc)
 
   def unapplyForm(g: GroupAdd) = Some(
     (g.name, g.module.id, g.permission.priority, g.museumId.underlying, g.description)
@@ -67,7 +67,7 @@ object GroupAdd {
   val groupAddForm = Form(
     mapping(
       "name"        -> text(minLength = 3),
-      "module"      -> number.verifying(id => Try(Module.fromInt(id)).isSuccess),
+      "module"      -> number.verifying(id => Try(GroupModule.unsafeFromInt(id)).isSuccess),
       "permission"  -> number.verifying(Permission.fromInt(_) != Unspecified),
       "museum"      -> number.verifying(m => Museum.fromMuseumId(MuseumId(m)).nonEmpty),
       "description" -> optional(text)
