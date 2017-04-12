@@ -40,9 +40,7 @@ class AuthDaoSpec
   override def beforeAll(): Unit = {
     // add some groups
     for (i <- 1 to 5) {
-      val grp = GroupAdd(
-        s"test$i", StorageFacility, Permissions.Write, Test.id, Some(s"test group $i")
-      )
+      val grp = GroupAdd(s"test$i", StorageFacility, Permissions.Write, Test.id, Some(s"test group $i"))
       val res = dao.addGroup(grp).futureValue
 
       addedGroupIds += res.successValue.id
@@ -53,9 +51,7 @@ class AuthDaoSpec
 
     "adding new group data" should {
       "succeed when data is complete" in {
-        val grp = GroupAdd(
-          "test6", StorageFacility, Permissions.Read, Test.id, Some("test group 6")
-        )
+        val grp = GroupAdd("test6", StorageFacility, Permissions.Read, Test.id, Some("test group 6"))
         val res = dao.addGroup(grp).futureValue
 
         addedGroupIds += res.successValue.id
