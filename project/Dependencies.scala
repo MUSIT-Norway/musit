@@ -47,8 +47,8 @@ object Dependencies {
   }
 
   object Logging {
-    val logbackVersion = "1.1.7"
-    val slf4jVersion   = "1.7.21"
+    val logbackVersion = "1.2.3"
+    val slf4jVersion   = "1.7.25"
     val logback        = "ch.qos.logback" % "logback-classic" % logbackVersion
     val slf4jLibs      = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j")
     val slf4j          = slf4jLibs.map("org.slf4j" % _ % slf4jVersion)
