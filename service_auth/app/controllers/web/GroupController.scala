@@ -26,7 +26,7 @@ import models.UserAuthAdd._
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.{CollectionUUID, Email, GroupId}
+import no.uio.musit.models._
 import no.uio.musit.security.{Authenticator, EncryptedToken}
 import no.uio.musit.security.Permissions._
 import no.uio.musit.security.crypto.MusitCrypto
@@ -37,7 +37,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 import repositories.dao.AuthDao
-
 import controllers.web
 
 import scala.concurrent.Future
@@ -58,6 +57,12 @@ class GroupController @Inject()(
     (Write.priority.toString, Write.productPrefix),
     (Read.priority.toString, Read.productPrefix),
     (Guest.priority.toString, Guest.productPrefix)
+  )
+
+  val allowedModules = scala.collection.immutable.Seq(
+    (StorageFacility.id.toString, StorageFacility.productPrefix),
+    (Analysis.id.toString, Analysis.productPrefix),
+    (Loan.id.toString, Loan.productPrefix)
   )
 
   private def handleNotFound(encTok: EncryptedToken, msg: String): Future[Result] = {
@@ -285,7 +290,7 @@ class GroupController @Inject()(
    */
   def groupAddGet = MusitAdminAction() { implicit request =>
     val encTok = EncryptedToken.fromBearerToken(request.token)
-    Ok(views.html.groupAdd(encTok, groupAddForm, allowedGroups))
+    Ok(views.html.groupAdd(encTok, groupAddForm, allowedGroups, allowedModules))
   }
 
   /**
@@ -298,7 +303,7 @@ class GroupController @Inject()(
     groupAddForm.bindFromRequest.fold(
       formWithErrors => {
         Future.successful(
-          BadRequest(views.html.groupAdd(encTok, formWithErrors, allowedGroups))
+          BadRequest(views.html.groupAdd(encTok, formWithErrors, allowedGroups, allowedModules))
         )
       },
       groupAdd => {
