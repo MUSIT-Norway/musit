@@ -82,7 +82,7 @@ object Dependencies {
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 
   val enumeratumDeps: Seq[ModuleID] = {
-    val enumeratumVersion = "1.5.6"
+    val enumeratumVersion = "1.5.10"
     val libs              = Seq("enumeratum", "enumeratum-play", "enumeratum-play-json")
     libs.map("com.beachape" %% _ % enumeratumVersion)
   }
