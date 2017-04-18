@@ -26,8 +26,6 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{Format, Json, Reads}
 
-import scala.util.Try
-
 case class Group(
     id: GroupId,
     name: String,
@@ -60,9 +58,8 @@ object GroupAdd {
   def applyForm(name: String, moduleId: Int, permInt: Int, mid: Int, maybeDesc: Option[String]) =
     GroupAdd(name, GroupModule.unsafeFromInt(moduleId), Permission.fromInt(permInt), MuseumId(mid), maybeDesc)
 
-  def unapplyForm(g: GroupAdd) = Some(
-    (g.name, g.module.id, g.permission.priority, g.museumId.underlying, g.description)
-  )
+  def unapplyForm(g: GroupAdd) =
+    Some((g.name, g.module.id, g.permission.priority, g.museumId.underlying, g.description))
 
   val groupAddForm = Form(
     mapping(
