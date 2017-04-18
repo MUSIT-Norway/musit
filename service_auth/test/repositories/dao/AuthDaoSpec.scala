@@ -97,6 +97,18 @@ class AuthDaoSpec
             fail("Expected MusitDbError")
         }
       }
+
+      "fail if the module is null" in {
+        val grp = GroupAdd("testFail", null, Permissions.Read, Test.id, Some("test group fail")) // scalastyle:ignore
+        dao.addGroup(grp).futureValue match {
+          case MusitDbError(msg, ex) =>
+            msg must include("An error occurred")
+            ex must not be None
+
+          case err =>
+            fail("Expected MusitDbError")
+        }
+      }
     }
 
     "finding data by GroupId" should {
