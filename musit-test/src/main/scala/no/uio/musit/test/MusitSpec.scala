@@ -1,29 +1,12 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package no.uio.musit.test
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play._
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
+import play.api.libs.ws.WSClient
 import play.api.test.TestServer
 
 /**
@@ -70,7 +53,7 @@ trait MusitSpecWithAppPerTest extends MusitSpecWithApp with OneAppPerTest {
  * *Spec.scala file. This is also the one to use if you
  * bundle tests into a bigger Suite involving more than 1 file.
  */
-trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with OneAppPerSuite {
+trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with GuiceOneAppPerSuite {
   implicit override lazy val app = musitFakeApp
 }
 
@@ -106,6 +89,7 @@ trait MusitSpecWithServerPerSuite
   override lazy val port: Int = generatePort
 
   implicit override lazy val app = musitFakeApp
+  implicit lazy val wsClient     = fromInstanceCache[WSClient]
 
   def beforeTests(): Unit = ()
 

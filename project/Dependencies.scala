@@ -57,8 +57,8 @@ object Dependencies {
   }
 
   object ScalaTest {
-    val scalaTestVersion     = "2.2.6" // "3.0.0"
-    val scalaTestPlusVersion = "1.5.1" // "2.0.0-M1"
+    val scalaTestVersion     = "3.0.1"
+    val scalaTestPlusVersion = "2.0.0"
 
     var scalatestSpec = "org.scalatest" %% "scalatest" % scalaTestVersion
     val scalactic     = "org.scalactic" %% "scalactic" % scalaTestVersion
@@ -69,7 +69,7 @@ object Dependencies {
     val scalatestplus = scalatestplusSpec % Test
   }
 
-  val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % Test
+  val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test
 
   val iheartFicus = "com.iheart"       %% "ficus"       % "1.4.0"
   val scalaGuice  = "net.codingwell"   %% "scala-guice" % "4.1.0"
