@@ -74,7 +74,7 @@ object Dependencies {
   val iheartFicus = "com.iheart"       %% "ficus"       % "1.4.0"
   val scalaGuice  = "net.codingwell"   %% "scala-guice" % "4.1.0"
   val postgresql  = "org.postgresql"   % "postgresql"   % "9.4-1201-jdbc41"
-  val h2database  = "com.h2database"   % "h2"           % "1.4.193"
+  val h2database  = "com.h2database"   % "h2"           % "1.4.194"
   val zxing       = "com.google.zxing" % "core"         % "3.3.0"
   val zxingClient = "com.google.zxing" % "javase"       % "3.3.0" % Test
 
