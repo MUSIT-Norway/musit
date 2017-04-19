@@ -31,7 +31,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   old_barcode       NUMBER(20),
   museum_id         INTEGER                  NOT NULL,
   updated_by        VARCHAR2(36)             NOT NULL,
-  updated_date      TIMESTAMP WITH TIMEZONE  NOT NULL, -- When the change was received by the system
+  updated_date      TIMESTAMP WITH TIME ZONE NOT NULL, -- When the change was received by the system
   PRIMARY KEY (storage_node_id)
 );
 

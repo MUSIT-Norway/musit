@@ -1,22 +1,3 @@
-/*
- *  MUSIT is a museum database to archive natural and cultural history data.
- *  Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License,
- *  or any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 import sbt._
 
 object Dependencies {
@@ -47,8 +28,8 @@ object Dependencies {
   }
 
   object Logging {
-    val logbackVersion = "1.1.7"
-    val slf4jVersion   = "1.7.21"
+    val logbackVersion = "1.2.3"
+    val slf4jVersion   = "1.7.25"
     val logback        = "ch.qos.logback" % "logback-classic" % logbackVersion
     val slf4jLibs      = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j")
     val slf4j          = slf4jLibs.map("org.slf4j" % _ % slf4jVersion)
@@ -57,8 +38,8 @@ object Dependencies {
   }
 
   object ScalaTest {
-    val scalaTestVersion     = "2.2.6" // "3.0.0"
-    val scalaTestPlusVersion = "1.5.1" // "2.0.0-M1"
+    val scalaTestVersion     = "3.0.1"
+    val scalaTestPlusVersion = "2.0.0"
 
     var scalatestSpec = "org.scalatest" %% "scalatest" % scalaTestVersion
     val scalactic     = "org.scalactic" %% "scalactic" % scalaTestVersion
@@ -69,12 +50,11 @@ object Dependencies {
     val scalatestplus = scalatestplusSpec % Test
   }
 
-  val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % Test
+  val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test
 
   val iheartFicus = "com.iheart"       %% "ficus"       % "1.4.0"
   val scalaGuice  = "net.codingwell"   %% "scala-guice" % "4.1.0"
-  val postgresql  = "org.postgresql"   % "postgresql"   % "9.4-1201-jdbc41"
-  val h2database  = "com.h2database"   % "h2"           % "1.4.193"
+  val h2database  = "com.h2database"   % "h2"           % "1.4.194"
   val zxing       = "com.google.zxing" % "core"         % "3.3.0"
   val zxingClient = "com.google.zxing" % "javase"       % "3.3.0" % Test
 
@@ -83,7 +63,7 @@ object Dependencies {
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 
   val enumeratumDeps: Seq[ModuleID] = {
-    val enumeratumVersion = "1.5.6"
+    val enumeratumVersion = "1.5.10"
     val libs              = Seq("enumeratum", "enumeratum-play", "enumeratum-play-json")
     libs.map("com.beachape" %% _ % enumeratumVersion)
   }
@@ -105,7 +85,6 @@ object Dependencies {
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
     PlayFrameWork.slick_play,
     PlayFrameWork.slick_play_ev,
-    postgresql,
     h2database,
     oracle
   )
