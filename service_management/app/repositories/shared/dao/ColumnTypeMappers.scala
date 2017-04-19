@@ -83,7 +83,7 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       str => Json.parse(str)
     )
 
-  implicit val externalREfMapper: BaseColumnType[ExternalRef] =
+  implicit val externalRefMapper: BaseColumnType[ExternalRef] =
     MappedColumnType.base[ExternalRef, String](
       ref => ref.toDbString,
       str => ExternalRef(str)
