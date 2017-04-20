@@ -42,10 +42,8 @@ class SampleObjectControllerIntegrationSpec
       "status"           -> status.identity,
       "responsible"      -> responsibleActor.asString,
       "createdDate"      -> Json.toJson(createdDate),
-      "sampleType"       -> "wood slize",
-      "sampleSubType"    -> "age rings",
-      "size"             -> 12.0,
-      "sizeUnit"         -> "cm3",
+      "sampleType"       -> Json.obj("value" -> "wood slize", "subTypeValue" -> "age rings"),
+      "size"             -> Json.obj("unit" -> "cm3", "value" -> 12.0),
       "container"        -> "box",
       "storageMedium"    -> "alcohol"
     )

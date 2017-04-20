@@ -1,8 +1,6 @@
 package repositories.analysis.dao
 
-import java.sql.{Timestamp => JSqlTimestamp}
-
-import models.analysis.SampleObject
+import models.analysis.{ActorStamp, SampleObject, SampleType, Size}
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
@@ -304,7 +302,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       maybeTuple: Option[ResultRow]
   ): Option[AnalysisResult] =
     maybeTuple.flatMap(fromResultRow)
-
+  //todo add externalIdSource, treatment, residualMaterial, description
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (
       so.objectId.getOrElse(ObjectUUID.generate()),
@@ -317,17 +315,17 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       so.createdDate,
       so.sampleId,
       so.externalId,
-      so.sampleType,
-      so.sampleSubType,
-      so.size,
-      so.sizeUnit,
+      so.sampleType.map(_.value),
+      so.sampleType.flatMap(_.subTypeValue),
+      so.size.map(_.value),
+      so.size.map(_.unit),
       so.container,
       so.storageMedium,
       so.note,
-      so.registeredBy,
-      so.registeredDate,
-      so.updatedBy,
-      so.updatedDate
+      so.registeredStamp.map(_.user),
+      so.registeredStamp.map(_.date),
+      so.updatedStamp.map(_.user),
+      so.updatedStamp.map(_.date)
     )
   }
 
@@ -349,17 +347,22 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       createdDate = tuple._8,
       sampleId = tuple._9,
       externalId = tuple._10,
-      sampleType = tuple._11,
-      sampleSubType = tuple._12,
-      size = tuple._13,
-      sizeUnit = tuple._14,
+      sampleType = tuple._11.map(SampleType(_, tuple._12)),
+      size = for {
+        value <- tuple._13
+        unit  <- tuple._14
+      } yield Size(unit, value),
       container = tuple._15,
       storageMedium = tuple._16,
       note = tuple._17,
-      registeredBy = tuple._18,
-      registeredDate = tuple._19,
-      updatedBy = tuple._20,
-      updatedDate = tuple._21
+      registeredStamp = for {
+        actor    <- tuple._18
+        dateTime <- tuple._19
+      } yield ActorStamp(actor, dateTime),
+      updatedStamp = for {
+        actor    <- tuple._20
+        dateTime <- tuple._21
+      } yield ActorStamp(actor, dateTime)
     )
 
 }

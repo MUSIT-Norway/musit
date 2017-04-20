@@ -1,7 +1,7 @@
 package services.analysis
 
 import models.analysis.events.SampleCreated
-import models.analysis.{SampleObject, SampleStatuses}
+import models.analysis._
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
@@ -51,17 +51,13 @@ class SampleObjectServiceSpec
       createdDate = Some(now),
       sampleId = None,
       externalId = None,
-      sampleType = Some("slize"),
-      sampleSubType = Some("age rings"),
-      size = Some(12.0),
-      sizeUnit = Some("cm2"),
+      sampleType = Some(SampleType("slize", Some("age rings"))),
+      size = Some(Size("cm2", 12.0)),
       container = Some("box"),
       storageMedium = None,
       note = Some("This is a sample note"),
-      registeredBy = Some(dummyActorId),
-      registeredDate = Some(now),
-      updatedBy = None,
-      updatedDate = None
+      registeredStamp = Some(ActorStamp(dummyActorId, now)),
+      updatedStamp = None
     )
   }
 
