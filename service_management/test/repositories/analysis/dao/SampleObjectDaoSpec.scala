@@ -1,5 +1,6 @@
 package repositories.analysis.dao
 
+import models.analysis.ResidualMaterials.{NoResidualMaterial, NotSpecified}
 import models.analysis.events.SampleCreated
 import models.analysis._
 import no.uio.musit.MusitResults.MusitSuccess
@@ -33,11 +34,14 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       responsible = ActorId.generateAsOpt(),
       createdDate = Some(now),
       sampleId = None,
-      externalId = None,
+      externalId = Some(ExternalId("external id", Some("external source"))),
       sampleType = Some(SampleType("slize", Some("age rings"))),
       size = Some(Size("cm2", 12.0)),
       container = Some("box"),
       storageMedium = None,
+      treatment = Some("treatment"),
+      residualMaterial = NoResidualMaterial,
+      description = Some("sample description"),
       note = Some("This is a sample note"),
       registeredStamp = Some(ActorStamp(ActorId.generate(), now)),
       updatedStamp = None

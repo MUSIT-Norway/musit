@@ -1,5 +1,6 @@
 package services.analysis
 
+import models.analysis.ResidualMaterials.NotSpecified
 import models.analysis.events.SampleCreated
 import models.analysis._
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
@@ -55,6 +56,9 @@ class SampleObjectServiceSpec
       size = Some(Size("cm2", 12.0)),
       container = Some("box"),
       storageMedium = None,
+      treatment = None,
+      residualMaterial = NotSpecified,
+      description = None,
       note = Some("This is a sample note"),
       registeredStamp = Some(ActorStamp(dummyActorId, now)),
       updatedStamp = None

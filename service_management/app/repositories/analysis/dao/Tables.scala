@@ -1,6 +1,7 @@
 package repositories.analysis.dao
 
-import models.analysis.{ActorStamp, SampleObject, SampleType, Size}
+import models.analysis.ResidualMaterials.ResidualMaterial
+import models.analysis._
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
@@ -57,15 +58,16 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       Option[String],
       Option[String],
       Option[String],
+      Option[String],
       Option[Double],
       Option[String],
       Option[String],
       Option[String],
       Option[String],
-      Option[ActorId],
-      Option[DateTime],
-      Option[ActorId],
-      Option[DateTime]
+      Option[String],
+      ResidualMaterial,
+      Option[String],
+      (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime])
   )
 
   // scalastyle:on line.size.limit
@@ -159,12 +161,16 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val createdDate      = column[Option[DateTime]]("CREATED_DATE")
     val sampleId         = column[Option[String]]("SAMPLE_ID")
     val externalId       = column[Option[String]]("EXTERNAL_ID")
+    val externalIdSource = column[Option[String]]("EXTERNAL_ID_SOURCE")
     val sampleType       = column[Option[String]]("SAMPLE_TYPE")
     val sampleSubType    = column[Option[String]]("SAMPLE_SUB_TYPE")
     val size             = column[Option[Double]]("SAMPLE_SIZE")
     val sizeUnit         = column[Option[String]]("SAMPLE_SIZE_UNIT")
     val container        = column[Option[String]]("SAMPLE_CONTAINER")
     val storageMedium    = column[Option[String]]("STORAGE_MEDIUM")
+    val treatment        = column[Option[String]]("TREATMENT")
+    val residualMaterial = column[ResidualMaterial]("RESIDUAL_MATERIAL")
+    val description      = column[Option[String]]("DESCRIPTION")
     val note             = column[Option[String]]("NOTE")
     val registeredBy     = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate   = column[Option[DateTime]]("REGISTERED_DATE")
@@ -184,6 +190,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
         createdDate,
         sampleId,
         externalId,
+        externalIdSource,
         sampleType,
         sampleSubType,
         size,
@@ -191,10 +198,10 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
         container,
         storageMedium,
         note,
-        registeredBy,
-        registeredDate,
-        updatedBy,
-        updatedDate
+        treatment,
+        residualMaterial,
+        description,
+        (registeredBy, registeredDate, updatedBy, updatedDate)
       )
 
     // scalastyle:off method.name line.size.limit
@@ -314,7 +321,8 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       so.responsible,
       so.createdDate,
       so.sampleId,
-      so.externalId,
+      so.externalId.map(_.value),
+      so.externalId.flatMap(_.source),
       so.sampleType.map(_.value),
       so.sampleType.flatMap(_.subTypeValue),
       so.size.map(_.value),
@@ -322,10 +330,15 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       so.container,
       so.storageMedium,
       so.note,
-      so.registeredStamp.map(_.user),
-      so.registeredStamp.map(_.date),
-      so.updatedStamp.map(_.user),
-      so.updatedStamp.map(_.date)
+      so.treatment,
+      so.residualMaterial,
+      so.description,
+      (
+        so.registeredStamp.map(_.user),
+        so.registeredStamp.map(_.date),
+        so.updatedStamp.map(_.user),
+        so.updatedStamp.map(_.date)
+      )
     )
   }
 
@@ -346,22 +359,25 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       responsible = tuple._7,
       createdDate = tuple._8,
       sampleId = tuple._9,
-      externalId = tuple._10,
-      sampleType = tuple._11.map(SampleType(_, tuple._12)),
+      externalId = tuple._10.map(ExternalId(_, tuple._11)),
+      sampleType = tuple._12.map(SampleType(_, tuple._13)),
       size = for {
-        value <- tuple._13
-        unit  <- tuple._14
+        value <- tuple._14
+        unit  <- tuple._15
       } yield Size(unit, value),
-      container = tuple._15,
-      storageMedium = tuple._16,
-      note = tuple._17,
+      container = tuple._16,
+      storageMedium = tuple._17,
+      note = tuple._18,
+      treatment = tuple._19,
+      residualMaterial = tuple._20,
+      description = tuple._21,
       registeredStamp = for {
-        actor    <- tuple._18
-        dateTime <- tuple._19
+        actor    <- tuple._22._1
+        dateTime <- tuple._22._2
       } yield ActorStamp(actor, dateTime),
       updatedStamp = for {
-        actor    <- tuple._20
-        dateTime <- tuple._21
+        actor    <- tuple._22._3
+        dateTime <- tuple._22._4
       } yield ActorStamp(actor, dateTime)
     )
 
