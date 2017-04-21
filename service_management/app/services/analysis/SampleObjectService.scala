@@ -1,7 +1,7 @@
 package services.analysis
 
 import com.google.inject.Inject
-import models.analysis.SampleObject
+import models.analysis.{ActorStamp, SampleObject}
 import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
@@ -26,17 +26,16 @@ class SampleObjectService @Inject()(
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[ObjectUUID]] = {
     val sobj = so.copy(
       objectId = ObjectUUID.generateAsOpt(),
-      registeredBy = Some(currUser.id),
-      registeredDate = Some(dateTimeNow)
+      registeredStamp = Some(ActorStamp(currUser.id, dateTimeNow))
     )
 
     if (so.isExtracted) {
       val eventObj = SampleCreated(
         id = None,
-        doneBy = sobj.registeredBy,
-        doneDate = sobj.registeredDate,
-        registeredBy = sobj.registeredBy,
-        registeredDate = sobj.registeredDate,
+        doneBy = sobj.registeredStamp.map(_.user),
+        doneDate = sobj.registeredStamp.map(_.date),
+        registeredBy = sobj.registeredStamp.map(_.user),
+        registeredDate = sobj.registeredStamp.map(_.date),
         objectId = sobj.parentObjectId,
         sampleObjectId = sobj.objectId
       )
@@ -53,10 +52,8 @@ class SampleObjectService @Inject()(
     def enrich(orig: SampleObject) = {
       so.copy(
         objectId = Some(oid),
-        registeredBy = orig.registeredBy,
-        registeredDate = orig.registeredDate,
-        updatedBy = Some(currUser.id),
-        updatedDate = Some(dateTimeNow)
+        registeredStamp = orig.registeredStamp,
+        updatedStamp = Some(ActorStamp(currUser.id, dateTimeNow))
       )
     }
 
