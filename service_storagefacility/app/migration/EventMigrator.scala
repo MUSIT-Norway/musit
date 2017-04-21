@@ -5,7 +5,9 @@ import akka.stream._
 import akka.stream.scaladsl.Source
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.google.inject.{Inject, Singleton}
+import models.storage.event.EventTypeRegistry.TopLevelEvents
 import models.storage.event.EventTypeRegistry.TopLevelEvents._
+import models.storage.event.MusitEvent
 import models.storage.event.control.Control
 import models.storage.event.control.ControlAttributes._
 import models.storage.event.dto.BaseEventDto
@@ -36,7 +38,6 @@ import models.storage.event.old.observation.ObservationSubEvents.{
   ObservationWaterDamageAssessment => OldObsWater
 }
 import models.storage.event.old.observation.{Observation => OldObservation}
-import models.storage.event.{EventTypeRegistry, MusitEvent}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
@@ -345,46 +346,87 @@ final class EventMigrator @Inject()(
   // Call the migrateAll function to trigger the migration code
   migrateAll()
 
-  private def convertAndInsert(
+  private case class MigrationResult(
+      success: Int = 0,
+      errors: Seq[EventId] = Seq.empty
+  )
+
+  private def transform(
       events: Seq[(BaseEventDto, Option[ObjectUUID], Option[MuseumId])]
-  ) = {
-    val fe = Future.sequence {
-      events.map {
-        case (base, moid, mmid) =>
-          EventTypeRegistry.TopLevelEvents.unsafeFromId(base.eventTypeId) match {
-            case MoveObjectType          => convertMoveObject(base, moid, mmid)
-            case MoveNodeType            => convertMoveNode(base)
-            case EnvRequirementEventType => convertEnvReq(base)
-            case ObservationEventType    => convertObs(base)
-            case ControlEventType        => convertCtrl(base)
-          }
+  ): Future[Seq[(EventId, (MuseumId, MusitEvent))]] = Future.sequence {
+    events.map {
+      case (base, moid, mmid) =>
+        val newEvent = TopLevelEvents.unsafeFromId(base.eventTypeId) match {
+          case MoveObjectType          => convertMoveObject(base, moid, mmid)
+          case MoveNodeType            => convertMoveNode(base)
+          case EnvRequirementEventType => convertEnvReq(base)
+          case ObservationEventType    => convertObs(base)
+          case ControlEventType        => convertCtrl(base)
+        }
+        newEvent.map(ne => (base.id.get, ne))
+    }
+  }
+
+  private def isMoveObject(e: MusitEvent): Boolean = {
+    e.eventType.registeredEventId == MoveObjectType.id
+  }
+
+  private def batchSaveMoves(events: Seq[(EventId, (MuseumId, MusitEvent))]) = {
+    if (events.isEmpty) Future.successful(MigrationResult())
+    else {
+      val oldIds = events.map(_._1)
+      val mobs   = events.map(e => (e._2._1, e._2._2.asInstanceOf[MoveObject]))
+      movDao.batchInsertMigratedObjects(mobs).map {
+        case MusitSuccess(ids) => MigrationResult(ids.size, Seq.empty)
+        case err               => MigrationResult(0, oldIds)
       }
     }
+  }
 
-    fe.flatMap { evts =>
-      if (evts.forall(_._2.eventType.registeredEventId == MoveObjectType.id)) {
-        val mobs = evts.map(e => (e._1, e._2.asInstanceOf[MoveObject]))
-        movDao.batchInsertMigratedObjects(mobs)
-      } else {
-        Future.sequence {
-          evts.map {
-            case (mid: MuseumId, e: MoveEvent)      => movDao.insert(mid, e)
-            case (mid: MuseumId, e: EnvRequirement) => envDao.insert(mid, e)
-            case (mid: MuseumId, e: Observation)    => obsDao.insert(mid, e)
-            case (mid: MuseumId, e: Control)        => ctlDao.insert(mid, e)
-          }
-        }.map { results =>
-          val r = results.foldLeft[List[EventId]](List.empty) { (acc, curr) =>
-            curr match {
-              case MusitSuccess(eid) => acc :+ eid
-              case err =>
-                logger.warn(s"Something went wrong inserting an event")
-                acc
-            }
-          }
-          logger.info(s"Wrote ${r.size} of ${events.size}events")
-          MusitSuccess(r)
-        }
+  private def convertAndInsert(
+      events: Seq[(BaseEventDto, Option[ObjectUUID], Option[MuseumId])]
+  ): Future[MigrationResult] = {
+    transform(events).flatMap { evts =>
+      // isolate the MoveObject events so they can be inserted as one big batch.
+      val moveObjEvents = evts.filter(e => isMoveObject(e._2._2))
+      val theRestEvents = evts.filterNot(e => isMoveObject(e._2._2))
+      for {
+        mo <- batchSaveMoves(moveObjEvents).map { mr =>
+               logger.info(s"Wrote ${mr.success} of ${moveObjEvents.size} events")
+               mr
+             }
+        tr <- if (theRestEvents.isEmpty) Future.successful(MigrationResult())
+             else
+               Future.sequence {
+                 theRestEvents.map {
+                   case (oldId: EventId, (mid: MuseumId, e: MoveEvent)) =>
+                     movDao.insert(mid, e).map((oldId, _))
+
+                   case (oldId: EventId, (mid: MuseumId, e: EnvRequirement)) =>
+                     envDao.insert(mid, e).map((oldId, _))
+
+                   case (oldId: EventId, (mid: MuseumId, e: Observation)) =>
+                     obsDao.insert(mid, e).map((oldId, _))
+
+                   case (oldId: EventId, (mid: MuseumId, e: Control)) =>
+                     ctlDao.insert(mid, e).map((oldId, _))
+                 }
+               }.map { results =>
+                 val r = results.foldLeft(MigrationResult()) { (acc, curr) =>
+                   curr match {
+                     case (_, MusitSuccess(eid)) => acc.copy(success = acc.success + 1)
+                     case (oldId, error) =>
+                       logger.warn(s"Something went wrong migrating $oldId")
+                       acc.copy(errors = acc.errors :+ oldId)
+                   }
+                 }
+                 logger.info(s"Wrote ${r.success} of ${theRestEvents.size} events")
+                 r
+               }
+      } yield {
+        val s = mo.success + tr.success
+        val e = mo.errors ++ tr.errors
+        MigrationResult(s, e)
       }
     }
   }
@@ -409,20 +451,30 @@ final class EventMigrator @Inject()(
           rows.head
         }
       }
-      .grouped(500)
-      .runFoldAsync[Int](0) { (acc, curr) =>
-        convertAndInsert(curr).map {
-          case MusitSuccess(ids) => acc + ids.size
-          case _                 => acc
+      .grouped(1000)
+      .runFoldAsync(MigrationResult()) { (acc, curr) =>
+        convertAndInsert(curr).map { res =>
+          acc.copy(
+            success = acc.success + res.success,
+            errors = acc.errors ++ res.errors
+          )
         }
       }
-      .map { numSucceeded =>
+      .map { res =>
         val endTime   = System.currentTimeMillis() milliseconds
         val totalTime = endTime - startTime
         logger.info(
-          s"Migration of $numSucceeded events ran in ${totalTime.toMinutes} minutes"
+          s"Migrated ${res.success} of ${res.success + res.errors.size} events " +
+            s"completed in ${totalTime.toMinutes} minutes"
         )
-        numSucceeded
+
+        if (res.errors.nonEmpty) {
+          logger.error(
+            s"The following old eventIds were not migrated:\n" +
+              s"${res.errors.mkString("[", ", ", "]")}"
+          )
+        }
+        res.success
       }
       .recover {
         case NonFatal(ex) =>

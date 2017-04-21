@@ -70,7 +70,7 @@ CREATE SEQUENCE nevent_sequence
   START WITH 1
   NOMAXVALUE
   NOCYCLE
-  CACHE 10;
+  NOCACHE;
 
 CREATE TABLE MUSARK_STORAGE.NEW_EVENT (
   event_id        NUMBER(20) DEFAULT nevent_sequence.nextval,
