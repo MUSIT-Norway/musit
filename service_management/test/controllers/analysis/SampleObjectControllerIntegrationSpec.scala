@@ -39,20 +39,21 @@ class SampleObjectControllerIntegrationSpec
       "parentObjectType" -> parentObjectType,
       "isExtracted"      -> isExtracted,
       "museumId"         -> Museums.Test.id.underlying,
-      "status"           -> status.identity,
+      "status"           -> status.key,
       "responsible"      -> responsibleActor.asString,
       "createdDate"      -> Json.toJson(createdDate),
-      "sampleType"       -> "wood slize",
-      "sampleSubType"    -> "age rings",
-      "size"             -> 12.0,
-      "sizeUnit"         -> "cm3",
+      "sampleType"       -> Json.obj("value" -> "wood slize", "subTypeValue" -> "age rings"),
+      "size"             -> Json.obj("unit" -> "cm3", "value" -> 12.0),
       "container"        -> "box",
-      "storageMedium"    -> "alcohol"
+      "storageMedium"    -> "alcohol",
+      "residualMaterial" -> 1
     )
     val js2 = maybeId.map(i => js1 ++ Json.obj("objectId"           -> i.asString)).getOrElse(js1)
     val js3 = maybeParent.map(i => js2 ++ Json.obj("parentObjectId" -> i)).getOrElse(js2)
     val js4 = maybeSampleId.map(s => js3 ++ Json.obj("sampleId"     -> s)).getOrElse(js3)
-    val js5 = maybeExtId.map(i => js4 ++ Json.obj("externalId"      -> i)).getOrElse(js4)
+    val js5 = maybeExtId
+      .map(i => js4 ++ Json.obj("externalId" -> Json.obj("value" -> i)))
+      .getOrElse(js4)
     maybeNote.map(n => js5 ++ Json.obj("note" -> n)).getOrElse(js5)
   }
 
@@ -69,7 +70,7 @@ class SampleObjectControllerIntegrationSpec
     (js \ "isExtracted").as[Boolean] mustBe isExtracted
     (js \ "parentObjectId").asOpt[String] mustBe expectedParent
     (js \ "sampleId").asOpt[String] mustBe expectedSampleId
-    (js \ "externalId").asOpt[String] mustBe expectedExtId
+    (js \ "externalId" \ "value").asOpt[String] mustBe expectedExtId
     (js \ "note").asOpt[String] mustBe expectedNote
   }
 
@@ -78,7 +79,7 @@ class SampleObjectControllerIntegrationSpec
     val isExtracted      = (expected \ "isExtracted").as[Boolean]
     val expParent        = (expected \ "parentObjectId").asOpt[String]
     val expSampleId      = (expected \ "sampleId").asOpt[String]
-    val expExtId         = (expected \ "externalId").asOpt[String]
+    val expExtId         = (expected \ "externalId" \ "value").asOpt[String]
     val expNote          = (expected \ "note").asOpt[String]
 
     validateSampleObject(
