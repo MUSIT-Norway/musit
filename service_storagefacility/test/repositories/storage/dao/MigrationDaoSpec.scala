@@ -35,7 +35,7 @@ class MigrationDaoSpec
           else state :+ currId
         }
         .futureValue
-        .size mustBe 260
+        .size mustBe 261
     }
   }
 
