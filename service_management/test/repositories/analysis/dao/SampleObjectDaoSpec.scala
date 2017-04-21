@@ -1,10 +1,11 @@
 package repositories.analysis.dao
 
+import models.analysis.LeftoverSamples.{NoLeftover, NotSpecified}
 import models.analysis.events.SampleCreated
-import models.analysis.{SampleObject, SampleStatuses}
+import models.analysis._
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
-import no.uio.musit.models.{ActorId, EventId, Museums, ObjectUUID}
+import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import org.joda.time.DateTime
@@ -33,18 +34,17 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       responsible = ActorId.generateAsOpt(),
       createdDate = Some(now),
       sampleId = None,
-      externalId = None,
-      sampleType = Some("slize"),
-      sampleSubType = Some("age rings"),
-      size = Some(12.0),
-      sizeUnit = Some("cm2"),
+      externalId = Some(ExternalId("external id", Some("external source"))),
+      sampleType = Some(SampleType("slize", Some("age rings"))),
+      size = Some(Size("cm2", 12.0)),
       container = Some("box"),
       storageMedium = None,
+      treatment = Some("treatment"),
+      residualMaterial = NoLeftover,
+      description = Some("sample description"),
       note = Some("This is a sample note"),
-      registeredBy = ActorId.generateAsOpt(),
-      registeredDate = Some(now),
-      updatedBy = None,
-      updatedDate = None
+      registeredStamp = Some(ActorStamp(ActorId.generate(), now)),
+      updatedStamp = None
     )
   }
 
@@ -147,10 +147,10 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val oid = ObjectUUID.generate()
       val so  = generateSample(oid, None, CollectionObject, isExtracted = true)
       val se = generateSampleEvent(
-        doneBy = so.registeredBy,
-        doneDate = so.registeredDate,
-        registeredBy = so.registeredBy,
-        registeredDate = so.registeredDate,
+        doneBy = so.registeredStamp.map(_.user),
+        doneDate = so.registeredStamp.map(_.date),
+        registeredBy = so.registeredStamp.map(_.user),
+        registeredDate = so.registeredStamp.map(_.date),
         objectId = so.parentObjectId,
         sampleObjectId = so.objectId
       )
