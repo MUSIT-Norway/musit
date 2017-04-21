@@ -1,8 +1,9 @@
 package migration
 
 import akka.actor.ActorSystem
-import akka.stream.Materializer
+import akka.stream._
 import akka.stream.scaladsl.Source
+import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.google.inject.{Inject, Singleton}
 import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import models.storage.event.control.Control
@@ -36,18 +37,21 @@ import models.storage.event.old.observation.ObservationSubEvents.{
 }
 import models.storage.event.old.observation.{Observation => OldObservation}
 import models.storage.event.{EventTypeRegistry, MusitEvent}
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.MigrationDao
+import repositories.storage.dao.MigrationDao.AllEventsRow
 import repositories.storage.dao.events.{ControlDao, EnvReqDao, MoveDao, ObservationDao}
 import repositories.storage.old_dao.{LocalObjectDao => OldLocObjDao}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.control.NonFatal
+
+// TODO: This file can be removed when Migration has been performed.
 
 private[migration] trait TypeMappers {
 
@@ -247,8 +251,8 @@ private[migration] trait EnvReqMappers extends TypeMappers {
 private[migration] trait MoveNodeMappers extends TypeMappers {
 
   def convertMoveNode(dto: BaseEventDto): Future[(MuseumId, MoveNode)] =
-    migrationDao.enrichTopLevelEvent(dto).map { base =>
-      val old = MoveConverters.moveNodeFromDto(base)
+    Future.successful {
+      val old = MoveConverters.moveNodeFromDto(dto)
       mapOldToNew(old)
     }
 
@@ -274,32 +278,26 @@ private[migration] trait MoveObjectMappers extends TypeMappers {
 
   val migrationDao: MigrationDao
 
-  def convertMoveObject(dto: BaseEventDto): Future[(MuseumId, MoveObject)] = {
-    migrationDao.enrichTopLevelEvent(dto).flatMap { base =>
-      val old = MoveConverters.moveObjectFromDto(base)
-      migrationDao
-        .getObjectUUIDsForObjectIds(old.affectedThing.toSeq)
-        .map(idMap => mapOldToNew(old, idMap))
-        .recover {
-          case NonFatal(ex) =>
-            val msg = s"Failed converting old MoveObject event ${old.id}"
-            logger.error(msg, ex)
-            throw ex
-        }
-    }
+  def convertMoveObject(
+      dto: BaseEventDto,
+      moid: Option[ObjectUUID],
+      mmid: Option[MuseumId]
+  ): Future[(MuseumId, MoveObject)] = Future.successful {
+    val old = MoveConverters.moveObjectFromDto(dto)
+    mapOldToNew(old, moid, mmid)
   }
 
   private def mapOldToNew(
       old: OldMoveObject,
-      idMap: Map[ObjectId, (ObjectUUID, MuseumId)]
+      uuid: Option[ObjectUUID],
+      mid: Option[MuseumId]
   ): (MuseumId, MoveObject) = {
     logger.debug(s"Mapping old MoveObject events to new format")
-    val idMid = idMap(old.affectedThing.get)
     val mo = MoveObject(
       id = None,
       doneBy = old.doneBy,
       doneDate = old.doneDate,
-      affectedThing = Option(idMid._1),
+      affectedThing = uuid,
       registeredBy = old.registeredBy,
       registeredDate = old.registeredDate,
       eventType = old.eventType,
@@ -307,7 +305,7 @@ private[migration] trait MoveObjectMappers extends TypeMappers {
       from = old.from.map(o => nodeIdMap(o)._1),
       to = nodeIdMap(old.to)._1
     )
-    (idMid._2, mo)
+    (mid.get, mo)
   }
 }
 
@@ -338,7 +336,8 @@ final class EventMigrator @Inject()(
   implicit val sys = actorSystem
   implicit val mat = materialiser
 
-  // Blocking operation to fetch the nodeId Map
+  // Blocking operation to fetch a map with node DB id, uuid and museumId for
+  // all nodes in the database.
   override val nodeIdMap = Await.result(migrationDao.getAllNodeIds, 5 minutes)
 
   logger.debug(s"Loaded ${nodeIdMap.size} nodes to internal lookup table...")
@@ -346,52 +345,83 @@ final class EventMigrator @Inject()(
   // Call the migrateAll function to trigger the migration code
   migrateAll()
 
+  private def convertAndInsert(
+      events: Seq[(BaseEventDto, Option[ObjectUUID], Option[MuseumId])]
+  ) = {
+    val fe = Future.sequence {
+      events.map {
+        case (base, moid, mmid) =>
+          EventTypeRegistry.TopLevelEvents.unsafeFromId(base.eventTypeId) match {
+            case MoveObjectType          => convertMoveObject(base, moid, mmid)
+            case MoveNodeType            => convertMoveNode(base)
+            case EnvRequirementEventType => convertEnvReq(base)
+            case ObservationEventType    => convertObs(base)
+            case ControlEventType        => convertCtrl(base)
+          }
+      }
+    }
+
+    fe.flatMap { evts =>
+      if (evts.forall(_._2.eventType.registeredEventId == MoveObjectType.id)) {
+        val mobs = evts.map(e => (e._1, e._2.asInstanceOf[MoveObject]))
+        movDao.batchInsertMigratedObjects(mobs)
+      } else {
+        Future.sequence {
+          evts.map {
+            case (mid: MuseumId, e: MoveEvent)      => movDao.insert(mid, e)
+            case (mid: MuseumId, e: EnvRequirement) => envDao.insert(mid, e)
+            case (mid: MuseumId, e: Observation)    => obsDao.insert(mid, e)
+            case (mid: MuseumId, e: Control)        => ctlDao.insert(mid, e)
+          }
+        }.map { results =>
+          val r = results.foldLeft[List[EventId]](List.empty) { (acc, curr) =>
+            curr match {
+              case MusitSuccess(eid) => acc :+ eid
+              case err =>
+                logger.warn(s"Something went wrong inserting an event")
+                acc
+            }
+          }
+          logger.info(s"Wrote ${r.size} of ${events.size}events")
+          MusitSuccess(r)
+        }
+      }
+    }
+  }
+
   def migrateAll(): Future[Int] = {
     val startTime: FiniteDuration = System.currentTimeMillis() milliseconds
 
     logger.warn("Starting data migration of old events")
 
-    val stream = migrationDao.getAllBaseEvents.mapResult { base =>
-      EventTypeRegistry.TopLevelEvents.unsafeFromId(base.eventTypeId) match {
-        case MoveObjectType =>
-          convertMoveObject(base).flatMap(t => movDao.insert(t._1, t._2))
-
-        case MoveNodeType =>
-          convertMoveNode(base).flatMap(t => movDao.insert(t._1, t._2))
-
-        case EnvRequirementEventType =>
-          convertEnvReq(base).flatMap(t => envDao.insert(t._1, t._2))
-
-        case ObservationEventType =>
-          convertObs(base).flatMap(t => obsDao.insert(t._1, t._2))
-
-        case ControlEventType =>
-          convertCtrl(base).flatMap(t => ctlDao.insert(t._1, t._2))
-      }
-    }
+    val stream = migrationDao.streamAllEvents
 
     Source
       .fromPublisher(stream)
-      .groupedWithin(100, 2 minutes)
-      .map(n => Future.sequence(n))
-      .runFoldAsync(0) { (acc, fcurr) =>
-        fcurr.map { curr =>
-          curr.foreach {
-            case MusitSuccess(id) =>
-              logger.debug(s"Successfully migrated event $id")
-
-            case err: MusitError =>
-              logger.warn(s"An error was encountered in the stream: ${err.message}")
+      .via(new EventConcat)
+      .map { rows =>
+        if (rows.size > 1) {
+          rows.reduceLeft { (acc, curr) =>
+            logger.debug(s"merging acc (${acc._1.id}) with curr (${curr._1.id})")
+            (migrationDao.enrichRelations(acc._1, curr), acc._2, acc._3)
           }
-          val batch = acc + curr.count(_.isSuccess)
-          logger.info(s"Successfully migrated $batch events")
-          batch
+        } else {
+          rows.head
+        }
+      }
+      .grouped(500)
+      .runFoldAsync[Int](0) { (acc, curr) =>
+        convertAndInsert(curr).map {
+          case MusitSuccess(ids) => acc + ids.size
+          case _                 => acc
         }
       }
       .map { numSucceeded =>
-        val endTime: FiniteDuration = System.currentTimeMillis() milliseconds
-        val totalTime               = endTime - startTime
-        logger.warn(s"Migration completed in ${totalTime.toMinutes} minutes")
+        val endTime   = System.currentTimeMillis() milliseconds
+        val totalTime = endTime - startTime
+        logger.info(
+          s"Migration of $numSucceeded events ran in ${totalTime.toMinutes} minutes"
+        )
         numSucceeded
       }
       .recover {
@@ -402,6 +432,55 @@ final class EventMigrator @Inject()(
   }
 
   def verify(): Future[MigrationVerification] = migrationDao.countAll()
+
+  final class EventConcat
+      extends GraphStage[FlowShape[AllEventsRow, Seq[AllEventsRow]]] {
+
+    val in  = Inlet[AllEventsRow]("AllEventsConcat.in")
+    val out = Outlet[Seq[AllEventsRow]]("AllEventsConcat.out")
+
+    override def shape = FlowShape.of(in, out)
+
+    override def createLogic(attributes: Attributes) = new GraphStageLogic(shape) {
+
+      // format: off
+      private var currentState: Option[AllEventsRow] = None
+      private val buffer = Vector.newBuilder[AllEventsRow]
+      // format: on
+
+      setHandlers(
+        in = in,
+        out = out,
+        handler = new InHandler with OutHandler {
+          override def onPush(): Unit = {
+            val nextElement = grab(in)
+            val nextId      = nextElement._1.id
+
+            if (currentState.isEmpty || currentState.exists(_._1.id == nextId)) {
+              buffer += nextElement
+              pull(in)
+            } else {
+              val result = buffer.result()
+              buffer.clear()
+              buffer += nextElement
+              push(out, result)
+            }
+            currentState = Some(nextElement)
+          }
+
+          override def onPull(): Unit = pull(in)
+
+          override def onUpstreamFinish(): Unit = {
+            val result = buffer.result()
+            if (result.nonEmpty) emit(out, result)
+            completeStage()
+          }
+        }
+      )
+
+      override def postStop(): Unit = buffer.clear()
+    }
+  }
 
 }
 

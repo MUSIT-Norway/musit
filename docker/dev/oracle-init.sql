@@ -165,7 +165,7 @@ CREATE TABLE MUSARK_STORAGE.ORGANISATION (
 -- ===========================================================================
 -- The NEW StorageFacility event tables
 -- ===========================================================================
-CREATE SEQUENCE nevent_sequence
+CREATE SEQUENCE MUSARK_STORAGE.nevent_sequence
 INCREMENT BY 1
 START WITH 1
 NOMAXVALUE
@@ -173,7 +173,7 @@ NOCYCLE
 CACHE 10;
 
 CREATE TABLE MUSARK_STORAGE.NEW_EVENT (
-  event_id        NUMBER(20) DEFAULT nevent_sequence.nextval,
+  event_id        NUMBER(20) DEFAULT MUSARK_STORAGE.nevent_sequence.nextval,
   type_id         VARCHAR2(36) NOT NULL,
   museum_id       INTEGER,
   event_date      TIMESTAMP    NOT NULL,

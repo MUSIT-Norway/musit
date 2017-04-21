@@ -7,8 +7,9 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   MoveObjectType
 }
 import models.storage.event.move._
-import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models._
+import oracle.net.aso.e
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -24,6 +25,8 @@ class MoveDao @Inject()(
     with EventActions {
 
   val logger = Logger(classOf[MoveDao])
+
+  import profile.api._
 
   /**
    * Writes a new MoveEvent to the database table
@@ -129,5 +132,31 @@ class MoveDao @Inject()(
       MoveObjectType.id,
       limit
     )(fromRow[MoveObject])
+
+  // ==========================================================================
+  // TODO: Remove me after data migration
+  def batchInsertMigratedObjects(
+      moveEvents: Seq[(MuseumId, MoveObject)]
+  ): Future[MusitResult[Seq[EventId]]] = {
+    val actions = DBIO.sequence(moveEvents.map {
+      case (mid, e) =>
+        val row = asRow(mid, e)
+        for {
+          eid <- insertAction(row)
+          _   <- localObjectsDao.storeLatestMoveAction(mid, eid, e)
+        } yield eid
+    })
+
+    db.run(actions.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(
+        nonFatal(
+          "An exception occurred registering a batch move with ids: " +
+            s" ${moveEvents.map(_._2.id.getOrElse("<empty>")).mkString(", ")}"
+        )
+      )
+  }
+  // TODO: Remove until here!
+  // ==========================================================================
 
 }

@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.google.inject.{Inject, Singleton}
 import migration.MigrationVerification
-import models.storage.event.{EventTypeId, EventTypeRegistry}
 import models.storage.event.EventTypeRegistry.ObsSubEvents.{
   ObsHumidityType,
   ObsHypoxicAirType,
@@ -14,15 +13,56 @@ import models.storage.event.EventTypeRegistry.ObsSubEvents.{
 import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import models.storage.event.EventTypeRegistry._
 import models.storage.event.dto._
+import models.storage.event.{EventTypeId, EventTypeRegistry}
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.storage.dao.MigrationDao.{AllEventsRow, AllTupleType}
 import repositories.storage.old_dao.{EventTables => OldEventTables}
 import slick.basic.DatabasePublisher
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
+
+// TODO: This can be removed when Migration has been performed.
+
+object MigrationDao {
+  type AllEventsRow =
+    (BaseEventDto, Option[ObjectUUID], Option[MuseumId])
+
+  import java.sql.{Timestamp => JSqlTimestamp}
+
+  type AllTupleType = (
+      // base
+      Long,
+      Int,
+      JSqlTimestamp,
+      Option[String],
+      Option[Long],
+      Option[Long],
+      Option[String],
+      Option[Double],
+      Option[String],
+      Option[JSqlTimestamp],
+      // actors
+      Option[Int],
+      Option[String],
+      // places
+      Option[Int],
+      Option[Long],
+      // places as obj
+      Option[Int],
+      Option[Long],
+      // objects
+      Option[Int],
+      Option[Long],
+      // object uuid
+      Option[String],
+      // obj museumId
+      Option[Int]
+  )
+}
 
 @Singleton
 class MigrationDao @Inject()(
@@ -59,23 +99,19 @@ class MigrationDao @Inject()(
 
   val objTable = TableQuery[ObjectTable]
 
-  def getObjectUUIDsForObjectIds(
-      ids: Seq[ObjectId]
-  ): Future[Map[ObjectId, (ObjectUUID, MuseumId)]] = {
-    val q = objTable.filter(_.id inSet ids).map(n => (n.id, n.uuid, n.museumId))
-    db.run(q.result)
-      .map(tuples => tuples.map(t => (t._1, (t._2.get, t._3))).toMap)
-      .recover {
-        case NonFatal(ex) =>
-          logger.error("An error occurred fetching ObjectUUIDs", ex)
-          throw ex
-      }
-  }
-
   // We can do this, since there are not that many nodes.
   def getAllNodeIds: Future[Map[StorageNodeDatabaseId, (StorageNodeId, MuseumId)]] = {
     val q = storageNodeTable.map(n => (n.id, n.uuid, n.museumId))
     db.run(q.result).map(tuples => tuples.map(t => (t._1, (t._2.get, t._3))).toMap)
+  }
+
+  def countOld: Future[Int] = {
+    val q = eventBaseTable
+      .filter(_.eventTypeId inSet TopLevelEvents.values.map(_.id))
+      .length
+      .result
+
+    db.run(q)
   }
 
   def countAll(): Future[MigrationVerification] = {
@@ -90,9 +126,7 @@ class MigrationDao @Inject()(
       c <- countType(EnvRequirementEventType.id)
       d <- countType(MoveNodeType.id)
       e <- countType(MoveObjectType.id)
-    } yield {
-      MigrationVerification(a, b, c, d, e)
-    }
+    } yield MigrationVerification(a, b, c, d, e)
 
     db.run(query)
   }
@@ -163,23 +197,14 @@ class MigrationDao @Inject()(
     }
   }
 
-  def getAllBaseEvents: DatabasePublisher[BaseEventDto] = {
-    val q = eventBaseTable
-      .filter(_.eventTypeId inSet TopLevelEvents.values.map(_.id))
-      .sortBy(_.id.asc)
-
-    db.stream(q.result)
-  }
-
   // scalastyle:off
   def enrichTopLevelEvent(dto: BaseEventDto): Future[BaseEventDto] = {
     val t = EventTypeRegistry.unsafeFromId(dto.eventTypeId)
     val query = for {
       actors <- eventActorsTable.filter(_.eventId === dto.id).result
       objects <- t match {
-                  case MoveObjectType =>
-                    eventObjectsTable.filter(_.eventId === dto.id).result
-
+                  case MoveObjectType => DBIO.successful(Seq.empty)
+                  case MoveNodeType   => DBIO.successful(Seq.empty)
                   case _ =>
                     placesAsObjectsTable.filter(_.eventId === dto.id).result.map { rps =>
                       rps.map { rp =>
@@ -201,6 +226,111 @@ class MigrationDao @Inject()(
       )
     }
     db.run(query)
+  }
+
+  private def allEventsQuery = {
+    sql"""
+      SELECT
+        e.EVENT_ID, e.EVENT_TYPE_ID, e.EVENT_DATE, e.NOTE, e.PART_OF,
+        e.VALUE_LONG, e.VALUE_STRING, e.VALUE_FLOAT, e.REGISTERED_BY, e.REGISTERED_DATE,
+        era.ROLE_ID, era.ACTOR_UUID,
+        erp.ROLE_ID, erp.PLACE_ID,
+        erpo.ROLE_ID, erpo.PLACE_ID,
+        ero.ROLE_ID, ero.OBJECT_ID,
+        t.MUSITTHING_UUID, t.MUSEUMID
+      FROM
+        MUSARK_STORAGE.EVENT e
+        LEFT OUTER JOIN MUSARK_STORAGE.EVENT_ROLE_ACTOR era
+        ON e.EVENT_ID = era.EVENT_ID
+        LEFT OUTER JOIN MUSARK_STORAGE.EVENT_ROLE_PLACE erp
+        ON e.EVENT_ID=erp.EVENT_ID
+        LEFT OUTER JOIN MUSARK_STORAGE.EVENT_ROLE_PLACE_AS_OBJECT erpo
+        ON e.EVENT_ID=erpo.EVENT_ID
+        LEFT OUTER JOIN MUSARK_STORAGE.EVENT_ROLE_OBJECT ero
+        ON e.EVENT_ID=ero.EVENT_ID
+        LEFT OUTER JOIN MUSIT_MAPPING.MUSITTHING t
+        ON ero.OBJECT_ID=t.OBJECT_ID
+      WHERE e.EVENT_TYPE_ID IN (1, 2, 3, 4, 5)
+      ORDER BY
+        e.EVENT_ID ASC,
+        erp.ROLE_ID DESC
+      """.as[AllTupleType]
+  }
+
+  def streamAllEvents: DatabasePublisher[AllEventsRow] =
+    db.stream(allEventsQuery, bufferNext = true).mapResult(toDto)
+
+  def getAllEvents: Future[Seq[AllEventsRow]] =
+    db.run(allEventsQuery).map(_.map(toDto))
+
+  def enrichRelations(
+      base: BaseEventDto,
+      rowTuple: AllEventsRow
+  ): BaseEventDto = {
+    val rowBase    = rowTuple._1
+    val relActors  = base.relatedActors ++ rowBase.relatedActors
+    val relPlaces  = base.relatedPlaces ++ rowBase.relatedPlaces
+    val relObjects = base.relatedObjects ++ rowBase.relatedObjects
+
+    base.copy(
+      relatedActors = relActors.distinct,
+      relatedPlaces = relPlaces.distinct,
+      relatedObjects = relObjects.distinct
+    )
+  }
+
+  private def toDto(row: AllTupleType): AllEventsRow = {
+    val eid   = Option(EventId(row._1))
+    val etype = EventTypeRegistry.unsafeFromId(EventTypeId(row._2))
+
+    val relActors = row._11.map { rid =>
+      Seq(EventRoleActor(eid, rid, ActorId.unsafeFromString(row._12.get)))
+    }.getOrElse(Seq.empty)
+
+    val relPlaces = row._13.map { rid =>
+      Seq(
+        EventRolePlace(
+          eid,
+          rid,
+          StorageNodeDatabaseId.fromOptLong(row._14).get,
+          etype.id
+        )
+      )
+    }.getOrElse(Seq.empty)
+
+    val relObjects = {
+      if (row._15.isDefined) {
+        row._15.map { rid =>
+          Seq(EventRoleObject(eid, rid, ObjectId.fromOptLong(row._16).get, etype.id))
+        }
+      } else {
+        row._17.map { rid =>
+          Seq(EventRoleObject(eid, rid, ObjectId.fromOptLong(row._18).get, etype.id))
+        }
+      }
+    }.getOrElse(Seq.empty)
+
+    val objectUUID = row._19.flatMap(ObjectUUID.fromString)
+    val museumId   = row._20.map(MuseumId.fromInt)
+
+    val base = BaseEventDto(
+      id = eid,
+      eventTypeId = etype.id,
+      eventDate = row._3,
+      relatedActors = relActors,
+      relatedObjects = relObjects,
+      relatedPlaces = relPlaces,
+      note = row._4,
+      relatedSubEvents = Seq.empty,
+      partOf = EventId.fromOptLong(row._5),
+      valueLong = row._6,
+      valueString = row._7,
+      valueDouble = row._8,
+      registeredBy = row._9.flatMap(ActorId.fromString),
+      registeredDate = row._10
+    )
+
+    (base, objectUUID, museumId)
   }
 
   // scalastyle:on

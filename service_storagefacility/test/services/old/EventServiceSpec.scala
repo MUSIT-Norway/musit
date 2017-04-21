@@ -38,7 +38,7 @@ class EventServiceSpec
       val c = createControl(defaultBuilding.id)
 
       val ce = controlService.add(defaultMuseumId, defaultBuilding.id.get, c).futureValue
-      ce.successValue.id.value mustBe EventId(1)
+      ce.successValue.id.value mustBe EventId(1L)
     }
 
     "fail when inserting a Control with wrong museumId" in {
@@ -56,7 +56,7 @@ class EventServiceSpec
       val res = obsService.add(defaultMuseumId, defaultBuilding.id.get, obs).futureValue
 
       val theObs = res.successValue
-      theObs.id.value mustBe EventId(9)
+      theObs.id.value mustBe EventId(9L)
 
       theObs.alcohol mustBe obs.alcohol
       theObs.cleaning mustBe obs.cleaning

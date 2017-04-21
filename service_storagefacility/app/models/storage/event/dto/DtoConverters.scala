@@ -661,8 +661,19 @@ object DtoConverters {
         dto: BaseEventDto
     )(init: (EventType, Option[StorageNodeDatabaseId], StorageNodeDatabaseId) => A): A = {
       val eventType = EventType.fromEventTypeId(dto.eventTypeId)
-      val from      = dto.valueLong
-      val to        = dto.relatedPlaces.head.placeId
+      val from: Option[StorageNodeDatabaseId] =
+        dto.valueLong
+          .map(StorageNodeDatabaseId.apply)
+          .orElse(dto.relatedPlaces.find(_.roleId == 4).map(_.placeId))
+      val to = dto.relatedPlaces
+        .find(rid => rid.roleId == 3 || rid.roleId == 1)
+        .map(_.placeId)
+        .getOrElse(
+          throw new IllegalStateException(
+            s"There was an error converting the DTO with id ${dto.id} to a " +
+              s"MoveEvent. Details:\n$dto\n"
+          )
+        )
       init(eventType, from, to)
     }
 

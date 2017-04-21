@@ -37,7 +37,7 @@
   <logger name="controllers" level="ERROR"/>
   <logger name="services" level="ERROR"/>
   <logger name="models" level="ERROR"/>
-  <logger name="migration" level="WARN"/>
+  <logger name="migration" level="ERROR"/>
   <logger name="repositories" level="ERROR"/>
 
   <root level="ERROR">

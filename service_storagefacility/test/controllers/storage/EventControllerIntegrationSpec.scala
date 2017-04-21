@@ -232,7 +232,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     "not allow access to controls and observations if user doesn't have READ " +
       "permission" in {
       val token  = BearerToken(FakeUsers.nhmReadToken)
-      val ctrlId = 2
+      val ctrlId = 2L
       wsUrl(CtrlObsForNodeUrl(mid, 2))
         .withHeaders(token.asHeader)
         .get()
