@@ -5,18 +5,18 @@ import play.api.libs.json._
 object SampleStatuses {
 
   sealed trait SampleStatus {
-    val identity: Int
+    val key: Int
   }
 
   object SampleStatus {
 
     def fromInt(i: Int): Option[SampleStatus] = {
       i match {
-        case Intact.identity       => Some(Intact)
-        case Destroyed.identity    => Some(Destroyed)
-        case Contaminated.identity => Some(Contaminated)
-        case Prepared.identity     => Some(Prepared)
-        case _                     => None
+        case Intact.key       => Some(Intact)
+        case Destroyed.key    => Some(Destroyed)
+        case Contaminated.key => Some(Contaminated)
+        case Prepared.key     => Some(Prepared)
+        case _                => None
       }
     }
 
@@ -29,32 +29,32 @@ object SampleStatuses {
 
     implicit val reads: Reads[SampleStatus] = Reads { jsv =>
       jsv.validate[Int] match {
-        case JsSuccess(Intact.identity, _)       => JsSuccess(Intact)
-        case JsSuccess(Destroyed.identity, _)    => JsSuccess(Destroyed)
-        case JsSuccess(Contaminated.identity, _) => JsSuccess(Contaminated)
-        case JsSuccess(Prepared.identity, _)     => JsSuccess(Prepared)
-        case JsSuccess(bad, p)                   => JsError(p, s"Unknown sample status code $bad")
-        case err: JsError                        => err
+        case JsSuccess(Intact.key, _)       => JsSuccess(Intact)
+        case JsSuccess(Destroyed.key, _)    => JsSuccess(Destroyed)
+        case JsSuccess(Contaminated.key, _) => JsSuccess(Contaminated)
+        case JsSuccess(Prepared.key, _)     => JsSuccess(Prepared)
+        case JsSuccess(bad, p)              => JsError(p, s"Unknown sample status code $bad")
+        case err: JsError                   => err
       }
     }
 
-    implicit val writes: Writes[SampleStatus] = Writes(ss => JsNumber(ss.identity))
+    implicit val writes: Writes[SampleStatus] = Writes(ss => JsNumber(ss.key))
   }
 
   case object Intact extends SampleStatus {
-    override val identity = 1
+    override val key = 1
   }
 
   case object Destroyed extends SampleStatus {
-    override val identity = 2
+    override val key = 2
   }
 
   case object Contaminated extends SampleStatus {
-    override val identity = 3
+    override val key = 3
   }
 
   case object Prepared extends SampleStatus {
-    override val identity = 4
+    override val key = 4
   }
 
 }

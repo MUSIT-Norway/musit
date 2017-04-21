@@ -67,13 +67,13 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   implicit val sampleStatusMapper: BaseColumnType[SampleStatus] =
     MappedColumnType.base[SampleStatus, Int](
-      ssid => ssid.identity,
+      ssid => ssid.key,
       intId => SampleStatus.unsafeFromInt(intId)
     )
 
   implicit val residualMaterialMapper: BaseColumnType[LeftoverSample] =
     MappedColumnType.base[LeftoverSample, Int](
-      rm => rm.identity,
+      rm => rm.key,
       intId => LeftoverSample.unsafeFromInt(intId)
     )
 

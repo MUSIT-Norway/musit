@@ -39,7 +39,7 @@ class SampleObjectControllerIntegrationSpec
       "parentObjectType" -> parentObjectType,
       "isExtracted"      -> isExtracted,
       "museumId"         -> Museums.Test.id.underlying,
-      "status"           -> status.identity,
+      "status"           -> status.key,
       "responsible"      -> responsibleActor.asString,
       "createdDate"      -> Json.toJson(createdDate),
       "sampleType"       -> Json.obj("value" -> "wood slize", "subTypeValue" -> "age rings"),
