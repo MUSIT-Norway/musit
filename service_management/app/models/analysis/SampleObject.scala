@@ -1,6 +1,6 @@
 package models.analysis
 
-import models.analysis.ResidualMaterials.ResidualMaterial
+import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
@@ -30,7 +30,7 @@ case class SampleObject(
     container: Option[String],
     storageMedium: Option[String],
     treatment: Option[String],
-    residualMaterial: ResidualMaterial,
+    residualMaterial: LeftoverSample,
     description: Option[String],
     note: Option[String],
     registeredStamp: Option[ActorStamp],
@@ -59,7 +59,7 @@ case class SaveSampleObject(
     container: Option[String],
     storageMedium: Option[String],
     treatment: Option[String],
-    residualMaterial: ResidualMaterial,
+    residualMaterial: LeftoverSample,
     description: Option[String],
     note: Option[String]
 ) {

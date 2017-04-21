@@ -21,7 +21,7 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   sample_container     VARCHAR2(100),
   storage_medium       VARCHAR2(100),
   treatment            VARCHAR2(100),
-  residual_material    INTEGER DEFAULT 1 NOT NULL,
+  leftover_sample      INTEGER DEFAULT 1        NOT NULL,
   description          VARCHAR2(250),
   note                 VARCHAR2(250),
   registered_by        VARCHAR2(36)             NOT NULL,

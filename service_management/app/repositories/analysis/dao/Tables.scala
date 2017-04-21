@@ -1,6 +1,6 @@
 package repositories.analysis.dao
 
-import models.analysis.ResidualMaterials.ResidualMaterial
+import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis._
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.AnalysisResults.AnalysisResult
@@ -65,7 +65,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       Option[String],
       Option[String],
       Option[String],
-      ResidualMaterial,
+      LeftoverSample,
       Option[String],
       (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime])
   )
@@ -169,7 +169,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val container        = column[Option[String]]("SAMPLE_CONTAINER")
     val storageMedium    = column[Option[String]]("STORAGE_MEDIUM")
     val treatment        = column[Option[String]]("TREATMENT")
-    val residualMaterial = column[ResidualMaterial]("RESIDUAL_MATERIAL")
+    val residualMaterial = column[LeftoverSample]("LEFTOVER_SAMPLE")
     val description      = column[Option[String]]("DESCRIPTION")
     val note             = column[Option[String]]("NOTE")
     val registeredBy     = column[Option[ActorId]]("REGISTERED_BY")

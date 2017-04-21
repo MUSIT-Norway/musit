@@ -1,6 +1,6 @@
 package services.analysis
 
-import models.analysis.ResidualMaterials.NotSpecified
+import models.analysis.LeftoverSamples.NotSpecified
 import models.analysis.events.SampleCreated
 import models.analysis._
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
