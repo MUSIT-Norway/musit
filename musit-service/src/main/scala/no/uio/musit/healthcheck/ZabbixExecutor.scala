@@ -122,7 +122,7 @@ object ZabbixExecutor {
           s"musit-$buildInfoName-$env",
           s"$hostname-$buildInfoName",
           s"$baseUrl/$healthCheckEndpoint",
-          "musit-developer"
+          "siteadmin-uav-itf-ds"
         )
       )
 
