@@ -309,7 +309,6 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       maybeTuple: Option[ResultRow]
   ): Option[AnalysisResult] =
     maybeTuple.flatMap(fromResultRow)
-  //todo add externalIdSource, treatment, residualMaterial, description
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (
       so.objectId.getOrElse(ObjectUUID.generate()),
