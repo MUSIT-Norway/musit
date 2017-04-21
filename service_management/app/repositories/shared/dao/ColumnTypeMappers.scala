@@ -90,9 +90,9 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       str => Json.parse(str)
     )
 
-  implicit val externalRefMapper: BaseColumnType[ExternalRef] =
-    MappedColumnType.base[ExternalRef, String](
+  implicit val caseNumberMapper: BaseColumnType[CaseNumbers] =
+    MappedColumnType.base[CaseNumbers, String](
       ref => ref.toDbString,
-      str => ExternalRef(str)
+      str => CaseNumbers(str)
     )
 }

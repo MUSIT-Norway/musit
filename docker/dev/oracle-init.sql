@@ -401,7 +401,7 @@ CREATE TABLE MUSARK_LOAN.LOAN_EVENT (
   museum_id       INTEGER                  NOT NULL,
   part_of         NUMBER(20),
   object_uuid     VARCHAR2(36),
-  external_ref    VARCHAR2(100),
+  case_numbers    VARCHAR2(100),
   note            VARCHAR2(500),
   event_json      CLOB,
   PRIMARY KEY (event_id),

@@ -2,7 +2,7 @@ package models.loan.event
 
 import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
 import models.loan.LoanType
-import no.uio.musit.models.{ActorId, EventId, ExternalRef, ObjectUUID}
+import no.uio.musit.models.{ActorId, EventId, CaseNumbers, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json._
 
@@ -14,7 +14,7 @@ sealed trait LoanEvent {
   val registeredDate: Option[DateTime]
   val partOf: Option[EventId]
   val objectId: Option[ObjectUUID]
-  val externalRef: Option[ExternalRef]
+  val caseNumbers: Option[CaseNumbers]
   val note: Option[String]
 }
 
@@ -39,7 +39,7 @@ case class ObjectsLent(
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     partOf: Option[EventId],
-    externalRef: Option[ExternalRef],
+    caseNumbers: Option[CaseNumbers],
     note: Option[String],
     returnDate: DateTime,
     objects: Seq[ObjectUUID]
@@ -58,7 +58,7 @@ case class ObjectsReturned(
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     partOf: Option[EventId],
-    externalRef: Option[ExternalRef],
+    caseNumbers: Option[CaseNumbers],
     note: Option[String],
     returnDate: DateTime,
     objects: Seq[ObjectUUID]

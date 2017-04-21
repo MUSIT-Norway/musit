@@ -1,7 +1,7 @@
 package models.loan.event
 
 import models.loan.LoanEventTypes.ObjectLentType
-import no.uio.musit.models.{ExternalRef, ObjectUUID}
+import no.uio.musit.models.{CaseNumbers, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
@@ -9,7 +9,7 @@ import play.api.libs.json.{Format, Json}
 object SaveCommands {
 
   case class CreateLoanCommand(
-      externalRef: Option[ExternalRef],
+      caseNumbers: Option[CaseNumbers],
       note: Option[String],
       returnDate: DateTime,
       objects: Seq[ObjectUUID]
@@ -22,7 +22,7 @@ object SaveCommands {
         registeredBy = None,
         registeredDate = None,
         partOf = None,
-        externalRef = externalRef,
+        caseNumbers = caseNumbers,
         note = note,
         returnDate = returnDate,
         objects = objects

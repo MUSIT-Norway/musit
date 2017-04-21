@@ -35,7 +35,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       MuseumId,
       Option[EventId],
       Option[ObjectUUID],
-      Option[ExternalRef],
+      Option[CaseNumbers],
       Option[String],
       JsValue
   )
@@ -55,7 +55,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val museumId       = column[MuseumId]("MUSEUM_ID")
     val partOf         = column[Option[EventId]]("PART_OF")
     val objectUuid     = column[Option[ObjectUUID]]("OBJECT_UUID")
-    val externalRef    = column[Option[ExternalRef]]("EXTERNAL_REF")
+    val caseNumbers    = column[Option[CaseNumbers]]("CASE_NUMBERS")
     val note           = column[Option[String]]("NOTE")
     val eventJson      = column[JsValue]("EVENT_JSON")
 
@@ -70,7 +70,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
         museumId,
         partOf,
         objectUuid,
-        externalRef,
+        caseNumbers,
         note,
         eventJson
       )
@@ -118,7 +118,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       mid,
       ol.partOf,
       ol.objectId,
-      ol.externalRef,
+      ol.caseNumbers,
       ol.note,
       Json.toJson[ObjectsLent](ol)
     )
@@ -135,7 +135,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     mid,
     returnedObject.partOf,
     returnedObject.objectId,
-    returnedObject.externalRef,
+    returnedObject.caseNumbers,
     returnedObject.note,
     Json.toJson[ObjectsReturned](returnedObject)
   )
