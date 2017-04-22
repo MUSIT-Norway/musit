@@ -27,7 +27,7 @@ import akka.stream.ActorMaterializer
 import no.uio.musit.test.MusitSpec
 import org.joda.time.{DateTime, DateTimeUtils}
 import org.scalatest.BeforeAndAfterEach
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.concurrent.Future
 
@@ -75,12 +75,28 @@ class ZabbixExecutorSpec extends MusitSpec with BeforeAndAfterEach {
       val res = Json.parse(new FileInputStream(zibbixFile.ensureWritableFile()))
       (res \ "updated").as[Long] mustBe latestUpdated
     }
+
+    "write result over old file even when the state changes" in {
+      val folder     = createTempFolder()
+      val zibbixFile = ZabbixFile(folder, "musit-health.json")
+      val executor: ZabbixExecutor =
+        createExecutor(zibbixFile, new FlippingAvailableHealthCheck)
+
+      (1 to 3).foreach { n =>
+        executor.executeHealthChecks().futureValue
+        val res = Json.parse(new FileInputStream(zibbixFile.ensureWritableFile()))
+        res mustBe a[JsObject]
+      }
+    }
   }
 
-  def createExecutor(zabbixFile: ZabbixFile) = {
+  def createExecutor(
+      zabbixFile: ZabbixFile,
+      healthCheck: HealthCheck = new NoopHealthCheck
+  ) = {
     val executor = new ZabbixExecutor(
       zabbixMeta = meta,
-      healthChecks = Set(new NoopHealthCheck()),
+      healthChecks = Set(healthCheck),
       zabbaxFile = zabbixFile,
       actorSystem = actorSystem,
       materializer = materializer
@@ -107,4 +123,20 @@ class NoopHealthCheck() extends HealthCheck {
       message = None
     )
   )
+}
+
+class FlippingAvailableHealthCheck() extends HealthCheck {
+  var available = true
+
+  override def healthCheck() = {
+    available = !available
+    Future.successful(
+      HealthCheckStatus(
+        name = "flipping",
+        available = available,
+        responseTime = 1,
+        message = None
+      )
+    )
+  }
 }

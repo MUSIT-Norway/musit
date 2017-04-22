@@ -20,6 +20,7 @@
 package no.uio.musit.healthcheck
 
 import java.io.File
+import java.nio.file.StandardOpenOption.{CREATE, TRUNCATE_EXISTING, WRITE}
 import java.nio.file.Files
 
 import akka.actor.ActorSystem
@@ -80,7 +81,12 @@ class ZabbixExecutor(
   private def writeToFile(z: Zabbix): Future[IOResult] = {
     val sink = Flow[String]
       .map(s => ByteString(s))
-      .toMat(FileIO.toPath(zabbaxFile.ensureWritableFile().toPath))(Keep.right)
+      .toMat(
+        FileIO.toPath(
+          zabbaxFile.ensureWritableFile().toPath,
+          Set(CREATE, WRITE, TRUNCATE_EXISTING)
+        )
+      )(Keep.right)
 
     Source.fromFuture(Future.successful(Json.prettyPrint(z.toJson))).runWith(sink)
   }
@@ -116,7 +122,7 @@ object ZabbixExecutor {
           s"musit-$buildInfoName-$env",
           s"$hostname-$buildInfoName",
           s"$baseUrl/$healthCheckEndpoint",
-          "musit-developer"
+          "siteadmin-uav-itf-ds"
         )
       )
 
