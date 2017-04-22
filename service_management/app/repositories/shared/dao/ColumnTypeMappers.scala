@@ -2,6 +2,7 @@ package repositories.shared.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
+import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
 import no.uio.musit.models.ObjectTypes.ObjectType
@@ -66,8 +67,14 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   implicit val sampleStatusMapper: BaseColumnType[SampleStatus] =
     MappedColumnType.base[SampleStatus, Int](
-      ssid => ssid.identity,
+      ssid => ssid.key,
       intId => SampleStatus.unsafeFromInt(intId)
+    )
+
+  implicit val residualMaterialMapper: BaseColumnType[LeftoverSample] =
+    MappedColumnType.base[LeftoverSample, Int](
+      rm => rm.key,
+      intId => LeftoverSample.unsafeFromInt(intId)
     )
 
   implicit val jsonMapper: BaseColumnType[JsValue] =
