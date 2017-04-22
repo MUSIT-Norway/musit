@@ -36,7 +36,6 @@ import no.uio.musit.models._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.MigrationDao
-import repositories.storage.old_dao.{LocalObjectDao => OldLocObjDao}
 
 import scala.concurrent.Future
 

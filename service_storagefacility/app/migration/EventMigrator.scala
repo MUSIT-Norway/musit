@@ -3,7 +3,6 @@ package migration
 import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl.Source
-import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.google.inject.{Inject, Singleton}
 import models.storage.event.EventTypeRegistry.TopLevelEvents
 import models.storage.event.EventTypeRegistry.TopLevelEvents._
@@ -17,7 +16,6 @@ import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.MigrationDao
-import repositories.storage.dao.MigrationDao.AllEventsRow
 import repositories.storage.dao.events.{ControlDao, EnvReqDao, MoveDao, ObservationDao}
 import repositories.storage.old_dao.{LocalObjectDao => OldLocObjDao}
 
@@ -58,6 +56,8 @@ final class EventMigrator @Inject()(
   // all nodes in the database.
   override val nodeIdMap = Await.result(migrationDao.getAllNodeIds, 5 minutes)
 
+  private def lastWritten = Await.result(startingPoint, 1 minute)
+
   logger.debug(s"Loaded ${nodeIdMap.size} nodes to internal lookup table...")
 
   // Call the migrateAll function to trigger the migration code
@@ -67,6 +67,12 @@ final class EventMigrator @Inject()(
       success: Int = 0,
       errors: Seq[EventId] = Seq.empty
   )
+
+  private def startingPoint: Future[Option[EventId]] = {
+    migrationDao.lastMigratedEvent
+  }
+
+  private def migrated(ids: Seq[EventId]) = migrationDao.addMigratedEvents(ids)
 
   private def transform(
       events: Seq[(BaseEventDto, Option[ObjectUUID], Option[MuseumId])]
@@ -110,9 +116,10 @@ final class EventMigrator @Inject()(
       for {
         mo <- batchSaveMoves(moveObjEvents).map { mr =>
                logger.info(s"Wrote ${mr.success} of ${moveObjEvents.size} events")
-               mr
+               moveObjEvents.map(_._1) -> mr
              }
-        tr <- if (theRestEvents.isEmpty) Future.successful(MigrationResult())
+        tr <- if (theRestEvents.isEmpty)
+               Future.successful(Seq.empty -> MigrationResult())
              else
                Future.sequence {
                  theRestEvents.map {
@@ -129,20 +136,26 @@ final class EventMigrator @Inject()(
                      ctlDao.insert(mid, e).map((oldId, _))
                  }
                }.map { results =>
-                 val r = results.foldLeft(MigrationResult()) { (acc, curr) =>
-                   curr match {
-                     case (_, MusitSuccess(eid)) => acc.copy(success = acc.success + 1)
-                     case (oldId, error) =>
-                       logger.warn(s"Something went wrong migrating $oldId")
-                       acc.copy(errors = acc.errors :+ oldId)
-                   }
+                 val r = results.foldLeft((List.empty[EventId], MigrationResult())) {
+                   case (acc, curr) =>
+                     curr match {
+                       case (oldId, MusitSuccess(eid)) =>
+                         val oldIds = acc._1 ::: oldId :: Nil
+                         oldIds -> acc._2.copy(success = acc._2.success + 1)
+
+                       case (oldId, error) =>
+                         logger.warn(s"Something went wrong migrating $oldId")
+                         acc._1 -> acc._2.copy(errors = acc._2.errors :+ oldId)
+                     }
                  }
-                 logger.info(s"Wrote ${r.success} of ${theRestEvents.size} events")
+
+                 logger.info(s"Wrote ${r._2.success} of ${theRestEvents.size} events")
                  r
                }
+        _ <- migrated(mo._1 ++ tr._1)
       } yield {
-        val s = mo.success + tr.success
-        val e = mo.errors ++ tr.errors
+        val s = mo._2.success + tr._2.success
+        val e = mo._2.errors ++ tr._2.errors
         MigrationResult(s, e)
       }
     }
@@ -153,7 +166,9 @@ final class EventMigrator @Inject()(
 
     logger.warn("Starting data migration of old events")
 
-    val stream = migrationDao.streamAllEvents
+    val stream = lastWritten
+      .map(l => migrationDao.streamAllEventsFrom(l))
+      .getOrElse(migrationDao.streamAllEvents)
 
     Source
       .fromPublisher(stream)
@@ -201,55 +216,6 @@ final class EventMigrator @Inject()(
   }
 
   def verify(): Future[MigrationVerification] = migrationDao.countAll()
-
-  final class EventConcat
-      extends GraphStage[FlowShape[AllEventsRow, Seq[AllEventsRow]]] {
-
-    val in  = Inlet[AllEventsRow]("AllEventsConcat.in")
-    val out = Outlet[Seq[AllEventsRow]]("AllEventsConcat.out")
-
-    override def shape = FlowShape.of(in, out)
-
-    override def createLogic(attributes: Attributes) = new GraphStageLogic(shape) {
-
-      // format: off
-      private var currentState: Option[AllEventsRow] = None
-      private val buffer = Vector.newBuilder[AllEventsRow]
-      // format: on
-
-      setHandlers(
-        in = in,
-        out = out,
-        handler = new InHandler with OutHandler {
-          override def onPush(): Unit = {
-            val nextElement = grab(in)
-            val nextId      = nextElement._1.id
-
-            if (currentState.isEmpty || currentState.exists(_._1.id == nextId)) {
-              buffer += nextElement
-              pull(in)
-            } else {
-              val result = buffer.result()
-              buffer.clear()
-              buffer += nextElement
-              push(out, result)
-            }
-            currentState = Some(nextElement)
-          }
-
-          override def onPull(): Unit = pull(in)
-
-          override def onUpstreamFinish(): Unit = {
-            val result = buffer.result()
-            if (result.nonEmpty) emit(out, result)
-            completeStage()
-          }
-        }
-      )
-
-      override def postStop(): Unit = buffer.clear()
-    }
-  }
 
 }
 

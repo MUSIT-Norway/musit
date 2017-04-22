@@ -14,6 +14,7 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import models.storage.event.EventTypeRegistry._
 import models.storage.event.dto._
 import models.storage.event.{EventTypeId, EventTypeRegistry}
+import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -95,9 +96,9 @@ class MigrationDao @Inject()(
           Option[Int]
       )
   )
-  // scalastyle:on
 
-  val objTable = TableQuery[ObjectTable]
+  val objTable      = TableQuery[ObjectTable]
+  val migratedTable = TableQuery[MigratedEventsTable]
 
   // We can do this, since there are not that many nodes.
   def getAllNodeIds: Future[Map[StorageNodeDatabaseId, (StorageNodeId, MuseumId)]] = {
@@ -228,7 +229,8 @@ class MigrationDao @Inject()(
     db.run(query)
   }
 
-  private def allEventsQuery = {
+  private def allEventsQuery(eid: Option[EventId] = None) = {
+    val fromIdCond = eid.map(e => s"""AND e.EVENT_ID > ${e.underlying}""").getOrElse("")
     sql"""
       SELECT
         e.EVENT_ID, e.EVENT_TYPE_ID, e.EVENT_DATE, e.NOTE, e.PART_OF,
@@ -251,17 +253,23 @@ class MigrationDao @Inject()(
         LEFT OUTER JOIN MUSIT_MAPPING.MUSITTHING t
         ON ero.OBJECT_ID=t.OBJECT_ID
       WHERE e.EVENT_TYPE_ID IN (1, 2, 3, 4, 5)
+      #${fromIdCond}
       ORDER BY
         e.EVENT_ID ASC,
         erp.ROLE_ID DESC
       """.as[AllTupleType]
   }
 
+  def streamAllEventsFrom(e: EventId): DatabasePublisher[AllEventsRow] = {
+    logger.error(s"Starting to read EventIds > ${e.underlying}")
+    db.stream(allEventsQuery(Some(e)), bufferNext = true).mapResult(toDto)
+  }
+
   def streamAllEvents: DatabasePublisher[AllEventsRow] =
-    db.stream(allEventsQuery, bufferNext = true).mapResult(toDto)
+    db.stream(allEventsQuery(), bufferNext = true).mapResult(toDto)
 
   def getAllEvents: Future[Seq[AllEventsRow]] =
-    db.run(allEventsQuery).map(_.map(toDto))
+    db.run(allEventsQuery()).map(_.map(toDto))
 
   def enrichRelations(
       base: BaseEventDto,
@@ -331,6 +339,31 @@ class MigrationDao @Inject()(
     )
 
     (base, objectUUID, museumId)
+  }
+
+  def addMigratedEvents(ids: Seq[EventId]) = {
+    db.run(migratedTable ++= ids).map(r => r).recover {
+      case NonFatal(ex) =>
+        val msg = s"Could not persist old eventIds for migrated events [$ids]."
+        logger.warn(msg, ex)
+        throw ex
+    }
+  }
+
+  def lastMigratedEvent: Future[Option[EventId]] =
+    db.run(migratedTable.sortBy(_.oldId.asc).max.result)
+
+  /**
+   * Definition of table keeping track of the events that have been migrated.
+   */
+  class MigratedEventsTable(
+      val tag: Tag
+  ) extends Table[EventId](tag, Some("MUSARK_STORAGE"), "MIGRATED_EVENTS") {
+
+    val oldId = column[EventId]("OLD_EVENT_ID", O.PrimaryKey)
+
+    def * = oldId
+
   }
 
   // scalastyle:on

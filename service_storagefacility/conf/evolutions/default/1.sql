@@ -96,6 +96,13 @@ CREATE TABLE MUSARK_STORAGE.NEW_LOCAL_OBJECT (
   FOREIGN KEY (latest_move_id) REFERENCES MUSARK_STORAGE.NEW_EVENT (event_id)
 );
 
+-- TODO: This table can be removed after migration is completed and
+-- all API's have been updated to use the new backend code.
+CREATE TABLE MUSARK_STORAGE.MIGRATED_EVENTS (
+  old_event_id NUMBER(20) NOT NULL,
+  PRIMARY KEY (old_event_id)
+);
+
 -- ===========================================================================
 -- Event specific tables.
 -- ===========================================================================

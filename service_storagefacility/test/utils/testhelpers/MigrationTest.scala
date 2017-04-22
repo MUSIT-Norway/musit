@@ -7,7 +7,12 @@ import models.storage.event.old.move.{
   MoveNode => OldMoveNode,
   MoveObject => OldMoveObject
 }
-import no.uio.musit.MusitResults.{MusitDbError, MusitSuccess, MusitValidationError}
+import no.uio.musit.MusitResults.{
+  MusitDbError,
+  MusitEmpty,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithApp
 import no.uio.musit.test.matchers.MusitResultValues
@@ -39,8 +44,12 @@ trait MigrationTest extends MusitResultValues {
   val envReqService: OldEnvReqService = fromInstanceCache[OldEnvReqService]
   val oldLocDao: OldLocObjDao         = fromInstanceCache[OldLocObjDao]
 
-  // scalastyle:off method.length line.size.limit
-  def bootstrap(): Future[Int] = {
+  // scalastyle:off
+  def bootstrap(
+      idStart: Int = 1,
+      maxId: Int = 50,
+      includeObjects: Boolean = true
+  ): Future[Int] = {
     val maybeNodeId0 = Option(StorageNodeDatabaseId(4))
     val maybeNodeId1 = Option(StorageNodeDatabaseId(17L))
     val maybeNodeId2 = Option(StorageNodeDatabaseId(10L))
@@ -56,15 +65,21 @@ trait MigrationTest extends MusitResultValues {
     // format: off
     val ctrls = (1 to 50).map(_ => createControl(maybeNodeId1))
     val obs = (1 to 50).map(_ => createObservation(maybeNodeId1))
-    val envRes = (1 to 50).map(i => createEnvRequirement(maybeNodeId2, Some(s"Note $i")))
+    val envReqs = (idStart to maxId).map(i => createEnvRequirement(maybeNodeId2, Some(s"Note $i")))
     val mnds =
       (
         (11 to 15).map(i => createMoveNode(Some(StorageNodeDatabaseId(i.toLong)), maybeNodeId0, maybeNodeId2.get)),
-        (11 to 15).map(i => createMoveNode(Some(StorageNodeDatabaseId(i.toLong)), maybeNodeId2, maybeNodeId3.get))
+        (11 to 15).map(i => createMoveNode(Some(StorageNodeDatabaseId(i.toLong)), maybeNodeId2, maybeNodeId3.get)),
+        (11 to 15).map(i => createMoveNode(Some(StorageNodeDatabaseId(i.toLong)), maybeNodeId3, maybeNodeId2.get)),
+        (11 to 15).map(i => createMoveNode(Some(StorageNodeDatabaseId(i.toLong)), maybeNodeId2, maybeNodeId0.get))
       )
     val mods =
-      (1 to 50).map(i => createMoveObject(Option(ObjectId(i.toLong)), None, maybeNodeId1.get)) ++
-        (1 to 50).map(i => createMoveObject(Option(ObjectId(i.toLong)), maybeNodeId1, maybeNodeId2.get))
+      if (!includeObjects) {
+        Seq.empty[OldMoveObject]
+      } else {
+        (1 to 50).map(i => createMoveObject(Option(ObjectId(i.toLong)), None, maybeNodeId1.get)) ++
+          (1 to 50).map(i => createMoveObject(Option(ObjectId(i.toLong)), maybeNodeId1, maybeNodeId2.get))
+      }
     // format: on
 
     for {
@@ -75,7 +90,7 @@ trait MigrationTest extends MusitResultValues {
              obs.map(o => obsService.add(defaultMuseumId, o.affectedThing.get, o))
            )
       er <- Future.sequence(
-             envRes.map(e => envReqService.add(defaultMuseumId, e))
+             envReqs.map(e => envReqService.add(defaultMuseumId, e))
            )
       m1 <- Future.sequence(mnds._1.map {
              case mn: OldMoveNode =>
@@ -95,42 +110,59 @@ trait MigrationTest extends MusitResultValues {
              case _ =>
                Future.successful(MusitValidationError("Not possible in this case"))
            })
-
-      m4 <- {
-        val oid = ObjectId(10L)
-        val mo  = createMoveObject(Some(oid), maybeNodeId2, maybeNodeId3.get)
-        val dto = DtoConverters.MoveConverters.moveObjectToDto(mo)
-        val fromPlace = Seq(
-          EventRolePlace(
-            eventId = None,
-            roleId = 4,
-            placeId = maybeNodeId2.get,
-            eventTypeId = dto.eventTypeId
-          )
-        )
-        val cp = dto.copy(
-          valueLong = None,
-          relatedPlaces = dto.relatedPlaces ++ fromPlace
-        )
-        oldEventDao.insertEvent(defaultMuseumId, cp).map(MusitSuccess.apply).recover {
-          case NonFatal(ex) => MusitDbError(ex.getMessage, Option(ex))
-        }
-      }
+      m4 <- Future.sequence(mnds._3.map {
+             case mn: OldMoveNode =>
+               nodeService.moveNodes(defaultMuseumId, mn.to, Seq(mn))
+             case _ =>
+               Future.successful(MusitValidationError("Not possible in this case"))
+           })
+      m5 <- Future.sequence(mnds._4.map {
+             case mn: OldMoveNode =>
+               nodeService.moveNodes(defaultMuseumId, mn.to, Seq(mn))
+             case _ =>
+               Future.successful(MusitValidationError("Not possible in this case"))
+           })
+      m6 <- if (!includeObjects) {
+             Future.successful(MusitEmpty)
+           } else {
+             val oid = ObjectId(10L)
+             val mo  = createMoveObject(Some(oid), maybeNodeId2, maybeNodeId3.get)
+             val dto = DtoConverters.MoveConverters.moveObjectToDto(mo)
+             val fromPlace = Seq(
+               EventRolePlace(
+                 eventId = None,
+                 roleId = 4,
+                 placeId = maybeNodeId2.get,
+                 eventTypeId = dto.eventTypeId
+               )
+             )
+             val cp = dto.copy(
+               valueLong = None,
+               relatedPlaces = dto.relatedPlaces ++ fromPlace
+             )
+             oldEventDao
+               .insertEvent(defaultMuseumId, cp)
+               .map(MusitSuccess.apply)
+               .recover {
+                 case NonFatal(ex) => MusitDbError(ex.getMessage, Option(ex))
+               }
+           }
     } yield {
-      val attempted = cs.size + os.size + er.size + m1.size + m2.size + m3.size + 1
-
+      val successfulBadMv = if (m6.isSuccess && includeObjects) 1 else 0
       val successfulCtrls = cs.count(_.isSuccess)
       val successfulObs   = os.count(_.isSuccess)
       val successfulEnvs  = er.count(_.isSuccess)
-      val successfulMvn   = (m1 ++ m3).count(_.isSuccess)
-      val successfulMvo   = m2.count(_.isSuccess)
-      val successfulBadMv = if (m4.isSuccess) 1 else 0
+      val successfulMvn   = (m1 ++ m3 ++ m4 ++ m5).count(_.isSuccess)
+      val successfulMvo   = if (mods.nonEmpty) m2.count(_.isSuccess) else 0
+
+      val attempted =
+        ctrls.size + obs.size + envReqs.size + mnds._1.size + mnds._2.size +
+          mnds._3.size + mnds._4.size + mods.size + successfulBadMv
 
       val successful = successfulCtrls + successfulObs + successfulEnvs + successfulMvn + successfulMvo + successfulBadMv
 
       val failed = attempted - successful
 
-      // scalastyle:off
       println(
         s"""
            |There were $successful successful insertions and $failed failures
@@ -143,10 +175,9 @@ trait MigrationTest extends MusitResultValues {
            |move object     = ${successfulMvo + successfulBadMv}
            |""".stripMargin
       )
-      // scalastyle:on
-
       successful
     }
   }
+  // scalastyle:on
 
 }

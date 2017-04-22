@@ -97,6 +97,13 @@ CREATE TABLE MUSARK_STORAGE.NEW_LOCAL_OBJECT (
   -- We do not enforce foreign key constraints here to make testing easier.
 );
 
+-- TODO: This table can be removed after migration is completed and
+-- all API's have been updated to use the new backend code.
+CREATE TABLE MUSARK_STORAGE.MIGRATED_EVENTS (
+  old_event_id NUMBER(20) NOT NULL,
+  PRIMARY KEY (old_event_id)
+);
+
 -- ===========================================================================
 -- Event specific tables.
 --
