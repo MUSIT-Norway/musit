@@ -57,7 +57,7 @@ class SampleObjectServiceSpec
       container = Some("box"),
       storageMedium = None,
       treatment = None,
-      residualMaterial = NotSpecified,
+      leftoverSample = NotSpecified,
       description = None,
       note = Some("This is a sample note"),
       registeredStamp = Some(ActorStamp(dummyActorId, now)),

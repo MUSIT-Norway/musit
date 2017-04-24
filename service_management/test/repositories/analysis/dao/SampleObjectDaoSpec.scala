@@ -40,7 +40,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       container = Some("box"),
       storageMedium = None,
       treatment = Some("treatment"),
-      residualMaterial = NoLeftover,
+      leftoverSample = NoLeftover,
       description = Some("sample description"),
       note = Some("This is a sample note"),
       registeredStamp = Some(ActorStamp(ActorId.generate(), now)),
