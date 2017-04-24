@@ -67,10 +67,7 @@ class AnalysisService @Inject()(
   private def addAnalysis(
       a: SaveAnalysis
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    val analysis = a.asDomain.copy(
-      registeredBy = Some(currUser.id),
-      registeredDate = Some(dateTimeNow)
-    )
+    val analysis = a.asDomain
     analysisDao.insert(analysis)
   }
 
@@ -80,22 +77,7 @@ class AnalysisService @Inject()(
   private def addAnalysisCollection(
       ac: SaveAnalysisCollection
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    val now = Some(dateTimeNow)
-    val d   = ac.asDomain
-    val acol = d.copy(
-      registeredBy = Some(currUser.id),
-      registeredDate = now,
-      events = d.events.map(
-        _.copy(
-          registeredBy = Some(currUser.id),
-          registeredDate = now
-        )
-      ),
-      restriction = d.restriction.map(
-        _.copy(registeredStamp = Some(ActorStamp(currUser.id, dateTimeNow)))
-      )
-    )
-    analysisDao.insertCol(acol)
+    analysisDao.insertCol(ac.asDomain)
   }
 
   /**
