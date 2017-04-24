@@ -1,6 +1,7 @@
 package services.analysis
 
 import com.google.inject.Inject
+import models.analysis.ActorStamp
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events.SaveCommands.{
   SaveAnalysis,
@@ -89,6 +90,9 @@ class AnalysisService @Inject()(
           registeredBy = Some(currUser.id),
           registeredDate = now
         )
+      ),
+      restriction = d.restriction.map(
+        _.copy(registeredStamp = Some(ActorStamp(currUser.id, dateTimeNow)))
       )
     )
     analysisDao.insertCol(acol)

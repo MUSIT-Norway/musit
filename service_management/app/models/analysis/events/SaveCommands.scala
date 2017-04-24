@@ -1,5 +1,6 @@
 package models.analysis.events
 
+import models.analysis.ActorStamp
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
@@ -99,6 +100,17 @@ object SaveCommands {
 
   }
 
+  case class SaveRestriction(
+      requester: String,
+      expirationDate: DateTime,
+      reason: String,
+      caseNumbers: Option[Seq[String]] = None
+  )
+
+  object SaveRestriction {
+    implicit val reads: Reads[SaveRestriction] = Json.reads[SaveRestriction]
+  }
+
   case class SaveAnalysisCollection(
       analysisTypeId: AnalysisTypeId,
       doneBy: Option[ActorId],
@@ -109,7 +121,8 @@ object SaveCommands {
       completedBy: Option[ActorId],
       completedDate: Option[DateTime],
       // TODO: Add field for status
-      objectIds: Seq[ObjectUUID]
+      objectIds: Seq[ObjectUUID],
+      restriction: Option[Restriction]
   ) extends SaveAnalysisEventCommand {
 
     override type A = AnalysisCollection
@@ -130,6 +143,16 @@ object SaveCommands {
         completedDate = completedDate,
         note = note,
         result = None,
+        restriction = restriction.map(
+          r =>
+            Restriction(
+              requester = r.requester,
+              expirationDate = r.expirationDate,
+              reason = r.reason,
+              caseNumbers = r.caseNumbers,
+              registeredStamp = None
+          )
+        ),
         events = this.objectIds.map { oid =>
           Analysis(
             id = None,
@@ -166,7 +189,28 @@ object SaveCommands {
         updatedDate = Some(dateTimeNow),
         completedBy = completedBy,
         completedDate = completedDate,
-        note = note
+        note = note,
+        restriction = restriction.map(
+          r =>
+            a.restriction
+              .map(
+                _.copy(
+                  requester = r.requester,
+                  expirationDate = r.expirationDate,
+                  reason = r.reason,
+                  caseNumbers = r.caseNumbers
+                )
+              )
+              .getOrElse(
+                Restriction(
+                  requester = r.requester,
+                  expirationDate = r.expirationDate,
+                  reason = r.reason,
+                  caseNumbers = r.caseNumbers,
+                  registeredStamp = Some(ActorStamp(cu.id, dateTimeNow))
+                )
+            )
+        )
       )
     }
   }
