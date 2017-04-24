@@ -13,7 +13,7 @@ object SaveCommands {
   sealed trait AnalysisEventCommand {
     type A <: AnalysisEvent
 
-    def asDomain: AnalysisEvent
+    def asDomain(implicit currUser: AuthenticatedUser): AnalysisEvent
 
     def updateDomain(a: A)(implicit cu: AuthenticatedUser): A
   }
@@ -56,14 +56,14 @@ object SaveCommands {
 
     override type A = Analysis
 
-    override def asDomain: Analysis = {
+    override def asDomain(implicit currUser: AuthenticatedUser): Analysis = {
       Analysis(
         id = None,
         analysisTypeId = analysisTypeId,
         doneBy = doneBy,
         doneDate = doneDate,
-        registeredBy = None,
-        registeredDate = None,
+        registeredBy = Some(currUser.id),
+        registeredDate = Some(dateTimeNow),
         objectId = Some(objectId),
         responsible = responsible,
         administrator = administrator,
@@ -127,14 +127,15 @@ object SaveCommands {
 
     override type A = AnalysisCollection
 
-    override def asDomain: AnalysisCollection = {
+    override def asDomain(implicit currUser: AuthenticatedUser): AnalysisCollection = {
+      val now = dateTimeNow
       AnalysisCollection(
         id = None,
         analysisTypeId = analysisTypeId,
         doneBy = doneBy,
         doneDate = doneDate,
-        registeredBy = None,
-        registeredDate = None,
+        registeredBy = Some(currUser.id),
+        registeredDate = Some(now),
         responsible = responsible,
         administrator = administrator,
         updatedBy = None,
@@ -150,7 +151,7 @@ object SaveCommands {
               expirationDate = r.expirationDate,
               reason = r.reason,
               caseNumbers = r.caseNumbers,
-              registeredStamp = None
+              registeredStamp = Some(ActorStamp(currUser.id, now))
           )
         ),
         events = this.objectIds.map { oid =>
@@ -159,8 +160,8 @@ object SaveCommands {
             analysisTypeId = analysisTypeId,
             doneBy = doneBy,
             doneDate = doneDate,
-            registeredBy = None,
-            registeredDate = None,
+            registeredBy = Some(currUser.id),
+            registeredDate = Some(now),
             objectId = Option(oid),
             responsible = responsible,
             administrator = administrator,
