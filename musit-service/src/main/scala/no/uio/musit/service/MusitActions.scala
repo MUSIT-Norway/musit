@@ -19,14 +19,10 @@
 
 package no.uio.musit.service
 
-import no.uio.musit.MusitResults.{
-  MusitNotAuthenticated,
-  MusitNotAuthorized,
-  MusitSuccess
-}
+import no.uio.musit.MusitResults.{MusitNotAuthenticated, MusitNotAuthorized, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.MuseumId
+import no.uio.musit.models.{GroupModule, MuseumId}
 import no.uio.musit.models.Museums._
 import no.uio.musit.security.Permissions.{ElevatedPermission, MusitAdmin, Permission}
 import no.uio.musit.security.crypto.MusitCrypto
@@ -129,10 +125,12 @@ trait MusitActions {
    * a {{{Result}}} with HTTP Forbidden is returned.
    *
    * @param museumId    An Option with the MuseumId for which the request wants info
+   * @param module      An Option with the Module the request is limited to serve
    * @param permissions Varargs of Permission restrict who is authorized.
    */
   case class MusitSecureAction(
       museumId: Option[MuseumId],
+      module: Option[GroupModule],
       permissions: Permission*
   ) extends BaseSecureAction {
     override def refine[T](request: Request[T]): MusitActionResultF[T] = {
@@ -141,7 +139,7 @@ trait MusitActions {
         museum match {
           case Some(m) =>
             authUser
-              .authorize(m, permissions)
+              .authorize(m, module, permissions)
               .map { empty =>
                 Right(MusitRequest(authUser, token, museum, request))
               }
@@ -163,16 +161,18 @@ trait MusitActions {
 
   object MusitSecureAction {
 
-    def apply(): MusitSecureAction = MusitSecureAction(None)
+    def apply(): MusitSecureAction = MusitSecureAction(None, None)
 
-    def apply(mid: MuseumId): MusitSecureAction = MusitSecureAction(Some(mid))
+    def apply(mid: MuseumId): MusitSecureAction = MusitSecureAction(Some(mid), None)
 
     def apply(permissions: Permission*): MusitSecureAction =
-      MusitSecureAction(None, permissions: _*)
+      MusitSecureAction(None, None, permissions: _*)
 
     def apply(mid: MuseumId, permissions: Permission*): MusitSecureAction =
-      MusitSecureAction(Some(mid), permissions: _*)
+      MusitSecureAction(Some(mid), None, permissions: _*)
 
+    def apply(mid: MuseumId, module: GroupModule, permissions: Permission*): MusitSecureAction =
+      MusitSecureAction(Some(mid), Some(module), permissions: _*)
   }
 
 }
@@ -195,6 +195,7 @@ trait MusitAdminActions extends MusitActions {
    */
   case class MusitAdminAction(
       museumId: Option[MuseumId],
+      module: Option[GroupModule],
       permissions: ElevatedPermission*
   ) extends BaseSecureAction {
 
@@ -210,7 +211,7 @@ trait MusitAdminActions extends MusitActions {
 
       auth(request, museumId, maybeToken) { (token, userInfo, authUser, museum) =>
         authUser
-          .authorizeAdmin(museum, permissions)
+          .authorizeAdmin(museum, module, permissions)
           .map { empty =>
             Right(MusitRequest(authUser, token, museum, request))
           }
@@ -225,13 +226,13 @@ trait MusitAdminActions extends MusitActions {
   object MusitAdminAction {
     def apply(): MusitAdminAction = MusitAdminAction(permissions = MusitAdmin)
 
-    def apply(mid: MuseumId): MusitAdminAction = MusitAdminAction(Some(mid))
+    def apply(mid: MuseumId): MusitAdminAction = MusitAdminAction(Some(mid), None)
 
     def apply(permissions: ElevatedPermission*): MusitAdminAction =
-      MusitAdminAction(None, permissions: _*)
+      MusitAdminAction(None, None, permissions: _*)
 
     def apply(mid: MuseumId, permissions: ElevatedPermission*): MusitAdminAction =
-      MusitAdminAction(Some(mid), permissions: _*)
+      MusitAdminAction(Some(mid), None, permissions: _*)
   }
 
 }

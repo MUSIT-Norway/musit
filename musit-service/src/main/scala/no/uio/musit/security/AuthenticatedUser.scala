@@ -20,7 +20,7 @@
 package no.uio.musit.security
 
 import no.uio.musit.models.Museums.{All, Museum}
-import no.uio.musit.models.{ActorId, CollectionUUID, MuseumCollection, MuseumId}
+import no.uio.musit.models._
 import no.uio.musit.security.Permissions.{ElevatedPermission, GodMode, Permission}
 import no.uio.musit.MusitResults.{MusitNotAuthorized, MusitResult, MusitSuccess}
 import play.api.Logger
@@ -54,6 +54,7 @@ case class AuthenticatedUser(
 
   private def authorizeUser(
       museum: Museum,
+      module: Option[GroupModule],
       permissions: Seq[Permission]
   ): MusitResult[Unit] = {
     val lowest = lowestPermission(permissions)
@@ -62,8 +63,9 @@ case class AuthenticatedUser(
       logger.debug(s"User with GodMode accessing system.")
       MusitSuccess(())
     } else if (isAuthorizedFor(museum)) {
-      val allowed = permissionsFor(museum).exists(_.priority >= lowest.priority)
-      if (allowed) MusitSuccess(())
+      val allowedForPermissions = permissionsFor(museum).exists(_.priority >= lowest.priority)
+      val allowedForModule = module.foldLeft(true)((_, m) => this.groups.exists(_.module == m))
+      if (allowedForPermissions && allowedForModule) MusitSuccess(())
       else MusitNotAuthorized()
     } else {
       MusitNotAuthorized()
@@ -84,15 +86,17 @@ case class AuthenticatedUser(
 
   def authorize(
       museum: Museum,
+      module: Option[GroupModule],
       permissions: Seq[Permission]
-  ): MusitResult[Unit] = authorizeUser(museum, permissions)
+  ): MusitResult[Unit] = authorizeUser(museum, module, permissions)
 
   def authorizeAdmin(
       maybeMuseum: Option[Museum],
+      module: Option[GroupModule],
       permissions: Seq[ElevatedPermission]
   ): MusitResult[Unit] = {
     maybeMuseum.map { museum =>
-      authorizeUser(museum, permissions)
+      authorizeUser(museum, module, permissions)
     }.getOrElse {
       // Only GodMode has access to all museums
       if (hasGodMode) MusitSuccess(())
