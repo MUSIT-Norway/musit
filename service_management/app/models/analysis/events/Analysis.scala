@@ -171,7 +171,8 @@ case class AnalysisCollection(
     completedDate: Option[DateTime],
     note: Option[String],
     result: Option[AnalysisResult],
-    events: Seq[Analysis]
+    events: Seq[Analysis],
+    restriction: Option[Restriction]
 ) extends AnalysisEvent {
 
   val partOf: Option[EventId]      = None
