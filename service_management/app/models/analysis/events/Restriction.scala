@@ -25,5 +25,3 @@ object Restriction {
   implicit val f: Format[Restriction] = Json.format[Restriction]
 
 }
-
-// TODO: Add endpoint for removing restriction on analysis result.

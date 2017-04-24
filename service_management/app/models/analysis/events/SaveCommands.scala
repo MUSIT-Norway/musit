@@ -104,7 +104,8 @@ object SaveCommands {
       requester: String,
       expirationDate: DateTime,
       reason: String,
-      caseNumbers: Option[Seq[String]] = None
+      caseNumbers: Option[Seq[String]] = None,
+      cancelledReason: Option[String]
   )
 
   object SaveRestriction {
@@ -122,7 +123,7 @@ object SaveCommands {
       completedDate: Option[DateTime],
       // TODO: Add field for status
       objectIds: Seq[ObjectUUID],
-      restriction: Option[Restriction]
+      restriction: Option[SaveRestriction]
   ) extends SaveAnalysisEventCommand {
 
     override type A = AnalysisCollection
@@ -180,6 +181,7 @@ object SaveCommands {
     override def updateDomain(
         a: AnalysisCollection
     )(implicit cu: AuthenticatedUser): AnalysisCollection = {
+      val now = dateTimeNow
       a.copy(
         analysisTypeId = analysisTypeId,
         doneBy = doneBy,
@@ -187,7 +189,7 @@ object SaveCommands {
         responsible = responsible,
         administrator = administrator,
         updatedBy = Some(cu.id),
-        updatedDate = Some(dateTimeNow),
+        updatedDate = Some(now),
         completedBy = completedBy,
         completedDate = completedDate,
         note = note,
@@ -199,7 +201,9 @@ object SaveCommands {
                   requester = r.requester,
                   expirationDate = r.expirationDate,
                   reason = r.reason,
-                  caseNumbers = r.caseNumbers
+                  caseNumbers = r.caseNumbers,
+                  cancelledReason = r.cancelledReason,
+                  cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
                 )
               )
               .getOrElse(
@@ -208,7 +212,9 @@ object SaveCommands {
                   expirationDate = r.expirationDate,
                   reason = r.reason,
                   caseNumbers = r.caseNumbers,
-                  registeredStamp = Some(ActorStamp(cu.id, dateTimeNow))
+                  registeredStamp = Some(ActorStamp(cu.id, dateTimeNow)),
+                  cancelledReason = r.cancelledReason,
+                  cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
                 )
             )
         )
