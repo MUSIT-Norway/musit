@@ -34,6 +34,7 @@
             <th>Group name</th>
             <th>Description</th>
             <th>Museum</th>
+            <th>Module</th>
             <th>Permission</th>
             <th> </th>
           </tr>
@@ -48,6 +49,7 @@
             </td>
             <td>@group.description</td>
             <td>@fromMuseumId(group.museumId).map(_.shortName).getOrElse("-")</td>
+            <td>@group.module.toString</td>
             <td>@group.permission.toString</td>
             <td>
               <form method="post" action="@GroupController.deleteGroup(group.id.asString)?_at=@etok.urlEncoded">
