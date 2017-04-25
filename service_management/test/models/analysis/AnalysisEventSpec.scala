@@ -21,13 +21,6 @@ class AnalysisEventSpec
   val dummyActor          = ActorId.generate()
   val dummyObject         = ObjectUUID.generate()
   val dummyNote           = "Foo bar"
-  val dummyRestriction = Restriction(
-    requester = "holder",
-    registeredStamp = None,
-    expirationDate = DateTime.now.plusDays(50),
-    reason = "reason",
-    caseNumbers = None
-  )
 
   def createAnalysis() =
     Analysis(
@@ -71,7 +64,6 @@ class AnalysisEventSpec
       completedBy = Some(dummyActor),
       completedDate = Some(dummyDate),
       note = Some(dummyNote),
-      restriction = Some(dummyRestriction),
       result = Some(
         GenericResult(
           registeredBy = Some(dummyActor),

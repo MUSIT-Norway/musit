@@ -1,6 +1,5 @@
 package models.analysis.events
 
-import models.analysis.ActorStamp
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
 
@@ -11,12 +10,11 @@ import play.api.libs.json.{Format, Json}
  * typically when the study is published, will the results be publicly available.
  */
 case class Restriction(
-    requester: String,
+    by: String,
     expirationDate: DateTime,
-    reason: String,
+    reason: Option[String] = None,
     caseNumbers: Option[Seq[String]] = None,
-    registeredStamp: Option[ActorStamp] = None,
-    cancelledStamp: Option[ActorStamp] = None,
+    cancelledBy: Option[String] = None,
     cancelledReason: Option[String] = None
 )
 
@@ -25,3 +23,5 @@ object Restriction {
   implicit val f: Format[Restriction] = Json.format[Restriction]
 
 }
+
+// TODO: Add endpoint for removing restriction on analysis result.
