@@ -25,7 +25,7 @@ class LoanController @Inject()(
     }
 
   def findActiveLoan(mid: MuseumId) =
-    MusitSecureAction().async(parse.json) { implicit request =>
+    MusitSecureAction().async { implicit request =>
       loanService.findActiveLoans(mid).map {
         case MusitSuccess(res) => listAsPlayResult(res)
         case err: MusitError   => internalErr(err)

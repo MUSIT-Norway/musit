@@ -1,5 +1,6 @@
 package models.loan.event
 
+import no.uio.musit.formatters.WithDateTimeFormatters
 import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
 import models.loan.LoanType
 import no.uio.musit.models.{ActorId, EventId, CaseNumbers, ObjectUUID}
@@ -47,7 +48,7 @@ case class ObjectsLent(
   val objectId: Option[ObjectUUID] = None
 }
 
-object ObjectsLent {
+object ObjectsLent extends WithDateTimeFormatters {
   implicit val format: Format[ObjectsLent] = Json.format[ObjectsLent]
 }
 
@@ -66,6 +67,6 @@ case class ObjectsReturned(
   val objectId: Option[ObjectUUID] = None
 }
 
-object ObjectsReturned {
+object ObjectsReturned extends WithDateTimeFormatters {
   implicit val format: Format[ObjectsReturned] = Json.format[ObjectsReturned]
 }
