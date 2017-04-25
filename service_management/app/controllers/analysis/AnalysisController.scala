@@ -144,4 +144,5 @@ class AnalysisController @Inject()(
         analysisService.update(mid, eventId, sc)
       }
     }
+
 }
