@@ -80,7 +80,7 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
       i => MuseumId.fromInt(i)
     )
 
-  implicit lazy val moduleMapper: BaseColumnType[GroupModule] =
+  implicit lazy val groupModuleMapper: BaseColumnType[GroupModule] =
     MappedColumnType.base[GroupModule, Int](
       m => m.id,
       i => GroupModule.unsafeFromInt(i)

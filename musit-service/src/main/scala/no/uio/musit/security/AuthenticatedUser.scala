@@ -63,8 +63,12 @@ case class AuthenticatedUser(
       logger.debug(s"User with GodMode accessing system.")
       MusitSuccess(())
     } else if (isAuthorizedFor(museum)) {
-      val allowedForPermissions = permissionsFor(museum).exists(_.priority >= lowest.priority)
-      val allowedForModule = module.foldLeft(true)((_, m) => this.groups.exists(_.module == m))
+      val allowedForPermissions = permissionsFor(museum).exists { perm =>
+        perm.priority >= lowest.priority
+      }
+      val allowedForModule = module.foldLeft(true) {
+        case (_, m) => this.groups.exists(_.module == m)
+      }
       if (allowedForPermissions && allowedForModule) MusitSuccess(())
       else MusitNotAuthorized()
     } else {
