@@ -1,5 +1,6 @@
 package models.analysis.events
 
+import models.analysis.ActorStamp
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
@@ -12,7 +13,7 @@ object SaveCommands {
   sealed trait AnalysisEventCommand {
     type A <: AnalysisEvent
 
-    def asDomain: AnalysisEvent
+    def asDomain(implicit currUser: AuthenticatedUser): AnalysisEvent
 
     def updateDomain(a: A)(implicit cu: AuthenticatedUser): A
   }
@@ -55,14 +56,14 @@ object SaveCommands {
 
     override type A = Analysis
 
-    override def asDomain: Analysis = {
+    override def asDomain(implicit currUser: AuthenticatedUser): Analysis = {
       Analysis(
         id = None,
         analysisTypeId = analysisTypeId,
         doneBy = doneBy,
         doneDate = doneDate,
-        registeredBy = None,
-        registeredDate = None,
+        registeredBy = Some(currUser.id),
+        registeredDate = Some(dateTimeNow),
         objectId = Some(objectId),
         responsible = responsible,
         administrator = administrator,
@@ -99,6 +100,18 @@ object SaveCommands {
 
   }
 
+  case class SaveRestriction(
+      requester: String,
+      expirationDate: DateTime,
+      reason: String,
+      caseNumbers: Option[Seq[String]] = None,
+      cancelledReason: Option[String]
+  )
+
+  object SaveRestriction {
+    implicit val reads: Reads[SaveRestriction] = Json.reads[SaveRestriction]
+  }
+
   case class SaveAnalysisCollection(
       analysisTypeId: AnalysisTypeId,
       doneBy: Option[ActorId],
@@ -109,19 +122,21 @@ object SaveCommands {
       completedBy: Option[ActorId],
       completedDate: Option[DateTime],
       // TODO: Add field for status
-      objectIds: Seq[ObjectUUID]
+      objectIds: Seq[ObjectUUID],
+      restriction: Option[SaveRestriction]
   ) extends SaveAnalysisEventCommand {
 
     override type A = AnalysisCollection
 
-    override def asDomain: AnalysisCollection = {
+    override def asDomain(implicit currUser: AuthenticatedUser): AnalysisCollection = {
+      val now = dateTimeNow
       AnalysisCollection(
         id = None,
         analysisTypeId = analysisTypeId,
         doneBy = doneBy,
         doneDate = doneDate,
-        registeredBy = None,
-        registeredDate = None,
+        registeredBy = Some(currUser.id),
+        registeredDate = Some(now),
         responsible = responsible,
         administrator = administrator,
         updatedBy = None,
@@ -130,14 +145,24 @@ object SaveCommands {
         completedDate = completedDate,
         note = note,
         result = None,
+        restriction = restriction.map(
+          r =>
+            Restriction(
+              requester = r.requester,
+              expirationDate = r.expirationDate,
+              reason = r.reason,
+              caseNumbers = r.caseNumbers,
+              registeredStamp = Some(ActorStamp(currUser.id, now))
+          )
+        ),
         events = this.objectIds.map { oid =>
           Analysis(
             id = None,
             analysisTypeId = analysisTypeId,
             doneBy = doneBy,
             doneDate = doneDate,
-            registeredBy = None,
-            registeredDate = None,
+            registeredBy = Some(currUser.id),
+            registeredDate = Some(now),
             objectId = Option(oid),
             responsible = responsible,
             administrator = administrator,
@@ -156,6 +181,7 @@ object SaveCommands {
     override def updateDomain(
         a: AnalysisCollection
     )(implicit cu: AuthenticatedUser): AnalysisCollection = {
+      val now = dateTimeNow
       a.copy(
         analysisTypeId = analysisTypeId,
         doneBy = doneBy,
@@ -163,10 +189,35 @@ object SaveCommands {
         responsible = responsible,
         administrator = administrator,
         updatedBy = Some(cu.id),
-        updatedDate = Some(dateTimeNow),
+        updatedDate = Some(now),
         completedBy = completedBy,
         completedDate = completedDate,
-        note = note
+        note = note,
+        restriction = restriction.map(
+          r =>
+            a.restriction
+              .map(
+                _.copy(
+                  requester = r.requester,
+                  expirationDate = r.expirationDate,
+                  reason = r.reason,
+                  caseNumbers = r.caseNumbers,
+                  cancelledReason = r.cancelledReason,
+                  cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
+                )
+              )
+              .getOrElse(
+                Restriction(
+                  requester = r.requester,
+                  expirationDate = r.expirationDate,
+                  reason = r.reason,
+                  caseNumbers = r.caseNumbers,
+                  registeredStamp = Some(ActorStamp(cu.id, dateTimeNow)),
+                  cancelledReason = r.cancelledReason,
+                  cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
+                )
+            )
+        )
       )
     }
   }
