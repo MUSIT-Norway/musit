@@ -1,12 +1,9 @@
 package repositories.loan.dao
 
-import java.sql.{Timestamp => JSqlTimestamp}
-
 import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
 import models.loan.LoanType
 import models.loan.event.{LoanEvent, ObjectsLent, ObjectsReturned}
 import no.uio.musit.models._
-import no.uio.musit.time.Implicits._
 import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json}
@@ -29,9 +26,9 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   type LoanEventRow = (
       Option[EventId],
       LoanType,
-      Option[JSqlTimestamp],
+      Option[DateTime],
       Option[ActorId],
-      Option[JSqlTimestamp],
+      Option[DateTime],
       MuseumId,
       Option[EventId],
       Option[ObjectUUID],
@@ -49,9 +46,9 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
     val id             = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
     val typeId         = column[LoanType]("TYPE_ID")
-    val eventDate      = column[Option[JSqlTimestamp]]("EVENT_DATE")
+    val eventDate      = column[Option[DateTime]]("EVENT_DATE")
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
-    val registeredDate = column[Option[JSqlTimestamp]]("REGISTERED_DATE")
+    val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
     val museumId       = column[MuseumId]("MUSEUM_ID")
     val partOf         = column[Option[EventId]]("PART_OF")
     val objectUuid     = column[Option[ObjectUUID]]("OBJECT_UUID")
