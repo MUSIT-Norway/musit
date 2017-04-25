@@ -36,8 +36,8 @@ class ActorNameSpec extends WordSpec with MustMatchers with Inside {
     "Json" should {
       "read name from json" in {
         val jsv = Json.obj(
-          "type" -> "ActorByName",
-          "name" -> testName
+          "type"  -> "ActorByName",
+          "value" -> testName
         )
 
         inside(jsv.as[ActorName]) {
@@ -48,8 +48,8 @@ class ActorNameSpec extends WordSpec with MustMatchers with Inside {
       "read id from json" in {
         val id = UUID.randomUUID()
         val jsv = Json.obj(
-          "type" -> "ActorById",
-          "id"   -> id.toString
+          "type"  -> "ActorById",
+          "value" -> id.toString
         )
 
         inside(jsv.as[ActorName]) {
@@ -62,8 +62,8 @@ class ActorNameSpec extends WordSpec with MustMatchers with Inside {
         val res = Json.toJson(ActorById(id))
 
         res mustBe Json.obj(
-          "type" -> "ActorById",
-          "id"   -> id.underlying.toString
+          "type"  -> "ActorById",
+          "value" -> id.underlying.toString
         )
       }
 
@@ -72,8 +72,8 @@ class ActorNameSpec extends WordSpec with MustMatchers with Inside {
         val res = Json.toJson(ActorByName(testName))
 
         res mustBe Json.obj(
-          "type" -> "ActorByName",
-          "name" -> testName
+          "type"  -> "ActorByName",
+          "value" -> testName
         )
       }
     }

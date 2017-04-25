@@ -3,6 +3,7 @@ package models.analysis
 import java.util.UUID
 
 import no.uio.musit.models.ActorId
+import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 import scala.util.{Failure, Success, Try}
@@ -22,12 +23,12 @@ object ActorName {
   implicit val reads: Reads[ActorName] = Reads { jsv =>
     (jsv \ "type").validate[String].flatMap {
       case ActorByName.key =>
-        (jsv \ "name").validate[String].map(ActorByName.apply)
+        (jsv \ "value").validate[String].map(ActorByName.apply)
       case ActorById.key =>
-        (jsv \ "id").validate[String].flatMap { str =>
+        (jsv \ "value").validate[String].flatMap { str =>
           Try(UUID.fromString(str)) match {
             case Success(id) => JsSuccess(ActorById(ActorId(id)))
-            case Failure(t)  => JsError(s"Invalid actor id $str ")
+            case Failure(_)  => JsError(ValidationError(s"Invalid actor id $str"))
           }
         }
     }
@@ -36,13 +37,13 @@ object ActorName {
   implicit val writes: Writes[ActorName] = Writes {
     case ActorByName(name) =>
       Json.obj(
-        "type" -> ActorByName.key,
-        "name" -> name
+        "type"  -> ActorByName.key,
+        "value" -> name
       )
     case ActorById(id) =>
       Json.obj(
-        "type" -> ActorById.key,
-        "id"   -> id
+        "type"  -> ActorById.key,
+        "value" -> id
       )
   }
 
