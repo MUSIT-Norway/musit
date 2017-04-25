@@ -1,16 +1,15 @@
 package services.storage
 
-import models.storage.{Interval, MovableObject}
 import models.storage.Move.{MoveNodesCmd, MoveObjectsCmd}
-import models.storage.event.EventType
-import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import models.storage.event.move.{MoveNode, MoveObject}
 import models.storage.nodes._
+import models.storage.{Interval, MovableObject}
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import no.uio.musit.test.matchers.DateTimeMatchers
 import org.joda.time.DateTime
 import utils.testhelpers.{BaseDummyData, EventGenerators, NodeGenerators}
 
@@ -19,6 +18,7 @@ class StorageNodeServiceSpec
     with BaseDummyData
     with NodeGenerators
     with EventGenerators
+    with DateTimeMatchers
     with MusitResultValues {
 
   val service = fromInstanceCache[StorageNodeService]
@@ -192,7 +192,7 @@ class StorageNodeServiceSpec
 
       val res = service.getBuildingById(defaultMuseumId, ins.id.get).futureValue
       res.successValue.value.address mustBe b.address
-      res.successValue.value.updatedDate mustBe b.updatedDate
+      res.successValue.value.updatedDate mustApproximate b.updatedDate
       res.successValue.value.updatedBy mustBe b.updatedBy
       res.successValue.value.environmentRequirement mustBe b.environmentRequirement
     }
@@ -211,7 +211,7 @@ class StorageNodeServiceSpec
 
       val res = service.getRoomById(defaultMuseumId, ins.id.get).futureValue
       res.successValue.value.securityAssessment mustBe room.securityAssessment
-      res.successValue.value.updatedDate mustBe room.updatedDate
+      res.successValue.value.updatedDate mustApproximate room.updatedDate
       res.successValue.value.updatedBy mustBe room.updatedBy
       res.successValue.value.environmentRequirement mustBe room.environmentRequirement
     }
