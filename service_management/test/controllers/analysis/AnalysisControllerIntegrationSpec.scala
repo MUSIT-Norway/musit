@@ -1,5 +1,6 @@
 package controllers.analysis
 
+import models.analysis.ActorById
 import models.analysis.events.AnalysisResults.GenericResult
 import models.analysis.events.{Analysis, AnalysisCollection, Category, EventCategories}
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
@@ -18,9 +19,12 @@ class AnalysisControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
     with DateTimeMatchers {
 
-  val mid     = MuseumId(99)
-  val token   = BearerToken(FakeUsers.testAdminToken)
-  val adminId = ActorId.unsafeFromString(FakeUsers.testAdminId)
+  val mid   = MuseumId(99)
+  val token = BearerToken(FakeUsers.testAdminToken)
+  val adminId = Json.obj(
+    "type"  -> ActorById.key,
+    "value" -> ActorId.unsafeFromString(FakeUsers.testAdminId)
+  )
 
   // test data
   val cnRatioTypeId = "fabe6462-ea94-43ce-bf7f-724a4191e114"
@@ -36,9 +40,9 @@ class AnalysisControllerIntegrationSpec
     val js1 = Json.obj(
       "analysisTypeId" -> cnRatioTypeId,
       "objectId"       -> oid.asString,
-      "responsible"    -> adminId.asString,
-      "administrator"  -> adminId.asString,
-      "completedBy"    -> adminId.asString
+      "responsible"    -> adminId,
+      "administrator"  -> adminId,
+      "completedBy"    -> adminId
     )
     val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
     eventDate.map { d =>

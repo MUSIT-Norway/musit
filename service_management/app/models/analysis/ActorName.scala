@@ -50,7 +50,7 @@ object ActorName {
 }
 
 case class ActorById(actorId: ActorId) extends ActorName {
-  def name = actorId.toString
+  def name = actorId.underlying.toString
 }
 
 object ActorById {

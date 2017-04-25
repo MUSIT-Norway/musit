@@ -1,8 +1,9 @@
 package models.analysis.events
 
+import models.analysis.ActorName
 import models.analysis.ActorStamp
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.{ActorId, ObjectUUID}
+import no.uio.musit.models.ObjectUUID
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
@@ -43,14 +44,14 @@ object SaveCommands {
 
   case class SaveAnalysis(
       analysisTypeId: AnalysisTypeId,
-      doneBy: Option[ActorId],
+      doneBy: Option[ActorName],
       doneDate: Option[DateTime],
       note: Option[String],
       objectId: ObjectUUID,
       // TODO: Add field for status
-      responsible: Option[ActorId],
-      administrator: Option[ActorId],
-      completedBy: Option[ActorId],
+      responsible: Option[ActorName],
+      administrator: Option[ActorName],
+      completedBy: Option[ActorName],
       completedDate: Option[DateTime]
   ) extends SaveAnalysisEventCommand {
 
@@ -114,12 +115,12 @@ object SaveCommands {
 
   case class SaveAnalysisCollection(
       analysisTypeId: AnalysisTypeId,
-      doneBy: Option[ActorId],
+      doneBy: Option[ActorName],
       doneDate: Option[DateTime],
       note: Option[String],
-      responsible: Option[ActorId],
-      administrator: Option[ActorId],
-      completedBy: Option[ActorId],
+      responsible: Option[ActorName],
+      administrator: Option[ActorName],
+      completedBy: Option[ActorName],
       completedDate: Option[DateTime],
       // TODO: Add field for status
       objectIds: Seq[ObjectUUID],

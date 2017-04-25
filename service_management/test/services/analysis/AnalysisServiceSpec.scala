@@ -68,12 +68,12 @@ class AnalysisServiceSpec
       val res = service.findById(EventId(1L)).futureValue.successValue.value
 
       res.analysisTypeId mustBe dummyAnalysisTypeId
-      res.doneBy mustBe Some(dummyActorId)
+      res.doneBy mustBe Some(dummyActorById)
       res.doneDate mustApproximate Some(dateTimeNow)
       res.note mustBe Some("This is from a SaveAnalysis command")
       res.objectId must not be empty
-      res.administrator mustBe Some(dummyActorId)
-      res.responsible mustBe Some(dummyActorId)
+      res.administrator mustBe Some(dummyActorById)
+      res.responsible mustBe Some(dummyActorById)
       res.completedBy mustBe empty
       res.completedDate mustBe empty
     }
@@ -85,12 +85,12 @@ class AnalysisServiceSpec
 
       forAll(res) { r =>
         r.analysisTypeId mustBe dummyAnalysisTypeId
-        r.doneBy mustBe Some(dummyActorId)
+        r.doneBy mustBe Some(dummyActorById)
         r.doneDate mustApproximate Some(dateTimeNow)
         r.note mustBe Some("This is from a SaveAnalysisCollection command")
         r.objectId must not be empty
-        r.administrator mustBe Some(dummyActorId)
-        r.responsible mustBe Some(dummyActorId)
+        r.administrator mustBe Some(dummyActorById)
+        r.responsible mustBe Some(dummyActorById)
         r.completedBy mustBe empty
         r.completedDate mustBe empty
       }
@@ -103,13 +103,13 @@ class AnalysisServiceSpec
 
       forAll(res) { r =>
         r.analysisTypeId mustBe dummyAnalysisTypeId
-        r.doneBy mustBe Some(dummyActorId)
+        r.doneBy mustBe Some(dummyActorById)
         r.doneDate mustApproximate Some(dateTimeNow)
         r.note must not be empty
         r.note.value must startWith("This is from a SaveAnalysis")
         r.objectId must not be empty
-        r.administrator mustBe Some(dummyActorId)
-        r.responsible mustBe Some(dummyActorId)
+        r.administrator mustBe Some(dummyActorById)
+        r.responsible mustBe Some(dummyActorById)
         r.completedBy mustBe empty
         r.completedDate mustBe empty
       }
