@@ -21,6 +21,8 @@ package no.uio.musit.functional
 
 import no.uio.musit.MusitResults.{MusitInternalError, MusitResult}
 
+import scala.concurrent.Future
+
 object MonadTransformers {
 
   /**
@@ -42,13 +44,32 @@ object MonadTransformers {
         a.map(b => f(b).value).getOrElse {
           m.pure(
             MusitInternalError(
-              "Unable to map into MusitResult in the " +
-                "MusitResultT transformer"
+              s"Unable to map into MusitResult in the MusitResultT transformer " +
+                s"because of $a"
             )
           )
         }
       }
       MusitResultT[T, B](res)
+    }
+
+  }
+
+  object MusitResultT {
+
+    /**
+     * Returns a MusitResultT[Future, A] where the Future is successfully
+     * evaluated with the given MusitResult[A] argument.
+     *
+     * @param res the MusitResult to wrap
+     * @param m an implicitly provided Monad[Future]
+     * @tparam A the type we want to access inside the transformer functions
+     * @return {{{MusitResultT[Future, A]}}}
+     */
+    def successful[A](
+        res: MusitResult[A]
+    )(implicit m: Monad[Future]): MusitResultT[Future, A] = {
+      MusitResultT(Future.successful(res))
     }
 
   }

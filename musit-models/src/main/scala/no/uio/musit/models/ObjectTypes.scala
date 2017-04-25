@@ -21,6 +21,13 @@ object ObjectTypes {
       maybeStr.flatMap(fromString)
     }
 
+    @throws(classOf[IllegalArgumentException])
+    def unsafeFromString(str: String): ObjectType = {
+      fromString(str).getOrElse {
+        throw new IllegalArgumentException(s"Unsupported ObjectType $str")
+      }
+    }
+
     implicit val reads: Reads[ObjectType] = Reads { jsv =>
       val str = jsv.as[String]
       fromString(str)
@@ -30,12 +37,6 @@ object ObjectTypes {
 
     implicit val writes: Writes[ObjectType] = Writes(ot => JsString(ot.name))
 
-    @throws(classOf[IllegalArgumentException])
-    def unsafeFromString(str: String): ObjectType = {
-      fromString(str).getOrElse {
-        throw new IllegalArgumentException(s"Unsupported ObjectType $str")
-      }
-    }
   }
 
   case object CollectionObject extends ObjectType("collection")

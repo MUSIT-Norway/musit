@@ -27,8 +27,6 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   museum_id         INTEGER                  NOT NULL,
   updated_by        VARCHAR2(36)             NOT NULL,
   updated_date      TIMESTAMP WITH TIME ZONE NOT NULL, -- When the change was received by the system
-  --   latest_move_id NUMBER(20),
-  --   latest_envreq_id NUMBER(20),
   PRIMARY KEY (storage_node_id)
 );
 
@@ -57,8 +55,52 @@ CREATE TABLE MUSARK_STORAGE.BUILDING (
 CREATE TABLE MUSARK_STORAGE.ORGANISATION (
   storage_node_id NUMBER(20) NOT NULL,
   postal_address  VARCHAR(512),
+  org_as_actor_id NUMBER(20),
+  org_as_actor_uuid VARCHAR2(36),
   PRIMARY KEY (storage_node_id),
   FOREIGN KEY (storage_node_id) REFERENCES MUSARK_STORAGE.STORAGE_NODE (storage_node_id)
+);
+
+-- ===========================================================================
+-- The NEW event tables
+-- ===========================================================================
+CREATE SEQUENCE nevent_sequence
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOCYCLE
+NOCACHE;
+
+CREATE TABLE MUSARK_STORAGE.NEW_EVENT (
+  event_id        NUMBER(20) DEFAULT nevent_sequence.nextval,
+  type_id         VARCHAR2(36) NOT NULL,
+  museum_id       INTEGER,
+  event_date      TIMESTAMP    NOT NULL,
+  registered_by   VARCHAR2(36) NOT NULL,
+  registered_date TIMESTAMP    NOT NULL,
+  part_of         NUMBER(20),
+  affected_uuid   VARCHAR2(36),
+  affected_type   VARCHAR2(50), -- collection | sample | node | ...
+  note            VARCHAR2(500),
+  event_json      CLOB,
+  PRIMARY KEY (event_id)
+);
+
+CREATE TABLE MUSARK_STORAGE.NEW_LOCAL_OBJECT (
+  object_uuid         VARCHAR2(36) NOT NULL,
+  latest_move_id      NUMBER(20)   NOT NULL,
+  current_location_id VARCHAR2(36) NOT NULL,
+  museum_id           INTEGER      NOT NULL,
+  object_type         VARCHAR(50) DEFAULT 'collection', -- possible values can be 'collection', or 'sample'
+  PRIMARY KEY (object_uuid),
+  FOREIGN KEY (latest_move_id) REFERENCES MUSARK_STORAGE.NEW_EVENT (event_id)
+);
+
+-- TODO: This table can be removed after migration is completed and
+-- all API's have been updated to use the new backend code.
+CREATE TABLE MUSARK_STORAGE.MIGRATED_EVENTS (
+  old_event_id NUMBER(20) NOT NULL,
+  PRIMARY KEY (old_event_id)
 );
 
 -- ===========================================================================
