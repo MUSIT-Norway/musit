@@ -24,7 +24,8 @@ class LoanControllerSpec extends MusitSpecWithServerPerSuite with Inspectors {
     "externalRef" -> Json.arr("ref-1", "ref-2"),
     "note"        -> noteData,
     "returnDate"  -> JsString(returnDate),
-    "objects"     -> Json.arr(ObjectUUID.generate())
+    "objects"     -> Json.arr(ObjectUUID.generate()),
+    "caseNumbers" -> Json.arr("case1", "case3")
   )
 
   def verifyLoan(jsv: JsValue) = {
@@ -32,6 +33,7 @@ class LoanControllerSpec extends MusitSpecWithServerPerSuite with Inspectors {
     (jsv \ "loanType").as[Int] mustBe 2
     (jsv \ "returnDate").as[String] must startWith(returnDate)
     (jsv \ "objects").as[JsArray].value.size mustBe 1
+    (jsv \ "caseNumbers").as[JsArray].value.size mustBe 2
   }
 
   "Using the loan controller" when {
@@ -65,7 +67,6 @@ class LoanControllerSpec extends MusitSpecWithServerPerSuite with Inspectors {
         res.status mustBe Status.OK
         val array = res.json.as[JsArray].value
         array.size must be > 0
-        println(res.body)
         forAll(array) { it =>
           verifyLoan(it)
         }
