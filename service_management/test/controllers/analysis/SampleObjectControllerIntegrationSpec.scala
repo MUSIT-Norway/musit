@@ -46,7 +46,7 @@ class SampleObjectControllerIntegrationSpec
       "size"             -> Json.obj("unit" -> "cm3", "value" -> 12.0),
       "container"        -> "box",
       "storageMedium"    -> "alcohol",
-      "residualMaterial" -> 1
+      "leftoverSample"   -> 1
     )
     val js2 = maybeId.map(i => js1 ++ Json.obj("objectId"           -> i.asString)).getOrElse(js1)
     val js3 = maybeParent.map(i => js2 ++ Json.obj("parentObjectId" -> i)).getOrElse(js2)

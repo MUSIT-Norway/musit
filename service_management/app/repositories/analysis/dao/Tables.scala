@@ -169,7 +169,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val container        = column[Option[String]]("SAMPLE_CONTAINER")
     val storageMedium    = column[Option[String]]("STORAGE_MEDIUM")
     val treatment        = column[Option[String]]("TREATMENT")
-    val residualMaterial = column[LeftoverSample]("LEFTOVER_SAMPLE")
+    val leftoverSample   = column[LeftoverSample]("LEFTOVER_SAMPLE")
     val description      = column[Option[String]]("DESCRIPTION")
     val note             = column[Option[String]]("NOTE")
     val registeredBy     = column[Option[ActorId]]("REGISTERED_BY")
@@ -199,7 +199,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
         storageMedium,
         note,
         treatment,
-        residualMaterial,
+        leftoverSample,
         description,
         (registeredBy, registeredDate, updatedBy, updatedDate)
       )
@@ -330,7 +330,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       so.storageMedium,
       so.note,
       so.treatment,
-      so.residualMaterial,
+      so.leftoverSample,
       so.description,
       (
         so.registeredStamp.map(_.user),
@@ -368,7 +368,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
       storageMedium = tuple._17,
       note = tuple._18,
       treatment = tuple._19,
-      residualMaterial = tuple._20,
+      leftoverSample = tuple._20,
       description = tuple._21,
       registeredStamp = for {
         actor    <- tuple._22._1
