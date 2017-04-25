@@ -223,9 +223,9 @@ class ObjectController @Inject()(
   }
 
   def findObjectByUUID(
-    mid: MuseumId,
-    objectUUID: String,
-    collectionIds: String
+      mid: MuseumId,
+      objectUUID: String,
+      collectionIds: String
   ) = MusitSecureAction(mid, Read).async { request =>
     parseCollectionIdsParam(mid, collectionIds)(request.user) match {
       case Left(res) => Future.successful(res)
@@ -236,7 +236,9 @@ class ObjectController @Inject()(
             objService.findByUUID(mid, uuid, cids)(request.user).map {
               case MusitSuccess(maybeObject) =>
                 maybeObject.fold(
-                  NotFound(Json.obj("message" -> s"Did not find object UUID $objectUUID"))
+                  NotFound(
+                    Json.obj("message" -> s"Did not find object UUID $objectUUID")
+                  )
                 )(obj => Ok(Json.toJson(obj)))
 
               case MusitDbError(msg, ex) =>
@@ -246,7 +248,8 @@ class ObjectController @Inject()(
               case r: MusitError =>
                 InternalServerError(Json.obj("message" -> r.message))
             }
-          }.getOrElse(
+          }
+          .getOrElse(
             Future.successful(
               BadRequest(Json.obj("message" -> s"Invalid object UUID $objectUUID"))
             )

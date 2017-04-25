@@ -30,7 +30,7 @@ case class SampleObject(
     container: Option[String],
     storageMedium: Option[String],
     treatment: Option[String],
-    residualMaterial: LeftoverSample,
+    leftoverSample: LeftoverSample,
     description: Option[String],
     note: Option[String],
     registeredStamp: Option[ActorStamp],
@@ -59,7 +59,7 @@ case class SaveSampleObject(
     container: Option[String],
     storageMedium: Option[String],
     treatment: Option[String],
-    residualMaterial: LeftoverSample,
+    leftoverSample: LeftoverSample,
     description: Option[String],
     note: Option[String]
 ) {
@@ -81,7 +81,7 @@ case class SaveSampleObject(
       container = container,
       storageMedium = storageMedium,
       treatment = treatment,
-      residualMaterial = residualMaterial,
+      leftoverSample = leftoverSample,
       description = description,
       note = note,
       registeredStamp = None,

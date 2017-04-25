@@ -533,7 +533,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     "searching for an object that exist using UUID" should {
       "successfully return the object" in {
         val uuid = ObjectUUID.unsafeFromString("dcd37cb7-34ae-484e-a2c0-a1b1925e9b68")
-        val mid = MuseumId(99)
+        val mid  = MuseumId(99)
         val res =
           dao.findByUUID(mid, uuid, lichenCollections).futureValue.successValue.value
         res.id mustBe ObjectId(51)
@@ -544,7 +544,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     "searching for an object using UUID that does not exist" should {
       "return None" in {
         val uuid = ObjectUUID.unsafeFromString("00000000-34ae-484e-a2c0-a1b1925e9b68")
-        val mid = MuseumId(99)
+        val mid  = MuseumId(99)
         val res =
           dao.findByUUID(mid, uuid, lichenCollections).futureValue.successValue
         res mustBe None
@@ -554,7 +554,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     "searching for an object using UUID in wrong collection" should {
       "return None" in {
         val uuid = ObjectUUID.unsafeFromString("00000000-34ae-484e-a2c0-a1b1925e9b68")
-        val mid = MuseumId(99)
+        val mid  = MuseumId(99)
         val res =
           dao.findByUUID(mid, uuid, allCollections).futureValue.successValue
         res mustBe None
@@ -564,7 +564,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
     "searching for an object using UUID in wrong museum" should {
       "return None" in {
         val uuid = ObjectUUID.unsafeFromString("dcd37cb7-34ae-484e-a2c0-a1b1925e9b68")
-        val mid = MuseumId(3)
+        val mid  = MuseumId(3)
         val res =
           dao.findByUUID(mid, uuid, lichenCollections).futureValue.successValue
         res mustBe None
