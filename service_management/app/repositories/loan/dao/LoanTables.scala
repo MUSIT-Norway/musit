@@ -14,7 +14,7 @@ import slick.jdbc.JdbcProfile
  * Defines the table definitions needed to work with analysis data.
  * Also includes a few helpful functions to convert between rows and types.
  */
-trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+trait LoanTables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import profile.api._
 

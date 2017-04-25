@@ -18,7 +18,7 @@ import scala.util.control.NonFatal
 @Singleton
 class LoanDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends Tables {
+) extends LoanTables {
 
   val logger = Logger(classOf[LoanDao])
 
