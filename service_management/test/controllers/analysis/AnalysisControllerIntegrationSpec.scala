@@ -7,6 +7,7 @@ import no.uio.musit.models.{ActorId, MuseumCollections, MuseumId, ObjectUUID}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
+import no.uio.musit.time
 import org.joda.time.DateTime
 import org.scalatest.Inspectors.forAll
 import play.api.libs.json._
@@ -24,6 +25,8 @@ class AnalysisControllerIntegrationSpec
   // test data
   val cnRatioTypeId = "fabe6462-ea94-43ce-bf7f-724a4191e114"
   val dummyObjectId = ObjectUUID.generate()
+
+  val dummyNamedUser = "Ola Normann"
 
   def createSaveAnalysisJSON(
       eventDate: Option[DateTime],
@@ -54,7 +57,14 @@ class AnalysisControllerIntegrationSpec
       js2 ++ Json.obj("eventDate" -> Json.toJson[DateTime](d))
     }.getOrElse(js2)
 
-    js3 ++ Json.obj("objectIds" -> objects.map(_.asString))
+    js3 ++ Json.obj(
+      "objectIds" -> objects.map(_.asString),
+      "restriction" -> Json.obj(
+        "requester"      -> dummyNamedUser,
+        "reason"         -> "secret",
+        "expirationDate" -> time.dateTimeNow.plusDays(20).toString("yyyy-MM-dd")
+      )
+    )
   }
 
   def createGenericResultJSON(
@@ -126,6 +136,7 @@ class AnalysisControllerIntegrationSpec
     (actual \ "eventDate").asOpt[DateTime] mustApproximate expectedEventDate
     (actual \ "registeredBy").asOpt[String] must not be empty
     (actual \ "registeredDate").asOpt[DateTime] must not be empty
+    (actual \ "restriction" \ "requester").as[String] mustBe dummyNamedUser
     forAll(0 until numChildren) { index =>
       (actual \ "events" \ index \ "type").as[String] mustBe Analysis.discriminator
       (actual \ "events" \ index \ "partOf").as[Long] mustBe expectedId

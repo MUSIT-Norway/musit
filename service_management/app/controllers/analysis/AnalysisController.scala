@@ -144,4 +144,14 @@ class AnalysisController @Inject()(
         analysisService.update(mid, eventId, sc)
       }
     }
+
+  def removeRestriction(mid: MuseumId, eid: Long) =
+    MusitSecureAction().async(parse.json) { implicit request =>
+      implicit val currUser = implicitly(request.user)
+
+      val eventId = EventId.fromLong(eid)
+      val jsr     = request.body.validate[SaveAnalysisEventCommand]
+
+      ???
+    }
 }
