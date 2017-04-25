@@ -1,7 +1,6 @@
 package services.analysis
 
 import com.google.inject.Inject
-import models.analysis.ActorStamp
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events.SaveCommands.{
   SaveAnalysis,
@@ -67,7 +66,10 @@ class AnalysisService @Inject()(
   private def addAnalysis(
       a: SaveAnalysis
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    val analysis = a.asDomain
+    val analysis = a.asDomain.copy(
+      registeredBy = Some(currUser.id),
+      registeredDate = Some(dateTimeNow)
+    )
     analysisDao.insert(analysis)
   }
 
@@ -77,7 +79,19 @@ class AnalysisService @Inject()(
   private def addAnalysisCollection(
       ac: SaveAnalysisCollection
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    analysisDao.insertCol(ac.asDomain)
+    val now = Some(dateTimeNow)
+    val d   = ac.asDomain
+    val acol = d.copy(
+      registeredBy = Some(currUser.id),
+      registeredDate = now,
+      events = d.events.map(
+        _.copy(
+          registeredBy = Some(currUser.id),
+          registeredDate = now
+        )
+      )
+    )
+    analysisDao.insertCol(acol)
   }
 
   /**
