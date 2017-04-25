@@ -157,7 +157,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     val isExtracted      = column[Boolean]("IS_EXTRACTED")
     val museumId         = column[MuseumId]("MUSEUM_ID")
     val status           = column[SampleStatus]("STATUS")
-    val responsible      = column[Option[ActorName]]("RESPONSIBLE_ACTOR_ID")
+    val responsible      = column[Option[ActorName]]("RESPONSIBLE_ACTOR")
     val createdDate      = column[Option[DateTime]]("CREATED_DATE")
     val sampleId         = column[Option[String]]("SAMPLE_ID")
     val externalId       = column[Option[String]]("EXTERNAL_ID")
