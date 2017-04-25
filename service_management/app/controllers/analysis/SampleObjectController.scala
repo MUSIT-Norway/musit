@@ -10,6 +10,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import services.analysis.SampleObjectService
+import controllers._
 
 import scala.concurrent.Future
 
