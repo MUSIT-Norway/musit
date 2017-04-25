@@ -2,7 +2,7 @@ package models.analysis.events
 
 import models.analysis.ActorStamp
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.{ActorId, ObjectUUID}
+import no.uio.musit.models.{ActorId, CaseNumbers, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
@@ -104,7 +104,7 @@ object SaveCommands {
       requester: String,
       expirationDate: DateTime,
       reason: String,
-      caseNumbers: Option[Seq[String]] = None,
+      caseNumbers: Option[CaseNumbers] = None,
       cancelledReason: Option[String]
   )
 
