@@ -22,7 +22,7 @@ class AnalysisEventSpec
   val dummyObject         = ObjectUUID.generate()
   val dummyNote           = "Foo bar"
   val dummyReason         = "Fuz bar"
-  val dummyStatus         = AnalysisStatuses.Prepared
+  val dummyStatus         = AnalysisStatuses.Preparation
   val dummyCaseNumbers    = CaseNumbers(Seq("num-1", "num-2"))
   val dummyRestriction = Restriction(
     requester = "holder",
