@@ -1,7 +1,6 @@
 package models.analysis.events
 
-import models.analysis.ActorName
-import models.analysis.ActorStamp
+import models.analysis.{ActorName, ActorStamp}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ObjectUUID
 import no.uio.musit.security.AuthenticatedUser
