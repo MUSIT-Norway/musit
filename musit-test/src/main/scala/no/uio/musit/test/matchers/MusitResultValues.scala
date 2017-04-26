@@ -1,6 +1,6 @@
 package no.uio.musit.test.matchers
 
-import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitResult}
 import org.scalatest.exceptions.TestFailedException
 
 import scala.reflect.{ClassTag, classTag}
@@ -31,7 +31,11 @@ trait MusitResultValues {
     private def testFailedException = {
       val className = classTag[T].runtimeClass.getSimpleName
       throw new TestFailedException(
-        s"Expected a MusitSuccess[$className] but found $res",
+        Some(s"Expected a MusitSuccess[$className] but found $res"),
+        res match {
+          case err: MusitDbError => err.ex
+          case _                 => None
+        },
         0
       )
     }

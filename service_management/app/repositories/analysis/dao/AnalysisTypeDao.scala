@@ -14,7 +14,7 @@ import scala.util.control.NonFatal
 @Singleton
 class AnalysisTypeDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends Tables {
+) extends AnalysisTables {
 
   val logger = Logger(classOf[AnalysisTypeDao])
 

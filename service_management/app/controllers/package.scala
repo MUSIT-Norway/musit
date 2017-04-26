@@ -1,29 +1,32 @@
-package controllers
-
-import models.analysis.events.SaveCommands.SaveAnalysisEventCommand
-import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.service.MusitRequest
 import play.api.libs.json._
 import play.api.mvc.{Result, Results}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-package object analysis {
+package object controllers {
 
-  val internalErrMsg = (msg: String) =>
-    Results.InternalServerError(Json.obj("message" -> msg))
+  val internalErr = (err: MusitError) =>
+    Results.InternalServerError(Json.obj("message" -> err.message))
 
-  val internalErr = (msg: MusitError) => internalErrMsg(msg.message)
+  val badRequestErr = (err: MusitValidationError) =>
+    Results.BadRequest(Json.obj("message" -> err.message))
 
   /**
    * Takes a collection of A's and writes them to a Result with JSON body.
    *
    * @param types the collection of data
-   * @param w an implicit {{{play.api.libs.json.Writes}}} for converting A's to JSON
+   * @param w     an implicit {{{play.api.libs.json.Writes}}} for converting A's to JSON
    * @tparam A the type of data to transform
    * @return a {{{play.api.mvc.Results}}}.
    */
-  private[analysis] def listAsPlayResult[A](types: Seq[A])(
+  private[controllers] def listAsPlayResult[A](types: Seq[A])(
       implicit w: Writes[A]
   ) = {
     if (types.nonEmpty) Results.Ok(Json.toJson(types))
@@ -35,7 +38,7 @@ package object analysis {
    * function. Returns a {{{play.api.mvc.Results.Created}}} if the save function
    * completes successfully.
    */
-  private[analysis] def saveRequest[A, ID](
+  private[controllers] def saveRequest[A, ID](
       jsr: JsResult[A]
   )(
       save: A => Future[MusitResult[ID]]
@@ -47,8 +50,9 @@ package object analysis {
     jsr match {
       case JsSuccess(at, _) =>
         save(at).map {
-          case MusitSuccess(id) => Results.Created(Json.toJson(id))
-          case err: MusitError  => internalErr(err)
+          case MusitSuccess(id)          => Results.Created(Json.toJson(id))
+          case err: MusitValidationError => badRequestErr(err)
+          case err: MusitError           => internalErr(err)
         }
 
       case err: JsError =>
@@ -76,7 +80,7 @@ package object analysis {
   /**
    * Function for saving a data type A as a B, then returning B as the result.
    */
-  private[analysis] def updateRequest[A, B](
+  private[controllers] def updateRequest[A, B](
       jsr: JsResult[A]
   )(
       update: A => Future[MusitResult[B]]
@@ -93,7 +97,7 @@ package object analysis {
     }
   }
 
-  private[analysis] def updateRequestOpt[A, B](
+  private[controllers] def updateRequestOpt[A, B](
       jsr: JsResult[A]
   )(
       update: A => Future[MusitResult[Option[B]]]
