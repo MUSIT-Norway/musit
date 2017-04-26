@@ -61,7 +61,7 @@ CREATE TABLE MUSARK_ANALYSIS.EVENT (
   object_uuid     VARCHAR2(36),
   note            VARCHAR2(500),
   status          INTEGER,
-  case_numbers    VARCHAR2(100),
+  case_numbers    VARCHAR2(1000),
   event_json      CLOB,
   PRIMARY KEY (event_id),
   CONSTRAINT ensure_event_json CHECK (event_json IS JSON)
