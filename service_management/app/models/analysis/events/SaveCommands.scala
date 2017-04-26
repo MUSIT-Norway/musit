@@ -1,6 +1,7 @@
 package models.analysis.events
 
 import models.analysis.ActorStamp
+import models.analysis.AnalysisStatuses.AnalysisStatus
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, CaseNumbers, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
@@ -121,9 +122,11 @@ object SaveCommands {
       administrator: Option[ActorId],
       completedBy: Option[ActorId],
       completedDate: Option[DateTime],
-      // TODO: Add field for status
       objectIds: Seq[ObjectUUID],
-      restriction: Option[SaveRestriction]
+      restriction: Option[SaveRestriction],
+      caseNumbers: Option[CaseNumbers],
+      reason: Option[String],
+      status: Option[AnalysisStatus]
   ) extends SaveAnalysisEventCommand {
 
     override type A = AnalysisCollection
@@ -155,6 +158,9 @@ object SaveCommands {
               registeredStamp = Some(ActorStamp(currUser.id, now))
           )
         ),
+        reason = reason,
+        status = status,
+        caseNumbers = caseNumbers,
         events = this.objectIds.map { oid =>
           Analysis(
             id = None,

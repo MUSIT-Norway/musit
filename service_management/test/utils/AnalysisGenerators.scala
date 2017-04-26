@@ -51,7 +51,10 @@ trait AnalysisGenerators {
       completedBy = None,
       completedDate = None,
       objectIds = oids,
-      restriction = None
+      restriction = None,
+      reason = None,
+      status = None,
+      caseNumbers = None
     )
   }
 
@@ -127,7 +130,10 @@ trait AnalysisGenerators {
       note = Some("An analysis collection"),
       result = res,
       events = analyses.toSeq,
-      restriction = Some(Restriction("requester", dateTimeNow, "some reason"))
+      restriction = Some(Restriction("requester", dateTimeNow, "some reason")),
+      reason = None,
+      status = None,
+      caseNumbers = None
     )
   }
 
