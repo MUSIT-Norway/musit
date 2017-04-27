@@ -16,6 +16,8 @@ object SampleStatuses {
         case Destroyed.key    => Some(Destroyed)
         case Contaminated.key => Some(Contaminated)
         case Prepared.key     => Some(Prepared)
+        case Discarded.key    => Some(Discarded)
+        case Dehydrated.key   => Some(Dehydrated)
         case _                => None
       }
     }
@@ -33,6 +35,8 @@ object SampleStatuses {
         case JsSuccess(Destroyed.key, _)    => JsSuccess(Destroyed)
         case JsSuccess(Contaminated.key, _) => JsSuccess(Contaminated)
         case JsSuccess(Prepared.key, _)     => JsSuccess(Prepared)
+        case JsSuccess(Discarded.key, _)    => JsSuccess(Discarded)
+        case JsSuccess(Dehydrated.key, _)   => JsSuccess(Dehydrated)
         case JsSuccess(bad, p)              => JsError(p, s"Unknown sample status code $bad")
         case err: JsError                   => err
       }
@@ -57,4 +61,11 @@ object SampleStatuses {
     override val key = 4
   }
 
+  case object Discarded extends SampleStatus {
+    override val key = 5
+  }
+
+  case object Dehydrated extends SampleStatus {
+    override val key = 6
+  }
 }

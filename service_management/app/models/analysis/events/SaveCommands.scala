@@ -1,8 +1,9 @@
 package models.analysis.events
 
 import models.analysis.{ActorName, ActorStamp}
+import models.analysis.AnalysisStatuses.AnalysisStatus
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.ObjectUUID
+import no.uio.musit.models.{CaseNumbers, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
@@ -104,7 +105,7 @@ object SaveCommands {
       requester: String,
       expirationDate: DateTime,
       reason: String,
-      caseNumbers: Option[Seq[String]] = None,
+      caseNumbers: Option[CaseNumbers] = None,
       cancelledReason: Option[String]
   )
 
@@ -121,9 +122,11 @@ object SaveCommands {
       administrator: Option[ActorName],
       completedBy: Option[ActorName],
       completedDate: Option[DateTime],
-      // TODO: Add field for status
       objectIds: Seq[ObjectUUID],
-      restriction: Option[SaveRestriction]
+      restriction: Option[SaveRestriction],
+      caseNumbers: Option[CaseNumbers],
+      reason: Option[String],
+      status: Option[AnalysisStatus]
   ) extends SaveAnalysisEventCommand {
 
     override type A = AnalysisCollection
@@ -155,6 +158,9 @@ object SaveCommands {
               registeredStamp = Some(ActorStamp(currUser.id, now))
           )
         ),
+        reason = reason,
+        status = status,
+        caseNumbers = caseNumbers,
         events = this.objectIds.map { oid =>
           Analysis(
             id = None,
@@ -193,31 +199,30 @@ object SaveCommands {
         completedBy = completedBy,
         completedDate = completedDate,
         note = note,
-        restriction = restriction.map(
-          r =>
-            a.restriction
-              .map(
-                _.copy(
-                  requester = r.requester,
-                  expirationDate = r.expirationDate,
-                  reason = r.reason,
-                  caseNumbers = r.caseNumbers,
-                  cancelledReason = r.cancelledReason,
-                  cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
-                )
+        restriction = restriction.map { r =>
+          a.restriction
+            .map(
+              _.copy(
+                requester = r.requester,
+                expirationDate = r.expirationDate,
+                reason = r.reason,
+                caseNumbers = r.caseNumbers,
+                cancelledReason = r.cancelledReason,
+                cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
               )
-              .getOrElse(
-                Restriction(
-                  requester = r.requester,
-                  expirationDate = r.expirationDate,
-                  reason = r.reason,
-                  caseNumbers = r.caseNumbers,
-                  registeredStamp = Some(ActorStamp(cu.id, dateTimeNow)),
-                  cancelledReason = r.cancelledReason,
-                  cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
-                )
             )
-        )
+            .getOrElse(
+              Restriction(
+                requester = r.requester,
+                expirationDate = r.expirationDate,
+                reason = r.reason,
+                caseNumbers = r.caseNumbers,
+                registeredStamp = Some(ActorStamp(cu.id, dateTimeNow)),
+                cancelledReason = r.cancelledReason,
+                cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
+              )
+            )
+        }
       )
     }
   }

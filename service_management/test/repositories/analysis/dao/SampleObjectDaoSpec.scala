@@ -64,7 +64,8 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       registeredBy = registeredBy,
       registeredDate = registeredDate,
       objectId = objectId,
-      sampleObjectId = sampleObjectId
+      sampleObjectId = sampleObjectId,
+      externalLinks = None
     )
   }
 
