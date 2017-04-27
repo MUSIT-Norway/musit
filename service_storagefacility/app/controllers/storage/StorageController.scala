@@ -6,6 +6,8 @@ import models.storage.Move.{DelphiMoveCmd, MoveNodesCmd, MoveObjectsCmd}
 import models.storage.event.move._
 import models.storage.nodes._
 import no.uio.musit.MusitResults._
+import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions._
@@ -15,6 +17,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
+import services.objects.ObjectService
 import services.storage.StorageNodeService
 
 import scala.concurrent.Future
@@ -25,7 +28,8 @@ import scala.concurrent.Future
  */
 final class StorageController @Inject()(
     val authService: Authenticator,
-    val service: StorageNodeService
+    val service: StorageNodeService,
+    val objService: ObjectService
 ) extends MusitController {
 
   val logger = Logger(classOf[StorageController])
@@ -345,13 +349,16 @@ final class StorageController @Inject()(
     }
   }
 
-  private def mvObjects(
+  /**
+   * Helper method with logic for executing an actual move on objects.
+   */
+  private def mvObjects[ResId](
       mid: MuseumId,
       dest: StorageNodeId,
       events: Seq[MoveObject]
   )(
-      successFailed: Seq[ObjectUUID] => (Seq[ObjectUUID], Seq[ObjectUUID])
-  )(implicit currUser: AuthenticatedUser) = {
+      successFailed: Seq[ObjectUUID] => (Seq[ResId], Seq[ResId])
+  )(implicit currUser: AuthenticatedUser, w: Writes[ResId]) = {
     service.moveObjects(mid, dest, events).map {
       case MusitSuccess(oids) =>
         val sf      = successFailed(oids)
@@ -409,18 +416,57 @@ final class StorageController @Inject()(
     }
   }
 
+  /**
+   * Method for handling moveObject service calls from the Delphi clients.
+   * They are still using the "old" API for this, so we need to find the
+   * relevant data for this particular type of command.
+   *
+   * This includes the following steps:
+   *
+   * 1. Find the correct UUID for the destination node
+   * 2. For each objectId (database ID) find their UUID.
+   * 3. Convert command to a {{{MoveObjectsCmd}}}
+   * 4. Call the {{{mvObjects}}} method defined above
+   */
   private def moveObjectForDelphi(
       mid: MuseumId,
       cmd: DelphiMoveCmd
-  )(implicit currUser: AuthenticatedUser) = {
-    //      val failed = d.items.filterNot(oids.contains)
-    //      Ok(
-    //        Json.obj(
-    //          "moved"  -> oids.map(_.underlying),
-    //          "failed" -> failed.map(_.underlying)
-    //        )
-    //      )
-    ???
+  )(implicit currUser: AuthenticatedUser): Future[Result] = {
+    val res = for {
+      maybeNode <- MusitResultT(service.getNodeByDatabaseId(mid, cmd.destination))
+      idTuples  <- MusitResultT(objService.getUUIDsFor(cmd.items))
+    } yield {
+      maybeNode.map { node =>
+        val dest = node.nodeId.get // safe...
+        val mobs =
+          idTuples.map(_._2).map(i => MovableObject(i, ObjectTypes.CollectionObject))
+        val events = MoveObject.fromCommand(currUser.id, MoveObjectsCmd(dest, mobs))
+
+        (idTuples, dest, events)
+      }
+    }
+    res.value.flatMap {
+      case MusitSuccess(maybeTuple) =>
+        maybeTuple.map { tuple =>
+          mvObjects(mid, tuple._2, tuple._3) { oids =>
+            (
+              tuple._1.filter(t => oids.contains(t._2)).map(_._1),
+              tuple._1.filterNot(t => oids.contains(t._2)).map(_._1)
+            )
+          }
+        }.getOrElse {
+          Future.successful {
+            BadRequest(
+              Json.obj(
+                "message" -> s"Could not find destination node ${cmd.destination}"
+              )
+            )
+          }
+        }
+
+      case err: MusitError =>
+        Future.successful(InternalServerError(Json.obj("message" -> err.message)))
+    }
   }
 
   /**
