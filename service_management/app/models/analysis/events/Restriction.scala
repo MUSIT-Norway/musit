@@ -1,6 +1,7 @@
 package models.analysis.events
 
 import models.analysis.ActorStamp
+import no.uio.musit.models.CaseNumbers
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
 
@@ -14,7 +15,7 @@ case class Restriction(
     requester: String,
     expirationDate: DateTime,
     reason: String,
-    caseNumbers: Option[Seq[String]] = None,
+    caseNumbers: Option[CaseNumbers] = None,
     registeredStamp: Option[ActorStamp] = None,
     cancelledStamp: Option[ActorStamp] = None,
     cancelledReason: Option[String] = None
