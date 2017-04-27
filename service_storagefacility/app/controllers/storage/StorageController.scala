@@ -243,19 +243,12 @@ final class StorageController @Inject()(
       .map { sid =>
         request.body.validate[StorageNode] match {
           case JsSuccess(node, _) =>
-            service.updateNode(mid, sid, node).map { musitRes =>
-              musitRes.map {
-                case Some(updated) => Ok(Json.toJson(updated))
-                case None          => NotFound
+            service.updateNode(mid, sid, node).map {
+              case MusitSuccess(maybeUpdated) =>
+                maybeUpdated.map(upd => Ok(Json.toJson(upd))).getOrElse(NotFound)
 
-              }.getOrElse {
-                InternalServerError(
-                  Json.obj(
-                    "message" -> ("An unexpected error occurred while trying to " +
-                      s"update StorageNode with ID $id")
-                  )
-                )
-              }
+              case err: MusitError =>
+                InternalServerError(Json.obj("message" -> err.message))
             }
           case JsError(error) =>
             Future.successful(BadRequest(JsError.toJson(error)))

@@ -376,9 +376,9 @@ trait NodeService {
   /**
    * Helper function that applies the common logic for fetching a storage node.
    *
-   * @param mid MuseumId to look for a node in
+   * @param mid                 MuseumId to look for a node in
    * @param eventuallyMaybeNode a future of an option that contains the found node
-   * @param cp function to apply envreq and path to the found node
+   * @param cp                  function to apply envreq and path to the found node
    * @tparam A The type of node to look for.
    * @return Eventually a result of the potentially found node
    */
@@ -392,6 +392,7 @@ trait NodeService {
       maybeNode <- MusitResultT(eventuallyMaybeNode)
       nodeId <- MusitResultT.successful(
                  maybeNode
+                 // FIXME: This is wrong. If node is empty, we should return None!
                    .flatMap(_.nodeId.map(MusitSuccess.apply))
                    .getOrElse(MusitValidationError("Node did not contain UUID"))
                )
@@ -431,6 +432,7 @@ trait NodeService {
     }
   }
 
+  // scalastyle:off parameter.number
   private[services] def moveBatch[ID <: MusitUUID, E <: MoveEvent](
       mid: MuseumId,
       destination: StorageNodeId,
@@ -474,4 +476,6 @@ trait NodeService {
 
     eventuallyEvents.value
   }
+
+  // scalastyle:on parameter.number
 }

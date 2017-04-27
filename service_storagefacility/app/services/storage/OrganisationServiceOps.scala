@@ -18,7 +18,7 @@ trait OrganisationServiceOps { self: NodeService =>
 
   val orgDao: OrganisationDao
 
-  def getOrganisationById(
+  def getOrganisationByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[Organisation]]] = {
@@ -47,7 +47,7 @@ trait OrganisationServiceOps { self: NodeService =>
       insert = orgDao.insert,
       setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
       updateWithPath = (id, path) => orgDao.setPath(id, path),
-      getNode = getOrganisationById
+      getNode = getOrganisationByDatabaseId
     )
   }
 
@@ -72,7 +72,7 @@ trait OrganisationServiceOps { self: NodeService =>
               _ <- updateOrg.environmentRequirement
                     .map(er => saveEnvReq(mid, dbId, er))
                     .getOrElse(Future.successful(None))
-              node <- getOrganisationById(mid, dbId)
+              node <- getOrganisationByDatabaseId(mid, dbId)
             } yield {
               node
             }

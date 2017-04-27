@@ -18,7 +18,7 @@ trait RoomServiceOps { self: NodeService =>
 
   val roomDao: RoomDao
 
-  def getRoomById(
+  def getRoomByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[Room]]] = {
@@ -47,7 +47,7 @@ trait RoomServiceOps { self: NodeService =>
       insert = roomDao.insert,
       setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
       updateWithPath = (id, path) => roomDao.setPath(id, path),
-      getNode = getRoomById
+      getNode = getRoomByDatabaseId
     )
   }
 
@@ -72,7 +72,7 @@ trait RoomServiceOps { self: NodeService =>
               _ <- updateRoom.environmentRequirement
                     .map(er => saveEnvReq(mid, dbId, er))
                     .getOrElse(Future.successful(None))
-              node <- getRoomById(mid, dbId)
+              node <- getRoomByDatabaseId(mid, dbId)
             } yield {
               node
             }

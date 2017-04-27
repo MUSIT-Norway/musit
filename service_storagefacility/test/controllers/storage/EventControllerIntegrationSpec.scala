@@ -25,8 +25,8 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   ControlEventType,
   ObservationEventType
 }
-import models.storage.event.old.control.Control
-import models.storage.event.old.observation.Observation
+import models.storage.event.control.Control
+import models.storage.event.observation.Observation
 import no.uio.musit.models.{ActorId, MuseumId, StorageNodeDatabaseId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
@@ -41,6 +41,8 @@ import scala.util.Try
 class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with Inside {
 
   val mid = MuseumId(99)
+
+  val nodeId2 = "b56b654a-6de3-442f-97af-ca6d806cc5a6"
 
   val fakeToken = BearerToken(FakeUsers.testWriteToken)
   val userId    = ActorId.unsafeFromString(FakeUsers.testWriteId)
@@ -76,7 +78,10 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     "successfully register a new control" in {
       val json = Json.parse(EventJsonGenerator.controlJson(userId, 20))
       val res =
-        wsUrl(ControlsUrl(mid, 2)).withHeaders(fakeToken.asHeader).post(json).futureValue
+        wsUrl(ControlsUrl(mid, nodeId2))
+          .withHeaders(fakeToken.asHeader)
+          .post(json)
+          .futureValue
 
       res.status mustBe CREATED
       val maybeCtrlId = (res.json \ "id").asOpt[Long]
@@ -88,7 +93,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val token     = BearerToken(FakeUsers.testUserToken)
       val badUserId = ActorId(UUID.fromString("8efd41bb-bc58-4bbf-ac95-eea21ba9db81"))
       val json      = Json.parse(EventJsonGenerator.controlJson(badUserId, 20))
-      wsUrl(ControlsUrl(mid, 2))
+      wsUrl(ControlsUrl(mid, nodeId2))
         .withHeaders(token.asHeader)
         .post(json)
         .futureValue
@@ -97,7 +102,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
 
     "get a specific control for a node" in {
       val ctrlId = 2L
-      val res = wsUrl(ControlUrl(mid, 2, ctrlId))
+      val res = wsUrl(ControlUrl(mid, nodeId2, ctrlId))
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
@@ -114,7 +119,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     "not allow access to control if user doesn't have READ permission" in {
       val token  = BearerToken(FakeUsers.nhmReadToken)
       val ctrlId = 2L
-      wsUrl(ControlUrl(mid, 2, ctrlId))
+      wsUrl(ControlUrl(mid, nodeId2, ctrlId))
         .withHeaders(token.asHeader)
         .get()
         .futureValue
@@ -124,7 +129,10 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     "successfully register another control" in {
       val json = Json.parse(EventJsonGenerator.controlJson(userId, 22))
       val res =
-        wsUrl(ControlsUrl(mid, 2)).withHeaders(fakeToken.asHeader).post(json).futureValue
+        wsUrl(ControlsUrl(mid, nodeId2))
+          .withHeaders(fakeToken.asHeader)
+          .post(json)
+          .futureValue
 
       res.status mustBe CREATED
       (res.json \ "id").asOpt[Long] must not be None
@@ -140,7 +148,10 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
         )
 
       val res =
-        wsUrl(ControlsUrl(mid, 2)).withHeaders(fakeToken.asHeader).post(json).futureValue
+        wsUrl(ControlsUrl(mid, nodeId2))
+          .withHeaders(fakeToken.asHeader)
+          .post(json)
+          .futureValue
       res.status mustBe BAD_REQUEST
       res.body must include("cannot also have an observation")
     }
@@ -150,14 +161,17 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
         Json.obj("cleaning" -> Json.obj("ok" -> false))
 
       val res =
-        wsUrl(ControlsUrl(mid, 2)).withHeaders(fakeToken.asHeader).post(json).futureValue
+        wsUrl(ControlsUrl(mid, nodeId2))
+          .withHeaders(fakeToken.asHeader)
+          .post(json)
+          .futureValue
       res.status mustBe BAD_REQUEST
       res.body must include("must have an observation")
     }
 
     "successfully register a new observation" in {
       val json = Json.parse(EventJsonGenerator.observationJson(userId, 22))
-      val res = wsUrl(ObservationsUrl(mid, 2))
+      val res = wsUrl(ObservationsUrl(mid, nodeId2))
         .withHeaders(fakeToken.asHeader)
         .post(json)
         .futureValue
@@ -172,7 +186,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val badUserId = ActorId(UUID.fromString("8efd41bb-bc58-4bbf-ac95-eea21ba9db81"))
 
       val json = Json.parse(EventJsonGenerator.observationJson(badUserId, 20))
-      wsUrl(ObservationsUrl(mid, 2))
+      wsUrl(ObservationsUrl(mid, nodeId2))
         .withHeaders(token.asHeader)
         .post(json)
         .futureValue
@@ -180,8 +194,8 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     }
 
     "get a specific observation for a node" in {
-      val obsId = 20L
-      val res = wsUrl(ObservationUrl(mid, 2, obsId))
+      val obsId = 4L
+      val res = wsUrl(ObservationUrl(mid, nodeId2, obsId))
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
@@ -198,8 +212,8 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
 
     "not allow access to observation if user doesn't have READ permission" in {
       val token = BearerToken(FakeUsers.nhmReadToken)
-      val obsId = 20L
-      wsUrl(ObservationUrl(mid, 2, obsId))
+      val obsId = 4L
+      wsUrl(ObservationUrl(mid, nodeId2, obsId))
         .withHeaders(token.asHeader)
         .get()
         .futureValue
@@ -208,7 +222,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
 
     "successfully register another observation" in {
       val json = Json.parse(EventJsonGenerator.observationJson(userId, 22))
-      val res = wsUrl(ObservationsUrl(mid, 2))
+      val res = wsUrl(ObservationsUrl(mid, nodeId2))
         .withHeaders(fakeToken.asHeader)
         .post(json)
         .futureValue
@@ -219,7 +233,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     }
 
     "list all controls and observations for a node, ordered by doneDate" in {
-      val res = wsUrl(CtrlObsForNodeUrl(mid, 2))
+      val res = wsUrl(CtrlObsForNodeUrl(mid, nodeId2))
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
@@ -233,7 +247,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       "permission" in {
       val token  = BearerToken(FakeUsers.nhmReadToken)
       val ctrlId = 2L
-      wsUrl(CtrlObsForNodeUrl(mid, 2))
+      wsUrl(CtrlObsForNodeUrl(mid, nodeId2))
         .withHeaders(token.asHeader)
         .get()
         .futureValue

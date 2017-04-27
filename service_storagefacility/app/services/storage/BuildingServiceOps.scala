@@ -18,7 +18,7 @@ trait BuildingServiceOps { self: NodeService =>
 
   val buildingDao: BuildingDao
 
-  def getBuildingById(
+  def getBuildingByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[Building]]] = {
@@ -47,7 +47,7 @@ trait BuildingServiceOps { self: NodeService =>
       insert = buildingDao.insert,
       setEnvReq = (node, maybeEnvReq) => node.copy(environmentRequirement = maybeEnvReq),
       updateWithPath = (id, path) => buildingDao.setPath(id, path),
-      getNode = getBuildingById
+      getNode = getBuildingByDatabaseId
     )
   }
 
@@ -71,7 +71,7 @@ trait BuildingServiceOps { self: NodeService =>
               _ <- updateBuilding.environmentRequirement
                     .map(er => saveEnvReq(mid, dbId, er))
                     .getOrElse(Future.successful(None))
-              node <- getBuildingById(mid, dbId)
+              node <- getBuildingByDatabaseId(mid, dbId)
             } yield {
               node
             }

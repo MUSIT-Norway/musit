@@ -140,16 +140,16 @@ class StorageNodeService @Inject()(
         unitDao.findRootNode(id)
 
       case StorageType.OrganisationType =>
-        getOrganisationById(mid, id)
+        getOrganisationByDatabaseId(mid, id)
 
       case StorageType.BuildingType =>
-        getBuildingById(mid, id)
+        getBuildingByDatabaseId(mid, id)
 
       case StorageType.RoomType =>
-        getRoomById(mid, id)
+        getRoomByDatabaseId(mid, id)
 
       case StorageType.StorageUnitType =>
-        getStorageUnitById(mid, id)
+        getStorageUnitByDatabaseId(mid, id)
 
     }.getOrElse {
       logger.warn(s"Could not resolve StorageType $maybeType")
@@ -174,10 +174,13 @@ class StorageNodeService @Inject()(
       uuid: StorageNodeId
   ): Future[MusitResult[Option[StorageNode]]] = {
     unitDao.getStorageTypeFor(mid, uuid).flatMap { res =>
-      res.map(maybeIdType => disambiguateAndGet(mid, maybeIdType)).getOrElse {
-        logger.debug(s"Node with UUID $uuid not found")
-        Future.successful(MusitSuccess(None))
-      }
+      res.map { maybeIdType =>
+        disambiguateAndGet(mid, maybeIdType).map {
+          case s: MusitSuccess[Option[StorageNode]] => s
+          case v: MusitValidationError              => MusitSuccess(None)
+          case e: MusitError                        => e
+        }
+      }.getOrElse(Future.successful(MusitSuccess(None)))
     }
   }
 

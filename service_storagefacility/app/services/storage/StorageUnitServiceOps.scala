@@ -15,7 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait StorageUnitServiceOps { self: NodeService =>
 
-  def getStorageUnitById(
+  def getStorageUnitByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
   )(implicit ec: ExecutionContext): Future[MusitResult[Option[StorageUnit]]] = {
@@ -44,7 +44,7 @@ trait StorageUnitServiceOps { self: NodeService =>
       insert = unitDao.insert,
       setEnvReq = (node, mer) => node.copy(environmentRequirement = mer),
       updateWithPath = (id, path) => unitDao.setPath(id, path),
-      getNode = getStorageUnitById
+      getNode = getStorageUnitByDatabaseId
     )
   }
 
@@ -68,7 +68,7 @@ trait StorageUnitServiceOps { self: NodeService =>
               _ <- su.environmentRequirement
                     .map(er => saveEnvReq(mid, dbId, er))
                     .getOrElse(Future.successful(None))
-              node <- getStorageUnitById(mid, dbId)
+              node <- getStorageUnitByDatabaseId(mid, dbId)
             } yield node
           }.getOrElse(Future.successful(MusitSuccess(None)))
 

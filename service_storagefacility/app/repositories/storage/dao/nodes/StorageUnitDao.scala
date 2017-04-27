@@ -252,15 +252,16 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     val offset = (page - 1) * limit
 
     sql"""
-      WITH parent_node AS (
-        SELECT n.STORAGE_NODE_ID FROM MUSARK_STORAGE.STORAGE_NODE n
-        WHERE n.STORAGE_NODE_UUID=${id.asString}
-      )
       SELECT sn.STORAGE_NODE_ID, sn.STORAGE_NODE_UUID, sn.STORAGE_NODE_NAME,
         sn.AREA, sn.AREA_TO, sn.IS_PART_OF, sn.HEIGHT, sn.HEIGHT_TO,
         sn.GROUP_READ, sn.GROUP_WRITE, sn.OLD_BARCODE, sn.NODE_PATH,
         sn.IS_DELETED, sn.STORAGE_TYPE, sn.MUSEUM_ID, sn.UPDATED_BY, sn.UPDATED_DATE
-      FROM parent_node p, MUSARK_STORAGE.STORAGE_NODE sn
+      FROM
+        (
+          SELECT n.STORAGE_NODE_ID FROM MUSARK_STORAGE.STORAGE_NODE n
+          WHERE n.STORAGE_NODE_UUID=${id.asString}
+        ) p,
+        MUSARK_STORAGE.STORAGE_NODE sn
       WHERE sn.IS_PART_OF=p.STORAGE_NODE_ID
       AND sn.MUSEUM_ID=${mid.underlying}
       AND sn.IS_DELETED=0
@@ -276,11 +277,12 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
 
   private def totalChildCountQuery(mid: MuseumId, id: StorageNodeId) = {
     sql"""
-      WITH parent_node AS (
-        SELECT n.STORAGE_NODE_ID FROM MUSARK_STORAGE.STORAGE_NODE n
-        WHERE n.STORAGE_NODE_UUID=${id.asString}
-      )
-      SELECT COUNT(1) FROM parent_node p, MUSARK_STORAGE.STORAGE_NODE sn
+      SELECT COUNT(1) FROM
+        (
+          SELECT n.STORAGE_NODE_ID FROM MUSARK_STORAGE.STORAGE_NODE n
+          WHERE n.STORAGE_NODE_UUID=${id.asString}
+        ) p,
+        MUSARK_STORAGE.STORAGE_NODE sn
       WHERE sn.MUSEUM_ID=${mid.underlying}
       AND sn.STORAGE_NODE_ID=p.STORAGE_NODE_ID
       AND sn.IS_DELETED=0
