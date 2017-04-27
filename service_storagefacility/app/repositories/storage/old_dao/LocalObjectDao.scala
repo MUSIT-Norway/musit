@@ -62,53 +62,6 @@ class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     )
   }
 
-  def currentLocation(
-      objectId: ObjectId,
-      objectType: ObjectType
-  ): Future[Option[StorageNodeDatabaseId]] = {
-    val query = localObjectsTable.filter { locObj =>
-      locObj.objectId === objectId &&
-      (locObj.objectType === objectType.name || locObj.objectType.isEmpty)
-    }.map(_.currentLocationId).max.result
-
-    db.run(query)
-  }
-
-  /**
-   * Returns the LocalObject instance associated with the given objectIds
-   *
-   * @param objectIds Seq of ObjectIds to get current location for.
-   * @return Eventually returns a Map of ObjectIds and StorageNodeDatabaseId
-   */
-  def currentLocations(
-      objectIds: Seq[ObjectId]
-  ): Future[MusitResult[Map[ObjectId, Option[StorageNodeDatabaseId]]]] = {
-    type QLocQuery = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, Seq]
-
-    def buildQuery(ids: Seq[ObjectId]) = localObjectsTable.filter(_.objectId inSet ids)
-
-    val q = objectIds.grouped(500).foldLeft[(Int, QLocQuery)]((0, localObjectsTable)) {
-      case (qry, ids) =>
-        if (qry._1 == 0) (1, buildQuery(ids))
-        else (qry._1 + 1, qry._2 unionAll buildQuery(ids))
-    }
-
-    db.run(q._2.result)
-      .map { l =>
-        objectIds.foldLeft(Map.empty[ObjectId, Option[StorageNodeDatabaseId]]) {
-          case (res, oid) =>
-            val maybeNodeId = l.find(_.objectId == oid).map(_.currentLocationId)
-            res ++ Map(oid -> maybeNodeId)
-        }
-      }
-      .map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          MusitDbError("Unable to get current location", Some(ex))
-      }
-
-  }
-
   /**
    * Returns the LocalObject instance associated with the given objectIds
    *

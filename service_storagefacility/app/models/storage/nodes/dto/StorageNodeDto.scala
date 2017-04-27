@@ -32,7 +32,7 @@ sealed trait SpecializedStorageNode
 
 case class StorageUnitDto(
     id: Option[StorageNodeDatabaseId],
-    nodeId: Option[StorageNodeId],
+    nodeId: StorageNodeId,
     name: String,
     area: Option[Double],
     areaTo: Option[Double],
@@ -57,7 +57,7 @@ case class ExtendedStorageNode[T <: SpecializedStorageNode](
 
 case class RootDto(
     id: Option[StorageNodeDatabaseId],
-    nodeId: Option[StorageNodeId],
+    nodeId: StorageNodeId,
     name: String,
     storageType: StorageType,
     museumId: MuseumId,
@@ -122,7 +122,7 @@ object StorageNodeDto {
       r =>
         StorageUnitDto(
           id = StorageNodeDatabaseId.fromOptLong(r.nextLongOption()),
-          nodeId = r.nextStringOption().flatMap(StorageNodeId.fromString),
+          nodeId = StorageNodeId.unsafeFromString(r.nextString()),
           name = r.nextString(),
           area = r.nextDoubleOption(),
           areaTo = r.nextDoubleOption(),
@@ -183,7 +183,7 @@ object StorageNodeDto {
   def toGenericStorageNode(su: StorageUnitDto): GenericStorageNode =
     GenericStorageNode(
       id = su.id,
-      nodeId = su.nodeId,
+      nodeId = Some(su.nodeId),
       name = su.name,
       area = su.area,
       areaTo = su.areaTo,
@@ -205,7 +205,7 @@ object StorageNodeDto {
       case StorageType.RootType =>
         Root(
           id = su.id,
-          nodeId = su.nodeId,
+          nodeId = Some(su.nodeId),
           name = su.name,
           path = su.path,
           updatedBy = su.updatedBy,
@@ -215,7 +215,7 @@ object StorageNodeDto {
       case StorageType.RootLoanType =>
         RootLoan(
           id = su.id,
-          nodeId = su.nodeId,
+          nodeId = Some(su.nodeId),
           name = su.name,
           path = su.path,
           updatedBy = su.updatedBy,
@@ -232,7 +232,7 @@ object StorageNodeDto {
   def toStorageUnit(su: StorageUnitDto): StorageUnit =
     StorageUnit(
       id = su.id,
-      nodeId = su.nodeId,
+      nodeId = Some(su.nodeId),
       name = su.name,
       area = su.area,
       areaTo = su.areaTo,
@@ -250,7 +250,7 @@ object StorageNodeDto {
   def toBuilding(ext: ExtendedStorageNode[BuildingDto]): Building = {
     Building(
       id = ext.extension.id,
-      nodeId = ext.storageUnitDto.nodeId,
+      nodeId = Some(ext.storageUnitDto.nodeId),
       name = ext.storageUnitDto.name,
       area = ext.storageUnitDto.area,
       areaTo = ext.storageUnitDto.areaTo,
@@ -270,7 +270,7 @@ object StorageNodeDto {
   def toOrganisation(ext: ExtendedStorageNode[OrganisationDto]): Organisation = {
     Organisation(
       id = ext.extension.id,
-      nodeId = ext.storageUnitDto.nodeId,
+      nodeId = Some(ext.storageUnitDto.nodeId),
       name = ext.storageUnitDto.name,
       area = ext.storageUnitDto.area,
       areaTo = ext.storageUnitDto.areaTo,
@@ -290,7 +290,7 @@ object StorageNodeDto {
   def toRoom(ext: ExtendedStorageNode[RoomDto]): Room = {
     Room(
       id = ext.extension.id,
-      nodeId = ext.storageUnitDto.nodeId,
+      nodeId = Some(ext.storageUnitDto.nodeId),
       name = ext.storageUnitDto.name,
       area = ext.storageUnitDto.area,
       areaTo = ext.storageUnitDto.areaTo,
@@ -322,7 +322,7 @@ object StorageNodeDto {
   def fromRootNode(mid: MuseumId, r: RootNode): RootDto =
     RootDto(
       id = r.id,
-      nodeId = r.nodeId,
+      nodeId = r.nodeId.get,
       name = r.name,
       storageType = r.storageType,
       museumId = mid,
@@ -333,11 +333,12 @@ object StorageNodeDto {
   def fromStorageUnit(
       mid: MuseumId,
       su: StorageUnit,
-      id: Option[StorageNodeDatabaseId] = None
+      id: Option[StorageNodeDatabaseId] = None,
+      uuid: Option[StorageNodeId] = None
   ): StorageUnitDto =
     StorageUnitDto(
       id = id.orElse(su.id),
-      nodeId = su.nodeId,
+      nodeId = uuid.orElse(su.nodeId).get,
       name = su.name,
       area = su.area,
       areaTo = su.areaTo,
@@ -358,12 +359,13 @@ object StorageNodeDto {
   def fromBuilding(
       mid: MuseumId,
       b: Building,
-      id: Option[StorageNodeDatabaseId] = None
+      id: Option[StorageNodeDatabaseId] = None,
+      uuid: Option[StorageNodeId] = None
   ): ExtendedStorageNode[BuildingDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
         id = id.orElse(b.id),
-        nodeId = b.nodeId,
+        nodeId = uuid.orElse(b.nodeId).get,
         name = b.name,
         area = b.area,
         areaTo = b.areaTo,
@@ -389,12 +391,13 @@ object StorageNodeDto {
   def fromOrganisation(
       mid: MuseumId,
       o: Organisation,
-      id: Option[StorageNodeDatabaseId] = None
+      id: Option[StorageNodeDatabaseId] = None,
+      uuid: Option[StorageNodeId] = None
   ): ExtendedStorageNode[OrganisationDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
         id = id.orElse(o.id),
-        nodeId = o.nodeId,
+        nodeId = uuid.orElse(o.nodeId).get,
         name = o.name,
         area = o.area,
         areaTo = o.areaTo,
@@ -420,12 +423,13 @@ object StorageNodeDto {
   def fromRoom(
       mid: MuseumId,
       r: Room,
-      id: Option[StorageNodeDatabaseId] = None
+      id: Option[StorageNodeDatabaseId] = None,
+      uuid: Option[StorageNodeId] = None
   ): ExtendedStorageNode[RoomDto] =
     ExtendedStorageNode(
       storageUnitDto = StorageUnitDto(
         id = id.orElse(r.id),
-        nodeId = r.nodeId,
+        nodeId = uuid.orElse(r.nodeId).get,
         name = r.name,
         area = r.area,
         areaTo = r.areaTo,

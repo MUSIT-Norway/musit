@@ -1,26 +1,28 @@
 package controllers.storage
 
 import com.google.inject.Inject
-import models.storage.MovableObject_Old
-import models.storage.Move_Old.{DelphiMove, MoveNodesCmd, MoveObjectsCmd}
-import models.storage.event.old.move._
+import models.storage.MovableObject
+import models.storage.Move.{DelphiMoveCmd, MoveNodesCmd, MoveObjectsCmd}
+import models.storage.event.move._
 import models.storage.nodes._
 import no.uio.musit.MusitResults._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{AuthenticatedUser, Authenticator}
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
-import services.old.StorageNodeService
+import services.storage.StorageNodeService
 
 import scala.concurrent.Future
 
 /**
- * TODO: Document me!
+ * Controller that exposes service endpoints to interact with data related to
+ * storage nodes in the storage facility module.
  */
 final class StorageController @Inject()(
     val authService: Authenticator,
@@ -29,6 +31,14 @@ final class StorageController @Inject()(
 
   val logger = Logger(classOf[StorageController])
 
+  /**
+   * Helper function implementing shared logic for handling the result when
+   * adding a new {{{StorageNode}}}.
+   *
+   * @param res The {{{MusitResult[Option[T]]}}} to handle
+   * @tparam T The type of the data inside the result
+   * @return A play Result.
+   */
   private def addResult[T <: StorageNode](
       res: MusitResult[Option[T]]
   ): Result = {
@@ -53,7 +63,10 @@ final class StorageController @Inject()(
   }
 
   /**
-   * TODO: Document me!
+   * Endpoint for adding a new StorageNode. Takes a {{{StorageNode}}} as input
+   * in the request body, and returns the created node in the response.
+   *
+   * @see [[models.storage.nodes.StorageNode]]
    */
   def add(
       mid: Int
@@ -62,27 +75,7 @@ final class StorageController @Inject()(
 
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
-        node match {
-          case su: StorageUnit =>
-            logger.debug(s"Adding a new StorageUnit ${su.name}")
-            service.addStorageUnit(mid, su).map(addResult)
-
-          case b: Building =>
-            logger.debug(s"Adding a new Building ${b.name}")
-            service.addBuilding(mid, b).map(addResult)
-
-          case r: Room =>
-            logger.debug(s"Adding a new Room ${r.name}")
-            service.addRoom(mid, r).map(addResult)
-
-          case o: Organisation =>
-            logger.debug(s"Adding a new Organisation ${o.name}")
-            service.addOrganisation(mid, o).map(addResult)
-
-          case bad =>
-            val message = s"Wrong service for adding a ${bad.storageType}."
-            Future.successful(BadRequest(Json.obj("message" -> message)))
-        }
+        service.addNode(mid, node).map(addResult)
 
       case err: JsError =>
         val jserr = JsError.toJson(err)
@@ -92,7 +85,11 @@ final class StorageController @Inject()(
   }
 
   /**
-   * TODO: Document me!
+   * Adds a new RootNode to the given {{{MuseumId}}}. Takes a {{{RootNode}}} as
+   * input in the request body, and returns the created root node in the
+   * response.
+   *
+   * @see [[models.storage.nodes.RootNode]]
    */
   def addRoot(
       mid: Int
@@ -106,7 +103,10 @@ final class StorageController @Inject()(
   }
 
   /**
-   * TODO: Document me!
+   * Fetches the {{{RootNode}}}s for the 'given MuseumId. Returns either a JSON
+   * array of {{{RootNode}}}s or an empty array if none were found.
+   *
+   * @see [[models.storage.nodes.RootNode]]
    */
   def root(mid: Int) = MusitSecureAction(mid, Read).async { implicit request =>
     service.rootNodes(mid).map {
@@ -125,54 +125,46 @@ final class StorageController @Inject()(
   }
 
   /**
-   * TODO: Document me!
+   * Endpoint for fetching the children for the given {{{StorageNodeId}}}. The
+   * result is paged based on the value of the {{{limit}}} argument (defaults to
+   * 25 results per page).
+   *
+   * Returns a result containing a JSON object with the total number of matches,
+   * and an array of storage nodes.
    */
   def children(
       mid: Int,
-      id: Long,
+      id: String,
       page: Int,
       limit: Int
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.getChildren(mid, id, page, limit).map {
-      case MusitSuccess(nodes) =>
-        Ok(
-          Json.obj(
-            "totalMatches" -> nodes.totalMatches,
-            "matches"      -> Json.toJson[Seq[GenericStorageNode]](nodes.matches)
-          )
-        )
-      case musitError: MusitError =>
-        InternalServerError(Json.obj("message" -> musitError.message))
-    }
-  }
-
-  /**
-   * TODO: Document me!
-   */
-  def getById(
-      mid: Int,
-      id: Long
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.getNodeById(mid, id).map {
-      case MusitSuccess(maybeNode) =>
-        maybeNode.map(n => Ok(Json.toJson[StorageNode](n))).getOrElse(NotFound)
-
-      case musitError: MusitError =>
-        musitError match {
-          case MusitValidationError(message, exp, act) =>
-            BadRequest(Json.obj("message" -> message))
-
-          case internal: MusitError =>
-            InternalServerError(Json.obj("message" -> internal.message))
-        }
-    }
-  }
-
-  def getByStorageNodeId(mid: Int, nodeId: Option[String]): Future[Result] = {
-    nodeId
-      .flatMap(StorageNodeId.fromString)
+    StorageNodeId
+      .fromString(id)
       .map { nid =>
-        service.getNodeByStorageNodeId(mid, nid).map {
+        service.getChildren(mid, nid, page, limit).map {
+          case MusitSuccess(nodes) =>
+            Ok(
+              Json.obj(
+                "totalMatches" -> nodes.totalMatches,
+                "matches"      -> Json.toJson[Seq[GenericStorageNode]](nodes.matches)
+              )
+            )
+          case musitError: MusitError =>
+            InternalServerError(Json.obj("message" -> musitError.message))
+        }
+      }
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID $id"))
+        }
+      }
+  }
+
+  private def getByStorageNodeId(mid: Int, nodeId: String): Future[Result] = {
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        service.getNodeById(mid, nid).map {
           case MusitSuccess(maybeNode) =>
             maybeNode.map(node => Ok(Json.toJson(node))).getOrElse {
               NotFound(
@@ -193,21 +185,24 @@ final class StorageController @Inject()(
       }
   }
 
-  def getByOldBarcode(mid: Int, oldBarcode: Option[Long]): Future[Result] = {
-    oldBarcode.map { barcode =>
-      service.getNodeByOldBarcode(mid, barcode).map {
-        case MusitSuccess(maybeNode) =>
-          maybeNode.map(node => Ok(Json.toJson(node))).getOrElse(NoContent)
+  private def getByOldBarcode(mid: Int, barcode: Long): Future[Result] = {
+    service.getNodeByOldBarcode(mid, barcode).map {
+      case MusitSuccess(maybeNode) =>
+        maybeNode.map(node => Ok(Json.toJson(node))).getOrElse(NoContent)
 
-        case err: MusitError =>
-          InternalServerError(Json.obj("message" -> err.message))
-      }
-    }.getOrElse {
-      Future.successful {
-        BadRequest(Json.obj("message" -> s"oldBarcode did not contain a value"))
-      }
+      case err: MusitError =>
+        InternalServerError(Json.obj("message" -> err.message))
     }
   }
+
+  /**
+   * Fetch the StorageNode with the provided StorageNodeId (UUID) in the given
+   * MuseumId.
+   */
+  def getById(
+      mid: Int,
+      id: String
+  ) = MusitSecureAction(mid, Read).async(getByStorageNodeId(mid, id))
 
   /**
    * Service for looking up a storage node based on UUID.
@@ -217,88 +212,99 @@ final class StorageController @Inject()(
       storageNodeId: Option[String],
       oldBarcode: Option[Long]
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    if (storageNodeId.nonEmpty) getByStorageNodeId(mid, storageNodeId)
-    else if (oldBarcode.nonEmpty) getByOldBarcode(mid, oldBarcode)
-    else
-      Future.successful {
-        BadRequest(
-          Json.obj(
-            "message" -> "Either storage node id or old barcode must be specified"
+    storageNodeId
+      .map(sid => getByStorageNodeId(mid, sid))
+      .orElse(oldBarcode.map(bc => getByOldBarcode(mid, bc)))
+      .getOrElse {
+        Future.successful {
+          BadRequest(
+            Json.obj(
+              "message" -> "Either storage node id or old barcode must be specified"
+            )
           )
-        )
+        }
       }
   }
 
   /**
-   * TODO: Document me!
+   * Update the StorageNode with the given id in the specified museum.
    */
   def update(
       mid: Int,
-      id: Long
+      id: String
   ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
-    request.body.validate[StorageNode] match {
-      case JsSuccess(node, _) =>
-        val futureRes: Future[MusitResult[Option[StorageNode]]] = node match {
-          case su: StorageUnit => service.updateStorageUnit(mid, id, su)
-          case b: Building     => service.updateBuilding(mid, id, b)
-          case r: Room         => service.updateRoom(mid, id, r)
-          case o: Organisation => service.updateOrganisation(mid, id, o)
-          case _               => Future.successful(MusitSuccess(None))
-        }
+    StorageNodeId
+      .fromString(id)
+      .map { sid =>
+        request.body.validate[StorageNode] match {
+          case JsSuccess(node, _) =>
+            service.updateNode(mid, sid, node).map { musitRes =>
+              musitRes.map {
+                case Some(updated) => Ok(Json.toJson(updated))
+                case None          => NotFound
 
-        futureRes.map { musitRes =>
-          musitRes.map {
-            case Some(updated) => Ok(Json.toJson(updated))
-            case None          => NotFound
-
-          }.getOrElse {
-            InternalServerError(
-              Json.obj(
-                "message" -> ("An unexpected error occurred while trying to " +
-                  s"update StorageNode with ID $id")
-              )
-            )
-          }
+              }.getOrElse {
+                InternalServerError(
+                  Json.obj(
+                    "message" -> ("An unexpected error occurred while trying to " +
+                      s"update StorageNode with ID $id")
+                  )
+                )
+              }
+            }
+          case JsError(error) =>
+            Future.successful(BadRequest(JsError.toJson(error)))
         }
-      case JsError(error) =>
-        Future.successful(BadRequest(JsError.toJson(error)))
-    }
+      }
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID $id"))
+        }
+      }
   }
 
   /**
-   * TODO: Document me!
+   * Endpoint for marking a StorageNode as deleted.
    */
   def delete(
       mid: Int,
-      id: Long
+      id: String
   ) = MusitSecureAction(mid, Admin).async { implicit request =>
     implicit val currUsr = request.user
+    StorageNodeId
+      .fromString(id)
+      .map { sid =>
+        service.deleteNode(mid, sid).map {
+          case MusitSuccess(maybeDeleted) =>
+            maybeDeleted.map { numDeleted =>
+              if (numDeleted == -1) {
+                BadRequest(Json.obj("message" -> s"Node $id is not empty"))
+              } else {
+                Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
+              }
+            }.getOrElse {
+              NotFound(
+                Json.obj(
+                  "message" -> s"Could not find storage node with id: $id"
+                )
+              )
+            }
 
-    service.deleteNode(mid, id).map {
-      case MusitSuccess(maybeDeleted) =>
-        maybeDeleted.map { numDeleted =>
-          if (numDeleted == -1) {
-            BadRequest(Json.obj("message" -> s"Node $id is not empty"))
-          } else {
-            Ok(Json.obj("message" -> s"Deleted $numDeleted storage nodes."))
-          }
-        }.getOrElse {
-          NotFound(
-            Json.obj(
-              "message" -> s"Could not find storage node with id: $id"
+          case err: MusitError =>
+            logger.error(
+              "An unexpected error occurred when trying to delete a " +
+                s"node with ID $id. Message was: ${err.message}"
             )
-          )
+            InternalServerError(Json.obj("message" -> err.message))
         }
-
-      case err: MusitError =>
-        logger.error(
-          "An unexpected error occurred when trying to delete a " +
-            s"node with ID $id. Message was: ${err.message}"
-        )
-        InternalServerError(Json.obj("message" -> err.message))
-    }
+      }
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID $id"))
+        }
+      }
   }
 
   /**
@@ -334,10 +340,36 @@ final class StorageController @Inject()(
 
       case JsError(error) =>
         logger.warn(
-          s"Error parsing JSON:" +
-            s"\n${Json.prettyPrint(JsError.toJson(error))}"
+          s"Error parsing JSON:\n${Json.prettyPrint(JsError.toJson(error))}"
         )
         Future.successful(BadRequest(JsError.toJson(error)))
+    }
+  }
+
+  private def mvObjects(
+      mid: MuseumId,
+      dest: StorageNodeId,
+      events: Seq[MoveObject]
+  )(
+      successFailed: Seq[ObjectUUID] => (Seq[ObjectUUID], Seq[ObjectUUID])
+  )(implicit currUser: AuthenticatedUser) = {
+    service.moveObjects(mid, dest, events).map {
+      case MusitSuccess(oids) =>
+        val sf      = successFailed(oids)
+        val success = sf._1
+        val failed  = sf._2
+        Ok(
+          Json.obj(
+            "moved"  -> Json.toJson(success),
+            "failed" -> Json.toJson(failed)
+          )
+        )
+
+      case MusitValidationError(msg, _, _) =>
+        BadRequest(Json.obj("message" -> msg))
+
+      case err: MusitError =>
+        InternalServerError(Json.obj("message" -> err.message))
     }
   }
 
@@ -353,38 +385,21 @@ final class StorageController @Inject()(
 
     val js = request.body
 
-    js.validate[MoveObjectsCmd].orElse(js.validate[DelphiMove]) match {
-      case JsSuccess(cmd, _) =>
+    val jsRes = js.validate[MoveObjectsCmd].orElse(js.validate[DelphiMoveCmd])
+
+    jsRes match {
+      case JsSuccess(cmd: MoveObjectsCmd, _) =>
         val events = MoveObject.fromCommand(currUser.id, cmd)
-        service.moveObjects(mid, cmd.destination, events).map {
-          case MusitSuccess(oids) =>
-            cmd match {
-              case m: MoveObjectsCmd =>
-                val success = m.items.filter(mo => oids.contains(mo.id))
-                val failed  = m.items.filterNot(mo => oids.contains(mo.id))
-                Ok(
-                  Json.obj(
-                    "moved"  -> Json.toJson(success),
-                    "failed" -> Json.toJson(failed)
-                  )
-                )
-
-              case d: DelphiMove =>
-                val failed = d.items.filterNot(oids.contains)
-                Ok(
-                  Json.obj(
-                    "moved"  -> oids.map(_.underlying),
-                    "failed" -> failed.map(_.underlying)
-                  )
-                )
-            }
-
-          case MusitValidationError(msg, _, _) =>
-            BadRequest(Json.obj("message" -> msg))
-
-          case err: MusitError =>
-            InternalServerError(Json.obj("message" -> err.message))
+        mvObjects(mid, cmd.destination, events) { oids =>
+          val mobs = cmd.items.map(_.id)
+          (mobs.filter(oids.contains), mobs.filterNot(oids.contains))
         }
+
+      case JsSuccess(cmd: DelphiMoveCmd, _) =>
+        moveObjectForDelphi(mid, cmd)
+
+      case JsSuccess(bad, path) =>
+        Future.successful(BadRequest(Json.obj("message" -> "Unknown command.")))
 
       case JsError(error) =>
         logger.warn(
@@ -395,83 +410,103 @@ final class StorageController @Inject()(
     }
   }
 
-  /**
-   * Endpoint for retrieving the {{{limit}}} number of past move events.
-   *
-   * @param mid        MuseumId
-   * @param objectId   the objectId to get move history for.
-   * @param objectType the type of object expected to find location history for
-   * @param limit      Int indicating the number of results to return.
-   * @return A JSON array with the {{{limit}}} number of move events.
-   */
-  def objectLocationHistory(
-      mid: Int,
-      objectId: Long,
-      objectType: String,
-      limit: Int
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
-    service.objectLocationHistory(mid, objectId, Option(limit)).map {
-      case MusitSuccess(history) =>
-        Ok(Json.toJson(history))
-
-      case err: MusitError =>
-        InternalServerError(Json.obj("message" -> err.message))
-    }
+  private def moveObjectForDelphi(
+      mid: MuseumId,
+      cmd: DelphiMoveCmd
+  )(implicit currUser: AuthenticatedUser) = {
+    //      val failed = d.items.filterNot(oids.contains)
+    //      Ok(
+    //        Json.obj(
+    //          "moved"  -> oids.map(_.underlying),
+    //          "failed" -> failed.map(_.underlying)
+    //        )
+    //      )
+    ???
   }
 
   /**
-   * Get the current location for a an ObjectId.
-   *
-   * @param mid        MuseumId
-   * @param oid        Long (must be a valid ObjectId)
-   * @param objectType the type of object expected find location history for
-   * @return a JSON response with the StorageNode where the object is located.
+   * Endpoint for retrieving the {{{limit}}} number of past move events.
    */
-  def currentObjectLocation(
+  def objectLocationHistory(
       mid: Int,
-      oid: Long,
-      objectType: String
+      objectId: String,
+      objectType: String,
+      limit: Int
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    ObjectType
-      .fromString(objectType)
-      .map { ot =>
-        service.currentObjectLocation(mid, oid, ot).map {
-          case MusitSuccess(optCurrLoc) =>
-            optCurrLoc.map { currLoc =>
-              Ok(Json.toJson(currLoc))
-            }.getOrElse {
-              NotFound(
-                Json.obj("message" -> s"Could not find objectId $oid in museum $mid")
-              )
-            }
+    ObjectUUID
+      .fromString(objectId)
+      .map { oid =>
+        service.objectLocationHistory(mid, oid, Option(limit)).map {
+          case MusitSuccess(history) =>
+            Ok(Json.toJson(history))
 
           case err: MusitError =>
-            logger.error(
-              "An unexpected error occurred when trying to read " +
-                s"currentLocation for object $oid. Message was: ${err.message}"
-            )
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
       .getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Not a valid object type $objectType"))
-        )
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID $objectId"))
+        }
       }
   }
 
   /**
-   * Get the current location for a list of ObjectIds
-   *
-   * @param mid MuseumId
-   * @return A JSON response with a list of StorageNodes.
+   * Get the current location for a an ObjectId.
+   */
+  def currentObjectLocation(
+      mid: Int,
+      objectId: String,
+      objectType: String
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
+    ObjectUUID
+      .fromString(objectId)
+      .map { oid =>
+        ObjectType
+          .fromString(objectType)
+          .map { ot =>
+            service.currentObjectLocation(mid, oid, ot).map {
+              case MusitSuccess(optCurrLoc) =>
+                optCurrLoc.map { currLoc =>
+                  Ok(Json.toJson(currLoc))
+                }.getOrElse {
+                  NotFound(
+                    Json.obj(
+                      "message" -> s"Could not find objectId $objectId in museum $mid"
+                    )
+                  )
+                }
+
+              case err: MusitError =>
+                logger.error(
+                  "An unexpected error occurred when trying to read " +
+                    s"currentLocation for object $objectId. Message was: ${err.message}"
+                )
+                InternalServerError(Json.obj("message" -> err.message))
+            }
+          }
+          .getOrElse {
+            Future.successful(
+              BadRequest(Json.obj("message" -> s"Not a valid object type $objectType"))
+            )
+          }
+      }
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID $objectId"))
+        }
+      }
+  }
+
+  /**
+   * Get the current location for a list of {{{MovableObjects}}}
    */
   def currentObjectLocations(
       mid: Int
   ) = MusitSecureAction(mid, Read).async(parse.json) { implicit request =>
-    request.body.validate[Seq[MovableObject_Old]] match {
+    request.body.validate[Seq[MovableObject]] match {
       case JsSuccess(objs, _) =>
-        service.currentObjectLocations(mid, objs).map {
+        service.currentObjectLocations(mid, objs.map(_.id)).map {
           case MusitSuccess(objectsLocations) =>
             Ok(Json.toJson(objectsLocations))
 
@@ -493,6 +528,9 @@ final class StorageController @Inject()(
     }
   }
 
+  /**
+   * Service endpoint exposing "simple" search functionality for StorageNodes.
+   */
   def search(
       mid: Int,
       searchStr: Option[String],

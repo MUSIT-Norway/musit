@@ -22,6 +22,7 @@ package services.old
 import models.report.KdReport
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import services.storage.KdReportService
 import utils.testhelpers.NodeGenerators
 
 class KdReportServiceSpec

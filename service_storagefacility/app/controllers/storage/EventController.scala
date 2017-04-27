@@ -20,16 +20,17 @@
 package controllers.storage
 
 import com.google.inject.{Inject, Singleton}
-import models.storage.event.old.control.Control
-import models.storage.event.old.observation.Observation
+import models.storage.event.control.Control
+import models.storage.event.observation.Observation
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.models.StorageNodeId
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
-import services.old.{ControlService, ObservationService}
+import services.storage.{ControlService, ObservationService}
 
 import scala.concurrent.Future
 
@@ -48,20 +49,29 @@ class EventController @Inject()(
    */
   def addControl(
       mid: Int,
-      nodeId: Long
+      nodeId: String
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    request.body.validate[Control] match {
-      case JsSuccess(ctrl, jsPath) =>
-        controlService.add(mid, nodeId, ctrl)(request.user).map {
-          case MusitSuccess(addedCtrl) =>
-            Created(Json.toJson(addedCtrl))
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        request.body.validate[Control] match {
+          case JsSuccess(ctrl, jsPath) =>
+            controlService.add(mid, nid, ctrl)(request.user).map {
+              case MusitSuccess(addedCtrl) =>
+                Created(Json.toJson(addedCtrl))
 
-          case err: MusitError =>
-            InternalServerError(Json.obj("message" -> err.message))
+              case err: MusitError =>
+                InternalServerError(Json.obj("message" -> err.message))
+            }
+          case JsError(errors) =>
+            Future.successful(BadRequest(JsError.toJson(errors)))
         }
-      case JsError(errors) =>
-        Future.successful(BadRequest(JsError.toJson(errors)))
-    }
+      }
+      .getOrElse {
+        Future.successful(
+          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
+        )
+      }
   }
 
   /**
@@ -70,20 +80,29 @@ class EventController @Inject()(
    */
   def addObservation(
       mid: Int,
-      nodeId: Long
+      nodeId: String
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    request.body.validate[Observation] match {
-      case JsSuccess(obs, jsPath) =>
-        observationService.add(mid, nodeId, obs)(request.user).map {
-          case MusitSuccess(addedObs) =>
-            Created(Json.toJson(addedObs))
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        request.body.validate[Observation] match {
+          case JsSuccess(obs, jsPath) =>
+            observationService.add(mid, nid, obs)(request.user).map {
+              case MusitSuccess(addedObs) =>
+                Created(Json.toJson(addedObs))
 
-          case err: MusitError =>
-            InternalServerError(Json.obj("message" -> err.message))
+              case err: MusitError =>
+                InternalServerError(Json.obj("message" -> err.message))
+            }
+          case JsError(errors) =>
+            Future.successful(BadRequest(JsError.toJson(errors)))
         }
-      case JsError(errors) =>
-        Future.successful(BadRequest(JsError.toJson(errors)))
-    }
+      }
+      .getOrElse {
+        Future.successful(
+          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
+        )
+      }
   }
 
   /**
@@ -92,20 +111,29 @@ class EventController @Inject()(
    */
   def getControl(
       mid: Int,
-      nodeId: Long,
+      nodeId: String,
       eventId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    controlService.findBy(mid, eventId).map {
-      case MusitSuccess(maybeControl) =>
-        maybeControl.map { ctrl =>
-          Ok(Json.toJson(ctrl))
-        }.getOrElse {
-          NotFound
-        }
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        controlService.findBy(mid, eventId).map {
+          case MusitSuccess(maybeControl) =>
+            maybeControl.map { ctrl =>
+              Ok(Json.toJson(ctrl))
+            }.getOrElse {
+              NotFound
+            }
 
-      case err: MusitError =>
-        InternalServerError(Json.obj("message" -> err.message))
-    }
+          case err: MusitError =>
+            InternalServerError(Json.obj("message" -> err.message))
+        }
+      }
+      .getOrElse {
+        Future.successful(
+          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
+        )
+      }
   }
 
   /**
@@ -114,19 +142,28 @@ class EventController @Inject()(
    */
   def getObservation(
       mid: Int,
-      nodeId: Long,
+      nodeId: String,
       eventId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    observationService.findBy(mid, eventId).map {
-      case MusitSuccess(maybeObservation) =>
-        maybeObservation.map { obs =>
-          Ok(Json.toJson(obs))
-        }.getOrElse {
-          NotFound
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        observationService.findBy(mid, eventId).map {
+          case MusitSuccess(maybeObservation) =>
+            maybeObservation.map { obs =>
+              Ok(Json.toJson(obs))
+            }.getOrElse {
+              NotFound
+            }
+          case err: MusitError =>
+            InternalServerError(Json.obj("message" -> err.message))
         }
-      case err: MusitError =>
-        InternalServerError(Json.obj("message" -> err.message))
-    }
+      }
+      .getOrElse {
+        Future.successful(
+          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
+        )
+      }
   }
 
   /**
@@ -134,15 +171,24 @@ class EventController @Inject()(
    */
   def listControls(
       mid: Int,
-      nodeId: Long
+      nodeId: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    controlService.listFor(mid, nodeId).map {
-      case MusitSuccess(controls) =>
-        Ok(Json.toJson(controls))
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        controlService.listFor(mid, nid).map {
+          case MusitSuccess(controls) =>
+            Ok(Json.toJson(controls))
 
-      case err: MusitError =>
-        InternalServerError(Json.obj("message" -> err.message))
-    }
+          case err: MusitError =>
+            InternalServerError(Json.obj("message" -> err.message))
+        }
+      }
+      .getOrElse {
+        Future.successful(
+          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
+        )
+      }
   }
 
   /**
@@ -150,15 +196,24 @@ class EventController @Inject()(
    */
   def listObservations(
       mid: Int,
-      nodeId: Long
+      nodeId: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    observationService.listFor(mid, nodeId).map {
-      case MusitSuccess(observations) =>
-        Ok(Json.toJson(observations))
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        observationService.listFor(mid, nid).map {
+          case MusitSuccess(observations) =>
+            Ok(Json.toJson(observations))
 
-      case err: MusitError =>
-        InternalServerError(Json.obj("message" -> err.message))
-    }
+          case err: MusitError =>
+            InternalServerError(Json.obj("message" -> err.message))
+        }
+      }
+      .getOrElse {
+        Future.successful(
+          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
+        )
+      }
   }
 
   /**
@@ -167,39 +222,48 @@ class EventController @Inject()(
    */
   def listEventsForNode(
       mid: Int,
-      nodeId: Long
+      nodeId: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    val eventuallyCtrls = controlService.listFor(mid, nodeId)
-    val eventyallyObs   = observationService.listFor(mid, nodeId)
-    for {
-      ctrlRes <- eventuallyCtrls
-      obsRes  <- eventyallyObs
-    } yield {
-      val sortedRes = for {
-        controls     <- ctrlRes
-        observations <- obsRes
-      } yield {
-        controls.union(observations).sortBy(_.doneDate.getMillis)
-      }
-
-      sortedRes match {
-        case MusitSuccess(sorted) =>
-          val jsObjects = sorted.map {
-            case ctrl: Control    => Json.toJson(ctrl)
-            case obs: Observation => Json.toJson(obs)
-            case _                => JsNull
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        val eventuallyCtrls = controlService.listFor(mid, nid)
+        val eventyallyObs   = observationService.listFor(mid, nid)
+        for {
+          ctrlRes <- eventuallyCtrls
+          obsRes  <- eventyallyObs
+        } yield {
+          val sortedRes = for {
+            controls     <- ctrlRes
+            observations <- obsRes
+          } yield {
+            controls.union(observations).sortBy(_.doneDate.getMillis)
           }
-          logger.debug(
-            s"Going to return sorted JSON:" +
-              s"\n${Json.prettyPrint(JsArray(jsObjects))}"
-          )
-          Ok(JsArray(jsObjects))
 
-        case err: MusitError =>
-          InternalServerError(Json.obj("message" -> err.message))
+          sortedRes match {
+            case MusitSuccess(sorted) =>
+              val jsObjects = sorted.map {
+                case ctrl: Control    => Json.toJson(ctrl)
+                case obs: Observation => Json.toJson(obs)
+                case _                => JsNull
+              }
+              logger.debug(
+                s"Going to return sorted JSON:" +
+                  s"\n${Json.prettyPrint(JsArray(jsObjects))}"
+              )
+              Ok(JsArray(jsObjects))
+
+            case err: MusitError =>
+              InternalServerError(Json.obj("message" -> err.message))
+          }
+
+        }
       }
-
-    }
+      .getOrElse {
+        Future.successful(
+          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
+        )
+      }
   }
 
 }

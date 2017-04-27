@@ -166,11 +166,11 @@ class StorageUnitDaoSpec
 
       val res = storageUnitDao.namesForPath(path2).futureValue
       res.successValue.size mustBe 3
-      res.successValue.head.nodeId mustBe StorageNodeDatabaseId(18)
+      res.successValue.head.nodeDbId mustBe StorageNodeDatabaseId(18)
       res.successValue.head.name mustBe "root18"
-      res.successValue.tail.head.nodeId mustBe StorageNodeDatabaseId(28)
+      res.successValue.tail.head.nodeDbId mustBe StorageNodeDatabaseId(28)
       res.successValue.tail.head.name mustBe "node1"
-      res.successValue.last.nodeId mustBe StorageNodeDatabaseId(29)
+      res.successValue.last.nodeDbId mustBe StorageNodeDatabaseId(29)
       res.successValue.last.name mustBe "node2"
     }
 

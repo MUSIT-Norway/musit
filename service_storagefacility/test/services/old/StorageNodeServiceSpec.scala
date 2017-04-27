@@ -19,7 +19,7 @@
 
 package services.old
 
-import models.storage.Interval
+import models.storage.{Interval, MovableObject_Old}
 import models.storage.Move_Old.MoveNodesCmd
 import models.storage.event.EventType
 import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
@@ -225,9 +225,17 @@ class StorageNodeServiceSpec
       val oid  = ObjectId(8)
       val dest = StorageNodeDatabaseId(23)
 
-      val loc1 =
-        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
-      loc1.successValue.value.id mustBe Some(StorageNodeDatabaseId(6))
+      val loc1 = service
+        .currentObjectLocations(
+          defaultMuseumId,
+          Seq(MovableObject_Old(oid, CollectionObject))
+        )
+        .futureValue
+        .successValue
+        .headOption
+        .value
+
+      loc1.node.id must not be empty
 
       val event = MoveObject(
         id = None,
@@ -238,7 +246,7 @@ class StorageNodeServiceSpec
         registeredDate = Some(DateTime.now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
         objectType = CollectionObject,
-        from = Some(StorageNodeDatabaseId(6)),
+        from = loc1.node.id,
         to = dest
       )
 
@@ -246,18 +254,21 @@ class StorageNodeServiceSpec
         service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue.successValue
 
       val loc2 =
-        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
-      loc2.successValue.value.id mustBe Some(StorageNodeDatabaseId(23))
-      loc2.successValue.value.pathNames must not be empty
+        service
+          .currentObjectLocations(
+            defaultMuseumId,
+            Seq(MovableObject_Old(oid, CollectionObject))
+          )
+          .futureValue
+      loc2.successValue.size mustBe 1
+      loc2.successValue.headOption.value.node.id mustBe Some(StorageNodeDatabaseId(23))
+      loc2.successValue.headOption.value.node.pathNames must not be empty
+      loc2.successValue.headOption.value.objectIds.headOption mustBe Some(oid)
     }
 
     "not register a move when current location and destination are the same" in {
       val oid  = ObjectId(8)
       val dest = StorageNodeDatabaseId(23)
-
-      val loc1 =
-        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
-      loc1.successValue.value.id mustBe Some(StorageNodeDatabaseId(23))
 
       val event = MoveObject(
         id = None,
@@ -275,9 +286,14 @@ class StorageNodeServiceSpec
       val res = service.moveObjects(defaultMuseumId, dest, Seq(event)).futureValue
       res.isFailure mustBe true
 
-      val loc2 =
-        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
-      loc2.successValue.value mustBe loc1.successValue.value
+      val loc =
+        service
+          .currentObjectLocations(
+            defaultMuseumId,
+            Seq(MovableObject_Old(oid, CollectionObject))
+          )
+          .futureValue
+      loc.successValue.headOption.value.node.id mustBe Some(dest)
     }
 
     "successfully move an object with no previous location" in {
@@ -302,10 +318,15 @@ class StorageNodeServiceSpec
         .isSuccess mustBe true
 
       service
-        .currentObjectLocation(defaultMuseumId, oid, CollectionObject)
+        .currentObjectLocations(
+          defaultMuseumId,
+          Seq(MovableObject_Old(oid, CollectionObject))
+        )
         .futureValue
         .successValue
+        .headOption
         .value
+        .node
         .id mustBe Some(StorageNodeDatabaseId(23))
     }
 
@@ -397,11 +418,18 @@ class StorageNodeServiceSpec
       val oid = ObjectId(2)
       val aid = ActorId.generate()
       val currLoc = service
-        .currentObjectLocation(defaultMuseumId, ObjectId(2), CollectionObject)
+        .currentObjectLocations(
+          defaultMuseumId,
+          Seq(MovableObject_Old(ObjectId(2), CollectionObject))
+        )
         .futureValue
-      currLoc.successValue.value.id.value.underlying mustBe 5
-      val currIdStr = currLoc.successValue.value.id.value.underlying.toString
-      currLoc.successValue.value.path.toString must include(currIdStr)
+        .successValue
+        .headOption
+        .value
+
+      currLoc.node.id.value mustBe StorageNodeDatabaseId(5)
+      val currIdStr = currLoc.node.id.value.underlying.toString
+      currLoc.node.path.toString must include(currIdStr)
     }
 
     "find the relevant rooms when searching with a valid MuseumId" in {

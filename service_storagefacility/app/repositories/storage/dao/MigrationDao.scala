@@ -103,7 +103,7 @@ class MigrationDao @Inject()(
   // We can do this, since there are not that many nodes.
   def getAllNodeIds: Future[Map[StorageNodeDatabaseId, (StorageNodeId, MuseumId)]] = {
     val q = storageNodeTable.map(n => (n.id, n.uuid, n.museumId))
-    db.run(q.result).map(tuples => tuples.map(t => (t._1, (t._2.get, t._3))).toMap)
+    db.run(q.result).map(tuples => tuples.map(t => (t._1, (t._2, t._3))).toMap)
   }
 
   def countOld: Future[Int] = {

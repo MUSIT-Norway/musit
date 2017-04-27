@@ -39,7 +39,7 @@ private[dao] trait StorageTables
 
   import profile.api._
 
-  protected def wrongNumUpdatedRows(id: StorageNodeDatabaseId, numRowsUpdated: Int) =
+  protected def wrongNumUpdatedRows[T](id: T, numRowsUpdated: Int) =
     s"Wrong amount of rows ($numRowsUpdated) updated for node $id"
 
   protected val rootNodeType: StorageType = StorageType.RootType
@@ -168,9 +168,11 @@ private[dao] trait StorageTables
   protected[dao] def namesForPathAction(
       nodePath: NodePath
   ): DBIO[Seq[NamedPathElement]] = {
-    storageNodeTable.filter { sn =>
-      sn.id inSetBind nodePath.asIdSeq
-    }.map(s => (s.id, s.name)).result.map(_.map(t => NamedPathElement(t._1, t._2)))
+    storageNodeTable
+      .filter(sn => sn.id inSetBind nodePath.asIdSeq)
+      .map(s => (s.id, s.uuid, s.name))
+      .result
+      .map(_.map(t => NamedPathElement(t._1, t._2, t._3)))
   }
 
   /**
@@ -179,8 +181,7 @@ private[dao] trait StorageTables
   protected[dao] def insertNodeAction(
       dto: StorageUnitDto
   ): DBIO[StorageNodeDatabaseId] = {
-    val nid        = dto.nodeId.getOrElse(StorageNodeId.generate())
-    val withNodeId = dto.copy(nodeId = Option(nid))
+    val withNodeId = dto.copy(nodeId = dto.nodeId)
     storageNodeTable returning storageNodeTable.map(_.id) += withNodeId
   }
 
@@ -198,12 +199,12 @@ private[dao] trait StorageTables
    */
   protected[dao] def updateNodeAction(
       mid: MuseumId,
-      id: StorageNodeDatabaseId,
+      id: StorageNodeId,
       storageUnit: StorageUnitDto
   ): DBIO[Int] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid &&
-      sn.id === id &&
+      sn.uuid === id &&
       sn.isDeleted === false &&
       sn.storageType === storageUnit.storageType
     }.update(storageUnit)
@@ -256,7 +257,7 @@ private[dao] trait StorageTables
 
     // scalastyle:off line.size.limit
     val id          = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
-    val uuid        = column[Option[StorageNodeId]]("STORAGE_NODE_UUID")
+    val uuid        = column[StorageNodeId]("STORAGE_NODE_UUID")
     val storageType = column[StorageType]("STORAGE_TYPE")
     val name        = column[String]("STORAGE_NODE_NAME")
     val area        = column[Option[Double]]("AREA")
@@ -277,7 +278,7 @@ private[dao] trait StorageTables
     def create =
       (
           id: Option[StorageNodeDatabaseId],
-          nodeId: Option[StorageNodeId],
+          nodeId: StorageNodeId,
           storageType: StorageType,
           storageNodeName: String,
           area: Option[Double],

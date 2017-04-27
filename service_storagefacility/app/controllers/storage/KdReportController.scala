@@ -26,7 +26,7 @@ import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import services.old.KdReportService
+import services.storage.KdReportService
 
 class KdReportController @Inject()(
     val authService: Authenticator,
