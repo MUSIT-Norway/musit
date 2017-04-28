@@ -37,7 +37,8 @@ class SampleObjectService @Inject()(
         registeredBy = sobj.registeredStamp.map(_.user),
         registeredDate = sobj.registeredStamp.map(_.date),
         objectId = sobj.parentObjectId,
-        sampleObjectId = sobj.objectId
+        sampleObjectId = sobj.objectId,
+        externalLinks = None
       )
       soDao.insert(sobj, eventObj)
     } else {

@@ -1,5 +1,6 @@
 package repositories.analysis.dao
 
+import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis._
 import models.analysis.SampleStatuses.SampleStatus
@@ -42,6 +43,8 @@ trait AnalysisTables
       Option[EventId],
       Option[ObjectUUID],
       Option[String],
+      Option[AnalysisStatus],
+      Option[CaseNumbers],
       JsValue
   )
   type ResultRow =
@@ -111,6 +114,8 @@ trait AnalysisTables
     val partOf         = column[Option[EventId]]("PART_OF")
     val objectUuid     = column[Option[ObjectUUID]]("OBJECT_UUID")
     val note           = column[Option[String]]("NOTE")
+    val caseNumbers    = column[Option[CaseNumbers]]("CASE_NUMBERS")
+    val status         = column[Option[AnalysisStatus]]("STATUS")
     val eventJson      = column[JsValue]("EVENT_JSON")
 
     // scalastyle:off method.name line.size.limit
@@ -125,6 +130,8 @@ trait AnalysisTables
         partOf,
         objectUuid,
         note,
+        status,
+        caseNumbers,
         eventJson
       )
 
@@ -254,6 +261,8 @@ trait AnalysisTables
       event.partOf,
       event.objectId,
       event.note,
+      event.status,
+      event.caseNumbers,
       Json.toJson[AnalysisEvent](event)
     )
   }
@@ -265,20 +274,20 @@ trait AnalysisTables
    * @return an Option of AnalysisEvent.
    */
   protected[dao] def toAnalysisEvent(tuple: EventRow): Option[AnalysisEvent] =
-    Json.fromJson[AnalysisEvent](tuple._10).asOpt.map {
+    Json.fromJson[AnalysisEvent](tuple._12).asOpt.map {
       case a: Analysis            => a.copy(id = tuple._1)
       case ac: AnalysisCollection => ac.copy(id = tuple._1)
       case sc: SampleCreated      => sc.copy(id = tuple._1)
     }
 
   protected[dao] def toAnalysis(tuple: EventRow): Option[Analysis] =
-    Json.fromJson[AnalysisEvent](tuple._10).asOpt.flatMap {
+    Json.fromJson[AnalysisEvent](tuple._12).asOpt.flatMap {
       case a: Analysis => Some(a.copy(id = tuple._1))
       case _           => None
     }
 
   protected[dao] def toAnalysisCollection(tuple: EventRow): Option[AnalysisCollection] =
-    Json.fromJson[AnalysisEvent](tuple._10).asOpt.flatMap {
+    Json.fromJson[AnalysisEvent](tuple._12).asOpt.flatMap {
       case ac: AnalysisCollection => Some(ac.copy(id = tuple._1))
       case _                      => None
     }
