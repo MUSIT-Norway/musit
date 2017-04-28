@@ -49,8 +49,7 @@ trait AnalysisTables
 
   type SampleObjectRow = (
       ObjectUUID,
-      Option[ObjectUUID],
-      ObjectType,
+      (Option[ObjectUUID], ObjectType),
       Boolean,
       MuseumId,
       SampleStatus,
@@ -69,7 +68,8 @@ trait AnalysisTables
       Option[String],
       LeftoverSample,
       Option[String],
-      (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime])
+      (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime]),
+      Boolean
   )
 
   // scalastyle:on line.size.limit
@@ -178,13 +178,13 @@ trait AnalysisTables
     val registeredDate   = column[Option[DateTime]]("REGISTERED_DATE")
     val updatedBy        = column[Option[ActorId]]("UPDATED_BY")
     val updatedDate      = column[Option[DateTime]]("UPDATED_DATE")
+    val isDeleted        = column[Boolean]("IS_DELETED")
 
     // scalastyle:off method.name line.size.limit
     def * =
       (
         id,
-        parentId,
-        parentObjectType,
+        (parentId, parentObjectType),
         isExtracted,
         museumId,
         status,
@@ -203,7 +203,8 @@ trait AnalysisTables
         treatment,
         leftoverSample,
         description,
-        (registeredBy, registeredDate, updatedBy, updatedDate)
+        (registeredBy, registeredDate, updatedBy, updatedDate),
+        isDeleted
       )
 
     // scalastyle:off method.name line.size.limit
@@ -314,8 +315,7 @@ trait AnalysisTables
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (
       so.objectId.getOrElse(ObjectUUID.generate()),
-      so.parentObjectId,
-      so.parentObjectType,
+      (so.parentObjectId, so.parentObjectType),
       so.isExtracted,
       so.museumId,
       so.status,
@@ -339,7 +339,8 @@ trait AnalysisTables
         so.registeredStamp.map(_.date),
         so.updatedStamp.map(_.user),
         so.updatedStamp.map(_.date)
-      )
+      ),
+      true // todo extract from so.isDeleted
     )
   }
 
@@ -352,34 +353,35 @@ trait AnalysisTables
   protected[dao] def fromSampleObjectRow(tuple: SampleObjectRow): SampleObject =
     SampleObject(
       objectId = Option(tuple._1),
-      parentObjectId = tuple._2,
-      parentObjectType = tuple._3,
-      isExtracted = tuple._4,
-      museumId = tuple._5,
-      status = tuple._6,
-      responsible = tuple._7,
-      createdDate = tuple._8,
-      sampleId = tuple._9,
-      externalId = tuple._10.map(ExternalId(_, tuple._11)),
-      sampleType = tuple._12.map(SampleType(_, tuple._13)),
+      parentObjectId = tuple._2._1,
+      parentObjectType = tuple._2._2,
+      isExtracted = tuple._3,
+      museumId = tuple._4,
+      status = tuple._5,
+      responsible = tuple._6,
+      createdDate = tuple._7,
+      sampleId = tuple._8,
+      externalId = tuple._9.map(ExternalId(_, tuple._10)),
+      sampleType = tuple._11.map(SampleType(_, tuple._12)),
       size = for {
-        value <- tuple._14
-        unit  <- tuple._15
+        value <- tuple._13
+        unit  <- tuple._14
       } yield Size(unit, value),
-      container = tuple._16,
-      storageMedium = tuple._17,
-      note = tuple._18,
-      treatment = tuple._19,
-      leftoverSample = tuple._20,
-      description = tuple._21,
+      container = tuple._15,
+      storageMedium = tuple._16,
+      note = tuple._17,
+      treatment = tuple._18,
+      leftoverSample = tuple._19,
+      description = tuple._20,
       registeredStamp = for {
-        actor    <- tuple._22._1
-        dateTime <- tuple._22._2
+        actor    <- tuple._21._1
+        dateTime <- tuple._21._2
       } yield ActorStamp(actor, dateTime),
       updatedStamp = for {
-        actor    <- tuple._22._3
-        dateTime <- tuple._22._4
-      } yield ActorStamp(actor, dateTime)
+        actor    <- tuple._21._3
+        dateTime <- tuple._21._4
+      } yield ActorStamp(actor, dateTime),
+      isDeleted = tuple._22
     )
 
 }

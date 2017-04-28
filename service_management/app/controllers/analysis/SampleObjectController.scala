@@ -2,7 +2,7 @@ package controllers.analysis
 
 import com.google.inject.{Inject, Singleton}
 import models.analysis.SaveSampleObject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitEmpty, MusitError, MusitSuccess}
 import no.uio.musit.models.{MuseumId, ObjectUUID}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
@@ -105,4 +105,22 @@ class SampleObjectController @Inject()(
 
     }
 
+  def delete(mid: MuseumId, uuid: String) =
+    MusitSecureAction().async { implicit request =>
+      implicit val currUser = implicitly(request.user)
+      ObjectUUID
+        .fromString(uuid)
+        .map { oid =>
+          soService.delete(oid).map {
+            case MusitSuccess(_) => Ok
+            case MusitEmpty      => NotFound
+            case err: MusitError => internalErr(err)
+          }
+        }
+        .getOrElse {
+          Future.successful(
+            BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
+          )
+        }
+    }
 }

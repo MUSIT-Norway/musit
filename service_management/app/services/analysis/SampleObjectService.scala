@@ -53,7 +53,8 @@ class SampleObjectService @Inject()(
       so.copy(
         objectId = Some(oid),
         registeredStamp = orig.registeredStamp,
-        updatedStamp = Some(ActorStamp(currUser.id, dateTimeNow))
+        updatedStamp = Some(ActorStamp(currUser.id, dateTimeNow)),
+        isDeleted = orig.isDeleted
       )
     }
 
@@ -69,11 +70,7 @@ class SampleObjectService @Inject()(
     } yield upd
 
     // Need to do some tricks to align the shapes again.
-    updatedRes.value.map {
-      case MusitSuccess(updatedObj) => MusitSuccess(Option(updatedObj))
-      case MusitEmpty               => MusitSuccess(None)
-      case err: MusitError          => err
-    }
+    updatedRes.value.map(_.map(Option.apply))
   }
 
   private def findById(
@@ -93,6 +90,31 @@ class SampleObjectService @Inject()(
 
   def findForMuseum(mid: MuseumId): Future[MusitResult[Seq[SampleObject]]] = {
     soDao.listForMuseum(mid)
+  }
+
+  def delete(
+      oid: ObjectUUID
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Unit]] = {
+    def enrich(orig: SampleObject) = {
+      orig.copy(
+        isDeleted = true,
+        updatedStamp = Some(ActorStamp(currUser.id, dateTimeNow))
+      )
+    }
+
+    val updatedRes = for {
+      orig <- MusitResultT(findById(oid, MusitEmpty))
+      _    <- MusitResultT(soDao.update(enrich(orig)))
+      upd <- MusitResultT(
+              findById(
+                oid,
+                MusitInternalError(s"Couldn't find sample $oid after delete")
+              )
+            )
+    } yield upd
+
+    // Need to do some tricks to align the shapes again.
+    updatedRes.value.map(_.map(_ => MusitSuccess(())))
   }
 
 }

@@ -398,6 +398,7 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   registered_date      TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_by           VARCHAR2(36),
   updated_date         TIMESTAMP WITH TIME ZONE,
+  is_deleted            INTEGER DEFAULT O NOT NULL,
   PRIMARY KEY (sample_uuid)
 );
 

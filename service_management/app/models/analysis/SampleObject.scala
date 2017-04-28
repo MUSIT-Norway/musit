@@ -34,7 +34,8 @@ case class SampleObject(
     description: Option[String],
     note: Option[String],
     registeredStamp: Option[ActorStamp],
-    updatedStamp: Option[ActorStamp]
+    updatedStamp: Option[ActorStamp],
+    isDeleted: Boolean
 )
 
 object SampleObject {
@@ -85,7 +86,8 @@ case class SaveSampleObject(
       description = description,
       note = note,
       registeredStamp = None,
-      updatedStamp = None
+      updatedStamp = None,
+      isDeleted = false
     )
 
 }

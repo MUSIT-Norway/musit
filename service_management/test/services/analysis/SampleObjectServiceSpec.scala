@@ -3,6 +3,7 @@ package services.analysis
 import models.analysis.LeftoverSamples.NotSpecified
 import models.analysis.events.SampleCreated
 import models.analysis._
+import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
@@ -61,7 +62,8 @@ class SampleObjectServiceSpec
       description = None,
       note = Some("This is a sample note"),
       registeredStamp = Some(ActorStamp(dummyActorId, now)),
-      updatedStamp = None
+      updatedStamp = None,
+      isDeleted = false
     )
   }
 
@@ -102,6 +104,12 @@ class SampleObjectServiceSpec
         case _ =>
           fail(s"The list contained ${sce.size} elements, expected 1.")
       }
+    }
+
+    "delete the sample by its uuid" in {
+      val found = service.findById(addedId.value).futureValue.successValue.value
+      val so    = service.delete(found.objectId.get).futureValue
+      so mustBe MusitSuccess(())
     }
   }
 }
