@@ -99,16 +99,4 @@ class SampleObjectDao @Inject()(
     }
   }
 
-  /*def delete(mid: MuseumId, oid: ObjectUUID): Future[MusitResult[Int]] = {
-    val a = sampleObjTable
-      .filter(c => c.museumId === mid && c.id === oid)
-      .map(so => so.isDeleted)
-      .update(true)
-    db.run(a.transactionally).map {
-      case res: Int if res == 1 => MusitSuccess(res)
-      case res: Int if 1 > res  => MusitSuccess(0) //("Nothing was updated")
-      case res: Int if 1 < res  => MusitDbError(s"Too many rows were deleted: $res")
-    }
-  }*/
-
 }
