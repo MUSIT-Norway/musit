@@ -284,7 +284,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
         ) p,
         MUSARK_STORAGE.STORAGE_NODE sn
       WHERE sn.MUSEUM_ID=${mid.underlying}
-      AND sn.STORAGE_NODE_ID=p.STORAGE_NODE_ID
+      AND sn.IS_PART_OF=p.STORAGE_NODE_ID
       AND sn.IS_DELETED=0
     """.as[Int].head
   }
@@ -492,7 +492,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       id: StorageNodeId,
       storageUnit: StorageUnit
   ): Future[MusitResult[Option[Int]]] = {
-    val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
+    val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit, uuid = Some(id))
     db.run(updateNodeAction(mid, id, dto)).map {
       case res: Int if res == 1 => MusitSuccess(Some(res))
       case res: Int if res == 0 => MusitSuccess(None)

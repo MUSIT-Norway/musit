@@ -30,8 +30,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
   val adminId    = ActorId.unsafeFromString(FakeUsers.testAdminId)
   val godToken   = BearerToken(FakeUsers.superUserToken)
 
-  def getIdFor(num: Int): Option[StorageNodeId] =
-    insertedNodeIds.result().get(num.toLong)
+  def getIdFor(num: Long): Option[StorageNodeId] = insertedNodeIds.result().get(num)
+
+  def getIdStringFor(num: Long): String = getIdFor(num).map(_.asString).getOrElse("")
+
+  def getIdFor(num: Int): Option[StorageNodeId] = getIdFor(num.toLong)
 
   def getIdStringFor(num: Int): String = getIdFor(num).map(_.asString).getOrElse("")
 
@@ -46,9 +49,6 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     // verifying common attributes across all storage node types
     storageNode.id mustBe Some(StorageNodeDatabaseId(expId))
     storageNode.nodeId must not be empty
-
-    insertedNodeIds += (storageNode.id.value.underlying -> storageNode.nodeId.value)
-
     storageNode.storageType mustBe expStorageType
     storageNode.isPartOf mustBe expPartOf.map(StorageNodeDatabaseId.apply)
     storageNode.name mustBe expName
@@ -62,6 +62,17 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     val parsed = json.validate[StorageNode]
     parsed.isSuccess mustBe true
     parsed.asOpt.map(_.asInstanceOf[T])
+  }
+
+  def postNode(mid: Int, token: BearerToken, js: JsValue): (WSResponse, Long) = {
+    val res =
+      wsUrl(StorageNodesUrl(mid)).withHeaders(token.asHeader).post(js).futureValue
+    res.status mustBe CREATED
+    val ids = (res.json \ "id").as[Long] -> (res.json \ "nodeId").as[String]
+
+    insertedNodeIds += ids._1.toLong -> StorageNodeId.unsafeFromString(ids._2)
+
+    (res, ids._1)
   }
 
   // TODO: add override def beforeTests to bootstrap a re-usable structure to
@@ -100,15 +111,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully create an organisation node" in {
-      val json = organisationJson("My Org1", Some(StorageNodeDatabaseId(1)))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
-      val newOrg = parseAndVerifyResponse[Organisation](response)
+      val json     = organisationJson("My Org1", Some(StorageNodeDatabaseId(1)))
+      val response = postNode(mid, adminToken, json)
+
       val organisation = verifyNode[Organisation](
-        response,
+        response._1,
         OrganisationType,
         "My Org1",
         22,
@@ -121,15 +128,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully create a building node" in {
-      val json = buildingJson("My Building1", StorageNodeDatabaseId(22))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
-      val newBuilding = parseAndVerifyResponse[Building](response)
+      val json     = buildingJson("My Building1", StorageNodeDatabaseId(22))
+      val response = postNode(mid, adminToken, json)
+
       val building = verifyNode[Building](
-        response,
+        response._1,
         BuildingType,
         "My Building1",
         23,
@@ -142,15 +145,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully create a room node" in {
-      val json = roomJson("My Room1", Some(StorageNodeDatabaseId(23)))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
-      val newRoom = parseAndVerifyResponse[Room](response)
+      val json     = roomJson("My Room1", Some(StorageNodeDatabaseId(23)))
+      val response = postNode(mid, adminToken, json)
+
       val room = verifyNode[Room](
-        response,
+        response._1,
         RoomType,
         "My Room1",
         24,
@@ -163,15 +162,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully create a storage unit node" in {
-      val json = storageUnitJson("My Shelf1", StorageNodeDatabaseId(24))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
-      val newStorageNode = parseAndVerifyResponse[StorageUnit](response)
+      val json     = storageUnitJson("My Shelf1", StorageNodeDatabaseId(24))
+      val response = postNode(mid, adminToken, json)
+
       val su = verifyNode[StorageUnit](
-        response,
+        response._1,
         StorageUnitType,
         "My Shelf1",
         25,
@@ -293,14 +288,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully update a storage unit" in {
-      val json = storageUnitJson("My Shelf2", StorageNodeDatabaseId(24))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
+      val json     = storageUnitJson("My Shelf2", StorageNodeDatabaseId(24))
+      val response = postNode(mid, adminToken, json)
+
       val su = verifyNode[StorageUnit](
-        response,
+        response._1,
         StorageUnitType,
         "My Shelf2",
         26,
@@ -312,7 +304,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       su.heightTo mustBe Some(.6)
 
       val updatedJson = {
-        Json.parse(response.body).as[JsObject] ++ Json.obj(
+        Json.parse(response._1.body).as[JsObject] ++ Json.obj(
           "name"     -> "My Shelf2b",
           "areaTo"   -> JsNumber(.8),
           "heightTo" -> JsNumber(.8)
@@ -343,15 +335,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       val nodeId1 =
         StorageNodeId.unsafeFromString("dca44956-40d0-48dc-bd0d-921b825ad019")
 
-      val json = roomJson("My Room2", Some(StorageNodeDatabaseId(23)))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
+      val json     = roomJson("My Room2", Some(StorageNodeDatabaseId(23)))
+      val response = postNode(mid, adminToken, json)
 
       val room = verifyNode[Room](
-        response,
+        response._1,
         RoomType,
         "My Room2",
         27,
@@ -363,7 +351,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       room.heightTo mustBe Some(2.6)
 
       val updatedJson = {
-        Json.parse(response.body).as[JsObject] ++ Json.obj(
+        Json.parse(response._1.body).as[JsObject] ++ Json.obj(
           "name"              -> "My Room2b",
           "lightingCondition" -> true
         )
@@ -404,14 +392,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully update a building with environment requirements" in {
-      val json = buildingJson("My Building2", StorageNodeDatabaseId(22))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
+      val json     = buildingJson("My Building2", StorageNodeDatabaseId(22))
+      val response = postNode(mid, adminToken, json)
       val building = verifyNode[Building](
-        response,
+        response._1,
         BuildingType,
         "My Building2",
         28,
@@ -423,7 +407,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       building.heightTo mustBe Some(3.5)
 
       val updatedJson = {
-        Json.parse(response.body).as[JsObject] ++ Json.obj(
+        Json.parse(response._1.body).as[JsObject] ++ Json.obj(
           "address"                -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge",
           "environmentRequirement" -> Json.parse(envReqJson("Filthy"))
         )
@@ -452,14 +436,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "successfully update an organisation" in {
-      val json = organisationJson("My Organisation2", Some(StorageNodeDatabaseId(1)))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
+      val json     = organisationJson("My Organisation2", Some(StorageNodeDatabaseId(1)))
+      val response = postNode(mid, adminToken, json)
+
       val organisation = verifyNode[Organisation](
-        response,
+        response._1,
         OrganisationType,
         "My Organisation2",
         29,
@@ -471,10 +452,9 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       organisation.heightTo mustBe Some(3.5)
 
       val updatedJson = {
-        Json.parse(response.body).as[JsObject] ++ Json.obj(
+        Json.parse(response._1.body).as[JsObject] ++ Json.obj(
           "address" -> "Fjære Åker Øya 21, 2341 Huttiheita, Norge"
         )
-
       }
 
       val updRes = wsUrl(StorageNodeUrl(mid, getIdStringFor(29)))
@@ -501,14 +481,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       val json = Json.obj("id" -> 123, "nodeId" -> badId) ++
         storageUnitJson("Non existent", StorageNodeDatabaseId(333)).as[JsObject]
 
-      println(Json.prettyPrint(json))
-
       val res = wsUrl(StorageNodeUrl(mid, badId))
         .withHeaders(adminToken.asHeader)
         .put(json)
         .futureValue
-
-      println(Json.prettyPrint(res.json))
 
       res.status mustBe NOT_FOUND
     }
@@ -524,17 +500,13 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       (res.json \ "matches").as[JsArray].value.foreach { jsv =>
         (jsv \ "type").as[String] mustBe "Organisation"
       }
-
     }
 
     "successfully delete a storage node" in {
       val json = storageUnitJson("Remove me", StorageNodeDatabaseId(24))
-      val res = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
+      val res  = postNode(mid, adminToken, json)
       val created = verifyNode[StorageUnit](
-        res,
+        res._1,
         StorageUnitType,
         "Remove me",
         30,
@@ -588,12 +560,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "successfully move a single node" in {
       val json = storageUnitJson("Move me", StorageNodeDatabaseId(24))
-      val res = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
+      val res  = postNode(mid, adminToken, json)
+
       val created = verifyNode[StorageUnit](
-        res,
+        res._1,
         StorageUnitType,
         "Move me",
         31,
@@ -653,38 +623,21 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "successfully move several nodes" in {
       val json1 = storageUnitJson("Move me1", StorageNodeDatabaseId(24))
-      val res1 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json1)
-        .futureValue
       val json2 = storageUnitJson("Move me2", StorageNodeDatabaseId(24))
-      val res2 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json2)
-        .futureValue
       val json3 = storageUnitJson("Move me3", StorageNodeDatabaseId(24))
-      val res3 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json3)
-        .futureValue
+      val res1  = postNode(mid, adminToken, json1)
+      val res2  = postNode(mid, adminToken, json2)
+      val res3  = postNode(mid, adminToken, json3)
 
-      res1.status mustBe CREATED
-      res2.status mustBe CREATED
-      res3.status mustBe CREATED
-
-      val id1 = ((res1.json \ "id").as[Long], (res1.json \ "nodeId").as[String])
-      val id2 = ((res2.json \ "id").as[Long], (res2.json \ "nodeId").as[String])
-      val id3 = ((res3.json \ "id").as[Long], (res3.json \ "nodeId").as[String])
-
-      insertedNodeIds += id1._1 -> StorageNodeId.unsafeFromString(id1._2)
-      insertedNodeIds += id2._1 -> StorageNodeId.unsafeFromString(id2._2)
-      insertedNodeIds += id3._1 -> StorageNodeId.unsafeFromString(id3._2)
+      val id1 = getIdStringFor(res1._2)
+      val id2 = getIdStringFor(res2._2)
+      val id3 = getIdStringFor(res3._2)
 
       val moveJson = Json.parse(
         s"""{
              |  "doneBy": "${adminId.asString}",
              |  "destination": "${getIdStringFor(26)}",
-             |  "items": ["${id1._2}", "${id2._2}", "${id3._2}"]
+             |  "items": ["$id1", "$id2", "$id3"]
              |}""".stripMargin
       )
 
@@ -695,79 +648,57 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       move.status mustBe OK
 
       val movedRes1 =
-        wsUrl(StorageNodeUrl(mid, id1._2))
-          .withHeaders(readToken.asHeader)
-          .get()
-          .futureValue
+        wsUrl(StorageNodeUrl(mid, id1)).withHeaders(readToken.asHeader).get().futureValue
       val movedRes2 =
-        wsUrl(StorageNodeUrl(mid, id2._2))
-          .withHeaders(readToken.asHeader)
-          .get()
-          .futureValue
+        wsUrl(StorageNodeUrl(mid, id2)).withHeaders(readToken.asHeader).get().futureValue
       val movedRes3 =
-        wsUrl(StorageNodeUrl(mid, id3._2))
-          .withHeaders(readToken.asHeader)
-          .get()
-          .futureValue
+        wsUrl(StorageNodeUrl(mid, id3)).withHeaders(readToken.asHeader).get().futureValue
 
       val n1 = verifyNode[StorageUnit](
         movedRes1,
         StorageUnitType,
         "Move me1",
-        id1._1,
+        res1._2,
         Some(26)
       )
       val n2 = verifyNode[StorageUnit](
         movedRes2,
         StorageUnitType,
         "Move me2",
-        id2._1,
+        res2._2,
         Some(26)
       )
       val n3 = verifyNode[StorageUnit](
         movedRes3,
         StorageUnitType,
         "Move me3",
-        id3._1,
+        res3._2,
         Some(26)
       )
 
-      n1.path mustBe NodePath(s",1,22,23,24,26,${id1._1},")
-      n2.path mustBe NodePath(s",1,22,23,24,26,${id2._1},")
-      n3.path mustBe NodePath(s",1,22,23,24,26,${id3._1},")
+      n1.path mustBe NodePath(s",1,22,23,24,26,${res1._2},")
+      n2.path mustBe NodePath(s",1,22,23,24,26,${res2._2},")
+      n3.path mustBe NodePath(s",1,22,23,24,26,${res3._2},")
     }
 
     "fail when trying to move several nodes to an invalid destination" in {
       val json1 = storageUnitJson("Move me1", StorageNodeDatabaseId(24))
-      val res1 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json1)
-        .futureValue
       val json2 = storageUnitJson("Move me2", StorageNodeDatabaseId(24))
-      val res2 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json2)
-        .futureValue
       val json3 = storageUnitJson("Move me3", StorageNodeDatabaseId(24))
-      val res3 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json3)
-        .futureValue
+      val res1  = postNode(mid, adminToken, json1)
+      val res2  = postNode(mid, adminToken, json2)
+      val res3  = postNode(mid, adminToken, json3)
 
-      res1.status mustBe CREATED
-      res2.status mustBe CREATED
-      res3.status mustBe CREATED
-
-      val id1 = ((res1.json \ "id").as[Long], (res1.json \ "nodeId").as[String])
-      val id2 = ((res2.json \ "id").as[Long], (res2.json \ "nodeId").as[String])
-      val id3 = ((res3.json \ "id").as[Long], (res3.json \ "nodeId").as[String])
+      val id1 = getIdStringFor(res1._2)
+      val id2 = getIdStringFor(res2._2)
+      val id3 = getIdStringFor(res3._2)
 
       val moveJson = Json.parse(
         // dca44956-40d0-48dc-bd0d-921b825ad019 = StorageNodeDatabaseId(1)
         s"""{
              |  "doneBy": "${adminId.asString}",
              |  "destination": "dca44956-40d0-48dc-bd0d-921b825ad019",
-             |  "items": ["${id1._2}", "${id2._2}", "${id3._2}"]
+             |  "items": ["$id1", "$id2", "$id3"]
              |}""".stripMargin
       )
       wsUrl(MoveStorageNodeUrl(mid))
@@ -858,11 +789,12 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         .withHeaders(writeToken.asHeader)
         .put(moveJson)
         .futureValue
+
       move.status mustBe OK
       (move.json \ "moved")
         .as[JsArray]
         .value
-        .map(jso => (jso \ "id").as[String]) must contain allOf (id1, id2, id3)
+        .map(_.as[String]) must contain allOf (id1, id2, id3)
     }
 
     "successfully move a single object" in {
@@ -889,11 +821,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         .put(moveJson)
         .futureValue
       move.status mustBe OK
-      (move.json \ "moved")
-        .as[JsArray]
-        .value
-        .map(jso => (jso \ "id").as[String])
-        .head mustBe id2
+      (move.json \ "moved").as[JsArray].value.map(_.as[String]).head mustBe id2
     }
 
     "successfully fetch the location history for a given object" in {
@@ -903,9 +831,9 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         .withHeaders(readToken.asHeader)
         .get()
         .futureValue
+
       res.status mustBe OK
       val resArr = res.json.as[JsArray].value
-      resArr must not be empty
       resArr.size mustBe 2
 
       val today = DateTime.now.withTimeAtStartOfDay()
@@ -951,11 +879,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         .put(moveJson)
         .futureValue
       move.status mustBe OK
-      (move.json \ "moved")
-        .as[JsArray]
-        .value
-        .map(jso => (jso \ "id").as[String])
-        .head mustBe id2
+      (move.json \ "moved").as[JsArray].value.map(_.as[String]).head mustBe id2
 
       val currentLocation = wsUrl(ObjCurrentLocationUrl(mid, id2))
         .withHeaders(readToken.asHeader)
@@ -964,8 +888,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       currentLocation.status mustBe OK
 
       val js = currentLocation.json
-      (js \ "node" \ "nodeId").as[String] mustBe destNode
-      (js \ "objectIds").as[JsArray].value.map(_.as[String]) must contain(id2)
+      (js \ "nodeId").as[String] mustBe destNode
     }
 
     "respond with 403 when trying to get a node using wrong museum" in {
@@ -1017,21 +940,16 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     }
 
     "respond with 403 when trying to update a node using wrong MuseumId" in {
-      val json = storageUnitJson("My Shelf2", StorageNodeDatabaseId(7))
-      val response = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      response.status mustBe CREATED
-      val id = (response.json \ "nodeId").as[String]
+      val json     = storageUnitJson("My Shelf2", StorageNodeDatabaseId(7))
+      val response = postNode(mid, adminToken, json)
+      val id       = getIdStringFor(response._2)
 
-      val updatedJson = {
-        response.json.as[JsObject] ++ Json.obj(
-          "name"     -> "My Shelf2b",
-          "areaTo"   -> JsNumber(.8),
-          "heightTo" -> JsNumber(.8)
-        )
-      }
+      val updatedJson = response._1.json.as[JsObject] ++ Json.obj(
+        "name"     -> "My Shelf2b",
+        "areaTo"   -> JsNumber(.8),
+        "heightTo" -> JsNumber(.8)
+      )
+
       val wrongMid = MuseumId(4)
       val updRes = wsUrl(StorageNodeUrl(wrongMid, id))
         .withHeaders(adminToken.asHeader)
@@ -1061,21 +979,15 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "respond with 403 when trying to move a node using incorrect MuseumId" in {
       val json = storageUnitJson("Move me", StorageNodeDatabaseId(7))
-      val res1 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json)
-        .futureValue
-      res1.status mustBe CREATED
+      val res1 = postNode(mid, adminToken, json)
 
-      val moveMeId = ((res1.json \ "id").as[Long], (res1.json \ "nodeId").as[String])
-
-      insertedNodeIds += moveMeId._1 -> StorageNodeId.unsafeFromString(moveMeId._2)
+      val moveMeId = getIdStringFor(res1._2)
 
       val moveJson = Json.parse(
         s"""{
              |  "doneBy": "${adminId.asString}",
              |  "destination": "${getIdStringFor(24)}",
-             |  "items": ["${moveMeId._2}"]
+             |  "items": ["$moveMeId"]
              |}""".stripMargin
       )
 
@@ -1091,51 +1003,35 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       val anotherMid   = MuseumId(4)
       val anotherToken = BearerToken(FakeUsers.nhmAdminToken)
 
+      val targetJs = storageUnitJson("Target", StorageNodeDatabaseId(7))
+      val target   = postNode(mid, adminToken, targetJs)
+
       val json1 = storageUnitJson("Move me1", StorageNodeDatabaseId(34))
-      val res1 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json1)
-        .futureValue
+      val mn1   = postNode(mid, adminToken, json1)
 
       val json2 = storageUnitJson("Move me2", StorageNodeDatabaseId(34))
-      val res2 = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(adminToken.asHeader)
-        .post(json2)
-        .futureValue
+      val mn2   = postNode(mid, adminToken, json2)
 
-      val o3 = wsUrl(StorageNodesUrl(anotherMid))
-        .withHeaders(anotherToken.asHeader)
-        .post(organisationJson("Hanky", Some(StorageNodeDatabaseId(21))))
-        .futureValue
-      o3.status mustBe CREATED
-      val o3Id = (o3.json \ "id").as[Long]
+      val orgJs = organisationJson("Hanky", Some(StorageNodeDatabaseId(21)))
+      val org   = postNode(anotherMid, anotherToken, orgJs)
+      val orgId = getIdStringFor(org._2)
 
-      val b3 = wsUrl(StorageNodesUrl(anotherMid))
-        .withHeaders(anotherToken.asHeader)
-        .post(buildingJson("Panky", StorageNodeDatabaseId(o3Id)))
-        .futureValue
-      b3.status mustBe CREATED
-      val b3Id = (b3.json \ "id").as[Long]
+      val buildJs = buildingJson("Panky", StorageNodeDatabaseId(org._2))
+      val build   = postNode(anotherMid, anotherToken, buildJs)
+      val bid     = getIdStringFor(build._2)
 
-      val json3 = storageUnitJson("Move me3", StorageNodeDatabaseId(b3Id))
-      val res3 = wsUrl(StorageNodesUrl(anotherMid))
-        .withHeaders(anotherToken.asHeader)
-        .post(json3)
-        .futureValue
+      val json3 = storageUnitJson("Move me3", StorageNodeDatabaseId(build._2))
+      val mn3   = postNode(anotherMid, anotherToken, json3)
 
-      res1.status mustBe CREATED
-      res2.status mustBe CREATED
-      res3.status mustBe CREATED
-
-      val id1 = ((res1.json \ "id").as[Long], (res1.json \ "nodeId").as[String])
-      val id2 = ((res2.json \ "id").as[Long], (res3.json \ "nodeId").as[String])
-      val id3 = ((res3.json \ "id").as[Long], (res3.json \ "nodeId").as[String])
+      val id1 = getIdStringFor(mn1._2)
+      val id2 = getIdStringFor(mn2._2)
+      val id3 = getIdStringFor(mn3._2)
 
       val moveJson = Json.parse(
         s"""{
              |  "doneBy": "${adminId.asString}",
-             |  "destination": "${getIdStringFor(40)}",
-             |  "items": ["${id1._2}", "${id2._2}", "${id3._2}"]
+             |  "destination": "${getIdStringFor(target._2)}",
+             |  "items": ["$id1", "$id2", "$id3"]
              |}""".stripMargin
       )
 
@@ -1143,22 +1039,20 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         .withHeaders(writeToken.asHeader)
         .put(moveJson)
         .futureValue
+
       move.status mustBe OK
 
-      (move.json \ "moved").as[JsArray].value.head.as[String] mustBe id1._2
-      (move.json \ "failed").as[JsArray].value.head.as[String] mustBe id3._2
+      (move.json \ "moved")
+        .as[JsArray]
+        .value
+        .map(_.as[String]) must contain allOf (id1, id2)
+      (move.json \ "failed").as[JsArray].value.map(_.as[String]) must contain(id3)
 
       val movedRes1 =
-        wsUrl(StorageNodeUrl(mid, id1._2))
-          .withHeaders(readToken.asHeader)
-          .get()
-          .futureValue
+        wsUrl(StorageNodeUrl(mid, id1)).withHeaders(readToken.asHeader).get().futureValue
       val movedRes2 =
-        wsUrl(StorageNodeUrl(mid, id2._2))
-          .withHeaders(readToken.asHeader)
-          .get()
-          .futureValue
-      val movedRes3 = wsUrl(StorageNodeUrl(anotherMid, id3._2))
+        wsUrl(StorageNodeUrl(mid, id2)).withHeaders(readToken.asHeader).get().futureValue
+      val movedRes3 = wsUrl(StorageNodeUrl(anotherMid, id3))
         .withHeaders(readToken.asHeader)
         .get()
         .futureValue
@@ -1167,27 +1061,27 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         movedRes1,
         StorageUnitType,
         "Move me1",
-        id1._1,
-        Some(40)
+        mn1._2,
+        Some(target._2)
       )
       val n2 = verifyNode[StorageUnit](
         movedRes2,
         StorageUnitType,
         "Move me2",
-        id2._1,
-        Some(40)
+        mn2._2,
+        Some(target._2)
       )
       val n3 = verifyNode[StorageUnit](
         movedRes3,
         StorageUnitType,
         "Move me3",
-        id3._1,
-        Some(StorageNodeDatabaseId(b3Id))
+        mn3._2,
+        Some(StorageNodeDatabaseId(build._2))
       )
 
-      n1.path mustBe NodePath(s",1,3,4,7,40,${id1._1},")
-      n2.path mustBe NodePath(s",1,3,4,7,40,${id2._1},")
-      n3.path mustBe NodePath(s",21,50,51,${id3._1},")
+      n1.path mustBe NodePath(s",1,3,4,7,${target._2},${mn1._2},")
+      n2.path mustBe NodePath(s",1,3,4,7,${target._2},${mn2._2},")
+      n3.path mustBe NodePath(s",21,43,44,${mn3._2},")
     }
 
     "find a storage when searching by name" in {
