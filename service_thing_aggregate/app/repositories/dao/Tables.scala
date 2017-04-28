@@ -32,7 +32,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   // scalastyle:off line.size.limit
   type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int]))
   type LocalObjectRow = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId, Option[String]))
-  type StorageNodeRow = ((Option[StorageNodeDatabaseId], String, String, Option[Double], Option[Double], Option[StorageNodeDatabaseId], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath))
+  type StorageNodeRow = ((Option[StorageNodeDatabaseId], StorageNodeId, String, String, Option[Double], Option[Double], Option[StorageNodeDatabaseId], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath))
   // format: on
   // scalastyle:on line.size.limit
 
@@ -116,6 +116,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
     // scalastyle:off method.name
     def * = (
       id.?,
+      uuid,
       storageType,
       name,
       area,
@@ -134,6 +135,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
     // scalastyle:off line.size.limit
     val id          = column[StorageNodeDatabaseId]("STORAGE_NODE_ID", O.PrimaryKey, O.AutoInc)
+    val uuid        = column[StorageNodeId]("STORAGE_NODE_UUID")
     val storageType = column[String]("STORAGE_TYPE")
     val name        = column[String]("STORAGE_NODE_NAME")
     val area        = column[Option[Double]]("AREA")

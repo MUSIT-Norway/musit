@@ -46,7 +46,7 @@ class StorageNodeDao @Inject()(
       n.museumId === mid && n.id === id
     }.result.headOption
 
-    db.run(q).map(mres => MusitSuccess(mres.map(res => id -> res._13))).recover {
+    db.run(q).map(mres => MusitSuccess(mres.map(res => id -> res._14))).recover {
       case NonFatal(ex) =>
         val msg = s"Error occurred looking for nodeId $id"
         logger.error(msg, ex)
@@ -101,7 +101,9 @@ class StorageNodeDao @Inject()(
   def namesForPath(nodePath: NodePath): Future[Seq[NamedPathElement]] = {
     val query = nodeTable.filter { sn =>
       sn.id inSetBind nodePath.asIdSeq
-    }.map(s => (s.id, s.name)).result.map(_.map(t => NamedPathElement(t._1, t._2)))
+    }.map(s => (s.id, s.uuid, s.name))
+      .result
+      .map(_.map(t => NamedPathElement(t._1, t._2, t._3)))
     db.run(query).recover {
       case NonFatal(ex) =>
         val msg = s"Error occurred while fetching named path for $nodePath"
