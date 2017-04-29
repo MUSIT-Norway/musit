@@ -63,7 +63,6 @@ class LoanControllerSpec extends MusitSpecWithServerPerSuite with Inspectors {
         wsUrl(createLoanUrl(mid)).withHeaders(token.asHeader).post(loan).futureValue
         val res = wsUrl(activeLoanUrl(mid)).withHeaders(token.asHeader).get().futureValue
 
-        println(res)
         res.status mustBe Status.OK
         val array = res.json.as[JsArray].value
         array.size must be > 0

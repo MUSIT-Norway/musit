@@ -2,6 +2,7 @@ package repositories.shared.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
+import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
@@ -95,4 +96,11 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       ref => ref.toDbString,
       str => CaseNumbers(str)
     )
+
+  implicit val analysisStatusMapper: BaseColumnType[AnalysisStatus] =
+    MappedColumnType.base[AnalysisStatus, Int](
+      st => st.key,
+      key => AnalysisStatus.unsafeFromInt(key)
+    )
+
 }

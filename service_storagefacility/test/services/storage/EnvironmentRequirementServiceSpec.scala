@@ -55,8 +55,6 @@ class EnvironmentRequirementServiceSpec
       val anotherMid = MuseumId(4)
       val res        = service.add(anotherMid, er).futureValue
 
-      println(res)
-
       res.isFailure mustBe true
     }
 
