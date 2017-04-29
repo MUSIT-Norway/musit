@@ -1,28 +1,9 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package controllers
 
 import com.google.inject.Inject
 import models.ObjectSearchResult
 import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitSuccess}
-import no.uio.musit.models.{MuseumId, MuseumNo, ObjectUUID, SubNo}
+import no.uio.musit.models._
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
@@ -119,86 +100,106 @@ class ObjectController @Inject()(
    */
   def findMainObjectChildren(
       mid: Int,
-      mainObjectId: Long,
+      mainObjectId: String,
       collectionIds: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
-      case Left(res) => Future.successful(res)
-      case Right(cids) =>
-        objService.findMainObjectChildren(mid, mainObjectId, cids)(request.user).map {
-          case MusitSuccess(res) =>
-            Ok(Json.toJson(res))
+    ObjectUUID
+      .fromString(mainObjectId)
+      .map { oid =>
+        parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+          case Left(res) => Future.successful(res)
+          case Right(cids) =>
+            objService.findMainObjectChildren(mid, oid, cids)(request.user).map {
+              case MusitSuccess(res) =>
+                Ok(Json.toJson(res))
 
-          case MusitDbError(msg, ex) =>
-            logger.error(msg, ex.orNull)
-            InternalServerError(Json.obj("message" -> msg))
+              case MusitDbError(msg, ex) =>
+                logger.error(msg, ex.orNull)
+                InternalServerError(Json.obj("message" -> msg))
 
-          case err: MusitError =>
-            logger.error(err.message)
-            Results.InternalServerError(Json.obj("message" -> err.message))
+              case err: MusitError =>
+                logger.error(err.message)
+                Results.InternalServerError(Json.obj("message" -> err.message))
+            }
         }
-    }
+      }
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID $mainObjectId"))
+        }
+      }
   }
 
+  // scalastyle:off method.length
   /**
    * Endpoint that will retrieve objects for a given nodeId in a museum. The
    * result is paged, so that only the given {{{limit}}} of results are
    * returned to the client.
    *
    * @param mid           The MuseumId to look for the objects and node.
-   * @param nodeId        The StorageNodeDatabaseId to get objects for
+   * @param nodeId        The StorageNodeId to get objects for
    * @param collectionIds Comma separated String of CollectionUUIDs.
-   * @param page          The resultset page number.
+   * @param page          The result set page number.
    * @param limit         The number of results per page.
    * @return A list of objects located in the given node.
    */
   def getObjects(
       mid: Int,
-      nodeId: Long,
+      nodeId: String,
       collectionIds: String,
       page: Int,
       limit: Int = defaultLimit
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
-      case Left(res) => Future.successful(res)
-      case Right(cids) =>
-        nodeService.nodeExists(mid, nodeId).flatMap {
-          case MusitSuccess(true) =>
-            objService.findObjects(mid, nodeId, cids, page, limit)(request.user).map {
-              case MusitSuccess(pagedObjects) =>
-                Ok(
-                  Json.obj(
-                    "totalMatches" -> pagedObjects.totalMatches,
-                    "matches"      -> Json.toJson(pagedObjects.matches)
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+          case Left(res) => Future.successful(res)
+          case Right(cids) =>
+            nodeService.nodeExists(mid, nid).flatMap {
+              case MusitSuccess(true) =>
+                objService.findObjects(mid, nid, cids, page, limit)(request.user).map {
+                  case MusitSuccess(pagedObjects) =>
+                    Ok(
+                      Json.obj(
+                        "totalMatches" -> pagedObjects.totalMatches,
+                        "matches"      -> Json.toJson(pagedObjects.matches)
+                      )
+                    )
+
+                  case MusitDbError(msg, ex) =>
+                    logger.error(msg, ex.orNull)
+                    InternalServerError(Json.obj("message" -> msg))
+
+                  case r: MusitError =>
+                    InternalServerError(Json.obj("message" -> r.message))
+                }
+
+              case MusitSuccess(false) =>
+                Future.successful(
+                  NotFound(
+                    Json.obj(
+                      "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
+                    )
                   )
                 )
 
               case MusitDbError(msg, ex) =>
                 logger.error(msg, ex.orNull)
-                InternalServerError(Json.obj("message" -> msg))
+                Future.successful(InternalServerError(Json.obj("message" -> msg)))
 
               case r: MusitError =>
-                InternalServerError(Json.obj("message" -> r.message))
+                Future.successful(InternalServerError(Json.obj("message" -> r.message)))
             }
-
-          case MusitSuccess(false) =>
-            Future.successful(
-              NotFound(
-                Json.obj(
-                  "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
-                )
-              )
-            )
-
-          case MusitDbError(msg, ex) =>
-            logger.error(msg, ex.orNull)
-            Future.successful(InternalServerError(Json.obj("message" -> msg)))
-
-          case r: MusitError =>
-            Future.successful(InternalServerError(Json.obj("message" -> r.message)))
         }
-    }
+      }
+      .getOrElse {
+        Future.successful {
+          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
+        }
+      }
   }
+  // scalastyle:on method.length
 
   def scanForOldBarcode(
       mid: MuseumId,

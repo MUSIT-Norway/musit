@@ -1,22 +1,3 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package repositories.dao
 
 import no.uio.musit.models._
@@ -31,7 +12,7 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   // format: off
   // scalastyle:off line.size.limit
   type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int]))
-  type LocalObjectRow = ((ObjectId, EventId, StorageNodeDatabaseId, MuseumId, Option[String]))
+  type LocalObjectRow = ((ObjectUUID, EventId, StorageNodeId, MuseumId, Option[String]))
   type StorageNodeRow = ((Option[StorageNodeDatabaseId], StorageNodeId, String, String, Option[Double], Option[Double], Option[StorageNodeDatabaseId], Option[Double], Option[Double], Option[String], Option[String], Boolean, MuseumId, NodePath))
   // format: on
   // scalastyle:on line.size.limit
@@ -84,14 +65,14 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
   }
 
   /**
-   * Definition for the MUSARK_STORAGE.LOCAL_OBJECT table
+   * Definition for the MUSARK_STORAGE.NEW_LOCAL_OBJECT table
    */
   class LocalObjectsTable(
       tag: Tag
-  ) extends Table[LocalObjectRow](tag, Some("MUSARK_STORAGE"), "LOCAL_OBJECT") {
+  ) extends Table[LocalObjectRow](tag, Some("MUSARK_STORAGE"), "NEW_LOCAL_OBJECT") {
     // scalastyle:off method.name
     def * = (
-      objectId,
+      objectUuid,
       latestMoveId,
       currentLocationId,
       museumId,
@@ -100,9 +81,9 @@ trait Tables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappe
 
     // scalastyle:on method.name
 
-    val objectId          = column[ObjectId]("OBJECT_ID", O.PrimaryKey)
+    val objectUuid        = column[ObjectUUID]("OBJECT_UUID", O.PrimaryKey)
     val latestMoveId      = column[EventId]("LATEST_MOVE_ID")
-    val currentLocationId = column[StorageNodeDatabaseId]("CURRENT_LOCATION_ID")
+    val currentLocationId = column[StorageNodeId]("CURRENT_LOCATION_ID")
     val museumId          = column[MuseumId]("MUSEUM_ID")
     val objectType        = column[Option[String]]("OBJECT_TYPE")
   }

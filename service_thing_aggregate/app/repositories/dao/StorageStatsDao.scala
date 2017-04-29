@@ -1,22 +1,3 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package repositories.dao
 
 import com.google.inject.{Inject, Singleton}
@@ -38,17 +19,23 @@ class StorageStatsDao @Inject()(
 
   import profile.api._
 
-  private def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
-    nodeTable.filter { sn =>
-      sn.isPartOf === id && sn.isDeleted === false
-    }.length.result
+  private def countChildren(id: StorageNodeId): DBIO[Int] = {
+    for {
+      q1 <- nodeTable.filter(_.uuid === id).map(_.id).result.headOption
+      q2 <- q1.map { pid =>
+             nodeTable
+               .filter(sn => sn.isPartOf === pid && sn.isDeleted === false)
+               .length
+               .result
+           }.getOrElse(DBIO.successful(0))
+    } yield q2
   }
 
   /**
    * Count of *all* children of this node, irrespective of access rights to
    * the children
    */
-  def numChildren(id: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
+  def numChildren(id: StorageNodeId): Future[MusitResult[Int]] = {
     db.run(countChildren(id)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An error occurred counting number node children under $id"
@@ -73,12 +60,12 @@ class StorageStatsDao @Inject()(
       sql"""
         SELECT /*+DRIVING_SITE(mt)*/ COUNT(1) FROM
           "MUSARK_STORAGE"."STORAGE_NODE" sn,
-          "MUSARK_STORAGE"."LOCAL_OBJECT" lo,
+          "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo,
           "MUSIT_MAPPING"."MUSITTHING" mt
         WHERE sn."NODE_PATH" LIKE '#${nodeFilter}'
-        AND sn."STORAGE_NODE_ID" = lo."CURRENT_LOCATION_ID"
+        AND sn."STORAGE_NODE_UUID" = lo."CURRENT_LOCATION_ID"
         AND mt."IS_DELETED" = 0
-        AND lo."OBJECT_ID" = mt."OBJECT_ID"
+        AND lo."OBJECT_UUID" = mt."MUSITTHING_UUID"
       """.as[Int].head
 
     db.run(query)
@@ -102,16 +89,16 @@ class StorageStatsDao @Inject()(
    * @param nodeId StorageNodeId to count objects for.
    * @return Future[Int] with the number of objects directly on the provided nodeId
    */
-  def numObjectsInNode(nodeId: StorageNodeDatabaseId): Future[MusitResult[Int]] = {
+  def numObjectsInNode(nodeId: StorageNodeId): Future[MusitResult[Int]] = {
     val query = {
-      val idAsString = nodeId.underlying
+      val idAsString = nodeId.asString
       sql"""
         SELECT /*+DRIVING_SITE(mt)*/ COUNT(1) FROM
           "MUSIT_MAPPING"."MUSITTHING" mt,
-          "MUSARK_STORAGE"."LOCAL_OBJECT" lo
+          "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo
         WHERE mt."IS_DELETED" = 0
         AND lo."CURRENT_LOCATION_ID" = ${idAsString}
-        AND lo."OBJECT_ID" = mt."OBJECT_ID"
+        AND lo."OBJECT_UUID" = mt."MUSITTHING_UUID"
       """.as[Int].head
     }
 

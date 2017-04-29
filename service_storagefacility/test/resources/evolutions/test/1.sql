@@ -1,11 +1,11 @@
 #
 # TEST VERSION OF THE SCHEMA WITH relaxed PRIMARY AND FOREIGN KEY CONSTRAINTS
-                                                  #
-                                                  # STORAGE FACILITY SCHEMA
-                                                  #
-                                          # --- !Ups
+#
+# STORAGE FACILITY SCHEMA
+#
+# --- !Ups
 
-                                          CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
+CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 
 -- ===========================================================================
 -- Tables for storage nodes

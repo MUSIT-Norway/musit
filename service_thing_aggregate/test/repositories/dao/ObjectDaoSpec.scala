@@ -1,26 +1,8 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package repositories.dao
 
 import java.util.UUID
 
+import helpers.NodeTestData
 import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -31,7 +13,10 @@ import org.scalatest.Inspectors.forAll
  * NOTE: Test data for these tests are loaded in the evolution scripts in the
  * src/test/resources directory.
  */
-class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
+class ObjectDaoSpec
+    extends MusitSpecWithAppPerSuite
+    with MusitResultValues
+    with NodeTestData {
 
   val dao: ObjectDao = fromInstanceCache[ObjectDao]
 
@@ -415,7 +400,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
         val mr = dao
           .pagedObjects(
             mid = mid,
-            nodeId = StorageNodeDatabaseId(4),
+            nodeId = nodeId4,
             collections = allCollections,
             page = 1,
             limit = 10
@@ -451,7 +436,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
         val mr = dao
           .pagedObjects(
             mid = mid,
-            nodeId = StorageNodeDatabaseId(7),
+            nodeId = nodeId7,
             collections = allCollections,
             page = 1,
             limit = 10
@@ -474,7 +459,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
         val mr = dao
           .pagedObjects(
             mid = mid,
-            nodeId = StorageNodeDatabaseId(999999),
+            nodeId = StorageNodeId.generate(),
             collections = allCollections,
             page = 1,
             limit = 10
@@ -488,7 +473,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
         val mr = dao
           .pagedObjects(
             mid = MuseumId(55),
-            nodeId = StorageNodeDatabaseId(2),
+            nodeId = nodeId2,
             collections = allCollections,
             page = 1,
             limit = 10
@@ -502,7 +487,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
         val mr = dao
           .pagedObjects(
             mid = mid,
-            nodeId = StorageNodeDatabaseId(6),
+            nodeId = nodeId6,
             collections = allCollections,
             page = 1,
             limit = 10

@@ -1,22 +1,3 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package repositories.dao
 
 import com.google.inject.Inject
@@ -40,10 +21,10 @@ class StorageNodeDao @Inject()(
 
   def getPathById(
       mid: MuseumId,
-      id: StorageNodeDatabaseId
-  ): Future[MusitResult[Option[(StorageNodeDatabaseId, NodePath)]]] = {
+      id: StorageNodeId
+  ): Future[MusitResult[Option[(StorageNodeId, NodePath)]]] = {
     val q = nodeTable.filter { n =>
-      n.museumId === mid && n.id === id
+      n.museumId === mid && n.uuid === id
     }.result.headOption
 
     db.run(q).map(mres => MusitSuccess(mres.map(res => id -> res._14))).recover {
@@ -56,11 +37,11 @@ class StorageNodeDao @Inject()(
 
   def nodeExists(
       mid: MuseumId,
-      nodeId: StorageNodeDatabaseId
+      nodeId: StorageNodeId
   ): Future[MusitResult[Boolean]] = {
     val query = nodeTable.filter { sn =>
       sn.museumId === mid &&
-      sn.id === nodeId
+      sn.uuid === nodeId
     }.length.result
     db.run(query).map(res => MusitSuccess(res == 1)).recover {
       case NonFatal(ex) =>
@@ -72,17 +53,17 @@ class StorageNodeDao @Inject()(
 
   def currentLocation(
       mid: MuseumId,
-      objectId: ObjectId
-  ): Future[Option[(StorageNodeDatabaseId, NodePath)]] = {
+      objectId: ObjectUUID
+  ): Future[Option[(StorageNodeId, NodePath)]] = {
     val findLocalObjectAction = locObjTable.filter { lo =>
       lo.museumId === mid &&
-      lo.objectId === objectId &&
+      lo.objectUuid === objectId &&
       lo.objectType === CollectionObject.name
     }.map(_.currentLocationId).result.headOption
 
-    val findPathAction = (maybeId: Option[StorageNodeDatabaseId]) =>
+    val findPathAction = (maybeId: Option[StorageNodeId]) =>
       maybeId.map { nodeId =>
-        nodeTable.filter(_.id === nodeId).map(_.path).result.headOption
+        nodeTable.filter(_.uuid === nodeId).map(_.path).result.headOption
       }.getOrElse(DBIO.successful(None))
 
     val query = for {

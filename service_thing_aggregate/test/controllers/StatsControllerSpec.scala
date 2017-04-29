@@ -1,29 +1,11 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package controllers
 
+import helpers.NodeTestData
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.test.Helpers._
 
-class StatsControllerSpec extends MusitSpecWithServerPerSuite {
+class StatsControllerSpec extends MusitSpecWithServerPerSuite with NodeTestData {
 
   val fakeToken1 = BearerToken(FakeUsers.testUserToken)
   val fakeToken2 = BearerToken(FakeUsers.superUserToken)
@@ -31,7 +13,7 @@ class StatsControllerSpec extends MusitSpecWithServerPerSuite {
   "Calling the stats endpoint" should {
     "return stats for a node including objects per collection" in {
 
-      val res = wsUrl("/museum/99/storagenodes/4/stats")
+      val res = wsUrl(s"/museum/99/storagenodes/${nodeId4.asString}/stats")
         .withHeaders(fakeToken1.asHeader)
         .get()
         .futureValue
