@@ -103,5 +103,36 @@ class SampleObjectServiceSpec
           fail(s"The list contained ${sce.size} elements, expected 1.")
       }
     }
+
+    "successfully add a new sample object with status 'Degraded' " in {
+      val so = SampleObject(
+        objectId = None,
+        parentObjectId = Some(parentId),
+        parentObjectType = CollectionObject,
+        isExtracted = true,
+        museumId = Museums.Test.id,
+        status = SampleStatuses.Degraded,
+        responsible = Some(dummyActorId),
+        createdDate = Some(dateTimeNow),
+        sampleId = None,
+        externalId = None,
+        sampleType = Some(SampleType("slize", Some("age rings"))),
+        size = Some(Size("cm2", 12.0)),
+        container = Some("box"),
+        storageMedium = None,
+        treatment = None,
+        leftoverSample = NotSpecified,
+        description = None,
+        note = Some("This is a sample note"),
+        registeredStamp = Some(ActorStamp(dummyActorId, dateTimeNow)),
+        updatedStamp = None
+      )
+
+      val addedRes = service.add(so).futureValue.successValue
+      addedRes mustBe an[ObjectUUID]
+      addedId = Option(addedRes)
+      val status = service.findById(addedId.get).futureValue
+      status.successValue.get.status mustBe SampleStatuses.Degraded
+    }
   }
 }
