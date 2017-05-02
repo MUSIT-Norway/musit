@@ -201,7 +201,7 @@ class SampleObjectControllerIntegrationSpec
       res.status mustBe OK
     }
 
-    "try to delete a objectid that not exists, return NotFound" in {
+    "return 404 when trying to delete a non-existing sample objectid" in {
       val all = getAllForTestMuseum
 
       val objectId = "123e4567-e89b-12d3-a456-426655440000"
@@ -212,7 +212,7 @@ class SampleObjectControllerIntegrationSpec
       res.status mustBe NOT_FOUND
     }
 
-    "try to delete wrong objectid, return BadRequest" in {
+    " return 400 when trying to delete a sample object with an invalid UUID" in {
       val all = getAllForTestMuseum
 
       val objectId = "123"

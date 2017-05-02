@@ -105,17 +105,11 @@ class SampleObjectService @Inject()(
 
     val updatedRes = for {
       orig <- MusitResultT(findById(oid, MusitEmpty))
-      _    <- MusitResultT(soDao.update(enrich(orig)))
-      upd <- MusitResultT(
-              findById(
-                oid,
-                MusitInternalError(s"Couldn't find sample $oid after delete")
-              )
-            )
-    } yield upd
+      del  <- MusitResultT(soDao.update(enrich(orig))).map(_ => MusitSuccess(()))
+    } yield del
 
     // Need to do some tricks to align the shapes again.
-    updatedRes.value.map(_.map(_ => MusitSuccess(())))
+    updatedRes.value.map(_ => MusitSuccess(()))
   }
 
 }
