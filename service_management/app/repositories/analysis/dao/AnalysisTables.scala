@@ -226,11 +226,11 @@ trait AnalysisTables
   class TreatmentTable(val tag: Tag)
       extends Table[TreatmentRow](tag, Some(SchemaName), TreatmentTableName) {
 
-    val no_treatment = column[String]("NO_TREATMENT")
-    val en_treatment = column[String]("EN_TREATMENT")
+    val noTreatment = column[String]("NO_TREATMENT")
+    val enTreatment = column[String]("EN_TREATMENT")
 
     // scalastyle:off method.name
-    def * = (no_treatment, en_treatment)
+    def * = (noTreatment, enTreatment)
 
     // scalastyle:on method.name
   }
@@ -416,6 +416,6 @@ trait AnalysisTables
    * @return an instance of Treatment
    */
   protected[dao] def fromTreatmentRow(tuple: TreatmentRow): Treatment =
-    Treatment(no_treatment = tuple._1, en_treatment = tuple._2)
+    Treatment(noTreatment = tuple._1, enTreatment = tuple._2)
 
 }

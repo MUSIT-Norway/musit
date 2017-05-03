@@ -161,7 +161,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
     "return treatment list" in {
       val list = dao.getTreatmentList.futureValue.successValue
       list.size mustBe 24
-      list.head.no_treatment mustBe "CTAB"
+      list.head.noTreatment mustBe "CTAB"
     }
 
   }
