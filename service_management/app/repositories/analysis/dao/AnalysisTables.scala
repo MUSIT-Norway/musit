@@ -28,6 +28,7 @@ trait AnalysisTables
   val analysisTable     = TableQuery[AnalysisTable]
   val resultTable       = TableQuery[AnalysisResultTable]
   val sampleObjTable    = TableQuery[SampleObjectTable]
+  val treatmentTable    = TableQuery[TreatmentTable]
 
   // scalastyle:off line.size.limit
   type EventTypeRow =
@@ -74,6 +75,8 @@ trait AnalysisTables
       Option[String],
       (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime])
   )
+
+  type TreatmentRow = (String, String)
 
   // scalastyle:on line.size.limit
 
@@ -215,6 +218,21 @@ trait AnalysisTables
 
     // scalastyle:off method.name line.size.limit
 
+  }
+
+  /**
+   * Representation of the MUSARK_ANALYSIS.TREATMENT table
+   */
+  class TreatmentTable(val tag: Tag)
+      extends Table[TreatmentRow](tag, Some(SchemaName), TreatmentTableName) {
+
+    val no_treatment = column[String]("NO_TREATMENT")
+    val en_treatment = column[String]("EN_TREATMENT")
+
+    // scalastyle:off method.name
+    def * = (no_treatment, en_treatment)
+
+    // scalastyle:on method.name
   }
 
   private def parseCollectionUUIDCol(colStr: Option[String]): Seq[CollectionUUID] = {
@@ -390,5 +408,14 @@ trait AnalysisTables
         dateTime <- tuple._22._4
       } yield ActorStamp(actor, dateTime)
     )
+
+  /**
+   * Converts a TreatmentRow tuple into an instance of Treatment
+   *
+   * @param tuple the TreatmentRow to convert
+   * @return an instance of Treatment
+   */
+  protected[dao] def fromTreatmentRow(tuple: TreatmentRow): Treatment =
+    Treatment(no_treatment = tuple._1, en_treatment = tuple._2)
 
 }

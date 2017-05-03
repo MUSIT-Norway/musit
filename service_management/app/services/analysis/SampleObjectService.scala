@@ -1,7 +1,7 @@
 package services.analysis
 
 import com.google.inject.Inject
-import models.analysis.{ActorStamp, SampleObject}
+import models.analysis.{ActorStamp, SampleObject, Treatment}
 import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
@@ -96,4 +96,7 @@ class SampleObjectService @Inject()(
     soDao.listForMuseum(mid)
   }
 
+  def getTreatmentList: Future[MusitResult[Seq[Treatment]]] = {
+    soDao.getTreatmentList
+  }
 }

@@ -99,6 +99,7 @@ class SampleObjectControllerIntegrationSpec
   val updateUrl    = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/$oid"
   val getUrl       = updateUrl
   val childrenUrl  = (mid: Int) => (oid: String) => s"${getUrl(mid)(oid)}/children"
+  val treatmentUrl = (mid: Int) => s"/$mid/samples/treatment"
 
   def getAllForTestMuseum = {
     val res = wsUrl(forMuseumUrl(mid)).withHeaders(token.asHeader).get().futureValue
@@ -186,6 +187,13 @@ class SampleObjectControllerIntegrationSpec
 
       res.status mustBe OK
       validateSampleObject(ujs, res.json)
+    }
+
+    "list all treatments" in {
+      val res = wsUrl(treatmentUrl(mid)).withHeaders(token.asHeader).get().futureValue
+      res.status mustBe OK
+      val treatments = res.json.as[JsArray].value
+      treatments.size mustBe 24
     }
 
   }

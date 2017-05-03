@@ -1,7 +1,7 @@
 package repositories.analysis.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.analysis.SampleObject
+import models.analysis.{SampleObject, Treatment}
 import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
@@ -97,6 +97,18 @@ class SampleObjectDao @Inject()(
         logger.error(msg, ex)
         MusitDbError(msg, Option(ex))
     }
+  }
+
+  def getTreatmentList: Future[MusitResult[Seq[Treatment]]] = {
+    db.run(treatmentTable.result)
+      .map(_.map(fromTreatmentRow))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"An unexpected error occurred fetching treatment list"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
 }
