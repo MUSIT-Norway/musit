@@ -62,6 +62,7 @@ class SampleObjectServiceSpec
       leftoverSample = NotSpecified,
       description = None,
       note = Some("This is a sample note"),
+      originatedObjectUuid = ObjectUUID.generate(),
       registeredStamp = Some(ActorStamp(dummyActorId, now)),
       updatedStamp = None
     )

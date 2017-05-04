@@ -1,7 +1,7 @@
 package repositories.analysis.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.analysis.SampleObject
+import models.analysis.{SampleObject, Treatment}
 import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
