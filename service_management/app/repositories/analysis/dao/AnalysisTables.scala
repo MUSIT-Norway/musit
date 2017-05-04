@@ -362,7 +362,7 @@ trait AnalysisTables
         so.updatedStamp.map(_.user),
         so.updatedStamp.map(_.date)
       ),
-      true // todo extract from so.isDeleted
+      so.isDeleted
     )
   }
 

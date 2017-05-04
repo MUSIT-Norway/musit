@@ -171,8 +171,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       res1.successValue must equal(())
 
       val res2 = dao.findByUUID(oid).futureValue
-      res2.successValue.value.objectId mustBe Some(oid)
-      res2.successValue.value.isDeleted mustBe true
+      res2.successValue mustBe None
     }
 
   }
