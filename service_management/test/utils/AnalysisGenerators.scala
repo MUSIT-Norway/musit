@@ -1,5 +1,6 @@
 package utils
 
+import models.analysis.ActorById
 import models.analysis.events.AnalysisResults.{
   AnalysisResult,
   DatingResult,
@@ -14,6 +15,7 @@ trait AnalysisGenerators {
 
   protected val defaultMid          = Museums.Test.id
   protected val dummyActorId        = ActorId.generate()
+  protected val dummyActorById      = ActorById(ActorId.generate())
   protected val dummyAnalysisTypeId = AnalysisTypeId.generate()
 
   protected val oid1 = ObjectUUID.generate()
@@ -26,12 +28,12 @@ trait AnalysisGenerators {
   ): SaveAnalysis = {
     SaveAnalysis(
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorId),
+      doneBy = Some(dummyActorById),
       doneDate = Some(dateTimeNow),
       note = Some("This is from a SaveAnalysis command"),
       objectId = oid,
-      responsible = Some(dummyActorId),
-      administrator = Some(dummyActorId),
+      responsible = Some(dummyActorById),
+      administrator = Some(dummyActorById),
       completedBy = None,
       completedDate = None
     )
@@ -43,11 +45,11 @@ trait AnalysisGenerators {
   ): SaveAnalysisCollection = {
     SaveAnalysisCollection(
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorId),
+      doneBy = Some(dummyActorById),
       doneDate = Some(dateTimeNow),
       note = Some("This is from a SaveAnalysisCollection command"),
-      responsible = Some(dummyActorId),
-      administrator = Some(dummyActorId),
+      responsible = Some(dummyActorById),
+      administrator = Some(dummyActorById),
       completedBy = None,
       completedDate = None,
       objectIds = oids,
@@ -92,15 +94,15 @@ trait AnalysisGenerators {
     Analysis(
       id = None,
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorId),
+      doneBy = Some(dummyActorById),
       doneDate = now,
       registeredBy = Some(dummyActorId),
       registeredDate = now,
-      responsible = Some(dummyActorId),
-      administrator = Some(dummyActorId),
+      responsible = Some(dummyActorById),
+      administrator = Some(dummyActorById),
       updatedBy = Some(dummyActorId),
       updatedDate = now,
-      completedBy = Some(dummyActorId),
+      completedBy = Some(dummyActorById),
       completedDate = now,
       partOf = None,
       objectId = oid,
@@ -117,15 +119,15 @@ trait AnalysisGenerators {
     AnalysisCollection(
       id = None,
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorId),
+      doneBy = Some(dummyActorById),
       doneDate = now,
       registeredBy = Some(dummyActorId),
       registeredDate = now,
-      responsible = Some(dummyActorId),
-      administrator = Some(dummyActorId),
+      responsible = Some(dummyActorById),
+      administrator = Some(dummyActorById),
       updatedBy = None,
       updatedDate = None,
-      completedBy = Some(dummyActorId),
+      completedBy = Some(dummyActorById),
       completedDate = now,
       note = Some("An analysis collection"),
       result = res,

@@ -19,6 +19,7 @@ class AnalysisEventSpec
   val dummyAnalysisTypeId = AnalysisTypeId.generate()
   val dummyDate           = DateTime.now
   val dummyActor          = ActorId.generate()
+  val dummyActorById      = ActorById(ActorId.generate())
   val dummyObject         = ObjectUUID.generate()
   val dummyNote           = "Foo bar"
   val dummyReason         = "Fuz bar"
@@ -36,15 +37,15 @@ class AnalysisEventSpec
     Analysis(
       id = Some(dummyEventId),
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActor),
+      doneBy = Some(dummyActorById),
       doneDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
-      responsible = Some(dummyActor),
-      administrator = Some(dummyActor),
+      responsible = Some(dummyActorById),
+      administrator = Some(dummyActorById),
       updatedBy = Some(dummyActor),
       updatedDate = Some(dummyDate),
-      completedBy = Some(dummyActor),
+      completedBy = Some(dummyActorById),
       completedDate = Some(dummyDate),
       objectId = Some(dummyObject),
       partOf = None,
@@ -63,15 +64,15 @@ class AnalysisEventSpec
     AnalysisCollection(
       id = Some(dummyEventId),
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActor),
+      doneBy = Some(dummyActorById),
       doneDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
-      responsible = Some(dummyActor),
-      administrator = Some(dummyActor),
+      responsible = Some(dummyActorById),
+      administrator = Some(dummyActorById),
       updatedBy = Some(dummyActor),
       updatedDate = Some(dummyDate),
-      completedBy = Some(dummyActor),
+      completedBy = Some(dummyActorById),
       completedDate = Some(dummyDate),
       note = Some(dummyNote),
       restriction = Some(dummyRestriction),
@@ -118,15 +119,15 @@ class AnalysisEventSpec
       (js \ "type").as[String] mustBe AnalysisCollection.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
       (js \ "analysisTypeId").as[String] mustBe dummyAnalysisTypeId.asString
-      (js \ "doneBy").as[String] mustBe dummyActor.asString
+      (js \ "doneBy" \ "value").as[String] mustBe dummyActorById.name
       (js \ "doneDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
-      (js \ "responsible").as[String] mustBe dummyActor.asString
-      (js \ "administrator").as[String] mustBe dummyActor.asString
+      (js \ "responsible" \ "value").as[String] mustBe dummyActorById.name
+      (js \ "administrator" \ "value").as[String] mustBe dummyActorById.name
       (js \ "updatedBy").as[String] mustBe dummyActor.asString
       (js \ "updatedDate").as[DateTime] mustApproximate dummyDate
-      (js \ "completedBy").as[String] mustBe dummyActor.asString
+      (js \ "completedBy" \ "value").as[String] mustBe dummyActorById.name
       (js \ "completedDate").as[DateTime] mustApproximate dummyDate
       (js \ "note").as[String] mustBe dummyNote
       (js \ "result" \ "type").as[String] mustBe GenericResult.resultType

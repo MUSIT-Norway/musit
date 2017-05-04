@@ -1,5 +1,6 @@
 package controllers.analysis
 
+import models.analysis.ActorById
 import models.analysis.SampleStatuses.{Intact, SampleStatus}
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ActorId, MuseumId, Museums, ObjectUUID}
@@ -20,7 +21,8 @@ class SampleObjectControllerIntegrationSpec
   val token   = BearerToken(FakeUsers.testAdminToken)
   val adminId = ActorId.unsafeFromString(FakeUsers.testAdminId)
 
-  val responsibleActor = ActorId.generate()
+  val responsibleActor =
+    Json.obj("type" -> ActorById.key, "value" -> ActorId.generate().asString)
 
   val parentObject = ObjectUUID.generate()
 
@@ -40,7 +42,7 @@ class SampleObjectControllerIntegrationSpec
       "isExtracted"          -> isExtracted,
       "museumId"             -> Museums.Test.id.underlying,
       "status"               -> status.key,
-      "responsible"          -> responsibleActor.asString,
+      "responsible"          -> responsibleActor,
       "createdDate"          -> Json.toJson(createdDate),
       "sampleType"           -> Json.obj("value" -> "wood slize", "subTypeValue" -> "age rings"),
       "size"                 -> Json.obj("unit" -> "cm3", "value" -> 12.0),

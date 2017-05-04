@@ -37,7 +37,7 @@ trait AnalysisTables
   type EventRow = (
       Option[EventId],
       AnalysisTypeId,
-      Option[ActorId],
+      Option[ActorName],
       Option[DateTime],
       Option[ActorId],
       Option[DateTime],
@@ -57,7 +57,7 @@ trait AnalysisTables
       Boolean,
       MuseumId,
       SampleStatus,
-      Option[ActorId],
+      Option[ActorName],
       Option[DateTime],
       Option[String],
       (Option[String], Option[String]),
@@ -108,7 +108,7 @@ trait AnalysisTables
 
     val id             = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
     val typeId         = column[AnalysisTypeId]("TYPE_ID")
-    val doneBy         = column[Option[ActorId]]("DONE_BY")
+    val doneBy         = column[Option[ActorName]]("DONE_BY")
     val doneDate       = column[Option[DateTime]]("DONE_DATE")
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
@@ -167,7 +167,7 @@ trait AnalysisTables
     val isExtracted      = column[Boolean]("IS_EXTRACTED")
     val museumId         = column[MuseumId]("MUSEUM_ID")
     val status           = column[SampleStatus]("STATUS")
-    val responsible      = column[Option[ActorId]]("RESPONSIBLE_ACTOR_ID")
+    val responsible      = column[Option[ActorName]]("RESPONSIBLE_ACTOR")
     val createdDate      = column[Option[DateTime]]("CREATED_DATE")
     val sampleId         = column[Option[String]]("SAMPLE_ID")
     val externalId       = column[Option[String]]("EXTERNAL_ID")
