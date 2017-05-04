@@ -1,6 +1,7 @@
 package services.analysis
 
 import models.analysis.LeftoverSamples.NotSpecified
+import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.SampleCreated
 import models.analysis._
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
@@ -38,7 +39,8 @@ class SampleObjectServiceSpec
       id: Option[ObjectUUID],
       parentId: Option[ObjectUUID],
       parentobjType: ObjectType = CollectionObject,
-      isExtracted: Boolean = false
+      isExtracted: Boolean = false,
+      status: SampleStatus = SampleStatuses.Intact
   ): SampleObject = {
     val now = dateTimeNow
     SampleObject(
@@ -47,7 +49,7 @@ class SampleObjectServiceSpec
       parentObjectType = parentobjType,
       isExtracted = isExtracted,
       museumId = Museums.Test.id,
-      status = SampleStatuses.Intact,
+      status = status,
       responsible = Some(dummyActorId),
       createdDate = Some(now),
       sampleId = None,
@@ -103,6 +105,20 @@ class SampleObjectServiceSpec
         case _ =>
           fail(s"The list contained ${sce.size} elements, expected 1.")
       }
+    }
+
+    "successfully add a new sample object with status 'Degraded' " in {
+      val so = generateSampleObject(
+        id = None,
+        parentId = Some(parentId),
+        isExtracted = true,
+        status = SampleStatuses.Degraded
+      )
+      val addedRes = service.add(so).futureValue.successValue
+      addedRes mustBe an[ObjectUUID]
+      addedId = Option(addedRes)
+      val status = service.findById(addedId.get).futureValue
+      status.successValue.get.status mustBe SampleStatuses.Degraded
     }
   }
 }
