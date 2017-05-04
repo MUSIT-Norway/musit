@@ -76,7 +76,7 @@ trait AnalysisTables
       (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime])
   )
 
-  type TreatmentRow = (String, String)
+  type TreatmentRow = (Int, String, String)
 
   // scalastyle:on line.size.limit
 
@@ -225,12 +225,12 @@ trait AnalysisTables
    */
   class TreatmentTable(val tag: Tag)
       extends Table[TreatmentRow](tag, Some(SchemaName), TreatmentTableName) {
-
+    val treatmentId = column[Int]("TREATMENT_ID")
     val noTreatment = column[String]("NO_TREATMENT")
     val enTreatment = column[String]("EN_TREATMENT")
 
     // scalastyle:off method.name
-    def * = (noTreatment, enTreatment)
+    def * = (treatmentId, noTreatment, enTreatment)
 
     // scalastyle:on method.name
   }
@@ -416,6 +416,6 @@ trait AnalysisTables
    * @return an instance of Treatment
    */
   protected[dao] def fromTreatmentRow(tuple: TreatmentRow): Treatment =
-    Treatment(noTreatment = tuple._1, enTreatment = tuple._2)
+    Treatment(treatmentId = tuple._1, noTreatment = tuple._2, enTreatment = tuple._3)
 
 }

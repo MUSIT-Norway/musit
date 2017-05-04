@@ -3,6 +3,7 @@ package models.analysis
 import play.api.libs.json.{Format, Json}
 
 case class Treatment(
+    treatmentId: Int,
     noTreatment: String,
     enTreatment: String
 )

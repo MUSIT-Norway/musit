@@ -3,7 +3,6 @@ package controllers.analysis
 import com.google.inject.{Inject, Singleton}
 import controllers.{internalErr, listAsPlayResult}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import no.uio.musit.models.MuseumId
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 
