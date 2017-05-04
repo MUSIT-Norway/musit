@@ -67,7 +67,11 @@ class SampleObjectDao @Inject()(
   }
 
   def findByUUID(uuid: ObjectUUID): Future[MusitResult[Option[SampleObject]]] = {
-    val q = sampleObjTable.filter(_.id === uuid).result.headOption
+    val q =
+      sampleObjTable
+        .filter(so => so.id === uuid && so.isDeleted === false)
+        .result
+        .headOption
 
     db.run(q).map(sor => MusitSuccess(sor.map(fromSampleObjectRow))).recover {
       case NonFatal(ex) =>

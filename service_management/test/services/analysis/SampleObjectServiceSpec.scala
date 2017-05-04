@@ -2,8 +2,8 @@ package services.analysis
 
 import models.analysis.LeftoverSamples.NotSpecified
 import models.analysis.SampleStatuses.SampleStatus
-import models.analysis.events.SampleCreated
 import models.analysis._
+import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
@@ -85,6 +85,7 @@ class SampleObjectServiceSpec
       val addedRes = service.add(so).futureValue.successValue
       addedRes mustBe an[ObjectUUID]
       addedId = Option(addedRes)
+
     }
 
     "find the sample by its uuid" in {
@@ -113,6 +114,10 @@ class SampleObjectServiceSpec
       val found = service.findById(addedId.value).futureValue.successValue.value
       val so    = service.delete(found.objectId.get).futureValue
       so mustBe MusitSuccess(())
+    }
+    "not find a deleted sample" in {
+      val found = service.findById(addedId.value).futureValue.successValue
+      found mustBe None
     }
 
     "successfully add a new sample object with status 'Degraded' " in {
