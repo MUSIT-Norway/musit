@@ -338,9 +338,7 @@ final class StorageController @Inject()(
   )(implicit currUser: AuthenticatedUser, w: Writes[ResId]) = {
     service.moveObjects(mid, dest, events).map {
       case MusitSuccess(oids) =>
-        val sf      = successFailed(oids)
-        val success = sf._1
-        val failed  = sf._2
+        val (success, failed) = successFailed(oids)
         Ok(
           Json.obj(
             "moved"  -> Json.toJson(success),
@@ -414,7 +412,7 @@ final class StorageController @Inject()(
       idTuples  <- MusitResultT(objService.getUUIDsFor(cmd.items))
     } yield {
       maybeNode.map { node =>
-        val dest = node.nodeId.get // safe...
+        val dest = node.nodeId.get // safe...since we got the node from the DB.
         val mobs =
           idTuples.map(_._2).map(i => MovableObject(i, ObjectTypes.CollectionObject))
         val events = MoveObject.fromCommand(currUser.id, MoveObjectsCmd(dest, mobs))
