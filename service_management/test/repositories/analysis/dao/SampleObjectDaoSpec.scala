@@ -139,7 +139,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val so2 = so1.copy(sampleId = Some("FOO-1"))
 
       val res1 = dao.update(so2).futureValue
-      res1.successValue mustBe 1L
+      res1.successValue must equal(())
 
       val res2 = dao.findByUUID(oid).futureValue
       res2.successValue.value.objectId mustBe Some(oid)
@@ -168,7 +168,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
 
       val so2  = so1.copy(isDeleted = true)
       val res1 = dao.update(so2).futureValue
-      res1.successValue mustBe 1L
+      res1.successValue must equal(())
 
       val res2 = dao.findByUUID(oid).futureValue
       res2.successValue.value.objectId mustBe Some(oid)
