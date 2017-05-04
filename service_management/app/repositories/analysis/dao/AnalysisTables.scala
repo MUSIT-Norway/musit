@@ -52,20 +52,16 @@ trait AnalysisTables
 
   type SampleObjectRow = (
       ObjectUUID,
-      Option[ObjectUUID],
-      ObjectType,
+      (Option[ObjectUUID], ObjectType),
       Boolean,
       MuseumId,
       SampleStatus,
       Option[ActorId],
       Option[DateTime],
       Option[String],
-      Option[String],
-      Option[String],
-      Option[String],
-      Option[String],
-      Option[Double],
-      Option[String],
+      (Option[String], Option[String]),
+      (Option[String], Option[String]),
+      (Option[Double], Option[String]),
       Option[String],
       Option[String],
       Option[String],
@@ -190,20 +186,16 @@ trait AnalysisTables
     def * =
       (
         id,
-        parentId,
-        parentObjectType,
+        (parentId, parentObjectType),
         isExtracted,
         museumId,
         status,
         responsible,
         createdDate,
         sampleId,
-        externalId,
-        externalIdSource,
-        sampleType,
-        sampleSubType,
-        size,
-        sizeUnit,
+        (externalId, externalIdSource),
+        (sampleType, sampleSubType),
+        (size, sizeUnit),
         container,
         storageMedium,
         note,
@@ -323,20 +315,16 @@ trait AnalysisTables
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (
       so.objectId.getOrElse(ObjectUUID.generate()),
-      so.parentObjectId,
-      so.parentObjectType,
+      (so.parentObjectId, so.parentObjectType),
       so.isExtracted,
       so.museumId,
       so.status,
       so.responsible,
       so.createdDate,
       so.sampleId,
-      so.externalId.map(_.value),
-      so.externalId.flatMap(_.source),
-      so.sampleType.map(_.value),
-      so.sampleType.flatMap(_.subTypeValue),
-      so.size.map(_.value),
-      so.size.map(_.unit),
+      (so.externalId.map(_.value), so.externalId.flatMap(_.source)),
+      (so.sampleType.map(_.value), so.sampleType.flatMap(_.subTypeValue)),
+      (so.size.map(_.value), so.size.map(_.unit)),
       so.container,
       so.storageMedium,
       so.note,
@@ -358,37 +346,43 @@ trait AnalysisTables
    * @param tuple the SampleObjectRow to convert
    * @return an instance of SampleObject
    */
-  protected[dao] def fromSampleObjectRow(tuple: SampleObjectRow): SampleObject =
+  protected[dao] def fromSampleObjectRow(tuple: SampleObjectRow): SampleObject = {
+    val parentObject = tuple._2
+    val external     = tuple._9
+    val sampleType   = tuple._10
+    val size         = tuple._11
+    val userStamps   = tuple._18
+
     SampleObject(
       objectId = Option(tuple._1),
-      parentObjectId = tuple._2,
-      parentObjectType = tuple._3,
-      isExtracted = tuple._4,
-      museumId = tuple._5,
-      status = tuple._6,
-      responsible = tuple._7,
-      createdDate = tuple._8,
-      sampleId = tuple._9,
-      externalId = tuple._10.map(ExternalId(_, tuple._11)),
-      sampleType = tuple._12.map(SampleType(_, tuple._13)),
+      parentObjectId = parentObject._1,
+      parentObjectType = parentObject._2,
+      isExtracted = tuple._3,
+      museumId = tuple._4,
+      status = tuple._5,
+      responsible = tuple._6,
+      createdDate = tuple._7,
+      sampleId = tuple._8,
+      externalId = external._1.map(ExternalId(_, external._2)),
+      sampleType = sampleType._1.map(SampleType(_, sampleType._2)),
       size = for {
-        value <- tuple._14
-        unit  <- tuple._15
+        value <- size._1
+        unit  <- size._2
       } yield Size(unit, value),
-      container = tuple._16,
-      storageMedium = tuple._17,
-      note = tuple._18,
-      treatment = tuple._19,
-      leftoverSample = tuple._20,
-      description = tuple._21,
+      container = tuple._12,
+      storageMedium = tuple._13,
+      note = tuple._14,
+      treatment = tuple._15,
+      leftoverSample = tuple._16,
+      description = tuple._17,
       registeredStamp = for {
-        actor    <- tuple._22._1
-        dateTime <- tuple._22._2
+        actor    <- userStamps._1
+        dateTime <- userStamps._2
       } yield ActorStamp(actor, dateTime),
       updatedStamp = for {
-        actor    <- tuple._22._3
-        dateTime <- tuple._22._4
+        actor    <- userStamps._3
+        dateTime <- userStamps._4
       } yield ActorStamp(actor, dateTime)
     )
-
+  }
 }
