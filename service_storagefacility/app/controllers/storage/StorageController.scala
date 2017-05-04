@@ -57,7 +57,7 @@ final class StorageController @Inject()(
    */
   def add(
       mid: Int
-  ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Admin).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
     request.body.validate[StorageNode] match {
@@ -96,7 +96,7 @@ final class StorageController @Inject()(
    */
   def addRoot(
       mid: Int
-  ) = MusitSecureAction(mid, GodMode).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, GodMode).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
     request.body.validate[RootNode] match {
@@ -108,7 +108,9 @@ final class StorageController @Inject()(
   /**
    * TODO: Document me!
    */
-  def root(mid: Int) = MusitSecureAction(mid, Read).async { implicit request =>
+  def root(
+      mid: Int
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     service.rootNodes(mid).map {
       case MusitSuccess(roots) =>
         Ok(Json.toJson[Seq[StorageNode]](roots))
@@ -132,7 +134,7 @@ final class StorageController @Inject()(
       id: Long,
       page: Int,
       limit: Int
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     service.getChildren(mid, id, page, limit).map {
       case MusitSuccess(nodes) =>
         Ok(
@@ -152,7 +154,7 @@ final class StorageController @Inject()(
   def getById(
       mid: Int,
       id: Long
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     service.getNodeById(mid, id).map {
       case MusitSuccess(maybeNode) =>
         maybeNode.map(n => Ok(Json.toJson[StorageNode](n))).getOrElse(NotFound)
@@ -216,7 +218,7 @@ final class StorageController @Inject()(
       mid: Int,
       storageNodeId: Option[String],
       oldBarcode: Option[Long]
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     if (storageNodeId.nonEmpty) getByStorageNodeId(mid, storageNodeId)
     else if (oldBarcode.nonEmpty) getByOldBarcode(mid, oldBarcode)
     else
@@ -235,7 +237,7 @@ final class StorageController @Inject()(
   def update(
       mid: Int,
       id: Long
-  ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Admin).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
     request.body.validate[StorageNode] match {
@@ -273,7 +275,7 @@ final class StorageController @Inject()(
   def delete(
       mid: Int,
       id: Long
-  ) = MusitSecureAction(mid, Admin).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Admin).async { implicit request =>
     implicit val currUsr = request.user
 
     service.deleteNode(mid, id).map {
@@ -309,7 +311,7 @@ final class StorageController @Inject()(
    */
   def moveNode(
       mid: Int
-  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Write).async(parse.json) { implicit request =>
     implicit val currUsr = request.user
 
     request.body.validate[MoveNodesCmd] match {
@@ -348,7 +350,7 @@ final class StorageController @Inject()(
    */
   def moveObject(
       mid: Int
-  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Write).async(parse.json) { implicit request =>
     implicit val currUser = request.user
 
     val js = request.body
@@ -409,7 +411,7 @@ final class StorageController @Inject()(
       objectId: Long,
       objectType: String,
       limit: Int
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     service.objectLocationHistory(mid, objectId, Option(limit)).map {
       case MusitSuccess(history) =>
         Ok(Json.toJson(history))
@@ -431,7 +433,7 @@ final class StorageController @Inject()(
       mid: Int,
       oid: Long,
       objectType: String
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     ObjectType
       .fromString(objectType)
       .map { ot =>
@@ -468,7 +470,7 @@ final class StorageController @Inject()(
    */
   def currentObjectLocations(
       mid: Int
-  ) = MusitSecureAction(mid, Read).async(parse.json) { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async(parse.json) { implicit request =>
     request.body.validate[Seq[MovableObject_Old]] match {
       case JsSuccess(objs, _) =>
         service.currentObjectLocations(mid, objs).map {
@@ -498,7 +500,7 @@ final class StorageController @Inject()(
       searchStr: Option[String],
       page: Int,
       limit: Int
-  ) = MusitSecureAction(mid, Read).async { request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { request =>
     searchStr match {
       case Some(criteria) if criteria.length >= 3 =>
         service.searchByName(mid, criteria, page, limit).map {

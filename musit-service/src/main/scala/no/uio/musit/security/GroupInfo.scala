@@ -20,7 +20,7 @@
 package no.uio.musit.security
 
 import no.uio.musit.models.Museums.Museum
-import no.uio.musit.models.{GroupId, MuseumCollection, MuseumId}
+import no.uio.musit.models.{GroupId, GroupModule, MuseumCollection, MuseumId}
 import no.uio.musit.security.Permissions.Permission
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -28,6 +28,7 @@ import play.api.libs.json._
 case class GroupInfo(
     id: GroupId,
     name: String,
+    module: GroupModule,
     permission: Permission,
     museumId: MuseumId,
     description: Option[String],
@@ -45,19 +46,23 @@ object GroupInfo {
   implicit val formats: Format[GroupInfo] = (
     (__ \ "id").format[GroupId] and
       (__ \ "name").format[String] and
+      (__ \ "module").format[GroupModule] and
       (__ \ "permission").format[Permission] and
       (__ \ "museumId").format[MuseumId] and
       (__ \ "description").formatNullable[String] and
       (__ \ "collections").format[Seq[MuseumCollection]]
   )(GroupInfo.apply, unlift(GroupInfo.unapply))
 
-  def fromTuple(t: (GroupId, String, Permission, MuseumId, Option[String])): GroupInfo = {
+  def fromTuple(
+    t: (GroupId, String, GroupModule, Permission, MuseumId, Option[String])
+  ): GroupInfo = {
     GroupInfo(
       id = t._1,
       name = t._2,
-      permission = t._3,
-      museumId = t._4,
-      description = t._5,
+      module = t._3,
+      permission = t._4,
+      museumId = t._5,
+      description = t._6,
       collections = Seq.empty
     )
   }

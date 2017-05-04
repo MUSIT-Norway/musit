@@ -73,6 +73,7 @@ class ObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
       GroupInfo(
         id = GroupId.generate(),
         name = "FooBarGroup",
+        module = StorageFacility,
         permission = Permissions.Admin,
         museumId = mid,
         description = None,

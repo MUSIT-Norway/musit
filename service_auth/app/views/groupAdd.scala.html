@@ -4,7 +4,7 @@
 @import no.uio.musit.security.EncryptedToken
 @import helper._
 
-@(etok: EncryptedToken, form: play.api.data.Form[_], permissions: Seq[(String, String)])(implicit messages: Messages)
+@(etok: EncryptedToken, form: play.api.data.Form[_], permissions: Seq[(String, String)], modules: Seq[(String, String)])(implicit messages: Messages)
 
 @main(etok, "Add group", activeMenu = 3) {
   <p>
@@ -27,6 +27,18 @@
                   args =
                     'class -> "form-control border-input",
                     '_label -> "Name"
+                )
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-offset-1 col-md-2">
+                @select(
+                  field = form("module"),
+                  options = modules,
+                  args =
+                    'class -> "form-control border-input",
+                    '_default -> "-",
+                    '_label -> "Module"
                 )
               </div>
             </div>
