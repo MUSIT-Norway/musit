@@ -85,7 +85,6 @@ class SampleObjectServiceSpec
       val addedRes = service.add(so).futureValue.successValue
       addedRes mustBe an[ObjectUUID]
       addedId = Option(addedRes)
-
     }
 
     "find the sample by its uuid" in {
@@ -115,6 +114,7 @@ class SampleObjectServiceSpec
       val so    = service.delete(found.objectId.get).futureValue
       so mustBe MusitSuccess(())
     }
+
     "not find a deleted sample" in {
       val found = service.findById(addedId.value).futureValue.successValue
       found mustBe None
