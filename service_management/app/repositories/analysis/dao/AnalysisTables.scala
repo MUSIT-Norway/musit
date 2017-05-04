@@ -28,6 +28,7 @@ trait AnalysisTables
   val analysisTable     = TableQuery[AnalysisTable]
   val resultTable       = TableQuery[AnalysisResultTable]
   val sampleObjTable    = TableQuery[SampleObjectTable]
+  val treatmentTable    = TableQuery[TreatmentTable]
 
   // scalastyle:off line.size.limit
   type EventTypeRow =
@@ -68,8 +69,11 @@ trait AnalysisTables
       Option[String],
       LeftoverSample,
       Option[String],
+      ObjectUUID,
       (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime])
   )
+
+  type TreatmentRow = (Int, String, String)
 
   // scalastyle:on line.size.limit
 
@@ -177,6 +181,7 @@ trait AnalysisTables
     val leftoverSample   = column[LeftoverSample]("LEFTOVER_SAMPLE")
     val description      = column[Option[String]]("DESCRIPTION")
     val note             = column[Option[String]]("NOTE")
+    val originatedFrom   = column[ObjectUUID]("ORIGINATED_OBJECT_UUID")
     val registeredBy     = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate   = column[Option[DateTime]]("REGISTERED_DATE")
     val updatedBy        = column[Option[ActorId]]("UPDATED_BY")
@@ -202,11 +207,27 @@ trait AnalysisTables
         treatment,
         leftoverSample,
         description,
+        originatedFrom,
         (registeredBy, registeredDate, updatedBy, updatedDate)
       )
 
     // scalastyle:off method.name line.size.limit
 
+  }
+
+  /**
+   * Representation of the MUSARK_ANALYSIS.TREATMENT table
+   */
+  class TreatmentTable(val tag: Tag)
+      extends Table[TreatmentRow](tag, Some(SchemaName), TreatmentTableName) {
+    val treatmentId = column[Int]("TREATMENT_ID")
+    val noTreatment = column[String]("NO_TREATMENT")
+    val enTreatment = column[String]("EN_TREATMENT")
+
+    // scalastyle:off method.name
+    def * = (treatmentId, noTreatment, enTreatment)
+
+    // scalastyle:on method.name
   }
 
   private def parseCollectionUUIDCol(colStr: Option[String]): Seq[CollectionUUID] = {
@@ -331,6 +352,7 @@ trait AnalysisTables
       so.treatment,
       so.leftoverSample,
       so.description,
+      so.originatedObjectUuid,
       (
         so.registeredStamp.map(_.user),
         so.registeredStamp.map(_.date),
@@ -351,7 +373,7 @@ trait AnalysisTables
     val external     = tuple._9
     val sampleType   = tuple._10
     val size         = tuple._11
-    val userStamps   = tuple._18
+    val userStamps   = tuple._19
 
     SampleObject(
       objectId = Option(tuple._1),
@@ -375,6 +397,7 @@ trait AnalysisTables
       treatment = tuple._15,
       leftoverSample = tuple._16,
       description = tuple._17,
+      originatedObjectUuid = tuple._18,
       registeredStamp = for {
         actor    <- userStamps._1
         dateTime <- userStamps._2
@@ -385,4 +408,14 @@ trait AnalysisTables
       } yield ActorStamp(actor, dateTime)
     )
   }
+
+  /**
+   * Converts a TreatmentRow tuple into an instance of Treatment
+   *
+   * @param tuple the TreatmentRow to convert
+   * @return an instance of Treatment
+   */
+  protected[dao] def fromTreatmentRow(tuple: TreatmentRow): Treatment =
+    Treatment(treatmentId = tuple._1, noTreatment = tuple._2, enTreatment = tuple._3)
+
 }
