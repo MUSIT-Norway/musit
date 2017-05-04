@@ -43,6 +43,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       leftoverSample = NoLeftover,
       description = Some("sample description"),
       note = Some("This is a sample note"),
+      originatedObjectUuid = ObjectUUID.generate(),
       registeredStamp = Some(ActorStamp(ActorId.generate(), now)),
       updatedStamp = None
     )

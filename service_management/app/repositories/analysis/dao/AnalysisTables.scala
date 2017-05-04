@@ -68,6 +68,7 @@ trait AnalysisTables
       Option[String],
       LeftoverSample,
       Option[String],
+      ObjectUUID,
       (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime])
   )
 
@@ -177,6 +178,7 @@ trait AnalysisTables
     val leftoverSample   = column[LeftoverSample]("LEFTOVER_SAMPLE")
     val description      = column[Option[String]]("DESCRIPTION")
     val note             = column[Option[String]]("NOTE")
+    val originatedFrom   = column[ObjectUUID]("ORIGINATED_OBJECT_UUID")
     val registeredBy     = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate   = column[Option[DateTime]]("REGISTERED_DATE")
     val updatedBy        = column[Option[ActorId]]("UPDATED_BY")
@@ -202,6 +204,7 @@ trait AnalysisTables
         treatment,
         leftoverSample,
         description,
+        originatedFrom,
         (registeredBy, registeredDate, updatedBy, updatedDate)
       )
 
@@ -331,6 +334,7 @@ trait AnalysisTables
       so.treatment,
       so.leftoverSample,
       so.description,
+      so.originatedObjectUuid,
       (
         so.registeredStamp.map(_.user),
         so.registeredStamp.map(_.date),
@@ -351,7 +355,7 @@ trait AnalysisTables
     val external     = tuple._9
     val sampleType   = tuple._10
     val size         = tuple._11
-    val userStamps   = tuple._18
+    val userStamps   = tuple._19
 
     SampleObject(
       objectId = Option(tuple._1),
@@ -375,6 +379,7 @@ trait AnalysisTables
       treatment = tuple._15,
       leftoverSample = tuple._16,
       description = tuple._17,
+      originatedObjectUuid = tuple._18,
       registeredStamp = for {
         actor    <- userStamps._1
         dateTime <- userStamps._2
