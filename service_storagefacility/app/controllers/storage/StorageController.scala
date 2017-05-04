@@ -156,11 +156,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> musitError.message))
         }
       }
-      .getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid UUID $id"))
-        }
-      }
+      .getOrElse(invaludUuidResponse(id))
   }
 
   private def getByStorageNodeId(mid: Int, nodeId: String): Future[Result] = {
@@ -181,11 +177,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        }
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
 
   private def getByOldBarcode(mid: Int, barcode: Long): Future[Result] = {
@@ -254,11 +246,7 @@ final class StorageController @Inject()(
             Future.successful(BadRequest(JsError.toJson(error)))
         }
       }
-      .getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid UUID $id"))
-        }
-      }
+      .getOrElse(invaludUuidResponse(id))
   }
 
   /**
@@ -296,11 +284,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid UUID $id"))
-        }
-      }
+      .getOrElse(invaludUuidResponse(id))
   }
 
   /**
@@ -482,11 +466,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid UUID $objectId"))
-        }
-      }
+      .getOrElse(invaludUuidResponse(objectId))
   }
 
   /**
@@ -529,11 +509,7 @@ final class StorageController @Inject()(
             )
           }
       }
-      .getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid UUID $objectId"))
-        }
-      }
+      .getOrElse(invaludUuidResponse(objectId))
   }
 
   /**

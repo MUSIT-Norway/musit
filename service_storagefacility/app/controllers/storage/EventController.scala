@@ -48,11 +48,7 @@ class EventController @Inject()(
             Future.successful(BadRequest(JsError.toJson(errors)))
         }
       }
-      .getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        )
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
 
   /**
@@ -79,11 +75,7 @@ class EventController @Inject()(
             Future.successful(BadRequest(JsError.toJson(errors)))
         }
       }
-      .getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        )
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
 
   /**
@@ -110,11 +102,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        )
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
 
   /**
@@ -140,11 +128,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        )
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
 
   /**
@@ -165,11 +149,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        )
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
 
   /**
@@ -190,11 +170,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        )
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
 
   /**
@@ -240,11 +216,7 @@ class EventController @Inject()(
 
         }
       }
-      .getOrElse {
-        Future.successful(
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        )
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
 
 }
