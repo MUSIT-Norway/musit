@@ -30,6 +30,7 @@ class EnvironmentRequirementService @Inject()(
    *
    * @param envReq The environment requirement to compare
    * @return A Future containing an Option of the EnvRequirement that was found.
+   * @see TODO in [[models.storage.nodes.StorageNode]].
    */
   private def compareWithLatest(
       envReq: EnvRequirement
@@ -50,7 +51,7 @@ class EnvironmentRequirementService @Inject()(
         ¡¡¡NOTE!!!: Since environmentRequirement is an Optional argument on the
         StorageNode types, we _have_ to assume they are not modified if they are
         not passed in. Meaning we do _not_ add a new event for it. This should
-        be revisited. See TODO in StorageNode.
+        be revisited.
        */
       Future.successful(None)
     }
@@ -72,10 +73,10 @@ class EnvironmentRequirementService @Inject()(
       sameEr.map { er =>
         /*
           Note: This whole thing that we're not persisting env requirement data
-          if they haven't changed since previous registration seems a bit dubious
-          to me. In effect, we're not allowed to register useful facts about the
-          current environment status. Namely that the status is unchanged since
-          the previous registration. Which indicates environment stability.
+          if they haven't changed since previous registration seems a bit
+          dubious. In effect, we're not allowed to register useful facts about
+          the current environment status. Namely that the status is unchanged
+          since the previous registration. Which indicates environment stability.
           Another byproduct is that we lose the history of _who_ did the latest
           check, and when. Leaving us with gaps in the event history of the
           environment requirement status.

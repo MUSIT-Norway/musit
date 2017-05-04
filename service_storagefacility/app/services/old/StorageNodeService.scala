@@ -161,126 +161,6 @@ class StorageNodeService @Inject()(
   /**
    * TODO: Document me!
    */
-  def updateStorageUnit(
-      mid: MuseumId,
-      id: StorageNodeDatabaseId,
-      storageUnit: StorageUnit
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[StorageUnit]]] = {
-    val su = storageUnit.copy(
-      updatedBy = Some(currUsr.id),
-      updatedDate = Some(dateTimeNow)
-    )
-    unitDao.update(mid, id, su).flatMap {
-      case MusitSuccess(maybeRes) =>
-        maybeRes.map { _ =>
-          for {
-            _ <- su.environmentRequirement
-                  .map(er => saveEnvReq(mid, id, er))
-                  .getOrElse(Future.successful(None))
-            node <- getStorageUnitById(mid, id)
-          } yield {
-            node
-          }
-        }.getOrElse(Future.successful(MusitSuccess(None)))
-
-      case err: MusitError =>
-        Future.successful(err)
-    }
-  }
-
-  /**
-   * TODO: Document me!!!
-   */
-  def updateRoom(
-      mid: MuseumId,
-      id: StorageNodeDatabaseId,
-      room: Room
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Room]]] = {
-    val updateRoom = room.copy(
-      updatedBy = Some(currUsr.id),
-      updatedDate = Some(dateTimeNow)
-    )
-    roomDao.update(mid, id, updateRoom).flatMap {
-      case MusitSuccess(maybeRes) =>
-        maybeRes.map { _ =>
-          for {
-            _ <- updateRoom.environmentRequirement
-                  .map(er => saveEnvReq(mid, id, er))
-                  .getOrElse(Future.successful(None))
-            node <- getRoomById(mid, id)
-          } yield {
-            node
-          }
-        }.getOrElse(Future.successful(MusitSuccess(None)))
-
-      case err: MusitError =>
-        Future.successful(err)
-    }
-  }
-
-  /**
-   * TODO: Document me!!!
-   */
-  def updateBuilding(
-      mid: MuseumId,
-      id: StorageNodeDatabaseId,
-      building: Building
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Building]]] = {
-    val updateBuilding = building.copy(
-      updatedBy = Some(currUsr.id),
-      updatedDate = Some(dateTimeNow)
-    )
-    buildingDao.update(mid, id, updateBuilding).flatMap {
-      case MusitSuccess(maybeRes) =>
-        maybeRes.map { _ =>
-          for {
-            _ <- updateBuilding.environmentRequirement
-                  .map(er => saveEnvReq(mid, id, er))
-                  .getOrElse(Future.successful(None))
-            node <- getBuildingById(mid, id)
-          } yield {
-            node
-          }
-        }.getOrElse(Future.successful(MusitSuccess(None)))
-
-      case err: MusitError =>
-        Future.successful(err)
-    }
-  }
-
-  /**
-   * TODO: Document me!!!
-   */
-  def updateOrganisation(
-      mid: MuseumId,
-      id: StorageNodeDatabaseId,
-      organisation: Organisation
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Organisation]]] = {
-    val updateOrg = organisation.copy(
-      updatedBy = Some(currUsr.id),
-      updatedDate = Some(dateTimeNow)
-    )
-    orgDao.update(mid, id, updateOrg).flatMap {
-      case MusitSuccess(maybeRes) =>
-        maybeRes.map { _ =>
-          for {
-            _ <- updateOrg.environmentRequirement
-                  .map(er => saveEnvReq(mid, id, er))
-                  .getOrElse(Future.successful(None))
-            node <- getOrganisationById(mid, id)
-          } yield {
-            node
-          }
-        }.getOrElse(Future.successful(MusitSuccess(None)))
-
-      case err: MusitError =>
-        Future.successful(err)
-    }
-  }
-
-  /**
-   * TODO: Document me!
-   */
   def getStorageUnitById(
       mid: MuseumId,
       id: StorageNodeDatabaseId
@@ -420,44 +300,6 @@ class StorageNodeService @Inject()(
       sortedNodes = rootNodes.sortBy(_.storageType.displayOrder)
     } yield sortedNodes).value
 
-  }
-
-  /**
-   * TODO: Document me!
-   */
-  def getChildren(
-      mid: MuseumId,
-      id: StorageNodeDatabaseId,
-      page: Int,
-      limit: Int
-  ): Future[MusitResult[PagedResult[GenericStorageNode]]] = {
-    unitDao.getChildren(mid, id, page, limit)
-  }
-
-  /**
-   * TODO: Document me!
-   *
-   * returns Some(-1) if the node has children and cannot be removed.
-   * returns Some(1) when the node was successfully marked as removed.
-   * returns None if the node isn't found.
-   */
-  def deleteNode(
-      mid: MuseumId,
-      id: StorageNodeDatabaseId
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Int]]] = {
-    unitDao.getByDatabaseId(mid, id).map(_.getOrElse(None)).flatMap {
-      case Some(node) =>
-        isEmpty(node).flatMap { empty =>
-          if (empty) {
-            unitDao.markAsDeleted(currUsr.id, mid, id).map(_.map(Some.apply))
-          } else {
-            Future.successful(MusitSuccess(Some(-1)))
-          }
-        }
-
-      case None =>
-        Future.successful(MusitSuccess(None))
-    }
   }
 
   /**
@@ -667,14 +509,14 @@ class StorageNodeService @Inject()(
   def currentObjectLocations(
       mid: MuseumId,
       mobjs: Seq[MovableObject_Old]
-  ): Future[MusitResult[Seq[ObjectsLocation]]] = {
+  ): Future[MusitResult[Seq[ObjectsLocation_Old]]] = {
 
     def findObjectLocations(
         objNodeMap: Map[MovableObject_Old, Option[StorageNodeDatabaseId]],
         nodes: Seq[GenericStorageNode]
-    ): Future[MusitResult[Seq[ObjectsLocation]]] = {
+    ): Future[MusitResult[Seq[ObjectsLocation_Old]]] = {
       nodes
-        .foldLeft(Future.successful(List.empty[Future[ObjectsLocation]])) {
+        .foldLeft(Future.successful(List.empty[Future[ObjectsLocation_Old]])) {
           case (ols, node) =>
             unitDao.namesForPath(node.path).flatMap {
               case MusitSuccess(namedPaths) =>
@@ -682,7 +524,10 @@ class StorageNodeService @Inject()(
                 // Copy node and set path to it
                 ols.map { objLoc =>
                   objLoc :+ Future.successful(
-                    ObjectsLocation(node.copy(pathNames = Option(namedPaths)), objects)
+                    ObjectsLocation_Old(
+                      node.copy(pathNames = Option(namedPaths)),
+                      objects
+                    )
                   )
                 }
 

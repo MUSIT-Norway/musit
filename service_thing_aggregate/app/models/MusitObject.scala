@@ -11,7 +11,7 @@ case class MusitObject(
     museumNo: MuseumNo,
     subNo: Option[SubNo],
     term: String,
-    currentLocationId: Option[Long] = None,
+    currentLocationId: Option[StorageNodeId] = None,
     path: Option[NodePath] = None,
     pathNames: Option[Seq[NamedPathElement]] = None,
     mainObjectId: Option[Long]

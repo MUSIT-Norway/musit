@@ -23,7 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.storage.nodes.Building
 import models.storage.nodes.dto.{BuildingDto, ExtendedStorageNode, StorageNodeDto}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -76,15 +76,20 @@ class BuildingDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    */
   def update(
       mid: MuseumId,
-      id: StorageNodeDatabaseId,
+      id: StorageNodeId,
       building: Building
   ): Future[MusitResult[Option[Int]]] = {
-    val extendedBuildingDto = StorageNodeDto.fromBuilding(mid, building, Some(id))
+    val extDto = StorageNodeDto.fromBuilding(mid, building, uuid = Some(id))
     val action = for {
-      unitsUpdated <- updateNodeAction(mid, id, extendedBuildingDto.storageUnitDto)
+      unitsUpdated <- updateNodeAction(mid, id, extDto.storageUnitDto)
       buildingsUpdated <- {
-        if (unitsUpdated > 0) updateAction(id, extendedBuildingDto.extension)
-        else DBIO.successful[Int](0)
+        if (unitsUpdated > 0) {
+          building.id.map(bid => updateAction(bid, extDto.extension)).getOrElse {
+            DBIO.successful[Int](0)
+          }
+        } else {
+          DBIO.successful[Int](0)
+        }
       }
     } yield buildingsUpdated
 

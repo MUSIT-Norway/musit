@@ -1,22 +1,3 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package services
 
 import com.google.inject.Inject
@@ -72,17 +53,21 @@ class ObjectService @Inject()(
       mid: MuseumId,
       obj: MusitObject
   ): Future[MusitObject] =
-    nodeDao.currentLocation(mid, obj.id).flatMap {
-      case Some(nodeIdAndPath) =>
-        nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
-          obj.copy(
-            currentLocationId = Some(nodeIdAndPath._1),
-            path = Some(nodeIdAndPath._2),
-            pathNames = Some(pathNames)
-          )
-        }
-      case None =>
-        Future.successful(obj)
+    obj.uuid.map { oid =>
+      nodeDao.currentLocation(mid, oid).flatMap {
+        case Some(nodeIdAndPath) =>
+          nodeDao.namesForPath(nodeIdAndPath._2).map { pathNames =>
+            obj.copy(
+              currentLocationId = Some(nodeIdAndPath._1),
+              path = Some(nodeIdAndPath._2),
+              pathNames = Some(pathNames)
+            )
+          }
+        case None =>
+          Future.successful(obj)
+      }
+    }.getOrElse {
+      Future.successful(obj)
     }
 
   /**
@@ -116,17 +101,17 @@ class ObjectService @Inject()(
   }
 
   /**
-   * Locate objects that share the same main object ID.
+   * Locate objects that share the same main object UUID.
    *
    * @param mid           The MuseumId to look for objects in.
-   * @param mainObjectId  The main object ID to look for.
+   * @param mainObjectId  The main object UUID to look for.
    * @param collectionIds Which collections to look in.
    * @param currUsr       The currently authenticated user.
    * @return A list of objects that share the same main object ID.
    */
   def findMainObjectChildren(
       mid: MuseumId,
-      mainObjectId: ObjectId,
+      mainObjectId: ObjectUUID,
       collectionIds: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
     objDao.findMainObjectChildren(mid, mainObjectId, collectionIds)
@@ -136,7 +121,7 @@ class ObjectService @Inject()(
    * Locate objects in the specified museum, node and collection(s).
    *
    * @param mid           The MuseumId to look for objects in.
-   * @param nodeId        The specific StorageNodeDatabaseId to look for objects in.
+   * @param nodeId        The specific StorageNodeId to look for objects in.
    * @param collectionIds Specifies collections to fetch objects for.
    * @param page          The page number to retrieve.
    * @param limit         The number of results per page.
@@ -145,7 +130,7 @@ class ObjectService @Inject()(
    */
   def findObjects(
       mid: MuseumId,
-      nodeId: StorageNodeDatabaseId,
+      nodeId: StorageNodeId,
       collectionIds: Seq[MuseumCollection],
       page: Int,
       limit: Int

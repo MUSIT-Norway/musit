@@ -54,6 +54,8 @@ sealed trait StorageNode {
   val storageType: StorageType
   val updatedBy: Option[ActorId]
   val updatedDate: Option[DateTime]
+
+  def assignNodeId(): StorageNode
 }
 
 object StorageNode {
@@ -144,7 +146,11 @@ case class GenericStorageNode(
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
     pathNames: Option[Seq[NamedPathElement]] = None
-) extends StorageNode
+) extends StorageNode {
+
+  override def assignNodeId() = this
+
+}
 
 object GenericStorageNode {
 
@@ -184,6 +190,8 @@ sealed trait RootNode extends StorageNode {
   val groupRead: Option[String]                = None
   val groupWrite: Option[String]               = None
   val pathNames: Option[Seq[NamedPathElement]] = None
+
+  override def assignNodeId(): RootNode
 
   def setUpdated(
       by: Option[ActorId] = None,
@@ -238,7 +246,10 @@ case class Root(
 ) extends RootNode {
   val storageType: StorageType = StorageType.RootType
 
-  def setUpdated(
+  override def assignNodeId(): RootNode =
+    this.copy(nodeId = StorageNodeId.generateAsOpt())
+
+  override def setUpdated(
       by: Option[ActorId] = None,
       date: Option[DateTime] = None
   ): RootNode = this.copy(updatedBy = by, updatedDate = date)
@@ -278,7 +289,10 @@ case class RootLoan(
 ) extends RootNode {
   val storageType: StorageType = StorageType.RootLoanType
 
-  def setUpdated(
+  override def assignNodeId(): RootNode =
+    this.copy(nodeId = StorageNodeId.generateAsOpt())
+
+  override def setUpdated(
       by: Option[ActorId] = None,
       date: Option[DateTime] = None
   ): RootNode = this.copy(updatedBy = by, updatedDate = date)
@@ -325,6 +339,8 @@ case class StorageUnit(
 ) extends StorageNode {
 
   val storageType: StorageType = StorageType.StorageUnitType
+
+  override def assignNodeId() = this.copy(nodeId = StorageNodeId.generateAsOpt())
 
 }
 
@@ -396,7 +412,10 @@ case class Room(
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime]
 ) extends StorageNode {
+
   val storageType: StorageType = StorageType.RoomType
+
+  override def assignNodeId() = this.copy(nodeId = StorageNodeId.generateAsOpt())
 
 }
 
@@ -469,7 +488,10 @@ case class Building(
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime]
 ) extends StorageNode {
+
   val storageType: StorageType = StorageType.BuildingType
+
+  override def assignNodeId() = this.copy(nodeId = StorageNodeId.generateAsOpt())
 }
 
 object Building {
@@ -542,6 +564,8 @@ case class Organisation(
 ) extends StorageNode {
 
   val storageType: StorageType = StorageType.OrganisationType
+
+  override def assignNodeId() = this.copy(nodeId = StorageNodeId.generateAsOpt())
 
 }
 

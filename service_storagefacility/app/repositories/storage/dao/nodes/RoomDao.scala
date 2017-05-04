@@ -23,7 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import models.storage.nodes.Room
 import models.storage.nodes.dto.{ExtendedStorageNode, RoomDto, StorageNodeDto}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId}
+import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -69,15 +69,20 @@ class RoomDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    */
   def update(
       mid: MuseumId,
-      id: StorageNodeDatabaseId,
+      id: StorageNodeId,
       room: Room
   ): Future[MusitResult[Option[Int]]] = {
-    val roomDto = StorageNodeDto.fromRoom(mid, room, Some(id))
+    val roomDto = StorageNodeDto.fromRoom(mid, room, uuid = Some(id))
     val action = for {
       unitsUpdated <- updateNodeAction(mid, id, roomDto.storageUnitDto)
       roomsUpdated <- {
-        if (unitsUpdated > 0) updateAction(id, roomDto.extension)
-        else DBIO.successful[Int](0)
+        if (unitsUpdated > 0) {
+          room.id.map(rid => updateAction(rid, roomDto.extension)).getOrElse {
+            DBIO.successful[Int](0)
+          }
+        } else {
+          DBIO.successful[Int](0)
+        }
       }
     } yield roomsUpdated
 

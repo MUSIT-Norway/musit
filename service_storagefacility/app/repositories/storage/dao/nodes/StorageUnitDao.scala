@@ -1,22 +1,3 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package repositories.storage.dao.nodes
 
 import com.google.inject.{Inject, Singleton}
@@ -32,6 +13,7 @@ import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.{SharedTables, StorageTables}
+import slick.jdbc.GetResult
 
 import scala.concurrent.Future
 
@@ -159,11 +141,11 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     } yield {
       // It's safe to do a get on child.uuid here, because it wouldn't have been
       // found if it wasn't set. Besides it's _really_ a required column.
-      child.uuid -> parent.flatMap(_.uuid)
+      child.uuid -> parent.map(_.uuid)
     }
 
     db.run(query.result)
-      .map(res => MusitSuccess(res.map(r => r._1.get -> r._2).toMap))
+      .map(res => MusitSuccess(res.map(r => r._1 -> r._2).toMap))
       .recover(nonFatal("Unexpected error occurred fetching parent nodes."))
   }
 
@@ -261,41 +243,71 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     db.run(query).map(mdto => MusitSuccess(mdto.map(StorageNodeDto.toRootNode)))
   }
 
+  private def sortedChildrenQuery(
+      mid: MuseumId,
+      id: StorageNodeId,
+      page: Int,
+      limit: Int
+  )(implicit gr: GetResult[StorageUnitDto]) = {
+    val offset = (page - 1) * limit
+
+    sql"""
+      SELECT sn.STORAGE_NODE_ID, sn.STORAGE_NODE_UUID, sn.STORAGE_NODE_NAME,
+        sn.AREA, sn.AREA_TO, sn.IS_PART_OF, sn.HEIGHT, sn.HEIGHT_TO,
+        sn.GROUP_READ, sn.GROUP_WRITE, sn.OLD_BARCODE, sn.NODE_PATH,
+        sn.IS_DELETED, sn.STORAGE_TYPE, sn.MUSEUM_ID, sn.UPDATED_BY, sn.UPDATED_DATE
+      FROM
+        (
+          SELECT n.STORAGE_NODE_ID FROM MUSARK_STORAGE.STORAGE_NODE n
+          WHERE n.STORAGE_NODE_UUID=${id.asString}
+        ) p,
+        MUSARK_STORAGE.STORAGE_NODE sn
+      WHERE sn.IS_PART_OF=p.STORAGE_NODE_ID
+      AND sn.MUSEUM_ID=${mid.underlying}
+      AND sn.IS_DELETED=0
+      ORDER BY CASE
+        WHEN sn.STORAGE_TYPE='Organisation' THEN '01'
+        WHEN sn.STORAGE_TYPE='Building' THEN '02'
+        WHEN sn.STORAGE_TYPE='Room' THEN '03'
+        WHEN sn.STORAGE_TYPE='StorageUnit' THEN '04'
+        ELSE sn.STORAGE_TYPE END ASC, lower(sn.STORAGE_NODE_NAME)
+      OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
+    """.as[StorageUnitDto]
+  }
+
+  private def totalChildCountQuery(mid: MuseumId, id: StorageNodeId) = {
+    sql"""
+      SELECT COUNT(1) FROM
+        (
+          SELECT n.STORAGE_NODE_ID FROM MUSARK_STORAGE.STORAGE_NODE n
+          WHERE n.STORAGE_NODE_UUID=${id.asString}
+        ) p,
+        MUSARK_STORAGE.STORAGE_NODE sn
+      WHERE sn.MUSEUM_ID=${mid.underlying}
+      AND sn.IS_PART_OF=p.STORAGE_NODE_ID
+      AND sn.IS_DELETED=0
+    """.as[Int].head
+  }
+
   /**
-   * TODO: Document me!!!
+   * Retrieve a page result of the children for the given {{{StorageNodeId}}}
+   *
+   * @param mid
+   * @param id
+   * @param page
+   * @param limit
+   * @return
    */
   def getChildren(
       mid: MuseumId,
-      id: StorageNodeDatabaseId,
+      id: StorageNodeId,
       page: Int,
       limit: Int
   ): Future[MusitResult[PagedResult[GenericStorageNode]]] = {
     implicit val tupleToResult = StorageNodeDto.storageUnitTupleGetResult
 
-    val offset = (page - 1) * limit
-    val query = storageNodeTable.filter { node =>
-      node.museumId === mid && node.isPartOf === id && node.isDeleted === false
-    }
-    val sortedQuery =
-      sql"""
-         SELECT sn.STORAGE_NODE_ID, sn.STORAGE_NODE_UUID, sn.STORAGE_NODE_NAME,
-           sn.AREA, sn.AREA_TO, sn.IS_PART_OF, sn.HEIGHT, sn.HEIGHT_TO,
-           sn.GROUP_READ, sn.GROUP_WRITE, sn.OLD_BARCODE, sn.NODE_PATH,
-           sn.IS_DELETED, sn.STORAGE_TYPE, sn.MUSEUM_ID, sn.UPDATED_BY, sn.UPDATED_DATE
-         FROM MUSARK_STORAGE.STORAGE_NODE sn
-         WHERE sn.IS_PART_OF=${id.underlying}
-         AND sn.MUSEUM_ID=${mid.underlying}
-         AND sn.IS_DELETED=0
-         ORDER BY
-           CASE WHEN sn.STORAGE_TYPE='Organisation' THEN '01'
-                WHEN sn.STORAGE_TYPE='Building' THEN '02'
-                WHEN sn.STORAGE_TYPE='Room' THEN '03'
-                WHEN sn.STORAGE_TYPE='StorageUnit' THEN '04'
-                ELSE sn.STORAGE_TYPE END ASC,
-           lower(sn.STORAGE_NODE_NAME)
-         OFFSET ${offset} ROWS
-         FETCH NEXT ${limit} ROWS ONLY
-      """.as[StorageUnitDto]
+    val totalChildrenQuery = totalChildCountQuery(mid, id)
+    val sortedQuery        = sortedChildrenQuery(mid, id, page, limit)
 
     val matches: Future[MusitResult[Vector[GenericStorageNode]]] = db
       .run(sortedQuery)
@@ -304,7 +316,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       .recover(nonFatal(s"Unexpected error when fetching children"))
 
     val total: Future[MusitResult[Int]] = db
-      .run(query.length.result)
+      .run(totalChildrenQuery)
       .map(MusitSuccess.apply)
       .recover(nonFatal(s"Unexpected error when fetching total children"))
 
@@ -477,10 +489,10 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    */
   def update(
       mid: MuseumId,
-      id: StorageNodeDatabaseId,
+      id: StorageNodeId,
       storageUnit: StorageUnit
   ): Future[MusitResult[Option[Int]]] = {
-    val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit)
+    val dto = StorageNodeDto.fromStorageUnit(mid, storageUnit, uuid = Some(id))
     db.run(updateNodeAction(mid, id, dto)).map {
       case res: Int if res == 1 => MusitSuccess(Some(res))
       case res: Int if res == 0 => MusitSuccess(None)
@@ -521,10 +533,10 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   def markAsDeleted(
       doneBy: ActorId,
       mid: MuseumId,
-      id: StorageNodeDatabaseId
+      id: StorageNodeId
   ): Future[MusitResult[Int]] = {
     val query = storageNodeTable.filter { su =>
-      su.id === id && su.isDeleted === false && su.museumId === mid
+      su.uuid === id && su.isDeleted === false && su.museumId === mid
     }.map { del =>
       (del.isDeleted, del.updatedBy, del.updatedDate)
     }.update((true, Some(doneBy), Some(dateTimeNow)))
@@ -593,7 +605,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
         .map(_.map(StorageNodeDto.toGenericStorageNode))
         .map(MusitSuccess.apply)
         .recover(
-          nonFatal(s"Unable to get storagenoe bt name '$searchString' for museum: $mid")
+          nonFatal(s"Unable to get node by name '$searchString' for museum: $mid")
         )
 
     } else {
