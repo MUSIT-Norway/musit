@@ -2,12 +2,14 @@ package repositories.shared.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
+import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
+import models.loan.{LoanEventTypes, LoanType}
 import no.uio.musit.models.ObjectTypes.ObjectType
-import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID}
-import no.uio.musit.time.DefaultTimezone
+import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID, _}
+import no.uio.musit.time.Implicits.{dateTimeToJTimestamp, jSqlTimestampToDateTime}
 import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}
@@ -16,12 +18,6 @@ import slick.jdbc.JdbcProfile
 trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   import profile.api._
-
-  implicit val dateTimeMapper: BaseColumnType[DateTime] =
-    MappedColumnType.base[DateTime, JSqlTimestamp](
-      dt => new JSqlTimestamp(dt.getMillis),
-      jt => new DateTime(jt, DefaultTimezone)
-    )
 
   implicit val eventIdMapper: BaseColumnType[EventId] =
     MappedColumnType.base[EventId, Long](
@@ -71,6 +67,18 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       intId => SampleStatus.unsafeFromInt(intId)
     )
 
+  implicit val loanTypeMapper: BaseColumnType[LoanType] =
+    MappedColumnType.base[LoanType, Long](
+      loanType => loanType.id,
+      longId => LoanEventTypes.unsafeFromId(longId)
+    )
+
+  implicit val dateTimeMapper: BaseColumnType[DateTime] =
+    MappedColumnType.base[DateTime, JSqlTimestamp](
+      dt => dateTimeToJTimestamp(dt),
+      jst => jSqlTimestampToDateTime(jst)
+    )
+
   implicit val leftoverSampleMapper: BaseColumnType[LeftoverSample] =
     MappedColumnType.base[LeftoverSample, Int](
       rm => rm.key,
@@ -82,4 +90,17 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       jsv => Json.prettyPrint(jsv),
       str => Json.parse(str)
     )
+
+  implicit val caseNumberMapper: BaseColumnType[CaseNumbers] =
+    MappedColumnType.base[CaseNumbers, String](
+      ref => ref.toDbString,
+      str => CaseNumbers(str)
+    )
+
+  implicit val analysisStatusMapper: BaseColumnType[AnalysisStatus] =
+    MappedColumnType.base[AnalysisStatus, Int](
+      st => st.key,
+      key => AnalysisStatus.unsafeFromInt(key)
+    )
+
 }

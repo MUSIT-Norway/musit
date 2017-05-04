@@ -3,10 +3,11 @@ package controllers.analysis
 import models.analysis.events.AnalysisResults.GenericResult
 import models.analysis.events.{Analysis, AnalysisCollection, Category, EventCategories}
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
-import no.uio.musit.models.{ActorId, MuseumCollections, MuseumId, ObjectUUID}
+import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
+import no.uio.musit.time
 import org.joda.time.DateTime
 import org.scalatest.Inspectors.forAll
 import play.api.libs.json._
@@ -24,6 +25,8 @@ class AnalysisControllerIntegrationSpec
   // test data
   val cnRatioTypeId = "fabe6462-ea94-43ce-bf7f-724a4191e114"
   val dummyObjectId = ObjectUUID.generate()
+
+  val dummyNamedUser = "Ola Normann"
 
   def createSaveAnalysisJSON(
       eventDate: Option[DateTime],
@@ -46,15 +49,26 @@ class AnalysisControllerIntegrationSpec
   def createSaveAnalysisCollectionJSON(
       eventDate: Option[DateTime],
       objects: Seq[ObjectUUID],
-      note: Option[String]
+      note: Option[String],
+      caseNumbers: Option[Seq[String]]
   ): JsValue = {
     val js1 = Json.obj("analysisTypeId" -> cnRatioTypeId)
     val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
     val js3 = eventDate.map { d =>
       js2 ++ Json.obj("eventDate" -> Json.toJson[DateTime](d))
     }.getOrElse(js2)
+    val js4 = caseNumbers.map { cn =>
+      js3 ++ Json.obj("caseNumbers" -> JsArray(cn.map(JsString)))
+    }.getOrElse(js3)
 
-    js3 ++ Json.obj("objectIds" -> objects.map(_.asString))
+    js4 ++ Json.obj(
+      "objectIds" -> objects.map(_.asString),
+      "restriction" -> Json.obj(
+        "requester"      -> dummyNamedUser,
+        "reason"         -> "secret",
+        "expirationDate" -> time.dateTimeNow.plusDays(20).toString("yyyy-MM-dd")
+      )
+    )
   }
 
   def createGenericResultJSON(
@@ -126,6 +140,7 @@ class AnalysisControllerIntegrationSpec
     (actual \ "eventDate").asOpt[DateTime] mustApproximate expectedEventDate
     (actual \ "registeredBy").asOpt[String] must not be empty
     (actual \ "registeredDate").asOpt[DateTime] must not be empty
+    (actual \ "restriction" \ "requester").as[String] mustBe dummyNamedUser
     forAll(0 until numChildren) { index =>
       (actual \ "events" \ index \ "type").as[String] mustBe Analysis.discriminator
       (actual \ "events" \ index \ "partOf").as[Long] mustBe expectedId
@@ -235,7 +250,12 @@ class AnalysisControllerIntegrationSpec
 
         val note = Some("Foobar")
         val oids = (1 to 4).map(_ => ObjectUUID.generate()) :+ dummyObjectId
-        val js   = createSaveAnalysisCollectionJSON(Some(edate), oids, note)
+        val js = createSaveAnalysisCollectionJSON(
+          Some(edate),
+          oids,
+          note,
+          Some(Seq("cn-1", "cn-2"))
+        )
 
         saveAnalysis(js).status mustBe CREATED
       }

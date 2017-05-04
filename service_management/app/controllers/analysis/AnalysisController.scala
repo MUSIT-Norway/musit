@@ -12,7 +12,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import services.analysis.AnalysisService
-
+import controllers._
 import scala.concurrent.Future
 
 @Singleton
@@ -144,4 +144,5 @@ class AnalysisController @Inject()(
         analysisService.update(mid, eventId, sc)
       }
     }
+
 }

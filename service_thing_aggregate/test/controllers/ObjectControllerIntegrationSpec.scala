@@ -347,7 +347,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     "searching for an object using UUID that exist" should {
       "successfully return the object" in {
         val uuid = "d43e3c5a-8244-4497-bd15-29c844ff8745"
-        val mid = 99
+        val mid  = 99
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
@@ -363,7 +363,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     "searching for an object using UUID that does not exist" should {
       "return not found" in {
         val uuid = "00000000-8244-4497-bd15-29c844ff8745"
-        val mid = 99
+        val mid  = 99
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> archeologyCollection)
@@ -376,7 +376,7 @@ class ObjectControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     "searching for an object using UUID in wrong collection" should {
       "return not found" in {
         val uuid = "d43e3c5a-8244-4497-bd15-29c844ff8745"
-        val mid = 99
+        val mid  = 99
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
           .withHeaders(fakeToken.asHeader)
           .withQueryString("collectionIds" -> numismaticsCollection)

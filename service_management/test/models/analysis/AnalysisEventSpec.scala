@@ -3,7 +3,7 @@ package models.analysis
 import models.analysis.events.AnalysisResults.GenericResult
 import models.analysis.events._
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
-import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
+import no.uio.musit.models.{ActorId, CaseNumbers, EventId, ObjectUUID}
 import no.uio.musit.test.matchers.DateTimeMatchers
 import org.joda.time.DateTime
 import org.scalatest.{Inside, MustMatchers, WordSpec}
@@ -21,6 +21,16 @@ class AnalysisEventSpec
   val dummyActor          = ActorId.generate()
   val dummyObject         = ObjectUUID.generate()
   val dummyNote           = "Foo bar"
+  val dummyReason         = "Fuz bar"
+  val dummyStatus         = AnalysisStatuses.Preparation
+  val dummyCaseNumbers    = CaseNumbers(Seq("num-1", "num-2"))
+  val dummyRestriction = Restriction(
+    requester = "holder",
+    registeredStamp = None,
+    expirationDate = DateTime.now.plusDays(50),
+    reason = "reason",
+    caseNumbers = None
+  )
 
   def createAnalysis() =
     Analysis(
@@ -64,6 +74,7 @@ class AnalysisEventSpec
       completedBy = Some(dummyActor),
       completedDate = Some(dummyDate),
       note = Some(dummyNote),
+      restriction = Some(dummyRestriction),
       result = Some(
         GenericResult(
           registeredBy = Some(dummyActor),
@@ -72,6 +83,9 @@ class AnalysisEventSpec
           comment = Some(dummyNote)
         )
       ),
+      reason = Some(dummyReason),
+      caseNumbers = Some(dummyCaseNumbers),
+      status = Some(dummyStatus),
       events = Seq(
         createAnalysis(),
         createAnalysis()

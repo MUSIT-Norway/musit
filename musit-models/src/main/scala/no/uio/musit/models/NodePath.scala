@@ -50,10 +50,22 @@ trait NodePath {
   /**
    * Appends a child element to the NodePath
    *
-   * @param childId StorageNodeId of to append to the path.
+   * @param childId StorageNodeId to append to the path.
+   * @return a NodePath with the id appended
    */
   def appendChild(childId: StorageNodeDatabaseId): NodePath = {
     NodePath(s"$path${childId.underlying},")
+  }
+
+  /**
+   * Appends a sequence of children to the current node path. Each nodeId will
+   * represent one step deeper into the path structure.
+   *
+   * @param childIds the StorageNodeDatabaseIds to append
+   * @return a NodePath with the ids appended.
+   */
+  def appendChildren(childIds: StorageNodeDatabaseId*): NodePath = {
+    childIds.foldLeft(this)((t, c) => t.appendChild(c))
   }
 
   /**

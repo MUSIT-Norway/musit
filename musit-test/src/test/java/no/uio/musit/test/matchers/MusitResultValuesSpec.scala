@@ -1,6 +1,8 @@
 package no.uio.musit.test.matchers
 
-import no.uio.musit.MusitResults.{MusitEmpty, MusitResult, MusitSuccess}
+import java.sql.SQLException
+
+import no.uio.musit.MusitResults.{MusitDbError, MusitEmpty, MusitResult, MusitSuccess}
 import org.scalatest.{Inside, MustMatchers, WordSpec}
 
 import scala.util.{Failure, Success, Try}
@@ -32,6 +34,18 @@ class MusitResultValuesSpec
 
       inside(res) {
         case Failure(t) => t.getMessage must include("MusitSuccess[String]")
+      }
+    }
+
+    "include origin stacktrace from MusitDbError" in {
+      val exception = new SQLException("Exception from test")
+      val musitResult: MusitResult[String] =
+        MusitDbError("db message", Some(exception))
+
+      val res = Try { musitResult.successValue }
+
+      inside(res) {
+        case Failure(t) => t.getCause mustBe exception
       }
     }
   }

@@ -6,7 +6,7 @@ import models.analysis.events.AnalysisResults.{
   GenericResult
 }
 import models.analysis.events.SaveCommands.{SaveAnalysis, SaveAnalysisCollection}
-import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId}
+import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 
@@ -50,7 +50,11 @@ trait AnalysisGenerators {
       administrator = Some(dummyActorId),
       completedBy = None,
       completedDate = None,
-      objectIds = oids
+      objectIds = oids,
+      restriction = None,
+      reason = None,
+      status = None,
+      caseNumbers = None
     )
   }
 
@@ -125,7 +129,11 @@ trait AnalysisGenerators {
       completedDate = now,
       note = Some("An analysis collection"),
       result = res,
-      events = analyses.toSeq
+      events = analyses.toSeq,
+      restriction = Some(Restriction("requester", dateTimeNow, "some reason")),
+      reason = None,
+      status = None,
+      caseNumbers = None
     )
   }
 
