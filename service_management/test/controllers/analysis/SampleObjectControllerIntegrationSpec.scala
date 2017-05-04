@@ -36,17 +36,18 @@ class SampleObjectControllerIntegrationSpec
       maybeNote: Option[String]
   ) = {
     val js1 = Json.obj(
-      "parentObjectType" -> parentObjectType,
-      "isExtracted"      -> isExtracted,
-      "museumId"         -> Museums.Test.id.underlying,
-      "status"           -> status.key,
-      "responsible"      -> responsibleActor.asString,
-      "createdDate"      -> Json.toJson(createdDate),
-      "sampleType"       -> Json.obj("value" -> "wood slize", "subTypeValue" -> "age rings"),
-      "size"             -> Json.obj("unit" -> "cm3", "value" -> 12.0),
-      "container"        -> "box",
-      "storageMedium"    -> "alcohol",
-      "leftoverSample"   -> 1
+      "parentObjectType"     -> parentObjectType,
+      "isExtracted"          -> isExtracted,
+      "museumId"             -> Museums.Test.id.underlying,
+      "status"               -> status.key,
+      "responsible"          -> responsibleActor.asString,
+      "createdDate"          -> Json.toJson(createdDate),
+      "sampleType"           -> Json.obj("value" -> "wood slize", "subTypeValue" -> "age rings"),
+      "size"                 -> Json.obj("unit" -> "cm3", "value" -> 12.0),
+      "container"            -> "box",
+      "storageMedium"        -> "alcohol",
+      "leftoverSample"       -> 1,
+      "originatedObjectUuid" -> parentObject.asString
     )
     val js2 = maybeId.map(i => js1 ++ Json.obj("objectId"           -> i.asString)).getOrElse(js1)
     val js3 = maybeParent.map(i => js2 ++ Json.obj("parentObjectId" -> i)).getOrElse(js2)
@@ -67,6 +68,7 @@ class SampleObjectControllerIntegrationSpec
       js: JsValue
   ): Unit = {
     (js \ "parentObjectType").as[ObjectType] mustBe parentObjectType
+    (js \ "originatedObjectUuid").as[ObjectUUID] mustBe parentObject
     (js \ "isExtracted").as[Boolean] mustBe isExtracted
     (js \ "parentObjectId").asOpt[String] mustBe expectedParent
     (js \ "sampleId").asOpt[String] mustBe expectedSampleId

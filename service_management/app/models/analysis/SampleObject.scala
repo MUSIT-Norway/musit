@@ -7,14 +7,9 @@ import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json, Reads}
 
-/*
-  Missing fields:
-
-  hasRemains: Boolean
-
- */
 case class SampleObject(
     objectId: Option[ObjectUUID],
+    originatedObjectUuid: ObjectUUID,
     parentObjectId: Option[ObjectUUID],
     parentObjectType: ObjectType,
     isExtracted: Boolean,
@@ -46,6 +41,7 @@ object SampleObject {
 
 case class SaveSampleObject(
     parentObjectId: Option[ObjectUUID],
+    originatedObjectUuid: ObjectUUID,
     parentObjectType: ObjectType,
     isExtracted: Boolean,
     museumId: MuseumId,
@@ -68,6 +64,7 @@ case class SaveSampleObject(
   def asSampleObject: SampleObject =
     SampleObject(
       objectId = None,
+      originatedObjectUuid = originatedObjectUuid,
       parentObjectId = parentObjectId,
       parentObjectType = parentObjectType,
       isExtracted = isExtracted,
