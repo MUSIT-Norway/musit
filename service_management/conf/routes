@@ -20,7 +20,11 @@ POST        /:mid/analyses/:id/results                       controllers.analysi
 PUT         /:mid/analyses/:id/results                       controllers.analysis.AnalysisController.updateResult(mid: Int, id: Long)
 GET         /:mid/analyses/objects/:id                       controllers.analysis.AnalysisController.getAnalysisForObject(mid: Int, id: String)
 
+#Treatment endpoints
+GET         /treatments                                      controllers.analysis.TreatmentController.getTreatmentList
+
 # Sample objects
+
 POST        /:mid/samples                                    controllers.analysis.SampleObjectController.save(mid: Int)
 GET         /:mid/samples                                    controllers.analysis.SampleObjectController.getForMuseum(mid: Int)
 PUT         /:mid/samples/:id                                controllers.analysis.SampleObjectController.update(mid: Int, id: String)
@@ -30,3 +34,4 @@ GET         /:mid/samples/:parentId/children                 controllers.analysi
 # Loan endpoints
 POST        /:mid/loans                                      controllers.loan.LoanController.createLoan(mid: Int)
 GET         /:mid/loans/active                               controllers.loan.LoanController.findActiveLoan(mid: Int)
+
