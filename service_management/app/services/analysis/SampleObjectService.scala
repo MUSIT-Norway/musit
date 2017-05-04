@@ -96,7 +96,4 @@ class SampleObjectService @Inject()(
     soDao.listForMuseum(mid)
   }
 
-  def getTreatmentList: Future[MusitResult[Seq[Treatment]]] = {
-    soDao.getTreatmentList
-  }
 }

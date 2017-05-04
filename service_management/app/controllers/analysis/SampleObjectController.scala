@@ -105,12 +105,4 @@ class SampleObjectController @Inject()(
 
     }
 
-  def getTreatmentList(mid: MuseumId) =
-    MusitSecureAction().async { implicit request =>
-      soService.getTreatmentList.map {
-        case MusitSuccess(t) => listAsPlayResult(t)
-        case err: MusitError => internalErr(err)
-      }
-    }
-
 }

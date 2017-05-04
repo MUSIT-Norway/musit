@@ -99,16 +99,4 @@ class SampleObjectDao @Inject()(
     }
   }
 
-  def getTreatmentList: Future[MusitResult[Seq[Treatment]]] = {
-    db.run(treatmentTable.result)
-      .map(_.map(fromTreatmentRow))
-      .map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"An unexpected error occurred fetching treatment list"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
-  }
-
 }
