@@ -9,6 +9,7 @@ import play.api.libs.json.{Format, Json, Reads}
 
 case class SampleObject(
     objectId: Option[ObjectUUID],
+    originatedObjectUuid: ObjectUUID,
     parentObjectId: Option[ObjectUUID],
     parentObjectType: ObjectType,
     isExtracted: Boolean,
@@ -28,7 +29,8 @@ case class SampleObject(
     description: Option[String],
     note: Option[String],
     registeredStamp: Option[ActorStamp],
-    updatedStamp: Option[ActorStamp]
+    updatedStamp: Option[ActorStamp],
+    isDeleted: Boolean
 )
 
 object SampleObject {
@@ -39,6 +41,7 @@ object SampleObject {
 
 case class SaveSampleObject(
     parentObjectId: Option[ObjectUUID],
+    originatedObjectUuid: ObjectUUID,
     parentObjectType: ObjectType,
     isExtracted: Boolean,
     museumId: MuseumId,
@@ -61,6 +64,7 @@ case class SaveSampleObject(
   def asSampleObject: SampleObject =
     SampleObject(
       objectId = None,
+      originatedObjectUuid = originatedObjectUuid,
       parentObjectId = parentObjectId,
       parentObjectType = parentObjectType,
       isExtracted = isExtracted,
@@ -79,7 +83,8 @@ case class SaveSampleObject(
       description = description,
       note = note,
       registeredStamp = None,
-      updatedStamp = None
+      updatedStamp = None,
+      isDeleted = false
     )
 
 }
