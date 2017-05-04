@@ -70,7 +70,8 @@ trait AnalysisTables
       LeftoverSample,
       Option[String],
       ObjectUUID,
-      (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime])
+      (Option[ActorId], Option[DateTime], Option[ActorId], Option[DateTime]),
+      Boolean
   )
 
   type TreatmentRow = (Int, String, String)
@@ -186,6 +187,7 @@ trait AnalysisTables
     val registeredDate   = column[Option[DateTime]]("REGISTERED_DATE")
     val updatedBy        = column[Option[ActorId]]("UPDATED_BY")
     val updatedDate      = column[Option[DateTime]]("UPDATED_DATE")
+    val isDeleted        = column[Boolean]("IS_DELETED")
 
     // scalastyle:off method.name line.size.limit
     def * =
@@ -208,7 +210,8 @@ trait AnalysisTables
         leftoverSample,
         description,
         originatedFrom,
-        (registeredBy, registeredDate, updatedBy, updatedDate)
+        (registeredBy, registeredDate, updatedBy, updatedDate),
+        isDeleted
       )
 
     // scalastyle:off method.name line.size.limit
@@ -358,7 +361,8 @@ trait AnalysisTables
         so.registeredStamp.map(_.date),
         so.updatedStamp.map(_.user),
         so.updatedStamp.map(_.date)
-      )
+      ),
+      true // todo extract from so.isDeleted
     )
   }
 
@@ -405,7 +409,8 @@ trait AnalysisTables
       updatedStamp = for {
         actor    <- userStamps._3
         dateTime <- userStamps._4
-      } yield ActorStamp(actor, dateTime)
+      } yield ActorStamp(actor, dateTime),
+      isDeleted = tuple._20
     )
   }
 

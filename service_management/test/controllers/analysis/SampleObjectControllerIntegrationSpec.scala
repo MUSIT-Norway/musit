@@ -101,6 +101,7 @@ class SampleObjectControllerIntegrationSpec
   val updateUrl    = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/$oid"
   val getUrl       = updateUrl
   val childrenUrl  = (mid: Int) => (oid: String) => s"${getUrl(mid)(oid)}/children"
+  val deleteUrl    = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/$oid"
 
   def getAllForTestMuseum = {
     val res = wsUrl(forMuseumUrl(mid)).withHeaders(token.asHeader).get().futureValue
@@ -190,6 +191,39 @@ class SampleObjectControllerIntegrationSpec
       validateSampleObject(ujs, res.json)
     }
 
+    "delete a specific sample object" in {
+      val all = getAllForTestMuseum
+
+      val expJs    = (all.json \ 2).as[JsObject]
+      val objectId = (expJs \ "objectId").as[String]
+
+      val res =
+        wsUrl(deleteUrl(mid)(objectId)).withHeaders(token.asHeader).get().futureValue
+
+      res.status mustBe OK
+    }
+
+    "return 404 when trying to delete a non-existing sample objectid" in {
+      val all = getAllForTestMuseum
+
+      val objectId = "123e4567-e89b-12d3-a456-426655440000"
+
+      val res =
+        wsUrl(deleteUrl(mid)(objectId)).withHeaders(token.asHeader).get().futureValue
+
+      res.status mustBe NOT_FOUND
+    }
+
+    " return 400 when trying to delete a sample object with an invalid UUID" in {
+      val all = getAllForTestMuseum
+
+      val objectId = "123"
+
+      val res =
+        wsUrl(deleteUrl(mid)(objectId)).withHeaders(token.asHeader).get().futureValue
+
+      res.status mustBe BAD_REQUEST
+    }
   }
 
 }

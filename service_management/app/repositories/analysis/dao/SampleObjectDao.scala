@@ -56,11 +56,11 @@ class SampleObjectDao @Inject()(
     }
   }
 
-  def update(so: SampleObject): Future[MusitResult[Int]] = {
+  def update(so: SampleObject): Future[MusitResult[Unit]] = {
     val a = sampleObjTable.filter(_.id === so.objectId).update(asSampleObjectTuple(so))
 
     db.run(a.transactionally).map {
-      case res: Int if res == 1 => MusitSuccess(res)
+      case res: Int if res == 1 => MusitSuccess(())
       case res: Int if 1 > res  => MusitDbError("Nothing was updated")
       case res: Int if 1 < res  => MusitDbError(s"Too many rows were updated: $res")
     }

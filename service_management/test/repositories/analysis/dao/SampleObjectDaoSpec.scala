@@ -45,7 +45,8 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       note = Some("This is a sample note"),
       originatedObjectUuid = ObjectUUID.generate(),
       registeredStamp = Some(ActorStamp(ActorId.generate(), now)),
-      updatedStamp = None
+      updatedStamp = None,
+      isDeleted = false
     )
   }
 
@@ -138,7 +139,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val so2 = so1.copy(sampleId = Some("FOO-1"))
 
       val res1 = dao.update(so2).futureValue
-      res1.successValue mustBe 1L
+      res1.successValue must equal(())
 
       val res2 = dao.findByUUID(oid).futureValue
       res2.successValue.value.objectId mustBe Some(oid)
@@ -157,6 +158,21 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
         sampleObjectId = so.objectId
       )
       dao.insert(so, se).futureValue.successValue mustBe oid
+    }
+    "successfully delete a SampleObject" in {
+      val oid = ObjectUUID.generate()
+      val so1 = generateSample(oid, None, CollectionObject)
+      dao.insert(so1).futureValue.isSuccess mustBe true
+      val oldIsDeleted = so1.isDeleted
+      oldIsDeleted mustBe false
+
+      val so2  = so1.copy(isDeleted = true)
+      val res1 = dao.update(so2).futureValue
+      res1.successValue must equal(())
+
+      val res2 = dao.findByUUID(oid).futureValue
+      res2.successValue.value.objectId mustBe Some(oid)
+      res2.successValue.value.isDeleted mustBe true
     }
 
   }
