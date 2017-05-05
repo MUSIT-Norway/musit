@@ -24,11 +24,12 @@ trait AnalysisTables
 
   import profile.api._
 
-  val analysisTypeTable = TableQuery[AnalysisTypeTable]
-  val analysisTable     = TableQuery[AnalysisTable]
-  val resultTable       = TableQuery[AnalysisResultTable]
-  val sampleObjTable    = TableQuery[SampleObjectTable]
-  val treatmentTable    = TableQuery[TreatmentTable]
+  val analysisTypeTable     = TableQuery[AnalysisTypeTable]
+  val analysisTable         = TableQuery[AnalysisTable]
+  val resultTable           = TableQuery[AnalysisResultTable]
+  val sampleObjTable        = TableQuery[SampleObjectTable]
+  val treatmentTable        = TableQuery[TreatmentTable]
+  val storageContainerTable = TableQuery[StorageContainerTable]
 
   // scalastyle:off line.size.limit
   type EventTypeRow =
@@ -75,6 +76,8 @@ trait AnalysisTables
   )
 
   type TreatmentRow = (Int, String, String)
+
+  type StorageContainerRow = (Int, String, String)
 
   // scalastyle:on line.size.limit
 
@@ -229,6 +232,25 @@ trait AnalysisTables
 
     // scalastyle:off method.name
     def * = (treatmentId, noTreatment, enTreatment)
+
+    // scalastyle:on method.name
+  }
+
+  /**
+   * Representation of the MUSARK_ANALYSIS.StorageContainer table
+   */
+  class StorageContainerTable(val tag: Tag)
+      extends Table[StorageContainerRow](
+        tag,
+        Some(SchemaName),
+        StorageContainerTableName
+      ) {
+    val storageContainerId = column[Int]("STORAGECONTAINER_ID")
+    val noStorageContainer = column[String]("NO_STORAGECONTAINER")
+    val enStorageContainer = column[String]("EN_STORAGECONTAINER")
+
+    // scalastyle:off method.name
+    def * = (storageContainerId, noStorageContainer, enStorageContainer)
 
     // scalastyle:on method.name
   }
@@ -422,5 +444,20 @@ trait AnalysisTables
    */
   protected[dao] def fromTreatmentRow(tuple: TreatmentRow): Treatment =
     Treatment(treatmentId = tuple._1, noTreatment = tuple._2, enTreatment = tuple._3)
+
+  /**
+   * Converts a StorageContainerRow tuple into an instance of StorageContainer
+   *
+   * @param tuple the StorageContainerRow to convert
+   * @return an instance of StorageContainer
+   */
+  protected[dao] def fromStorageContainerRow(
+      tuple: StorageContainerRow
+  ): StorageContainer =
+    StorageContainer(
+      storageContainerId = tuple._1,
+      noStorageContainer = tuple._2,
+      enStorageContainer = tuple._3
+    )
 
 }

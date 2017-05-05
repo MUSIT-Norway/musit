@@ -1,6 +1,5 @@
 import CommonSettings._
 import Dependencies._
-import scoverage.ScoverageKeys._
 
 name := """musit"""
 

@@ -1,22 +1,3 @@
-/*
- *  MUSIT is a museum database to archive natural and cultural history data.
- *  Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License,
- *  or any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 import Dependencies.ScalaTest
 import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.SbtNativePackager.autoImport._
@@ -29,8 +10,6 @@ import sbt._
 import sbtbuildinfo.BuildInfoPlugin
 import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import scoverage.ScoverageKeys._
-
-import scalariform.formatter.preferences.{FormatXml, SpacesAroundMultiImports}
 
 object CommonSettings {
 
@@ -94,6 +73,12 @@ object CommonSettings {
       .settings(dependencyOverrides += ScalaTest.scalatest)
       .configs(IntegrationTest)
 
+  // Check if the build is being run on internal GitLab CI runner.
+  // If so, we need to use the internal docker registry to pull images from.
+  val dockerRegistryHost      = scala.util.Properties.envOrNone("MUSIT_DOCKER_REGISTRY")
+  val dockerMusitBaseImage    = scala.util.Properties.envOrNone("MUSIT_BASE_IMAGE")
+  val dockerRegistryNamespace = "musit"
+
   def PlayProject(projName: String): Project =
     BaseProject(projName)
       .enablePlugins(
@@ -121,12 +106,21 @@ object CommonSettings {
             "-Dconfig.file=conf/application.test.conf",
             "-Dlogger.resource=logback-test.xml"
           ),
+          // Docker packaging configuration
           maintainer in Docker := "Musit Norway <musit@musit.uio.no>",
           packageSummary in Docker := "A Microservice part of the middleware for Musit Norway",
           packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",
-          dockerExposedPorts in Docker := Seq(8080),
-          dockerExposedVolumes in Docker := Seq("/opt/docker/logs"),
-          dockerBaseImage in Docker := "java:8"
+          dockerExposedPorts := Seq(8080),
+          dockerExposedVolumes := Seq("/opt/docker/logs"),
+          dockerBaseImage := s"${dockerRegistryHost.map(_ => "library/").getOrElse("")}java:8",
+          dockerRepository := dockerRegistryHost
+            .map(host => s"$host/$dockerRegistryNamespace"),
+          dockerAlias := DockerAlias(
+            registryHost = dockerRepository.value,
+            username = None,
+            name = packageName.value,
+            tag = Some("utv")
+          )
         )
       )
 

@@ -23,6 +23,9 @@ GET         /:mid/analyses/objects/:id                       controllers.analysi
 #Treatment endpoints
 GET         /treatments                                      controllers.analysis.TreatmentController.getTreatmentList
 
+#Treatment endpoints
+GET         /storagecontainer                                      controllers.analysis.StorageContainerController.getStorageContainerList
+
 # Sample objects
 
 POST        /:mid/samples                                    controllers.analysis.SampleObjectController.save(mid: Int)

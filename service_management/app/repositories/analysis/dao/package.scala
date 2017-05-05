@@ -8,5 +8,6 @@ package object dao {
   val AnalysisEventTypeTableName = "EVENT_TYPE"
   val SampleObjectTableName      = "SAMPLE_OBJECT"
   val TreatmentTableName         = "TREATMENT"
+  val StorageContainerTableName  = "STORAGECONTAINER"
 
 }

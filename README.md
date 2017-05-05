@@ -30,5 +30,3 @@ If you are interested in participating in the project please contact opensource@
 # Credits
 
 <img src="https://raw.githubusercontent.com/MUSIT-Norway/guidelines/master/images/icon_IntelliJIDEA.png" alt="alt text" width="40px" height="40px"> We would like to thank [JetBrains](https://www.jetbrains.com) for free OSS licenses to [IntelliJ IDEA](https://www.jetbrains.com/idea/)
-
-

@@ -22,7 +22,7 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage"       % "1.5.0")
 addSbtPlugin("com.codacy"    % "sbt-codacy-coverage" % "1.3.8")
 
 // Native packaging plugin
-addSbtPlugin("com.typesafe.sbt" %% "sbt-native-packager" % "1.1.5")
+addSbtPlugin("com.typesafe.sbt" %% "sbt-native-packager" % "1.2.0-M9")
 
 // I know this because SBT knows this...autogenerates BuildInfo for the project
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
