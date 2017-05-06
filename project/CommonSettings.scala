@@ -112,14 +112,14 @@ object CommonSettings {
           packageDescription in Docker := "A Microservice part of the middleware for MusitNorway",
           dockerExposedPorts := Seq(8080),
           dockerExposedVolumes := Seq("/opt/docker/logs"),
-          dockerBaseImage := s"${dockerRegistryHost.map(_ => "library/").getOrElse("")}java:8",
+          dockerBaseImage := s"${dockerRegistryHost.map(_ => "library/java:8").getOrElse("openjdk:8")}",
           dockerRepository := dockerRegistryHost
             .map(host => s"$host/$dockerRegistryNamespace"),
           dockerAlias := DockerAlias(
             registryHost = dockerRepository.value,
             username = None,
-            name = packageName.value,
-            tag = Some("utv")
+            name = s"musit_${packageName.value}",
+            tag = dockerRegistryHost.map(_ => "utv").orElse(Some(version.value))
           )
         )
       )
