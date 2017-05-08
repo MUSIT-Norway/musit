@@ -3,10 +3,14 @@
 ######################################################################
 image: $MUSIT_DOCKER_REGISTRY/musit/docker-scala-sbt
 
-cache:
-  paths:
-    - $HOME/.sbt
-    - $HOME/.coursier
+# -----
+# Need to temporarily disable caches until we figure out how to properly do a
+# cleanup of docker containers and images on the runner agent host machines.
+# -----
+# cache:
+#  paths:
+#    - $HOME/.sbt
+#    - $HOME/.coursier
 
 variables:
   DOCKER_DRIVER: overlay
