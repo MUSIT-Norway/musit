@@ -42,4 +42,4 @@ build:
   script:
     - sbt docker:publish
   only:
-    - master
+    - master@MUSIT-Norway/musit
