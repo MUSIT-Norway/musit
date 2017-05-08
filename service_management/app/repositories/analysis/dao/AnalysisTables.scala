@@ -29,6 +29,7 @@ trait AnalysisTables
   val resultTable           = TableQuery[AnalysisResultTable]
   val sampleObjTable        = TableQuery[SampleObjectTable]
   val treatmentTable        = TableQuery[TreatmentTable]
+  val storageMediumTable    = TableQuery[StorageMediumTable]
   val storageContainerTable = TableQuery[StorageContainerTable]
 
   // scalastyle:off line.size.limit
@@ -77,6 +78,7 @@ trait AnalysisTables
 
   type TreatmentRow = (Int, String, String)
 
+  type StorageMediumRow = (Int, String, String)
   type StorageContainerRow = (Int, String, String)
 
   // scalastyle:on line.size.limit
@@ -251,6 +253,21 @@ trait AnalysisTables
 
     // scalastyle:off method.name
     def * = (storageContainerId, noStorageContainer, enStorageContainer)
+
+    // scalastyle:on method.name
+  }
+  
+  /**
+   * Representation of the MUSARK_ANALYSIS.STORAGEMEDIUM table
+   */
+  class StorageMediumTable(val tag: Tag)
+      extends Table[StorageMediumRow](tag, Some(SchemaName), StorageMediumTableName) {
+    val storageMediumId = column[Int]("STORAGEMEDIUM_ID")
+    val noStorageMedium = column[String]("NO_STORAGEMEDIUM")
+    val enStorageMedium = column[String]("EN_STORAGEMEDIUM")
+
+    // scalastyle:off method.name
+    def * = (storageMediumId, noStorageMedium, enStorageMedium)
 
     // scalastyle:on method.name
   }
@@ -458,6 +475,19 @@ trait AnalysisTables
       storageContainerId = tuple._1,
       noStorageContainer = tuple._2,
       enStorageContainer = tuple._3
+    )
+    
+  /**
+   * Converts a StorageMediumRow tuple into an instance of StorageMedium
+   *
+   * @param tuple the StorageMediumRow to convert
+   * @return an instance of StorageMedium
+   */
+  protected[dao] def fromStorageMediumRow(tuple: StorageMediumRow): StorageMedium =
+    StorageMedium(
+      storageMediumId = tuple._1,
+      noStorageMedium = tuple._2,
+      enStorageMedium = tuple._3
     )
 
 }
