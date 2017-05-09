@@ -55,7 +55,7 @@ class SampleObjectServiceSpec
       createdDate = Some(now),
       sampleId = None,
       externalId = None,
-      sampleType = Some(SampleType("slize", Some("age rings"))),
+      sampleTypeId = Some(SampleTypeId(1)),
       size = Some(Size("cm2", 12.0)),
       container = Some("box"),
       storageMedium = None,

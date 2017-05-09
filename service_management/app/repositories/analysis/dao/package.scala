@@ -10,5 +10,6 @@ package object dao {
   val TreatmentTableName         = "TREATMENT"
   val StorageMediumTableName     = "STORAGEMEDIUM"
   val StorageContainerTableName  = "STORAGECONTAINER"
+  val SampleTypeTableName        = "SAMPLE_TYPE"
 
 }

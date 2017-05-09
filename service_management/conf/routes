@@ -23,8 +23,12 @@ GET         /:mid/analyses/objects/:id                       controllers.analysi
 #Treatment endpoints
 GET         /treatments                                      controllers.analysis.TreatmentController.getTreatmentList
 
-#Treatment endpoints
-GET         /storagecontainer                                      controllers.analysis.StorageContainerController.getStorageContainerList
+#StorageContainer endpoints
+GET         /storagecontainer                                controllers.analysis.StorageContainerController.getStorageContainerList
+
+#SampleType endpoints
+GET         /sampletypes                                     controllers.analysis.SampleTypeController.getSampleTypeList
+
 
 
 #Storage Medium endpoints

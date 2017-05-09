@@ -3,8 +3,11 @@ package models.analysis
 import play.api.libs.json.Json
 
 case class SampleType(
-    value: String,
-    subTypeValue: Option[String]
+    sampleTypeId: SampleTypeId,
+    noSampleType: String,
+    enSampleType: String,
+    noSampleSubType: Option[String],
+    enSampleSubType: Option[String]
 )
 
 object SampleType {

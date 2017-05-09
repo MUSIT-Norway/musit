@@ -11,7 +11,7 @@ class StorageMediumDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValu
     "return storage medium list" in {
       val list = dao.getStorageMediumList.futureValue.successValue
       list.size mustBe 26
-      //list.head.noTreatment mustBe "CTAB"
+      list.head.noStorageMedium mustBe "Lagringsmedium"
     }
   }
 

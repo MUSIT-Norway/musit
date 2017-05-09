@@ -31,6 +31,7 @@ trait AnalysisTables
   val treatmentTable        = TableQuery[TreatmentTable]
   val storageMediumTable    = TableQuery[StorageMediumTable]
   val storageContainerTable = TableQuery[StorageContainerTable]
+  val sampleTypeTable       = TableQuery[SampleTypeTable]
 
   // scalastyle:off line.size.limit
   type EventTypeRow =
@@ -63,7 +64,7 @@ trait AnalysisTables
       Option[DateTime],
       Option[String],
       (Option[String], Option[String]),
-      (Option[String], Option[String]),
+      Option[SampleTypeId],
       (Option[Double], Option[String]),
       Option[String],
       Option[String],
@@ -80,6 +81,8 @@ trait AnalysisTables
 
   type StorageMediumRow = (Int, String, String)
   type StorageContainerRow = (Int, String, String)
+
+  type SampleTypeRow = (SampleTypeId, String, String, Option[String], Option[String])
 
   // scalastyle:on line.size.limit
 
@@ -177,8 +180,7 @@ trait AnalysisTables
     val sampleId         = column[Option[String]]("SAMPLE_ID")
     val externalId       = column[Option[String]]("EXTERNAL_ID")
     val externalIdSource = column[Option[String]]("EXTERNAL_ID_SOURCE")
-    val sampleType       = column[Option[String]]("SAMPLE_TYPE")
-    val sampleSubType    = column[Option[String]]("SAMPLE_SUB_TYPE")
+    val sampleTypeId     = column[Option[SampleTypeId]]("SAMPLE_TYPE_ID")
     val size             = column[Option[Double]]("SAMPLE_SIZE")
     val sizeUnit         = column[Option[String]]("SAMPLE_SIZE_UNIT")
     val container        = column[Option[String]]("SAMPLE_CONTAINER")
@@ -206,7 +208,7 @@ trait AnalysisTables
         createdDate,
         sampleId,
         (externalId, externalIdSource),
-        (sampleType, sampleSubType),
+        sampleTypeId,
         (size, sizeUnit),
         container,
         storageMedium,
@@ -221,6 +223,23 @@ trait AnalysisTables
 
     // scalastyle:off method.name line.size.limit
 
+  }
+
+  /**
+   * Representation of the MUSARK_ANALYSIS.SAMPLE_TYPE table
+   */
+  class SampleTypeTable(val tag: Tag)
+      extends Table[SampleTypeRow](tag, Some(SchemaName), SampleTypeTableName) {
+    val sampleTypeId    = column[SampleTypeId]("SAMPLETYPE_ID")
+    val noSampleType    = column[String]("NO_SAMPLETYPE")
+    val enSampleType    = column[String]("EN_SAMPLETYPE")
+    val noSampleSubType = column[Option[String]]("NO_SAMPLESUBTYPE")
+    val enSampleSubType = column[Option[String]]("EN_SAMPLESUBTYPE")
+
+    // scalastyle:off method.name
+    def * = (sampleTypeId, noSampleType, enSampleType, noSampleSubType, enSampleSubType)
+
+    // scalastyle:on method.name
   }
 
   /**
@@ -386,7 +405,7 @@ trait AnalysisTables
       so.createdDate,
       so.sampleId,
       (so.externalId.map(_.value), so.externalId.flatMap(_.source)),
-      (so.sampleType.map(_.value), so.sampleType.flatMap(_.subTypeValue)),
+      so.sampleTypeId,
       (so.size.map(_.value), so.size.map(_.unit)),
       so.container,
       so.storageMedium,
@@ -414,7 +433,7 @@ trait AnalysisTables
   protected[dao] def fromSampleObjectRow(tuple: SampleObjectRow): SampleObject = {
     val parentObject = tuple._2
     val external     = tuple._9
-    val sampleType   = tuple._10
+    val sampleTypeId = tuple._10
     val size         = tuple._11
     val userStamps   = tuple._19
 
@@ -429,7 +448,7 @@ trait AnalysisTables
       createdDate = tuple._7,
       sampleId = tuple._8,
       externalId = external._1.map(ExternalId(_, external._2)),
-      sampleType = sampleType._1.map(SampleType(_, sampleType._2)),
+      sampleTypeId = sampleTypeId,
       size = for {
         value <- size._1
         unit  <- size._2
@@ -488,6 +507,23 @@ trait AnalysisTables
       storageMediumId = tuple._1,
       noStorageMedium = tuple._2,
       enStorageMedium = tuple._3
+    )
+
+  /**
+   * Converts a SampleTypeRow tuple into an instance of SampleType
+   *
+   * @param tuple the SampleTypeRow to convert
+   * @return an instance of SampleType
+   */
+  protected[dao] def fromSampleTypeRow(
+      tuple: SampleTypeRow
+  ): SampleType =
+    SampleType(
+      sampleTypeId = tuple._1,
+      noSampleType = tuple._2,
+      enSampleType = tuple._3,
+      noSampleSubType = tuple._4,
+      enSampleSubType = tuple._5
     )
 
 }

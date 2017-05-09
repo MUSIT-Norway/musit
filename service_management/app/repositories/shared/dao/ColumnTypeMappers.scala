@@ -5,6 +5,7 @@ import java.sql.{Timestamp => JSqlTimestamp}
 import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
+import models.analysis.SampleTypeId
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
 import models.loan.{LoanEventTypes, LoanType}
 import no.uio.musit.models.ObjectTypes.ObjectType
@@ -29,6 +30,12 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
     MappedColumnType.base[AnalysisTypeId, String](
       etid => etid.asString,
       strId => AnalysisTypeId.unsafeFromString(strId)
+    )
+
+  implicit val sampleTypeIdMapper: BaseColumnType[SampleTypeId] =
+    MappedColumnType.base[SampleTypeId, Long](
+      etid => etid.underlying,
+      lid => SampleTypeId.fromLong(lid)
     )
 
   implicit val museumIdMapper: BaseColumnType[MuseumId] =
