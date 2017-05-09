@@ -1,22 +1,3 @@
-/*
- * MUSIT is a museum database to archive natural and cultural history data.
- * Copyright (C) 2016  MUSIT Norway, part of www.uio.no (University of Oslo)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 package repositories.dao
 
 import com.google.inject.Inject
@@ -252,24 +233,29 @@ class ObjectDao @Inject()(
    */
   def findMainObjectChildren(
       mid: MuseumId,
-      mainObjectId: ObjectId,
+      mainObjectId: ObjectUUID,
       collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    val q = objTable.filter { o =>
-      o.mainObjectId === mainObjectId.underlying && o.isDeleted === false
+    val colIds = collections.flatMap(_.schemaIds).distinct
+    // scalastyle:off line.size.limit
+    // format: off
+    val query: DBIO[Seq[ObjectRow]] = for {
+      maybeParent <-  objTable.filter(_.uuid === mainObjectId).map(_.id).result.headOption
+      children <- maybeParent.map { pid =>
+        val q = objTable.filter(o => o.mainObjectId === pid.underlying && o.isDeleted === false)
+        if (currUsr.hasGodMode) q.filter(_.newCollectionId inSet colIds).result
+        else q.result
+      }.getOrElse(DBIO.successful(Vector.empty[ObjectRow]))
+    } yield children
+    // format: on
+    // scalastyle:on line.size.limit
+
+    db.run(query).map(res => MusitSuccess(res.map(MusitObject.fromTuple))).recover {
+      case NonFatal(ex) =>
+        val msg = s"Error while retrieving search result"
+        logger.error(msg, ex)
+        MusitDbError(msg, Option(ex))
     }
-    val query = {
-      if (currUsr.hasGodMode) q
-      else q.filter(_.newCollectionId inSet collections.flatMap(_.schemaIds).distinct)
-    }
-    db.run(query.result)
-      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Error while retrieving search result"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
   }
 
   type QLocObj = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, scala.Seq]
@@ -305,16 +291,16 @@ class ObjectDao @Inject()(
    */
   private def countObjects(
       mid: MuseumId,
-      nodeId: StorageNodeDatabaseId,
+      nodeId: StorageNodeId,
       collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Int]] = {
     val count =
       sql"""
         SELECT /*+DRIVING_SITE(mt)*/ COUNT(1)
-        FROM "MUSARK_STORAGE"."LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
+        FROM "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
         WHERE lo."MUSEUM_ID" = ${mid.underlying}
-        AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
-        AND mt."OBJECT_ID" = lo."OBJECT_ID"
+        AND lo."CURRENT_LOCATION_ID" = ${nodeId.asString}
+        AND mt."MUSITTHING_UUID" = lo."OBJECT_UUID"
         AND mt."IS_DELETED" = 0 #${collectionFilter(collections)}
       """.as[Int].head
 
@@ -349,7 +335,7 @@ class ObjectDao @Inject()(
    */
   private def objectsFor(
       mid: MuseumId,
-      nodeId: StorageNodeDatabaseId,
+      nodeId: StorageNodeId,
       collections: Seq[MuseumCollection],
       page: Int,
       limit: Int
@@ -370,11 +356,11 @@ class ObjectDao @Inject()(
           mt."OLD_SCHEMANAME",
           mt."LOKAL_PK",
           mt."NEW_COLLECTION_ID"
-        FROM "MUSARK_STORAGE"."LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
+        FROM "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
         WHERE lo."MUSEUM_ID" = ${mid.underlying}
         AND mt."MUSEUMID" = ${mid.underlying}
-        AND lo."CURRENT_LOCATION_ID" = ${nodeId.underlying}
-        AND mt."OBJECT_ID" = lo."OBJECT_ID"
+        AND lo."CURRENT_LOCATION_ID" = ${nodeId.asString}
+        AND mt."MUSITTHING_UUID" = lo."OBJECT_UUID"
         AND mt."IS_DELETED" = 0 #${collectionFilter(collections)}
         ORDER BY
           mt."MUSEUMNOASNUMBER" ASC,
@@ -409,7 +395,7 @@ class ObjectDao @Inject()(
    */
   def pagedObjects(
       mid: MuseumId,
-      nodeId: StorageNodeDatabaseId,
+      nodeId: StorageNodeId,
       collections: Seq[MuseumCollection],
       page: Int,
       limit: Int

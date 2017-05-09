@@ -4,13 +4,13 @@ CREATE SCHEMA IF NOT EXISTS MUSIT_MAPPING;
 
 CREATE SCHEMA IF NOT EXISTS MUSARK_STORAGE;
 
-CREATE TABLE MUSARK_STORAGE.LOCAL_OBJECT (
-  object_id           NUMBER(20) NOT NULL,
-  latest_move_id      NUMBER(20),
-  current_location_id INTEGER,
-  museum_id           INTEGER    NOT NULL,
+CREATE TABLE MUSARK_STORAGE.NEW_LOCAL_OBJECT (
+  object_uuid         VARCHAR2(36) NOT NULL,
+  latest_move_id      NUMBER(20)   NOT NULL,
+  current_location_id VARCHAR2(36) NOT NULL,
+  museum_id           INTEGER      NOT NULL,
   object_type         VARCHAR(50) DEFAULT 'collection', -- possible values can be 'collection', or 'sample'
-  PRIMARY KEY (object_id)
+  PRIMARY KEY (object_uuid)
 );
 
 CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
@@ -31,7 +31,7 @@ CREATE TABLE MUSARK_STORAGE.STORAGE_NODE (
   old_barcode       NUMBER(20),
   museum_id         INTEGER                  NOT NULL,
   updated_by        VARCHAR2(36)             NOT NULL,
-  updated_date      TIMESTAMP WITH TIME ZONE NOT NULL, -- When the change was received by the system
+  updated_date      TIMESTAMP                NOT NULL,
   PRIMARY KEY (storage_node_id)
 );
 
@@ -126,57 +126,57 @@ INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, mu
 
 
 
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (1 , 23, 4, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (2 , 23, 4, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (3 , 23, 4, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (4 , 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (5 , 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (6 , 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (7 , 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (8 , 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (9 , 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (10, 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (11, 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (12, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (13, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (14, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (15, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (16, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (17, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (18, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (19, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (20, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (21, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (22, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (23, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (24, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (25, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (26, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (27, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (28, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (29, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (30, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (31, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (32, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (33, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (34, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (35, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (36, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (37, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (38, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (39, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (40, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (41, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (42, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (43, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (44, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (45, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (46, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (47, 23, 6, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (48, 23, 7, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (49, 23, 7, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (50, 23, 7, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (51, 23, 4, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (52, 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (53, 23, 5, 99);
-INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (object_id, latest_move_id, current_location_id, museum_id) VALUES (54, 23, 5, 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('37715843-36ab-4f1a-bcfb-dd68a05d0f2c', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('8ae52969-63b8-42be-bfd0-d8ebef2169eb', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('d43e3c5a-8244-4497-bd15-29c844ff8745', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('a949277c-8233-4425-b3e8-8d6599e97531', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('35522dc6-d246-4c7b-a23d-501bb34034f7', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('4d2e516d-db5f-478e-b409-eac7ff2486e8', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('89f36f77-2c27-4d33-81b4-4d4f9688950d', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('5a928d42-05a6-44db-adef-c6dfe588f016', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('e11e89f5-b073-4874-9ced-c22152d5cb26', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('7c951050-63a2-4afc-bab0-fa6d023f4dbd', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('2e5037d5-4952-4571-9de2-709eb22b01f0', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('aa309693-8d2e-41ae-a958-ada7dc4c914b', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('08fd9b75-560e-4ad1-a62a-7eb945819c75', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('baec467b-2fd2-48d3-9fe1-6f0ea30a3497', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('86191223-2ff0-4776-b898-b79f1adb91af', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('7de44f6e-51f5-4c90-871b-cef8de0ce93d', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('9dfa0946-3b71-4382-888f-3f924ff48a77', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('2bd5eec5-c9ee-460c-ba54-ab23a4eea6fc', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('ac03f45e-57cf-484a-8947-af87dae8b1ae', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('3a71f423-52b2-4437-a62b-6e37ad406bcd', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('317b1ce9-82c7-4412-ae99-df7fda342077', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('800c5235-3ad0-4245-8450-c3216c661bb1', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('baab2f60-4f49-40fe-99c8-174b13b12d46', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('376d41e7-c463-45e8-9bde-7a2c9844637e', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('2350578d-0bb0-4601-92d4-817478ad0952', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('c182206b-530c-4a40-b9aa-fba044ecb953', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('bf53f481-1db3-4474-98ee-c94df31ec251', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('373bb138-ed93-472b-ad57-ccb77ab8c151', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('62272640-e29e-4af4-a537-3c49b5f1cf42', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('f4a189c3-4d8f-4258-9000-b23282814278', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('67965e71-27ee-4ef0-ad66-e7e321882f33', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('6f9db6a5-f994-4498-8ebc-c9ba75c51ce8', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('b17b8735-2350-4de9-b812-93753b1eeb8d', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('215542d3-48c9-44af-a6ea-4c494da54fe0', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('065b9812-0f22-4ba4-bac2-7d7cbc850dcc', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('6ca2bf73-fa17-4d41-a8da-ab9f46a7494b', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('21dadc0d-50ca-41ea-9b48-90fdec515148', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('7b2e3bd6-b699-4671-bd50-1d964342f531', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('40898454-069e-41c9-9551-946a1e693f59', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('f56bd93f-49b6-4111-b6c8-bd84a14ea98e', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('b71d3bd7-28e3-4790-b4f6-98664e2385ba', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('6ee89241-a404-4086-b373-c42dd0a2e56a', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('5f7f0b2b-f2eb-480d-816e-00b140705f2b', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('bbf9a3de-9203-4e90-9b04-4475e4f7f749', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('29339044-8696-4c76-9b3e-f153ae63d262', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('7ae2521e-904c-432b-998c-bb09810310a9', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('42b6a92e-de59-4fde-9c46-5c8794be0b34', 23, '244f09a3-eb1a-49e7-80ee-7a07baa016dd', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('331d8174-dfdb-47ae-8dc0-5aa7be59fe09', 23, '6e5b9810-9bbf-464a-a0b9-c27f6095ba0c', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('6e7b9387-5f89-4388-8bbb-7eb727e58f09', 23, '6e5b9810-9bbf-464a-a0b9-c27f6095ba0c', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('2ce90a19-e190-4738-a344-42741f471cdc', 23, '6e5b9810-9bbf-464a-a0b9-c27f6095ba0c', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('dcd37cb7-34ae-484e-a2c0-a1b1925e9b68', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('3fd8d3f9-ebb1-4447-8959-8e91ca2693fb', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('564fade0-4a41-47cc-8c26-3b8f048aa191', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('a738e36d-8683-44ac-9dda-67ff5a5851d5', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);

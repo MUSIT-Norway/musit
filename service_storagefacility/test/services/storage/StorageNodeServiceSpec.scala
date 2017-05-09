@@ -8,10 +8,11 @@ import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
-import no.uio.musit.test.matchers.MusitResultValues
-import no.uio.musit.test.matchers.DateTimeMatchers
+import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import org.joda.time.DateTime
 import utils.testhelpers.{BaseDummyData, EventGenerators, NodeGenerators}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class StorageNodeServiceSpec
     extends MusitSpecWithAppPerSuite
@@ -23,39 +24,39 @@ class StorageNodeServiceSpec
 
   val service = fromInstanceCache[StorageNodeService]
 
-  private var insertedNodeIds: Map[StorageNodeDatabaseId, StorageNodeId] = Map.empty
+  val insertedNodeIds = Map.newBuilder[StorageNodeDatabaseId, StorageNodeId]
 
   def saveRoot(r: RootNode, mid: MuseumId = defaultMuseumId) = {
     val ins = service.addRoot(mid, r).futureValue.successValue.value
-    insertedNodeIds = insertedNodeIds ++ Map(ins.id.get -> ins.nodeId.get)
+    insertedNodeIds += ins.id.get -> ins.nodeId.get
     ins
   }
 
   def saveOrg(o: Organisation, mid: MuseumId = defaultMuseumId) = {
     val ins = service.addOrganisation(mid, o).futureValue.successValue.value
-    insertedNodeIds = insertedNodeIds ++ Map(ins.id.get -> ins.nodeId.get)
+    insertedNodeIds += ins.id.get -> ins.nodeId.get
     ins
   }
 
   def saveBuilding(b: Building, mid: MuseumId = defaultMuseumId) = {
     val ins = service.addBuilding(mid, b).futureValue.successValue.value
-    insertedNodeIds = insertedNodeIds ++ Map(ins.id.get -> ins.nodeId.get)
+    insertedNodeIds += ins.id.get -> ins.nodeId.get
     ins
   }
 
   def saveRoom(r: Room, mid: MuseumId = defaultMuseumId) = {
     val ins = service.addRoom(mid, r).futureValue.successValue.value
-    insertedNodeIds = insertedNodeIds ++ Map(ins.id.get -> ins.nodeId.get)
+    insertedNodeIds += ins.id.get -> ins.nodeId.get
     ins
   }
 
   def saveUnit(u: StorageUnit, mid: MuseumId = defaultMuseumId) = {
     val ins = service.addStorageUnit(mid, u).futureValue.successValue.value
-    insertedNodeIds = insertedNodeIds ++ Map(ins.id.get -> ins.nodeId.get)
+    insertedNodeIds += ins.id.get -> ins.nodeId.get
     ins
   }
 
-  def children(nid: StorageNodeDatabaseId, mid: MuseumId = defaultMuseumId) = {
+  def children(nid: StorageNodeId, mid: MuseumId = defaultMuseumId) = {
     service.getChildren(mid, nid, 1, 10).futureValue.successValue.matches
   }
 
@@ -63,12 +64,12 @@ class StorageNodeServiceSpec
   val baseIds      = bootstrapBaseStructure()
   val rootId       = baseIds.keys.head
   val rootUUID     = baseIds.values.head
-  val orgId        = baseIds.keys.tail.head
+  val orgNodeId    = baseIds.keys.tail.head
   val orgUUID      = baseIds.values.tail.head
   val buildingId   = baseIds.keys.last
   val buildingUUID = baseIds.values.last
 
-  insertedNodeIds = insertedNodeIds ++ baseIds
+  insertedNodeIds ++= baseIds
 
   "Using the StorageNodeService API" should {
 
@@ -83,7 +84,7 @@ class StorageNodeServiceSpec
     }
 
     "successfully update a building with new environment requirements" in {
-      val building = createBuilding(partOf = Some(orgId))
+      val building = createBuilding(partOf = Some(orgNodeId))
 
       val ins = saveBuilding(building)
       val someEnvReq = Some(
@@ -91,8 +92,9 @@ class StorageNodeServiceSpec
           hypoxic = Some(Interval[Double](44.4, Some(55)))
         )
       )
-      val up  = ins.copy(environmentRequirement = someEnvReq)
-      val res = service.updateBuilding(defaultMuseumId, ins.id.get, up).futureValue
+      val up = ins.copy(environmentRequirement = someEnvReq)
+      val res =
+        service.updateBuilding(defaultMuseumId, building.nodeId.value, up).futureValue
 
       val updated = res.successValue.value
       updated.id mustBe ins.id
@@ -105,8 +107,9 @@ class StorageNodeServiceSpec
       val su  = createStorageUnit(partOf = Some(buildingId))
       val ins = saveUnit(su)
 
-      val up  = ins.copy(name = "UggaBugga", areaTo = Some(4D))
-      val res = service.updateStorageUnit(defaultMuseumId, ins.id.get, up).futureValue
+      val up = ins.copy(name = "UggaBugga", areaTo = Some(4D))
+      val res =
+        service.updateStorageUnit(defaultMuseumId, su.nodeId.value, up).futureValue
 
       val updated = res.successValue.value
       updated.name mustBe "UggaBugga"
@@ -119,9 +122,9 @@ class StorageNodeServiceSpec
       val su  = createStorageUnit(partOf = Some(buildingId))
       val ins = saveUnit(su)
 
-      service.deleteNode(defaultMuseumId, ins.id.value).futureValue mustBe MusitSuccess(
-        Some(1)
-      )
+      service
+        .deleteNode(defaultMuseumId, su.nodeId.value)
+        .futureValue mustBe MusitSuccess(Some(1))
 
       service
         .getNodeByDatabaseId(defaultMuseumId, ins.id.get)
@@ -138,7 +141,7 @@ class StorageNodeServiceSpec
       val ins2 = saveUnit(su2)
       ins2.id must not be None
 
-      val res = service.deleteNode(defaultMuseumId, ins1.id.get).futureValue
+      val res = service.deleteNode(defaultMuseumId, su1.nodeId.value).futureValue
       res.successValue.value mustBe -1
     }
 
@@ -148,7 +151,7 @@ class StorageNodeServiceSpec
 
       val wrongMid = MuseumId(4)
 
-      service.deleteNode(wrongMid, ins.id.value).futureValue
+      service.deleteNode(wrongMid, su.nodeId.value).futureValue
 
       val res = service
         .getNodeById(defaultMuseumId, ins.nodeId.value)
@@ -166,14 +169,14 @@ class StorageNodeServiceSpec
       val upd      = ins.copy(name = "UggaBugga", areaTo = Some(4.0))
 
       service
-        .updateStorageUnit(wrongMid, ins.id.value, upd)
+        .updateStorageUnit(wrongMid, su.nodeId.value, upd)
         .futureValue
         .successValue mustBe None
     }
 
     "not update a building or environment requirements when using wrong museumID" in {
       val wrongMid = MuseumId(4)
-      val b        = createBuilding(partOf = Some(orgId))
+      val b        = createBuilding(partOf = Some(orgNodeId))
       val ins      = saveBuilding(b)
       val someEnvReq = Some(
         initEnvironmentRequirement(
@@ -186,11 +189,11 @@ class StorageNodeServiceSpec
       )
 
       service
-        .updateBuilding(wrongMid, ins.id.value, upd)
+        .updateBuilding(wrongMid, b.nodeId.value, upd)
         .futureValue
         .successValue mustBe None
 
-      val res = service.getBuildingById(defaultMuseumId, ins.id.get).futureValue
+      val res = service.getBuildingByDatabaseId(defaultMuseumId, ins.id.get).futureValue
       res.successValue.value.address mustBe b.address
       res.successValue.value.updatedDate mustApproximate b.updatedDate
       res.successValue.value.updatedBy mustBe b.updatedBy
@@ -205,11 +208,11 @@ class StorageNodeServiceSpec
       val upd      = ins.copy(securityAssessment = secAss)
 
       service
-        .updateRoom(wrongMid, ins.id.value, upd)
+        .updateRoom(wrongMid, room.nodeId.value, upd)
         .futureValue
         .successValue mustBe None
 
-      val res = service.getRoomById(defaultMuseumId, ins.id.get).futureValue
+      val res = service.getRoomByDatabaseId(defaultMuseumId, ins.id.get).futureValue
       res.successValue.value.securityAssessment mustBe room.securityAssessment
       res.successValue.value.updatedDate mustApproximate room.updatedDate
       res.successValue.value.updatedBy mustBe room.updatedBy
@@ -244,16 +247,16 @@ class StorageNodeServiceSpec
 
     "successfully move a node and all its children" in {
       // Prepare some nodes
-      val b1 = saveBuilding(createBuilding(name = "Building1", partOf = Some(orgId)))
-      val b2 = saveBuilding(createBuilding(name = "Building2", partOf = Some(orgId)))
+      val b1 = saveBuilding(createBuilding(name = "Building1", partOf = Some(orgNodeId)))
+      val b2 = saveBuilding(createBuilding(name = "Building1", partOf = Some(orgNodeId)))
       val u1 = saveUnit(createStorageUnit(name = "Unit1", partOf = b1.id))
       val u2 = saveUnit(createStorageUnit(name = "Unit2", partOf = u1.id))
       val u3 = saveUnit(createStorageUnit(name = "Unit3", partOf = u1.id))
       val u4 = saveUnit(createStorageUnit(name = "Unit4", partOf = u3.id))
 
-      val directChildren = children(u1.id.get)
+      val directChildren = children(u1.nodeId.value)
       val grandChildren = directChildren.flatMap { c =>
-        children(c.id.get)
+        children(c.nodeId.value)
       }
       val mostChildren = directChildren ++ grandChildren
 
@@ -279,7 +282,7 @@ class StorageNodeServiceSpec
 
     "successfully move an object with a previous location" in {
       val oid  = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
-      val dest = insertedNodeIds(StorageNodeDatabaseId(20))
+      val dest = insertedNodeIds.result()(StorageNodeDatabaseId(20))
 
       val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
@@ -295,7 +298,7 @@ class StorageNodeServiceSpec
 
     "not register a move when current location and destination are the same" in {
       val oid  = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
-      val dest = insertedNodeIds(StorageNodeDatabaseId(20))
+      val dest = insertedNodeIds.result()(StorageNodeDatabaseId(20))
 
       val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
@@ -335,7 +338,7 @@ class StorageNodeServiceSpec
 
     "get current location for an object" in {
       val oid = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
-      val loc = insertedNodeIds(StorageNodeDatabaseId(20))
+      val loc = insertedNodeIds.result()(StorageNodeDatabaseId(20))
 
       service
         .currentObjectLocation(defaultMuseumId, oid, CollectionObject)

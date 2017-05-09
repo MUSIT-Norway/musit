@@ -276,12 +276,13 @@ trait NodeTypeInitializers { self: BaseDummyData =>
 
   def createOrganisation(
       name: String = "FooBarOrg",
+      nodeId: StorageNodeId = StorageNodeId.generate(),
       partOf: Option[StorageNodeDatabaseId] = None,
       path: NodePath = NodePath.empty
   ): Organisation = {
     Organisation(
       id = None,
-      nodeId = None,
+      nodeId = Some(nodeId),
       name = name,
       area = None,
       areaTo = None,
@@ -300,12 +301,13 @@ trait NodeTypeInitializers { self: BaseDummyData =>
 
   def createBuilding(
       name: String = "FooBarBuilding",
+      nodeId: StorageNodeId = StorageNodeId.generate(),
       partOf: Option[StorageNodeDatabaseId] = None,
       path: NodePath = NodePath.empty
   ): Building = {
     Building(
       id = None,
-      nodeId = None,
+      nodeId = Some(nodeId),
       name = name,
       area = Some(200),
       areaTo = Some(250),
@@ -324,12 +326,13 @@ trait NodeTypeInitializers { self: BaseDummyData =>
 
   def createRoom(
       name: String = "FooRoom",
+      nodeId: StorageNodeId = StorageNodeId.generate(),
       partOf: Option[StorageNodeDatabaseId] = None,
       path: NodePath = NodePath.empty
   ): Room = {
     Room(
       id = None,
-      nodeId = None,
+      nodeId = Some(nodeId),
       name = name,
       area = Some(50),
       areaTo = Some(55),
@@ -360,12 +363,13 @@ trait NodeTypeInitializers { self: BaseDummyData =>
 
   def createStorageUnit(
       name: String = "FooUnit",
+      nodeId: StorageNodeId = StorageNodeId.generate(),
       partOf: Option[StorageNodeDatabaseId] = None,
       path: NodePath = NodePath.empty
   ): StorageUnit = {
     StorageUnit(
       id = None,
-      nodeId = None,
+      nodeId = Some(nodeId),
       name = name,
       area = Some(1),
       areaTo = Some(2),

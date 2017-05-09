@@ -153,7 +153,7 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite with
         (repAfterIns2.json \ "waterDamageAssessment").as[Double] mustBe 82
         (repAfterIns2.json \ "routinesAndContingencyPlan").as[Double] mustBe 82
 
-        val roomId = (res1.json \ "id").as[Long]
+        val roomId = (res1.json \ "nodeId").as[String]
         val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId))
           .withHeaders(adminToken.asHeader)
           .delete()
