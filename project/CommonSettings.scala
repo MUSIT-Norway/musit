@@ -118,7 +118,7 @@ object CommonSettings {
           dockerAlias := DockerAlias(
             registryHost = dockerRepository.value,
             username = None,
-            name = s"musit_${packageName.value}",
+            name = packageName.value,
             tag = dockerRegistryHost.map(_ => "utv").orElse(Some(version.value))
           )
         )

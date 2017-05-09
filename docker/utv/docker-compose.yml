@@ -16,7 +16,7 @@ services:
       - REACT_APP_USE_DATAPORTEN
 
   thingaggregate:
-    image: musit_service_thing_aggregate:0.1-SNAPSHOT
+    image: service_thing_aggregate:0.1-SNAPSHOT
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
@@ -32,7 +32,7 @@ services:
       - SLICK_DB_PASSWORD
 
   actor:
-    image: musit_service_actor:0.1-SNAPSHOT
+    image: service_actor:0.1-SNAPSHOT
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
@@ -48,7 +48,7 @@ services:
       - SLICK_DB_PASSWORD
 
   geolocation:
-    image: musit_service_geo_location:0.1-SNAPSHOT
+    image: service_geo_location:0.1-SNAPSHOT
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
@@ -63,7 +63,7 @@ services:
       - SLICK_DB_PASSWORD
 
   auth:
-    image: musit_service_auth:0.1-SNAPSHOT
+    image: service_auth:0.1-SNAPSHOT
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
@@ -80,7 +80,7 @@ services:
       - SLICK_DB_PASSWORD
 
   storagefacility:
-    image: musit_service_storagefacility:0.1-SNAPSHOT
+    image: service_storagefacility:0.1-SNAPSHOT
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
@@ -96,7 +96,7 @@ services:
       - SLICK_DB_PASSWORD
 
   barcode:
-    image: musit_service_barcode:0.1-SNAPSHOT
+    image: service_barcode:0.1-SNAPSHOT
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
@@ -112,7 +112,7 @@ services:
       - SLICK_DB_PASSWORD
 
   management:
-    image: musit_service_management:0.1-SNAPSHOT
+    image: service_management:0.1-SNAPSHOT
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
