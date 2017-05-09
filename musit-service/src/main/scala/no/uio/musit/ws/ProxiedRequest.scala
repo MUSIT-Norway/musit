@@ -20,10 +20,12 @@ class ProxiedRequest(req: WSRequest, config: Configuration) {
 
 object ProxiedRequest {
 
-  val ProxyHost     = "ws.proxy.host"
-  val ProxyPort     = "ws.proxy.port"
-  val ProxyUser     = "ws.proxy.user"
-  val ProxyPassword = "ws.proxy.password"
+  private[this] val MusitWsProxyKey = "musit.ws.proxy"
+
+  val ProxyHost     = s"$MusitWsProxyKey.host"
+  val ProxyPort     = s"$MusitWsProxyKey.port"
+  val ProxyUser     = s"$MusitWsProxyKey.user"
+  val ProxyPassword = s"$MusitWsProxyKey.password"
 
 }
 
