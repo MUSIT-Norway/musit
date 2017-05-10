@@ -30,6 +30,9 @@ stages:
 
 test:
   stage: test
+  variables:
+    MUSIT_FUTURE_TIMEOUT: "15000"
+    MUSIT_FUTURE_INTERVAL: "50"
   script:
     - echo "Building and running tests..."
     - sbt -mem 2048 scalastyle clean coverage test coverageReport

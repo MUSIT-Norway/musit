@@ -2,21 +2,25 @@ package no.uio.musit.test
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.time.{Millis, Span}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.libs.ws.WSClient
 import play.api.test.TestServer
 
+import scala.util.Properties.envOrNone
+
 /**
  * Base trait to use
  */
 trait MusitSpec extends PlaySpec with ScalaFutures {
+  val timeout  = envOrNone("MUSIT_FUTURE_TIMEOUT").map(_.toDouble).getOrElse(5 * 1000d)
+  val interval = envOrNone("MUSIT_FUTURE_INTERVAL").map(_.toDouble).getOrElse(15d)
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
-    timeout = Span(15, Seconds),
-    interval = Span(50, Millis)
+    timeout = Span(timeout, Millis),
+    interval = Span(interval, Millis)
   )
 
 }
