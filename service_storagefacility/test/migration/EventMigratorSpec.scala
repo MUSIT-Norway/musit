@@ -37,7 +37,7 @@ class EventMigratorSpec
 
   "The EventMigrator" should {
 
-    s"migrate all old events and local objects to new versions" in {
+    "migrate all old events and local objects to new versions" ignore {
       val numInsOld    = bootstrap().futureValue
       val numOldEvents = migrationDao.countOld.futureValue
 
@@ -48,7 +48,7 @@ class EventMigratorSpec
       res.total mustBe numOldEvents
     }
 
-    s"migrate all old events added since last migration" in {
+    "migrate all old events added since last migration" ignore {
       val numInsOld    = bootstrap(51, 100, includeObjects = false).futureValue
       val numOldEvents = migrationDao.countOld.futureValue
 
