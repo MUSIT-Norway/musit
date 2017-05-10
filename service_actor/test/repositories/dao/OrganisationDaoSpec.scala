@@ -86,7 +86,7 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         )
         val res = orgDao.insert(org).futureValue
         res.fn mustBe "Testmuseet i Bergen"
-        res.id mustBe Some(OrgId(11))
+        res.id mustBe Some(OrgId(363))
       }
 
       "succeed when updating organization" in {
@@ -100,10 +100,10 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         )
         val res1 = orgDao.insert(org1).futureValue
         res1.fn mustBe "Museet i Foobar"
-        res1.id mustBe Some(OrgId(12))
+        res1.id mustBe Some(OrgId(364))
 
         val orgUpd = Organisation(
-          id = Some(OrgId(12)),
+          id = Some(OrgId(364)),
           fn = "Museet i Bar",
           tel = "99344321",
           web = "www.bar.no",
@@ -112,7 +112,7 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         )
 
         val resInt = orgDao.update(orgUpd).futureValue
-        val res    = orgDao.getById(OrgId(12)).futureValue
+        val res    = orgDao.getById(OrgId(364)).futureValue
         res.get.fn mustBe "Museet i Bar"
         res.get.tel mustBe "99344321"
         res.get.web mustBe "www.bar.no"
@@ -133,8 +133,8 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
       }
 
       "succeed when deleting organization" in {
-        orgDao.delete(OrgId(12)).futureValue mustBe 1
-        orgDao.getById(OrgId(12)).futureValue mustBe None
+        orgDao.delete(OrgId(364)).futureValue mustBe 1
+        orgDao.getById(OrgId(364)).futureValue mustBe None
       }
 
       "not be able to delete organization with invalid id" in {

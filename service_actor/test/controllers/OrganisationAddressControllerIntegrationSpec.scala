@@ -39,14 +39,14 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
   "The OrganisationAddressController" must {
 
     "get by id" in {
-      val res = wsUrl("/organisation/1/address/1")
+      val res = wsUrl("/organisation/1/address/10")
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
 
       res.status mustBe Status.OK
       val addr = res.json
-      (addr \ "id").as[Int] mustBe 1
+      (addr \ "id").as[Int] mustBe 10
       (addr \ "organisationId").as[Int] mustBe 1
     }
     "negative get by id" in {
