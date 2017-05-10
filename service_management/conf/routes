@@ -29,11 +29,11 @@ GET         /storagecontainer                                controllers.analysi
 #SampleType endpoints
 GET         /sampletypes                                     controllers.analysis.SampleTypeController.getSampleTypeList
 
-
-
 #Storage Medium endpoints
 GET         /storagemediums                                  controllers.analysis.StorageMediumController.getStorageMediumList
 
+#Purpose list endpoints
+GET         /purposes                                        controllers.analysis.PurposeController.listPurposes
 
 # Sample objects
 
