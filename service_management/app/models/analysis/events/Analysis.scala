@@ -1,5 +1,6 @@
 package models.analysis.events
 
+import models.analysis.ActorByIdOrName
 import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.events.AnalysisResults._
 import no.uio.musit.formatters.WithDateTimeFormatters
@@ -16,18 +17,18 @@ import scala.reflect.ClassTag
 sealed trait AnalysisEvent {
   val id: Option[EventId]
   val analysisTypeId: AnalysisTypeId
-  val doneBy: Option[ActorId]
+  val doneBy: Option[ActorByIdOrName]
   val doneDate: Option[DateTime]
   val partOf: Option[EventId]
   val objectId: Option[ObjectUUID]
   val note: Option[String]
   val registeredBy: Option[ActorId]
   val registeredDate: Option[DateTime]
-  val responsible: Option[ActorId]
-  val administrator: Option[ActorId]
+  val responsible: Option[ActorByIdOrName]
+  val administrator: Option[ActorByIdOrName]
   val updatedBy: Option[ActorId]
   val updatedDate: Option[DateTime]
-  val completedBy: Option[ActorId]
+  val completedBy: Option[ActorByIdOrName]
   val completedDate: Option[DateTime]
   val caseNumbers: Option[CaseNumbers]
   val status: Option[AnalysisStatus]
@@ -128,15 +129,15 @@ object AnalysisEvent extends WithDateTimeFormatters {
 case class Analysis(
     id: Option[EventId],
     analysisTypeId: AnalysisTypeId,
-    doneBy: Option[ActorId],
+    doneBy: Option[ActorByIdOrName],
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    responsible: Option[ActorId],
-    administrator: Option[ActorId],
+    responsible: Option[ActorByIdOrName],
+    administrator: Option[ActorByIdOrName],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
+    completedBy: Option[ActorByIdOrName],
     completedDate: Option[DateTime],
     objectId: Option[ObjectUUID],
     partOf: Option[EventId],
@@ -165,15 +166,15 @@ object Analysis extends WithDateTimeFormatters {
 case class AnalysisCollection(
     id: Option[EventId],
     analysisTypeId: AnalysisTypeId,
-    doneBy: Option[ActorId],
+    doneBy: Option[ActorByIdOrName],
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    responsible: Option[ActorId],
-    administrator: Option[ActorId],
+    responsible: Option[ActorByIdOrName],
+    administrator: Option[ActorByIdOrName],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
+    completedBy: Option[ActorByIdOrName],
     completedDate: Option[DateTime],
     note: Option[String],
     result: Option[AnalysisResult],
@@ -205,7 +206,7 @@ object AnalysisCollection extends WithDateTimeFormatters {
 
 case class SampleCreated(
     id: Option[EventId],
-    doneBy: Option[ActorId],
+    doneBy: Option[ActorByIdOrName],
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
@@ -213,18 +214,18 @@ case class SampleCreated(
     sampleObjectId: Option[ObjectUUID],
     externalLinks: Option[Seq[String]]
 ) extends AnalysisEvent {
-  val partOf: Option[EventId]          = None
-  val note: Option[String]             = None
-  val responsible: Option[ActorId]     = None
-  val administrator: Option[ActorId]   = None
-  val updatedBy: Option[ActorId]       = None
-  val updatedDate: Option[DateTime]    = None
-  val completedBy: Option[ActorId]     = None
-  val completedDate: Option[DateTime]  = None
-  val analysisTypeId                   = SampleCreated.sampleEventTypeId
-  val reason: Option[String]           = None
-  val status: Option[AnalysisStatus]   = None
-  val caseNumbers: Option[CaseNumbers] = None
+  val partOf: Option[EventId]                = None
+  val note: Option[String]                   = None
+  val responsible: Option[ActorByIdOrName]   = None
+  val administrator: Option[ActorByIdOrName] = None
+  val updatedBy: Option[ActorId]             = None
+  val updatedDate: Option[DateTime]          = None
+  val completedBy: Option[ActorByIdOrName]   = None
+  val completedDate: Option[DateTime]        = None
+  val analysisTypeId                         = SampleCreated.sampleEventTypeId
+  val reason: Option[String]                 = None
+  val status: Option[AnalysisStatus]         = None
+  val caseNumbers: Option[CaseNumbers]       = None
 }
 
 object SampleCreated extends WithDateTimeFormatters {

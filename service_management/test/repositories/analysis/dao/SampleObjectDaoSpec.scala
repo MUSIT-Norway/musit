@@ -31,7 +31,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       isExtracted = isExtracted,
       museumId = Museums.Test.id,
       status = SampleStatuses.Intact,
-      responsible = ActorId.generateAsOpt(),
+      responsible = ActorId.generateAsOpt().map(ActorById.apply),
       doneDate = Some(now),
       sampleId = None,
       sampleNum = None,
@@ -52,7 +52,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
   }
 
   def generateSampleEvent(
-      doneBy: Option[ActorId] = None,
+      doneBy: Option[ActorByIdOrName] = None,
       doneDate: Option[DateTime] = None,
       registeredBy: Option[ActorId] = Some(defaultActorId),
       registeredDate: Option[DateTime] = None,
@@ -165,7 +165,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val oid = ObjectUUID.generate()
       val so  = generateSample(oid, None, CollectionObject, isExtracted = true)
       val se = generateSampleEvent(
-        doneBy = so.registeredStamp.map(_.user),
+        doneBy = so.registeredStamp.map(r => ActorById(r.user)),
         doneDate = so.registeredStamp.map(_.date),
         registeredBy = so.registeredStamp.map(_.user),
         registeredDate = so.registeredStamp.map(_.date),
