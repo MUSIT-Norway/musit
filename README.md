@@ -1,4 +1,6 @@
-[![Run Status](https://api.shippable.com/projects/5756ccf92a8192902e22c72c/badge?branch=master)](https://app.shippable.com/projects/5756ccf92a8192902e22c72c) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/MUSIT-Norway/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Coverage) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/MUSIT-Norway/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Grade)
+[![build status](https://gitlab.com/MUSIT-Norway/musit/badges/master/build.svg)](https://gitlab.com/MUSIT-Norway/musit/commits/master)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/MUSIT-Norway/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Coverage)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/09d679eb62f64a87ad7a9bfc90c643cc)](https://www.codacy.com/app/MUSIT-Norway/musit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MUSIT-Norway/musit&amp;utm_campaign=Badge_Grade)
 
 # MUSIT 
 Norwegian university museums IT organization (MUSIT); cultural history and natural history database with store integration.
