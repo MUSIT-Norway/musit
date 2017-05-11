@@ -11,6 +11,7 @@ import org.scalatest.Inspectors.forAll
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 import play.api.test.Helpers._
+import no.uio.musit.formatters.DateTimeFormatters._
 
 class SampleObjectControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
@@ -30,7 +31,7 @@ class SampleObjectControllerIntegrationSpec
       parentObjectType: ObjectType = CollectionObject,
       isExtracted: Boolean = true,
       status: SampleStatus = Intact,
-      createdDate: DateTime,
+      doneDate: DateTime,
       maybeSampleId: Option[String],
       maybeExtId: Option[String],
       maybeNote: Option[String]
@@ -41,7 +42,7 @@ class SampleObjectControllerIntegrationSpec
       "museumId"             -> Museums.Test.id.underlying,
       "status"               -> status.key,
       "responsible"          -> responsibleActor.asString,
-      "createdDate"          -> Json.toJson(createdDate),
+      "doneDate"             -> Json.toJson(doneDate),
       "sampleType"           -> Json.obj("value" -> "wood slize", "subTypeValue" -> "age rings"),
       "size"                 -> Json.obj("unit" -> "cm3", "value" -> 12.0),
       "container"            -> "box",
@@ -71,6 +72,7 @@ class SampleObjectControllerIntegrationSpec
     (js \ "originatedObjectUuid").as[ObjectUUID] mustBe parentObject
     (js \ "isExtracted").as[Boolean] mustBe isExtracted
     (js \ "parentObjectId").asOpt[String] mustBe expectedParent
+    (js \ "sampleNum").asOpt[Int].getOrElse(0) must be > 0
     (js \ "sampleId").asOpt[String] mustBe expectedSampleId
     (js \ "externalId" \ "value").asOpt[String] mustBe expectedExtId
     (js \ "note").asOpt[String] mustBe expectedNote
@@ -129,7 +131,7 @@ class SampleObjectControllerIntegrationSpec
       val jsarr = (1 to 10).map { index =>
         createSaveJSON(
           maybeParent = Some(parentObject),
-          createdDate = cd,
+          doneDate = cd,
           maybeSampleId = Some(s"sample$index"),
           maybeExtId = Some(s"ext$index"),
           maybeNote = Some("This is a sample note")
@@ -204,8 +206,6 @@ class SampleObjectControllerIntegrationSpec
     }
 
     "return 404 when trying to delete a non-existing sample objectid" in {
-      val all = getAllForTestMuseum
-
       val objectId = "123e4567-e89b-12d3-a456-426655440000"
 
       val res =
@@ -215,8 +215,6 @@ class SampleObjectControllerIntegrationSpec
     }
 
     " return 400 when trying to delete a sample object with an invalid UUID" in {
-      val all = getAllForTestMuseum
-
       val objectId = "123"
 
       val res =

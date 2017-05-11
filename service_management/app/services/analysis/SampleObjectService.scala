@@ -53,6 +53,7 @@ class SampleObjectService @Inject()(
     def enrich(orig: SampleObject) = {
       so.copy(
         objectId = Some(oid),
+        sampleNum = orig.sampleNum,
         registeredStamp = orig.registeredStamp,
         updatedStamp = Some(ActorStamp(currUser.id, dateTimeNow)),
         isDeleted = orig.isDeleted

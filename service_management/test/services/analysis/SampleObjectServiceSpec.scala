@@ -52,8 +52,9 @@ class SampleObjectServiceSpec
       museumId = Museums.Test.id,
       status = status,
       responsible = Some(dummyActorId),
-      createdDate = Some(now),
+      doneDate = Some(now),
       sampleId = None,
+      sampleNum = None,
       externalId = None,
       sampleTypeId = Some(SampleTypeId(1)),
       size = Some(Size("cm2", 12.0)),
@@ -132,6 +133,26 @@ class SampleObjectServiceSpec
       addedId = Option(addedRes)
       val status = service.findById(addedId.get).futureValue
       status.successValue.get.status mustBe SampleStatuses.Degraded
+    }
+
+    "copy generated values from origin sample when updating" in {
+      val originSo = generateSampleObject(id = None, parentId = Some(parentId))
+
+      val id: ObjectUUID = service.add(originSo).futureValue.successValue
+      val originSavedSo  = service.findById(id).futureValue.successValue.value
+
+      val newSo = generateSampleObject(
+        id = Some(id),
+        parentId = Some(parentId)
+      )
+
+      val updatedSo = service.update(id, newSo).futureValue.successValue.value
+
+      updatedSo.objectId mustBe originSavedSo.objectId
+      updatedSo.registeredStamp mustBe originSavedSo.registeredStamp
+      updatedSo.isDeleted mustBe originSavedSo.isDeleted
+      updatedSo.sampleNum mustBe originSavedSo.sampleNum
+
     }
   }
 }

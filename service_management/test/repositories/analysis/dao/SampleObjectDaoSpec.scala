@@ -32,8 +32,9 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       museumId = Museums.Test.id,
       status = SampleStatuses.Intact,
       responsible = ActorId.generateAsOpt(),
-      createdDate = Some(now),
+      doneDate = Some(now),
       sampleId = None,
+      sampleNum = None,
       externalId = Some(ExternalId("external id", Some("external source"))),
       sampleTypeId = Some(SampleTypeId(1)),
       size = Some(Size("cm2", 12.0)),
@@ -144,6 +145,20 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val res2 = dao.findByUUID(oid).futureValue
       res2.successValue.value.objectId mustBe Some(oid)
       res2.successValue.value.sampleId mustBe Some("FOO-1")
+    }
+
+    "successfully update a SampleObject without incrementing the sampleNum" in {
+      val oid    = ObjectUUID.generate()
+      val origin = generateSample(oid, None, CollectionObject)
+
+      dao.insert(origin).futureValue.successValue
+      val insertedSample = dao.findByUUID(oid).futureValue.successValue.value
+
+      val updated = insertedSample.copy(note = Some("FOO-1"))
+      dao.update(updated).futureValue.successValue
+
+      val updatedResult = dao.findByUUID(oid).futureValue.successValue.value
+      updatedResult.sampleNum mustBe insertedSample.sampleNum
     }
 
     "return the object UUID of the inserted SampleObject and it's event" in {

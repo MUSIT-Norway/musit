@@ -63,6 +63,7 @@ trait AnalysisTables
       Option[ActorId],
       Option[DateTime],
       Option[String],
+      Option[Int],
       (Option[String], Option[String]),
       Option[SampleTypeId],
       (Option[Double], Option[String]),
@@ -79,7 +80,7 @@ trait AnalysisTables
 
   type TreatmentRow = (Int, String, String)
 
-  type StorageMediumRow = (Int, String, String)
+  type StorageMediumRow    = (Int, String, String)
   type StorageContainerRow = (Int, String, String)
 
   type SampleTypeRow = (SampleTypeId, String, String, Option[String], Option[String])
@@ -176,8 +177,9 @@ trait AnalysisTables
     val museumId         = column[MuseumId]("MUSEUM_ID")
     val status           = column[SampleStatus]("STATUS")
     val responsible      = column[Option[ActorId]]("RESPONSIBLE_ACTOR_ID")
-    val createdDate      = column[Option[DateTime]]("CREATED_DATE")
+    val doneDate         = column[Option[DateTime]]("DONE_DATE")
     val sampleId         = column[Option[String]]("SAMPLE_ID")
+    val sampleNum        = column[Option[Int]]("SAMPLE_NUM", O.AutoInc, O.Unique)
     val externalId       = column[Option[String]]("EXTERNAL_ID")
     val externalIdSource = column[Option[String]]("EXTERNAL_ID_SOURCE")
     val sampleTypeId     = column[Option[SampleTypeId]]("SAMPLE_TYPE_ID")
@@ -205,8 +207,9 @@ trait AnalysisTables
         museumId,
         status,
         responsible,
-        createdDate,
+        doneDate,
         sampleId,
+        sampleNum,
         (externalId, externalIdSource),
         sampleTypeId,
         (size, sizeUnit),
@@ -275,7 +278,7 @@ trait AnalysisTables
 
     // scalastyle:on method.name
   }
-  
+
   /**
    * Representation of the MUSARK_ANALYSIS.STORAGEMEDIUM table
    */
@@ -402,8 +405,9 @@ trait AnalysisTables
       so.museumId,
       so.status,
       so.responsible,
-      so.createdDate,
+      so.doneDate,
       so.sampleId,
+      so.sampleNum,
       (so.externalId.map(_.value), so.externalId.flatMap(_.source)),
       so.sampleTypeId,
       (so.size.map(_.value), so.size.map(_.unit)),
@@ -432,10 +436,10 @@ trait AnalysisTables
    */
   protected[dao] def fromSampleObjectRow(tuple: SampleObjectRow): SampleObject = {
     val parentObject = tuple._2
-    val external     = tuple._9
-    val sampleTypeId = tuple._10
-    val size         = tuple._11
-    val userStamps   = tuple._19
+    val external     = tuple._10
+    val sampleTypeId = tuple._11
+    val size         = tuple._12
+    val userStamps   = tuple._20
 
     SampleObject(
       objectId = Option(tuple._1),
@@ -445,21 +449,22 @@ trait AnalysisTables
       museumId = tuple._4,
       status = tuple._5,
       responsible = tuple._6,
-      createdDate = tuple._7,
+      doneDate = tuple._7,
       sampleId = tuple._8,
+      sampleNum = tuple._9,
       externalId = external._1.map(ExternalId(_, external._2)),
       sampleTypeId = sampleTypeId,
       size = for {
         value <- size._1
         unit  <- size._2
       } yield Size(unit, value),
-      container = tuple._12,
-      storageMedium = tuple._13,
-      note = tuple._14,
-      treatment = tuple._15,
-      leftoverSample = tuple._16,
-      description = tuple._17,
-      originatedObjectUuid = tuple._18,
+      container = tuple._13,
+      storageMedium = tuple._14,
+      note = tuple._15,
+      treatment = tuple._16,
+      leftoverSample = tuple._17,
+      description = tuple._18,
+      originatedObjectUuid = tuple._19,
       registeredStamp = for {
         actor    <- userStamps._1
         dateTime <- userStamps._2
@@ -468,7 +473,7 @@ trait AnalysisTables
         actor    <- userStamps._3
         dateTime <- userStamps._4
       } yield ActorStamp(actor, dateTime),
-      isDeleted = tuple._20
+      isDeleted = tuple._21
     )
   }
 
@@ -495,7 +500,7 @@ trait AnalysisTables
       noStorageContainer = tuple._2,
       enStorageContainer = tuple._3
     )
-    
+
   /**
    * Converts a StorageMediumRow tuple into an instance of StorageMedium
    *

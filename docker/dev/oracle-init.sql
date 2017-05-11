@@ -372,6 +372,13 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
 -- ===========================================================================
 -- Tables for Analysis and SampleObject management
 -- ===========================================================================
+CREATE SEQUENCE MUSARK_ANALYSIS.sample_object_sample_num_seq
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOCYCLE
+NOCACHE;
+
 CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   sample_uuid            VARCHAR2(36)             NOT NULL,
   parent_object_uuid     VARCHAR2(36),
@@ -379,9 +386,10 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   is_extracted           INTEGER DEFAULT 0        NOT NULL,
   museum_id              INTEGER                  NOT NULL,
   status                 INTEGER DEFAULT 1        NOT NULL,
-  responsible_actor_id   VARCHAR2(36)             NOT NULL,
-  created_date           TIMESTAMP WITH TIME ZONE NOT NULL,
+  responsible_actor_id   VARCHAR2(36),
+  done_date              TIMESTAMP WITH TIME ZONE,
   sample_id              VARCHAR2(100),
+  sample_num             INTEGER DEFAULT MUSARK_ANALYSIS.sample_object_sample_num_seq.nextval,
   external_id            VARCHAR2(100),
   external_id_source     VARCHAR2(100),
   sample_type_id         INTEGER,
