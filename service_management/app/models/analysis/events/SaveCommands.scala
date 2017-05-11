@@ -198,6 +198,7 @@ object SaveCommands {
         updatedDate = Some(now),
         completedBy = completedBy,
         completedDate = completedDate,
+        caseNumbers = caseNumbers,
         note = note,
         restriction = restriction.map(
           r =>
