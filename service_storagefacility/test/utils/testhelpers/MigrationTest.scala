@@ -16,6 +16,7 @@ import no.uio.musit.MusitResults.{
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithApp
 import no.uio.musit.test.matchers.MusitResultValues
+import org.scalatest.BeforeAndAfterAll
 import repositories.storage.old_dao.event.EventDao
 import repositories.storage.old_dao.{LocalObjectDao => OldLocObjDao}
 import services.old.{
@@ -26,15 +27,16 @@ import services.old.{
 }
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 // TODO: This can be removed when Migration has been performed.
 
-trait MigrationTest extends MusitResultValues {
+trait MigrationTest extends MusitResultValues with BeforeAndAfterAll {
   self: MusitSpecWithApp with NodeGenerators with EventGenerators_Old =>
 
-  implicit val as: ActorSystem   = ActorSystem()
+  implicit val as: ActorSystem   = musitFakeApp.actorSystem
   implicit val mat: Materializer = ActorMaterializer()
 
   val oldEventDao: EventDao           = fromInstanceCache[EventDao]
@@ -43,6 +45,10 @@ trait MigrationTest extends MusitResultValues {
   val nodeService: OldNodeService     = fromInstanceCache[OldNodeService]
   val envReqService: OldEnvReqService = fromInstanceCache[OldEnvReqService]
   val oldLocDao: OldLocObjDao         = fromInstanceCache[OldLocObjDao]
+
+  override protected def afterAll() = {
+    Await.result(as.terminate(), 1 minute)
+  }
 
   // scalastyle:off
   def bootstrap(

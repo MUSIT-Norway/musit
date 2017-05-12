@@ -20,7 +20,7 @@ class MigrationDaoSpec
 
   val migDao = fromInstanceCache[MigrationDao]
 
-  val total = Await.result(bootstrap(), 1 minute) + 1
+  val total = Await.result(bootstrap(), 1 minute)
 
   "MigrationDao" should {
 
@@ -35,7 +35,7 @@ class MigrationDaoSpec
           else state :+ currId
         }
         .futureValue
-        .size mustBe 271
+        .size mustBe total
     }
   }
 
