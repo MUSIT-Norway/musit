@@ -34,8 +34,18 @@ trait AnalysisTables
   val sampleTypeTable       = TableQuery[SampleTypeTable]
 
   // scalastyle:off line.size.limit
-  type EventTypeRow =
-    (AnalysisTypeId, Category, String, Option[String], Option[String], Option[JsValue])
+  type AnalysisTypeRow =
+    (
+        AnalysisTypeId,
+        Category,
+        String,
+        String,
+        Option[String],
+        Option[String],
+        Option[String],
+        Option[JsValue],
+        Option[JsValue]
+    )
 
   type EventRow = (
       Option[EventId],
@@ -92,18 +102,31 @@ trait AnalysisTables
    */
   class AnalysisTypeTable(
       val tag: Tag
-  ) extends Table[EventTypeRow](tag, Some(SchemaName), AnalysisEventTypeTableName) {
+  ) extends Table[AnalysisTypeRow](tag, Some(SchemaName), AnalysisEventTypeTableName) {
 
-    val typeId      = column[AnalysisTypeId]("TYPE_ID", O.PrimaryKey)
-    val category    = column[Category]("CATEGORY")
-    val name        = column[String]("NAME")
-    val shortName   = column[Option[String]]("SHORT_NAME")
-    val collections = column[Option[String]]("COLLECTIONS")
-    // TODO: Need col to tag if used by Zoology, Botanics, Archeology or Ethnography?
-    val attributes = column[Option[JsValue]]("ATTRIBUTES")
+    val typeId       = column[AnalysisTypeId]("TYPE_ID", O.PrimaryKey, O.AutoInc)
+    val category     = column[Category]("CATEGORY")
+    val noName       = column[String]("NO_NAME")
+    val enName       = column[String]("EN_NAME")
+    val shortName    = column[Option[String]]("SHORT_NAME")
+    val collections  = column[Option[String]]("COLLECTIONS")
+    val descAttrType = column[Option[String]]("EXTRA_DESCRIPTION_TYPE")
+    val descAttrs    = column[Option[JsValue]]("EXTRA_DESCRIPTION_ATTRIBUTES")
+    val resAttrs     = column[Option[JsValue]]("EXTRA_RESULT_ATTRIBUTES")
 
     // scalastyle:off method.name
-    def * = (typeId, category, name, shortName, collections, attributes)
+    def * =
+      (
+        typeId,
+        category,
+        noName,
+        enName,
+        shortName,
+        collections,
+        descAttrType,
+        descAttrs,
+        resAttrs
+      )
 
     // scalastyle:on method.name
   }
@@ -303,19 +326,24 @@ trait AnalysisTables
   }
 
   /**
-   * Converts an EventTypeRow tuple to an instance of AnalysisType.
+   * Converts an AnalysisTypeRow tuple to an instance of AnalysisType.
    *
-   * @param t the EventTypeRow tuple to convert
+   * @param t the AnalysisTypeRow tuple to convert
    * @return the corresponding AnalysisType
    */
-  protected[dao] def fromAnalysisTypeRow(t: EventTypeRow): AnalysisType = {
+  protected[dao] def fromAnalysisTypeRow(t: AnalysisTypeRow): AnalysisType = {
     AnalysisType(
       id = t._1,
       category = t._2,
-      name = t._3,
-      shortName = t._4,
-      collections = parseCollectionUUIDCol(t._5),
-      extraAttributes = t._6.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt)
+      noName = t._3,
+      enName = t._4,
+      shortName = t._5,
+      collections = parseCollectionUUIDCol(t._6),
+      extraDescriptionType = t._7,
+      extraDescriptionAttributes =
+        t._8.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt),
+      extraResultAttributes =
+        t._9.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt)
     )
   }
 
@@ -326,7 +354,7 @@ trait AnalysisTables
    * @param event the event to convert to a tuple
    * @return an EventRow tuple
    */
-  protected[dao] def asEventTuple(event: AnalysisEvent): EventRow = {
+  protected[dao] def asEventTuple(event: AnalysisModuleEvent): EventRow = {
     (
       event.id,
       event.analysisTypeId,
@@ -339,31 +367,35 @@ trait AnalysisTables
       event.note,
       event.status,
       event.caseNumbers,
-      Json.toJson[AnalysisEvent](event)
+      Json.toJson[AnalysisModuleEvent](event)
     )
   }
 
   /**
-   * Converts an EventRow tuple into an instance of AnalysisEvent.
+   * Converts an EventRow tuple into an instance of analysis AnalysisModuleEvent.
    *
    * @param tuple EventRow
-   * @return an Option of AnalysisEvent.
+   * @return an Option of AnalysisModuleEvent.
    */
-  protected[dao] def toAnalysisEvent(tuple: EventRow): Option[AnalysisEvent] =
-    Json.fromJson[AnalysisEvent](tuple._12).asOpt.map {
+  protected[dao] def toAnalysisModuleEvent(
+      tuple: EventRow
+  ): Option[AnalysisModuleEvent] =
+    Json.fromJson[AnalysisModuleEvent](tuple._12).asOpt.map {
       case a: Analysis            => a.copy(id = tuple._1)
       case ac: AnalysisCollection => ac.copy(id = tuple._1)
       case sc: SampleCreated      => sc.copy(id = tuple._1)
     }
 
   protected[dao] def toAnalysis(tuple: EventRow): Option[Analysis] =
-    Json.fromJson[AnalysisEvent](tuple._12).asOpt.flatMap {
+    Json.fromJson[AnalysisModuleEvent](tuple._12).asOpt.flatMap {
       case a: Analysis => Some(a.copy(id = tuple._1))
       case _           => None
     }
 
-  protected[dao] def toAnalysisCollection(tuple: EventRow): Option[AnalysisCollection] =
-    Json.fromJson[AnalysisEvent](tuple._12).asOpt.flatMap {
+  protected[dao] def toAnalysisCollection(
+      tuple: EventRow
+  ): Option[AnalysisCollection] =
+    Json.fromJson[AnalysisModuleEvent](tuple._12).asOpt.flatMap {
       case ac: AnalysisCollection => Some(ac.copy(id = tuple._1))
       case _                      => None
     }

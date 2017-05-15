@@ -1,33 +1,28 @@
 package models.analysis.events
 
-import java.util.UUID
-
-import no.uio.musit.models.{CollectionUUID, MusitUUID, MusitUUIDOps}
+import no.uio.musit.models.{CollectionUUID, MusitId}
 import play.api.libs.json._
 
-case class AnalysisTypeId(underlying: UUID) extends MusitUUID
+case class AnalysisTypeId(underlying: Long) extends MusitId
 
-object AnalysisTypeId extends MusitUUIDOps[AnalysisTypeId] {
+object AnalysisTypeId {
 
-  implicit val reads: Reads[AnalysisTypeId] = __.read[String].map { s =>
-    AnalysisTypeId(UUID.fromString(s))
-  }
+  implicit val reads: Reads[AnalysisTypeId] = __.read[Long].map(AnalysisTypeId.apply)
 
-  implicit val writes: Writes[AnalysisTypeId] = Writes(id => JsString(id.asString))
-
-  override implicit def fromUUID(uuid: UUID): AnalysisTypeId = AnalysisTypeId(uuid)
-
-  override def generate() = AnalysisTypeId(UUID.randomUUID())
+  implicit val writes: Writes[AnalysisTypeId] = Writes(n => JsNumber(n.underlying))
 
 }
 
 case class AnalysisType(
     id: AnalysisTypeId,
     category: Category,
-    name: String,
+    noName: String,
+    enName: String,
     shortName: Option[String] = None,
-    collections: Seq[CollectionUUID],
-    extraAttributes: Option[Map[String, String]] = None
+    collections: Seq[CollectionUUID] = Seq.empty,
+    extraDescriptionType: Option[String] = None,
+    extraDescriptionAttributes: Option[Map[String, String]] = None,
+    extraResultAttributes: Option[Map[String, String]] = None
 )
 
 object AnalysisType {

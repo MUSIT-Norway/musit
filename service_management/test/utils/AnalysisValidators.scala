@@ -1,10 +1,6 @@
 package utils
 
-import models.analysis.events.AnalysisResults.{
-  AnalysisResult,
-  DatingResult,
-  GenericResult
-}
+import models.analysis.events.AnalysisResults.{AnalysisResult, AgeResult, GenericResult}
 import no.uio.musit.models.ActorId
 import no.uio.musit.test.matchers.DateTimeMatchers
 import org.joda.time.DateTime
@@ -27,10 +23,10 @@ trait AnalysisValidators extends DateTimeMatchers with MustMatchers {
           expRegDate
         )
 
-      case dr: DatingResult =>
+      case dr: AgeResult =>
         validateDatingResult(
           dr,
-          expected.asInstanceOf[DatingResult],
+          expected.asInstanceOf[AgeResult],
           expRegBy,
           expRegDate
         )
@@ -50,8 +46,8 @@ trait AnalysisValidators extends DateTimeMatchers with MustMatchers {
   }
 
   def validateDatingResult(
-      actual: DatingResult,
-      expected: DatingResult,
+      actual: AgeResult,
+      expected: AgeResult,
       expRegBy: Option[ActorId] = None,
       expRegDate: Option[DateTime] = None
   ) = {

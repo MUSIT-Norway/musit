@@ -1,156 +1,32 @@
 package controllers.analysis
 
-import models.analysis.ActorById
-import models.analysis.events.AnalysisResults.GenericResult
-import models.analysis.events.{Analysis, AnalysisCollection, Category, EventCategories}
+import models.analysis.events.AnalysisExtras.ElementalICPAttributes.ICP_MS
+import models.analysis.events.AnalysisExtras.IsotopeAttributes.StrontiumNeodymium
+import models.analysis.events.AnalysisExtras.{
+  ElementalICPAttributes,
+  IsotopeAttributes,
+  TomographyAttributes
+}
+import models.analysis.events.AnalysisExtras.TomographyAttributes.ComputerTomography
+import models.analysis.events.EventCategories
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
-import no.uio.musit.time
 import org.joda.time.DateTime
-import org.scalatest.Inspectors.forAll
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
 
 class AnalysisControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
-    with DateTimeMatchers {
+    with DateTimeMatchers
+    with AnalysisJsonGenerators
+    with AnalysisJsonValidators {
 
   val mid   = MuseumId(99)
   val token = BearerToken(FakeUsers.testAdminToken)
-  val adminId = Json.obj(
-    "type"  -> ActorById.key,
-    "value" -> ActorId.unsafeFromString(FakeUsers.testAdminId)
-  )
-
-  // test data
-  val cnRatioTypeId = "fabe6462-ea94-43ce-bf7f-724a4191e114"
-  val dummyObjectId = ObjectUUID.generate()
-
-  val dummyNamedUser = "Ola Normann"
-
-  def createSaveAnalysisJSON(
-      eventDate: Option[DateTime],
-      oid: ObjectUUID,
-      note: Option[String] = None
-  ): JsValue = {
-    val js1 = Json.obj(
-      "analysisTypeId" -> cnRatioTypeId,
-      "objectId"       -> oid.asString,
-      "responsible"    -> adminId,
-      "administrator"  -> adminId,
-      "completedBy"    -> adminId
-    )
-    val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
-    eventDate.map { d =>
-      js2 ++ Json.obj("eventDate" -> Json.toJson[DateTime](d))
-    }.getOrElse(js2)
-  }
-
-  def createSaveAnalysisCollectionJSON(
-      eventDate: Option[DateTime],
-      objects: Seq[ObjectUUID],
-      note: Option[String],
-      caseNumbers: Option[Seq[String]]
-  ): JsValue = {
-    val js1 = Json.obj("analysisTypeId" -> cnRatioTypeId)
-    val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
-    val js3 = eventDate.map { d =>
-      js2 ++ Json.obj("eventDate" -> Json.toJson[DateTime](d))
-    }.getOrElse(js2)
-    val js4 = caseNumbers.map { cn =>
-      js3 ++ Json.obj("caseNumbers" -> JsArray(cn.map(JsString)))
-    }.getOrElse(js3)
-
-    js4 ++ Json.obj(
-      "objectIds" -> objects.map(_.asString),
-      "restriction" -> Json.obj(
-        "requester"      -> dummyNamedUser,
-        "reason"         -> "secret",
-        "expirationDate" -> time.dateTimeNow.plusDays(20).toString("yyyy-MM-dd")
-      )
-    )
-  }
-
-  def createGenericResultJSON(
-      extRef: Option[Seq[String]],
-      comment: Option[String]
-  ): JsValue = {
-
-    val js1 = Json.obj("type" -> GenericResult.resultType)
-    val js2 = comment.map(c => js1 ++ Json.obj("comment" -> c)).getOrElse(js1)
-    extRef.map(er => js2 ++ Json.obj("extRef" -> er)).getOrElse(js2)
-  }
-
-  def createDatingResultJSON(
-      extRef: Option[Seq[String]],
-      comment: Option[String],
-      age: Option[String]
-  ): JsValue = {
-    val js1 = Json.obj("type" -> GenericResult.resultType)
-    val js2 = comment.map(c => js1 ++ Json.obj("comment" -> c)).getOrElse(js1)
-    val js3 = extRef.map(er => js2 ++ Json.obj("extRef" -> er)).getOrElse(js2)
-    age.map(a => js3 ++ Json.obj("age" -> a)).getOrElse(js3)
-  }
-
-  def validateAnalysisType(
-      expectedCategory: Category,
-      expectedName: String,
-      expectedShortName: Option[String],
-      expectedExtraAttributes: Option[Map[String, String]],
-      actual: JsValue
-  ) = {
-    (actual \ "id").asOpt[String] must not be empty
-    (actual \ "category").as[Int] mustBe expectedCategory.id
-    (actual \ "name").as[String] mustBe expectedName
-    (actual \ "shortName").asOpt[String] mustBe expectedShortName
-    (actual \ "extraAttributes").asOpt[Map[String, String]] mustBe expectedName
-  }
-
-  def validateAnalysis(
-      expectedId: Long,
-      expectedTypeId: String,
-      expectedEventDate: Option[DateTime],
-      expectedObject: Option[ObjectUUID],
-      expectedParent: Option[Long],
-      expectedNote: Option[String],
-      actual: JsValue
-  ) = {
-    (actual \ "type").as[String] mustBe Analysis.discriminator
-    (actual \ "id").as[Long] mustBe expectedId
-    (actual \ "analysisTypeId").as[String] mustBe expectedTypeId
-    (actual \ "eventDate").asOpt[DateTime] mustApproximate expectedEventDate
-    (actual \ "objectId").asOpt[String] mustBe expectedObject.map(_.asString)
-    (actual \ "partOf").asOpt[Long] mustBe expectedParent
-    (actual \ "note").asOpt[String] mustBe expectedNote
-    (actual \ "registeredBy").asOpt[String] must not be empty
-    (actual \ "registeredDate").asOpt[DateTime] must not be empty
-  }
-
-  def validateAnalysisCollection(
-      expectedId: Long,
-      expectedTypeId: String,
-      expectedEventDate: Option[DateTime],
-      expectedNote: Option[String],
-      numChildren: Int,
-      actual: JsValue
-  ) = {
-    (actual \ "type").as[String] mustBe AnalysisCollection.discriminator
-    (actual \ "id").as[Long] mustBe expectedId
-    (actual \ "analysisTypeId").as[String] mustBe expectedTypeId
-    (actual \ "eventDate").asOpt[DateTime] mustApproximate expectedEventDate
-    (actual \ "registeredBy").asOpt[String] must not be empty
-    (actual \ "registeredDate").asOpt[DateTime] must not be empty
-    (actual \ "restriction" \ "requester").as[String] mustBe dummyNamedUser
-    forAll(0 until numChildren) { index =>
-      (actual \ "events" \ index \ "type").as[String] mustBe Analysis.discriminator
-      (actual \ "events" \ index \ "partOf").as[Long] mustBe expectedId
-      (actual \ "events" \ index \ "note").asOpt[String] mustBe expectedNote
-    }
-  }
 
   val baseUrl = (mid: Int) => s"/$mid/analyses"
 
@@ -177,7 +53,7 @@ class AnalysisControllerIntegrationSpec
         val res = wsUrl(typesUrl(mid)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 107
+        res.json.as[JsArray].value.size mustBe 45
       }
 
       "return all event types in an analysis category" in {
@@ -186,10 +62,10 @@ class AnalysisControllerIntegrationSpec
           wsUrl(typeCatUrl(mid)(catId)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 8
+        res.json.as[JsArray].value.size mustBe 2
       }
 
-      "return all event types related to a museum collection" in {
+      "return all event types related to a museum collection" ignore {
         val cid = MuseumCollections.Entomology.uuid
         val res = wsUrl(typeColUrl(mid)(cid.asString))
           .withHeaders(token.asHeader)
@@ -204,32 +80,79 @@ class AnalysisControllerIntegrationSpec
 
     "working with analysis" should {
 
-      "save new analysis data" in {
+      "save a new generic analysis" in {
         val edate = DateTime.now
-        val ajs   = createSaveAnalysisJSON(Some(edate), dummyObjectId)
+        val js = createSaveAnalysisCollectionJSON(
+          eventDate = Some(edate),
+          objects = Seq(dummyObjectId)
+        )
 
-        saveAnalysis(ajs).status mustBe CREATED
+        saveAnalysis(js).status mustBe CREATED // creates ids 1 to 2
+      }
+
+      "save a new tomography analysis with extra attributes defined" in {
+        val edate = DateTime.now
+        val jso = createSaveAnalysisCollectionJSON(
+          typeId = tomographyTypeId,
+          eventDate = Some(edate),
+          objects = Seq(dummyObjectId),
+          caseNumbers = Some(Seq("abc", "def"))
+        )
+        val js = appendExtraAttributes(jso, TomographyAttributes(ComputerTomography))
+
+        saveAnalysis(js).status mustBe CREATED // creates ids 3 to 4
+      }
+
+      "save a new tomography analysis without extra attributes defined" in {
+        val edate = DateTime.now
+        val js = createSaveAnalysisCollectionJSON(
+          typeId = tomographyTypeId,
+          eventDate = Some(edate),
+          objects = Seq(dummyObjectId),
+          caseNumbers = Some(Seq("abc", "def"))
+        )
+
+        saveAnalysis(js).status mustBe CREATED // creates ids 5 to 6
+      }
+
+      "return HTTP 400 when using wrong extra attributes for analysis collection" in {
+        val edate = DateTime.now
+        val jso = createSaveAnalysisCollectionJSON(
+          typeId = tomographyTypeId,
+          eventDate = Some(edate),
+          objects = Seq(dummyObjectId),
+          caseNumbers = Some(Seq("abc", "def"))
+        )
+        val js = appendExtraAttributes(jso, ElementalICPAttributes(ICP_MS))
+
+        saveAnalysis(js).status mustBe BAD_REQUEST
       }
 
       "get an analysis with a specific Id" in {
         val edate = DateTime.now
         val oid   = ObjectUUID.generate()
         val note  = Some("Foobar")
-        val ajs   = createSaveAnalysisJSON(Some(edate), oid, note)
+        val ajs = createSaveAnalysisCollectionJSON(
+          eventDate = Some(edate),
+          objects = Seq(oid),
+          note = note
+        )
 
-        saveAnalysis(ajs).status mustBe CREATED
+        saveAnalysis(ajs).status mustBe CREATED // creates ids 7 to 8
 
-        // We can assume the ID is 2 since we've only created 1 analysis before this
+        // We can assume the ID is 8 since we've only created 2 cols
+        // with 1 analysis each before this.
         val res =
-          wsUrl(getAnalysisUrl(mid)(2L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(8L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
+
         validateAnalysis(
-          expectedId = 2L,
-          expectedTypeId = cnRatioTypeId,
+          expectedId = 8L,
+          expectedTypeId = liquidChromatography,
           expectedEventDate = Some(edate),
           expectedObject = Some(oid),
-          expectedParent = None,
+          expectedParent = Some(7L),
           expectedNote = note,
           res.json
         )
@@ -255,13 +178,13 @@ class AnalysisControllerIntegrationSpec
         val note = Some("Foobar")
         val oids = (1 to 4).map(_ => ObjectUUID.generate()) :+ dummyObjectId
         val js = createSaveAnalysisCollectionJSON(
-          Some(edate),
-          oids,
-          note,
-          Some(Seq("cn-1", "cn-2"))
+          eventDate = Some(edate),
+          objects = oids,
+          note = note,
+          caseNumbers = Some(Seq("cn-1", "cn-2"))
         )
 
-        saveAnalysis(js).status mustBe CREATED
+        saveAnalysis(js).status mustBe CREATED // creates ids 9 to 13
       }
 
       "return an analysis collection with a specific ID" in {
@@ -274,12 +197,12 @@ class AnalysisControllerIntegrationSpec
           .withSecondOfMinute(44)
 
         val res =
-          wsUrl(getAnalysisUrl(mid)(3L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(9L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         validateAnalysisCollection(
-          expectedId = 3L,
-          expectedTypeId = cnRatioTypeId,
+          expectedId = 9L,
+          expectedTypeId = liquidChromatography,
           expectedEventDate = Some(edate),
           expectedNote = Some("Foobar"),
           numChildren = 5,
@@ -288,12 +211,8 @@ class AnalysisControllerIntegrationSpec
       }
 
       "get all analyses in an analysis collection/batch" in {
-        // This test _assumes_ that we've only added 3 events previously. Where
-        // the 3rd event was the above AnalysisCollection. Meaning the event ID
-        // given to the AnalysisCollection should be 3L. Children should get ID's
-        // from 4L to 8L.
         val res =
-          wsUrl(getChildrenUrl(mid)(3L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getChildrenUrl(mid)(9L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 5
@@ -306,7 +225,7 @@ class AnalysisControllerIntegrationSpec
           .futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 2
+        res.json.as[JsArray].value.size mustBe 4
       }
 
       "save a generic result for an analysis" in {

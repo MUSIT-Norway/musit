@@ -2,37 +2,91 @@ package models.analysis.events
 
 import models.analysis.ActorByIdOrName
 import models.analysis.AnalysisStatuses.AnalysisStatus
+import models.analysis.events.AnalysisExtras._
 import models.analysis.events.AnalysisResults._
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, CaseNumbers, EventId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json._
 
+import scala.concurrent.Future
 import scala.reflect.ClassTag
+
+sealed trait AnalysisModuleEvent {
+  val id: Option[EventId]
+  val analysisTypeId: AnalysisTypeId
+  val registeredBy: Option[ActorId]
+  val registeredDate: Option[DateTime]
+  val doneBy: Option[ActorByIdOrName]
+  val doneDate: Option[DateTime]
+  val objectId: Option[ObjectUUID]
+  val partOf: Option[EventId]
+  val note: Option[String]
+  val status: Option[AnalysisStatus]
+  val caseNumbers: Option[CaseNumbers]
+}
+
+trait TypedAnalysisEvent {
+  protected val mustBeTypeMsg = "No event type was specified"
+  protected val tpe           = "type"
+}
+
+object AnalysisModuleEvent extends TypedAnalysisEvent {
+
+  /**
+   * The implicit Reads for all events in the analysis module. It ensures that
+   * the JSON message aligns with one of the types defined in the
+   * AnalysisModuleEvent ADT. If not the parsing will (and should) fail.
+   */
+  implicit val reads: Reads[AnalysisModuleEvent] = Reads { jsv =>
+    (jsv \ tpe).validateOpt[String] match {
+      case JsSuccess(maybeType, path) =>
+        maybeType.map {
+          case SampleCreated.discriminator =>
+            SampleCreated.format.reads(jsv)
+
+          case _ =>
+            AnalysisEvent.reads.reads(jsv)
+
+        }.getOrElse {
+          JsError(path, mustBeTypeMsg)
+        }
+
+      case err: JsError =>
+        err
+    }
+  }
+
+  /**
+   * Implicit Writes for analysis module events. Ensures that each type
+   * is written with their specific type discriminator. This ensure that the
+   * JSON message is readable on the other end.
+   */
+  implicit val writes: Writes[AnalysisModuleEvent] = Writes {
+    case ae: AnalysisEvent =>
+      AnalysisEvent.writes.writes(ae)
+
+    case sc: SampleCreated =>
+      SampleCreated.format.writes(sc).as[JsObject] ++
+        Json.obj(tpe -> SampleCreated.discriminator)
+  }
+}
 
 /**
  * Describes the least common denominator for analysis events. Different
  * implementations may contain more fields than this trait.
  */
-sealed trait AnalysisEvent {
-  val id: Option[EventId]
-  val analysisTypeId: AnalysisTypeId
-  val doneBy: Option[ActorByIdOrName]
-  val doneDate: Option[DateTime]
-  val partOf: Option[EventId]
-  val objectId: Option[ObjectUUID]
-  val note: Option[String]
-  val registeredBy: Option[ActorId]
-  val registeredDate: Option[DateTime]
+sealed trait AnalysisEvent extends AnalysisModuleEvent {
   val responsible: Option[ActorByIdOrName]
   val administrator: Option[ActorByIdOrName]
   val updatedBy: Option[ActorId]
   val updatedDate: Option[DateTime]
   val completedBy: Option[ActorByIdOrName]
   val completedDate: Option[DateTime]
-  val caseNumbers: Option[CaseNumbers]
-  val status: Option[AnalysisStatus]
   val reason: Option[String]
+  val extraAttributes: Option[ExtraAttributes]
+  val result: Option[AnalysisResult]
 
   /**
    * Returns an AnalysisEvent that contains a result.
@@ -41,7 +95,6 @@ sealed trait AnalysisEvent {
     this match {
       case a: Analysis            => a.copy(result = res)
       case ac: AnalysisCollection => ac.copy(result = res)
-      case sc                     => sc
     }
   }
 
@@ -55,26 +108,17 @@ sealed trait AnalysisEvent {
     this match {
       case a: Analysis            => Option(a.copy(result = res).asInstanceOf[A])
       case ac: AnalysisCollection => Option(ac.copy(result = res).asInstanceOf[A])
-      case _                      => None
     }
 }
 
-object AnalysisEvent extends WithDateTimeFormatters {
+object AnalysisEvent extends TypedAnalysisEvent with WithDateTimeFormatters {
 
-  private val mustBeTypeMsg = "Type must be either Analysis or AnalysisCollection"
+  override protected val mustBeTypeMsg =
+    "Type must be either Analysis or AnalysisCollection"
 
-  // key for type discriminator used in JSON formatters
-  private val tpe = "type"
-
-  /**
-   * The implicit Reads for all AnalysisEvent implementations. It ensures that
-   * the JSON message aligns with one of the types defined in the AnalysisEvent
-   * ADT. If not the parsing will (and should) fail.
-   */
-  implicit val reads: Reads[AnalysisEvent] = Reads { jsv =>
-    implicit val ar  = Analysis.reads
-    implicit val acr = AnalysisCollection.reads
-    implicit val sc  = SampleCreated.reads
+  val reads: Reads[AnalysisEvent] = Reads { jsv =>
+    implicit val ar = Analysis.reads
+    implicit val ac = AnalysisCollection.reads
 
     (jsv \ tpe).validateOpt[String] match {
       case JsSuccess(maybeType, path) =>
@@ -84,9 +128,6 @@ object AnalysisEvent extends WithDateTimeFormatters {
 
           case AnalysisCollection.discriminator =>
             jsv.validate[AnalysisCollection]
-
-          case SampleCreated.discriminator =>
-            jsv.validate[SampleCreated]
 
           case unknown =>
             JsError(path, s"$unknown is not a valid type. $mustBeTypeMsg")
@@ -100,24 +141,103 @@ object AnalysisEvent extends WithDateTimeFormatters {
     }
   }
 
-  /**
-   * Implicit Writes for AnalaysisEvent implementations. Ensures that each type
-   * is written with their specific type discriminator. This ensure that the
-   * JSON message is readable on the other end.
-   */
-  implicit val writes: Writes[AnalysisEvent] = Writes {
+  val writes: Writes[AnalysisEvent] = Writes {
     case a: Analysis =>
       Analysis.writes.writes(a).as[JsObject] ++
         Json.obj(tpe -> Analysis.discriminator)
 
     case c: AnalysisCollection =>
-      implicit val aw = Analysis.writes
       AnalysisCollection.writes.writes(c).as[JsObject] ++
         Json.obj(tpe -> AnalysisCollection.discriminator)
+  }
 
-    case sc: SampleCreated =>
-      SampleCreated.writes.writes(sc).as[JsObject] ++
-        Json.obj(tpe -> SampleCreated.discriminator)
+  /**
+   * Function for validating that an AnalysisCollection and all its children
+   * are valid with respect to the analysis type specified.
+   */
+  def validateAttributes(
+      ac: AnalysisCollection,
+      mat: Option[AnalysisType]
+  ): Future[MusitResult[AnalysisCollection]] = {
+    mat.map { t =>
+      Future.successful {
+        for {
+          validCol      <- validate(ac, t)
+          validChildren <- validateAll(ac.events, t)
+        } yield validCol
+      }
+    }.getOrElse {
+      val msg = s"Invalid analysis type ID ${ac.analysisTypeId}"
+      Future.successful(MusitValidationError(msg))
+    }
+  }
+
+  /**
+   * Validates the given Analysis against the AnalysisType to see if it complies
+   * with the extra attributes for the given type.
+   */
+  def validateAttributes(
+      a: Analysis,
+      mat: Option[AnalysisType]
+  ): Future[MusitResult[Analysis]] = {
+    mat.map(t => Future.successful(validate(a, t))).getOrElse {
+      val msg = s"Invalid analysis type ID ${a.analysisTypeId}"
+      Future.successful(MusitValidationError(msg))
+    }
+  }
+
+  /**
+   * Validation function that checks a collection of analyses valid extra attributes.
+   */
+  private[this] def validateAll(
+      as: Seq[Analysis],
+      t: AnalysisType
+  ): MusitResult[Seq[Analysis]] = {
+    val errors = as.map(a => validate(a, t)).filter(_.isFailure)
+
+    if (errors.nonEmpty) {
+      MusitValidationError(
+        s"One or more analyses contained invalid attributes" +
+          s"for analysis type ${t.id}"
+      )
+    } else {
+      MusitSuccess(as)
+    }
+  }
+
+  /**
+   * Validation function that checks an analysis for valid extra attributes.
+   */
+  private[this] def validate[A <: AnalysisEvent](
+      a: A,
+      t: AnalysisType
+  ): MusitResult[A] = {
+    val isValid = a.extraAttributes.forall {
+      case MicroscopyAttributes(_) =>
+        t.extraDescriptionType.contains(MicroscopyAttributes.typeName)
+
+      case TomographyAttributes(_) =>
+        t.extraDescriptionType.contains(TomographyAttributes.typeName)
+
+      case IsotopeAttributes(_) =>
+        t.extraDescriptionType.contains(IsotopeAttributes.typeName)
+
+      case ElementalAASAttributes(_) =>
+        t.extraDescriptionType.contains(ElementalAASAttributes.typeName)
+
+      case ElementalICPAttributes(_) =>
+        t.extraDescriptionType.contains(ElementalICPAttributes.typeName)
+
+      case ExtractionAttributes(_, _) =>
+        t.extraDescriptionType.contains(ExtractionAttributes.typeName)
+    }
+
+    if (isValid) {
+      MusitSuccess(a)
+    } else {
+      val errMsg = s"Invalid additional attributes for analysis type ${t.id}"
+      MusitValidationError(errMsg)
+    }
   }
 
 }
@@ -142,6 +262,7 @@ case class Analysis(
     objectId: Option[ObjectUUID],
     partOf: Option[EventId],
     note: Option[String],
+    extraAttributes: Option[ExtraAttributes],
     result: Option[AnalysisResult]
 ) extends AnalysisEvent {
   val reason: Option[String]           = None
@@ -177,6 +298,7 @@ case class AnalysisCollection(
     completedBy: Option[ActorByIdOrName],
     completedDate: Option[DateTime],
     note: Option[String],
+    extraAttributes: Option[ExtraAttributes],
     result: Option[AnalysisResult],
     events: Seq[Analysis],
     restriction: Option[Restriction],
@@ -213,28 +335,19 @@ case class SampleCreated(
     objectId: Option[ObjectUUID],
     sampleObjectId: Option[ObjectUUID],
     externalLinks: Option[Seq[String]]
-) extends AnalysisEvent {
-  val partOf: Option[EventId]                = None
-  val note: Option[String]                   = None
-  val responsible: Option[ActorByIdOrName]   = None
-  val administrator: Option[ActorByIdOrName] = None
-  val updatedBy: Option[ActorId]             = None
-  val updatedDate: Option[DateTime]          = None
-  val completedBy: Option[ActorByIdOrName]   = None
-  val completedDate: Option[DateTime]        = None
-  val analysisTypeId                         = SampleCreated.sampleEventTypeId
-  val reason: Option[String]                 = None
-  val status: Option[AnalysisStatus]         = None
-  val caseNumbers: Option[CaseNumbers]       = None
+) extends AnalysisModuleEvent {
+  val partOf         = None
+  val analysisTypeId = SampleCreated.sampleEventTypeId
+  val note           = None
+  val status         = None
+  val caseNumbers    = None
 }
 
 object SampleCreated extends WithDateTimeFormatters {
-  val sampleEventTypeId: AnalysisTypeId = AnalysisTypeId.empty
+  val sampleEventTypeId: AnalysisTypeId = AnalysisTypeId(0L)
 
   val discriminator = "SampleCreated"
 
-  val reads: Reads[SampleCreated] = Json.reads[SampleCreated]
-
-  val writes: Writes[SampleCreated] = Json.writes[SampleCreated]
+  val format: Format[SampleCreated] = Json.format[SampleCreated]
 
 }

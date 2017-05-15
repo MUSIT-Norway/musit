@@ -1,6 +1,6 @@
 package repositories.analysis.dao
 
-import models.analysis.events.AnalysisResults.{AnalysisResult, DatingResult}
+import models.analysis.events.AnalysisResults.{AnalysisResult, AgeResult}
 import models.analysis.events.{Analysis, AnalysisCollection}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, ObjectUUID}
@@ -130,8 +130,8 @@ class AnalysisDaoSpec
         val analysis = res.successValue.value.asInstanceOf[Analysis]
         analysis.registeredBy mustBe Some(dummyActorId)
         analysis.analysisTypeId mustBe dummyAnalysisTypeId
-        analysis.result.value mustBe a[DatingResult]
-        val datingResult = analysis.result.value.asInstanceOf[DatingResult]
+        analysis.result.value mustBe a[AgeResult]
+        val datingResult = analysis.result.value.asInstanceOf[AgeResult]
         datingResult.comment mustBe dr.comment
         datingResult.extRef mustBe dr.extRef
         datingResult.registeredBy mustBe dr.registeredBy

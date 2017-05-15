@@ -115,6 +115,7 @@ object CommonSettings {
           dockerBaseImage := s"${dockerRegistryHost.map(_ => "library/java:8").getOrElse("openjdk:8")}",
           dockerRepository := dockerRegistryHost
             .map(host => s"$host/$dockerRegistryNamespace"),
+          dockerUpdateLatest := true,
           dockerAlias := DockerAlias(
             registryHost = dockerRepository.value,
             username = None,

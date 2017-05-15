@@ -4,7 +4,7 @@ import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
 import no.uio.musit.formatters.DateTimeFormatters._
 import no.uio.musit.models.ObjectTypes.ObjectType
-import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
+import no.uio.musit.models.{MuseumId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, Reads, Writes}
 

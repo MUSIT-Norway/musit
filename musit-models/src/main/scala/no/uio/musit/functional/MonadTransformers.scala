@@ -19,7 +19,7 @@
 
 package no.uio.musit.functional
 
-import no.uio.musit.MusitResults.{MusitInternalError, MusitResult}
+import no.uio.musit.MusitResults.{MusitError, MusitInternalError, MusitResult}
 
 import scala.concurrent.Future
 
@@ -42,12 +42,16 @@ object MonadTransformers {
     def flatMap[B](f: A => MusitResultT[T, B]): MusitResultT[T, B] = {
       val res: T[MusitResult[B]] = m.flatMap(value) { a =>
         a.map(b => f(b).value).getOrElse {
-          m.pure(
-            MusitInternalError(
-              s"Unable to map into MusitResult in the MusitResultT transformer " +
-                s"because of $a"
-            )
-          )
+          a match {
+            case err: MusitError => m.pure(err)
+            case o =>
+              m.pure(
+                MusitInternalError(
+                  s"Unable to map into MusitResult in the MusitResultT transformer " +
+                    s"because of $o"
+                )
+              )
+          }
         }
       }
       MusitResultT[T, B](res)

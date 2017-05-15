@@ -1,7 +1,6 @@
 package services.analysis
 
 import com.google.inject.Inject
-import models.analysis.ActorStamp
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events.SaveCommands.{
   SaveAnalysis,
@@ -41,6 +40,13 @@ class AnalysisService @Inject()(
   }
 
   /**
+   * Return the AnalyisType associated with the given AnalysisTypeId
+   */
+  def getType(tid: AnalysisTypeId): Future[MusitResult[Option[AnalysisType]]] = {
+    typeDao.findById(tid)
+  }
+
+  /**
    * Return all AnalysisTypes associated with the given CollectionUUID. The
    * result also includes AnalysisTypes that aren't associated with _any_
    * CollectionUUIDs.
@@ -68,16 +74,30 @@ class AnalysisService @Inject()(
       a: SaveAnalysis
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val analysis = a.asDomain
-    analysisDao.insert(analysis)
+    val res = for {
+      mat       <- MusitResultT(getType(analysis.analysisTypeId))
+      validated <- MusitResultT(AnalysisEvent.validateAttributes(analysis, mat))
+      eid       <- MusitResultT(analysisDao.insert(validated))
+    } yield eid
+
+    res.value
   }
 
   /**
    * Helper method specifically for adding an AnalysisCollection.
    */
   private def addAnalysisCollection(
-      ac: SaveAnalysisCollection
+      sac: SaveAnalysisCollection
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    analysisDao.insertCol(ac.asDomain)
+    val analysisCol = sac.asDomain
+
+    val res = for {
+      mat       <- MusitResultT(getType(sac.analysisTypeId))
+      validated <- MusitResultT(AnalysisEvent.validateAttributes(analysisCol, mat))
+      eid       <- MusitResultT(analysisDao.insertCol(analysisCol))
+    } yield eid
+
+    res.value
   }
 
   /**
@@ -87,9 +107,7 @@ class AnalysisService @Inject()(
       eid: EventId,
       res: AnalysisResult
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    val now = Some(dateTimeNow)
-    val ar  = res.withRegisteredBy(Some(currUser.id)).withtRegisteredDate(now)
-    analysisDao.upsertResult(eid, ar)
+    updateResult(eid, res)
   }
 
   /**
@@ -121,7 +139,7 @@ class AnalysisService @Inject()(
       implicit currUser: AuthenticatedUser
   ): Future[MusitResult[Option[AnalysisEvent]]] = {
     val res = for {
-      maybeEvent <- MusitResultT(findById(eid))
+      maybeEvent <- MusitResultT(analysisDao.findAnalysisById(eid))
       maybeUpdated <- MusitResultT(
                        maybeEvent.map { e =>
                          val u = SaveAnalysisEventCommand.updateDomain(ae, e)
@@ -134,24 +152,24 @@ class AnalysisService @Inject()(
   }
 
   /**
-   * Locate the AnalysisEvent with the given EventId.
+   * Locate the event with the given EventId.
    */
-  def findById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
+  def findById(id: EventId): Future[MusitResult[Option[AnalysisModuleEvent]]] = {
     analysisDao.findById(id)
   }
 
   /**
    * Fetch all children (which are all instances of Analysis) for the
-   * AnalysisEvent with the given EventId.
+   * event with the given EventId.
    */
   def childrenFor(id: EventId): Future[MusitResult[Seq[Analysis]]] = {
     analysisDao.listChildren(id)
   }
 
   /**
-   * Locate all AnalysisEvents associated with the given ObjectUUID.
+   * Locate all events associated with the given ObjectUUID.
    */
-  def findByObject(oid: ObjectUUID): Future[MusitResult[Seq[AnalysisEvent]]] = {
+  def findByObject(oid: ObjectUUID): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
     analysisDao.findByObjectUUID(oid)
   }
 

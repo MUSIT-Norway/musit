@@ -27,10 +27,10 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       longId => EventId(longId)
     )
 
-  implicit val eventTypeIdMapper: BaseColumnType[AnalysisTypeId] =
-    MappedColumnType.base[AnalysisTypeId, String](
-      etid => etid.asString,
-      strId => AnalysisTypeId.unsafeFromString(strId)
+  implicit val analysisTypeIdMapper: BaseColumnType[AnalysisTypeId] =
+    MappedColumnType.base[AnalysisTypeId, Long](
+      etid => etid.underlying,
+      lid => AnalysisTypeId(lid)
     )
 
   implicit val sampleTypeIdMapper: BaseColumnType[SampleTypeId] =

@@ -2,6 +2,7 @@ package models.analysis.events
 
 import models.analysis.{ActorByIdOrName, ActorStamp}
 import models.analysis.AnalysisStatuses.AnalysisStatus
+import models.analysis.events.AnalysisExtras.ExtraAttributes
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{CaseNumbers, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
@@ -49,6 +50,7 @@ object SaveCommands {
       note: Option[String],
       objectId: ObjectUUID,
       // TODO: Add field for status
+      extraAttributes: Option[ExtraAttributes],
       responsible: Option[ActorByIdOrName],
       administrator: Option[ActorByIdOrName],
       completedBy: Option[ActorByIdOrName],
@@ -74,6 +76,7 @@ object SaveCommands {
         completedDate = completedDate,
         partOf = None,
         note = note,
+        extraAttributes = extraAttributes,
         result = None
       )
     }
@@ -126,11 +129,13 @@ object SaveCommands {
       restriction: Option[SaveRestriction],
       caseNumbers: Option[CaseNumbers],
       reason: Option[String],
-      status: Option[AnalysisStatus]
+      status: Option[AnalysisStatus],
+      extraAttributes: Option[ExtraAttributes]
   ) extends SaveAnalysisEventCommand {
 
     override type A = AnalysisCollection
 
+    // scalastyle:off method.length
     override def asDomain(implicit currUser: AuthenticatedUser): AnalysisCollection = {
       val now = dateTimeNow
       AnalysisCollection(
@@ -147,6 +152,7 @@ object SaveCommands {
         completedBy = completedBy,
         completedDate = completedDate,
         note = note,
+        extraAttributes = extraAttributes,
         result = None,
         restriction = restriction.map(
           r =>
@@ -178,11 +184,13 @@ object SaveCommands {
             completedDate = completedDate,
             partOf = None,
             note = this.note,
+            extraAttributes = None,
             result = None
           )
         }
       )
     }
+    // scalastyle:on method.length
 
     override def updateDomain(
         a: AnalysisCollection

@@ -1,11 +1,7 @@
 package utils
 
+import models.analysis.events.AnalysisResults.{AnalysisResult, AgeResult, GenericResult}
 import models.analysis.ActorById
-import models.analysis.events.AnalysisResults.{
-  AnalysisResult,
-  DatingResult,
-  GenericResult
-}
 import models.analysis.events.SaveCommands.{SaveAnalysis, SaveAnalysisCollection}
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
@@ -16,7 +12,7 @@ trait AnalysisGenerators {
   protected val defaultMid          = Museums.Test.id
   protected val dummyActorId        = ActorId.generate()
   protected val dummyActorById      = ActorById(ActorId.generate())
-  protected val dummyAnalysisTypeId = AnalysisTypeId.generate()
+  protected val dummyAnalysisTypeId = AnalysisTypeId(1L)
 
   protected val oid1 = ObjectUUID.generate()
   protected val oid2 = ObjectUUID.generate()
@@ -35,7 +31,8 @@ trait AnalysisGenerators {
       responsible = Some(dummyActorById),
       administrator = Some(dummyActorById),
       completedBy = None,
-      completedDate = None
+      completedDate = None,
+      extraAttributes = None
     )
   }
 
@@ -56,7 +53,8 @@ trait AnalysisGenerators {
       restriction = None,
       reason = None,
       status = None,
-      caseNumbers = None
+      caseNumbers = None,
+      extraAttributes = None
     )
   }
 
@@ -76,8 +74,8 @@ trait AnalysisGenerators {
       extRef: Option[Seq[String]] = None,
       comment: Option[String] = None,
       age: Option[String] = None
-  ): DatingResult = {
-    DatingResult(
+  ): AgeResult = {
+    AgeResult(
       registeredBy = Some(dummyActorId),
       registeredDate = Some(dateTimeNow),
       extRef = None,
@@ -107,6 +105,7 @@ trait AnalysisGenerators {
       partOf = None,
       objectId = oid,
       note = Some("This is the first event"),
+      extraAttributes = None,
       result = res
     )
   }
@@ -130,6 +129,7 @@ trait AnalysisGenerators {
       completedBy = Some(dummyActorById),
       completedDate = now,
       note = Some("An analysis collection"),
+      extraAttributes = None,
       result = res,
       events = analyses.toSeq,
       restriction = Some(Restriction("requester", dateTimeNow, "some reason")),

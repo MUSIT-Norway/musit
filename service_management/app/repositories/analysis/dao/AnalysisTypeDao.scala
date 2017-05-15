@@ -1,7 +1,7 @@
 package repositories.analysis.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.analysis.events.{AnalysisType, Category}
+import models.analysis.events.{AnalysisType, AnalysisTypeId, Category}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.CollectionUUID
 import play.api.Logger
@@ -50,6 +50,21 @@ class AnalysisTypeDao @Inject()(
         case NonFatal(ex) =>
           val msg = s"A problem occurred fetching analysis types for category " +
             s"${c.entryName} from the DB"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+  }
+
+  /**
+   * Will return the anlysis type associated by the {{{AnalysisTypeId}}}. Or
+   * None if the ID can't be found.
+   */
+  def findById(tid: AnalysisTypeId): Future[MusitResult[Option[AnalysisType]]] = {
+    db.run(analysisTypeTable.filter(_.typeId === tid).result.headOption)
+      .map(r => MusitSuccess(r.map(fromAnalysisTypeRow)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"A problem occurred fetching analysis type by id $tid from the DB"
           logger.error(msg, ex)
           MusitDbError(msg, Option(ex))
       }

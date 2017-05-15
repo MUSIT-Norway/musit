@@ -1,6 +1,7 @@
 package controllers.analysis
 
 import com.google.inject.{Inject, Singleton}
+import controllers._
 import models.analysis.SaveSampleObject
 import no.uio.musit.MusitResults.{MusitEmpty, MusitError, MusitSuccess}
 import no.uio.musit.models.{MuseumId, ObjectUUID}
@@ -10,7 +11,6 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import services.analysis.SampleObjectService
-import controllers._
 
 import scala.concurrent.Future
 

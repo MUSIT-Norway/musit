@@ -1,7 +1,7 @@
 package services.analysis
 
-import models.analysis.events.AnalysisResults.{DatingResult, GenericResult}
-import models.analysis.events.{Analysis, AnalysisCollection}
+import models.analysis.events.AnalysisResults.{AgeResult, GenericResult}
+import models.analysis.events.{Analysis, AnalysisCollection, AnalysisEvent}
 import models.analysis.events.EventCategories.Genetic
 import no.uio.musit.models.{ActorId, EventId}
 import no.uio.musit.models.MuseumCollections.Archeology
@@ -41,15 +41,15 @@ class AnalysisServiceSpec
 
     "return all known event types" in {
       val res = service.getAllTypes.futureValue.successValue
-      res.size mustBe 107
+      res.size mustBe 45
     }
 
     "return all known event types for a given event category" in {
       val res = service.getTypesFor(Genetic).futureValue.successValue
-      res.size mustBe 7
+      res.size mustBe 6
     }
 
-    "return all known event types for a museum collection" in {
+    "return all known event types for a museum collection" ignore {
       val res = service.getTypesFor(Archeology.uuid).futureValue.successValue
       res.size mustBe 83
     }
@@ -65,17 +65,21 @@ class AnalysisServiceSpec
     }
 
     "return an analysis by its EventId" in {
-      val res = service.findById(EventId(1L)).futureValue.successValue.value
+      service.findById(EventId(1L)).futureValue.successValue.value match {
+        case res: AnalysisEvent =>
+          res.analysisTypeId mustBe dummyAnalysisTypeId
+          res.doneBy mustBe Some(dummyActorById)
+          res.doneDate mustApproximate Some(dateTimeNow)
+          res.note mustBe Some("This is from a SaveAnalysis command")
+          res.objectId must not be empty
+          res.administrator mustBe Some(dummyActorById)
+          res.responsible mustBe Some(dummyActorById)
+          res.completedBy mustBe empty
+          res.completedDate mustBe empty
 
-      res.analysisTypeId mustBe dummyAnalysisTypeId
-      res.doneBy mustBe Some(dummyActorById)
-      res.doneDate mustApproximate Some(dateTimeNow)
-      res.note mustBe Some("This is from a SaveAnalysis command")
-      res.objectId must not be empty
-      res.administrator mustBe Some(dummyActorById)
-      res.responsible mustBe Some(dummyActorById)
-      res.completedBy mustBe empty
-      res.completedDate mustBe empty
+        case wrong =>
+          fail(s"Expected an ${AnalysisEvent.getClass}, but got ${wrong.getClass}")
+      }
     }
 
     "return all child Analysis events for an AnalyisCollection" in {
@@ -108,10 +112,6 @@ class AnalysisServiceSpec
         r.note must not be empty
         r.note.value must startWith("This is from a SaveAnalysis")
         r.objectId must not be empty
-        r.administrator mustBe Some(dummyActorById)
-        r.responsible mustBe Some(dummyActorById)
-        r.completedBy mustBe empty
-        r.completedDate mustBe empty
       }
     }
 
@@ -150,11 +150,11 @@ class AnalysisServiceSpec
         case a: AnalysisCollection =>
           a.result must not be empty
           a.result.value match {
-            case r: DatingResult =>
+            case r: AgeResult =>
               validateResult(r, dr, Some(defaultUserId), Some(dateTimeNow))
 
             case boo =>
-              fail(s"Expected a ${classOf[DatingResult]} but got ${boo.getClass}")
+              fail(s"Expected a ${classOf[AgeResult]} but got ${boo.getClass}")
           }
 
           forAll(a.events)(_.result mustBe empty)
@@ -193,16 +193,16 @@ class AnalysisServiceSpec
       orig mustBe an[AnalysisCollection]
 
       val origRes = orig.asInstanceOf[AnalysisCollection].result.value
-      origRes mustBe a[DatingResult]
+      origRes mustBe a[AgeResult]
 
-      val upd = origRes.asInstanceOf[DatingResult].copy(comment = Some("updated"))
+      val upd = origRes.asInstanceOf[AgeResult].copy(comment = Some("updated"))
 
       service.updateResult(eid, upd).futureValue.isSuccess mustBe true
 
       val updRes = service.findById(eid).futureValue.successValue.value
       updRes mustBe an[AnalysisCollection]
       updRes.asInstanceOf[AnalysisCollection].result.value match {
-        case gr: DatingResult =>
+        case gr: AgeResult =>
           gr mustBe upd
 
         case err =>

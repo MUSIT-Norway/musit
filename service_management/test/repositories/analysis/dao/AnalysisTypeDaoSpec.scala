@@ -15,23 +15,30 @@ class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val res = dao.all.futureValue
 
       val ats = res.successValue
-      ats.size mustBe 107
-      ats.map(_.category.entryName).distinct.size mustBe 21
+      ats.size mustBe 45
+      ats.map(_.category.entryName).distinct.size mustBe 13
     }
 
     "return all analysis types in the Dating category" in {
       val res = dao.allForCategory(Dating).futureValue
 
       val ats = res.successValue
-      ats.size mustBe 8
+      ats.size mustBe 2
+
+      val expResAttrs1 = Map(
+        "ageEstimate"       -> "String",
+        "standardDeviation" -> "String"
+      )
+
+      val expResAttrs2 = Map("age" -> "String")
 
       forAll(ats) { a =>
         a.category mustBe Dating
-        a.extraAttributes mustBe Some(Map("age" -> "String"))
+        a.extraResultAttributes must contain oneOf (expResAttrs1, expResAttrs2)
       }
     }
 
-    "return all analysis types for a specific collection" in {
+    "return all analysis types for a specific collection" ignore {
       val entoUUID = Entomology.uuid // scalastyle:ignore
 
       val res = dao.allForCollection(entoUUID).futureValue

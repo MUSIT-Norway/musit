@@ -2,12 +2,7 @@ package repositories.analysis.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
-import models.analysis.events.{
-  Analysis,
-  AnalysisCollection,
-  AnalysisEvent,
-  SampleCreated
-}
+import models.analysis.events._
 import no.uio.musit.MusitResults.{
   MusitDbError,
   MusitResult,
@@ -68,9 +63,18 @@ class AnalysisDao @Inject()(
     analysisTable.filter(_.id === id).update(asEventTuple(event))
   }
 
-  private def findByIdAction(id: EventId): DBIO[Option[AnalysisEvent]] = {
-    analysisTable.filter(_.id === id).result.headOption.map { res =>
-      res.flatMap(toAnalysisEvent)
+  private def findByIdAction(
+      id: EventId,
+      includeSample: Boolean
+  ): DBIO[Option[AnalysisModuleEvent]] = {
+    val q1 = analysisTable.filter(_.id === id)
+    val q2 = {
+      if (includeSample) q1
+      else q1.filter(_.typeId =!= SampleCreated.sampleEventTypeId)
+    }
+
+    q2.result.headOption.map { res =>
+      res.flatMap(toAnalysisModuleEvent)
     }
   }
 
@@ -93,14 +97,16 @@ class AnalysisDao @Inject()(
     }
   }
 
-  private def listForObjectAction(oid: ObjectUUID): DBIO[Seq[AnalysisEvent]] = {
+  private def listForObjectAction(oid: ObjectUUID): DBIO[Seq[AnalysisModuleEvent]] = {
     val query = analysisTable.filter(_.objectUuid === oid) joinLeft
       resultTable on (_.id === _.eventId)
 
     query.result.map { res =>
       res.flatMap { row =>
-        toAnalysisEvent(row._1).map { ae =>
-          ae.withResultAsOpt(fromResultRow(row._2)).getOrElse(ae)
+        toAnalysisModuleEvent(row._1).map {
+          case ae: AnalysisEvent =>
+            ae.withResultAsOpt(fromResultRow(row._2)).getOrElse(ae)
+          case so: SampleCreated => so
         }
       }
     }
@@ -162,7 +168,7 @@ class AnalysisDao @Inject()(
     db.run(action)
       .flatMap { numUpdated =>
         if (numUpdated == 1) {
-          findById(id)
+          findAnalysisById(id)
         } else {
           Future.successful {
             MusitValidationError(
@@ -182,21 +188,30 @@ class AnalysisDao @Inject()(
   }
 
   /**
-   * Locates a specific Analysis event by its EventId.
+   * Locates a specific analysis module related event by its EventId.
    *
    * @param id the EventId to look for.
-   * @return eventually returns a MusitResult that might contain the AnalysisEvent.
+   * @param includeSample Boolean flag to control which event types are returned.
+   * @return eventually returns a MusitResult that might contain the AnalysisModuleEvent.
    */
-  def findById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
+  def findById(
+      id: EventId,
+      includeSample: Boolean = true
+  ): Future[MusitResult[Option[AnalysisModuleEvent]]] = {
     val query = for {
-      maybeEvent <- findByIdAction(id)
+      maybeEvent <- findByIdAction(id, includeSample)
       maybeRes   <- resultForEventIdAction(id)
       children   <- listChildrenAction(id)
     } yield {
-      maybeEvent.map {
-        case a: Analysis            => a.withResult(maybeRes)
-        case ac: AnalysisCollection => ac.copy(events = children).withResult(maybeRes)
-        case sc: SampleCreated      => sc
+      maybeEvent.flatMap {
+        case a: Analysis =>
+          Option(a.withResult(maybeRes))
+
+        case ac: AnalysisCollection =>
+          Option(ac.copy(events = children).withResult(maybeRes))
+
+        case sc: SampleCreated =>
+          if (includeSample) Option(sc) else None
       }
     }
 
@@ -206,6 +221,20 @@ class AnalysisDao @Inject()(
         logger.error(msg, ex)
         MusitDbError(msg, Option(ex))
     }
+  }
+
+  /**
+   * Same as findById, but will ensure that only the Analysis specific events
+   * are returned.
+   *
+   * @param id The event ID to look for
+   * @return the AnalysisEvent that was found or None
+   */
+  def findAnalysisById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
+    findById(id, includeSample = false).map(_.map(_.flatMap {
+      case ae: AnalysisEvent => Some(ae)
+      case _                 => None
+    }))
   }
 
   /**
@@ -226,12 +255,12 @@ class AnalysisDao @Inject()(
   }
 
   /**
-   * Locate all analysis' related to the provided ObjectUUID.
+   * Locate all events related to the provided ObjectUUID.
    *
    * @param oid The ObjectUUID to find analysis' for
    * @return eventually a result with a list of analysis events and their results
    */
-  def findByObjectUUID(oid: ObjectUUID): Future[MusitResult[Seq[AnalysisEvent]]] = {
+  def findByObjectUUID(oid: ObjectUUID): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
     db.run(listForObjectAction(oid)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An unexpected error occurred fetching events for object $oid"

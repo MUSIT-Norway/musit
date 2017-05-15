@@ -16,7 +16,7 @@ class AnalysisEventSpec
     with Inside {
 
   val dummyEventId        = EventId(1L)
-  val dummyAnalysisTypeId = AnalysisTypeId.generate()
+  val dummyAnalysisTypeId = AnalysisTypeId(3)
   val dummyDate           = DateTime.now
   val dummyActor          = ActorId.generate()
   val dummyActorById      = ActorById(ActorId.generate())
@@ -50,6 +50,7 @@ class AnalysisEventSpec
       objectId = Some(dummyObject),
       partOf = None,
       note = Some(dummyNote),
+      extraAttributes = None,
       result = Some(
         GenericResult(
           registeredBy = Some(dummyActor),
@@ -76,6 +77,7 @@ class AnalysisEventSpec
       completedDate = Some(dummyDate),
       note = Some(dummyNote),
       restriction = Some(dummyRestriction),
+      extraAttributes = None,
       result = Some(
         GenericResult(
           registeredBy = Some(dummyActor),
@@ -100,12 +102,13 @@ class AnalysisEventSpec
 
       (js \ "type").as[String] mustBe Analysis.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
-      (js \ "analysisTypeId").as[String] mustBe dummyAnalysisTypeId.asString
+      (js \ "analysisTypeId").as[Int] mustBe dummyAnalysisTypeId.underlying
       (js \ "doneDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
       (js \ "partOf").asOpt[Long] mustBe None
       (js \ "note").as[String] mustBe dummyNote
+      (js \ "extraAttributes").asOpt[JsObject] mustBe None
       (js \ "result" \ "type").as[String] mustBe GenericResult.resultType
       (js \ "result" \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "result" \ "registeredDate").as[DateTime] mustApproximate dummyDate
@@ -118,7 +121,7 @@ class AnalysisEventSpec
 
       (js \ "type").as[String] mustBe AnalysisCollection.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
-      (js \ "analysisTypeId").as[String] mustBe dummyAnalysisTypeId.asString
+      (js \ "analysisTypeId").as[Int] mustBe dummyAnalysisTypeId.underlying
       (js \ "doneBy" \ "value").as[String] mustBe dummyActorById.name
       (js \ "doneDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
@@ -130,6 +133,7 @@ class AnalysisEventSpec
       (js \ "completedBy" \ "value").as[String] mustBe dummyActorById.name
       (js \ "completedDate").as[DateTime] mustApproximate dummyDate
       (js \ "note").as[String] mustBe dummyNote
+      (js \ "extraAttributes").asOpt[JsObject] mustBe None
       (js \ "result" \ "type").as[String] mustBe GenericResult.resultType
       (js \ "result" \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "result" \ "registeredDate").as[DateTime] mustApproximate dummyDate
@@ -146,7 +150,7 @@ class AnalysisEventSpec
       val transform = js.transform((__ \ "type").json.prune)
       inside(transform) {
         case JsSuccess(noTypeJs, _) =>
-          Json.fromJson[AnalysisEvent](noTypeJs) match {
+          Json.fromJson[AnalysisModuleEvent](noTypeJs) match {
             case JsSuccess(_, _) => fail("Expected deserialization to fail.")
             case JsError(errors) => errors.size mustBe 1
           }
@@ -159,7 +163,7 @@ class AnalysisEventSpec
       val transform = js.transform((__ \ "type").json.prune)
       inside(transform) {
         case JsSuccess(noTypeJs, _) =>
-          Json.fromJson[AnalysisEvent](noTypeJs) match {
+          Json.fromJson[AnalysisModuleEvent](noTypeJs) match {
             case JsSuccess(_, _) => fail("Expected deserialization to fail.")
             case JsError(errors) => errors.size mustBe 1
           }
