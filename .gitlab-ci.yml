@@ -27,6 +27,7 @@ before_script:
 stages:
   - test
   - build
+  - cleanup
 
 test:
   stage: test
@@ -50,3 +51,12 @@ build:
     - sbt docker:publish
   only:
     - master@MUSIT-Norway/musit
+
+cleanup:
+  stage: cleanup
+  script:
+    - docker rm -v $(docker ps -a -q --filter=status=exited --filter=status=dead)
+    - docker rmi $(docker images --filter "dangling=true" | grep "service_")
+  only:
+    - master@MUSIT-Norway/musit
+  allow_failure: true
