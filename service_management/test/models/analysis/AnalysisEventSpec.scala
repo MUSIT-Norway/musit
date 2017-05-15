@@ -26,7 +26,7 @@ class AnalysisEventSpec
   val dummyStatus         = AnalysisStatuses.Preparation
   val dummyCaseNumbers    = CaseNumbers(Seq("num-1", "num-2"))
   val dummyRestriction = Restriction(
-    requester = "holder",
+    requester = ActorByName("holder"),
     registeredStamp = None,
     expirationDate = DateTime.now.plusDays(50),
     reason = "reason",

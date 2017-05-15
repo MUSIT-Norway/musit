@@ -3,7 +3,7 @@ package utils
 import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult, GenericResult}
 import models.analysis.events.SaveCommands.{SaveAnalysis, SaveAnalysisCollection}
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
-import models.analysis.{ActorById, AnalysisStatuses}
+import models.analysis.{ActorById, ActorByName, AnalysisStatuses}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 
@@ -132,7 +132,8 @@ trait AnalysisGenerators {
       extraAttributes = None,
       result = res,
       events = analyses.toSeq,
-      restriction = Some(Restriction("requester", dateTimeNow, "some reason")),
+      restriction =
+        Some(Restriction(ActorByName("requester"), dateTimeNow, "some reason")),
       reason = None,
       status = None,
       caseNumbers = None

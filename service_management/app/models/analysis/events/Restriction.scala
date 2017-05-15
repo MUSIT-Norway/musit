@@ -1,6 +1,6 @@
 package models.analysis.events
 
-import models.analysis.ActorStamp
+import models.analysis.{ActorByIdOrName, ActorStamp}
 import no.uio.musit.models.CaseNumbers
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
@@ -12,7 +12,7 @@ import play.api.libs.json.{Format, Json}
  * typically when the study is published, will the results be publicly available.
  */
 case class Restriction(
-    requester: String,
+    requester: ActorByIdOrName,
     expirationDate: DateTime,
     reason: String,
     caseNumbers: Option[CaseNumbers] = None,

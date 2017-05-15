@@ -104,7 +104,7 @@ object SaveCommands {
   }
 
   case class SaveRestriction(
-      requester: String,
+      requester: ActorByIdOrName,
       expirationDate: DateTime,
       reason: String,
       caseNumbers: Option[CaseNumbers] = None,

@@ -21,7 +21,8 @@ trait AnalysisJsonGenerators {
 
   val dummyObjectId = ObjectUUID.generate()
 
-  val dummyNamedUser = "Ola Normann"
+  val dummyNamedUserName = "Ola Normann"
+  val dummyNamedUser     = Json.obj("type" -> "ActorByName", "value" -> dummyNamedUserName)
 
   val adminId: JsObject = Json.obj(
     "type"  -> ActorById.key,
@@ -189,7 +190,7 @@ trait AnalysisJsonValidators {
     (actual \ "eventDate").asOpt[DateTime] mustApproximate expectedEventDate
     (actual \ "registeredBy").asOpt[String] must not be empty
     (actual \ "registeredDate").asOpt[DateTime] must not be empty
-    (actual \ "restriction" \ "requester").as[String] mustBe dummyNamedUser
+    (actual \ "restriction" \ "requester" \ "value").as[String] mustBe dummyNamedUserName
     forAll(0 until numChildren) { index =>
       (actual \ "events" \ index \ "type").as[String] mustBe Analysis.discriminator
       (actual \ "events" \ index \ "partOf").as[Long] mustBe expectedId
