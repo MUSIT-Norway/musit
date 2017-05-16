@@ -10,21 +10,21 @@ object SampleStatuses {
 
   object SampleStatus {
 
-    def fromInt(i: Int): Option[SampleStatus] = {
-      i match {
-        case Intact.key       => Some(Intact)
-        case Destroyed.key    => Some(Destroyed)
-        case Contaminated.key => Some(Contaminated)
-        case Prepared.key     => Some(Prepared)
-        case Discarded.key    => Some(Discarded)
-        case Dehydrated.key   => Some(Dehydrated)
-        case Consumed.key     => Some(Consumed)
-        case Dessicated.key   => Some(Dessicated)
-        case Degraded.key     => Some(Degraded)
-        case Mounted.key      => Some(Mounted)
-        case _                => None
-      }
+    // scalastyle:off
+    def fromInt(i: Int): Option[SampleStatus] = i match {
+      case Intact.key       => Some(Intact)
+      case Destroyed.key    => Some(Destroyed)
+      case Contaminated.key => Some(Contaminated)
+      case Prepared.key     => Some(Prepared)
+      case Discarded.key    => Some(Discarded)
+      case Dehydrated.key   => Some(Dehydrated)
+      case Consumed.key     => Some(Consumed)
+      case Dessicated.key   => Some(Dessicated)
+      case Degraded.key     => Some(Degraded)
+      case Mounted.key      => Some(Mounted)
+      case _                => None
     }
+    // scalastyle:on
 
     @throws(classOf[IllegalArgumentException])
     def unsafeFromInt(i: Int): SampleStatus = {
@@ -92,4 +92,5 @@ object SampleStatuses {
   case object Mounted extends SampleStatus {
     override val key = 10
   }
+
 }

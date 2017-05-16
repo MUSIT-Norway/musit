@@ -36,7 +36,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       sampleId = None,
       sampleNum = None,
       externalId = Some(ExternalId("external id", Some("external source"))),
-      sampleTypeId = Some(SampleTypeId(1)),
+      sampleTypeId = SampleTypeId(1),
       size = Some(Size("cm2", 12.0)),
       container = Some("box"),
       storageMedium = None,
@@ -174,7 +174,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       )
       dao.insert(so, se).futureValue.successValue mustBe oid
       val res2 = dao.findByUUID(oid).futureValue.successValue.value
-      res2.sampleTypeId mustBe Some(SampleTypeId(1))
+      res2.sampleTypeId mustBe SampleTypeId(1)
     }
 
     "successfully delete a SampleObject" in {

@@ -27,6 +27,7 @@ class SampleObjectControllerIntegrationSpec
 
   val parentObject = ObjectUUID.generate()
 
+  // scalastyle:off
   def createSaveJSON(
       maybeId: Option[ObjectUUID] = None,
       maybeParent: Option[ObjectUUID] = None,
@@ -45,7 +46,7 @@ class SampleObjectControllerIntegrationSpec
       "status"               -> status.key,
       "responsible"          -> responsibleActor,
       "doneDate"             -> Json.toJson(doneDate),
-      "sampleType"           -> Json.obj("value" -> "wood slize", "subTypeValue" -> "age rings"),
+      "sampleTypeId"         -> 37,
       "size"                 -> Json.obj("unit" -> "cm3", "value" -> 12.0),
       "container"            -> "box",
       "storageMedium"        -> "alcohol",
@@ -60,6 +61,7 @@ class SampleObjectControllerIntegrationSpec
       .getOrElse(js4)
     maybeNote.map(n => js5 ++ Json.obj("note" -> n)).getOrElse(js5)
   }
+  // scalastyle:on
 
   def validateSampleObject(
       parentObjectType: ObjectType = CollectionObject,

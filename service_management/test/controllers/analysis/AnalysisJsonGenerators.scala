@@ -55,7 +55,8 @@ trait AnalysisJsonGenerators {
       "analysisTypeId" -> typeId,
       "responsible"    -> adminId,
       "administrator"  -> adminId,
-      "completedBy"    -> adminId
+      "completedBy"    -> adminId,
+      "status"         -> 1
     )
     val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
     val js3 = eventDate.map { d =>

@@ -1,9 +1,9 @@
 package utils
 
-import models.analysis.events.AnalysisResults.{AnalysisResult, AgeResult, GenericResult}
-import models.analysis.ActorById
+import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult, GenericResult}
 import models.analysis.events.SaveCommands.{SaveAnalysis, SaveAnalysisCollection}
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
+import models.analysis.{ActorById, AnalysisStatuses}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 
@@ -52,7 +52,7 @@ trait AnalysisGenerators {
       objectIds = oids,
       restriction = None,
       reason = None,
-      status = None,
+      status = AnalysisStatuses.Preparation,
       caseNumbers = None,
       extraAttributes = None
     )

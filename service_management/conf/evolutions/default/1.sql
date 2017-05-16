@@ -23,7 +23,7 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   sample_num             INTEGER DEFAULT MUSARK_ANALYSIS.sample_object_sample_num_seq.nextval,
   external_id            VARCHAR2(100),
   external_id_source     VARCHAR2(100),
-  sample_type_id         INTEGER,
+  sample_type_id         INTEGER                  NOT NULL,
   sample_size            NUMBER,
   sample_size_unit       VARCHAR2(10),
   sample_container       VARCHAR2(100),

@@ -49,7 +49,6 @@ object SaveCommands {
       doneDate: Option[DateTime],
       note: Option[String],
       objectId: ObjectUUID,
-      // TODO: Add field for status
       extraAttributes: Option[ExtraAttributes],
       responsible: Option[ActorByIdOrName],
       administrator: Option[ActorByIdOrName],
@@ -129,7 +128,7 @@ object SaveCommands {
       restriction: Option[SaveRestriction],
       caseNumbers: Option[CaseNumbers],
       reason: Option[String],
-      status: Option[AnalysisStatus],
+      status: AnalysisStatus,
       extraAttributes: Option[ExtraAttributes]
   ) extends SaveAnalysisEventCommand {
 
@@ -165,7 +164,7 @@ object SaveCommands {
           )
         ),
         reason = reason,
-        status = status,
+        status = Option(status),
         caseNumbers = caseNumbers,
         events = this.objectIds.map { oid =>
           Analysis(

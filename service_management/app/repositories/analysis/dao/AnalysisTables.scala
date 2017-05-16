@@ -75,7 +75,7 @@ trait AnalysisTables
       Option[String],
       Option[Int],
       (Option[String], Option[String]),
-      Option[SampleTypeId],
+      SampleTypeId,
       (Option[Double], Option[String]),
       Option[String],
       Option[String],
@@ -205,7 +205,7 @@ trait AnalysisTables
     val sampleNum        = column[Option[Int]]("SAMPLE_NUM", O.AutoInc, O.Unique)
     val externalId       = column[Option[String]]("EXTERNAL_ID")
     val externalIdSource = column[Option[String]]("EXTERNAL_ID_SOURCE")
-    val sampleTypeId     = column[Option[SampleTypeId]]("SAMPLE_TYPE_ID")
+    val sampleTypeId     = column[SampleTypeId]("SAMPLE_TYPE_ID")
     val size             = column[Option[Double]]("SAMPLE_SIZE")
     val sizeUnit         = column[Option[String]]("SAMPLE_SIZE_UNIT")
     val container        = column[Option[String]]("SAMPLE_CONTAINER")

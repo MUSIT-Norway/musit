@@ -57,7 +57,7 @@ class SampleObjectServiceSpec
       sampleId = None,
       sampleNum = None,
       externalId = None,
-      sampleTypeId = Some(SampleTypeId(1)),
+      sampleTypeId = SampleTypeId(1),
       size = Some(Size("cm2", 12.0)),
       container = Some("box"),
       storageMedium = None,
