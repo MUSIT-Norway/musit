@@ -1,0 +1,40 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# General endpoints
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GET           /service/actor/buildinfo                controllers.Application.buildInfo
+GET           /service/actor/healthcheck              controllers.HealthCheckController.healthCheck
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Actor related endpoints
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GET           /dataporten/currentUser                 controllers.actor.UserController.currentUser
+
+## Mapping routes, TODO: Remove these endpoints when database is migrated.
+GET           /person                                 controllers.actor.PersonController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
+POST          /person/details                         controllers.actor.PersonController.details
+GET           /person/:id                             controllers.actor.PersonController.get(id: String)
+
+## Organization routes, the new actor
+GET           /organisation                           controllers.actor.OrganisationController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
+POST          /organisation                           controllers.actor.OrganisationController.add
+GET           /organisation/:orgId                    controllers.actor.OrganisationController.get(orgId: Long)
+PUT           /organisation/:orgId                    controllers.actor.OrganisationController.update(orgId: Long)
+DELETE        /organisation/:orgId                    controllers.actor.OrganisationController.delete(orgId: Long)
+
+## OrganizationAddress routes, the new actor
+GET           /organisation/:orgId/address            controllers.actor.OrganisationAddressController.listForOrg(orgId: Long)
+POST          /organisation/:orgId/address            controllers.actor.OrganisationAddressController.add(orgId: Long)
+GET           /organisation/:orgId/address/:id        controllers.actor.OrganisationAddressController.get(orgId: Long, id: Long)
+PUT           /organisation/:orgId/address/:id        controllers.actor.OrganisationAddressController.update(orgId: Long, id: Long)
+DELETE        /organisation/:orgId/address/:id        controllers.actor.OrganisationAddressController.delete(orgId: Long, id: Long)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# GeoLocation related endpoints
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GET           /address                                controllers.geolocation.GeoLocationController.searchExternal(search: Option[String] ?= None)
+

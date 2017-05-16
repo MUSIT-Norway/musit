@@ -7,7 +7,7 @@ import no.uio.musit.models.{MuseumId, StorageNodeDatabaseId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.{ObjectDao, StorageNodeDao}
+import repositories.actor.dao.{ObjectDao, StorageNodeDao}
 
 import scala.concurrent.Future
 

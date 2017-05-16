@@ -36,7 +36,7 @@
   <logger name="slick.jdbc" level="INFO"/>
   <logger name="controllers" level="DEBUG"/>
   <logger name="services" level="DEBUG"/>
-  <logger name="repositories.dao" level="DEBUG"/>
+  <logger name="repositories.actor.dao" level="DEBUG"/>
   <logger name="accesslog" level="INFO"/>
 
   <root level="ERROR">

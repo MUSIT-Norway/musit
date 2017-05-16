@@ -1,9 +1,0 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
-# Setup endpoints
-GET        /service/geolocation/buildinfo          controllers.Application.buildInfo
-GET        /service/geolocation/healthcheck        controllers.HealthCheckController.healthCheck
-
-GET        /address                                controllers.GeoLocationController.searchExternal(search: Option[String] ?= None)

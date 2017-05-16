@@ -25,7 +25,7 @@ import no.uio.musit.security.{Authenticator, EncryptedToken}
 import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.service.MusitAdminController
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.dao.AuthDao
+import repositories.actor.dao.AuthDao
 
 class UserController @Inject()(
     implicit val authService: Authenticator,

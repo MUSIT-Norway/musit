@@ -29,7 +29,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc._
-import repositories.dao.AuthDao
+import repositories.actor.dao.AuthDao
 
 class CollectionController @Inject()(
     implicit val authService: Authenticator,

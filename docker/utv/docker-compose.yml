@@ -7,7 +7,12 @@ services:
       - "80:80"
     links:
       - webpack
+      - thingaggregate
+      - backend
+      - storagefacility
       - auth
+      - barcode
+      - management
 
   webpack:
     build:
@@ -31,8 +36,8 @@ services:
       - SLICK_DB_USER
       - SLICK_DB_PASSWORD
 
-  actor:
-    image: service_actor:0.1-SNAPSHOT
+  backend:
+    image: service_backend:0.1-SNAPSHOT
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL
@@ -43,21 +48,6 @@ services:
       - DATAPORTEN_SESSION_TIMEOUT
       - APPLICATION_SECRET
       - EVOLUTION_ENABLED
-      - SLICK_DB_URL
-      - SLICK_DB_USER
-      - SLICK_DB_PASSWORD
-
-  geolocation:
-    image: service_geo_location:0.1-SNAPSHOT
-    environment:
-      - MUSIT_ENV
-      - MUSIT_BASE_URL
-      - DOCKER_HOSTNAME
-      - MUSIT_SECURITY_MODULE
-      - DATAPORTEN_CLIENT_ID
-      - DATAPORTEN_CLIENT_SECRET
-      - DATAPORTEN_SESSION_TIMEOUT
-      - APPLICATION_SECRET
       - SLICK_DB_URL
       - SLICK_DB_USER
       - SLICK_DB_PASSWORD

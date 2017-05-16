@@ -35,7 +35,7 @@
   <logger name="controllers" level="ERROR"/>
   <logger name="services" level="ERROR"/>
   <logger name="no.uio.musit" level="ERROR"/>
-  <logger name="repositories.dao" level="ERROR"/>
+  <logger name="repositories.actor.dao" level="ERROR"/>
 
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>

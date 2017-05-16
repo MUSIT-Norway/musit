@@ -36,7 +36,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
-import repositories.dao.AuthDao
+import repositories.actor.dao.AuthDao
 
 import controllers.web
 

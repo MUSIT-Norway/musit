@@ -31,7 +31,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc.Result
-import repositories.dao.AuthDao
+import repositories.actor.dao.AuthDao
 
 import scala.concurrent.Future
 

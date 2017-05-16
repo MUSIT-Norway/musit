@@ -7,8 +7,7 @@ services:
       - "80:80"
     links:
       - thingaggregate
-      - actor
-      - geolocation
+      - backend
       - storagefacility
       - auth
       - barcode
@@ -40,8 +39,8 @@ services:
     links:
       - db
 
-  actor:
-    image: service_actor:0.1-SNAPSHOT
+  backend:
+    image: service_backend:0.1-SNAPSHOT
     ports:
       - "7072:7070"
     environment:
@@ -54,25 +53,6 @@ services:
       - DATAPORTEN_SESSION_TIMEOUT
       - APPLICATION_SECRET
       - EVOLUTION_ENABLED
-      - SLICK_DB_URL
-      - SLICK_DB_USER
-      - SLICK_DB_PASSWORD
-    links:
-      - db
-
-  geolocation:
-    image: service_geo_location:0.1-SNAPSHOT
-    ports:
-      - "7073:7070"
-    environment:
-      - MUSIT_ENV
-      - MUSIT_BASE_URL
-      - DOCKER_HOSTNAME
-      - MUSIT_SECURITY_MODULE
-      - DATAPORTEN_CLIENT_ID
-      - DATAPORTEN_CLIENT_SECRET
-      - DATAPORTEN_SESSION_TIMEOUT
-      - APPLICATION_SECRET
       - SLICK_DB_URL
       - SLICK_DB_USER
       - SLICK_DB_PASSWORD
