@@ -100,10 +100,10 @@ class AnalysisServiceSpec
       }
     }
 
-    "return all analysis events associated with the given ObjectUUID" in {
+    "return all analysis collection events associated with the given ObjectUUID" in {
       val res = service.findByObject(oid1).futureValue.successValue
 
-      res.size mustBe 2
+      res.size mustBe 1
 
       forAll(res) { r =>
         r.analysisTypeId mustBe dummyAnalysisTypeId
@@ -111,7 +111,7 @@ class AnalysisServiceSpec
         r.doneDate mustApproximate Some(dateTimeNow)
         r.note must not be empty
         r.note.value must startWith("This is from a SaveAnalysis")
-        r.objectId must not be empty
+        r.objectId mustBe empty
       }
     }
 

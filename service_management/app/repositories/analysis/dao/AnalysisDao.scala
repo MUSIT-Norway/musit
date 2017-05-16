@@ -112,6 +112,29 @@ class AnalysisDao @Inject()(
     }
   }
 
+  private def listAllForObjectAction(
+      oid: ObjectUUID
+  ): DBIO[Seq[AnalysisModuleEvent]] = {
+    val setid = SampleCreated.sampleEventTypeId
+
+    val qry = for {
+      a <- analysisTable.filter(_.objectUuid === oid)
+      b <- analysisTable if a.partOf === b.id || (b.id === a.id && a.typeId === setid)
+    } yield b
+
+    val query = qry joinLeft resultTable on (_.id === _.eventId)
+
+    query.result.map { res =>
+      res.flatMap { row =>
+        toAnalysisModuleEvent(row._1).map {
+          case ae: AnalysisEvent =>
+            ae.withResultAsOpt(fromResultRow(row._2)).getOrElse(ae)
+          case so: SampleCreated => so
+        }
+      }
+    }
+  }
+
   /**
    * Write a single {{{Analysis}}} event to the DB.
    *
@@ -261,7 +284,7 @@ class AnalysisDao @Inject()(
    * @return eventually a result with a list of analysis events and their results
    */
   def findByObjectUUID(oid: ObjectUUID): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
-    db.run(listForObjectAction(oid)).map(MusitSuccess.apply).recover {
+    db.run(listAllForObjectAction(oid)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An unexpected error occurred fetching events for object $oid"
         logger.error(msg, ex)

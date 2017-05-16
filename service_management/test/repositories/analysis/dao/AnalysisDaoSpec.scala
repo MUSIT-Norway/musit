@@ -139,7 +139,7 @@ class AnalysisDaoSpec
       }
 
       "return all analysis events for a given object" in {
-        dao.findByObjectUUID(oid2).futureValue.successValue.size mustBe 3
+        dao.findByObjectUUID(oid2).futureValue.successValue.size mustBe 1
       }
 
       "successfully add a result to an analysis" in {
