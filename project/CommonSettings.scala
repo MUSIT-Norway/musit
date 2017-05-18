@@ -79,6 +79,8 @@ object CommonSettings {
   val dockerMusitBaseImage    = scala.util.Properties.envOrNone("MUSIT_BASE_IMAGE")
   val dockerRegistryNamespace = "musit"
 
+  val commitSha = scala.util.Properties.envOrElse("CI_COMMIT_SHA", "not built on CI")
+
   def PlayProject(projName: String): Project =
     BaseProject(projName)
       .enablePlugins(
@@ -98,7 +100,8 @@ object CommonSettings {
             version,
             scalaVersion,
             sbtVersion,
-            buildInfoBuildNumber
+            buildInfoBuildNumber,
+            "commitSha" -> commitSha
           ),
           buildInfoPackage := "no.uio.musit.service",
           buildInfoOptions ++= Seq(BuildInfoOption.ToJson, BuildInfoOption.BuildTime),

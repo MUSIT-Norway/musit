@@ -19,7 +19,7 @@ services:
   - docker:dind
 
 before_script:
-  - echo "Running build $CI_BUILD_ID"
+  - echo "Running build $CI_JOB_ID for commit $CI_COMMIT_SHA with commit ref name $CI_COMMIT_REF_NAME"
   - mkdir $HOME/.docker
   - echo $DOCKER_AUTH_CONFIG > $HOME/.docker/config.json
   - docker info
