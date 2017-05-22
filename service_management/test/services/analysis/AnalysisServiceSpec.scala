@@ -1,8 +1,9 @@
 package services.analysis
 
+import models.analysis.events.AnalysisExtras.{MicroscopyAttributes, TomographyAttributes}
 import models.analysis.events.AnalysisResults.{AgeResult, GenericResult}
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisEvent}
-import models.analysis.events.EventCategories.Genetic
+import models.analysis.events.EventCategories.{Genetic, Image}
 import no.uio.musit.models.{ActorId, EventId}
 import no.uio.musit.models.MuseumCollections.Archeology
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
@@ -44,9 +45,37 @@ class AnalysisServiceSpec
       res.size mustBe 45
     }
 
-    "return all known event types for a given event category" in {
+    "return all known event types for an event category" in {
       val res = service.getTypesFor(Genetic).futureValue.successValue
       res.size mustBe 6
+    }
+
+    "return event types with extra description attributes for a category" in {
+      val res = service.getTypesFor(Image).futureValue.successValue
+      res.size mustBe 4
+
+      forAll(res) { at =>
+        at.category mustBe Image
+      }
+
+      val withExtras = res.filter(_.extraDescriptionAttributes.isDefined)
+
+      withExtras.size mustBe 2
+      withExtras.flatMap(_.extraDescriptionType) must contain allOf (
+        MicroscopyAttributes.typeName,
+        TomographyAttributes.typeName
+      )
+
+      // lift out the allowed values to ensure the valid ones are present for
+      // each analysis type.
+      val enrichedAttributes = withExtras
+        .flatMap(_.extraDescriptionAttributes)
+        .flatMap(_.flatMap(_.allowedValues))
+
+      enrichedAttributes must contain allOf (
+        MicroscopyAttributes.allValues,
+        TomographyAttributes.allValues
+      )
     }
 
     "return all known event types for a museum collection" ignore {

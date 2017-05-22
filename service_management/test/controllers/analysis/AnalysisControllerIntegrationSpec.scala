@@ -18,6 +18,7 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
+import org.scalatest.Inspectors.forAll
 
 class AnalysisControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
@@ -63,6 +64,33 @@ class AnalysisControllerIntegrationSpec
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 2
+      }
+
+      "return all types in a category where some have extra description attributes" in {
+        val catId = EventCategories.Image.id
+        val res =
+          wsUrl(typeCatUrl(mid)(catId)).withHeaders(token.asHeader).get().futureValue
+
+        res.status mustBe OK
+        val arr = res.json.as[JsArray].value
+        arr.size mustBe 4
+
+        val js = res.json
+        (js \ 0 \ "id").as[Int] mustBe 5
+        (js \ 0 \ "category").as[Int] mustBe catId
+        (js \ 0 \ "extraDescriptionType").as[String] mustBe "MicroscopyAttributes"
+
+        val extraAttrs = (js \ 0 \ "extraDescriptionAttributes").as[JsArray]
+        (extraAttrs \ 0 \ "attributeKey").as[String] mustBe "method"
+        (extraAttrs \ 0 \ "attributeType").as[String] mustBe "Int"
+
+        val allowedValues = (extraAttrs \ 0 \ "allowedValues").as[JsArray].value
+        allowedValues.size mustBe 4
+
+        val first = allowedValues.head
+        (first \ "id").as[Int] mustBe 1
+        (first \ "enLabel").as[String] mustBe "Light/polarization microscopy"
+        (first \ "noLabel").as[String] mustBe "Lys-/polarisasjonsmikroskopi"
       }
 
       "return all event types related to a museum collection" ignore {

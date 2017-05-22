@@ -9,11 +9,56 @@ import play.api.libs.json._
 
 object AnalysisExtras {
 
+  /**
+   * ExtraAttributes are used to provide additional fields to a specific
+   * {{{Analysis}}} type. Each {{{ExtraAttributes}}} implementation can have
+   * one or more attribute fields. And they can contain a type specific set of
+   * allowed values. These values are implemented as ADT's in the companion
+   * object for the specific {{{ExtraAttributes}}} implementation.
+   *
+   * The allowed values of the ADT typed attributes need to be provided as part
+   * of the response, when the client fetches the list of {{{AnalysisType}}}s.
+   */
   sealed trait ExtraAttributes
+
+  trait ExtraAttributesOps {
+    val typeName: String
+    val allValues: Seq[DescriptionAttributeValue] = Seq.empty
+  }
+
+  trait DescriptionAttributeValue {
+    val id: Int
+    val enLabel: String
+    val noLabel: String
+  }
+
+  trait DescriptionAttributeValueOps {
+    // This is _NOT_ implicit because it's not what should be considered the
+    // default JSON representation. Instead this writes needs to be explicitly
+    // provided in scope when you want to use it.
+    implicit val fullPredefWrites: Writes[DescriptionAttributeValue] = Writes { mm =>
+      Json.obj(
+        "id"      -> mm.id,
+        "enLabel" -> mm.enLabel,
+        "noLabel" -> mm.noLabel
+      )
+    }
+  }
 
   object ExtraAttributes {
 
     private val discriminator = "type"
+
+    def valuesFor(str: String): Option[Seq[DescriptionAttributeValue]] = {
+      str match {
+        case MicroscopyAttributes.typeName   => Some(MicroscopyAttributes.allValues)
+        case TomographyAttributes.typeName   => Some(TomographyAttributes.allValues)
+        case IsotopeAttributes.typeName      => Some(IsotopeAttributes.allValues)
+        case ElementalICPAttributes.typeName => Some(ElementalICPAttributes.allValues)
+        case ElementalAASAttributes.typeName => Some(ElementalAASAttributes.allValues)
+        case ExtractionAttributes.typeName   => None
+      }
+    }
 
     implicit val reads: Reads[ExtraAttributes] = Reads { js =>
       (js \ discriminator).as[String] match {
@@ -62,15 +107,20 @@ object AnalysisExtras {
 
   case class MicroscopyAttributes(method: MicroscopyMethod) extends ExtraAttributes
 
-  object MicroscopyAttributes {
+  object MicroscopyAttributes extends ExtraAttributesOps {
+
+    implicit val format: Format[MicroscopyAttributes] = Json.format[MicroscopyAttributes]
 
     val typeName = "MicroscopyAttributes"
 
-    sealed trait MicroscopyMethod {
-      val id: Int
-      val enLabel: String
-      val noLabel: String
-    }
+    override val allValues = Seq(
+      LightPolarization,
+      ScanningElectron,
+      TransmissionElectron,
+      XRay
+    )
+
+    sealed trait MicroscopyMethod extends DescriptionAttributeValue
 
     object MicroscopyMethod {
       implicit val reads: Reads[MicroscopyMethod] = Reads { js =>
@@ -117,21 +167,25 @@ object AnalysisExtras {
       override val noLabel = "Røntgenmikroskopi"
     }
 
-    implicit val format: Format[MicroscopyAttributes] = Json.format[MicroscopyAttributes]
-
   }
 
   case class TomographyAttributes(method: TomographyMethod) extends ExtraAttributes
 
-  object TomographyAttributes {
+  object TomographyAttributes extends ExtraAttributesOps {
+
+    implicit val format: Format[TomographyAttributes] = Json.format[TomographyAttributes]
 
     val typeName = "TomographyAttributes"
 
-    sealed trait TomographyMethod {
-      val id: Int
-      val enLabel: String
-      val noLabel: String
-    }
+    override val allValues = Seq(
+      Laser3DScan,
+      StructuredLight3DScan,
+      ComputerTomography,
+      XRay,
+      NeutronTomography
+    )
+
+    sealed trait TomographyMethod extends DescriptionAttributeValue
 
     object TomographyMethod {
 
@@ -187,21 +241,28 @@ object AnalysisExtras {
       override val noLabel = "Neutrontomografi"
     }
 
-    implicit val format: Format[TomographyAttributes] = Json.format[TomographyAttributes]
-
   }
 
   case class IsotopeAttributes(types: Seq[IsotopeAnalysisType]) extends ExtraAttributes
 
-  object IsotopeAttributes {
+  object IsotopeAttributes extends ExtraAttributesOps {
+
+    implicit val format: Format[IsotopeAttributes] = Json.format[IsotopeAttributes]
 
     val typeName = "IsotopeAttributes"
 
-    sealed trait IsotopeAnalysisType {
-      val id: Int
-      val enLabel: String
-      val noLabel: String
-    }
+    override val allValues = Seq(
+      Lead_210_Pb,
+      Strontium_87Sr_86Sr,
+      StrontiumNeodymium,
+      Carbon_13C_12C,
+      Nitrogen_15N_14N,
+      Oxygen_018_016,
+      Sulphur_34S_32S,
+      Hydrogen_2H_1H
+    )
+
+    sealed trait IsotopeAnalysisType extends DescriptionAttributeValue
 
     object IsotopeAnalysisType {
       implicit val reads: Reads[IsotopeAnalysisType] = Reads { js =>
@@ -280,21 +341,20 @@ object AnalysisExtras {
       override val noLabel = enLabel
     }
 
-    implicit val format: Format[IsotopeAttributes] = Json.format[IsotopeAttributes]
-
   }
 
   case class ElementalICPAttributes(method: ElementalICP) extends ExtraAttributes
 
-  case object ElementalICPAttributes {
+  case object ElementalICPAttributes extends ExtraAttributesOps {
+
+    implicit val format: Format[ElementalICPAttributes] =
+      Json.format[ElementalICPAttributes]
 
     val typeName = "ElementalICPAttributes"
 
-    sealed trait ElementalICP {
-      val id: Int
-      val enLabel: String
-      val noLabel: String
-    }
+    override val allValues = Seq(ICP_OES_AES, ICP_MS, ICP_SFMS)
+
+    sealed trait ElementalICP extends DescriptionAttributeValue
 
     object ElementalICP {
       implicit val reads: Reads[ElementalICP] = Reads { jsv =>
@@ -333,21 +393,20 @@ object AnalysisExtras {
       override val noLabel = enLabel
     }
 
-    implicit val format: Format[ElementalICPAttributes] =
-      Json.format[ElementalICPAttributes]
   }
 
   case class ElementalAASAttributes(method: ElementalAAS) extends ExtraAttributes
 
-  case object ElementalAASAttributes {
+  case object ElementalAASAttributes extends ExtraAttributesOps {
+
+    implicit val format: Format[ElementalAASAttributes] =
+      Json.format[ElementalAASAttributes]
 
     val typeName = "ElementalAASAttributes"
 
-    sealed trait ElementalAAS {
-      val id: Int
-      val enLabel: String
-      val noLabel: String
-    }
+    override val allValues = Seq(GFAAS, CVAAS)
+
+    sealed trait ElementalAAS extends DescriptionAttributeValue
 
     object ElementalAAS {
       implicit val reads: Reads[ElementalAAS] = Reads { jsv =>
@@ -378,8 +437,6 @@ object AnalysisExtras {
       override val noLabel = enLabel
     }
 
-    implicit val format: Format[ElementalAASAttributes] =
-      Json.format[ElementalAASAttributes]
   }
 
   case class ExtractionAttributes(
@@ -387,7 +444,7 @@ object AnalysisExtras {
       method: Option[String]
   ) extends ExtraAttributes
 
-  case object ExtractionAttributes {
+  case object ExtractionAttributes extends ExtraAttributesOps {
     val typeName = "ExtractionAttributes"
 
     implicit val format: Format[ExtractionAttributes] = Json.format[ExtractionAttributes]

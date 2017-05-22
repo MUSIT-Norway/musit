@@ -30,20 +30,15 @@ class AnalysisService @Inject()(
   /**
    * Return all AnalysisTypes that exist in the system
    */
-  def getAllTypes: Future[MusitResult[Seq[AnalysisType]]] = typeDao.all
+  def getAllTypes: Future[MusitResult[Seq[EnrichedAnalysisType]]] = {
+    typeDao.all.map(_.map(EnrichedAnalysisType.fromAnalysisTypes))
+  }
 
   /**
    * Return all AnalysisTypes "tagged" with the given Category
    */
-  def getTypesFor(c: Category): Future[MusitResult[Seq[AnalysisType]]] = {
-    typeDao.allForCategory(c)
-  }
-
-  /**
-   * Return the AnalyisType associated with the given AnalysisTypeId
-   */
-  def getType(tid: AnalysisTypeId): Future[MusitResult[Option[AnalysisType]]] = {
-    typeDao.findById(tid)
+  def getTypesFor(c: Category): Future[MusitResult[Seq[EnrichedAnalysisType]]] = {
+    typeDao.allForCategory(c).map(_.map(EnrichedAnalysisType.fromAnalysisTypes))
   }
 
   /**
@@ -51,9 +46,16 @@ class AnalysisService @Inject()(
    * result also includes AnalysisTypes that aren't associated with _any_
    * CollectionUUIDs.
    */
-  def getTypesFor(id: CollectionUUID): Future[MusitResult[Seq[AnalysisType]]] = {
-    typeDao.allForCollection(id)
+  def getTypesFor(id: CollectionUUID): Future[MusitResult[Seq[EnrichedAnalysisType]]] = {
+    typeDao.allForCollection(id).map(_.map(EnrichedAnalysisType.fromAnalysisTypes))
   }
+
+  /**
+   * Return the AnalyisType associated with the given AnalysisTypeId
+   */
+  private[services] def getType(
+      tid: AnalysisTypeId
+  ): Future[MusitResult[Option[AnalysisType]]] = typeDao.findById(tid)
 
   /**
    * Add a new AnalysisEvent.
