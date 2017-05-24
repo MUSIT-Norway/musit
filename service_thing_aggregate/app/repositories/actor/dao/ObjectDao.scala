@@ -2,12 +2,19 @@ package repositories.actor.dao
 
 import com.google.inject.Inject
 import models.SearchFieldValues._
-import models.{MusitObject, ObjectSearchResult}
+import models._
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.models.MuseumCollections.{
+  Archeology,
+  Collection,
+  Ethnography,
+  Nature
+}
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
+import oracle.net.aso.q
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -168,7 +175,7 @@ class ObjectDao @Inject()(
     val q5 = {
       if (currUsr.hasGodMode) q4
       // Filter on collection access if the user doesn't have GodMode
-      else q4.filter(_.newCollectionId inSet collections.flatMap(_.schemaIds).distinct)
+      else q4.filter(_.newCollectionId inSet collections.map(_.collection).distinct)
     }
     // Tweak here if sorting needs to be tuned
     q5.filter(_.isDeleted === false).sortBy { mt =>
@@ -213,7 +220,7 @@ class ObjectDao @Inject()(
       matches <- matchedResults
     } yield {
       MusitSuccess(
-        ObjectSearchResult(total, matches.map(MusitObject.fromTuple))
+        ObjectSearchResult(total, matches.map(MusitObject.fromSearchTuple))
       )
     }).recover {
       case NonFatal(ex) =>
@@ -236,7 +243,7 @@ class ObjectDao @Inject()(
       mainObjectId: ObjectUUID,
       collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    val colIds = collections.flatMap(_.schemaIds).distinct
+    val colIds = collections.map(_.collection).distinct
     // scalastyle:off line.size.limit
     // format: off
     val query: DBIO[Seq[ObjectRow]] = for {
@@ -250,12 +257,14 @@ class ObjectDao @Inject()(
     // format: on
     // scalastyle:on line.size.limit
 
-    db.run(query).map(res => MusitSuccess(res.map(MusitObject.fromTuple))).recover {
-      case NonFatal(ex) =>
-        val msg = s"Error while retrieving search result"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(query)
+      .map(res => MusitSuccess(res.map(MusitObject.fromSearchTuple)))
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Error while retrieving search result"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
   }
 
   type QLocObj = Query[LocalObjectsTable, LocalObjectsTable#TableElementType, scala.Seq]
@@ -265,7 +274,7 @@ class ObjectDao @Inject()(
   )(implicit currUsr: AuthenticatedUser) =
     if (currUsr.hasGodMode) ""
     else {
-      val in = collections.flatMap(_.schemaIds).mkString("(", ",", ")")
+      val in = collections.map(_.collection.id).mkString("(", ",", ")")
       s"""AND mt."NEW_COLLECTION_ID" in $in"""
     }
 
@@ -355,7 +364,12 @@ class ObjectDao @Inject()(
           mt."TERM",
           mt."OLD_SCHEMANAME",
           mt."LOKAL_PK",
-          mt."NEW_COLLECTION_ID"
+          mt."NEW_COLLECTION_ID",
+          mt."ARK_FORM",
+          mt."ARK_FUNN_NR",
+          mt."NAT_STAGE",
+          mt."NAT_GENDER",
+          mt."NAT_LEGDATO"
         FROM "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
         WHERE lo."MUSEUM_ID" = ${mid.underlying}
         AND mt."MUSEUMID" = ${mid.underlying}
@@ -368,13 +382,14 @@ class ObjectDao @Inject()(
           mt."SUBNOASNUMBER" ASC,
           LOWER(mt."SUBNO") ASC
         #${pagingClause(page, limit)}
-      """.as[(Option[Long], Option[String], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int])]
+      """.as[(Option[Long], Option[String], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int],
+        Option[String], Option[String], Option[String], Option[String], Option[String])]
 
     db.run(query).map { r =>
       val res = r.map { t =>
         (t._1.map(ObjectId.apply), t._2.map(ObjectUUID.unsafeFromString),
           MuseumId.fromInt(t._3), t._4, t._5, t._6, t._7, t._8, t._9, t._10,
-          t._11, t._12, t._13)
+          t._11, t._12, t._13.map(Collection.fromInt),t._14,t._15,t._16,t._17,t._18)
       }
       MusitSuccess(res)
     }
@@ -404,7 +419,7 @@ class ObjectDao @Inject()(
       tot <- MusitResultT(countObjects(mid, nodeId, collections))
       res <- MusitResultT(objectsFor(mid, nodeId, collections, page, limit))
     } yield {
-      PagedResult[MusitObject](tot, res.map(MusitObject.fromTuple))
+      PagedResult[MusitObject](tot, res.map(MusitObject.fromSearchTuple))
     }).value.recover {
       case NonFatal(ex) =>
         val msg = s"Error while retrieving objects for nodeId $nodeId"
@@ -456,7 +471,7 @@ class ObjectDao @Inject()(
     }
 
     db.run(query.result.headOption)
-      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
+      .map(res => MusitSuccess(res.map(MusitObject.fromSearchTuple)))
       .recover {
         case NonFatal(ex) =>
           val msg = s"Error while locating object with old object ID $oldId"
@@ -470,7 +485,7 @@ class ObjectDao @Inject()(
     objectUUID: ObjectUUID,
     collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MusitObject]]] = {
-    val cids = collections.flatMap(_.schemaIds).distinct
+    val cids = collections.map(_.collection).distinct
 
     val queryAllCollections = objTable.filter { o =>
       o.uuid === objectUUID &&
@@ -483,7 +498,7 @@ class ObjectDao @Inject()(
       else queryAllCollections.filter(_.newCollectionId inSet cids)
 
     db.run(query.result.headOption)
-      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
+      .map(res => MusitSuccess(res.map(MusitObject.fromSearchTuple)))
       .recover {
         case NonFatal(ex) =>
           val msg = s"Error while locating object with uuid $objectUUID"
@@ -497,7 +512,7 @@ class ObjectDao @Inject()(
       oldBarcode: Long,
       collections: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObject]]] = {
-    val cids = collections.flatMap(_.schemaIds).distinct
+    val cids = collections.map(_.collection).distinct
 
     val queryAllCollections = objTable.filter { o =>
       o.oldBarcode === oldBarcode &&
@@ -510,10 +525,86 @@ class ObjectDao @Inject()(
       else queryAllCollections.filter(_.newCollectionId inSet cids)
 
     db.run(query.result)
-      .map(res => MusitSuccess(res.map(MusitObject.fromTuple)))
+      .map(res => MusitSuccess(res.map(MusitObject.fromSearchTuple)))
       .recover {
         case NonFatal(ex) =>
           val msg = s"Error while locating object with old barcode $oldBarcode"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+  }
+
+  def getObjectMaterialAction(oid: ObjectId, collection: Collection)
+    (implicit currUsr: AuthenticatedUser): DBIO[Seq[MusitObjectMaterial]] = {
+    collection match {
+      case Archeology =>
+        thingMaterialTable.filter(_.objectid === oid.underlying).map { a =>
+          (a.arkMaterial,a.arkSpesMaterial,a.arkSorting)
+        }.result.map(ts => ts.map(t => ArkMaterial(t._1, t._2, t._3)))
+
+      case Ethnography =>
+        thingMaterialTable.filter(_.objectid === oid.underlying).map { e =>
+          (e.etnMaterial,e.etnMaterialtype,e.etnMaterialElement)
+        }.result.map(ts => ts.map(t => EtnoMaterial(t._1, t._2, t._3)))
+
+        
+      case noMaterials =>
+        logger.warn(s"There are no materials for the $noMaterials collection")
+        DBIO.successful(Seq.empty)
+    }
+  }
+
+  // case n: Collection with Nature => ???
+
+  def getObjectMaterial(
+    museumId: MuseumId,
+    collection: Collection,
+    oid: ObjectId
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObjectMaterial]]] = {
+    val q = getObjectMaterialAction(oid, collection)
+    db.run(q)
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get materials for $oid"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+  }
+
+  def getObjectLocationAction(oid: ObjectId, collection: Collection)
+    (implicit currUsr: AuthenticatedUser): DBIO[Seq[MusitObjectLocation]] = {
+    collection match {
+      case Archeology =>
+        thingLocationTable.filter(_.objectid === oid.underlying).map { a =>
+          (a.arkFarm,a.arkFarmNo,a.arkBrukNo)
+        }.result.map(ts => ts.map(t => ArkLocation(t._1, t._2, t._3)))
+
+       case nat: Collection with Nature =>
+        thingLocationTable.filter(_.objectid === oid.underlying).map { n =>
+          (n.natCountry,n.natStateProvince,n.natMunicipality,n.natLocality,n.natCoordinate,
+          n.natCoordDatum,n.natSoneBand)
+        }.result.map(ts => ts.map(t => NatLocation(t._1, t._2, t._3,t._4,t._5,t._6,t._7)))
+
+
+      case noLocations =>
+        logger.warn(s"There are no locations for the $noLocations collection")
+        DBIO.successful(Seq.empty)
+    }
+  }
+  
+
+  def getObjectLocation(
+    museumId: MuseumId,
+    collection: Collection,
+    oid: ObjectId
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MusitObjectLocation]]] = {
+    val q = getObjectLocationAction(oid, collection)
+    db.run(q)
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"Unable to get locations for $oid"
           logger.error(msg, ex)
           MusitDbError(msg, Option(ex))
       }

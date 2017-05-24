@@ -15,8 +15,8 @@ class ObjectControllerIntegrationSpec
 
   val fakeToken = BearerToken(FakeUsers.testUserToken)
 
-  val archeologyCollection  = "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
-  val numismaticsCollection = "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
+  val archeologyCollection  = "2e4f2455-1b3b-4a04-80a1-ba92715ff613"
+  val numismaticsCollection = "8bbdf9b3-56d1-479a-9509-2ea82842e8f8"
 
   var url = (mid: Int) => s"/museum/$mid/objects/search"
 
@@ -339,6 +339,31 @@ class ObjectControllerIntegrationSpec
         res.status mustBe NOT_FOUND
       }
     }
+  }
+
+  "successfully return the object with its material and location" in {
+    val uuid = "d43e3c5a-8244-4497-bd15-29c844ff8745"
+    val mid  = 99
+    val res = wsUrl(s"/museum/$mid/objects/$uuid")
+      .withHeaders(fakeToken.asHeader)
+      .withQueryString("collectionIds" -> archeologyCollection)
+      .get()
+      .futureValue
+    res.status mustBe OK
+    val obj = res.json
+
+    (obj \ "materials").as[JsArray].value.size mustBe 2
+    val first         = (obj \ "materials").as[JsArray].value
+    val firstLocation = (obj \ "locations").as[JsArray].value
+
+    (first.head \ "spesMaterial").as[String] mustBe "spes bjørk"
+    (firstLocation.head \ "farmName").as[String] mustBe "Berg"
+    (firstLocation.head \ "farmNo").as[Int] mustBe 10
+    (firstLocation.head \ "propertyUnitNo").as[String] mustBe "1-34"
+    (first.last \ "material").as[String] mustBe "jern"
+    (firstLocation.last \ "farmName").as[String] mustBe "nedre Berg"
+    (firstLocation.last \ "farmNo").as[Int] mustBe 20
+    (firstLocation.last \ "propertyUnitNo").as[String] mustBe "45"
   }
 
 }

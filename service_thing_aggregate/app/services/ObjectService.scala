@@ -3,6 +3,8 @@ package services
 import com.google.inject.Inject
 import models.{MusitObject, ObjectSearchResult}
 import no.uio.musit.MusitResults._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -39,7 +41,25 @@ class ObjectService @Inject()(
       objectUUID: ObjectUUID,
       cids: Seq[MuseumCollection]
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MusitObject]]] = {
-    objDao.findByUUID(mid, objectUUID, cids)
+    val r = for {
+      mo <- MusitResultT(objDao.findByUUID(mid, objectUUID, cids))
+      matr <- MusitResultT(mo.flatMap { o =>
+               o.collection.map { c =>
+                 objDao.getObjectMaterial(mid, c, o.id)
+               }
+             }.getOrElse(Future.successful(MusitSuccess(Seq.empty))))
+      loc <- MusitResultT(mo.flatMap { o =>
+              o.collection.map { c =>
+                objDao.getObjectLocation(mid, c, o.id)
+              }
+            }.getOrElse(Future.successful(MusitSuccess(Seq.empty))))
+    } yield {
+      mo.map { obj =>
+        obj.copy(materials = Option(matr), locations = Option(loc))
+      }
+    }
+
+    r.value
   }
 
   /**

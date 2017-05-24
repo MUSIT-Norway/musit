@@ -366,7 +366,52 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   old_barcode       INTEGER,
   new_collection_id INTEGER,
   musitthing_uuid   VARCHAR(36),
+  ark_form          VARCHAR2(2000),
+  ark_funn_nr       VARCHAR2(500 CHAR),
+  nat_stage         VARCHAR2(256),
+  nat_gender        VARCHAR2(256),
+  nat_legdato       VARCHAR2(64),
   PRIMARY KEY (object_id)
+);
+
+-- ===========================================================================
+-- Temporary mapping table for museum object's material.
+-- ===========================================================================
+
+CREATE TABLE MUSIT_MAPPING.THING_MATERIAL
+(
+  collectionid         INTEGER,
+  objectid             INTEGER,
+  etn_materialtype     VARCHAR2(100),
+  etn_material         VARCHAR2(300),
+  etn_material_element VARCHAR2(100),
+  etn_matrid_local     INTEGER,
+  ark_material         VARCHAR2(500),
+  ark_spes_material    VARCHAR2(500),
+  ark_sortering        INTEGER,
+  ark_hid_local        INTEGER,
+  num_material         VARCHAR2(100),
+  num_numistypeid      INTEGER
+);
+
+-- ===========================================================================
+-- Temporary mapping table for museum object's location.
+-- ===========================================================================
+create table MUSIT_MAPPING.THING_LOCATION
+(
+  collectionid       INTEGER,
+  objectid           INTEGER,
+  ark_gardsnavn      VARCHAR2(100),
+  ark_gardsnr        INTEGER,
+  ark_bruksnr        VARCHAR2(100),
+  ark_stedid         INTEGER,
+  nat_country        VARCHAR2(100),
+  nat_state_province VARCHAR2(100),
+  nat_municipality   VARCHAR2(100),
+  nat_locality       VARCHAR2(4000),
+  nat_coordinate     VARCHAR2(256),
+  nat_coord_datum    VARCHAR2(64),
+  nat_sone_band      VARCHAR2(16)
 );
 
 -- ===========================================================================
@@ -655,6 +700,152 @@ INSERT INTO musark_storage.role (name, data_type) VALUES ('DoneBy', 'actor');
 INSERT INTO musark_storage.role (name, data_type) VALUES ('toPlace', 'storageNode');
 INSERT INTO musark_storage.role (name, data_type) VALUES ('fromPlace', 'storageNode');
 
+--- INSERTING TREATMENT-LIST
+
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(1,'CTAB','CTAB');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(2,'DNAdvance Beckman Coulter','Advance Beckman Coulter');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(3,'EZNA plant kit','EZNA plant kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(4,'Hot shot','Hot shot');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(5,'Mole robot','Mole robot');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(6,'Omega EZNA blood and tissue kit','Omega EZNA blood and tissue kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(7,'Omega EZNA blood kit',' Omega EZNA blood kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(8,'Omega EZNA plant kit',' Omega EZNA plant kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(9,'Omega EZNA tissue kit','Omega EZNA tissue kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(10,'Phenol-Chloroform','Phenol-Chloroform');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(11,'Qiagen blood and tissue kit','Qiagen blood and tissue kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(12,'Qiagen blood kit','Qiagen blood kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(13,'Qiagen plant kit','Qiagen plant kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(14,'Qiagen tissue kit','Qiagen tissue kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(15,'Quick extract','Quick extract');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(16,'WGA (GenomiPhi)','WGA (GenomiPhi)');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(17,'Spectrum plant toal RNA kit',' Spectrum plant toal RNA kit');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(18,'Drilling','Drilling');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(19,'Ekstrahering','Extraction');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(20,'Fjernet ved bruk av skalpell','Removed using scalpel');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(21,'Løse fragment(er)','Loose fragment(s)');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(22,'Skjæring/kutting','Cutting');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(23,'Skraping','Scraping');
+INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(24,'Saging','Sawing');
+
+
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(1 ,'Lagringsmedium','Storage medium');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(2 ,'Buffer EDTA','Buffer EDTA');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(3 ,'Buffer TE ','Buffer TE');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(4 ,'Buffer uspesifisert','Buffer (Unspecified)');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(5 ,'Destillert vann','Distilled water');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(6 ,'DMSO','DMSO');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(7 ,'dsH20','dsH20');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(8 ,'Elution buffer','Elution buffer');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(9 ,'Etanol','Ethanol');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(10,'Etanol 70%','Ethanol 70%');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(11,'Etanol 80%','Ethanol 80%');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(12,'Etanol 96%','Ethanol 96%');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(13,'Fenol','Phenol');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(14,'Flytende nitrogen','Liquid nitrogen');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(15,'Formalin','Formalin');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(16,'Glyserol','Glycerol');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(17,'Fysiologisk saltvann','Physiological saline');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(18,'Iseddik','Glacial acetic acid');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(19,'Isopropanol','Isopropanol');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(20,'Langmeir solution','Langmeir solution');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(21,'Queens lysis buffer','Queens lysis buffer');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(22,'RNAlater','RNAlater');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(23,'SET buffer','SET buffer');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(24,'Silika','Silica gel');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(25,'Tørr','Dry');
+INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(26,'Parafinvoks','Paraffin wax');
+
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(1, 'Eppendorfrør','Eppendorf tube');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(2, 'Kryorør','Cryo tube');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(3, 'Lynlåspose','Ziplock bag');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(4, 'Lynlåspose, plast (LDPE)','Self-sealing bags, plastic (LDPE)');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(5, 'Mikrofilterplate','Microfilter plate');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(6, 'Mikrosentrifugerør','Microcentrifuge tube');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(7, 'Papirpose','Paper bag');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(8, 'PCR-rør','PCR tube');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(9,'Større plastbeholder m skrulokk','Larger plastic container with screw lid');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(10,'Større glassbeholder m skrulokk','Larger glas container with screw lid');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(11,'Plastrør 0,5 mL','Plastic tube 0.2 ml');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(12,'Plastrør 0,5 mL','Plastic tube 0.5 ml');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(13,'Plastrør 1,5 mL','Plastic tube 1.5 ml');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(14,'Plastrør 2,0 mL','Plastic tube 2.0 ml');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(15,'Plastrør 8,0 mL','Plastic tube 8.0 ml');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(16,'Plastrør 15 mL','Plastic tube 15 ml');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(17,'Plastrør 50 mL','Plastic tube 50 ml');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(18,'Plate 96 brønner','Plate 96 wells');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(19,'Syrefri pappeske','Acid free cardboard box');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(20,'Syrefritt silkepapir','Acid free tissue');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(21,'Pappeske, ikke arkivstandard','Cardboard box, not archival standard');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(22,'Polyetylen skum (Ethafoam/Plastazote)','Polyethylene Foam (Ethafoam/Plastazote)');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(23,'Polystyren eske','Polystyrene box');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(24,'Reagensglass','Locked test tubes');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(25,'Prøvekube','Small locked test tubes');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(26,'PVC-rør','PVC-tube');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(27,'Kasseprøve','Wooden box');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(28,'Plastboks (5 L)','Box (plastic) 5 L');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(29,'Isbiter boks','Ice-cube box');
+INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(30,'Preparateske for slides','Slidebox');
+
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(362,'Museum of Archaeology/UiS',51832600,'http://am.uis.no/','','|analysis|');
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(361,'Norwegian geological Survey','','','','|analysis|');
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(360,'Vitenskapsmuseet: Nasjonallaboratoriene for datering',73593306,'','','|analysis|');
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(359,'Chrono Centre','','http://www.chrono.qub.ac.uk/content.html','','|analysis|');
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(358,'Beta Analytic Limited',442076177459,'http://www.radiocarbon.com/','','|analysis|');
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(357,'Poznan radiocarbon laboratory','','','','|analysis|');
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(356,'Macrogen Europe','','http://dna.macrogen.com/eng/','','|analysis|');
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(355,'Canadian Centre for DNA Barcoding','','http://ccdb.ca/','','|analysis|');
+
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(5,359,'Archaeology & Palaeoecology Building','42 Fitzwilliam Street','Belfast BT9 6AX','United Kingdom');
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(4,358,'London bioscience innovation Centre','2 Royal College Street','London NW1 ONH','United Kingdom');
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(3,357,'ul. Rubiez 46','','61-62 Poznan','Polen');
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(2,356,'Meibergdreef 31','','1105 AZ, Amsterdam','Nederland');
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(1,355,'Centre for Biodiversity Genomics','50 Stone Road East, University of Guelph,Guelph','ON, N1G2W1','Canada');
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(8,362,'University of Stavanger','visit: Peder Klowsgt. 30A','4036 Stavanger','Norway');
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(7,361,'Leiv Eirikssons vei 39, 70410 Trondheim','Postboks 6315 Sluppen','7491 Trondheim','Norway');
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(6,360,'NTNU','Sem Sælands vei 5, Gløshaugen','7491 Trondheim','Norway');
+
+--- INSERTING SAMPLE_TYPES
+
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(1,'DNA-ekstrakt','DNA extract','aDNA','aDNA');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(2,'DNA-ekstrakt','DNA extract','eDNA','eDNA');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(3,'DNA-ekstrakt','DNA extract','gDNA','gDNA');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(4,'DNA-ekstrakt','DNA extract','rDNA','rDNA');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(5,'Vev','Tissue','Frø','Seed');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(6,'Levende individ','Living individual','','');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(7,'Parasitt','Parasite','Ektoparasitt','Ectoparasite');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(8,'Parasitt','Parasite','Endoparasitt','Endoparasite');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(9,'RNA-bibliotek','RNA library','','');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(10,'RNA-ekstrakt','RNA extract','','');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(11,'Vev','Tissue','Apothecia','Apothecia');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(12,'Vev','Tissue','Bein','Bone');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(13,'Vev','Tissue','Binde- og støttevev','Connective tissue');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(14,'Vev','Tissue','Blad','Leaf');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(15,'Vev','Tissue','Blod','Blood');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(16,'Vev','Tissue','Epitelvev','Epithelial tissue');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(17,'Vev','Tissue','Fjær','Feather');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(18,'Vev','Tissue','Føtter','Legs');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(19,'Vev','Tissue','Grunnvev','Ground tissue');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(20,'Vev','Tissue','Hale','Tail');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(21,'Vev','Tissue','Hjerne','Brain');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(22,'Vev','Tissue','Hudvev','Epidermis');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(23,'Vev','Tissue','Hår','Hair');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(24,'Vev','Tissue','Knokkel','Bone');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(25,'Vev','Tissue','Ledningsvev','Vascular tissue');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(26,'Vev','Tissue','Lever','Liver');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(27,'Vev','Tissue','Muskel','Muscle');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(28,'Vev','Tissue','Nervevev','Nervous tissue');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(29,'Vev','Tissue','Plasma','Plasma');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(30,'Vev','Tissue','Skinn','Skin');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(31,'Vev','Tissue','Soredia','Soredia');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(32,'Vev','Tissue','Testikkel','Testicle');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(33,'Vev','Tissue','Thallus','Thallus');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(34,'Vev','Tissue','Tåpute','Toe pad');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(35,'Vev','Tissue','Vinge','Wing');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(36,'Vev','Tissue','Øre','Ear');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(37,'Materiale','Material','','');
+
+
+
 -- ===========================================================================
 -- Inserting test data
 -- ===========================================================================
@@ -801,131 +992,6 @@ INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subn
 INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, old_schemaname, new_collection_id) VALUES                ('aba6a67c-f742-4a44-b13e-0415ec1abb2a', 54, 'MusN13', NULL, 'Makrellsopp', 13, NULL, 99, 'MUSIT_BOTANIKK_SOPP', 6);
 INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, old_schemaname, new_collection_id) VALUES                ('59df0090-aff2-4a82-8968-bfa06c2df861', 55, 'MusK108', NULL, 'Skinnpung', 108, NULL, 99, 'USD_ARK_GJENSTAND_O', 1);
 
---- INSERTING TREATMENT-LIST
-
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(1,'CTAB','CTAB');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(2,'DNAdvance Beckman Coulter','Advance Beckman Coulter');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(3,'EZNA plant kit','EZNA plant kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(4,'Hot shot','Hot shot');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(5,'Mole robot','Mole robot');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(6,'Omega EZNA blood and tissue kit','Omega EZNA blood and tissue kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(7,'Omega EZNA blood kit',' Omega EZNA blood kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(8,'Omega EZNA plant kit',' Omega EZNA plant kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(9,'Omega EZNA tissue kit','Omega EZNA tissue kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(10,'Phenol-Chloroform','Phenol-Chloroform');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(11,'Qiagen blood and tissue kit','Qiagen blood and tissue kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(12,'Qiagen blood kit','Qiagen blood kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(13,'Qiagen plant kit','Qiagen plant kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(14,'Qiagen tissue kit','Qiagen tissue kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(15,'Quick extract','Quick extract');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(16,'WGA (GenomiPhi)','WGA (GenomiPhi)');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(17,'Spectrum plant toal RNA kit',' Spectrum plant toal RNA kit');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(18,'Drilling','Drilling');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(19,'Ekstrahering','Extraction');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(20,'Fjernet ved bruk av skalpell','Removed using scalpel');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(21,'Løse fragment(er)','Loose fragment(s)');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(22,'Skjæring/kutting','Cutting');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(23,'Skraping','Scraping');
-INSERT INTO MUSARK_ANALYSIS.TREATMENT(treatment_id, no_treatment,en_treatment) VALUES(24,'Saging','Sawing');
-
-
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(1 ,'Lagringsmedium','Storage medium');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(2 ,'Buffer EDTA','Buffer EDTA');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(3 ,'Buffer TE ','Buffer TE');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(4 ,'Buffer uspesifisert','Buffer (Unspecified)');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(5 ,'Destillert vann','Distilled water');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(6 ,'DMSO','DMSO');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(7 ,'dsH20','dsH20');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(8 ,'Elution buffer','Elution buffer');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(9 ,'Etanol','Ethanol');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(10,'Etanol 70%','Ethanol 70%');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(11,'Etanol 80%','Ethanol 80%');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(12,'Etanol 96%','Ethanol 96%');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(13,'Fenol','Phenol');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(14,'Flytende nitrogen','Liquid nitrogen');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(15,'Formalin','Formalin');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(16,'Glyserol','Glycerol');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(17,'Fysiologisk saltvann','Physiological saline');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(18,'Iseddik','Glacial acetic acid');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(19,'Isopropanol','Isopropanol');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(20,'Langmeir solution','Langmeir solution');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(21,'Queens lysis buffer','Queens lysis buffer');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(22,'RNAlater','RNAlater');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(23,'SET buffer','SET buffer');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(24,'Silika','Silica gel');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(25,'Tørr','Dry');
-INSERT INTO MUSARK_ANALYSIS.STORAGEMEDIUM(storagemedium_id, no_storagemedium,en_storagemedium) VALUES(26,'Parafinvoks','Paraffin wax');
-
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(1, 'Eppendorfrør','Eppendorf tube');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(2, 'Kryorør','Cryo tube');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(3, 'Lynlåspose','Ziplock bag');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(4, 'Lynlåspose, plast (LDPE)','Self-sealing bags, plastic (LDPE)');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(5, 'Mikrofilterplate','Microfilter plate');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(6, 'Mikrosentrifugerør','Microcentrifuge tube');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(7, 'Papirpose','Paper bag');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(8, 'PCR-rør','PCR tube');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(9,'Større plastbeholder m skrulokk','Larger plastic container with screw lid');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(10,'Større glassbeholder m skrulokk','Larger glas container with screw lid');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(11,'Plastrør 0,5 mL','Plastic tube 0.2 ml');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(12,'Plastrør 0,5 mL','Plastic tube 0.5 ml');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(13,'Plastrør 1,5 mL','Plastic tube 1.5 ml');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(14,'Plastrør 2,0 mL','Plastic tube 2.0 ml');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(15,'Plastrør 8,0 mL','Plastic tube 8.0 ml');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(16,'Plastrør 15 mL','Plastic tube 15 ml');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(17,'Plastrør 50 mL','Plastic tube 50 ml');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(18,'Plate 96 brønner','Plate 96 wells');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(19,'Syrefri pappeske','Acid free cardboard box');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(20,'Syrefritt silkepapir','Acid free tissue');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(21,'Pappeske, ikke arkivstandard','Cardboard box, not archival standard');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(22,'Polyetylen skum (Ethafoam/Plastazote)','Polyethylene Foam (Ethafoam/Plastazote)');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(23,'Polystyren eske','Polystyrene box');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(24,'Reagensglass','Locked test tubes');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(25,'Prøvekube','Small locked test tubes');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(26,'PVC-rør','PVC-tube');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(27,'Kasseprøve','Wooden box');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(28,'Plastboks (5 L)','Box (plastic) 5 L');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(29,'Isbiter boks','Ice-cube box');
-INSERT INTO MUSARK_ANALYSIS.STORAGECONTAINER(storagecontainer_id, no_storagecontainer,en_storagecontainer) VALUES(30,'Preparateske for slides','Slidebox');
-
---- INSERTING SAMPLE_TYPES
-
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(1,'DNA-ekstrakt','DNA extract','aDNA','aDNA');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(2,'DNA-ekstrakt','DNA extract','eDNA','eDNA');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(3,'DNA-ekstrakt','DNA extract','gDNA','gDNA');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(4,'DNA-ekstrakt','DNA extract','rDNA','rDNA');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(5,'Vev','Tissue','Frø','Seed');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(6,'Levende individ','Living individual','','');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(7,'Parasitt','Parasite','Ektoparasitt','Ectoparasite');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(8,'Parasitt','Parasite','Endoparasitt','Endoparasite');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(9,'RNA-bibliotek','RNA library','','');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(10,'RNA-ekstrakt','RNA extract','','');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(11,'Vev','Tissue','Apothecia','Apothecia');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(12,'Vev','Tissue','Bein','Bone');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(13,'Vev','Tissue','Binde- og støttevev','Connective tissue');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(14,'Vev','Tissue','Blad','Leaf');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(15,'Vev','Tissue','Blod','Blood');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(16,'Vev','Tissue','Epitelvev','Epithelial tissue');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(17,'Vev','Tissue','Fjær','Feather');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(18,'Vev','Tissue','Føtter','Legs');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(19,'Vev','Tissue','Grunnvev','Ground tissue');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(20,'Vev','Tissue','Hale','Tail');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(21,'Vev','Tissue','Hjerne','Brain');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(22,'Vev','Tissue','Hudvev','Epidermis');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(23,'Vev','Tissue','Hår','Hair');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(24,'Vev','Tissue','Knokkel','Bone');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(25,'Vev','Tissue','Ledningsvev','Vascular tissue');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(26,'Vev','Tissue','Lever','Liver');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(27,'Vev','Tissue','Muskel','Muscle');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(28,'Vev','Tissue','Nervevev','Nervous tissue');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(29,'Vev','Tissue','Plasma','Plasma');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(30,'Vev','Tissue','Skinn','Skin');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(31,'Vev','Tissue','Soredia','Soredia');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(32,'Vev','Tissue','Testikkel','Testicle');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(33,'Vev','Tissue','Thallus','Thallus');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(34,'Vev','Tissue','Tåpute','Toe pad');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(35,'Vev','Tissue','Vinge','Wing');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(36,'Vev','Tissue','Øre','Ear');
-INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(37,'Materiale','Material','','');
 
 
 
@@ -933,25 +999,9 @@ INSERT INTO MUSARK_ACTOR.ORGANISATION (ORG_ID, FULL_NAME, TEL, WEB,SYNONYMS,SERV
 VALUES (1, 'Kulturhistorisk museum - Universitetet i Oslo', '22 85 19 00', 'www.khm.uio.no','|Kulturhistorisk museum|UKM|KHM|','|storage_facility|');
 INSERT INTO MUSARK_ACTOR.ORGANISATION (ORG_ID, FULL_NAME, TEL, WEB,SYNONYMS,SERVICE_TAGS)
 VALUES (10, 'Arkeologisk museum', '22', 'ee','|Ark museum|AM|','');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(362,'Museum of Archaeology/UiS',51832600,'http://am.uis.no/','','|analysis|');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(361,'Norwegian geological Survey','','','','|analysis|');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(360,'Vitenskapsmuseet: Nasjonallaboratoriene for datering',73593306,'','','|analysis|');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(359,'Chrono Centre','','http://www.chrono.qub.ac.uk/content.html','','|analysis|');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(358,'Beta Analytic Limited',442076177459,'http://www.radiocarbon.com/','','|analysis|');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(357,'Poznan radiocarbon laboratory','','','','|analysis|');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(356,'Macrogen Europe','','http://dna.macrogen.com/eng/','','|analysis|');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SYNONYMS,SERVICE_TAGS) VALUES(355,'Canadian Centre for DNA Barcoding','','http://ccdb.ca/','','|analysis|');
 
 
 INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS (ORGADDRESSID,ORG_ID, ADDRESS_TYPE, STREET_ADDRESS, LOCALITY, POSTAL_CODE, COUNTRY_NAME, LATITUDE, LONGITUDE)
 VALUES (10 ,1, 'WORK', 'Fredriks gate 2', 'OSLO', '0255', 'NORWAY', 0.0, 0.0);
 INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS (ORGADDRESSID,ORG_ID, ADDRESS_TYPE, STREET_ADDRESS, LOCALITY, POSTAL_CODE, COUNTRY_NAME, LATITUDE, LONGITUDE)
 VALUES (20, 10, 'WORK', 'Stavangergata 2', 'Stavanger', '4000', 'NORWAY', 0.0, 0.0);
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(5,359,'Archaeology & Palaeoecology Building','42 Fitzwilliam Street','Belfast BT9 6AX','United Kingdom');
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(4,358,'London bioscience innovation Centre','2 Royal College Street','London NW1 ONH','United Kingdom');
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(3,357,'ul. Rubiez 46','','61-62 Poznan','Polen');
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(2,356,'Meibergdreef 31','','1105 AZ, Amsterdam','Nederland');
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(1,355,'Centre for Biodiversity Genomics','50 Stone Road East, University of Guelph,Guelph','ON, N1G2W1','Canada');
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(8,362,'University of Stavanger','visit: Peder Klowsgt. 30A','4036 Stavanger','Norway');
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(7,361,'Leiv Eirikssons vei 39, 70410 Trondheim','Postboks 6315 Sluppen','7491 Trondheim','Norway');
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,LOCALITY,POSTAL_CODE,COUNTRY_NAME) VALUES(6,360,'NTNU','Sem Sælands vei 5, Gløshaugen','7491 Trondheim','Norway');

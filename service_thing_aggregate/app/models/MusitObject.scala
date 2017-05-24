@@ -1,5 +1,6 @@
 package models
 
+import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 import play.api.libs.json.{Json, Writes}
@@ -14,18 +15,25 @@ case class MusitObject(
     currentLocationId: Option[StorageNodeId] = None,
     path: Option[NodePath] = None,
     pathNames: Option[Seq[NamedPathElement]] = None,
-    mainObjectId: Option[Long]
+    mainObjectId: Option[Long],
+    collection: Option[Collection],
+    arkForm: Option[String],
+    arkFindingNo: Option[String],
+    natStage: Option[String],
+    natGender: Option[String],
+    natLegDate: Option[String],
+    materials: Option[Seq[MusitObjectMaterial]],
+    locations: Option[Seq[MusitObjectLocation]]
 )
 
 object MusitObject {
   private val baseWrites = Json.writes[MusitObject]
 
-  implicit val reads = Json.reads[MusitObject]
   implicit val writes = Writes[MusitObject] { mo =>
     baseWrites.writes(mo) ++ Json.obj("objectType" -> CollectionObject.name)
   }
 
-  type ObjTuple = (
+  type ObjSearchTuple = (
       (
           Option[ObjectId],
           Option[ObjectUUID],
@@ -39,11 +47,16 @@ object MusitObject {
           String,
           Option[String],
           Option[Long],
-          Option[Int]
+          Option[Collection],
+          Option[String],
+          Option[String],
+          Option[String],
+          Option[String],
+          Option[String]
       )
   ) // scalastyle:ignore
 
-  def fromTuple(t: ObjTuple): MusitObject = {
+  def fromSearchTuple(t: ObjSearchTuple): MusitObject = {
     MusitObject(
       id = t._1.get, // scalastyle:ignore
       uuid = t._2,
@@ -51,7 +64,15 @@ object MusitObject {
       museumNo = MuseumNo(t._4),
       subNo = t._6.map(SubNo.apply),
       mainObjectId = t._8,
-      term = t._10
+      term = t._10,
+      collection = t._13,
+      arkForm = t._14,
+      arkFindingNo = t._15,
+      natStage = t._16,
+      natGender = t._17,
+      natLegDate = t._18,
+      materials = None,
+      locations = None
     )
   }
 

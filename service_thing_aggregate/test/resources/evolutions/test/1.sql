@@ -53,7 +53,47 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   old_barcode       NUMBER(20),
   new_collection_id INTEGER,
   musitthing_uuid   VARCHAR(36),
+  ark_form          VARCHAR2(2000),
+  ark_funn_nr       VARCHAR2(500 CHAR),
+  nat_stage         VARCHAR2(256),
+  nat_gender        VARCHAR2(256),
+  nat_legdato       VARCHAR2(64),
   PRIMARY KEY (object_id)
+);
+
+--is actually a view in DB
+CREATE TABLE MUSIT_MAPPING.THING_MATERIAL
+(
+  collectionid         INTEGER,
+  objectid             INTEGER,
+  etn_materialtype     VARCHAR2(100),
+  etn_material         VARCHAR2(300),
+  etn_material_element VARCHAR2(100),
+  etn_matrid_local     INTEGER,
+  ark_material         VARCHAR2(500),
+  ark_spes_material    VARCHAR2(500),
+  ark_sortering        INTEGER,
+  ark_hid_local        INTEGER,
+  num_material         VARCHAR2(100),
+  num_numistypeid      INTEGER
+);
+
+--is actually a view in DB
+create table MUSIT_MAPPING.THING_LOCATION
+(
+  collectionid       INTEGER,
+  objectid           INTEGER,
+  ark_gardsnavn      VARCHAR2(100),
+  ark_gardsnr        INTEGER,
+  ark_bruksnr        VARCHAR2(100),
+  ark_stedid         INTEGER,
+  nat_country        VARCHAR2(100),
+  nat_state_province VARCHAR2(100),
+  nat_municipality   VARCHAR2(100),
+  nat_locality       VARCHAR2(4000),
+  nat_coordinate     VARCHAR2(256),
+  nat_coord_datum    VARCHAR2(64),
+  nat_sone_band      VARCHAR2(16)
 );
 
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_UUID, STORAGE_NODE_NAME, IS_PART_OF, STORAGE_TYPE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE) VALUES ('dca44956-40d0-48dc-bd0d-921b825ad019', 'Utviklingsmuseet'    , NULL, 'Root'        , ',1,'      , 99, '896125d3-0563-46b6-a7c5-51f3f899ff0a', TO_DATE('2016-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
@@ -70,8 +110,8 @@ INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_UUID, STORAGE_NODE_NAME, I
 INSERT INTO MUSARK_STORAGE.STORAGE_NODE (STORAGE_NODE_UUID, STORAGE_NODE_NAME, IS_PART_OF, STORAGE_TYPE, NODE_PATH, MUSEUM_ID, UPDATED_BY, UPDATED_DATE) VALUES ('5fef94bc-aa79-4151-b4a2-658e89a949a4', 'FooBar of History'   , 11  , 'Organisation', ',11,12,'  , 99, 'd63ab290-2fab-42d2-9b57-2475dfbd0b3c', TO_DATE('2016-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, old_barcode) VALUES    ('37715843-36ab-4f1a-bcfb-dd68a05d0f2c', 'C666'  , '34' , 'Øks'        , 99, 666, 'USD_ARK_GJENSTAND_O', 100, 1, 1111111111);
-INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES                 ('8ae52969-63b8-42be-bfd0-d8ebef2169eb', 'C666'  , '31' , 'Sverd'      , 99, 666, 'USD_ARK_GJENSTAND_O', 101, 1);
-INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES                 ('d43e3c5a-8244-4497-bd15-29c844ff8745', 'C666'  , '38' , 'Sommerfugl' , 99, 666, 'USD_ARK_GJENSTAND_O', 102, 1);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id,old_barcode,ark_form,ark_funn_nr) VALUES  ('8ae52969-63b8-42be-bfd0-d8ebef2169eb', 'C666'  , '31' , 'Sverd'      , 99, 666, 'USD_ARK_GJENSTAND_O', 101, 1,222222222,'litt oval','2017-22');
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id,old_barcode,ark_form,ark_funn_nr) VALUES  ('d43e3c5a-8244-4497-bd15-29c844ff8745', 'C666'  , '38' , 'Sommerfugl' , 99, 666, 'USD_ARK_GJENSTAND_O', 102, 1,222222222,'flat','2017-30');
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES                 ('a949277c-8233-4425-b3e8-8d6599e97531', 'C1'    , '1a' , 'Øks'        , 99, 1  , 'USD_ARK_GJENSTAND_O', 103, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES                 ('35522dc6-d246-4c7b-a23d-501bb34034f7', 'C1'    , '2a' , 'Skummel øks', 99, 1  , 'USD_ARK_GJENSTAND_O', 104, 1);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES                 ('4d2e516d-db5f-478e-b409-eac7ff2486e8', 'C1'    , '3'  , 'Fin øks'    , 99, 1  , 'USD_ARK_GJENSTAND_O', 105, 1);
@@ -180,3 +220,11 @@ INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, curren
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('3fd8d3f9-ebb1-4447-8959-8e91ca2693fb', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('564fade0-4a41-47cc-8c26-3b8f048aa191', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('a738e36d-8683-44ac-9dda-67ff5a5851d5', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+
+INSERT INTO MUSIT_MAPPING.THING_MATERIAL(collectionid, objectid, etn_materialtype, etn_material, etn_material_element, etn_matrid_local, ark_material, ark_spes_material, ark_sortering, ark_hid_local, num_material, num_numistypeid) VALUES(1,3,'','','','','tre','spes bjørk',1,'','','');
+INSERT INTO MUSIT_MAPPING.THING_MATERIAL(collectionid, objectid, etn_materialtype, etn_material, etn_material_element, etn_matrid_local, ark_material, ark_spes_material, ark_sortering, ark_hid_local, num_material, num_numistypeid) VALUES(1,3,'','','','','jern','spes rustet jern',2,'','','');
+INSERT INTO MUSIT_MAPPING.THING_MATERIAL(collectionid, objectid, etn_materialtype, etn_material, etn_material_element, etn_matrid_local, ark_material, ark_spes_material, ark_sortering, ark_hid_local, num_material, num_numistypeid) VALUES(2,1,'etno_matrtype','etno_matr','etn_matrelement','','','',1,'','','');
+INSERT INTO MUSIT_MAPPING.THING_MATERIAL(collectionid, objectid, etn_materialtype, etn_material, etn_material_element, etn_matrid_local, ark_material, ark_spes_material, ark_sortering, ark_hid_local, num_material, num_numistypeid) VALUES(2,1,'etno_matrtype1','etno_matr1','etn_matrelement','','','',2,'','','');
+
+INSERT INTO MUSIT_MAPPING.THING_LOCATION(collectionid, objectid, ark_gardsnavn,ark_gardsnr,ark_bruksnr,ark_stedid,nat_country,nat_state_province,nat_municipality,nat_locality,nat_coordinate,nat_coord_datum,nat_sone_band) VALUES(1,3,'Berg',10,'1-34',55,'','','','','','','');
+INSERT INTO MUSIT_MAPPING.THING_LOCATION(collectionid, objectid, ark_gardsnavn,ark_gardsnr,ark_bruksnr,ark_stedid,nat_country,nat_state_province,nat_municipality,nat_locality,nat_coordinate,nat_coord_datum,nat_sone_band) VALUES(1,3,'nedre Berg',20,'45',66,'','','','','','','');

@@ -3,6 +3,7 @@ package repositories.actor.dao
 import java.util.UUID
 
 import helpers.NodeTestData
+import models.ArkLocation
 import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -24,7 +25,7 @@ class ObjectDaoSpec
 
   val allCollections = Seq(
     MuseumCollection(
-      uuid = CollectionUUID(UUID.fromString("925748d6-bf49-4733-afd1-0e127d639f18")),
+      uuid = CollectionUUID(UUID.fromString("2e4f2455-1b3b-4a04-80a1-ba92715ff613")),
       name = Some("Arkeologi"),
       oldSchemaNames = Seq(MuseumCollections.Archeology)
     )
@@ -416,6 +417,7 @@ class ObjectDaoSpec
             first.museumNo mustBe MuseumNo("C666")
             first.subNo mustBe Some(SubNo("31"))
             first.term mustBe "Sverd"
+            first.arkForm mustBe Some("litt oval")
             first.mainObjectId mustBe None
 
             second.id mustBe ObjectId(1)
@@ -428,6 +430,7 @@ class ObjectDaoSpec
             third.museumNo mustBe MuseumNo("C666")
             third.subNo mustBe Some(SubNo("38"))
             third.term mustBe "Sommerfugl"
+            third.arkFindingNo mustBe Some("2017-30")
             third.mainObjectId mustBe None
         }
       }
@@ -555,5 +558,31 @@ class ObjectDaoSpec
         res mustBe None
       }
     }
+
+    "return the list of materials for an object using it ObjectId " in {
+      val oid          = ObjectId(3)
+      val mid          = MuseumId(3)
+      val collectionId = MuseumCollections.Collection.fromInt(1)
+      val res          = dao.getObjectMaterial(mid, collectionId, oid).futureValue.successValue
+
+      res.head.material mustBe Some("tre")
+      res.last.material mustBe Some("jern")
+    }
+
+    "return the list of locations for an object using it ObjectId " in {
+      val oid          = ObjectId(3)
+      val mid          = MuseumId(3)
+      val collectionId = MuseumCollections.Collection.fromInt(1)
+      val res          = dao.getObjectLocation(mid, collectionId, oid).futureValue.successValue
+
+      res.size mustBe 2
+
+      forAll(res) { mol =>
+        mol mustBe an[ArkLocation]
+        val al = mol.asInstanceOf[ArkLocation]
+        al.farmName.value must endWith("Berg")
+      }
+    }
   }
+
 }

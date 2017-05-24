@@ -2,6 +2,7 @@ package repositories.actor.dao
 
 import java.util.UUID
 
+import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfig
 import slick.jdbc.JdbcProfile
@@ -72,5 +73,11 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
     MappedColumnType.base[SubNo, String](
       subNo => subNo.value,
       noStr => SubNo(noStr)
+    )
+
+  implicit val collectionMapper: BaseColumnType[Collection] =
+    MappedColumnType.base[Collection, Int](
+      mc => mc.id,
+      id => Collection.fromInt(id)
     )
 }

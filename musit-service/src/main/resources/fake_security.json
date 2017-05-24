@@ -6,52 +6,52 @@
       "oldSchemaNames": [1,2,3,4,5,6,7,8,9,10]
     },
     {
-      "uuid": "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
+      "uuid": "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
       "name": "Arkeologi",
       "oldSchemaNames": [1]
     },
     {
-      "uuid": "eef76737-ffb4-4396-9d9b-fd680ba8599c",
+      "uuid": "88b35138-24b5-4e62-bae4-de80fae7df82",
       "name": "Etnografi",
       "oldSchemaNames": [2]
     },
     {
-      "uuid": "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
+      "uuid": "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
       "name": "Numismatikk",
       "oldSchemaNames": [3]
     },
     {
-      "uuid": "bbbe0808-a7e6-46b0-bb38-52475bd13679",
+      "uuid": "fcb4c598-8b05-4095-ac00-ce66247be38a",
       "name": "Lav",
       "oldSchemaNames": [4]
     },
     {
-      "uuid": "703c79ef-9193-41fe-b705-4b53ad6e01e7",
+      "uuid": "d0dd5ad3-c22f-4ea0-8b52-dc5b0e17aa24",
       "name": "Mose",
       "oldSchemaNames": [5]
     },
     {
-      "uuid": "089f3320-39f5-4c17-afe2-0918704010e3",
+      "uuid": "23ca0166-5f9e-44c2-ab0d-b4cdd704af07",
       "name": "Sopp",
       "oldSchemaNames": [6]
     },
     {
-      "uuid": "7ffef848-a8d3-433e-948a-53916c5565f4",
+      "uuid": "1d8dd4e6-1527-439c-ac86-fc315e0ce852",
       "name": "Alger",
       "oldSchemaNames": [7]
     },
     {
-      "uuid": "f7e6bf7f-b521-4f7e-84f8-e1538c7fd244",
+      "uuid": "7352794d-4973-447b-b84e-2635cafe910a",
       "name": "Karplanter",
       "oldSchemaNames": [8]
     },
     {
-      "uuid": "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c",
+      "uuid": "ba3d4d30-810b-4c07-81b3-37751f2196f0",
       "name": "Entomologi",
       "oldSchemaNames": [9]
     },
     {
-      "uuid": "5f518ec7-b72b-46c3-9bfb-66304ff17bae",
+      "uuid": "ef4dc066-b6f8-4155-89f8-7aa9aeeb2dc4",
       "name": "Marine invertebrater",
       "oldSchemaNames": [10]
     }
@@ -84,8 +84,8 @@
       "museumId": 99,
       "description": "Read access to storage facility for TEST",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8"
       ]
     },
     {
@@ -95,7 +95,7 @@
       "museumId": 99,
       "description": "Write access to storage facility for TEST",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613"
       ]
     },
     {
@@ -105,9 +105,9 @@
       "museumId": 99,
       "description": "Admin access to storage facility for TEST",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -117,9 +117,9 @@
       "museumId": 3,
       "description": "Read access to storage facility for KHM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -129,9 +129,9 @@
       "museumId": 3,
       "description": "Write access to storage facility for KHM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -141,9 +141,9 @@
       "museumId": 3,
       "description": "Admin access to storage facility for KHM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -153,7 +153,7 @@
       "museumId": 4,
       "description": "Read access to storage facility for NHM",
       "collections": [
-        "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c"
+        "ba3d4d30-810b-4c07-81b3-37751f2196f0"
       ]
     },
     {
@@ -163,7 +163,7 @@
       "museumId": 4,
       "description": "Write access to storage facility for NHM",
       "collections": [
-        "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c"
+        "ba3d4d30-810b-4c07-81b3-37751f2196f0"
       ]
     },
     {
@@ -173,7 +173,7 @@
       "museumId": 4,
       "description": "Admin access to storage facility for NHM",
       "collections": [
-        "6d2cde5e-8200-4e2a-9b4c-12c6be88cd5c"
+        "ba3d4d30-810b-4c07-81b3-37751f2196f0"
       ]
     },
     {
@@ -183,9 +183,9 @@
       "museumId": 2,
       "description": "Read access to storage facility for UM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -195,9 +195,9 @@
       "museumId": 2,
       "description": "Write access to storage facility for UM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -207,9 +207,9 @@
       "museumId": 2,
       "description": "Admin access to storage facility for UM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -219,9 +219,9 @@
       "museumId": 1,
       "description": "Read access to storage facility for AM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -231,9 +231,9 @@
       "museumId": 1,
       "description": "Write access to storage facility for AM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -243,9 +243,9 @@
       "museumId": 1,
       "description": "Admin access to storage facility for AM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -255,9 +255,9 @@
       "museumId": 5,
       "description": "Read access to storage facility for VM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -267,9 +267,9 @@
       "museumId": 5,
       "description": "Write access to storage facility for VM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -279,9 +279,9 @@
       "museumId": 5,
       "description": "Admin access to storage facility for VM",
       "collections": [
-        "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
-        "8ea5fa45-b331-47ee-a583-33cd0ca92c82",
-        "eef76737-ffb4-4396-9d9b-fd680ba8599c"
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {

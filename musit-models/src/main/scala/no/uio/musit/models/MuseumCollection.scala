@@ -30,6 +30,8 @@ case class MuseumCollection(
 
   def schemaIds: Seq[Int] = oldSchemaNames.map(_.id).distinct
 
+  def collection = Collection.fromCollectionUUID(uuid)
+
 }
 
 object MuseumCollection {

@@ -110,7 +110,10 @@ object MuseumCollections {
     // scalastyle:on
   }
 
-  case object Archeology extends Collection {
+  sealed trait Culture
+  sealed trait Nature
+
+  case object Archeology extends Collection with Culture {
     override val id: Int = 1
     override val uuid    = unsafeFromString("2e4f2455-1b3b-4a04-80a1-ba92715ff613")
     override val schemas: Seq[String] = Seq(
@@ -122,7 +125,7 @@ object MuseumCollections {
     )
   }
 
-  case object Ethnography extends Collection {
+  case object Ethnography extends Collection with Culture {
     override val id: Int = 2
     override val uuid    = unsafeFromString("88b35138-24b5-4e62-bae4-de80fae7df82")
     override val schemas: Seq[String] = Seq(
@@ -132,49 +135,49 @@ object MuseumCollections {
     )
   }
 
-  case object Numismatics extends Collection {
+  case object Numismatics extends Collection with Culture {
     override val id: Int              = 3
     override val uuid                 = unsafeFromString("8bbdf9b3-56d1-479a-9509-2ea82842e8f8")
     override val schemas: Seq[String] = Seq("USD_NUMISMATIKK")
   }
 
-  case object Lichen extends Collection {
+  case object Lichen extends Collection with Nature {
     override val id: Int              = 4
     override val uuid                 = unsafeFromString("fcb4c598-8b05-4095-ac00-ce66247be38a")
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_LAV")
   }
 
-  case object Moss extends Collection {
+  case object Moss extends Collection with Nature {
     override val id: Int              = 5
     override val uuid                 = unsafeFromString("d0dd5ad3-c22f-4ea0-8b52-dc5b0e17aa24")
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_MOSE")
   }
 
-  case object Fungi extends Collection {
+  case object Fungi extends Collection with Nature {
     override val id: Int              = 6
     override val uuid                 = unsafeFromString("23ca0166-5f9e-44c2-ab0d-b4cdd704af07")
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_SOPP")
   }
 
-  case object Algae extends Collection {
+  case object Algae extends Collection with Nature {
     override val id: Int              = 7
     override val uuid                 = unsafeFromString("1d8dd4e6-1527-439c-ac86-fc315e0ce852")
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_ALGE")
   }
 
-  case object VascularPlants extends Collection {
+  case object VascularPlants extends Collection with Nature {
     override val id: Int              = 8
     override val uuid                 = unsafeFromString("7352794d-4973-447b-b84e-2635cafe910a")
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_FELLES")
   }
 
-  case object Entomology extends Collection {
+  case object Entomology extends Collection with Nature {
     override val id: Int              = 9
     override val uuid                 = unsafeFromString("ba3d4d30-810b-4c07-81b3-37751f2196f0")
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_ENTOMOLOGI")
   }
 
-  case object MarineInvertebrates extends Collection {
+  case object MarineInvertebrates extends Collection with Nature {
     override val id: Int              = 10
     override val uuid                 = unsafeFromString("ef4dc066-b6f8-4155-89f8-7aa9aeeb2dc4")
     override val schemas: Seq[String] = Seq("MUSIT_BOTANIKK_ENTOMOLOGI")
