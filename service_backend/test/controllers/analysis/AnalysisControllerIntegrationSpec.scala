@@ -2,11 +2,9 @@ package controllers.analysis
 
 import models.analysis.events.AnalysisExtras.ElementalICPAttributes.ICP_MS
 import models.analysis.events.AnalysisExtras.TomographyAttributes.ComputerTomography
-import models.analysis.events.AnalysisExtras.{
-  ElementalICPAttributes,
-  TomographyAttributes
-}
+import models.analysis.events.AnalysisExtras.{ElementalICPAttributes, TomographyAttributes}
 import models.analysis.events.EventCategories
+import models.analysis.events.EventCategories.NoCategory
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
@@ -28,10 +26,11 @@ class AnalysisControllerIntegrationSpec
 
   val baseUrl = (mid: Int) => s"/$mid/analyses"
 
-  val typesUrl   = (mid: Int) => s"${baseUrl(mid)}/types"
-  val typeIdUrl  = (mid: Int) => (id: Long) => s"${typesUrl(mid)}/$id"
-  val typeCatUrl = (mid: Int) => (id: Int) => s"${typesUrl(mid)}/categories/$id"
-  val typeColUrl = (mid: Int) => (id: String) => s"${typesUrl(mid)}/musemcollections/$id"
+  val typesUrl      = (mid: Int) => s"${baseUrl(mid)}/types"
+  val categoriesUrl = (mid: Int) => s"${baseUrl(mid)}/categories"
+  val typeIdUrl     = (mid: Int) => (id: Long) => s"${typesUrl(mid)}/$id"
+  val typeCatUrl    = (mid: Int) => (id: Int) => s"${typesUrl(mid)}/categories/$id"
+  val typeColUrl    = (mid: Int) => (id: String) => s"${typesUrl(mid)}/musemcollections/$id"
 
   val addAnalysisUrl  = baseUrl
   val getAnalysisUrl  = (mid: Int) => (id: Long) => s"${baseUrl(mid)}/$id"
@@ -52,6 +51,15 @@ class AnalysisControllerIntegrationSpec
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 45
+      }
+
+      "return all event categories" in {
+        val res = wsUrl(categoriesUrl(mid)).withHeaders(token.asHeader).get().futureValue
+
+        res.status mustBe OK
+        res.json.as[JsArray].value.size mustBe 14
+        (res.json \ 0 \ "name").as[String] mustBe "NoCategory"
+        (res.json \ 0 \ "id").as[Int] mustBe 0
       }
 
       "return all event types in an analysis category" in {

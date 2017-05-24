@@ -81,6 +81,7 @@ GET           /address                                                       con
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # AnalysisType endpoints
 GET           /:mid/analyses/types                                           controllers.analysis.AnalysisController.getAllAnalysisTypes(mid: Int)
+GET           /:mid/analyses/categories                                      controllers.analysis.AnalysisController.getAllAnalysisCategories(mid: Int)
 GET           /:mid/analyses/types/categories/:id                            controllers.analysis.AnalysisController.getAnalysisTypesForCategory(mid: Int, id: Int)
 GET           /:mid/analyses/types/musemcollections/:id                      controllers.analysis.AnalysisController.getAnalysisTypesForCollection(mid: Int, id: String)
 

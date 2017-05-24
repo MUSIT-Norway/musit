@@ -31,6 +31,13 @@ class AnalysisController @Inject()(
       }
     }
 
+  def getAllAnalysisCategories(mid: MuseumId) =
+    MusitSecureAction().async { implicit request =>
+      Future.successful(
+        listAsPlayResult(EnrichedEventCategories.fromCategories(EventCategories.values))
+      )
+    }
+
   def getAnalysisTypesForCategory(mid: MuseumId, categoryId: Int) =
     MusitSecureAction().async { implicit request =>
       EventCategories
