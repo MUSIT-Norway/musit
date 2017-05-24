@@ -6,76 +6,113 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # General endpoints
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GET           /service/actor/buildinfo                         controllers.Application.buildInfo
-GET           /service/actor/healthcheck                       controllers.HealthCheckController.healthCheck
+GET           /service/actor/buildinfo                                       controllers.Application.buildInfo
+GET           /service/actor/healthcheck                                     controllers.HealthCheckController.healthCheck
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Actor module
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GET           /dataporten/currentUser                          controllers.actor.UserController.currentUser
+GET           /dataporten/currentUser                                        controllers.actor.UserController.currentUser
 
 ## Mapping routes, TODO: Remove these endpoints when database is migrated.
-GET           /person                                          controllers.actor.PersonController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
-POST          /person/details                                  controllers.actor.PersonController.details
-GET           /person/:id                                      controllers.actor.PersonController.get(id: String)
+GET           /person                                                        controllers.actor.PersonController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
+POST          /person/details                                                controllers.actor.PersonController.details
+GET           /person/:id                                                    controllers.actor.PersonController.get(id: String)
 
 ## Organization routes, the new actor
-GET           /organisation                                    controllers.actor.OrganisationController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
-POST          /organisation                                    controllers.actor.OrganisationController.add
-GET           /organisation/:orgId                             controllers.actor.OrganisationController.get(orgId: Long)
-PUT           /organisation/:orgId                             controllers.actor.OrganisationController.update(orgId: Long)
-DELETE        /organisation/:orgId                             controllers.actor.OrganisationController.delete(orgId: Long)
+GET           /organisation                                                  controllers.actor.OrganisationController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
+POST          /organisation                                                  controllers.actor.OrganisationController.add
+GET           /organisation/:orgId                                           controllers.actor.OrganisationController.get(orgId: Long)
+PUT           /organisation/:orgId                                           controllers.actor.OrganisationController.update(orgId: Long)
+DELETE        /organisation/:orgId                                           controllers.actor.OrganisationController.delete(orgId: Long)
 
 ## OrganizationAddress routes, the new actor
-GET           /organisation/:orgId/address                     controllers.actor.OrganisationAddressController.listForOrg(orgId: Long)
-POST          /organisation/:orgId/address                     controllers.actor.OrganisationAddressController.add(orgId: Long)
-GET           /organisation/:orgId/address/:id                 controllers.actor.OrganisationAddressController.get(orgId: Long, id: Long)
-PUT           /organisation/:orgId/address/:id                 controllers.actor.OrganisationAddressController.update(orgId: Long, id: Long)
-DELETE        /organisation/:orgId/address/:id                 controllers.actor.OrganisationAddressController.delete(orgId: Long, id: Long)
+GET           /organisation/:orgId/address                                   controllers.actor.OrganisationAddressController.listForOrg(orgId: Long)
+POST          /organisation/:orgId/address                                   controllers.actor.OrganisationAddressController.add(orgId: Long)
+GET           /organisation/:orgId/address/:id                               controllers.actor.OrganisationAddressController.get(orgId: Long, id: Long)
+PUT           /organisation/:orgId/address/:id                               controllers.actor.OrganisationAddressController.update(orgId: Long, id: Long)
+DELETE        /organisation/:orgId/address/:id                               controllers.actor.OrganisationAddressController.delete(orgId: Long, id: Long)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# StorageFacility module
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# StorageNode endpoints
+POST          /museum/:mid/storagenodes                                      controllers.storage.StorageController.add(mid: Int)
+POST          /museum/:mid/storagenodes/root                                 controllers.storage.StorageController.addRoot(mid: Int)
+GET           /museum/:mid/storagenodes/root                                 controllers.storage.StorageController.root(mid: Int)
+
+PUT           /museum/:mid/storagenodes/moveNode                             controllers.storage.StorageController.moveNode(mid: Int)
+PUT           /museum/:mid/storagenodes/moveObject                           controllers.storage.StorageController.moveObject(mid: Int)
+
+GET           /museum/:mid/storagenodes/search                               controllers.storage.StorageController.search(mid: Int, searchStr: Option[String], page: Int ?= 1, limit: Int ?=25)
+GET           /museum/:mid/storagenodes/scan                                 controllers.storage.StorageController.scan(mid: Int, storageNodeId: Option[String] ?= None, oldBarcode: Option[Long] ?= None)
+
+GET           /museum/:mid/storagenodes/report                               controllers.storage.KdReportController.getReport(mid: Int)
+
+GET           /museum/:mid/storagenodes/:nodeId                              controllers.storage.StorageController.getById(mid: Int, nodeId: String)
+PUT           /museum/:mid/storagenodes/:nodeId                              controllers.storage.StorageController.update(mid: Int, nodeId: String)
+DELETE        /museum/:mid/storagenodes/:nodeId                              controllers.storage.StorageController.delete(mid: Int, nodeId: String)
+GET           /museum/:mid/storagenodes/:nodeId/children                     controllers.storage.StorageController.children(mid: Int, nodeId: String, page: Int ?= 1, limit: Int ?=25)
+GET           /museum/:mid/storagenodes/:nodeId/events                       controllers.storage.EventController.listEventsForNode(mid: Int, nodeId: String)
+
+# Controls
+POST          /museum/:mid/storagenodes/:nodeId/controls                     controllers.storage.EventController.addControl(mid: Int, nodeId: String)
+GET           /museum/:mid/storagenodes/:nodeId/controls                     controllers.storage.EventController.listControls(mid: Int, nodeId: String)
+GET           /museum/:mid/storagenodes/:nodeId/controls/:eventId            controllers.storage.EventController.getControl(mid: Int, nodeId: String, eventId: Long)
+
+# Observations
+POST          /museum/:mid/storagenodes/:nodeId/observations                 controllers.storage.EventController.addObservation(mid: Int, nodeId: String)
+GET           /museum/:mid/storagenodes/:nodeId/observations                 controllers.storage.EventController.listObservations(mid: Int, nodeId: String)
+GET           /museum/:mid/storagenodes/:nodeId/observations/:eventId        controllers.storage.EventController.getObservation(mid: Int, nodeId: String, eventId: Long)
+
+# Object related endpoints
+# TODO: These endpoints can now have a more intuitive URI that doesn't involve the "storagenodes" part of the URI.
+GET           /museum/:mid/storagenodes/objects/:oid/locations               controllers.storage.StorageController.objectLocationHistory(mid: Int, oid: String, objectType: String = "collection", limit: Int ?= 50)
+GET           /museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.storage.StorageController.currentObjectLocation(mid: Int, oid: String, objectType: String = "collection")
+POST          /museum/:mid/storagenodes/objects/currentlocations             controllers.storage.StorageController.currentObjectLocations(mid: Int)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # GeoLocation module
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GET           /address                                         controllers.geolocation.GeoLocationController.searchExternal(search: Option[String] ?= None)
+GET           /address                                                       controllers.geolocation.GeoLocationController.searchExternal(search: Option[String] ?= None)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Analysis module
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # AnalysisType endpoints
-GET           /:mid/analyses/types                             controllers.analysis.AnalysisController.getAllAnalysisTypes(mid: Int)
-GET           /:mid/analyses/types/categories/:id              controllers.analysis.AnalysisController.getAnalysisTypesForCategory(mid: Int, id: Int)
-GET           /:mid/analyses/types/musemcollections/:id        controllers.analysis.AnalysisController.getAnalysisTypesForCollection(mid: Int, id: String)
+GET           /:mid/analyses/types                                           controllers.analysis.AnalysisController.getAllAnalysisTypes(mid: Int)
+GET           /:mid/analyses/types/categories/:id                            controllers.analysis.AnalysisController.getAnalysisTypesForCategory(mid: Int, id: Int)
+GET           /:mid/analyses/types/musemcollections/:id                      controllers.analysis.AnalysisController.getAnalysisTypesForCollection(mid: Int, id: String)
 
 # Analysis endpoints
-POST          /:mid/analyses                                   controllers.analysis.AnalysisController.saveAnalysisEvent(mid: Int)
-GET           /:mid/analyses/:id                               controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
-PUT           /:mid/analyses/:id                               controllers.analysis.AnalysisController.updateAnalysisEvent(mid: Int, id: Long)
-GET           /:mid/analyses/:id/children                      controllers.analysis.AnalysisController.getChildAnalyses(mid: Int, id: Long)
-POST          /:mid/analyses/:id/results                       controllers.analysis.AnalysisController.addResult(mid: Int, id: Long)
-PUT           /:mid/analyses/:id/results                       controllers.analysis.AnalysisController.updateResult(mid: Int, id: Long)
+POST          /:mid/analyses                                                 controllers.analysis.AnalysisController.saveAnalysisEvent(mid: Int)
+GET           /:mid/analyses/:id                                             controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
+PUT           /:mid/analyses/:id                                             controllers.analysis.AnalysisController.updateAnalysisEvent(mid: Int, id: Long)
+GET           /:mid/analyses/:id/children                                    controllers.analysis.AnalysisController.getChildAnalyses(mid: Int, id: Long)
+POST          /:mid/analyses/:id/results                                     controllers.analysis.AnalysisController.addResult(mid: Int, id: Long)
+PUT           /:mid/analyses/:id/results                                     controllers.analysis.AnalysisController.updateResult(mid: Int, id: Long)
 
 # Returns _all_ analysis module events, including SampleCreated.
-GET           /:mid/analyses/objects/:id                       controllers.analysis.AnalysisController.getAnalysisForObject(mid: Int, id: String)
-
-# Misc...
-GET           /treatments                                      controllers.analysis.TreatmentController.getTreatmentList
-GET           /storagecontainer                                controllers.analysis.StorageContainerController.getStorageContainerList
-GET           /sampletypes                                     controllers.analysis.SampleTypeController.getSampleTypeList
-GET           /storagemediums                                  controllers.analysis.StorageMediumController.getStorageMediumList
-GET           /purposes                                        controllers.analysis.PurposeController.listPurposes
+GET           /:mid/analyses/objects/:id                                     controllers.analysis.AnalysisController.getAnalysisForObject(mid: Int, id: String)
 
 # SampleObject endpoints
-POST          /:mid/samples                                    controllers.analysis.SampleObjectController.save(mid: Int)
-GET           /:mid/samples                                    controllers.analysis.SampleObjectController.getForMuseum(mid: Int)
-PUT           /:mid/samples/:id                                controllers.analysis.SampleObjectController.update(mid: Int, id: String)
-GET           /:mid/samples/:id                                controllers.analysis.SampleObjectController.getById(mid: Int, id: String)
-DELETE        /:mid/samples/:id                                controllers.analysis.SampleObjectController.delete(mid: Int, id: String)
-GET           /:mid/samples/:parentId/children                 controllers.analysis.SampleObjectController.getForParentObject(mid: Int, parentId: String)
+POST          /:mid/samples                                                  controllers.analysis.SampleObjectController.save(mid: Int)
+GET           /:mid/samples                                                  controllers.analysis.SampleObjectController.getForMuseum(mid: Int)
+PUT           /:mid/samples/:id                                              controllers.analysis.SampleObjectController.update(mid: Int, id: String)
+GET           /:mid/samples/:id                                              controllers.analysis.SampleObjectController.getById(mid: Int, id: String)
+DELETE        /:mid/samples/:id                                              controllers.analysis.SampleObjectController.delete(mid: Int, id: String)
+GET           /:mid/samples/:parentId/children                               controllers.analysis.SampleObjectController.getForParentObject(mid: Int, parentId: String)
 
+# Misc...
+GET           /treatments                                                    controllers.analysis.TreatmentController.getTreatmentList
+GET           /storagecontainer                                              controllers.analysis.StorageContainerController.getStorageContainerList
+GET           /sampletypes                                                   controllers.analysis.SampleTypeController.getSampleTypeList
+GET           /storagemediums                                                controllers.analysis.StorageMediumController.getStorageMediumList
+GET           /purposes                                                      controllers.analysis.PurposeController.listPurposes
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Loan module
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-POST          /:mid/loans                                      controllers.loan.LoanController.createLoan(mid: Int)
-GET           /:mid/loans/active                               controllers.loan.LoanController.findActiveLoan(mid: Int)
+POST          /:mid/loans                                                    controllers.loan.LoanController.createLoan(mid: Int)
+GET           /:mid/loans/active                                             controllers.loan.LoanController.findActiveLoan(mid: Int)
 

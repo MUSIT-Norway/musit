@@ -17,8 +17,7 @@ lazy val root = project in file(".") settings noPublish aggregate (
   serviceAuth,
   serviceBarcode,
   serviceThingAggregate,
-  serviceBackend,
-  serviceStoragefacility
+  serviceBackend
 )
 
 // ======================================================================
@@ -97,12 +96,4 @@ lazy val serviceBackend = (
     settings (libraryDependencies ++= enumeratumDeps)
     settings (routesGenerator := InjectedRoutesGenerator)
     settings (packageName in Docker := "musit_service_backend")
-) dependsOn (musitService, musitTest % Test)
-
-lazy val serviceStoragefacility = (
-  PlayProject("service_storagefacility")
-    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings (libraryDependencies ++= enumeratumDeps)
-    settings (routesGenerator := InjectedRoutesGenerator)
-    settings (packageName in Docker := "musit_service_storagefacility")
 ) dependsOn (musitService, musitTest % Test)

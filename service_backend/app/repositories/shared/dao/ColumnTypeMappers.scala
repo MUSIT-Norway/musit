@@ -9,6 +9,8 @@ import models.analysis.SampleStatuses.SampleStatus
 import models.analysis.SampleTypeId
 import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
 import models.loan.{LoanEventTypes, LoanType}
+import models.storage.event.EventTypeId
+import models.storage.nodes.StorageType
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID, _}
 import no.uio.musit.time.Implicits.{dateTimeToJTimestamp, jSqlTimestampToDateTime}
@@ -20,6 +22,42 @@ import slick.jdbc.JdbcProfile
 trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
 
   import profile.api._
+
+  implicit val storageNodeDbIdMapper: BaseColumnType[StorageNodeDatabaseId] =
+    MappedColumnType.base[StorageNodeDatabaseId, Long](
+      snid => snid.underlying,
+      longId => StorageNodeDatabaseId(longId)
+    )
+
+  implicit val storageNodeIdMapper: BaseColumnType[StorageNodeId] =
+    MappedColumnType.base[StorageNodeId, String](
+      sid => sid.asString,
+      strId => StorageNodeId.unsafeFromString(strId)
+    )
+
+  implicit val objectIdMapper: BaseColumnType[ObjectId] =
+    MappedColumnType.base[ObjectId, Long](
+      oid => oid.underlying,
+      longId => ObjectId(longId)
+    )
+
+  implicit val storageTypeMapper =
+    MappedColumnType.base[StorageType, String](
+      storageType => storageType.entryName,
+      string => StorageType.withName(string)
+    )
+
+  implicit val eventTypeIdMapper: BaseColumnType[EventTypeId] =
+    MappedColumnType.base[EventTypeId, Int](
+      eventTypeId => eventTypeId.underlying,
+      id => EventTypeId(id)
+    )
+
+  implicit val nodePathMapper: BaseColumnType[NodePath] =
+    MappedColumnType.base[NodePath, String](
+      nodePath => nodePath.path,
+      pathStr => NodePath(pathStr)
+    )
 
   implicit val eventIdMapper: BaseColumnType[EventId] =
     MappedColumnType.base[EventId, Long](
