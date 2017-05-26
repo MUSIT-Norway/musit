@@ -250,7 +250,7 @@ class ObjectDao @Inject()(
       maybeParent <-  objTable.filter(_.uuid === mainObjectId).map(_.id).result.headOption
       children <- maybeParent.map { pid =>
         val q = objTable.filter(o => o.mainObjectId === pid.underlying && o.isDeleted === false)
-        if (currUsr.hasGodMode) q.filter(_.newCollectionId inSet colIds).result
+        if (!currUsr.hasGodMode) q.filter(_.newCollectionId inSet colIds).result
         else q.result
       }.getOrElse(DBIO.successful(Vector.empty[ObjectRow]))
     } yield children
