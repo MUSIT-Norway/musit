@@ -27,7 +27,7 @@ import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId, StorageNo
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao.StorageTables
+import repositories.shared.dao.StorageTables
 
 import scala.concurrent.Future
 

@@ -1,18 +1,20 @@
 package repositories.storage.dao.nodes
 
 import com.google.inject.{Inject, Singleton}
+import models.storage.nodes.StorageType.RootLoanType
 import models.storage.nodes._
 import models.storage.nodes.dto.{StorageNodeDto, StorageUnitDto}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao.{SharedTables, StorageTables}
+import repositories.shared.dao.{SharedTables, StorageTables}
 import slick.jdbc.GetResult
 
 import scala.concurrent.Future
@@ -243,6 +245,19 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     db.run(query).map(mdto => MusitSuccess(mdto.map(StorageNodeDto.toRootNode)))
   }
 
+  def findRootLoanNodes(
+      museumId: MuseumId
+  ): Future[MusitResult[Seq[StorageNodeDatabaseId]]] = {
+    val tpe: StorageType = StorageType.RootLoanType
+    val query = storageNodeTable.filter { n =>
+      n.museumId === museumId && n.storageType === tpe
+    }.map(_.id)
+
+    db.run(query.result)
+      .map(nodes => MusitSuccess(nodes))
+      .recover(nonFatal(s"Error occurred getting RootLoan nodes for museum $museumId"))
+  }
+
   private def sortedChildrenQuery(
       mid: MuseumId,
       id: StorageNodeId,
@@ -324,6 +339,35 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mat <- MusitResultT(matches)
       tot <- MusitResultT(total)
     } yield PagedResult(tot, mat)).value
+  }
+
+  def listAllChildrenFor(
+      museumId: MuseumId,
+      ids: Seq[StorageNodeDatabaseId]
+  ): Future[MusitResult[Seq[(StorageNodeDatabaseId, String)]]] = {
+    val q1 = (likePath: String) =>
+      storageNodeTable.filter { n =>
+        n.museumId === museumId && (SimpleLiteral[String]("NODE_PATH") like likePath)
+    }
+
+    val query = ids
+      .map(id => s",${id.underlying},%")
+      .map(q1)
+      .reduce((query, queryPart) => query union queryPart)
+      .map(n => (n.id, n.name))
+      .sortBy(_._2.asc)
+
+    db.run(query.result)
+      .map { res =>
+        MusitSuccess(
+          res.map(r => (r._1, r._2))
+        )
+      }
+      .recover(
+        nonFatal(
+          s"Error occurred reading children for RootLoan nodes ${ids.mkString(", ")}"
+        )
+      )
   }
 
   /**
@@ -611,6 +655,33 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     } else {
       Future.successful(MusitSuccess(Seq.empty))
     }
+  }
+
+  def currentLocation(
+      mid: MuseumId,
+      objectId: ObjectUUID
+  ): Future[MusitResult[Option[(StorageNodeId, NodePath)]]] = {
+    val findLocalObjectAction = localObjectsTable.filter { lo =>
+      lo.museumId === mid &&
+      lo.objectUuid === objectId &&
+      lo.objectType === CollectionObject.name
+    }.map(_.currentLocationId).result.headOption
+
+    val findPathAction = (maybeId: Option[StorageNodeId]) =>
+      maybeId.map { nodeId =>
+        storageNodeTable.filter(_.uuid === nodeId).map(_.path).result.headOption
+      }.getOrElse(DBIO.successful(None))
+
+    val query = for {
+      maybeNodeId <- findLocalObjectAction
+      maybePath   <- findPathAction(maybeNodeId)
+    } yield maybeNodeId.flatMap(nid => maybePath.map(p => (nid, p)))
+
+    db.run(query)
+      .map(MusitSuccess.apply)
+      .recover(
+        nonFatal(s"Error occurred while getting current location for object $objectId")
+      )
   }
 
 }

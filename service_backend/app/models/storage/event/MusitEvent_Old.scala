@@ -3,6 +3,8 @@ package models.storage.event
 import no.uio.musit.models.{ActorId, EventId, MusitId}
 import org.joda.time.DateTime
 
+// TODO: DELETE ME when Migration is performed in production
+
 /**
  * Top level representation of _all_ event types with definitions for the
  * shared attributes they all contain.

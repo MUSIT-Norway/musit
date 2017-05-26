@@ -18,7 +18,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
-import services.objects.ObjectService
+import services.musitobject.ObjectService
 import services.storage.StorageNodeService
 
 import scala.concurrent.Future

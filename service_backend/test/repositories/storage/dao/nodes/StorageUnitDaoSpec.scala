@@ -34,7 +34,7 @@ class StorageUnitDaoSpec
         updatedDate = Some(DateTime.now())
       )
 
-      for (i <- 18 to 20) {
+      for (i <- 23 to 25) {
         val r     = createRoot(s"root$i")
         val insId = storageUnitDao.insertRoot(defaultMuseumId, r).futureValue
 
@@ -43,7 +43,7 @@ class StorageUnitDaoSpec
         insertedNodeIds += insId.successValue.underlying -> r.nodeId.value
       }
       val anotherMid = MuseumId(4)
-      for (i <- 21 to 23) {
+      for (i <- 26 to 27) {
         val r     = createRootLoan(s"rootLoan$i")
         val insId = storageUnitDao.insertRoot(anotherMid, r).futureValue
 
@@ -141,33 +141,33 @@ class StorageUnitDaoSpec
     }
 
     "successfully fetch the named path elements for a storage node" in {
-      val path1 = NodePath(",18,28,")
+      val path1 = NodePath(",23,32,")
       val su1 = createStorageUnit(
-        partOf = Some(StorageNodeDatabaseId(18)),
+        partOf = Some(StorageNodeDatabaseId(23)),
         path = path1
       ).copy(name = "node1")
       val insId1 = storageUnitDao.insert(defaultMuseumId, su1).futureValue
-      insId1.successValue mustBe StorageNodeDatabaseId(28)
+      insId1.successValue mustBe StorageNodeDatabaseId(32)
 
       insertedNodeIds += insId1.successValue.underlying -> su1.nodeId.value
 
-      val path2 = path1.appendChild(StorageNodeDatabaseId(29))
+      val path2 = path1.appendChild(StorageNodeDatabaseId(33))
       val su2 = createStorageUnit(
         partOf = Some(insId1.get),
         path = path2
       ).copy(name = "node2")
       val insId2 = storageUnitDao.insert(defaultMuseumId, su2).futureValue
-      insId2.successValue mustBe StorageNodeDatabaseId(29)
+      insId2.successValue mustBe StorageNodeDatabaseId(33)
 
       insertedNodeIds += insId2.successValue.underlying -> su2.nodeId.value
 
       val res = storageUnitDao.namesForPath(path2).futureValue
       res.successValue.size mustBe 3
-      res.successValue.head.nodeId mustBe StorageNodeDatabaseId(18)
-      res.successValue.head.name mustBe "root18"
-      res.successValue.tail.head.nodeId mustBe StorageNodeDatabaseId(28)
+      res.successValue.head.nodeId mustBe StorageNodeDatabaseId(23)
+      res.successValue.head.name mustBe "root23"
+      res.successValue.tail.head.nodeId mustBe StorageNodeDatabaseId(32)
       res.successValue.tail.head.name mustBe "node1"
-      res.successValue.last.nodeId mustBe StorageNodeDatabaseId(29)
+      res.successValue.last.nodeId mustBe StorageNodeDatabaseId(33)
       res.successValue.last.name mustBe "node2"
     }
 
@@ -230,7 +230,7 @@ class StorageUnitDaoSpec
     }
 
     "fetch tuples of StorageNodeId and StorageType for a NodePath" in {
-      val orgPath = NodePath(",1,33,")
+      val orgPath = NodePath(",1,37,")
       val org = createOrganisation(
         partOf = Some(StorageNodeDatabaseId(1)),
         path = orgPath
@@ -238,7 +238,7 @@ class StorageUnitDaoSpec
       val organisationId = organisationDao.insert(defaultMuseumId, org).futureValue
       insertedNodeIds += organisationId.successValue.underlying -> org.nodeId.value
 
-      val buildingPath = NodePath(",1,33,34,")
+      val buildingPath = NodePath(",1,37,38,")
       val building = createBuilding(
         partOf = Some(organisationId.get),
         path = buildingPath
@@ -246,7 +246,7 @@ class StorageUnitDaoSpec
       val buildingId = buildingDao.insert(defaultMuseumId, building).futureValue
       insertedNodeIds += buildingId.successValue.underlying -> building.nodeId.value
 
-      val roomPath = NodePath(",1,33,34,35,")
+      val roomPath = NodePath(",1,37,38,39,")
       val room = createRoom(
         partOf = Some(buildingId.get),
         path = roomPath
@@ -254,7 +254,7 @@ class StorageUnitDaoSpec
       val roomId = roomDao.insert(defaultMuseumId, room).futureValue
       insertedNodeIds += roomId.successValue.underlying -> room.nodeId.value
 
-      val su1Path = NodePath(",1,33,34,35,36,")
+      val su1Path = NodePath(",1,37,38,39,40,")
       val su1 = createStorageUnit(
         partOf = Some(roomId.get),
         path = su1Path
@@ -277,10 +277,10 @@ class StorageUnitDaoSpec
     }
 
     "find all children for a given node" in {
-      val nodeId = insertedNodeIds.result()(33)
+      val nodeId = insertedNodeIds.result()(37)
       val res    = storageUnitDao.getChildren(defaultMuseumId, nodeId, 1, 10).futureValue
       val nids   = res.successValue.matches.flatMap(_.nodeId)
-      nids must contain(insertedNodeIds.result()(34))
+      nids must contain(insertedNodeIds.result()(38))
     }
 
     "successfully get a node when searching for name and not if it's wrong museumId" in {

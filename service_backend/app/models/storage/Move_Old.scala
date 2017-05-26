@@ -3,6 +3,8 @@ package models.storage
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import play.api.libs.json._
 
+// TODO: DELETE ME when Migration is performed in production
+
 /**
  * Commands to trigger the moving of items (Node or Object) from their original
  * location to another.

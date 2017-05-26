@@ -19,6 +19,7 @@ import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.shared.dao.StorageTables
 import repositories.storage.dao.MigrationDao.{AllEventsRow, AllTupleType}
 import repositories.storage.old_dao.{EventTables => OldEventTables}
 import slick.basic.DatabasePublisher

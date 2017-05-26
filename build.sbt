@@ -16,7 +16,6 @@ lazy val root = project in file(".") settings noPublish aggregate (
   musitService,
   serviceAuth,
   serviceBarcode,
-  serviceThingAggregate,
   serviceBackend
 )
 
@@ -81,13 +80,6 @@ lazy val serviceBarcode = (
     settings (libraryDependencies ++= Seq(zxing, zxingClient))
     settings (routesGenerator := InjectedRoutesGenerator)
     settings (packageName in Docker := "musit_service_barcode")
-) dependsOn (musitService, musitTest % Test)
-
-lazy val serviceThingAggregate = (
-  PlayProject("service_thing_aggregate")
-    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings (routesGenerator := InjectedRoutesGenerator)
-    settings (packageName in Docker := "musit_service_thing_aggregate")
 ) dependsOn (musitService, musitTest % Test)
 
 lazy val serviceBackend = (

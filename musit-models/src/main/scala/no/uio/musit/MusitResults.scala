@@ -64,6 +64,33 @@ object MusitResults {
     def getOrError[T](opt: Option[T], err: MusitError) =
       opt.map(MusitSuccess.apply).getOrElse(err)
 
+    /**
+     * Takes a {{{Seq[MusitResult[T]]}}} and flips it to a {{{Seq[MusitResult[T]]}}}
+     *
+     * @param seq A collection of MusitResults
+     * @tparam T the type encapsulated in MusitResult
+     * @return A MusitResult with a collection of T's
+     */
+    def sequence[T](seq: Seq[MusitResult[T]]): MusitResult[Seq[T]] = {
+      if (seq.exists(_.isFailure)) {
+        // If the list contains any errors at all, we bail the processing and
+        // return an error.
+        MusitGeneralError(
+          "Could not sequence Seq[MusitResult[T]] because it" +
+            " contained a MusitError"
+        )
+      } else {
+        // We now _know_ all entries in the list are of type MusitSuccess
+        seq.foldLeft[MusitResult[Seq[T]]](MusitSuccess(Seq.empty[T])) {
+          case (acc, curr) =>
+            curr match {
+              case MusitSuccess(value) => acc.map(_ :+ value)
+              case err: MusitError     => err
+            }
+        }
+      }
+    }
+
   }
 
   /**

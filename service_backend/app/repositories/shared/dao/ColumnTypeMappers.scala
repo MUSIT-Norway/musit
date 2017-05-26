@@ -10,6 +10,7 @@ import models.analysis.events.{AnalysisTypeId, Category, EventCategories}
 import models.loan.{LoanEventTypes, LoanType}
 import models.storage.event.EventTypeId
 import models.storage.nodes.StorageType
+import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, EventId, MuseumId, ObjectUUID, _}
 import no.uio.musit.time.Implicits.{dateTimeToJTimestamp, jSqlTimestampToDateTime}
@@ -146,6 +147,24 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
     MappedColumnType.base[AnalysisStatus, Int](
       st => st.key,
       key => AnalysisStatus.unsafeFromInt(key)
+    )
+
+  implicit val museumNoMapper: BaseColumnType[MuseumNo] =
+    MappedColumnType.base[MuseumNo, String](
+      museumNo => museumNo.value,
+      noStr => MuseumNo(noStr)
+    )
+
+  implicit val subNoMapper: BaseColumnType[SubNo] =
+    MappedColumnType.base[SubNo, String](
+      subNo => subNo.value,
+      noStr => SubNo(noStr)
+    )
+
+  implicit val collectionMapper: BaseColumnType[Collection] =
+    MappedColumnType.base[Collection, Int](
+      mc => mc.id,
+      id => Collection.fromInt(id)
     )
 
 }

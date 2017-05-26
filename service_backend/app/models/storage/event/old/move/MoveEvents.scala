@@ -12,6 +12,8 @@ import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
 
+// TODO: DELETE ME when Migration is performed in production
+
 sealed trait MoveEvent extends MusitEvent_Old {
   val objectType: ObjectType
   val from: Option[StorageNodeDatabaseId]

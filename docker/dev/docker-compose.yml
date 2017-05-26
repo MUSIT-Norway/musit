@@ -6,7 +6,6 @@ services:
     ports:
       - "80:80"
     links:
-      - thingaggregate
       - backend
       - auth
       - barcode
@@ -16,26 +15,6 @@ services:
     shm_size: 4G
     ports:
       - "1521:1521"
-
-  thingaggregate:
-    image: service_thing_aggregate:0.1-SNAPSHOT
-    ports:
-      - "7070:7070"
-    environment:
-      - MUSIT_ENV
-      - MUSIT_BASE_URL
-      - DOCKER_HOSTNAME
-      - MUSIT_SECURITY_MODULE
-      - DATAPORTEN_CLIENT_ID
-      - DATAPORTEN_CLIENT_SECRET
-      - DATAPORTEN_SESSION_TIMEOUT
-      - APPLICATION_SECRET
-      - EVOLUTION_ENABLED
-      - SLICK_DB_URL
-      - SLICK_DB_USER
-      - SLICK_DB_PASSWORD
-    links:
-      - db
 
   backend:
     image: service_backend:0.1-SNAPSHOT

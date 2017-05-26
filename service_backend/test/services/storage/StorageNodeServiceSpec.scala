@@ -282,7 +282,7 @@ class StorageNodeServiceSpec
 
     "successfully move an object with a previous location" in {
       val oid  = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
-      val dest = insertedNodeIds.result()(StorageNodeDatabaseId(20))
+      val dest = insertedNodeIds.result()(StorageNodeDatabaseId(25))
 
       val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
@@ -292,13 +292,13 @@ class StorageNodeServiceSpec
 
       val loc2 =
         service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
-      loc2.successValue.value.id mustBe Some(StorageNodeDatabaseId(20))
+      loc2.successValue.value.id mustBe Some(StorageNodeDatabaseId(25))
       loc2.successValue.value.pathNames must not be empty
     }
 
     "not register a move when current location and destination are the same" in {
       val oid  = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
-      val dest = insertedNodeIds.result()(StorageNodeDatabaseId(20))
+      val dest = insertedNodeIds.result()(StorageNodeDatabaseId(25))
 
       val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
@@ -338,7 +338,7 @@ class StorageNodeServiceSpec
 
     "get current location for an object" in {
       val oid = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
-      val loc = insertedNodeIds.result()(StorageNodeDatabaseId(20))
+      val loc = insertedNodeIds.result()(StorageNodeDatabaseId(25))
 
       service
         .currentObjectLocation(defaultMuseumId, oid, CollectionObject)

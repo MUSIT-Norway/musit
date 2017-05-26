@@ -41,6 +41,7 @@ object LocationHistory extends WithDateTimeFormatters {
   implicit val writes: Writes[LocationHistory] = Json.writes[LocationHistory]
 }
 
+// TODO: DELETE ME when Migration is performed in production
 case class LocationHistory_Old(
     registeredBy: ActorId,
     registeredDate: DateTime,

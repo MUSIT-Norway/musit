@@ -7,7 +7,6 @@ services:
       - "80:80"
     links:
       - webpack
-      - thingaggregate
       - backend
       - auth
       - barcode
@@ -17,22 +16,6 @@ services:
       context: "../../frontend"
     environment:
       - REACT_APP_USE_DATAPORTEN
-
-  thingaggregate:
-    image: service_thing_aggregate:0.1-SNAPSHOT
-    environment:
-      - MUSIT_ENV
-      - MUSIT_BASE_URL
-      - DOCKER_HOSTNAME
-      - MUSIT_SECURITY_MODULE
-      - DATAPORTEN_CLIENT_ID
-      - DATAPORTEN_CLIENT_SECRET
-      - DATAPORTEN_SESSION_TIMEOUT
-      - APPLICATION_SECRET
-      - EVOLUTION_ENABLED
-      - SLICK_DB_URL
-      - SLICK_DB_USER
-      - SLICK_DB_PASSWORD
 
   backend:
     image: service_backend:0.1-SNAPSHOT

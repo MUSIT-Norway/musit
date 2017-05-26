@@ -7,7 +7,7 @@ import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.JsValue
-import repositories.shared.dao.ColumnTypeMappers
+import repositories.shared.dao.{ColumnTypeMappers, StorageTables}
 import slick.jdbc.JdbcProfile
 
 private[dao] trait EventTables

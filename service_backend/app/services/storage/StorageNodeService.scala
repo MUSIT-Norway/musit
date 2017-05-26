@@ -7,12 +7,14 @@ import models.storage.{FacilityLocation, LocationHistory, ObjectsLocation}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.models.Museums.Museum
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.musitobject.dao.ObjectDao
 import repositories.storage.dao.LocalObjectDao
 import repositories.storage.dao.events.MoveDao
 import repositories.storage.dao.nodes.{
@@ -31,6 +33,7 @@ class StorageNodeService @Inject()(
     val orgDao: OrganisationDao,
     val moveDao: MoveDao,
     val locObjDao: LocalObjectDao,
+    val objDao: ObjectDao,
     val envReqService: EnvironmentRequirementService
 ) extends NodeService
     with OrganisationServiceOps
@@ -454,6 +457,64 @@ class StorageNodeService @Inject()(
 
       case err: MusitError =>
         Future.successful(err)
+    }
+  }
+
+  /**
+   *
+   * @param oldObjectId
+   * @param oldSchemaName
+   * @return
+   */
+  def currNodeForOldObject(
+      oldObjectId: Long,
+      oldSchemaName: String
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): Future[MusitResult[Option[(StorageNodeId, String)]]] = {
+    // Look up object using it's old object ID and the old DB schema name.
+    objDao.findByOldId(oldObjectId, oldSchemaName).flatMap {
+      case MusitSuccess(mobj) =>
+        val res = for {
+          obj <- mobj
+          oid <- obj.uuid
+        } yield {
+          MusitResultT(unitDao.currentLocation(obj.museumId, oid)).flatMap {
+            case Some(sn) =>
+              MusitResultT(unitDao.namesForPath(sn._2)).map { np =>
+                // Only authorized users are allowed to see the full path
+                // TODO: We probably need to verify the _group_ and not the museum.
+                if (currUsr.isAuthorized(obj.museumId)) {
+                  Option((sn._1, np.map(_.name).mkString(", ")))
+                } else {
+                  Option((sn._1, Museum.museumIdToString(obj.museumId)))
+                }
+              }
+
+            case None =>
+              MusitResultT(
+                Future.successful[MusitResult[Option[(StorageNodeId, String)]]](
+                  MusitSuccess(None)
+                )
+              )
+          }.value
+        }
+        res.getOrElse(Future.successful(MusitSuccess(None)))
+
+      case err: MusitError =>
+        Future.successful(err)
+    }
+  }
+
+  def nodesOutsideMuseum(
+      museumId: MuseumId
+  ): Future[MusitResult[Seq[(StorageNodeDatabaseId, String)]]] = {
+    unitDao.findRootLoanNodes(museumId).flatMap {
+      case MusitSuccess(rids) =>
+        logger.debug(s"Found ${rids.size} external Root nodes: ${rids.mkString(", ")}")
+        if (rids.nonEmpty) unitDao.listAllChildrenFor(museumId, rids)
+        else Future.successful(MusitSuccess(Seq.empty))
+      case err: MusitError => Future.successful(err)
     }
   }
 
