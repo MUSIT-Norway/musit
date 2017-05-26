@@ -3,7 +3,7 @@ package controllers.analysis
 import models.analysis.events.AnalysisExtras.ExtraAttributes
 import models.analysis.events.AnalysisResults._
 import models.analysis.events.{Analysis, AnalysisCollection, Category}
-import models.analysis.{ActorById, Size}
+import models.analysis.Size
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models.{ActorId, ObjectUUID}
 import no.uio.musit.test.matchers.DateTimeMatchers
@@ -21,13 +21,7 @@ trait AnalysisJsonGenerators {
 
   val dummyObjectId = ObjectUUID.generate()
 
-  val dummyNamedUserName = "Ola Normann"
-  val dummyNamedUser     = Json.obj("type" -> "ActorByName", "value" -> dummyNamedUserName)
-
-  val adminId: JsObject = Json.obj(
-    "type"  -> ActorById.key,
-    "value" -> ActorId.unsafeFromString(FakeUsers.testAdminId)
-  )
+  val adminId = ActorId.unsafeFromString(FakeUsers.testAdminId)
 
   def createSizeJSON(size: Size): JsObject = Json.obj(
     "value" -> size.value,
@@ -70,7 +64,7 @@ trait AnalysisJsonGenerators {
     js4 ++ Json.obj(
       "objectIds" -> objects.map(_.asString),
       "restriction" -> Json.obj(
-        "requester"      -> dummyNamedUser,
+        "requester"      -> adminId,
         "reason"         -> "secret",
         "expirationDate" -> time.dateTimeNow.plusDays(20).toString("yyyy-MM-dd")
       )
@@ -190,7 +184,7 @@ trait AnalysisJsonValidators {
     (actual \ "eventDate").asOpt[DateTime] mustApproximate expectedEventDate
     (actual \ "registeredBy").asOpt[String] must not be empty
     (actual \ "registeredDate").asOpt[DateTime] must not be empty
-    (actual \ "restriction" \ "requester" \ "value").as[String] mustBe dummyNamedUserName
+    (actual \ "restriction" \ "requester").as[String] mustBe adminId.asString
     forAll(0 until numChildren) { index =>
       (actual \ "events" \ index \ "type").as[String] mustBe Analysis.discriminator
       (actual \ "events" \ index \ "partOf").as[Long] mustBe expectedId

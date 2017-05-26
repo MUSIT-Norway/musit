@@ -98,7 +98,7 @@ class AnalysisServiceSpec
       service.findById(EventId(1L)).futureValue.successValue.value match {
         case res: AnalysisEvent =>
           res.analysisTypeId mustBe dummyAnalysisTypeId
-          res.doneBy mustBe Some(dummyActorById)
+          res.doneBy mustBe Some(dummyActorId)
           res.doneDate mustApproximate Some(dateTimeNow)
           res.note mustBe Some("This is from a SaveAnalysis command")
           res.objectId must not be empty
@@ -119,7 +119,7 @@ class AnalysisServiceSpec
 
       forAll(res) { r =>
         r.analysisTypeId mustBe dummyAnalysisTypeId
-        r.doneBy mustBe Some(dummyActorById)
+        r.doneBy mustBe Some(dummyActorId)
         r.doneDate mustApproximate Some(dateTimeNow)
         r.note mustBe Some("This is from a SaveAnalysisCollection command")
         r.objectId must not be empty
@@ -137,7 +137,7 @@ class AnalysisServiceSpec
 
       forAll(res) { r =>
         r.analysisTypeId mustBe dummyAnalysisTypeId
-        r.doneBy mustBe Some(dummyActorById)
+        r.doneBy mustBe Some(dummyActorId)
         r.doneDate mustApproximate Some(dateTimeNow)
         r.note must not be empty
         r.note.value must startWith("This is from a SaveAnalysis")

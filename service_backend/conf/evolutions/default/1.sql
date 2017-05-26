@@ -374,6 +374,7 @@ CREATE TABLE MUSARK_ANALYSIS.SAMPLE_OBJECT (
   museum_id              INTEGER                  NOT NULL,
   status                 INTEGER DEFAULT 1        NOT NULL,
   responsible_actor      VARCHAR2(512),
+  done_by                VARCHAR2(36),
   done_date              TIMESTAMP WITH TIME ZONE,
   sample_id              VARCHAR2(100),
   sample_num             INTEGER DEFAULT MUSARK_ANALYSIS.sample_object_sample_num_seq.nextval,

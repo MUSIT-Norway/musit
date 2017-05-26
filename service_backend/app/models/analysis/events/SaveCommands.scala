@@ -1,10 +1,10 @@
 package models.analysis.events
 
-import models.analysis.{ActorByIdOrName, ActorStamp}
+import models.analysis.ActorStamp
 import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.events.AnalysisExtras.ExtraAttributes
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.{CaseNumbers, ObjectUUID}
+import no.uio.musit.models.{ActorId, CaseNumbers, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
@@ -45,14 +45,14 @@ object SaveCommands {
 
   case class SaveAnalysis(
       analysisTypeId: AnalysisTypeId,
-      doneBy: Option[ActorByIdOrName],
+      doneBy: Option[ActorId],
       doneDate: Option[DateTime],
       note: Option[String],
       objectId: ObjectUUID,
       extraAttributes: Option[ExtraAttributes],
-      responsible: Option[ActorByIdOrName],
-      administrator: Option[ActorByIdOrName],
-      completedBy: Option[ActorByIdOrName],
+      responsible: Option[ActorId],
+      administrator: Option[ActorId],
+      completedBy: Option[ActorId],
       completedDate: Option[DateTime]
   ) extends SaveAnalysisEventCommand {
 
@@ -104,7 +104,7 @@ object SaveCommands {
   }
 
   case class SaveRestriction(
-      requester: ActorByIdOrName,
+      requester: ActorId,
       expirationDate: DateTime,
       reason: String,
       caseNumbers: Option[CaseNumbers] = None,
@@ -117,12 +117,12 @@ object SaveCommands {
 
   case class SaveAnalysisCollection(
       analysisTypeId: AnalysisTypeId,
-      doneBy: Option[ActorByIdOrName],
+      doneBy: Option[ActorId],
       doneDate: Option[DateTime],
       note: Option[String],
-      responsible: Option[ActorByIdOrName],
-      administrator: Option[ActorByIdOrName],
-      completedBy: Option[ActorByIdOrName],
+      responsible: Option[ActorId],
+      administrator: Option[ActorId],
+      completedBy: Option[ActorId],
       completedDate: Option[DateTime],
       objectIds: Seq[ObjectUUID],
       restriction: Option[SaveRestriction],

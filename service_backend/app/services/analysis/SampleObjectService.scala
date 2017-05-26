@@ -2,7 +2,7 @@ package services.analysis
 
 import com.google.inject.Inject
 import models.analysis.events.SampleCreated
-import models.analysis.{ActorById, ActorStamp, SampleObject}
+import models.analysis.{ActorStamp, SampleObject}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
@@ -32,11 +32,11 @@ class SampleObjectService @Inject()(
     if (so.isExtracted) {
       val eventObj = SampleCreated(
         id = None,
-        doneBy = sobj.registeredStamp.map(s => ActorById(s.user)),
-        doneDate = sobj.registeredStamp.map(_.date),
+        doneBy = sobj.doneByStamp.map(_.user),
+        doneDate = sobj.doneByStamp.map(_.date),
         registeredBy = sobj.registeredStamp.map(_.user),
         registeredDate = sobj.registeredStamp.map(_.date),
-        objectId = sobj.parentObjectId,
+        objectId = sobj.parentObject.objectId,
         sampleObjectId = sobj.objectId,
         externalLinks = None
       )

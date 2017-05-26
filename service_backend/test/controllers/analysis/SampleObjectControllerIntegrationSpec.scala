@@ -1,8 +1,6 @@
 package controllers.analysis
 
-import models.analysis.ActorById
 import models.analysis.SampleStatuses.{Intact, SampleStatus}
-import no.uio.musit.formatters.DateTimeFormatters._
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ActorId, MuseumId, Museums, ObjectUUID}
 import no.uio.musit.security.BearerToken
@@ -21,9 +19,9 @@ class SampleObjectControllerIntegrationSpec
   val mid     = MuseumId(99)
   val token   = BearerToken(FakeUsers.testAdminToken)
   val adminId = ActorId.unsafeFromString(FakeUsers.testAdminId)
+  val dummyActorId = ActorId.generate()
 
-  val responsibleActor =
-    Json.obj("type" -> ActorById.key, "value" -> ActorId.generate().asString)
+  val responsibleActor = ActorId.generate().asString
 
   val parentObject = ObjectUUID.generate()
 
@@ -34,18 +32,19 @@ class SampleObjectControllerIntegrationSpec
       parentObjectType: ObjectType = CollectionObject,
       isExtracted: Boolean = true,
       status: SampleStatus = Intact,
-      doneDate: DateTime,
+      doneBy: ActorId,
+      doneDate: String,
       maybeSampleId: Option[String],
       maybeExtId: Option[String],
       maybeNote: Option[String]
   ) = {
     val js1 = Json.obj(
-      "parentObjectType"     -> parentObjectType,
+      "parentObject"         -> Json.obj("objectId" -> maybeParent, "objectType" -> parentObjectType),
       "isExtracted"          -> isExtracted,
       "museumId"             -> Museums.Test.id.underlying,
       "status"               -> status.key,
-      "responsible"          -> responsibleActor,
-      "doneDate"             -> Json.toJson(doneDate),
+      "responsible"          -> dummyActorId,
+      "doneByStamp"          -> Json.obj("user" -> doneBy, "date" ->  doneDate),
       "sampleTypeId"         -> 37,
       "size"                 -> Json.obj("unit" -> "cm3", "value" -> 12.0),
       "container"            -> "box",
@@ -54,8 +53,7 @@ class SampleObjectControllerIntegrationSpec
       "originatedObjectUuid" -> parentObject.asString
     )
     val js2 = maybeId.map(i => js1 ++ Json.obj("objectId"           -> i.asString)).getOrElse(js1)
-    val js3 = maybeParent.map(i => js2 ++ Json.obj("parentObjectId" -> i)).getOrElse(js2)
-    val js4 = maybeSampleId.map(s => js3 ++ Json.obj("sampleId"     -> s)).getOrElse(js3)
+    val js4 = maybeSampleId.map(s => js2 ++ Json.obj("sampleId"     -> s)).getOrElse(js2)
     val js5 = maybeExtId
       .map(i => js4 ++ Json.obj("externalId" -> Json.obj("value" -> i)))
       .getOrElse(js4)
@@ -72,10 +70,10 @@ class SampleObjectControllerIntegrationSpec
       expectedNote: Option[String] = None,
       js: JsValue
   ): Unit = {
-    (js \ "parentObjectType").as[ObjectType] mustBe parentObjectType
+    (js \ "parentObject" \ "objectType").as[ObjectType] mustBe parentObjectType
     (js \ "originatedObjectUuid").as[ObjectUUID] mustBe parentObject
     (js \ "isExtracted").as[Boolean] mustBe isExtracted
-    (js \ "parentObjectId").asOpt[String] mustBe expectedParent
+    (js \ "parentObject" \ "objectId").asOpt[String] mustBe expectedParent
     (js \ "sampleNum").asOpt[Int].getOrElse(0) must be > 0
     (js \ "sampleId").asOpt[String] mustBe expectedSampleId
     (js \ "externalId" \ "value").asOpt[String] mustBe expectedExtId
@@ -83,9 +81,9 @@ class SampleObjectControllerIntegrationSpec
   }
 
   def validateSampleObject(expected: JsValue, actual: JsValue): Unit = {
-    val parentObjectType = (expected \ "parentObjectType").as[ObjectType]
+    val parentObjectType = (expected \ "parentObject" \ "objectType").as[ObjectType]
     val isExtracted      = (expected \ "isExtracted").as[Boolean]
-    val expParent        = (expected \ "parentObjectId").asOpt[String]
+    val expParent        = (expected \ "parentObject" \ "objectId").asOpt[String]
     val expSampleId      = (expected \ "sampleId").asOpt[String]
     val expExtId         = (expected \ "externalId" \ "value").asOpt[String]
     val expNote          = (expected \ "note").asOpt[String]
@@ -131,10 +129,11 @@ class SampleObjectControllerIntegrationSpec
   "Invoking the sample object controller API" should {
 
     "successfully add a few new SampleObject" in {
-      val cd = DateTime.now.minusWeeks(2)
+      val cd = DateTime.now.minusWeeks(2).toString("yyyy-MM-dd")
       val jsarr = (1 to 10).map { index =>
         createSaveJSON(
           maybeParent = Some(parentObject),
+          doneBy = dummyActorId,
           doneDate = cd,
           maybeSampleId = Some(s"sample$index"),
           maybeExtId = Some(s"ext$index"),

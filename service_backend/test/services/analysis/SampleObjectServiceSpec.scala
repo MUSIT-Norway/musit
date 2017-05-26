@@ -32,7 +32,8 @@ class SampleObjectServiceSpec
   )
 
   val dummyActorId   = ActorId.generate()
-  val dummyActorById = ActorById(dummyActorId)
+  val dummyActorName = "Dummy User"
+  val dummyActorById = dummyActorId
 
   val service      = fromInstanceCache[SampleObjectService]
   val eventService = fromInstanceCache[AnalysisService]
@@ -47,13 +48,12 @@ class SampleObjectServiceSpec
     val now = dateTimeNow
     SampleObject(
       objectId = id,
-      parentObjectId = parentId,
-      parentObjectType = parentobjType,
+      parentObject = ParentObject(parentId, parentobjType),
       isExtracted = isExtracted,
       museumId = Museums.Test.id,
       status = status,
-      responsible = Some(dummyActorById),
-      doneDate = Some(now),
+      responsible = Some(dummyActorId),
+      doneByStamp = Some(ActorStamp(dummyActorId, now)),
       sampleId = None,
       sampleNum = None,
       externalId = None,
@@ -100,7 +100,7 @@ class SampleObjectServiceSpec
       sce.toList match {
         case theHead :: Nil =>
           theHead.analysisTypeId mustBe SampleCreated.sampleEventTypeId
-          theHead.doneBy mustBe Some(ActorById(dummyUser.id))
+          theHead.doneBy mustBe Some(dummyActorId)
           theHead.doneDate mustApproximate Some(dateTimeNow)
           theHead.registeredBy mustBe Some(dummyUser.id)
           theHead.registeredDate mustApproximate Some(dateTimeNow)

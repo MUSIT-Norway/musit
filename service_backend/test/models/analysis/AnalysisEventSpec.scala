@@ -19,14 +19,13 @@ class AnalysisEventSpec
   val dummyAnalysisTypeId = AnalysisTypeId(3)
   val dummyDate           = DateTime.now
   val dummyActor          = ActorId.generate()
-  val dummyActorById      = ActorById(ActorId.generate())
   val dummyObject         = ObjectUUID.generate()
   val dummyNote           = "Foo bar"
   val dummyReason         = "Fuz bar"
   val dummyStatus         = AnalysisStatuses.Preparation
   val dummyCaseNumbers    = CaseNumbers(Seq("num-1", "num-2"))
   val dummyRestriction = Restriction(
-    requester = ActorByName("holder"),
+    requester = ActorId.generate(),
     registeredStamp = None,
     expirationDate = DateTime.now.plusDays(50),
     reason = "reason",
@@ -37,15 +36,15 @@ class AnalysisEventSpec
     Analysis(
       id = Some(dummyEventId),
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorById),
+      doneBy = Some(dummyActor),
       doneDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
-      responsible = Some(dummyActorById),
-      administrator = Some(dummyActorById),
+      responsible = Some(dummyActor),
+      administrator = Some(dummyActor),
       updatedBy = Some(dummyActor),
       updatedDate = Some(dummyDate),
-      completedBy = Some(dummyActorById),
+      completedBy = Some(dummyActor),
       completedDate = Some(dummyDate),
       objectId = Some(dummyObject),
       partOf = None,
@@ -65,15 +64,15 @@ class AnalysisEventSpec
     AnalysisCollection(
       id = Some(dummyEventId),
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorById),
+      doneBy = Some(dummyActor),
       doneDate = Some(dummyDate),
       registeredBy = Some(dummyActor),
       registeredDate = Some(dummyDate),
-      responsible = Some(dummyActorById),
-      administrator = Some(dummyActorById),
+      responsible = Some(dummyActor),
+      administrator = Some(dummyActor),
       updatedBy = Some(dummyActor),
       updatedDate = Some(dummyDate),
-      completedBy = Some(dummyActorById),
+      completedBy = Some(dummyActor),
       completedDate = Some(dummyDate),
       note = Some(dummyNote),
       restriction = Some(dummyRestriction),
@@ -122,15 +121,15 @@ class AnalysisEventSpec
       (js \ "type").as[String] mustBe AnalysisCollection.discriminator
       (js \ "id").as[Long] mustBe dummyEventId.underlying
       (js \ "analysisTypeId").as[Int] mustBe dummyAnalysisTypeId.underlying
-      (js \ "doneBy" \ "value").as[String] mustBe dummyActorById.name
+      (js \ "doneBy").as[String] mustBe dummyActor.underlying.toString
       (js \ "doneDate").as[DateTime] mustApproximate dummyDate
       (js \ "registeredBy").as[String] mustBe dummyActor.asString
       (js \ "registeredDate").as[DateTime] mustApproximate dummyDate
-      (js \ "responsible" \ "value").as[String] mustBe dummyActorById.name
-      (js \ "administrator" \ "value").as[String] mustBe dummyActorById.name
+      (js \ "responsible").as[String] mustBe dummyActor.asString
+      (js \ "administrator").as[String] mustBe dummyActor.asString
       (js \ "updatedBy").as[String] mustBe dummyActor.asString
       (js \ "updatedDate").as[DateTime] mustApproximate dummyDate
-      (js \ "completedBy" \ "value").as[String] mustBe dummyActorById.name
+      (js \ "completedBy").as[String] mustBe dummyActor.asString
       (js \ "completedDate").as[DateTime] mustApproximate dummyDate
       (js \ "note").as[String] mustBe dummyNote
       (js \ "extraAttributes").asOpt[JsObject] mustBe None

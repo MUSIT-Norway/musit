@@ -1,6 +1,5 @@
 package models.analysis.events
 
-import models.analysis.ActorByIdOrName
 import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.events.AnalysisExtras._
 import models.analysis.events.AnalysisResults._
@@ -18,7 +17,7 @@ sealed trait AnalysisModuleEvent {
   val analysisTypeId: AnalysisTypeId
   val registeredBy: Option[ActorId]
   val registeredDate: Option[DateTime]
-  val doneBy: Option[ActorByIdOrName]
+  val doneBy: Option[ActorId]
   val doneDate: Option[DateTime]
   val objectId: Option[ObjectUUID]
   val partOf: Option[EventId]
@@ -78,11 +77,11 @@ object AnalysisModuleEvent extends TypedAnalysisEvent {
  * implementations may contain more fields than this trait.
  */
 sealed trait AnalysisEvent extends AnalysisModuleEvent {
-  val responsible: Option[ActorByIdOrName]
-  val administrator: Option[ActorByIdOrName]
+  val responsible: Option[ActorId]
+  val administrator: Option[ActorId]
   val updatedBy: Option[ActorId]
   val updatedDate: Option[DateTime]
-  val completedBy: Option[ActorByIdOrName]
+  val completedBy: Option[ActorId]
   val completedDate: Option[DateTime]
   val reason: Option[String]
   val extraAttributes: Option[ExtraAttributes]
@@ -249,15 +248,15 @@ object AnalysisEvent extends TypedAnalysisEvent with WithDateTimeFormatters {
 case class Analysis(
     id: Option[EventId],
     analysisTypeId: AnalysisTypeId,
-    doneBy: Option[ActorByIdOrName],
+    doneBy: Option[ActorId],
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    responsible: Option[ActorByIdOrName],
-    administrator: Option[ActorByIdOrName],
+    responsible: Option[ActorId],
+    administrator: Option[ActorId],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorByIdOrName],
+    completedBy: Option[ActorId],
     completedDate: Option[DateTime],
     objectId: Option[ObjectUUID],
     partOf: Option[EventId],
@@ -287,15 +286,15 @@ object Analysis extends WithDateTimeFormatters {
 case class AnalysisCollection(
     id: Option[EventId],
     analysisTypeId: AnalysisTypeId,
-    doneBy: Option[ActorByIdOrName],
+    doneBy: Option[ActorId],
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    responsible: Option[ActorByIdOrName],
-    administrator: Option[ActorByIdOrName],
+    responsible: Option[ActorId],
+    administrator: Option[ActorId],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorByIdOrName],
+    completedBy: Option[ActorId],
     completedDate: Option[DateTime],
     note: Option[String],
     extraAttributes: Option[ExtraAttributes],
@@ -328,7 +327,7 @@ object AnalysisCollection extends WithDateTimeFormatters {
 
 case class SampleCreated(
     id: Option[EventId],
-    doneBy: Option[ActorByIdOrName],
+    doneBy: Option[ActorId],
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],

@@ -50,7 +50,7 @@ trait AnalysisTables
   type EventRow = (
       Option[EventId],
       AnalysisTypeId,
-      Option[ActorByIdOrName],
+      Option[ActorId],
       Option[DateTime],
       Option[ActorId],
       Option[DateTime],
@@ -70,7 +70,8 @@ trait AnalysisTables
       Boolean,
       MuseumId,
       SampleStatus,
-      Option[ActorByIdOrName],
+      Option[ActorId],
+      Option[ActorId],
       Option[DateTime],
       Option[String],
       Option[Int],
@@ -140,7 +141,7 @@ trait AnalysisTables
 
     val id             = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
     val typeId         = column[AnalysisTypeId]("TYPE_ID")
-    val doneBy         = column[Option[ActorByIdOrName]]("DONE_BY")
+    val doneBy         = column[Option[ActorId]]("DONE_BY")
     val doneDate       = column[Option[DateTime]]("DONE_DATE")
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
@@ -199,7 +200,8 @@ trait AnalysisTables
     val isExtracted      = column[Boolean]("IS_EXTRACTED")
     val museumId         = column[MuseumId]("MUSEUM_ID")
     val status           = column[SampleStatus]("STATUS")
-    val responsible      = column[Option[ActorByIdOrName]]("RESPONSIBLE_ACTOR")
+    val responsible      = column[Option[ActorId]]("RESPONSIBLE_ACTOR")
+    val doneBy           = column[Option[ActorId]]("DONE_BY")
     val doneDate         = column[Option[DateTime]]("DONE_DATE")
     val sampleId         = column[Option[String]]("SAMPLE_ID")
     val sampleNum        = column[Option[Int]]("SAMPLE_NUM", O.AutoInc, O.Unique)
@@ -230,6 +232,7 @@ trait AnalysisTables
         museumId,
         status,
         responsible,
+        doneBy,
         doneDate,
         sampleId,
         sampleNum,
@@ -429,15 +432,17 @@ trait AnalysisTables
       maybeTuple: Option[ResultRow]
   ): Option[AnalysisResult] =
     maybeTuple.flatMap(fromResultRow)
+
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (
       so.objectId.getOrElse(ObjectUUID.generate()),
-      (so.parentObjectId, so.parentObjectType),
+      (so.parentObject.objectId, so.parentObject.objectType),
       so.isExtracted,
       so.museumId,
       so.status,
       so.responsible,
-      so.doneDate,
+      so.doneByStamp.map(_.user),
+      so.doneByStamp.map(_.date),
       so.sampleId,
       so.sampleNum,
       (so.externalId.map(_.value), so.externalId.flatMap(_.source)),
@@ -467,36 +472,37 @@ trait AnalysisTables
    * @return an instance of SampleObject
    */
   protected[dao] def fromSampleObjectRow(tuple: SampleObjectRow): SampleObject = {
-    val parentObject = tuple._2
-    val external     = tuple._10
-    val sampleTypeId = tuple._11
-    val size         = tuple._12
-    val userStamps   = tuple._20
+    val external     = tuple._11
+    val sampleTypeId = tuple._12
+    val size         = tuple._13
+    val userStamps   = tuple._21
 
     SampleObject(
       objectId = Option(tuple._1),
-      parentObjectId = parentObject._1,
-      parentObjectType = parentObject._2,
+      parentObject = (ParentObject.apply _).tupled(tuple._2),
       isExtracted = tuple._3,
       museumId = tuple._4,
       status = tuple._5,
       responsible = tuple._6,
-      doneDate = tuple._7,
-      sampleId = tuple._8,
-      sampleNum = tuple._9,
+      doneByStamp = for {
+        actorId <- tuple._7
+        doneDate  <- tuple._8
+      } yield ActorStamp(actorId, doneDate),
+      sampleId = tuple._9,
+      sampleNum = tuple._10,
       externalId = external._1.map(ExternalId(_, external._2)),
       sampleTypeId = sampleTypeId,
       size = for {
         value <- size._1
         unit  <- size._2
       } yield Size(unit, value),
-      container = tuple._13,
-      storageMedium = tuple._14,
-      note = tuple._15,
-      treatment = tuple._16,
-      leftoverSample = tuple._17,
-      description = tuple._18,
-      originatedObjectUuid = tuple._19,
+      container = tuple._14,
+      storageMedium = tuple._15,
+      note = tuple._16,
+      treatment = tuple._17,
+      leftoverSample = tuple._18,
+      description = tuple._19,
+      originatedObjectUuid = tuple._20,
       registeredStamp = for {
         actor    <- userStamps._1
         dateTime <- userStamps._2
@@ -505,7 +511,7 @@ trait AnalysisTables
         actor    <- userStamps._3
         dateTime <- userStamps._4
       } yield ActorStamp(actor, dateTime),
-      isDeleted = tuple._21
+      isDeleted = tuple._22
     )
   }
 

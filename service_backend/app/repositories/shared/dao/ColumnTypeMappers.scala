@@ -2,7 +2,6 @@ package repositories.shared.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
-import models.analysis.ActorByIdOrName
 import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
@@ -93,12 +92,6 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
     MappedColumnType.base[ActorId, String](
       aid => aid.asString,
       strId => ActorId.unsafeFromString(strId)
-    )
-
-  implicit val actorNameMapper: BaseColumnType[ActorByIdOrName] =
-    MappedColumnType.base[ActorByIdOrName, String](
-      an => an.name,
-      strVal => ActorByIdOrName.apply(strVal)
     )
 
   implicit val objectUuidMapper: BaseColumnType[ObjectUUID] =

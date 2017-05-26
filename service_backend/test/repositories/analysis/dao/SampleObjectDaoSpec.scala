@@ -26,13 +26,12 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
     val now = DateTime.now
     SampleObject(
       objectId = Some(id),
-      parentObjectId = parentId,
-      parentObjectType = parentobjType,
+      parentObject = ParentObject(parentId, parentobjType),
       isExtracted = isExtracted,
       museumId = Museums.Test.id,
       status = SampleStatuses.Intact,
-      responsible = ActorId.generateAsOpt().map(ActorById.apply),
-      doneDate = Some(now),
+      responsible = ActorId.generateAsOpt(),
+      doneByStamp = ActorId.generateAsOpt().map(ActorStamp(_, now)),
       sampleId = None,
       sampleNum = None,
       externalId = Some(ExternalId("external id", Some("external source"))),
@@ -52,7 +51,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
   }
 
   def generateSampleEvent(
-      doneBy: Option[ActorByIdOrName] = None,
+      doneBy: Option[ActorId] = None,
       doneDate: Option[DateTime] = None,
       registeredBy: Option[ActorId] = Some(defaultActorId),
       registeredDate: Option[DateTime] = None,
@@ -120,7 +119,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       res.successValue.size mustBe 3
 
       forAll(res.successValue) { c =>
-        c.parentObjectId mustBe Some(parentId)
+        c.parentObject.objectId mustBe Some(parentId)
         c.objectId must not be empty
         c.objectId must contain oneOf (childId1, childId2, childId3)
       }
@@ -165,11 +164,11 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val oid = ObjectUUID.generate()
       val so  = generateSample(oid, None, CollectionObject, isExtracted = true)
       val se = generateSampleEvent(
-        doneBy = so.registeredStamp.map(r => ActorById(r.user)),
+        doneBy = so.registeredStamp.map(r => r.user),
         doneDate = so.registeredStamp.map(_.date),
         registeredBy = so.registeredStamp.map(_.user),
         registeredDate = so.registeredStamp.map(_.date),
-        objectId = so.parentObjectId,
+        objectId = so.parentObject.objectId,
         sampleObjectId = so.objectId
       )
       dao.insert(so, se).futureValue.successValue mustBe oid

@@ -3,7 +3,7 @@ package utils.testdata
 import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult, GenericResult}
 import models.analysis.events.SaveCommands.{SaveAnalysis, SaveAnalysisCollection}
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
-import models.analysis.{ActorById, ActorByName, AnalysisStatuses}
+import models.analysis.AnalysisStatuses
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 
@@ -11,7 +11,7 @@ trait AnalysisGenerators {
 
   protected val defaultMid          = Museums.Test.id
   protected val dummyActorId        = ActorId.generate()
-  protected val dummyActorById      = ActorById(ActorId.generate())
+  protected val dummyActorById      = ActorId.generate()
   protected val dummyAnalysisTypeId = AnalysisTypeId(1L)
 
   protected val oid1 = ObjectUUID.generate()
@@ -24,7 +24,7 @@ trait AnalysisGenerators {
   ): SaveAnalysis = {
     SaveAnalysis(
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorById),
+      doneBy = Some(dummyActorId),
       doneDate = Some(dateTimeNow),
       note = Some("This is from a SaveAnalysis command"),
       objectId = oid,
@@ -42,7 +42,7 @@ trait AnalysisGenerators {
   ): SaveAnalysisCollection = {
     SaveAnalysisCollection(
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorById),
+      doneBy = Some(dummyActorId),
       doneDate = Some(dateTimeNow),
       note = Some("This is from a SaveAnalysisCollection command"),
       responsible = Some(dummyActorById),
@@ -92,7 +92,7 @@ trait AnalysisGenerators {
     Analysis(
       id = None,
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorById),
+      doneBy = Some(dummyActorId),
       doneDate = now,
       registeredBy = Some(dummyActorId),
       registeredDate = now,
@@ -118,7 +118,7 @@ trait AnalysisGenerators {
     AnalysisCollection(
       id = None,
       analysisTypeId = dummyAnalysisTypeId,
-      doneBy = Some(dummyActorById),
+      doneBy = Some(dummyActorId),
       doneDate = now,
       registeredBy = Some(dummyActorId),
       registeredDate = now,
@@ -133,7 +133,7 @@ trait AnalysisGenerators {
       result = res,
       events = analyses.toSeq,
       restriction =
-        Some(Restriction(ActorByName("requester"), dateTimeNow, "some reason")),
+        Some(Restriction(ActorId.generate(), dateTimeNow, "some reason")),
       reason = None,
       status = None,
       caseNumbers = None
