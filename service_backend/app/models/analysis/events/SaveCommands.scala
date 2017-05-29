@@ -196,7 +196,6 @@ object SaveCommands {
     )(implicit cu: AuthenticatedUser): AnalysisCollection = {
       val now = dateTimeNow
       a.copy(
-        analysisTypeId = analysisTypeId,
         doneBy = doneBy,
         doneDate = doneDate,
         responsible = responsible,
@@ -205,6 +204,8 @@ object SaveCommands {
         updatedDate = Some(now),
         completedBy = completedBy,
         completedDate = completedDate,
+        reason = reason,
+        status = Option(status),
         caseNumbers = caseNumbers,
         note = note,
         restriction = restriction.map { r =>

@@ -36,10 +36,11 @@ test:
     MUSIT_FUTURE_INTERVAL: "50"
   script:
     - echo "Building and running tests..."
-    - sbt -mem 2048 scalastyle clean coverage test coverageReport
-    # Check if the scalariform modified any files during the build. If yes, fail the build.
+    # Check if the scalafmt modified any files during the build. If yes, fail the build.
+    - sbt clean scalastyle scalafmt
     - git status
     - git diff --exit-code || (echo "ERROR Scalariform check failed, see differences above."; false)
+    - sbt -mem 2048 coverage test coverageReport
     # Aggregate the coverage report
     - sbt coverageAggregate
     # Do not publish coverage to codacy if the build is a PR from a forked repo.

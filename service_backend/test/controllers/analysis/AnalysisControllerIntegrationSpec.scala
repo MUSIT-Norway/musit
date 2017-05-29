@@ -2,7 +2,10 @@ package controllers.analysis
 
 import models.analysis.events.AnalysisExtras.ElementalICPAttributes.ICP_MS
 import models.analysis.events.AnalysisExtras.TomographyAttributes.ComputerTomography
-import models.analysis.events.AnalysisExtras.{ElementalICPAttributes, TomographyAttributes}
+import models.analysis.events.AnalysisExtras.{
+  ElementalICPAttributes,
+  TomographyAttributes
+}
 import models.analysis.events.EventCategories
 import models.analysis.events.EventCategories.NoCategory
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
@@ -148,6 +151,39 @@ class AnalysisControllerIntegrationSpec
         saveAnalysis(js).status mustBe CREATED // creates ids 5 to 6
       }
 
+      "successfully update an analysis" in {
+        val edate = DateTime.now
+        val js = createSaveAnalysisCollectionJSON(
+          typeId = tomographyTypeId,
+          eventDate = Some(edate),
+          objects = Seq(dummyObjectId),
+          caseNumbers = Some(Seq("abc", "def"))
+        )
+
+        saveAnalysis(js).status mustBe CREATED // creates ids 7 to 8
+
+        val ares =
+          wsUrl(getAnalysisUrl(mid)(7L)).withHeaders(token.asHeader).get().futureValue
+        ares.status mustBe OK
+
+        val updJson = js ++ Json.obj(
+          "reason"         -> "There's a reason now",
+          "status"         -> 2,
+          "analysisTypeId" -> 12 // Should not be modified by the server.
+        )
+
+        val updRes = wsUrl(getAnalysisUrl(mid)(7L))
+          .withHeaders(token.asHeader)
+          .put(updJson)
+          .futureValue
+        updRes.status mustBe OK
+
+        (updRes.json \ "reason").as[String] mustBe "There's a reason now"
+        (updRes.json \ "status").as[Int] mustBe 2
+        (updRes.json \ "id").as[Int] mustBe 7
+        (updRes.json \ "analysisTypeId").as[Int] mustBe tomographyTypeId
+      }
+
       "return HTTP 400 when using wrong extra attributes for analysis collection" in {
         val edate = DateTime.now
         val jso = createSaveAnalysisCollectionJSON(
@@ -171,21 +207,21 @@ class AnalysisControllerIntegrationSpec
           note = note
         )
 
-        saveAnalysis(ajs).status mustBe CREATED // creates ids 7 to 8
+        saveAnalysis(ajs).status mustBe CREATED // creates ids 9 to 10
 
         // We can assume the ID is 8 since we've only created 2 cols
         // with 1 analysis each before this.
         val res =
-          wsUrl(getAnalysisUrl(mid)(8L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(10L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
 
         validateAnalysis(
-          expectedId = 8L,
+          expectedId = 10L,
           expectedTypeId = liquidChromatography,
           expectedEventDate = Some(edate),
           expectedObject = Some(oid),
-          expectedParent = Some(7L),
+          expectedParent = Some(9L),
           expectedNote = note,
           res.json
         )
@@ -217,7 +253,7 @@ class AnalysisControllerIntegrationSpec
           caseNumbers = Some(Seq("cn-1", "cn-2"))
         )
 
-        saveAnalysis(js).status mustBe CREATED // creates ids 9 to 13
+        saveAnalysis(js).status mustBe CREATED // creates ids 11 to 15
       }
 
       "return an analysis collection with a specific ID" in {
@@ -230,11 +266,11 @@ class AnalysisControllerIntegrationSpec
           .withSecondOfMinute(44)
 
         val res =
-          wsUrl(getAnalysisUrl(mid)(9L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(11L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         validateAnalysisCollection(
-          expectedId = 9L,
+          expectedId = 11L,
           expectedTypeId = liquidChromatography,
           expectedEventDate = Some(edate),
           expectedNote = Some("Foobar"),
@@ -245,7 +281,7 @@ class AnalysisControllerIntegrationSpec
 
       "get all analyses in an analysis collection/batch" in {
         val res =
-          wsUrl(getChildrenUrl(mid)(9L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getChildrenUrl(mid)(11L)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 5
@@ -258,7 +294,7 @@ class AnalysisControllerIntegrationSpec
           .futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 4
+        res.json.as[JsArray].value.size mustBe 5
       }
 
       "save a generic result for an analysis" in {

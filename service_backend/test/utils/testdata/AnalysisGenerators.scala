@@ -132,8 +132,7 @@ trait AnalysisGenerators {
       extraAttributes = None,
       result = res,
       events = analyses.toSeq,
-      restriction =
-        Some(Restriction(ActorId.generate(), dateTimeNow, "some reason")),
+      restriction = Some(Restriction(ActorId.generate(), dateTimeNow, "some reason")),
       reason = None,
       status = None,
       caseNumbers = None

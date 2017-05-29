@@ -485,8 +485,8 @@ trait AnalysisTables
       status = tuple._5,
       responsible = tuple._6,
       doneByStamp = for {
-        actorId <- tuple._7
-        doneDate  <- tuple._8
+        actorId  <- tuple._7
+        doneDate <- tuple._8
       } yield ActorStamp(actorId, doneDate),
       sampleId = tuple._9,
       sampleNum = tuple._10,

@@ -16,9 +16,9 @@ class SampleObjectControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
     with DateTimeMatchers {
 
-  val mid     = MuseumId(99)
-  val token   = BearerToken(FakeUsers.testAdminToken)
-  val adminId = ActorId.unsafeFromString(FakeUsers.testAdminId)
+  val mid          = MuseumId(99)
+  val token        = BearerToken(FakeUsers.testAdminToken)
+  val adminId      = ActorId.unsafeFromString(FakeUsers.testAdminId)
   val dummyActorId = ActorId.generate()
 
   val responsibleActor = ActorId.generate().asString
@@ -39,12 +39,13 @@ class SampleObjectControllerIntegrationSpec
       maybeNote: Option[String]
   ) = {
     val js1 = Json.obj(
-      "parentObject"         -> Json.obj("objectId" -> maybeParent, "objectType" -> parentObjectType),
+      "parentObject" -> Json
+        .obj("objectId" -> maybeParent, "objectType" -> parentObjectType),
       "isExtracted"          -> isExtracted,
       "museumId"             -> Museums.Test.id.underlying,
       "status"               -> status.key,
       "responsible"          -> dummyActorId,
-      "doneByStamp"          -> Json.obj("user" -> doneBy, "date" ->  doneDate),
+      "doneByStamp"          -> Json.obj("user" -> doneBy, "date" -> doneDate),
       "sampleTypeId"         -> 37,
       "size"                 -> Json.obj("unit" -> "cm3", "value" -> 12.0),
       "container"            -> "box",
@@ -52,8 +53,8 @@ class SampleObjectControllerIntegrationSpec
       "leftoverSample"       -> 1,
       "originatedObjectUuid" -> parentObject.asString
     )
-    val js2 = maybeId.map(i => js1 ++ Json.obj("objectId"           -> i.asString)).getOrElse(js1)
-    val js4 = maybeSampleId.map(s => js2 ++ Json.obj("sampleId"     -> s)).getOrElse(js2)
+    val js2 = maybeId.map(i => js1 ++ Json.obj("objectId"       -> i.asString)).getOrElse(js1)
+    val js4 = maybeSampleId.map(s => js2 ++ Json.obj("sampleId" -> s)).getOrElse(js2)
     val js5 = maybeExtId
       .map(i => js4 ++ Json.obj("externalId" -> Json.obj("value" -> i)))
       .getOrElse(js4)
