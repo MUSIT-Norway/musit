@@ -7,6 +7,7 @@ import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json}
+import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
 
 /**

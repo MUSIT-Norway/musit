@@ -2,10 +2,11 @@ package repositories.actor.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.actor.OrganisationAddress
-import no.uio.musit.models.{DatabaseId, OrgId}
 import no.uio.musit.MusitResults._
+import no.uio.musit.models.{DatabaseId, OrgId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future

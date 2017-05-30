@@ -5,6 +5,7 @@ import models.actor.Person
 import no.uio.musit.models.{ActorId, DatabaseId, MuseumId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
+import repositories.shared.dao.ColumnTypeMappers
 
 import scala.concurrent.Future
 

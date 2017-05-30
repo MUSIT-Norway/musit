@@ -6,6 +6,7 @@ import no.uio.musit.MusitResults._
 import no.uio.musit.models.OrgId
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future

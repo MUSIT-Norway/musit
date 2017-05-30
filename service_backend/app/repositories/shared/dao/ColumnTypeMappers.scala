@@ -35,6 +35,12 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
       strId => StorageNodeId.unsafeFromString(strId)
     )
 
+  implicit val dbIdMapper: BaseColumnType[DatabaseId] =
+    MappedColumnType.base[DatabaseId, Long](
+      did => did.underlying,
+      longId => DatabaseId(longId)
+    )
+
   implicit val objectIdMapper: BaseColumnType[ObjectId] =
     MappedColumnType.base[ObjectId, Long](
       oid => oid.underlying,
@@ -165,6 +171,12 @@ trait ColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
     MappedColumnType.base[Collection, Int](
       mc => mc.id,
       id => Collection.fromInt(id)
+    )
+
+  implicit val orgIdMapper: BaseColumnType[OrgId] =
+    MappedColumnType.base[OrgId, Long](
+      oid => oid.underlying,
+      longId => OrgId(longId)
     )
 
 }
