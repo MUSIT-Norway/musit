@@ -32,8 +32,8 @@ class AnalysisControllerIntegrationSpec
   val typesUrl      = (mid: Int) => s"${baseUrl(mid)}/types"
   val categoriesUrl = (mid: Int) => s"${baseUrl(mid)}/categories"
   val typeIdUrl     = (mid: Int) => (id: Long) => s"${typesUrl(mid)}/$id"
-  val typeCatUrl    = (mid: Int) => (id: Int) => s"${typesUrl(mid)}/categories/$id"
-  val typeColUrl    = (mid: Int) => (id: String) => s"${typesUrl(mid)}/musemcollections/$id"
+  val typeCatUrl    = (mid: Int) => (id: Int) => s"${typesUrl(mid)}?categoryId=$id"
+  val typeColUrl    = (mid: Int) => (id: String) => s"${typesUrl(mid)}?collectionIds=$id"
 
   val addAnalysisUrl  = baseUrl
   val getAnalysisUrl  = (mid: Int) => (id: Long) => s"${baseUrl(mid)}/$id"

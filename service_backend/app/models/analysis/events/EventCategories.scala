@@ -28,6 +28,12 @@ object Category {
 
   implicit val writes: Writes[Category] = Writes(cat => JsNumber(cat.id))
 
+  val richWrites: Writes[Category] = Writes { cat =>
+    Json.obj(
+      "id"   -> JsNumber(cat.id),
+      "name" -> JsString(cat.entryName)
+    )
+  }
 }
 
 /**

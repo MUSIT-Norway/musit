@@ -104,10 +104,8 @@ GET           /address                                                       con
 # Analysis module
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # AnalysisType endpoints
-GET           /:mid/analyses/types                                           controllers.analysis.AnalysisController.getAllAnalysisTypes(mid: Int)
+GET           /:mid/analyses/types                                           controllers.analysis.AnalysisController.getAnalysisTypes(mid: Int, categoryId: Option[Int], collectionIds: Option[String])
 GET           /:mid/analyses/categories                                      controllers.analysis.AnalysisController.getAllAnalysisCategories(mid: Int)
-GET           /:mid/analyses/types/categories/:id                            controllers.analysis.AnalysisController.getAnalysisTypesForCategory(mid: Int, id: Int)
-GET           /:mid/analyses/types/musemcollections/:id                      controllers.analysis.AnalysisController.getAnalysisTypesForCollection(mid: Int, id: String)
 
 # Analysis endpoints
 POST          /:mid/analyses                                                 controllers.analysis.AnalysisController.saveAnalysisEvent(mid: Int)

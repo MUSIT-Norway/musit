@@ -47,12 +47,12 @@ class AnalysisServiceSpec
     }
 
     "return all known event types for an event category" in {
-      val res = service.getTypesFor(Genetic).futureValue.successValue
+      val res = service.getTypesFor(Some(Genetic), None).futureValue.successValue
       res.size mustBe 6
     }
 
     "return event types with extra description attributes for a category" in {
-      val res = service.getTypesFor(Image).futureValue.successValue
+      val res = service.getTypesFor(Some(Image), None).futureValue.successValue
       res.size mustBe 4
 
       forAll(res) { at =>
@@ -80,7 +80,7 @@ class AnalysisServiceSpec
     }
 
     "return all known event types for a museum collection" ignore {
-      val res = service.getTypesFor(Archeology.uuid).futureValue.successValue
+      val res = service.getTypesFor(None, Some(Archeology.uuid)).futureValue.successValue
       res.size mustBe 83
     }
 

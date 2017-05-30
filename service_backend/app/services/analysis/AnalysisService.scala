@@ -34,20 +34,10 @@ class AnalysisService @Inject()(
     typeDao.all.map(_.map(EnrichedAnalysisType.fromAnalysisTypes))
   }
 
-  /**
-   * Return all AnalysisTypes "tagged" with the given Category
-   */
-  def getTypesFor(c: Category): Future[MusitResult[Seq[EnrichedAnalysisType]]] = {
-    typeDao.allForCategory(c).map(_.map(EnrichedAnalysisType.fromAnalysisTypes))
-  }
-
-  /**
-   * Return all AnalysisTypes associated with the given CollectionUUID. The
-   * result also includes AnalysisTypes that aren't associated with _any_
-   * CollectionUUIDs.
-   */
-  def getTypesFor(id: CollectionUUID): Future[MusitResult[Seq[EnrichedAnalysisType]]] = {
-    typeDao.allForCollection(id).map(_.map(EnrichedAnalysisType.fromAnalysisTypes))
+  def getTypesFor(cat: Option[Category], coll: Option[CollectionUUID])(
+      implicit currUser: AuthenticatedUser
+  ): Future[MusitResult[Seq[EnrichedAnalysisType]]] = {
+    typeDao.allFor(cat, coll).map(_.map(EnrichedAnalysisType.fromAnalysisTypes))
   }
 
   /**

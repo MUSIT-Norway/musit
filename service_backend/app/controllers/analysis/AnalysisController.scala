@@ -23,9 +23,16 @@ class AnalysisController @Inject()(
 
   val logger = Logger(classOf[AnalysisController])
 
-  def getAllAnalysisTypes(mid: MuseumId) =
+  def getAnalysisTypes(
+      mid: MuseumId,
+      categoryId: Option[Int],
+      collectionIds: Option[String]
+  ) =
     MusitSecureAction().async { implicit request =>
-      analysisService.getAllTypes.map {
+      implicit val currUser = implicitly(request.user)
+      val maybeCat          = categoryId.flatMap(EventCategories.fromId)
+      val maybeColl         = collectionIds.flatMap(CollectionUUID.fromString)
+      analysisService.getTypesFor(maybeCat, maybeColl).map {
         case MusitSuccess(types) => listAsPlayResult(types)
         case err: MusitError     => internalErr(err)
       }
@@ -34,42 +41,8 @@ class AnalysisController @Inject()(
   def getAllAnalysisCategories(mid: MuseumId) =
     MusitSecureAction().async { implicit request =>
       Future.successful(
-        listAsPlayResult(EnrichedEventCategories.fromCategories(EventCategories.values))
+        listAsPlayResult(EventCategories.values)(Category.richWrites)
       )
-    }
-
-  def getAnalysisTypesForCategory(mid: MuseumId, categoryId: Int) =
-    MusitSecureAction().async { implicit request =>
-      EventCategories
-        .fromId(categoryId)
-        .map { c =>
-          analysisService.getTypesFor(c).map {
-            case MusitSuccess(types) => listAsPlayResult(types)
-            case err: MusitError     => internalErr(err)
-          }
-        }
-        .getOrElse {
-          Future.successful {
-            BadRequest(Json.obj("message" -> s"Invalid analysis category $categoryId"))
-          }
-        }
-    }
-
-  def getAnalysisTypesForCollection(mid: MuseumId, colUuidStr: String) =
-    MusitSecureAction().async { implicit request =>
-      CollectionUUID
-        .fromString(colUuidStr)
-        .map { cuuid =>
-          analysisService.getTypesFor(cuuid).map {
-            case MusitSuccess(types) => listAsPlayResult(types)
-            case err: MusitError     => internalErr(err)
-          }
-        }
-        .getOrElse {
-          Future.successful {
-            BadRequest(Json.obj("message" -> s"Invalid collection UUID $colUuidStr"))
-          }
-        }
     }
 
   def getAnalysisById(mid: MuseumId, id: Long) =
