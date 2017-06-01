@@ -6,16 +6,16 @@ object ActorJsonGenerator {
 
   def orgJson(
       id: Option[Long],
-      name: String,
-      tel: String,
-      web: String,
+      fullName: String,
+      tel: Option[String],
+      web: Option[String],
       synonyms: Option[Seq[String]],
       serviceTags: Option[Seq[String]]
   ): JsValue = {
     val js1 = Json.obj(
-      "fn"  -> name,
-      "tel" -> tel,
-      "web" -> web
+      "fullName" -> fullName,
+      "tel"      -> tel,
+      "web"      -> web
     )
 
     // format: off

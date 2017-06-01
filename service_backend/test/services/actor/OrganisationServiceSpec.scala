@@ -18,7 +18,7 @@ class OrganisationServiceSpec extends MusitSpecWithAppPerSuite with MusitResultV
       val id     = OrgId(10)
       res.size must be > 0
       res.headOption.get.id mustBe Some(id)
-      res.headOption.get.fn must startWith("Arkeo")
+      res.headOption.get.fullName must startWith("Arkeo")
       res.headOption.get.serviceTags mustBe empty
     }
 
@@ -31,8 +31,14 @@ class OrganisationServiceSpec extends MusitSpecWithAppPerSuite with MusitResultV
       val id  = OrgId(1)
       res.size must be > 0
       res.headOption.get.id mustBe Some(id)
-      res.headOption.get.fn must startWith("Kultur")
+      res.headOption.get.fullName must startWith("Kultur")
       res.headOption.get.serviceTags mustBe Some(WordList(Seq("storage_facility")))
+    }
+
+    "get lab list for analysis" in {
+      val res = service.getAnalysisLabs.futureValue.successValue
+      res.size must be > 7
+      res.headOption.get.serviceTags mustBe Some(WordList(Seq("analysis")))
     }
 
   }

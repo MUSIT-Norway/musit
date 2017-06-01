@@ -20,15 +20,15 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         val oid = OrgId(1)
         val expected = Organisation(
           id = Some(oid),
-          fn = "Kulturhistorisk museum - Universitetet i Oslo",
-          tel = "22 85 19 00",
-          web = "www.khm.uio.no",
+          fullName = "Kulturhistorisk museum - Universitetet i Oslo",
+          tel = Some("22 85 19 00"),
+          web = Some("www.khm.uio.no"),
           synonyms = Some(Seq("KHM")),
           serviceTags = Some(Seq("storage_facility"))
         )
         val res = orgDao.getById(oid).futureValue
         expected.id mustBe res.get.id
-        expected.fn mustBe res.get.fn
+        expected.fullName mustBe res.get.fullName
         expected.tel mustBe res.get.tel
         expected.web mustBe res.get.web
       }
@@ -52,6 +52,11 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
         res.size must be > 0
         res.size mustBe 1
       }
+
+      "return lab list for analysis" in {
+        val res = orgDao.getAnalysisLabList.futureValue.get
+        res.size must be > 7
+      }
     }
 
     "modifying organization" should {
@@ -59,52 +64,52 @@ class OrganisationDaoSpec extends MusitSpecWithAppPerSuite {
       "succeed when inserting organization" in {
         val org = Organisation(
           id = None,
-          fn = "Testmuseet i Bergen",
-          tel = "99887766",
-          web = "www.tmib.no",
+          fullName = "Testmuseet i Bergen",
+          tel = Some("99887766"),
+          web = Some("www.tmib.no"),
           synonyms = Some(Seq("UM")),
           serviceTags = Some(Seq("storage_facility"))
         )
         val res = orgDao.insert(org).futureValue
-        res.fn mustBe "Testmuseet i Bergen"
+        res.fullName mustBe "Testmuseet i Bergen"
         res.id mustBe Some(OrgId(363))
       }
 
       "succeed when updating organization" in {
         val org1 = Organisation(
           id = None,
-          fn = "Museet i Foobar",
-          tel = "12344321",
-          web = "www.foob.no",
+          fullName = "Museet i Foobar",
+          tel = Some("12344321"),
+          web = Some("www.foob.no"),
           synonyms = Some(Seq("Foo")),
           serviceTags = Some(Seq("storage_facility"))
         )
         val res1 = orgDao.insert(org1).futureValue
-        res1.fn mustBe "Museet i Foobar"
+        res1.fullName mustBe "Museet i Foobar"
         res1.id mustBe Some(OrgId(364))
 
         val orgUpd = Organisation(
           id = Some(OrgId(364)),
-          fn = "Museet i Bar",
-          tel = "99344321",
-          web = "www.bar.no",
+          fullName = "Museet i Bar",
+          tel = Some("99344321"),
+          web = Some("www.bar.no"),
           synonyms = Some(Seq("MusBar")),
           serviceTags = Some(Seq("storage_facility"))
         )
 
         val resInt = orgDao.update(orgUpd).futureValue
         val res    = orgDao.getById(OrgId(364)).futureValue
-        res.get.fn mustBe "Museet i Bar"
-        res.get.tel mustBe "99344321"
-        res.get.web mustBe "www.bar.no"
+        res.get.fullName mustBe "Museet i Bar"
+        res.get.tel mustBe Some("99344321")
+        res.get.web mustBe Some("www.bar.no")
       }
 
       "not update organization with invalid id" in {
         val orgUpd = Organisation(
           id = Some(OrgId(999991)),
-          fn = "Museet i Bar99",
-          tel = "99344321",
-          web = "www.bar.no",
+          fullName = "Museet i Bar99",
+          tel = Some("99344321"),
+          web = Some("www.bar.no"),
           synonyms = Some(Seq("MusBar99", "MusBar")),
           serviceTags = Some(Seq("storage_facility"))
         )

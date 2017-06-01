@@ -17,9 +17,9 @@ class AddressDaoSpec
   override def beforeAll(): Unit = {
     val org = Organisation(
       id = Some(OrgId(1)),
-      fn = "Kulturhistorisk museum - Universitetet i Oslo",
-      tel = "22 85 19 00",
-      web = "www.khm.uio.no",
+      fullName = "Kulturhistorisk museum - Universitetet i Oslo",
+      tel = Some("22 85 19 00"),
+      web = Some("www.khm.uio.no"),
       synonyms = Some(Seq("KHM")),
       serviceTags = Some(Seq("storage_facility"))
     )

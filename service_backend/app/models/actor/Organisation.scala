@@ -42,14 +42,14 @@ object WordList {
  */
 case class Organisation(
     id: Option[OrgId],
-    fn: String,
-    tel: String,
-    web: String,
+    fullName: String,
+    tel: Option[String],
+    web: Option[String],
     synonyms: Option[WordList],
     serviceTags: Option[WordList]
 )
 
 object Organisation {
-  val tupled          = (Organisation.apply _).tupled
+
   implicit val format = Json.format[Organisation]
 }

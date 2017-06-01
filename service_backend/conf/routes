@@ -22,6 +22,7 @@ GET           /person/:id                                                    con
 ## Organization routes, the new actor
 GET           /organisation                                                  controllers.actor.OrganisationController.search(museumId: Int, search: Option[no.uio.musit.service.MusitSearch])
 POST          /organisation                                                  controllers.actor.OrganisationController.add
+GET           /organisation/labs                                             controllers.actor.OrganisationController.getAnalysisLabList
 GET           /organisation/:orgId                                           controllers.actor.OrganisationController.get(orgId: Long)
 PUT           /organisation/:orgId                                           controllers.actor.OrganisationController.update(orgId: Long)
 DELETE        /organisation/:orgId                                           controllers.actor.OrganisationController.delete(orgId: Long)

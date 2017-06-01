@@ -37,4 +37,6 @@ class OrganisationService @Inject()(val orgDao: OrganisationDao) {
     orgDao.delete(id)
   }
 
+  def getAnalysisLabs: Future[MusitResult[Seq[Organisation]]] = orgDao.getAnalysisLabList
+
 }

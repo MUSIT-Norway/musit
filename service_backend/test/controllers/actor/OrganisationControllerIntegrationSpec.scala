@@ -29,6 +29,10 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
     wsUrl(s"/organisation/$id").withHeaders(fakeToken.asHeader).get
   }
 
+  def getAnalysisLabs: Future[WSResponse] = {
+    wsUrl(s"/organisation/labs").withHeaders(fakeToken.asHeader).get
+  }
+
   "The OrganizationController" must {
     "successfully get Organization by id" in {
       val res = getOrganization(1).futureValue
@@ -56,7 +60,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         .futureValue
       val orgs = res.json.as[JsArray].value
       orgs.length mustBe 1
-      (orgs.head \ "fn")
+      (orgs.head \ "fullName")
         .as[String] mustBe "Kulturhistorisk museum - Universitetet i Oslo"
     }
 
@@ -64,15 +68,15 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       val reqBody = orgJson(
         None,
         "Foo Bar",
-        "12345678",
-        "http://www.foo.bar",
+        Some("12345678"),
+        Some("http://www.foo.bar"),
         Some(Seq("FooCode")),
         Some(Seq("storage_facility"))
       )
       val res = postOrganization(reqBody).futureValue
       res.status mustBe Status.CREATED
 
-      (res.json \ "fn").as[String] mustBe "Foo Bar"
+      (res.json \ "fullName").as[String] mustBe "Foo Bar"
       (res.json \ "tel").as[String] mustBe "12345678"
       (res.json \ "web").as[String] mustBe "http://www.foo.bar"
       (res.json \ "synonyms").as[Seq[String]] mustBe Seq("FooCode")
@@ -88,8 +92,8 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       val addJson = orgJson(
         None,
         "Foo Barcode",
-        "22334455",
-        "http://www.foo.barcode.com",
+        Some("22334455"),
+        Some("http://www.foo.barcode.com"),
         Some(Seq("FooCode")),
         Some(Seq("storage_facility"))
       ) // scalastyle:ignore
@@ -99,7 +103,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       val id1 = (res1.json \ "id").as[Long]
       val updJson = Json.obj(
         "id"          -> id1,
-        "fn"          -> "Foo Barcode 123",
+        "fullName"    -> "Foo Barcode 123",
         "tel"         -> "12345123",
         "web"         -> "http://www.foo123.bar",
         "synonyms"    -> Seq("FooCode"),
@@ -117,7 +121,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       addJson.as[JsObject].fieldSet.diff(updOrgJson.fieldSet) must not be empty
 
       (res3.json \ "id").as[Int] mustBe id1
-      (res3.json \ "fn").as[String] mustBe "Foo Barcode 123"
+      (res3.json \ "fullName").as[String] mustBe "Foo Barcode 123"
       (res3.json \ "tel").as[String] mustBe "12345123"
       (res3.json \ "web").as[String] mustBe "http://www.foo123.bar"
       (res3.json \ "synonyms").as[Seq[String]] mustBe Seq("FooCode")
@@ -128,8 +132,8 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       val addJson = orgJson(
         None,
         "Foo Barcode",
-        "22334455",
-        "http://www.foo.barcode.com",
+        Some("22334455"),
+        Some("http://www.foo.barcode.com"),
         Some(Seq("FooCode")),
         Some(Seq("storage_facility"))
       ) // scalastyle:ignore
@@ -150,8 +154,8 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       val crJson = orgJson(
         None,
         "Foo Barcode999",
-        "22334499",
-        "http://www.foo.barcode999.com",
+        Some("22334499"),
+        Some("http://www.foo.barcode999.com"),
         Some(Seq("FooCode")),
         Some(Seq("storage_facility"))
       ) // scalastyle:ignore
@@ -163,6 +167,14 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       res2.status mustBe Status.OK
       (res2.json \ "message").as[String] mustBe "Deleted 1 record(s)."
     }
+
+    "list all analysis Labs" in {
+      val res = getAnalysisLabs.futureValue
+      res.status mustBe Status.OK
+      val labList = res.json.as[JsArray].value
+      labList.size must be > 7
+    }
+
   }
 
 }

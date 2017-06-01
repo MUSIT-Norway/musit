@@ -8,6 +8,7 @@ import no.uio.musit.service.{MusitController, MusitSearch}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import services.actor.OrganisationService
+import controllers.{internalErr, listAsPlayResult}
 
 import scala.concurrent.Future
 
@@ -77,4 +78,13 @@ class OrganisationController @Inject()(
       Ok(Json.obj("message" -> s"Deleted $noDeleted record(s)."))
     }
   }
+
+  def getAnalysisLabList =
+    MusitSecureAction().async { implicit request =>
+      orgService.getAnalysisLabs.map {
+        case MusitSuccess(t) => listAsPlayResult(t)
+        case err: MusitError => internalErr(err)
+      }
+    }
+
 }
