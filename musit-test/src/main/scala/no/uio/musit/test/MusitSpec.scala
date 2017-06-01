@@ -4,7 +4,7 @@ import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Span}
 import org.scalatestplus.play._
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.scalatestplus.play.guice.{GuiceOneAppPerSuite, GuiceOneAppPerTest}
 import play.api.Application
 import play.api.libs.ws.WSClient
 import play.api.test.TestServer
@@ -44,7 +44,7 @@ trait MusitSpecWithApp extends MusitSpec with MusitFakeApplication {
  * Mixin this trait if you need a fresh fake Play application per test in a
  * *Spec.scala file.
  */
-trait MusitSpecWithAppPerTest extends MusitSpecWithApp with OneAppPerTest {
+trait MusitSpecWithAppPerTest extends MusitSpecWithApp with GuiceOneAppPerTest {
   implicit override def newAppForTest(testData: TestData): Application = {
     musitFakeApp = createApplication()
     musitFakeApp

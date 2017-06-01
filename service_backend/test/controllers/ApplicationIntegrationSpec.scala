@@ -9,7 +9,7 @@ class ApplicationIntegrationSpec extends MusitSpecWithServerPerSuite {
   "Calling services in the Application controller" should {
 
     "return the build info" in {
-      val res = wsUrl("/service/actor/buildinfo").get().futureValue
+      val res = wsUrl("/buildinfo").get().futureValue
       res.status mustBe OK
       (res.json \ "name").as[String] mustBe BuildInfo.name
     }

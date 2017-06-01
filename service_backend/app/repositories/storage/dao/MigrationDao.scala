@@ -14,7 +14,6 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import models.storage.event.EventTypeRegistry._
 import models.storage.event.dto._
 import models.storage.event.{EventTypeId, EventTypeRegistry}
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider

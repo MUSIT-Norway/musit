@@ -6,8 +6,8 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # General endpoints
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GET           /service/actor/buildinfo                                       controllers.Application.buildInfo
-GET           /service/actor/healthcheck                                     controllers.HealthCheckController.healthCheck
+GET           /buildinfo                                       controllers.Application.buildInfo
+GET           /healthcheck                                     controllers.HealthCheckController.healthCheck
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Actor module
