@@ -411,7 +411,14 @@ create table MUSIT_MAPPING.THING_LOCATION
   nat_locality       VARCHAR2(4000),
   nat_coordinate     VARCHAR2(256),
   nat_coord_datum    VARCHAR2(64),
-  nat_sone_band      VARCHAR2(16)
+  nat_sone_band      VARCHAR2(16),
+  etn_place          VARCHAR2(250),
+  etn_country        VARCHAR2(100),
+  etn_region1        VARCHAR2(100),
+  etn_region2        VARCHAR2(100),
+  etn_area           VARCHAR2(100),
+  etn_local_stedid   INTEGER,
+  etn_place_count    INTEGER
 );
 
 -- ===========================================================================

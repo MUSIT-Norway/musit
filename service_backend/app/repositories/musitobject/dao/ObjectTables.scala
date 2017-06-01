@@ -17,7 +17,7 @@ trait ObjectTables
   // scalastyle:off line.size.limit
   type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Collection], Option[String], Option[String], Option[String], Option[String], Option[String]))
   type MaterialRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[Int], Option[String], Option[String], Option[Int], Option[Long], Option[String], Option[Int]))
-  type LocationRow = ((Option[Int], Option[Long], Option[String], Option[Int], Option[String], Option[Int], Option[String], Option[String],Option[String], Option[String],Option[String], Option[String],Option[String]))
+  type LocationRow = ((Option[Int], Option[Long], Option[String], Option[Int], Option[String], Option[Int], Option[String], Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[Int], Option[Int]))
   // format: on
   // scalastyle:on line.size.limit
 
@@ -137,7 +137,14 @@ trait ObjectTables
       natLocality,
       natCoordinate,
       natCoordDatum,
-      natSoneBand
+      natSoneBand,
+      etnPlace,
+      etnCountry,
+      etnRegion1,
+      etnRegion2,
+      etnArea,
+      etnLocalPlaceId,
+      etnPlaceCount
     )
 
     // scalastyle:on method.name
@@ -154,6 +161,13 @@ trait ObjectTables
     val natCoordinate    = column[Option[String]]("NAT_COORDINATE")
     val natCoordDatum    = column[Option[String]]("NAT_COORD_DATUM")
     val natSoneBand      = column[Option[String]]("NAT_SONE_BAND")
+    val etnPlace         = column[Option[String]]("ETN_PLACE")
+    val etnCountry       = column[Option[String]]("ETN_COUNTRY")
+    val etnRegion1       = column[Option[String]]("ETN_REGION1")
+    val etnRegion2       = column[Option[String]]("ETN_REGION2")
+    val etnArea          = column[Option[String]]("ETN_AREA")
+    val etnLocalPlaceId  = column[Option[Int]]("ETN_LOCAL_STEDID")
+    val etnPlaceCount    = column[Option[Int]]("ETN_PLACE_COUNT")
 
     // scalastyle:on line.size.limit
   }

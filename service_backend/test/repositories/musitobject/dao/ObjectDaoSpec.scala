@@ -2,7 +2,7 @@ package repositories.musitobject.dao
 
 import java.util.UUID
 
-import models.musitobject.ArkLocation
+import models.musitobject.{ArkLocation, EtnoLocation}
 import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -581,6 +581,26 @@ class ObjectDaoSpec
         mol mustBe an[ArkLocation]
         val al = mol.asInstanceOf[ArkLocation]
         al.farmName.value must endWith("Berg")
+      }
+    }
+
+    "return the list of locations for an etno object using it ObjectId " in {
+      val oid          = ObjectId(55)
+      val mid          = MuseumId(99)
+      val collectionId = MuseumCollections.Collection.fromInt(2)
+
+      val res = dao.getObjectLocation(mid, collectionId, oid).futureValue.successValue
+
+      res.size mustBe 2
+
+      forAll(res) { mol =>
+        mol mustBe an[EtnoLocation]
+        val place = mol.asInstanceOf[EtnoLocation]
+        place.place.value must startWith("Malmø")
+        place.country.value mustBe "Sverige"
+        place.region1.value mustBe "Skandinavia"
+        place.region2.value mustBe "Norden"
+        place.area.value mustBe "Nord-Europa"
       }
     }
   }

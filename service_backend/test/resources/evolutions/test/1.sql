@@ -74,7 +74,14 @@ CREATE TABLE MUSIT_MAPPING.THING_LOCATION
   nat_locality       VARCHAR2(4000),
   nat_coordinate     VARCHAR2(256),
   nat_coord_datum    VARCHAR2(64),
-  nat_sone_band      VARCHAR2(16)
+  nat_sone_band      VARCHAR2(16),
+  etn_place          VARCHAR2(250),
+  etn_country        VARCHAR2(100),
+  etn_region1        VARCHAR2(100),
+  etn_region2        VARCHAR2(100),
+  etn_area           VARCHAR2(100),
+  etn_local_stedid   INTEGER,
+  etn_place_count    INTEGER
 );
 
 --------------------------------------------------------------------------------
@@ -844,6 +851,8 @@ INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, mu
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('3fd8d3f9-ebb1-4447-8959-8e91ca2693fb', 'L234', '', 'Fokklav', 99, 234, 'MUSIT_BOTANIKK_LAV', 151, 4);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('564fade0-4a41-47cc-8c26-3b8f048aa191', 'L234', '', 'Grønnever', 99, 234, 'MUSIT_BOTANIKK_LAV', 152, 4);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('a738e36d-8683-44ac-9dda-67ff5a5851d5', 'L234', '', 'Islandslav', 99, 234, 'MUSIT_BOTANIKK_LAV', 153, 4);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('addcbabc-7499-4368-807a-b44c1af5c949', 'E235', '', 'drakt', 99, 235, 'USD_ETNO_GJENSTAND_O', 154, 2);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('85ed8525-e1b6-4929-8ecb-11384bc57ae9', 'E236', '', 'maske', 99, 236, 'USD_ETNO_GJENSTAND_B', 155, 2);
 
 -- INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (OBJECT_ID, LATEST_MOVE_ID, CURRENT_LOCATION_ID, MUSEUM_ID) VALUES (1, 1, 5, 99);
 INSERT INTO MUSARK_STORAGE.LOCAL_OBJECT (OBJECT_ID, LATEST_MOVE_ID, CURRENT_LOCATION_ID, MUSEUM_ID) VALUES (1, 9999, 5, 99);
@@ -922,5 +931,7 @@ INSERT INTO MUSIT_MAPPING.THING_MATERIAL (collectionid, objectid, etn_materialty
 INSERT INTO MUSIT_MAPPING.THING_MATERIAL (collectionid, objectid, etn_materialtype, etn_material, etn_material_element, etn_matrid_local, ark_material, ark_spes_material, ark_sortering, ark_hid_local, num_material, num_numistypeid) VALUES (2, 1, 'etno_matrtype', 'etno_matr', 'etn_matrelement', '', '', '', 1, '', '', '');
 INSERT INTO MUSIT_MAPPING.THING_MATERIAL (collectionid, objectid, etn_materialtype, etn_material, etn_material_element, etn_matrid_local, ark_material, ark_spes_material, ark_sortering, ark_hid_local, num_material, num_numistypeid) VALUES (2, 1, 'etno_matrtype1', 'etno_matr1', 'etn_matrelement', '', '', '', 2, '', '', '');
 
-INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band) VALUES (1, 3, 'Berg', 10, '1-34', 55, '', '', '', '', '', '', '');
-INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band) VALUES (1, 3, 'nedre Berg', 20, '45', 66, '', '', '', '', '', '', '');
+INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band,etn_place,etn_country,etn_region1, etn_region2,etn_area,etn_local_stedid,etn_place_count) VALUES (1, 3, 'Berg', 10, '1-34', 55, '', '', '', '', '', '', '', '', '', '', '', '','', 1);
+INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band,etn_place,etn_country,etn_region1, etn_region2,etn_area,etn_local_stedid,etn_place_count) VALUES (1, 3, 'nedre Berg', 20, '45', 66, '', '', '', '', '', '', '', '', '', '', '', '','', 1);
+INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band,etn_place,etn_country,etn_region1, etn_region2,etn_area,etn_local_stedid,etn_place_count) VALUES (2, 55, '','' , '', '', '', '', '', '', '', '', '', 'Malmø C', 'Sverige', 'Skandinavia', 'Norden', 'Nord-Europa',33,1);
+INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band,etn_place,etn_country,etn_region1, etn_region2,etn_area,etn_local_stedid,etn_place_count) VALUES (2, 55, '', '', '', '', '', '', '', '', '', '', '', 'Malmø N', 'Sverige', 'Skandinavia', 'Norden', 'Nord-Europa',34,1);

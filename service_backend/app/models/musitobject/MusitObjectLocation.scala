@@ -26,7 +26,13 @@ object MusitObjectLocation {
   }
 }
 
-case class EtnoLocation(country: Option[String]) extends MusitObjectLocation {
+case class EtnoLocation(
+    place: Option[String],
+    country: Option[String],
+    region1: Option[String],
+    region2: Option[String],
+    area: Option[String]
+) extends MusitObjectLocation {
   val collection = Ethnography
 }
 

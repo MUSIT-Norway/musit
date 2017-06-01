@@ -18,6 +18,7 @@ class ObjectControllerIntegrationSpec
 
   val archeologyCollection  = "2e4f2455-1b3b-4a04-80a1-ba92715ff613"
   val numismaticsCollection = "8bbdf9b3-56d1-479a-9509-2ea82842e8f8"
+  val ethnoCollection       = "88b35138-24b5-4e62-bae4-de80fae7df82"
 
   var url = (mid: Int) => s"/museum/$mid/objects/search"
 
@@ -323,6 +324,31 @@ class ObjectControllerIntegrationSpec
         (firstLocation.last \ "farmName").as[String] mustBe "nedre Berg"
         (firstLocation.last \ "farmNo").as[Int] mustBe 20
         (firstLocation.last \ "propertyUnitNo").as[String] mustBe "45"
+      }
+
+      "successfully return the object with its location" in {
+        val uuid  = "addcbabc-7499-4368-807a-b44c1af5c949"
+        val mid   = 99
+        val token = BearerToken(FakeUsers.testAdminToken)
+        val res = wsUrl(s"/museum/$mid/objects/$uuid")
+          .withHeaders(token.asHeader)
+          .withQueryString("collectionIds" -> ethnoCollection)
+          .get()
+          .futureValue
+        res.status mustBe OK
+        val obj = res.json
+
+        (obj \ "materials").as[JsArray].value.size mustBe 0
+
+        val firstLocation = (obj \ "locations").as[JsArray].value
+        firstLocation.size mustBe 2
+        (firstLocation.head \ "place").as[String] mustBe "Malmø C"
+        (firstLocation.head \ "country").as[String] mustBe "Sverige"
+        (firstLocation.head \ "region2").as[String] mustBe "Norden"
+
+        (firstLocation.last \ "place").as[String] mustBe "Malmø N"
+        (firstLocation.last \ "region1").as[String] mustBe "Skandinavia"
+        (firstLocation.last \ "area").as[String] mustBe "Nord-Europa"
       }
 
       "return not found if the object doesn't exist" in {

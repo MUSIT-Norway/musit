@@ -594,6 +594,10 @@ class ObjectDao @Inject()(
         }.result.map { ts =>
           ts.map(t => NatLocation(t._1, t._2, t._3, t._4, t._5, t._6, t._7))
         }
+      case Ethnography =>
+        thingLocationTable.filter(_.objectid === oid.underlying).map { e =>
+          (e.etnPlace, e.etnCountry, e.etnRegion1, e.etnRegion2,e.etnArea)
+        }.result.map(ts => ts.map(t => EtnoLocation(t._1, t._2, t._3,t._4,t._5)))
 
       case noLocations =>
         logger.warn(s"There are no locations for the $noLocations collection")
