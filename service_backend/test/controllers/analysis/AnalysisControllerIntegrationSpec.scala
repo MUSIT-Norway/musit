@@ -7,7 +7,6 @@ import models.analysis.events.AnalysisExtras.{
   TomographyAttributes
 }
 import models.analysis.events.EventCategories
-import models.analysis.events.EventCategories.NoCategory
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
@@ -61,9 +60,9 @@ class AnalysisControllerIntegrationSpec
         val res = wsUrl(categoriesUrl(mid)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 14
-        (res.json \ 0 \ "name").as[String] mustBe "NoCategory"
-        (res.json \ 0 \ "id").as[Int] mustBe 0
+        res.json.as[JsArray].value.size mustBe 13
+        (res.json \ 0 \ "name").as[String] mustBe "Chemical"
+        (res.json \ 0 \ "id").as[Int] mustBe 1
       }
 
       "return all event types in an analysis category" in {
