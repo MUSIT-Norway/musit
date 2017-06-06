@@ -9,7 +9,7 @@ import no.uio.musit.MusitResults.{
   MusitSuccess,
   MusitValidationError
 }
-import no.uio.musit.models.{EventId, ObjectUUID}
+import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -32,42 +32,46 @@ class AnalysisDao @Inject()(
     analysisTable returning analysisTable.map(_.id) += event
   }
 
-  private def upsertResultAction(id: EventId, result: AnalysisResult): DBIO[Int] = {
-    resultTable.insertOrUpdate(asResultTuple(id, result))
+  private def upsertResultAction(
+      mid: MuseumId,
+      id: EventId,
+      result: AnalysisResult
+  ): DBIO[Int] = {
+    resultTable.insertOrUpdate(asResultTuple(mid, id, result))
   }
 
   private def insertAnalysisWithResultAction(
+      mid: MuseumId,
       ae: AnalysisEvent,
       maybeRes: Option[AnalysisResult]
   ): DBIO[EventId] = {
     for {
-      id <- insertAnalysisAction(asEventTuple(ae))
-      _  <- maybeRes.map(r => upsertResultAction(id, r)).getOrElse(noaction)
+      id <- insertAnalysisAction(asEventTuple(mid, ae))
+      _  <- maybeRes.map(r => upsertResultAction(mid, id, r)).getOrElse(noaction)
     } yield id
   }
 
   private def insertChildEventsAction(
+      mid: MuseumId,
       pid: EventId,
       events: Seq[Analysis]
   ): DBIO[Seq[EventId]] = {
     val batch = events.map { e =>
-      insertAnalysisWithResultAction(e.copy(partOf = Some(pid)), e.result)
+      insertAnalysisWithResultAction(mid, e.copy(partOf = Some(pid)), e.result)
     }
     DBIO.sequence(batch)
   }
 
-  private def updateAction(
-      id: EventId,
-      event: AnalysisEvent
-  ): DBIO[Int] = {
-    analysisTable.filter(_.id === id).update(asEventTuple(event))
+  private def updateAction(mid: MuseumId, id: EventId, event: AnalysisEvent): DBIO[Int] = {
+    analysisTable.filter(_.id === id).update(asEventTuple(mid, event))
   }
 
   private def findByIdAction(
+      mid: MuseumId,
       id: EventId,
       includeSample: Boolean
   ): DBIO[Option[AnalysisModuleEvent]] = {
-    val q1 = analysisTable.filter(_.id === id)
+    val q1 = analysisTable.filter(a => a.id === id && a.museumId === mid)
     val q2 = {
       if (includeSample) q1
       else q1.filter(_.typeId =!= SampleCreated.sampleEventTypeId)
@@ -78,14 +82,21 @@ class AnalysisDao @Inject()(
     }
   }
 
-  private def resultForEventIdAction(id: EventId): DBIO[Option[AnalysisResult]] = {
-    resultTable.filter(_.eventId === id).result.headOption.map { res =>
-      res.flatMap(fromResultRow)
-    }
+  private def resultForEventIdAction(
+      mid: MuseumId,
+      id: EventId
+  ): DBIO[Option[AnalysisResult]] = {
+    resultTable
+      .filter(r => r.eventId === id && r.museumId === mid)
+      .result
+      .headOption
+      .map { res =>
+        res.flatMap(fromResultRow)
+      }
   }
 
-  private def listChildrenAction(parentId: EventId): DBIO[Seq[Analysis]] = {
-    val query = analysisTable.filter(_.partOf === parentId) joinLeft
+  private def listChildrenAction(mid: MuseumId, parentId: EventId): DBIO[Seq[Analysis]] = {
+    val query = analysisTable.filter(a => a.partOf === parentId && a.museumId === mid) joinLeft
       resultTable on (_.id === _.eventId)
 
     query.result.map { res =>
@@ -97,8 +108,11 @@ class AnalysisDao @Inject()(
     }
   }
 
-  private def listForObjectAction(oid: ObjectUUID): DBIO[Seq[AnalysisModuleEvent]] = {
-    val query = analysisTable.filter(_.objectUuid === oid) joinLeft
+  private def listForObjectAction(
+      mid: MuseumId,
+      oid: ObjectUUID
+  ): DBIO[Seq[AnalysisModuleEvent]] = {
+    val query = analysisTable.filter(a => a.objectUuid === oid && a.museumId === mid) joinLeft
       resultTable on (_.id === _.eventId)
 
     query.result.map { res =>
@@ -113,12 +127,13 @@ class AnalysisDao @Inject()(
   }
 
   private def listAllForObjectAction(
+      mid: MuseumId,
       oid: ObjectUUID
   ): DBIO[Seq[AnalysisModuleEvent]] = {
     val setid = SampleCreated.sampleEventTypeId
 
     val qry = for {
-      a <- analysisTable.filter(_.objectUuid === oid)
+      a <- analysisTable.filter(a => a.objectUuid === oid && a.museumId === mid)
       b <- analysisTable if a.partOf === b.id || (b.id === a.id && a.typeId === setid)
     } yield b
 
@@ -138,11 +153,12 @@ class AnalysisDao @Inject()(
   /**
    * Write a single {{{Analysis}}} event to the DB.
    *
+   * @param mid the MuseumId
    * @param a The Analysis to persist.
    * @return eventually returns a MusitResult containing the EventId.
    */
-  def insert(a: Analysis): Future[MusitResult[EventId]] = {
-    val action = insertAnalysisWithResultAction(a, a.result)
+  def insert(mid: MuseumId, a: Analysis): Future[MusitResult[EventId]] = {
+    val action = insertAnalysisWithResultAction(mid, a, a.result)
 
     db.run(action.transactionally).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
@@ -157,13 +173,14 @@ class AnalysisDao @Inject()(
    * a bunch of analysis' one by one is that; each Analysis row will get their,
    * partOf attribute set to the EventId of the bounding {{{AnalysisCollection}}}.
    *
+   * @param mid the MuseumId
    * @param ac The AnalysisCollection to persist.
    * @return eventually returns a MusitResult containing the EventId.
    */
-  def insertCol(ac: AnalysisCollection): Future[MusitResult[EventId]] = {
+  def insertCol(mid: MuseumId, ac: AnalysisCollection): Future[MusitResult[EventId]] = {
     val action = for {
-      id   <- insertAnalysisWithResultAction(ac.withoutChildren, ac.result)
-      eids <- insertChildEventsAction(id, ac.events)
+      id   <- insertAnalysisWithResultAction(mid, ac.withoutChildren, ac.result)
+      eids <- insertChildEventsAction(mid, id, ac.events)
     } yield id
 
     db.run(action.transactionally).map(MusitSuccess.apply).recover {
@@ -178,20 +195,22 @@ class AnalysisDao @Inject()(
    * Performs an update action against the DB using the values in the provided
    * {{{AnalysisEvent}}} argument.
    *
+   * @param mid the MuseumId
    * @param id the EventId associated with the analysis event to update
    * @param ae the AnalysisEvent to update
    * @return a result with an option of the updated event
    */
   def update(
+      mid: MuseumId,
       id: EventId,
       ae: AnalysisEvent
   ): Future[MusitResult[Option[AnalysisEvent]]] = {
-    val action = updateAction(id, ae).transactionally
+    val action = updateAction(mid, id, ae).transactionally
 
     db.run(action)
       .flatMap { numUpdated =>
         if (numUpdated == 1) {
-          findAnalysisById(id)
+          findAnalysisById(mid, id)
         } else {
           Future.successful {
             MusitValidationError(
@@ -213,18 +232,20 @@ class AnalysisDao @Inject()(
   /**
    * Locates a specific analysis module related event by its EventId.
    *
+   * @param mid the MuseumId to look for.
    * @param id the EventId to look for.
    * @param includeSample Boolean flag to control which event types are returned.
    * @return eventually returns a MusitResult that might contain the AnalysisModuleEvent.
    */
   def findById(
+      mid: MuseumId,
       id: EventId,
       includeSample: Boolean = true
   ): Future[MusitResult[Option[AnalysisModuleEvent]]] = {
     val query = for {
-      maybeEvent <- findByIdAction(id, includeSample)
-      maybeRes   <- resultForEventIdAction(id)
-      children   <- listChildrenAction(id)
+      maybeEvent <- findByIdAction(mid, id, includeSample)
+      maybeRes   <- resultForEventIdAction(mid, id)
+      children   <- listChildrenAction(mid, id)
     } yield {
       maybeEvent.flatMap {
         case a: Analysis =>
@@ -253,8 +274,11 @@ class AnalysisDao @Inject()(
    * @param id The event ID to look for
    * @return the AnalysisEvent that was found or None
    */
-  def findAnalysisById(id: EventId): Future[MusitResult[Option[AnalysisEvent]]] = {
-    findById(id, includeSample = false).map(_.map(_.flatMap {
+  def findAnalysisById(
+      mid: MuseumId,
+      id: EventId
+  ): Future[MusitResult[Option[AnalysisEvent]]] = {
+    findById(mid, id, includeSample = false).map(_.map(_.flatMap {
       case ae: AnalysisEvent => Some(ae)
       case _                 => None
     }))
@@ -265,11 +289,12 @@ class AnalysisDao @Inject()(
    *
    * Children can _only_ be of type {{{Analysis}}}.
    *
+   * @param mid the MuseumId
    * @param id The analysis container to find children for.
    * @return eventually a result with a list of analysis events and their results
    */
-  def listChildren(id: EventId): Future[MusitResult[Seq[Analysis]]] = {
-    db.run(listChildrenAction(id)).map(MusitSuccess.apply).recover {
+  def listChildren(mid: MuseumId, id: EventId): Future[MusitResult[Seq[Analysis]]] = {
+    db.run(listChildrenAction(mid, id)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An unexpected error occurred fetching events partOf $id"
         logger.error(msg, ex)
@@ -280,11 +305,15 @@ class AnalysisDao @Inject()(
   /**
    * Locate all events related to the provided ObjectUUID.
    *
+   * @param mid the MuseumId
    * @param oid The ObjectUUID to find analysis' for
    * @return eventually a result with a list of analysis events and their results
    */
-  def findByObjectUUID(oid: ObjectUUID): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
-    db.run(listAllForObjectAction(oid)).map(MusitSuccess.apply).recover {
+  def findByObjectUUID(
+      mid: MuseumId,
+      oid: ObjectUUID
+  ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
+    db.run(listAllForObjectAction(mid, oid)).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
         val msg = s"An unexpected error occurred fetching events for object $oid"
         logger.error(msg, ex)
@@ -295,11 +324,19 @@ class AnalysisDao @Inject()(
   /**
    * Usefull method for locating the result for a specific analysis event.
    *
+   * @param mid the MuseumId
    * @param id the EventId of the analysis event to fetch the result for
    * @return a result that may or may not contain the AnalysisResult
    */
-  def findResultFor(id: EventId): Future[MusitResult[Option[AnalysisResult]]] = {
-    val q = resultTable.filter(_.eventId === id).result.headOption.map(fromResultRow)
+  def findResultFor(
+      mid: MuseumId,
+      id: EventId
+  ): Future[MusitResult[Option[AnalysisResult]]] = {
+    val q = resultTable
+      .filter(r => r.eventId === id && r.museumId === mid)
+      .result
+      .headOption
+      .map(fromResultRow)
 
     db.run(q).map(MusitSuccess.apply).recover {
       case NonFatal(ex) =>
@@ -312,12 +349,17 @@ class AnalysisDao @Inject()(
   /**
    * Adds or updates a result for the analysis with the given EventId.
    *
+   * @param mid the MuseumId.
    * @param id  The EventId of the analysis that has a new result.
    * @param res The AnalysisResult to add.
    * @return eventually a result with the EventId the saved result belongs to.
    */
-  def upsertResult(id: EventId, res: AnalysisResult): Future[MusitResult[EventId]] = {
-    val action = upsertResultAction(id, res)
+  def upsertResult(
+      mid: MuseumId,
+      id: EventId,
+      res: AnalysisResult
+  ): Future[MusitResult[EventId]] = {
+    val action = upsertResultAction(mid, id, res)
 
     db.run(action.transactionally)
       .flatMap { numUpdated =>
@@ -335,6 +377,30 @@ class AnalysisDao @Inject()(
       .recover {
         case NonFatal(ex) =>
           val msg = s"An unexpected error occurred inserting a result to analysis $id"
+          logger.error(msg, ex)
+          MusitDbError(msg, Option(ex))
+      }
+  }
+
+  /**
+   * Find all analysis events.
+   *
+   * @param mid The Museum id.
+   * @return a collection of the events.
+   */
+  def findAnalysisEvents(mid: MuseumId): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
+    val allParentAnalysis =
+      analysisTable
+        .filter(a => a.partOf.isEmpty && a.museumId === mid)
+        .sorted(_.registeredDate.desc)
+        .result
+
+    db.run(allParentAnalysis)
+      .map(_.flatMap(toAnalysisModuleEvent))
+      .map(MusitSuccess.apply)
+      .recover {
+        case NonFatal(ex) =>
+          val msg = s"An unexpected error occurred while fetching analysis events"
           logger.error(msg, ex)
           MusitDbError(msg, Option(ex))
       }

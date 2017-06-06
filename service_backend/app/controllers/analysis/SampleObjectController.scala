@@ -73,7 +73,7 @@ class SampleObjectController @Inject()(
       implicit val currUser = implicitly(request.user)
 
       saveRequest(request.body.validate[SaveSampleObject]) { cso =>
-        soService.add(cso.asSampleObject)
+        soService.add(mid, cso.asSampleObject)
       }
     }
 

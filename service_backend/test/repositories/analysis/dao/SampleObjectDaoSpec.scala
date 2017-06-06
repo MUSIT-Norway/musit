@@ -171,7 +171,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
         objectId = so.parentObject.objectId,
         sampleObjectId = so.objectId
       )
-      dao.insert(so, se).futureValue.successValue mustBe oid
+      dao.insert(Museums.Test.id, so, se).futureValue.successValue mustBe oid
       val res2 = dao.findByUUID(oid).futureValue.successValue.value
       res2.sampleTypeId mustBe SampleTypeId(1)
     }

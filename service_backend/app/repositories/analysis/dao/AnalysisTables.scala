@@ -50,6 +50,7 @@ trait AnalysisTables
   type EventRow = (
       Option[EventId],
       AnalysisTypeId,
+      MuseumId,
       Option[ActorId],
       Option[DateTime],
       Option[ActorId],
@@ -62,7 +63,7 @@ trait AnalysisTables
       JsValue
   )
   type ResultRow =
-    (EventId, Option[ActorId], Option[DateTime], JsValue)
+    (EventId, MuseumId, Option[ActorId], Option[DateTime], JsValue)
 
   type SampleObjectRow = (
       ObjectUUID,
@@ -141,6 +142,7 @@ trait AnalysisTables
 
     val id             = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
     val typeId         = column[AnalysisTypeId]("TYPE_ID")
+    val museumId       = column[MuseumId]("MUSEUM_ID")
     val doneBy         = column[Option[ActorId]]("DONE_BY")
     val doneDate       = column[Option[DateTime]]("DONE_DATE")
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
@@ -157,6 +159,7 @@ trait AnalysisTables
       (
         id.?,
         typeId,
+        museumId,
         doneBy,
         doneDate,
         registeredBy,
@@ -180,12 +183,13 @@ trait AnalysisTables
   ) extends Table[ResultRow](tag, Some(SchemaName), AnalysisResultTableName) {
 
     val eventId        = column[EventId]("EVENT_ID", O.PrimaryKey)
+    val museumId       = column[MuseumId]("MUSEUM_ID")
     val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
     val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
     val resultJson     = column[JsValue]("RESULT_JSON")
 
     // scalastyle:off method.name
-    def * = (eventId, registeredBy, registeredDate, resultJson)
+    def * = (eventId, museumId, registeredBy, registeredDate, resultJson)
 
     // scalastyle:on method.name
   }
@@ -357,10 +361,11 @@ trait AnalysisTables
    * @param event the event to convert to a tuple
    * @return an EventRow tuple
    */
-  protected[dao] def asEventTuple(event: AnalysisModuleEvent): EventRow = {
+  protected[dao] def asEventTuple(mid: MuseumId, event: AnalysisModuleEvent): EventRow = {
     (
       event.id,
       event.analysisTypeId,
+      mid,
       event.doneBy,
       event.doneDate,
       event.registeredBy,
@@ -383,14 +388,14 @@ trait AnalysisTables
   protected[dao] def toAnalysisModuleEvent(
       tuple: EventRow
   ): Option[AnalysisModuleEvent] =
-    Json.fromJson[AnalysisModuleEvent](tuple._12).asOpt.map {
+    Json.fromJson[AnalysisModuleEvent](tuple._13).asOpt.map {
       case a: Analysis            => a.copy(id = tuple._1)
       case ac: AnalysisCollection => ac.copy(id = tuple._1)
       case sc: SampleCreated      => sc.copy(id = tuple._1)
     }
 
   protected[dao] def toAnalysis(tuple: EventRow): Option[Analysis] =
-    Json.fromJson[AnalysisModuleEvent](tuple._12).asOpt.flatMap {
+    Json.fromJson[AnalysisModuleEvent](tuple._13).asOpt.flatMap {
       case a: Analysis => Some(a.copy(id = tuple._1))
       case _           => None
     }
@@ -398,7 +403,7 @@ trait AnalysisTables
   protected[dao] def toAnalysisCollection(
       tuple: EventRow
   ): Option[AnalysisCollection] =
-    Json.fromJson[AnalysisModuleEvent](tuple._12).asOpt.flatMap {
+    Json.fromJson[AnalysisModuleEvent](tuple._13).asOpt.flatMap {
       case ac: AnalysisCollection => Some(ac.copy(id = tuple._1))
       case _                      => None
     }
@@ -410,9 +415,14 @@ trait AnalysisTables
    * @param res the AnalysisResult to convert to a tuple
    * @return the corresponding ResultRow tuple
    */
-  protected[dao] def asResultTuple(eid: EventId, res: AnalysisResult): ResultRow = {
+  protected[dao] def asResultTuple(
+      mid: MuseumId,
+      eid: EventId,
+      res: AnalysisResult
+  ): ResultRow = {
     (
       eid,
+      mid,
       res.registeredBy,
       res.registeredDate,
       Json.toJson[AnalysisResult](res)
@@ -426,7 +436,7 @@ trait AnalysisTables
    * @return an Option of the corresponding AnalysisResult
    */
   protected[dao] def fromResultRow(tuple: ResultRow): Option[AnalysisResult] =
-    Json.fromJson[AnalysisResult](tuple._4).asOpt
+    Json.fromJson[AnalysisResult](tuple._5).asOpt
 
   protected[dao] def fromResultRow(
       maybeTuple: Option[ResultRow]

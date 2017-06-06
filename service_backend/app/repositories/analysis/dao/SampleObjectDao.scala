@@ -38,6 +38,7 @@ class SampleObjectDao @Inject()(
   }
 
   def insert(
+      mid: MuseumId,
       so: SampleObject,
       eventObj: SampleCreated
   ): Future[MusitResult[ObjectUUID]] = {
@@ -45,7 +46,7 @@ class SampleObjectDao @Inject()(
 
     val action = for {
       _ <- sampleObjTable += soTuple
-      _ <- insertAnalysisAction(asEventTuple(eventObj))
+      _ <- insertAnalysisAction(asEventTuple(mid, eventObj))
     } yield soTuple._1
 
     db.run(action.transactionally).map(MusitSuccess.apply).recover {

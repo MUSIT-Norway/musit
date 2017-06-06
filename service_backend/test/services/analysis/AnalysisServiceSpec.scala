@@ -86,16 +86,16 @@ class AnalysisServiceSpec
 
     "successfully add a new Analysis" in {
       val cmd = dummySaveAnalysisCmd()
-      service.add(cmd).futureValue.successValue mustBe EventId(1L)
+      service.add(defaultMid, cmd).futureValue.successValue mustBe EventId(1L)
     }
 
     "successfully add a new AnalysisCollection" in {
       val cmd = dummySaveAnalysisCollectionCmd(oids = Seq(oid1, oid2, oid3))
-      service.add(cmd).futureValue.successValue mustBe EventId(2L)
+      service.add(defaultMid, cmd).futureValue.successValue mustBe EventId(2L)
     }
 
     "return an analysis by its EventId" in {
-      service.findById(EventId(1L)).futureValue.successValue.value match {
+      service.findById(defaultMid, EventId(1L)).futureValue.successValue.value match {
         case res: AnalysisEvent =>
           res.analysisTypeId mustBe dummyAnalysisTypeId
           res.doneBy mustBe Some(dummyActorId)
@@ -113,7 +113,7 @@ class AnalysisServiceSpec
     }
 
     "return all child Analysis events for an AnalyisCollection" in {
-      val res = service.childrenFor(EventId(2L)).futureValue.successValue
+      val res = service.childrenFor(defaultMid, EventId(2L)).futureValue.successValue
 
       res.size mustBe 3
 
@@ -131,7 +131,7 @@ class AnalysisServiceSpec
     }
 
     "return all analysis collection events associated with the given ObjectUUID" in {
-      val res = service.findByObject(oid1).futureValue.successValue
+      val res = service.findByObject(defaultMid, oid1).futureValue.successValue
 
       res.size mustBe 1
 
@@ -151,9 +151,12 @@ class AnalysisServiceSpec
         comment = Some("This is a generic result")
       )
 
-      service.addResult(EventId(1L), gr).futureValue.successValue mustBe EventId(1L)
+      service
+        .addResult(defaultMid, EventId(1L), gr)
+        .futureValue
+        .successValue mustBe EventId(1L)
 
-      val ares = service.findById(EventId(1L)).futureValue.successValue.value
+      val ares = service.findById(defaultMid, EventId(1L)).futureValue.successValue.value
 
       ares match {
         case a: Analysis =>
@@ -172,9 +175,12 @@ class AnalysisServiceSpec
         age = Some("really old")
       )
 
-      service.addResult(EventId(2L), dr).futureValue.successValue mustBe EventId(2L)
+      service
+        .addResult(defaultMid, EventId(2L), dr)
+        .futureValue
+        .successValue mustBe EventId(2L)
 
-      val ares = service.findById(EventId(2L)).futureValue.successValue.value
+      val ares = service.findById(defaultMid, EventId(2L)).futureValue.successValue.value
 
       ares match {
         case a: AnalysisCollection =>
@@ -196,7 +202,7 @@ class AnalysisServiceSpec
 
     "successfully update the result for an Analysis" in {
       val eid  = EventId(1L)
-      val orig = service.findById(eid).futureValue.successValue.value
+      val orig = service.findById(defaultMid, eid).futureValue.successValue.value
       orig mustBe an[Analysis]
 
       val origRes = orig.asInstanceOf[Analysis].result.value
@@ -204,9 +210,9 @@ class AnalysisServiceSpec
 
       val upd = origRes.asInstanceOf[GenericResult].copy(comment = Some("updated"))
 
-      service.updateResult(eid, upd).futureValue.isSuccess mustBe true
+      service.updateResult(defaultMid, eid, upd).futureValue.isSuccess mustBe true
 
-      val updRes = service.findById(eid).futureValue.successValue.value
+      val updRes = service.findById(defaultMid, eid).futureValue.successValue.value
       updRes mustBe an[Analysis]
       updRes.asInstanceOf[Analysis].result.value match {
         case gr: GenericResult =>
@@ -219,7 +225,7 @@ class AnalysisServiceSpec
 
     "successfully update the result for an AnalysisCollection" in {
       val eid  = EventId(2L)
-      val orig = service.findById(eid).futureValue.successValue.value
+      val orig = service.findById(defaultMid, eid).futureValue.successValue.value
       orig mustBe an[AnalysisCollection]
 
       val origRes = orig.asInstanceOf[AnalysisCollection].result.value
@@ -227,9 +233,9 @@ class AnalysisServiceSpec
 
       val upd = origRes.asInstanceOf[AgeResult].copy(comment = Some("updated"))
 
-      service.updateResult(eid, upd).futureValue.isSuccess mustBe true
+      service.updateResult(defaultMid, eid, upd).futureValue.isSuccess mustBe true
 
-      val updRes = service.findById(eid).futureValue.successValue.value
+      val updRes = service.findById(defaultMid, eid).futureValue.successValue.value
       updRes mustBe an[AnalysisCollection]
       updRes.asInstanceOf[AnalysisCollection].result.value match {
         case gr: AgeResult =>
@@ -244,7 +250,7 @@ class AnalysisServiceSpec
       val expectedId = EventId(6L)
 
       val cmd = dummySaveAnalysisCmd()
-      service.add(cmd).futureValue.successValue mustBe expectedId
+      service.add(defaultMid, cmd).futureValue.successValue mustBe expectedId
 
       val updCmd = cmd.copy(note = Some("This is an updated note"))
       val res    = service.update(defaultMid, expectedId, updCmd).futureValue.successValue
@@ -266,7 +272,7 @@ class AnalysisServiceSpec
       val expectedId = EventId(7L)
 
       val cmd = dummySaveAnalysisCollectionCmd()
-      service.add(cmd).futureValue.successValue mustBe expectedId
+      service.add(defaultMid, cmd).futureValue.successValue mustBe expectedId
 
       val updCmd = cmd.copy(note = Some("This is an updated note"))
       val res    = service.update(defaultMid, expectedId, updCmd).futureValue.successValue

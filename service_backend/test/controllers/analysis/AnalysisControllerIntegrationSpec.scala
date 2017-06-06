@@ -36,6 +36,7 @@ class AnalysisControllerIntegrationSpec
   val typeColUrl    = (mid: Int) => (id: String) => s"${typesUrl(mid)}?collectionIds=$id"
 
   val addAnalysisUrl  = baseUrl
+  val getAnalysesUrl  = baseUrl
   val getAnalysisUrl  = (mid: Int) => (id: Long) => s"${baseUrl(mid)}/$id"
   val getChildrenUrl  = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/children"
   val saveResultUrl   = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/results"
@@ -347,6 +348,13 @@ class AnalysisControllerIntegrationSpec
         (res.json \ "result" \ "comment").as[String] mustBe "A new result was added"
       }
 
+      "get all analyses related to the museum" in {
+        val res =
+          wsUrl(getAnalysesUrl(mid)).withHeaders(token.asHeader).get().futureValue
+
+        res.status mustBe OK
+        res.json.as[JsArray].value.length mustBe 6
+      }
     }
 
   }

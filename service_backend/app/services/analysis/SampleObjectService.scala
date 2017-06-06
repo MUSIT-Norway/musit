@@ -22,6 +22,7 @@ class SampleObjectService @Inject()(
   val logger = Logger(classOf[SampleObjectService])
 
   def add(
+      mid: MuseumId,
       so: SampleObject
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[ObjectUUID]] = {
     val sobj = so.copy(
@@ -40,7 +41,7 @@ class SampleObjectService @Inject()(
         sampleObjectId = sobj.objectId,
         externalLinks = None
       )
-      soDao.insert(sobj, eventObj)
+      soDao.insert(mid, sobj, eventObj)
     } else {
       soDao.insert(sobj)
     }

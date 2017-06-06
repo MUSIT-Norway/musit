@@ -48,7 +48,7 @@ class AnalysisController @Inject()(
   def getAnalysisById(mid: MuseumId, id: Long) =
     MusitSecureAction().async { implicit request =>
       val eventId = EventId.fromLong(id)
-      analysisService.findById(eventId).map {
+      analysisService.findById(mid, eventId).map {
         case MusitSuccess(ma) => ma.map(ae => Ok(Json.toJson(ae))).getOrElse(NotFound)
         case err: MusitError  => internalErr(err)
       }
@@ -57,7 +57,7 @@ class AnalysisController @Inject()(
   def getChildAnalyses(mid: MuseumId, id: Long) =
     MusitSecureAction().async { implicit request =>
       val eventId = EventId.fromLong(id)
-      analysisService.childrenFor(eventId).map {
+      analysisService.childrenFor(mid, eventId).map {
         case MusitSuccess(analyses) => listAsPlayResult(analyses)
         case err: MusitError        => internalErr(err)
       }
@@ -68,7 +68,7 @@ class AnalysisController @Inject()(
       ObjectUUID
         .fromString(oid)
         .map { uuid =>
-          analysisService.findByObject(uuid).map {
+          analysisService.findByObject(mid, uuid).map {
             case MusitSuccess(analyses) => listAsPlayResult(analyses)
             case err: MusitError        => internalErr(err)
           }
@@ -86,7 +86,9 @@ class AnalysisController @Inject()(
 
       val jsr = request.body.validate[SaveAnalysisEventCommand]
 
-      saveRequest[SaveAnalysisEventCommand, EventId](jsr)(sc => analysisService.add(sc))
+      saveRequest[SaveAnalysisEventCommand, EventId](jsr)(
+        sc => analysisService.add(mid, sc)
+      )
     }
 
   def addResult(mid: MuseumId, id: Long) =
@@ -97,7 +99,7 @@ class AnalysisController @Inject()(
       val jsr     = request.body.validate[AnalysisResult]
 
       saveRequest[AnalysisResult, EventId](jsr) { r =>
-        analysisService.addResult(eventId, r)
+        analysisService.addResult(mid, eventId, r)
       }
     }
 
@@ -109,7 +111,7 @@ class AnalysisController @Inject()(
       val jsr     = request.body.validate[AnalysisResult]
 
       updateRequest[AnalysisResult, EventId](jsr) { r =>
-        analysisService.updateResult(eventId, r)
+        analysisService.updateResult(mid, eventId, r)
       }
     }
 
@@ -125,4 +127,11 @@ class AnalysisController @Inject()(
       }
     }
 
+  def getAnalysisEvents(mid: MuseumId) =
+    MusitSecureAction().async { implicit request =>
+      analysisService.findAnalysisEvents(mid).map {
+        case MusitSuccess(res) => listAsPlayResult(res)
+        case err: MusitError   => InternalServerError(Json.obj("message" -> err.message))
+      }
+    }
 }

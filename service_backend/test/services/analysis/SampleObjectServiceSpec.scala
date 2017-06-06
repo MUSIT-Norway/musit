@@ -18,6 +18,7 @@ class SampleObjectServiceSpec
     with DateTimeMatchers {
 
   val defaultUserId = ActorId.generate()
+  val defaultMid    = Museums.Test.id
 
   implicit val dummyUser = AuthenticatedUser(
     session = UserSession(uuid = SessionUUID.generate()),
@@ -84,7 +85,7 @@ class SampleObjectServiceSpec
           isExtracted = true
         )
 
-      val addedRes = service.add(so).futureValue.successValue
+      val addedRes = service.add(defaultMid, so).futureValue.successValue
       addedRes mustBe an[ObjectUUID]
       addedId = Option(addedRes)
     }
@@ -95,7 +96,7 @@ class SampleObjectServiceSpec
     }
 
     "find the sample created event for the parent object" in {
-      val sce = eventService.findByObject(parentId).futureValue.successValue
+      val sce = eventService.findByObject(defaultMid, parentId).futureValue.successValue
       sce.size mustBe 1
       sce.toList match {
         case theHead :: Nil =>
@@ -129,7 +130,7 @@ class SampleObjectServiceSpec
         isExtracted = true,
         status = SampleStatuses.Degraded
       )
-      val addedRes = service.add(so).futureValue.successValue
+      val addedRes = service.add(defaultMid, so).futureValue.successValue
       addedRes mustBe an[ObjectUUID]
       addedId = Option(addedRes)
       val status = service.findById(addedId.get).futureValue
@@ -139,7 +140,7 @@ class SampleObjectServiceSpec
     "copy generated values from origin sample when updating" in {
       val originSo = generateSampleObject(id = None, parentId = Some(parentId))
 
-      val id: ObjectUUID = service.add(originSo).futureValue.successValue
+      val id: ObjectUUID = service.add(defaultMid, originSo).futureValue.successValue
       val originSavedSo  = service.findById(id).futureValue.successValue.value
 
       val newSo = generateSampleObject(
