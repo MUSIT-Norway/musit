@@ -62,7 +62,12 @@ trait AnalysisJsonGenerators {
     }.getOrElse(js3)
 
     js4 ++ Json.obj(
-      "objectIds" -> objects.map(_.asString),
+      "objects" -> objects.map { id =>
+        Json.obj(
+          "objectId"   -> id.asString,
+          "objectType" -> "collection"
+        )
+      },
       "restriction" -> Json.obj(
         "requester"      -> adminId,
         "reason"         -> "secret",

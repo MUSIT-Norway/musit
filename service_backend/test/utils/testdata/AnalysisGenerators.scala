@@ -1,9 +1,14 @@
 package utils.testdata
 
 import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult, GenericResult}
-import models.analysis.events.SaveCommands.{SaveAnalysis, SaveAnalysisCollection}
+import models.analysis.events.SaveCommands.{
+  ObjectUuidAndType,
+  SaveAnalysis,
+  SaveAnalysisCollection
+}
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
 import models.analysis.AnalysisStatuses
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 
@@ -32,7 +37,8 @@ trait AnalysisGenerators {
       administrator = Some(dummyActorById),
       completedBy = None,
       completedDate = None,
-      extraAttributes = None
+      extraAttributes = None,
+      objectType = CollectionObject
     )
   }
 
@@ -49,7 +55,7 @@ trait AnalysisGenerators {
       administrator = Some(dummyActorById),
       completedBy = None,
       completedDate = None,
-      objectIds = oids,
+      objects = oids.map(id => ObjectUuidAndType(id, CollectionObject)),
       restriction = None,
       reason = None,
       status = AnalysisStatuses.Preparation,
@@ -104,6 +110,7 @@ trait AnalysisGenerators {
       completedDate = now,
       partOf = None,
       objectId = oid,
+      objectType = oid.map(_ => CollectionObject),
       note = Some("This is the first event"),
       extraAttributes = None,
       result = res

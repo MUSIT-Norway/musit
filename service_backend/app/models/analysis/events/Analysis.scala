@@ -5,6 +5,7 @@ import models.analysis.events.AnalysisExtras._
 import models.analysis.events.AnalysisResults._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.formatters.WithDateTimeFormatters
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, CaseNumbers, EventId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.libs.json._
@@ -259,6 +260,7 @@ case class Analysis(
     completedBy: Option[ActorId],
     completedDate: Option[DateTime],
     objectId: Option[ObjectUUID],
+    objectType: Option[ObjectType],
     partOf: Option[EventId],
     note: Option[String],
     extraAttributes: Option[ExtraAttributes],

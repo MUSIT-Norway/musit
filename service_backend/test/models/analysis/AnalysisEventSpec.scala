@@ -3,6 +3,7 @@ package models.analysis
 import models.analysis.events.AnalysisResults.GenericResult
 import models.analysis.events._
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
+import no.uio.musit.models.ObjectTypes.CollectionObject
 import no.uio.musit.models.{ActorId, CaseNumbers, EventId, ObjectUUID}
 import no.uio.musit.test.matchers.DateTimeMatchers
 import org.joda.time.DateTime
@@ -47,6 +48,7 @@ class AnalysisEventSpec
       completedBy = Some(dummyActor),
       completedDate = Some(dummyDate),
       objectId = Some(dummyObject),
+      objectType = Some(CollectionObject),
       partOf = None,
       note = Some(dummyNote),
       extraAttributes = None,

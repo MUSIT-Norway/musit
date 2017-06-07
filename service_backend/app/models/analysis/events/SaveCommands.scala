@@ -4,6 +4,7 @@ import models.analysis.ActorStamp
 import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.events.AnalysisExtras.ExtraAttributes
 import no.uio.musit.formatters.WithDateTimeFormatters
+import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models.{ActorId, CaseNumbers, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
@@ -49,6 +50,7 @@ object SaveCommands {
       doneDate: Option[DateTime],
       note: Option[String],
       objectId: ObjectUUID,
+      objectType: ObjectType,
       extraAttributes: Option[ExtraAttributes],
       responsible: Option[ActorId],
       administrator: Option[ActorId],
@@ -67,6 +69,7 @@ object SaveCommands {
         registeredBy = Some(currUser.id),
         registeredDate = Some(dateTimeNow),
         objectId = Some(objectId),
+        objectType = Some(objectType),
         responsible = responsible,
         administrator = administrator,
         updatedBy = None,
@@ -115,6 +118,12 @@ object SaveCommands {
     implicit val reads: Reads[SaveRestriction] = Json.reads[SaveRestriction]
   }
 
+  case class ObjectUuidAndType(objectId: ObjectUUID, objectType: ObjectType)
+
+  object ObjectUuidAndType {
+    implicit val reads: Reads[ObjectUuidAndType] = Json.reads[ObjectUuidAndType]
+  }
+
   case class SaveAnalysisCollection(
       analysisTypeId: AnalysisTypeId,
       doneBy: Option[ActorId],
@@ -124,7 +133,7 @@ object SaveCommands {
       administrator: Option[ActorId],
       completedBy: Option[ActorId],
       completedDate: Option[DateTime],
-      objectIds: Seq[ObjectUUID],
+      objects: Seq[ObjectUuidAndType],
       restriction: Option[SaveRestriction],
       caseNumbers: Option[CaseNumbers],
       reason: Option[String],
@@ -166,7 +175,7 @@ object SaveCommands {
         reason = reason,
         status = Option(status),
         caseNumbers = caseNumbers,
-        events = this.objectIds.map { oid =>
+        events = this.objects.map { oid =>
           Analysis(
             id = None,
             analysisTypeId = analysisTypeId,
@@ -174,7 +183,8 @@ object SaveCommands {
             doneDate = doneDate,
             registeredBy = Some(currUser.id),
             registeredDate = Some(now),
-            objectId = Option(oid),
+            objectId = Option(oid.objectId),
+            objectType = Option(oid.objectType),
             responsible = responsible,
             administrator = administrator,
             updatedBy = None,
