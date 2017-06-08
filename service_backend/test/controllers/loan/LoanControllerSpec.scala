@@ -1,5 +1,6 @@
 package controllers.loan
 
+import no.uio.musit.formatters.DateTimeFormatters._
 import no.uio.musit.models.{MuseumId, ObjectUUID}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
@@ -18,12 +19,12 @@ class LoanControllerSpec extends MusitSpecWithServerPerSuite with Inspectors {
   val createLoanUrl = baseUrl
   val activeLoanUrl = (mid: Int) => s"/$mid/loans/active"
 
-  private val returnDate = dateTimeNow.plusMonths(1).toString("yyyy-MM-dd")
+  private val returnDate = dateTimeNow.plusMonths(1)
   private val noteData   = "a note"
   val loan = Json.obj(
     "externalRef" -> Json.arr("ref-1", "ref-2"),
     "note"        -> noteData,
-    "returnDate"  -> JsString(returnDate),
+    "returnDate"  -> returnDate,
     "objects"     -> Json.arr(ObjectUUID.generate()),
     "caseNumbers" -> Json.arr("case1", "case3")
   )
@@ -31,7 +32,7 @@ class LoanControllerSpec extends MusitSpecWithServerPerSuite with Inspectors {
   def verifyLoan(jsv: JsValue) = {
     (jsv \ "note").as[String] mustBe noteData
     (jsv \ "loanType").as[Int] mustBe 2
-    (jsv \ "returnDate").as[String] must startWith(returnDate)
+    (jsv \ "returnDate").as[String] must startWith(returnDate.toString("yyyy-MM-dd"))
     (jsv \ "objects").as[JsArray].value.size mustBe 1
     (jsv \ "caseNumbers").as[JsArray].value.size mustBe 2
   }

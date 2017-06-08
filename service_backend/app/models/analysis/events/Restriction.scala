@@ -1,6 +1,7 @@
 package models.analysis.events
 
 import models.analysis.ActorStamp
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, CaseNumbers}
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
@@ -21,7 +22,7 @@ case class Restriction(
     cancelledReason: Option[String] = None
 )
 
-object Restriction {
+object Restriction extends WithDateTimeFormatters {
 
   implicit val f: Format[Restriction] = Json.format[Restriction]
 

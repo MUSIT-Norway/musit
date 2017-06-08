@@ -1,5 +1,6 @@
 package models.analysis
 
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ActorId
 import org.joda.time.DateTime
 import play.api.libs.json.Json
@@ -9,7 +10,7 @@ case class ActorStamp(
     date: DateTime
 )
 
-object ActorStamp {
+object ActorStamp extends WithDateTimeFormatters {
 
   implicit val format = Json.format[ActorStamp]
 

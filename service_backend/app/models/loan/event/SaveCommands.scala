@@ -1,6 +1,7 @@
 package models.loan.event
 
 import models.loan.LoanEventTypes.ObjectLentType
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{CaseNumbers, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
@@ -30,7 +31,7 @@ object SaveCommands {
     }
   }
 
-  object CreateLoanCommand {
+  object CreateLoanCommand extends WithDateTimeFormatters {
     implicit val format: Format[CreateLoanCommand] = Json.format[CreateLoanCommand]
   }
 

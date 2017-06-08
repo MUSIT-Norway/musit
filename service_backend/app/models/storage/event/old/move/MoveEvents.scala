@@ -6,6 +6,7 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   MoveObjectType
 }
 import models.storage.event.{EventType, MusitEvent_Old}
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ObjectTypes.{CollectionObject, Node, ObjectType}
 import no.uio.musit.models.{ActorId, EventId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.time.dateTimeNow
@@ -33,7 +34,7 @@ case class MoveObject(
     to: StorageNodeDatabaseId
 ) extends MoveEvent
 
-object MoveObject {
+object MoveObject extends WithDateTimeFormatters {
 
   implicit val format: Format[MoveObject] = Json.format[MoveObject]
 

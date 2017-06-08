@@ -1,6 +1,7 @@
 package controllers.analysis
 
 import models.analysis.SampleStatuses.{Intact, SampleStatus}
+import no.uio.musit.formatters.DateTimeFormatters._
 import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
 import no.uio.musit.models.{ActorId, MuseumId, Museums, ObjectUUID}
 import no.uio.musit.security.BearerToken
@@ -33,7 +34,7 @@ class SampleObjectControllerIntegrationSpec
       isExtracted: Boolean = true,
       status: SampleStatus = Intact,
       doneBy: ActorId,
-      doneDate: String,
+      doneDate: DateTime,
       maybeSampleId: Option[String],
       maybeExtId: Option[String],
       maybeNote: Option[String]
@@ -60,6 +61,7 @@ class SampleObjectControllerIntegrationSpec
       .getOrElse(js4)
     maybeNote.map(n => js5 ++ Json.obj("note" -> n)).getOrElse(js5)
   }
+
   // scalastyle:on
 
   def validateSampleObject(
@@ -130,7 +132,7 @@ class SampleObjectControllerIntegrationSpec
   "Invoking the sample object controller API" should {
 
     "successfully add a few new SampleObject" in {
-      val cd = DateTime.now.minusWeeks(2).toString("yyyy-MM-dd")
+      val cd = DateTime.now.minusWeeks(2)
       val jsarr = (1 to 10).map { index =>
         createSaveJSON(
           maybeParent = Some(parentObject),

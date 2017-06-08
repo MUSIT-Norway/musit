@@ -3,7 +3,6 @@ package models.analysis
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
 import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
-import org.joda.time.DateTime
 import play.api.libs.json.{Json, Reads, Writes}
 
 case class SampleObject(
@@ -45,7 +44,6 @@ case class SaveSampleObject(
     status: SampleStatus,
     doneByStamp: Option[ActorStamp],
     responsible: Option[ActorId],
-    doneDate: Option[DateTime],
     sampleId: Option[String],
     externalId: Option[ExternalId],
     sampleTypeId: SampleTypeId,
