@@ -62,9 +62,18 @@ class ObjectService @Inject()(
                 objDao.getObjectLocation(mid, c, o.id)
               }
             }.getOrElse(Future.successful(MusitSuccess(Seq.empty))))
+      coord <- MusitResultT(mo.flatMap { o =>
+                o.collection.map { c =>
+                  objDao.getObjectCoordinate(mid, c, o.id)
+                }
+              }.getOrElse(Future.successful(MusitSuccess(Seq.empty))))
     } yield {
       mo.map { obj =>
-        obj.copy(materials = Option(matr), locations = Option(loc))
+        obj.copy(
+          materials = Option(matr),
+          locations = Option(loc),
+          coordinates = Option(coord)
+        )
       }
     }
 

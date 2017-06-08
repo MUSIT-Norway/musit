@@ -2,7 +2,7 @@ package repositories.musitobject.dao
 
 import java.util.UUID
 
-import models.musitobject.{ArkLocation, EtnoLocation}
+import models.musitobject.{ArkCoordinate, ArkLocation, EtnoLocation}
 import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -584,7 +584,7 @@ class ObjectDaoSpec
       }
     }
 
-    "return the list of locations for an etno object using it ObjectId " in {
+    "return the list of locations for an etno object using ObjectId " in {
       val oid          = ObjectId(55)
       val mid          = MuseumId(99)
       val collectionId = MuseumCollections.Collection.fromInt(2)
@@ -601,6 +601,25 @@ class ObjectDaoSpec
         place.region1.value mustBe "Skandinavia"
         place.region2.value mustBe "Norden"
         place.area.value mustBe "Nord-Europa"
+      }
+    }
+
+    "return the list of coordinates for an archaeology object using ObjectId " in {
+      val oid          = ObjectId(3)
+      val mid          = MuseumId(99)
+      val collectionId = MuseumCollections.Collection.fromInt(1)
+
+      val res = dao.getObjectCoordinate(mid, collectionId, oid).futureValue.successValue
+
+      res.size mustBe 2
+
+      forAll(res) { moc =>
+        moc mustBe an[ArkCoordinate]
+        val coord = moc.asInstanceOf[ArkCoordinate]
+        coord.projection.value must endWith("Sone 32")
+        coord.precision.value must include("Stedsnavn")
+        coord.north.value mustBe ",6934625,"
+        coord.east.value mustBe ",434096,"
       }
     }
   }

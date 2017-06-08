@@ -169,7 +169,8 @@ class AnalysisControllerIntegrationSpec
         val updJson = js ++ Json.obj(
           "reason"         -> "There's a reason now",
           "status"         -> 2,
-          "analysisTypeId" -> 12 // Should not be modified by the server.
+          "analysisTypeId" -> 12, // Should not be modified by the server.
+          "orgId"          -> 317
         )
 
         val updRes = wsUrl(getAnalysisUrl(mid)(7L))
@@ -182,6 +183,7 @@ class AnalysisControllerIntegrationSpec
         (updRes.json \ "status").as[Int] mustBe 2
         (updRes.json \ "id").as[Int] mustBe 7
         (updRes.json \ "analysisTypeId").as[Int] mustBe tomographyTypeId
+        (updRes.json \ "orgId").as[Int] mustBe 317
       }
 
       "return HTTP 400 when using wrong extra attributes for analysis collection" in {
@@ -354,8 +356,14 @@ class AnalysisControllerIntegrationSpec
         res.status mustBe OK
         res.json.as[JsArray].value.length mustBe 6
       }
+
+      "get an analysis with orgId" in {
+        val al =
+          wsUrl(getAnalysisUrl(mid)(7L)).withHeaders(token.asHeader).get().futureValue
+        al.status mustBe OK
+        (al.json \ "orgId").asOpt[Int] mustBe Some(317)
+      }
     }
 
   }
-
 }

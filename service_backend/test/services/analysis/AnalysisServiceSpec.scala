@@ -5,7 +5,7 @@ import models.analysis.events.AnalysisResults.{AgeResult, GenericResult}
 import models.analysis.events.EventCategories.{Genetic, Image}
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisEvent}
 import no.uio.musit.models.MuseumCollections.Archeology
-import no.uio.musit.models.{ActorId, EventId}
+import no.uio.musit.models.{ActorId, EventId, OrgId}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
@@ -274,8 +274,9 @@ class AnalysisServiceSpec
       val cmd = dummySaveAnalysisCollectionCmd()
       service.add(defaultMid, cmd).futureValue.successValue mustBe expectedId
 
-      val updCmd = cmd.copy(note = Some("This is an updated note"))
-      val res    = service.update(defaultMid, expectedId, updCmd).futureValue.successValue
+      val updCmd =
+        cmd.copy(note = Some("This is an updated note"), orgId = Some(OrgId(316)))
+      val res = service.update(defaultMid, expectedId, updCmd).futureValue.successValue
 
       res must not be empty
 
@@ -284,6 +285,7 @@ class AnalysisServiceSpec
           a.note mustBe updCmd.note
           a.updatedBy mustBe Some(defaultUserId)
           a.updatedDate mustApproximate Some(dateTimeNow)
+          a.orgId.get.underlying mustBe 316
 
         case other =>
           fail(s"Expected an ${classOf[Analysis]} but got ${other.getClass}")

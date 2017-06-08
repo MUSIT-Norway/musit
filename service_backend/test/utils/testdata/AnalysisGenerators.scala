@@ -8,8 +8,8 @@ import models.analysis.events.SaveCommands.{
 }
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
 import models.analysis.AnalysisStatuses
+import no.uio.musit.models.{ActorId, Museums, ObjectUUID, OrgId}
 import no.uio.musit.models.ObjectTypes.CollectionObject
-import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 
 trait AnalysisGenerators {
@@ -18,6 +18,8 @@ trait AnalysisGenerators {
   protected val dummyActorId        = ActorId.generate()
   protected val dummyActorById      = ActorId.generate()
   protected val dummyAnalysisTypeId = AnalysisTypeId(1L)
+
+  protected val dummyOrgId = OrgId(315)
 
   protected val oid1 = ObjectUUID.generate()
   protected val oid2 = ObjectUUID.generate()
@@ -60,7 +62,8 @@ trait AnalysisGenerators {
       reason = None,
       status = AnalysisStatuses.Preparation,
       caseNumbers = None,
-      extraAttributes = None
+      extraAttributes = None,
+      orgId = Some(dummyOrgId)
     )
   }
 
@@ -142,7 +145,8 @@ trait AnalysisGenerators {
       restriction = Some(Restriction(ActorId.generate(), dateTimeNow, "some reason")),
       reason = None,
       status = None,
-      caseNumbers = None
+      caseNumbers = None,
+      orgId = Some(dummyOrgId)
     )
   }
 

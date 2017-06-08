@@ -6,7 +6,7 @@ import models.analysis.events.AnalysisResults._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ObjectTypes.ObjectType
-import no.uio.musit.models.{ActorId, CaseNumbers, EventId, ObjectUUID}
+import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json._
 
@@ -305,7 +305,8 @@ case class AnalysisCollection(
     restriction: Option[Restriction],
     reason: Option[String],
     status: Option[AnalysisStatus],
-    caseNumbers: Option[CaseNumbers]
+    caseNumbers: Option[CaseNumbers],
+    orgId: Option[OrgId]
 ) extends AnalysisEvent {
 
   val partOf: Option[EventId]      = None

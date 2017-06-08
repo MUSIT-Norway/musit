@@ -18,12 +18,14 @@ trait ObjectTables
   type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Collection], Option[String], Option[String], Option[String], Option[String], Option[String]))
   type MaterialRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[Int], Option[String], Option[String], Option[Int], Option[Long], Option[String], Option[Int]))
   type LocationRow = ((Option[Int], Option[Long], Option[String], Option[Int], Option[String], Option[Int], Option[String], Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[Int], Option[Int]))
+  type CoordinateRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[String]))
   // format: on
   // scalastyle:on line.size.limit
 
-  val objTable           = TableQuery[ObjectTable]
-  val thingMaterialTable = TableQuery[ThingMaterialTable]
-  val thingLocationTable = TableQuery[ThingLocationTable]
+  val objTable             = TableQuery[ObjectTable]
+  val thingMaterialTable   = TableQuery[ThingMaterialTable]
+  val thingLocationTable   = TableQuery[ThingLocationTable]
+  val thingCoordinateTable = TableQuery[ThingCoordinateTable]
 
   /**
    * Definition for the MUSIT_MAPPING.MUSITTHING table
@@ -168,6 +170,31 @@ trait ObjectTables
     val etnArea          = column[Option[String]]("ETN_AREA")
     val etnLocalPlaceId  = column[Option[Int]]("ETN_LOCAL_STEDID")
     val etnPlaceCount    = column[Option[Int]]("ETN_PLACE_COUNT")
+
+    // scalastyle:on line.size.limit
+  }
+
+  class ThingCoordinateTable(
+      val tag: Tag
+  ) extends Table[CoordinateRow](tag, Some("MUSIT_MAPPING"), "THING_COORDINATE") {
+
+    // scalastyle:off method.name
+    def * = (
+      collectionid,
+      objectid,
+      arkProjection,
+      arkPresision,
+      arkNorth,
+      arkEast
+    )
+
+    // scalastyle:on method.name
+    val collectionid  = column[Option[Int]]("COLLECTIONID")
+    val objectid      = column[Option[Long]]("OBJECTID")
+    val arkProjection = column[Option[String]]("ARK_PROJEKSJON")
+    val arkPresision  = column[Option[String]]("ARK_PRESISJON")
+    val arkNorth      = column[Option[String]]("ARK_NORD")
+    val arkEast       = column[Option[String]]("ARK_OST")
 
     // scalastyle:on line.size.limit
   }

@@ -3,7 +3,7 @@ package repositories.analysis.dao
 import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult}
 import models.analysis.events.{Analysis, AnalysisCollection}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
+import no.uio.musit.models.{EventId, MuseumId, ObjectUUID, OrgId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
@@ -56,6 +56,11 @@ class AnalysisDaoSpec
         val res = dao.insertCol(defaultMid, ac).futureValue
 
         res.successValue mustBe EventId(6)
+
+        val orgidRes = dao.findById(defaultMid, EventId(6)).futureValue
+        orgidRes.successValue.value mustBe an[AnalysisCollection]
+        val or = orgidRes.successValue.value.asInstanceOf[AnalysisCollection]
+        or.orgId mustBe Some(OrgId(315))
       }
     }
 

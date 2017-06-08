@@ -84,6 +84,18 @@ CREATE TABLE MUSIT_MAPPING.THING_LOCATION
   etn_place_count    INTEGER
 );
 
+--is actually a view in DB
+CREATE TABLE MUSIT_MAPPING.THING_COORDINATE
+(
+  collectionid       INTEGER,
+  objectid           INTEGER,
+  ark_projeksjon     VARCHAR2(100),
+  ark_presisjon      VARCHAR2(100),
+  ark_nord           VARCHAR2(50),
+  ark_ost            VARCHAR2(50),
+  ark_localksettid   INTEGER
+);
+
 --------------------------------------------------------------------------------
 -- ACTOR MODULE
 --------------------------------------------------------------------------------
@@ -937,3 +949,7 @@ INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn,
 INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band,etn_place,etn_country,etn_region1, etn_region2,etn_area,etn_local_stedid,etn_place_count) VALUES (1, 3, 'nedre Berg', 20, '45', 66, '', '', '', '', '', '', '', '', '', '', '', '','', 1);
 INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band,etn_place,etn_country,etn_region1, etn_region2,etn_area,etn_local_stedid,etn_place_count) VALUES (2, 55, '','' , '', '', '', '', '', '', '', '', '', 'Malmø C', 'Sverige', 'Skandinavia', 'Norden', 'Nord-Europa',33,1);
 INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn, ark_gardsnr, ark_bruksnr, ark_stedid, nat_country, nat_state_province, nat_municipality, nat_locality, nat_coordinate, nat_coord_datum, nat_sone_band,etn_place,etn_country,etn_region1, etn_region2,etn_area,etn_local_stedid,etn_place_count) VALUES (2, 55, '', '', '', '', '', '', '', '', '', '', '', 'Malmø N', 'Sverige', 'Skandinavia', 'Norden', 'Nord-Europa',34,1);
+
+INSERT INTO MUSIT_MAPPING.THING_COORDINATE(collectionid, objectid, ark_projeksjon, ark_presisjon, ark_nord, ark_ost) VALUES (1, 3, 'EU89-UTM Sone 32', 'Stedsnavn (Gard)' , ',6934625,', ',434096,');
+INSERT INTO MUSIT_MAPPING.THING_COORDINATE(collectionid, objectid, ark_projeksjon, ark_presisjon, ark_nord, ark_ost) VALUES (1, 3, 'EU89-UTM Sone 32', 'Stedsnavn (lokalitet)' , ',6934625,', ',434096,');
+INSERT INTO MUSIT_MAPPING.THING_COORDINATE(collectionid, objectid, ark_projeksjon, ark_presisjon, ark_nord, ark_ost) VALUES (2, 55, 'EU89-UTM Sone 32','Funnsted' ,',6934625,', ',434096,');

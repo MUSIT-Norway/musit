@@ -5,7 +5,7 @@ import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.events.AnalysisExtras.ExtraAttributes
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ObjectTypes.ObjectType
-import no.uio.musit.models.{ActorId, CaseNumbers, ObjectUUID}
+import no.uio.musit.models.{ActorId, CaseNumbers, ObjectUUID, OrgId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
@@ -136,6 +136,7 @@ object SaveCommands {
       objects: Seq[ObjectUuidAndType],
       restriction: Option[SaveRestriction],
       caseNumbers: Option[CaseNumbers],
+      orgId: Option[OrgId],
       reason: Option[String],
       status: AnalysisStatus,
       extraAttributes: Option[ExtraAttributes]
@@ -175,6 +176,7 @@ object SaveCommands {
         reason = reason,
         status = Option(status),
         caseNumbers = caseNumbers,
+        orgId = None,
         events = this.objects.map { oid =>
           Analysis(
             id = None,
@@ -217,6 +219,7 @@ object SaveCommands {
         reason = reason,
         status = Option(status),
         caseNumbers = caseNumbers,
+        orgId = orgId,
         note = note,
         restriction = restriction.map { r =>
           a.restriction

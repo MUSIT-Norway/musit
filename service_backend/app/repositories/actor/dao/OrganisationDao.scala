@@ -26,7 +26,7 @@ class OrganisationDao @Inject()(
   private val orgTable = TableQuery[OrganisationTable]
 
   def getById(id: OrgId): Future[Option[Organisation]] = {
-    db.run(orgTable.filter(_.id === id).result.headOption)
+    db.run(orgTable.filter(_.orgId === id).result.headOption)
   }
 
   def getByNameAndTags(searchName: String, tag: String): Future[Seq[Organisation]] = {
@@ -47,7 +47,12 @@ class OrganisationDao @Inject()(
 
   def insert(organization: Organisation): Future[Organisation] = {
     val query = orgTable returning
-      orgTable.map(_.id) into ((organization, id) => organization.copy(id = Some(id)))
+      orgTable.map(_.orgId) into (
+        (
+            organization,
+            id
+        ) => organization.copy(id = Some(id))
+    )
 
     val action = query += organization
 
@@ -56,7 +61,7 @@ class OrganisationDao @Inject()(
 
   def update(org: Organisation): Future[MusitResult[Option[Int]]] = {
     // "Record was updated!"
-    val query = orgTable.filter(_.id === org.id).update(org)
+    val query = orgTable.filter(_.orgId === org.id).update(org)
     db.run(query).map {
       case upd: Int if upd == 0 => MusitSuccess(None)
       case upd: Int if upd == 1 => MusitSuccess(Some(upd))
@@ -65,7 +70,7 @@ class OrganisationDao @Inject()(
   }
 
   def delete(id: OrgId): Future[Int] = {
-    db.run(orgTable.filter(_.id === id).delete)
+    db.run(orgTable.filter(_.orgId === id).delete)
   }
 
   def getAnalysisLabList: Future[MusitResult[Seq[Organisation]]] = {
@@ -78,7 +83,7 @@ class OrganisationDao @Inject()(
       tag: Tag
   ) extends Table[Organisation](tag, Some(SchemaName), OrgTableName) {
 
-    val id          = column[OrgId]("ORG_ID", O.PrimaryKey, O.AutoInc)
+    val orgId       = column[OrgId]("ORG_ID", O.PrimaryKey, O.AutoInc)
     val fullName    = column[String]("FULL_NAME")
     val tel         = column[Option[String]]("TEL")
     val web         = column[Option[String]]("WEB")
@@ -86,7 +91,7 @@ class OrganisationDao @Inject()(
     val serviceTags = column[Option[String]]("SERVICE_TAGS")
 
     val create = (
-        id: Option[OrgId],
+        orgId: Option[OrgId],
         fullName: String,
         tel: Option[String],
         web: Option[String],
@@ -94,7 +99,7 @@ class OrganisationDao @Inject()(
         serviceTags: Option[String]
     ) =>
       Organisation(
-        id,
+        orgId,
         fullName,
         tel,
         web,
@@ -115,7 +120,8 @@ class OrganisationDao @Inject()(
     )
 
     // scalastyle:off method.name
-    def * = (id.?, fullName, tel, web, synonyms, serviceTags) <> (create.tupled, destroy)
+    def * =
+      (orgId.?, fullName, tel, web, synonyms, serviceTags) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
   }

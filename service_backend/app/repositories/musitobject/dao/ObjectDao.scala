@@ -524,12 +524,8 @@ class ObjectDao @Inject()(
 
     db.run(query.result)
       .map(res => MusitSuccess(res.map(MusitObject.fromSearchTuple)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Error while locating object with old barcode $oldBarcode"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(nonFatal(s"Error while locating object with old barcode $oldBarcode"))
+
   }
 
   def getObjectMaterialAction(oid: ObjectId, collection: Collection)
@@ -562,12 +558,7 @@ class ObjectDao @Inject()(
     val q = getObjectMaterialAction(oid, collection)
     db.run(q)
       .map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Unable to get materials for $oid"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(nonFatal(s"Unable to get materials for $oid"))
   }
 
   def getObjectLocationAction(
@@ -606,6 +597,23 @@ class ObjectDao @Inject()(
   }
 
 
+  def getObjectCoordinateAction(
+    oid: ObjectId,
+    collection: Collection
+  )(implicit currUsr: AuthenticatedUser): DBIO[Seq[MusitObjectCoordinate]] = {
+    collection match {
+      case Archeology =>
+        thingCoordinateTable.filter(_.objectid === oid.underlying).map { a =>
+          (a.arkProjection, a.arkPresision,a.arkNorth,a.arkEast)
+        }.result.map(ts => ts.map(t => ArkCoordinate(t._1, t._2, t._3, t._4)))
+
+
+      case noCoordinates =>
+        logger.warn(s"There are no coordinates for the $noCoordinates collection")
+        DBIO.successful(Seq.empty)
+    }
+  }
+
   def getObjectLocation(
     museumId: MuseumId,
     collection: Collection,
@@ -614,12 +622,18 @@ class ObjectDao @Inject()(
     val q = getObjectLocationAction(oid, collection)
     db.run(q)
       .map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Unable to get locations for $oid"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(nonFatal(s"Unable to get locations for $oid"))
+  }
+
+  def getObjectCoordinate(
+    museumId: MuseumId,
+    collection: Collection,
+    oid: ObjectId
+  )(implicit au: AuthenticatedUser): Future[MusitResult[Seq[MusitObjectCoordinate]]] = {
+    val q = getObjectCoordinateAction(oid, collection)
+    db.run(q)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"Unable to get coordinates for $oid"))
   }
 
   def uuidsForIds(

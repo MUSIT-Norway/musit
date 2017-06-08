@@ -422,6 +422,20 @@ create table MUSIT_MAPPING.THING_LOCATION
 );
 
 -- ===========================================================================
+-- Temporary mapping table for museum object's coordinate.
+-- ===========================================================================
+CREATE TABLE MUSIT_MAPPING.THING_COORDINATE
+(
+  collectionid       INTEGER,
+  objectid           INTEGER,
+  ark_projeksjon     VARCHAR2(100),
+  ark_presisjon      VARCHAR2(100),
+  ark_nord           VARCHAR2(50),
+  ark_ost            VARCHAR2(50),
+  ark_localksettid   INTEGER
+);
+
+-- ===========================================================================
 -- Tables for Analysis and SampleObject management
 -- ===========================================================================
 CREATE SEQUENCE MUSARK_ANALYSIS.sample_object_sample_num_seq

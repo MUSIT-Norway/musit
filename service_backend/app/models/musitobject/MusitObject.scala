@@ -23,7 +23,8 @@ case class MusitObject(
     natGender: Option[String],
     natLegDate: Option[String],
     materials: Option[Seq[MusitObjectMaterial]],
-    locations: Option[Seq[MusitObjectLocation]]
+    locations: Option[Seq[MusitObjectLocation]],
+    coordinates: Option[Seq[MusitObjectCoordinate]]
 )
 
 object MusitObject {
@@ -72,7 +73,8 @@ object MusitObject {
       natGender = t._17,
       natLegDate = t._18,
       materials = None,
-      locations = None
+      locations = None,
+      coordinates = None
     )
   }
 

@@ -351,6 +351,31 @@ class ObjectControllerIntegrationSpec
         (firstLocation.last \ "area").as[String] mustBe "Nord-Europa"
       }
 
+      "successfully return the object with its coordinates" in {
+        val uuid  = "d43e3c5a-8244-4497-bd15-29c844ff8745"
+        val mid   = 99
+        val token = BearerToken(FakeUsers.testAdminToken)
+        val res = wsUrl(s"/museum/$mid/objects/$uuid")
+          .withHeaders(token.asHeader)
+          .withQueryString("collectionIds" -> archeologyCollection)
+          .get()
+          .futureValue
+        res.status mustBe OK
+        val obj = res.json
+
+        val firstLocation = (obj \ "coordinates").as[JsArray].value
+        firstLocation.size mustBe 2
+        (firstLocation.head \ "projection").as[String] must endWith("Sone 32")
+        (firstLocation.head \ "precision").as[String] must include("Stedsnavn")
+        (firstLocation.head \ "north").as[String] mustBe ",6934625,"
+        (firstLocation.head \ "east").as[String] mustBe ",434096,"
+
+        (firstLocation.last \ "projection").as[String] must endWith("Sone 32")
+        (firstLocation.last \ "precision").as[String] must include("Stedsnavn")
+        (firstLocation.last \ "north").as[String] mustBe ",6934625,"
+        (firstLocation.last \ "east").as[String] mustBe ",434096,"
+      }
+
       "return not found if the object doesn't exist" in {
         val uuid = "00000000-8244-4497-bd15-29c844ff8745"
         val mid  = 99
