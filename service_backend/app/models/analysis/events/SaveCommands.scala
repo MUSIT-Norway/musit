@@ -176,7 +176,7 @@ object SaveCommands {
         reason = reason,
         status = Option(status),
         caseNumbers = caseNumbers,
-        orgId = None,
+        orgId = orgId,
         events = this.objects.map { oid =>
           Analysis(
             id = None,

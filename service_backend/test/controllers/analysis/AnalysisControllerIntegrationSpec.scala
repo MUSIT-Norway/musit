@@ -157,15 +157,15 @@ class AnalysisControllerIntegrationSpec
           typeId = tomographyTypeId,
           eventDate = Some(edate),
           objects = Seq(dummyObjectId),
-          caseNumbers = Some(Seq("abc", "def"))
+          caseNumbers = Some(Seq("abc", "def")),
+          orgId = Some(OrgId(312))
         )
 
         saveAnalysis(js).status mustBe CREATED // creates ids 7 to 8
-
         val ares =
           wsUrl(getAnalysisUrl(mid)(7L)).withHeaders(token.asHeader).get().futureValue
         ares.status mustBe OK
-
+        (ares.json \ "orgId").as[Int] mustBe 312
         val updJson = js ++ Json.obj(
           "reason"         -> "There's a reason now",
           "status"         -> 2,

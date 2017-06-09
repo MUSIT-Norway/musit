@@ -5,7 +5,7 @@ import models.analysis.events.AnalysisResults._
 import models.analysis.events.{Analysis, AnalysisCollection, Category}
 import models.analysis.Size
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
-import no.uio.musit.models.{ActorId, ObjectUUID}
+import no.uio.musit.models.{ActorId, ObjectUUID, OrgId}
 import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpec}
 import no.uio.musit.time
@@ -44,7 +44,8 @@ trait AnalysisJsonGenerators {
       eventDate: Option[DateTime],
       objects: Seq[ObjectUUID],
       note: Option[String] = None,
-      caseNumbers: Option[Seq[String]] = None
+      caseNumbers: Option[Seq[String]] = None,
+      orgId: Option[OrgId] = None
   ): JsObject = {
     val js1 = Json.obj(
       "analysisTypeId" -> typeId,
@@ -60,8 +61,8 @@ trait AnalysisJsonGenerators {
     val js4 = caseNumbers.map { cn =>
       js3 ++ Json.obj("caseNumbers" -> JsArray(cn.map(JsString)))
     }.getOrElse(js3)
-
-    js4 ++ Json.obj(
+    val js5 = orgId.map(o => js4 ++ Json.obj("orgId" -> o)).getOrElse(js4)
+    js5 ++ Json.obj(
       "objects" -> objects.map { id =>
         Json.obj(
           "objectId"   -> id.asString,
