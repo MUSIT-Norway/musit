@@ -17,7 +17,7 @@ object SampleStatuses {
       case Contaminated.key => Some(Contaminated)
       case Prepared.key     => Some(Prepared)
       case Discarded.key    => Some(Discarded)
-      case Dehydrated.key   => Some(Dehydrated)
+      case Cancelled.key    => Some(Cancelled)
       case Consumed.key     => Some(Consumed)
       case Dessicated.key   => Some(Dessicated)
       case Degraded.key     => Some(Degraded)
@@ -40,7 +40,7 @@ object SampleStatuses {
         case JsSuccess(Contaminated.key, _) => JsSuccess(Contaminated)
         case JsSuccess(Prepared.key, _)     => JsSuccess(Prepared)
         case JsSuccess(Discarded.key, _)    => JsSuccess(Discarded)
-        case JsSuccess(Dehydrated.key, _)   => JsSuccess(Dehydrated)
+        case JsSuccess(Cancelled.key, _)    => JsSuccess(Cancelled)
         case JsSuccess(Consumed.key, _)     => JsSuccess(Consumed)
         case JsSuccess(Dessicated.key, _)   => JsSuccess(Dessicated)
         case JsSuccess(Degraded.key, _)     => JsSuccess(Degraded)
@@ -73,7 +73,7 @@ object SampleStatuses {
     override val key = 5
   }
 
-  case object Dehydrated extends SampleStatus {
+  case object Cancelled extends SampleStatus {
     override val key = 6
   }
 
